@@ -12,9 +12,9 @@ import (
 	"github.com/ubuntu/authd/internal/log"
 )
 
-//go:generate go run ../generate_completion_documentation.go completion ../../generated
-//go:generate go run ../generate_completion_documentation.go update-readme
-//go:generate go run ../generate_completion_documentation.go update-doc-cli-ref
+//FIXME go:generate go run ../generate_completion_documentation.go completion ../../generated
+//FIXME go:generate go run ../generate_completion_documentation.go update-readme
+//FIXME go:generate go run ../generate_completion_documentation.go update-doc-cli-ref
 
 func main() {
 	//i18n.InitI18nDomain(common.TEXTDOMAIN)
