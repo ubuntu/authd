@@ -1,0 +1,41 @@
+name: QA & sanity checks
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+  pull_request:
+
+jobs:
+  sanity:
+    name: Code sanity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Go code sanity check
+        uses: canonical/desktop-engineering/gh-actions/go/code-sanity@main
+        with:
+          golangci-lint-configfile: ".golangci.yaml"
+          tools-directory: "tools"
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v4
+        with:
+          go-version-file: go.mod
+      - name: Run tests
+        run: |
+          set -eu
+
+          go test -coverpkg=./... -coverprofile=/tmp/coverage.out -covermode=set ./... -shuffle=on
+      - name: Run tests (with race detector)
+        run: |
+          go test -race ./...
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: /tmp/coverage.combined
