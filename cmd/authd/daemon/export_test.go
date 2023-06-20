@@ -14,6 +14,8 @@ type (
 )
 
 func NewForTests(t *testing.T, conf *DaemonConfig, args ...string) *App {
+	t.Helper()
+
 	p := GenerateTestConfig(t, conf)
 	argsWithConf := []string{"--config", p}
 	argsWithConf = append(argsWithConf, args...)
@@ -24,6 +26,8 @@ func NewForTests(t *testing.T, conf *DaemonConfig, args ...string) *App {
 }
 
 func GenerateTestConfig(t *testing.T, origConf *daemonConfig) string {
+	t.Helper()
+
 	var conf daemonConfig
 
 	if origConf != nil {
@@ -46,13 +50,16 @@ func GenerateTestConfig(t *testing.T, origConf *daemonConfig) string {
 	require.NoError(t, err, "Setup: could not marshal configuration for tests")
 
 	confPath := filepath.Join(t.TempDir(), "testconfig.yaml")
-	err = os.WriteFile(confPath, d, 0644)
+	err = os.WriteFile(confPath, d, 0600)
 	require.NoError(t, err, "Setup: could not create configuration for tests")
 
 	return confPath
 }
 
-func (a App) Config() daemonConfig {
+// Config returns a DaemonConfig for tests.
+//
+//nolint:revive // DaemonConfig is a type alias for tests
+func (a App) Config() DaemonConfig {
 	return a.config
 }
 

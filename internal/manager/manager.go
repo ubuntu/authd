@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-// Manager mediate the whole business logic of the application
+// Manager mediate the whole business logic of the application.
 type Manager struct {
 	nssService nss.Service
 	pamService pam.Service
@@ -33,6 +33,7 @@ func New(ctx context.Context) (m Manager, err error) {
 	}, nil
 }
 
+// RegisterGRPCServices returns a new grpc Server after registering both NSS and PAM services.
 func (a Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 	log.Debug(ctx, "Registering GRPC services")
 

@@ -8,10 +8,12 @@ import (
 	"github.com/ubuntu/authd/internal/log"
 )
 
+// Service is the implementation of the PAM module service.
 type Service struct {
 	authd.UnimplementedPamServer
 }
 
+// NewService returns a new PAM GRPC service.
 func NewService(ctx context.Context) Service {
 	log.Debug(ctx, "Building new GRPC PAM service")
 

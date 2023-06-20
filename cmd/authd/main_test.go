@@ -37,6 +37,7 @@ func (a *myApp) Quit() {
 	close(a.done)
 }
 
+//nolint:tparallel // Signal handlers tests: subtests can't be parallel
 func TestRun(t *testing.T) {
 	t.Parallel()
 
@@ -62,8 +63,6 @@ func TestRun(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			// Signal handlers tests: can’t be parallel
-
 			a := myApp{
 				done:             make(chan struct{}),
 				runError:         tc.runError,

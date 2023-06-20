@@ -29,14 +29,14 @@ type App struct {
 	ready chan struct{}
 }
 
-// only overriable for tests
+// only overriable for tests.
 type systemDirs struct {
 	CacheDir   string
 	SocketPath string
 	RunDir     string
 }
 
-// daemonConfig defines configuration parameters of the daemon
+// daemonConfig defines configuration parameters of the daemon.
 type daemonConfig struct {
 	Verbosity  int
 	SystemDirs systemDirs
