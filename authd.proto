@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "github.com/ubuntu/authd";
+
+service pam {
+    rpc TestPam(Empty) returns (StringResponse);
+}
+
+service nss {
+    rpc TestNSS(Empty) returns (StringResponse);
+}
+
+message Empty {}
+
+message StringResponse {
+    string msg = 1;
+}
