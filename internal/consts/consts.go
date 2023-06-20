@@ -15,6 +15,12 @@ const (
 	// DefaultLogLevel is the default logging level selected without any option.
 	DefaultLogLevel = log.WarnLevel
 
-	// DefaultSocket is the default socket path.
-	DefaultSocket = "/run/authd.sock"
+	// DefaultSocketPath is the default socket path.
+	DefaultSocketPath = "/run/authd.sock"
+
+	// DefaultCacheDir is the default directory for the cache
+	DefaultCacheDir = "/var/cache/authd/"
+
+	// DefaultRunDir is the default run directory
+	DefaultRunDir = "/run/authd/"
 )
