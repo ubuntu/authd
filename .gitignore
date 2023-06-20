@@ -3,9 +3,11 @@
 #
 # Binaries for programs and plugins
 *.so
+cmd/authd/authd
 
 # Test binary, built with `go test -c`
 *.test
+coverage/
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
