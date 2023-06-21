@@ -56,8 +56,8 @@ func New(ctx context.Context, registerGRPCService GRPCServiceRegisterer, args ..
 	opts := options{
 		socketPath: "",
 
-		systemdSdNotifier:         daemon.SdNotify,
 		systemdActivationListener: activation.Listeners,
+		systemdSdNotifier:         daemon.SdNotify,
 	}
 	// Apply given args.
 	for _, f := range args {
