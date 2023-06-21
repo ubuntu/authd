@@ -291,6 +291,8 @@ func TestQuit(t *testing.T) {
 }
 
 func createClientConnection(t *testing.T, socketPath string) (success bool, disconnect func()) {
+	t.Helper()
+
 	ctx, disconnect := context.WithCancel(context.Background())
 
 	var conn *grpc.ClientConn
@@ -308,7 +310,7 @@ func createClientConnection(t *testing.T, socketPath string) (success bool, disc
 	}
 
 	client := grpctestservice.NewTestServiceClient(conn)
-	go client.Blocking(ctx, &grpctestservice.Empty{})
+	go func() { _, _ = client.Blocking(ctx, &grpctestservice.Empty{}) }()
 	time.Sleep(10 * time.Millisecond)
 
 	return true, disconnect
