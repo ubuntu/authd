@@ -53,6 +53,11 @@ func Error(ctx context.Context, args ...interface{}) {
 	logrus.Error(args...)
 }
 
+// Error is a temporary placeholder.
+func Errorf(ctx context.Context, format string, args ...interface{}) {
+	logrus.Errorf(format, args...)
+}
+
 // Infof is a temporary placeholder.
 func Infof(ctx context.Context, format string, args ...interface{}) {
 	logrus.Infof(format, args...)
