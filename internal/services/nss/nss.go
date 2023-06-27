@@ -10,7 +10,7 @@ import (
 
 // Service is the implementation of the NSS module service.
 type Service struct {
-	authd.UnimplementedNssServer
+	authd.UnimplementedNSSServer
 }
 
 // NewService returns a new NSS GRPC service.

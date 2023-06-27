@@ -2,16 +2,78 @@ syntax = "proto3";
 
 option go_package = "github.com/ubuntu/authd";
 
-service pam {
-    rpc TestPam(Empty) returns (StringResponse);
+service PAM {
+  rpc GetBrokersInfo(Empty) returns (BrokersInfo);
+
+  // API passed to the broker.
+  rpc GetAuthenticationModes(GetAuthenticationModesRequest)
+    returns (GetAuthenticationModesResponse);
+  rpc SelectAuthenticationMode(SAMRequest) returns (SAMResponse);
+  rpc IsAuthorized(IARequest) returns (IAResponse);
 }
 
-service nss {
-    rpc TestNSS(Empty) returns (StringResponse);
+service NSS {
+  rpc TestNSS(Empty) returns (StringResponse);
 }
 
-message Empty {}
+message BrokersInfo {
+  repeated BrokerInfo brokers_infos = 1;
+
+  message BrokerInfo {
+    string name = 1;
+    optional string brand_icon = 2;
+  }
+}
+
+message Empty {
+}
 
 message StringResponse {
-    string msg = 1;
+  string msg = 1;
+}
+
+message GetAuthenticationModesRequest {
+  string broker = 1;
+  string username = 2;
+  string lang = 3;
+  repeated UILayout supported_ui_layouts = 4;
+}
+
+message UILayout {
+  string type = 1;
+  optional string label = 2;
+  optional string password = 3;
+  optional string digits = 4;
+  optional string button = 5;
+  optional string text = 6;
+}
+
+message GetAuthenticationModesResponse {
+  string session_id = 1;
+  string encryption_key = 2;
+  repeated AuthenticationMode authentication_modes = 3;
+
+  message AuthenticationMode {
+    string name = 1;
+    string label = 2;
+  }
+}
+
+message SAMRequest {
+  string session_id = 1;
+  string authentication_mode_name = 2;
+}
+
+message SAMResponse {
+  UILayout ui_layout_info = 1;
+}
+
+message IARequest {
+  string session_id = 1;
+  string authentication_data = 2;
+}
+
+message IAResponse {
+  string access = 1;
+  map<string, string> user_info = 2;
 }
