@@ -35,7 +35,7 @@ func initViperConfig(name string, cmd *cobra.Command, vip *viper.Viper) (err err
 		vip.SetConfigName(name)
 		vip.AddConfigPath("./")
 		vip.AddConfigPath("$HOME/")
-		vip.AddConfigPath("/etc/")
+		vip.AddConfigPath("/etc/authd/")
 		// Add the executable path to the config search path.
 		if binPath, err := os.Executable(); err != nil {
 			log.Warningf(context.Background(), "Failed to get current executable path, not adding it as a config dir: %v", err)

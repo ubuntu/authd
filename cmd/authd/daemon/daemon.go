@@ -38,6 +38,7 @@ type systemDirs struct {
 
 // daemonConfig defines configuration parameters of the daemon.
 type daemonConfig struct {
+	Brokers    []string
 	Verbosity  int
 	SystemDirs systemDirs
 }
@@ -58,8 +59,8 @@ func New() *App {
 			// Set config defaults
 			a.config = daemonConfig{
 				SystemDirs: systemDirs{
-					CacheDir:   consts.DefaultSocketPath,
-					SocketPath: consts.DefaultSocketPath,
+					CacheDir:   consts.DefaultCacheDir,
+					SocketPath: consts.DefaultSocketPath, // FIXME bogus: this forces this socket path without activation.
 					RunDir:     consts.DefaultRunDir,
 				},
 			}
@@ -100,7 +101,7 @@ func New() *App {
 func (a *App) serve(config daemonConfig) error {
 	ctx := context.Background()
 
-	m, err := manager.New(ctx)
+	m, err := manager.New(ctx, config.Brokers)
 	if err != nil {
 		close(a.ready)
 		return err
