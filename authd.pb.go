@@ -20,6 +20,53 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type BrokersInfo struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	BrokersInfos []*BrokersInfo_BrokerInfo `protobuf:"bytes,1,rep,name=brokers_infos,json=brokersInfos,proto3" json:"brokers_infos,omitempty"`
+}
+
+func (x *BrokersInfo) Reset() {
+	*x = BrokersInfo{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authd_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BrokersInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BrokersInfo) ProtoMessage() {}
+
+func (x *BrokersInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_authd_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BrokersInfo.ProtoReflect.Descriptor instead.
+func (*BrokersInfo) Descriptor() ([]byte, []int) {
+	return file_authd_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *BrokersInfo) GetBrokersInfos() []*BrokersInfo_BrokerInfo {
+	if x != nil {
+		return x.BrokersInfos
+	}
+	return nil
+}
+
 type Empty struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -29,7 +76,7 @@ type Empty struct {
 func (x *Empty) Reset() {
 	*x = Empty{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_authd_proto_msgTypes[0]
+		mi := &file_authd_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -42,7 +89,7 @@ func (x *Empty) String() string {
 func (*Empty) ProtoMessage() {}
 
 func (x *Empty) ProtoReflect() protoreflect.Message {
-	mi := &file_authd_proto_msgTypes[0]
+	mi := &file_authd_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,7 +102,7 @@ func (x *Empty) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Empty.ProtoReflect.Descriptor instead.
 func (*Empty) Descriptor() ([]byte, []int) {
-	return file_authd_proto_rawDescGZIP(), []int{0}
+	return file_authd_proto_rawDescGZIP(), []int{1}
 }
 
 type StringResponse struct {
@@ -69,7 +116,7 @@ type StringResponse struct {
 func (x *StringResponse) Reset() {
 	*x = StringResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_authd_proto_msgTypes[1]
+		mi := &file_authd_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -82,7 +129,7 @@ func (x *StringResponse) String() string {
 func (*StringResponse) ProtoMessage() {}
 
 func (x *StringResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_authd_proto_msgTypes[1]
+	mi := &file_authd_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -95,7 +142,7 @@ func (x *StringResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StringResponse.ProtoReflect.Descriptor instead.
 func (*StringResponse) Descriptor() ([]byte, []int) {
-	return file_authd_proto_rawDescGZIP(), []int{1}
+	return file_authd_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *StringResponse) GetMsg() string {
@@ -105,16 +152,649 @@ func (x *StringResponse) GetMsg() string {
 	return ""
 }
 
+type GetAuthenticationModesRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Broker             string      `protobuf:"bytes,1,opt,name=broker,proto3" json:"broker,omitempty"`
+	Username           string      `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	Lang               string      `protobuf:"bytes,3,opt,name=lang,proto3" json:"lang,omitempty"`
+	SupportedUiLayouts []*UILayout `protobuf:"bytes,4,rep,name=supported_ui_layouts,json=supportedUiLayouts,proto3" json:"supported_ui_layouts,omitempty"`
+}
+
+func (x *GetAuthenticationModesRequest) Reset() {
+	*x = GetAuthenticationModesRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authd_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetAuthenticationModesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAuthenticationModesRequest) ProtoMessage() {}
+
+func (x *GetAuthenticationModesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_authd_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAuthenticationModesRequest.ProtoReflect.Descriptor instead.
+func (*GetAuthenticationModesRequest) Descriptor() ([]byte, []int) {
+	return file_authd_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GetAuthenticationModesRequest) GetBroker() string {
+	if x != nil {
+		return x.Broker
+	}
+	return ""
+}
+
+func (x *GetAuthenticationModesRequest) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *GetAuthenticationModesRequest) GetLang() string {
+	if x != nil {
+		return x.Lang
+	}
+	return ""
+}
+
+func (x *GetAuthenticationModesRequest) GetSupportedUiLayouts() []*UILayout {
+	if x != nil {
+		return x.SupportedUiLayouts
+	}
+	return nil
+}
+
+type UILayout struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Type     string  `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Label    *string `protobuf:"bytes,2,opt,name=label,proto3,oneof" json:"label,omitempty"`
+	Password *string `protobuf:"bytes,3,opt,name=password,proto3,oneof" json:"password,omitempty"`
+	Digits   *string `protobuf:"bytes,4,opt,name=digits,proto3,oneof" json:"digits,omitempty"`
+	Button   *string `protobuf:"bytes,5,opt,name=button,proto3,oneof" json:"button,omitempty"`
+	Text     *string `protobuf:"bytes,6,opt,name=text,proto3,oneof" json:"text,omitempty"`
+}
+
+func (x *UILayout) Reset() {
+	*x = UILayout{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authd_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *UILayout) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UILayout) ProtoMessage() {}
+
+func (x *UILayout) ProtoReflect() protoreflect.Message {
+	mi := &file_authd_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UILayout.ProtoReflect.Descriptor instead.
+func (*UILayout) Descriptor() ([]byte, []int) {
+	return file_authd_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *UILayout) GetType() string {
+	if x != nil {
+		return x.Type
+	}
+	return ""
+}
+
+func (x *UILayout) GetLabel() string {
+	if x != nil && x.Label != nil {
+		return *x.Label
+	}
+	return ""
+}
+
+func (x *UILayout) GetPassword() string {
+	if x != nil && x.Password != nil {
+		return *x.Password
+	}
+	return ""
+}
+
+func (x *UILayout) GetDigits() string {
+	if x != nil && x.Digits != nil {
+		return *x.Digits
+	}
+	return ""
+}
+
+func (x *UILayout) GetButton() string {
+	if x != nil && x.Button != nil {
+		return *x.Button
+	}
+	return ""
+}
+
+func (x *UILayout) GetText() string {
+	if x != nil && x.Text != nil {
+		return *x.Text
+	}
+	return ""
+}
+
+type GetAuthenticationModesResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SessionId           string                                               `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	EncryptionKey       string                                               `protobuf:"bytes,2,opt,name=encryption_key,json=encryptionKey,proto3" json:"encryption_key,omitempty"`
+	AuthenticationModes []*GetAuthenticationModesResponse_AuthenticationMode `protobuf:"bytes,3,rep,name=authentication_modes,json=authenticationModes,proto3" json:"authentication_modes,omitempty"`
+}
+
+func (x *GetAuthenticationModesResponse) Reset() {
+	*x = GetAuthenticationModesResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authd_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetAuthenticationModesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAuthenticationModesResponse) ProtoMessage() {}
+
+func (x *GetAuthenticationModesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_authd_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAuthenticationModesResponse.ProtoReflect.Descriptor instead.
+func (*GetAuthenticationModesResponse) Descriptor() ([]byte, []int) {
+	return file_authd_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *GetAuthenticationModesResponse) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *GetAuthenticationModesResponse) GetEncryptionKey() string {
+	if x != nil {
+		return x.EncryptionKey
+	}
+	return ""
+}
+
+func (x *GetAuthenticationModesResponse) GetAuthenticationModes() []*GetAuthenticationModesResponse_AuthenticationMode {
+	if x != nil {
+		return x.AuthenticationModes
+	}
+	return nil
+}
+
+type SAMRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SessionId              string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	AuthenticationModeName string `protobuf:"bytes,2,opt,name=authentication_mode_name,json=authenticationModeName,proto3" json:"authentication_mode_name,omitempty"`
+}
+
+func (x *SAMRequest) Reset() {
+	*x = SAMRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authd_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SAMRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SAMRequest) ProtoMessage() {}
+
+func (x *SAMRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_authd_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SAMRequest.ProtoReflect.Descriptor instead.
+func (*SAMRequest) Descriptor() ([]byte, []int) {
+	return file_authd_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *SAMRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *SAMRequest) GetAuthenticationModeName() string {
+	if x != nil {
+		return x.AuthenticationModeName
+	}
+	return ""
+}
+
+type SAMResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	UiLayoutInfo *UILayout `protobuf:"bytes,1,opt,name=ui_layout_info,json=uiLayoutInfo,proto3" json:"ui_layout_info,omitempty"`
+}
+
+func (x *SAMResponse) Reset() {
+	*x = SAMResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authd_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SAMResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SAMResponse) ProtoMessage() {}
+
+func (x *SAMResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_authd_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SAMResponse.ProtoReflect.Descriptor instead.
+func (*SAMResponse) Descriptor() ([]byte, []int) {
+	return file_authd_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *SAMResponse) GetUiLayoutInfo() *UILayout {
+	if x != nil {
+		return x.UiLayoutInfo
+	}
+	return nil
+}
+
+type IARequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SessionId          string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	AuthenticationData string `protobuf:"bytes,2,opt,name=authentication_data,json=authenticationData,proto3" json:"authentication_data,omitempty"`
+}
+
+func (x *IARequest) Reset() {
+	*x = IARequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authd_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *IARequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IARequest) ProtoMessage() {}
+
+func (x *IARequest) ProtoReflect() protoreflect.Message {
+	mi := &file_authd_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IARequest.ProtoReflect.Descriptor instead.
+func (*IARequest) Descriptor() ([]byte, []int) {
+	return file_authd_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *IARequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *IARequest) GetAuthenticationData() string {
+	if x != nil {
+		return x.AuthenticationData
+	}
+	return ""
+}
+
+type IAResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Access   string            `protobuf:"bytes,1,opt,name=access,proto3" json:"access,omitempty"`
+	UserInfo map[string]string `protobuf:"bytes,2,rep,name=user_info,json=userInfo,proto3" json:"user_info,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+}
+
+func (x *IAResponse) Reset() {
+	*x = IAResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authd_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *IAResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IAResponse) ProtoMessage() {}
+
+func (x *IAResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_authd_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IAResponse.ProtoReflect.Descriptor instead.
+func (*IAResponse) Descriptor() ([]byte, []int) {
+	return file_authd_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *IAResponse) GetAccess() string {
+	if x != nil {
+		return x.Access
+	}
+	return ""
+}
+
+func (x *IAResponse) GetUserInfo() map[string]string {
+	if x != nil {
+		return x.UserInfo
+	}
+	return nil
+}
+
+type BrokersInfo_BrokerInfo struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Name      string  `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	BrandIcon *string `protobuf:"bytes,2,opt,name=brand_icon,json=brandIcon,proto3,oneof" json:"brand_icon,omitempty"`
+}
+
+func (x *BrokersInfo_BrokerInfo) Reset() {
+	*x = BrokersInfo_BrokerInfo{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authd_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BrokersInfo_BrokerInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BrokersInfo_BrokerInfo) ProtoMessage() {}
+
+func (x *BrokersInfo_BrokerInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_authd_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BrokersInfo_BrokerInfo.ProtoReflect.Descriptor instead.
+func (*BrokersInfo_BrokerInfo) Descriptor() ([]byte, []int) {
+	return file_authd_proto_rawDescGZIP(), []int{0, 0}
+}
+
+func (x *BrokersInfo_BrokerInfo) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *BrokersInfo_BrokerInfo) GetBrandIcon() string {
+	if x != nil && x.BrandIcon != nil {
+		return *x.BrandIcon
+	}
+	return ""
+}
+
+type GetAuthenticationModesResponse_AuthenticationMode struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Name  string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Label string `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
+}
+
+func (x *GetAuthenticationModesResponse_AuthenticationMode) Reset() {
+	*x = GetAuthenticationModesResponse_AuthenticationMode{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authd_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GetAuthenticationModesResponse_AuthenticationMode) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetAuthenticationModesResponse_AuthenticationMode) ProtoMessage() {}
+
+func (x *GetAuthenticationModesResponse_AuthenticationMode) ProtoReflect() protoreflect.Message {
+	mi := &file_authd_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetAuthenticationModesResponse_AuthenticationMode.ProtoReflect.Descriptor instead.
+func (*GetAuthenticationModesResponse_AuthenticationMode) Descriptor() ([]byte, []int) {
+	return file_authd_proto_rawDescGZIP(), []int{5, 0}
+}
+
+func (x *GetAuthenticationModesResponse_AuthenticationMode) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GetAuthenticationModesResponse_AuthenticationMode) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
 var File_authd_proto protoreflect.FileDescriptor
 
 var file_authd_proto_rawDesc = []byte{
-	0x0a, 0x0b, 0x61, 0x75, 0x74, 0x68, 0x64, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x07, 0x0a,
-	0x05, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x22, 0x0a, 0x0e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x73, 0x67, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d, 0x73, 0x67, 0x32, 0x29, 0x0a, 0x03, 0x70, 0x61,
-	0x6d, 0x12, 0x22, 0x0a, 0x07, 0x54, 0x65, 0x73, 0x74, 0x50, 0x61, 0x6d, 0x12, 0x06, 0x2e, 0x45,
-	0x6d, 0x70, 0x74, 0x79, 0x1a, 0x0f, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0x29, 0x0a, 0x03, 0x6e, 0x73, 0x73, 0x12, 0x22, 0x0a, 0x07,
+	0x0a, 0x0b, 0x61, 0x75, 0x74, 0x68, 0x64, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xa0, 0x01,
+	0x0a, 0x0b, 0x42, 0x72, 0x6f, 0x6b, 0x65, 0x72, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x3c, 0x0a,
+	0x0d, 0x62, 0x72, 0x6f, 0x6b, 0x65, 0x72, 0x73, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x73, 0x18, 0x01,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x17, 0x2e, 0x42, 0x72, 0x6f, 0x6b, 0x65, 0x72, 0x73, 0x49, 0x6e,
+	0x66, 0x6f, 0x2e, 0x42, 0x72, 0x6f, 0x6b, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x0c, 0x62,
+	0x72, 0x6f, 0x6b, 0x65, 0x72, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x73, 0x1a, 0x53, 0x0a, 0x0a, 0x42,
+	0x72, 0x6f, 0x6b, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d,
+	0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x22, 0x0a,
+	0x0a, 0x62, 0x72, 0x61, 0x6e, 0x64, 0x5f, 0x69, 0x63, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x48, 0x00, 0x52, 0x09, 0x62, 0x72, 0x61, 0x6e, 0x64, 0x49, 0x63, 0x6f, 0x6e, 0x88, 0x01,
+	0x01, 0x42, 0x0d, 0x0a, 0x0b, 0x5f, 0x62, 0x72, 0x61, 0x6e, 0x64, 0x5f, 0x69, 0x63, 0x6f, 0x6e,
+	0x22, 0x07, 0x0a, 0x05, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x22, 0x22, 0x0a, 0x0e, 0x53, 0x74, 0x72,
+	0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x6d,
+	0x73, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6d, 0x73, 0x67, 0x22, 0xa4, 0x01,
+	0x0a, 0x1d, 0x47, 0x65, 0x74, 0x41, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x4d, 0x6f, 0x64, 0x65, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12,
+	0x16, 0x0a, 0x06, 0x62, 0x72, 0x6f, 0x6b, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x06, 0x62, 0x72, 0x6f, 0x6b, 0x65, 0x72, 0x12, 0x1a, 0x0a, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e,
+	0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x75, 0x73, 0x65, 0x72, 0x6e,
+	0x61, 0x6d, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6c, 0x61, 0x6e, 0x67, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x6c, 0x61, 0x6e, 0x67, 0x12, 0x3b, 0x0a, 0x14, 0x73, 0x75, 0x70, 0x70, 0x6f,
+	0x72, 0x74, 0x65, 0x64, 0x5f, 0x75, 0x69, 0x5f, 0x6c, 0x61, 0x79, 0x6f, 0x75, 0x74, 0x73, 0x18,
+	0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x55, 0x49, 0x4c, 0x61, 0x79, 0x6f, 0x75, 0x74,
+	0x52, 0x12, 0x73, 0x75, 0x70, 0x70, 0x6f, 0x72, 0x74, 0x65, 0x64, 0x55, 0x69, 0x4c, 0x61, 0x79,
+	0x6f, 0x75, 0x74, 0x73, 0x22, 0xe3, 0x01, 0x0a, 0x08, 0x55, 0x49, 0x4c, 0x61, 0x79, 0x6f, 0x75,
+	0x74, 0x12, 0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x04, 0x74, 0x79, 0x70, 0x65, 0x12, 0x19, 0x0a, 0x05, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x05, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x88, 0x01, 0x01,
+	0x12, 0x1f, 0x0a, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x09, 0x48, 0x01, 0x52, 0x08, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x88, 0x01,
+	0x01, 0x12, 0x1b, 0x0a, 0x06, 0x64, 0x69, 0x67, 0x69, 0x74, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28,
+	0x09, 0x48, 0x02, 0x52, 0x06, 0x64, 0x69, 0x67, 0x69, 0x74, 0x73, 0x88, 0x01, 0x01, 0x12, 0x1b,
+	0x0a, 0x06, 0x62, 0x75, 0x74, 0x74, 0x6f, 0x6e, 0x18, 0x05, 0x20, 0x01, 0x28, 0x09, 0x48, 0x03,
+	0x52, 0x06, 0x62, 0x75, 0x74, 0x74, 0x6f, 0x6e, 0x88, 0x01, 0x01, 0x12, 0x17, 0x0a, 0x04, 0x74,
+	0x65, 0x78, 0x74, 0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x48, 0x04, 0x52, 0x04, 0x74, 0x65, 0x78,
+	0x74, 0x88, 0x01, 0x01, 0x42, 0x08, 0x0a, 0x06, 0x5f, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x42, 0x0b,
+	0x0a, 0x09, 0x5f, 0x70, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x42, 0x09, 0x0a, 0x07, 0x5f,
+	0x64, 0x69, 0x67, 0x69, 0x74, 0x73, 0x42, 0x09, 0x0a, 0x07, 0x5f, 0x62, 0x75, 0x74, 0x74, 0x6f,
+	0x6e, 0x42, 0x07, 0x0a, 0x05, 0x5f, 0x74, 0x65, 0x78, 0x74, 0x22, 0x8d, 0x02, 0x0a, 0x1e, 0x47,
+	0x65, 0x74, 0x41, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x4d, 0x6f, 0x64, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1d, 0x0a,
+	0x0a, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x09, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x25, 0x0a, 0x0e,
+	0x65, 0x6e, 0x63, 0x72, 0x79, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x6b, 0x65, 0x79, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x65, 0x6e, 0x63, 0x72, 0x79, 0x70, 0x74, 0x69, 0x6f, 0x6e,
+	0x4b, 0x65, 0x79, 0x12, 0x65, 0x0a, 0x14, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x6d, 0x6f, 0x64, 0x65, 0x73, 0x18, 0x03, 0x20, 0x03, 0x28,
+	0x0b, 0x32, 0x32, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4d, 0x6f, 0x64, 0x65, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x2e, 0x41, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x4d, 0x6f, 0x64, 0x65, 0x52, 0x13, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4d, 0x6f, 0x64, 0x65, 0x73, 0x1a, 0x3e, 0x0a, 0x12, 0x41, 0x75,
+	0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4d, 0x6f, 0x64, 0x65,
+	0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04,
+	0x6e, 0x61, 0x6d, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x05, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x22, 0x65, 0x0a, 0x0a, 0x53, 0x41,
+	0x4d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1d, 0x0a, 0x0a, 0x73, 0x65, 0x73, 0x73,
+	0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x65,
+	0x73, 0x73, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x38, 0x0a, 0x18, 0x61, 0x75, 0x74, 0x68, 0x65,
+	0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x6d, 0x6f, 0x64, 0x65, 0x5f, 0x6e,
+	0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x16, 0x61, 0x75, 0x74, 0x68, 0x65,
+	0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4d, 0x6f, 0x64, 0x65, 0x4e, 0x61, 0x6d,
+	0x65, 0x22, 0x3e, 0x0a, 0x0b, 0x53, 0x41, 0x4d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
+	0x12, 0x2f, 0x0a, 0x0e, 0x75, 0x69, 0x5f, 0x6c, 0x61, 0x79, 0x6f, 0x75, 0x74, 0x5f, 0x69, 0x6e,
+	0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x09, 0x2e, 0x55, 0x49, 0x4c, 0x61, 0x79,
+	0x6f, 0x75, 0x74, 0x52, 0x0c, 0x75, 0x69, 0x4c, 0x61, 0x79, 0x6f, 0x75, 0x74, 0x49, 0x6e, 0x66,
+	0x6f, 0x22, 0x5b, 0x0a, 0x09, 0x49, 0x41, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1d,
+	0x0a, 0x0a, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x09, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x2f, 0x0a,
+	0x13, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f,
+	0x64, 0x61, 0x74, 0x61, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x12, 0x61, 0x75, 0x74, 0x68,
+	0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x44, 0x61, 0x74, 0x61, 0x22, 0x99,
+	0x01, 0x0a, 0x0a, 0x49, 0x41, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x16, 0x0a,
+	0x06, 0x61, 0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x61,
+	0x63, 0x63, 0x65, 0x73, 0x73, 0x12, 0x36, 0x0a, 0x09, 0x75, 0x73, 0x65, 0x72, 0x5f, 0x69, 0x6e,
+	0x66, 0x6f, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x49, 0x41, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e, 0x55, 0x73, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x45, 0x6e,
+	0x74, 0x72, 0x79, 0x52, 0x08, 0x75, 0x73, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x1a, 0x3b, 0x0a,
+	0x0d, 0x55, 0x73, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x12, 0x10,
+	0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79,
+	0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x3a, 0x02, 0x38, 0x01, 0x32, 0xe8, 0x01, 0x0a, 0x03, 0x50,
+	0x41, 0x4d, 0x12, 0x26, 0x0a, 0x0e, 0x47, 0x65, 0x74, 0x42, 0x72, 0x6f, 0x6b, 0x65, 0x72, 0x73,
+	0x49, 0x6e, 0x66, 0x6f, 0x12, 0x06, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x0c, 0x2e, 0x42,
+	0x72, 0x6f, 0x6b, 0x65, 0x72, 0x73, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x59, 0x0a, 0x16, 0x47, 0x65,
+	0x74, 0x41, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4d,
+	0x6f, 0x64, 0x65, 0x73, 0x12, 0x1e, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x75, 0x74, 0x68, 0x65, 0x6e,
+	0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4d, 0x6f, 0x64, 0x65, 0x73, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x1f, 0x2e, 0x47, 0x65, 0x74, 0x41, 0x75, 0x74, 0x68, 0x65, 0x6e,
+	0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4d, 0x6f, 0x64, 0x65, 0x73, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x35, 0x0a, 0x18, 0x53, 0x65, 0x6c, 0x65, 0x63, 0x74, 0x41,
+	0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x4d, 0x6f, 0x64,
+	0x65, 0x12, 0x0b, 0x2e, 0x53, 0x41, 0x4d, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0c,
+	0x2e, 0x53, 0x41, 0x4d, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x27, 0x0a, 0x0c,
+	0x49, 0x73, 0x41, 0x75, 0x74, 0x68, 0x6f, 0x72, 0x69, 0x7a, 0x65, 0x64, 0x12, 0x0a, 0x2e, 0x49,
+	0x41, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x0b, 0x2e, 0x49, 0x41, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x32, 0x29, 0x0a, 0x03, 0x4e, 0x53, 0x53, 0x12, 0x22, 0x0a, 0x07,
 	0x54, 0x65, 0x73, 0x74, 0x4e, 0x53, 0x53, 0x12, 0x06, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a,
 	0x0f, 0x2e, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
 	0x42, 0x19, 0x5a, 0x17, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x75,
@@ -134,21 +814,43 @@ func file_authd_proto_rawDescGZIP() []byte {
 	return file_authd_proto_rawDescData
 }
 
-var file_authd_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_authd_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_authd_proto_goTypes = []interface{}{
-	(*Empty)(nil),          // 0: Empty
-	(*StringResponse)(nil), // 1: StringResponse
+	(*BrokersInfo)(nil),                    // 0: BrokersInfo
+	(*Empty)(nil),                          // 1: Empty
+	(*StringResponse)(nil),                 // 2: StringResponse
+	(*GetAuthenticationModesRequest)(nil),  // 3: GetAuthenticationModesRequest
+	(*UILayout)(nil),                       // 4: UILayout
+	(*GetAuthenticationModesResponse)(nil), // 5: GetAuthenticationModesResponse
+	(*SAMRequest)(nil),                     // 6: SAMRequest
+	(*SAMResponse)(nil),                    // 7: SAMResponse
+	(*IARequest)(nil),                      // 8: IARequest
+	(*IAResponse)(nil),                     // 9: IAResponse
+	(*BrokersInfo_BrokerInfo)(nil),         // 10: BrokersInfo.BrokerInfo
+	(*GetAuthenticationModesResponse_AuthenticationMode)(nil), // 11: GetAuthenticationModesResponse.AuthenticationMode
+	nil, // 12: IAResponse.UserInfoEntry
 }
 var file_authd_proto_depIdxs = []int32{
-	0, // 0: pam.TestPam:input_type -> Empty
-	0, // 1: nss.TestNSS:input_type -> Empty
-	1, // 2: pam.TestPam:output_type -> StringResponse
-	1, // 3: nss.TestNSS:output_type -> StringResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	10, // 0: BrokersInfo.brokers_infos:type_name -> BrokersInfo.BrokerInfo
+	4,  // 1: GetAuthenticationModesRequest.supported_ui_layouts:type_name -> UILayout
+	11, // 2: GetAuthenticationModesResponse.authentication_modes:type_name -> GetAuthenticationModesResponse.AuthenticationMode
+	4,  // 3: SAMResponse.ui_layout_info:type_name -> UILayout
+	12, // 4: IAResponse.user_info:type_name -> IAResponse.UserInfoEntry
+	1,  // 5: PAM.GetBrokersInfo:input_type -> Empty
+	3,  // 6: PAM.GetAuthenticationModes:input_type -> GetAuthenticationModesRequest
+	6,  // 7: PAM.SelectAuthenticationMode:input_type -> SAMRequest
+	8,  // 8: PAM.IsAuthorized:input_type -> IARequest
+	1,  // 9: NSS.TestNSS:input_type -> Empty
+	0,  // 10: PAM.GetBrokersInfo:output_type -> BrokersInfo
+	5,  // 11: PAM.GetAuthenticationModes:output_type -> GetAuthenticationModesResponse
+	7,  // 12: PAM.SelectAuthenticationMode:output_type -> SAMResponse
+	9,  // 13: PAM.IsAuthorized:output_type -> IAResponse
+	2,  // 14: NSS.TestNSS:output_type -> StringResponse
+	10, // [10:15] is the sub-list for method output_type
+	5,  // [5:10] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_authd_proto_init() }
@@ -158,7 +860,7 @@ func file_authd_proto_init() {
 	}
 	if !protoimpl.UnsafeEnabled {
 		file_authd_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Empty); i {
+			switch v := v.(*BrokersInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -170,6 +872,18 @@ func file_authd_proto_init() {
 			}
 		}
 		file_authd_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Empty); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_authd_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*StringResponse); i {
 			case 0:
 				return &v.state
@@ -181,14 +895,124 @@ func file_authd_proto_init() {
 				return nil
 			}
 		}
+		file_authd_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetAuthenticationModesRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_authd_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*UILayout); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_authd_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetAuthenticationModesResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_authd_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SAMRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_authd_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SAMResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_authd_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*IARequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_authd_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*IAResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_authd_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*BrokersInfo_BrokerInfo); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_authd_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GetAuthenticationModesResponse_AuthenticationMode); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
+	file_authd_proto_msgTypes[4].OneofWrappers = []interface{}{}
+	file_authd_proto_msgTypes[10].OneofWrappers = []interface{}{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_authd_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

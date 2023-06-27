@@ -19,89 +19,202 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Pam_TestPam_FullMethodName = "/pam/TestPam"
+	PAM_GetBrokersInfo_FullMethodName           = "/PAM/GetBrokersInfo"
+	PAM_GetAuthenticationModes_FullMethodName   = "/PAM/GetAuthenticationModes"
+	PAM_SelectAuthenticationMode_FullMethodName = "/PAM/SelectAuthenticationMode"
+	PAM_IsAuthorized_FullMethodName             = "/PAM/IsAuthorized"
 )
 
-// PamClient is the client API for Pam service.
+// PAMClient is the client API for PAM service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type PamClient interface {
-	TestPam(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*StringResponse, error)
+type PAMClient interface {
+	GetBrokersInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*BrokersInfo, error)
+	// API passed to the broker.
+	GetAuthenticationModes(ctx context.Context, in *GetAuthenticationModesRequest, opts ...grpc.CallOption) (*GetAuthenticationModesResponse, error)
+	SelectAuthenticationMode(ctx context.Context, in *SAMRequest, opts ...grpc.CallOption) (*SAMResponse, error)
+	IsAuthorized(ctx context.Context, in *IARequest, opts ...grpc.CallOption) (*IAResponse, error)
 }
 
-type pamClient struct {
+type pAMClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewPamClient(cc grpc.ClientConnInterface) PamClient {
-	return &pamClient{cc}
+func NewPAMClient(cc grpc.ClientConnInterface) PAMClient {
+	return &pAMClient{cc}
 }
 
-func (c *pamClient) TestPam(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*StringResponse, error) {
-	out := new(StringResponse)
-	err := c.cc.Invoke(ctx, Pam_TestPam_FullMethodName, in, out, opts...)
+func (c *pAMClient) GetBrokersInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*BrokersInfo, error) {
+	out := new(BrokersInfo)
+	err := c.cc.Invoke(ctx, PAM_GetBrokersInfo_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// PamServer is the server API for Pam service.
-// All implementations must embed UnimplementedPamServer
+func (c *pAMClient) GetAuthenticationModes(ctx context.Context, in *GetAuthenticationModesRequest, opts ...grpc.CallOption) (*GetAuthenticationModesResponse, error) {
+	out := new(GetAuthenticationModesResponse)
+	err := c.cc.Invoke(ctx, PAM_GetAuthenticationModes_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pAMClient) SelectAuthenticationMode(ctx context.Context, in *SAMRequest, opts ...grpc.CallOption) (*SAMResponse, error) {
+	out := new(SAMResponse)
+	err := c.cc.Invoke(ctx, PAM_SelectAuthenticationMode_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *pAMClient) IsAuthorized(ctx context.Context, in *IARequest, opts ...grpc.CallOption) (*IAResponse, error) {
+	out := new(IAResponse)
+	err := c.cc.Invoke(ctx, PAM_IsAuthorized_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PAMServer is the server API for PAM service.
+// All implementations must embed UnimplementedPAMServer
 // for forward compatibility
-type PamServer interface {
-	TestPam(context.Context, *Empty) (*StringResponse, error)
-	mustEmbedUnimplementedPamServer()
+type PAMServer interface {
+	GetBrokersInfo(context.Context, *Empty) (*BrokersInfo, error)
+	// API passed to the broker.
+	GetAuthenticationModes(context.Context, *GetAuthenticationModesRequest) (*GetAuthenticationModesResponse, error)
+	SelectAuthenticationMode(context.Context, *SAMRequest) (*SAMResponse, error)
+	IsAuthorized(context.Context, *IARequest) (*IAResponse, error)
+	mustEmbedUnimplementedPAMServer()
 }
 
-// UnimplementedPamServer must be embedded to have forward compatible implementations.
-type UnimplementedPamServer struct {
+// UnimplementedPAMServer must be embedded to have forward compatible implementations.
+type UnimplementedPAMServer struct {
 }
 
-func (UnimplementedPamServer) TestPam(context.Context, *Empty) (*StringResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method TestPam not implemented")
+func (UnimplementedPAMServer) GetBrokersInfo(context.Context, *Empty) (*BrokersInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBrokersInfo not implemented")
 }
-func (UnimplementedPamServer) mustEmbedUnimplementedPamServer() {}
+func (UnimplementedPAMServer) GetAuthenticationModes(context.Context, *GetAuthenticationModesRequest) (*GetAuthenticationModesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAuthenticationModes not implemented")
+}
+func (UnimplementedPAMServer) SelectAuthenticationMode(context.Context, *SAMRequest) (*SAMResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SelectAuthenticationMode not implemented")
+}
+func (UnimplementedPAMServer) IsAuthorized(context.Context, *IARequest) (*IAResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsAuthorized not implemented")
+}
+func (UnimplementedPAMServer) mustEmbedUnimplementedPAMServer() {}
 
-// UnsafePamServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to PamServer will
+// UnsafePAMServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to PAMServer will
 // result in compilation errors.
-type UnsafePamServer interface {
-	mustEmbedUnimplementedPamServer()
+type UnsafePAMServer interface {
+	mustEmbedUnimplementedPAMServer()
 }
 
-func RegisterPamServer(s grpc.ServiceRegistrar, srv PamServer) {
-	s.RegisterService(&Pam_ServiceDesc, srv)
+func RegisterPAMServer(s grpc.ServiceRegistrar, srv PAMServer) {
+	s.RegisterService(&PAM_ServiceDesc, srv)
 }
 
-func _Pam_TestPam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PAM_GetBrokersInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PamServer).TestPam(ctx, in)
+		return srv.(PAMServer).GetBrokersInfo(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Pam_TestPam_FullMethodName,
+		FullMethod: PAM_GetBrokersInfo_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PamServer).TestPam(ctx, req.(*Empty))
+		return srv.(PAMServer).GetBrokersInfo(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Pam_ServiceDesc is the grpc.ServiceDesc for Pam service.
+func _PAM_GetAuthenticationModes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAuthenticationModesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PAMServer).GetAuthenticationModes(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PAM_GetAuthenticationModes_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PAMServer).GetAuthenticationModes(ctx, req.(*GetAuthenticationModesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PAM_SelectAuthenticationMode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SAMRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PAMServer).SelectAuthenticationMode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PAM_SelectAuthenticationMode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PAMServer).SelectAuthenticationMode(ctx, req.(*SAMRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PAM_IsAuthorized_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IARequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PAMServer).IsAuthorized(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PAM_IsAuthorized_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PAMServer).IsAuthorized(ctx, req.(*IARequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// PAM_ServiceDesc is the grpc.ServiceDesc for PAM service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Pam_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "pam",
-	HandlerType: (*PamServer)(nil),
+var PAM_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "PAM",
+	HandlerType: (*PAMServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "TestPam",
-			Handler:    _Pam_TestPam_Handler,
+			MethodName: "GetBrokersInfo",
+			Handler:    _PAM_GetBrokersInfo_Handler,
+		},
+		{
+			MethodName: "GetAuthenticationModes",
+			Handler:    _PAM_GetAuthenticationModes_Handler,
+		},
+		{
+			MethodName: "SelectAuthenticationMode",
+			Handler:    _PAM_SelectAuthenticationMode_Handler,
+		},
+		{
+			MethodName: "IsAuthorized",
+			Handler:    _PAM_IsAuthorized_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -109,89 +222,89 @@ var Pam_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	Nss_TestNSS_FullMethodName = "/nss/TestNSS"
+	NSS_TestNSS_FullMethodName = "/NSS/TestNSS"
 )
 
-// NssClient is the client API for Nss service.
+// NSSClient is the client API for NSS service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type NssClient interface {
+type NSSClient interface {
 	TestNSS(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*StringResponse, error)
 }
 
-type nssClient struct {
+type nSSClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewNssClient(cc grpc.ClientConnInterface) NssClient {
-	return &nssClient{cc}
+func NewNSSClient(cc grpc.ClientConnInterface) NSSClient {
+	return &nSSClient{cc}
 }
 
-func (c *nssClient) TestNSS(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*StringResponse, error) {
+func (c *nSSClient) TestNSS(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*StringResponse, error) {
 	out := new(StringResponse)
-	err := c.cc.Invoke(ctx, Nss_TestNSS_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, NSS_TestNSS_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// NssServer is the server API for Nss service.
-// All implementations must embed UnimplementedNssServer
+// NSSServer is the server API for NSS service.
+// All implementations must embed UnimplementedNSSServer
 // for forward compatibility
-type NssServer interface {
+type NSSServer interface {
 	TestNSS(context.Context, *Empty) (*StringResponse, error)
-	mustEmbedUnimplementedNssServer()
+	mustEmbedUnimplementedNSSServer()
 }
 
-// UnimplementedNssServer must be embedded to have forward compatible implementations.
-type UnimplementedNssServer struct {
+// UnimplementedNSSServer must be embedded to have forward compatible implementations.
+type UnimplementedNSSServer struct {
 }
 
-func (UnimplementedNssServer) TestNSS(context.Context, *Empty) (*StringResponse, error) {
+func (UnimplementedNSSServer) TestNSS(context.Context, *Empty) (*StringResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TestNSS not implemented")
 }
-func (UnimplementedNssServer) mustEmbedUnimplementedNssServer() {}
+func (UnimplementedNSSServer) mustEmbedUnimplementedNSSServer() {}
 
-// UnsafeNssServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to NssServer will
+// UnsafeNSSServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to NSSServer will
 // result in compilation errors.
-type UnsafeNssServer interface {
-	mustEmbedUnimplementedNssServer()
+type UnsafeNSSServer interface {
+	mustEmbedUnimplementedNSSServer()
 }
 
-func RegisterNssServer(s grpc.ServiceRegistrar, srv NssServer) {
-	s.RegisterService(&Nss_ServiceDesc, srv)
+func RegisterNSSServer(s grpc.ServiceRegistrar, srv NSSServer) {
+	s.RegisterService(&NSS_ServiceDesc, srv)
 }
 
-func _Nss_TestNSS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _NSS_TestNSS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NssServer).TestNSS(ctx, in)
+		return srv.(NSSServer).TestNSS(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Nss_TestNSS_FullMethodName,
+		FullMethod: NSS_TestNSS_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NssServer).TestNSS(ctx, req.(*Empty))
+		return srv.(NSSServer).TestNSS(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// Nss_ServiceDesc is the grpc.ServiceDesc for Nss service.
+// NSS_ServiceDesc is the grpc.ServiceDesc for NSS service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var Nss_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "nss",
-	HandlerType: (*NssServer)(nil),
+var NSS_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "NSS",
+	HandlerType: (*NSSServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "TestNSS",
-			Handler:    _Nss_TestNSS_Handler,
+			Handler:    _NSS_TestNSS_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
