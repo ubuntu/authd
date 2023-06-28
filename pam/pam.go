@@ -17,11 +17,14 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/skip2/go-qrcode"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
+	"golang.org/x/sys/unix"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -93,24 +96,25 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	lang = strings.TrimSuffix(lang, ".UTF-8")
 
 	required, optional := "required", "optional"
+	supportedEntries := "optional:chars,chars_password"
+	waitRequired := "required:true,false"
+	waitOptional := "optional:true,false"
 	gamReq := &authd.GetAuthenticationModesRequest{
 		Broker:   brokerName,
 		Username: user,
 		Lang:     lang,
 		SupportedUiLayouts: []*authd.UILayout{
 			{
-				Type:     "text",
-				Label:    &required,
-				Password: &optional,
-				Digits:   &optional,
-			},
-			{
-				Type:  "message",
+				Type:  "form",
 				Label: &required,
+				Entry: &supportedEntries,
+				Wait:  &waitOptional,
 			},
 			{
-				Type:  "qrcode",
-				Label: &optional,
+				Type:    "qrcode",
+				Content: &required,
+				Wait:    &waitRequired,
+				Label:   &optional,
 			},
 		},
 	}
@@ -137,11 +141,12 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 		return C.PAM_AUTH_ERR
 	}
 
+	var iaResp *authd.IAResponse
+
 	// Show UI with additional info and select different mode of action
-	var challenge string
-	switch uiInfo.GetUiLayoutInfo().Type {
-	case "text":
-		prompt := uiInfo.GetUiLayoutInfo().GetLabel()
+	switch uiLayoutInfo := uiInfo.GetUiLayoutInfo(); uiLayoutInfo.Type {
+	case "form":
+		prompt := uiLayoutInfo.GetLabel()
 		if prompt == "" {
 			// TODO error
 			return C.PAM_SYSTEM_ERR
@@ -149,53 +154,116 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 		if !strings.HasSuffix(prompt, " ") {
 			prompt = fmt.Sprintf("%s ", prompt)
 		}
+		fmt.Print(prompt)
 
-		// TODO: clear or not clear text depending on password
-		if strings.ToLower(uiInfo.GetUiLayoutInfo().GetPassword()) == "true" {
-			challenge, err = getPassword(prompt)
+		type result struct {
+			iaResp *authd.IAResponse
+			err    error
+		}
+		results := make(chan result)
+
+		waitCtx, cancelWait := context.WithCancel(context.Background())
+		defer cancelWait()
+		termCtx, cancelTerm := context.WithCancel(context.Background())
+		defer cancelTerm()
+
+		if uiLayoutInfo.GetWait() == "true" {
+			// We can ask for an immediate authorization without challenge
+			go func() {
+				var err error
+				iaResp, err := client.IsAuthorized(waitCtx, &authd.IARequest{
+					SessionId:          sessionID,
+					AuthenticationData: "{}",
+				})
+
+				// No more processing if entry has been filed.
+				select {
+				case <-waitCtx.Done():
+					return
+				default:
+				}
+
+				cancelTerm()
+
+				results <- result{
+					iaResp: iaResp,
+					err:    err,
+				}
+			}()
+		}
+
+		if uiLayoutInfo.GetEntry() == "chars" || uiLayoutInfo.GetEntry() == "chars_password" {
+			go func() {
+				// TODO: without password
+				out, err := readPasswordWithContext(int(os.Stdin.Fd()), termCtx, uiLayoutInfo.GetEntry() == "chars_password")
+
+				// No more processing if wait IsAuthorized has been answered.
+				select {
+				case <-termCtx.Done():
+					return
+				default:
+				}
+
+				// Immediately cancel wait goroutine, we won't care about its result
+				cancelWait()
+
+				if err != nil {
+					results <- result{
+						iaResp: nil,
+						err:    err,
+					}
+				}
+
+				authData := "{}"
+				challenge := string(out)
+				if challenge != "" {
+					authData = fmt.Sprintf(`{"challenge": "%s"}`, challenge)
+				}
+
+				// Validate challenge with Broker
+				iaReq := &authd.IARequest{
+					SessionId:          sessionID,
+					AuthenticationData: authData,
+				}
+				iaResp, err := client.IsAuthorized(context.TODO(), iaReq)
+				results <- result{
+					iaResp: iaResp,
+					err:    err,
+				}
+			}()
 		} else {
-			fmt.Printf(prompt)
-			_, err = fmt.Scanln(&challenge)
+			fmt.Print("\n")
 		}
-		if err != nil {
-			fmt.Printf("Error while getting password: %v", err)
-			return C.PAM_AUTH_ERR
-		}
-	case "message":
-		l := uiInfo.GetUiLayoutInfo().Label
-		if l == nil {
-			// TODO error
+
+		r := <-results
+		if r.err != nil {
+			fmt.Println("ERROR: " + r.err.Error())
 			return C.PAM_SYSTEM_ERR
 		}
-		fmt.Printf(*l)
+		iaResp = r.iaResp
+
 	case "qrcode":
-		l := uiInfo.GetUiLayoutInfo().GetLabel()
+		l := uiLayoutInfo.GetLabel()
 		if l != "" {
 			fmt.Println(l)
 		}
-		qrCode, err := qrcode.New(uiInfo.GetUiLayoutInfo().GetText(), qrcode.Medium)
+		qrCode, err := qrcode.New(uiLayoutInfo.GetContent(), qrcode.Medium)
 		if err != nil {
 			fmt.Println("Error generating QR code:", err)
 			return C.PAM_SYSTEM_ERR
 		}
 		asciiQR := qrCode.ToSmallString(false)
 		fmt.Println(asciiQR)
-	}
 
-	authData := "{}"
-	if challenge != "" {
-		authData = fmt.Sprintf(`{"challenge": "%s"}`, challenge)
-	}
-
-	// Validate challenge with Broker
-	iaReq := &authd.IARequest{
-		SessionId:          sessionID,
-		AuthenticationData: authData,
-	}
-	iaResp, err := client.IsAuthorized(context.TODO(), iaReq)
-	if err != nil {
-		fmt.Printf("Error: cannot get authorization: %v", err)
-		return C.PAM_AUTH_ERR
+		iaReq := &authd.IARequest{
+			SessionId:          sessionID,
+			AuthenticationData: "{}",
+		}
+		iaResp, err = client.IsAuthorized(context.TODO(), iaReq)
+		if err != nil {
+			fmt.Println("ERROR QR CODE " + err.Error())
+			return C.PAM_SYSTEM_ERR
+		}
 	}
 
 	switch strings.ToLower(iaResp.Access) {
@@ -315,6 +383,72 @@ func selectAuthenticationMode(authModes []*authd.GetAuthenticationModesResponse_
 	}
 
 	return authModeChoices[chosenAuthMode]
+}
+
+func readPasswordWithContext(fd int, ctx context.Context, password bool) ([]byte, error) {
+	const ioctlReadTermios = unix.TCGETS
+	const ioctlWriteTermios = unix.TCSETS
+
+	termios, err := unix.IoctlGetTermios(fd, ioctlReadTermios)
+	nonblocking := false
+	if err != nil {
+		return nil, err
+	}
+	newState := *termios
+	if password {
+		newState.Lflag &^= unix.ECHO
+	}
+	newState.Lflag |= unix.ICANON | unix.ISIG
+	newState.Iflag |= unix.ICRNL
+
+	if err := unix.IoctlSetTermios(fd, ioctlWriteTermios, &newState); err != nil {
+		return nil, err
+	}
+	defer func() {
+		if nonblocking {
+			unix.SetNonblock(fd, false)
+		}
+		unix.IoctlSetTermios(fd, ioctlWriteTermios, termios)
+	}()
+
+	// Set nonblocking IO
+	if err := unix.SetNonblock(fd, true); err != nil {
+		return nil, err
+	}
+	nonblocking = true
+
+	var ret []byte
+	var buf [1]byte
+	for {
+		if ctx.Err() != nil {
+			return ret, ctx.Err()
+		}
+		n, err := unix.Read(fd, buf[:])
+		if err != nil {
+			// Check for nonblocking error
+			if serr, ok := err.(syscall.Errno); ok {
+				if serr == 11 {
+					// Add (hopefully not noticable) latency to prevent CPU hogging
+					time.Sleep(50 * time.Millisecond)
+					continue
+				}
+			}
+			return ret, err
+		}
+		if n > 0 {
+			switch buf[0] {
+			case '\b':
+				if len(ret) > 0 {
+					ret = ret[:len(ret)-1]
+				}
+			case '\n':
+				return ret, nil
+			default:
+				ret = append(ret, buf[0])
+			}
+			continue
+		}
+	}
 }
 
 func main() {
