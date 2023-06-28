@@ -41,11 +41,17 @@ message GetAuthenticationModesRequest {
 
 message UILayout {
   string type = 1;
+
+  // common components.
   optional string label = 2;
-  optional string password = 3;
-  optional string digits = 4;
-  optional string button = 5;
-  optional string text = 6;
+  optional string button = 3;
+  optional string wait = 4;
+
+  // form only.
+  optional string entry = 5;
+
+  // qr code only.
+  optional string content = 6;
 }
 
 message GetAuthenticationModesResponse {
