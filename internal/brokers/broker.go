@@ -17,9 +17,9 @@ type brokerer interface {
 }
 
 type Broker struct {
-	id            string
-	name          string
-	brandIconPath string
+	ID            string
+	Name          string
+	BrandIconPath string
 	brokerer
 }
 
@@ -46,14 +46,9 @@ func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 	}
 
 	return Broker{
-		id:            fmt.Sprint(id),
-		name:          fullName,
-		brandIconPath: brandIcon,
+		ID:            fmt.Sprint(id),
+		Name:          fullName,
+		BrandIconPath: brandIcon,
 		brokerer:      broker,
 	}, nil
-}
-
-// Info is the textual and graphical representation of a broker information.
-func (b Broker) Info() (id, name, brandIconPath string) {
-	return b.id, b.name, b.brandIconPath
 }
