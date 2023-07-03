@@ -15,7 +15,7 @@ import (
 
 // Manager mediate the whole business logic of the application.
 type Manager struct {
-	brokerManager brokers.Manager
+	brokerManager *brokers.Manager
 	nssService    nss.Service
 	pamService    pam.Service
 }
@@ -32,7 +32,7 @@ func New(ctx context.Context, configuredBrokers []string) (m Manager, err error)
 	}
 
 	nssService := nss.NewService(ctx)
-	pamService := pam.NewService(ctx, &brokerManager)
+	pamService := pam.NewService(ctx, brokerManager)
 
 	return Manager{
 		brokerManager: brokerManager,
