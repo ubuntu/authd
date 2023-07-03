@@ -237,6 +237,7 @@ func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMReq
 	}, nil
 }
 
+// IsAuthorized returns broker answer to authorization request.
 func (s Service) IsAuthorized(ctx context.Context, req *authd.IARequest) (resp *authd.IAResponse, err error) {
 	sessionInfo := currentSessions[req.SessionId]
 	authDeniedResp := &authd.IAResponse{Access: "denied"}
