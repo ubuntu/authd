@@ -3,7 +3,6 @@ package pam
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/decorate"
-	"golang.org/x/exp/slices"
 )
 
 var _ authd.PAMServer = Service{}
@@ -95,17 +93,9 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 
 	var authModes []*authd.SBResponse_AuthenticationMode
 	for _, a := range authenticationModes {
-		name := a["name"]
-		if name == "" {
-			return nil, fmt.Errorf("invalid authentication mode, missing name key: %v", a)
-		}
-		label := a["label"]
-		if label == "" {
-			return nil, fmt.Errorf("invalid authentication mode, missing name key: %v", a)
-		}
 		authModes = append(authModes, &authd.SBResponse_AuthenticationMode{
-			Name:  name,
-			Label: label,
+			Name:  a["name"],
+			Label: a["label"],
 		})
 	}
 
@@ -151,13 +141,8 @@ func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMReq
 		return nil, err
 	}
 
-	layoutInfo, err := validateMapToUILayout(uiLayoutInfo)
-	if err != nil {
-		return nil, err
-	}
-
 	return &authd.SAMResponse{
-		UiLayoutInfo: layoutInfo,
+		UiLayoutInfo: mapToUILayout(uiLayoutInfo),
 	}, nil
 }
 
@@ -175,22 +160,9 @@ func (s Service) IsAuthorized(ctx context.Context, req *authd.IARequest) (resp *
 		return nil, err
 	}
 
-	access, rawUserInfo, err := broker.IsAuthorized(ctx, sessionID, req.GetAuthenticationData())
+	access, userInfo, err := broker.IsAuthorized(ctx, sessionID, req.GetAuthenticationData())
 	if err != nil {
 		return nil, err
-	}
-
-	// Validate access authorization
-	if !slices.Contains([]string{"access", "denied"}, access) {
-		return nil, fmt.Errorf("invalid access authorization key: %v", access)
-	}
-
-	var userInfo map[string]string
-	if rawUserInfo != "" {
-		userInfo, err = stringToMap(rawUserInfo)
-		if err != nil {
-			return nil, fmt.Errorf("can't decode user info: %v", err)
-		}
 	}
 
 	return &authd.IAResponse{
@@ -222,11 +194,8 @@ func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err err
 	return r, nil
 }
 
-// validateMapToUILayout generates an UILayout from the input map.
-// It validates the required fields for a given type.
-func validateMapToUILayout(layout map[string]string) (r *authd.UILayout, err error) {
-	defer decorate.OnError(&err, "no valid UI layouts metadata")
-
+// mapToUILayout generates an UILayout from the input map.
+func mapToUILayout(layout map[string]string) (r *authd.UILayout) {
 	typ := layout["type"]
 	label := layout["label"]
 	entry := layout["entry"]
@@ -234,54 +203,12 @@ func validateMapToUILayout(layout map[string]string) (r *authd.UILayout, err err
 	wait := layout["wait"]
 	content := layout["content"]
 
-	var res authd.UILayout
-	switch typ {
-	case "form":
-		if label == "" {
-			return nil, fmt.Errorf("'label' is required")
-		}
-		if !slices.Contains([]string{"chars", "digits", "chars_password", "digits_password", ""}, entry) {
-			return nil, fmt.Errorf("'entry' does not match allowed values for this type: %v", entry)
-		}
-		if !slices.Contains([]string{"true", "false", ""}, wait) {
-			return nil, fmt.Errorf("'wait' does not match allowed values for this type: %v", wait)
-		}
-		res = authd.UILayout{
-			Type:   typ,
-			Label:  &label,
-			Entry:  &entry,
-			Button: &button,
-			Wait:   &wait,
-		}
-	case "qrcode":
-		if content == "" {
-			return nil, fmt.Errorf("'content' is required")
-		}
-		if !slices.Contains([]string{"true", "false"}, wait) {
-			return nil, fmt.Errorf("'wait' is required and does not match allowed values for this type: %v", wait)
-		}
-		res = authd.UILayout{
-			Type:   typ,
-			Wait:   &wait,
-			Label:  &label,
-			Button: &button,
-		}
-	case "webview":
-	default:
-		return nil, fmt.Errorf("invalid layout option: type is required, got: %v", layout)
+	return &authd.UILayout{
+		Type:    typ,
+		Label:   &label,
+		Entry:   &entry,
+		Button:  &button,
+		Wait:    &wait,
+		Content: &content,
 	}
-
-	return &res, nil
-}
-
-func stringToMap(jsonData string) (map[string]string, error) {
-	var data map[string]string
-
-	err := json.Unmarshal([]byte(jsonData), &data)
-	if err != nil {
-		fmt.Println("Error unmarshaling JSON:", err)
-		return nil, err
-	}
-
-	return data, nil
 }
