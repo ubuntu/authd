@@ -19,8 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	PAM_GetBrokersInfo_FullMethodName           = "/PAM/GetBrokersInfo"
-	PAM_GetAuthenticationModes_FullMethodName   = "/PAM/GetAuthenticationModes"
+	PAM_AvailableBrokers_FullMethodName         = "/PAM/AvailableBrokers"
+	PAM_SelectBroker_FullMethodName             = "/PAM/SelectBroker"
 	PAM_SelectAuthenticationMode_FullMethodName = "/PAM/SelectAuthenticationMode"
 	PAM_IsAuthorized_FullMethodName             = "/PAM/IsAuthorized"
 )
@@ -29,9 +29,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PAMClient interface {
-	GetBrokersInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*BrokersInfo, error)
-	// API passed to the broker.
-	GetAuthenticationModes(ctx context.Context, in *GetAuthenticationModesRequest, opts ...grpc.CallOption) (*GetAuthenticationModesResponse, error)
+	AvailableBrokers(ctx context.Context, in *ABRequest, opts ...grpc.CallOption) (*ABResponse, error)
+	SelectBroker(ctx context.Context, in *SBRequest, opts ...grpc.CallOption) (*SBResponse, error)
 	SelectAuthenticationMode(ctx context.Context, in *SAMRequest, opts ...grpc.CallOption) (*SAMResponse, error)
 	IsAuthorized(ctx context.Context, in *IARequest, opts ...grpc.CallOption) (*IAResponse, error)
 }
@@ -44,18 +43,18 @@ func NewPAMClient(cc grpc.ClientConnInterface) PAMClient {
 	return &pAMClient{cc}
 }
 
-func (c *pAMClient) GetBrokersInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*BrokersInfo, error) {
-	out := new(BrokersInfo)
-	err := c.cc.Invoke(ctx, PAM_GetBrokersInfo_FullMethodName, in, out, opts...)
+func (c *pAMClient) AvailableBrokers(ctx context.Context, in *ABRequest, opts ...grpc.CallOption) (*ABResponse, error) {
+	out := new(ABResponse)
+	err := c.cc.Invoke(ctx, PAM_AvailableBrokers_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *pAMClient) GetAuthenticationModes(ctx context.Context, in *GetAuthenticationModesRequest, opts ...grpc.CallOption) (*GetAuthenticationModesResponse, error) {
-	out := new(GetAuthenticationModesResponse)
-	err := c.cc.Invoke(ctx, PAM_GetAuthenticationModes_FullMethodName, in, out, opts...)
+func (c *pAMClient) SelectBroker(ctx context.Context, in *SBRequest, opts ...grpc.CallOption) (*SBResponse, error) {
+	out := new(SBResponse)
+	err := c.cc.Invoke(ctx, PAM_SelectBroker_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -84,9 +83,8 @@ func (c *pAMClient) IsAuthorized(ctx context.Context, in *IARequest, opts ...grp
 // All implementations must embed UnimplementedPAMServer
 // for forward compatibility
 type PAMServer interface {
-	GetBrokersInfo(context.Context, *Empty) (*BrokersInfo, error)
-	// API passed to the broker.
-	GetAuthenticationModes(context.Context, *GetAuthenticationModesRequest) (*GetAuthenticationModesResponse, error)
+	AvailableBrokers(context.Context, *ABRequest) (*ABResponse, error)
+	SelectBroker(context.Context, *SBRequest) (*SBResponse, error)
 	SelectAuthenticationMode(context.Context, *SAMRequest) (*SAMResponse, error)
 	IsAuthorized(context.Context, *IARequest) (*IAResponse, error)
 	mustEmbedUnimplementedPAMServer()
@@ -96,11 +94,11 @@ type PAMServer interface {
 type UnimplementedPAMServer struct {
 }
 
-func (UnimplementedPAMServer) GetBrokersInfo(context.Context, *Empty) (*BrokersInfo, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetBrokersInfo not implemented")
+func (UnimplementedPAMServer) AvailableBrokers(context.Context, *ABRequest) (*ABResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AvailableBrokers not implemented")
 }
-func (UnimplementedPAMServer) GetAuthenticationModes(context.Context, *GetAuthenticationModesRequest) (*GetAuthenticationModesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAuthenticationModes not implemented")
+func (UnimplementedPAMServer) SelectBroker(context.Context, *SBRequest) (*SBResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SelectBroker not implemented")
 }
 func (UnimplementedPAMServer) SelectAuthenticationMode(context.Context, *SAMRequest) (*SAMResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SelectAuthenticationMode not implemented")
@@ -121,38 +119,38 @@ func RegisterPAMServer(s grpc.ServiceRegistrar, srv PAMServer) {
 	s.RegisterService(&PAM_ServiceDesc, srv)
 }
 
-func _PAM_GetBrokersInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
+func _PAM_AvailableBrokers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ABRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PAMServer).GetBrokersInfo(ctx, in)
+		return srv.(PAMServer).AvailableBrokers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: PAM_GetBrokersInfo_FullMethodName,
+		FullMethod: PAM_AvailableBrokers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PAMServer).GetBrokersInfo(ctx, req.(*Empty))
+		return srv.(PAMServer).AvailableBrokers(ctx, req.(*ABRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PAM_GetAuthenticationModes_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAuthenticationModesRequest)
+func _PAM_SelectBroker_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SBRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PAMServer).GetAuthenticationModes(ctx, in)
+		return srv.(PAMServer).SelectBroker(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: PAM_GetAuthenticationModes_FullMethodName,
+		FullMethod: PAM_SelectBroker_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PAMServer).GetAuthenticationModes(ctx, req.(*GetAuthenticationModesRequest))
+		return srv.(PAMServer).SelectBroker(ctx, req.(*SBRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -201,12 +199,12 @@ var PAM_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*PAMServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetBrokersInfo",
-			Handler:    _PAM_GetBrokersInfo_Handler,
+			MethodName: "AvailableBrokers",
+			Handler:    _PAM_AvailableBrokers_Handler,
 		},
 		{
-			MethodName: "GetAuthenticationModes",
-			Handler:    _PAM_GetAuthenticationModes_Handler,
+			MethodName: "SelectBroker",
+			Handler:    _PAM_SelectBroker_Handler,
 		},
 		{
 			MethodName: "SelectAuthenticationMode",
