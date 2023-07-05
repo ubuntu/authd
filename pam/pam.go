@@ -32,6 +32,10 @@ import (
 
 var (
 	errGoBack error = errors.New("needs go back")
+
+	// This variable needs to be global to pass it back in pam_sm_acct_mgmt.
+	// It would be better if we could set/get item in PAM with that string.
+	sessionID string
 )
 
 const (
@@ -82,7 +86,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 
 	stage := StageBrokerSelection
 
-	var brokerName, sessionID, encryptionKey string
+	var brokerName, encryptionKey string
 	brokerID := brokersInfo.GetPreviousBroker()
 	// ensure previous broker for this user still exists
 	if brokerID != "" {
@@ -563,6 +567,33 @@ func readPasswordWithContext(fd int, ctx context.Context, password bool) ([]byte
 			continue
 		}
 	}
+}
+
+//export pam_sm_acct_mgmt
+func pam_sm_acct_mgmt(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+	client, err := newClient(argc, argv)
+	if err != nil {
+		log.Debugf(context.TODO(), "%s", err)
+		return C.PAM_IGNORE
+	}
+
+	// Get current user for broker.
+	user, err := getUser(pamh, "")
+	if err != nil {
+		log.Infof(context.TODO(), "Can't get user: %v", err)
+		return C.PAM_IGNORE
+	}
+
+	req := authd.SDBFURequest{
+		SessionId: sessionID,
+		Username:  user,
+	}
+	if _, err := client.SetDefaultBrokerForUser(context.TODO(), &req); err != nil {
+		log.Infof(context.TODO(), "Can't set default broker for %q on sesssion %q: %v", user, sessionID, err)
+		return C.PAM_IGNORE
+	}
+
+	return C.PAM_SUCCESS
 }
 
 // newClient returns a new GRPC client ready to emit requests
