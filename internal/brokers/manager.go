@@ -170,6 +170,12 @@ func (m *Manager) SetBrokerForSessionID(sessionID string, broker *Broker) {
 func (m *Manager) BrokerForSessionID(sessionID string) (broker *Broker, err error) {
 	m.transactionsToBrokerMu.RLock()
 	defer m.transactionsToBrokerMu.RUnlock()
+
+	// no session ID means local broker
+	if sessionID == "" {
+		return m.GetBroker(localBrokerName)
+	}
+
 	broker, exists := m.transactionsToBroker[sessionID]
 	if !exists {
 		return nil, fmt.Errorf("no broker found for session %q", sessionID)
