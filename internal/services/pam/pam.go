@@ -75,7 +75,6 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 	if err != nil {
 		return nil, fmt.Errorf("invalid broker: %v", err)
 	}
-	s.brokerManager.SetDefaultBrokerForUser(username, broker)
 
 	var layouts []map[string]string
 	for _, l := range req.GetSupportedUiLayouts() {
@@ -169,6 +168,26 @@ func (s Service) IsAuthorized(ctx context.Context, req *authd.IARequest) (resp *
 		Access:   access,
 		UserInfo: userInfo,
 	}, nil
+}
+
+func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURequest) (empty *authd.Empty, err error) {
+	decorate.OnError(&err, "can't set default broker for session id %q", req.GetSessionId())
+
+	if req.GetUsername() != "" {
+		return nil, errors.New("no user name given")
+	}
+
+	b, err := s.brokerManager.BrokerForSessionID(req.GetSessionId())
+	if err != nil {
+		return nil, err
+	}
+	if b == nil {
+		return nil, errors.New("no broker found")
+	}
+
+	s.brokerManager.SetDefaultBrokerForUser(req.GetUsername(), b)
+
+	return nil, nil
 }
 
 func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err error) {
