@@ -8,6 +8,8 @@ service PAM {
   rpc SelectBroker(SBRequest) returns (SBResponse);
   rpc SelectAuthenticationMode(SAMRequest) returns (SAMResponse);
   rpc IsAuthorized(IARequest) returns (IAResponse);
+
+  rpc SetDefaultBrokerForUser(SDBFURequest) returns (Empty);
 }
 
 service NSS {
@@ -87,4 +89,9 @@ message IARequest {
 message IAResponse {
   string access = 1;
   map<string, string> user_info = 2;
+}
+
+message SDBFURequest {
+  string session_id = 1;
+  string username = 2;
 }
