@@ -56,7 +56,7 @@ var (
 )
 
 const (
-	encryptionKey = "encryptionkey"
+	brokerEncryptionKey = "encryptionkey"
 )
 
 func newExampleBroker(name string) (b *exampleBroker, fullName, brandIcon string, err error) {
@@ -217,7 +217,7 @@ func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lan
 		allModes: allModes,
 	}
 
-	return sessionID, encryptionKey, authenticationModes, nil
+	return sessionID, brokerEncryptionKey, authenticationModes, nil
 }
 
 func (b *exampleBroker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
@@ -263,7 +263,7 @@ func (b exampleBroker) IsAuthorized(ctx context.Context, sessionID, authenticati
 		return "", "", fmt.Errorf("%s is not a current transaction", sessionID)
 	}
 
-	authenticationData = decryptAES([]byte(encryptionKey), authenticationData)
+	authenticationData = decryptAES([]byte(brokerEncryptionKey), authenticationData)
 	var authData map[string]string
 	if authenticationData != "" {
 		if err := json.Unmarshal([]byte(authenticationData), &authData); err != nil {
