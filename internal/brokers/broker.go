@@ -36,7 +36,11 @@ func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 
 	h := fnv.New32a()
 	h.Write([]byte(name))
-	id := h.Sum32()
+	id := fmt.Sprint(h.Sum32())
+
+	if name == localBrokerName {
+		id = name
+	}
 
 	var broker brokerer
 	var fullName, brandIcon string
@@ -54,7 +58,7 @@ func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 	}
 
 	return Broker{
-		ID:            fmt.Sprint(id),
+		ID:            id,
 		Name:          fullName,
 		BrandIconPath: brandIcon,
 		brokerer:      broker,
