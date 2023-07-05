@@ -23,6 +23,7 @@ const (
 	PAM_SelectBroker_FullMethodName             = "/PAM/SelectBroker"
 	PAM_SelectAuthenticationMode_FullMethodName = "/PAM/SelectAuthenticationMode"
 	PAM_IsAuthorized_FullMethodName             = "/PAM/IsAuthorized"
+	PAM_SetDefaultBrokerForUser_FullMethodName  = "/PAM/SetDefaultBrokerForUser"
 )
 
 // PAMClient is the client API for PAM service.
@@ -33,6 +34,7 @@ type PAMClient interface {
 	SelectBroker(ctx context.Context, in *SBRequest, opts ...grpc.CallOption) (*SBResponse, error)
 	SelectAuthenticationMode(ctx context.Context, in *SAMRequest, opts ...grpc.CallOption) (*SAMResponse, error)
 	IsAuthorized(ctx context.Context, in *IARequest, opts ...grpc.CallOption) (*IAResponse, error)
+	SetDefaultBrokerForUser(ctx context.Context, in *SDBFURequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type pAMClient struct {
@@ -79,6 +81,15 @@ func (c *pAMClient) IsAuthorized(ctx context.Context, in *IARequest, opts ...grp
 	return out, nil
 }
 
+func (c *pAMClient) SetDefaultBrokerForUser(ctx context.Context, in *SDBFURequest, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, PAM_SetDefaultBrokerForUser_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PAMServer is the server API for PAM service.
 // All implementations must embed UnimplementedPAMServer
 // for forward compatibility
@@ -87,6 +98,7 @@ type PAMServer interface {
 	SelectBroker(context.Context, *SBRequest) (*SBResponse, error)
 	SelectAuthenticationMode(context.Context, *SAMRequest) (*SAMResponse, error)
 	IsAuthorized(context.Context, *IARequest) (*IAResponse, error)
+	SetDefaultBrokerForUser(context.Context, *SDBFURequest) (*Empty, error)
 	mustEmbedUnimplementedPAMServer()
 }
 
@@ -105,6 +117,9 @@ func (UnimplementedPAMServer) SelectAuthenticationMode(context.Context, *SAMRequ
 }
 func (UnimplementedPAMServer) IsAuthorized(context.Context, *IARequest) (*IAResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsAuthorized not implemented")
+}
+func (UnimplementedPAMServer) SetDefaultBrokerForUser(context.Context, *SDBFURequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetDefaultBrokerForUser not implemented")
 }
 func (UnimplementedPAMServer) mustEmbedUnimplementedPAMServer() {}
 
@@ -191,6 +206,24 @@ func _PAM_IsAuthorized_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PAM_SetDefaultBrokerForUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SDBFURequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PAMServer).SetDefaultBrokerForUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PAM_SetDefaultBrokerForUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PAMServer).SetDefaultBrokerForUser(ctx, req.(*SDBFURequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PAM_ServiceDesc is the grpc.ServiceDesc for PAM service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -213,6 +246,10 @@ var PAM_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsAuthorized",
 			Handler:    _PAM_IsAuthorized_Handler,
+		},
+		{
+			MethodName: "SetDefaultBrokerForUser",
+			Handler:    _PAM_SetDefaultBrokerForUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
