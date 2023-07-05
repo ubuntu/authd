@@ -65,11 +65,6 @@ func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 	}, nil
 }
 
-// IsLocal returns if the current broker is the local one.
-func (b Broker) IsLocal() bool {
-	return b.Name == localBrokerName
-}
-
 // GetAuthenticationModes calls the broker corresponding method, expanding sessionID with the broker ID prefix.
 // This solves the case of 2 brokers returning the same ID.
 func (b Broker) GetAuthenticationModes(ctx context.Context, username, lang string, supportedUiLayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error) {

@@ -223,21 +223,6 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	}
 }
 
-//export pam_sm_setcred
-func pam_sm_setcred(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
-	return C.PAM_IGNORE
-}
-
-//export pam_sm_open_session
-func pam_sm_open_session(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
-	return C.PAM_SUCCESS
-}
-
-//export pam_sm_close_session
-func pam_sm_close_session(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
-	return C.PAM_SUCCESS
-}
-
 // selectBroker allows interactive broker selection.
 // Only one choice will be returned immediately.
 func selectBrokerInteractive(brokersInfo []*authd.ABResponse_BrokerInfo) (brokerID, brokerName string, err error) {
@@ -617,6 +602,11 @@ func getSocketPath(argc C.int, argv **C.char) string {
 		}
 	}
 	return socketPath
+}
+
+//export pam_sm_setcred
+func pam_sm_setcred(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+	return C.PAM_IGNORE
 }
 
 func main() {
