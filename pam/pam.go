@@ -52,24 +52,11 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 
 	// Attach logger and info handler.
 	// TODO
-
-	socketPath := consts.DefaultSocketPath
-	for _, arg := range sliceFromArgv(argc, argv) {
-		opt, optarg, _ := strings.Cut(arg, "=")
-		switch opt {
-		case "socket":
-			socketPath = optarg
-		default:
-
-		}
-	}
-
-	conn, err := grpc.Dial("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	client, err := newClient(argc, argv)
 	if err != nil {
-		log.Debugf(context.TODO(), "Could not connect to authd: %v", err)
+		log.Debugf(context.TODO(), "%s", err)
 		return C.PAM_IGNORE
 	}
-	client := authd.NewPAMClient(conn)
 
 	// Get current user for broker.
 	user, err := getUser(pamh, "login: ")
@@ -576,6 +563,29 @@ func readPasswordWithContext(fd int, ctx context.Context, password bool) ([]byte
 			continue
 		}
 	}
+}
+
+// newClient returns a new GRPC client ready to emit requests
+func newClient(argc C.int, argv **C.char) (authd.PAMClient, error) {
+	conn, err := grpc.Dial("unix://"+getSocketPath(argc, argv), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		return nil, fmt.Errorf("could not connect to authd: %v", err)
+	}
+	return authd.NewPAMClient(conn), nil
+}
+
+// getSocketPath returns the socket path to connect to which can be overriden manually.
+func getSocketPath(argc C.int, argv **C.char) string {
+	socketPath := consts.DefaultSocketPath
+	for _, arg := range sliceFromArgv(argc, argv) {
+		opt, optarg, _ := strings.Cut(arg, "=")
+		switch opt {
+		case "socket":
+			socketPath = optarg
+		default:
+		}
+	}
+	return socketPath
 }
 
 func main() {
