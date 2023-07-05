@@ -42,8 +42,9 @@ func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 		id = name
 	}
 
+	fullName := name
 	var broker brokerer
-	var fullName, brandIcon string
+	var brandIcon string
 	log.Debugf(ctx, "Loading broker %q", name)
 	if configFile != "" {
 		broker, fullName, brandIcon, err = newDbusBroker(ctx, bus, configFile)

@@ -238,7 +238,11 @@ func selectBrokerInteractive(brokersInfo []*authd.ABResponse_BrokerInfo) (broker
 	var choices []string
 	var ids []string
 	for i, b := range brokersInfo {
-		choices = append(choices, fmt.Sprintf("%d - %s, %s", i+1, b.GetName(), b.GetBrandIcon()))
+		suffix := ""
+		if b.GetBrandIcon() != "" {
+			suffix = fmt.Sprintf(", %s", b.GetBrandIcon())
+		}
+		choices = append(choices, fmt.Sprintf("%d - %s%s", i+1, b.GetName(), suffix))
 		ids = append(ids, b.GetId())
 	}
 
