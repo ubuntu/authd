@@ -101,7 +101,7 @@ func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lan
 						}),
 					}
 				}
-				if slices.Contains(supportedEntries, "chars") && layout["wait"] == "true" {
+				if slices.Contains(supportedEntries, "chars") && layout["wait"] != "" {
 					allModes[fmt.Sprintf("entry_or_wait_for_%s_gmail.com", username)] = map[string]string{
 						"selection_label": fmt.Sprintf("Send URL to %s@gmail.com", username),
 						"email":           fmt.Sprintf("%s@gmail.com", username),
@@ -116,7 +116,7 @@ func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lan
 			}
 
 			// The broker could parse the values, that are either true/false
-			if layout["wait"] == "true" {
+			if layout["wait"] != "" {
 				if layout["button"] == "optional" {
 					allModes["totp_with_button"] = map[string]string{
 						"selection_label": "Authentication code",
@@ -126,7 +126,6 @@ func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lan
 							"label":  "Enter your one time credential",
 							"entry":  "chars",
 							"button": "Resend sms",
-							"wait":   "true",
 						}),
 					}
 				} else {
@@ -137,7 +136,6 @@ func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lan
 							"type":  "form",
 							"label": "Enter your one time credential",
 							"entry": "chars",
-							"wait":  "true",
 						}),
 					}
 				}
@@ -277,6 +275,8 @@ func (b *exampleBroker) IsAuthorized(ctx context.Context, sessionID, authenticat
 
 	authDeniedResp := "denied"
 
+	// Note that the "wait" authentication can be cancelled and switch to another mode with a challenge.
+	// Take into account the cancellation.
 	switch sessionInfo.selectedMode {
 	case "password":
 		if authData["challenge"] != "goodpass" {

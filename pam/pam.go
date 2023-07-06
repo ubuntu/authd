@@ -394,7 +394,7 @@ func formChallenge(client authd.PAMClient, sessionID, encryptionKey string, uiLa
 			var err error
 			iaResp, err := client.IsAuthorized(waitCtx, &authd.IARequest{
 				SessionId:          sessionID,
-				AuthenticationData: "",
+				AuthenticationData: `{"wait": "true"}`,
 			})
 
 			// No more processing if entry has been filed.
@@ -478,7 +478,7 @@ func qrcodeChallenge(client authd.PAMClient, sessionID, encryptionKey string, ui
 
 	iaReq := &authd.IARequest{
 		SessionId:          sessionID,
-		AuthenticationData: "",
+		AuthenticationData: `{"wait": "true"}`,
 	}
 	iaResp, err = client.IsAuthorized(context.TODO(), iaReq)
 	if err != nil {
