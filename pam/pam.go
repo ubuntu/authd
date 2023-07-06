@@ -26,6 +26,7 @@ import (
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
 	"golang.org/x/sys/unix"
+	"golang.org/x/term"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -57,7 +58,11 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	// Attach logger and info handler.
 	// TODO
 
-	// Do we have a tty? If not, exits
+	// Check if we are in an interactive terminal to see if we can do something
+	if !term.IsTerminal(int(os.Stdin.Fd())) {
+		log.Info(context.TODO(), "Not in an interactive terminal and not an authd compatible application. Exiting")
+		return C.PAM_IGNORE
+	}
 
 	client, close, err := newClient(argc, argv)
 	if err != nil {
