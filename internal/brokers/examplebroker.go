@@ -267,7 +267,7 @@ func (b exampleBroker) IsAuthorized(ctx context.Context, sessionID, authenticati
 		return "", "", fmt.Errorf("%s is not a current transaction", sessionID)
 	}
 
-	authenticationData = decryptAES([]byte(brokerEncryptionKey), authenticationData)
+	//authenticationData = decryptAES([]byte(brokerEncryptionKey), authenticationData)
 	var authData map[string]string
 	if authenticationData != "" {
 		if err := json.Unmarshal([]byte(authenticationData), &authData); err != nil {
@@ -358,7 +358,7 @@ func mapToJson(input map[string]string) string {
 }
 
 func jsonToMap(data string) map[string]string {
-	var r map[string]string
+	r := make(map[string]string)
 	if err := json.Unmarshal([]byte(data), &r); err != nil {
 		panic(fmt.Sprintf("Invalid map data: %v", err))
 	}
@@ -393,6 +393,7 @@ func decryptAES(key []byte, ct string) string {
 
 	c, err := aes.NewCipher(key)
 	if err != nil {
+		fmt.Println(err)
 		panic("prototype")
 	}
 

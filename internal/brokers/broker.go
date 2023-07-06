@@ -137,6 +137,7 @@ func validateUILayout(layout map[string]string) (r map[string]string, err error)
 	wait := layout["wait"]
 	content := layout["content"]
 
+	r = make(map[string]string)
 	switch typ {
 	case "form":
 		if label == "" {

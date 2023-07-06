@@ -56,11 +56,13 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 
 	// Attach logger and info handler.
 	// TODO
-	client, err := newClient(argc, argv)
+
+	client, close, err := newClient(argc, argv)
 	if err != nil {
 		log.Debugf(context.TODO(), "%s", err)
 		return C.PAM_IGNORE
 	}
+	defer close()
 
 	// Get current user for broker.
 	user, err := getUser(pamh, "login: ")
@@ -185,6 +187,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 
 			// Go back to authentication selection.
 			if errors.Is(err, errGoBack) {
+				currentAuthModeName = ""
 				stage = StageAuthenticationMode
 				continue
 			}
@@ -454,7 +457,7 @@ func formChallenge(client authd.PAMClient, sessionID, encryptionKey string, uiLa
 
 	r := <-results
 	if r.err != nil {
-		return nil, err
+		return nil, r.err
 	}
 
 	return r.iaResp, nil
@@ -557,11 +560,12 @@ func readPasswordWithContext(fd int, ctx context.Context, password bool) ([]byte
 
 //export pam_sm_acct_mgmt
 func pam_sm_acct_mgmt(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
-	client, err := newClient(argc, argv)
+	client, close, err := newClient(argc, argv)
 	if err != nil {
 		log.Debugf(context.TODO(), "%s", err)
 		return C.PAM_IGNORE
 	}
+	defer close()
 
 	// Get current user for broker.
 	user, err := getUser(pamh, "")
@@ -583,12 +587,12 @@ func pam_sm_acct_mgmt(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.
 }
 
 // newClient returns a new GRPC client ready to emit requests
-func newClient(argc C.int, argv **C.char) (authd.PAMClient, error) {
+func newClient(argc C.int, argv **C.char) (client authd.PAMClient, close func(), err error) {
 	conn, err := grpc.Dial("unix://"+getSocketPath(argc, argv), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return nil, fmt.Errorf("could not connect to authd: %v", err)
+		return nil, nil, fmt.Errorf("could not connect to authd: %v", err)
 	}
-	return authd.NewPAMClient(conn), nil
+	return authd.NewPAMClient(conn), func() { conn.Close() }, nil
 }
 
 // getSocketPath returns the socket path to connect to which can be overriden manually.

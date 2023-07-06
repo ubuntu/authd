@@ -173,7 +173,7 @@ func (s Service) IsAuthorized(ctx context.Context, req *authd.IARequest) (resp *
 func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURequest) (empty *authd.Empty, err error) {
 	decorate.OnError(&err, "can't set default broker for session id %q", req.GetSessionId())
 
-	if req.GetUsername() != "" {
+	if req.GetUsername() == "" {
 		return nil, errors.New("no user name given")
 	}
 
@@ -187,7 +187,7 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURe
 
 	s.brokerManager.SetDefaultBrokerForUser(req.GetUsername(), b)
 
-	return nil, nil
+	return &authd.Empty{}, nil
 }
 
 func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err error) {
