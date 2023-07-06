@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -186,32 +187,31 @@ func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lan
 		}
 	}
 
-	// Sort in preference order. We want by default password as first
-	allNames := []string{"password"}
+	// Sort in preference order. We want by default password as first and potentially last selection too.
+	lastSelection := b.userLastSelectedMode[username]
+	if _, exists := allModes[lastSelection]; !exists {
+		lastSelection = ""
+	}
+
+	var allNames []string
 	for n := range allModes {
-		if n == "password" {
+		if n == "password" || n == lastSelection {
 			continue
 		}
 		allNames = append(allNames, n)
 	}
-
-	// However, if we have already a selected mode for this user, prefer the last one the user used.
-	lastSelection := b.userLastSelectedMode[username]
-	if allModes[lastSelection] != nil {
-		authenticationModes = append(authenticationModes, map[string]string{
-			"name":  lastSelection,
-			"label": allModes[lastSelection]["selection_label"],
-		})
+	sort.Strings(allNames)
+	if lastSelection != "" && lastSelection != "password" {
+		allNames = append([]string{lastSelection, "password"}, allNames...)
+	} else {
+		allNames = append([]string{"password"}, allNames...)
 	}
 
-	for n, am := range allModes {
-		// we already added that one
-		if n == lastSelection {
-			continue
-		}
+	for _, name := range allNames {
+		authMode := allModes[name]
 		authenticationModes = append(authenticationModes, map[string]string{
-			"name":  n,
-			"label": am["selection_label"],
+			"name":  name,
+			"label": authMode["selection_label"],
 		})
 	}
 
@@ -261,7 +261,7 @@ func (b *exampleBroker) SelectAuthenticationMode(ctx context.Context, sessionID,
 	return uiLayoutInfo, nil
 }
 
-func (b exampleBroker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error) {
+func (b *exampleBroker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error) {
 	sessionInfo, inprogress := b.currentSessions[sessionID]
 	if !inprogress {
 		return "", "", fmt.Errorf("%s is not a current transaction", sessionID)
@@ -345,6 +345,9 @@ func (b exampleBroker) IsAuthorized(ctx context.Context, sessionID, authenticati
 	if !exists {
 		return authDeniedResp, "", nil
 	}
+
+	// Store last successful authentication mode for this user in the broker.
+	b.userLastSelectedMode[sessionInfo.username] = sessionInfo.selectedMode
 
 	return "allowed", userInfo, nil
 }
