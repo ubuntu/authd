@@ -109,8 +109,8 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	var availableAuthModes []*authd.SBResponse_AuthenticationMode
 	var uiLayout *authd.UILayout
 
+	var challengeRetry int
 	for {
-		var challengeRetry int
 
 		switch stage {
 		case StageBrokerSelection:
@@ -171,6 +171,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 
 			uiLayout = uiInfo.UiLayoutInfo
 			stage = StageChallenge
+			challengeRetry = 0
 
 		case StageChallenge:
 			var iaResp *authd.IAResponse
