@@ -101,25 +101,25 @@ func (b Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authent
 }
 
 // IsAuthorized calls the broker corresponding method, stripping broker ID prefix from sessionID.
-func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access string, userInfo map[string]string, err error) {
+func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access string, userInfo string, err error) {
 	sessionID = strings.TrimPrefix(sessionID, fmt.Sprintf("%s-", b.ID))
 
-	access, uInfo, err := b.brokerer.IsAuthorized(ctx, sessionID, authenticationData)
+	access, userInfo, err = b.brokerer.IsAuthorized(ctx, sessionID, authenticationData)
 	if err != nil {
-		return "", nil, err
+		return "", "", err
 	}
 
 	// Validate access authorization.
-	if !slices.Contains([]string{"access", "denied"}, access) {
-		return "", nil, fmt.Errorf("invalid access authorization key: %v", access)
+	if !slices.Contains([]string{"allowed", "denied"}, access) {
+		return "", "", fmt.Errorf("invalid access authorization key: %v", access)
 	}
 
-	// Return the type to a structured data.
-	if uInfo != "" {
-		userInfo, err = stringToMap(uInfo)
-		if err != nil {
-			return "", nil, fmt.Errorf("invalid user information type: %v", uInfo)
-		}
+	// Validate json
+	if userInfo == "" {
+		userInfo = "{}"
+	}
+	if !json.Valid([]byte(userInfo)) {
+		return "", "", fmt.Errorf("invalid user information (not json formatted): %v", userInfo)
 	}
 
 	return access, userInfo, nil
@@ -172,16 +172,4 @@ func validateUILayout(layout map[string]string) (r map[string]string, err error)
 	r["type"] = typ
 
 	return r, nil
-}
-
-func stringToMap(jsonData string) (map[string]string, error) {
-	var data map[string]string
-
-	err := json.Unmarshal([]byte(jsonData), &data)
-	if err != nil {
-		fmt.Println("Error unmarshaling JSON:", err)
-		return nil, err
-	}
-
-	return data, nil
 }

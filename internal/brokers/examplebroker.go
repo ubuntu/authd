@@ -29,9 +29,10 @@ type exampleBroker struct {
 var (
 	users = map[string]string{
 		"user1": `
+		{
 			"uid": "4245874",
 			"name": "My user",
-			"groups": [
+			"groups": {
 				"group1": {
 					"name": "Group 1",
 					"gid": "3884"
@@ -39,18 +40,21 @@ var (
 				"group2": {
 					"name": "Group 2",
 					"gid": "4884"
-				},
-			]
+				}
+			}
+		}
 	`,
 		"user2": `
-			"uid": "3333333",
+		{
+			"uid": "33333",
 			"name": "My secondary user",
-			"groups": [
+			"groups": {
 				"group2": {
 					"name": "Group 2",
 					"gid": "4884"
-				},
-			]
+				}
+			}
+		}
 	`,
 	}
 )

@@ -209,10 +209,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 				}
 				return C.PAM_AUTH_ERR
 			case "allowed":
-				fmt.Println("Welcome")
-				for k, v := range iaResp.UserInfo {
-					fmt.Printf("Key: %s, Value: %s\n", k, v)
-				}
+				fmt.Printf("Welcome:\n%s\n", iaResp.UserInfo)
 				return C.PAM_SUCCESS
 			default:
 				// Invalid response
