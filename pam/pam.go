@@ -57,6 +57,8 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	// Attach logger and info handler.
 	// TODO
 
+	// Do we have a tty? If not, exits
+
 	client, close, err := newClient(argc, argv)
 	if err != nil {
 		log.Debugf(context.TODO(), "%s", err)
@@ -75,7 +77,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 		UserName: &user,
 	})
 	if err != nil {
-		log.Errorf(context.TODO(), "Could not get current available brokers: %v", err)
+		log.Debugf(context.TODO(), "Could not get current available brokers: %v", err)
 		return C.PAM_IGNORE
 	}
 
@@ -579,7 +581,7 @@ func pam_sm_acct_mgmt(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.
 		Username:  user,
 	}
 	if _, err := client.SetDefaultBrokerForUser(context.TODO(), &req); err != nil {
-		log.Infof(context.TODO(), "Can't set default broker for %q on sesssion %q: %v", user, sessionID, err)
+		log.Infof(context.TODO(), "Can't set default broker for %q on session %q: %v", user, sessionID, err)
 		return C.PAM_IGNORE
 	}
 

@@ -71,6 +71,7 @@ func New(ctx context.Context, registerGRPCService GRPCServiceRegisterer, args ..
 		log.Debugf(ctx, "Listening on %s", opts.socketPath)
 
 		// manual socket
+		// TODO: if socket exists, remove
 		lis, err = net.Listen("unix", opts.socketPath)
 		if err != nil {
 			return nil, err
