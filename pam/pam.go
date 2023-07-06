@@ -238,16 +238,16 @@ func selectBrokerInteractive(brokersInfo []*authd.ABResponse_BrokerInfo) (broker
 
 	var choices []string
 	var ids []string
-	for i, b := range brokersInfo {
-		suffix := ""
+	for _, b := range brokersInfo {
+		brokerLabel := b.GetName()
 		if b.GetBrandIcon() != "" {
-			suffix = fmt.Sprintf(", %s", b.GetBrandIcon())
+			brokerLabel = fmt.Sprintf("%s, %s", brokerLabel, b.GetBrandIcon())
 		}
-		choices = append(choices, fmt.Sprintf("%d - %s%s", i+1, b.GetName(), suffix))
+		choices = append(choices, brokerLabel)
 		ids = append(ids, b.GetId())
 	}
 
-	i, err := promptForInt("= Broker selection =", choices, "Select broker ('r' to cancel): ")
+	i, err := promptForInt("= Broker selection =", choices, "Select broker: ")
 	if err != nil {
 		return "", "", fmt.Errorf("broker selection error: %w", err)
 	}
@@ -326,8 +326,8 @@ func selectAuthenticationModeInteractive(authModes []*authd.SBResponse_Authentic
 
 	var choices []string
 	var ids []string
-	for i, m := range authModes {
-		choices = append(choices, fmt.Sprintf("%d - %s\n", i+1, m.Label))
+	for _, m := range authModes {
+		choices = append(choices, m.GetLabel())
 		ids = append(ids, m.GetName())
 	}
 
@@ -375,7 +375,7 @@ func formChallenge(client authd.PAMClient, sessionID, encryptionKey string, uiLa
 	if !strings.HasSuffix(prompt, " ") {
 		prompt = fmt.Sprintf("%s ", prompt)
 	}
-	fmt.Printf("%s ('r' to cancel)", prompt)
+	fmt.Printf("%s ('r' to cancel): ", prompt)
 
 	type result struct {
 		iaResp *authd.IAResponse

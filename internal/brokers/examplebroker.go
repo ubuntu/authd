@@ -86,7 +86,7 @@ func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lan
 						"selection_label": "Password authentication",
 						"ui": mapToJson(map[string]string{
 							"type":  "form",
-							"label": "Gimme your password:",
+							"label": "Gimme your password",
 							"entry": "chars_password",
 						}),
 					}
@@ -96,7 +96,7 @@ func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lan
 						"selection_label": "Pin code",
 						"ui": mapToJson(map[string]string{
 							"type":  "form",
-							"label": "Enter your pin code:",
+							"label": "Enter your pin code",
 							"entry": "digits",
 						}),
 					}
@@ -123,7 +123,7 @@ func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lan
 						"phone":           "+33…",
 						"ui": mapToJson(map[string]string{
 							"type":   "form",
-							"label":  "Enter your one time credential:",
+							"label":  "Enter your one time credential",
 							"entry":  "chars",
 							"button": "Resend sms",
 							"wait":   "true",
@@ -135,7 +135,7 @@ func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lan
 						"phone":           "+33…",
 						"ui": mapToJson(map[string]string{
 							"type":  "form",
-							"label": "Enter your one time credential:",
+							"label": "Enter your one time credential",
 							"entry": "chars",
 							"wait":  "true",
 						}),
@@ -147,7 +147,7 @@ func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lan
 					"phone":           "+33…",
 					"ui": mapToJson(map[string]string{
 						"type":  "form",
-						"label": "Unlock your phone +33… or accept request on web intelface:ck your phone +33… or accept request on web interface:",
+						"label": "Unlock your phone +33… or accept request on web interface:",
 						"wait":  "true",
 					}),
 				}
@@ -157,7 +157,7 @@ func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lan
 					"phone":           "+1…",
 					"ui": mapToJson(map[string]string{
 						"type":  "form",
-						"label": "Unlock your phone +1… or accept request on web interface:",
+						"label": "Unlock your phone +1… or accept request on web interface",
 						"wait":  "true",
 					}),
 				}
@@ -166,7 +166,7 @@ func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lan
 					"selection_label": "Use your fido device foo",
 					"ui": mapToJson(map[string]string{
 						"type":  "form",
-						"label": "Plug your fido device and press with your thumb:",
+						"label": "Plug your fido device and press with your thumb",
 						"wait":  "true",
 					}),
 				}
