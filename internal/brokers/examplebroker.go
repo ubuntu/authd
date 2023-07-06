@@ -298,7 +298,11 @@ func (b *exampleBroker) IsAuthorized(ctx context.Context, sessionID, authenticat
 			return authDeniedResp, "", nil
 		}
 		// Send notification to phone1 and wait on server signal to return if OK or not
-		time.Sleep(5 * time.Second)
+		select {
+		case <-time.After(5 * time.Second):
+		case <-ctx.Done():
+			return authDeniedResp, "", nil
+		}
 
 	case "phoneack2":
 		if authData["wait"] != "true" {
@@ -306,7 +310,11 @@ func (b *exampleBroker) IsAuthorized(ctx context.Context, sessionID, authenticat
 		}
 
 		// This one is failing remotely as an example
-		time.Sleep(2 * time.Second)
+		select {
+		case <-time.After(2 * time.Second):
+		case <-ctx.Done():
+			return authDeniedResp, "", nil
+		}
 		return authDeniedResp, "", nil
 
 	case "fidodevice1":
@@ -315,14 +323,22 @@ func (b *exampleBroker) IsAuthorized(ctx context.Context, sessionID, authenticat
 		}
 
 		// simulate direct exchange with the FIDO device
-		time.Sleep(5 * time.Second)
+		select {
+		case <-time.After(5 * time.Second):
+		case <-ctx.Done():
+			return authDeniedResp, "", nil
+		}
 
 	case "qrcodewithtypo":
 		if authData["wait"] != "true" {
 			return authDeniedResp, "", nil
 		}
 		// Simulate connexion with remote server to check that the correct code was entered
-		time.Sleep(4 * time.Second)
+		select {
+		case <-time.After(4 * time.Second):
+		case <-ctx.Done():
+			return authDeniedResp, "", nil
+		}
 	}
 
 	// this case name was dynamically generated
@@ -335,7 +351,12 @@ func (b *exampleBroker) IsAuthorized(ctx context.Context, sessionID, authenticat
 			}
 		} else if authData["wait"] == "true" {
 			// we are simulating clicking on the url signal received by the broker
-			time.Sleep(10 * time.Second)
+			// this can be cancelled to resend a challenge
+			select {
+			case <-time.After(10 * time.Second):
+			case <-ctx.Done():
+				return authDeniedResp, "", nil
+			}
 		} else {
 			return authDeniedResp, "", nil
 		}
