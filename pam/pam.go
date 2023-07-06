@@ -545,12 +545,11 @@ func readPasswordWithContext(fd int, ctx context.Context, password bool) ([]byte
 					ret = ret[:len(ret)-1]
 				}
 			case '\n':
-				return ret, nil
-			case 'r':
 				// Only return if r is the single character entered.
-				if len(ret) > 0 {
+				if string(ret) == "r" {
 					return nil, errGoBack
 				}
+				return ret, nil
 			default:
 				ret = append(ret, buf[0])
 			}
