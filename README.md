@@ -30,7 +30,7 @@ TODO: More general description about the project.
 
 For general details, including [installation](TODO link to installation instruction) and [Getting started](TODO link to getting started instructions) guides, head over to our [PROJECT_TODO documentation](link to project documentation).
 
-## How to debug
+## Troubleshooting
 
 TODO: Add details on how to debug this project, where to increase verbosity, how to find logs, how to run in debug mode.
 
