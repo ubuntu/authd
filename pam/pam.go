@@ -68,7 +68,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	client, close, err := newClient(argc, argv)
 	if err != nil {
 		log.Debugf(context.TODO(), "%s", err)
-		return C.PAM_IGNORE
+		return C.PAM_AUTHINFO_UNAVAIL
 	}
 	defer close()
 
@@ -84,7 +84,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	})
 	if err != nil {
 		log.Debugf(context.TODO(), "Could not get current available brokers: %v", err)
-		return C.PAM_IGNORE
+		return C.PAM_AUTHINFO_UNAVAIL
 	}
 
 	type Stage int
