@@ -52,3 +52,13 @@ type pamAuthError struct {
 func (err pamAuthError) String() string {
 	return err.msg
 }
+
+// pamAuthInfoUnavailable signals PAM module to return PAM_AUTHINFO_UNAVAIL and Quit tea.Model.
+type pamAuthInfoUnavailable struct {
+	msg string
+}
+
+// String returns the string of pamAuthInfoUnavailable message.
+func (err pamAuthInfoUnavailable) String() string {
+	return err.msg
+}

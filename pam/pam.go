@@ -55,7 +55,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	client, closeConn, err := newClient(argc, argv)
 	if err != nil {
 		log.Debug(context.TODO(), err)
-		return C.PAM_IGNORE
+		return C.PAM_AUTHINFO_UNAVAIL
 	}
 	defer closeConn()
 
@@ -102,6 +102,11 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 			logErrMsg = fmt.Sprintf("authentication: %s", exitMsg)
 		}
 		errCode = C.PAM_AUTH_ERR
+	case pamAuthInfoUnavailable:
+		if exitMsg.String() != "" {
+			logErrMsg = fmt.Sprintf("missing authentication data: %s", exitMsg)
+		}
+		errCode = C.PAM_AUTHINFO_UNAVAIL
 	case pamSystemError:
 		if exitMsg.String() != "" {
 			logErrMsg = fmt.Sprintf("system: %s", exitMsg)
