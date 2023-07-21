@@ -4,10 +4,7 @@ package main
 #cgo LDFLAGS: -lpam -fPIC
 #include <security/pam_appl.h>
 #include <security/pam_ext.h>
-#include <stdlib.h>
-#include <string.h>
 
-char *string_from_argv(int i, char **argv);
 */
 import "C"
 
