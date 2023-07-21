@@ -12,6 +12,11 @@ jobs:
     name: Code sanity
     runs-on: ubuntu-latest
     steps:
+      - name: Install dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libgdm-dev libpam0g-dev
+          version: 1.0
       - uses: actions/checkout@v3
       - name: Go code sanity check
         uses: canonical/desktop-engineering/gh-actions/go/code-sanity@main
@@ -23,6 +28,11 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     steps:
+      - name: Install dependencies
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libgdm-dev libpam0g-dev
+          version: 1.0
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:

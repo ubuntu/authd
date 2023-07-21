@@ -1,13 +1,17 @@
 package main
 
 /*
+#cgo pkg-config: gdm-pam-extensions
 #include "pam-utils.h"
 */
 import "C"
 
 import (
+	"errors"
 	"fmt"
 	"unsafe"
+
+	"github.com/elliotchance/orderedmap/v2"
 )
 
 // pamHandle allows to pass C.pam_handle_t to this package.
@@ -99,4 +103,44 @@ func requestInput(pamh pamHandle, prompt string) (string, error) {
 
 func requestSecret(pamh pamHandle, prompt string) (string, error) {
 	return pamConv(pamh, prompt+": ", PamPromptEchoOff)
+}
+
+func gdmChoiceListSupported() bool {
+	return C.gdm_choices_list_supported() != C.bool(false)
+}
+
+func gdmChoiceListRequest(pamh pamHandle, prompt string,
+	choices *orderedmap.OrderedMap[string, string]) (string, error) {
+	if choices.Len() == 0 {
+		return "", errors.New("no choices provided")
+	}
+
+	cPrompt := C.CString(prompt)
+	defer C.free(unsafe.Pointer(cPrompt))
+	cChoicesRequest := C.gdm_choices_request_create(cPrompt, C.ulong(choices.Len()))
+	defer C.gdm_choices_request_free(cChoicesRequest)
+
+	var i = 0
+	for el := choices.Front(); el != nil; el = el.Next() {
+		cKey := C.CString(el.Key)
+		defer C.free(unsafe.Pointer(cKey))
+		cText := C.CString(el.Value)
+		defer C.free(unsafe.Pointer(cText))
+
+		C.gdm_choices_request_set(cChoicesRequest, C.ulong(i), cKey, cText)
+		i++
+	}
+
+	cReply := C.gdm_choices_request_ask(pamh, cChoicesRequest)
+	defer C.free(unsafe.Pointer(cReply))
+	if cReply == nil {
+		return "", errors.New("GDM didn't return any choice")
+	}
+
+	reply := C.GoString(cReply)
+	if _, ok := choices.Get(reply); ok {
+		return reply, nil
+	}
+
+	return "", fmt.Errorf("reply %s is not known", reply)
 }
