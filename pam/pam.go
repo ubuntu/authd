@@ -197,7 +197,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 		UserName: &user,
 	})
 	if err != nil {
-		log.Debugf(context.TODO(), "Could not get current available brokers: %v", err)
+		sendAndLogError(pamh, "Could not get current available brokers: %v", err)
 		return C.PAM_AUTHINFO_UNAVAIL
 	}
 
