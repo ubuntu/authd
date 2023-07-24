@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/ubuntu/authd/cmd/authd/daemon"
+	"github.com/ubuntu/authd/internal/brokers/examplebroker"
 	"github.com/ubuntu/authd/internal/log"
 )
 
@@ -18,6 +19,13 @@ import (
 
 func main() {
 	//i18n.InitI18nDomain(common.TEXTDOMAIN)
+	go func() {
+		err := examplebroker.StartBus()
+		if err != nil {
+			log.Error(context.Background(), err)
+			os.Exit(1)
+		}
+	}()
 	a := daemon.New()
 	os.Exit(run(a))
 }
