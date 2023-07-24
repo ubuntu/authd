@@ -56,8 +56,6 @@ func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 		if err != nil {
 			return Broker{}, err
 		}
-	} else if name != localBrokerName {
-		broker, fullName, brandIcon = newExampleBroker(name)
 	}
 
 	return Broker{
