@@ -57,21 +57,84 @@ func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b db
 	}, fullNameVal.String(), brandIconVal.String(), nil
 }
 
-// To be implemented.
+// NewSession calls the corresponding method on the broker bus and returns the session ID and encryption key.
 func (b dbusBroker) NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error) {
-	return "", "", nil
+	dbusMethod := b.interfaceName + ".NewSession"
+
+	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, username, lang)
+	if err = call.Err; err != nil {
+		return "", "", err
+	}
+	if err = call.Store(&sessionID, &encryptionKey); err != nil {
+		return "", "", err
+	}
+
+	return sessionID, encryptionKey, nil
 }
+
+// GetAuthenticationModes calls the corresponding method on the broker bus and returns the authentication modes supported by it.
 func (b dbusBroker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
-	return nil, nil
+	dbusMethod := b.interfaceName + ".GetAuthenticationModes"
+
+	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID, supportedUILayouts)
+	if err = call.Err; err != nil {
+		return nil, err
+	}
+	if err = call.Store(&authenticationModes); err != nil {
+		return nil, err
+	}
+
+	return authenticationModes, nil
 }
+
+// SelectAuthenticationMode calls the corresponding method on the broker bus and returns the UI layout for the selected mode.
 func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
-	return nil, nil
+	dbusMethod := b.interfaceName + ".SelectAuthenticationMode"
+
+	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID, authenticationModeName)
+	if err = call.Err; err != nil {
+		return nil, err
+	}
+	if err = call.Store(&uiLayoutInfo); err != nil {
+		return nil, err
+	}
+
+	return uiLayoutInfo, nil
 }
+
+// IsAuthorized calls the corresponding method on the broker bus and returns the user information and access.
 func (b dbusBroker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error) {
-	return "", "", nil
+	dbusMethod := b.interfaceName + ".IsAuthorized"
+
+	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID, authenticationData)
+	if err = call.Err; err != nil {
+		return "", "", err
+	}
+	if err = call.Store(&access, &infoUser); err != nil {
+		return "", "", err
+	}
+
+	return access, infoUser, nil
 }
+
+// EndSession calls the corresponding method on the broker bus.
 func (b dbusBroker) EndSession(ctx context.Context, sessionID string) (err error) {
+	dbusMethod := b.interfaceName + ".EndSession"
+
+	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID)
+	if err = call.Err; err != nil {
+		return err
+	}
+
 	return nil
 }
+
+// CancelIsAuthorized calls the corresponding method on the broker bus.
 func (b dbusBroker) CancelIsAuthorized(ctx context.Context, sessionID string) {
+	dbusMethod := b.interfaceName + ".CancelIsAuthorized"
+
+	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID)
+	if call.Err != nil {
+		log.Errorf(ctx, "could not cancel IsAuthorized call for session %q: %v", sessionID, call.Err)
+	}
 }
