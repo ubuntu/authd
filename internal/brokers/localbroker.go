@@ -18,3 +18,8 @@ func (b localBroker) SelectAuthenticationMode(ctx context.Context, sessionID, au
 func (b localBroker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error) {
 	return "", "", errors.New("IsAuthorized should never be called on local broker")
 }
+func (b localBroker) AbortSession(ctx context.Context, sessionID string) (err error) {
+	return errors.New("AbortSession should never be called on local broker")
+}
+func (b localBroker) CancelIsAuthorized(ctx context.Context, sessionID string) {
+}
