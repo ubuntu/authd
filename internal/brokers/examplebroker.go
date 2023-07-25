@@ -66,12 +66,14 @@ const (
 
 func newExampleBroker(name string) (b *exampleBroker, fullName, brandIcon string, err error) {
 	return &exampleBroker{
-		currentSessions:      make(map[string]sessionInfo),
-		userLastSelectedMode: make(map[string]string),
+		currentSessions:        make(map[string]sessionInfo),
+		currentSessionsMu:      sync.Mutex{},
+		userLastSelectedMode:   make(map[string]string),
+		userLastSelectedModeMu: sync.Mutex{},
 	}, strings.ReplaceAll(name, "_", " "), fmt.Sprintf("/usr/share/brokers/%s.png", name), nil
 }
 
-func (b exampleBroker) GetAuthenticationModes(ctx context.Context, username, lang string, supportedUiLayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error) {
+func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, lang string, supportedUiLayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error) {
 	sessionID = uuid.New().String()
 
 	//var candidatesAuthenticationModes []map[string]string
