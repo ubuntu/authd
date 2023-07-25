@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,8 +24,10 @@ type sessionInfo struct {
 }
 
 type exampleBroker struct {
-	currentSessions      map[string]sessionInfo
-	userLastSelectedMode map[string]string
+	currentSessions        map[string]sessionInfo
+	currentSessionsMu      sync.Mutex
+	userLastSelectedMode   map[string]string
+	userLastSelectedModeMu sync.Mutex
 }
 
 var (
@@ -215,11 +218,13 @@ func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, la
 		})
 	}
 
+	b.currentSessionsMu.Lock()
 	b.currentSessions[sessionID] = sessionInfo{
 		username: username,
 		lang:     lang,
 		allModes: allModes,
 	}
+	b.currentSessionsMu.Unlock()
 
 	return sessionID, brokerEncryptionKey, authenticationModes, nil
 }
@@ -256,7 +261,9 @@ func (b *exampleBroker) SelectAuthenticationMode(ctx context.Context, sessionID,
 
 	// Store selected mode
 	sessionInfo.selectedMode = authenticationModeName
+	b.currentSessionsMu.Lock()
 	b.currentSessions[sessionID] = sessionInfo
+	b.currentSessionsMu.Unlock()
 
 	return uiLayoutInfo, nil
 }
@@ -370,7 +377,9 @@ func (b *exampleBroker) IsAuthorized(ctx context.Context, sessionID, authenticat
 	}
 
 	// Store last successful authentication mode for this user in the broker.
+	b.userLastSelectedModeMu.Lock()
 	b.userLastSelectedMode[sessionInfo.username] = sessionInfo.selectedMode
+	b.userLastSelectedModeMu.Unlock()
 
 	return "allowed", userInfo, nil
 }
