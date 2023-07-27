@@ -23,6 +23,7 @@ import (
 
 	"github.com/skip2/go-qrcode"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
 	"golang.org/x/sys/unix"
@@ -118,7 +119,6 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 
 	var challengeRetry int
 	for {
-
 		switch stage {
 		case StageBrokerSelection:
 			// Broker selection and escape
@@ -211,7 +211,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 
 			// Check if authorized
 			switch strings.ToLower(iaResp.Access) {
-			case "denied":
+			case brokers.AuthDenied:
 				fmt.Println("Access Denied")
 				challengeRetry++
 				if challengeRetry < maxChallengeRetries {
@@ -219,7 +219,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 					continue
 				}
 				return C.PAM_AUTH_ERR
-			case "allowed":
+			case brokers.AuthAllowed:
 				fmt.Printf("Welcome:\n%s\n", iaResp.UserInfo)
 				return C.PAM_SUCCESS
 			default:

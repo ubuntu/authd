@@ -110,7 +110,7 @@ func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData 
 	}
 
 	// Validate access authorization.
-	if !slices.Contains([]string{"allowed", "denied"}, access) {
+	if !slices.Contains(authReplies, access) {
 		return "", "", fmt.Errorf("invalid access authorization key: %v", access)
 	}
 
