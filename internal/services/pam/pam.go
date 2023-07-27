@@ -190,6 +190,18 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURe
 	return &authd.Empty{}, nil
 }
 
+// AbortSession aborts the authentication flow for the specified session.
+func (s Service) AbortSession(ctx context.Context, req *authd.ASRequest) (empty *authd.Empty, err error) {
+	decorate.OnError(&err, "could not abort session")
+
+	sessionID := req.GetSessionId()
+	if sessionID == "" {
+		return nil, errors.New("no session id given")
+	}
+
+	return &authd.Empty{}, s.brokerManager.AbortSession(ctx, sessionID)
+}
+
 func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err error) {
 	if layout.GetType() == "" {
 		return nil, fmt.Errorf("invalid layout option: type is required, got: %v", layout)

@@ -183,7 +183,6 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 		case StageChallenge:
 			var iaResp *authd.IAResponse
 			var err error
-			// TODO: handle context cancellation to return to previous authentication method selection.
 
 			switch uiLayout.Type {
 			case "form":
@@ -222,6 +221,10 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 			case brokers.AuthAllowed:
 				fmt.Printf("Welcome:\n%s\n", iaResp.UserInfo)
 				return C.PAM_SUCCESS
+			case brokers.AuthCancelled:
+				currentAuthModeName = ""
+				stage = StageAuthenticationMode
+				continue
 			default:
 				// Invalid response
 				log.Errorf(context.TODO(), "Invalid Reponse: %v", iaResp.Access)
@@ -403,12 +406,8 @@ func formChallenge(client authd.PAMClient, sessionID, encryptionKey string, uiLa
 				SessionId:          sessionID,
 				AuthenticationData: `{"wait": "true"}`,
 			})
-
-			// No more processing if entry has been filed.
-			select {
-			case <-waitCtx.Done():
+			if iaResp.Access == brokers.AuthCancelled {
 				return
-			default:
 			}
 
 			cancelTerm()
