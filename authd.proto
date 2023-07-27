@@ -8,6 +8,7 @@ service PAM {
   rpc SelectBroker(SBRequest) returns (SBResponse);
   rpc SelectAuthenticationMode(SAMRequest) returns (SAMResponse);
   rpc IsAuthorized(IARequest) returns (IAResponse);
+  rpc AbortSession(ASRequest) returns (Empty);
 
   rpc SetDefaultBrokerForUser(SDBFURequest) returns (Empty);
 }
@@ -92,6 +93,11 @@ message IAResponse {
 }
 
 message SDBFURequest {
+  string session_id = 1;
+  string username = 2;
+}
+
+message ASRequest {
   string session_id = 1;
   string username = 2;
 }

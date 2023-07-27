@@ -183,3 +183,21 @@ func (m *Manager) BrokerForSessionID(sessionID string) (broker *Broker, err erro
 
 	return broker, nil
 }
+
+// AbortSession sends a abortion request to the broker associated with the sessionID and then removes the
+// session -> broker mapping.
+func (m *Manager) AbortSession(ctx context.Context, sessionID string) error {
+	b, err := m.BrokerForSessionID(sessionID)
+	if err != nil {
+		return err
+	}
+
+	if err = b.AbortSession(ctx, sessionID); err != nil {
+		return err
+	}
+
+	m.transactionsToBrokerMu.Lock()
+	delete(m.transactionsToBroker, sessionID)
+	m.transactionsToBrokerMu.Unlock()
+	return nil
+}

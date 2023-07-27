@@ -67,3 +67,8 @@ func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, aut
 func (b dbusBroker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error) {
 	return "", "", nil
 }
+func (b dbusBroker) AbortSession(ctx context.Context, sessionID string) (err error) {
+	return nil
+}
+func (b dbusBroker) CancelIsAuthorized(ctx context.Context, sessionID string) {
+}

@@ -22,6 +22,8 @@ type brokerer interface {
 	GetAuthenticationModes(ctx context.Context, username, lang string, supportedUiLayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error)
 	SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error)
 	IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error)
+	AbortSession(ctx context.Context, sessionID string) (err error)
+	CancelIsAuthorized(ctx context.Context, sessionID string)
 }
 
 type Broker struct {
@@ -91,7 +93,7 @@ func (b Broker) GetAuthenticationModes(ctx context.Context, username, lang strin
 
 // SelectAuthenticationMode calls the broker corresponding method, stripping broker ID prefix from sessionID.
 func (b Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
-	sessionID = strings.TrimPrefix(sessionID, fmt.Sprintf("%s-", b.ID))
+	sessionID = b.parseSessionID(sessionID)
 	uiLayoutInfo, err = b.brokerer.SelectAuthenticationMode(ctx, sessionID, authenticationModeName)
 	if err != nil {
 		return nil, err
@@ -102,15 +104,26 @@ func (b Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authent
 
 // IsAuthorized calls the broker corresponding method, stripping broker ID prefix from sessionID.
 func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access string, userInfo string, err error) {
-	sessionID = strings.TrimPrefix(sessionID, fmt.Sprintf("%s-", b.ID))
+	sessionID = b.parseSessionID(sessionID)
 
-	access, userInfo, err = b.brokerer.IsAuthorized(ctx, sessionID, authenticationData)
-	if err != nil {
-		return "", "", err
+	// monitor ctx in goroutine to call cancel
+	done := make(chan struct{})
+	go func() {
+		access, userInfo, err = b.brokerer.IsAuthorized(ctx, sessionID, authenticationData)
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		if err != nil {
+			return "", "", err
+		}
+	case <-ctx.Done():
+		b.CancelIsAuthorized(ctx, sessionID)
 	}
 
 	// Validate access authorization.
-	if !slices.Contains([]string{"allowed", "denied"}, access) {
+	if !slices.Contains(authReplies, access) {
 		return "", "", fmt.Errorf("invalid access authorization key: %v", access)
 	}
 
@@ -123,6 +136,20 @@ func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData 
 	}
 
 	return access, userInfo, nil
+}
+
+// AbortSession calls the broker corresponding method, stripping broker ID prefix from sessionID.
+func (b Broker) AbortSession(ctx context.Context, sessionID string) (err error) {
+	sessionID = b.parseSessionID(sessionID)
+	return b.brokerer.AbortSession(ctx, sessionID)
+}
+
+// CancelIsAuthorized calls the broker corresponding method.
+// If the session does not have a pending IsAuthorized call, this is a no-op.
+//
+// Even though this is a public method, it should only be interacted with through IsAuthorized and ctx cancellation.
+func (b Broker) CancelIsAuthorized(ctx context.Context, sessionID string) {
+	b.brokerer.CancelIsAuthorized(ctx, sessionID)
 }
 
 // validateUILayout validates the required fields and values for a given type.
@@ -173,4 +200,9 @@ func validateUILayout(layout map[string]string) (r map[string]string, err error)
 	r["type"] = typ
 
 	return r, nil
+}
+
+// parseSessionID strips broker ID prefix from sessionID.
+func (b Broker) parseSessionID(sessionID string) string {
+	return strings.TrimPrefix(sessionID, fmt.Sprintf("%s-", b.ID))
 }
