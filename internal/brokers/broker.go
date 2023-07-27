@@ -93,7 +93,7 @@ func (b Broker) GetAuthenticationModes(ctx context.Context, username, lang strin
 
 // SelectAuthenticationMode calls the broker corresponding method, stripping broker ID prefix from sessionID.
 func (b Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
-	sessionID = strings.TrimPrefix(sessionID, fmt.Sprintf("%s-", b.ID))
+	sessionID = b.parseSessionID(sessionID)
 	uiLayoutInfo, err = b.brokerer.SelectAuthenticationMode(ctx, sessionID, authenticationModeName)
 	if err != nil {
 		return nil, err
@@ -104,7 +104,7 @@ func (b Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authent
 
 // IsAuthorized calls the broker corresponding method, stripping broker ID prefix from sessionID.
 func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access string, userInfo string, err error) {
-	sessionID = strings.TrimPrefix(sessionID, fmt.Sprintf("%s-", b.ID))
+	sessionID = b.parseSessionID(sessionID)
 
 	// monitor ctx in goroutine to call cancel
 	done := make(chan struct{})
@@ -200,4 +200,9 @@ func validateUILayout(layout map[string]string) (r map[string]string, err error)
 	r["type"] = typ
 
 	return r, nil
+}
+
+// parseSessionID strips broker ID prefix from sessionID.
+func (b Broker) parseSessionID(sessionID string) string {
+	return strings.TrimPrefix(sessionID, fmt.Sprintf("%s-", b.ID))
 }
