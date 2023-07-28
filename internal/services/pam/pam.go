@@ -10,6 +10,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/decorate"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 var _ authd.PAMServer = Service{}
@@ -171,7 +172,7 @@ func (s Service) IsAuthorized(ctx context.Context, req *authd.IARequest) (resp *
 }
 
 // SetDefaultBrokerForUser sets the default broker for the given user.
-func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURequest) (empty *authd.Empty, err error) {
+func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURequest) (empty *emptypb.Empty, err error) {
 	decorate.OnError(&err, "can't set default broker for session id %q", req.GetSessionId())
 
 	if req.GetUsername() == "" {
@@ -188,11 +189,11 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURe
 
 	s.brokerManager.SetDefaultBrokerForUser(req.GetUsername(), b)
 
-	return &authd.Empty{}, nil
+	return &emptypb.Empty{}, nil
 }
 
 // AbortSession aborts the authentication flow for the specified session.
-func (s Service) AbortSession(ctx context.Context, req *authd.ASRequest) (empty *authd.Empty, err error) {
+func (s Service) AbortSession(ctx context.Context, req *authd.ASRequest) (empty *emptypb.Empty, err error) {
 	decorate.OnError(&err, "could not abort session")
 
 	sessionID := req.GetSessionId()
@@ -200,7 +201,7 @@ func (s Service) AbortSession(ctx context.Context, req *authd.ASRequest) (empty 
 		return nil, errors.New("no session id given")
 	}
 
-	return &authd.Empty{}, s.brokerManager.AbortSession(ctx, sessionID)
+	return &emptypb.Empty{}, s.brokerManager.AbortSession(ctx, sessionID)
 }
 
 func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err error) {
