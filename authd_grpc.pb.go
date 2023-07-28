@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -35,8 +36,8 @@ type PAMClient interface {
 	SelectBroker(ctx context.Context, in *SBRequest, opts ...grpc.CallOption) (*SBResponse, error)
 	SelectAuthenticationMode(ctx context.Context, in *SAMRequest, opts ...grpc.CallOption) (*SAMResponse, error)
 	IsAuthorized(ctx context.Context, in *IARequest, opts ...grpc.CallOption) (*IAResponse, error)
-	AbortSession(ctx context.Context, in *ASRequest, opts ...grpc.CallOption) (*Empty, error)
-	SetDefaultBrokerForUser(ctx context.Context, in *SDBFURequest, opts ...grpc.CallOption) (*Empty, error)
+	AbortSession(ctx context.Context, in *ASRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	SetDefaultBrokerForUser(ctx context.Context, in *SDBFURequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 }
 
 type pAMClient struct {
@@ -83,8 +84,8 @@ func (c *pAMClient) IsAuthorized(ctx context.Context, in *IARequest, opts ...grp
 	return out, nil
 }
 
-func (c *pAMClient) AbortSession(ctx context.Context, in *ASRequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
+func (c *pAMClient) AbortSession(ctx context.Context, in *ASRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, PAM_AbortSession_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -92,8 +93,8 @@ func (c *pAMClient) AbortSession(ctx context.Context, in *ASRequest, opts ...grp
 	return out, nil
 }
 
-func (c *pAMClient) SetDefaultBrokerForUser(ctx context.Context, in *SDBFURequest, opts ...grpc.CallOption) (*Empty, error) {
-	out := new(Empty)
+func (c *pAMClient) SetDefaultBrokerForUser(ctx context.Context, in *SDBFURequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, PAM_SetDefaultBrokerForUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -109,8 +110,8 @@ type PAMServer interface {
 	SelectBroker(context.Context, *SBRequest) (*SBResponse, error)
 	SelectAuthenticationMode(context.Context, *SAMRequest) (*SAMResponse, error)
 	IsAuthorized(context.Context, *IARequest) (*IAResponse, error)
-	AbortSession(context.Context, *ASRequest) (*Empty, error)
-	SetDefaultBrokerForUser(context.Context, *SDBFURequest) (*Empty, error)
+	AbortSession(context.Context, *ASRequest) (*emptypb.Empty, error)
+	SetDefaultBrokerForUser(context.Context, *SDBFURequest) (*emptypb.Empty, error)
 	mustEmbedUnimplementedPAMServer()
 }
 
@@ -130,10 +131,10 @@ func (UnimplementedPAMServer) SelectAuthenticationMode(context.Context, *SAMRequ
 func (UnimplementedPAMServer) IsAuthorized(context.Context, *IARequest) (*IAResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsAuthorized not implemented")
 }
-func (UnimplementedPAMServer) AbortSession(context.Context, *ASRequest) (*Empty, error) {
+func (UnimplementedPAMServer) AbortSession(context.Context, *ASRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AbortSession not implemented")
 }
-func (UnimplementedPAMServer) SetDefaultBrokerForUser(context.Context, *SDBFURequest) (*Empty, error) {
+func (UnimplementedPAMServer) SetDefaultBrokerForUser(context.Context, *SDBFURequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetDefaultBrokerForUser not implemented")
 }
 func (UnimplementedPAMServer) mustEmbedUnimplementedPAMServer() {}
@@ -301,7 +302,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type NSSClient interface {
-	TestNSS(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*StringResponse, error)
+	TestNSS(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*StringResponse, error)
 }
 
 type nSSClient struct {
@@ -312,7 +313,7 @@ func NewNSSClient(cc grpc.ClientConnInterface) NSSClient {
 	return &nSSClient{cc}
 }
 
-func (c *nSSClient) TestNSS(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*StringResponse, error) {
+func (c *nSSClient) TestNSS(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*StringResponse, error) {
 	out := new(StringResponse)
 	err := c.cc.Invoke(ctx, NSS_TestNSS_FullMethodName, in, out, opts...)
 	if err != nil {
@@ -325,7 +326,7 @@ func (c *nSSClient) TestNSS(ctx context.Context, in *Empty, opts ...grpc.CallOpt
 // All implementations must embed UnimplementedNSSServer
 // for forward compatibility
 type NSSServer interface {
-	TestNSS(context.Context, *Empty) (*StringResponse, error)
+	TestNSS(context.Context, *emptypb.Empty) (*StringResponse, error)
 	mustEmbedUnimplementedNSSServer()
 }
 
@@ -333,7 +334,7 @@ type NSSServer interface {
 type UnimplementedNSSServer struct {
 }
 
-func (UnimplementedNSSServer) TestNSS(context.Context, *Empty) (*StringResponse, error) {
+func (UnimplementedNSSServer) TestNSS(context.Context, *emptypb.Empty) (*StringResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TestNSS not implemented")
 }
 func (UnimplementedNSSServer) mustEmbedUnimplementedNSSServer() {}
@@ -350,7 +351,7 @@ func RegisterNSSServer(s grpc.ServiceRegistrar, srv NSSServer) {
 }
 
 func _NSS_TestNSS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -362,7 +363,7 @@ func _NSS_TestNSS_Handler(srv interface{}, ctx context.Context, dec func(interfa
 		FullMethod: NSS_TestNSS_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NSSServer).TestNSS(ctx, req.(*Empty))
+		return srv.(NSSServer).TestNSS(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
