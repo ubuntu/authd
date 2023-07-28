@@ -29,36 +29,36 @@ const (
 )
 
 // Debug is a temporary placeholder.
-func Debug(ctx context.Context, args ...interface{}) {
+func Debug(_ context.Context, args ...interface{}) {
 	logrus.Debug(args...)
 }
 
 // Debugf is a temporary placeholder.
-func Debugf(ctx context.Context, format string, args ...interface{}) {
+func Debugf(_ context.Context, format string, args ...interface{}) {
 	logrus.Debugf(format, args...)
 }
 
 // Info is a temporary placeholder.
-func Info(ctx context.Context, args ...interface{}) {
+func Info(_ context.Context, args ...interface{}) {
 	logrus.Info(args...)
 }
 
 // Warningf is a temporary placeholder.
-func Warningf(ctx context.Context, format string, args ...interface{}) {
+func Warningf(_ context.Context, format string, args ...interface{}) {
 	logrus.Warningf(format, args...)
 }
 
 // Error is a temporary placeholder.
-func Error(ctx context.Context, args ...interface{}) {
+func Error(_ context.Context, args ...interface{}) {
 	logrus.Error(args...)
 }
 
-// Error is a temporary placeholder.
-func Errorf(ctx context.Context, format string, args ...interface{}) {
+// Errorf is a temporary placeholder.
+func Errorf(_ context.Context, format string, args ...interface{}) {
 	logrus.Errorf(format, args...)
 }
 
 // Infof is a temporary placeholder.
-func Infof(ctx context.Context, format string, args ...interface{}) {
+func Infof(_ context.Context, format string, args ...interface{}) {
 	logrus.Infof(format, args...)
 }
