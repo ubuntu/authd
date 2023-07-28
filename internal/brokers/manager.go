@@ -1,3 +1,5 @@
+// Package brokers contains the broker object definitions, implementations and manager that will be used by the daemon
+// for authentication.
 package brokers
 
 import (
@@ -12,6 +14,7 @@ import (
 	"github.com/ubuntu/decorate"
 )
 
+// Manager is the object that manages the available brokers and the session->broker and user->broker relationships.
 type Manager struct {
 	brokers      map[string]*Broker
 	brokersOrder []string
@@ -37,6 +40,7 @@ func WithRootDir(p string) func(o *options) {
 	}
 }
 
+// NewManager creates a new broker manager object.
 func NewManager(ctx context.Context, configuredBrokers []string, args ...Option) (m *Manager, err error) {
 	defer decorate.OnError(&err /*i18n.G(*/, "can't create brokers detection object") //)
 
@@ -49,7 +53,6 @@ func NewManager(ctx context.Context, configuredBrokers []string, args ...Option)
 	// Apply given args.
 	for _, f := range args {
 		f(&opts)
-
 	}
 
 	// Connecr to to system bus

@@ -30,7 +30,7 @@ func NewService(ctx context.Context, brokerManager *brokers.Manager) Service {
 	}
 }
 
-// GetBrokersInfo returns the list of all brokers with their details.
+// AvailableBrokers returns the list of all brokers with their details.
 // It can return the previous broker set for a given user, if any and if provided.
 func (s Service) AvailableBrokers(ctx context.Context, req *authd.ABRequest) (*authd.ABResponse, error) {
 	var r authd.ABResponse
@@ -53,7 +53,7 @@ func (s Service) AvailableBrokers(ctx context.Context, req *authd.ABRequest) (*a
 	return &r, nil
 }
 
-// GetAuthenticationModes fetches the list for the selected broker of authentication mode depending on user name.
+// SelectBroker fetches the list of supported authentication modes for the selected broker depending on user name.
 func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *authd.SBResponse, err error) {
 	defer decorate.OnError(&err, "can't start authentication transaction")
 
@@ -170,6 +170,7 @@ func (s Service) IsAuthorized(ctx context.Context, req *authd.IARequest) (resp *
 	}, nil
 }
 
+// SetDefaultBrokerForUser sets the default broker for the given user.
 func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURequest) (empty *authd.Empty, err error) {
 	decorate.OnError(&err, "can't set default broker for session id %q", req.GetSessionId())
 

@@ -33,7 +33,7 @@ import (
 )
 
 var (
-	errGoBack error = errors.New("needs go back")
+	errGoBack = errors.New("needs go back")
 
 	// This variable needs to be global to pass it back in pam_sm_acct_mgmt.
 	// It would be better if we could set/get item in PAM with that string.
@@ -65,12 +65,12 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 		return C.PAM_IGNORE
 	}
 
-	client, close, err := newClient(argc, argv)
+	client, closeConn, err := newClient(argc, argv)
 	if err != nil {
 		log.Debugf(context.TODO(), "%s", err)
 		return C.PAM_IGNORE
 	}
-	defer close()
+	defer closeConn()
 
 	// Get current user for broker.
 	user, err := getUser(pamh, "login: ")
@@ -201,7 +201,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 
 			// Validate answer contains something
 			if err == nil && iaResp == nil {
-				err = errors.New("empty reponse")
+				err = errors.New("empty response")
 			}
 			if err != nil {
 				log.Errorf(context.TODO(), "can't check for authorization: %v", err)
@@ -227,7 +227,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 				continue
 			default:
 				// Invalid response
-				log.Errorf(context.TODO(), "Invalid Reponse: %v", iaResp.Access)
+				log.Errorf(context.TODO(), "Invalid Response: %v", iaResp.Access)
 				return C.PAM_SYSTEM_ERR
 			}
 		}
@@ -380,7 +380,8 @@ func promptForInt(title string, choices []string, prompt string) (r int, err err
 	}
 }
 
-func formChallenge(client authd.PAMClient, sessionID, encryptionKey string, uiLayout *authd.UILayout) (iaResp *authd.IAResponse, err error) {
+// TODO: replace _ with encryptionKey once we have encryption.
+func formChallenge(client authd.PAMClient, sessionID, _ string, uiLayout *authd.UILayout) (iaResp *authd.IAResponse, err error) {
 	prompt := uiLayout.GetLabel()
 	if !strings.HasSuffix(prompt, " ") {
 		prompt = fmt.Sprintf("%s ", prompt)
@@ -421,7 +422,7 @@ func formChallenge(client authd.PAMClient, sessionID, encryptionKey string, uiLa
 
 	if uiLayout.GetEntry() == "chars" || uiLayout.GetEntry() == "chars_password" {
 		go func() {
-			out, err := readPasswordWithContext(int(os.Stdin.Fd()), termCtx, uiLayout.GetEntry() == "chars_password")
+			out, err := readPasswordWithContext(termCtx, int(os.Stdin.Fd()), uiLayout.GetEntry() == "chars_password")
 
 			// No more processing if wait IsAuthorized has been answered.
 			select {
@@ -470,7 +471,8 @@ func formChallenge(client authd.PAMClient, sessionID, encryptionKey string, uiLa
 	return r.iaResp, nil
 }
 
-func qrcodeChallenge(client authd.PAMClient, sessionID, encryptionKey string, uiLayout *authd.UILayout) (iaResp *authd.IAResponse, err error) {
+// TODO: replace _ with encryptionKey once we have encryption.
+func qrcodeChallenge(client authd.PAMClient, sessionID, _ string, uiLayout *authd.UILayout) (iaResp *authd.IAResponse, err error) {
 	l := uiLayout.GetLabel()
 	if l != "" {
 		fmt.Println(l)
@@ -494,7 +496,7 @@ func qrcodeChallenge(client authd.PAMClient, sessionID, encryptionKey string, ui
 	return iaResp, nil
 }
 
-func readPasswordWithContext(fd int, ctx context.Context, password bool) ([]byte, error) {
+func readPasswordWithContext(ctx context.Context, fd int, password bool) ([]byte, error) {
 	const ioctlReadTermios = unix.TCGETS
 	const ioctlWriteTermios = unix.TCSETS
 
@@ -515,9 +517,9 @@ func readPasswordWithContext(fd int, ctx context.Context, password bool) ([]byte
 	}
 	defer func() {
 		if nonblocking {
-			unix.SetNonblock(fd, false)
+			_ = unix.SetNonblock(fd, false)
 		}
-		unix.IoctlSetTermios(fd, ioctlWriteTermios, termios)
+		_ = unix.IoctlSetTermios(fd, ioctlWriteTermios, termios)
 	}()
 
 	// Set nonblocking IO
@@ -535,12 +537,10 @@ func readPasswordWithContext(fd int, ctx context.Context, password bool) ([]byte
 		n, err := unix.Read(fd, buf[:])
 		if err != nil {
 			// Check for nonblocking error
-			if serr, ok := err.(syscall.Errno); ok {
-				if serr == 11 {
-					// Add (hopefully not noticable) latency to prevent CPU hogging
-					time.Sleep(50 * time.Millisecond)
-					continue
-				}
+			if errors.Is(err, syscall.EAGAIN) {
+				// Add (hopefully not noticeable) latency to prevent CPU hogging
+				time.Sleep(50 * time.Millisecond)
+				continue
 			}
 			return ret, err
 		}
@@ -566,12 +566,12 @@ func readPasswordWithContext(fd int, ctx context.Context, password bool) ([]byte
 
 //export pam_sm_acct_mgmt
 func pam_sm_acct_mgmt(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
-	client, close, err := newClient(argc, argv)
+	client, closeConn, err := newClient(argc, argv)
 	if err != nil {
 		log.Debugf(context.TODO(), "%s", err)
 		return C.PAM_IGNORE
 	}
-	defer close()
+	defer closeConn()
 
 	// Get current user for broker.
 	user, err := getUser(pamh, "")
@@ -601,7 +601,7 @@ func newClient(argc C.int, argv **C.char) (client authd.PAMClient, close func(),
 	return authd.NewPAMClient(conn), func() { conn.Close() }, nil
 }
 
-// getSocketPath returns the socket path to connect to which can be overriden manually.
+// getSocketPath returns the socket path to connect to which can be overridden manually.
 func getSocketPath(argc C.int, argv **C.char) string {
 	socketPath := consts.DefaultSocketPath
 	for _, arg := range sliceFromArgv(argc, argv) {

@@ -58,7 +58,7 @@ func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b db
 }
 
 // To be implemented.
-func (b dbusBroker) GetAuthenticationModes(ctx context.Context, username, lang string, supportedUiLayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error) {
+func (b dbusBroker) GetAuthenticationModes(ctx context.Context, username, lang string, supportedUILayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error) {
 	return "", "", nil, nil
 }
 func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {

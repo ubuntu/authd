@@ -74,7 +74,7 @@ const (
 	brokerEncryptionKey = "encryptionkey"
 )
 
-func newExampleBroker(name string) (b *exampleBroker, fullName, brandIcon string, err error) {
+func newExampleBroker(name string) (b *exampleBroker, fullName, brandIcon string) {
 	return &exampleBroker{
 		currentSessions:        make(map[string]sessionInfo),
 		currentSessionsMu:      sync.Mutex{},
@@ -82,15 +82,16 @@ func newExampleBroker(name string) (b *exampleBroker, fullName, brandIcon string
 		userLastSelectedModeMu: sync.Mutex{},
 		isAuthorizedCalls:      make(map[string]isAuthorizedCtx),
 		isAuthorizedCallsMu:    sync.Mutex{},
-	}, strings.ReplaceAll(name, "_", " "), fmt.Sprintf("/usr/share/brokers/%s.png", name), nil
+	}, strings.ReplaceAll(name, "_", " "), fmt.Sprintf("/usr/share/brokers/%s.png", name)
 }
 
-func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, lang string, supportedUiLayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error) {
+// GetAuthenticationModes returns the list of supported authentication modes for the selected broker depending on user name.
+func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, lang string, supportedUILayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error) {
 	sessionID = uuid.New().String()
 
 	//var candidatesAuthenticationModes []map[string]string
 	allModes := make(map[string]map[string]string)
-	for _, layout := range supportedUiLayouts {
+	for _, layout := range supportedUILayouts {
 		switch layout["type"] {
 		case "form":
 			if layout["entry"] != "" {
@@ -98,7 +99,7 @@ func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, la
 				if slices.Contains(supportedEntries, "chars_password") {
 					allModes["password"] = map[string]string{
 						"selection_label": "Password authentication",
-						"ui": mapToJson(map[string]string{
+						"ui": mapToJSON(map[string]string{
 							"type":  "form",
 							"label": "Gimme your password",
 							"entry": "chars_password",
@@ -108,7 +109,7 @@ func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, la
 				if slices.Contains(supportedEntries, "digits") {
 					allModes["pincode"] = map[string]string{
 						"selection_label": "Pin code",
-						"ui": mapToJson(map[string]string{
+						"ui": mapToJSON(map[string]string{
 							"type":  "form",
 							"label": "Enter your pin code",
 							"entry": "digits",
@@ -119,7 +120,7 @@ func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, la
 					allModes[fmt.Sprintf("entry_or_wait_for_%s_gmail.com", username)] = map[string]string{
 						"selection_label": fmt.Sprintf("Send URL to %s@gmail.com", username),
 						"email":           fmt.Sprintf("%s@gmail.com", username),
-						"ui": mapToJson(map[string]string{
+						"ui": mapToJSON(map[string]string{
 							"type":  "form",
 							"label": fmt.Sprintf("Click on the link received at %s@gmail.com or enter the code:", username),
 							"entry": "chars",
@@ -135,7 +136,7 @@ func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, la
 					allModes["totp_with_button"] = map[string]string{
 						"selection_label": "Authentication code",
 						"phone":           "+33…",
-						"ui": mapToJson(map[string]string{
+						"ui": mapToJSON(map[string]string{
 							"type":   "form",
 							"label":  "Enter your one time credential",
 							"entry":  "chars",
@@ -146,7 +147,7 @@ func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, la
 					allModes["totp"] = map[string]string{
 						"selection_label": "Authentication code",
 						"phone":           "+33…",
-						"ui": mapToJson(map[string]string{
+						"ui": mapToJSON(map[string]string{
 							"type":  "form",
 							"label": "Enter your one time credential",
 							"entry": "chars",
@@ -157,7 +158,7 @@ func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, la
 				allModes["phoneack1"] = map[string]string{
 					"selection_label": "Use your phone +33…",
 					"phone":           "+33…",
-					"ui": mapToJson(map[string]string{
+					"ui": mapToJSON(map[string]string{
 						"type":  "form",
 						"label": "Unlock your phone +33… or accept request on web interface:",
 						"wait":  "true",
@@ -167,7 +168,7 @@ func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, la
 				allModes["phoneack2"] = map[string]string{
 					"selection_label": "Use your phone +1…",
 					"phone":           "+1…",
-					"ui": mapToJson(map[string]string{
+					"ui": mapToJSON(map[string]string{
 						"type":  "form",
 						"label": "Unlock your phone +1… or accept request on web interface",
 						"wait":  "true",
@@ -176,7 +177,7 @@ func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, la
 
 				allModes["fidodevice1"] = map[string]string{
 					"selection_label": "Use your fido device foo",
-					"ui": mapToJson(map[string]string{
+					"ui": mapToJSON(map[string]string{
 						"type":  "form",
 						"label": "Plug your fido device and press with your thumb",
 						"wait":  "true",
@@ -187,7 +188,7 @@ func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, la
 		case "qrcode":
 			allModes["qrcodewithtypo"] = map[string]string{
 				"selection_label": "Use a QR code",
-				"ui": mapToJson(map[string]string{
+				"ui": mapToJSON(map[string]string{
 					"type":  "qrcode",
 					"label": "Enter the following code after flashing the address: ",
 					"wait":  "true",
@@ -315,9 +316,10 @@ func (b *exampleBroker) IsAuthorized(ctx context.Context, sessionID, authenticat
 	b.userLastSelectedMode[sessionInfo.username] = sessionInfo.selectedMode
 	b.userLastSelectedModeMu.Unlock()
 
-	return access, infoUser, nil
+	return access, infoUser, err
 }
 
+//nolint:unparam // This is an static example implementation, so we don't return an error other than nil.
 func (b *exampleBroker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (access, infoUser string, err error) {
 	// Note that the "wait" authentication can be cancelled and switch to another mode with a challenge.
 	// Take into account the cancellation.
@@ -442,7 +444,7 @@ func (b *exampleBroker) CancelIsAuthorized(ctx context.Context, sessionID string
 	b.isAuthorizedCallsMu.Unlock()
 }
 
-func mapToJson(input map[string]string) string {
+func mapToJSON(input map[string]string) string {
 	data, err := json.Marshal(input)
 	if err != nil {
 		panic(fmt.Sprintf("Invalid map data: %v", err))
@@ -460,7 +462,10 @@ func jsonToMap(data string) map[string]string {
 
 // decryptAES is just here to illustrate the encryption and decryption
 // and in no way the right way to perform a secure encryption
-// This has to be changed in the final implementation
+//
+// TODO: This has to be changed in the final implementation.
+//
+//nolint:unused // This function will be refactored still, but is not used for now.
 func encryptAES(key []byte, plaintext string) string {
 	// create cipher
 	c, err := aes.NewCipher(key)
@@ -480,7 +485,10 @@ func encryptAES(key []byte, plaintext string) string {
 
 // decryptAES is just here to illustrate the encryption and decryption
 // and in no way the right way to perform a secure encryption
-// This has to be changed in the final implementation
+//
+// TODO: This has to be changed in the final implementation.
+//
+//nolint:unused // This function will be refactored still, but is not used for now.
 func decryptAES(key []byte, ct string) string {
 	ciphertext, _ := hex.DecodeString(ct)
 

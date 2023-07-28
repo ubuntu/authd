@@ -19,13 +19,14 @@ const (
 )
 
 type brokerer interface {
-	GetAuthenticationModes(ctx context.Context, username, lang string, supportedUiLayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error)
+	GetAuthenticationModes(ctx context.Context, username, lang string, supportedUILayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error)
 	SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error)
 	IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error)
 	AbortSession(ctx context.Context, sessionID string) (err error)
 	CancelIsAuthorized(ctx context.Context, sessionID string)
 }
 
+// Broker represents a broker object that can be used for authentication.
 type Broker struct {
 	ID            string
 	Name          string
@@ -33,6 +34,7 @@ type Broker struct {
 	brokerer
 }
 
+// NewBroker creates a new broker object based on the provided name and config file.
 func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b Broker, err error) {
 	defer decorate.OnError(&err, "can't create broker %q", name)
 
@@ -54,10 +56,7 @@ func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 			return Broker{}, err
 		}
 	} else if name != localBrokerName {
-		broker, fullName, brandIcon, err = newExampleBroker(name)
-		if err != nil {
-			return Broker{}, err
-		}
+		broker, fullName, brandIcon = newExampleBroker(name)
 	}
 
 	return Broker{
@@ -70,8 +69,8 @@ func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 
 // GetAuthenticationModes calls the broker corresponding method, expanding sessionID with the broker ID prefix.
 // This solves the case of 2 brokers returning the same ID.
-func (b Broker) GetAuthenticationModes(ctx context.Context, username, lang string, supportedUiLayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error) {
-	sessionID, encryptionKey, authenticationModes, err = b.brokerer.GetAuthenticationModes(ctx, username, lang, supportedUiLayouts)
+func (b Broker) GetAuthenticationModes(ctx context.Context, username, lang string, supportedUILayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error) {
+	sessionID, encryptionKey, authenticationModes, err = b.brokerer.GetAuthenticationModes(ctx, username, lang, supportedUILayouts)
 	if err != nil {
 		return "", "", nil, err
 	}
