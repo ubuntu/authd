@@ -7,11 +7,19 @@ on:
       - "*"
   pull_request:
 
+env:
+  apt_deps: >-
+    libpam0g-dev
+
 jobs:
   sanity:
     name: Code sanity
     runs-on: ubuntu-latest
     steps:
+      - name: Install dependencies
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt update
+          sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }}
       - uses: actions/checkout@v3
       - name: Go code sanity check
         uses: canonical/desktop-engineering/gh-actions/go/code-sanity@main
@@ -23,6 +31,10 @@ jobs:
     name: Tests
     runs-on: ubuntu-latest
     steps:
+      - name: Install dependencies
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt update
+          sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }}
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v4
         with:
