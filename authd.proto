@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "google/protobuf/empty.proto";
+
 option go_package = "github.com/ubuntu/authd";
 
 service PAM {
@@ -8,13 +10,13 @@ service PAM {
   rpc SelectBroker(SBRequest) returns (SBResponse);
   rpc SelectAuthenticationMode(SAMRequest) returns (SAMResponse);
   rpc IsAuthorized(IARequest) returns (IAResponse);
-  rpc AbortSession(ASRequest) returns (Empty);
+  rpc AbortSession(ASRequest) returns (google.protobuf.Empty);
 
-  rpc SetDefaultBrokerForUser(SDBFURequest) returns (Empty);
+  rpc SetDefaultBrokerForUser(SDBFURequest) returns (google.protobuf.Empty);
 }
 
 service NSS {
-  rpc TestNSS(Empty) returns (StringResponse);
+  rpc TestNSS(google.protobuf.Empty) returns (StringResponse);
 }
 
 
