@@ -19,7 +19,8 @@ const (
 )
 
 type brokerer interface {
-	GetAuthenticationModes(ctx context.Context, username, lang string, supportedUILayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error)
+	NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error)
+	GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error)
 	SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error)
 	IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error)
 	EndSession(ctx context.Context, sessionID string) (err error)
@@ -67,27 +68,38 @@ func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 	}, nil
 }
 
-// GetAuthenticationModes calls the broker corresponding method, expanding sessionID with the broker ID prefix.
-// This solves the case of 2 brokers returning the same ID.
-func (b Broker) GetAuthenticationModes(ctx context.Context, username, lang string, supportedUILayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error) {
-	sessionID, encryptionKey, authenticationModes, err = b.brokerer.GetAuthenticationModes(ctx, username, lang, supportedUILayouts)
+// NewSession calls the broker corresponding method, expanding sessionID with the broker ID prefix.
+func (b Broker) NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error) {
+	sessionID, encryptionKey, err = b.brokerer.NewSession(ctx, username, lang)
 	if err != nil {
-		return "", "", nil, err
+		return "", "", err
 	}
 
 	if sessionID == "" {
-		return "", "", nil, errors.New("no session ID provided by broker")
+		return "", "", errors.New("no session ID provided by broker")
+	}
+
+	return fmt.Sprintf("%s-%s", b.ID, sessionID), encryptionKey, nil
+}
+
+// GetAuthenticationModes calls the broker corresponding method, stripping broker ID prefix from sessionID.
+func (b Broker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
+	sessionID = b.parseSessionID(sessionID)
+
+	authenticationModes, err = b.brokerer.GetAuthenticationModes(ctx, sessionID, supportedUILayouts)
+	if err != nil {
+		return nil, err
 	}
 
 	for _, a := range authenticationModes {
 		for _, key := range []string{"name", "label"} {
 			if _, exists := a[key]; !exists {
-				return "", "", nil, fmt.Errorf("invalid authentication mode, missing %q key: %v", key, a)
+				return nil, fmt.Errorf("invalid authentication mode, missing %q key: %v", key, a)
 			}
 		}
 	}
 
-	return fmt.Sprintf("%s-%s", b.ID, sessionID), encryptionKey, authenticationModes, nil
+	return authenticationModes, nil
 }
 
 // SelectAuthenticationMode calls the broker corresponding method, stripping broker ID prefix from sessionID.
