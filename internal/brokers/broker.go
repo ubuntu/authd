@@ -22,7 +22,7 @@ type brokerer interface {
 	GetAuthenticationModes(ctx context.Context, username, lang string, supportedUILayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error)
 	SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error)
 	IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error)
-	AbortSession(ctx context.Context, sessionID string) (err error)
+	EndSession(ctx context.Context, sessionID string) (err error)
 	CancelIsAuthorized(ctx context.Context, sessionID string)
 }
 
@@ -137,10 +137,10 @@ func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData 
 	return access, userInfo, nil
 }
 
-// AbortSession calls the broker corresponding method, stripping broker ID prefix from sessionID.
-func (b Broker) AbortSession(ctx context.Context, sessionID string) (err error) {
+// EndSession calls the broker corresponding method, stripping broker ID prefix from sessionID.
+func (b Broker) EndSession(ctx context.Context, sessionID string) (err error) {
 	sessionID = b.parseSessionID(sessionID)
-	return b.brokerer.AbortSession(ctx, sessionID)
+	return b.brokerer.EndSession(ctx, sessionID)
 }
 
 // CancelIsAuthorized calls the broker corresponding method.

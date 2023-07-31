@@ -420,8 +420,8 @@ func (b *exampleBroker) handleIsAuthorized(ctx context.Context, sessionInfo sess
 	return AuthAllowed, infoUser, nil
 }
 
-// AbortSession cancels the authentication flow for the specified session.
-func (b *exampleBroker) AbortSession(ctx context.Context, sessionID string) error {
+// EndSession ends the requested session and triggers the necessary clean up steps, if any.
+func (b *exampleBroker) EndSession(ctx context.Context, sessionID string) error {
 	if _, exists := b.currentSessions[sessionID]; !exists {
 		return fmt.Errorf("%q is not an active session", sessionID)
 	}

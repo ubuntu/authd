@@ -25,8 +25,8 @@ func (b localBroker) IsAuthorized(ctx context.Context, sessionID, authentication
 }
 
 //nolint:unused // We still need localBroker to implement the brokerer interface, even though this method should never be called on it.
-func (b localBroker) AbortSession(ctx context.Context, sessionID string) (err error) {
-	return errors.New("AbortSession should never be called on local broker")
+func (b localBroker) EndSession(ctx context.Context, sessionID string) (err error) {
+	return errors.New("EndSession should never be called on local broker")
 }
 
 //nolint:unused // We still need localBroker to implement the brokerer interface, even though this method should never be called on it.
