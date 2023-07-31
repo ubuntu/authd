@@ -85,9 +85,24 @@ func newExampleBroker(name string) (b *exampleBroker, fullName, brandIcon string
 	}, strings.ReplaceAll(name, "_", " "), fmt.Sprintf("/usr/share/brokers/%s.png", name)
 }
 
-// GetAuthenticationModes returns the list of supported authentication modes for the selected broker depending on user name.
-func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, lang string, supportedUILayouts []map[string]string) (sessionID, encryptionKey string, authenticationModes []map[string]string, err error) {
+// NewSession creates a new session for the specified user.
+func (b *exampleBroker) NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error) {
 	sessionID = uuid.New().String()
+	b.currentSessionsMu.Lock()
+	b.currentSessions[sessionID] = sessionInfo{
+		username: username,
+		lang:     lang,
+	}
+	b.currentSessionsMu.Unlock()
+	return sessionID, brokerEncryptionKey, nil
+}
+
+// GetAuthenticationModes returns the list of supported authentication modes for the selected broker depending on session info.
+func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
+	session, ok := b.currentSessions[sessionID]
+	if !ok {
+		return nil, fmt.Errorf("%q is not a current transaction", sessionID)
+	}
 
 	//var candidatesAuthenticationModes []map[string]string
 	allModes := make(map[string]map[string]string)
@@ -117,12 +132,12 @@ func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, la
 					}
 				}
 				if slices.Contains(supportedEntries, "chars") && layout["wait"] != "" {
-					allModes[fmt.Sprintf("entry_or_wait_for_%s_gmail.com", username)] = map[string]string{
-						"selection_label": fmt.Sprintf("Send URL to %s@gmail.com", username),
-						"email":           fmt.Sprintf("%s@gmail.com", username),
+					allModes[fmt.Sprintf("entry_or_wait_for_%s_gmail.com", session.username)] = map[string]string{
+						"selection_label": fmt.Sprintf("Send URL to %s@gmail.com", session.username),
+						"email":           fmt.Sprintf("%s@gmail.com", session.username),
 						"ui": mapToJSON(map[string]string{
 							"type":  "form",
-							"label": fmt.Sprintf("Click on the link received at %s@gmail.com or enter the code:", username),
+							"label": fmt.Sprintf("Click on the link received at %s@gmail.com or enter the code:", session.username),
 							"entry": "chars",
 							"wait":  "true",
 						}),
@@ -201,7 +216,7 @@ func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, la
 	}
 
 	// Sort in preference order. We want by default password as first and potentially last selection too.
-	lastSelection := b.userLastSelectedMode[username]
+	lastSelection := b.userLastSelectedMode[session.username]
 	if _, exists := allModes[lastSelection]; !exists {
 		lastSelection = ""
 	}
@@ -227,21 +242,17 @@ func (b *exampleBroker) GetAuthenticationModes(ctx context.Context, username, la
 			"label": authMode["selection_label"],
 		})
 	}
+	session.allModes = allModes
 
 	b.currentSessionsMu.Lock()
-	b.currentSessions[sessionID] = sessionInfo{
-		username: username,
-		lang:     lang,
-		allModes: allModes,
-	}
+	b.currentSessions[sessionID] = session
 	b.currentSessionsMu.Unlock()
 
-	return sessionID, brokerEncryptionKey, authenticationModes, nil
+	return authenticationModes, nil
 }
 
 func (b *exampleBroker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
 	// Ensure session ID is an active one.
-
 	sessionInfo, inprogress := b.currentSessions[sessionID]
 	if !inprogress {
 		return nil, fmt.Errorf("%s is not a current transaction", sessionID)
