@@ -114,7 +114,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	}
 
 	var currentAuthModeName string
-	var availableAuthModes []*authd.SBResponse_AuthenticationMode
+	var availableAuthModes []*authd.GAMResponse_AuthenticationMode
 	var uiLayout *authd.UILayout
 
 	var challengeRetry int
@@ -135,9 +135,15 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 			if brokerID == "local" {
 				return C.PAM_IGNORE
 			}
-			sessionID, availableAuthModes, encryptionKey, err = startBrokerSession(client, brokerID, user)
+			sessionID, encryptionKey, err = startBrokerSession(client, brokerID, user)
 			if err != nil {
 				log.Errorf(context.TODO(), "can't select broker %q: %v", brokerName, err)
+				return C.PAM_SYSTEM_ERR
+			}
+
+			availableAuthModes, err = getAuthenticationModes(client, sessionID)
+			if err != nil {
+				log.Errorf(context.TODO(), "could not get authentication modes: %v", err)
 				return C.PAM_SYSTEM_ERR
 			}
 
@@ -265,8 +271,8 @@ func selectBrokerInteractive(brokersInfo []*authd.ABResponse_BrokerInfo) (broker
 	return ids[i], brokersInfo[i].GetName(), nil
 }
 
-// startBrokerSession returns the sessionID and available authentication modes after marking a broker as current.
-func startBrokerSession(client authd.PAMClient, brokerID, username string) (sessionID string, authModes []*authd.SBResponse_AuthenticationMode, encryptionKey string, err error) {
+// startBrokerSession returns the sessionID after marking a broker as current.
+func startBrokerSession(client authd.PAMClient, brokerID, username string) (sessionID string, encryptionKey string, err error) {
 	// Start a transaction for this user with the broker.
 	lang := "C"
 	for _, e := range []string{"LANG", "LC_MESSAGES", "LC_ALL"} {
@@ -277,14 +283,38 @@ func startBrokerSession(client authd.PAMClient, brokerID, username string) (sess
 	}
 	lang = strings.TrimSuffix(lang, ".UTF-8")
 
-	required, optional := "required", "optional"
-	supportedEntries := "optional:chars,chars_password"
-	waitRequired := "required:true,false"
-	waitOptional := "optional:true,false"
 	sbReq := &authd.SBRequest{
 		BrokerId: brokerID,
 		Username: username,
 		Lang:     lang,
+	}
+
+	sbResp, err := client.SelectBroker(context.TODO(), sbReq)
+	if err != nil {
+		return "", "", fmt.Errorf("can't get authentication mode: %v", err)
+	}
+
+	sessionID = sbResp.GetSessionId()
+	if sessionID == "" {
+		return "", "", errors.New("no session ID returned by broker")
+	}
+	encryptionKey = sbResp.GetEncryptionKey()
+	if encryptionKey == "" {
+		return "", "", errors.New("no encryption key returned by broker")
+	}
+
+	return sessionID, encryptionKey, nil
+}
+
+// getAuthenticationModes returns the list of all authentication modes supported by the broker depending on the session information.
+func getAuthenticationModes(client authd.PAMClient, sessionID string) (authModes []*authd.GAMResponse_AuthenticationMode, err error) {
+	required, optional := "required", "optional"
+	supportedEntries := "optional:chars,chars_password"
+	waitRequired := "required:true,false"
+	waitOptional := "optional:true,false"
+
+	gamReq := &authd.GAMRequest{
+		SessionId: sessionID,
 		SupportedUiLayouts: []*authd.UILayout{
 			{
 				Type:  "form",
@@ -301,30 +331,22 @@ func startBrokerSession(client authd.PAMClient, brokerID, username string) (sess
 		},
 	}
 
-	sbResp, err := client.SelectBroker(context.TODO(), sbReq)
+	gamResp, err := client.GetAuthenticationModes(context.Background(), gamReq)
 	if err != nil {
-		return "", nil, "", fmt.Errorf("can't get authentication mode: %v", err)
+		return nil, fmt.Errorf("could not get authentication modes: %v", err)
 	}
 
-	sessionID = sbResp.GetSessionId()
-	if sessionID == "" {
-		return "", nil, "", errors.New("no session ID returned by broker")
-	}
-	encryptionKey = sbResp.GetEncryptionKey()
-	if encryptionKey == "" {
-		return "", nil, "", errors.New("no encryption key returned by broker")
-	}
-	availableAuthModes := sbResp.GetAuthenticationModes()
-	if len(availableAuthModes) == 0 {
-		return "", nil, "", errors.New("no supported authentication mode available for this broker")
+	authModes = gamResp.GetAuthenticationModes()
+	if len(authModes) == 0 {
+		return nil, errors.New("no supported authentication mode available for this broker")
 	}
 
-	return sessionID, availableAuthModes, encryptionKey, nil
+	return authModes, nil
 }
 
 // selectAuthenticationModeInteractive allows interactive authentication mode selection.
 // Only one choice will be returned immediately.
-func selectAuthenticationModeInteractive(authModes []*authd.SBResponse_AuthenticationMode) (name string, err error) {
+func selectAuthenticationModeInteractive(authModes []*authd.GAMResponse_AuthenticationMode) (name string, err error) {
 	if len(authModes) < 1 {
 		return "", errors.New("no auhentication mode supported")
 	}
