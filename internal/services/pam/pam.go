@@ -53,7 +53,7 @@ func (s Service) AvailableBrokers(ctx context.Context, req *authd.ABRequest) (*a
 	return &r, nil
 }
 
-// SelectBroker fetches the list of supported authentication modes for the selected broker depending on user name.
+// SelectBroker starts a new session and selects the requested broker for the user.
 func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *authd.SBResponse, err error) {
 	defer decorate.OnError(&err, "can't start authentication transaction")
 
@@ -76,6 +76,34 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 		return nil, fmt.Errorf("invalid broker: %v", err)
 	}
 
+	sessionID, encryptionKey, err := broker.NewSession(ctx, username, lang)
+	if err != nil {
+		return nil, err
+	}
+
+	// Memorizes selected broker for this session.
+	s.brokerManager.SetBrokerForSessionID(sessionID, broker)
+
+	return &authd.SBResponse{
+		SessionId:     sessionID,
+		EncryptionKey: encryptionKey,
+	}, nil
+}
+
+// GetAuthenticationModes fetches a list of authentication modes supported by the broker depending on the session information.
+func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMRequest) (resp *authd.GAMResponse, err error) {
+	defer decorate.OnError(&err, "could not get authentication modes")
+
+	sessionID := req.GetSessionId()
+	if sessionID == "" {
+		return nil, errors.New("no session ID provided")
+	}
+
+	broker, err := s.brokerManager.BrokerForSessionID(sessionID)
+	if err != nil {
+		return nil, err
+	}
+
 	var layouts []map[string]string
 	for _, l := range req.GetSupportedUiLayouts() {
 		layout, err := uiLayoutToMap(l)
@@ -85,33 +113,20 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 		layouts = append(layouts, layout)
 	}
 
-	sessionID, encryptionKey, authenticationModes, err := broker.GetAuthenticationModes(ctx, username, lang, layouts)
+	authenticationModes, err := broker.GetAuthenticationModes(ctx, sessionID, layouts)
 	if err != nil {
 		return nil, err
 	}
 
-	var authModes []*authd.SBResponse_AuthenticationMode
+	var authModes []*authd.GAMResponse_AuthenticationMode
 	for _, a := range authenticationModes {
-		authModes = append(authModes, &authd.SBResponse_AuthenticationMode{
+		authModes = append(authModes, &authd.GAMResponse_AuthenticationMode{
 			Name:  a["name"],
 			Label: a["label"],
 		})
 	}
 
-	if len(authModes) < 1 {
-		return &authd.SBResponse{
-			SessionId:           "",
-			EncryptionKey:       "",
-			AuthenticationModes: authModes,
-		}, nil
-	}
-
-	// Memorizes selected broker for this session.
-	s.brokerManager.SetBrokerForSessionID(sessionID, broker)
-
-	return &authd.SBResponse{
-		SessionId:           sessionID,
-		EncryptionKey:       encryptionKey,
+	return &authd.GAMResponse{
 		AuthenticationModes: authModes,
 	}, nil
 }
@@ -191,8 +206,8 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURe
 	return &authd.Empty{}, nil
 }
 
-// AbortSession aborts the authentication flow for the specified session.
-func (s Service) AbortSession(ctx context.Context, req *authd.ASRequest) (empty *authd.Empty, err error) {
+// EndSession asks the broker associated with the sessionID to end the session.
+func (s Service) EndSession(ctx context.Context, req *authd.ESRequest) (empty *authd.Empty, err error) {
 	decorate.OnError(&err, "could not abort session")
 
 	sessionID := req.GetSessionId()
@@ -200,7 +215,7 @@ func (s Service) AbortSession(ctx context.Context, req *authd.ASRequest) (empty 
 		return nil, errors.New("no session id given")
 	}
 
-	return &authd.Empty{}, s.brokerManager.AbortSession(ctx, sessionID)
+	return &authd.Empty{}, s.brokerManager.EndSession(ctx, sessionID)
 }
 
 func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err error) {

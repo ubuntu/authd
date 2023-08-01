@@ -6,9 +6,10 @@ service PAM {
   rpc AvailableBrokers(ABRequest) returns (ABResponse);
 
   rpc SelectBroker(SBRequest) returns (SBResponse);
+  rpc GetAuthenticationModes(GAMRequest) returns (GAMResponse);
   rpc SelectAuthenticationMode(SAMRequest) returns (SAMResponse);
   rpc IsAuthorized(IARequest) returns (IAResponse);
-  rpc AbortSession(ASRequest) returns (Empty);
+  rpc EndSession(ESRequest) returns (Empty);
 
   rpc SetDefaultBrokerForUser(SDBFURequest) returns (Empty);
 }
@@ -44,7 +45,17 @@ message SBRequest {
   string broker_id = 1;
   string username = 2;
   string lang = 3;
-  repeated UILayout supported_ui_layouts = 4;
+
+}
+
+message SBResponse {
+  string session_id = 1;
+  string encryption_key = 2;
+}
+
+message GAMRequest {
+  string session_id = 1;
+  repeated UILayout supported_ui_layouts = 2;
 }
 
 message UILayout {
@@ -62,10 +73,8 @@ message UILayout {
   optional string content = 6;
 }
 
-message SBResponse {
-  string session_id = 1;
-  string encryption_key = 2;
-  repeated AuthenticationMode authentication_modes = 3;
+message GAMResponse {
+  repeated AuthenticationMode authentication_modes = 1;
 
   message AuthenticationMode {
     string name = 1;
@@ -97,7 +106,7 @@ message SDBFURequest {
   string username = 2;
 }
 
-message ASRequest {
+message ESRequest {
   string session_id = 1;
   string username = 2;
 }
