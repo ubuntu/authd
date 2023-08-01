@@ -1,0 +1,8 @@
+# Add this to /etc/authd/broker.d to configure the ExampleBroker
+name = ExampleBroker
+brand_icon = /usr/share/backgrounds/warty-final-ubuntu.png
+
+[dbus]
+name = com.ubuntu.auth.ExampleBroker
+object = /com/ubuntu/auth/ExampleBroker
+interface = com.ubuntu.auth.ExampleBroker
