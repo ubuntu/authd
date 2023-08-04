@@ -4,7 +4,9 @@ package brokers
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sync"
@@ -62,8 +64,6 @@ func NewManager(ctx context.Context, configuredBrokers []string, args ...Option)
 		return m, err
 	}
 
-	// FIXME: what to do without brokers? and without those directories?
-
 	brokersConfPath := filepath.Join(opts.rootDir, "etc/authd/broker.d")
 
 	// Select all brokers in ascii order if none is configured
@@ -71,9 +71,12 @@ func NewManager(ctx context.Context, configuredBrokers []string, args ...Option)
 		log.Debug(ctx, "Auto-detecting brokers")
 
 		entries, err := os.ReadDir(brokersConfPath)
-		if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			log.Warningf(ctx, "Broker configuration directory %q does not exist, only local broker will be available", brokersConfPath)
+		} else if err != nil {
 			return m, fmt.Errorf("could not read brokers directory to detect brokers: %v", err)
 		}
+
 		for _, e := range entries {
 			if !e.Type().IsRegular() {
 				continue
