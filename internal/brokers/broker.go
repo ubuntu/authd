@@ -10,6 +10,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/responses"
 	"github.com/ubuntu/decorate"
 	"golang.org/x/exp/slices"
 )
@@ -133,7 +134,7 @@ func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData 
 	}
 
 	// Validate access authorization.
-	if !slices.Contains(authReplies, access) {
+	if !slices.Contains(responses.AuthReplies, access) {
 		return "", "", fmt.Errorf("invalid access authorization key: %v", access)
 	}
 

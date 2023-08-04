@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/responses"
 	"golang.org/x/exp/slices"
 )
 
@@ -353,67 +353,67 @@ func (b *broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo
 	switch sessionInfo.selectedMode {
 	case "password":
 		if authData["challenge"] != "goodpass" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 
 	case "pincode":
 		if authData["challenge"] != "4242" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 
 	case "totp_with_button", "totp":
 		if authData["challenge"] != "temporary pass" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 
 	case "phoneack1":
 		if authData["wait"] != "true" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 		// Send notification to phone1 and wait on server signal to return if OK or not
 		select {
 		case <-time.After(5 * time.Second):
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		case <-ctx.Done():
-			return brokers.AuthCancelled, "", nil
+			return responses.AuthCancelled, "", nil
 		}
 
 	case "phoneack2":
 		if authData["wait"] != "true" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 
 		// This one is failing remotely as an example
 		select {
 		case <-time.After(2 * time.Second):
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		case <-ctx.Done():
-			return brokers.AuthCancelled, "", nil
+			return responses.AuthCancelled, "", nil
 		}
 
 	case "fidodevice1":
 		if authData["wait"] != "true" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 
 		// simulate direct exchange with the FIDO device
 		select {
 		case <-time.After(5 * time.Second):
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		case <-ctx.Done():
-			return brokers.AuthCancelled, "", nil
+			return responses.AuthCancelled, "", nil
 		}
 
 	case "qrcodewithtypo":
 		if authData["wait"] != "true" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 		// Simulate connexion with remote server to check that the correct code was entered
 		select {
 		case <-time.After(4 * time.Second):
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		case <-ctx.Done():
-			return brokers.AuthCancelled, "", nil
+			return responses.AuthCancelled, "", nil
 		}
 	}
 
@@ -423,28 +423,28 @@ func (b *broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo
 		if authData["challenge"] != "" {
 			// validate challenge given manually by the user
 			if authData["challenge"] != "aaaaa" {
-				return brokers.AuthDenied, "", nil
+				return responses.AuthDenied, "", nil
 			}
 		} else if authData["wait"] == "true" {
 			// we are simulating clicking on the url signal received by the broker
 			// this can be cancelled to resend a challenge
 			select {
 			case <-time.After(10 * time.Second):
-				return brokers.AuthDenied, "", nil
+				return responses.AuthDenied, "", nil
 			case <-ctx.Done():
-				return brokers.AuthCancelled, "", nil
+				return responses.AuthCancelled, "", nil
 			}
 		} else {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 	}
 
 	infoUser, exists := users[sessionInfo.username]
 	if !exists {
-		return brokers.AuthDenied, "", nil
+		return responses.AuthDenied, "", nil
 	}
 
-	return brokers.AuthAllowed, infoUser, nil
+	return responses.AuthAllowed, infoUser, nil
 }
 
 // EndSession ends the requested session and triggers the necessary clean up steps, if any.
