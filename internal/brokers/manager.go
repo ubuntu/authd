@@ -55,18 +55,10 @@ func NewManager(ctx context.Context, configuredBrokers []string, args ...Option)
 		f(&opts)
 	}
 
-	// Connecr to to system bus
+	// Connect to the system bus
 	// Don't call dbus.SystemBus which caches globally system dbus (issues in tests)
-	bus, err := dbus.SystemBusPrivate()
+	bus, err := dbus.ConnectSystemBus()
 	if err != nil {
-		return m, err
-	}
-	if err = bus.Auth(nil); err != nil {
-		_ = bus.Close()
-		return m, err
-	}
-	if err = bus.Hello(); err != nil {
-		_ = bus.Close()
 		return m, err
 	}
 
