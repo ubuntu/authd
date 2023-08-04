@@ -129,6 +129,7 @@ func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData 
 		}
 	case <-ctx.Done():
 		b.CancelIsAuthorized(ctx, sessionID)
+		<-done
 	}
 
 	// Validate access authorization.
