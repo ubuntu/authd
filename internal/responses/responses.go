@@ -1,4 +1,5 @@
-package brokers
+// Package responses contains the possible responses for the authentication.
+package responses
 
 const (
 	// AuthAllowed is the response when the authentication is allowed.
@@ -9,5 +10,5 @@ const (
 	AuthCancelled = "cancelled"
 )
 
-// authReplies is the list of all possible authentication replies.
-var authReplies = []string{AuthAllowed, AuthDenied, AuthCancelled}
+// AuthReplies is the list of all possible authentication replies.
+var AuthReplies = []string{AuthAllowed, AuthDenied, AuthCancelled}

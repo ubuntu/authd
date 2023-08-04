@@ -23,9 +23,9 @@ import (
 
 	"github.com/skip2/go-qrcode"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/responses"
 	"golang.org/x/sys/unix"
 	"golang.org/x/term"
 	"google.golang.org/grpc"
@@ -216,7 +216,7 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 
 			// Check if authorized
 			switch strings.ToLower(iaResp.Access) {
-			case brokers.AuthDenied:
+			case responses.AuthDenied:
 				fmt.Println("Access Denied")
 				challengeRetry++
 				if challengeRetry < maxChallengeRetries {
@@ -224,10 +224,10 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 					continue
 				}
 				return C.PAM_AUTH_ERR
-			case brokers.AuthAllowed:
+			case responses.AuthAllowed:
 				fmt.Printf("Welcome:\n%s\n", iaResp.UserInfo)
 				return C.PAM_SUCCESS
-			case brokers.AuthCancelled:
+			case responses.AuthCancelled:
 				currentAuthModeName = ""
 				stage = StageAuthenticationMode
 				continue
@@ -429,7 +429,7 @@ func formChallenge(client authd.PAMClient, sessionID, _ string, uiLayout *authd.
 				SessionId:          sessionID,
 				AuthenticationData: `{"wait": "true"}`,
 			})
-			if iaResp.Access == brokers.AuthCancelled {
+			if iaResp.Access == responses.AuthCancelled {
 				return
 			}
 

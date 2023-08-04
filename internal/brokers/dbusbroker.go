@@ -103,10 +103,10 @@ func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, aut
 }
 
 // IsAuthorized calls the corresponding method on the broker bus and returns the user information and access.
-func (b dbusBroker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error) {
+func (b dbusBroker) IsAuthorized(_ context.Context, sessionID, authenticationData string) (access, infoUser string, err error) {
 	dbusMethod := b.interfaceName + ".IsAuthorized"
 
-	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID, authenticationData)
+	call := b.dbusObject.Call(dbusMethod, 0, sessionID, authenticationData)
 	if err = call.Err; err != nil {
 		return "", "", err
 	}
@@ -133,7 +133,7 @@ func (b dbusBroker) EndSession(ctx context.Context, sessionID string) (err error
 func (b dbusBroker) CancelIsAuthorized(ctx context.Context, sessionID string) {
 	dbusMethod := b.interfaceName + ".CancelIsAuthorized"
 
-	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID)
+	call := b.dbusObject.Call(dbusMethod, 0, sessionID)
 	if call.Err != nil {
 		log.Errorf(ctx, "could not cancel IsAuthorized call for session %q: %v", sessionID, call.Err)
 	}

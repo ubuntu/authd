@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/responses"
 	"golang.org/x/exp/slices"
 )
 
@@ -30,7 +30,8 @@ type isAuthorizedCtx struct {
 	cancelFunc context.CancelFunc
 }
 
-type broker struct {
+// Broker represents an examplebroker object.
+type Broker struct {
 	currentSessions        map[string]sessionInfo
 	currentSessionsMu      sync.RWMutex
 	userLastSelectedMode   map[string]string
@@ -76,8 +77,9 @@ const (
 	brokerEncryptionKey = "encryptionkey"
 )
 
-func newBroker(name string) (b *broker, fullName, brandIcon string) {
-	return &broker{
+// New creates a new examplebroker object.
+func New(name string) (b *Broker, fullName, brandIcon string) {
+	return &Broker{
 		currentSessions:        make(map[string]sessionInfo),
 		currentSessionsMu:      sync.RWMutex{},
 		userLastSelectedMode:   make(map[string]string),
@@ -88,7 +90,7 @@ func newBroker(name string) (b *broker, fullName, brandIcon string) {
 }
 
 // NewSession creates a new session for the specified user.
-func (b *broker) NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error) {
+func (b *Broker) NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error) {
 	sessionID = uuid.New().String()
 	b.currentSessionsMu.Lock()
 	b.currentSessions[sessionID] = sessionInfo{
@@ -100,7 +102,7 @@ func (b *broker) NewSession(ctx context.Context, username, lang string) (session
 }
 
 // GetAuthenticationModes returns the list of supported authentication modes for the selected broker depending on session info.
-func (b *broker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
+func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
 	sessionInfo, err := b.sessionInfo(sessionID)
 	if err != nil {
 		return nil, err
@@ -261,7 +263,7 @@ func (b *broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 }
 
 // SelectAuthenticationMode returns the UI layout information for the selected authentication mode.
-func (b *broker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
+func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
 	// Ensure session ID is an active one.
 	sessionInfo, err := b.sessionInfo(sessionID)
 	if err != nil {
@@ -306,7 +308,7 @@ func (b *broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 }
 
 // IsAuthorized evaluates the provided authenticationData and returns the authorisation level of the user.
-func (b *broker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error) {
+func (b *Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error) {
 	sessionInfo, err := b.sessionInfo(sessionID)
 	if err != nil {
 		return "", "", err
@@ -347,73 +349,73 @@ func (b *broker) IsAuthorized(ctx context.Context, sessionID, authenticationData
 }
 
 //nolint:unparam // This is an static example implementation, so we don't return an error other than nil.
-func (b *broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (access, infoUser string, err error) {
+func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (access, infoUser string, err error) {
 	// Note that the "wait" authentication can be cancelled and switch to another mode with a challenge.
 	// Take into account the cancellation.
 	switch sessionInfo.selectedMode {
 	case "password":
 		if authData["challenge"] != "goodpass" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 
 	case "pincode":
 		if authData["challenge"] != "4242" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 
 	case "totp_with_button", "totp":
 		if authData["challenge"] != "temporary pass" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 
 	case "phoneack1":
 		if authData["wait"] != "true" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 		// Send notification to phone1 and wait on server signal to return if OK or not
 		select {
 		case <-time.After(5 * time.Second):
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		case <-ctx.Done():
-			return brokers.AuthCancelled, "", nil
+			return responses.AuthCancelled, "", nil
 		}
 
 	case "phoneack2":
 		if authData["wait"] != "true" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 
 		// This one is failing remotely as an example
 		select {
 		case <-time.After(2 * time.Second):
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		case <-ctx.Done():
-			return brokers.AuthCancelled, "", nil
+			return responses.AuthCancelled, "", nil
 		}
 
 	case "fidodevice1":
 		if authData["wait"] != "true" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 
 		// simulate direct exchange with the FIDO device
 		select {
 		case <-time.After(5 * time.Second):
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		case <-ctx.Done():
-			return brokers.AuthCancelled, "", nil
+			return responses.AuthCancelled, "", nil
 		}
 
 	case "qrcodewithtypo":
 		if authData["wait"] != "true" {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 		// Simulate connexion with remote server to check that the correct code was entered
 		select {
 		case <-time.After(4 * time.Second):
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		case <-ctx.Done():
-			return brokers.AuthCancelled, "", nil
+			return responses.AuthCancelled, "", nil
 		}
 	}
 
@@ -423,32 +425,32 @@ func (b *broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo
 		if authData["challenge"] != "" {
 			// validate challenge given manually by the user
 			if authData["challenge"] != "aaaaa" {
-				return brokers.AuthDenied, "", nil
+				return responses.AuthDenied, "", nil
 			}
 		} else if authData["wait"] == "true" {
 			// we are simulating clicking on the url signal received by the broker
 			// this can be cancelled to resend a challenge
 			select {
 			case <-time.After(10 * time.Second):
-				return brokers.AuthDenied, "", nil
+				return responses.AuthDenied, "", nil
 			case <-ctx.Done():
-				return brokers.AuthCancelled, "", nil
+				return responses.AuthCancelled, "", nil
 			}
 		} else {
-			return brokers.AuthDenied, "", nil
+			return responses.AuthDenied, "", nil
 		}
 	}
 
 	infoUser, exists := users[sessionInfo.username]
 	if !exists {
-		return brokers.AuthDenied, "", nil
+		return responses.AuthDenied, "", nil
 	}
 
-	return brokers.AuthAllowed, infoUser, nil
+	return responses.AuthAllowed, infoUser, nil
 }
 
 // EndSession ends the requested session and triggers the necessary clean up steps, if any.
-func (b *broker) EndSession(ctx context.Context, sessionID string) error {
+func (b *Broker) EndSession(ctx context.Context, sessionID string) error {
 	if _, err := b.sessionInfo(sessionID); err != nil {
 		return err
 	}
@@ -466,7 +468,7 @@ func (b *broker) EndSession(ctx context.Context, sessionID string) error {
 
 // CancelIsAuthorized cancels the IsAuthorized request for the specified session.
 // If there is no pending IsAuthorized call for the session, this is a no-op.
-func (b *broker) CancelIsAuthorized(ctx context.Context, sessionID string) {
+func (b *Broker) CancelIsAuthorized(ctx context.Context, sessionID string) {
 	b.isAuthorizedCallsMu.Lock()
 	defer b.isAuthorizedCallsMu.Unlock()
 	if _, exists := b.isAuthorizedCalls[sessionID]; !exists {
@@ -537,7 +539,7 @@ func decryptAES(key []byte, ct string) string {
 }
 
 // sessionInfo returns the session information for the specified session ID or an error if the session is not active.
-func (b *broker) sessionInfo(sessionID string) (sessionInfo, error) {
+func (b *Broker) sessionInfo(sessionID string) (sessionInfo, error) {
 	b.currentSessionsMu.RLock()
 	defer b.currentSessionsMu.RUnlock()
 	session, active := b.currentSessions[sessionID]

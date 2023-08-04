@@ -16,7 +16,7 @@ const (
 
 // Bus is the D-Bus object that will answer calls for the broker.
 type Bus struct {
-	broker *broker
+	broker *Broker
 }
 
 // StartBus starts the D-Bus service and exports it on the system bus.
@@ -29,7 +29,7 @@ func StartBus() (err error) {
 	}
 	defer conn.Close()
 
-	b, _, _ := newBroker("ExampleBroker")
+	b, _, _ := New("ExampleBroker")
 	obj := Bus{broker: b}
 	err = conn.Export(&obj, dbusObjectPath, dbusInterface)
 	if err != nil {

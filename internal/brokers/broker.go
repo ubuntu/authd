@@ -9,7 +9,9 @@ import (
 	"strings"
 
 	"github.com/godbus/dbus/v5"
+	"github.com/ubuntu/authd/internal/brokers/examplebroker"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/responses"
 	"github.com/ubuntu/decorate"
 	"golang.org/x/exp/slices"
 )
@@ -56,6 +58,8 @@ func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 		if err != nil {
 			return Broker{}, err
 		}
+	} else if name != localBrokerName {
+		broker, fullName, brandIcon = examplebroker.New(name)
 	}
 
 	return Broker{
@@ -129,10 +133,11 @@ func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData 
 		}
 	case <-ctx.Done():
 		b.CancelIsAuthorized(ctx, sessionID)
+		<-done
 	}
 
 	// Validate access authorization.
-	if !slices.Contains(authReplies, access) {
+	if !slices.Contains(responses.AuthReplies, access) {
 		return "", "", fmt.Errorf("invalid access authorization key: %v", access)
 	}
 
