@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/godbus/dbus/v5"
+	"github.com/ubuntu/authd/internal/brokers/examplebroker"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/responses"
 	"github.com/ubuntu/decorate"
@@ -57,6 +58,8 @@ func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 		if err != nil {
 			return Broker{}, err
 		}
+	} else if name != localBrokerName {
+		broker, fullName, brandIcon = examplebroker.New(name)
 	}
 
 	return Broker{
