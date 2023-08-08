@@ -206,6 +206,16 @@ func validateUILayout(layout map[string]string) (r map[string]string, err error)
 		r["label"] = label
 		r["entry"] = entry
 		r["button"] = button
+	case "newpassword":
+		if label == "" {
+			return nil, fmt.Errorf("'label' is required")
+		}
+		if !slices.Contains([]string{"chars", "digits", "chars_password", "digits_password"}, entry) {
+			return nil, fmt.Errorf("'entry' does not match allowed values for this type: %v", entry)
+		}
+		r["label"] = label
+		r["entry"] = entry
+		r["button"] = button
 	case "webview":
 	default:
 		return nil, fmt.Errorf("invalid layout option: type is required, got: %v", layout)
