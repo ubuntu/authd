@@ -429,7 +429,6 @@ func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo
 			// this can be cancelled to resend a challenge
 			select {
 			case <-time.After(10 * time.Second):
-				return responses.AuthDenied, "", nil
 			case <-ctx.Done():
 				return responses.AuthCancelled, "", nil
 			}
