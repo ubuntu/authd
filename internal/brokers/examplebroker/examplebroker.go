@@ -160,6 +160,7 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 							"label":  "Enter your one time credential",
 							"entry":  "chars",
 							"button": "Resend sms",
+							"wait":   "true",
 						}),
 					}
 				} else {
