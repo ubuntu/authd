@@ -190,6 +190,9 @@ func validateUILayout(layout map[string]string) (r map[string]string, err error)
 		if !slices.Contains([]string{"true", "false", ""}, wait) {
 			return nil, fmt.Errorf("'wait' does not match allowed values for this type: %v", wait)
 		}
+		if button != "" && wait != "true" {
+			return nil, errors.New("button is not allowed if wait is not true")
+		}
 		r["label"] = label
 		r["entry"] = entry
 		r["button"] = button
