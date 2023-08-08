@@ -182,7 +182,7 @@ func validateUILayout(layout map[string]string) (r map[string]string, err error)
 	switch typ {
 	case "form":
 		if label == "" {
-			return nil, fmt.Errorf("'label' is required")
+			return nil, errors.New("'label' is required")
 		}
 		if !slices.Contains([]string{"chars", "digits", "chars_password", "digits_password", ""}, entry) {
 			return nil, fmt.Errorf("'entry' does not match allowed values for this type: %v", entry)
@@ -199,7 +199,7 @@ func validateUILayout(layout map[string]string) (r map[string]string, err error)
 		r["wait"] = wait
 	case "qrcode":
 		if content == "" {
-			return nil, fmt.Errorf("'content' is required")
+			return nil, errors.New("'content' is required")
 		}
 		if !slices.Contains([]string{"true", "false"}, wait) {
 			return nil, fmt.Errorf("'wait' is required and does not match allowed values for this type: %v", wait)
