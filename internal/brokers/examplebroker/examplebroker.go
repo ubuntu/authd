@@ -375,7 +375,6 @@ func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo
 		// Send notification to phone1 and wait on server signal to return if OK or not
 		select {
 		case <-time.After(5 * time.Second):
-			return responses.AuthDenied, "", nil
 		case <-ctx.Done():
 			return responses.AuthCancelled, "", nil
 		}
@@ -401,7 +400,6 @@ func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo
 		// simulate direct exchange with the FIDO device
 		select {
 		case <-time.After(5 * time.Second):
-			return responses.AuthDenied, "", nil
 		case <-ctx.Done():
 			return responses.AuthCancelled, "", nil
 		}
@@ -413,7 +411,6 @@ func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo
 		// Simulate connexion with remote server to check that the correct code was entered
 		select {
 		case <-time.After(4 * time.Second):
-			return responses.AuthDenied, "", nil
 		case <-ctx.Done():
 			return responses.AuthCancelled, "", nil
 		}
