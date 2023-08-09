@@ -1,0 +1,238 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"strconv"
+
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/log"
+)
+
+type brokerSelectionModel struct {
+	list.Model
+	focused bool
+
+	client authd.PAMClient
+
+	availableBrokers []*authd.ABResponse_BrokerInfo
+}
+
+type brokersListReceived struct {
+	brokers []*authd.ABResponse_BrokerInfo
+}
+
+type brokerSelected struct {
+	brokerID string
+}
+
+func selectBroker(brokerID string) tea.Cmd {
+	return func() tea.Msg {
+		return brokerSelected{
+			brokerID: brokerID,
+		}
+	}
+}
+
+func newBrokerSelectionModel(client authd.PAMClient) brokerSelectionModel {
+	l := list.New(nil, itemLayout{}, 80, 24)
+	l.Title = "Select your provider"
+	l.SetShowStatusBar(false)
+	l.SetShowHelp(false)
+	l.DisableQuitKeybindings()
+
+	l.Styles.Title = lipgloss.NewStyle()
+	/*l.Styles.PaginationStyle = paginationStyle
+	l.Styles.HelpStyle = helpStyle*/
+
+	return brokerSelectionModel{
+		Model:  l,
+		client: client,
+	}
+}
+
+func (m brokerSelectionModel) Init() tea.Cmd {
+	return getAvailableBrokers(m.client)
+}
+
+func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd) {
+	switch msg := msg.(type) {
+	case brokersListReceived:
+		m.availableBrokers = msg.brokers
+
+		var allBrokers []list.Item
+		for _, b := range m.availableBrokers {
+			allBrokers = append(allBrokers, brokerItem{
+				id:   b.Id,
+				name: b.Name,
+			})
+		}
+		var cmds []tea.Cmd
+		cmds = append(cmds, m.SetItems(allBrokers))
+		cmds = append(cmds, sendEvent(UsernameOrBrokerListReceived{}))
+
+		return m, tea.Batch(cmds...)
+
+	case brokerSelected:
+		broker := brokerFromID(msg.brokerID, m.availableBrokers)
+		if broker == nil {
+			log.Infof(context.TODO(), "broker %q is not part of current active brokers", msg.brokerID)
+			return m, nil
+		}
+		// Select correct line to ensure model is synchronised
+		for i, b := range m.Items() {
+			if b.(brokerItem).id != broker.Id {
+				continue
+			}
+			m.Select(i)
+		}
+
+		return m, sendEvent(BrokerSelected{
+			BrokerID: broker.Id,
+		})
+	}
+
+	// interaction events
+	if !m.focused {
+		return m, nil
+	}
+	switch msg := msg.(type) {
+	// Key presses
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "enter":
+			item := m.SelectedItem()
+			if item == nil {
+				return m, nil
+			}
+			broker := item.(brokerItem)
+			cmd := selectBroker(broker.id)
+			return m, cmd
+		case "1", "2", "3", "4", "5", "6", "7", "8", "9":
+			// This is necessarily an integer, so above
+			choice, _ := strconv.Atoi(msg.String())
+			items := m.Items()
+			if choice > len(items) {
+				return m, nil
+			}
+			item := items[choice-1]
+			broker := item.(brokerItem)
+			cmd := selectBroker(broker.id)
+			return m, cmd
+		}
+	}
+
+	var cmd tea.Cmd
+	m.Model, cmd = m.Model.Update(msg)
+	return m, cmd
+}
+
+func (m *brokerSelectionModel) Focus() tea.Cmd {
+	m.focused = true
+	return nil
+}
+
+func (m *brokerSelectionModel) Focused() bool {
+	return m.focused
+}
+
+func (m *brokerSelectionModel) Blur() {
+	m.focused = false
+}
+
+func (m *brokerSelectionModel) AutoSelectForUser(username string) tea.Cmd {
+	return func() tea.Msg {
+		r, err := m.client.GetPreviousBroker(context.TODO(),
+			&authd.GPBRequest{
+				Username: username,
+			})
+		if err != nil {
+			log.Infof(context.TODO(), "can't get previous broker for %q", username)
+			return nil
+		}
+		brokerID := r.GetPreviousBroker()
+		// TODO: REMOVE, for testing
+		if username == "user1" {
+			brokerID = "494968244"
+		}
+		if brokerID == "" {
+			return nil
+		}
+
+		return selectBroker(brokerID)()
+	}
+}
+
+func (m brokerSelectionModel) WillCaptureEscape() bool {
+	return m.FilterState() == list.Filtering
+}
+
+type brokerItem struct {
+	id   string
+	name string
+}
+
+func (i brokerItem) FilterValue() string { return "" }
+
+type itemLayout struct{}
+
+func (d itemLayout) Height() int                             { return 1 }
+func (d itemLayout) Spacing() int                            { return 0 }
+func (d itemLayout) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
+func (d itemLayout) Render(w io.Writer, m list.Model, index int, item list.Item) {
+
+	var label string
+	switch item := item.(type) {
+	case brokerItem:
+		label = item.name
+	case authModeItem:
+		label = item.label
+	default:
+		log.Errorf(context.TODO(), "Unexpected item element type: %t", item)
+		return
+	}
+
+	line := fmt.Sprintf("%d. %s", index+1, label)
+
+	if index == m.Index() {
+		line = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.AdaptiveColor{Light: "#000000", Dark: "#FFFFFF"}).Render("> " + line)
+	} else {
+		line = lipgloss.NewStyle().PaddingLeft(2).Render(line)
+	}
+	fmt.Fprint(w, line)
+}
+
+// getAvailableBrokers returns available broker list from authd.
+func getAvailableBrokers(client authd.PAMClient) tea.Cmd {
+	return func() tea.Msg {
+		brokersInfo, err := client.AvailableBrokers(context.TODO(), &authd.Empty{})
+		if err != nil {
+			return pamIgnore{
+				msg: fmt.Sprintf("could not get current available brokers: %v", err),
+			}
+		}
+
+		return brokersListReceived{
+			brokers: brokersInfo.BrokersInfos,
+		}
+	}
+}
+
+// brokerFromID return a broker matching brokerID if available, nil otherwise.
+func brokerFromID(brokerID string, brokers []*authd.ABResponse_BrokerInfo) *authd.ABResponse_BrokerInfo {
+	if brokerID == "" {
+		return nil
+	}
+
+	for _, b := range brokers {
+		if b.Id != brokerID {
+			continue
+		}
+		return b
+	}
+	return nil
+}

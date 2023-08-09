@@ -11,20 +11,28 @@ char *string_from_argv(int i, char **argv) {
   return strdup(argv[i]);
 }
 
-char *get_user(pam_handle_t *pamh, const char *prompt) {
+char *get_user(pam_handle_t *pamh) {
   if (!pamh)
     return NULL;
   int pam_err = 0;
   const char *user;
-  if ((pam_err = pam_get_user(pamh, &user, prompt)) != PAM_SUCCESS)
+  if ((pam_err = pam_get_item(pamh, PAM_USER, (const void**)&user)) != PAM_SUCCESS)
     return NULL;
   return strdup(user);
+}
+
+char *set_user(pam_handle_t *pamh, char *username) {
+  if (!pamh)
+    return NULL;
+  int pam_err = 0;
+  if ((pam_err = pam_set_item(pamh, PAM_USER, (const void*)username)) != PAM_SUCCESS)
+    return NULL;
+  return NULL;
 }
 */
 import "C"
 
 import (
-	"fmt"
 	"unsafe"
 )
 
@@ -41,24 +49,18 @@ func sliceFromArgv(argc C.int, argv **C.char) []string {
 	return r
 }
 
-func getUser(pamh *C.pam_handle_t, prompt string) (string, error) {
-	cPrompt := C.CString(prompt)
-	defer C.free(unsafe.Pointer(cPrompt))
-	cUsername := C.get_user(pamh, cPrompt)
+func getPAMUser(pamh *C.pam_handle_t) string {
+	cUsername := C.get_user(pamh)
 	if cUsername == nil {
-		return "", fmt.Errorf("no user found")
+		return ""
 	}
 	defer C.free(unsafe.Pointer(cUsername))
-	return C.GoString(cUsername), nil
+	return C.GoString(cUsername)
 }
 
-func getPassword(prompt string) (string, error) {
-	cPrompt := C.CString(prompt)
-	defer C.free(unsafe.Pointer(cPrompt))
-	cPasswd := C.getpass(cPrompt)
-	if cPasswd == nil {
-		return "", fmt.Errorf("no password found")
-	}
-	defer C.free(unsafe.Pointer(cPasswd))
-	return C.GoString(cPasswd), nil
+func setPAMUser(pamh *C.pam_handle_t, username string) {
+	cUsername := C.CString(username)
+	defer C.free(unsafe.Pointer(cUsername))
+
+	C.set_user(pamh, cUsername)
 }
