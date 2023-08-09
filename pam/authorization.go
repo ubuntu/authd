@@ -170,12 +170,17 @@ func (m *authorizationModel) Compose(sessionID string, layout *authd.UILayout) t
 			form.setEntryValue(oldEntryValue)
 		}
 		m.currentModel = form
+	default:
+		return sendEvent(pamSystemError{msg: fmt.Sprintf("unknown layout type: %q", layout.Type)})
 	}
 
 	return sendEvent(startAuthorization{})
 }
 
 func (m authorizationModel) View() string {
+	if m.currentModel == nil {
+		return ""
+	}
 	return lipgloss.JoinVertical(lipgloss.Left,
 		m.currentModel.View(),
 		m.errorMsg,
