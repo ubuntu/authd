@@ -69,7 +69,7 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case *textinputModel:
 				return m, sendEvent(isAuthorizedRequested{content: fmt.Sprintf(`{"challenge": "%s"}`, entry.Value())})
 			case *buttonModel:
-				return m, sendEvent(isAuthorizedRequested{`{"wait": "true"}`})
+				return m, sendEvent(reselectAuthMode{})
 			}
 
 			return m, nil
@@ -128,4 +128,26 @@ func (m formModel) Blur() {
 		return
 	}
 	m.focusableModels[m.focusIndex].Blur()
+}
+
+func (m formModel) getEntryValue() string {
+	for _, entry := range m.focusableModels {
+		entry, ok := entry.(*textinputModel)
+		if !ok {
+			continue
+		}
+		return entry.Value()
+	}
+	return ""
+}
+
+func (m *formModel) setEntryValue(value string) {
+	for _, entry := range m.focusableModels {
+		entry, ok := entry.(*textinputModel)
+		if !ok {
+			continue
+		}
+		entry.SetValue(value)
+		return
+	}
 }

@@ -159,6 +159,13 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		)
 
 	case AuthModeSelected:
+		// Reselection/reset of current authentication mode requested (button clicked for instance)
+		if msg.ID == "" {
+			msg.ID = m.authModeSelectionModel.currentAuthModeSelectedID
+		}
+		if msg.ID == "" {
+			return m, sendEvent(pamSystemError{msg: "reselection of current auth mode without current ID"})
+		}
 		return m, getLayout(m.client, m.currentSession.sessionID, msg.ID)
 
 	case UILayoutReceived:
@@ -240,6 +247,8 @@ func (m *model) changeStage(s stage) tea.Cmd {
 		m.userSelectionModel.Blur()
 		m.authModeSelectionModel.Blur()
 		m.authorizationModel.Blur()
+
+		m.authModeSelectionModel.Reset()
 
 		return tea.Sequence(endSession(m.client, m.currentSession), m.brokerSelectionModel.Focus())
 

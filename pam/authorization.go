@@ -44,6 +44,7 @@ type isAuthorizedResultReceived struct {
 	access string
 	data   string
 }
+type reselectAuthMode struct{}
 
 type authorizationComponent interface {
 	Init() tea.Cmd
@@ -80,6 +81,11 @@ func (m *authorizationModel) Init() tea.Cmd {
 
 func (m *authorizationModel) Update(msg tea.Msg) (authorizationModel, tea.Cmd) {
 	switch msg := msg.(type) {
+
+	case reselectAuthMode:
+		m.cancelIsAuthorized()
+		return *m, sendEvent(AuthModeSelected{})
+
 	case isAuthorizedRequested:
 		m.cancelIsAuthorized()
 		ctx, cancel := context.WithCancel(context.Background())
@@ -151,9 +157,19 @@ func (m *authorizationModel) Blur() {
 func (m *authorizationModel) Compose(sessionID string, layout *authd.UILayout) tea.Cmd {
 	m.currentSessionID = sessionID
 	m.cancelIsAuthorized = func() {}
+
 	switch layout.Type {
 	case "form":
-		m.currentModel = newFormModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton(), layout.GetWait() == "true")
+		var oldEntryValue string
+		// We need to port previous entry after a reselection (indicated by the fact that we didn’t clear the previous model)
+		if oldModel, ok := m.currentModel.(formModel); ok && layout.GetEntry() != "" {
+			oldEntryValue = oldModel.getEntryValue()
+		}
+		form := newFormModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton(), layout.GetWait() == "true")
+		if oldEntryValue != "" {
+			form.setEntryValue(oldEntryValue)
+		}
+		m.currentModel = form
 	}
 
 	return sendEvent(startAuthorization{})

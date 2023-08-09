@@ -18,7 +18,8 @@ type authModeSelectionModel struct {
 
 	client authd.PAMClient
 
-	availableAuthModes []*authd.GAMResponse_AuthenticationMode
+	availableAuthModes        []*authd.GAMResponse_AuthenticationMode
+	currentAuthModeSelectedID string
 }
 
 type authModesReceived struct {
@@ -29,7 +30,8 @@ type authModeSelected struct {
 	id string
 }
 
-func selectAuthMode(id string) tea.Cmd {
+func (m *authModeSelectionModel) selectAuthMode(id string) tea.Cmd {
+	m.currentAuthModeSelectedID = id
 	return func() tea.Msg {
 		return authModeSelected{
 			id: id,
@@ -105,7 +107,7 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 				return m, nil
 			}
 			authMode := item.(authModeItem)
-			cmd := selectAuthMode(authMode.id)
+			cmd := m.selectAuthMode(authMode.id)
 			return m, cmd
 		case "1", "2", "3", "4", "5", "6", "7", "8", "9":
 			// This is necessarily an integer, so above
@@ -116,7 +118,7 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 			}
 			item := items[choice-1]
 			authMode := item.(authModeItem)
-			cmd := selectAuthMode(authMode.id)
+			cmd := m.selectAuthMode(authMode.id)
 			return m, cmd
 		}
 	}
@@ -208,4 +210,7 @@ func getAuthenticationModes(client authd.PAMClient, sessionID string) tea.Cmd {
 			authModes: authModes,
 		}
 	}
+}
+func (m *authModeSelectionModel) Reset() {
+	m.currentAuthModeSelectedID = ""
 }
