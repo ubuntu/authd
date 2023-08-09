@@ -11,20 +11,27 @@ import (
 
 var debug string
 
+// state represents the stage object
 type stage int
 
 const (
-	stageUserSelection     stage = iota // no user
-	stageBrokerSelection                // no current broker
-	stageAuthModeSelection              // no current auth mode
-	stageChallenge                      // user, broker and auth mode are set
+	// stageUserSelection is to select a user.
+	stageUserSelection stage = iota
+	// stageUserSelection is to select a broker.
+	stageBrokerSelection
+	// stageUserSelection is to select an authentication mode.
+	stageAuthModeSelection
+	// stageChallenge let's the user entering a challenge or waiting from authorization from the broker.
+	stageChallenge
 )
 
+// sessionInfo contains the global broker session information.
 type sessionInfo struct {
 	sessionID     string
 	encryptionKey string
 }
 
+// model is the global models orchestrator.
 type model struct {
 	pamh   pamHandle
 	client authd.PAMClient
@@ -40,28 +47,42 @@ type model struct {
 	authModeSelectionModel authModeSelectionModel
 	authorizationModel     authorizationModel
 
-	debug   string
 	exitMsg error
 }
 
-// global events
+/* global events */
+
+// UsernameOrBrokerListReceived is received either when the user name is filled (pam or manually) and we got the broker list.
 type UsernameOrBrokerListReceived struct{}
+
+// BrokerSelected signifies that the broker has been chosen.
 type BrokerSelected struct {
 	BrokerID string
 }
+
+// SessionStarted signals that we started a session with a given broker.
 type SessionStarted struct {
 	sessionID     string
 	encryptionKey string
 }
+
+// GetAuthenticationModesRequested signals that a model needs to get the broker authentication modes.
 type GetAuthenticationModesRequested struct{}
+
+// AuthModeSelected is triggered when the authentication mode has been chosen.
 type AuthModeSelected struct {
 	ID string
 }
+
+// UILayoutReceived means that we got the ui layout to display by the broker.
 type UILayoutReceived struct {
 	layout *authd.UILayout
 }
+
+// SessionEnded signals that the session is done and closed from the broker.
 type SessionEnded struct{}
 
+// Init initializes the main model orchestrator.
 func (m *model) Init() tea.Cmd {
 	m.userSelectionModel = newUserSelectionModel(m.pamh)
 	var cmds []tea.Cmd
@@ -80,6 +101,7 @@ func (m *model) Init() tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
+// Update handles events and actions to be done from the main model orchestrator.
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	log.Debugf(context.TODO(), "%+v", msg)
 
@@ -194,6 +216,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
+// View renders a text view of the whole UI.
 func (m *model) View() string {
 	var view strings.Builder
 
@@ -218,6 +241,7 @@ func (m *model) View() string {
 	return view.String()
 }
 
+// currentStage returns our current stage step.
 func (m *model) currentStage() stage {
 	if m.userSelectionModel.Focused() {
 		return stageUserSelection
@@ -234,6 +258,7 @@ func (m *model) currentStage() stage {
 	return stageUserSelection
 }
 
+// changeStage returns a command acting to change the current stage and reset any previous views.
 func (m *model) changeStage(s stage) tea.Cmd {
 	switch s {
 	case stageUserSelection:
@@ -273,10 +298,12 @@ func (m *model) changeStage(s stage) tea.Cmd {
 	return nil
 }
 
+// username returns currently selected user name.
 func (m model) username() string {
 	return m.userSelectionModel.Value()
 }
 
+// availableBrokers returns currently available brokers.
 func (m model) availableBrokers() []*authd.ABResponse_BrokerInfo {
 	return m.brokerSelectionModel.availableBrokers
 }

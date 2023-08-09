@@ -13,6 +13,7 @@ import (
 	"github.com/ubuntu/authd/internal/log"
 )
 
+// brokerSelectionModel is the model list selection layout to allow authorizing and return a challenge.
 type brokerSelectionModel struct {
 	list.Model
 	focused bool
@@ -22,14 +23,17 @@ type brokerSelectionModel struct {
 	availableBrokers []*authd.ABResponse_BrokerInfo
 }
 
+// brokersListReceived signals that the broker list from authd has been received.
 type brokersListReceived struct {
 	brokers []*authd.ABResponse_BrokerInfo
 }
 
+// brokerSelected is the internal event that a broker has been selected.
 type brokerSelected struct {
 	brokerID string
 }
 
+// selectBroker selects a given broker.
 func selectBroker(brokerID string) tea.Cmd {
 	return func() tea.Msg {
 		return brokerSelected{
@@ -38,6 +42,7 @@ func selectBroker(brokerID string) tea.Cmd {
 	}
 }
 
+// newBrokerSelectionModel initializes an empty list with default options of brokerSelectionModel.
 func newBrokerSelectionModel(client authd.PAMClient) brokerSelectionModel {
 	l := list.New(nil, itemLayout{}, 80, 24)
 	l.Title = "Select your provider"
@@ -55,10 +60,12 @@ func newBrokerSelectionModel(client authd.PAMClient) brokerSelectionModel {
 	}
 }
 
+// Init initializes brokerSelectionModel by requesting the available brokers.
 func (m brokerSelectionModel) Init() tea.Cmd {
 	return getAvailableBrokers(m.client)
 }
 
+// Update handles events and actions.
 func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case brokersListReceived:
@@ -131,19 +138,23 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 	return m, cmd
 }
 
+// Focus focuses this model.
 func (m *brokerSelectionModel) Focus() tea.Cmd {
 	m.focused = true
 	return nil
 }
 
+// Focused returns if this model is focused.
 func (m *brokerSelectionModel) Focused() bool {
 	return m.focused
 }
 
+// Blur releases the focus from this model.
 func (m *brokerSelectionModel) Blur() {
 	m.focused = false
 }
 
+// AutoSelectForUser requests if any previous broker was used by this user to automatically selects it.
 func (m *brokerSelectionModel) AutoSelectForUser(username string) tea.Cmd {
 	return func() tea.Msg {
 		r, err := m.client.GetPreviousBroker(context.TODO(),
@@ -167,22 +178,33 @@ func (m *brokerSelectionModel) AutoSelectForUser(username string) tea.Cmd {
 	}
 }
 
+// WillCaptureEscape returns if this broker may capture Esc typing on keyboard.
 func (m brokerSelectionModel) WillCaptureEscape() bool {
 	return m.FilterState() == list.Filtering
 }
 
+// brokerItem
 type brokerItem struct {
 	id   string
 	name string
 }
 
+// FilterValue allows filtering the list items.
 func (i brokerItem) FilterValue() string { return "" }
 
+// itemLayout is the rendering delegatation of brokerItem and authModeItem.
 type itemLayout struct{}
 
-func (d itemLayout) Height() int                             { return 1 }
-func (d itemLayout) Spacing() int                            { return 0 }
+// Height returns height of the items.
+func (d itemLayout) Height() int { return 1 }
+
+// Spacing returns the spacing needed between the items.
+func (d itemLayout) Spacing() int { return 0 }
+
+// Update triggers the update of each item.
 func (d itemLayout) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
+
+// Render writes to w the rendering of the items based on its selection and type.
 func (d itemLayout) Render(w io.Writer, m list.Model, index int, item list.Item) {
 
 	var label string

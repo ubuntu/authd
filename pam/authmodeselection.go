@@ -12,6 +12,7 @@ import (
 	"github.com/ubuntu/authd/internal/log"
 )
 
+// authModeSelectionModel is the model list to select supported authentication modes.
 type authModeSelectionModel struct {
 	list.Model
 	focused bool
@@ -22,14 +23,17 @@ type authModeSelectionModel struct {
 	currentAuthModeSelectedID string
 }
 
+// authModesReceived is the internal event signalling that the supported authorization modes have been received.
 type authModesReceived struct {
 	authModes []*authd.GAMResponse_AuthenticationMode
 }
 
+// authModeSelected is the internal event signalling that the an authorization mode has been selected.
 type authModeSelected struct {
 	id string
 }
 
+// selectAuthMode selects current authentication mode.
 func (m *authModeSelectionModel) selectAuthMode(id string) tea.Cmd {
 	m.currentAuthModeSelectedID = id
 	return func() tea.Msg {
@@ -39,6 +43,7 @@ func (m *authModeSelectionModel) selectAuthMode(id string) tea.Cmd {
 	}
 }
 
+// newAuthModeSelectionModel initializes an empty list with default options of authModeSelectionModel.
 func newAuthModeSelectionModel(client authd.PAMClient) authModeSelectionModel {
 	l := list.New(nil, itemLayout{}, 80, 24)
 	l.Title = "Select your authentication method"
@@ -56,10 +61,12 @@ func newAuthModeSelectionModel(client authd.PAMClient) authModeSelectionModel {
 	}
 }
 
+// Init initializes authModeSelectionModel.
 func (m authModeSelectionModel) Init() tea.Cmd {
 	return nil
 }
 
+// Update handles events and actions.
 func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case authModesReceived:
@@ -128,28 +135,34 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 	return m, cmd
 }
 
+// Focus focuses this model.
 func (m *authModeSelectionModel) Focus() tea.Cmd {
 	m.focused = true
 	return nil
 }
 
+// Focused returns if this model is focused.
 func (m *authModeSelectionModel) Focused() bool {
 	return m.focused
 }
 
+// Blur releases the focus from this model.
 func (m *authModeSelectionModel) Blur() {
 	m.focused = false
 }
 
+// WillCaptureEscape returns if this broker may capture Esc typing on keyboard.
 func (m authModeSelectionModel) WillCaptureEscape() bool {
 	return m.FilterState() == list.Filtering
 }
 
+// authModeItem is the list item corresponding to an authentication mode.
 type authModeItem struct {
 	id    string
 	label string
 }
 
+// FilterValue allows filtering the list items.
 func (i authModeItem) FilterValue() string { return "" }
 
 // validAuthModeID returns if a authmode ID exists in the available list.
@@ -211,6 +224,8 @@ func getAuthenticationModes(client authd.PAMClient, sessionID string) tea.Cmd {
 		}
 	}
 }
+
+// Resets zeroes any internal state on the authModeSelectionModel.
 func (m *authModeSelectionModel) Reset() {
 	m.currentAuthModeSelectedID = ""
 }

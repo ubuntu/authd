@@ -11,6 +11,7 @@ import (
 	"github.com/ubuntu/authd/internal/log"
 )
 
+// sendEvent sends an event msg to the main event loop.
 func sendEvent(msg tea.Msg) tea.Cmd {
 	return func() tea.Msg {
 		return msg
@@ -62,6 +63,7 @@ func startBrokerSession(client authd.PAMClient, brokerID, username string) tea.C
 	}
 }
 
+// getLayout fetches the layout for a given authModeID.
 func getLayout(client authd.PAMClient, sessionID, authModeID string) tea.Cmd {
 	return func() tea.Msg {
 		samReq := &authd.SAMRequest{
@@ -89,6 +91,7 @@ func getLayout(client authd.PAMClient, sessionID, authModeID string) tea.Cmd {
 	}
 }
 
+// quit tears down any active session and quit the main loop.
 func (m *model) quit() tea.Cmd {
 	if m.currentSession == nil {
 		return tea.Quit
@@ -96,6 +99,7 @@ func (m *model) quit() tea.Cmd {
 	return tea.Sequence(endSession(m.client, m.currentSession), tea.Quit)
 }
 
+// endSession requests the broker to end the session.
 func endSession(client authd.PAMClient, currentSession *sessionInfo) tea.Cmd {
 	if currentSession == nil {
 		return nil

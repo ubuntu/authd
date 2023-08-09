@@ -13,6 +13,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// sendIsAuthorized sends the authorization challenges or wait request to the brokers.
+// The event will contain the returned value from the broker.
 func sendIsAuthorized(ctx context.Context, client authd.PAMClient, sessionID, content string) tea.Cmd {
 	return func() tea.Msg {
 		res, err := client.IsAuthorized(ctx, &authd.IARequest{
@@ -37,15 +39,24 @@ func sendIsAuthorized(ctx context.Context, client authd.PAMClient, sessionID, co
 	}
 }
 
+// isAuthorizedRequested is the internal events signalling that authorization
+// with the given challenge or wait has been requested.
 type isAuthorizedRequested struct {
 	content string
 }
+
+// isAuthorizedResultReceived is the internal event with the authorization access result
+// and data that was retrieved.
 type isAuthorizedResultReceived struct {
 	access string
 	data   string
 }
+
+// reselectAuthMode signals to restart auth mode selection with the same id (to resend sms or
+// reenable the broker).
 type reselectAuthMode struct{}
 
+// authorizationComponent is the interface that all sub layout models needs to match.
 type authorizationComponent interface {
 	Init() tea.Cmd
 	Update(msg tea.Msg) (tea.Model, tea.Cmd)
@@ -54,6 +65,7 @@ type authorizationComponent interface {
 	Blur()
 }
 
+// authorizationModel is the orchestrator model of all the authorization sub model layouts.
 type authorizationModel struct {
 	focused bool
 
@@ -66,8 +78,10 @@ type authorizationModel struct {
 	errorMsg string
 }
 
+// startAuthorization signals that the authorization model can start wait:true authorization if supported.
 type startAuthorization struct{}
 
+// newAuthorizationModel initializes a authorizationModel which needs to be Compose then.
 func newAuthorizationModel(client authd.PAMClient) authorizationModel {
 	return authorizationModel{
 		client:             client,
@@ -75,10 +89,12 @@ func newAuthorizationModel(client authd.PAMClient) authorizationModel {
 	}
 }
 
+// Init initializes authorizationModel.
 func (m *authorizationModel) Init() tea.Cmd {
 	return nil
 }
 
+// Update handles events and actions.
 func (m *authorizationModel) Update(msg tea.Msg) (authorizationModel, tea.Cmd) {
 	switch msg := msg.(type) {
 
@@ -132,6 +148,7 @@ func (m *authorizationModel) Update(msg tea.Msg) (authorizationModel, tea.Cmd) {
 	return *m, cmd
 }
 
+// Focus focuses this model.
 func (m *authorizationModel) Focus() tea.Cmd {
 	m.focused = true
 
@@ -141,10 +158,12 @@ func (m *authorizationModel) Focus() tea.Cmd {
 	return m.currentModel.Focus()
 }
 
+// Focused returns if this model is focused.
 func (m *authorizationModel) Focused() bool {
 	return m.focused
 }
 
+// Blur releases the focus from this model.
 func (m *authorizationModel) Blur() {
 	m.focused = false
 
@@ -154,6 +173,7 @@ func (m *authorizationModel) Blur() {
 	m.currentModel.Blur()
 }
 
+// Compose creates and attaches the sub layout models based on UILayout.
 func (m *authorizationModel) Compose(sessionID string, layout *authd.UILayout) tea.Cmd {
 	m.currentSessionID = sessionID
 	m.cancelIsAuthorized = func() {}
@@ -177,6 +197,7 @@ func (m *authorizationModel) Compose(sessionID string, layout *authd.UILayout) t
 	return sendEvent(startAuthorization{})
 }
 
+// View renders a text view of the authorization UI.
 func (m authorizationModel) View() string {
 	if m.currentModel == nil {
 		return ""
@@ -187,6 +208,7 @@ func (m authorizationModel) View() string {
 	)
 }
 
+// Resets zeroes any internal state on the authorizationModel.
 func (m *authorizationModel) Reset() {
 	m.cancelIsAuthorized()
 	m.cancelIsAuthorized = func() {}
@@ -194,6 +216,7 @@ func (m *authorizationModel) Reset() {
 	m.currentSessionID = ""
 }
 
+// dataToMsg returns the data message from a given JSON message.
 func dataToMsg(data string) string {
 	if data == "" {
 		return ""
@@ -216,6 +239,7 @@ func dataToMsg(data string) string {
 	return r
 }
 
+// dataToUserInfo returns the user information from a given JSON string.
 func dataToUserInfo(data string) string {
 	/*v := make(map[string]string)
 	if err := json.Unmarshal([]byte(data), &v); err != nil {

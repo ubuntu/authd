@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// formModel is the form layout type to allow authorizing and return a challenge.
 type formModel struct {
 	label string
 
@@ -17,6 +18,7 @@ type formModel struct {
 	wait bool
 }
 
+// newFormModel initializes and return a new formModel.
 func newFormModel(label, entryType, buttonLabel string, wait bool) formModel {
 	var focusableModels []authorizationComponent
 
@@ -43,10 +45,12 @@ func newFormModel(label, entryType, buttonLabel string, wait bool) formModel {
 	}
 }
 
+// Init initializes formModel.
 func (m formModel) Init() tea.Cmd {
 	return nil
 }
 
+// Update handles events and actions.
 func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case startAuthorization:
@@ -104,6 +108,7 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+// View renders a text view of the form.
 func (m formModel) View() string {
 	fields := []string{m.label}
 
@@ -116,6 +121,7 @@ func (m formModel) View() string {
 	)
 }
 
+// Focus focuses this model.
 func (m formModel) Focus() tea.Cmd {
 	if m.focusIndex >= len(m.focusableModels) {
 		return nil
@@ -123,6 +129,7 @@ func (m formModel) Focus() tea.Cmd {
 	return m.focusableModels[m.focusIndex].Focus()
 }
 
+// Blur releases the focus from this model.
 func (m formModel) Blur() {
 	if m.focusIndex >= len(m.focusableModels) {
 		return
@@ -130,6 +137,7 @@ func (m formModel) Blur() {
 	m.focusableModels[m.focusIndex].Blur()
 }
 
+// getEntryValue returns previous entry value, if any.
 func (m formModel) getEntryValue() string {
 	for _, entry := range m.focusableModels {
 		entry, ok := entry.(*textinputModel)
@@ -141,6 +149,7 @@ func (m formModel) getEntryValue() string {
 	return ""
 }
 
+// setEntryValue reset the entry (if present) to a given value.
 func (m *formModel) setEntryValue(value string) {
 	for _, entry := range m.focusableModels {
 		entry, ok := entry.(*textinputModel)

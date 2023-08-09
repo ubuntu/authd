@@ -39,6 +39,7 @@ import (
 // pamHandle allows to pass C.pam_handle_t to this package.
 type pamHandle = *C.pam_handle_t
 
+// sliceFromArgv returns a slice of strings given to the PAM module.
 func sliceFromArgv(argc C.int, argv **C.char) []string {
 	r := make([]string, 0, argc)
 	for i := 0; i < int(argc); i++ {
@@ -49,6 +50,7 @@ func sliceFromArgv(argc C.int, argv **C.char) []string {
 	return r
 }
 
+// getPAMUser returns the user from PAM.
 func getPAMUser(pamh *C.pam_handle_t) string {
 	cUsername := C.get_user(pamh)
 	if cUsername == nil {
@@ -58,6 +60,7 @@ func getPAMUser(pamh *C.pam_handle_t) string {
 	return C.GoString(cUsername)
 }
 
+// setPAMUser set current user to PAM.
 func setPAMUser(pamh *C.pam_handle_t, username string) {
 	cUsername := C.CString(username)
 	defer C.free(unsafe.Pointer(cUsername))

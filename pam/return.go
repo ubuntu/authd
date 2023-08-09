@@ -2,7 +2,7 @@ package main
 
 // Various signalling return messaging to PAM.
 
-// pamSuccess signals PAM module to return PAM_SUCCESS and Quit tea.Model
+// pamSuccess signals PAM module to return PAM_SUCCESS and Quit tea.Model.
 type pamSuccess struct {
 }
 
@@ -10,20 +10,22 @@ func (err pamSuccess) Error() string {
 	return ""
 }
 
-// pamIgnore signals PAM module to return PAM_IGNORE and Quit tea.Model
+// pamIgnore signals PAM module to return PAM_IGNORE and Quit tea.Model.
 type pamIgnore struct {
 	msg string
 }
 
+// Error returns the string of pamIgnore message.
 func (err pamIgnore) Error() string {
 	return err.msg
 }
 
-// pamAbort signals PAM module to return PAM_ABORT and Quit tea.Model
+// pamAbort signals PAM module to return PAM_ABORT and Quit tea.Model.
 type pamAbort struct {
 	msg string
 }
 
+// Error returns the string of pamAbort message.
 func (err pamAbort) Error() string {
 	return err.msg
 }
@@ -33,15 +35,17 @@ type pamSystemError struct {
 	msg string
 }
 
+// Error returns the string of pamSystemError message.
 func (err pamSystemError) Error() string {
 	return err.msg
 }
 
-// pamAuthError signals PAM module to return PAM_AUTH_ERROR and Quit tea.Model
+// pamAuthError signals PAM module to return PAM_AUTH_ERROR and Quit tea.Model.
 type pamAuthError struct {
 	msg string
 }
 
+// Error returns the string of pamAuthError message.
 func (err pamAuthError) Error() string {
 	return err.msg
 }
