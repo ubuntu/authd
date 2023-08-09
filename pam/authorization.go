@@ -97,7 +97,6 @@ func (m *authorizationModel) Init() tea.Cmd {
 // Update handles events and actions.
 func (m *authorizationModel) Update(msg tea.Msg) (authorizationModel, tea.Cmd) {
 	switch msg := msg.(type) {
-
 	case reselectAuthMode:
 		m.cancelIsAuthorized()
 		return *m, sendEvent(AuthModeSelected{})
@@ -143,7 +142,11 @@ func (m *authorizationModel) Update(msg tea.Msg) (authorizationModel, tea.Cmd) {
 	var model tea.Model
 	if m.currentModel != nil {
 		model, cmd = m.currentModel.Update(msg)
-		m.currentModel = model.(authorizationComponent)
+		c, ok := model.(authorizationComponent)
+		if !ok {
+			panic(fmt.Sprintf("expected authorizationComponent, got %T", c))
+		}
+		m.currentModel = c
 	}
 	return *m, cmd
 }
@@ -240,6 +243,8 @@ func dataToMsg(data string) string {
 }
 
 // dataToUserInfo returns the user information from a given JSON string.
+//
+//nolint:unused // This is not used for now TODO
 func dataToUserInfo(data string) string {
 	/*v := make(map[string]string)
 	if err := json.Unmarshal([]byte(data), &v); err != nil {

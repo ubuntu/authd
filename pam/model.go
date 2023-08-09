@@ -11,7 +11,7 @@ import (
 
 var debug string
 
-// state represents the stage object
+// state represents the stage object.
 type stage int
 
 const (
@@ -47,7 +47,7 @@ type model struct {
 	authModeSelectionModel authModeSelectionModel
 	authorizationModel     authorizationModel
 
-	exitMsg error
+	exitMsg ExitMsger
 }
 
 /* global events */

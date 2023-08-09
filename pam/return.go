@@ -2,11 +2,17 @@ package main
 
 // Various signalling return messaging to PAM.
 
+// ExitMsger is the exit message type and optional accompagning details.
+type ExitMsger interface {
+	ExitMsg() string
+}
+
 // pamSuccess signals PAM module to return PAM_SUCCESS and Quit tea.Model.
 type pamSuccess struct {
 }
 
-func (err pamSuccess) Error() string {
+// ExitMsg returns the string of pamSuccess.
+func (err pamSuccess) ExitMsg() string {
 	return ""
 }
 
@@ -15,8 +21,8 @@ type pamIgnore struct {
 	msg string
 }
 
-// Error returns the string of pamIgnore message.
-func (err pamIgnore) Error() string {
+// ExitMsg returns the string of pamIgnore message.
+func (err pamIgnore) ExitMsg() string {
 	return err.msg
 }
 
@@ -25,18 +31,18 @@ type pamAbort struct {
 	msg string
 }
 
-// Error returns the string of pamAbort message.
-func (err pamAbort) Error() string {
+// ExitMsg returns the string of pamAbort message.
+func (err pamAbort) ExitMsg() string {
 	return err.msg
 }
 
-// pamSystemError signals PAM module to return PAM_SYSTEM_ERROR and Quit tea.Model
+// pamSystemError signals PAM module to return PAM_SYSTEM_ERROR and Quit tea.Model.
 type pamSystemError struct {
 	msg string
 }
 
-// Error returns the string of pamSystemError message.
-func (err pamSystemError) Error() string {
+// ExitMsg returns the string of pamSystemError message.
+func (err pamSystemError) ExitMsg() string {
 	return err.msg
 }
 
@@ -45,7 +51,7 @@ type pamAuthError struct {
 	msg string
 }
 
-// Error returns the string of pamAuthError message.
-func (err pamAuthError) Error() string {
+// ExitMsg returns the string of pamAuthError message.
+func (err pamAuthError) ExitMsg() string {
 	return err.msg
 }

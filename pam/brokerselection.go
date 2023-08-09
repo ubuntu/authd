@@ -92,7 +92,8 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 		}
 		// Select correct line to ensure model is synchronised
 		for i, b := range m.Items() {
-			if b.(brokerItem).id != broker.Id {
+			b := listItemsToBrokerItem(b)
+			if b.id != broker.Id {
 				continue
 			}
 			m.Select(i)
@@ -116,7 +117,7 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 			if item == nil {
 				return m, nil
 			}
-			broker := item.(brokerItem)
+			broker := listItemsToBrokerItem(item)
 			cmd := selectBroker(broker.id)
 			return m, cmd
 		case "1", "2", "3", "4", "5", "6", "7", "8", "9":
@@ -127,7 +128,7 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 				return m, nil
 			}
 			item := items[choice-1]
-			broker := item.(brokerItem)
+			broker := listItemsToBrokerItem(item)
 			cmd := selectBroker(broker.id)
 			return m, cmd
 		}
@@ -138,7 +139,9 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 	return m, cmd
 }
 
-// Focus focuses this model.
+// Focus focuses this model. It always returns nil.
+//
+//nolint:unparam // Always returns nil.
 func (m *brokerSelectionModel) Focus() tea.Cmd {
 	m.focused = true
 	return nil
@@ -183,7 +186,7 @@ func (m brokerSelectionModel) WillCaptureEscape() bool {
 	return m.FilterState() == list.Filtering
 }
 
-// brokerItem
+// brokerItem is the list item corresponding to a broker.
 type brokerItem struct {
 	id   string
 	name string
@@ -206,7 +209,6 @@ func (d itemLayout) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 
 // Render writes to w the rendering of the items based on its selection and type.
 func (d itemLayout) Render(w io.Writer, m list.Model, index int, item list.Item) {
-
 	var label string
 	switch item := item.(type) {
 	case brokerItem:
@@ -257,4 +259,14 @@ func brokerFromID(brokerID string, brokers []*authd.ABResponse_BrokerInfo) *auth
 		return b
 	}
 	return nil
+}
+
+// listItemsToBrokerItem panics if item is not an brokerItem (programming error).
+// TODO: transform to generic?
+func listItemsToBrokerItem(item list.Item) brokerItem {
+	r, ok := item.(brokerItem)
+	if !ok {
+		panic(fmt.Sprintf("expected brokerItem, got %T", r))
+	}
+	return r
 }

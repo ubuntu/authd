@@ -90,7 +90,8 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 
 		// Select correct line to ensure model is synchronised
 		for i, a := range m.Items() {
-			if a.(authModeItem).id != msg.id {
+			a := listItemsToAuthModeItem(a)
+			if a.id != msg.id {
 				continue
 			}
 			m.Select(i)
@@ -114,7 +115,7 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 			if item == nil {
 				return m, nil
 			}
-			authMode := item.(authModeItem)
+			authMode := listItemsToAuthModeItem(item)
 			cmd := selectAuthMode(authMode.id)
 			return m, cmd
 		case "1", "2", "3", "4", "5", "6", "7", "8", "9":
@@ -125,7 +126,7 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 				return m, nil
 			}
 			item := items[choice-1]
-			authMode := item.(authModeItem)
+			authMode := listItemsToAuthModeItem(item)
 			cmd := selectAuthMode(authMode.id)
 			return m, cmd
 		}
@@ -229,4 +230,13 @@ func getAuthenticationModes(client authd.PAMClient, sessionID string) tea.Cmd {
 // Resets zeroes any internal state on the authModeSelectionModel.
 func (m *authModeSelectionModel) Reset() {
 	m.currentAuthModeSelectedID = ""
+}
+
+// listItemsToAuthModeItem panics if item is not an authModeItem (programming error).
+func listItemsToAuthModeItem(item list.Item) authModeItem {
+	r, ok := item.(authModeItem)
+	if !ok {
+		panic(fmt.Sprintf("expected authModeItem, got %T", r))
+	}
+	return r
 }
