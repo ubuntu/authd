@@ -28,7 +28,7 @@
         <arg type="s" direction="in" name="sessionID"/>
         <arg type="s" direction="in" name="authenticationData"/>
         <arg type="s" direction="out" name="access"/>
-        <arg type="s" direction="out" name="infoUser"/>
+        <arg type="s" direction="out" name="data"/>
     </method>
     <method name="EndSession">
         <arg type="s" direction="in" name="sessionID"/>
