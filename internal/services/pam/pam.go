@@ -31,8 +31,7 @@ func NewService(ctx context.Context, brokerManager *brokers.Manager) Service {
 }
 
 // AvailableBrokers returns the list of all brokers with their details.
-// It can return the previous broker set for a given user, if any and if provided.
-func (s Service) AvailableBrokers(ctx context.Context, req *authd.ABRequest) (*authd.ABResponse, error) {
+func (s Service) AvailableBrokers(ctx context.Context, _ *authd.Empty) (*authd.ABResponse, error) {
 	var r authd.ABResponse
 
 	for _, b := range s.brokerManager.AvailableBrokers() {
@@ -43,11 +42,16 @@ func (s Service) AvailableBrokers(ctx context.Context, req *authd.ABRequest) (*a
 		})
 	}
 
-	if req.GetUserName() != "" {
-		b := s.brokerManager.BrokerForUser(req.GetUserName())
-		if b != nil {
-			r.PreviousBroker = &b.ID
-		}
+	return &r, nil
+}
+
+// GetPreviousBroker returns the previous broker set for a given user, if any.
+func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (*authd.GPBResponse, error) {
+	var r authd.GPBResponse
+
+	b := s.brokerManager.BrokerForUser(req.GetUsername())
+	if b != nil {
+		r.PreviousBroker = &b.ID
 	}
 
 	return &r, nil
@@ -121,7 +125,7 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMReque
 	var authModes []*authd.GAMResponse_AuthenticationMode
 	for _, a := range authenticationModes {
 		authModes = append(authModes, &authd.GAMResponse_AuthenticationMode{
-			Name:  a["name"],
+			Id:    a["id"],
 			Label: a["label"],
 		})
 	}
@@ -136,12 +140,12 @@ func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMReq
 	defer decorate.OnError(&err, "can't select authentication mode")
 
 	sessionID := req.GetSessionId()
-	authenticationModeName := req.GetAuthenticationModeName()
+	authenticationModeID := req.GetAuthenticationModeId()
 
 	if sessionID == "" {
 		return nil, errors.New("no session ID provided")
 	}
-	if authenticationModeName == "" {
+	if authenticationModeID == "" {
 		return nil, errors.New("no authentication mode provided")
 	}
 
@@ -150,7 +154,7 @@ func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMReq
 		return nil, err
 	}
 
-	uiLayoutInfo, err := broker.SelectAuthenticationMode(ctx, sessionID, authenticationModeName)
+	uiLayoutInfo, err := broker.SelectAuthenticationMode(ctx, sessionID, authenticationModeID)
 	if err != nil {
 		return nil, err
 	}
@@ -174,14 +178,14 @@ func (s Service) IsAuthorized(ctx context.Context, req *authd.IARequest) (resp *
 		return nil, err
 	}
 
-	access, userInfo, err := broker.IsAuthorized(ctx, sessionID, req.GetAuthenticationData())
+	access, data, err := broker.IsAuthorized(ctx, sessionID, req.GetAuthenticationData())
 	if err != nil {
 		return nil, err
 	}
 
 	return &authd.IAResponse{
-		Access:   access,
-		UserInfo: userInfo,
+		Access: access,
+		Data:   data,
 	}, nil
 }
 

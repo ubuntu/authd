@@ -24,7 +24,7 @@ type brokerer interface {
 	NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error)
 	GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error)
 	SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error)
-	IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error)
+	IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, data string, err error)
 	EndSession(ctx context.Context, sessionID string) (err error)
 	CancelIsAuthorized(ctx context.Context, sessionID string)
 }
@@ -94,7 +94,7 @@ func (b Broker) GetAuthenticationModes(ctx context.Context, sessionID string, su
 	}
 
 	for _, a := range authenticationModes {
-		for _, key := range []string{"name", "label"} {
+		for _, key := range []string{"id", "label"} {
 			if _, exists := a[key]; !exists {
 				return nil, fmt.Errorf("invalid authentication mode, missing %q key: %v", key, a)
 			}
@@ -116,13 +116,13 @@ func (b Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authent
 }
 
 // IsAuthorized calls the broker corresponding method, stripping broker ID prefix from sessionID.
-func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access string, userInfo string, err error) {
+func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access string, data string, err error) {
 	sessionID = b.parseSessionID(sessionID)
 
 	// monitor ctx in goroutine to call cancel
 	done := make(chan struct{})
 	go func() {
-		access, userInfo, err = b.brokerer.IsAuthorized(ctx, sessionID, authenticationData)
+		access, data, err = b.brokerer.IsAuthorized(ctx, sessionID, authenticationData)
 		close(done)
 	}()
 
@@ -142,14 +142,14 @@ func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData 
 	}
 
 	// Validate json
-	if userInfo == "" {
-		userInfo = "{}"
+	if data == "" {
+		data = "{}"
 	}
-	if !json.Valid([]byte(userInfo)) {
-		return "", "", fmt.Errorf("invalid user information (not json formatted): %v", userInfo)
+	if !json.Valid([]byte(data)) {
+		return "", "", fmt.Errorf("invalid user information (not json formatted): %v", data)
 	}
 
-	return access, userInfo, nil
+	return access, data, nil
 }
 
 // EndSession calls the broker corresponding method, stripping broker ID prefix from sessionID.

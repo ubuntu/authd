@@ -25,7 +25,7 @@ func (b localBroker) SelectAuthenticationMode(ctx context.Context, sessionID, au
 }
 
 //nolint:unused // We still need localBroker to implement the brokerer interface, even though this method should never be called on it.
-func (b localBroker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error) {
+func (b localBroker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, data string, err error) {
 	return "", "", errors.New("IsAuthorized should never be called on local broker")
 }
 

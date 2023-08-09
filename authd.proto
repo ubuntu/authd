@@ -3,7 +3,8 @@ syntax = "proto3";
 option go_package = "github.com/ubuntu/authd";
 
 service PAM {
-  rpc AvailableBrokers(ABRequest) returns (ABResponse);
+  rpc AvailableBrokers(Empty) returns (ABResponse);
+  rpc GetPreviousBroker(GPBRequest) returns (GPBResponse);
 
   rpc SelectBroker(SBRequest) returns (SBResponse);
   rpc GetAuthenticationModes(GAMRequest) returns (GAMResponse);
@@ -19,22 +20,25 @@ service NSS {
 }
 
 
-message ABRequest {
-  optional string user_name = 1;
+message Empty {
+}
+
+message GPBRequest {
+  string username = 1;
+}
+
+message GPBResponse {
+  optional string previous_broker = 1;
 }
 
 message ABResponse {
   repeated BrokerInfo brokers_infos = 1;
-  optional string previous_broker = 2;
 
   message BrokerInfo {
     string id = 1;
     string name = 2;
     optional string brand_icon = 3;
   }
-}
-
-message Empty {
 }
 
 message StringResponse {
@@ -77,14 +81,14 @@ message GAMResponse {
   repeated AuthenticationMode authentication_modes = 1;
 
   message AuthenticationMode {
-    string name = 1;
+    string id = 1;
     string label = 2;
   }
 }
 
 message SAMRequest {
   string session_id = 1;
-  string authentication_mode_name = 2;
+  string authentication_mode_id = 2;
 }
 
 message SAMResponse {
@@ -98,7 +102,7 @@ message IARequest {
 
 message IAResponse {
   string access = 1;
-  string user_info = 2;
+  string data = 2;
 }
 
 message SDBFURequest {
@@ -108,5 +112,4 @@ message SDBFURequest {
 
 message ESRequest {
   string session_id = 1;
-  string username = 2;
 }

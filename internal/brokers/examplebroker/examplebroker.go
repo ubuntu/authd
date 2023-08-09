@@ -227,24 +227,24 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	}
 	b.userLastSelectedModeMu.Unlock()
 
-	var allNames []string
+	var allModeIDs []string
 	for n := range allModes {
 		if n == "password" || n == lastSelection {
 			continue
 		}
-		allNames = append(allNames, n)
+		allModeIDs = append(allModeIDs, n)
 	}
-	sort.Strings(allNames)
+	sort.Strings(allModeIDs)
 	if lastSelection != "" && lastSelection != "password" {
-		allNames = append([]string{lastSelection, "password"}, allNames...)
+		allModeIDs = append([]string{lastSelection, "password"}, allModeIDs...)
 	} else {
-		allNames = append([]string{"password"}, allNames...)
+		allModeIDs = append([]string{"password"}, allModeIDs...)
 	}
 
-	for _, name := range allNames {
-		authMode := allModes[name]
+	for _, id := range allModeIDs {
+		authMode := allModes[id]
 		authenticationModes = append(authenticationModes, map[string]string{
-			"name":  name,
+			"id":    id,
 			"label": authMode["selection_label"],
 		})
 	}
@@ -308,7 +308,7 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 }
 
 // IsAuthorized evaluates the provided authenticationData and returns the authorisation level of the user.
-func (b *Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, infoUser string, err error) {
+func (b *Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, data string, err error) {
 	sessionInfo, err := b.sessionInfo(sessionID)
 	if err != nil {
 		return "", "", err
@@ -338,18 +338,18 @@ func (b *Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData
 		b.isAuthorizedCallsMu.Unlock()
 	}()
 
-	access, infoUser, err = b.handleIsAuthorized(b.isAuthorizedCalls[sessionID].ctx, sessionInfo, authData)
+	access, data, err = b.handleIsAuthorized(b.isAuthorizedCalls[sessionID].ctx, sessionInfo, authData)
 
 	// Store last successful authentication mode for this user in the broker.
 	b.userLastSelectedModeMu.Lock()
 	b.userLastSelectedMode[sessionInfo.username] = sessionInfo.selectedMode
 	b.userLastSelectedModeMu.Unlock()
 
-	return access, infoUser, err
+	return access, data, err
 }
 
 //nolint:unparam // This is an static example implementation, so we don't return an error other than nil.
-func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (access, infoUser string, err error) {
+func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (access, data string, err error) {
 	// Note that the "wait" authentication can be cancelled and switch to another mode with a challenge.
 	// Take into account the cancellation.
 	switch sessionInfo.selectedMode {
@@ -437,12 +437,12 @@ func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo
 		}
 	}
 
-	infoUser, exists := users[sessionInfo.username]
+	data, exists := users[sessionInfo.username]
 	if !exists {
 		return responses.AuthDenied, "", nil
 	}
 
-	return responses.AuthAllowed, infoUser, nil
+	return responses.AuthAllowed, data, nil
 }
 
 // EndSession ends the requested session and triggers the necessary clean up steps, if any.

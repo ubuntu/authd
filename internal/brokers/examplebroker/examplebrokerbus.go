@@ -92,12 +92,12 @@ func (b *Bus) SelectAuthenticationMode(sessionID, authenticationModeName string)
 }
 
 // IsAuthorized is the method through which the broker and the daemon will communicate once dbusInterface.IsAuthorized is called.
-func (b *Bus) IsAuthorized(sessionID, authenticationData string) (access, infoUser string, dbusErr *dbus.Error) {
-	access, infoUser, err := b.broker.IsAuthorized(context.Background(), sessionID, authenticationData)
+func (b *Bus) IsAuthorized(sessionID, authenticationData string) (access, data string, dbusErr *dbus.Error) {
+	access, data, err := b.broker.IsAuthorized(context.Background(), sessionID, authenticationData)
 	if err != nil {
 		return "", "", dbus.MakeFailedError(err)
 	}
-	return access, infoUser, nil
+	return access, data, nil
 }
 
 // EndSession is the method through which the broker and the daemon will communicate once dbusInterface.EndSession is called.
