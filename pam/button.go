@@ -31,6 +31,7 @@ var (
 			MarginTop(1)
 
 	activeButtonStyle = buttonStyle.Copy().
+				Foreground(lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#000000"}).
 				Background(lipgloss.AdaptiveColor{Light: "#000000", Dark: "#FFFFFF"}).
 				Underline(true)
 )

@@ -111,7 +111,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
-			return m, sendEvent(pamAbort{msg: "cancelled"})
+			return m, sendEvent(pamAbort{msg: "cancel requested"})
 		case "esc":
 			if m.brokerSelectionModel.WillCaptureEscape() || m.authModeSelectionModel.WillCaptureEscape() {
 				break
