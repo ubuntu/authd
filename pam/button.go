@@ -32,8 +32,7 @@ var (
 
 	activeButtonStyle = buttonStyle.Copy().
 				Foreground(lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#000000"}).
-				Background(lipgloss.AdaptiveColor{Light: "#000000", Dark: "#FFFFFF"}).
-				Underline(true)
+				Background(lipgloss.AdaptiveColor{Light: "#000000", Dark: "#FFFFFF"})
 )
 
 // View renders a text view of the button.
