@@ -189,6 +189,14 @@ func (m *authorizationModel) Compose(sessionID string, layout *authd.UILayout) t
 			form.setEntryValue(oldEntryValue)
 		}
 		m.currentModel = form
+
+	case "qrcode":
+		qrcodeModel, err := newQRCodeModel(layout.GetContent(), layout.GetLabel(), layout.GetButton(), layout.GetWait() == "true")
+		if err != nil {
+			return sendEvent(pamSystemError{msg: err.Error()})
+		}
+		m.currentModel = qrcodeModel
+
 	default:
 		return sendEvent(pamSystemError{msg: fmt.Sprintf("unknown layout type: %q", layout.Type)})
 	}
