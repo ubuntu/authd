@@ -34,11 +34,11 @@ type Broker struct {
 	ID            string
 	Name          string
 	BrandIconPath string
-	brokerer
+	brokerer      brokerer
 }
 
-// NewBroker creates a new broker object based on the provided name and config file.
-func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b Broker, err error) {
+// newBroker creates a new broker object based on the provided name and config file.
+func newBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b Broker, err error) {
 	defer decorate.OnError(&err, "can't create broker %q", name)
 
 	h := fnv.New32a()
@@ -70,8 +70,8 @@ func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 	}, nil
 }
 
-// NewSession calls the broker corresponding method, expanding sessionID with the broker ID prefix.
-func (b Broker) NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error) {
+// newSession calls the broker corresponding method, expanding sessionID with the broker ID prefix.
+func (b Broker) newSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error) {
 	sessionID, encryptionKey, err = b.brokerer.NewSession(ctx, username, lang)
 	if err != nil {
 		return "", "", err
@@ -132,7 +132,7 @@ func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData 
 			return "", "", err
 		}
 	case <-ctx.Done():
-		b.CancelIsAuthorized(ctx, sessionID)
+		b.cancelIsAuthorized(ctx, sessionID)
 		<-done
 	}
 
@@ -152,17 +152,17 @@ func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData 
 	return access, data, nil
 }
 
-// EndSession calls the broker corresponding method, stripping broker ID prefix from sessionID.
-func (b Broker) EndSession(ctx context.Context, sessionID string) (err error) {
+// endSession calls the broker corresponding method, stripping broker ID prefix from sessionID.
+func (b Broker) endSession(ctx context.Context, sessionID string) (err error) {
 	sessionID = b.parseSessionID(sessionID)
 	return b.brokerer.EndSession(ctx, sessionID)
 }
 
-// CancelIsAuthorized calls the broker corresponding method.
+// cancelIsAuthorized calls the broker corresponding method.
 // If the session does not have a pending IsAuthorized call, this is a no-op.
 //
 // Even though this is a public method, it should only be interacted with through IsAuthorized and ctx cancellation.
-func (b Broker) CancelIsAuthorized(ctx context.Context, sessionID string) {
+func (b Broker) cancelIsAuthorized(ctx context.Context, sessionID string) {
 	b.brokerer.CancelIsAuthorized(ctx, sessionID)
 }
 
