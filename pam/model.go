@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -47,7 +48,7 @@ type model struct {
 	authModeSelectionModel authModeSelectionModel
 	authorizationModel     authorizationModel
 
-	exitMsg ExitMsger
+	exitMsg fmt.Stringer
 }
 
 /* global events */

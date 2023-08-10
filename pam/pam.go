@@ -89,24 +89,24 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	case pamSuccess:
 		return C.PAM_SUCCESS
 	case pamIgnore:
-		if exitMsg.ExitMsg() != "" {
-			log.Debugf(context.TODO(), "Ignoring authd authentication: %v", exitMsg)
+		if exitMsg.String() != "" {
+			log.Debugf(context.TODO(), "Ignoring authd authentication: %s", exitMsg)
 		}
 		logErrMsg = ""
 		errCode = C.PAM_IGNORE
 	case pamAbort:
-		if exitMsg.ExitMsg() != "" {
-			logErrMsg = fmt.Sprintf("cancelled authentication: %v", exitMsg)
+		if exitMsg.String() != "" {
+			logErrMsg = fmt.Sprintf("cancelled authentication: %s", exitMsg)
 		}
 		errCode = C.PAM_ABORT
 	case pamAuthError:
-		if exitMsg.ExitMsg() != "" {
-			logErrMsg = fmt.Sprintf("authentication: %v", exitMsg)
+		if exitMsg.String() != "" {
+			logErrMsg = fmt.Sprintf("authentication: %s", exitMsg)
 		}
 		errCode = C.PAM_AUTH_ERR
 	case pamSystemError:
-		if exitMsg.ExitMsg() != "" {
-			logErrMsg = fmt.Sprintf("system: %v", exitMsg)
+		if exitMsg.String() != "" {
+			logErrMsg = fmt.Sprintf("system: %s", exitMsg)
 		}
 		errCode = C.PAM_SYSTEM_ERR
 	}
