@@ -208,9 +208,10 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 			allModes["qrcodewithtypo"] = map[string]string{
 				"selection_label": "Use a QR code",
 				"ui": mapToJSON(map[string]string{
-					"type":  "qrcode",
-					"label": "Enter the following code after flashing the address: ",
-					"wait":  "true",
+					"type":   "qrcode",
+					"label":  "Enter the following code after flashing the address: ",
+					"wait":   "true",
+					"button": "regenerate QR code",
 				}),
 			}
 
