@@ -89,14 +89,14 @@ func NewManager(ctx context.Context, configuredBrokers []string, args ...Option)
 	var brokersOrder []string
 
 	// First broker is always the local one.
-	b, err := NewBroker(ctx, localBrokerName, "", nil)
+	b, err := newBroker(ctx, localBrokerName, "", nil)
 	brokersOrder = append(brokersOrder, b.ID)
 	brokers[b.ID] = &b
 
 	// Load brokers configuration
 	for _, n := range configuredBrokers {
 		configFile := filepath.Join(brokersConfPath, n)
-		b, err := NewBroker(ctx, n, configFile, bus)
+		b, err := newBroker(ctx, n, configFile, bus)
 		if err != nil {
 			log.Errorf(ctx, "Skipping broker %q is not correctly configured: %v", n, err)
 			continue
@@ -107,7 +107,7 @@ func NewManager(ctx context.Context, configuredBrokers []string, args ...Option)
 
 	// Add example brokers
 	for _, n := range []string{"broker foo", "broker bar"} {
-		b, err := NewBroker(ctx, n, "", nil)
+		b, err := newBroker(ctx, n, "", nil)
 		if err != nil {
 			log.Errorf(ctx, "Skipping broker %q is not correctly configured: %v", n, err)
 			continue
@@ -133,21 +133,17 @@ func (m *Manager) AvailableBrokers() (r []*Broker) {
 	return r
 }
 
-// GetBroker returns the broker matching this brokerID.
-func (m *Manager) GetBroker(brokerID string) (broker *Broker, err error) {
-	broker, exists := m.brokers[brokerID]
-	if !exists {
-		return nil, fmt.Errorf("no broker found matching %q", brokerID)
+// SetDefaultBrokerForUser memorizes which broker was used for which user.
+func (m *Manager) SetDefaultBrokerForUser(brokerID, username string) error {
+	broker, err := m.brokerFromID(brokerID)
+	if err != nil {
+		return fmt.Errorf("invalid broker: %v", err)
 	}
 
-	return broker, nil
-}
-
-// SetDefaultBrokerForUser memorizes which broker was used for which user.
-func (m *Manager) SetDefaultBrokerForUser(username string, broker *Broker) {
 	m.usersToBrokerMu.Lock()
 	defer m.usersToBrokerMu.Unlock()
 	m.usersToBroker[username] = broker
+	return nil
 }
 
 // BrokerForUser returns any previously selected broker for a given user, if any.
@@ -157,40 +153,51 @@ func (m *Manager) BrokerForUser(username string) (broker *Broker) {
 	return m.usersToBroker[username]
 }
 
-// SetBrokerForSessionID set a broker as currently use for a given transaction with this sessionID.
-func (m *Manager) SetBrokerForSessionID(sessionID string, broker *Broker) {
-	m.transactionsToBrokerMu.Lock()
-	defer m.transactionsToBrokerMu.Unlock()
-	m.transactionsToBroker[sessionID] = broker
-}
-
-// BrokerForSessionID returns broker currently in use for a given transaction sessionID.
-func (m *Manager) BrokerForSessionID(sessionID string) (broker *Broker, err error) {
+// BrokerFromSessionID returns broker currently in use for a given transaction sessionID.
+func (m *Manager) BrokerFromSessionID(id string) (broker *Broker, err error) {
 	m.transactionsToBrokerMu.RLock()
 	defer m.transactionsToBrokerMu.RUnlock()
 
 	// no session ID means local broker
-	if sessionID == "" {
-		return m.GetBroker(localBrokerName)
+	if id == "" {
+		return m.brokerFromID(localBrokerName)
 	}
 
-	broker, exists := m.transactionsToBroker[sessionID]
+	broker, exists := m.transactionsToBroker[id]
 	if !exists {
-		return nil, fmt.Errorf("no broker found for session %q", sessionID)
+		return nil, fmt.Errorf("no broker found for session %q", id)
 	}
 
 	return broker, nil
 }
 
+// NewSession create a new session for the broker and store the sesssionID on the manager.
+func (m *Manager) NewSession(brokerID, username, lang string) (sessionID string, encryptionKey string, err error) {
+	broker, err := m.brokerFromID(brokerID)
+	if err != nil {
+		return "", "", fmt.Errorf("invalid broker: %v", err)
+	}
+
+	sessionID, encryptionKey, err = broker.newSession(context.Background(), username, lang)
+	if err != nil {
+		return "", "", err
+	}
+
+	m.transactionsToBrokerMu.Lock()
+	defer m.transactionsToBrokerMu.Unlock()
+	m.transactionsToBroker[sessionID] = broker
+	return sessionID, encryptionKey, nil
+}
+
 // EndSession signals the end of the session to the broker associated with the sessionID and then removes the
 // session -> broker mapping.
-func (m *Manager) EndSession(ctx context.Context, sessionID string) error {
-	b, err := m.BrokerForSessionID(sessionID)
+func (m *Manager) EndSession(sessionID string) error {
+	b, err := m.BrokerFromSessionID(sessionID)
 	if err != nil {
 		return err
 	}
 
-	if err = b.EndSession(ctx, sessionID); err != nil {
+	if err = b.endSession(context.Background(), sessionID); err != nil {
 		return err
 	}
 
@@ -198,4 +205,14 @@ func (m *Manager) EndSession(ctx context.Context, sessionID string) error {
 	delete(m.transactionsToBroker, sessionID)
 	m.transactionsToBrokerMu.Unlock()
 	return nil
+}
+
+// brokerFromID returns the broker matching this brokerID.
+func (m *Manager) brokerFromID(id string) (broker *Broker, err error) {
+	broker, exists := m.brokers[id]
+	if !exists {
+		return nil, fmt.Errorf("no broker found matching %q", id)
+	}
+
+	return broker, nil
 }
