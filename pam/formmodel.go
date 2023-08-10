@@ -100,14 +100,9 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if i != m.focusIndex {
 			continue
 		}
-		var newModel tea.Model
-		newModel, cmd = fm.Update(msg)
-		// it should be a authorizationComponent, otherwise it’s a programming error.
-		c, ok := newModel.(authorizationComponent)
-		if !ok {
-			panic(fmt.Sprintf("expected authorizationComponent, got %T", c))
-		}
-		m.focusableModels[i] = c
+		var model tea.Model
+		model, cmd = fm.Update(msg)
+		m.focusableModels[i] = convertTo[authorizationComponent](model)
 	}
 
 	return m, cmd

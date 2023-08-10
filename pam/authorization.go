@@ -142,11 +142,7 @@ func (m *authorizationModel) Update(msg tea.Msg) (authorizationModel, tea.Cmd) {
 	var model tea.Model
 	if m.currentModel != nil {
 		model, cmd = m.currentModel.Update(msg)
-		c, ok := model.(authorizationComponent)
-		if !ok {
-			panic(fmt.Sprintf("expected authorizationComponent, got %T", c))
-		}
-		m.currentModel = c
+		m.currentModel = convertTo[authorizationComponent](model)
 	}
 	return *m, cmd
 }

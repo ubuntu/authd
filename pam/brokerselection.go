@@ -92,7 +92,7 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 		}
 		// Select correct line to ensure model is synchronised
 		for i, b := range m.Items() {
-			b := listItemsToBrokerItem(b)
+			b := convertTo[brokerItem](b)
 			if b.id != broker.Id {
 				continue
 			}
@@ -117,7 +117,7 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 			if item == nil {
 				return m, nil
 			}
-			broker := listItemsToBrokerItem(item)
+			broker := convertTo[brokerItem](item)
 			cmd := selectBroker(broker.id)
 			return m, cmd
 		case "1", "2", "3", "4", "5", "6", "7", "8", "9":
@@ -128,7 +128,7 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 				return m, nil
 			}
 			item := items[choice-1]
-			broker := listItemsToBrokerItem(item)
+			broker := convertTo[brokerItem](item)
 			cmd := selectBroker(broker.id)
 			return m, cmd
 		}
@@ -259,14 +259,4 @@ func brokerFromID(brokerID string, brokers []*authd.ABResponse_BrokerInfo) *auth
 		return b
 	}
 	return nil
-}
-
-// listItemsToBrokerItem panics if item is not an brokerItem (programming error).
-// TODO: transform to generic?
-func listItemsToBrokerItem(item list.Item) brokerItem {
-	r, ok := item.(brokerItem)
-	if !ok {
-		panic(fmt.Sprintf("expected brokerItem, got %T", r))
-	}
-	return r
 }
