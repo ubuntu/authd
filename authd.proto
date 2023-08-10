@@ -106,7 +106,7 @@ message IAResponse {
 }
 
 message SDBFURequest {
-  string session_id = 1;
+  string broker_id = 1;
   string username = 2;
 }
 
