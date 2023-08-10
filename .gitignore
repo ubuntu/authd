@@ -5,6 +5,7 @@
 *.so
 authd
 pam/pam_authd.h
+pam/pam
 
 # Test binary, built with `go test -c`
 *.test
