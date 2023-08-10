@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/rand"
 	"sort"
 	"strings"
 	"sync"
@@ -155,6 +156,7 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 					allModes["totp_with_button"] = map[string]string{
 						"selection_label": "Authentication code",
 						"phone":           "+33…",
+						"wantedCode":      "temporary pass",
 						"ui": mapToJSON(map[string]string{
 							"type":   "form",
 							"label":  "Enter your one time credential",
@@ -166,6 +168,7 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 					allModes["totp"] = map[string]string{
 						"selection_label": "Authentication code",
 						"phone":           "+33…",
+						"wantedCode":      "temporary pass",
 						"ui": mapToJSON(map[string]string{
 							"type":  "form",
 							"label": "Enter your one time credential",
@@ -283,13 +286,21 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 	switch authenticationModeName {
 	case "totp_with_button", "totp":
 		// send sms to sessionInfo.allModes[authenticationModeName]["phone"]
+		// add a 0 to simulate new code generation.
+		authenticationMode["wantedCode"] = authenticationMode["wantedCode"] + "0"
+		sessionInfo.allModes[authenticationModeName] = authenticationMode
+		b.currentSessionsMu.Lock()
+		b.currentSessions[sessionID] = sessionInfo
+		b.currentSessionsMu.Unlock()
 	case "phoneack1", "phoneack2":
 		// send request to sessionInfo.allModes[authenticationModeName]["phone"]
 	case "fidodevice1":
 		// start transaction with fideo device
 	case "qrcodewithtypo":
 		// generate the url and finish the prompt on the fly.
-		uiLayoutInfo["content"] = "https://ubuntu.com"
+		i := rand.Intn(3)
+		contents := []string{"https://ubuntu.com", "https://ubuntu-fr.org", "https://canonical.com"}
+		uiLayoutInfo["content"] = contents[i]
 		uiLayoutInfo["label"] = uiLayoutInfo["label"] + "1337"
 	}
 
@@ -365,7 +376,8 @@ func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo
 		}
 
 	case "totp_with_button", "totp":
-		if authData["challenge"] != "temporary pass" {
+		wantedCode := sessionInfo.allModes[sessionInfo.selectedMode]["wantedCode"]
+		if authData["challenge"] != wantedCode {
 			return responses.AuthDenied, "", nil
 		}
 
