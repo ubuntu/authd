@@ -75,23 +75,16 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 		lang = "C"
 	}
 
-	broker, err := s.brokerManager.GetBroker(brokerID)
-	if err != nil {
-		return nil, fmt.Errorf("invalid broker: %v", err)
-	}
-
-	sessionID, encryptionKey, err := broker.NewSession(ctx, username, lang)
+	// Create a session and Memorize selected broker for it.
+	sessionID, encryptionKey, err := s.brokerManager.NewSession(brokerID, username, lang)
 	if err != nil {
 		return nil, err
 	}
 
-	// Memorizes selected broker for this session.
-	s.brokerManager.SetBrokerForSessionID(sessionID, broker)
-
 	return &authd.SBResponse{
 		SessionId:     sessionID,
 		EncryptionKey: encryptionKey,
-	}, nil
+	}, err
 }
 
 // GetAuthenticationModes fetches a list of authentication modes supported by the broker depending on the session information.
@@ -103,7 +96,7 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMReque
 		return nil, errors.New("no session ID provided")
 	}
 
-	broker, err := s.brokerManager.BrokerForSessionID(sessionID)
+	broker, err := s.brokerManager.BrokerFromSessionID(sessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +142,7 @@ func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMReq
 		return nil, errors.New("no authentication mode provided")
 	}
 
-	broker, err := s.brokerManager.BrokerForSessionID(sessionID)
+	broker, err := s.brokerManager.BrokerFromSessionID(sessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +166,7 @@ func (s Service) IsAuthorized(ctx context.Context, req *authd.IARequest) (resp *
 		return nil, errors.New("no session ID provided")
 	}
 
-	broker, err := s.brokerManager.BrokerForSessionID(sessionID)
+	broker, err := s.brokerManager.BrokerFromSessionID(sessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -191,23 +184,15 @@ func (s Service) IsAuthorized(ctx context.Context, req *authd.IARequest) (resp *
 
 // SetDefaultBrokerForUser sets the default broker for the given user.
 func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURequest) (empty *authd.Empty, err error) {
-	decorate.OnError(&err, "can't set default broker for session id %q", req.GetSessionId())
+	decorate.OnError(&err, "can't set default broker %q for user %q", req.GetBrokerId(), req.GetUsername())
 
 	if req.GetUsername() == "" {
 		return nil, errors.New("no user name given")
 	}
 
-	b, err := s.brokerManager.BrokerForSessionID(req.GetSessionId())
-	if err != nil {
-		return nil, err
-	}
-	if b == nil {
-		return nil, errors.New("no broker found")
-	}
+	err = s.brokerManager.SetDefaultBrokerForUser(req.GetBrokerId(), req.GetUsername())
 
-	s.brokerManager.SetDefaultBrokerForUser(req.GetUsername(), b)
-
-	return &authd.Empty{}, nil
+	return &authd.Empty{}, err
 }
 
 // EndSession asks the broker associated with the sessionID to end the session.
@@ -219,7 +204,7 @@ func (s Service) EndSession(ctx context.Context, req *authd.ESRequest) (empty *a
 		return nil, errors.New("no session id given")
 	}
 
-	return &authd.Empty{}, s.brokerManager.EndSession(ctx, sessionID)
+	return &authd.Empty{}, s.brokerManager.EndSession(sessionID)
 }
 
 func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err error) {
