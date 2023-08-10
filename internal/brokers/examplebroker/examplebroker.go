@@ -298,6 +298,7 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 		// start transaction with fideo device
 	case "qrcodewithtypo":
 		// generate the url and finish the prompt on the fly.
+		//nolint:gosec // this is some example code not shipped in production
 		i := rand.Intn(3)
 		contents := []string{"https://ubuntu.com", "https://ubuntu-fr.org", "https://canonical.com"}
 		uiLayoutInfo["content"] = contents[i]
