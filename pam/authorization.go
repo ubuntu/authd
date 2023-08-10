@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/responses"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -24,7 +25,7 @@ func sendIsAuthorized(ctx context.Context, client authd.PAMClient, sessionID, co
 		if err != nil {
 			if st := status.Convert(err); st.Code() == codes.Canceled {
 				return isAuthorizedResultReceived{
-					access: "cancelled",
+					access: responses.AuthCancelled,
 				}
 			}
 			return pamIgnore{
@@ -110,24 +111,24 @@ func (m *authorizationModel) Update(msg tea.Msg) (authorizationModel, tea.Cmd) {
 	case isAuthorizedResultReceived:
 		log.Infof(context.TODO(), "isAuthorizedResultReceived: %v", msg.access)
 		switch msg.access {
-		case "allowed":
+		case responses.AuthAllowed:
 			return *m, sendEvent(pamSuccess{})
 
-		case "retry":
+		case responses.AuthRetry:
 			m.errorMsg = dataToMsg(msg.data)
 			return *m, sendEvent(startAuthorization{})
 
-		case "denied":
+		case responses.AuthDenied:
 			errMsg := "Access denied"
 			if err := dataToMsg(msg.data); err != "" {
 				errMsg = err
 			}
 			return *m, sendEvent(pamAuthError{msg: errMsg})
 
-		case "next":
+		case responses.AuthNext:
 			return *m, sendEvent(GetAuthenticationModesRequested{})
 
-		case "cancelled":
+		case responses.AuthCancelled:
 			// nothing to do
 			return *m, nil
 		}
