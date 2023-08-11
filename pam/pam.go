@@ -95,6 +95,8 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 		brokerIDUsedToAuthenticate = exitMsg.brokerID
 		return C.PAM_SUCCESS
 	case pamIgnore:
+		// localBrokerID is only set on pamIgnore if the user has chosen local broker.
+		brokerIDUsedToAuthenticate = exitMsg.localBrokerID
 		if exitMsg.String() != "" {
 			log.Debugf(context.TODO(), "Ignoring authd authentication: %s", exitMsg)
 		}
