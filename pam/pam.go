@@ -27,6 +27,11 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+var (
+	// brokerIDUsedToAuthenticate global variable is for the second stage authentication to select the default broker for the current user.
+	brokerIDUsedToAuthenticate string
+)
+
 //go:generate sh -c "go build -ldflags='-extldflags -Wl,-soname,pam_authd.so' -buildmode=c-shared -o pam_authd.so"
 
 /*
@@ -85,8 +90,9 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	logErrMsg := "unknown"
 	var errCode C.int = C.PAM_SYSTEM_ERR
 
-	switch exitMsg := appState.exitMsg; exitMsg.(type) {
+	switch exitMsg := appState.exitMsg.(type) {
 	case pamSuccess:
+		brokerIDUsedToAuthenticate = exitMsg.brokerID
 		return C.PAM_SUCCESS
 	case pamIgnore:
 		if exitMsg.String() != "" {
