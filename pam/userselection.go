@@ -40,8 +40,7 @@ func newUserSelectionModel(pamh pamHandle) userSelectionModel {
 
 // Init initializes userSelectionModel, by getting it from PAM if prefilled.
 func (m *userSelectionModel) Init() tea.Cmd {
-	pamUser := "user1" // TODO: remove once on pam
-	//pamUser := getPAMUser(m.pamh)
+	pamUser := getPAMUser(m.pamh)
 	if pamUser != "" {
 		return sendUserSelected(pamUser)
 	}
