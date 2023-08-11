@@ -57,6 +57,7 @@ func startBrokerSession(client authd.PAMClient, brokerID, username string) tea.C
 		}
 
 		return SessionStarted{
+			brokerID:      brokerID,
 			sessionID:     sessionID,
 			encryptionKey: encryptionKey,
 		}

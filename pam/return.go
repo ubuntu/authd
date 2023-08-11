@@ -4,6 +4,7 @@ package main
 
 // pamSuccess signals PAM module to return PAM_SUCCESS and Quit tea.Model.
 type pamSuccess struct {
+	brokerID string
 }
 
 // String returns the string of pamSuccess.
