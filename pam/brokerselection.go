@@ -169,10 +169,6 @@ func (m *brokerSelectionModel) AutoSelectForUser(username string) tea.Cmd {
 			return nil
 		}
 		brokerID := r.GetPreviousBroker()
-		// TODO: REMOVE, for testing
-		if username == "user1" {
-			brokerID = "494968244"
-		}
 		if brokerID == "" {
 			return nil
 		}
