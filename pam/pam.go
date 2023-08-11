@@ -46,19 +46,6 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 
 	// Attach logger and info handler.
 	// TODO
-	log.SetLevel(log.DebugLevel)
-	f, err := os.OpenFile("/tmp/logdebug", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	logrus.SetOutput(f)
-
-	// Check if we are in an interactive terminal to see if we can do something
-	/*if !term.IsTerminal(int(os.Stdin.Fd())) {
-		log.Info(context.TODO(), "Not in an interactive terminal and not an authd compatible application. Exiting")
-		return C.PAM_IGNORE
-	}*/
 
 	interactiveTerminal := term.IsTerminal(int(os.Stdin.Fd()))
 
@@ -189,6 +176,20 @@ func pam_sm_setcred(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.in
 	return C.PAM_IGNORE
 }
 
+// Simulating pam on the CLI for manual testing
 func main() {
-	fmt.Println("RETURN: ", pam_sm_authenticate(nil, 0, 0, nil))
+	log.SetLevel(log.DebugLevel)
+	f, err := os.OpenFile("/tmp/logdebug", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	logrus.SetOutput(f)
+
+	authResult := pam_sm_authenticate(nil, 0, 0, nil)
+	fmt.Println("Auth return:", authResult)
+
+	// Simulate setting auth broker as default.
+	accMgmtResult := pam_sm_acct_mgmt(nil, 0, 0, nil)
+	fmt.Println("Acct mgmt return:", accMgmtResult)
 }
