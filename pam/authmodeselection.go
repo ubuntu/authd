@@ -72,13 +72,24 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 		m.availableAuthModes = msg.authModes
 
 		var allAuthModes []list.Item
+		var firstAuthModeID string
 		for _, a := range m.availableAuthModes {
+			if firstAuthModeID == "" {
+				firstAuthModeID = a.Id
+			}
 			allAuthModes = append(allAuthModes, authModeItem{
 				id:    a.Id,
 				label: a.Label,
 			})
 		}
-		return m, m.SetItems(allAuthModes)
+
+		cmds := []tea.Cmd{m.SetItems(allAuthModes)}
+		// Autoselect first auth mode if any.
+		if firstAuthModeID != "" {
+			cmds = append(cmds, selectAuthMode(firstAuthModeID))
+		}
+
+		return m, tea.Sequence(cmds...)
 
 	case authModeSelected:
 		// Ensure auth mode id is valid
@@ -86,7 +97,7 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 			log.Infof(context.TODO(), "authentication mode %q is not part of currently available authentication mode", msg.id)
 			return m, nil
 		}
-		m.currentAuthModeSelectedID = msg.id // TODO: remove by getting current item on the list?
+		m.currentAuthModeSelectedID = msg.id
 
 		// Select correct line to ensure model is synchronised
 		for i, a := range m.Items() {
