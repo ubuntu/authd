@@ -126,30 +126,37 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	return errCode
 }
 
+// pam_sm_acct_mgmt sets any used brokerID as default for the user.
+//
 //export pam_sm_acct_mgmt
 func pam_sm_acct_mgmt(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
-	/*client, closeConn, err := newClient(argc, argv)
+	// Only set the brokerID as default if we stored one after authentication.
+	if brokerIDUsedToAuthenticate == "" {
+		return C.PAM_IGNORE
+	}
+
+	// Get current user for broker
+	user := getPAMUser(pamh)
+	if user == "" {
+		log.Infof(context.TODO(), "can't get user from PAM")
+		return C.PAM_IGNORE
+	}
+
+	client, closeConn, err := newClient(argc, argv)
 	if err != nil {
 		log.Debugf(context.TODO(), "%s", err)
 		return C.PAM_IGNORE
 	}
 	defer closeConn()
 
-	// Get current user for broker.
-	user, err := getUser(pamh, "")
-	if err != nil {
-		log.Infof(context.TODO(), "Can't get user: %v", err)
-		return C.PAM_IGNORE
-	}
-
 	req := authd.SDBFURequest{
-		SessionId: sessionID,
-		Username:  user,
+		BrokerId: brokerIDUsedToAuthenticate,
+		Username: user,
 	}
 	if _, err := client.SetDefaultBrokerForUser(context.TODO(), &req); err != nil {
-		log.Infof(context.TODO(), "Can't set default broker for %q on session %q: %v", user, sessionID, err)
+		log.Infof(context.TODO(), "Can't set default broker  (%q) for %q: %v", brokerIDUsedToAuthenticate, user, err)
 		return C.PAM_IGNORE
-	}*/
+	}
 
 	return C.PAM_SUCCESS
 }
