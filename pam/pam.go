@@ -27,6 +27,11 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+var (
+	// brokerIDUsedToAuthenticate global variable is for the second stage authentication to select the default broker for the current user.
+	brokerIDUsedToAuthenticate string
+)
+
 //go:generate sh -c "go build -ldflags='-extldflags -Wl,-soname,pam_authd.so' -buildmode=c-shared -o pam_authd.so"
 
 /*
@@ -41,19 +46,6 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 
 	// Attach logger and info handler.
 	// TODO
-	log.SetLevel(log.DebugLevel)
-	f, err := os.OpenFile("/tmp/logdebug", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	logrus.SetOutput(f)
-
-	// Check if we are in an interactive terminal to see if we can do something
-	/*if !term.IsTerminal(int(os.Stdin.Fd())) {
-		log.Info(context.TODO(), "Not in an interactive terminal and not an authd compatible application. Exiting")
-		return C.PAM_IGNORE
-	}*/
 
 	interactiveTerminal := term.IsTerminal(int(os.Stdin.Fd()))
 
@@ -85,10 +77,13 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	logErrMsg := "unknown"
 	var errCode C.int = C.PAM_SYSTEM_ERR
 
-	switch exitMsg := appState.exitMsg; exitMsg.(type) {
+	switch exitMsg := appState.exitMsg.(type) {
 	case pamSuccess:
+		brokerIDUsedToAuthenticate = exitMsg.brokerID
 		return C.PAM_SUCCESS
 	case pamIgnore:
+		// localBrokerID is only set on pamIgnore if the user has chosen local broker.
+		brokerIDUsedToAuthenticate = exitMsg.localBrokerID
 		if exitMsg.String() != "" {
 			log.Debugf(context.TODO(), "Ignoring authd authentication: %s", exitMsg)
 		}
@@ -118,30 +113,37 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	return errCode
 }
 
+// pam_sm_acct_mgmt sets any used brokerID as default for the user.
+//
 //export pam_sm_acct_mgmt
 func pam_sm_acct_mgmt(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
-	/*client, closeConn, err := newClient(argc, argv)
+	// Only set the brokerID as default if we stored one after authentication.
+	if brokerIDUsedToAuthenticate == "" {
+		return C.PAM_IGNORE
+	}
+
+	// Get current user for broker
+	user := getPAMUser(pamh)
+	if user == "" {
+		log.Infof(context.TODO(), "can't get user from PAM")
+		return C.PAM_IGNORE
+	}
+
+	client, closeConn, err := newClient(argc, argv)
 	if err != nil {
 		log.Debugf(context.TODO(), "%s", err)
 		return C.PAM_IGNORE
 	}
 	defer closeConn()
 
-	// Get current user for broker.
-	user, err := getUser(pamh, "")
-	if err != nil {
-		log.Infof(context.TODO(), "Can't get user: %v", err)
-		return C.PAM_IGNORE
-	}
-
 	req := authd.SDBFURequest{
-		SessionId: sessionID,
-		Username:  user,
+		BrokerId: brokerIDUsedToAuthenticate,
+		Username: user,
 	}
 	if _, err := client.SetDefaultBrokerForUser(context.TODO(), &req); err != nil {
-		log.Infof(context.TODO(), "Can't set default broker for %q on session %q: %v", user, sessionID, err)
+		log.Infof(context.TODO(), "Can't set default broker  (%q) for %q: %v", brokerIDUsedToAuthenticate, user, err)
 		return C.PAM_IGNORE
-	}*/
+	}
 
 	return C.PAM_SUCCESS
 }
@@ -174,6 +176,20 @@ func pam_sm_setcred(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.in
 	return C.PAM_IGNORE
 }
 
+// Simulating pam on the CLI for manual testing
 func main() {
-	fmt.Println("RETURN: ", pam_sm_authenticate(nil, 0, 0, nil))
+	log.SetLevel(log.DebugLevel)
+	f, err := os.OpenFile("/tmp/logdebug", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
+	if err != nil {
+		panic(err)
+	}
+	defer f.Close()
+	logrus.SetOutput(f)
+
+	authResult := pam_sm_authenticate(nil, 0, 0, nil)
+	fmt.Println("Auth return:", authResult)
+
+	// Simulate setting auth broker as default.
+	accMgmtResult := pam_sm_acct_mgmt(nil, 0, 0, nil)
+	fmt.Println("Acct mgmt return:", accMgmtResult)
 }

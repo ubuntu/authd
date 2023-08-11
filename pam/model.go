@@ -28,6 +28,7 @@ const (
 
 // sessionInfo contains the global broker session information.
 type sessionInfo struct {
+	brokerID      string
 	sessionID     string
 	encryptionKey string
 }
@@ -63,6 +64,7 @@ type BrokerSelected struct {
 
 // SessionStarted signals that we started a session with a given broker.
 type SessionStarted struct {
+	brokerID      string
 	sessionID     string
 	encryptionKey string
 }
@@ -170,6 +172,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case SessionStarted:
 		m.currentSession = &sessionInfo{
+			brokerID:      msg.brokerID,
 			sessionID:     msg.sessionID,
 			encryptionKey: msg.encryptionKey,
 		}
@@ -195,7 +198,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Info(context.TODO(), "UILayoutReceived")
 
 		return m, tea.Sequence(
-			m.authorizationModel.Compose(m.currentSession.sessionID, msg.layout),
+			m.authorizationModel.Compose(m.currentSession.brokerID, m.currentSession.sessionID, msg.layout),
 			m.changeStage(stageChallenge))
 
 	case SessionEnded:

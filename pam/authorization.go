@@ -74,6 +74,7 @@ type authorizationModel struct {
 
 	currentModel       authorizationComponent
 	currentSessionID   string
+	currentBrokerID    string
 	cancelIsAuthorized func()
 
 	errorMsg string
@@ -112,7 +113,7 @@ func (m *authorizationModel) Update(msg tea.Msg) (authorizationModel, tea.Cmd) {
 		log.Infof(context.TODO(), "isAuthorizedResultReceived: %v", msg.access)
 		switch msg.access {
 		case responses.AuthAllowed:
-			return *m, sendEvent(pamSuccess{})
+			return *m, sendEvent(pamSuccess{brokerID: m.currentBrokerID})
 
 		case responses.AuthRetry:
 			m.errorMsg = dataToMsg(msg.data)
@@ -174,7 +175,8 @@ func (m *authorizationModel) Blur() {
 }
 
 // Compose creates and attaches the sub layout models based on UILayout.
-func (m *authorizationModel) Compose(sessionID string, layout *authd.UILayout) tea.Cmd {
+func (m *authorizationModel) Compose(brokerID, sessionID string, layout *authd.UILayout) tea.Cmd {
+	m.currentBrokerID = brokerID
 	m.currentSessionID = sessionID
 	m.cancelIsAuthorized = func() {}
 
@@ -222,6 +224,7 @@ func (m *authorizationModel) Reset() {
 	m.cancelIsAuthorized = func() {}
 	m.currentModel = nil
 	m.currentSessionID = ""
+	m.currentBrokerID = ""
 }
 
 // dataToMsg returns the data message from a given JSON message.

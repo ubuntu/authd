@@ -22,7 +22,7 @@ func sendEvent(msg tea.Msg) tea.Cmd {
 func startBrokerSession(client authd.PAMClient, brokerID, username string) tea.Cmd {
 	return func() tea.Msg {
 		if brokerID == "local" {
-			return pamIgnore{}
+			return pamIgnore{localBrokerID: brokerID}
 		}
 
 		// Start a transaction for this user with the broker.
@@ -57,6 +57,7 @@ func startBrokerSession(client authd.PAMClient, brokerID, username string) tea.C
 		}
 
 		return SessionStarted{
+			brokerID:      brokerID,
 			sessionID:     sessionID,
 			encryptionKey: encryptionKey,
 		}

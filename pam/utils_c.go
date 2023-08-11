@@ -50,8 +50,14 @@ func sliceFromArgv(argc C.int, argv **C.char) []string {
 	return r
 }
 
+// mockPamUser mocks the PAM user item in absence of pamh for manual testing.
+var mockPamUser = "user1" // TODO: remove assignement once ok with debugging
+
 // getPAMUser returns the user from PAM.
 func getPAMUser(pamh *C.pam_handle_t) string {
+	if pamh == nil {
+		return mockPamUser
+	}
 	cUsername := C.get_user(pamh)
 	if cUsername == nil {
 		return ""
@@ -62,6 +68,10 @@ func getPAMUser(pamh *C.pam_handle_t) string {
 
 // setPAMUser set current user to PAM.
 func setPAMUser(pamh *C.pam_handle_t, username string) {
+	if pamh == nil {
+		mockPamUser = username
+		return
+	}
 	cUsername := C.CString(username)
 	defer C.free(unsafe.Pointer(cUsername))
 
