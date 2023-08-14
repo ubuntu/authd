@@ -105,15 +105,17 @@ func NewManager(ctx context.Context, configuredBrokers []string, args ...Option)
 		brokers[b.ID] = &b
 	}
 
-	// Add example brokers
-	for _, n := range []string{"broker foo", "broker bar"} {
-		b, err := newBroker(ctx, n, "", nil)
-		if err != nil {
-			log.Errorf(ctx, "Skipping broker %q is not correctly configured: %v", n, err)
-			continue
+	// Add example brokers if AUTHD_USE_EXAMPLES is set
+	if _, set := os.LookupEnv("AUTHD_USE_EXAMPLES"); set {
+		for _, n := range []string{"broker foo", "broker bar"} {
+			b, err := newBroker(ctx, n, "", nil)
+			if err != nil {
+				log.Errorf(ctx, "Skipping broker %q is not correctly configured: %v", n, err)
+				continue
+			}
+			brokersOrder = append(brokersOrder, b.ID)
+			brokers[b.ID] = &b
 		}
-		brokersOrder = append(brokersOrder, b.ID)
-		brokers[b.ID] = &b
 	}
 
 	return &Manager{
