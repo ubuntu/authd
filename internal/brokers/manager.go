@@ -32,7 +32,8 @@ type Manager struct {
 type Option func(*options)
 
 type options struct {
-	rootDir string
+	rootDir      string
+	brokerCfgDir string
 }
 
 // WithRootDir uses a dedicated path for our root.
@@ -50,7 +51,8 @@ func NewManager(ctx context.Context, configuredBrokers []string, args ...Option)
 
 	// Set default options.
 	opts := options{
-		rootDir: "/",
+		rootDir:      "/",
+		brokerCfgDir: "etc/authd/broker.d",
 	}
 	// Apply given args.
 	for _, f := range args {
@@ -64,7 +66,7 @@ func NewManager(ctx context.Context, configuredBrokers []string, args ...Option)
 		return m, err
 	}
 
-	brokersConfPath := filepath.Join(opts.rootDir, "etc/authd/broker.d")
+	brokersConfPath := filepath.Join(opts.rootDir, opts.brokerCfgDir)
 
 	// Select all brokers in ascii order if none is configured
 	if len(configuredBrokers) == 0 {
