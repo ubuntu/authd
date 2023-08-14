@@ -1,0 +1,6 @@
+button: ""
+content: Success QRCode
+entry: ""
+label: ""
+type: qrcode
+wait: "true"
