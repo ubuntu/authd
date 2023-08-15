@@ -3,7 +3,8 @@
 #
 # Binaries for programs and plugins
 *.so
-authd
+/authd
+cmd/authd/authd
 pam/pam_authd.h
 pam/pam
 

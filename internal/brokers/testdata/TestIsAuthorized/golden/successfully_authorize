@@ -1,0 +1,4 @@
+FIRST CALL:
+	access: allowed
+	data: {"mock_answer": "authentication allowed by default"}
+	err: <nil>

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"hash/fnv"
+	"os"
 	"strings"
 
 	"github.com/godbus/dbus/v5"
@@ -58,7 +59,8 @@ func newBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 		if err != nil {
 			return Broker{}, err
 		}
-	} else if name != localBrokerName {
+	} else if _, set := os.LookupEnv("AUTHD_USE_EXAMPLES"); set && name != localBrokerName {
+		// if the broker does not have a config file and the AUTHD_USE_EXAMPLES env var is set, use the example broker
 		broker, fullName, brandIcon = examplebroker.New(name)
 	}
 

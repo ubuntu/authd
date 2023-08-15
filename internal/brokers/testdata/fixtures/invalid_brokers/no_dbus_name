@@ -1,0 +1,6 @@
+name = Broker
+brand_icon = some_icon.png
+
+[dbus]
+object = /com/ubuntu/authd/Broker
+interface = com.ubuntu.authd.Broker
