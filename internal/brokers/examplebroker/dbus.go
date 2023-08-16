@@ -3,6 +3,8 @@ package examplebroker
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
@@ -12,6 +14,7 @@ import (
 const (
 	dbusObjectPath = "/com/ubuntu/auth/ExampleBroker"
 	dbusInterface  = "com.ubuntu.auth.ExampleBroker"
+	configDir      = "/etc/authd/broker.d/"
 )
 
 // Bus is the D-Bus object that will answer calls for the broker.
@@ -20,7 +23,7 @@ type Bus struct {
 }
 
 // StartBus starts the D-Bus service and exports it on the system bus.
-func StartBus() (err error) {
+func StartBus(ctx context.Context) (err error) {
 	defer decorate.OnError(&err, "could not start example broker bus")
 
 	conn, err := dbus.ConnectSystemBus()
@@ -33,7 +36,6 @@ func StartBus() (err error) {
 	obj := Bus{broker: b}
 	err = conn.Export(&obj, dbusObjectPath, dbusInterface)
 	if err != nil {
-		_ = conn.Close()
 		return err
 	}
 
@@ -47,21 +49,33 @@ func StartBus() (err error) {
 			},
 		},
 	}), dbusObjectPath, introspect.IntrospectData.Name); err != nil {
-		_ = conn.Close()
 		return err
 	}
 
 	reply, err := conn.RequestName(dbusInterface, dbus.NameFlagDoNotQueue)
 	if err != nil {
-		_ = conn.Close()
 		return err
 	}
 	if reply != dbus.RequestNameReplyPrimaryOwner {
-		_ = conn.Close()
 		return fmt.Errorf("D-Bus name already taken")
 	}
 
-	select {}
+	if err = os.WriteFile(filepath.Join(configDir, "examplebroker.conf"),
+		[]byte(`
+name = ExampleBroker
+brand_icon = /usr/share/backgrounds/warty-final-ubuntu.png
+
+[dbus]
+name = com.ubuntu.authd.ExampleBroker
+object = /com/ubuntu/authd/ExampleBroker
+interface = com.ubuntu.authd.ExampleBroker
+`),
+		0600); err != nil {
+		return err
+	}
+
+	<-ctx.Done()
+	return os.Remove(filepath.Join(configDir, "examplebroker.conf"))
 }
 
 // NewSession is the method through which the broker and the daemon will communicate once dbusInterface.NewSession is called.

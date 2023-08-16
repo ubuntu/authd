@@ -336,11 +336,12 @@ func (b *Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData
 	}
 
 	// Handles the context that will be assigned for the IsAuthorized handler
+	b.isAuthorizedCallsMu.Lock()
 	if _, exists := b.isAuthorizedCalls[sessionID]; exists {
+		b.isAuthorizedCallsMu.Unlock()
 		return "", "", fmt.Errorf("IsAuthorized already running for session %q", sessionID)
 	}
 	ctx, cancel := context.WithCancel(ctx)
-	b.isAuthorizedCallsMu.Lock()
 	b.isAuthorizedCalls[sessionID] = isAuthorizedCtx{ctx, cancel}
 	b.isAuthorizedCallsMu.Unlock()
 
