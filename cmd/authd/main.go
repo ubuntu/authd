@@ -22,7 +22,7 @@ import (
 
 func main() {
 	//i18n.InitI18nDomain(common.TEXTDOMAIN)
-	cleanup, err := testutils.StartSystemBusMock()
+	busCleanup, err := testutils.StartSystemBusMock()
 	if err != nil {
 		os.Exit(1)
 	}
@@ -30,13 +30,12 @@ func main() {
 
 	// Create the directory for the broker configuration files.
 	if err = os.MkdirAll("/etc/authd/broker.d", 0750); err != nil {
-		cleanup()
+		busCleanup()
 		os.Exit(1)
 	}
-	// Append the dir cleanup to the dbus cleanup function.
-	cleanup = func() {
+	cleanup := func() {
 		os.RemoveAll("/etc/authd/broker.d")
-		cleanup()
+		busCleanup()
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
