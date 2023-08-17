@@ -32,10 +32,16 @@ type brokerer interface {
 
 // Broker represents a broker object that can be used for authentication.
 type Broker struct {
-	ID            string
-	Name          string
-	BrandIconPath string
-	brokerer      brokerer
+	ID               string
+	Name             string
+	BrandIconPath    string
+	layoutValidators map[string]map[string]fieldValidator
+	brokerer         brokerer
+}
+
+type fieldValidator struct {
+	supportedValues []string
+	required        bool
 }
 
 // newBroker creates a new broker object based on the provided name and config file.
@@ -87,9 +93,10 @@ func (b Broker) newSession(ctx context.Context, username, lang string) (sessionI
 }
 
 // GetAuthenticationModes calls the broker corresponding method, stripping broker ID prefix from sessionID.
-func (b Broker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
+func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
 	sessionID = b.parseSessionID(sessionID)
 
+	b.layoutValidators = generateValidators(ctx, sessionID, supportedUILayouts)
 	authenticationModes, err = b.brokerer.GetAuthenticationModes(ctx, sessionID, supportedUILayouts)
 	if err != nil {
 		return nil, err
@@ -114,7 +121,7 @@ func (b Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authent
 		return nil, err
 	}
 
-	return validateUILayout(uiLayoutInfo)
+	return b.validateUILayout(uiLayoutInfo)
 }
 
 // IsAuthorized calls the broker corresponding method, stripping broker ID prefix from sessionID.
@@ -168,63 +175,78 @@ func (b Broker) cancelIsAuthorized(ctx context.Context, sessionID string) {
 	b.brokerer.CancelIsAuthorized(ctx, sessionID)
 }
 
-// validateUILayout validates the required fields and values for a given type.
-// It returns only the required and optional fields for a given type.
-func validateUILayout(layout map[string]string) (r map[string]string, err error) {
-	defer decorate.OnError(&err, "no valid UI layouts metadata")
+// generateValidators generates layout validators based on what is supported by the system.
+//
+// The layout validators are in the form:
+//
+//	{
+//	    "LAYOUT_TYPE": {
+//	        "FIELD_NAME": fieldValidator{
+//	            supportedValues: []string{"SUPPORTED_VALUE_1", "SUPPORTED_VALUE_2"},
+//	            required: true,
+//	        }
+//	    }
+//	}
+func generateValidators(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) map[string]map[string]fieldValidator {
+	validators := make(map[string]map[string]fieldValidator)
+	for _, layout := range supportedUILayouts {
+		if _, exists := layout["type"]; !exists {
+			log.Errorf(ctx, "layout %v provided with missing type for session %s, it will be ignored", layout, sessionID)
+			continue
+		}
+
+		layoutValidator := make(map[string]fieldValidator)
+		for key, value := range layout {
+			if key == "type" {
+				continue
+			}
+
+			required, supportedValues, _ := strings.Cut(value, ":")
+			validator := fieldValidator{
+				supportedValues: nil,
+				required:        (required == "required"),
+			}
+			if supportedValues != "" {
+				values := strings.Split(supportedValues, ",")
+				for _, value := range values {
+					validator.supportedValues = append(validator.supportedValues, strings.TrimSpace(value))
+				}
+			}
+			layoutValidator[key] = validator
+		}
+		validators[layout["type"]] = layoutValidator
+	}
+	return validators
+}
+
+// validateUILayout validates the layout fields and content according to the broker validators and returns the layout
+// containing all required fields and the optional fields that were set.
+//
+// If the layout is not valid (missing required fields or invalid values), an error is returned instead.
+func (b Broker) validateUILayout(layout map[string]string) (r map[string]string, err error) {
+	defer decorate.OnError(&err, "could not validate UI layout")
 
 	typ := layout["type"]
-	label := layout["label"]
-	entry := layout["entry"]
-	button := layout["button"]
-	wait := layout["wait"]
-	content := layout["content"]
-
-	r = make(map[string]string)
-	switch typ {
-	case "form":
-		if label == "" {
-			return nil, fmt.Errorf("'label' is required")
-		}
-		if !slices.Contains([]string{"chars", "digits", "chars_password", "digits_password", ""}, entry) {
-			return nil, fmt.Errorf("'entry' does not match allowed values for this type: %v", entry)
-		}
-		if !slices.Contains([]string{"true", "false", ""}, wait) {
-			return nil, fmt.Errorf("'wait' does not match allowed values for this type: %v", wait)
-		}
-		r["label"] = label
-		r["entry"] = entry
-		r["button"] = button
-		r["wait"] = wait
-	case "qrcode":
-		if content == "" {
-			return nil, fmt.Errorf("'content' is required")
-		}
-		if !slices.Contains([]string{"true", "false"}, wait) {
-			return nil, fmt.Errorf("'wait' is required and does not match allowed values for this type: %v", wait)
-		}
-		r["content"] = content
-		r["wait"] = wait
-		r["label"] = label
-		r["entry"] = entry
-		r["button"] = button
-	case "newpassword":
-		if label == "" {
-			return nil, fmt.Errorf("'label' is required")
-		}
-		if !slices.Contains([]string{"chars", "digits", "chars_password", "digits_password"}, entry) {
-			return nil, fmt.Errorf("'entry' does not match allowed values for this type: %v", entry)
-		}
-		r["label"] = label
-		r["entry"] = entry
-		r["button"] = button
-	case "webview":
-	default:
-		return nil, fmt.Errorf("invalid layout option: type is required, got: %v", layout)
+	layoutValidator, exists := b.layoutValidators[typ]
+	if !exists {
+		return nil, fmt.Errorf("no validator for UI layout type %q", typ)
 	}
 
-	r["type"] = typ
+	r = map[string]string{"type": typ}
+	for key, validator := range layoutValidator {
+		value, exists := layout[key]
+		if !exists || value == "" {
+			if validator.required {
+				return nil, fmt.Errorf("required field %q was not provided", key)
+			}
+			continue
+		}
 
+		if validator.supportedValues != nil && !slices.Contains(validator.supportedValues, value) {
+			return nil, fmt.Errorf("field %q has invalid value %q, expected one of %s", key, value, strings.Join(validator.supportedValues, ","))
+		}
+		r[key] = value
+	}
 	return r, nil
 }
 
