@@ -2,6 +2,7 @@ package brokers_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -13,6 +14,28 @@ import (
 	"github.com/ubuntu/authd/internal/responses"
 	"github.com/ubuntu/authd/internal/testutils"
 )
+
+var supportedLayouts = map[string]map[string]string{
+	"required-value": {
+		"type":  "required-value",
+		"value": "required:value_type,other_value_type",
+	},
+	"optional-value": {
+		"type":  "optional-value",
+		"value": "optional:value_type,other_value_type",
+	},
+	"missing-type": {
+		"value": "required:missing_type",
+	},
+	"misconfigured-layout": {
+		"type":  "misconfigured-layout",
+		"value": "required-but-misformatted",
+	},
+	"layout-with-spaces": {
+		"type":  "layout-with-spaces",
+		"value": "required: value_type, other_value_type",
+	},
+}
 
 func TestNewBroker(t *testing.T) {
 	t.Parallel()
@@ -71,11 +94,16 @@ func TestGetAuthenticationModes(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		sessionID string
+		sessionID          string
+		supportedUILayouts []string
 
 		wantErr bool
 	}{
-		"Successfully get authentication modes":                        {sessionID: "success"},
+		"Get authentication modes and generate validators":                                         {sessionID: "success", supportedUILayouts: []string{"required-value", "optional-value"}},
+		"Get authentication modes and generate validator ignoring whitespaces in supported values": {sessionID: "success", supportedUILayouts: []string{"layout-with-spaces"}},
+		"Get authentication modes and ignores invalid UI layout":                                   {sessionID: "success", supportedUILayouts: []string{"required-value", "missing-type"}},
+		"Get multiple authentication modes and generate validators":                                {sessionID: "GAM_multiple_modes", supportedUILayouts: []string{"required-value", "optional-value"}},
+
 		"Does not error out when no authentication modes are returned": {sessionID: "GAM_empty"},
 
 		// broker errors
@@ -89,15 +117,28 @@ func TestGetAuthenticationModes(t *testing.T) {
 
 			b, _ := newBrokerForTests(t)
 
-			gotModes, err := b.GetAuthenticationModes(context.Background(), tc.sessionID, nil)
+			if tc.supportedUILayouts == nil {
+				tc.supportedUILayouts = []string{"required-value"}
+			}
+
+			var supportedUILayouts []map[string]string
+			for _, layout := range tc.supportedUILayouts {
+				supportedUILayouts = append(supportedUILayouts, supportedLayouts[layout])
+			}
+
+			gotModes, err := b.GetAuthenticationModes(context.Background(), tc.sessionID, supportedUILayouts)
 			if tc.wantErr {
 				require.Error(t, err, "GetAuthenticationModes should return an error, but did not")
 				return
 			}
 			require.NoError(t, err, "GetAuthenticationModes should not return an error, but did")
 
-			wantModes := testutils.LoadWithUpdateFromGoldenYAML(t, gotModes)
-			require.Equal(t, wantModes, gotModes, "GetAuthenticationModes should return the expected modes, but did not")
+			modesStr, err := json.Marshal(gotModes)
+			require.NoError(t, err, "Post: error when marshaling result")
+
+			got := "MODES:\n" + string(modesStr) + "\n\nVALIDATORS:\n" + b.LayoutValidatorsString()
+			want := testutils.LoadWithUpdateFromGolden(t, got)
+			require.Equal(t, want, got, "GetAuthenticationModes should return the expected modes, but did not")
 		})
 	}
 }
@@ -106,35 +147,26 @@ func TestSelectAuthenticationMode(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		sessionID string
+		sessionID          string
+		supportedUILayouts []string
 
 		wantErr bool
 	}{
-		"Successfully select form authentication mode":        {sessionID: "SAM_form_success"},
-		"Successfully select qrcode authentication mode":      {sessionID: "SAM_qrcode_success"},
-		"Successfully select newpassword authentication mode": {sessionID: "SAM_newpassword_success"},
+		"Successfully select mode with required value":         {sessionID: "SAM_success_required_value"},
+		"Successfully select mode with optional value":         {sessionID: "SAM_success_optional_value", supportedUILayouts: []string{"optional-value"}},
+		"Successfully select mode with missing optional value": {sessionID: "SAM_missing_optional_value", supportedUILayouts: []string{"optional-value"}},
 
 		// broker errors
-		"Error when selecting authentication mode": {sessionID: "SAM_error", wantErr: true},
+		"Error when selecting invalid auth mode": {sessionID: "SAM_error", wantErr: true},
 
 		/* Layout errors */
-
-		// Layout type errors
-		"Error when broker returns no layout":           {sessionID: "SAM_no_layout", wantErr: true},
-		"Error when broker returns invalid layout type": {sessionID: "SAM_invalid_layout_type", wantErr: true},
-
-		// Type "form" errors
-		"Error when broker returns form with no label":      {sessionID: "SAM_form_no_label", wantErr: true},
-		"Error when broker returns form with invalid entry": {sessionID: "SAM_form_invalid_entry", wantErr: true},
-		"Error when broker returns form with invalid wait":  {sessionID: "SAM_form_invalid_wait", wantErr: true},
-
-		// Type "qrcode" errors
-		"Error when broker returns qrcode with no content":   {sessionID: "SAM_qrcode_no_content", wantErr: true},
-		"Error when broker returns qrcode with invalid wait": {sessionID: "SAM_qrcode_invalid_wait", wantErr: true},
-
-		// Type "newpassword" errors
-		"Error when broker returns newpassword with no label":      {sessionID: "SAM_newpassword_no_label", wantErr: true},
-		"Error when broker returns newpassword with invalid entry": {sessionID: "SAM_newpassword_invalid_entry", wantErr: true},
+		"Error when returns no layout":                          {sessionID: "SAM_no_layout", wantErr: true},
+		"Error when returns empty layout":                       {sessionID: "SAM_empty_layout", wantErr: true},
+		"Error when returns layout with no type":                {sessionID: "SAM_no_layout_type", wantErr: true},
+		"Error when returns layout with invalid type":           {sessionID: "SAM_invalid_layout_type", wantErr: true},
+		"Error when returns layout without required value":      {sessionID: "SAM_missing_required_value", wantErr: true},
+		"Error when returns layout with invalid required value": {sessionID: "SAM_invalid_required_value", wantErr: true},
+		"Error when returns layout with invalid optional value": {sessionID: "SAM_invalid_optional_value", wantErr: true},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -142,6 +174,17 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			t.Parallel()
 
 			b, _ := newBrokerForTests(t)
+
+			if tc.supportedUILayouts == nil {
+				tc.supportedUILayouts = []string{"required-value"}
+			}
+
+			var supportedUILayouts []map[string]string
+			for _, layout := range tc.supportedUILayouts {
+				supportedUILayouts = append(supportedUILayouts, supportedLayouts[layout])
+			}
+			// This is normally done in the broker's GetAuthenticationModes method, but we need to do it here to test the SelectAuthenticationMode method.
+			brokers.GenerateLayoutValidators(&b, tc.sessionID, supportedUILayouts)
 
 			gotUI, err := b.SelectAuthenticationMode(context.Background(), tc.sessionID, "mode1")
 			if tc.wantErr {
