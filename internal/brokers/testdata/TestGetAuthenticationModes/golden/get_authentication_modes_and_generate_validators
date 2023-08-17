@@ -1,0 +1,8 @@
+MODES:
+[{"id":"mode1","label":"Mode 1"}]
+
+VALIDATORS:
+	optional-value:
+		value: { required: false, supportedValues: [value_type other_value_type] }
+	required-value:
+		value: { required: true, supportedValues: [value_type other_value_type] }
