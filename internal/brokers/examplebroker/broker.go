@@ -19,11 +19,27 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+const maxAttempts int = 5
+
+type passwdReset int
+
+const (
+	noReset passwdReset = iota
+	canReset
+	mustReset
+)
+
 type sessionInfo struct {
-	username     string
-	selectedMode string
-	lang         string
-	allModes     map[string]map[string]string
+	username        string
+	selectedMode    string
+	lang            string
+	allModes        map[string]map[string]string
+	attemptsPerMode map[string]int
+
+	pwdChange passwdReset
+
+	neededMfa      int
+	currentMfaStep int
 }
 
 type isAuthorizedCtx struct {
@@ -41,36 +57,76 @@ type Broker struct {
 	isAuthorizedCallsMu    sync.Mutex
 }
 
+type exampleUser struct {
+	UID    string                       `json:"uid"`
+	Name   string                       `json:"name"`
+	Groups map[string]map[string]string `json:"groups"`
+}
+
+func (u exampleUser) String() string {
+	data, err := json.Marshal(u)
+	if err != nil {
+		panic(fmt.Sprintf("Invalid user data: %v", err))
+	}
+	return string(data)
+}
+
 var (
-	users = map[string]string{
-		"user1": `
-		{
-			"uid": "4245874",
-			"name": "My user",
-			"groups": {
+	exampleUsers = map[string]exampleUser{
+		"user1": {
+			UID:  "4245874",
+			Name: "My user",
+			Groups: map[string]map[string]string{
 				"group1": {
 					"name": "Group 1",
-					"gid": "3884"
+					"gid":  "3884",
 				},
 				"group2": {
 					"name": "Group 2",
-					"gid": "4884"
-				}
-			}
-		}
-	`,
-		"user2": `
-		{
-			"uid": "33333",
-			"name": "My secondary user",
-			"groups": {
+					"gid":  "4884",
+				},
+			},
+		},
+		"user2": {
+			UID:  "33333",
+			Name: "My secondary user",
+			Groups: map[string]map[string]string{
 				"group2": {
 					"name": "Group 2",
-					"gid": "4884"
-				}
-			}
-		}
-	`,
+					"gid":  "4884",
+				},
+			},
+		},
+		"user-mfa": {
+			UID:  "44444",
+			Name: "User that needs MFA",
+			Groups: map[string]map[string]string{
+				"group1": {
+					"name": "Group 1",
+					"gid":  "3884",
+				},
+			},
+		},
+		"user-needs-reset": {
+			UID:  "55555",
+			Name: "User that needs passwd reset",
+			Groups: map[string]map[string]string{
+				"group1": {
+					"name": "Group 1",
+					"gid":  "3884",
+				},
+			},
+		},
+		"user-can-reset": {
+			UID:  "66666",
+			Name: "User that can passwd reset",
+			Groups: map[string]map[string]string{
+				"group1": {
+					"name": "Group 1",
+					"gid":  "3884",
+				},
+			},
+		},
 	}
 )
 
@@ -452,12 +508,12 @@ func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo
 		}
 	}
 
-	data, exists := users[sessionInfo.username]
+	user, exists := exampleUsers[sessionInfo.username]
 	if !exists {
 		return responses.AuthDenied, "", nil
 	}
 
-	return responses.AuthAllowed, data, nil
+	return responses.AuthAllowed, user.String(), nil
 }
 
 // EndSession ends the requested session and triggers the necessary clean up steps, if any.
