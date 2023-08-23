@@ -345,9 +345,6 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 		// add a 0 to simulate new code generation.
 		authenticationMode["wantedCode"] = authenticationMode["wantedCode"] + "0"
 		sessionInfo.allModes[authenticationModeName] = authenticationMode
-		b.currentSessionsMu.Lock()
-		b.currentSessions[sessionID] = sessionInfo
-		b.currentSessionsMu.Unlock()
 	case "phoneack1", "phoneack2":
 		// send request to sessionInfo.allModes[authenticationModeName]["phone"]
 	case "fidodevice1":
@@ -364,14 +361,9 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 	// Store selected mode
 	sessionInfo.selectedMode = authenticationModeName
 
-	// Checks if the session was ended in the meantime, otherwise we would just accidentally create a new one.
-	if _, err = b.sessionInfo(sessionID); err != nil {
+	if err = b.updateSession(sessionID, sessionInfo); err != nil {
 		return nil, err
 	}
-
-	b.currentSessionsMu.Lock()
-	defer b.currentSessionsMu.Unlock()
-	b.currentSessions[sessionID] = sessionInfo
 
 	return uiLayoutInfo, nil
 }
@@ -414,6 +406,10 @@ func (b *Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData
 	b.userLastSelectedModeMu.Lock()
 	b.userLastSelectedMode[sessionInfo.username] = sessionInfo.selectedMode
 	b.userLastSelectedModeMu.Unlock()
+
+	if err = b.updateSession(sessionID, sessionInfo); err != nil {
+		return responses.AuthDenied, "", err
+	}
 
 	return access, data, err
 }
@@ -614,4 +610,16 @@ func (b *Broker) sessionInfo(sessionID string) (sessionInfo, error) {
 		return sessionInfo{}, fmt.Errorf("%s is not a current transaction", sessionID)
 	}
 	return session, nil
+}
+
+// updateSession checks if the session is still active and updates the session info.
+func (b *Broker) updateSession(sessionID string, info sessionInfo) error {
+	// Checks if the session was ended in the meantime, otherwise we would just accidentally recreate it.
+	if _, err := b.sessionInfo(sessionID); err != nil {
+		return err
+	}
+	b.currentSessionsMu.Lock()
+	defer b.currentSessionsMu.Unlock()
+	b.currentSessions[sessionID] = info
+	return nil
 }
