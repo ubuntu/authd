@@ -166,6 +166,49 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	}
 
 	//var candidatesAuthenticationModes []map[string]string
+	allModes := getSupportedModes(sessionInfo, supportedUILayouts)
+
+	b.userLastSelectedModeMu.Lock()
+	lastSelection := b.userLastSelectedMode[sessionInfo.username]
+	b.userLastSelectedModeMu.Unlock()
+	// Sort in preference order. We want by default password as first and potentially last selection too.
+	if _, exists := allModes[lastSelection]; !exists {
+		lastSelection = ""
+	}
+
+	var allModeIDs []string
+	for n := range allModes {
+		if n == "password" || n == lastSelection {
+			continue
+		}
+		allModeIDs = append(allModeIDs, n)
+	}
+	sort.Strings(allModeIDs)
+
+	if _, exists := allModes["password"]; exists {
+		allModeIDs = append([]string{"password"}, allModeIDs...)
+	}
+	if lastSelection != "" && lastSelection != "password" {
+		allModeIDs = append([]string{lastSelection}, allModeIDs...)
+	}
+
+	for _, id := range allModeIDs {
+		authMode := allModes[id]
+		authenticationModes = append(authenticationModes, map[string]string{
+			"id":    id,
+			"label": authMode["selection_label"],
+		})
+	}
+	sessionInfo.allModes = allModes
+
+	if err := b.updateSession(sessionID, sessionInfo); err != nil {
+		return nil, err
+	}
+
+	return authenticationModes, nil
+}
+
+func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]string) map[string]map[string]string {
 	allModes := make(map[string]map[string]string)
 	for _, layout := range supportedUILayouts {
 		switch layout["type"] {
@@ -276,16 +319,36 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 
 		case "webview":
 			// This broker does not support webview
+
+		case "newpassword":
+			if layout["entry"] == "" {
+				break
+			}
+			allModes["mandatoryreset"] = map[string]string{
+				"selection_label": "Password reset",
+				"ui": mapToJSON(map[string]string{
+					"type":  "newpassword",
+					"label": "Enter your new password",
+					"entry": "chars_password",
+				}),
+			}
+
+			if layout["skip-button"] != "" {
+				allModes["optionalreset"] = map[string]string{
+					"selection_label": "Password reset",
+					"ui": mapToJSON(map[string]string{
+						"type":        "newpassword",
+						"label":       "Enter your new password",
+						"entry":       "chars_password",
+						"skip-button": "Skip",
+					}),
+				}
+			}
 		}
 	}
 
-	// Sort in preference order. We want by default password as first and potentially last selection too.
-	b.userLastSelectedModeMu.Lock()
-	lastSelection := b.userLastSelectedMode[sessionInfo.username]
-	if _, exists := allModes[lastSelection]; !exists {
-		lastSelection = ""
-	}
-	b.userLastSelectedModeMu.Unlock()
+	return allModes
+}
 
 	var allModeIDs []string
 	for n := range allModes {
