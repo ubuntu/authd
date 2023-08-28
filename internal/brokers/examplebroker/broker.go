@@ -149,11 +149,25 @@ func New(name string) (b *Broker, fullName, brandIcon string) {
 // NewSession creates a new session for the specified user.
 func (b *Broker) NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error) {
 	sessionID = uuid.New().String()
-	b.currentSessionsMu.Lock()
-	b.currentSessions[sessionID] = sessionInfo{
-		username: username,
-		lang:     lang,
+	info := sessionInfo{
+		username:        username,
+		lang:            lang,
+		pwdChange:       noReset,
+		attemptsPerMode: make(map[string]int),
 	}
+	switch username {
+	case "user-mfa":
+		info.neededMfa = 3
+	case "user-needs-reset":
+		info.neededMfa = 1
+		info.pwdChange = mustReset
+	case "user-can-reset":
+		info.neededMfa = 1
+		info.pwdChange = canReset
+	}
+
+	b.currentSessionsMu.Lock()
+	b.currentSessions[sessionID] = info
 	b.currentSessionsMu.Unlock()
 	return sessionID, brokerEncryptionKey, nil
 }
@@ -167,6 +181,15 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 
 	//var candidatesAuthenticationModes []map[string]string
 	allModes := getSupportedModes(sessionInfo, supportedUILayouts)
+
+	// If the user needs mfa, we remove the last used mode from the list of available modes.
+	if sessionInfo.currentMfaStep > 0 && sessionInfo.currentMfaStep < sessionInfo.neededMfa {
+		allModes = getMfaModes(sessionInfo, sessionInfo.allModes)
+	}
+	// If the user needs or can reset the password, we only show those authentication modes.
+	if sessionInfo.currentMfaStep > 0 && sessionInfo.pwdChange != noReset {
+		allModes = getPasswdResetModes(sessionInfo, sessionInfo.allModes)
+	}
 
 	b.userLastSelectedModeMu.Lock()
 	lastSelection := b.userLastSelectedMode[sessionInfo.username]
@@ -325,7 +348,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				break
 			}
 			allModes["mandatoryreset"] = map[string]string{
-				"selection_label": "Password reset",
+				"selection_label": "Password reset (3 days until mandatory)",
 				"ui": mapToJSON(map[string]string{
 					"type":  "newpassword",
 					"label": "Enter your new password",
@@ -350,39 +373,31 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 	return allModes
 }
 
-	var allModeIDs []string
-	for n := range allModes {
-		if n == "password" || n == lastSelection {
-			continue
+func getMfaModes(info sessionInfo, supportedModes map[string]map[string]string) map[string]map[string]string {
+	mfaModes := make(map[string]map[string]string)
+	for _, mode := range []string{"phoneack1", "totp_with_button", "fidodevice1"} {
+		if _, exists := supportedModes[mode]; exists && info.selectedMode != mode {
+			mfaModes[mode] = supportedModes[mode]
 		}
-		allModeIDs = append(allModeIDs, n)
 	}
-	sort.Strings(allModeIDs)
-	if lastSelection != "" && lastSelection != "password" {
-		allModeIDs = append([]string{lastSelection, "password"}, allModeIDs...)
-	} else {
-		allModeIDs = append([]string{"password"}, allModeIDs...)
-	}
+	return mfaModes
+}
 
-	for _, id := range allModeIDs {
-		authMode := allModes[id]
-		authenticationModes = append(authenticationModes, map[string]string{
-			"id":    id,
-			"label": authMode["selection_label"],
-		})
-	}
-	sessionInfo.allModes = allModes
+func getPasswdResetModes(info sessionInfo, supportedModes map[string]map[string]string) map[string]map[string]string {
+	passwdResetModes := make(map[string]map[string]string)
 
-	// Checks if the session was ended in the meantime, otherwise we would just accidentally create a new one.
-	if _, err := b.sessionInfo(sessionID); err != nil {
-		return nil, err
+	var mode string
+	switch info.pwdChange {
+	case canReset:
+		mode = "optionalreset"
+	case mustReset:
+		mode = "mandatoryreset"
+	}
+	if authMode, exists := supportedModes[mode]; exists {
+		passwdResetModes[mode] = authMode
 	}
 
-	b.currentSessionsMu.Lock()
-	defer b.currentSessionsMu.Unlock()
-	b.currentSessions[sessionID] = sessionInfo
-
-	return authenticationModes, nil
+	return passwdResetModes
 }
 
 // SelectAuthenticationMode returns the UI layout information for the selected authentication mode.
@@ -464,6 +479,24 @@ func (b *Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData
 	}()
 
 	access, data, err = b.handleIsAuthorized(b.isAuthorizedCalls[sessionID].ctx, sessionInfo, authData)
+	if access == responses.AuthAllowed {
+		switch sessionInfo.username {
+		case "user-needs-reset":
+			fallthrough
+		case "user-can-reset":
+			fallthrough
+		case "user-mfa":
+			if sessionInfo.currentMfaStep < sessionInfo.neededMfa {
+				sessionInfo.currentMfaStep++
+				access = responses.AuthNext
+			}
+		}
+	} else if access == responses.AuthRetry {
+		sessionInfo.attemptsPerMode[sessionInfo.selectedMode]++
+		if sessionInfo.attemptsPerMode[sessionInfo.selectedMode] >= maxAttempts {
+			access = responses.AuthDenied
+		}
+	}
 
 	// Store last successful authentication mode for this user in the broker.
 	b.userLastSelectedModeMu.Lock()
@@ -484,18 +517,18 @@ func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo
 	switch sessionInfo.selectedMode {
 	case "password":
 		if authData["challenge"] != "goodpass" {
-			return responses.AuthDenied, "", nil
+			return responses.AuthRetry, "", nil
 		}
 
 	case "pincode":
 		if authData["challenge"] != "4242" {
-			return responses.AuthDenied, "", nil
+			return responses.AuthRetry, "", nil
 		}
 
 	case "totp_with_button", "totp":
 		wantedCode := sessionInfo.allModes[sessionInfo.selectedMode]["wantedCode"]
 		if authData["challenge"] != wantedCode {
-			return responses.AuthDenied, "", nil
+			return responses.AuthRetry, "", nil
 		}
 
 	case "phoneack1":
