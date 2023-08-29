@@ -1,6 +1,6 @@
 MODES:
-[]
+[{"id":"mode1","label":"Mode 1"}]
 
 VALIDATORS:
-	required-value:
+	layout-with-spaces:
 		value: { required: true, supportedValues: [value_type other_value_type] }

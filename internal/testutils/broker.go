@@ -119,94 +119,66 @@ func (b *BrokerBusMock) GetAuthenticationModes(sessionID string, supportedUILayo
 		return []map[string]string{
 			{"invalid": "invalid"},
 		}, nil
-
 	case "GAM_empty":
 		return nil, nil
-
 	case "GAM_error":
 		return nil, dbus.MakeFailedError(fmt.Errorf("Broker %q: GetAuthenticationModes errored out", b.name))
+	case "GAM_multiple_modes":
+		return []map[string]string{
+			{"id": "mode1", "label": "Mode 1"},
+			{"id": "mode2", "label": "Mode 2"},
+		}, nil
+	default:
+		return []map[string]string{
+			{"id": "mode1", "label": "Mode 1"},
+		}, nil
 	}
-
-	return []map[string]string{
-		{"id": "mode1", "label": "Mode 1"},
-	}, nil
 }
 
 // SelectAuthenticationMode returns default values to be used in tests or an error if requested.
 func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, dbusErr *dbus.Error) {
 	switch sessionID {
+	case "SAM_success_required_value":
+		return map[string]string{
+			"type":  "required-value",
+			"value": "value_type",
+		}, nil
+	case "SAM_success_optional_value":
+		return map[string]string{
+			"type":  "optional-value",
+			"value": "value_type",
+		}, nil
+	case "SAM_missing_optional_value":
+		return map[string]string{
+			"type": "optional-value",
+		}, nil
 	case "SAM_invalid_layout_type":
 		return map[string]string{
 			"invalid": "invalid",
 		}, nil
-	case "SAM_no_layout":
-		return nil, nil
+	case "SAM_missing_required_value":
+		return map[string]string{
+			"type": "required-value",
+		}, nil
+	case "SAM_invalid_required_value":
+		return map[string]string{
+			"type":  "required-value",
+			"value": "invalid value",
+		}, nil
+	case "SAM_invalid_optional_value":
+		return map[string]string{
+			"type":  "optional-value",
+			"value": "invalid value",
+		}, nil
 	case "SAM_error":
 		return nil, dbus.MakeFailedError(fmt.Errorf("Broker %q: SelectAuthenticationMode errored out", b.name))
-
-	case "SAM_form_no_label":
-		return map[string]string{
-			"type":  "form",
-			"label": "",
-			"entry": "chars_password",
-		}, nil
-	case "SAM_form_invalid_entry":
-		return map[string]string{
-			"type":  "form",
-			"label": "Invalid Entry",
-			"entry": "invalid",
-		}, nil
-	case "SAM_form_invalid_wait":
-		return map[string]string{
-			"type":  "form",
-			"label": "Invalid Wait",
-			"entry": "chars_password",
-			"wait":  "invalid",
-		}, nil
-	case "SAM_form_success":
-		return map[string]string{
-			"type":  "form",
-			"label": "Success form",
-			"entry": "chars_password",
-		}, nil
-	case "SAM_qrcode_no_content":
-		return map[string]string{
-			"type":    "qrcode",
-			"content": "",
-		}, nil
-	case "SAM_qrcode_invalid_wait":
-		return map[string]string{
-			"type":    "qrcode",
-			"content": "Invalid Wait",
-			"wait":    "invalid",
-		}, nil
-	case "SAM_qrcode_success":
-		return map[string]string{
-			"type":    "qrcode",
-			"content": "Success QRCode",
-			"wait":    "true",
-		}, nil
-	case "SAM_newpassword_no_label":
-		return map[string]string{
-			"type":  "newpassword",
-			"label": "",
-			"entry": "chars_password",
-		}, nil
-	case "SAM_newpassword_invalid_entry":
-		return map[string]string{
-			"type":  "newpassword",
-			"label": "Invalid Entry",
-			"entry": "invalid",
-		}, nil
-	case "SAM_newpassword_success":
-		return map[string]string{
-			"type":  "newpassword",
-			"label": "Success newpassword",
-			"entry": "chars_password",
-		}, nil
-	default:
+	case "SAM_no_layout":
+		return nil, nil
+	case "SAM_empty_layout":
 		return map[string]string{}, nil
 	}
+	// Should never get here
+	return map[string]string{}, nil
 }
 
 // IsAuthorized returns default values to be used in tests or an error if requested.
