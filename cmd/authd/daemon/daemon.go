@@ -106,6 +106,7 @@ func (a *App) serve(config daemonConfig) error {
 		close(a.ready)
 		return err
 	}
+	defer m.Stop()
 
 	var daemonopts []daemon.Option
 	if config.SystemDirs.SocketPath != "" {

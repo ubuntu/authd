@@ -12,9 +12,8 @@ import (
 )
 
 const (
-	dbusObjectPath = "/com/ubuntu/auth/ExampleBroker"
-	dbusInterface  = "com.ubuntu.auth.ExampleBroker"
-	configDir      = "/etc/authd/broker.d/"
+	dbusObjectPath = "/com/ubuntu/authd/ExampleBroker"
+	dbusInterface  = "com.ubuntu.authd.ExampleBroker"
 )
 
 // Bus is the D-Bus object that will answer calls for the broker.
@@ -23,7 +22,7 @@ type Bus struct {
 }
 
 // StartBus starts the D-Bus service and exports it on the system bus.
-func StartBus(ctx context.Context) (err error) {
+func StartBus(ctx context.Context, cfgPath string) (err error) {
 	defer decorate.OnError(&err, "could not start example broker bus")
 
 	conn, err := dbus.ConnectSystemBus()
@@ -60,22 +59,22 @@ func StartBus(ctx context.Context) (err error) {
 		return fmt.Errorf("D-Bus name already taken")
 	}
 
-	if err = os.WriteFile(filepath.Join(configDir, "examplebroker.conf"),
-		[]byte(`
+	if err = os.WriteFile(filepath.Join(cfgPath, "examplebroker.conf"),
+		[]byte(fmt.Sprintf(`
 name = ExampleBroker
 brand_icon = /usr/share/backgrounds/warty-final-ubuntu.png
 
 [dbus]
-name = com.ubuntu.authd.ExampleBroker
-object = /com/ubuntu/authd/ExampleBroker
-interface = com.ubuntu.authd.ExampleBroker
-`),
+name = %s
+object = %s
+interface = %s
+`, dbusInterface, dbusObjectPath, dbusInterface)),
 		0600); err != nil {
 		return err
 	}
 
 	<-ctx.Done()
-	return os.Remove(filepath.Join(configDir, "examplebroker.conf"))
+	return nil
 }
 
 // NewSession is the method through which the broker and the daemon will communicate once dbusInterface.NewSession is called.

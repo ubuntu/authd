@@ -3,17 +3,13 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
-	"time"
 
 	"github.com/ubuntu/authd/cmd/authd/daemon"
-	"github.com/ubuntu/authd/internal/brokers/examplebroker"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/testutils"
 )
 
 //FIXME go:generate go run ../generate_completion_documentation.go completion ../../generated
@@ -22,43 +18,8 @@ import (
 
 func main() {
 	//i18n.InitI18nDomain(common.TEXTDOMAIN)
-	busCleanup, err := testutils.StartSystemBusMock()
-	if err != nil {
-		os.Exit(1)
-	}
-	fmt.Printf("Mock system bus started on %s\n", os.Getenv("DBUS_SYSTEM_BUS_ADDRESS"))
-
-	// Create the directory for the broker configuration files.
-	if err = os.MkdirAll("/etc/authd/broker.d", 0750); err != nil {
-		busCleanup()
-		os.Exit(1)
-	}
-	cleanup := func() {
-		os.RemoveAll("/etc/authd/broker.d")
-		busCleanup()
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	done := make(chan struct{})
-	go func() {
-		if err = examplebroker.StartBus(ctx); err != nil {
-			log.Error(context.Background(), err)
-			cleanup()
-			os.Exit(1)
-		}
-		close(done)
-	}()
-	// Give some time for the broker to start
-	time.Sleep(time.Second)
-
-	exitCode := run(daemon.New())
-	// After the daemon has exited, we can stop the broker as well.
-	cancel()
-	<-done
-	// We use os.Exit, so we need to call cleanup manually since defered functions won't be executed.
-	cleanup()
-	os.Exit(exitCode)
+	a := daemon.New()
+	os.Exit(run(a))
 }
 
 type app interface {

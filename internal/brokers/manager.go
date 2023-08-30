@@ -26,6 +26,8 @@ type Manager struct {
 
 	transactionsToBroker   map[string]*Broker
 	transactionsToBrokerMu sync.RWMutex
+
+	cleanup func()
 }
 
 // Option is the function signature used to tweak the daemon creation.
@@ -59,14 +61,21 @@ func NewManager(ctx context.Context, configuredBrokers []string, args ...Option)
 		f(&opts)
 	}
 
+	brokersConfPath := filepath.Join(opts.rootDir, opts.brokerCfgDir)
+
+	brokersConfPathWithExample, cleanup, err := useExampleBrokers()
+	if err != nil {
+		return nil, err
+	} else if brokersConfPathWithExample != "" {
+		brokersConfPath = brokersConfPathWithExample
+	}
+
 	// Connect to the system bus
 	// Don't call dbus.SystemBus which caches globally system dbus (issues in tests)
 	bus, err := dbus.ConnectSystemBus()
 	if err != nil {
 		return m, err
 	}
-
-	brokersConfPath := filepath.Join(opts.rootDir, opts.brokerCfgDir)
 
 	// Select all brokers in ascii order if none is configured
 	if len(configuredBrokers) == 0 {
@@ -107,25 +116,14 @@ func NewManager(ctx context.Context, configuredBrokers []string, args ...Option)
 		brokers[b.ID] = &b
 	}
 
-	// Add example brokers if AUTHD_USE_EXAMPLES is set
-	if _, set := os.LookupEnv("AUTHD_USE_EXAMPLES"); set {
-		for _, n := range []string{"broker foo", "broker bar"} {
-			b, err := newBroker(ctx, n, "", nil)
-			if err != nil {
-				log.Errorf(ctx, "Skipping broker %q is not correctly configured: %v", n, err)
-				continue
-			}
-			brokersOrder = append(brokersOrder, b.ID)
-			brokers[b.ID] = &b
-		}
-	}
-
 	return &Manager{
 		brokers:      brokers,
 		brokersOrder: brokersOrder,
 
 		usersToBroker:        make(map[string]*Broker),
 		transactionsToBroker: make(map[string]*Broker),
+
+		cleanup: cleanup,
 	}, nil
 }
 

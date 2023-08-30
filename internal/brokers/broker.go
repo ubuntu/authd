@@ -6,11 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"hash/fnv"
-	"os"
 	"strings"
 
 	"github.com/godbus/dbus/v5"
-	"github.com/ubuntu/authd/internal/brokers/examplebroker"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/responses"
 	"github.com/ubuntu/decorate"
@@ -65,9 +63,6 @@ func newBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 		if err != nil {
 			return Broker{}, err
 		}
-	} else if _, set := os.LookupEnv("AUTHD_USE_EXAMPLES"); set && name != localBrokerName {
-		// if the broker does not have a config file and the AUTHD_USE_EXAMPLES env var is set, use the example broker
-		broker, fullName, brandIcon = examplebroker.New(name)
 	}
 
 	return Broker{
