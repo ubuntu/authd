@@ -19,11 +19,27 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+const maxAttempts int = 5
+
+type passwdReset int
+
+const (
+	noReset passwdReset = iota
+	canReset
+	mustReset
+)
+
 type sessionInfo struct {
-	username     string
-	selectedMode string
-	lang         string
-	allModes     map[string]map[string]string
+	username        string
+	selectedMode    string
+	lang            string
+	allModes        map[string]map[string]string
+	attemptsPerMode map[string]int
+
+	pwdChange passwdReset
+
+	neededMfa      int
+	currentMfaStep int
 }
 
 type isAuthorizedCtx struct {
@@ -41,36 +57,76 @@ type Broker struct {
 	isAuthorizedCallsMu    sync.Mutex
 }
 
+type exampleUser struct {
+	UID    string                       `json:"uid"`
+	Name   string                       `json:"name"`
+	Groups map[string]map[string]string `json:"groups"`
+}
+
+func (u exampleUser) String() string {
+	data, err := json.Marshal(u)
+	if err != nil {
+		panic(fmt.Sprintf("Invalid user data: %v", err))
+	}
+	return string(data)
+}
+
 var (
-	users = map[string]string{
-		"user1": `
-		{
-			"uid": "4245874",
-			"name": "My user",
-			"groups": {
+	exampleUsers = map[string]exampleUser{
+		"user1": {
+			UID:  "4245874",
+			Name: "My user",
+			Groups: map[string]map[string]string{
 				"group1": {
 					"name": "Group 1",
-					"gid": "3884"
+					"gid":  "3884",
 				},
 				"group2": {
 					"name": "Group 2",
-					"gid": "4884"
-				}
-			}
-		}
-	`,
-		"user2": `
-		{
-			"uid": "33333",
-			"name": "My secondary user",
-			"groups": {
+					"gid":  "4884",
+				},
+			},
+		},
+		"user2": {
+			UID:  "33333",
+			Name: "My secondary user",
+			Groups: map[string]map[string]string{
 				"group2": {
 					"name": "Group 2",
-					"gid": "4884"
-				}
-			}
-		}
-	`,
+					"gid":  "4884",
+				},
+			},
+		},
+		"user-mfa": {
+			UID:  "44444",
+			Name: "User that needs MFA",
+			Groups: map[string]map[string]string{
+				"group1": {
+					"name": "Group 1",
+					"gid":  "3884",
+				},
+			},
+		},
+		"user-needs-reset": {
+			UID:  "55555",
+			Name: "User that needs passwd reset",
+			Groups: map[string]map[string]string{
+				"group1": {
+					"name": "Group 1",
+					"gid":  "3884",
+				},
+			},
+		},
+		"user-can-reset": {
+			UID:  "66666",
+			Name: "User that can passwd reset",
+			Groups: map[string]map[string]string{
+				"group1": {
+					"name": "Group 1",
+					"gid":  "3884",
+				},
+			},
+		},
 	}
 )
 
@@ -93,11 +149,25 @@ func New(name string) (b *Broker, fullName, brandIcon string) {
 // NewSession creates a new session for the specified user.
 func (b *Broker) NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error) {
 	sessionID = uuid.New().String()
-	b.currentSessionsMu.Lock()
-	b.currentSessions[sessionID] = sessionInfo{
-		username: username,
-		lang:     lang,
+	info := sessionInfo{
+		username:        username,
+		lang:            lang,
+		pwdChange:       noReset,
+		attemptsPerMode: make(map[string]int),
 	}
+	switch username {
+	case "user-mfa":
+		info.neededMfa = 3
+	case "user-needs-reset":
+		info.neededMfa = 1
+		info.pwdChange = mustReset
+	case "user-can-reset":
+		info.neededMfa = 1
+		info.pwdChange = canReset
+	}
+
+	b.currentSessionsMu.Lock()
+	b.currentSessions[sessionID] = info
 	b.currentSessionsMu.Unlock()
 	return sessionID, brokerEncryptionKey, nil
 }
@@ -110,6 +180,58 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	}
 
 	//var candidatesAuthenticationModes []map[string]string
+	allModes := getSupportedModes(sessionInfo, supportedUILayouts)
+
+	// If the user needs mfa, we remove the last used mode from the list of available modes.
+	if sessionInfo.currentMfaStep > 0 && sessionInfo.currentMfaStep < sessionInfo.neededMfa {
+		allModes = getMfaModes(sessionInfo, sessionInfo.allModes)
+	}
+	// If the user needs or can reset the password, we only show those authentication modes.
+	if sessionInfo.currentMfaStep > 0 && sessionInfo.pwdChange != noReset {
+		allModes = getPasswdResetModes(sessionInfo, sessionInfo.allModes)
+	}
+
+	b.userLastSelectedModeMu.Lock()
+	lastSelection := b.userLastSelectedMode[sessionInfo.username]
+	b.userLastSelectedModeMu.Unlock()
+	// Sort in preference order. We want by default password as first and potentially last selection too.
+	if _, exists := allModes[lastSelection]; !exists {
+		lastSelection = ""
+	}
+
+	var allModeIDs []string
+	for n := range allModes {
+		if n == "password" || n == lastSelection {
+			continue
+		}
+		allModeIDs = append(allModeIDs, n)
+	}
+	sort.Strings(allModeIDs)
+
+	if _, exists := allModes["password"]; exists {
+		allModeIDs = append([]string{"password"}, allModeIDs...)
+	}
+	if lastSelection != "" && lastSelection != "password" {
+		allModeIDs = append([]string{lastSelection}, allModeIDs...)
+	}
+
+	for _, id := range allModeIDs {
+		authMode := allModes[id]
+		authenticationModes = append(authenticationModes, map[string]string{
+			"id":    id,
+			"label": authMode["selection_label"],
+		})
+	}
+	sessionInfo.allModes = allModes
+
+	if err := b.updateSession(sessionID, sessionInfo); err != nil {
+		return nil, err
+	}
+
+	return authenticationModes, nil
+}
+
+func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]string) map[string]map[string]string {
 	allModes := make(map[string]map[string]string)
 	for _, layout := range supportedUILayouts {
 		switch layout["type"] {
@@ -220,50 +342,62 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 
 		case "webview":
 			// This broker does not support webview
+
+		case "newpassword":
+			if layout["entry"] == "" {
+				break
+			}
+			allModes["mandatoryreset"] = map[string]string{
+				"selection_label": "Password reset (3 days until mandatory)",
+				"ui": mapToJSON(map[string]string{
+					"type":  "newpassword",
+					"label": "Enter your new password",
+					"entry": "chars_password",
+				}),
+			}
+
+			if layout["skip-button"] != "" {
+				allModes["optionalreset"] = map[string]string{
+					"selection_label": "Password reset",
+					"ui": mapToJSON(map[string]string{
+						"type":        "newpassword",
+						"label":       "Enter your new password",
+						"entry":       "chars_password",
+						"skip-button": "Skip",
+					}),
+				}
+			}
 		}
 	}
 
-	// Sort in preference order. We want by default password as first and potentially last selection too.
-	b.userLastSelectedModeMu.Lock()
-	lastSelection := b.userLastSelectedMode[sessionInfo.username]
-	if _, exists := allModes[lastSelection]; !exists {
-		lastSelection = ""
-	}
-	b.userLastSelectedModeMu.Unlock()
+	return allModes
+}
 
-	var allModeIDs []string
-	for n := range allModes {
-		if n == "password" || n == lastSelection {
-			continue
+func getMfaModes(info sessionInfo, supportedModes map[string]map[string]string) map[string]map[string]string {
+	mfaModes := make(map[string]map[string]string)
+	for _, mode := range []string{"phoneack1", "totp_with_button", "fidodevice1"} {
+		if _, exists := supportedModes[mode]; exists && info.selectedMode != mode {
+			mfaModes[mode] = supportedModes[mode]
 		}
-		allModeIDs = append(allModeIDs, n)
 	}
-	sort.Strings(allModeIDs)
-	if lastSelection != "" && lastSelection != "password" {
-		allModeIDs = append([]string{lastSelection, "password"}, allModeIDs...)
-	} else {
-		allModeIDs = append([]string{"password"}, allModeIDs...)
-	}
+	return mfaModes
+}
 
-	for _, id := range allModeIDs {
-		authMode := allModes[id]
-		authenticationModes = append(authenticationModes, map[string]string{
-			"id":    id,
-			"label": authMode["selection_label"],
-		})
-	}
-	sessionInfo.allModes = allModes
+func getPasswdResetModes(info sessionInfo, supportedModes map[string]map[string]string) map[string]map[string]string {
+	passwdResetModes := make(map[string]map[string]string)
 
-	// Checks if the session was ended in the meantime, otherwise we would just accidentally create a new one.
-	if _, err := b.sessionInfo(sessionID); err != nil {
-		return nil, err
+	var mode string
+	switch info.pwdChange {
+	case canReset:
+		mode = "optionalreset"
+	case mustReset:
+		mode = "mandatoryreset"
+	}
+	if authMode, exists := supportedModes[mode]; exists {
+		passwdResetModes[mode] = authMode
 	}
 
-	b.currentSessionsMu.Lock()
-	defer b.currentSessionsMu.Unlock()
-	b.currentSessions[sessionID] = sessionInfo
-
-	return authenticationModes, nil
+	return passwdResetModes
 }
 
 // SelectAuthenticationMode returns the UI layout information for the selected authentication mode.
@@ -289,9 +423,6 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 		// add a 0 to simulate new code generation.
 		authenticationMode["wantedCode"] = authenticationMode["wantedCode"] + "0"
 		sessionInfo.allModes[authenticationModeName] = authenticationMode
-		b.currentSessionsMu.Lock()
-		b.currentSessions[sessionID] = sessionInfo
-		b.currentSessionsMu.Unlock()
 	case "phoneack1", "phoneack2":
 		// send request to sessionInfo.allModes[authenticationModeName]["phone"]
 	case "fidodevice1":
@@ -308,14 +439,9 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 	// Store selected mode
 	sessionInfo.selectedMode = authenticationModeName
 
-	// Checks if the session was ended in the meantime, otherwise we would just accidentally create a new one.
-	if _, err = b.sessionInfo(sessionID); err != nil {
+	if err = b.updateSession(sessionID, sessionInfo); err != nil {
 		return nil, err
 	}
-
-	b.currentSessionsMu.Lock()
-	defer b.currentSessionsMu.Unlock()
-	b.currentSessions[sessionID] = sessionInfo
 
 	return uiLayoutInfo, nil
 }
@@ -353,11 +479,33 @@ func (b *Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData
 	}()
 
 	access, data, err = b.handleIsAuthorized(b.isAuthorizedCalls[sessionID].ctx, sessionInfo, authData)
+	if access == responses.AuthAllowed {
+		switch sessionInfo.username {
+		case "user-needs-reset":
+			fallthrough
+		case "user-can-reset":
+			fallthrough
+		case "user-mfa":
+			if sessionInfo.currentMfaStep < sessionInfo.neededMfa {
+				sessionInfo.currentMfaStep++
+				access = responses.AuthNext
+			}
+		}
+	} else if access == responses.AuthRetry {
+		sessionInfo.attemptsPerMode[sessionInfo.selectedMode]++
+		if sessionInfo.attemptsPerMode[sessionInfo.selectedMode] >= maxAttempts {
+			access = responses.AuthDenied
+		}
+	}
 
 	// Store last successful authentication mode for this user in the broker.
 	b.userLastSelectedModeMu.Lock()
 	b.userLastSelectedMode[sessionInfo.username] = sessionInfo.selectedMode
 	b.userLastSelectedModeMu.Unlock()
+
+	if err = b.updateSession(sessionID, sessionInfo); err != nil {
+		return responses.AuthDenied, "", err
+	}
 
 	return access, data, err
 }
@@ -369,18 +517,18 @@ func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo
 	switch sessionInfo.selectedMode {
 	case "password":
 		if authData["challenge"] != "goodpass" {
-			return responses.AuthDenied, "", nil
+			return responses.AuthRetry, "", nil
 		}
 
 	case "pincode":
 		if authData["challenge"] != "4242" {
-			return responses.AuthDenied, "", nil
+			return responses.AuthRetry, "", nil
 		}
 
 	case "totp_with_button", "totp":
 		wantedCode := sessionInfo.allModes[sessionInfo.selectedMode]["wantedCode"]
 		if authData["challenge"] != wantedCode {
-			return responses.AuthDenied, "", nil
+			return responses.AuthRetry, "", nil
 		}
 
 	case "phoneack1":
@@ -452,12 +600,12 @@ func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo
 		}
 	}
 
-	data, exists := users[sessionInfo.username]
+	user, exists := exampleUsers[sessionInfo.username]
 	if !exists {
 		return responses.AuthDenied, "", nil
 	}
 
-	return responses.AuthAllowed, data, nil
+	return responses.AuthAllowed, user.String(), nil
 }
 
 // EndSession ends the requested session and triggers the necessary clean up steps, if any.
@@ -558,4 +706,16 @@ func (b *Broker) sessionInfo(sessionID string) (sessionInfo, error) {
 		return sessionInfo{}, fmt.Errorf("%s is not a current transaction", sessionID)
 	}
 	return session, nil
+}
+
+// updateSession checks if the session is still active and updates the session info.
+func (b *Broker) updateSession(sessionID string, info sessionInfo) error {
+	// Checks if the session was ended in the meantime, otherwise we would just accidentally recreate it.
+	if _, err := b.sessionInfo(sessionID); err != nil {
+		return err
+	}
+	b.currentSessionsMu.Lock()
+	defer b.currentSessionsMu.Unlock()
+	b.currentSessions[sessionID] = info
+	return nil
 }
