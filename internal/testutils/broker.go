@@ -7,12 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"testing"
 	"time"
 
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -43,24 +41,25 @@ type BrokerBusMock struct {
 
 // StartBusBrokerMock starts the D-Bus service and exports it on the system bus.
 // It returns the configuration file path for the exported broker.
-func StartBusBrokerMock(t *testing.T) string {
-	t.Helper()
-
-	brokerName := strings.ReplaceAll(t.Name(), "/", "_")
+func StartBusBrokerMock(cfgDir string, brokerName string) (string, func(), error) {
 	busObjectPath := fmt.Sprintf(objectPathFmt, brokerName)
 	busInterface := fmt.Sprintf(interfaceFmt, brokerName)
 
 	conn, err := dbus.ConnectSystemBus()
-	require.NoError(t, err, "Setup: could not connect to system bus")
-	t.Cleanup(func() { require.NoError(t, conn.Close(), "Teardown: could not close system bus connection") })
+	if err != nil {
+		return "", nil, err
+	}
 
 	bus := BrokerBusMock{
 		name:                brokerName,
 		isAuthorizedCalls:   map[string]isAuthorizedCtx{},
 		isAuthorizedCallsMu: sync.RWMutex{},
 	}
-	err = conn.Export(&bus, dbus.ObjectPath(busObjectPath), busInterface)
-	require.NoError(t, err, "Setup: could not export mock broker")
+
+	if err = conn.Export(&bus, dbus.ObjectPath(busObjectPath), busInterface); err != nil {
+		conn.Close()
+		return "", nil, err
+	}
 
 	err = conn.Export(introspect.NewIntrospectable(&introspect.Node{
 		Name: busObjectPath,
@@ -72,33 +71,36 @@ func StartBusBrokerMock(t *testing.T) string {
 			},
 		},
 	}), dbus.ObjectPath(busObjectPath), introspect.IntrospectData.Name)
-	require.NoError(t, err, "Setup: could not export mock broker introspection")
+	if err != nil {
+		conn.Close()
+		return "", nil, err
+	}
 
 	reply, err := conn.RequestName(busInterface, dbus.NameFlagDoNotQueue)
-	require.NoError(t, err, "Setup: could not request mock broker name")
-	require.Equal(t, reply, dbus.RequestNameReplyPrimaryOwner, "Setup: mock broker name already taken")
+	if err != nil || reply != dbus.RequestNameReplyPrimaryOwner {
+		conn.Close()
+		return "", nil, err
+	}
 
-	configPath := writeConfig(t, brokerName)
+	configPath, err := writeConfig(cfgDir, brokerName)
+	if err != nil {
+		conn.Close()
+		return "", nil, err
+	}
 
-	t.Cleanup(func() {
-		r, err := conn.ReleaseName(busInterface)
-		require.NoError(t, err, "Teardown: could not release mock broker name")
-		require.Equal(t, r, dbus.ReleaseNameReplyReleased, "Teardown: mock broker name not released")
-	})
-
-	return configPath
+	return configPath, func() {
+		_, _ = conn.ReleaseName(busInterface)
+		_ = conn.Close()
+	}, nil
 }
 
-func writeConfig(t *testing.T, name string) string {
-	t.Helper()
-
-	cfgPath := filepath.Join(t.TempDir(), "broker-cfg")
-
+func writeConfig(cfgDir, name string) (string, error) {
+	cfgPath := filepath.Join(cfgDir, name)
 	s := fmt.Sprintf(brokerConfigTemplate, name, name, name, name)
-	err := os.WriteFile(cfgPath, []byte(s), 0600)
-	require.NoError(t, err, "Setup: Failed to write broker config file")
-
-	return cfgPath
+	if err := os.WriteFile(cfgPath, []byte(s), 0600); err != nil {
+		return "", err
+	}
+	return cfgPath, nil
 }
 
 // NewSession returns default values to be used in tests or an error if requested.

@@ -320,10 +320,16 @@ func TestCancelIsAuthorized(t *testing.T) {
 	}
 }
 
-func newBrokerForTests(t *testing.T) (b brokers.Broker, cfgPath string) {
+func newBrokerForTests(t *testing.T, cfgDir string) (b brokers.Broker) {
 	t.Helper()
 
-	cfgPath = testutils.StartBusBrokerMock(t)
+	if cfgDir == "" {
+		cfgDir = t.TempDir()
+	}
+
+	cfgPath, cleanup, err := testutils.StartBusBrokerMock(cfgDir, strings.ReplaceAll(t.Name(), "/", "_"))
+	require.NoError(t, err, "Setup: could not start bus broker mock")
+	t.Cleanup(cleanup)
 
 	conn, err := testutils.GetSystemBusConnection(t)
 	require.NoError(t, err, "Setup: could not connect to system bus")
@@ -332,5 +338,5 @@ func newBrokerForTests(t *testing.T) (b brokers.Broker, cfgPath string) {
 	b, err = brokers.NewBroker(context.Background(), strings.ReplaceAll(t.Name(), "/", "_"), cfgPath, conn)
 	require.NoError(t, err, "Setup: could not create broker")
 
-	return b, cfgPath
+	return b
 }
