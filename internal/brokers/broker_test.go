@@ -203,78 +203,58 @@ func TestIsAuthorized(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		sessionID           string
-		sessionIDSecondCall string
+		sessionID  string
+		secondCall bool
 
-		wantAccess           string
-		wantErr              bool
-		wantAccessSecondCall string
-		wantErrSecondCall    bool
+		cancelFirstCall bool
 	}{
 		//TODO: Once validation is implemented, add cases to check if the data returned by the broker matches what is expected from the access code.
 
-		"Successfully authorize":                             {sessionID: "success", wantAccess: responses.AuthAllowed},
-		"Successfully authorize after cancelling first call": {sessionID: "IA_second_call", wantAccess: responses.AuthCancelled, sessionIDSecondCall: "success", wantAccessSecondCall: responses.AuthAllowed},
-		"Denies authentication when broker times out":        {sessionID: "IA_timeout", wantAccess: responses.AuthDenied},
+		"Successfully authorize":                             {sessionID: "success"},
+		"Successfully authorize after cancelling first call": {sessionID: "IA_second_call", secondCall: true},
+		"Denies authentication when broker times out":        {sessionID: "IA_timeout"},
 
-		"Empty data gets JSON formatted": {sessionID: "IA_empty_data", wantAccess: responses.AuthAllowed},
+		"Empty data gets JSON formatted": {sessionID: "IA_empty_data"},
 
 		// broker errors
-		"Error when authorizing":                                           {sessionID: "IA_error", wantErr: true},
-		"Error when broker returns invalid access":                         {sessionID: "IA_invalid", wantErr: true},
-		"Error when broker returns invalid data":                           {sessionID: "IA_invalid_data", wantErr: true},
-		"Error when calling IsAuthorized a second time without cancelling": {sessionID: "IA_second_call", wantAccess: responses.AuthAllowed, sessionIDSecondCall: "IA_second_call", wantErrSecondCall: true},
+		"Error when authorizing":                                           {sessionID: "IA_error"},
+		"Error when broker returns invalid access":                         {sessionID: "IA_invalid"},
+		"Error when broker returns invalid data":                           {sessionID: "IA_invalid_data"},
+		"Error when calling IsAuthorized a second time without cancelling": {sessionID: "IA_second_call", secondCall: true, cancelFirstCall: true},
 	}
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b, _ := newBrokerForTests(t)
+			b := newBrokerForTests(t, "")
 
 			// Stores the combined output of both calls to IsAuthorized
 			var firstCallReturn, secondCallReturn string
 
-			var access string
-			var gotData string
-			var err error
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
 			done := make(chan struct{})
 			go func() {
 				defer close(done)
-				access, gotData, err = b.IsAuthorized(ctx, tc.sessionID, "password")
+				access, gotData, err := b.IsAuthorized(ctx, tc.sessionID, "password")
 				firstCallReturn = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n", access, gotData, err)
-				if tc.wantErr {
-					require.Error(t, err, "IsAuthorized should return an error, but did not")
-					return
-				}
-				require.NoError(t, err, "IsAuthorized should not return an error, but did")
 			}()
 
 			// Give some time for the first call to block
 			time.Sleep(time.Second)
 
-			if tc.wantAccessSecondCall != "" {
-				cancel()
-				// Wait for the cancel to go through
-				time.Sleep(time.Millisecond)
-			}
-			if tc.sessionIDSecondCall != "" {
+			if tc.secondCall {
+				if !tc.cancelFirstCall {
+					cancel()
+					<-done
+				}
 				access, gotData, err := b.IsAuthorized(context.Background(), tc.sessionID, "password")
 				secondCallReturn = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n", access, gotData, err)
-				if tc.wantErrSecondCall {
-					require.Error(t, err, "IsAuthorized second call should return an error, but did not")
-				} else {
-					require.NoError(t, err, "IsAuthorized second call should not return an error, but did")
-				}
 			}
 
 			<-done
-			if tc.wantErr {
-				return
-			}
 			gotStr := firstCallReturn + secondCallReturn
 			want := testutils.LoadWithUpdateFromGolden(t, gotStr)
 			require.Equal(t, want, gotStr, "IsAuthorized should return the expected combined data, but did not")
