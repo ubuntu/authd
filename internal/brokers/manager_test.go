@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -16,7 +15,7 @@ import (
 )
 
 var (
-	fixturesPath = filepath.Join("testdata", "fixtures")
+	brokerCfgs = filepath.Join("testdata", "broker.d")
 )
 
 func TestNewManager(t *testing.T) {
@@ -26,11 +25,11 @@ func TestNewManager(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Creates all brokers when config dir only has valid brokers":      {cfgDir: "valid_brokers"},
-		"Creates only correct brokers when config dir has mixed brokers":  {cfgDir: "mixed_brokers"},
-		"Creates only local broker when config dir only has invalid ones": {cfgDir: "invalid_brokers"},
-		"Creates only local broker when config dir does not exist":        {cfgDir: "does/not/exist"},
-		"Creates manager even if broker is not exported on dbus":          {cfgDir: "not_on_bus"},
+		"Creates all brokers when config dir has only valid brokers":                 {cfgDir: "valid_brokers"},
+		"Creates only correct brokers when config dir has valid and invalid brokers": {cfgDir: "mixed_brokers"},
+		"Creates only local broker when config dir has only invalid ones":            {cfgDir: "invalid_brokers"},
+		"Creates only local broker when config dir does not exist":                   {cfgDir: "does/not/exist"},
+		"Creates manager even if broker is not exported on dbus":                     {cfgDir: "not_on_bus"},
 
 		"Error when can't connect to system bus": {cfgDir: "valid_brokers", noBus: true, wantErr: true},
 		"Error when broker config dir is a file": {cfgDir: "file_config_dir", wantErr: true},
@@ -42,7 +41,7 @@ func TestNewManager(t *testing.T) {
 				t.Setenv("DBUS_SYSTEM_BUS_ADDRESS", "/dev/null")
 			}
 
-			got, err := brokers.NewManager(context.Background(), nil, brokers.WithRootDir(fixturesPath), brokers.WithCfgDir(tc.cfgDir))
+			got, err := brokers.NewManager(context.Background(), nil, brokers.WithRootDir(brokerCfgs), brokers.WithCfgDir(tc.cfgDir))
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should return an error, but did not")
 				return
@@ -78,18 +77,15 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			m, err := brokers.NewManager(context.Background(), nil, brokers.WithRootDir(fixturesPath), brokers.WithCfgDir("mixed_brokers"))
+			m, err := brokers.NewManager(context.Background(), nil, brokers.WithRootDir(brokerCfgs), brokers.WithCfgDir("mixed_brokers"))
 			require.NoError(t, err, "Setup: could not create manager")
 
-			brokers := m.AvailableBrokers()
-			//nolint:gosec // This just to vary the selected broker in the tests, we don't care about randomness safety.
-			i := rand.Intn(len(brokers))
-			want := brokers[i]
+			want := m.AvailableBrokers()[0]
 			if !tc.exists {
 				want.ID = "does not exist"
 			}
 
-			err = m.SetDefaultBrokerForUser(brokers[i].ID, "user")
+			err = m.SetDefaultBrokerForUser(want.ID, "user")
 			if tc.wantErr {
 				require.Error(t, err, "SetDefaultBrokerForUser should return an error, but did not")
 				return
@@ -105,7 +101,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 func TestBrokerForUser(t *testing.T) {
 	t.Parallel()
 
-	m, err := brokers.NewManager(context.Background(), nil, brokers.WithRootDir(fixturesPath), brokers.WithCfgDir("valid_brokers"))
+	m, err := brokers.NewManager(context.Background(), nil, brokers.WithRootDir(brokerCfgs), brokers.WithCfgDir("valid_brokers"))
 	require.NoError(t, err, "Setup: could not create manager")
 
 	err = m.SetDefaultBrokerForUser("local", "user")
@@ -139,8 +135,9 @@ func TestBrokerFromSessionID(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b, cfg := newBrokerForTests(t)
-			m, err := brokers.NewManager(context.Background(), nil, brokers.WithRootDir(filepath.Dir(cfg)), brokers.WithCfgDir(""))
+			cfgDir := t.TempDir()
+			b := newBrokerForTests(t, cfgDir)
+			m, err := brokers.NewManager(context.Background(), nil, brokers.WithCfgDir(cfgDir))
 			require.NoError(t, err, "Setup: could not create manager")
 
 			if tc.sessionID == "success" {
@@ -150,6 +147,7 @@ func TestBrokerFromSessionID(t *testing.T) {
 						continue
 					}
 					b.ID = broker.ID
+					break
 				}
 				tc.wantBrokerID = b.ID
 				m.SetBrokerForSession(&b, tc.sessionID)
@@ -186,8 +184,9 @@ func TestNewSession(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			wantBroker, cfg := newBrokerForTests(t)
-			m, err := brokers.NewManager(context.Background(), nil, brokers.WithRootDir(filepath.Dir(cfg)), brokers.WithCfgDir(""))
+			cfgDir := t.TempDir()
+			wantBroker := newBrokerForTests(t, cfgDir)
+			m, err := brokers.NewManager(context.Background(), nil, brokers.WithCfgDir(cfgDir))
 			require.NoError(t, err, "Setup: could not create manager")
 
 			if tc.brokerID == "" {
@@ -239,8 +238,9 @@ func TestEndSession(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b, cfg := newBrokerForTests(t)
-			m, err := brokers.NewManager(context.Background(), nil, brokers.WithRootDir(filepath.Dir(cfg)), brokers.WithCfgDir(""))
+			cfgDir := t.TempDir()
+			b := newBrokerForTests(t, cfgDir)
+			m, err := brokers.NewManager(context.Background(), nil, brokers.WithCfgDir(cfgDir))
 			require.NoError(t, err, "Setup: could not create manager")
 
 			if tc.brokerID != "does not exist" {

@@ -16,24 +16,24 @@ import (
 )
 
 var supportedLayouts = map[string]map[string]string{
-	"required-value": {
-		"type":  "required-value",
-		"value": "required:value_type,other_value_type",
+	"required-entry": {
+		"type":  "required-entry",
+		"entry": "required:entry_type,other_entry_type",
 	},
-	"optional-value": {
-		"type":  "optional-value",
-		"value": "optional:value_type,other_value_type",
+	"optional-entry": {
+		"type":  "optional-entry",
+		"entry": "optional:entry_type,other_entry_type",
 	},
 	"missing-type": {
-		"value": "required:missing_type",
+		"entry": "required:missing_type",
 	},
 	"misconfigured-layout": {
 		"type":  "misconfigured-layout",
-		"value": "required-but-misformatted",
+		"entry": "required-but-misformatted",
 	},
 	"layout-with-spaces": {
 		"type":  "layout-with-spaces",
-		"value": "required: value_type, other_value_type",
+		"entry": "required: entry_type, other_entry_type",
 	},
 }
 
@@ -67,9 +67,9 @@ func TestNewBroker(t *testing.T) {
 			conn, err := testutils.GetSystemBusConnection(t)
 			require.NoError(t, err, "Setup: could not connect to system bus")
 
-			configDir := filepath.Join(fixturesPath, "valid_brokers")
+			configDir := filepath.Join(brokerCfgs, "valid_brokers")
 			if tc.wantErr {
-				configDir = filepath.Join(fixturesPath, "invalid_brokers")
+				configDir = filepath.Join(brokerCfgs, "invalid_brokers")
 			}
 			if tc.configFile != "" {
 				tc.configFile = filepath.Join(configDir, tc.configFile)
@@ -99,10 +99,10 @@ func TestGetAuthenticationModes(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Get authentication modes and generate validators":                                         {sessionID: "success", supportedUILayouts: []string{"required-value", "optional-value"}},
+		"Get authentication modes and generate validators":                                         {sessionID: "success", supportedUILayouts: []string{"required-entry", "optional-entry"}},
 		"Get authentication modes and generate validator ignoring whitespaces in supported values": {sessionID: "success", supportedUILayouts: []string{"layout-with-spaces"}},
-		"Get authentication modes and ignores invalid UI layout":                                   {sessionID: "success", supportedUILayouts: []string{"required-value", "missing-type"}},
-		"Get multiple authentication modes and generate validators":                                {sessionID: "GAM_multiple_modes", supportedUILayouts: []string{"required-value", "optional-value"}},
+		"Get authentication modes and ignores invalid UI layout":                                   {sessionID: "success", supportedUILayouts: []string{"required-entry", "missing-type"}},
+		"Get multiple authentication modes and generate validators":                                {sessionID: "GAM_multiple_modes", supportedUILayouts: []string{"required-entry", "optional-entry"}},
 
 		"Does not error out when no authentication modes are returned": {sessionID: "GAM_empty"},
 
@@ -115,10 +115,10 @@ func TestGetAuthenticationModes(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b, _ := newBrokerForTests(t)
+			b := newBrokerForTests(t, "")
 
 			if tc.supportedUILayouts == nil {
-				tc.supportedUILayouts = []string{"required-value"}
+				tc.supportedUILayouts = []string{"required-entry"}
 			}
 
 			var supportedUILayouts []map[string]string
@@ -136,7 +136,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 			modesStr, err := json.Marshal(gotModes)
 			require.NoError(t, err, "Post: error when marshaling result")
 
-			got := "MODES:\n" + string(modesStr) + "\n\nVALIDATORS:\n" + b.LayoutValidatorsString()
+			got := "MODES:\n" + string(modesStr) + "\n\nVALIDATORS:\n" + b.LayoutValidatorsString(tc.sessionID)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "GetAuthenticationModes should return the expected modes, but did not")
 		})
@@ -152,9 +152,9 @@ func TestSelectAuthenticationMode(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully select mode with required value":         {sessionID: "SAM_success_required_value"},
-		"Successfully select mode with optional value":         {sessionID: "SAM_success_optional_value", supportedUILayouts: []string{"optional-value"}},
-		"Successfully select mode with missing optional value": {sessionID: "SAM_missing_optional_value", supportedUILayouts: []string{"optional-value"}},
+		"Successfully select mode with required value":         {sessionID: "SAM_success_required_entry"},
+		"Successfully select mode with optional value":         {sessionID: "SAM_success_optional_entry", supportedUILayouts: []string{"optional-entry"}},
+		"Successfully select mode with missing optional value": {sessionID: "SAM_missing_optional_entry", supportedUILayouts: []string{"optional-entry"}},
 
 		// broker errors
 		"Error when selecting invalid auth mode": {sessionID: "SAM_error", wantErr: true},
@@ -164,19 +164,19 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		"Error when returns empty layout":                       {sessionID: "SAM_empty_layout", wantErr: true},
 		"Error when returns layout with no type":                {sessionID: "SAM_no_layout_type", wantErr: true},
 		"Error when returns layout with invalid type":           {sessionID: "SAM_invalid_layout_type", wantErr: true},
-		"Error when returns layout without required value":      {sessionID: "SAM_missing_required_value", wantErr: true},
-		"Error when returns layout with invalid required value": {sessionID: "SAM_invalid_required_value", wantErr: true},
-		"Error when returns layout with invalid optional value": {sessionID: "SAM_invalid_optional_value", wantErr: true},
+		"Error when returns layout without required value":      {sessionID: "SAM_missing_required_entry", wantErr: true},
+		"Error when returns layout with invalid required value": {sessionID: "SAM_invalid_required_entry", wantErr: true},
+		"Error when returns layout with invalid optional value": {sessionID: "SAM_invalid_optional_entry", wantErr: true},
 	}
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b, _ := newBrokerForTests(t)
+			b := newBrokerForTests(t, "")
 
 			if tc.supportedUILayouts == nil {
-				tc.supportedUILayouts = []string{"required-value"}
+				tc.supportedUILayouts = []string{"required-entry"}
 			}
 
 			var supportedUILayouts []map[string]string
@@ -298,7 +298,7 @@ func TestCancelIsAuthorized(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b, _ := newBrokerForTests(t)
+			b := newBrokerForTests(t, "")
 
 			var access string
 			ctx, cancel := context.WithCancel(context.Background())
