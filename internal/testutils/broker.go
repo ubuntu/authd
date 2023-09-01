@@ -140,37 +140,37 @@ func (b *BrokerBusMock) GetAuthenticationModes(sessionID string, supportedUILayo
 // SelectAuthenticationMode returns default values to be used in tests or an error if requested.
 func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, dbusErr *dbus.Error) {
 	switch sessionID {
-	case "SAM_success_required_value":
+	case "SAM_success_required_entry":
 		return map[string]string{
-			"type":  "required-value",
-			"value": "value_type",
+			"type":  "required-entry",
+			"entry": "entry_type",
 		}, nil
-	case "SAM_success_optional_value":
+	case "SAM_success_optional_entry":
 		return map[string]string{
-			"type":  "optional-value",
-			"value": "value_type",
+			"type":  "optional-entry",
+			"entry": "entry_type",
 		}, nil
-	case "SAM_missing_optional_value":
+	case "SAM_missing_optional_entry":
 		return map[string]string{
-			"type": "optional-value",
+			"type": "optional-entry",
 		}, nil
 	case "SAM_invalid_layout_type":
 		return map[string]string{
 			"invalid": "invalid",
 		}, nil
-	case "SAM_missing_required_value":
+	case "SAM_missing_required_entry":
 		return map[string]string{
-			"type": "required-value",
+			"type": "required-entry",
 		}, nil
-	case "SAM_invalid_required_value":
+	case "SAM_invalid_required_entry":
 		return map[string]string{
-			"type":  "required-value",
-			"value": "invalid value",
+			"type":  "required-entry",
+			"entry": "invalid entry",
 		}, nil
-	case "SAM_invalid_optional_value":
+	case "SAM_invalid_optional_entry":
 		return map[string]string{
-			"type":  "optional-value",
-			"value": "invalid value",
+			"type":  "optional-entry",
+			"entry": "invalid entry",
 		}, nil
 	case "SAM_error":
 		return nil, dbus.MakeFailedError(fmt.Errorf("Broker %q: SelectAuthenticationMode errored out", b.name))
