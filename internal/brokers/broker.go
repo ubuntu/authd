@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"strings"
+	"sync"
 
 	"github.com/godbus/dbus/v5"
 	"github.com/ubuntu/authd/internal/log"
@@ -30,12 +31,15 @@ type brokerer interface {
 
 // Broker represents a broker object that can be used for authentication.
 type Broker struct {
-	ID               string
-	Name             string
-	BrandIconPath    string
-	layoutValidators map[string]map[string]fieldValidator
-	brokerer         brokerer
+	ID                 string
+	Name               string
+	BrandIconPath      string
+	layoutValidators   map[string]map[string]layoutValidator
+	layoutValidatorsMu *sync.Mutex
+	brokerer           brokerer
 }
+
+type layoutValidator map[string]fieldValidator
 
 type fieldValidator struct {
 	supportedValues []string
@@ -66,10 +70,12 @@ func newBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 	}
 
 	return Broker{
-		ID:            id,
-		Name:          fullName,
-		BrandIconPath: brandIcon,
-		brokerer:      broker,
+		ID:                 id,
+		Name:               fullName,
+		BrandIconPath:      brandIcon,
+		brokerer:           broker,
+		layoutValidators:   make(map[string]map[string]layoutValidator),
+		layoutValidatorsMu: &sync.Mutex{},
 	}, nil
 }
 
@@ -91,7 +97,10 @@ func (b Broker) newSession(ctx context.Context, username, lang string) (sessionI
 func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
 	sessionID = b.parseSessionID(sessionID)
 
-	b.layoutValidators = generateValidators(ctx, sessionID, supportedUILayouts)
+	b.layoutValidatorsMu.Lock()
+	b.layoutValidators[sessionID] = generateValidators(ctx, sessionID, supportedUILayouts)
+	b.layoutValidatorsMu.Unlock()
+
 	authenticationModes, err = b.brokerer.GetAuthenticationModes(ctx, sessionID, supportedUILayouts)
 	if err != nil {
 		return nil, err
@@ -115,8 +124,7 @@ func (b Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authent
 	if err != nil {
 		return nil, err
 	}
-
-	return b.validateUILayout(uiLayoutInfo)
+	return b.validateUILayout(sessionID, uiLayoutInfo)
 }
 
 // IsAuthorized calls the broker corresponding method, stripping broker ID prefix from sessionID.
@@ -182,15 +190,15 @@ func (b Broker) cancelIsAuthorized(ctx context.Context, sessionID string) {
 //	        }
 //	    }
 //	}
-func generateValidators(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) map[string]map[string]fieldValidator {
-	validators := make(map[string]map[string]fieldValidator)
+func generateValidators(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) map[string]layoutValidator {
+	validators := make(map[string]layoutValidator)
 	for _, layout := range supportedUILayouts {
 		if _, exists := layout["type"]; !exists {
 			log.Errorf(ctx, "layout %v provided with missing type for session %s, it will be ignored", layout, sessionID)
 			continue
 		}
 
-		layoutValidator := make(map[string]fieldValidator)
+		layoutValidator := make(layoutValidator)
 		for key, value := range layout {
 			if key == "type" {
 				continue
@@ -218,17 +226,25 @@ func generateValidators(ctx context.Context, sessionID string, supportedUILayout
 // containing all required fields and the optional fields that were set.
 //
 // If the layout is not valid (missing required fields or invalid values), an error is returned instead.
-func (b Broker) validateUILayout(layout map[string]string) (r map[string]string, err error) {
+func (b Broker) validateUILayout(sessionID string, layout map[string]string) (r map[string]string, err error) {
 	defer decorate.OnError(&err, "could not validate UI layout")
 
+	b.layoutValidatorsMu.Lock()
+	defer b.layoutValidatorsMu.Unlock()
+
+	layoutValidator, exists := b.layoutValidators[sessionID]
+	if !exists {
+		return nil, fmt.Errorf("session %q does not have any layout validator", sessionID)
+	}
+
 	typ := layout["type"]
-	layoutValidator, exists := b.layoutValidators[typ]
+	layoutTypeValidator, exists := layoutValidator[typ]
 	if !exists {
 		return nil, fmt.Errorf("no validator for UI layout type %q", typ)
 	}
 
 	r = map[string]string{"type": typ}
-	for key, validator := range layoutValidator {
+	for key, validator := range layoutTypeValidator {
 		value, exists := layout[key]
 		if !exists || value == "" {
 			if validator.required {
