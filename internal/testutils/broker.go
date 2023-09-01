@@ -16,6 +16,9 @@ import (
 const (
 	objectPathFmt = "/com/ubuntu/authd/%s"
 	interfaceFmt  = "com.ubuntu.authd.%s"
+
+	// IDPrefix is the value used to trim the sessionID in the broker mock.
+	IDPrefix = "_separator_"
 )
 
 var brokerConfigTemplate = `name = %s
@@ -111,11 +114,12 @@ func (b *BrokerBusMock) NewSession(username, lang string) (sessionID, encryption
 	if username == "NS_no_id" {
 		return "", username + "_key", nil
 	}
-	return fmt.Sprintf("%s-%s_session_id", b.name, username), b.name + "_key", nil
+	return fmt.Sprintf("%s-session_id", username), b.name + "_key", nil
 }
 
 // GetAuthenticationModes returns default values to be used in tests or an error if requested.
 func (b *BrokerBusMock) GetAuthenticationModes(sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, dbusErr *dbus.Error) {
+	sessionID = parseSessionID(sessionID)
 	switch sessionID {
 	case "GAM_invalid":
 		return []map[string]string{
@@ -139,6 +143,7 @@ func (b *BrokerBusMock) GetAuthenticationModes(sessionID string, supportedUILayo
 
 // SelectAuthenticationMode returns default values to be used in tests or an error if requested.
 func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, dbusErr *dbus.Error) {
+	sessionID = parseSessionID(sessionID)
 	switch sessionID {
 	case "SAM_success_required_entry":
 		return map[string]string{
@@ -185,7 +190,11 @@ func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeNa
 
 // IsAuthorized returns default values to be used in tests or an error if requested.
 func (b *BrokerBusMock) IsAuthorized(sessionID, authenticationData string) (access, data string, dbusErr *dbus.Error) {
-	if sessionID == "IA_error" {
+	// The IsAuthorized needs to function a bit differently to still allow tests to be executed in parallel.
+	// We have to use both the prefixed sessionID and the parsed one in order to differentiate between test cases.
+	parsedID := parseSessionID(sessionID)
+
+	if parsedID == "IA_error" {
 		return "", "", dbus.MakeFailedError(fmt.Errorf("Broker %q: IsAuthorized errored out", b.name))
 	}
 
@@ -211,13 +220,13 @@ func (b *BrokerBusMock) IsAuthorized(sessionID, authenticationData string) (acce
 
 	access = "allowed"
 	data = `{"mock_answer": "authentication allowed by default"}`
-	if sessionID == "IA_invalid" {
+	if parsedID == "IA_invalid" {
 		access = "invalid"
 	}
 
 	done := make(chan struct{})
 	go func() {
-		switch sessionID {
+		switch parsedID {
 		case "IA_timeout":
 			time.Sleep(time.Second)
 			access = "denied"
@@ -241,9 +250,9 @@ func (b *BrokerBusMock) IsAuthorized(sessionID, authenticationData string) (acce
 	}()
 	<-done
 
-	if sessionID == "IA_invalid_data" {
+	if parsedID == "IA_invalid_data" {
 		data = "invalid"
-	} else if sessionID == "IA_empty_data" {
+	} else if parsedID == "IA_empty_data" {
 		data = ""
 	}
 
@@ -252,6 +261,7 @@ func (b *BrokerBusMock) IsAuthorized(sessionID, authenticationData string) (acce
 
 // EndSession returns default values to be used in tests or an error if requested.
 func (b *BrokerBusMock) EndSession(sessionID string) (dbusErr *dbus.Error) {
+	sessionID = parseSessionID(sessionID)
 	if sessionID == "ES_error" {
 		return dbus.MakeFailedError(fmt.Errorf("Broker %q: EndSession errored out", b.name))
 	}
@@ -268,4 +278,13 @@ func (b *BrokerBusMock) CancelIsAuthorized(sessionID string) (dbusErr *dbus.Erro
 	b.isAuthorizedCalls[sessionID].cancelFunc()
 	delete(b.isAuthorizedCalls, sessionID)
 	return nil
+}
+
+// parseSessionID is wrapper around the sessionID to remove some values appended during the tests.
+func parseSessionID(sessionID string) string {
+	// We need to prefix the sessionID with the test name in some tests, so we have to consider this here in the broker.
+	if _, after, found := strings.Cut(sessionID, IDPrefix); found {
+		sessionID = after
+	}
+	return strings.TrimSuffix(sessionID, "-session_id")
 }
