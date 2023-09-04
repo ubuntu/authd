@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -19,8 +21,15 @@ type authModeSelectionModel struct {
 
 	client authd.PAMClient
 
+	supportedUILayouts        []*authd.UILayout
+	supportedUILayoutsMu      *sync.Mutex
 	availableAuthModes        []*authd.GAMResponse_AuthenticationMode
 	currentAuthModeSelectedID string
+}
+
+// supportedUILayoutsReceived is the internal event signalling that the current supported ui layout in the context have been received.
+type supportedUILayoutsReceived struct {
+	layouts []*authd.UILayout
 }
 
 // authModesReceived is the internal event signalling that the supported authorization modes have been received.
@@ -55,19 +64,54 @@ func newAuthModeSelectionModel(client authd.PAMClient) authModeSelectionModel {
 	l.Styles.HelpStyle = helpStyle*/
 
 	return authModeSelectionModel{
-		Model:  l,
-		client: client,
+		Model:                l,
+		client:               client,
+		supportedUILayoutsMu: &sync.Mutex{},
 	}
 }
 
 // Init initializes authModeSelectionModel.
-func (m authModeSelectionModel) Init() tea.Cmd {
-	return nil
+func (m *authModeSelectionModel) Init() tea.Cmd {
+	return func() tea.Msg {
+		// REMOVE: This is to test
+		time.Sleep(time.Second * 5)
+		// TODO: call to 3rd party like gdm, to support dynamic ui layouts
+		required, optional := "required", "optional"
+		supportedEntries := "optional:chars,chars_password"
+		requiredWithBooleans := "required:true,false"
+		optionalWithBooleans := "optional:true,false"
+
+		m.supportedUILayoutsMu.Lock()
+		defer m.supportedUILayoutsMu.Unlock()
+		return supportedUILayoutsReceived{
+			layouts: []*authd.UILayout{
+				{
+					Type:   "form",
+					Label:  &required,
+					Entry:  &supportedEntries,
+					Wait:   &optionalWithBooleans,
+					Button: &optional,
+				},
+				{
+					Type:    "qrcode",
+					Content: &required,
+					Wait:    &requiredWithBooleans,
+					Label:   &optional,
+				},
+			},
+		}
+	}
 }
 
 // Update handles events and actions.
 func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
+	case supportedUILayoutsReceived:
+		m.supportedUILayoutsMu.Lock()
+		m.supportedUILayouts = msg.layouts
+		m.supportedUILayoutsMu.Unlock()
+		return m, sendEvent(GetAuthenticationModesRequested{})
+
 	case authModesReceived:
 		m.availableAuthModes = msg.authModes
 
@@ -190,30 +234,11 @@ func validAuthModeID(id string, authModes []*authd.GAMResponse_AuthenticationMod
 }
 
 // getAuthenticationModes returns available authentication mode for this broker from authd.
-func getAuthenticationModes(client authd.PAMClient, sessionID string) tea.Cmd {
+func getAuthenticationModes(client authd.PAMClient, sessionID string, uiLayouts []*authd.UILayout) tea.Cmd {
 	return func() tea.Msg {
-		required, optional := "required", "optional"
-		supportedEntries := "optional:chars,chars_password"
-		requiredWithBooleans := "required:true,false"
-		optionalWithBooleans := "optional:true,false"
-
 		gamReq := &authd.GAMRequest{
-			SessionId: sessionID,
-			SupportedUiLayouts: []*authd.UILayout{
-				{
-					Type:   "form",
-					Label:  &required,
-					Entry:  &supportedEntries,
-					Wait:   &optionalWithBooleans,
-					Button: &optional,
-				},
-				{
-					Type:    "qrcode",
-					Content: &required,
-					Wait:    &requiredWithBooleans,
-					Label:   &optional,
-				},
-			},
+			SessionId:          sessionID,
+			SupportedUiLayouts: uiLayouts,
 		}
 
 		gamResp, err := client.GetAuthenticationModes(context.Background(), gamReq)
@@ -241,4 +266,18 @@ func getAuthenticationModes(client authd.PAMClient, sessionID string) tea.Cmd {
 // Resets zeroes any internal state on the authModeSelectionModel.
 func (m *authModeSelectionModel) Reset() {
 	m.currentAuthModeSelectedID = ""
+}
+
+// IsReady returns if the model is initialized and can perform requests.
+func (m *authModeSelectionModel) IsReady() bool {
+	m.supportedUILayoutsMu.Lock()
+	defer m.supportedUILayoutsMu.Unlock()
+	return m.supportedUILayouts != nil
+}
+
+// SupportedUILayouts returns safely currently loaded supported ui layouts.
+func (m *authModeSelectionModel) SupportedUILayouts() []*authd.UILayout {
+	m.supportedUILayoutsMu.Lock()
+	defer m.supportedUILayoutsMu.Unlock()
+	return m.supportedUILayouts
 }

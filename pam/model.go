@@ -179,8 +179,12 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, sendEvent(GetAuthenticationModesRequested{})
 
 	case GetAuthenticationModesRequested:
+		if m.currentSession == nil || !m.authModeSelectionModel.IsReady() {
+			return m, nil
+		}
+
 		return m, tea.Sequence(
-			getAuthenticationModes(m.client, m.currentSession.sessionID),
+			getAuthenticationModes(m.client, m.currentSession.sessionID, m.authModeSelectionModel.SupportedUILayouts()),
 			m.changeStage(stageAuthModeSelection),
 		)
 
