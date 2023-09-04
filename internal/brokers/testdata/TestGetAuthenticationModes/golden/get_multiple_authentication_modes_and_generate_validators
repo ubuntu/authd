@@ -2,7 +2,7 @@ MODES:
 [{"id":"mode1","label":"Mode 1"},{"id":"mode2","label":"Mode 2"}]
 
 VALIDATORS:
-	optional-value:
-		value: { required: false, supportedValues: [value_type other_value_type] }
-	required-value:
-		value: { required: true, supportedValues: [value_type other_value_type] }
+	optional-entry:
+		entry: { required: false, supportedValues: [entry_type other_entry_type] }
+	required-entry:
+		entry: { required: true, supportedValues: [entry_type other_entry_type] }

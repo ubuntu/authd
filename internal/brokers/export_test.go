@@ -31,14 +31,19 @@ func (m *Manager) SetBrokerForSession(b *Broker, sessionID string) {
 
 // GenerateLayoutValidators generates the layout validators and assign them to the specified broker.
 func GenerateLayoutValidators(b *Broker, sessionID string, supportedUILayouts []map[string]string) {
-	b.layoutValidators = generateValidators(context.Background(), sessionID, supportedUILayouts)
+	b.layoutValidatorsMu.Lock()
+	defer b.layoutValidatorsMu.Unlock()
+	b.layoutValidators[sessionID] = generateValidators(context.Background(), sessionID, supportedUILayouts)
 }
 
 // LayoutValidatorsString returns a string representation of the layout validators.
-func (b *Broker) LayoutValidatorsString() string {
+func (b *Broker) LayoutValidatorsString(sessionID string) string {
 	// Gets the map keys and sort them
+	b.layoutValidatorsMu.Lock()
+	defer b.layoutValidatorsMu.Unlock()
+
 	var keys []string
-	for k := range b.layoutValidators {
+	for k := range b.layoutValidators[sessionID] {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -47,7 +52,7 @@ func (b *Broker) LayoutValidatorsString() string {
 	for _, k := range keys {
 		layoutStr := fmt.Sprintf("\t%s:\n", k)
 
-		validator := b.layoutValidators[k]
+		validator := b.layoutValidators[sessionID][k]
 
 		// Same thing for sorting the keys of the validator map
 		var vKeys []string

@@ -3,4 +3,4 @@ MODES:
 
 VALIDATORS:
 	layout-with-spaces:
-		value: { required: true, supportedValues: [value_type other_value_type] }
+		entry: { required: true, supportedValues: [entry_type other_entry_type] }

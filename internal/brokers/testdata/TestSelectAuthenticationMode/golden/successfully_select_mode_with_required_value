@@ -1,2 +1,2 @@
-type: required-value
-value: value_type
+entry: entry_type
+type: required-entry
