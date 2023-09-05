@@ -81,8 +81,6 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 		requiredWithBooleans := "required:true,false"
 		optionalWithBooleans := "optional:true,false"
 
-		m.supportedUILayoutsMu.Lock()
-		defer m.supportedUILayoutsMu.Unlock()
 		return supportedUILayoutsReceived{
 			layouts: []*authd.UILayout{
 				{
