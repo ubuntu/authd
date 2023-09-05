@@ -1,0 +1,8 @@
+FIRST CALL:
+	access: allowed
+	data: {"mock_answer": "authentication allowed by timeout"}
+	err: <nil>
+SECOND CALL:
+	access: 
+	data: 
+	err: rpc error: code = Unknown desc = can't check authorization: Broker "BrokerMock": IsAuthorized already running for session "TestIsAuthorized/Error_when_calling_second_time_without_cancelling_separator_IA_second_call-session_id"

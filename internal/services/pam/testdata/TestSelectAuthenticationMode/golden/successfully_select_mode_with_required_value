@@ -1,0 +1,6 @@
+type: required-entry
+label: ""
+button: ""
+wait: ""
+entry: entry_type
+content: ""
