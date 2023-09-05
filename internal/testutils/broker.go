@@ -17,8 +17,8 @@ const (
 	objectPathFmt = "/com/ubuntu/authd/%s"
 	interfaceFmt  = "com.ubuntu.authd.%s"
 
-	// IDPrefix is the value used to trim the sessionID in the broker mock.
-	IDPrefix = "_separator_"
+	// IDSeparator is the value used to append values to the sessionID in the broker mock.
+	IDSeparator = "_separator_"
 )
 
 var brokerConfigTemplate = `name = %s
@@ -108,10 +108,11 @@ func writeConfig(cfgDir, name string) (string, error) {
 
 // NewSession returns default values to be used in tests or an error if requested.
 func (b *BrokerBusMock) NewSession(username, lang string) (sessionID, encryptionKey string, dbusErr *dbus.Error) {
-	if username == "NS_error" {
+	parsedUsername := parseSessionID(username)
+	if parsedUsername == "NS_error" {
 		return "", "", dbus.MakeFailedError(fmt.Errorf("Broker %q: NewSession errored out", b.name))
 	}
-	if username == "NS_no_id" {
+	if parsedUsername == "NS_no_id" {
 		return "", username + "_key", nil
 	}
 	return fmt.Sprintf("%s-session_id", username), b.name + "_key", nil
@@ -281,10 +282,13 @@ func (b *BrokerBusMock) CancelIsAuthorized(sessionID string) (dbusErr *dbus.Erro
 }
 
 // parseSessionID is wrapper around the sessionID to remove some values appended during the tests.
+//
+// The sessionID can have multiple values appended to differentiate between subtests and avoid concurrency conflicts,
+// and only the last value (i.e. "..._separator_ID-session_id") will be considered.
 func parseSessionID(sessionID string) string {
-	// We need to prefix the sessionID with the test name in some tests, so we have to consider this here in the broker.
-	if _, after, found := strings.Cut(sessionID, IDPrefix); found {
-		sessionID = after
+	cut := strings.Split(sessionID, IDSeparator)
+	if len(cut) == 0 {
+		return ""
 	}
-	return strings.TrimSuffix(sessionID, "-session_id")
+	return strings.TrimSuffix(cut[len(cut)-1], "-session_id")
 }
