@@ -158,9 +158,9 @@ func (m *brokerSelectionModel) Blur() {
 }
 
 // AutoSelectForUser requests if any previous broker was used by this user to automatically selects it.
-func (m *brokerSelectionModel) AutoSelectForUser(username string) tea.Cmd {
+func AutoSelectForUser(client authd.PAMClient, username string) tea.Cmd {
 	return func() tea.Msg {
-		r, err := m.client.GetPreviousBroker(context.TODO(),
+		r, err := client.GetPreviousBroker(context.TODO(),
 			&authd.GPBRequest{
 				Username: username,
 			})
