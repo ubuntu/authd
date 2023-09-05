@@ -53,7 +53,7 @@ nolintlint:
   require-specific: true
 
 linters-settings:
-   # Forbid the usage of deprecated ioutil and debug prints
+  # Forbid the usage of deprecated ioutil and debug prints
   forbidigo:
     forbid:
       - ioutil\.
@@ -61,7 +61,3 @@ linters-settings:
   # Never have naked return ever
   nakedret:
     max-func-lines: 1
-  staticcheck:
-    # Should be better for it to be autodetected
-    # https://github.com/golangci/golangci-lint/issues/2234
-    go: "1.20"
