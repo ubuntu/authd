@@ -165,7 +165,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Got user and brokers? Time to auto or manually select.
 		return m, tea.Sequence(
 			m.changeStage(stageBrokerSelection),
-			m.brokerSelectionModel.AutoSelectForUser(m.username()))
+			AutoSelectForUser(m.client, m.username()))
 
 	case BrokerSelected:
 		return m, startBrokerSession(m.client, msg.BrokerID, m.username())
