@@ -1,6 +1,9 @@
 syntax = "proto3";
+package authd;
 
 option go_package = "github.com/ubuntu/authd";
+
+message Empty {}
 
 service PAM {
   rpc AvailableBrokers(Empty) returns (ABResponse);
@@ -13,14 +16,6 @@ service PAM {
   rpc EndSession(ESRequest) returns (Empty);
 
   rpc SetDefaultBrokerForUser(SDBFURequest) returns (Empty);
-}
-
-service NSS {
-  rpc TestNSS(Empty) returns (StringResponse);
-}
-
-
-message Empty {
 }
 
 message GPBRequest {
@@ -49,7 +44,6 @@ message SBRequest {
   string broker_id = 1;
   string username = 2;
   string lang = 3;
-
 }
 
 message SBResponse {
@@ -112,4 +106,65 @@ message SDBFURequest {
 
 message ESRequest {
   string session_id = 1;
+}
+
+service NSS {
+  rpc GetPasswdByName(GetByNameRequest) returns (PasswdEntry);
+  rpc GetPasswdByUID(GetByIDRequest) returns (PasswdEntry);
+  rpc GetPasswdEntries(Empty) returns (PasswdEntries);
+
+  rpc GetGroupByName(GetByNameRequest) returns (GroupEntry);
+  rpc GetGroupByGID(GetByIDRequest) returns (GroupEntry);
+  rpc GetGroupEntries(Empty) returns (GroupEntries);
+
+  rpc GetShadowByName(GetByNameRequest) returns (ShadowEntry);
+  rpc GetShadowEntries(Empty) returns (ShadowEntries);
+}
+
+message GetByNameRequest{
+  string name = 1;
+}
+
+message GetByIDRequest{
+  uint32 id = 1;
+}
+
+message PasswdEntry {
+  string name = 1;
+  string passwd = 2;
+  uint32 uid = 3;
+  uint32 gid = 4;
+  string gecos = 5;
+  string homedir = 6;
+  string shell = 7;
+}
+
+message PasswdEntries {
+  repeated PasswdEntry entries = 1;
+}
+
+message GroupEntry {
+  string name = 1;
+  string passwd = 2;
+  uint32 gid = 3;
+  repeated string members = 4;
+}
+
+message GroupEntries {
+  repeated GroupEntry entries = 1;
+}
+
+message ShadowEntry {
+  string name = 1;
+  string passwd = 2;
+  int32 last_change = 3;
+  int32 change_min_days = 4;
+  int32 change_max_days = 5;
+  int32 change_warn_days = 6;
+  int32 change_inactive_days = 7;
+  int32 expire_date = 8;
+}
+
+message ShadowEntries {
+  repeated ShadowEntry entries = 1;
 }
