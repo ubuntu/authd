@@ -1,0 +1,7 @@
+[workspace]
+members = ["nss/"]
+exclude = ["vendor_rust/"]
+resolver = "2"
+
+[profile.release]
+lto = "thin"

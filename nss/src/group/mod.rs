@@ -1,0 +1,107 @@
+use crate::error;
+use libc::gid_t;
+use libnss::group::{Group, GroupHooks};
+use libnss::interop::Response;
+use tonic::Request;
+
+use crate::client::{self, authd};
+use authd::GroupEntry;
+
+pub struct AuthdGroup;
+impl GroupHooks for AuthdGroup {
+    /// get_all_entries returns all group entries.
+    fn get_all_entries() -> Response<Vec<Group>> {
+        get_all_entries()
+    }
+
+    /// get_entry_by_gid returns the group entry for the given gid.
+    fn get_entry_by_gid(gid: gid_t) -> Response<Group> {
+        get_entry_by_gid(gid)
+    }
+
+    /// get_entry_by_name returns the group entry for the given name.
+    fn get_entry_by_name(name: String) -> Response<Group> {
+        get_entry_by_name(name)
+    }
+}
+
+/// get_all_entries connects to the grpc server and asks for all group entries.
+fn get_all_entries() -> Response<Vec<Group>> {
+    super::RT.block_on(async {
+        let mut client = match client::new_client().await {
+            Ok(c) => c,
+            Err(e) => {
+                error!("could not connect to gRPC server: {}", e);
+                return Response::Unavail;
+            }
+        };
+
+        let request = Request::new(authd::Empty {});
+        match client.get_group_entries(request).await {
+            Ok(r) => Response::Success(group_entries_to_groups(r.into_inner().entries)),
+            Err(e) => {
+                error!("error when listing groups: {}", e.message());
+                super::grpc_status_to_nss_response(e)
+            }
+        }
+    })
+}
+
+/// get_entry_by_gid connects to the grpc server and asks for the group entry with the given gid.
+fn get_entry_by_gid(gid: gid_t) -> Response<Group> {
+    super::RT.block_on(async {
+        let mut client = match client::new_client().await {
+            Ok(c) => c,
+            Err(e) => {
+                error!("could not connect to gRPC server: {}", e);
+                return Response::Unavail;
+            }
+        };
+
+        let req = Request::new(authd::GetByIdRequest { id: gid });
+        match client.get_group_by_gid(req).await {
+            Ok(r) => Response::Success(group_entry_to_group(r.into_inner())),
+            Err(e) => {
+                error!("error when getting group by gid: {}", e.message());
+                super::grpc_status_to_nss_response(e)
+            }
+        }
+    })
+}
+
+/// get_entry_by_name connects to the grpc server and asks for the group entry with the given name.
+fn get_entry_by_name(name: String) -> Response<Group> {
+    super::RT.block_on(async {
+        let mut client = match client::new_client().await {
+            Ok(c) => c,
+            Err(e) => {
+                error!("could not connect to gRPC server: {}", e);
+                return Response::Unavail;
+            }
+        };
+
+        let req = Request::new(authd::GetByNameRequest { name });
+        match client.get_group_by_name(req).await {
+            Ok(r) => Response::Success(group_entry_to_group(r.into_inner())),
+            Err(e) => {
+                error!("error when getting group by name: {}", e.message());
+                super::grpc_status_to_nss_response(e)
+            }
+        }
+    })
+}
+
+/// group_entry_to_group converts a GroupEntry to a libnss::Group.
+fn group_entry_to_group(entry: GroupEntry) -> Group {
+    Group {
+        name: entry.name,
+        passwd: entry.passwd,
+        gid: entry.gid,
+        members: entry.members,
+    }
+}
+
+/// group_entries_to_groups converts a Vec<GroupEntry> to a Vec<libnss::Group>.
+fn group_entries_to_groups(entries: Vec<GroupEntry>) -> Vec<Group> {
+    entries.into_iter().map(group_entry_to_group).collect()
+}
