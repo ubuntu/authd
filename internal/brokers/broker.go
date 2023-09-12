@@ -10,8 +10,8 @@ import (
 	"sync"
 
 	"github.com/godbus/dbus/v5"
+	"github.com/ubuntu/authd/internal/brokers/responses"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/responses"
 	"github.com/ubuntu/decorate"
 	"golang.org/x/exp/slices"
 )

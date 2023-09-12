@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ubuntu/authd/internal/responses"
+	"github.com/ubuntu/authd/internal/brokers/responses"
 	"golang.org/x/exp/slices"
 )
 

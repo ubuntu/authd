@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/responses"
+	"github.com/ubuntu/authd/internal/brokers/responses"
 	"github.com/ubuntu/authd/internal/testutils"
 )
 
