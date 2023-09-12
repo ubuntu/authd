@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	dbName = "authd.db"
+	dbName          = "authd.db"
+	dirtyFlagDbName = dbName + ".dirty"
 
 	userByNameBucketName   = "UserByName"
 	userByIDBucketName     = "UserByID"
@@ -97,7 +98,7 @@ func New(cacheDir string) (cache *Cache, err error) {
 	dbPath := filepath.Join(cacheDir, dbName)
 	defer decorate.OnError(&err, "could not create new database object at %q", dbPath)
 
-	dirtyFlagPath := dbPath + ".dirty"
+	dirtyFlagPath := filepath.Join(cacheDir, dirtyFlagDbName)
 
 	db, err := openAndInitDB(dbPath)
 	if err != nil {
