@@ -8,8 +8,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers/responses"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/responses"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
