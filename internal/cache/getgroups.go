@@ -30,6 +30,8 @@ func (c *Cache) GroupByName(name string) (Group, error) {
 // AllGroups returns all groups or an error if the database is corrupted.
 // Upon corruption, clearing the database is requested.
 func (c *Cache) AllGroups() (all []Group, err error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
@@ -73,6 +75,8 @@ func getGroup[K int | string](c *Cache, bucketName string, key K) (Group, error)
 	var gid int
 	var users []string
 
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	err := c.db.View(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {

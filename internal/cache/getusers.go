@@ -43,6 +43,8 @@ func (c *Cache) UserByName(name string) (UserPasswdShadow, error) {
 // AllUsers returns all users or an error if the database is corrupted.
 // Upon corruption, clearing the database is requested.
 func (c *Cache) AllUsers() (all []UserPasswdShadow, err error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
 		bucket, err := getBucket(tx, userByIDBucketName)
 		if err != nil {
@@ -70,6 +72,8 @@ func (c *Cache) AllUsers() (all []UserPasswdShadow, err error) {
 // getUser returns an user matching the key or an error if the database is corrupted or no entry was found.
 // Upon corruption, clearing the database is requested.
 func getUser[K int | string](c *Cache, bucketName string, key K) (u userDB, err error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
 		bucket, err := getBucket(tx, bucketName)
 		if err != nil {

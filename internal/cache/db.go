@@ -35,7 +35,7 @@ var (
 // Cache is our database API.
 type Cache struct {
 	db *bbolt.DB
-	mu sync.Mutex
+	mu sync.RWMutex
 
 	dirtyFlagPath string
 	doClear       chan struct{}
@@ -183,6 +183,8 @@ func openAndInitDB(path string) (*bbolt.DB, error) {
 // Close closes the db and signal the monitoring goroutine to stop.
 func (c *Cache) Close() error {
 	close(c.quit)
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	return c.db.Close()
 }
 

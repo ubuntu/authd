@@ -53,6 +53,9 @@ func redactTime(line string) string {
 // dumpToYaml deserializes the cache database to a writer in a yaml format.
 func (c *Cache) dumpToYaml() (string, error) {
 	d := make(map[string]map[string]string)
+
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	if err := c.db.View(func(tx *bbolt.Tx) error {
 		return tx.ForEach(func(name []byte, bucket *bbolt.Bucket) error {
 			d[string(name)] = make(map[string]string)
