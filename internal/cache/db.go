@@ -2,7 +2,9 @@ package cache
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -123,13 +125,11 @@ func New(cacheDir string) (cache *Cache, err error) {
 					if err := c.db.Close(); err != nil {
 						slog.Warn(fmt.Sprintf("Could not close database %v", err))
 					}
-					for err := os.RemoveAll(dbPath); err != nil; {
+					for err := os.Remove(dbPath); err != nil && !errors.Is(err, fs.ErrNotExist); {
 						slog.Error(fmt.Sprintf("Could not delete %v to clear up cache: %v", dbPath, err))
-						time.Sleep(time.Second)
 					}
-					for err := os.RemoveAll(c.dirtyFlagPath); err != nil; {
-						slog.Error(fmt.Sprintf("Could not delete %v to clear up cache: %v", c.dirtyFlagPath, err))
-						time.Sleep(time.Second)
+					for err := os.Remove(c.dirtyFlagPath); err != nil && !errors.Is(err, fs.ErrNotExist); {
+						slog.Error(fmt.Sprintf("Could not delete %v to clear up dirty flag file: %v", c.dirtyFlagPath, err))
 					}
 
 					db, err := openAndInitDB(dbPath)
