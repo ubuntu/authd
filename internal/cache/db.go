@@ -156,12 +156,12 @@ func New(cacheDir string) (cache *Cache, err error) {
 func openAndInitDB(path string) (*bbolt.DB, error) {
 	db, err := bbolt.Open(path, 0600, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't open database file: %v", err)
 	}
 	// Fail if permissions are not 0600
 	fileInfo, err := os.Stat(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't stat database file: %v", err)
 	}
 	perm := fileInfo.Mode().Perm()
 	if perm != 0600 {
