@@ -8,7 +8,7 @@ import (
 	"github.com/skip2/go-qrcode"
 )
 
-// qrcodeModel is the form layout type to allow authorizing and return a challenge.
+// qrcodeModel is the form layout type to allow authenticating and return a challenge.
 type qrcodeModel struct {
 	label       string
 	buttonModel *buttonModel
@@ -48,11 +48,11 @@ func (m qrcodeModel) Init() tea.Cmd {
 // Update handles events and actions.
 func (m qrcodeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
-	case startAuthorization:
+	case startAuthentication:
 		if !m.wait {
 			return m, nil
 		}
-		return m, sendEvent(isAuthorizedRequested{`{"wait": "true"}`})
+		return m, sendEvent(isAuthenticatedRequested{`{"wait": "true"}`})
 	}
 
 	switch msg := msg.(type) {

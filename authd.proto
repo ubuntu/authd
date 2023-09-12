@@ -9,7 +9,7 @@ service PAM {
   rpc SelectBroker(SBRequest) returns (SBResponse);
   rpc GetAuthenticationModes(GAMRequest) returns (GAMResponse);
   rpc SelectAuthenticationMode(SAMRequest) returns (SAMResponse);
-  rpc IsAuthorized(IARequest) returns (IAResponse);
+  rpc IsAuthenticated(IARequest) returns (IAResponse);
   rpc EndSession(ESRequest) returns (Empty);
 
   rpc SetDefaultBrokerForUser(SDBFURequest) returns (Empty);

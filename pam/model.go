@@ -22,7 +22,7 @@ const (
 	stageBrokerSelection
 	// stageUserSelection is to select an authentication mode.
 	stageAuthModeSelection
-	// stageChallenge let's the user entering a challenge or waiting from authorization from the broker.
+	// stageChallenge let's the user entering a challenge or waiting from authentication from the broker.
 	stageChallenge
 )
 
@@ -47,7 +47,7 @@ type model struct {
 	userSelectionModel     userSelectionModel
 	brokerSelectionModel   brokerSelectionModel
 	authModeSelectionModel authModeSelectionModel
-	authorizationModel     authorizationModel
+	authenticationModel    authenticationModel
 
 	exitMsg fmt.Stringer
 }
@@ -97,8 +97,8 @@ func (m *model) Init() tea.Cmd {
 	m.authModeSelectionModel = newAuthModeSelectionModel(m.client)
 	cmds = append(cmds, m.authModeSelectionModel.Init())
 
-	m.authorizationModel = newAuthorizationModel(m.client)
-	cmds = append(cmds, m.authorizationModel.Init())
+	m.authenticationModel = newAuthenticationModel(m.client)
+	cmds = append(cmds, m.authenticationModel.Init())
 
 	cmds = append(cmds, m.changeStage(stageUserSelection))
 	return tea.Batch(cmds...)
@@ -202,7 +202,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Info(context.TODO(), "UILayoutReceived")
 
 		return m, tea.Sequence(
-			m.authorizationModel.Compose(m.currentSession.brokerID, m.currentSession.sessionID, msg.layout),
+			m.authenticationModel.Compose(m.currentSession.brokerID, m.currentSession.sessionID, msg.layout),
 			m.changeStage(stageChallenge))
 
 	case SessionEnded:
@@ -218,7 +218,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	cmds = append(cmds, cmd)
 	m.authModeSelectionModel, cmd = m.authModeSelectionModel.Update(msg)
 	cmds = append(cmds, cmd)
-	m.authorizationModel, cmd = m.authorizationModel.Update(msg)
+	m.authenticationModel, cmd = m.authenticationModel.Update(msg)
 	cmds = append(cmds, cmd)
 
 	return m, tea.Batch(cmds...)
@@ -237,7 +237,7 @@ func (m *model) View() string {
 	case stageAuthModeSelection:
 		view.WriteString(m.authModeSelectionModel.View())
 	case stageChallenge:
-		view.WriteString(m.authorizationModel.View())
+		view.WriteString(m.authenticationModel.View())
 	default:
 		view.WriteString("INVALID STAGE")
 	}
@@ -260,7 +260,7 @@ func (m *model) currentStage() stage {
 	if m.authModeSelectionModel.Focused() {
 		return stageAuthModeSelection
 	}
-	if m.authorizationModel.Focused() {
+	if m.authenticationModel.Focused() {
 		return stageChallenge
 	}
 	return stageUserSelection
@@ -272,14 +272,14 @@ func (m *model) changeStage(s stage) tea.Cmd {
 	case stageUserSelection:
 		m.brokerSelectionModel.Blur()
 		m.authModeSelectionModel.Blur()
-		m.authorizationModel.Blur()
+		m.authenticationModel.Blur()
 
 		return m.userSelectionModel.Focus()
 
 	case stageBrokerSelection:
 		m.userSelectionModel.Blur()
 		m.authModeSelectionModel.Blur()
-		m.authorizationModel.Blur()
+		m.authenticationModel.Blur()
 
 		m.authModeSelectionModel.Reset()
 
@@ -288,9 +288,9 @@ func (m *model) changeStage(s stage) tea.Cmd {
 	case stageAuthModeSelection:
 		m.userSelectionModel.Blur()
 		m.brokerSelectionModel.Blur()
-		m.authorizationModel.Blur()
+		m.authenticationModel.Blur()
 
-		m.authorizationModel.Reset()
+		m.authenticationModel.Reset()
 
 		return m.authModeSelectionModel.Focus()
 
@@ -299,7 +299,7 @@ func (m *model) changeStage(s stage) tea.Cmd {
 		m.brokerSelectionModel.Blur()
 		m.authModeSelectionModel.Blur()
 
-		return m.authorizationModel.Focus()
+		return m.authenticationModel.Focus()
 	}
 
 	// TODO: error

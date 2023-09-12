@@ -42,7 +42,7 @@ type sessionInfo struct {
 	currentMfaStep int
 }
 
-type isAuthorizedCtx struct {
+type isAuthenticatedCtx struct {
 	ctx        context.Context
 	cancelFunc context.CancelFunc
 }
@@ -53,8 +53,8 @@ type Broker struct {
 	currentSessionsMu      sync.RWMutex
 	userLastSelectedMode   map[string]string
 	userLastSelectedModeMu sync.Mutex
-	isAuthorizedCalls      map[string]isAuthorizedCtx
-	isAuthorizedCallsMu    sync.Mutex
+	isAuthenticatedCalls   map[string]isAuthenticatedCtx
+	isAuthenticatedCallsMu sync.Mutex
 }
 
 type exampleUser struct {
@@ -141,8 +141,8 @@ func New(name string) (b *Broker, fullName, brandIcon string) {
 		currentSessionsMu:      sync.RWMutex{},
 		userLastSelectedMode:   make(map[string]string),
 		userLastSelectedModeMu: sync.Mutex{},
-		isAuthorizedCalls:      make(map[string]isAuthorizedCtx),
-		isAuthorizedCallsMu:    sync.Mutex{},
+		isAuthenticatedCalls:   make(map[string]isAuthenticatedCtx),
+		isAuthenticatedCallsMu: sync.Mutex{},
 	}, strings.ReplaceAll(name, "_", " "), fmt.Sprintf("/usr/share/brokers/%s.png", name)
 }
 
@@ -446,8 +446,8 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 	return uiLayoutInfo, nil
 }
 
-// IsAuthorized evaluates the provided authenticationData and returns the authorisation level of the user.
-func (b *Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, data string, err error) {
+// IsAuthenticated evaluates the provided authenticationData and returns the authentication status for the user.
+func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (access, data string, err error) {
 	sessionInfo, err := b.sessionInfo(sessionID)
 	if err != nil {
 		return "", "", err
@@ -461,24 +461,24 @@ func (b *Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData
 		}
 	}
 
-	// Handles the context that will be assigned for the IsAuthorized handler
-	b.isAuthorizedCallsMu.Lock()
-	if _, exists := b.isAuthorizedCalls[sessionID]; exists {
-		b.isAuthorizedCallsMu.Unlock()
-		return "", "", fmt.Errorf("IsAuthorized already running for session %q", sessionID)
+	// Handles the context that will be assigned for the IsAuthenticated handler
+	b.isAuthenticatedCallsMu.Lock()
+	if _, exists := b.isAuthenticatedCalls[sessionID]; exists {
+		b.isAuthenticatedCallsMu.Unlock()
+		return "", "", fmt.Errorf("IsAuthenticated already running for session %q", sessionID)
 	}
 	ctx, cancel := context.WithCancel(ctx)
-	b.isAuthorizedCalls[sessionID] = isAuthorizedCtx{ctx, cancel}
-	b.isAuthorizedCallsMu.Unlock()
+	b.isAuthenticatedCalls[sessionID] = isAuthenticatedCtx{ctx, cancel}
+	b.isAuthenticatedCallsMu.Unlock()
 
-	// Cleans up the IsAuthorized context when the call is done.
+	// Cleans up the IsAuthenticated context when the call is done.
 	defer func() {
-		b.isAuthorizedCallsMu.Lock()
-		delete(b.isAuthorizedCalls, sessionID)
-		b.isAuthorizedCallsMu.Unlock()
+		b.isAuthenticatedCallsMu.Lock()
+		delete(b.isAuthenticatedCalls, sessionID)
+		b.isAuthenticatedCallsMu.Unlock()
 	}()
 
-	access, data, err = b.handleIsAuthorized(b.isAuthorizedCalls[sessionID].ctx, sessionInfo, authData)
+	access, data, err = b.handleIsAuthenticated(b.isAuthenticatedCalls[sessionID].ctx, sessionInfo, authData)
 	if access == responses.AuthAllowed {
 		switch sessionInfo.username {
 		case "user-needs-reset":
@@ -511,7 +511,7 @@ func (b *Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData
 }
 
 //nolint:unparam // This is an static example implementation, so we don't return an error other than nil.
-func (b *Broker) handleIsAuthorized(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (access, data string, err error) {
+func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (access, data string, err error) {
 	// Note that the "wait" authentication can be cancelled and switch to another mode with a challenge.
 	// Take into account the cancellation.
 	switch sessionInfo.selectedMode {
@@ -614,9 +614,9 @@ func (b *Broker) EndSession(ctx context.Context, sessionID string) error {
 		return err
 	}
 
-	// Checks if there is a isAuthorizedCall running for this session and cancels it before ending the session.
-	if _, exists := b.isAuthorizedCalls[sessionID]; exists {
-		b.CancelIsAuthorized(ctx, sessionID)
+	// Checks if there is a isAuthenticated call running for this session and cancels it before ending the session.
+	if _, exists := b.isAuthenticatedCalls[sessionID]; exists {
+		b.CancelIsAuthenticated(ctx, sessionID)
 	}
 
 	b.currentSessionsMu.Lock()
@@ -625,16 +625,16 @@ func (b *Broker) EndSession(ctx context.Context, sessionID string) error {
 	return nil
 }
 
-// CancelIsAuthorized cancels the IsAuthorized request for the specified session.
-// If there is no pending IsAuthorized call for the session, this is a no-op.
-func (b *Broker) CancelIsAuthorized(ctx context.Context, sessionID string) {
-	b.isAuthorizedCallsMu.Lock()
-	defer b.isAuthorizedCallsMu.Unlock()
-	if _, exists := b.isAuthorizedCalls[sessionID]; !exists {
+// CancelIsAuthenticated cancels the IsAuthenticated request for the specified session.
+// If there is no pending IsAuthenticated call for the session, this is a no-op.
+func (b *Broker) CancelIsAuthenticated(ctx context.Context, sessionID string) {
+	b.isAuthenticatedCallsMu.Lock()
+	defer b.isAuthenticatedCallsMu.Unlock()
+	if _, exists := b.isAuthenticatedCalls[sessionID]; !exists {
 		return
 	}
-	b.isAuthorizedCalls[sessionID].cancelFunc()
-	delete(b.isAuthorizedCalls, sessionID)
+	b.isAuthenticatedCalls[sessionID].cancelFunc()
+	delete(b.isAuthenticatedCalls, sessionID)
 }
 
 func mapToJSON(input map[string]string) string {

@@ -1,4 +1,0 @@
-FIRST CALL:
-	access: 
-	data: 
-	err: rpc error: code = Unknown desc = can't check authorization: no broker found for session "no broker"

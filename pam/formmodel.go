@@ -8,11 +8,11 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-// formModel is the form layout type to allow authorizing and return a challenge.
+// formModel is the form layout type to allow authentication and return a challenge.
 type formModel struct {
 	label string
 
-	focusableModels []authorizationComponent
+	focusableModels []authenticationComponent
 	focusIndex      int
 
 	wait bool
@@ -20,7 +20,7 @@ type formModel struct {
 
 // newFormModel initializes and return a new formModel.
 func newFormModel(label, entryType, buttonLabel string, wait bool) formModel {
-	var focusableModels []authorizationComponent
+	var focusableModels []authenticationComponent
 
 	// TODO: add digits and force validation.
 	switch entryType {
@@ -53,11 +53,11 @@ func (m formModel) Init() tea.Cmd {
 // Update handles events and actions.
 func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
-	case startAuthorization:
+	case startAuthentication:
 		if !m.wait {
 			return m, nil
 		}
-		return m, sendEvent(isAuthorizedRequested{`{"wait": "true"}`})
+		return m, sendEvent(isAuthenticatedRequested{`{"wait": "true"}`})
 	}
 
 	switch msg := msg.(type) {
@@ -71,7 +71,7 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			entry := m.focusableModels[m.focusIndex]
 			switch entry := entry.(type) {
 			case *textinputModel:
-				return m, sendEvent(isAuthorizedRequested{content: fmt.Sprintf(`{"challenge": "%s"}`, entry.Value())})
+				return m, sendEvent(isAuthenticatedRequested{content: fmt.Sprintf(`{"challenge": "%s"}`, entry.Value())})
 			case *buttonModel:
 				return m, sendEvent(reselectAuthMode{})
 			}
@@ -102,7 +102,7 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		var model tea.Model
 		model, cmd = fm.Update(msg)
-		m.focusableModels[i] = convertTo[authorizationComponent](model)
+		m.focusableModels[i] = convertTo[authenticationComponent](model)
 	}
 
 	return m, cmd

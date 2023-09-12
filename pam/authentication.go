@@ -14,41 +14,41 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// sendIsAuthorized sends the authorization challenges or wait request to the brokers.
+// sendIsAuthenticated sends the authentication challenges or wait request to the brokers.
 // The event will contain the returned value from the broker.
-func sendIsAuthorized(ctx context.Context, client authd.PAMClient, sessionID, content string) tea.Cmd {
+func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID, content string) tea.Cmd {
 	return func() tea.Msg {
-		res, err := client.IsAuthorized(ctx, &authd.IARequest{
+		res, err := client.IsAuthenticated(ctx, &authd.IARequest{
 			SessionId:          sessionID,
 			AuthenticationData: content,
 		})
 		if err != nil {
 			if st := status.Convert(err); st.Code() == codes.Canceled {
-				return isAuthorizedResultReceived{
+				return isAuthenticatedResultReceived{
 					access: responses.AuthCancelled,
 				}
 			}
 			return pamIgnore{
-				msg: fmt.Sprintf("Authorisation status failure: %v", err),
+				msg: fmt.Sprintf("Authentication status failure: %v", err),
 			}
 		}
 
-		return isAuthorizedResultReceived{
+		return isAuthenticatedResultReceived{
 			access: res.Access,
 			data:   res.Data,
 		}
 	}
 }
 
-// isAuthorizedRequested is the internal events signalling that authorization
+// isAuthenticatedRequested is the internal events signalling that authentication
 // with the given challenge or wait has been requested.
-type isAuthorizedRequested struct {
+type isAuthenticatedRequested struct {
 	content string
 }
 
-// isAuthorizedResultReceived is the internal event with the authorization access result
+// isAuthenticatedResultReceived is the internal event with the authentication access result
 // and data that was retrieved.
-type isAuthorizedResultReceived struct {
+type isAuthenticatedResultReceived struct {
 	access string
 	data   string
 }
@@ -57,8 +57,8 @@ type isAuthorizedResultReceived struct {
 // reenable the broker).
 type reselectAuthMode struct{}
 
-// authorizationComponent is the interface that all sub layout models needs to match.
-type authorizationComponent interface {
+// authenticationComponent is the interface that all sub layout models needs to match.
+type authenticationComponent interface {
 	Init() tea.Cmd
 	Update(msg tea.Msg) (tea.Model, tea.Cmd)
 	View() string
@@ -66,58 +66,58 @@ type authorizationComponent interface {
 	Blur()
 }
 
-// authorizationModel is the orchestrator model of all the authorization sub model layouts.
-type authorizationModel struct {
+// authenticationModel is the orchestrator model of all the authentication sub model layouts.
+type authenticationModel struct {
 	focused bool
 
 	client authd.PAMClient
 
-	currentModel       authorizationComponent
-	currentSessionID   string
-	currentBrokerID    string
-	cancelIsAuthorized func()
+	currentModel          authenticationComponent
+	currentSessionID      string
+	currentBrokerID       string
+	cancelIsAuthenticated func()
 
 	errorMsg string
 }
 
-// startAuthorization signals that the authorization model can start wait:true authorization if supported.
-type startAuthorization struct{}
+// startAuthentication signals that the authentication model can start wait:true authentication if supported.
+type startAuthentication struct{}
 
-// newAuthorizationModel initializes a authorizationModel which needs to be Compose then.
-func newAuthorizationModel(client authd.PAMClient) authorizationModel {
-	return authorizationModel{
-		client:             client,
-		cancelIsAuthorized: func() {},
+// newAuthenticationModel initializes a authenticationModel which needs to be Compose then.
+func newAuthenticationModel(client authd.PAMClient) authenticationModel {
+	return authenticationModel{
+		client:                client,
+		cancelIsAuthenticated: func() {},
 	}
 }
 
-// Init initializes authorizationModel.
-func (m *authorizationModel) Init() tea.Cmd {
+// Init initializes authenticationModel.
+func (m *authenticationModel) Init() tea.Cmd {
 	return nil
 }
 
 // Update handles events and actions.
-func (m *authorizationModel) Update(msg tea.Msg) (authorizationModel, tea.Cmd) {
+func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case reselectAuthMode:
-		m.cancelIsAuthorized()
+		m.cancelIsAuthenticated()
 		return *m, sendEvent(AuthModeSelected{})
 
-	case isAuthorizedRequested:
-		m.cancelIsAuthorized()
+	case isAuthenticatedRequested:
+		m.cancelIsAuthenticated()
 		ctx, cancel := context.WithCancel(context.Background())
-		m.cancelIsAuthorized = cancel
-		return *m, sendIsAuthorized(ctx, m.client, m.currentSessionID, msg.content)
+		m.cancelIsAuthenticated = cancel
+		return *m, sendIsAuthenticated(ctx, m.client, m.currentSessionID, msg.content)
 
-	case isAuthorizedResultReceived:
-		log.Infof(context.TODO(), "isAuthorizedResultReceived: %v", msg.access)
+	case isAuthenticatedResultReceived:
+		log.Infof(context.TODO(), "isAuthenticatedResultReceived: %v", msg.access)
 		switch msg.access {
 		case responses.AuthAllowed:
 			return *m, sendEvent(pamSuccess{brokerID: m.currentBrokerID})
 
 		case responses.AuthRetry:
 			m.errorMsg = dataToMsg(msg.data)
-			return *m, sendEvent(startAuthorization{})
+			return *m, sendEvent(startAuthentication{})
 
 		case responses.AuthDenied:
 			errMsg := "Access denied"
@@ -144,13 +144,13 @@ func (m *authorizationModel) Update(msg tea.Msg) (authorizationModel, tea.Cmd) {
 	var model tea.Model
 	if m.currentModel != nil {
 		model, cmd = m.currentModel.Update(msg)
-		m.currentModel = convertTo[authorizationComponent](model)
+		m.currentModel = convertTo[authenticationComponent](model)
 	}
 	return *m, cmd
 }
 
 // Focus focuses this model.
-func (m *authorizationModel) Focus() tea.Cmd {
+func (m *authenticationModel) Focus() tea.Cmd {
 	m.focused = true
 
 	if m.currentModel == nil {
@@ -160,12 +160,12 @@ func (m *authorizationModel) Focus() tea.Cmd {
 }
 
 // Focused returns if this model is focused.
-func (m *authorizationModel) Focused() bool {
+func (m *authenticationModel) Focused() bool {
 	return m.focused
 }
 
 // Blur releases the focus from this model.
-func (m *authorizationModel) Blur() {
+func (m *authenticationModel) Blur() {
 	m.focused = false
 
 	if m.currentModel == nil {
@@ -175,10 +175,10 @@ func (m *authorizationModel) Blur() {
 }
 
 // Compose creates and attaches the sub layout models based on UILayout.
-func (m *authorizationModel) Compose(brokerID, sessionID string, layout *authd.UILayout) tea.Cmd {
+func (m *authenticationModel) Compose(brokerID, sessionID string, layout *authd.UILayout) tea.Cmd {
 	m.currentBrokerID = brokerID
 	m.currentSessionID = sessionID
-	m.cancelIsAuthorized = func() {}
+	m.cancelIsAuthenticated = func() {}
 
 	switch layout.Type {
 	case "form":
@@ -204,11 +204,11 @@ func (m *authorizationModel) Compose(brokerID, sessionID string, layout *authd.U
 		return sendEvent(pamSystemError{msg: fmt.Sprintf("unknown layout type: %q", layout.Type)})
 	}
 
-	return sendEvent(startAuthorization{})
+	return sendEvent(startAuthentication{})
 }
 
-// View renders a text view of the authorization UI.
-func (m authorizationModel) View() string {
+// View renders a text view of the authentication UI.
+func (m authenticationModel) View() string {
 	if m.currentModel == nil {
 		return ""
 	}
@@ -218,10 +218,10 @@ func (m authorizationModel) View() string {
 	)
 }
 
-// Resets zeroes any internal state on the authorizationModel.
-func (m *authorizationModel) Reset() {
-	m.cancelIsAuthorized()
-	m.cancelIsAuthorized = func() {}
+// Resets zeroes any internal state on the authenticationModel.
+func (m *authenticationModel) Reset() {
+	m.cancelIsAuthenticated()
+	m.cancelIsAuthenticated = func() {}
 	m.currentModel = nil
 	m.currentSessionID = ""
 	m.currentBrokerID = ""

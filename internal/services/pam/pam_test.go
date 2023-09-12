@@ -282,7 +282,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 	}
 }
 
-func TestIsAuthorized(t *testing.T) {
+func TestIsAuthenticated(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
@@ -295,9 +295,9 @@ func TestIsAuthorized(t *testing.T) {
 		secondCall      bool
 		cancelFirstCall bool
 	}{
-		"Successfully authorize":                           {},
-		"Successfully authorize if first call is canceled": {username: "IA_second_call", secondCall: true, cancelFirstCall: true},
-		"Denies authentication when broker times out":      {username: "IA_timeout"},
+		"Successfully authenticate":                           {},
+		"Successfully authenticate if first call is canceled": {username: "IA_second_call", secondCall: true, cancelFirstCall: true},
+		"Denies authentication when broker times out":         {username: "IA_timeout"},
 
 		"Empty data gets JSON formatted": {username: "IA_empty_data"},
 
@@ -306,7 +306,7 @@ func TestIsAuthorized(t *testing.T) {
 		"Error when there is no broker": {sessionID: "no broker", noSession: true},
 
 		// broker errors
-		"Error when authorizing":                            {username: "IA_error"},
+		"Error when authenticating":                         {username: "IA_error"},
 		"Error when broker returns invalid access":          {username: "IA_invalid"},
 		"Error when broker returns invalid data":            {username: "IA_invalid_data"},
 		"Error when calling second time without cancelling": {username: "IA_second_call", secondCall: true},
@@ -337,7 +337,7 @@ func TestIsAuthorized(t *testing.T) {
 					SessionId:          tc.sessionID,
 					AuthenticationData: "some data",
 				}
-				iaResp, err := testClient.IsAuthorized(ctx, iaReq)
+				iaResp, err := testClient.IsAuthenticated(ctx, iaReq)
 				firstCall = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n",
 					iaResp.GetAccess(),
 					iaResp.GetData(),
@@ -357,7 +357,7 @@ func TestIsAuthorized(t *testing.T) {
 					SessionId:          tc.sessionID,
 					AuthenticationData: "some data",
 				}
-				iaResp, err := testClient.IsAuthorized(context.Background(), iaReq)
+				iaResp, err := testClient.IsAuthenticated(context.Background(), iaReq)
 				secondCall = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n",
 					iaResp.GetAccess(),
 					iaResp.GetData(),
@@ -368,7 +368,7 @@ func TestIsAuthorized(t *testing.T) {
 
 			got := firstCall + secondCall
 			want := testutils.LoadWithUpdateFromGolden(t, got)
-			require.Equal(t, want, got, "IsAuthorized should return the expected combined data, but did not")
+			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
 		})
 	}
 }
