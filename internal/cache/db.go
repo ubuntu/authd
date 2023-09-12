@@ -37,9 +37,10 @@ type Cache struct {
 	db *bbolt.DB
 	mu sync.RWMutex
 
-	dirtyFlagPath string
-	doClear       chan struct{}
-	quit          chan struct{}
+	dirtyFlagPath  string
+	doClear        chan struct{}
+	quit           chan struct{}
+	cleanupQuitted chan struct{}
 }
 
 // UserInfo is the user information returned by the broker. We use that to build our own buckets content.
@@ -102,14 +103,16 @@ func New(cacheDir string) (cache *Cache, err error) {
 	}
 
 	c := Cache{
-		db:            db,
-		dirtyFlagPath: dirtyFlagPath,
-		doClear:       make(chan struct{}),
-		quit:          make(chan struct{}),
+		db:             db,
+		dirtyFlagPath:  dirtyFlagPath,
+		doClear:        make(chan struct{}),
+		quit:           make(chan struct{}),
+		cleanupQuitted: make(chan struct{}),
 	}
 
 	// TODO: clean up old users if not connected.
 	go func() {
+		defer close(c.cleanupQuitted)
 		for {
 			select {
 			case <-c.doClear:
@@ -183,6 +186,7 @@ func openAndInitDB(path string) (*bbolt.DB, error) {
 // Close closes the db and signal the monitoring goroutine to stop.
 func (c *Cache) Close() error {
 	close(c.quit)
+	<-c.cleanupQuitted
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.db.Close()
