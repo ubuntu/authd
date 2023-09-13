@@ -21,15 +21,21 @@ func TestNew(t *testing.T) {
 	perm0000 := os.FileMode(0000)
 
 	tests := map[string]struct {
-		dbFile string
-		dirty  bool
-		perm   *fs.FileMode
+		dbFile          string
+		dirtyFlag       bool
+		perm            *fs.FileMode
+		corruptedDbFile bool
+		markDirty       bool
 
 		wantErr bool
 	}{
-		"New without any initialized database":    {},
-		"New with already existing database":      {dbFile: "multiple_users_and_groups"},
-		"Database flagged as dirty is cleared up": {dbFile: "multiple_users_and_groups", dirty: true},
+		"New without any initialized database": {},
+		"New with already existing database":   {dbFile: "multiple_users_and_groups"},
+
+		// Corrupted databases
+		"Database flagged as dirty is cleared up":              {dbFile: "multiple_users_and_groups", dirtyFlag: true},
+		"Corrupted database when opening is cleared up":        {corruptedDbFile: true},
+		"Dynamically mark database as corrupted is cleared up": {markDirty: true},
 
 		"Error on cacheDir non existent cacheDir":      {dbFile: "-", wantErr: true},
 		"Error on invalid permission on database file": {dbFile: "multiple_users_and_groups", perm: &perm0644, wantErr: true},
@@ -49,13 +55,18 @@ func TestNew(t *testing.T) {
 			} else if tc.dbFile != "" {
 				createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
 			}
-			if tc.dirty {
+			if tc.dirtyFlag {
 				err := os.WriteFile(filepath.Join(cacheDir, cache.DirtyFlagDbName), nil, 0600)
 				require.NoError(t, err, "Setup: could not create dirty flag file")
 			}
 			if tc.perm != nil {
 				err := os.Chmod(dbDestPath, *tc.perm)
 				require.NoError(t, err, "Setup: could not change mode of database file")
+			}
+
+			if tc.corruptedDbFile {
+				err := os.WriteFile(filepath.Join(cacheDir, cache.DbName), []byte("Corrupted db"), 0600)
+				require.NoError(t, err, "Setup: Can't update the file with invalid db content")
 			}
 
 			c, err := cache.New(cacheDir)
@@ -66,7 +77,9 @@ func TestNew(t *testing.T) {
 			require.NoError(t, err)
 			defer c.Close()
 
-			if tc.dirty {
+			if tc.markDirty {
+				// Mark the database to be cleared. This is not part of the API and only for tests.
+				cache.RequestClearDatabase(c)
 				// Let the cache cleanup start proceeding
 				time.Sleep(200 * time.Millisecond)
 			}
