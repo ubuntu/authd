@@ -81,7 +81,7 @@ func TestNew(t *testing.T) {
 				// Mark the database to be cleared. This is not part of the API and only for tests.
 				cache.RequestClearDatabase(c)
 				// Let the cache cleanup start proceeding
-				time.Sleep(200 * time.Millisecond)
+				time.Sleep(time.Millisecond)
 			}
 
 			got, err := dumpToYaml(c)
