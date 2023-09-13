@@ -100,8 +100,22 @@ func New(cacheDir string) (cache *Cache, err error) {
 
 	dirtyFlagPath := filepath.Join(cacheDir, dirtyFlagDbName)
 
-	db, err := openAndInitDB(dbPath)
-	if err != nil {
+	var db *bbolt.DB
+	var i int
+	for {
+		db, err = openAndInitDB(dbPath, dirtyFlagPath)
+		if err == nil {
+			break
+		}
+
+		if errors.Is(err, errRetryDB{}) {
+			if i == 3 {
+				return nil, errors.Unwrap(err)
+			}
+			i++
+			continue
+		}
+
 		return nil, err
 	}
 
@@ -126,14 +140,8 @@ func New(cacheDir string) (cache *Cache, err error) {
 					if err := c.db.Close(); err != nil {
 						slog.Warn(fmt.Sprintf("Could not close database %v", err))
 					}
-					for err := os.Remove(dbPath); err != nil && !errors.Is(err, fs.ErrNotExist); {
-						slog.Error(fmt.Sprintf("Could not delete %v to clear up cache: %v", dbPath, err))
-					}
-					for err := os.Remove(c.dirtyFlagPath); err != nil && !errors.Is(err, fs.ErrNotExist); {
-						slog.Error(fmt.Sprintf("Could not delete %v to clear up dirty flag file: %v", c.dirtyFlagPath, err))
-					}
 
-					db, err := openAndInitDB(dbPath)
+					db, err := openAndInitDB(dbPath, c.dirtyFlagPath)
 					if err != nil {
 						panic(fmt.Sprintf("CRITICAL: unrecoverable state: could not recreate database: %v", err))
 					}
@@ -145,17 +153,22 @@ func New(cacheDir string) (cache *Cache, err error) {
 		}
 	}()
 
-	if _, err := os.Stat(dirtyFlagPath); err == nil {
-		c.doClear <- struct{}{}
-	}
-
 	return &c, nil
 }
 
 // openAndInitDB open a pre-existing database and potentially intializes its buckets.
-func openAndInitDB(path string) (*bbolt.DB, error) {
+// It clears up any database previously marked as dirty or if it’s corrupted.
+func openAndInitDB(path, dirtyFlagPath string) (*bbolt.DB, error) {
+	if _, err := os.Stat(dirtyFlagPath); err == nil {
+		clearDatabase(path, dirtyFlagPath)
+	}
+
 	db, err := bbolt.Open(path, 0600, nil)
 	if err != nil {
+		if errors.Is(err, bbolt.ErrInvalid) {
+			clearDatabase(path, dirtyFlagPath)
+			return nil, errRetryDB{err: err}
+		}
 		return nil, fmt.Errorf("can't open database file: %v", err)
 	}
 	// Fail if permissions are not 0600
@@ -202,6 +215,15 @@ func (c *Cache) requestClearDatabase() {
 	select {
 	case c.doClear <- struct{}{}:
 	default:
+	}
+}
+
+func clearDatabase(dbPath, dirtyFlagPath string) {
+	if err := os.Remove(dbPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		slog.Error(fmt.Sprintf("Could not delete %v to clear up cache: %v", dbPath, err))
+	}
+	if err := os.Remove(dirtyFlagPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		slog.Error(fmt.Sprintf("Could not delete %v to clear up dirty flag file: %v", dirtyFlagPath, err))
 	}
 }
 
@@ -275,3 +297,21 @@ func (err ErrNoDataFound) Error() string {
 
 // Is makes this error insensitive to the key and bucket name.
 func (ErrNoDataFound) Is(target error) bool { return target == ErrNoDataFound{} }
+
+// errRetryDB is returned when we want to retry opening the database.
+type errRetryDB struct {
+	err error
+}
+
+// Error implements the error interface.
+func (err errRetryDB) Error() string {
+	return "ErrRetryDB"
+}
+
+// Unwrap allows to unwrap original error.
+func (err errRetryDB) Unwrap() error {
+	return err.err
+}
+
+// Is makes this error insensitive to the key and bucket name.
+func (errRetryDB) Is(target error) bool { return target == errRetryDB{} }
