@@ -104,9 +104,9 @@ func (b *Bus) SelectAuthenticationMode(sessionID, authenticationModeName string)
 	return uiLayoutInfo, nil
 }
 
-// IsAuthorized is the method through which the broker and the daemon will communicate once dbusInterface.IsAuthorized is called.
-func (b *Bus) IsAuthorized(sessionID, authenticationData string) (access, data string, dbusErr *dbus.Error) {
-	access, data, err := b.broker.IsAuthorized(context.Background(), sessionID, authenticationData)
+// IsAuthenticated is the method through which the broker and the daemon will communicate once dbusInterface.IsAuthenticated is called.
+func (b *Bus) IsAuthenticated(sessionID, authenticationData string) (access, data string, dbusErr *dbus.Error) {
+	access, data, err := b.broker.IsAuthenticated(context.Background(), sessionID, authenticationData)
 	if err != nil {
 		return "", "", dbus.MakeFailedError(err)
 	}
@@ -122,8 +122,8 @@ func (b *Bus) EndSession(sessionID string) (dbusErr *dbus.Error) {
 	return nil
 }
 
-// CancelIsAuthorized is the method through which the broker and the daemon will communicate once dbusInterface.CancelIsAuthorized is called.
-func (b *Bus) CancelIsAuthorized(sessionID string) (dbusErr *dbus.Error) {
-	b.broker.CancelIsAuthorized(context.Background(), sessionID)
+// CancelIsAuthenticated is the method through which the broker and the daemon will communicate once dbusInterface.CancelIsAuthenticated is called.
+func (b *Bus) CancelIsAuthenticated(sessionID string) (dbusErr *dbus.Error) {
+	b.broker.CancelIsAuthenticated(context.Background(), sessionID)
 	return nil
 }

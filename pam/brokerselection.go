@@ -13,7 +13,7 @@ import (
 	"github.com/ubuntu/authd/internal/log"
 )
 
-// brokerSelectionModel is the model list selection layout to allow authorizing and return a challenge.
+// brokerSelectionModel is the model list selection layout to allow authenticating and return a challenge.
 type brokerSelectionModel struct {
 	list.Model
 	focused bool

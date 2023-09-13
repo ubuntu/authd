@@ -1,8 +1,0 @@
-FIRST CALL:
-	access: allowed
-	data: {"mock_answer": "authentication allowed by timeout"}
-	err: <nil>
-SECOND CALL:
-	access: 
-	data: 
-	err: Broker "TestIsAuthorized_Error_when_calling_IsAuthorized_a_second_time_without_cancelling": IsAuthorized already running for session "IA_second_call"

@@ -199,7 +199,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 	}
 }
 
-func TestIsAuthorized(t *testing.T) {
+func TestIsAuthenticated(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
@@ -210,17 +210,17 @@ func TestIsAuthorized(t *testing.T) {
 	}{
 		//TODO: Once validation is implemented, add cases to check if the data returned by the broker matches what is expected from the access code.
 
-		"Successfully authorize":                             {sessionID: "success"},
-		"Successfully authorize after cancelling first call": {sessionID: "IA_second_call", secondCall: true},
-		"Denies authentication when broker times out":        {sessionID: "IA_timeout"},
+		"Successfully authenticate":                             {sessionID: "success"},
+		"Successfully authenticate after cancelling first call": {sessionID: "IA_second_call", secondCall: true},
+		"Denies authentication when broker times out":           {sessionID: "IA_timeout"},
 
 		"Empty data gets JSON formatted": {sessionID: "IA_empty_data"},
 
 		// broker errors
-		"Error when authorizing":                                           {sessionID: "IA_error"},
-		"Error when broker returns invalid access":                         {sessionID: "IA_invalid"},
-		"Error when broker returns invalid data":                           {sessionID: "IA_invalid_data"},
-		"Error when calling IsAuthorized a second time without cancelling": {sessionID: "IA_second_call", secondCall: true, cancelFirstCall: true},
+		"Error when authenticating":                                           {sessionID: "IA_error"},
+		"Error when broker returns invalid access":                            {sessionID: "IA_invalid"},
+		"Error when broker returns invalid data":                              {sessionID: "IA_invalid_data"},
+		"Error when calling IsAuthenticated a second time without cancelling": {sessionID: "IA_second_call", secondCall: true, cancelFirstCall: true},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -229,7 +229,7 @@ func TestIsAuthorized(t *testing.T) {
 
 			b := newBrokerForTests(t, "")
 
-			// Stores the combined output of both calls to IsAuthorized
+			// Stores the combined output of both calls to IsAuthenticated
 			var firstCallReturn, secondCallReturn string
 
 			ctx, cancel := context.WithCancel(context.Background())
@@ -238,7 +238,7 @@ func TestIsAuthorized(t *testing.T) {
 			done := make(chan struct{})
 			go func() {
 				defer close(done)
-				access, gotData, err := b.IsAuthorized(ctx, tc.sessionID, "password")
+				access, gotData, err := b.IsAuthenticated(ctx, tc.sessionID, "password")
 				firstCallReturn = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n", access, gotData, err)
 			}()
 
@@ -250,19 +250,19 @@ func TestIsAuthorized(t *testing.T) {
 					cancel()
 					<-done
 				}
-				access, gotData, err := b.IsAuthorized(context.Background(), tc.sessionID, "password")
+				access, gotData, err := b.IsAuthenticated(context.Background(), tc.sessionID, "password")
 				secondCallReturn = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n", access, gotData, err)
 			}
 
 			<-done
 			gotStr := firstCallReturn + secondCallReturn
 			want := testutils.LoadWithUpdateFromGolden(t, gotStr)
-			require.Equal(t, want, gotStr, "IsAuthorized should return the expected combined data, but did not")
+			require.Equal(t, want, gotStr, "IsAuthenticated should return the expected combined data, but did not")
 		})
 	}
 }
 
-func TestCancelIsAuthorized(t *testing.T) {
+func TestCancelIsAuthenticated(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
@@ -270,7 +270,7 @@ func TestCancelIsAuthorized(t *testing.T) {
 
 		wantAnswer string
 	}{
-		"Successfully cancels IsAuthorized":    {sessionID: "IA_wait", wantAnswer: responses.AuthCancelled},
+		"Successfully cancels IsAuthenticated": {sessionID: "IA_wait", wantAnswer: responses.AuthCancelled},
 		"Call returns denied if not cancelled": {sessionID: "IA_timeout", wantAnswer: responses.AuthDenied},
 	}
 	for name, tc := range tests {
@@ -284,18 +284,18 @@ func TestCancelIsAuthorized(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			done := make(chan struct{})
 			go func() {
-				access, _, _ = b.IsAuthorized(ctx, tc.sessionID, "password")
+				access, _, _ = b.IsAuthenticated(ctx, tc.sessionID, "password")
 				close(done)
 			}()
 			defer cancel()
 
 			if tc.sessionID == "IA_wait" {
-				// Give some time for the IsAuthorized routine to start.
+				// Give some time for the IsAuthenticated routine to start.
 				time.Sleep(time.Second)
 				cancel()
 			}
 			<-done
-			require.Equal(t, tc.wantAnswer, access, "IsAuthorized should return the expected access, but did not")
+			require.Equal(t, tc.wantAnswer, access, "IsAuthenticated should return the expected access, but did not")
 		})
 	}
 }

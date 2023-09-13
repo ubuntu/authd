@@ -32,12 +32,12 @@ type supportedUILayoutsReceived struct {
 	layouts []*authd.UILayout
 }
 
-// authModesReceived is the internal event signalling that the supported authorization modes have been received.
+// authModesReceived is the internal event signalling that the supported authentication modes have been received.
 type authModesReceived struct {
 	authModes []*authd.GAMResponse_AuthenticationMode
 }
 
-// authModeSelected is the internal event signalling that the an authorization mode has been selected.
+// authModeSelected is the internal event signalling that the an authentication mode has been selected.
 type authModeSelected struct {
 	id string
 }

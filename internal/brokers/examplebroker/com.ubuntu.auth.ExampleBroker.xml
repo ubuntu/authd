@@ -24,7 +24,7 @@
         <arg type="s" direction="in" name="authenticationModeName"/>
         <arg type="a{s}s" direction="out"  name="uiLayoutInfo"/>
     </method>
-    <method name="IsAuthorized">
+    <method name="IsAuthenticated">
         <arg type="s" direction="in" name="sessionID"/>
         <arg type="s" direction="in" name="authenticationData"/>
         <arg type="s" direction="out" name="access"/>
@@ -33,7 +33,7 @@
     <method name="EndSession">
         <arg type="s" direction="in" name="sessionID"/>
     </method>
-    <method name="CancelIsAuthorized">
+    <method name="CancelIsAuthenticated">
         <arg type="s" direction="in" name="sessionID"/>
     </method>
   </interface>

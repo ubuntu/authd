@@ -24,9 +24,9 @@ type brokerer interface {
 	NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error)
 	GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error)
 	SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error)
-	IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access, data string, err error)
+	IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (access, data string, err error)
 	EndSession(ctx context.Context, sessionID string) (err error)
-	CancelIsAuthorized(ctx context.Context, sessionID string)
+	CancelIsAuthenticated(ctx context.Context, sessionID string)
 }
 
 // Broker represents a broker object that can be used for authentication.
@@ -127,14 +127,14 @@ func (b Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authent
 	return b.validateUILayout(sessionID, uiLayoutInfo)
 }
 
-// IsAuthorized calls the broker corresponding method, stripping broker ID prefix from sessionID.
-func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData string) (access string, data string, err error) {
+// IsAuthenticated calls the broker corresponding method, stripping broker ID prefix from sessionID.
+func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (access string, data string, err error) {
 	sessionID = b.parseSessionID(sessionID)
 
 	// monitor ctx in goroutine to call cancel
 	done := make(chan struct{})
 	go func() {
-		access, data, err = b.brokerer.IsAuthorized(ctx, sessionID, authenticationData)
+		access, data, err = b.brokerer.IsAuthenticated(ctx, sessionID, authenticationData)
 		close(done)
 	}()
 
@@ -144,13 +144,13 @@ func (b Broker) IsAuthorized(ctx context.Context, sessionID, authenticationData 
 			return "", "", err
 		}
 	case <-ctx.Done():
-		b.cancelIsAuthorized(ctx, sessionID)
+		b.cancelIsAuthenticated(ctx, sessionID)
 		<-done
 	}
 
-	// Validate access authorization.
+	// Validate access authentication.
 	if !slices.Contains(responses.AuthReplies, access) {
-		return "", "", fmt.Errorf("invalid access authorization key: %v", access)
+		return "", "", fmt.Errorf("invalid access authentication key: %v", access)
 	}
 
 	// Validate json
@@ -170,12 +170,12 @@ func (b Broker) endSession(ctx context.Context, sessionID string) (err error) {
 	return b.brokerer.EndSession(ctx, sessionID)
 }
 
-// cancelIsAuthorized calls the broker corresponding method.
-// If the session does not have a pending IsAuthorized call, this is a no-op.
+// cancelIsAuthenticated calls the broker corresponding method.
+// If the session does not have a pending IsAuthenticated call, this is a no-op.
 //
-// Even though this is a public method, it should only be interacted with through IsAuthorized and ctx cancellation.
-func (b Broker) cancelIsAuthorized(ctx context.Context, sessionID string) {
-	b.brokerer.CancelIsAuthorized(ctx, sessionID)
+// Even though this is a public method, it should only be interacted with through IsAuthenticated and ctx cancellation.
+func (b Broker) cancelIsAuthenticated(ctx context.Context, sessionID string) {
+	b.brokerer.CancelIsAuthenticated(ctx, sessionID)
 }
 
 // generateValidators generates layout validators based on what is supported by the system.

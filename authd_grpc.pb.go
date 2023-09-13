@@ -24,7 +24,7 @@ const (
 	PAM_SelectBroker_FullMethodName             = "/PAM/SelectBroker"
 	PAM_GetAuthenticationModes_FullMethodName   = "/PAM/GetAuthenticationModes"
 	PAM_SelectAuthenticationMode_FullMethodName = "/PAM/SelectAuthenticationMode"
-	PAM_IsAuthorized_FullMethodName             = "/PAM/IsAuthorized"
+	PAM_IsAuthenticated_FullMethodName          = "/PAM/IsAuthenticated"
 	PAM_EndSession_FullMethodName               = "/PAM/EndSession"
 	PAM_SetDefaultBrokerForUser_FullMethodName  = "/PAM/SetDefaultBrokerForUser"
 )
@@ -38,7 +38,7 @@ type PAMClient interface {
 	SelectBroker(ctx context.Context, in *SBRequest, opts ...grpc.CallOption) (*SBResponse, error)
 	GetAuthenticationModes(ctx context.Context, in *GAMRequest, opts ...grpc.CallOption) (*GAMResponse, error)
 	SelectAuthenticationMode(ctx context.Context, in *SAMRequest, opts ...grpc.CallOption) (*SAMResponse, error)
-	IsAuthorized(ctx context.Context, in *IARequest, opts ...grpc.CallOption) (*IAResponse, error)
+	IsAuthenticated(ctx context.Context, in *IARequest, opts ...grpc.CallOption) (*IAResponse, error)
 	EndSession(ctx context.Context, in *ESRequest, opts ...grpc.CallOption) (*Empty, error)
 	SetDefaultBrokerForUser(ctx context.Context, in *SDBFURequest, opts ...grpc.CallOption) (*Empty, error)
 }
@@ -96,9 +96,9 @@ func (c *pAMClient) SelectAuthenticationMode(ctx context.Context, in *SAMRequest
 	return out, nil
 }
 
-func (c *pAMClient) IsAuthorized(ctx context.Context, in *IARequest, opts ...grpc.CallOption) (*IAResponse, error) {
+func (c *pAMClient) IsAuthenticated(ctx context.Context, in *IARequest, opts ...grpc.CallOption) (*IAResponse, error) {
 	out := new(IAResponse)
-	err := c.cc.Invoke(ctx, PAM_IsAuthorized_FullMethodName, in, out, opts...)
+	err := c.cc.Invoke(ctx, PAM_IsAuthenticated_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +132,7 @@ type PAMServer interface {
 	SelectBroker(context.Context, *SBRequest) (*SBResponse, error)
 	GetAuthenticationModes(context.Context, *GAMRequest) (*GAMResponse, error)
 	SelectAuthenticationMode(context.Context, *SAMRequest) (*SAMResponse, error)
-	IsAuthorized(context.Context, *IARequest) (*IAResponse, error)
+	IsAuthenticated(context.Context, *IARequest) (*IAResponse, error)
 	EndSession(context.Context, *ESRequest) (*Empty, error)
 	SetDefaultBrokerForUser(context.Context, *SDBFURequest) (*Empty, error)
 	mustEmbedUnimplementedPAMServer()
@@ -157,8 +157,8 @@ func (UnimplementedPAMServer) GetAuthenticationModes(context.Context, *GAMReques
 func (UnimplementedPAMServer) SelectAuthenticationMode(context.Context, *SAMRequest) (*SAMResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SelectAuthenticationMode not implemented")
 }
-func (UnimplementedPAMServer) IsAuthorized(context.Context, *IARequest) (*IAResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method IsAuthorized not implemented")
+func (UnimplementedPAMServer) IsAuthenticated(context.Context, *IARequest) (*IAResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsAuthenticated not implemented")
 }
 func (UnimplementedPAMServer) EndSession(context.Context, *ESRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EndSession not implemented")
@@ -269,20 +269,20 @@ func _PAM_SelectAuthenticationMode_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PAM_IsAuthorized_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PAM_IsAuthenticated_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(IARequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PAMServer).IsAuthorized(ctx, in)
+		return srv.(PAMServer).IsAuthenticated(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: PAM_IsAuthorized_FullMethodName,
+		FullMethod: PAM_IsAuthenticated_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PAMServer).IsAuthorized(ctx, req.(*IARequest))
+		return srv.(PAMServer).IsAuthenticated(ctx, req.(*IARequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -351,8 +351,8 @@ var PAM_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _PAM_SelectAuthenticationMode_Handler,
 		},
 		{
-			MethodName: "IsAuthorized",
-			Handler:    _PAM_IsAuthorized_Handler,
+			MethodName: "IsAuthenticated",
+			Handler:    _PAM_IsAuthenticated_Handler,
 		},
 		{
 			MethodName: "EndSession",

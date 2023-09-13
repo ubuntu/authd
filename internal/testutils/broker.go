@@ -30,16 +30,16 @@ object = /com/ubuntu/authd/%s
 interface = com.ubuntu.authd.%s
 `
 
-type isAuthorizedCtx struct {
+type isAuthenticatedCtx struct {
 	ctx        context.Context
 	cancelFunc context.CancelFunc
 }
 
 // BrokerBusMock is the D-Bus object that will answer calls for the broker mock.
 type BrokerBusMock struct {
-	name                string
-	isAuthorizedCalls   map[string]isAuthorizedCtx
-	isAuthorizedCallsMu sync.RWMutex
+	name                   string
+	isAuthenticatedCalls   map[string]isAuthenticatedCtx
+	isAuthenticatedCallsMu sync.RWMutex
 }
 
 // StartBusBrokerMock starts the D-Bus service and exports it on the system bus.
@@ -54,9 +54,9 @@ func StartBusBrokerMock(cfgDir string, brokerName string) (string, func(), error
 	}
 
 	bus := BrokerBusMock{
-		name:                brokerName,
-		isAuthorizedCalls:   map[string]isAuthorizedCtx{},
-		isAuthorizedCallsMu: sync.RWMutex{},
+		name:                   brokerName,
+		isAuthenticatedCalls:   map[string]isAuthenticatedCtx{},
+		isAuthenticatedCallsMu: sync.RWMutex{},
 	}
 
 	if err = conn.Export(&bus, dbus.ObjectPath(busObjectPath), busInterface); err != nil {
@@ -189,34 +189,34 @@ func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeNa
 	return map[string]string{}, nil
 }
 
-// IsAuthorized returns default values to be used in tests or an error if requested.
-func (b *BrokerBusMock) IsAuthorized(sessionID, authenticationData string) (access, data string, dbusErr *dbus.Error) {
-	// The IsAuthorized needs to function a bit differently to still allow tests to be executed in parallel.
+// IsAuthenticated returns default values to be used in tests or an error if requested.
+func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (access, data string, dbusErr *dbus.Error) {
+	// The IsAuthenticated needs to function a bit differently to still allow tests to be executed in parallel.
 	// We have to use both the prefixed sessionID and the parsed one in order to differentiate between test cases.
 	parsedID := parseSessionID(sessionID)
 
 	if parsedID == "IA_error" {
-		return "", "", dbus.MakeFailedError(fmt.Errorf("Broker %q: IsAuthorized errored out", b.name))
+		return "", "", dbus.MakeFailedError(fmt.Errorf("Broker %q: IsAuthenticated errored out", b.name))
 	}
 
-	// Handles the context that will be assigned for the IsAuthorized handler
-	b.isAuthorizedCallsMu.RLock()
-	if _, exists := b.isAuthorizedCalls[sessionID]; exists {
-		b.isAuthorizedCallsMu.RUnlock()
-		return "", "", dbus.MakeFailedError(fmt.Errorf("Broker %q: IsAuthorized already running for session %q", b.name, sessionID))
+	// Handles the context that will be assigned for the IsAuthenticated handler
+	b.isAuthenticatedCallsMu.RLock()
+	if _, exists := b.isAuthenticatedCalls[sessionID]; exists {
+		b.isAuthenticatedCallsMu.RUnlock()
+		return "", "", dbus.MakeFailedError(fmt.Errorf("Broker %q: IsAuthenticated already running for session %q", b.name, sessionID))
 	}
-	b.isAuthorizedCallsMu.RUnlock()
+	b.isAuthenticatedCallsMu.RUnlock()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	b.isAuthorizedCallsMu.Lock()
-	b.isAuthorizedCalls[sessionID] = isAuthorizedCtx{ctx, cancel}
-	b.isAuthorizedCallsMu.Unlock()
+	b.isAuthenticatedCallsMu.Lock()
+	b.isAuthenticatedCalls[sessionID] = isAuthenticatedCtx{ctx, cancel}
+	b.isAuthenticatedCallsMu.Unlock()
 
 	// Cleans the call after it's done
 	defer func() {
-		b.isAuthorizedCallsMu.Lock()
-		delete(b.isAuthorizedCalls, sessionID)
-		b.isAuthorizedCallsMu.Unlock()
+		b.isAuthenticatedCallsMu.Lock()
+		delete(b.isAuthenticatedCalls, sessionID)
+		b.isAuthenticatedCallsMu.Unlock()
 	}()
 
 	access = "allowed"
@@ -269,15 +269,15 @@ func (b *BrokerBusMock) EndSession(sessionID string) (dbusErr *dbus.Error) {
 	return nil
 }
 
-// CancelIsAuthorized cancels an ongoing IsAuthorized call if it exists.
-func (b *BrokerBusMock) CancelIsAuthorized(sessionID string) (dbusErr *dbus.Error) {
-	b.isAuthorizedCallsMu.Lock()
-	defer b.isAuthorizedCallsMu.Unlock()
-	if _, exists := b.isAuthorizedCalls[sessionID]; !exists {
+// CancelIsAuthenticated cancels an ongoing IsAuthenticated call if it exists.
+func (b *BrokerBusMock) CancelIsAuthenticated(sessionID string) (dbusErr *dbus.Error) {
+	b.isAuthenticatedCallsMu.Lock()
+	defer b.isAuthenticatedCallsMu.Unlock()
+	if _, exists := b.isAuthenticatedCalls[sessionID]; !exists {
 		return nil
 	}
-	b.isAuthorizedCalls[sessionID].cancelFunc()
-	delete(b.isAuthorizedCalls, sessionID)
+	b.isAuthenticatedCalls[sessionID].cancelFunc()
+	delete(b.isAuthenticatedCalls, sessionID)
 	return nil
 }
 

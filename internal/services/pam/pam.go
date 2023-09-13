@@ -158,9 +158,9 @@ func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMReq
 	}, nil
 }
 
-// IsAuthorized returns broker answer to authorization request.
-func (s Service) IsAuthorized(ctx context.Context, req *authd.IARequest) (resp *authd.IAResponse, err error) {
-	defer decorate.OnError(&err, "can't check authorization")
+// IsAuthenticated returns broker answer to authentication request.
+func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (resp *authd.IAResponse, err error) {
+	defer decorate.OnError(&err, "can't check authentication")
 
 	sessionID := req.GetSessionId()
 	if sessionID == "" {
@@ -172,7 +172,7 @@ func (s Service) IsAuthorized(ctx context.Context, req *authd.IARequest) (resp *
 		return nil, err
 	}
 
-	access, data, err := broker.IsAuthorized(ctx, sessionID, req.GetAuthenticationData())
+	access, data, err := broker.IsAuthenticated(ctx, sessionID, req.GetAuthenticationData())
 	if err != nil {
 		return nil, err
 	}
