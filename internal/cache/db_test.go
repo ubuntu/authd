@@ -33,9 +33,10 @@ func TestNew(t *testing.T) {
 		"New with already existing database":   {dbFile: "multiple_users_and_groups"},
 
 		// Corrupted databases
-		"Database flagged as dirty is cleared up":              {dbFile: "multiple_users_and_groups", dirtyFlag: true},
-		"Corrupted database when opening is cleared up":        {corruptedDbFile: true},
-		"Dynamically mark database as corrupted is cleared up": {markDirty: true},
+		"New recreates any missing buckets and delete unknowns": {dbFile: "database_with_unknown_bucket"},
+		"Database flagged as dirty is cleared up":               {dbFile: "multiple_users_and_groups", dirtyFlag: true},
+		"Corrupted database when opening is cleared up":         {corruptedDbFile: true},
+		"Dynamically mark database as corrupted is cleared up":  {markDirty: true},
 
 		"Error on cacheDir non existent cacheDir":      {dbFile: "-", wantErr: true},
 		"Error on invalid permission on database file": {dbFile: "multiple_users_and_groups", perm: &perm0644, wantErr: true},
