@@ -14,7 +14,6 @@ import (
 
 // UpdateFromUserInfo inserts or updates user and group buckets from the user information.
 func (c *Cache) UpdateFromUserInfo(u UserInfo) error {
-
 	// create bucket contents dynamically
 	gid := -1
 	if len(u.Groups) > 0 {
@@ -124,7 +123,7 @@ func updateGroups(buckets map[string]bucketWithName, groupContents []groupDB) {
 
 		// If we updated the name, remove the previous group name
 		if existingGroup.Name != groupContent.Name {
-			_ = buckets[userByNameBucketName].Delete([]byte(existingGroup.Name)) // No error as we are not in a RO transaction.
+			_ = buckets[groupByNameBucketName].Delete([]byte(existingGroup.Name)) // No error as we are not in a RO transaction.
 		}
 
 		// Update group buckets
