@@ -128,8 +128,10 @@ func New(cacheDir string) (cache *Cache, err error) {
 	}
 
 	// TODO: clean up old users if not connected.
+	cleanupRoutineStarted := make(chan struct{})
 	go func() {
 		defer close(c.cleanupQuitted)
+		close(cleanupRoutineStarted)
 		for {
 			select {
 			case <-c.doClear:
@@ -152,6 +154,7 @@ func New(cacheDir string) (cache *Cache, err error) {
 			}
 		}
 	}()
+	<-cleanupRoutineStarted
 
 	return &c, nil
 }
@@ -214,7 +217,7 @@ func (c *Cache) requestClearDatabase() {
 	}
 	select {
 	case c.doClear <- struct{}{}:
-	default:
+	case <-time.After(time.Millisecond): // Let the time for the cleanup goroutine for the initial start.
 	}
 }
 
