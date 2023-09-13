@@ -234,17 +234,10 @@ func TestUpdateFromUserInfo(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cacheDir := t.TempDir()
-			if tc.dbFile != "" {
-				createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
-			}
-
-			c, err := cache.New(cacheDir)
-			require.NoError(t, err)
-			defer c.Close()
+			c, cacheDir := initCache(t, tc.dbFile)
 
 			userInfo := userCases[tc.userCase]
-			err = c.UpdateFromUserInfo(userInfo)
+			err := c.UpdateFromUserInfo(userInfo)
 			if tc.wantErr {
 				require.Error(t, err, "UpdateFromUserInfo should return an error but didn't")
 
@@ -314,4 +307,20 @@ func TestMain(m *testing.M) {
 	testutils.InstallUpdateFlag()
 
 	os.Exit(m.Run())
+}
+
+// initCache returns a new cache ready to be used alongside its cache directory.
+func initCache(t *testing.T, dbFile string) (c *cache.Cache, cacheDir string) {
+	t.Helper()
+
+	cacheDir = t.TempDir()
+	if dbFile != "" {
+		createDBFile(t, filepath.Join("testdata", dbFile+".db.yaml"), cacheDir)
+	}
+
+	c, err := cache.New(cacheDir)
+	require.NoError(t, err)
+	t.Cleanup(func() { c.Close() })
+
+	return c, cacheDir
 }
