@@ -97,8 +97,7 @@ func TestNew(t *testing.T) {
 			require.Equal(t, fs.FileMode(0600), perm, "Database permission should be 0600")
 
 			// database should not be marked as dirty
-			_, err = os.Stat(filepath.Join(cacheDir, cache.DirtyFlagDbName))
-			require.ErrorIs(t, err, fs.ErrNotExist, "Dirty flag should have been removed")
+			requireNoDirtyFileInDir(t, cacheDir)
 		})
 	}
 }
@@ -112,6 +111,13 @@ func createDBFile(t *testing.T, src, destDir string) {
 
 	err = dbfromYAML(f, destDir)
 	require.NoError(t, err, "Setup: should be able to write database file")
+}
+
+func requireNoDirtyFileInDir(t *testing.T, cacheDir string) {
+	t.Helper()
+
+	_, err := os.Stat(filepath.Join(cacheDir, cache.DirtyFlagDbName))
+	require.ErrorIs(t, err, fs.ErrNotExist, "Dirty flag should have been removed")
 }
 
 //go:linkname dumpToYaml github.com/ubuntu/authd/internal/cache.(*Cache).dumpToYaml
