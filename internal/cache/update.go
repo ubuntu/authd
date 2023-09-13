@@ -170,8 +170,9 @@ func updateUsersAndGroups(buckets map[string]bucketWithName, uid int, groupConte
 			continue
 		}
 
-		// It means we need to delete this group with no remaining user.
-		// It’s thus not in userToGroups bucket.
+		// We now need to delete this group with no remaining user.
+
+		// We need the group.Name to delete from groupByName bucket.
 		group, err := getFromBucket[groupDB](buckets[groupByIDBucketName], previousGID)
 		if err != nil {
 			return err
