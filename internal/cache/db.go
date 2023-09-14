@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"sync"
 	"time"
@@ -186,11 +187,28 @@ func openAndInitDB(path, dirtyFlagPath string) (*bbolt.DB, error) {
 
 	// Create buckets
 	err = db.Update(func(tx *bbolt.Tx) error {
+		var allBucketsNames []string
 		for _, bucket := range allBuckets {
+			allBucketsNames = append(allBucketsNames, string(bucket))
 			if _, err := tx.CreateBucketIfNotExists(bucket); err != nil {
 				return err
 			}
 		}
+
+		// Clear up any unknown buckets
+		var bucketNamesToDelete [][]byte
+		tx.ForEach(func(name []byte, b *bbolt.Bucket) error {
+			if slices.Contains(allBucketsNames, string(name)) {
+				return nil
+			}
+			bucketNamesToDelete = append(bucketNamesToDelete, name)
+			return nil
+		})
+		for _, bucketName := range bucketNamesToDelete {
+			// We are in a RW transaction.
+			_ = tx.DeleteBucket(bucketName)
+		}
+
 		return nil
 	})
 	if err != nil {
