@@ -264,6 +264,86 @@ func TestUpdateFromUserInfo(t *testing.T) {
 	}
 }
 
+func TestUserByID(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		dbFile string
+
+		wantErrType error
+	}{
+		"Get existing user": {dbFile: "one_user_and_group"},
+
+		"Error on missing user":           {wantErrType: cache.ErrNoDataFound{}},
+		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByID", wantErrType: shouldError{}},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			c, cacheDir := initCache(t, tc.dbFile)
+
+			got, err := c.UserByID(1111)
+			requireGetAssertions(t, got, tc.wantErrType, err, c, cacheDir)
+		})
+	}
+}
+
+func TestUserByName(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		dbFile string
+
+		wantErrType error
+	}{
+		"Get existing user": {dbFile: "one_user_and_group"},
+
+		"Error on missing user":           {wantErrType: cache.ErrNoDataFound{}},
+		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByName", wantErrType: shouldError{}},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			c, cacheDir := initCache(t, tc.dbFile)
+
+			got, err := c.UserByName("user1")
+			requireGetAssertions(t, got, tc.wantErrType, err, c, cacheDir)
+		})
+	}
+}
+
+func TestAllUsers(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		dbFile string
+
+		wantErrType error
+	}{
+		"Get one user":       {dbFile: "one_user_and_group"},
+		"Get multiple users": {dbFile: "multiple_users_and_groups"},
+
+		"Get users only rely on valid userByID": {dbFile: "partially_valid_multiple_users_and_groups_only_userByID"},
+
+		"Error on some invalid users entry": {dbFile: "invalid_entries_but_user_and_group1", wantErrType: shouldError{}},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			c, cacheDir := initCache(t, tc.dbFile)
+
+			got, err := c.AllUsers()
+			requireGetAssertions(t, got, tc.wantErrType, err, c, cacheDir)
+		})
+	}
+}
+
 func createDBFile(t *testing.T, src, destDir string) {
 	t.Helper()
 
@@ -310,6 +390,10 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+type shouldError struct{}
+
+func (shouldError) Error() string { return "" }
+
 // initCache returns a new cache ready to be used alongside its cache directory.
 func initCache(t *testing.T, dbFile string) (c *cache.Cache, cacheDir string) {
 	t.Helper()
@@ -324,4 +408,24 @@ func initCache(t *testing.T, dbFile string) (c *cache.Cache, cacheDir string) {
 	t.Cleanup(func() { c.Close() })
 
 	return c, cacheDir
+}
+
+func requireGetAssertions[E any](t *testing.T, got E, wantErrType, err error, c *cache.Cache, cacheDir string) {
+	t.Helper()
+
+	if wantErrType != nil {
+		if (wantErrType == cache.ErrNoDataFound{}) {
+			require.ErrorIs(t, err, wantErrType, "Should return no data found")
+			return
+		}
+		require.Error(t, err, "Should return an error but didn't")
+		time.Sleep(10 * time.Millisecond)
+		requireNoDirtyFileInDir(t, cacheDir)
+		requireClearedDatabase(t, c)
+		return
+	}
+	require.NoError(t, err)
+
+	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+	require.Equal(t, want, got, "Did not get expected database entry")
 }
