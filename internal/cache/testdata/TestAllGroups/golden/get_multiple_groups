@@ -1,0 +1,17 @@
+- name: group1
+  gid: 11111
+  users:
+    - user1
+- name: group2
+  gid: 22222
+  users:
+    - user2
+- name: group3
+  gid: 33333
+  users:
+    - user3
+- name: commongroup
+  gid: 99999
+  users:
+    - user2
+    - user3
