@@ -83,7 +83,7 @@ func getUser[K int | string](c *Cache, bucketName string, key K) (u userDB, err 
 
 		u, err = getFromBucket[userDB](bucket, key)
 		if err != nil {
-			if !errors.Is(err, ErrNoDataFound{}) {
+			if !errors.Is(err, NoDataFoundError{}) {
 				c.requestClearDatabase()
 			}
 			return err

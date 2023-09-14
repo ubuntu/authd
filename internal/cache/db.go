@@ -1,3 +1,4 @@
+// Package cache handles transaction with an underlying database to cache user and group informations.
 package cache
 
 import (
@@ -109,7 +110,7 @@ func New(cacheDir string) (cache *Cache, err error) {
 			break
 		}
 
-		if errors.Is(err, errRetryDB{}) {
+		if errors.Is(err, shouldRetryDBError{}) {
 			if i == 3 {
 				return nil, errors.Unwrap(err)
 			}
@@ -171,7 +172,7 @@ func openAndInitDB(path, dirtyFlagPath string) (*bbolt.DB, error) {
 	if err != nil {
 		if errors.Is(err, bbolt.ErrInvalid) {
 			clearDatabase(path, dirtyFlagPath)
-			return nil, errRetryDB{err: err}
+			return nil, shouldRetryDBError{err: err}
 		}
 		return nil, fmt.Errorf("can't open database file: %v", err)
 	}
@@ -197,13 +198,16 @@ func openAndInitDB(path, dirtyFlagPath string) (*bbolt.DB, error) {
 
 		// Clear up any unknown buckets
 		var bucketNamesToDelete [][]byte
-		tx.ForEach(func(name []byte, b *bbolt.Bucket) error {
+		err = tx.ForEach(func(name []byte, b *bbolt.Bucket) error {
 			if slices.Contains(allBucketsNames, string(name)) {
 				return nil
 			}
 			bucketNamesToDelete = append(bucketNamesToDelete, name)
 			return nil
 		})
+		if err != nil {
+			return err
+		}
 		for _, bucketName := range bucketNamesToDelete {
 			// We are in a RW transaction.
 			_ = tx.DeleteBucket(bucketName)
@@ -295,7 +299,7 @@ func getFromBucket[T any, K int | string](bucket bucketWithName, key K) (T, erro
 
 	data := bucket.Get(k)
 	if data == nil {
-		return r, ErrNoDataFound{key: string(k), bucketName: bucket.name}
+		return r, NoDataFoundError{key: string(k), bucketName: bucket.name}
 	}
 
 	if err := json.Unmarshal(data, &r); err != nil {
@@ -305,34 +309,34 @@ func getFromBucket[T any, K int | string](bucket bucketWithName, key K) (T, erro
 	return r, nil
 }
 
-// ErrNoDataFound is returned when we didn’t find a matching entry.
-type ErrNoDataFound struct {
+// NoDataFoundError is returned when we didn’t find a matching entry.
+type NoDataFoundError struct {
 	key        string
 	bucketName string
 }
 
 // Error implements the error interface to return key/bucket name.
-func (err ErrNoDataFound) Error() string {
+func (err NoDataFoundError) Error() string {
 	return fmt.Sprintf("no result matching %v in %v", err.key, err.bucketName)
 }
 
 // Is makes this error insensitive to the key and bucket name.
-func (ErrNoDataFound) Is(target error) bool { return target == ErrNoDataFound{} }
+func (NoDataFoundError) Is(target error) bool { return target == NoDataFoundError{} }
 
-// errRetryDB is returned when we want to retry opening the database.
-type errRetryDB struct {
+// shouldRetryDBError is returned when we want to retry opening the database.
+type shouldRetryDBError struct {
 	err error
 }
 
 // Error implements the error interface.
-func (err errRetryDB) Error() string {
+func (err shouldRetryDBError) Error() string {
 	return "ErrRetryDB"
 }
 
 // Unwrap allows to unwrap original error.
-func (err errRetryDB) Unwrap() error {
+func (err shouldRetryDBError) Unwrap() error {
 	return err.err
 }
 
 // Is makes this error insensitive to the key and bucket name.
-func (errRetryDB) Is(target error) bool { return target == errRetryDB{} }
+func (shouldRetryDBError) Is(target error) bool { return target == shouldRetryDBError{} }

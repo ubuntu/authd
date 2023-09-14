@@ -11,6 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+//nolint:unused // This is used for tests, with methods that are using go linking. Not part of exported API.
 var redactedTimes = map[string]string{
 	"AAAAATIME": "2004-10-20T11:06:23Z",
 	"BBBBBTIME": "2006-06-01T10:08:04Z",
@@ -21,6 +22,8 @@ var redactedTimes = map[string]string{
 }
 
 // redactTime replace current time by a redacted version.
+//
+//nolint:unused // This is used for tests, with methods that are using go linking. Not part of exported API.
 func redactTime(line string) string {
 	re := regexp.MustCompile(`"LastLogin":"(.*?)"`)
 	match := re.FindSubmatch([]byte(line))
@@ -51,6 +54,8 @@ func redactTime(line string) string {
 }
 
 // dumpToYaml deserializes the cache database to a writer in a yaml format.
+//
+//nolint:unused // This is used for tests, with go linking. Not part of exported API.
 func (c *Cache) dumpToYaml() (string, error) {
 	d := make(map[string]map[string]string)
 
@@ -75,6 +80,8 @@ func (c *Cache) dumpToYaml() (string, error) {
 }
 
 // dbfromYAML loads a yaml formatted of the buckets and dump it into destDir, with its dbname.
+//
+//nolint:unused // This is used for tests, with go linking. Not part of exported API.
 func dbfromYAML(r io.Reader, destDir string) error {
 	dbPath := filepath.Join(destDir, dbName)
 	db, err := bbolt.Open(dbPath, 0600, nil)

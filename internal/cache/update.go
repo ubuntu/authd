@@ -53,7 +53,7 @@ func (c *Cache) UpdateFromUserInfo(u UserInfo) error {
 
 		previousGroupsForCurrentUser, err := getFromBucket[userToGroupsDB](buckets[userToGroupsBucketName], userDB.UID)
 		// No data is valid and means this is the first insertion.
-		if err != nil && !errors.Is(err, ErrNoDataFound{}) {
+		if err != nil && !errors.Is(err, NoDataFoundError{}) {
 			c.requestClearDatabase()
 			return err
 		}
@@ -99,7 +99,7 @@ func (c *Cache) UpdateFromUserInfo(u UserInfo) error {
 // updateUser updates both user buckets with userContent. It handles any potential login rename.
 func updateUser(buckets map[string]bucketWithName, userContent userDB) {
 	existingUser, err := getFromBucket[userDB](buckets[userByIDBucketName], userContent.UID)
-	if err != nil && !errors.Is(err, ErrNoDataFound{}) {
+	if err != nil && !errors.Is(err, NoDataFoundError{}) {
 		slog.Warn(fmt.Sprintf("Could not fetch previous record for user %v: %v", userContent.UID, err))
 	}
 
@@ -117,7 +117,7 @@ func updateUser(buckets map[string]bucketWithName, userContent userDB) {
 func updateGroups(buckets map[string]bucketWithName, groupContents []groupDB) {
 	for _, groupContent := range groupContents {
 		existingGroup, err := getFromBucket[groupDB](buckets[groupByIDBucketName], groupContent.GID)
-		if err != nil && !errors.Is(err, ErrNoDataFound{}) {
+		if err != nil && !errors.Is(err, NoDataFoundError{}) {
 			slog.Warn(fmt.Sprintf("Could not fetch previous record for group %v: %v", groupContent.GID, err))
 		}
 
@@ -140,7 +140,7 @@ func updateUsersAndGroups(buckets map[string]bucketWithName, uid int, groupConte
 		currentGIDs = append(currentGIDs, groupContent.GID)
 		grpToUsers, err := getFromBucket[groupToUsersDB](buckets[groupToUsersBucketName], groupContent.GID)
 		// No data is valid and means that this is the first time we record it.
-		if err != nil && !errors.Is(err, ErrNoDataFound{}) {
+		if err != nil && !errors.Is(err, NoDataFoundError{}) {
 			return err
 		}
 
@@ -159,7 +159,7 @@ func updateUsersAndGroups(buckets map[string]bucketWithName, uid int, groupConte
 		}
 		grpToUsers, err := getFromBucket[groupToUsersDB](buckets[groupToUsersBucketName], previousGID)
 		// No data means the database was corrupted but we can forgive this (exist in previous user gid but not on system).
-		if err != nil && !errors.Is(err, ErrNoDataFound{}) {
+		if err != nil && !errors.Is(err, NoDataFoundError{}) {
 			return err
 		}
 
@@ -182,7 +182,6 @@ func updateUsersAndGroups(buckets map[string]bucketWithName, uid int, groupConte
 		_ = buckets[groupByIDBucketName].Delete([]byte(strconv.Itoa(previousGID)))
 		_ = buckets[groupByNameBucketName].Delete([]byte(group.Name))
 		_ = buckets[groupToUsersBucketName].Delete([]byte(strconv.Itoa(previousGID)))
-
 	}
 
 	return nil

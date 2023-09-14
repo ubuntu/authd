@@ -1,6 +1,7 @@
 package cache_test
 
 import (
+	"errors"
 	"io"
 	"io/fs"
 	"os"
@@ -248,9 +249,8 @@ func TestUpdateFromUserInfo(t *testing.T) {
 					requireClearedDatabase(t, c)
 				}
 				return
-			} else {
-				require.NoError(t, err)
 			}
+			require.NoError(t, err)
 
 			requireNoDirtyFileInDir(t, cacheDir)
 
@@ -259,7 +259,6 @@ func TestUpdateFromUserInfo(t *testing.T) {
 
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
-
 		})
 	}
 }
@@ -274,7 +273,7 @@ func TestUserByID(t *testing.T) {
 	}{
 		"Get existing user": {dbFile: "one_user_and_group"},
 
-		"Error on missing user":           {wantErrType: cache.ErrNoDataFound{}},
+		"Error on missing user":           {wantErrType: cache.NoDataFoundError{}},
 		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByID", wantErrType: shouldError{}},
 	}
 	for name, tc := range tests {
@@ -300,7 +299,7 @@ func TestUserByName(t *testing.T) {
 	}{
 		"Get existing user": {dbFile: "one_user_and_group"},
 
-		"Error on missing user":           {wantErrType: cache.ErrNoDataFound{}},
+		"Error on missing user":           {wantErrType: cache.NoDataFoundError{}},
 		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByName", wantErrType: shouldError{}},
 	}
 	for name, tc := range tests {
@@ -354,7 +353,7 @@ func TestGroupByID(t *testing.T) {
 	}{
 		"Get existing group": {dbFile: "one_user_and_group"},
 
-		"Error on missing group":          {wantErrType: cache.ErrNoDataFound{}},
+		"Error on missing group":          {wantErrType: cache.NoDataFoundError{}},
 		"Error on invalid database entry": {dbFile: "invalid_entry_in_groupByID", wantErrType: shouldError{}},
 		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: shouldError{}},
 	}
@@ -381,7 +380,7 @@ func TestGroupByName(t *testing.T) {
 	}{
 		"Get existing group": {dbFile: "one_user_and_group"},
 
-		"Error on missing group":          {wantErrType: cache.ErrNoDataFound{}},
+		"Error on missing group":          {wantErrType: cache.NoDataFoundError{}},
 		"Error on invalid database entry": {dbFile: "invalid_entry_in_groupByName", wantErrType: shouldError{}},
 		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: shouldError{}},
 	}
@@ -459,7 +458,7 @@ UserToGroups: {}
 
 	got, err := dumpToYaml(c)
 	require.NoError(t, err, "Created database should be valid yaml content")
-	require.Equal(t, want, string(got), "Database should only have empty buckets")
+	require.Equal(t, want, got, "Database should only have empty buckets")
 }
 
 //go:linkname dumpToYaml github.com/ubuntu/authd/internal/cache.(*Cache).dumpToYaml
@@ -498,7 +497,7 @@ func requireGetAssertions[E any](t *testing.T, got E, wantErrType, err error, c 
 	t.Helper()
 
 	if wantErrType != nil {
-		if (wantErrType == cache.ErrNoDataFound{}) {
+		if (errors.Is(wantErrType, cache.NoDataFoundError{})) {
 			require.ErrorIs(t, err, wantErrType, "Should return no data found")
 			return
 		}

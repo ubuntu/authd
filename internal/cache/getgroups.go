@@ -87,8 +87,8 @@ func getGroup[K int | string](c *Cache, bucketName string, key K) (Group, error)
 		// Get id and name of the group.
 		g, err := getFromBucket[groupDB](buckets[bucketName], key)
 		if err != nil {
-			// no entry is valid, no need to clear the database but return the error.
-			if !errors.Is(err, ErrNoDataFound{}) {
+			// no entry is valid, no need to clean the database but return the error.
+			if !errors.Is(err, NoDataFoundError{}) {
 				c.requestClearDatabase()
 			}
 			return err
