@@ -50,6 +50,16 @@ var (
 	}
 )
 
+func TestNewService(t *testing.T) {
+	t.Parallel()
+
+	service := pam.NewService(context.Background(), brokerManager)
+
+	brokers, err := service.AvailableBrokers(context.Background(), &authd.Empty{})
+	require.NoError(t, err, "can’t create the service directly")
+	require.NotEmpty(t, brokers.BrokersInfos, "Service is created and can query the broker manager")
+}
+
 func TestAvailableBrokers(t *testing.T) {
 	t.Parallel()
 
