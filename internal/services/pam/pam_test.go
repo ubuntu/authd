@@ -163,8 +163,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 		supportedUILayouts []*authd.UILayout
 
 		// These are auxiliary inputs that affect the test setup and help control the mock output.
-		username  string
-		noSession bool
+		username string
 
 		// This is the expected return.
 		wantErr bool
@@ -174,7 +173,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 
 		"Error when sessionID is empty":           {sessionID: "-", wantErr: true},
 		"Error when passing invalid layout":       {supportedUILayouts: []*authd.UILayout{emptyType}, wantErr: true},
-		"Error when broker does not exist":        {sessionID: "no broker", noSession: true, wantErr: true},
+		"Error when sessionID is invalid":         {sessionID: "invalid-session", wantErr: true},
 		"Error when getting authentication modes": {username: "GAM_error", wantErr: true},
 		"Error when broker returns invalid modes": {username: "GAM_invalid", wantErr: true},
 	}
@@ -185,14 +184,15 @@ func TestGetAuthenticationModes(t *testing.T) {
 
 			client := newPamClient(t)
 
-			if !tc.noSession {
+			switch tc.sessionID {
+			case "invalid-session":
+			case "-":
+				tc.sessionID = ""
+			default:
 				id := startSession(t, client, tc.username)
 				if tc.sessionID == "" {
 					tc.sessionID = id
 				}
-			}
-			if tc.sessionID == "-" {
-				tc.sessionID = ""
 			}
 
 			if tc.supportedUILayouts == nil {
@@ -229,7 +229,6 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		username           string
 		supportedUILayouts []*authd.UILayout
 		noValidators       bool
-		noSession          bool
 
 		// This is the expected return.
 		wantErr bool
@@ -238,8 +237,8 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		"Successfully select mode with missing optional value": {username: "SAM_missing_optional_entry", supportedUILayouts: []*authd.UILayout{optionalEntry}},
 
 		// service errors
-		"Error when broker does not exist":   {sessionID: "no broker", noSession: true, wantErr: true},
 		"Error when sessionID is empty":      {sessionID: "-", wantErr: true},
+		"Error when session ID is invalid":   {sessionID: "invalid-session", wantErr: true},
 		"Error when no authmode is selected": {sessionID: "no auth mode", authMode: "-", wantErr: true},
 
 		// broker errors
@@ -258,14 +257,15 @@ func TestSelectAuthenticationMode(t *testing.T) {
 
 			client := newPamClient(t)
 
-			if !tc.noSession {
+			switch tc.sessionID {
+			case "invalid-session":
+			case "-":
+				tc.sessionID = ""
+			default:
 				id := startSession(t, client, tc.username)
 				if tc.sessionID == "" {
 					tc.sessionID = id
 				}
-			}
-			if tc.sessionID == "-" {
-				tc.sessionID = ""
 			}
 
 			if tc.authMode == "" {
@@ -312,7 +312,6 @@ func TestIsAuthenticated(t *testing.T) {
 
 		// These are auxiliary inputs that affect the test setup and help control the mock output.
 		username        string
-		noSession       bool
 		secondCall      bool
 		cancelFirstCall bool
 	}{
@@ -324,7 +323,7 @@ func TestIsAuthenticated(t *testing.T) {
 
 		// service errors
 		"Error when sessionID is empty": {sessionID: "-"},
-		"Error when there is no broker": {sessionID: "no broker", noSession: true},
+		"Error when there is no broker": {sessionID: "invalid-session"},
 
 		// broker errors
 		"Error when authenticating":                         {username: "IA_error"},
@@ -339,14 +338,15 @@ func TestIsAuthenticated(t *testing.T) {
 
 			client := newPamClient(t)
 
-			if !tc.noSession {
+			switch tc.sessionID {
+			case "invalid-session":
+			case "-":
+				tc.sessionID = ""
+			default:
 				id := startSession(t, client, tc.username)
 				if tc.sessionID == "" {
 					tc.sessionID = id
 				}
-			}
-			if tc.sessionID == "-" {
-				tc.sessionID = ""
 			}
 
 			var firstCall, secondCall string
@@ -454,18 +454,16 @@ func TestEndSession(t *testing.T) {
 		sessionID string
 
 		// These are auxiliary inputs that affect the test setup and help control the mock output.
-		username  string
-		noSession bool
+		username string
 
 		// This is the expected return.
 		wantErr bool
 	}{
 		"Successfully end session": {username: "success"},
 
-		"Error when sessionID is empty":    {sessionID: "-", wantErr: true},
-		"Error when sessionID is invalid":  {sessionID: "invalid", wantErr: true},
-		"Error when broker does not exist": {sessionID: "no broker", noSession: true, wantErr: true},
-		"Error when ending session":        {username: "ES_error", wantErr: true},
+		"Error when sessionID is empty":   {sessionID: "-", wantErr: true},
+		"Error when sessionID is invalid": {sessionID: "invalid-session", wantErr: true},
+		"Error when ending session":       {username: "ES_error", wantErr: true},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -474,14 +472,15 @@ func TestEndSession(t *testing.T) {
 
 			client := newPamClient(t)
 
-			if !tc.noSession {
+			switch tc.sessionID {
+			case "invalid-session":
+			case "-":
+				tc.sessionID = ""
+			default:
 				id := startSession(t, client, tc.username)
 				if tc.sessionID == "" {
 					tc.sessionID = id
 				}
-			}
-			if tc.sessionID == "-" {
-				tc.sessionID = ""
 			}
 
 			esReq := &authd.ESRequest{
