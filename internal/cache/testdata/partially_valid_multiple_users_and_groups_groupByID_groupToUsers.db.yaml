@@ -1,0 +1,27 @@
+GroupByID:
+  "11111": '{"Name":"group1","GID":11111}'
+  "22222": '{"Name":"group2","GID":22222}'
+  "33333": '{"Name":"group3","GID":33333}'
+  "99999": '{"Name":"commongroup","GID":99999}'
+GroupByName:
+  commongroup: '"not-a-valid-json"'
+  group1: '"not-a-valid-json"'
+  group2: '"not-a-valid-json"'
+  group3: '"not-a-valid-json"'
+GroupToUsers:
+  "11111": '{"GID":11111,"UIDs":[1111]}'
+  "22222": '{"GID":22222,"UIDs":[2222]}'
+  "33333": '{"GID":33333,"UIDs":[3333]}'
+  "99999": '{"GID":99999,"UIDs":[2222,3333]}'
+UserByID:
+  "1111": '"not-a-valid-json"'
+  "2222": '"not-a-valid-json"'
+  "3333": '"not-a-valid-json"'
+UserByName:
+  user1: '"not-a-valid-json"'
+  user2: '"not-a-valid-json"'
+  user3: '"not-a-valid-json"'
+UserToGroups:
+  "1111": '"not-a-valid-json"'
+  "2222": '"not-a-valid-json"'
+  "3333": '"not-a-valid-json"'

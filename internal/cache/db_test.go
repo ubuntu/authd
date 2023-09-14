@@ -344,6 +344,90 @@ func TestAllUsers(t *testing.T) {
 	}
 }
 
+func TestGroupByID(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		dbFile string
+
+		wantErrType error
+	}{
+		"Get existing group": {dbFile: "one_user_and_group"},
+
+		"Error on missing group":          {wantErrType: cache.ErrNoDataFound{}},
+		"Error on invalid database entry": {dbFile: "invalid_entry_in_groupByID", wantErrType: shouldError{}},
+		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: shouldError{}},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			c, cacheDir := initCache(t, tc.dbFile)
+
+			got, err := c.GroupByID(11111)
+			requireGetAssertions(t, got, tc.wantErrType, err, c, cacheDir)
+		})
+	}
+}
+
+func TestGroupByName(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		dbFile string
+
+		wantErrType error
+	}{
+		"Get existing group": {dbFile: "one_user_and_group"},
+
+		"Error on missing group":          {wantErrType: cache.ErrNoDataFound{}},
+		"Error on invalid database entry": {dbFile: "invalid_entry_in_groupByName", wantErrType: shouldError{}},
+		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: shouldError{}},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			c, cacheDir := initCache(t, tc.dbFile)
+
+			got, err := c.GroupByName("group1")
+			requireGetAssertions(t, got, tc.wantErrType, err, c, cacheDir)
+		})
+	}
+}
+
+func TestAllGroups(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		dbFile string
+
+		wantErrType error
+	}{
+		"Get one group":       {dbFile: "one_user_and_group"},
+		"Get multiple groups": {dbFile: "multiple_users_and_groups"},
+
+		"Get groups rely on groupByID, groupToUsers, UserByID": {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers_UserByID"},
+
+		"Error on some invalid groups entry":     {dbFile: "invalid_entries_but_user_and_group1", wantErrType: shouldError{}},
+		"Error as not only relying on groupByID": {dbFile: "partially_valid_multiple_users_and_groups_only_groupByID", wantErrType: shouldError{}},
+		"Error as missing userByID":              {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: shouldError{}},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			c, cacheDir := initCache(t, tc.dbFile)
+
+			got, err := c.AllGroups()
+			requireGetAssertions(t, got, tc.wantErrType, err, c, cacheDir)
+		})
+	}
+}
+
 func createDBFile(t *testing.T, src, destDir string) {
 	t.Helper()
 
