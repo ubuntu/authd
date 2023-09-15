@@ -2,7 +2,6 @@ package cache_test
 
 import (
 	"errors"
-	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/cache"
+	cachetests "github.com/ubuntu/authd/internal/cache/tests"
 	"github.com/ubuntu/authd/internal/testutils"
 )
 
@@ -86,7 +86,7 @@ func TestNew(t *testing.T) {
 				time.Sleep(time.Millisecond)
 			}
 
-			got, err := dumpToYaml(c)
+			got, err := cachetests.DumpToYaml(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := testutils.LoadWithUpdateFromGolden(t, got)
@@ -254,7 +254,7 @@ func TestUpdateFromUserInfo(t *testing.T) {
 
 			requireNoDirtyFileInDir(t, cacheDir)
 
-			got, err := dumpToYaml(c)
+			got, err := cachetests.DumpToYaml(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := testutils.LoadWithUpdateFromGolden(t, got)
@@ -434,7 +434,7 @@ func createDBFile(t *testing.T, src, destDir string) {
 	require.NoError(t, err, "Setup: should be able to read source file")
 	defer f.Close()
 
-	err = dbfromYAML(f, destDir)
+	err = cachetests.DbfromYAML(f, destDir)
 	require.NoError(t, err, "Setup: should be able to write database file")
 }
 
@@ -456,16 +456,10 @@ UserByName: {}
 UserToGroups: {}
 `
 
-	got, err := dumpToYaml(c)
+	got, err := cachetests.DumpToYaml(c)
 	require.NoError(t, err, "Created database should be valid yaml content")
 	require.Equal(t, want, got, "Database should only have empty buckets")
 }
-
-//go:linkname dumpToYaml github.com/ubuntu/authd/internal/cache.(*Cache).dumpToYaml
-func dumpToYaml(c *cache.Cache) (string, error)
-
-//go:linkname dbfromYAML github.com/ubuntu/authd/internal/cache.dbfromYAML
-func dbfromYAML(r io.Reader, destDir string) error
 
 func TestMain(m *testing.M) {
 	testutils.InstallUpdateFlag()
