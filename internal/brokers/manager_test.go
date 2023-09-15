@@ -20,12 +20,14 @@ var (
 
 func TestNewManager(t *testing.T) {
 	tests := map[string]struct {
-		cfgDir string
-		noBus  bool
+		cfgDir            string
+		configuredBrokers []string
+		noBus             bool
 
 		wantErr bool
 	}{
 		"Creates all brokers when config dir has only valid brokers":                 {cfgDir: "valid_brokers"},
+		"Creates without autodiscovery when configuredBrokers is set":                {cfgDir: "valid_brokers", configuredBrokers: []string{"valid_2"}},
 		"Creates only correct brokers when config dir has valid and invalid brokers": {cfgDir: "mixed_brokers"},
 		"Creates only local broker when config dir has only invalid ones":            {cfgDir: "invalid_brokers"},
 		"Creates only local broker when config dir does not exist":                   {cfgDir: "does/not/exist"},
@@ -41,7 +43,7 @@ func TestNewManager(t *testing.T) {
 				t.Setenv("DBUS_SYSTEM_BUS_ADDRESS", "/dev/null")
 			}
 
-			got, err := brokers.NewManager(context.Background(), nil, brokers.WithRootDir(brokerCfgs), brokers.WithCfgDir(tc.cfgDir))
+			got, err := brokers.NewManager(context.Background(), tc.configuredBrokers, brokers.WithRootDir(brokerCfgs), brokers.WithCfgDir(tc.cfgDir))
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should return an error, but did not")
 				return
@@ -171,9 +173,12 @@ func TestNewSession(t *testing.T) {
 		brokerID string
 		username string
 
+		configuredBrokers []string
+
 		wantErr bool
 	}{
-		"Successfully start a new session": {username: "success"},
+		"Successfully start a new session":                         {username: "success"},
+		"Successfully start a new session with the correct broker": {username: "success", configuredBrokers: []string{t.Name() + "_Broker1", t.Name() + "_Broker2"}},
 
 		"Error when broker does not exist":         {brokerID: "does_not_exist", wantErr: true},
 		"Error when broker does not provide an ID": {username: "NS_no_id", wantErr: true},
@@ -185,8 +190,18 @@ func TestNewSession(t *testing.T) {
 			t.Parallel()
 
 			cfgDir := t.TempDir()
-			wantBroker := newBrokerForTests(t, cfgDir)
-			m, err := brokers.NewManager(context.Background(), nil, brokers.WithCfgDir(cfgDir))
+			if tc.configuredBrokers == nil {
+				tc.configuredBrokers = []string{strings.ReplaceAll(t.Name(), "/", "_")}
+			}
+
+			wantBroker := newBrokerForTests(t, cfgDir, tc.configuredBrokers[0])
+			if len(tc.configuredBrokers) > 1 {
+				for _, name := range tc.configuredBrokers[1:] {
+					newBrokerForTests(t, cfgDir, name)
+				}
+			}
+
+			m, err := brokers.NewManager(context.Background(), tc.configuredBrokers, brokers.WithCfgDir(cfgDir))
 			require.NoError(t, err, "Setup: could not create manager")
 
 			if tc.brokerID == "" {
@@ -226,9 +241,12 @@ func TestEndSession(t *testing.T) {
 		brokerID  string
 		sessionID string
 
+		configuredBrokers []string
+
 		wantErr bool
 	}{
-		"Successfully end session": {sessionID: "success"},
+		"Successfully end session":                       {sessionID: "success"},
+		"Successfully end session on the correct broker": {sessionID: "success", configuredBrokers: []string{t.Name() + "_Broker1", t.Name() + "_Broker2"}},
 
 		"Error when broker does not exist": {brokerID: "does not exist", sessionID: "dont matter", wantErr: true},
 		"Error when ending session":        {sessionID: "ES_error", wantErr: true},
@@ -239,12 +257,22 @@ func TestEndSession(t *testing.T) {
 			t.Parallel()
 
 			cfgDir := t.TempDir()
-			b := newBrokerForTests(t, cfgDir)
-			m, err := brokers.NewManager(context.Background(), nil, brokers.WithCfgDir(cfgDir))
+			if tc.configuredBrokers == nil {
+				tc.configuredBrokers = []string{strings.ReplaceAll(t.Name(), "/", "_")}
+			}
+
+			wantBroker := newBrokerForTests(t, cfgDir, tc.configuredBrokers[0])
+			if len(tc.configuredBrokers) > 1 {
+				for _, name := range tc.configuredBrokers[1:] {
+					newBrokerForTests(t, cfgDir, name)
+				}
+			}
+
+			m, err := brokers.NewManager(context.Background(), tc.configuredBrokers, brokers.WithCfgDir(cfgDir))
 			require.NoError(t, err, "Setup: could not create manager")
 
 			if tc.brokerID != "does not exist" {
-				m.SetBrokerForSession(&b, tc.sessionID)
+				m.SetBrokerForSession(&wantBroker, tc.sessionID)
 			}
 
 			err = m.EndSession(tc.sessionID)
