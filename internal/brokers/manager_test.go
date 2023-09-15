@@ -136,7 +136,7 @@ func TestBrokerFromSessionID(t *testing.T) {
 			t.Parallel()
 
 			cfgDir := t.TempDir()
-			b := newBrokerForTests(t, cfgDir)
+			b := newBrokerForTests(t, cfgDir, "")
 			m, err := brokers.NewManager(context.Background(), nil, brokers.WithCfgDir(cfgDir))
 			require.NoError(t, err, "Setup: could not create manager")
 

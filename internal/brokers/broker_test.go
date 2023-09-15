@@ -115,7 +115,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b := newBrokerForTests(t, "")
+			b := newBrokerForTests(t, "", "")
 
 			if tc.supportedUILayouts == nil {
 				tc.supportedUILayouts = []string{"required-entry"}
@@ -173,7 +173,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b := newBrokerForTests(t, "")
+			b := newBrokerForTests(t, "", "")
 
 			if tc.supportedUILayouts == nil {
 				tc.supportedUILayouts = []string{"required-entry"}
@@ -226,7 +226,7 @@ func TestIsAuthenticated(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b := newBrokerForTests(t, "")
+			b := newBrokerForTests(t, "", "")
 
 			// Stores the combined output of both calls to IsAuthenticated
 			var firstCallReturn, secondCallReturn string
@@ -277,7 +277,7 @@ func TestCancelIsAuthenticated(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b := newBrokerForTests(t, "")
+			b := newBrokerForTests(t, "", "")
 
 			var access string
 			ctx, cancel := context.WithCancel(context.Background())
@@ -299,14 +299,17 @@ func TestCancelIsAuthenticated(t *testing.T) {
 	}
 }
 
-func newBrokerForTests(t *testing.T, cfgDir string) (b brokers.Broker) {
+func newBrokerForTests(t *testing.T, cfgDir, brokerName string) (b brokers.Broker) {
 	t.Helper()
 
 	if cfgDir == "" {
 		cfgDir = t.TempDir()
 	}
+	if brokerName == "" {
+		brokerName = strings.ReplaceAll(t.Name(), "/", "_")
+	}
 
-	cfgPath, cleanup, err := testutils.StartBusBrokerMock(cfgDir, strings.ReplaceAll(t.Name(), "/", "_"))
+	cfgPath, cleanup, err := testutils.StartBusBrokerMock(cfgDir, brokerName)
 	require.NoError(t, err, "Setup: could not start bus broker mock")
 	t.Cleanup(cleanup)
 
@@ -314,7 +317,7 @@ func newBrokerForTests(t *testing.T, cfgDir string) (b brokers.Broker) {
 	require.NoError(t, err, "Setup: could not connect to system bus")
 	t.Cleanup(func() { require.NoError(t, conn.Close(), "Teardown: Failed to close the connection") })
 
-	b, err = brokers.NewBroker(context.Background(), strings.ReplaceAll(t.Name(), "/", "_"), cfgPath, conn)
+	b, err = brokers.NewBroker(context.Background(), brokerName, cfgPath, conn)
 	require.NoError(t, err, "Setup: could not create broker")
 
 	return b
