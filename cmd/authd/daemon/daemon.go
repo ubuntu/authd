@@ -11,7 +11,7 @@ import (
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/daemon"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/manager"
+	"github.com/ubuntu/authd/internal/services"
 	"github.com/ubuntu/decorate"
 )
 
@@ -101,7 +101,7 @@ func New() *App {
 func (a *App) serve(config daemonConfig) error {
 	ctx := context.Background()
 
-	m, err := manager.New(ctx, config.Brokers)
+	m, err := services.NewManager(ctx, config.Brokers)
 	if err != nil {
 		close(a.ready)
 		return err
