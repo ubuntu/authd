@@ -1,6 +1,6 @@
 //go:build withexamplebroker
 
-package manager
+package services
 
 // Stop calls the brokerManager function that stops and cleans the examplebroker files.
 func (m *Manager) Stop() {

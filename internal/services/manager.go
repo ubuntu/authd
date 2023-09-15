@@ -1,5 +1,5 @@
-// Package manager mediates all the business logic of the application.
-package manager
+// Package services mediates all the business logic of the application via a manager.
+package services
 
 import (
 	"context"
@@ -20,8 +20,8 @@ type Manager struct {
 	pamService    pam.Service
 }
 
-// New returns a new manager after creating all necessary items for our business logic.
-func New(ctx context.Context, configuredBrokers []string) (m Manager, err error) {
+// NewManager returns a new manager after creating all necessary items for our business logic.
+func NewManager(ctx context.Context, configuredBrokers []string) (m Manager, err error) {
 	defer decorate.OnError(&err /*i18n.G(*/, "can't create authd object") //)
 
 	log.Debug(ctx, "Building authd object")
