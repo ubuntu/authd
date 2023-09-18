@@ -3,6 +3,7 @@ package pam
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -181,7 +182,18 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 		return nil, err
 	}
 
+	// Update database on granted auth.
 	if access == responses.AuthGranted {
+		var user cache.UserInfo
+		if err := json.Unmarshal([]byte(data), &user); err != nil {
+			return nil, fmt.Errorf("user data from broker invalid: %v", err)
+		}
+
+		if err := s.cache.UpdateFromUserInfo(user); err != nil {
+			return nil, err
+		}
+
+		// The data is not the message for the user then.
 		data = ""
 	}
 
