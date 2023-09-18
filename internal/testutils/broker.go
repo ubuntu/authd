@@ -11,6 +11,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
+	"github.com/ubuntu/authd/internal/brokers/responses"
 )
 
 const (
@@ -219,8 +220,8 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 		b.isAuthenticatedCallsMu.Unlock()
 	}()
 
-	access = "allowed"
-	data = `{"mock_answer": "authentication allowed by default"}`
+	access = responses.AuthGranted
+	data = `{"mock_answer": "authentication granted by default"}`
 	if parsedID == "IA_invalid" {
 		access = "invalid"
 	}
@@ -242,8 +243,8 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 				access = "cancelled"
 				data = `{"mock_answer": "cancelled by user"}`
 			case <-time.After(2 * time.Second):
-				access = "allowed"
-				data = `{"mock_answer": "authentication allowed by timeout"}`
+				access = responses.AuthGranted
+				data = `{"mock_answer": "authentication granted by timeout"}`
 			}
 		}
 		//TODO: Add cases for the new access types

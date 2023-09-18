@@ -479,7 +479,7 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 	}()
 
 	access, data, err = b.handleIsAuthenticated(b.isAuthenticatedCalls[sessionID].ctx, sessionInfo, authData)
-	if access == responses.AuthAllowed {
+	if access == responses.AuthGranted {
 		switch sessionInfo.username {
 		case "user-needs-reset":
 			fallthrough
@@ -605,7 +605,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		return responses.AuthDenied, "", nil
 	}
 
-	return responses.AuthAllowed, user.String(), nil
+	return responses.AuthGranted, user.String(), nil
 }
 
 // EndSession ends the requested session and triggers the necessary clean up steps, if any.

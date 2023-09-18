@@ -2,8 +2,8 @@
 package responses
 
 const (
-	// AuthAllowed is the response when the authentication is allowed.
-	AuthAllowed = "allowed"
+	// AuthGranted is the response when the authentication is granted.
+	AuthGranted = "granted"
 	// AuthDenied is the response when the authentication is denied.
 	AuthDenied = "denied"
 	// AuthCancelled is the response when the authentication is cancelled.
@@ -15,4 +15,4 @@ const (
 )
 
 // AuthReplies is the list of all possible authentication replies.
-var AuthReplies = []string{AuthAllowed, AuthDenied, AuthCancelled, AuthRetry, AuthNext}
+var AuthReplies = []string{AuthGranted, AuthDenied, AuthCancelled, AuthRetry, AuthNext}

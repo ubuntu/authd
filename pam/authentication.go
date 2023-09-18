@@ -112,7 +112,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 	case isAuthenticatedResultReceived:
 		log.Infof(context.TODO(), "isAuthenticatedResultReceived: %v", msg.access)
 		switch msg.access {
-		case responses.AuthAllowed:
+		case responses.AuthGranted:
 			return *m, sendEvent(pamSuccess{brokerID: m.currentBrokerID})
 
 		case responses.AuthRetry:

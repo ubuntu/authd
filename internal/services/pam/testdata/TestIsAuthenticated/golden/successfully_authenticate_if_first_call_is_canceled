@@ -3,6 +3,6 @@ FIRST CALL:
 	data: 
 	err: rpc error: code = Canceled desc = context canceled
 SECOND CALL:
-	access: allowed
-	data: {"mock_answer": "authentication allowed by timeout"}
+	access: granted
+	data: {"mock_answer": "authentication granted by timeout"}
 	err: <nil>
