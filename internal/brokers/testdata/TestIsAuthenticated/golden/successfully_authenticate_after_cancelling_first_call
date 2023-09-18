@@ -3,6 +3,6 @@ FIRST CALL:
 	data: {"mock_answer": "cancelled by user"}
 	err: <nil>
 SECOND CALL:
-	access: allowed
-	data: {"mock_answer": "authentication allowed by timeout"}
+	access: granted
+	data: {"mock_answer": "authentication granted by timeout"}
 	err: <nil>
