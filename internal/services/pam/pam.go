@@ -9,6 +9,7 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/responses"
+	"github.com/ubuntu/authd/internal/cache"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/decorate"
 )
@@ -17,16 +18,18 @@ var _ authd.PAMServer = Service{}
 
 // Service is the implementation of the PAM module service.
 type Service struct {
+	cache         *cache.Cache
 	brokerManager *brokers.Manager
 
 	authd.UnimplementedPAMServer
 }
 
 // NewService returns a new PAM GRPC service.
-func NewService(ctx context.Context, brokerManager *brokers.Manager) Service {
+func NewService(ctx context.Context, cache *cache.Cache, brokerManager *brokers.Manager) Service {
 	log.Debug(ctx, "Building new GRPC PAM service")
 
 	return Service{
+		cache:         cache,
 		brokerManager: brokerManager,
 	}
 }

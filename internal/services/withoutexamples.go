@@ -2,5 +2,7 @@
 
 package services
 
-// Stop is a no-op in production code.
-func (m *Manager) Stop() {}
+// Stop stops the underlying cache only in production code.
+func (m *Manager) Stop() error {
+	return m.stop()
+}
