@@ -1,8 +1,10 @@
 package testutils
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"html/template"
 	"os"
 	"path/filepath"
 	"strings"
@@ -221,7 +223,7 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 	}()
 
 	access = responses.AuthGranted
-	data = `{"mock_answer": "authentication granted by default"}`
+	data = fmt.Sprintf(`{"mock_answer": "authentication granted by default", "userinfo": %s}`, userInfoFromName(parsedID))
 	if parsedID == "IA_invalid" {
 		access = "invalid"
 	}
@@ -232,21 +234,22 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 		case "IA_timeout":
 			time.Sleep(time.Second)
 			access = "denied"
-			data = `{"mock_answer": "denied by time out"}`
+			data = `{"message": "denied by time out"}`
 		case "IA_wait":
 			<-ctx.Done()
 			access = "cancelled"
-			data = `{"mock_answer": "cancelled by user"}`
+			data = `{"message": "cancelled by user"}`
 		case "IA_second_call":
 			select {
 			case <-ctx.Done():
 				access = "cancelled"
-				data = `{"mock_answer": "cancelled by user"}`
+				data = `{"message": "cancelled by user"}`
 			case <-time.After(2 * time.Second):
 				access = responses.AuthGranted
-				data = `{"mock_answer": "authentication granted by timeout"}`
+				data = fmt.Sprintf(`{"mock_answer": "authentication granted by mock timeout", "userinfo": %s}`, userInfoFromName(parsedID))
 			}
 		}
+
 		//TODO: Add cases for the new access types
 		close(done)
 	}()
@@ -292,4 +295,26 @@ func parseSessionID(sessionID string) string {
 		return ""
 	}
 	return strings.TrimSuffix(cut[len(cut)-1], "-session_id")
+}
+
+// userInfoFromName transform a given name to the strinfigy userinfo string.
+func userInfoFromName(name string) string {
+	user := struct {
+		Name string
+	}{Name: name}
+
+	var buf bytes.Buffer
+
+	// only used for tests, we can ignore the template execution error as the returned data will be failing.
+	_ = template.Must(template.New("").Parse(`{
+		"name": "{{.Name}}",
+		"uuid": "uuid-{{.Name}}",
+		"gecos": "gecos for {{.Name}}",
+		"dir": "/home/{{.Name}}",
+		"shell": "/bin/sh/{{.Name}}",
+		"avatar": "avatar for {{.Name}}",
+		"groups": [ {"name": "group-{{.Name}}", "ugid": "group-{{.Name}}"} ]
+	}`)).Execute(&buf, user)
+
+	return buf.String()
 }
