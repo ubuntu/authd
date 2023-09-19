@@ -34,7 +34,7 @@ func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetByNameReques
 	}
 	u, err := s.cache.UserByName(req.GetName())
 	if err != nil {
-		return nil, err
+		return nil, noDataFoundErrorToGRPCError(err)
 	}
 
 	return newPasswdEntryFromUserPasswdShadow(u), nil
@@ -44,7 +44,7 @@ func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetByNameReques
 func (s Service) GetPasswdByUID(ctx context.Context, req *authd.GetByIDRequest) (*authd.PasswdEntry, error) {
 	u, err := s.cache.UserByID(int(req.GetId()))
 	if err != nil {
-		return nil, err
+		return nil, noDataFoundErrorToGRPCError(err)
 	}
 
 	return newPasswdEntryFromUserPasswdShadow(u), nil
@@ -54,7 +54,7 @@ func (s Service) GetPasswdByUID(ctx context.Context, req *authd.GetByIDRequest) 
 func (s Service) GetPasswdEntries(ctx context.Context, req *authd.Empty) (*authd.PasswdEntries, error) {
 	allUsers, err := s.cache.AllUsers()
 	if err != nil {
-		return nil, err
+		return nil, noDataFoundErrorToGRPCError(err)
 	}
 
 	var r authd.PasswdEntries
@@ -72,7 +72,7 @@ func (s Service) GetGroupByName(ctx context.Context, req *authd.GetByNameRequest
 	}
 	g, err := s.cache.GroupByName(req.GetName())
 	if err != nil {
-		return nil, err
+		return nil, noDataFoundErrorToGRPCError(err)
 	}
 
 	return newGroupEntryFromGroup(g), nil
@@ -82,7 +82,7 @@ func (s Service) GetGroupByName(ctx context.Context, req *authd.GetByNameRequest
 func (s Service) GetGroupByGID(ctx context.Context, req *authd.GetByIDRequest) (*authd.GroupEntry, error) {
 	g, err := s.cache.GroupByID(int(req.GetId()))
 	if err != nil {
-		return nil, err
+		return nil, noDataFoundErrorToGRPCError(err)
 	}
 
 	return newGroupEntryFromGroup(g), nil
@@ -110,7 +110,7 @@ func (s Service) GetShadowByName(ctx context.Context, req *authd.GetByNameReques
 	}
 	u, err := s.cache.UserByName(req.GetName())
 	if err != nil {
-		return nil, err
+		return nil, noDataFoundErrorToGRPCError(err)
 	}
 
 	return newShadowEntryFromUserPasswdShadow(u), nil
@@ -120,7 +120,7 @@ func (s Service) GetShadowByName(ctx context.Context, req *authd.GetByNameReques
 func (s Service) GetShadowEntries(ctx context.Context, req *authd.Empty) (*authd.ShadowEntries, error) {
 	allUsers, err := s.cache.AllUsers()
 	if err != nil {
-		return nil, err
+		return nil, noDataFoundErrorToGRPCError(err)
 	}
 
 	var r authd.ShadowEntries
@@ -166,4 +166,14 @@ func newShadowEntryFromUserPasswdShadow(u cache.UserPasswdShadow) *authd.ShadowE
 		ChangeInactiveDays: int32(u.PwdInactivity),
 		ExpireDate:         int32(u.ExpirationDate),
 	}
+}
+
+// noDataFoundErrorToGRPCError converts a data not found to proper GRPC status code.
+// This code is picked up by the NSS module to return corresponding NSS status.
+func noDataFoundErrorToGRPCError(err error) error {
+	if !errors.Is(err, cache.NoDataFoundError{}) {
+		return err
+	}
+
+	return status.Error(codes.NotFound, "")
 }
