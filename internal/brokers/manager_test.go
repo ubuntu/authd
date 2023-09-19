@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -285,6 +286,81 @@ func TestEndSession(t *testing.T) {
 			require.Error(t, err, "EndSession should have removed the broker from the active transactions, but did not")
 		})
 	}
+}
+
+func TestStartAndEndSession(t *testing.T) {
+	t.Parallel()
+
+	cfgDir := t.TempDir()
+	b1 := newBrokerForTests(t, cfgDir, t.Name()+"_Broker1")
+	b2 := newBrokerForTests(t, cfgDir, t.Name()+"_Broker2")
+
+	m, err := brokers.NewManager(context.Background(), []string{b1.Name, b2.Name}, brokers.WithCfgDir(cfgDir))
+	require.NoError(t, err, "Setup: could not create manager")
+
+	// Fetches the broker IDs
+	for _, broker := range m.AvailableBrokers() {
+		if broker.Name == b1.Name {
+			b1.ID = broker.ID
+		} else if broker.Name == b2.Name {
+			b2.ID = broker.ID
+		}
+	}
+
+	/* Starting the sessions */
+	var firstID, firstKey, secondID, secondKey *string
+	var firstErr, secondErr *error
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		id, key, err := m.NewSession(b1.ID, "user1", "some_lang")
+		firstID, firstKey, firstErr = &id, &key, &err
+	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		id, key, err := m.NewSession(b2.ID, "user2", "some_lang")
+		secondID, secondKey, secondErr = &id, &key, &err
+	}()
+	wg.Wait()
+
+	require.NoError(t, *firstErr, "First NewSession should not return an error, but did")
+	require.NoError(t, *secondErr, "Second NewSession should not return an error, but did")
+
+	require.Equal(t, b1.ID+"-"+testutils.GenerateSessionID("user1"), *firstID, "First NewSession should return the expected session ID, but did not")
+	require.Equal(t, testutils.GenerateEncryptionKey(b1.Name), *firstKey, "First NewSession should return the expected encryption key, but did not")
+	require.Equal(t, b2.ID+"-"+testutils.GenerateSessionID("user2"), *secondID, "Second NewSession should return the expected session ID, but did not")
+	require.Equal(t, testutils.GenerateEncryptionKey(b2.Name), *secondKey, "Second NewSession should return the expected encryption key, but did not")
+
+	assignedBroker, err := m.BrokerFromSessionID(*firstID)
+	require.NoError(t, err, "First NewSession should have assigned a broker for the session, but did not")
+	require.Equal(t, b1.Name, assignedBroker.Name, "First NewSession should have assigned the expected broker for the session, but did not")
+	assignedBroker, err = m.BrokerFromSessionID(*secondID)
+	require.NoError(t, err, "Second NewSession should have assigned a broker for the session, but did not")
+	require.Equal(t, b2.Name, assignedBroker.Name, "Second NewSession should have assigned the expected broker for the session, but did not")
+
+	/* Ending the sessions */
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		*firstErr = m.EndSession(*firstID)
+	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		*secondErr = m.EndSession(*secondID)
+	}()
+	wg.Wait()
+
+	require.NoError(t, *firstErr, "First EndSession should not return an error, but did")
+	require.NoError(t, *secondErr, "Second EndSession should not return an error, but did")
+
+	_, err = m.BrokerFromSessionID(*firstID)
+	require.Error(t, err, "First EndSession should have removed the broker for the session, but did not")
+
+	_, err = m.BrokerFromSessionID(*secondID)
+	require.Error(t, err, "Second EndSession should have removed the broker for the session, but did not")
 }
 
 func TestMain(m *testing.M) {
