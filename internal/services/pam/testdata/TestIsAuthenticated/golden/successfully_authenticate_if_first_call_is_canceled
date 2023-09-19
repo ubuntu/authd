@@ -4,5 +4,5 @@ FIRST CALL:
 	err: rpc error: code = Canceled desc = context canceled
 SECOND CALL:
 	access: granted
-	data: {"mock_answer": "authentication granted by timeout"}
+	data: {"Name":"IA_second_call","UID":65565,"Gecos":"gecos for IA_second_call","Dir":"/home/IA_second_call","Shell":"/bin/sh/IA_second_call","Groups":[{"Name":"group-IA_second_call","GID":65566}]}
 	err: <nil>
