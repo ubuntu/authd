@@ -4,7 +4,6 @@ package pam
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/ubuntu/authd"
@@ -13,6 +12,8 @@ import (
 	"github.com/ubuntu/authd/internal/cache"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/decorate"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var _ authd.PAMServer = Service{}
@@ -72,10 +73,10 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 	lang := req.GetLang()
 
 	if username == "" {
-		return nil, errors.New("no user name provided")
+		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
 	if brokerID == "" {
-		return nil, errors.New("no broker selected")
+		return nil, status.Error(codes.InvalidArgument, "no broker selected")
 	}
 	if lang == "" {
 		lang = "C"
@@ -99,7 +100,7 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMReque
 
 	sessionID := req.GetSessionId()
 	if sessionID == "" {
-		return nil, errors.New("no session ID provided")
+		return nil, status.Error(codes.InvalidArgument, "no session ID provided")
 	}
 
 	broker, err := s.brokerManager.BrokerFromSessionID(sessionID)
@@ -142,10 +143,10 @@ func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMReq
 	authenticationModeID := req.GetAuthenticationModeId()
 
 	if sessionID == "" {
-		return nil, errors.New("no session ID provided")
+		return nil, status.Error(codes.InvalidArgument, "no session ID provided")
 	}
 	if authenticationModeID == "" {
-		return nil, errors.New("no authentication mode provided")
+		return nil, status.Error(codes.InvalidArgument, "no authentication mode provided")
 	}
 
 	broker, err := s.brokerManager.BrokerFromSessionID(sessionID)
@@ -169,7 +170,7 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 
 	sessionID := req.GetSessionId()
 	if sessionID == "" {
-		return nil, errors.New("no session ID provided")
+		return nil, status.Error(codes.InvalidArgument, "no session ID provided")
 	}
 
 	broker, err := s.brokerManager.BrokerFromSessionID(sessionID)
@@ -208,7 +209,7 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURe
 	defer decorate.OnError(&err, "can't set default broker %q for user %q", req.GetBrokerId(), req.GetUsername())
 
 	if req.GetUsername() == "" {
-		return nil, errors.New("no user name given")
+		return nil, status.Error(codes.InvalidArgument, "no user name given")
 	}
 
 	err = s.brokerManager.SetDefaultBrokerForUser(req.GetBrokerId(), req.GetUsername())
@@ -222,7 +223,7 @@ func (s Service) EndSession(ctx context.Context, req *authd.ESRequest) (empty *a
 
 	sessionID := req.GetSessionId()
 	if sessionID == "" {
-		return nil, errors.New("no session id given")
+		return nil, status.Error(codes.InvalidArgument, "no session id given")
 	}
 
 	return &authd.Empty{}, s.brokerManager.EndSession(sessionID)

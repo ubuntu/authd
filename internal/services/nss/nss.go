@@ -8,6 +8,8 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/cache"
 	"github.com/ubuntu/authd/internal/log"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // Service is the implementation of the NSS module service.
@@ -28,7 +30,7 @@ func NewService(ctx context.Context, cache *cache.Cache) Service {
 // GetPasswdByName returns the passwd entry for the given username.
 func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetByNameRequest) (*authd.PasswdEntry, error) {
 	if req.GetName() == "" {
-		return nil, errors.New("no user name provided")
+		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
 	u, err := s.cache.UserByName(req.GetName())
 	if err != nil {
@@ -66,7 +68,7 @@ func (s Service) GetPasswdEntries(ctx context.Context, req *authd.Empty) (*authd
 // GetGroupByName returns the group entry for the given group name.
 func (s Service) GetGroupByName(ctx context.Context, req *authd.GetByNameRequest) (*authd.GroupEntry, error) {
 	if req.GetName() == "" {
-		return nil, errors.New("no group name provided")
+		return nil, status.Error(codes.InvalidArgument, "no group name provided")
 	}
 	g, err := s.cache.GroupByName(req.GetName())
 	if err != nil {
@@ -104,7 +106,7 @@ func (s Service) GetGroupEntries(ctx context.Context, req *authd.Empty) (*authd.
 // GetShadowByName returns the shadow entry for the given username.
 func (s Service) GetShadowByName(ctx context.Context, req *authd.GetByNameRequest) (*authd.ShadowEntry, error) {
 	if req.GetName() == "" {
-		return nil, errors.New("no group name provided")
+		return nil, status.Error(codes.InvalidArgument, "no shadow name provided")
 	}
 	u, err := s.cache.UserByName(req.GetName())
 	if err != nil {
