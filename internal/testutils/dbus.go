@@ -63,7 +63,7 @@ func StartSystemBusMock() (func(), error) {
 		return nil, err
 	}
 	// Give some time for the daemon to start.
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	prev, set := os.LookupEnv("DBUS_SYSTEM_BUS_ADDRESS")
 	os.Setenv("DBUS_SYSTEM_BUS_ADDRESS", "unix:path="+listenPath)
