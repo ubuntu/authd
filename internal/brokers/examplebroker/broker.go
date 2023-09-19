@@ -2,12 +2,14 @@
 package examplebroker
 
 import (
+	"bytes"
 	"context"
 	"crypto/aes"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
 	"math/rand"
 	"sort"
 	"strings"
@@ -517,23 +519,24 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 	switch sessionInfo.selectedMode {
 	case "password":
 		if authData["challenge"] != "goodpass" {
-			return responses.AuthRetry, "", nil
+			return responses.AuthRetry, `{"message": "invalid password, should be goodpass"}`, nil
 		}
 
 	case "pincode":
 		if authData["challenge"] != "4242" {
-			return responses.AuthRetry, "", nil
+			return responses.AuthRetry, `{"message": "invalid pincode, should be 4242"}`, nil
 		}
 
 	case "totp_with_button", "totp":
 		wantedCode := sessionInfo.allModes[sessionInfo.selectedMode]["wantedCode"]
 		if authData["challenge"] != wantedCode {
-			return responses.AuthRetry, "", nil
+			return responses.AuthRetry, `{"message": "invalid totp code"}`, nil
 		}
 
 	case "phoneack1":
+		// TODO: should this be an error rather (not expected data from the PAM module?
 		if authData["wait"] != "true" {
-			return responses.AuthDenied, "", nil
+			return responses.AuthDenied, `{"message": "phoneack1 should have wait set to true"}`, nil
 		}
 		// Send notification to phone1 and wait on server signal to return if OK or not
 		select {
@@ -544,20 +547,20 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 
 	case "phoneack2":
 		if authData["wait"] != "true" {
-			return responses.AuthDenied, "", nil
+			return responses.AuthDenied, `{"message": "phoneack2 should have wait set to true"}`, nil
 		}
 
 		// This one is failing remotely as an example
 		select {
 		case <-time.After(2 * time.Second):
-			return responses.AuthDenied, "", nil
+			return responses.AuthDenied, `{"message": "Timeout reached"}`, nil
 		case <-ctx.Done():
 			return responses.AuthCancelled, "", nil
 		}
 
 	case "fidodevice1":
 		if authData["wait"] != "true" {
-			return responses.AuthDenied, "", nil
+			return responses.AuthDenied, `{"message": "fidodevice1 should have wait set to true"}`, nil
 		}
 
 		// simulate direct exchange with the FIDO device
@@ -569,7 +572,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 
 	case "qrcodewithtypo":
 		if authData["wait"] != "true" {
-			return responses.AuthDenied, "", nil
+			return responses.AuthDenied, `{"message": "qrcodewithtypo should have wait set to true"}`, nil
 		}
 		// Simulate connexion with remote server to check that the correct code was entered
 		select {
@@ -585,7 +588,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		if authData["challenge"] != "" {
 			// validate challenge given manually by the user
 			if authData["challenge"] != "aaaaa" {
-				return responses.AuthDenied, "", nil
+				return responses.AuthDenied, `{"message": "invalid challenge, should be aaaaa"}`, nil
 			}
 		} else if authData["wait"] == "true" {
 			// we are simulating clicking on the url signal received by the broker
@@ -596,16 +599,16 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 				return responses.AuthCancelled, "", nil
 			}
 		} else {
-			return responses.AuthDenied, "", nil
+			return responses.AuthDenied, `{"message": "challenge timeout "}`, nil
 		}
 	}
 
 	user, exists := exampleUsers[sessionInfo.username]
 	if !exists {
-		return responses.AuthDenied, "", nil
+		return responses.AuthDenied, `{"message": "user not found"}`, nil
 	}
 
-	return responses.AuthGranted, user.String(), nil
+	return responses.AuthGranted, userInfoFromName(user.Name), nil
 }
 
 // EndSession ends the requested session and triggers the necessary clean up steps, if any.
@@ -718,4 +721,26 @@ func (b *Broker) updateSession(sessionID string, info sessionInfo) error {
 	defer b.currentSessionsMu.Unlock()
 	b.currentSessions[sessionID] = info
 	return nil
+}
+
+// userInfoFromName transform a given name to the strinfigy userinfo string.
+func userInfoFromName(name string) string {
+	user := struct {
+		Name string
+	}{Name: name}
+
+	var buf bytes.Buffer
+
+	// only used for the example, we can ignore the template execution error as the returned data will be failing.
+	_ = template.Must(template.New("").Parse(`{
+		"name": "{{.Name}}",
+		"uuid": "uuid-{{.Name}}",
+		"gecos": "gecos for {{.Name}}",
+		"dir": "/home/{{.Name}}",
+		"shell": "/bin/sh/{{.Name}}",
+		"avatar": "avatar for {{.Name}}",
+		"groups": [ {"name": "group-{{.Name}}", "ugid": "group-{{.Name}}"} ]
+	}`)).Execute(&buf, user)
+
+	return buf.String()
 }
