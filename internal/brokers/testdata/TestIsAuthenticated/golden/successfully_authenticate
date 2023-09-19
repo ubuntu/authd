@@ -1,4 +1,4 @@
 FIRST CALL:
 	access: granted
-	data: {"mock_answer": "authentication granted by default"}
+	data: {"Name":"success","UID":65558,"Gecos":"gecos for success","Dir":"/home/success","Shell":"/bin/sh/success","Groups":[{"Name":"group-success","GID":65559}]}
 	err: <nil>
