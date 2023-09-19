@@ -1,4 +1,5 @@
 FIRST CALL:
 	access: 
 	data: 
-	err: invalid user information (not json formatted): invalid
+	err: response returned by the broker is not a valid json: invalid character 'i' looking for beginning of value
+Broker returned: invalid

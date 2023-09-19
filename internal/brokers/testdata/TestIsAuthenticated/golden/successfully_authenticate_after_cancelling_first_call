@@ -1,8 +1,8 @@
 FIRST CALL:
 	access: cancelled
-	data: {"mock_answer": "cancelled by user"}
+	data: {"message": "cancelled by user"}
 	err: <nil>
 SECOND CALL:
 	access: granted
-	data: {"mock_answer": "authentication granted by timeout"}
+	data: {"Name":"IA_second_call","UID":65565,"Gecos":"gecos for IA_second_call","Dir":"/home/IA_second_call","Shell":"/bin/sh/IA_second_call","Groups":[{"Name":"group-IA_second_call","GID":65566}]}
 	err: <nil>

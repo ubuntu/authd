@@ -315,11 +315,9 @@ func TestIsAuthenticated(t *testing.T) {
 		secondCall      bool
 		cancelFirstCall bool
 	}{
-		"Successfully authenticate":                           {},
+		"Successfully authenticate":                           {username: "success"},
 		"Successfully authenticate if first call is canceled": {username: "IA_second_call", secondCall: true, cancelFirstCall: true},
 		"Denies authentication when broker times out":         {username: "IA_timeout"},
-
-		"Empty data gets JSON formatted": {username: "IA_empty_data"},
 
 		// service errors
 		"Error when sessionID is empty": {sessionID: "-"},
@@ -327,6 +325,7 @@ func TestIsAuthenticated(t *testing.T) {
 
 		// broker errors
 		"Error when authenticating":                         {username: "IA_error"},
+		"Error on empty data even if granted":               {username: "IA_empty_data"},
 		"Error when broker returns invalid access":          {username: "IA_invalid"},
 		"Error when broker returns invalid data":            {username: "IA_invalid_data"},
 		"Error when calling second time without cancelling": {username: "IA_second_call", secondCall: true},
@@ -361,9 +360,9 @@ func TestIsAuthenticated(t *testing.T) {
 					AuthenticationData: "some data",
 				}
 				iaResp, err := client.IsAuthenticated(ctx, iaReq)
-				firstCall = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n",
+				firstCall = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tmsg: %s\n\terr: %v\n",
 					iaResp.GetAccess(),
-					iaResp.GetData(),
+					iaResp.GetMsg(),
 					err,
 				)
 			}()
@@ -381,9 +380,9 @@ func TestIsAuthenticated(t *testing.T) {
 					AuthenticationData: "some data",
 				}
 				iaResp, err := client.IsAuthenticated(context.Background(), iaReq)
-				secondCall = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n",
+				secondCall = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tmsg: %s\n\terr: %v\n",
 					iaResp.GetAccess(),
-					iaResp.GetData(),
+					iaResp.GetMsg(),
 					err,
 				)
 			}

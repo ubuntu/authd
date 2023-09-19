@@ -35,7 +35,7 @@ func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID,
 
 		return isAuthenticatedResultReceived{
 			access: res.Access,
-			data:   res.Data,
+			msg:    res.Msg,
 		}
 	}
 }
@@ -50,7 +50,7 @@ type isAuthenticatedRequested struct {
 // and data that was retrieved.
 type isAuthenticatedResultReceived struct {
 	access string
-	data   string
+	msg    string
 }
 
 // reselectAuthMode signals to restart auth mode selection with the same id (to resend sms or
@@ -116,12 +116,12 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 			return *m, sendEvent(pamSuccess{brokerID: m.currentBrokerID})
 
 		case responses.AuthRetry:
-			m.errorMsg = dataToMsg(msg.data)
+			m.errorMsg = dataToMsg(msg.msg)
 			return *m, sendEvent(startAuthentication{})
 
 		case responses.AuthDenied:
 			errMsg := "Access denied"
-			if err := dataToMsg(msg.data); err != "" {
+			if err := dataToMsg(msg.msg); err != "" {
 				errMsg = err
 			}
 			return *m, sendEvent(pamAuthError{msg: errMsg})

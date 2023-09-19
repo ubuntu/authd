@@ -8,6 +8,7 @@ import (
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/responses"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/decorate"
 )
@@ -177,9 +178,13 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 		return nil, err
 	}
 
+	if access == responses.AuthGranted {
+		data = ""
+	}
+
 	return &authd.IAResponse{
 		Access: access,
-		Data:   data,
+		Msg:    data,
 	}, nil
 }
 

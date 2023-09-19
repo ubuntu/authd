@@ -11,6 +11,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/ubuntu/authd/internal/brokers/responses"
+	"github.com/ubuntu/authd/internal/cache"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/decorate"
 	"golang.org/x/exp/slices"
@@ -153,12 +154,51 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 		return "", "", fmt.Errorf("invalid access authentication key: %v", access)
 	}
 
-	// Validate json
 	if data == "" {
 		data = "{}"
 	}
-	if !json.Valid([]byte(data)) {
-		return "", "", fmt.Errorf("invalid user information (not json formatted): %v", data)
+
+	// TODO: validate response from broker
+	switch access {
+	case responses.AuthGranted:
+		var returnedData map[string]json.RawMessage
+		err = json.Unmarshal([]byte(data), &returnedData)
+		if err != nil {
+			return "", "", fmt.Errorf("response returned by the broker is not a valid json: %v\nBroker returned: %v", err, data)
+		}
+
+		rawUserInfo, ok := returnedData["userinfo"]
+		if !ok {
+			return "", "", fmt.Errorf("missing userinfo key in granted user access, got: %v", data)
+		}
+
+		var uInfo struct {
+			cache.UserInfo
+			UUID   string
+			UGID   string
+			Groups []struct {
+				Name string
+				UGID string
+			}
+		}
+		err := json.Unmarshal(rawUserInfo, &uInfo)
+		if err != nil {
+			return "", "", fmt.Errorf("invalid user information (not json formatted): %v", err)
+		}
+		// TODO: transform UUID and UGID into UID and GID and validates that any required fields are here.
+		uInfo.UID = 65536 + len(b.ID+uInfo.UUID) // should not be above 100000
+		for _, g := range uInfo.Groups {
+			uInfo.UserInfo.Groups = append(uInfo.UserInfo.Groups, cache.GroupInfo{
+				Name: g.Name,
+				GID:  65536 + len(b.ID+g.UGID),
+			})
+		}
+
+		d, err := json.Marshal(uInfo.UserInfo)
+		if err != nil {
+			return "", "", fmt.Errorf("can't marshal UserInfo: %v", err)
+		}
+		data = string(d)
 	}
 
 	return access, data, nil

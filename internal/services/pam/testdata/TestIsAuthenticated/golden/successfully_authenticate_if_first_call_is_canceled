@@ -1,8 +1,8 @@
 FIRST CALL:
 	access: 
-	data: 
+	msg: 
 	err: rpc error: code = Canceled desc = context canceled
 SECOND CALL:
 	access: granted
-	data: {"mock_answer": "authentication granted by timeout"}
+	msg: 
 	err: <nil>

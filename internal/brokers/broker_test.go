@@ -214,13 +214,12 @@ func TestIsAuthenticated(t *testing.T) {
 		"Successfully authenticate after cancelling first call": {sessionID: "IA_second_call", secondCall: true},
 		"Denies authentication when broker times out":           {sessionID: "IA_timeout"},
 
-		"Empty data gets JSON formatted": {sessionID: "IA_empty_data"},
-
 		// broker errors
 		"Error when authenticating":                                           {sessionID: "IA_error"},
 		"Error when broker returns invalid access":                            {sessionID: "IA_invalid"},
 		"Error when broker returns invalid data":                              {sessionID: "IA_invalid_data"},
 		"Error when calling IsAuthenticated a second time without cancelling": {sessionID: "IA_second_call", secondCall: true, cancelFirstCall: true},
+		"Error on empty data even if granted":                                 {sessionID: "IA_empty_data"},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -239,7 +238,7 @@ func TestIsAuthenticated(t *testing.T) {
 			go func() {
 				defer close(done)
 				access, gotData, err := b.IsAuthenticated(ctx, tc.sessionID, "password")
-				firstCallReturn = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n", access, gotData, err)
+				firstCallReturn = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tdata: %+v\n\terr: %v\n", access, gotData, err)
 			}()
 
 			// Give some time for the first call to block
@@ -251,7 +250,7 @@ func TestIsAuthenticated(t *testing.T) {
 					<-done
 				}
 				access, gotData, err := b.IsAuthenticated(context.Background(), tc.sessionID, "password")
-				secondCallReturn = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n", access, gotData, err)
+				secondCallReturn = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tdata: %+v\n\terr: %v\n", access, gotData, err)
 			}
 
 			<-done

@@ -1,4 +1,4 @@
 FIRST CALL:
 	access: granted
-	data: {"mock_answer": "authentication granted by default"}
+	msg: 
 	err: <nil>
