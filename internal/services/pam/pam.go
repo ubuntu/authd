@@ -179,7 +179,7 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 
 	return &authd.IAResponse{
 		Access: access,
-		Data:   data,
+		Msg:    data,
 	}, nil
 }
 

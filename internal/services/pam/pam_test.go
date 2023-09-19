@@ -360,9 +360,9 @@ func TestIsAuthenticated(t *testing.T) {
 					AuthenticationData: "some data",
 				}
 				iaResp, err := client.IsAuthenticated(ctx, iaReq)
-				firstCall = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n",
+				firstCall = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tmsg: %s\n\terr: %v\n",
 					iaResp.GetAccess(),
-					iaResp.GetData(),
+					iaResp.GetMsg(),
 					err,
 				)
 			}()
@@ -380,9 +380,9 @@ func TestIsAuthenticated(t *testing.T) {
 					AuthenticationData: "some data",
 				}
 				iaResp, err := client.IsAuthenticated(context.Background(), iaReq)
-				secondCall = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n",
+				secondCall = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tmsg: %s\n\terr: %v\n",
 					iaResp.GetAccess(),
-					iaResp.GetData(),
+					iaResp.GetMsg(),
 					err,
 				)
 			}
