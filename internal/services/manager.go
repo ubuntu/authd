@@ -42,13 +42,13 @@ func NewManager(ctx context.Context, configuredBrokers []string) (m Manager, err
 }
 
 // RegisterGRPCServices returns a new grpc Server after registering both NSS and PAM services.
-func (a Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
+func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 	log.Debug(ctx, "Registering GRPC services")
 
 	grpcServer := grpc.NewServer()
 
-	authd.RegisterNSSServer(grpcServer, a.nssService)
-	authd.RegisterPAMServer(grpcServer, a.pamService)
+	authd.RegisterNSSServer(grpcServer, m.nssService)
+	authd.RegisterPAMServer(grpcServer, m.pamService)
 
 	return grpcServer
 }
