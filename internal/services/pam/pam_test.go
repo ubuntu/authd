@@ -16,6 +16,7 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/cache"
+	cachetests "github.com/ubuntu/authd/internal/cache/tests"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/testutils"
 	"google.golang.org/grpc"
@@ -396,8 +397,14 @@ func TestIsAuthenticated(t *testing.T) {
 			<-done
 
 			got := firstCall + secondCall
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "IsAuthenticated")))
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
+
+			// Check that cache has been updated too.
+			gotDB, err := cachetests.DumpToYaml(c)
+			require.NoError(t, err, "Setup: dump database for comparing")
+			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
+			require.Equal(t, wantDB, gotDB, "IsAuthenticated should udpate the cache database as expected")
 		})
 	}
 }
