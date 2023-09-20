@@ -313,7 +313,8 @@ func TestIsAuthenticated(t *testing.T) {
 
 	tests := map[string]struct {
 		// These are the function arguments.
-		sessionID string
+		sessionID  string
+		existingDB string
 
 		// These are auxiliary inputs that affect the test setup and help control the mock output.
 		username        string
@@ -323,6 +324,7 @@ func TestIsAuthenticated(t *testing.T) {
 		"Successfully authenticate":                           {username: "success"},
 		"Successfully authenticate if first call is canceled": {username: "IA_second_call", secondCall: true, cancelFirstCall: true},
 		"Denies authentication when broker times out":         {username: "IA_timeout"},
+		"Update existing DB on success":                       {username: "success", existingDB: "cache-with-user.db"},
 
 		// service errors
 		"Error when sessionID is empty": {sessionID: "-"},
@@ -340,7 +342,16 @@ func TestIsAuthenticated(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c, err := cache.New(t.TempDir())
+			cacheDir := t.TempDir()
+			if tc.existingDB != "" {
+				f, err := os.Open(filepath.Join(testutils.TestFamilyPath(t), tc.existingDB))
+				require.NoError(t, err, "Setup: could not open fixture database file")
+				defer f.Close()
+				err = cachetests.DbfromYAML(f, cacheDir)
+				require.NoError(t, err, "Setup: could not prepare cache database file")
+			}
+
+			c, err := cache.New(cacheDir)
 			require.NoError(t, err, "Setup: could not create cache")
 			t.Cleanup(func() { _ = c.Close() })
 			client := newPamClient(t, c)
