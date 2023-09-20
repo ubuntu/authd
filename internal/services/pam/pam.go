@@ -190,7 +190,7 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 
 // SetDefaultBrokerForUser sets the default broker for the given user.
 func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURequest) (empty *authd.Empty, err error) {
-	decorate.OnError(&err, "can't set default broker %q for user %q", req.GetBrokerId(), req.GetUsername())
+	defer decorate.OnError(&err, "can't set default broker %q for user %q", req.GetBrokerId(), req.GetUsername())
 
 	if req.GetUsername() == "" {
 		return nil, errors.New("no user name given")
@@ -203,7 +203,7 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURe
 
 // EndSession asks the broker associated with the sessionID to end the session.
 func (s Service) EndSession(ctx context.Context, req *authd.ESRequest) (empty *authd.Empty, err error) {
-	decorate.OnError(&err, "could not abort session")
+	defer decorate.OnError(&err, "could not abort session")
 
 	sessionID := req.GetSessionId()
 	if sessionID == "" {
