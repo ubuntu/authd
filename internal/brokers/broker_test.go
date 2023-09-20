@@ -93,6 +93,8 @@ func TestNewBroker(t *testing.T) {
 func TestGetAuthenticationModes(t *testing.T) {
 	t.Parallel()
 
+	b := newBrokerForTests(t, "", "")
+
 	tests := map[string]struct {
 		sessionID          string
 		supportedUILayouts []string
@@ -115,8 +117,6 @@ func TestGetAuthenticationModes(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b := newBrokerForTests(t, "")
-
 			if tc.supportedUILayouts == nil {
 				tc.supportedUILayouts = []string{"required-entry"}
 			}
@@ -126,7 +126,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 				supportedUILayouts = append(supportedUILayouts, supportedLayouts[layout])
 			}
 
-			gotModes, err := b.GetAuthenticationModes(context.Background(), tc.sessionID, supportedUILayouts)
+			gotModes, err := b.GetAuthenticationModes(context.Background(), prefixID(t, tc.sessionID), supportedUILayouts)
 			if tc.wantErr {
 				require.Error(t, err, "GetAuthenticationModes should return an error, but did not")
 				return
@@ -136,7 +136,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 			modesStr, err := json.Marshal(gotModes)
 			require.NoError(t, err, "Post: error when marshaling result")
 
-			got := "MODES:\n" + string(modesStr) + "\n\nVALIDATORS:\n" + b.LayoutValidatorsString(tc.sessionID)
+			got := "MODES:\n" + string(modesStr) + "\n\nVALIDATORS:\n" + b.LayoutValidatorsString(prefixID(t, tc.sessionID))
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "GetAuthenticationModes should return the expected modes, but did not")
 		})
@@ -145,6 +145,8 @@ func TestGetAuthenticationModes(t *testing.T) {
 
 func TestSelectAuthenticationMode(t *testing.T) {
 	t.Parallel()
+
+	b := newBrokerForTests(t, "", "")
 
 	tests := map[string]struct {
 		sessionID          string
@@ -173,8 +175,6 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b := newBrokerForTests(t, "")
-
 			if tc.supportedUILayouts == nil {
 				tc.supportedUILayouts = []string{"required-entry"}
 			}
@@ -184,9 +184,9 @@ func TestSelectAuthenticationMode(t *testing.T) {
 				supportedUILayouts = append(supportedUILayouts, supportedLayouts[layout])
 			}
 			// This is normally done in the broker's GetAuthenticationModes method, but we need to do it here to test the SelectAuthenticationMode method.
-			brokers.GenerateLayoutValidators(&b, tc.sessionID, supportedUILayouts)
+			brokers.GenerateLayoutValidators(&b, prefixID(t, tc.sessionID), supportedUILayouts)
 
-			gotUI, err := b.SelectAuthenticationMode(context.Background(), tc.sessionID, "mode1")
+			gotUI, err := b.SelectAuthenticationMode(context.Background(), prefixID(t, tc.sessionID), "mode1")
 			if tc.wantErr {
 				require.Error(t, err, "SelectAuthenticationMode should return an error, but did not")
 				return
@@ -201,6 +201,8 @@ func TestSelectAuthenticationMode(t *testing.T) {
 
 func TestIsAuthenticated(t *testing.T) {
 	t.Parallel()
+
+	b := newBrokerForTests(t, "", "")
 
 	tests := map[string]struct {
 		sessionID  string
@@ -226,8 +228,6 @@ func TestIsAuthenticated(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b := newBrokerForTests(t, "")
-
 			// Stores the combined output of both calls to IsAuthenticated
 			var firstCallReturn, secondCallReturn string
 
@@ -237,8 +237,8 @@ func TestIsAuthenticated(t *testing.T) {
 			done := make(chan struct{})
 			go func() {
 				defer close(done)
-				access, gotData, err := b.IsAuthenticated(ctx, tc.sessionID, "password")
-				firstCallReturn = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tdata: %+v\n\terr: %v\n", access, gotData, err)
+				access, gotData, err := b.IsAuthenticated(ctx, prefixID(t, tc.sessionID), "password")
+				firstCallReturn = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n", access, gotData, err)
 			}()
 
 			// Give some time for the first call to block
@@ -249,8 +249,8 @@ func TestIsAuthenticated(t *testing.T) {
 					cancel()
 					<-done
 				}
-				access, gotData, err := b.IsAuthenticated(context.Background(), tc.sessionID, "password")
-				secondCallReturn = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tdata: %+v\n\terr: %v\n", access, gotData, err)
+				access, gotData, err := b.IsAuthenticated(context.Background(), prefixID(t, tc.sessionID), "password")
+				secondCallReturn = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n", access, gotData, err)
 			}
 
 			<-done
@@ -263,6 +263,8 @@ func TestIsAuthenticated(t *testing.T) {
 
 func TestCancelIsAuthenticated(t *testing.T) {
 	t.Parallel()
+
+	b := newBrokerForTests(t, "", "")
 
 	tests := map[string]struct {
 		sessionID string
@@ -277,13 +279,11 @@ func TestCancelIsAuthenticated(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			b := newBrokerForTests(t, "")
-
 			var access string
 			ctx, cancel := context.WithCancel(context.Background())
 			done := make(chan struct{})
 			go func() {
-				access, _, _ = b.IsAuthenticated(ctx, tc.sessionID, "password")
+				access, _, _ = b.IsAuthenticated(ctx, prefixID(t, tc.sessionID), "password")
 				close(done)
 			}()
 			defer cancel()
@@ -299,14 +299,17 @@ func TestCancelIsAuthenticated(t *testing.T) {
 	}
 }
 
-func newBrokerForTests(t *testing.T, cfgDir string) (b brokers.Broker) {
+func newBrokerForTests(t *testing.T, cfgDir, brokerName string) (b brokers.Broker) {
 	t.Helper()
 
 	if cfgDir == "" {
 		cfgDir = t.TempDir()
 	}
+	if brokerName == "" {
+		brokerName = strings.ReplaceAll(t.Name(), "/", "_")
+	}
 
-	cfgPath, cleanup, err := testutils.StartBusBrokerMock(cfgDir, strings.ReplaceAll(t.Name(), "/", "_"))
+	cfgPath, cleanup, err := testutils.StartBusBrokerMock(cfgDir, brokerName)
 	require.NoError(t, err, "Setup: could not start bus broker mock")
 	t.Cleanup(cleanup)
 
@@ -314,8 +317,14 @@ func newBrokerForTests(t *testing.T, cfgDir string) (b brokers.Broker) {
 	require.NoError(t, err, "Setup: could not connect to system bus")
 	t.Cleanup(func() { require.NoError(t, conn.Close(), "Teardown: Failed to close the connection") })
 
-	b, err = brokers.NewBroker(context.Background(), strings.ReplaceAll(t.Name(), "/", "_"), cfgPath, conn)
+	b, err = brokers.NewBroker(context.Background(), brokerName, cfgPath, conn)
 	require.NoError(t, err, "Setup: could not create broker")
 
 	return b
+}
+
+// prefixID is a helper function that prefixes the given ID with the test name to avoid conflicts.
+func prefixID(t *testing.T, id string) string {
+	t.Helper()
+	return t.Name() + testutils.IDSeparator + id
 }

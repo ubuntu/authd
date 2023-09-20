@@ -118,7 +118,7 @@ func (b *BrokerBusMock) NewSession(username, lang string) (sessionID, encryption
 	if parsedUsername == "NS_no_id" {
 		return "", username + "_key", nil
 	}
-	return fmt.Sprintf("%s-session_id", username), b.name + "_key", nil
+	return GenerateSessionID(username), GenerateEncryptionKey(b.name), nil
 }
 
 // GetAuthenticationModes returns default values to be used in tests or an error if requested.
@@ -317,4 +317,14 @@ func userInfoFromName(name string) string {
 	}`)).Execute(&buf, user)
 
 	return buf.String()
+}
+
+// GenerateSessionID returns a sessionID that can be used in tests.
+func GenerateSessionID(username string) string {
+	return fmt.Sprintf("%s-session_id", username)
+}
+
+// GenerateEncryptionKey returns an encryption key that can be used in tests.
+func GenerateEncryptionKey(brokerName string) string {
+	return fmt.Sprintf("%s-key", brokerName)
 }

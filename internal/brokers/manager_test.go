@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -20,12 +21,14 @@ var (
 
 func TestNewManager(t *testing.T) {
 	tests := map[string]struct {
-		cfgDir string
-		noBus  bool
+		cfgDir            string
+		configuredBrokers []string
+		noBus             bool
 
 		wantErr bool
 	}{
 		"Creates all brokers when config dir has only valid brokers":                 {cfgDir: "valid_brokers"},
+		"Creates without autodiscovery when configuredBrokers is set":                {cfgDir: "valid_brokers", configuredBrokers: []string{"valid_2"}},
 		"Creates only correct brokers when config dir has valid and invalid brokers": {cfgDir: "mixed_brokers"},
 		"Creates only local broker when config dir has only invalid ones":            {cfgDir: "invalid_brokers"},
 		"Creates only local broker when config dir does not exist":                   {cfgDir: "does/not/exist"},
@@ -41,7 +44,7 @@ func TestNewManager(t *testing.T) {
 				t.Setenv("DBUS_SYSTEM_BUS_ADDRESS", "/dev/null")
 			}
 
-			got, err := brokers.NewManager(context.Background(), nil, brokers.WithRootDir(brokerCfgs), brokers.WithCfgDir(tc.cfgDir))
+			got, err := brokers.NewManager(context.Background(), tc.configuredBrokers, brokers.WithRootDir(brokerCfgs), brokers.WithCfgDir(tc.cfgDir))
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should return an error, but did not")
 				return
@@ -136,7 +139,7 @@ func TestBrokerFromSessionID(t *testing.T) {
 			t.Parallel()
 
 			cfgDir := t.TempDir()
-			b := newBrokerForTests(t, cfgDir)
+			b := newBrokerForTests(t, cfgDir, "")
 			m, err := brokers.NewManager(context.Background(), nil, brokers.WithCfgDir(cfgDir))
 			require.NoError(t, err, "Setup: could not create manager")
 
@@ -171,9 +174,12 @@ func TestNewSession(t *testing.T) {
 		brokerID string
 		username string
 
+		configuredBrokers []string
+
 		wantErr bool
 	}{
-		"Successfully start a new session": {username: "success"},
+		"Successfully start a new session":                         {username: "success"},
+		"Successfully start a new session with the correct broker": {username: "success", configuredBrokers: []string{t.Name() + "_Broker1", t.Name() + "_Broker2"}},
 
 		"Error when broker does not exist":         {brokerID: "does_not_exist", wantErr: true},
 		"Error when broker does not provide an ID": {username: "NS_no_id", wantErr: true},
@@ -185,8 +191,18 @@ func TestNewSession(t *testing.T) {
 			t.Parallel()
 
 			cfgDir := t.TempDir()
-			wantBroker := newBrokerForTests(t, cfgDir)
-			m, err := brokers.NewManager(context.Background(), nil, brokers.WithCfgDir(cfgDir))
+			if tc.configuredBrokers == nil {
+				tc.configuredBrokers = []string{strings.ReplaceAll(t.Name(), "/", "_")}
+			}
+
+			wantBroker := newBrokerForTests(t, cfgDir, tc.configuredBrokers[0])
+			if len(tc.configuredBrokers) > 1 {
+				for _, name := range tc.configuredBrokers[1:] {
+					newBrokerForTests(t, cfgDir, name)
+				}
+			}
+
+			m, err := brokers.NewManager(context.Background(), tc.configuredBrokers, brokers.WithCfgDir(cfgDir))
 			require.NoError(t, err, "Setup: could not create manager")
 
 			if tc.brokerID == "" {
@@ -226,9 +242,12 @@ func TestEndSession(t *testing.T) {
 		brokerID  string
 		sessionID string
 
+		configuredBrokers []string
+
 		wantErr bool
 	}{
-		"Successfully end session": {sessionID: "success"},
+		"Successfully end session":                       {sessionID: "success"},
+		"Successfully end session on the correct broker": {sessionID: "success", configuredBrokers: []string{t.Name() + "_Broker1", t.Name() + "_Broker2"}},
 
 		"Error when broker does not exist": {brokerID: "does not exist", sessionID: "dont matter", wantErr: true},
 		"Error when ending session":        {sessionID: "ES_error", wantErr: true},
@@ -239,12 +258,22 @@ func TestEndSession(t *testing.T) {
 			t.Parallel()
 
 			cfgDir := t.TempDir()
-			b := newBrokerForTests(t, cfgDir)
-			m, err := brokers.NewManager(context.Background(), nil, brokers.WithCfgDir(cfgDir))
+			if tc.configuredBrokers == nil {
+				tc.configuredBrokers = []string{strings.ReplaceAll(t.Name(), "/", "_")}
+			}
+
+			wantBroker := newBrokerForTests(t, cfgDir, tc.configuredBrokers[0])
+			if len(tc.configuredBrokers) > 1 {
+				for _, name := range tc.configuredBrokers[1:] {
+					newBrokerForTests(t, cfgDir, name)
+				}
+			}
+
+			m, err := brokers.NewManager(context.Background(), tc.configuredBrokers, brokers.WithCfgDir(cfgDir))
 			require.NoError(t, err, "Setup: could not create manager")
 
 			if tc.brokerID != "does not exist" {
-				m.SetBrokerForSession(&b, tc.sessionID)
+				m.SetBrokerForSession(&wantBroker, tc.sessionID)
 			}
 
 			err = m.EndSession(tc.sessionID)
@@ -257,6 +286,81 @@ func TestEndSession(t *testing.T) {
 			require.Error(t, err, "EndSession should have removed the broker from the active transactions, but did not")
 		})
 	}
+}
+
+func TestStartAndEndSession(t *testing.T) {
+	t.Parallel()
+
+	cfgDir := t.TempDir()
+	b1 := newBrokerForTests(t, cfgDir, t.Name()+"_Broker1")
+	b2 := newBrokerForTests(t, cfgDir, t.Name()+"_Broker2")
+
+	m, err := brokers.NewManager(context.Background(), []string{b1.Name, b2.Name}, brokers.WithCfgDir(cfgDir))
+	require.NoError(t, err, "Setup: could not create manager")
+
+	// Fetches the broker IDs
+	for _, broker := range m.AvailableBrokers() {
+		if broker.Name == b1.Name {
+			b1.ID = broker.ID
+		} else if broker.Name == b2.Name {
+			b2.ID = broker.ID
+		}
+	}
+
+	/* Starting the sessions */
+	var firstID, firstKey, secondID, secondKey *string
+	var firstErr, secondErr *error
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		id, key, err := m.NewSession(b1.ID, "user1", "some_lang")
+		firstID, firstKey, firstErr = &id, &key, &err
+	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		id, key, err := m.NewSession(b2.ID, "user2", "some_lang")
+		secondID, secondKey, secondErr = &id, &key, &err
+	}()
+	wg.Wait()
+
+	require.NoError(t, *firstErr, "First NewSession should not return an error, but did")
+	require.NoError(t, *secondErr, "Second NewSession should not return an error, but did")
+
+	require.Equal(t, b1.ID+"-"+testutils.GenerateSessionID("user1"), *firstID, "First NewSession should return the expected session ID, but did not")
+	require.Equal(t, testutils.GenerateEncryptionKey(b1.Name), *firstKey, "First NewSession should return the expected encryption key, but did not")
+	require.Equal(t, b2.ID+"-"+testutils.GenerateSessionID("user2"), *secondID, "Second NewSession should return the expected session ID, but did not")
+	require.Equal(t, testutils.GenerateEncryptionKey(b2.Name), *secondKey, "Second NewSession should return the expected encryption key, but did not")
+
+	assignedBroker, err := m.BrokerFromSessionID(*firstID)
+	require.NoError(t, err, "First NewSession should have assigned a broker for the session, but did not")
+	require.Equal(t, b1.Name, assignedBroker.Name, "First NewSession should have assigned the expected broker for the session, but did not")
+	assignedBroker, err = m.BrokerFromSessionID(*secondID)
+	require.NoError(t, err, "Second NewSession should have assigned a broker for the session, but did not")
+	require.Equal(t, b2.Name, assignedBroker.Name, "Second NewSession should have assigned the expected broker for the session, but did not")
+
+	/* Ending the sessions */
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		*firstErr = m.EndSession(*firstID)
+	}()
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		*secondErr = m.EndSession(*secondID)
+	}()
+	wg.Wait()
+
+	require.NoError(t, *firstErr, "First EndSession should not return an error, but did")
+	require.NoError(t, *secondErr, "Second EndSession should not return an error, but did")
+
+	_, err = m.BrokerFromSessionID(*firstID)
+	require.Error(t, err, "First EndSession should have removed the broker for the session, but did not")
+
+	_, err = m.BrokerFromSessionID(*secondID)
+	require.Error(t, err, "Second EndSession should have removed the broker for the session, but did not")
 }
 
 func TestMain(m *testing.M) {
