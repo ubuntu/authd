@@ -1,0 +1,12 @@
+GroupByID:
+    "65566": '{"Name":"group-IA_second_call","GID":65566}'
+GroupByName:
+    group-IA_second_call: '{"Name":"group-IA_second_call","GID":65566}'
+GroupToUsers:
+    "65566": '{"GID":65566,"UIDs":[65565]}'
+UserByID:
+    "65565": '{"Name":"IA_second_call","UID":65565,"GID":65566,"Gecos":"gecos for IA_second_call","Dir":"/home/IA_second_call","Shell":"/bin/sh/IA_second_call","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+UserByName:
+    IA_second_call: '{"Name":"IA_second_call","UID":65565,"GID":65566,"Gecos":"gecos for IA_second_call","Dir":"/home/IA_second_call","Shell":"/bin/sh/IA_second_call","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+UserToGroups:
+    "65565": '{"UID":65565,"GIDs":[65566]}'
