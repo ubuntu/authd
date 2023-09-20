@@ -12,8 +12,8 @@ env:
     libpam0g-dev
 
 jobs:
-  sanity:
-    name: Code sanity
+  go-sanity:
+    name: "Go: Code sanity"
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
@@ -27,8 +27,38 @@ jobs:
           golangci-lint-configfile: ".golangci.yaml"
           tools-directory: "tools"
 
-  tests:
-    name: Tests
+  rust-sanity:
+    name: "Rust: Code sanity"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt update
+          sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }} protobuf-compiler protobuf-compiler-grpc
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: rustfmt, clippy
+      - name: Build crate
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args:  --all-features
+      - name: Check code format with rustfmt
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+      - name: Check code format with clippy
+        uses: actions-rs/clippy-check@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --all-features
+
+  go-tests:
+    name: "Go: Tests"
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
@@ -51,3 +81,5 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           file: /tmp/coverage.combined
+
+  # TODO: rust-tests:
