@@ -67,7 +67,7 @@ func TestNewService(t *testing.T) {
 func TestAvailableBrokers(t *testing.T) {
 	t.Parallel()
 
-	client := newPamClient(t, t.TempDir())
+	client := newPamClient(t, nil)
 
 	abResp, err := client.AvailableBrokers(context.Background(), &authd.Empty{})
 	require.NoError(t, err, "AvailableBrokers should not return an error, but did")
@@ -85,7 +85,7 @@ func TestGetPreviousBroker(t *testing.T) {
 
 	username := t.Name()
 
-	client := newPamClient(t, t.TempDir())
+	client := newPamClient(t, nil)
 
 	// Try to get the broker for the user before assigning it.
 	gotResp, _ := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: username})
@@ -126,7 +126,7 @@ func TestSelectBroker(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t, t.TempDir())
+			client := newPamClient(t, nil)
 
 			if tc.brokerID == "" {
 				tc.brokerID = mockBrokerGeneratedID
@@ -186,7 +186,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t, t.TempDir())
+			client := newPamClient(t, nil)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -259,7 +259,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t, t.TempDir())
+			client := newPamClient(t, nil)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -339,7 +339,10 @@ func TestIsAuthenticated(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t, t.TempDir())
+			c, err := cache.New(t.TempDir())
+			require.NoError(t, err, "Setup: could not create cache")
+			t.Cleanup(func() { _ = c.Close() })
+			client := newPamClient(t, c)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -422,7 +425,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t, t.TempDir())
+			client := newPamClient(t, nil)
 
 			wantID := mockBrokerGeneratedID
 			if tc.noBroker {
@@ -473,7 +476,7 @@ func TestEndSession(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t, t.TempDir())
+			client := newPamClient(t, nil)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -524,7 +527,8 @@ func initBrokers() (brokerConfigPath string, cleanup func(), err error) {
 }
 
 // newPAMClient returns a new GRPC PAM client for tests connected to the global brokerManager with the given cache.
-func newPamClient(t *testing.T, cacheDir string) (client authd.PAMClient) {
+// If the one passed is nil, this function will create the cache and close it upon test teardown.
+func newPamClient(t *testing.T, c *cache.Cache) (client authd.PAMClient) {
 	t.Helper()
 
 	// socket path is limited in length.
@@ -536,8 +540,12 @@ func newPamClient(t *testing.T, cacheDir string) (client authd.PAMClient) {
 	lis, err := net.Listen("unix", socketPath)
 	require.NoError(t, err, "Setup: could not create unix socket")
 
-	c, err := cache.New(cacheDir)
-	require.NoError(t, err, "Setup: could not create cache")
+	if c == nil {
+		c, err = cache.New(t.TempDir())
+		require.NoError(t, err, "Setup: could not create cache")
+		t.Cleanup(func() { _ = c.Close() })
+	}
+
 	service := pam.NewService(context.Background(), c, brokerManager)
 
 	grpcServer := grpc.NewServer()
