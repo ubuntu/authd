@@ -3,30 +3,35 @@ package pam
 
 import (
 	"context"
-	"errors"
+	"encoding/json"
 	"fmt"
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/responses"
+	"github.com/ubuntu/authd/internal/cache"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/decorate"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var _ authd.PAMServer = Service{}
 
 // Service is the implementation of the PAM module service.
 type Service struct {
+	cache         *cache.Cache
 	brokerManager *brokers.Manager
 
 	authd.UnimplementedPAMServer
 }
 
 // NewService returns a new PAM GRPC service.
-func NewService(ctx context.Context, brokerManager *brokers.Manager) Service {
+func NewService(ctx context.Context, cache *cache.Cache, brokerManager *brokers.Manager) Service {
 	log.Debug(ctx, "Building new GRPC PAM service")
 
 	return Service{
+		cache:         cache,
 		brokerManager: brokerManager,
 	}
 }
@@ -68,10 +73,10 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 	lang := req.GetLang()
 
 	if username == "" {
-		return nil, errors.New("no user name provided")
+		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
 	if brokerID == "" {
-		return nil, errors.New("no broker selected")
+		return nil, status.Error(codes.InvalidArgument, "no broker selected")
 	}
 	if lang == "" {
 		lang = "C"
@@ -95,7 +100,7 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMReque
 
 	sessionID := req.GetSessionId()
 	if sessionID == "" {
-		return nil, errors.New("no session ID provided")
+		return nil, status.Error(codes.InvalidArgument, "no session ID provided")
 	}
 
 	broker, err := s.brokerManager.BrokerFromSessionID(sessionID)
@@ -138,10 +143,10 @@ func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMReq
 	authenticationModeID := req.GetAuthenticationModeId()
 
 	if sessionID == "" {
-		return nil, errors.New("no session ID provided")
+		return nil, status.Error(codes.InvalidArgument, "no session ID provided")
 	}
 	if authenticationModeID == "" {
-		return nil, errors.New("no authentication mode provided")
+		return nil, status.Error(codes.InvalidArgument, "no authentication mode provided")
 	}
 
 	broker, err := s.brokerManager.BrokerFromSessionID(sessionID)
@@ -165,7 +170,7 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 
 	sessionID := req.GetSessionId()
 	if sessionID == "" {
-		return nil, errors.New("no session ID provided")
+		return nil, status.Error(codes.InvalidArgument, "no session ID provided")
 	}
 
 	broker, err := s.brokerManager.BrokerFromSessionID(sessionID)
@@ -178,7 +183,18 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 		return nil, err
 	}
 
+	// Update database on granted auth.
 	if access == responses.AuthGranted {
+		var user cache.UserInfo
+		if err := json.Unmarshal([]byte(data), &user); err != nil {
+			return nil, fmt.Errorf("user data from broker invalid: %v", err)
+		}
+
+		if err := s.cache.UpdateFromUserInfo(user); err != nil {
+			return nil, err
+		}
+
+		// The data is not the message for the user then.
 		data = ""
 	}
 
@@ -193,7 +209,7 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURe
 	defer decorate.OnError(&err, "can't set default broker %q for user %q", req.GetBrokerId(), req.GetUsername())
 
 	if req.GetUsername() == "" {
-		return nil, errors.New("no user name given")
+		return nil, status.Error(codes.InvalidArgument, "no user name given")
 	}
 
 	err = s.brokerManager.SetDefaultBrokerForUser(req.GetBrokerId(), req.GetUsername())
@@ -207,7 +223,7 @@ func (s Service) EndSession(ctx context.Context, req *authd.ESRequest) (empty *a
 
 	sessionID := req.GetSessionId()
 	if sessionID == "" {
-		return nil, errors.New("no session id given")
+		return nil, status.Error(codes.InvalidArgument, "no session id given")
 	}
 
 	return &authd.Empty{}, s.brokerManager.EndSession(sessionID)

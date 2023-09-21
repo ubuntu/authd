@@ -101,12 +101,13 @@ func New() *App {
 func (a *App) serve(config daemonConfig) error {
 	ctx := context.Background()
 
-	m, err := services.NewManager(ctx, config.Brokers)
+	m, err := services.NewManager(ctx, config.SystemDirs.CacheDir, config.Brokers)
 	if err != nil {
 		close(a.ready)
 		return err
 	}
-	defer m.Stop()
+	// We are closing the cache on exit.
+	defer func() { _ = m.Stop() }()
 
 	var daemonopts []daemon.Option
 	if config.SystemDirs.SocketPath != "" {

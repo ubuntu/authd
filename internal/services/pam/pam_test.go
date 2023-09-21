@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/cache"
+	cachetests "github.com/ubuntu/authd/internal/cache/tests"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/testutils"
 	"google.golang.org/grpc"
@@ -53,7 +55,10 @@ var (
 func TestNewService(t *testing.T) {
 	t.Parallel()
 
-	service := pam.NewService(context.Background(), brokerManager)
+	c, err := cache.New(t.TempDir())
+	require.NoError(t, err, "Setup: could not create cache")
+
+	service := pam.NewService(context.Background(), c, brokerManager)
 
 	brokers, err := service.AvailableBrokers(context.Background(), &authd.Empty{})
 	require.NoError(t, err, "can’t create the service directly")
@@ -63,7 +68,7 @@ func TestNewService(t *testing.T) {
 func TestAvailableBrokers(t *testing.T) {
 	t.Parallel()
 
-	client := newPamClient(t)
+	client := newPamClient(t, nil)
 
 	abResp, err := client.AvailableBrokers(context.Background(), &authd.Empty{})
 	require.NoError(t, err, "AvailableBrokers should not return an error, but did")
@@ -81,7 +86,7 @@ func TestGetPreviousBroker(t *testing.T) {
 
 	username := t.Name()
 
-	client := newPamClient(t)
+	client := newPamClient(t, nil)
 
 	// Try to get the broker for the user before assigning it.
 	gotResp, _ := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: username})
@@ -122,7 +127,7 @@ func TestSelectBroker(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t)
+			client := newPamClient(t, nil)
 
 			if tc.brokerID == "" {
 				tc.brokerID = mockBrokerGeneratedID
@@ -182,7 +187,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t)
+			client := newPamClient(t, nil)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -255,7 +260,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t)
+			client := newPamClient(t, nil)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -308,7 +313,8 @@ func TestIsAuthenticated(t *testing.T) {
 
 	tests := map[string]struct {
 		// These are the function arguments.
-		sessionID string
+		sessionID  string
+		existingDB string
 
 		// These are auxiliary inputs that affect the test setup and help control the mock output.
 		username        string
@@ -318,6 +324,7 @@ func TestIsAuthenticated(t *testing.T) {
 		"Successfully authenticate":                           {username: "success"},
 		"Successfully authenticate if first call is canceled": {username: "IA_second_call", secondCall: true, cancelFirstCall: true},
 		"Denies authentication when broker times out":         {username: "IA_timeout"},
+		"Update existing DB on success":                       {username: "success", existingDB: "cache-with-user.db"},
 
 		// service errors
 		"Error when sessionID is empty": {sessionID: "-"},
@@ -335,7 +342,19 @@ func TestIsAuthenticated(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t)
+			cacheDir := t.TempDir()
+			if tc.existingDB != "" {
+				f, err := os.Open(filepath.Join(testutils.TestFamilyPath(t), tc.existingDB))
+				require.NoError(t, err, "Setup: could not open fixture database file")
+				defer f.Close()
+				err = cachetests.DbfromYAML(f, cacheDir)
+				require.NoError(t, err, "Setup: could not prepare cache database file")
+			}
+
+			c, err := cache.New(cacheDir)
+			require.NoError(t, err, "Setup: could not create cache")
+			t.Cleanup(func() { _ = c.Close() })
+			client := newPamClient(t, c)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -389,8 +408,14 @@ func TestIsAuthenticated(t *testing.T) {
 			<-done
 
 			got := firstCall + secondCall
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "IsAuthenticated")))
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
+
+			// Check that cache has been updated too.
+			gotDB, err := cachetests.DumpToYaml(c)
+			require.NoError(t, err, "Setup: dump database for comparing")
+			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
+			require.Equal(t, wantDB, gotDB, "IsAuthenticated should udpate the cache database as expected")
 		})
 	}
 }
@@ -418,7 +443,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t)
+			client := newPamClient(t, nil)
 
 			wantID := mockBrokerGeneratedID
 			if tc.noBroker {
@@ -469,7 +494,7 @@ func TestEndSession(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t)
+			client := newPamClient(t, nil)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -519,8 +544,9 @@ func initBrokers() (brokerConfigPath string, cleanup func(), err error) {
 	}, nil
 }
 
-// newPAMClient returns a new GRPC PAM client for tests connected to the global brokerManager.
-func newPamClient(t *testing.T) (client authd.PAMClient) {
+// newPAMClient returns a new GRPC PAM client for tests connected to the global brokerManager with the given cache.
+// If the one passed is nil, this function will create the cache and close it upon test teardown.
+func newPamClient(t *testing.T, c *cache.Cache) (client authd.PAMClient) {
 	t.Helper()
 
 	// socket path is limited in length.
@@ -532,7 +558,13 @@ func newPamClient(t *testing.T) (client authd.PAMClient) {
 	lis, err := net.Listen("unix", socketPath)
 	require.NoError(t, err, "Setup: could not create unix socket")
 
-	service := pam.NewService(context.Background(), brokerManager)
+	if c == nil {
+		c, err = cache.New(t.TempDir())
+		require.NoError(t, err, "Setup: could not create cache")
+		t.Cleanup(func() { _ = c.Close() })
+	}
+
+	service := pam.NewService(context.Background(), c, brokerManager)
 
 	grpcServer := grpc.NewServer()
 	authd.RegisterPAMServer(grpcServer, service)
