@@ -1,0 +1,8 @@
+name: user1
+passwd: x
+lastchange: -1
+changemindays: -1
+changemaxdays: -1
+changewarndays: -1
+changeinactivedays: -1
+expiredate: -1
