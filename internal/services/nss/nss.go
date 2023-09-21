@@ -54,7 +54,7 @@ func (s Service) GetPasswdByUID(ctx context.Context, req *authd.GetByIDRequest) 
 func (s Service) GetPasswdEntries(ctx context.Context, req *authd.Empty) (*authd.PasswdEntries, error) {
 	allUsers, err := s.cache.AllUsers()
 	if err != nil {
-		return nil, noDataFoundErrorToGRPCError(err)
+		return nil, err
 	}
 
 	var r authd.PasswdEntries
@@ -120,7 +120,7 @@ func (s Service) GetShadowByName(ctx context.Context, req *authd.GetByNameReques
 func (s Service) GetShadowEntries(ctx context.Context, req *authd.Empty) (*authd.ShadowEntries, error) {
 	allUsers, err := s.cache.AllUsers()
 	if err != nil {
-		return nil, noDataFoundErrorToGRPCError(err)
+		return nil, err
 	}
 
 	var r authd.ShadowEntries
