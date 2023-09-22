@@ -113,10 +113,15 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 	// Trigger the error with a cache directory that cannot be created over an
 	// existing file
 
+	const (
+		ok = iota
+		dirIsFile
+	)
+
 	testCases := map[string]struct {
-		unwritableSocketPath bool
+		socketPathBehavior int
 	}{
-		"Error on grpc daemon creation failure": {unwritableSocketPath: true},
+		"Error on grpc daemon creation failure": {socketPathBehavior: dirIsFile},
 	}
 
 	for name, tc := range testCases {
@@ -129,7 +134,8 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 			require.NoError(t, err, "Failed to write file")
 
 			var config daemon.DaemonConfig
-			if tc.unwritableSocketPath {
+			switch tc.socketPathBehavior {
+			case dirIsFile:
 				config.SystemDirs.SocketPath = filepath.Join(filePath, "mysocket")
 			}
 
