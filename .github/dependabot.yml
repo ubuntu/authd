@@ -11,6 +11,9 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    commit-message:
+      include: "scope"
+      prefix: "deps(ci)"
 
   # Codebase
   ## Go dependencies
@@ -18,14 +21,23 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "daily"
+    commit-message:
+      include: "scope"
+      prefix: "deps(go)"
 
   - package-ecosystem: "gomod"
     directory: "/tools"
     schedule:
       interval: "daily"
+    commit-message:
+      include: "scope"
+      prefix: "deps(go-tools)"
 
   ## Rust dependencies
   - package-ecosystem: "cargo"
     directory: "/"
     schedule:
       interval: "daily"
+    commit-message:
+      include: "scope"
+      prefix: "deps(rust)"
