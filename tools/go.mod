@@ -5,7 +5,7 @@ go 1.21.0
 require (
 	github.com/golangci/golangci-lint v1.54.2
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
-	google.golang.org/protobuf v1.30.0
+	google.golang.org/protobuf v1.31.0
 )
 
 require (
