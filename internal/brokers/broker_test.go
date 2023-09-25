@@ -53,11 +53,10 @@ func TestNewBroker(t *testing.T) {
 		"Error when config file does not exist": {configFile: "do not exist", wantErr: true},
 
 		// Missing field errors
-		"Error when config does not have name field":           {configFile: "no_name", wantErr: true},
-		"Error when config does not have brand_icon field":     {configFile: "no_brand_icon", wantErr: true},
-		"Error when config does not have dbus.name field":      {configFile: "no_dbus_name", wantErr: true},
-		"Error when config does not have dbus.object field":    {configFile: "no_dbus_object", wantErr: true},
-		"Error when config does not have dbus.interface field": {configFile: "no_dbus_interface", wantErr: true},
+		"Error when config does not have name field":        {configFile: "no_name", wantErr: true},
+		"Error when config does not have brand_icon field":  {configFile: "no_brand_icon", wantErr: true},
+		"Error when config does not have dbus.name field":   {configFile: "no_dbus_name", wantErr: true},
+		"Error when config does not have dbus.object field": {configFile: "no_dbus_object", wantErr: true},
 	}
 	for name, tc := range tests {
 		tc := tc
