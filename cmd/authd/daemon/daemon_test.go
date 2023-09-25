@@ -136,9 +136,14 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			filePath := filepath.Join(t.TempDir(), "file")
-			err := os.WriteFile(filePath, []byte("I'm here to break the service"), 0600)
-			require.NoError(t, err, "Failed to write file")
+			// We are using our own temporary directory for the unix socket path being too long.
+			shortTmp, err := os.MkdirTemp("", "authd-tests")
+			require.NoError(t, err, "Setup: could not create temporary directory")
+			t.Cleanup(func() { _ = os.RemoveAll(shortTmp) })
+
+			filePath := filepath.Join(shortTmp, "file")
+			err = os.WriteFile(filePath, []byte("I'm here to break the service"), 0600)
+			require.NoError(t, err, "Setup: failed to write file")
 
 			worldAccessDir := filepath.Join(shortTmp, "opened-to-world")
 			//nolint: gosec // This is a directory with invalid permission for tests.
@@ -157,6 +162,8 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 			switch tc.socketPathBehavior {
 			case dirIsFile:
 				config.SystemDirs.SocketPath = filepath.Join(filePath, "mysocket")
+			default:
+				config.SystemDirs.SocketPath = filepath.Join(shortTmp, "mysocket")
 			}
 
 			a := daemon.NewForTests(t, &config)
