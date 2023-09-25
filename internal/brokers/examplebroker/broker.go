@@ -608,7 +608,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		return responses.AuthDenied, `{"message": "user not found"}`, nil
 	}
 
-	return responses.AuthGranted, userInfoFromName(user.Name), nil
+	return responses.AuthGranted, fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(user.Name)), nil
 }
 
 // EndSession ends the requested session and triggers the necessary clean up steps, if any.
