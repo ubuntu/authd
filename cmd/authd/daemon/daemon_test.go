@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/cmd/authd/daemon"
+	cachetests "github.com/ubuntu/authd/internal/cache/tests"
 	"github.com/ubuntu/authd/internal/consts"
 )
 
@@ -121,6 +122,7 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 	)
 
 	testCases := map[string]struct {
+		cacheDBBehavior    int
 		cachePathBehavior  int
 		socketPathBehavior int
 	}{
@@ -129,6 +131,8 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 		"Error on missing parent cache directory":               {cachePathBehavior: parentDirDoesNotExists},
 
 		"Error on grpc daemon creation failure": {socketPathBehavior: dirIsFile},
+
+		"Error on manager creationg failure": {cacheDBBehavior: hasWrongPermission},
 	}
 
 	for name, tc := range testCases {
@@ -164,6 +168,15 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 				config.SystemDirs.SocketPath = filepath.Join(filePath, "mysocket")
 			default:
 				config.SystemDirs.SocketPath = filepath.Join(shortTmp, "mysocket")
+			}
+			switch tc.cacheDBBehavior {
+			case hasWrongPermission:
+				config.SystemDirs.CacheDir = filepath.Join(shortTmp, "cache")
+				err := os.MkdirAll(config.SystemDirs.CacheDir, 0700)
+				require.NoError(t, err, "Setup: could not create cache directory")
+				//nolint: gosec // This is a file with invalid permission for tests.
+				err = os.WriteFile(filepath.Join(config.SystemDirs.CacheDir, cachetests.DbName), nil, 0644)
+				require.NoError(t, err, "Setup: could not create database with invalid permissions")
 			}
 
 			a := daemon.NewForTests(t, &config)
