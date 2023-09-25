@@ -7,7 +7,7 @@
 "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 
 <node>
-  <interface name="com.ubuntu.auth.ExampleBroker">
+  <interface name="com.ubuntu.authd.Broker">
     <method name="NewSession">
       <arg type="s" direction="in" name="username"/>
       <arg type="s" direction="in" name="lang"/>
