@@ -116,11 +116,18 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 	const (
 		ok = iota
 		dirIsFile
+		hasWrongPermission
+		parentDirDoesNotExists
 	)
 
 	testCases := map[string]struct {
+		cachePathBehavior  int
 		socketPathBehavior int
 	}{
+		"Error on existing cache path not being a directory":    {cachePathBehavior: dirIsFile},
+		"Error on existing cache path with invalid permissions": {cachePathBehavior: hasWrongPermission},
+		"Error on missing parent cache directory":               {cachePathBehavior: parentDirDoesNotExists},
+
 		"Error on grpc daemon creation failure": {socketPathBehavior: dirIsFile},
 	}
 
@@ -133,7 +140,20 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 			err := os.WriteFile(filePath, []byte("I'm here to break the service"), 0600)
 			require.NoError(t, err, "Failed to write file")
 
+			worldAccessDir := filepath.Join(shortTmp, "opened-to-world")
+			//nolint: gosec // This is a directory with invalid permission for tests.
+			err = os.MkdirAll(worldAccessDir, 0777)
+			require.NoError(t, err, "Setup: failed to write file")
+
 			var config daemon.DaemonConfig
+			switch tc.cachePathBehavior {
+			case dirIsFile:
+				config.SystemDirs.CacheDir = filePath
+			case hasWrongPermission:
+				config.SystemDirs.CacheDir = worldAccessDir
+			case parentDirDoesNotExists:
+				config.SystemDirs.CacheDir = filepath.Join(shortTmp, "not-exists", "cache")
+			}
 			switch tc.socketPathBehavior {
 			case dirIsFile:
 				config.SystemDirs.SocketPath = filepath.Join(filePath, "mysocket")
@@ -277,6 +297,7 @@ func TestNoConfigSetDefaults(t *testing.T) {
 	require.NoError(t, err, "Run should not return an error")
 
 	require.Equal(t, 0, a.Config().Verbosity, "Default Verbosity")
+	require.Equal(t, consts.DefaultCacheDir, a.Config().SystemDirs.CacheDir, "Default cache directory")
 	require.Equal(t, consts.DefaultSocketPath, a.Config().SystemDirs.SocketPath, "Default socket address")
 }
 

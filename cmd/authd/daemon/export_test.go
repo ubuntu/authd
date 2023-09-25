@@ -11,6 +11,7 @@ import (
 
 type (
 	DaemonConfig = daemonConfig
+	SystemDirs   = systemDirs
 )
 
 func NewForTests(t *testing.T, conf *DaemonConfig, args ...string) *App {
