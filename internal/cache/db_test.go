@@ -49,7 +49,7 @@ func TestNew(t *testing.T) {
 			t.Parallel()
 
 			cacheDir := t.TempDir()
-			dbDestPath := filepath.Join(cacheDir, cache.DbName)
+			dbDestPath := filepath.Join(cacheDir, cachetests.DbName)
 
 			if tc.dbFile == "-" {
 				err := os.RemoveAll(cacheDir)
@@ -58,7 +58,7 @@ func TestNew(t *testing.T) {
 				createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
 			}
 			if tc.dirtyFlag {
-				err := os.WriteFile(filepath.Join(cacheDir, cache.DirtyFlagDbName), nil, 0600)
+				err := os.WriteFile(filepath.Join(cacheDir, cachetests.DirtyFlagDbName), nil, 0600)
 				require.NoError(t, err, "Setup: could not create dirty flag file")
 			}
 			if tc.perm != nil {
@@ -67,7 +67,7 @@ func TestNew(t *testing.T) {
 			}
 
 			if tc.corruptedDbFile {
-				err := os.WriteFile(filepath.Join(cacheDir, cache.DbName), []byte("Corrupted db"), 0600)
+				err := os.WriteFile(filepath.Join(cacheDir, cachetests.DbName), []byte("Corrupted db"), 0600)
 				require.NoError(t, err, "Setup: Can't update the file with invalid db content")
 			}
 
@@ -441,7 +441,7 @@ func createDBFile(t *testing.T, src, destDir string) {
 func requireNoDirtyFileInDir(t *testing.T, cacheDir string) {
 	t.Helper()
 
-	_, err := os.Stat(filepath.Join(cacheDir, cache.DirtyFlagDbName))
+	_, err := os.Stat(filepath.Join(cacheDir, cachetests.DirtyFlagDbName))
 	require.ErrorIs(t, err, fs.ErrNotExist, "Dirty flag should have been removed")
 }
 

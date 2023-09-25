@@ -18,10 +18,12 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-const (
+var (
 	dbName          = "authd.db"
 	dirtyFlagDbName = dbName + ".dirty"
+)
 
+const (
 	userByNameBucketName   = "UserByName"
 	userByIDBucketName     = "UserByID"
 	groupByNameBucketName  = "GroupByName"
