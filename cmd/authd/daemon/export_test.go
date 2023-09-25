@@ -40,6 +40,9 @@ func GenerateTestConfig(t *testing.T, origConf *daemonConfig) string {
 	}
 	if conf.SystemDirs.CacheDir == "" {
 		conf.SystemDirs.CacheDir = t.TempDir()
+		//nolint: gosec // This is a directory owned only by the current user for tests.
+		err := os.Chmod(conf.SystemDirs.CacheDir, 0700)
+		require.NoError(t, err, "Setup: could not change permission on cache directory for tests")
 	}
 	if conf.SystemDirs.RunDir == "" {
 		conf.SystemDirs.RunDir = t.TempDir()
