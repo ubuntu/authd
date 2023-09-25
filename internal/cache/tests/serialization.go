@@ -9,6 +9,15 @@ import (
 	"github.com/ubuntu/authd/internal/cache"
 )
 
+var (
+	// DbName is database name exported for tests
+	//go:linkname DbName github.com/ubuntu/authd/internal/cache.dbName
+	DbName string
+	// DirtyFlagDbName is the dirty flag exported for tests.
+	//go:linkname DirtyFlagDbName github.com/ubuntu/authd/internal/cache.dirtyFlagDbName
+	DirtyFlagDbName string
+)
+
 // DumpToYaml deserializes the cache database to a writer in a yaml format.
 //
 //go:linkname DumpToYaml github.com/ubuntu/authd/internal/cache.(*Cache).dumpToYaml
