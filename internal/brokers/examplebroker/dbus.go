@@ -8,12 +8,13 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
+	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/decorate"
 )
 
 const (
 	dbusObjectPath = "/com/ubuntu/authd/ExampleBroker"
-	dbusInterface  = "com.ubuntu.authd.ExampleBroker"
+	busName        = "com.ubuntu.authd.ExampleBroker"
 )
 
 // Bus is the D-Bus object that will answer calls for the broker.
@@ -33,7 +34,7 @@ func StartBus(ctx context.Context, cfgPath string) (err error) {
 
 	b, _, _ := New("ExampleBroker")
 	obj := Bus{broker: b}
-	err = conn.Export(&obj, dbusObjectPath, dbusInterface)
+	err = conn.Export(&obj, dbusObjectPath, brokers.DbusInterface)
 	if err != nil {
 		return err
 	}
@@ -43,7 +44,7 @@ func StartBus(ctx context.Context, cfgPath string) (err error) {
 		Interfaces: []introspect.Interface{
 			introspect.IntrospectData,
 			{
-				Name:    dbusInterface,
+				Name:    brokers.DbusInterface,
 				Methods: introspect.Methods(&obj),
 			},
 		},
@@ -51,7 +52,7 @@ func StartBus(ctx context.Context, cfgPath string) (err error) {
 		return err
 	}
 
-	reply, err := conn.RequestName(dbusInterface, dbus.NameFlagDoNotQueue)
+	reply, err := conn.RequestName(busName, dbus.NameFlagDoNotQueue)
 	if err != nil {
 		return err
 	}
@@ -67,8 +68,7 @@ brand_icon = /usr/share/backgrounds/warty-final-ubuntu.png
 [dbus]
 name = %s
 object = %s
-interface = %s
-`, dbusInterface, dbusObjectPath, dbusInterface)),
+`, busName, dbusObjectPath)),
 		0600); err != nil {
 		return err
 	}

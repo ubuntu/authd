@@ -10,9 +10,11 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+// DbusInterface is the expected interface that should be implemented by the brokers.
+const DbusInterface string = "com.ubuntu.authd.Broker"
+
 type dbusBroker struct {
-	dbusObject    dbus.BusObject
-	interfaceName string
+	dbusObject dbus.BusObject
 }
 
 // newDbusBroker returns a dbus broker and broker attributes from its configuration file.
@@ -46,20 +48,14 @@ func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b db
 		return b, "", "", fmt.Errorf("missing field for broker: %v", err)
 	}
 
-	interfaceName, err := cfg.Section("dbus").GetKey("interface")
-	if err != nil {
-		return b, "", "", fmt.Errorf("missing field for broker: %v", err)
-	}
-
 	return dbusBroker{
-		dbusObject:    bus.Object(dbusName.String(), dbus.ObjectPath(objectName.String())),
-		interfaceName: interfaceName.String(),
+		dbusObject: bus.Object(dbusName.String(), dbus.ObjectPath(objectName.String())),
 	}, fullNameVal.String(), brandIconVal.String(), nil
 }
 
 // NewSession calls the corresponding method on the broker bus and returns the session ID and encryption key.
 func (b dbusBroker) NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error) {
-	dbusMethod := b.interfaceName + ".NewSession"
+	dbusMethod := DbusInterface + ".NewSession"
 
 	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, username, lang)
 	if err = call.Err; err != nil {
@@ -74,7 +70,7 @@ func (b dbusBroker) NewSession(ctx context.Context, username, lang string) (sess
 
 // GetAuthenticationModes calls the corresponding method on the broker bus and returns the authentication modes supported by it.
 func (b dbusBroker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
-	dbusMethod := b.interfaceName + ".GetAuthenticationModes"
+	dbusMethod := DbusInterface + ".GetAuthenticationModes"
 
 	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID, supportedUILayouts)
 	if err = call.Err; err != nil {
@@ -89,7 +85,7 @@ func (b dbusBroker) GetAuthenticationModes(ctx context.Context, sessionID string
 
 // SelectAuthenticationMode calls the corresponding method on the broker bus and returns the UI layout for the selected mode.
 func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
-	dbusMethod := b.interfaceName + ".SelectAuthenticationMode"
+	dbusMethod := DbusInterface + ".SelectAuthenticationMode"
 
 	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID, authenticationModeName)
 	if err = call.Err; err != nil {
@@ -104,7 +100,7 @@ func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, aut
 
 // IsAuthenticated calls the corresponding method on the broker bus and returns the user information and access.
 func (b dbusBroker) IsAuthenticated(_ context.Context, sessionID, authenticationData string) (access, data string, err error) {
-	dbusMethod := b.interfaceName + ".IsAuthenticated"
+	dbusMethod := DbusInterface + ".IsAuthenticated"
 
 	call := b.dbusObject.Call(dbusMethod, 0, sessionID, authenticationData)
 	if err = call.Err; err != nil {
@@ -119,7 +115,7 @@ func (b dbusBroker) IsAuthenticated(_ context.Context, sessionID, authentication
 
 // EndSession calls the corresponding method on the broker bus.
 func (b dbusBroker) EndSession(ctx context.Context, sessionID string) (err error) {
-	dbusMethod := b.interfaceName + ".EndSession"
+	dbusMethod := DbusInterface + ".EndSession"
 
 	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID)
 	if err = call.Err; err != nil {
@@ -131,7 +127,7 @@ func (b dbusBroker) EndSession(ctx context.Context, sessionID string) (err error
 
 // CancelIsAuthenticated calls the corresponding method on the broker bus.
 func (b dbusBroker) CancelIsAuthenticated(ctx context.Context, sessionID string) {
-	dbusMethod := b.interfaceName + ".CancelIsAuthenticated"
+	dbusMethod := DbusInterface + ".CancelIsAuthenticated"
 
 	call := b.dbusObject.Call(dbusMethod, 0, sessionID)
 	if call.Err != nil {

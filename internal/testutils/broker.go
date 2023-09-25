@@ -13,12 +13,13 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
+	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/responses"
 )
 
 const (
 	objectPathFmt = "/com/ubuntu/authd/%s"
-	interfaceFmt  = "com.ubuntu.authd.%s"
+	nameFmt       = "com.ubuntu.authd.%s"
 
 	// IDSeparator is the value used to append values to the sessionID in the broker mock.
 	IDSeparator = "_separator_"
@@ -30,7 +31,6 @@ brand_icon = mock_icon.png
 [dbus]
 name = com.ubuntu.authd.%s
 object = /com/ubuntu/authd/%s
-interface = com.ubuntu.authd.%s
 `
 
 type isAuthenticatedCtx struct {
@@ -49,7 +49,7 @@ type BrokerBusMock struct {
 // It returns the configuration file path for the exported broker.
 func StartBusBrokerMock(cfgDir string, brokerName string) (string, func(), error) {
 	busObjectPath := fmt.Sprintf(objectPathFmt, brokerName)
-	busInterface := fmt.Sprintf(interfaceFmt, brokerName)
+	busName := fmt.Sprintf(nameFmt, brokerName)
 
 	conn, err := dbus.ConnectSystemBus()
 	if err != nil {
@@ -62,7 +62,7 @@ func StartBusBrokerMock(cfgDir string, brokerName string) (string, func(), error
 		isAuthenticatedCallsMu: sync.RWMutex{},
 	}
 
-	if err = conn.Export(&bus, dbus.ObjectPath(busObjectPath), busInterface); err != nil {
+	if err = conn.Export(&bus, dbus.ObjectPath(busObjectPath), brokers.DbusInterface); err != nil {
 		conn.Close()
 		return "", nil, err
 	}
@@ -72,7 +72,7 @@ func StartBusBrokerMock(cfgDir string, brokerName string) (string, func(), error
 		Interfaces: []introspect.Interface{
 			introspect.IntrospectData,
 			{
-				Name:    busInterface,
+				Name:    brokers.DbusInterface,
 				Methods: introspect.Methods(&bus),
 			},
 		},
@@ -82,7 +82,7 @@ func StartBusBrokerMock(cfgDir string, brokerName string) (string, func(), error
 		return "", nil, err
 	}
 
-	reply, err := conn.RequestName(busInterface, dbus.NameFlagDoNotQueue)
+	reply, err := conn.RequestName(busName, dbus.NameFlagDoNotQueue)
 	if err != nil || reply != dbus.RequestNameReplyPrimaryOwner {
 		conn.Close()
 		return "", nil, err
@@ -95,7 +95,7 @@ func StartBusBrokerMock(cfgDir string, brokerName string) (string, func(), error
 	}
 
 	return configPath, func() {
-		_, _ = conn.ReleaseName(busInterface)
+		_, _ = conn.ReleaseName(busName)
 		_ = conn.Close()
 	}, nil
 }
