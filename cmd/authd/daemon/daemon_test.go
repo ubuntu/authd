@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/cmd/authd/daemon"
+	cachetests "github.com/ubuntu/authd/internal/cache/tests"
 	"github.com/ubuntu/authd/internal/consts"
 )
 
@@ -113,10 +114,25 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 	// Trigger the error with a cache directory that cannot be created over an
 	// existing file
 
+	const (
+		ok = iota
+		dirIsFile
+		hasWrongPermission
+		parentDirDoesNotExists
+	)
+
 	testCases := map[string]struct {
-		unwritableSocketPath bool
+		cacheDBBehavior    int
+		cachePathBehavior  int
+		socketPathBehavior int
 	}{
-		"Error on grpc daemon creation failure": {unwritableSocketPath: true},
+		"Error on existing cache path not being a directory":    {cachePathBehavior: dirIsFile},
+		"Error on existing cache path with invalid permissions": {cachePathBehavior: hasWrongPermission},
+		"Error on missing parent cache directory":               {cachePathBehavior: parentDirDoesNotExists},
+
+		"Error on grpc daemon creation failure": {socketPathBehavior: dirIsFile},
+
+		"Error on manager creationg failure": {cacheDBBehavior: hasWrongPermission},
 	}
 
 	for name, tc := range testCases {
@@ -124,13 +140,43 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			filePath := filepath.Join(t.TempDir(), "file")
-			err := os.WriteFile(filePath, []byte("I'm here to break the service"), 0600)
-			require.NoError(t, err, "Failed to write file")
+			// We are using our own temporary directory for the unix socket path being too long.
+			shortTmp, err := os.MkdirTemp("", "authd-tests")
+			require.NoError(t, err, "Setup: could not create temporary directory")
+			t.Cleanup(func() { _ = os.RemoveAll(shortTmp) })
+
+			filePath := filepath.Join(shortTmp, "file")
+			err = os.WriteFile(filePath, []byte("I'm here to break the service"), 0600)
+			require.NoError(t, err, "Setup: failed to write file")
+
+			worldAccessDir := filepath.Join(shortTmp, "opened-to-world")
+			//nolint: gosec // This is a directory with invalid permission for tests.
+			err = os.MkdirAll(worldAccessDir, 0777)
+			require.NoError(t, err, "Setup: failed to write file")
 
 			var config daemon.DaemonConfig
-			if tc.unwritableSocketPath {
+			switch tc.cachePathBehavior {
+			case dirIsFile:
+				config.SystemDirs.CacheDir = filePath
+			case hasWrongPermission:
+				config.SystemDirs.CacheDir = worldAccessDir
+			case parentDirDoesNotExists:
+				config.SystemDirs.CacheDir = filepath.Join(shortTmp, "not-exists", "cache")
+			}
+			switch tc.socketPathBehavior {
+			case dirIsFile:
 				config.SystemDirs.SocketPath = filepath.Join(filePath, "mysocket")
+			default:
+				config.SystemDirs.SocketPath = filepath.Join(shortTmp, "mysocket")
+			}
+			switch tc.cacheDBBehavior {
+			case hasWrongPermission:
+				config.SystemDirs.CacheDir = filepath.Join(shortTmp, "cache")
+				err := os.MkdirAll(config.SystemDirs.CacheDir, 0700)
+				require.NoError(t, err, "Setup: could not create cache directory")
+				//nolint: gosec // This is a file with invalid permission for tests.
+				err = os.WriteFile(filepath.Join(config.SystemDirs.CacheDir, cachetests.DbName), nil, 0644)
+				require.NoError(t, err, "Setup: could not create database with invalid permissions")
 			}
 
 			a := daemon.NewForTests(t, &config)
@@ -271,6 +317,7 @@ func TestNoConfigSetDefaults(t *testing.T) {
 	require.NoError(t, err, "Run should not return an error")
 
 	require.Equal(t, 0, a.Config().Verbosity, "Default Verbosity")
+	require.Equal(t, consts.DefaultCacheDir, a.Config().SystemDirs.CacheDir, "Default cache directory")
 	require.Equal(t, consts.DefaultSocketPath, a.Config().SystemDirs.SocketPath, "Default socket address")
 }
 

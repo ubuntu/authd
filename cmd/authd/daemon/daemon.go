@@ -101,6 +101,11 @@ func New() *App {
 func (a *App) serve(config daemonConfig) error {
 	ctx := context.Background()
 
+	if err := ensureDirWithPerms(config.SystemDirs.CacheDir, 0700); err != nil {
+		close(a.ready)
+		return fmt.Errorf("error initializing cache directory at %q: %v", config.SystemDirs.CacheDir, err)
+	}
+
 	m, err := services.NewManager(ctx, config.SystemDirs.CacheDir, config.Brokers)
 	if err != nil {
 		close(a.ready)
