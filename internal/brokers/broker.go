@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"hash/fnv"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -158,47 +159,33 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 		data = "{}"
 	}
 
-	// TODO: validate response from broker
 	switch access {
 	case responses.AuthGranted:
-		var returnedData map[string]json.RawMessage
-		err = json.Unmarshal([]byte(data), &returnedData)
+		rawUserInfo, err := unmarshalAndGetKey(data, "userinfo")
 		if err != nil {
-			return "", "", fmt.Errorf("response returned by the broker is not a valid json: %v\nBroker returned: %v", err, data)
+			return "", "", err
 		}
 
-		rawUserInfo, ok := returnedData["userinfo"]
-		if !ok {
-			return "", "", fmt.Errorf("missing userinfo key in granted user access, got: %v", data)
-		}
-
-		var uInfo struct {
-			cache.UserInfo
-			UUID   string
-			UGID   string
-			Groups []struct {
-				Name string
-				UGID string
-			}
-		}
-		err := json.Unmarshal(rawUserInfo, &uInfo)
+		u, err := validateUserInfoAndGenerateIDs(b.Name, rawUserInfo)
 		if err != nil {
-			return "", "", fmt.Errorf("invalid user information (not json formatted): %v", err)
-		}
-		// TODO: transform UUID and UGID into UID and GID and validates that any required fields are here.
-		uInfo.UID = 65536 + len(b.ID+uInfo.UUID) // should not be above 100000
-		for _, g := range uInfo.Groups {
-			uInfo.UserInfo.Groups = append(uInfo.UserInfo.Groups, cache.GroupInfo{
-				Name: g.Name,
-				GID:  65536 + len(b.ID+g.UGID),
-			})
+			return "", "", err
 		}
 
-		d, err := json.Marshal(uInfo.UserInfo)
+		d, err := json.Marshal(u)
 		if err != nil {
 			return "", "", fmt.Errorf("can't marshal UserInfo: %v", err)
 		}
 		data = string(d)
+
+	case responses.AuthDenied, responses.AuthRetry:
+		if _, err := unmarshalAndGetKey(data, "message"); err != nil {
+			return "", "", err
+		}
+
+	case responses.AuthCancelled, responses.AuthNext:
+		if data != "{}" {
+			return "", "", fmt.Errorf("access mode %q should not return any data, got: %v", access, data)
+		}
 	}
 
 	return access, data, nil
@@ -304,4 +291,80 @@ func (b Broker) validateUILayout(sessionID string, layout map[string]string) (r 
 // parseSessionID strips broker ID prefix from sessionID.
 func (b Broker) parseSessionID(sessionID string) string {
 	return strings.TrimPrefix(sessionID, fmt.Sprintf("%s-", b.ID))
+}
+
+// validateUserInfoAndGenerateIDs checks if the specified rawMsg is a valid userinfo and generates the UID and GIDs.
+func validateUserInfoAndGenerateIDs(brokerName string, rawMsg json.RawMessage) (user cache.UserInfo, err error) {
+	defer decorate.OnError(&err, "invalid user information provided by the broker (%s)", rawMsg)
+
+	var uInfo struct {
+		cache.UserInfo
+		UUID   string
+		UGID   string
+		Groups []struct {
+			Name string
+			UGID string
+		}
+	}
+	if err := json.Unmarshal(rawMsg, &uInfo); err != nil {
+		return cache.UserInfo{}, fmt.Errorf("message is not JSON formatted: %v", err)
+	}
+
+	// Validate username
+	if uInfo.Name == "" {
+		return cache.UserInfo{}, fmt.Errorf("empty username")
+	}
+
+	// Validate home and shell directories
+	if !filepath.IsAbs(filepath.Clean(uInfo.Dir)) {
+		return cache.UserInfo{}, fmt.Errorf("value provided for homedir is not an absolute path: %s", uInfo.Dir)
+	}
+	if !filepath.IsAbs(filepath.Clean(uInfo.Shell)) {
+		return cache.UserInfo{}, fmt.Errorf("value provided for shell is not an absolute path: %s", uInfo.Shell)
+	}
+
+	// Validate UUID and generate UID
+	if uInfo.UUID == "" {
+		return cache.UserInfo{}, fmt.Errorf("empty UUID")
+	}
+	uInfo.UID = generateID(brokerName + uInfo.UUID)
+
+	// Validate UGIDs and generate GIDs
+	for _, g := range uInfo.Groups {
+		if g.Name == "" {
+			return cache.UserInfo{}, fmt.Errorf("group has empty name")
+		}
+		if g.UGID == "" {
+			return cache.UserInfo{}, fmt.Errorf("group %q has empty UGID", g.Name)
+		}
+		gid := generateID(brokerName + g.UGID)
+		uInfo.UserInfo.Groups = append(uInfo.UserInfo.Groups, cache.GroupInfo{Name: g.Name, GID: gid})
+	}
+
+	return uInfo.UserInfo, nil
+}
+
+// generatedID generates an integer number based on the provided string.
+func generateID(str string) int {
+	var sum int
+	for i, c := range str {
+		// Multiplies the uint value of the rune by its index+1. Subtracts the index to add another layer of conflict prevention.
+		sum += int(uint(c)*uint(i+1)) - i
+	}
+	return (sum % (100000 - 65537)) + 65536 // Ensures that ID is between 65536 and 100000
+}
+
+// unmarshalAndGetKey tries to unmarshal the content in data and returns the value of the requested key.
+func unmarshalAndGetKey(data, key string) (json.RawMessage, error) {
+	var returnedData map[string]json.RawMessage
+	if err := json.Unmarshal([]byte(data), &returnedData); err != nil {
+		return nil, fmt.Errorf("response returned by the broker is not a valid json: %v\nBroker returned: %v", err, data)
+	}
+
+	rawMsg, ok := returnedData[key]
+	if !ok {
+		return nil, fmt.Errorf("missing key %q in returned message, got: %v", key, data)
+	}
+
+	return rawMsg, nil
 }
