@@ -209,18 +209,28 @@ func TestIsAuthenticated(t *testing.T) {
 
 		cancelFirstCall bool
 	}{
-		//TODO: Once validation is implemented, add cases to check if the data returned by the broker matches what is expected from the access code.
-
 		"Successfully authenticate":                             {sessionID: "success"},
 		"Successfully authenticate after cancelling first call": {sessionID: "IA_second_call", secondCall: true},
 		"Denies authentication when broker times out":           {sessionID: "IA_timeout"},
+		"No error when auth.Next and no data":                   {sessionID: "IA_next"},
 
 		// broker errors
 		"Error when authenticating":                                           {sessionID: "IA_error"},
-		"Error when broker returns invalid access":                            {sessionID: "IA_invalid"},
-		"Error when broker returns invalid data":                              {sessionID: "IA_invalid_data"},
-		"Error when calling IsAuthenticated a second time without cancelling": {sessionID: "IA_second_call", secondCall: true, cancelFirstCall: true},
 		"Error on empty data even if granted":                                 {sessionID: "IA_empty_data"},
+		"Error when broker returns invalid data":                              {sessionID: "IA_invalid_data"},
+		"Error when broker returns invalid access":                            {sessionID: "IA_invalid_access"},
+		"Error when broker returns invalid userinfo":                          {sessionID: "IA_invalid_userinfo"},
+		"Error when broker returns userinfo with empty username":              {sessionID: "IA_info_missing_user_name"},
+		"Error when broker returns userinfo with empty group name":            {sessionID: "IA_info_missing_group_name"},
+		"Error when broker returns userinfo with empty UUID":                  {sessionID: "IA_info_missing_uuid"},
+		"Error when broker returns userinfo with empty UGID":                  {sessionID: "IA_info_missing_ugid"},
+		"Error when broker returns userinfo with invalid homedir":             {sessionID: "IA_info_invalid_home"},
+		"Error when broker returns userinfo with invalid shell":               {sessionID: "IA_info_invalid_shell"},
+		"Error when broker returns data on auth.Next":                         {sessionID: "IA_next_with_data"},
+		"Error when broker returns data on auth.Cancelled":                    {sessionID: "IA_cancelled_with_data"},
+		"Error when broker returns no data on auth.Denied":                    {sessionID: "IA_denied_without_data"},
+		"Error when broker returns no data on auth.Retry":                     {sessionID: "IA_retry_without_data"},
+		"Error when calling IsAuthenticated a second time without cancelling": {sessionID: "IA_second_call", secondCall: true, cancelFirstCall: true},
 	}
 	for name, tc := range tests {
 		tc := tc
