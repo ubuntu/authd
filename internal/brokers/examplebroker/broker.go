@@ -40,8 +40,8 @@ type sessionInfo struct {
 
 	pwdChange passwdReset
 
-	neededMfa      int
-	currentMfaStep int
+	neededAuthSteps int
+	currentAuthStep int
 }
 
 type isAuthenticatedCtx struct {
@@ -59,76 +59,13 @@ type Broker struct {
 	isAuthenticatedCallsMu sync.Mutex
 }
 
-type exampleUser struct {
-	UID    string                       `json:"uid"`
-	Name   string                       `json:"name"`
-	Groups map[string]map[string]string `json:"groups"`
-}
-
-func (u exampleUser) String() string {
-	data, err := json.Marshal(u)
-	if err != nil {
-		panic(fmt.Sprintf("Invalid user data: %v", err))
-	}
-	return string(data)
-}
-
 var (
-	exampleUsers = map[string]exampleUser{
-		"user1": {
-			UID:  "4245874",
-			Name: "My user",
-			Groups: map[string]map[string]string{
-				"group1": {
-					"name": "Group 1",
-					"gid":  "3884",
-				},
-				"group2": {
-					"name": "Group 2",
-					"gid":  "4884",
-				},
-			},
-		},
-		"user2": {
-			UID:  "33333",
-			Name: "My secondary user",
-			Groups: map[string]map[string]string{
-				"group2": {
-					"name": "Group 2",
-					"gid":  "4884",
-				},
-			},
-		},
-		"user-mfa": {
-			UID:  "44444",
-			Name: "User that needs MFA",
-			Groups: map[string]map[string]string{
-				"group1": {
-					"name": "Group 1",
-					"gid":  "3884",
-				},
-			},
-		},
-		"user-needs-reset": {
-			UID:  "55555",
-			Name: "User that needs passwd reset",
-			Groups: map[string]map[string]string{
-				"group1": {
-					"name": "Group 1",
-					"gid":  "3884",
-				},
-			},
-		},
-		"user-can-reset": {
-			UID:  "66666",
-			Name: "User that can passwd reset",
-			Groups: map[string]map[string]string{
-				"group1": {
-					"name": "Group 1",
-					"gid":  "3884",
-				},
-			},
-		},
+	exampleUsers = map[string]string{
+		"user1":            "My user",
+		"user2":            "My secondary user",
+		"user-mfa":         "User that needs MFA",
+		"user-needs-reset": "User that needs passwd reset",
+		"user-can-reset":   "User that can passwd reset",
 	}
 )
 
@@ -155,16 +92,18 @@ func (b *Broker) NewSession(ctx context.Context, username, lang string) (session
 		username:        username,
 		lang:            lang,
 		pwdChange:       noReset,
+		currentAuthStep: 1,
+		neededAuthSteps: 1,
 		attemptsPerMode: make(map[string]int),
 	}
 	switch username {
 	case "user-mfa":
-		info.neededMfa = 3
+		info.neededAuthSteps = 3
 	case "user-needs-reset":
-		info.neededMfa = 1
+		info.neededAuthSteps = 2
 		info.pwdChange = mustReset
 	case "user-can-reset":
-		info.neededMfa = 1
+		info.neededAuthSteps = 2
 		info.pwdChange = canReset
 	}
 
@@ -185,11 +124,11 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	allModes := getSupportedModes(sessionInfo, supportedUILayouts)
 
 	// If the user needs mfa, we remove the last used mode from the list of available modes.
-	if sessionInfo.currentMfaStep > 0 && sessionInfo.currentMfaStep < sessionInfo.neededMfa {
+	if sessionInfo.currentAuthStep > 1 && sessionInfo.currentAuthStep < sessionInfo.neededAuthSteps {
 		allModes = getMfaModes(sessionInfo, sessionInfo.allModes)
 	}
 	// If the user needs or can reset the password, we only show those authentication modes.
-	if sessionInfo.currentMfaStep > 0 && sessionInfo.pwdChange != noReset {
+	if sessionInfo.currentAuthStep > 1 && sessionInfo.pwdChange != noReset {
 		allModes = getPasswdResetModes(sessionInfo, sessionInfo.allModes)
 	}
 
@@ -350,7 +289,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				break
 			}
 			allModes["mandatoryreset"] = map[string]string{
-				"selection_label": "Password reset (3 days until mandatory)",
+				"selection_label": "Password reset",
 				"ui": mapToJSON(map[string]string{
 					"type":  "newpassword",
 					"label": "Enter your new password",
@@ -358,14 +297,14 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				}),
 			}
 
-			if layout["skip-button"] != "" {
+			if layout["button"] != "" {
 				allModes["optionalreset"] = map[string]string{
 					"selection_label": "Password reset",
 					"ui": mapToJSON(map[string]string{
-						"type":        "newpassword",
-						"label":       "Enter your new password",
-						"entry":       "chars_password",
-						"skip-button": "Skip",
+						"type":   "newpassword",
+						"label":  "Enter your new password (3 days until mandatory)",
+						"entry":  "chars_password",
+						"button": "Skip",
 					}),
 				}
 			}
@@ -481,18 +420,10 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 	}()
 
 	access, data, err = b.handleIsAuthenticated(b.isAuthenticatedCalls[sessionID].ctx, sessionInfo, authData)
-	if access == responses.AuthGranted {
-		switch sessionInfo.username {
-		case "user-needs-reset":
-			fallthrough
-		case "user-can-reset":
-			fallthrough
-		case "user-mfa":
-			if sessionInfo.currentMfaStep < sessionInfo.neededMfa {
-				sessionInfo.currentMfaStep++
-				access = responses.AuthNext
-			}
-		}
+	if access == responses.AuthGranted && sessionInfo.currentAuthStep < sessionInfo.neededAuthSteps {
+		sessionInfo.currentAuthStep++
+		access = responses.AuthNext
+		data = ""
 	} else if access == responses.AuthRetry {
 		sessionInfo.attemptsPerMode[sessionInfo.selectedMode]++
 		if sessionInfo.attemptsPerMode[sessionInfo.selectedMode] >= maxAttempts {
@@ -603,12 +534,12 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 	}
 
-	user, exists := exampleUsers[sessionInfo.username]
+	name, exists := exampleUsers[sessionInfo.username]
 	if !exists {
 		return responses.AuthDenied, `{"message": "user not found"}`, nil
 	}
 
-	return responses.AuthGranted, userInfoFromName(user.Name), nil
+	return responses.AuthGranted, fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(name)), nil
 }
 
 // EndSession ends the requested session and triggers the necessary clean up steps, if any.
