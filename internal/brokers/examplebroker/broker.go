@@ -295,14 +295,14 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				}),
 			}
 
-			if layout["skip-button"] != "" {
+			if layout["button"] != "" {
 				allModes["optionalreset"] = map[string]string{
 					"selection_label": "Password reset",
 					"ui": mapToJSON(map[string]string{
-						"type":        "newpassword",
-						"label":       "Enter your new password",
-						"entry":       "chars_password",
-						"skip-button": "Skip",
+						"type":   "newpassword",
+						"label":  "Enter your new password",
+						"entry":  "chars_password",
+						"button": "Skip",
 					}),
 				}
 			}
