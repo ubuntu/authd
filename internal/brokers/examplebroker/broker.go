@@ -287,7 +287,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				break
 			}
 			allModes["mandatoryreset"] = map[string]string{
-				"selection_label": "Password reset (3 days until mandatory)",
+				"selection_label": "Password reset",
 				"ui": mapToJSON(map[string]string{
 					"type":  "newpassword",
 					"label": "Enter your new password",
@@ -300,7 +300,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 					"selection_label": "Password reset",
 					"ui": mapToJSON(map[string]string{
 						"type":   "newpassword",
-						"label":  "Enter your new password",
+						"label":  "Enter your new password (3 days until mandatory)",
 						"entry":  "chars_password",
 						"button": "Skip",
 					}),
