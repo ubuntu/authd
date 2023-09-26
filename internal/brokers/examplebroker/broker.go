@@ -59,76 +59,13 @@ type Broker struct {
 	isAuthenticatedCallsMu sync.Mutex
 }
 
-type exampleUser struct {
-	UID    string                       `json:"uid"`
-	Name   string                       `json:"name"`
-	Groups map[string]map[string]string `json:"groups"`
-}
-
-func (u exampleUser) String() string {
-	data, err := json.Marshal(u)
-	if err != nil {
-		panic(fmt.Sprintf("Invalid user data: %v", err))
-	}
-	return string(data)
-}
-
 var (
-	exampleUsers = map[string]exampleUser{
-		"user1": {
-			UID:  "4245874",
-			Name: "My user",
-			Groups: map[string]map[string]string{
-				"group1": {
-					"name": "Group 1",
-					"gid":  "3884",
-				},
-				"group2": {
-					"name": "Group 2",
-					"gid":  "4884",
-				},
-			},
-		},
-		"user2": {
-			UID:  "33333",
-			Name: "My secondary user",
-			Groups: map[string]map[string]string{
-				"group2": {
-					"name": "Group 2",
-					"gid":  "4884",
-				},
-			},
-		},
-		"user-mfa": {
-			UID:  "44444",
-			Name: "User that needs MFA",
-			Groups: map[string]map[string]string{
-				"group1": {
-					"name": "Group 1",
-					"gid":  "3884",
-				},
-			},
-		},
-		"user-needs-reset": {
-			UID:  "55555",
-			Name: "User that needs passwd reset",
-			Groups: map[string]map[string]string{
-				"group1": {
-					"name": "Group 1",
-					"gid":  "3884",
-				},
-			},
-		},
-		"user-can-reset": {
-			UID:  "66666",
-			Name: "User that can passwd reset",
-			Groups: map[string]map[string]string{
-				"group1": {
-					"name": "Group 1",
-					"gid":  "3884",
-				},
-			},
-		},
+	exampleUsers = map[string]string{
+		"user1":            "My user",
+		"user2":            "My secondary user",
+		"user-mfa":         "User that needs MFA",
+		"user-needs-reset": "User that needs passwd reset",
+		"user-can-reset":   "User that can passwd reset",
 	}
 )
 
@@ -603,12 +540,12 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 	}
 
-	user, exists := exampleUsers[sessionInfo.username]
+	name, exists := exampleUsers[sessionInfo.username]
 	if !exists {
 		return responses.AuthDenied, `{"message": "user not found"}`, nil
 	}
 
-	return responses.AuthGranted, fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(user.Name)), nil
+	return responses.AuthGranted, fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(name)), nil
 }
 
 // EndSession ends the requested session and triggers the necessary clean up steps, if any.
