@@ -5,4 +5,4 @@ FIRST CALL:
 SECOND CALL:
 	access: 
 	msg: 
-	err: rpc error: code = Unknown desc = can't check authentication: Broker "BrokerMock": IsAuthenticated already running for session "TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call-session_id"
+	err: rpc error: code = Unknown desc = can't check authentication: broker "BrokerMock": IsAuthenticated already running for session "TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call-session_id"

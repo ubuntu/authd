@@ -113,7 +113,7 @@ func writeConfig(cfgDir, name string) (string, error) {
 func (b *BrokerBusMock) NewSession(username, lang string) (sessionID, encryptionKey string, dbusErr *dbus.Error) {
 	parsedUsername := parseSessionID(username)
 	if parsedUsername == "NS_error" {
-		return "", "", dbus.MakeFailedError(fmt.Errorf("Broker %q: NewSession errored out", b.name))
+		return "", "", dbus.MakeFailedError(fmt.Errorf("broker %q: NewSession errored out", b.name))
 	}
 	if parsedUsername == "NS_no_id" {
 		return "", username + "_key", nil
@@ -132,7 +132,7 @@ func (b *BrokerBusMock) GetAuthenticationModes(sessionID string, supportedUILayo
 	case "GAM_empty":
 		return nil, nil
 	case "GAM_error":
-		return nil, dbus.MakeFailedError(fmt.Errorf("Broker %q: GetAuthenticationModes errored out", b.name))
+		return nil, dbus.MakeFailedError(fmt.Errorf("broker %q: GetAuthenticationModes errored out", b.name))
 	case "GAM_multiple_modes":
 		return []map[string]string{
 			{"id": "mode1", "label": "Mode 1"},
@@ -182,7 +182,7 @@ func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeNa
 			"entry": "invalid entry",
 		}, nil
 	case "SAM_error":
-		return nil, dbus.MakeFailedError(fmt.Errorf("Broker %q: SelectAuthenticationMode errored out", b.name))
+		return nil, dbus.MakeFailedError(fmt.Errorf("broker %q: SelectAuthenticationMode errored out", b.name))
 	case "SAM_no_layout":
 		return nil, nil
 	case "SAM_empty_layout":
@@ -199,14 +199,14 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 	parsedID := parseSessionID(sessionID)
 
 	if parsedID == "IA_error" {
-		return "", "", dbus.MakeFailedError(fmt.Errorf("Broker %q: IsAuthenticated errored out", b.name))
+		return "", "", dbus.MakeFailedError(fmt.Errorf("broker %q: IsAuthenticated errored out", b.name))
 	}
 
 	// Handles the context that will be assigned for the IsAuthenticated handler
 	b.isAuthenticatedCallsMu.RLock()
 	if _, exists := b.isAuthenticatedCalls[sessionID]; exists {
 		b.isAuthenticatedCallsMu.RUnlock()
-		return "", "", dbus.MakeFailedError(fmt.Errorf("Broker %q: IsAuthenticated already running for session %q", b.name, sessionID))
+		return "", "", dbus.MakeFailedError(fmt.Errorf("broker %q: IsAuthenticated already running for session %q", b.name, sessionID))
 	}
 	b.isAuthenticatedCallsMu.RUnlock()
 
@@ -268,7 +268,7 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 func (b *BrokerBusMock) EndSession(sessionID string) (dbusErr *dbus.Error) {
 	sessionID = parseSessionID(sessionID)
 	if sessionID == "ES_error" {
-		return dbus.MakeFailedError(fmt.Errorf("Broker %q: EndSession errored out", b.name))
+		return dbus.MakeFailedError(fmt.Errorf("broker %q: EndSession errored out", b.name))
 	}
 	return nil
 }

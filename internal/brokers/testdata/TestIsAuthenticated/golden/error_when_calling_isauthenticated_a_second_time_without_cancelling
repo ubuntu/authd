@@ -5,4 +5,4 @@ FIRST CALL:
 SECOND CALL:
 	access: 
 	data: 
-	err: Broker "TestIsAuthenticated": IsAuthenticated already running for session "TestIsAuthenticated/Error_when_calling_IsAuthenticated_a_second_time_without_cancelling_separator_IA_second_call"
+	err: broker "TestIsAuthenticated": IsAuthenticated already running for session "TestIsAuthenticated/Error_when_calling_IsAuthenticated_a_second_time_without_cancelling_separator_IA_second_call"
