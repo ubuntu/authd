@@ -223,8 +223,8 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 	}()
 
 	access = responses.AuthGranted
-	data = fmt.Sprintf(`{"mock_answer": "authentication granted by default", "userinfo": %s}`, userInfoFromName(parsedID))
-	if parsedID == "IA_invalid" {
+	data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID))
+	if parsedID == "IA_invalid_access" {
 		access = "invalid"
 	}
 
@@ -233,32 +233,51 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 		switch parsedID {
 		case "IA_timeout":
 			time.Sleep(time.Second)
-			access = "denied"
+			access = responses.AuthDenied
 			data = `{"message": "denied by time out"}`
+
 		case "IA_wait":
 			<-ctx.Done()
-			access = "cancelled"
-			data = `{"message": "cancelled by user"}`
+			access = responses.AuthCancelled
+			data = ""
+
 		case "IA_second_call":
 			select {
 			case <-ctx.Done():
-				access = "cancelled"
-				data = `{"message": "cancelled by user"}`
+				access = responses.AuthCancelled
+				data = ""
 			case <-time.After(2 * time.Second):
 				access = responses.AuthGranted
-				data = fmt.Sprintf(`{"mock_answer": "authentication granted by mock timeout", "userinfo": %s}`, userInfoFromName(parsedID))
+				data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID))
 			}
-		}
 
-		//TODO: Add cases for the new access types
+		case "IA_next":
+			access = responses.AuthNext
+			data = ""
+		}
 		close(done)
 	}()
 	<-done
 
-	if parsedID == "IA_invalid_data" {
+	switch parsedID {
+	case "IA_invalid_data":
 		data = "invalid"
-	} else if parsedID == "IA_empty_data" {
+	case "IA_empty_data":
 		data = ""
+	case "IA_invalid_userinfo":
+		data = `{"userinfo": "not valid"}`
+	case "IA_denied_without_data":
+		access = responses.AuthDenied
+		data = ""
+	case "IA_retry_without_data":
+		access = responses.AuthRetry
+		data = ""
+	case "IA_next_with_data":
+		access = responses.AuthNext
+		data = `{"message": "there should not be a message here"}`
+	case "IA_cancelled_with_data":
+		access = responses.AuthCancelled
+		data = `{"message": "there should not be a message here"}`
 	}
 
 	return access, data, nil
@@ -298,22 +317,49 @@ func parseSessionID(sessionID string) string {
 }
 
 // userInfoFromName transform a given name to the strinfigy userinfo string.
-func userInfoFromName(name string) string {
-	user := struct {
-		Name string
-	}{Name: name}
+func userInfoFromName(parsedID string) string {
+	// Default values
+	name := parsedID
+	group := "group-" + parsedID
+	home := "/home/" + parsedID
+	shell := "/bin/sh/" + parsedID
+	uuid := "uuid-" + parsedID
+	ugid := "ugid-" + parsedID
 
-	var buf bytes.Buffer
+	switch parsedID {
+	case "IA_info_missing_user_name":
+		name = ""
+	case "IA_info_missing_group_name":
+		group = ""
+	case "IA_info_missing_uuid":
+		uuid = ""
+	case "IA_info_missing_ugid":
+		ugid = ""
+	case "IA_info_invalid_home":
+		home = "this is not a homedir"
+	case "IA_info_invalid_shell":
+		shell = "this is not a valid shell"
+	}
+
+	user := struct {
+		Name  string
+		UUID  string
+		Home  string
+		Shell string
+		Group string
+		UGID  string
+	}{Name: name, UUID: uuid, Home: home, Shell: shell, Group: group, UGID: ugid}
 
 	// only used for tests, we can ignore the template execution error as the returned data will be failing.
+	var buf bytes.Buffer
 	_ = template.Must(template.New("").Parse(`{
 		"name": "{{.Name}}",
-		"uuid": "uuid-{{.Name}}",
+		"uuid": "{{.UUID}}",
 		"gecos": "gecos for {{.Name}}",
-		"dir": "/home/{{.Name}}",
-		"shell": "/bin/sh/{{.Name}}",
+		"dir": "{{.Home}}",
+		"shell": "{{.Shell}}",
 		"avatar": "avatar for {{.Name}}",
-		"groups": [ {"name": "group-{{.Name}}", "ugid": "group-{{.Name}}"} ]
+		"groups": [ {"name": "{{.Group}}", "ugid": "{{.UGID}}"} ]
 	}`)).Execute(&buf, user)
 
 	return buf.String()
