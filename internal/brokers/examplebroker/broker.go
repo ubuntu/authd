@@ -40,8 +40,8 @@ type sessionInfo struct {
 
 	pwdChange passwdReset
 
-	neededMfa      int
-	currentMfaStep int
+	neededAuthSteps int
+	currentAuthStep int
 }
 
 type isAuthenticatedCtx struct {
@@ -92,16 +92,18 @@ func (b *Broker) NewSession(ctx context.Context, username, lang string) (session
 		username:        username,
 		lang:            lang,
 		pwdChange:       noReset,
+		currentAuthStep: 1,
+		neededAuthSteps: 1,
 		attemptsPerMode: make(map[string]int),
 	}
 	switch username {
 	case "user-mfa":
-		info.neededMfa = 3
+		info.neededAuthSteps = 3
 	case "user-needs-reset":
-		info.neededMfa = 1
+		info.neededAuthSteps = 2
 		info.pwdChange = mustReset
 	case "user-can-reset":
-		info.neededMfa = 1
+		info.neededAuthSteps = 2
 		info.pwdChange = canReset
 	}
 
@@ -122,11 +124,11 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	allModes := getSupportedModes(sessionInfo, supportedUILayouts)
 
 	// If the user needs mfa, we remove the last used mode from the list of available modes.
-	if sessionInfo.currentMfaStep > 0 && sessionInfo.currentMfaStep < sessionInfo.neededMfa {
+	if sessionInfo.currentAuthStep > 1 && sessionInfo.currentAuthStep < sessionInfo.neededAuthSteps {
 		allModes = getMfaModes(sessionInfo, sessionInfo.allModes)
 	}
 	// If the user needs or can reset the password, we only show those authentication modes.
-	if sessionInfo.currentMfaStep > 0 && sessionInfo.pwdChange != noReset {
+	if sessionInfo.currentAuthStep > 1 && sessionInfo.pwdChange != noReset {
 		allModes = getPasswdResetModes(sessionInfo, sessionInfo.allModes)
 	}
 
@@ -418,19 +420,10 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 	}()
 
 	access, data, err = b.handleIsAuthenticated(b.isAuthenticatedCalls[sessionID].ctx, sessionInfo, authData)
-	if access == responses.AuthGranted {
-		switch sessionInfo.username {
-		case "user-needs-reset":
-			fallthrough
-		case "user-can-reset":
-			fallthrough
-		case "user-mfa":
-			if sessionInfo.currentMfaStep < sessionInfo.neededMfa {
-				sessionInfo.currentMfaStep++
-				access = responses.AuthNext
-				data = ""
-			}
-		}
+	if access == responses.AuthGranted && sessionInfo.currentAuthStep < sessionInfo.neededAuthSteps {
+		sessionInfo.currentAuthStep++
+		access = responses.AuthNext
+		data = ""
 	} else if access == responses.AuthRetry {
 		sessionInfo.attemptsPerMode[sessionInfo.selectedMode]++
 		if sessionInfo.attemptsPerMode[sessionInfo.selectedMode] >= maxAttempts {
