@@ -428,6 +428,7 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 			if sessionInfo.currentMfaStep < sessionInfo.neededMfa {
 				sessionInfo.currentMfaStep++
 				access = responses.AuthNext
+				data = ""
 			}
 		}
 	} else if access == responses.AuthRetry {
