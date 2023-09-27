@@ -124,7 +124,7 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	allModes := getSupportedModes(sessionInfo, supportedUILayouts)
 
 	// If the user needs mfa, we remove the last used mode from the list of available modes.
-	if sessionInfo.currentAuthStep > 1 && sessionInfo.currentAuthStep < sessionInfo.neededAuthSteps {
+	if sessionInfo.currentAuthStep > 1 && sessionInfo.currentAuthStep <= sessionInfo.neededAuthSteps {
 		allModes = getMfaModes(sessionInfo, sessionInfo.allModes)
 	}
 	// If the user needs or can reset the password, we only show those authentication modes.
