@@ -12,7 +12,6 @@ updates:
     schedule:
       interval: "daily"
     commit-message:
-      include: "scope"
       prefix: "deps(ci)"
 
   # Codebase
@@ -22,7 +21,6 @@ updates:
     schedule:
       interval: "daily"
     commit-message:
-      include: "scope"
       prefix: "deps(go)"
 
   - package-ecosystem: "gomod"
@@ -30,7 +28,6 @@ updates:
     schedule:
       interval: "daily"
     commit-message:
-      include: "scope"
       prefix: "deps(go-tools)"
 
   ## Rust dependencies
@@ -39,5 +36,4 @@ updates:
     schedule:
       interval: "daily"
     commit-message:
-      include: "scope"
       prefix: "deps(rust)"
