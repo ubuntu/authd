@@ -40,8 +40,9 @@ type sessionInfo struct {
 
 	pwdChange passwdReset
 
-	neededAuthSteps int
-	currentAuthStep int
+	neededAuthSteps   int
+	currentAuthStep   int
+	firstSelectedMode string
 }
 
 type isAuthenticatedCtx struct {
@@ -379,6 +380,10 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 
 	// Store selected mode
 	sessionInfo.selectedMode = authenticationModeName
+	// Store the first one to use to update the lastSelectedMode in MFA cases.
+	if sessionInfo.currentAuthStep == 1 {
+		sessionInfo.firstSelectedMode = authenticationModeName
+	}
 
 	if err = b.updateSession(sessionID, sessionInfo); err != nil {
 		return nil, err
@@ -432,9 +437,11 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 	}
 
 	// Store last successful authentication mode for this user in the broker.
-	b.userLastSelectedModeMu.Lock()
-	b.userLastSelectedMode[sessionInfo.username] = sessionInfo.selectedMode
-	b.userLastSelectedModeMu.Unlock()
+	if access == responses.AuthGranted {
+		b.userLastSelectedModeMu.Lock()
+		b.userLastSelectedMode[sessionInfo.username] = sessionInfo.firstSelectedMode
+		b.userLastSelectedModeMu.Unlock()
+	}
 
 	if err = b.updateSession(sessionID, sessionInfo); err != nil {
 		return responses.AuthDenied, "", err
