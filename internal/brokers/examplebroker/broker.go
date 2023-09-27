@@ -129,8 +129,15 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 		allModes = getMfaModes(sessionInfo, sessionInfo.allModes)
 	}
 	// If the user needs or can reset the password, we only show those authentication modes.
-	if sessionInfo.currentAuthStep > 1 && sessionInfo.pwdChange != noReset {
-		allModes = getPasswdResetModes(sessionInfo, sessionInfo.allModes)
+	if sessionInfo.currentAuthStep == sessionInfo.neededAuthSteps && sessionInfo.pwdChange != noReset {
+		if sessionInfo.currentAuthStep < 2 {
+			return nil, fmt.Errorf("password reset is not allowed before authentication")
+		}
+
+		allModes = getPasswdResetModes(sessionInfo, supportedUILayouts)
+		if sessionInfo.pwdChange == mustReset && len(allModes) == 0 {
+			return nil, fmt.Errorf("user %q must reset password, but no mode was provided for it", sessionInfo.username)
+		}
 	}
 
 	b.userLastSelectedModeMu.Lock()
@@ -325,20 +332,34 @@ func getMfaModes(info sessionInfo, supportedModes map[string]map[string]string) 
 	return mfaModes
 }
 
-func getPasswdResetModes(info sessionInfo, supportedModes map[string]map[string]string) map[string]map[string]string {
+func getPasswdResetModes(info sessionInfo, supportedUILayouts []map[string]string) map[string]map[string]string {
 	passwdResetModes := make(map[string]map[string]string)
+	for _, layout := range supportedUILayouts {
+		if layout["type"] != "newpassword" {
+			continue
+		}
+		if layout["entry"] == "" {
+			break
+		}
 
-	var mode string
-	switch info.pwdChange {
-	case canReset:
-		mode = "optionalreset"
-	case mustReset:
-		mode = "mandatoryreset"
-	}
-	if authMode, exists := supportedModes[mode]; exists {
-		passwdResetModes[mode] = authMode
-	}
+		ui := map[string]string{
+			"type":  "newpassword",
+			"label": "Enter your new password",
+			"entry": "chars_password",
+		}
 
+		mode := "mandatoryreset"
+		if info.pwdChange == canReset && layout["button"] != "" {
+			mode = "optionalreset"
+			ui["label"] = "Enter your new password (3 days until mandatory)"
+			ui["button"] = "Skip"
+		}
+
+		passwdResetModes[mode] = map[string]string{
+			"selection_label": "Password reset",
+			"ui":              mapToJSON(ui),
+		}
+	}
 	return passwdResetModes
 }
 
