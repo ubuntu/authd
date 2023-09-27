@@ -96,6 +96,12 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 					Wait:    &requiredWithBooleans,
 					Label:   &optional,
 				},
+				{
+					Type:   "newpassword",
+					Label:  &required,
+					Entry:  &supportedEntries,
+					Button: &optional,
+				},
 			},
 		}
 	}
