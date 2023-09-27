@@ -54,6 +54,14 @@ func (m formModel) Init() tea.Cmd {
 func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case startAuthentication:
+		// Reset the entry.
+		for _, fm := range m.focusableModels {
+			switch entry := fm.(type) {
+			case *textinputModel:
+				entry.SetValue("")
+			}
+		}
+
 		if !m.wait {
 			return m, nil
 		}

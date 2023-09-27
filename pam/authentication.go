@@ -80,7 +80,8 @@ type authenticationModel struct {
 	errorMsg string
 }
 
-// startAuthentication signals that the authentication model can start wait:true authentication if supported.
+// startAuthentication signals that the authentication model can start
+// wait:true authentication and reset fields.
 type startAuthentication struct{}
 
 // newAuthenticationModel initializes a authenticationModel which needs to be Compose then.
