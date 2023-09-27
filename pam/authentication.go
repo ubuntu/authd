@@ -80,7 +80,8 @@ type authenticationModel struct {
 	errorMsg string
 }
 
-// startAuthentication signals that the authentication model can start wait:true authentication if supported.
+// startAuthentication signals that the authentication model can start
+// wait:true authentication and reset fields.
 type startAuthentication struct{}
 
 // newAuthenticationModel initializes a authenticationModel which needs to be Compose then.
@@ -182,15 +183,7 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, layout *authd.
 
 	switch layout.Type {
 	case "form":
-		var oldEntryValue string
-		// We need to port previous entry after a reselection (indicated by the fact that we didn’t clear the previous model)
-		if oldModel, ok := m.currentModel.(formModel); ok && layout.GetEntry() != "" {
-			oldEntryValue = oldModel.getEntryValue()
-		}
 		form := newFormModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton(), layout.GetWait() == "true")
-		if oldEntryValue != "" {
-			form.setEntryValue(oldEntryValue)
-		}
 		m.currentModel = form
 
 	case "qrcode":

@@ -54,6 +54,14 @@ func (m formModel) Init() tea.Cmd {
 func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case startAuthentication:
+		// Reset the entry.
+		for _, fm := range m.focusableModels {
+			switch entry := fm.(type) {
+			case *textinputModel:
+				entry.SetValue("")
+			}
+		}
+
 		if !m.wait {
 			return m, nil
 		}
@@ -135,28 +143,4 @@ func (m formModel) Blur() {
 		return
 	}
 	m.focusableModels[m.focusIndex].Blur()
-}
-
-// getEntryValue returns previous entry value, if any.
-func (m formModel) getEntryValue() string {
-	for _, entry := range m.focusableModels {
-		entry, ok := entry.(*textinputModel)
-		if !ok {
-			continue
-		}
-		return entry.Value()
-	}
-	return ""
-}
-
-// setEntryValue reset the entry (if present) to a given value.
-func (m *formModel) setEntryValue(value string) {
-	for _, entry := range m.focusableModels {
-		entry, ok := entry.(*textinputModel)
-		if !ok {
-			continue
-		}
-		entry.SetValue(value)
-		return
-	}
 }
