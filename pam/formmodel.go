@@ -144,27 +144,3 @@ func (m formModel) Blur() {
 	}
 	m.focusableModels[m.focusIndex].Blur()
 }
-
-// getEntryValue returns previous entry value, if any.
-func (m formModel) getEntryValue() string {
-	for _, entry := range m.focusableModels {
-		entry, ok := entry.(*textinputModel)
-		if !ok {
-			continue
-		}
-		return entry.Value()
-	}
-	return ""
-}
-
-// setEntryValue reset the entry (if present) to a given value.
-func (m *formModel) setEntryValue(value string) {
-	for _, entry := range m.focusableModels {
-		entry, ok := entry.(*textinputModel)
-		if !ok {
-			continue
-		}
-		entry.SetValue(value)
-		return
-	}
-}
