@@ -200,6 +200,10 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, layout *authd.
 		}
 		m.currentModel = qrcodeModel
 
+	case "newpassword":
+		newPasswordModel := newNewPasswordModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton())
+		m.currentModel = newPasswordModel
+
 	default:
 		return sendEvent(pamSystemError{msg: fmt.Sprintf("unknown layout type: %q", layout.Type)})
 	}
