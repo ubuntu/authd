@@ -40,8 +40,9 @@ type sessionInfo struct {
 
 	pwdChange passwdReset
 
-	neededAuthSteps int
-	currentAuthStep int
+	neededAuthSteps   int
+	currentAuthStep   int
+	firstSelectedMode string
 }
 
 type isAuthenticatedCtx struct {
@@ -105,6 +106,9 @@ func (b *Broker) NewSession(ctx context.Context, username, lang string) (session
 	case "user-can-reset":
 		info.neededAuthSteps = 2
 		info.pwdChange = canReset
+	case "user-mfa-with-reset":
+		info.neededAuthSteps = 3
+		info.pwdChange = canReset
 	}
 
 	b.currentSessionsMu.Lock()
@@ -124,12 +128,19 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	allModes := getSupportedModes(sessionInfo, supportedUILayouts)
 
 	// If the user needs mfa, we remove the last used mode from the list of available modes.
-	if sessionInfo.currentAuthStep > 1 && sessionInfo.currentAuthStep < sessionInfo.neededAuthSteps {
+	if sessionInfo.currentAuthStep > 1 && sessionInfo.currentAuthStep <= sessionInfo.neededAuthSteps {
 		allModes = getMfaModes(sessionInfo, sessionInfo.allModes)
 	}
 	// If the user needs or can reset the password, we only show those authentication modes.
-	if sessionInfo.currentAuthStep > 1 && sessionInfo.pwdChange != noReset {
-		allModes = getPasswdResetModes(sessionInfo, sessionInfo.allModes)
+	if sessionInfo.currentAuthStep == sessionInfo.neededAuthSteps && sessionInfo.pwdChange != noReset {
+		if sessionInfo.currentAuthStep < 2 {
+			return nil, fmt.Errorf("password reset is not allowed before authentication")
+		}
+
+		allModes = getPasswdResetModes(sessionInfo, supportedUILayouts)
+		if sessionInfo.pwdChange == mustReset && len(allModes) == 0 {
+			return nil, fmt.Errorf("user %q must reset password, but no mode was provided for it", sessionInfo.username)
+		}
 	}
 
 	b.userLastSelectedModeMu.Lock()
@@ -324,20 +335,34 @@ func getMfaModes(info sessionInfo, supportedModes map[string]map[string]string) 
 	return mfaModes
 }
 
-func getPasswdResetModes(info sessionInfo, supportedModes map[string]map[string]string) map[string]map[string]string {
+func getPasswdResetModes(info sessionInfo, supportedUILayouts []map[string]string) map[string]map[string]string {
 	passwdResetModes := make(map[string]map[string]string)
+	for _, layout := range supportedUILayouts {
+		if layout["type"] != "newpassword" {
+			continue
+		}
+		if layout["entry"] == "" {
+			break
+		}
 
-	var mode string
-	switch info.pwdChange {
-	case canReset:
-		mode = "optionalreset"
-	case mustReset:
-		mode = "mandatoryreset"
-	}
-	if authMode, exists := supportedModes[mode]; exists {
-		passwdResetModes[mode] = authMode
-	}
+		ui := map[string]string{
+			"type":  "newpassword",
+			"label": "Enter your new password",
+			"entry": "chars_password",
+		}
 
+		mode := "mandatoryreset"
+		if info.pwdChange == canReset && layout["button"] != "" {
+			mode = "optionalreset"
+			ui["label"] = "Enter your new password (3 days until mandatory)"
+			ui["button"] = "Skip"
+		}
+
+		passwdResetModes[mode] = map[string]string{
+			"selection_label": "Password reset",
+			"ui":              mapToJSON(ui),
+		}
+	}
 	return passwdResetModes
 }
 
@@ -379,6 +404,10 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 
 	// Store selected mode
 	sessionInfo.selectedMode = authenticationModeName
+	// Store the first one to use to update the lastSelectedMode in MFA cases.
+	if sessionInfo.currentAuthStep == 1 {
+		sessionInfo.firstSelectedMode = authenticationModeName
+	}
 
 	if err = b.updateSession(sessionID, sessionInfo); err != nil {
 		return nil, err
@@ -432,9 +461,11 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 	}
 
 	// Store last successful authentication mode for this user in the broker.
-	b.userLastSelectedModeMu.Lock()
-	b.userLastSelectedMode[sessionInfo.username] = sessionInfo.selectedMode
-	b.userLastSelectedModeMu.Unlock()
+	if access == responses.AuthGranted {
+		b.userLastSelectedModeMu.Lock()
+		b.userLastSelectedMode[sessionInfo.username] = sessionInfo.firstSelectedMode
+		b.userLastSelectedModeMu.Unlock()
+	}
 
 	if err = b.updateSession(sessionID, sessionInfo); err != nil {
 		return responses.AuthDenied, "", err
