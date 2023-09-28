@@ -61,10 +61,14 @@ func (c *Cache) dumpToYaml() (string, error) {
 
 	c.mu.RLock()
 	defer c.mu.RUnlock()
+
 	if err := c.db.View(func(tx *bbolt.Tx) error {
 		return tx.ForEach(func(name []byte, bucket *bbolt.Bucket) error {
 			d[string(name)] = make(map[string]string)
 			return bucket.ForEach(func(key, value []byte) error {
+				key = []byte(strings.Replace(string(key), "root", "ACTIVE_USER", 1))
+				value = []byte(strings.ReplaceAll(string(value), "root", "ACTIVE_USER"))
+
 				d[string(name)][string(key)] = redactTime(string(value))
 				return nil
 			})
@@ -110,6 +114,10 @@ func dbfromYAML(r io.Reader, destDir string) error {
 
 			for key, val := range bucketContent {
 				if bucketName == userByIDBucketName || bucketName == userByNameBucketName {
+					// Replace ACTIVE_USER name by the uid of an active user.
+					val = strings.ReplaceAll(val, "ACTIVE_USER", "root")
+					key = strings.Replace(key, "ACTIVE_USER", "root", 1)
+
 					// Replace the redacted time in the json value by a valid time.
 					for redacted, t := range redactedTimes {
 						if t == "now" {
