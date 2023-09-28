@@ -106,6 +106,9 @@ func (b *Broker) NewSession(ctx context.Context, username, lang string) (session
 	case "user-can-reset":
 		info.neededAuthSteps = 2
 		info.pwdChange = canReset
+	case "user-mfa-with-reset":
+		info.neededAuthSteps = 3
+		info.pwdChange = canReset
 	}
 
 	b.currentSessionsMu.Lock()
