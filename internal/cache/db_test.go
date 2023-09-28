@@ -480,7 +480,10 @@ func initCache(t *testing.T, dbFile string) (c *cache.Cache, cacheDir string) {
 		createDBFile(t, filepath.Join("testdata", dbFile+".db.yaml"), cacheDir)
 	}
 
-	c, err := cache.New(cacheDir)
+	expiration, err := time.Parse(time.DateOnly, "2003-01-01")
+	require.NoError(t, err, "Setup: could not parse time for testing")
+
+	c, err = cache.New(cacheDir, cache.WithExpirationDate(expiration))
 	require.NoError(t, err)
 	t.Cleanup(func() { c.Close() })
 
