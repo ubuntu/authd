@@ -28,10 +28,28 @@ func TestNew(t *testing.T) {
 		corruptedDbFile bool
 		markDirty       bool
 
+		expirationDate  string
+		skipCleanOnNew  bool
+		cleanupInterval int
+		procDir         string
+
 		wantErr bool
 	}{
 		"New without any initialized database": {},
 		"New with already existing database":   {dbFile: "multiple_users_and_groups"},
+
+		// Clean up tests
+		"Clean up all users":   {dbFile: "only_old_users", expirationDate: "2020-01-01"},
+		"Clean up some users":  {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01"},
+		"Clean up on interval": {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01", cleanupInterval: 1, skipCleanOnNew: true},
+		"Clean up as much as possible if db has invalid entries": {dbFile: "invalid_entries_but_user_and_group1", expirationDate: "2020-01-01"},
+		"Clean up user even if it is not listed on the group":    {dbFile: "user_not_in_groupToUsers", expirationDate: "2020-01-01"},
+		"Do not clean any user":                                  {dbFile: "multiple_users_and_groups"},
+		"Do not clean active user":                               {dbFile: "active_user", expirationDate: "2020-01-01"},
+		"Do not prevent cache creation if cleanup fails":         {dbFile: "multiple_users_and_groups", procDir: "does-not-exist"},
+		"Do not stop cache if cleanup routine fails":             {dbFile: "multiple_users_and_groups", procDir: "does-not-exist", skipCleanOnNew: true, cleanupInterval: 1},
+		"Do not clean user if can not get groups":                {dbFile: "invalid_entry_in_userToGroups", expirationDate: "2020-01-01"},
+		"Do not clean user if can not delete user from group":    {dbFile: "invalid_entry_in_groupByID", expirationDate: "2020-01-01"},
 
 		// Corrupted databases
 		"New recreates any missing buckets and delete unknowns": {dbFile: "database_with_unknown_bucket"},
@@ -65,19 +83,40 @@ func TestNew(t *testing.T) {
 				err := os.Chmod(dbDestPath, *tc.perm)
 				require.NoError(t, err, "Setup: could not change mode of database file")
 			}
-
 			if tc.corruptedDbFile {
 				err := os.WriteFile(filepath.Join(cacheDir, cachetests.DbName), []byte("Corrupted db"), 0600)
 				require.NoError(t, err, "Setup: Can't update the file with invalid db content")
 			}
 
-			c, err := cache.New(cacheDir)
+			if tc.expirationDate == "" {
+				tc.expirationDate = "2004-01-01"
+			}
+			expiration, err := time.Parse(time.DateOnly, tc.expirationDate)
+			require.NoError(t, err, "Setup: could not calculate expiration date for tests")
+			cacheOpts := []cache.Option{cache.WithExpirationDate(expiration)}
+
+			if tc.cleanupInterval > 0 {
+				cacheOpts = append(cacheOpts, cache.WithCleanupInterval(time.Second*time.Duration(tc.cleanupInterval)))
+			}
+			if tc.skipCleanOnNew {
+				cacheOpts = append(cacheOpts, cache.WithoutCleaningOnNew())
+			}
+			if tc.procDir != "" {
+				cacheOpts = append(cacheOpts, cache.WithProcDir(tc.procDir))
+			}
+
+			c, err := cache.New(cacheDir, cacheOpts...)
 			if tc.wantErr {
 				require.Error(t, err, "New should return an error but didn't")
 				return
 			}
 			require.NoError(t, err)
 			defer c.Close()
+
+			if tc.cleanupInterval > 0 {
+				// Wait for the clean up routine to start
+				time.Sleep(time.Duration(tc.cleanupInterval*2) * time.Second)
+			}
 
 			if tc.markDirty {
 				// Mark the database to be cleared. This is not part of the API and only for tests.
@@ -480,7 +519,7 @@ func initCache(t *testing.T, dbFile string) (c *cache.Cache, cacheDir string) {
 		createDBFile(t, filepath.Join("testdata", dbFile+".db.yaml"), cacheDir)
 	}
 
-	expiration, err := time.Parse(time.DateOnly, "2003-01-01")
+	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 	require.NoError(t, err, "Setup: could not parse time for testing")
 
 	c, err = cache.New(cacheDir, cache.WithExpirationDate(expiration))
