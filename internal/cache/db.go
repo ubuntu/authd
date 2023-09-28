@@ -8,10 +8,12 @@ import (
 	"io/fs"
 	"log/slog"
 	"os"
+	"os/user"
 	"path/filepath"
 	"slices"
 	"strconv"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/ubuntu/decorate"
@@ -30,6 +32,13 @@ const (
 	groupByIDBucketName    = "GroupByID"
 	userToGroupsBucketName = "UserToGroups"
 	groupToUsersBucketName = "GroupToUsers"
+
+	// defaultEntryExpiration is the amount of time the user is allowed on the cache without authenticating.
+	// It's equivalent to 6 months.
+	defaultEntryExpiration = time.Hour * 24 * 30 * 6
+
+	// defaultCleanupInterval is the interval upon which the cache will be cleaned of expired users.
+	defaultCleanupInterval = time.Hour * 24
 )
 
 var (
@@ -45,6 +54,7 @@ type Cache struct {
 	mu sync.RWMutex
 
 	dirtyFlagPath  string
+	procDir        string
 	doClear        chan struct{}
 	quit           chan struct{}
 	cleanupQuitted chan struct{}
@@ -97,10 +107,37 @@ type groupToUsersDB struct {
 	UIDs []int
 }
 
+type options struct {
+	expirationDate  time.Time
+	cleanOnNew      bool
+	cleanupInterval time.Duration
+	procDir         string // This is to force failure in tests.
+}
+
+// Option represents an optional function to override Cache default values.
+type Option func(*options)
+
+// WithExpirationDate overrides the default time for when a user should be cleaned from the cache.
+func WithExpirationDate(date time.Time) Option {
+	return func(o *options) {
+		o.expirationDate = date
+	}
+}
+
 // New creates a new database cache by creating or opening the underlying db.
-func New(cacheDir string) (cache *Cache, err error) {
+func New(cacheDir string, args ...Option) (cache *Cache, err error) {
 	dbPath := filepath.Join(cacheDir, dbName)
 	defer decorate.OnError(&err, "could not create new database object at %q", dbPath)
+
+	opts := options{
+		expirationDate:  time.Now().Add(-1 * defaultEntryExpiration),
+		cleanupInterval: defaultCleanupInterval,
+		cleanOnNew:      true,
+		procDir:         "/proc/",
+	}
+	for _, arg := range args {
+		arg(&opts)
+	}
 
 	dirtyFlagPath := filepath.Join(cacheDir, dirtyFlagDbName)
 
@@ -126,12 +163,19 @@ func New(cacheDir string) (cache *Cache, err error) {
 	c := Cache{
 		db:             db,
 		dirtyFlagPath:  dirtyFlagPath,
+		procDir:        opts.procDir,
 		doClear:        make(chan struct{}),
 		quit:           make(chan struct{}),
 		cleanupQuitted: make(chan struct{}),
 	}
 
-	// TODO: clean up old users if not connected.
+	if opts.cleanOnNew {
+		// Triggers a cleanup call when the db is opened
+		if err := c.cleanExpiredUsers(opts.expirationDate); err != nil {
+			slog.Warn(fmt.Sprintf("Could not clean database %v", err))
+		}
+	}
+
 	cleanupRoutineStarted := make(chan struct{})
 	go func() {
 		defer close(c.cleanupQuitted)
@@ -153,6 +197,19 @@ func New(cacheDir string) (cache *Cache, err error) {
 					}
 					c.db = db
 				}()
+
+			case <-time.After(opts.cleanupInterval):
+				func() {
+					c.mu.RLock()
+					defer c.mu.RUnlock()
+
+					slog.Debug("Starting scheduled cleaning of expired users")
+
+					if err := c.cleanExpiredUsers(opts.expirationDate); err != nil {
+						slog.Warn(fmt.Sprintf("Could not clean database %v", err))
+					}
+				}()
+
 			case <-c.quit:
 				return
 			}
@@ -222,6 +279,85 @@ func openAndInitDB(path, dirtyFlagPath string) (*bbolt.DB, error) {
 	}
 
 	return db, nil
+}
+
+// cleanExpiredUsers removes from the cache any user that exceeded the maximum amount of days without authentication.
+func (c *Cache) cleanExpiredUsers(expirationDate time.Time) (err error) {
+	defer decorate.OnError(&err, "could not clean up database")
+
+	return c.db.Update(func(tx *bbolt.Tx) (err error) {
+		// Cleans up the database
+		activeUsers, err := getActiveUsers(c.procDir)
+		if err != nil {
+			return err
+		}
+
+		buckets, err := getAllBuckets(tx)
+		if err != nil {
+			return err
+		}
+
+		var expiredUsers []userDB
+		// The foreach closure can't error out, so we can ignore the error.
+		_ = buckets[userByIDBucketName].ForEach(func(k, v []byte) error {
+			var u userDB
+			if err := json.Unmarshal(v, &u); err != nil {
+				slog.Warn(fmt.Sprintf("Could not unmarshal user %q: %v", string(k), err))
+				return nil
+			}
+
+			if _, active := activeUsers[u.Name]; !active && u.LastLogin.Before(expirationDate) {
+				expiredUsers = append(expiredUsers, u)
+			}
+			return nil
+		})
+
+		for _, u := range expiredUsers {
+			slog.Debug(fmt.Sprintf("Deleting expired user %q", u.Name))
+			if err := deleteUser(buckets, u.UID); err != nil {
+				slog.Warn(fmt.Sprintf("Could not delete user %q: %v", u.Name, err))
+			}
+		}
+
+		return nil
+	})
+}
+
+// getActiveUsers walks through procDir and returns a map with the usernames of the owners of all active processes.
+func getActiveUsers(procDir string) (activeUsers map[string]struct{}, err error) {
+	defer decorate.OnError(&err, "could not get list of active users")
+
+	activeUsers = make(map[string]struct{})
+
+	dirEntries, err := os.ReadDir(procDir)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, dirEntry := range dirEntries {
+		// Checks if the dirEntry represents a process dir (i.e. /proc/<pid>/)
+		if _, err := strconv.Atoi(dirEntry.Name()); err != nil {
+			continue
+		}
+
+		info, err := dirEntry.Info()
+		if err != nil {
+			return nil, err
+		}
+
+		stats, ok := info.Sys().(*syscall.Stat_t)
+		if !ok {
+			return nil, fmt.Errorf("could not get ownership of file %q", info.Name())
+		}
+
+		u, err := user.LookupId(strconv.Itoa(int(stats.Uid)))
+		if err != nil {
+			return nil, err
+		}
+
+		activeUsers[u.Name] = struct{}{}
+	}
+	return activeUsers, nil
 }
 
 // Close closes the db and signal the monitoring goroutine to stop.
