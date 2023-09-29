@@ -33,7 +33,7 @@ func newNewPasswordModel(label, entryType, buttonLabel string) newPasswordModel 
 		case "chars_password":
 			entry := &textinputModel{Model: textinput.New()}
 			passwordEntries = append(passwordEntries, entry)
-			entry.EchoMode = textinput.EchoNone
+			entry.EchoMode = textinput.EchoPassword
 			focusableModels = append(focusableModels, entry)
 		}
 	}
