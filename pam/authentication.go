@@ -14,6 +14,10 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+var (
+	errorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000"))
+)
+
 // sendIsAuthenticated sends the authentication challenges or wait request to the brokers.
 // The event will contain the returned value from the broker.
 func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID, content string) tea.Cmd {
@@ -28,7 +32,7 @@ func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID,
 					access: responses.AuthCancelled,
 				}
 			}
-			return pamIgnore{
+			return pamSystemError{
 				msg: fmt.Sprintf("Authentication status failure: %v", err),
 			}
 		}
@@ -84,6 +88,11 @@ type authenticationModel struct {
 // wait:true authentication and reset fields.
 type startAuthentication struct{}
 
+// errMsgToDisplay signals from an authentication form to display an error message.
+type errMsgToDisplay struct {
+	msg string
+}
+
 // newAuthenticationModel initializes a authenticationModel which needs to be Compose then.
 func newAuthenticationModel(client authd.PAMClient) authenticationModel {
 	return authenticationModel{
@@ -134,6 +143,10 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 			// nothing to do
 			return *m, nil
 		}
+
+	case errMsgToDisplay:
+		m.errorMsg = msg.msg
+		return *m, nil
 	}
 
 	// interaction events
@@ -181,6 +194,8 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, layout *authd.
 	m.currentSessionID = sessionID
 	m.cancelIsAuthenticated = func() {}
 
+	m.errorMsg = ""
+
 	switch layout.Type {
 	case "form":
 		form := newFormModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton(), layout.GetWait() == "true")
@@ -209,9 +224,15 @@ func (m authenticationModel) View() string {
 	if m.currentModel == nil {
 		return ""
 	}
+	contents := []string{m.currentModel.View()}
+
+	errMsg := m.errorMsg
+	if errMsg != "" {
+		contents = append(contents, errorStyle.Render(errMsg))
+	}
+
 	return lipgloss.JoinVertical(lipgloss.Left,
-		m.currentModel.View(),
-		m.errorMsg,
+		contents...,
 	)
 }
 
