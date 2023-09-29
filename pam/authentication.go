@@ -246,16 +246,3 @@ func dataToMsg(data string) string {
 	}
 	return r
 }
-
-// dataToUserInfo returns the user information from a given JSON string.
-//
-//nolint:unused // This is not used for now TODO
-func dataToUserInfo(data string) string {
-	/*v := make(map[string]string)
-	if err := json.Unmarshal([]byte(data), &v); err != nil {
-		log.Info(context.TODO(), "Invalid json data from provider: %v", data)
-		return ""
-	}*/
-
-	return "TODO"
-}
