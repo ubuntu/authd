@@ -8,10 +8,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var (
-	errorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000"))
-)
-
 // newPasswordModel is the form layout type to allow authentication and return a challenge.
 type newPasswordModel struct {
 	errorMsg string
@@ -75,8 +71,7 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case *textinputModel:
 				// Check both entries are matching
 				if m.passwordEntries[0].Value() != m.passwordEntries[1].Value() {
-					m.errorMsg = "Password entries don't match"
-					return m, nil
+					return m, sendEvent(errMsgToDisplay{msg: "Password entries don't match"})
 				}
 
 				m.errorMsg = ""
@@ -123,12 +118,7 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders a text view of the form.
 func (m newPasswordModel) View() string {
-	var fields []string
-	if m.errorMsg != "" {
-		fields = append(fields, errorStyle.Render(m.errorMsg))
-	}
-	fields = append(fields, m.label)
-
+	fields := []string{m.label}
 	for _, fm := range m.focusableModels {
 		fields = append(fields, fm.View())
 	}
