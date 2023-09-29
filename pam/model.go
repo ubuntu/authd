@@ -94,7 +94,7 @@ func (m *model) Init() tea.Cmd {
 	m.brokerSelectionModel = newBrokerSelectionModel(m.client)
 	cmds = append(cmds, m.brokerSelectionModel.Init())
 
-	m.authModeSelectionModel = newAuthModeSelectionModel(m.client)
+	m.authModeSelectionModel = newAuthModeSelectionModel()
 	cmds = append(cmds, m.authModeSelectionModel.Init())
 
 	m.authenticationModel = newAuthenticationModel(m.client)

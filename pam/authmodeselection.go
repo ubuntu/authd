@@ -18,8 +18,6 @@ type authModeSelectionModel struct {
 	list.Model
 	focused bool
 
-	client authd.PAMClient
-
 	supportedUILayouts        []*authd.UILayout
 	supportedUILayoutsMu      *sync.Mutex
 	availableAuthModes        []*authd.GAMResponse_AuthenticationMode
@@ -51,7 +49,7 @@ func selectAuthMode(id string) tea.Cmd {
 }
 
 // newAuthModeSelectionModel initializes an empty list with default options of authModeSelectionModel.
-func newAuthModeSelectionModel(client authd.PAMClient) authModeSelectionModel {
+func newAuthModeSelectionModel() authModeSelectionModel {
 	l := list.New(nil, itemLayout{}, 80, 24)
 	l.Title = "Select your authentication method"
 	l.SetShowStatusBar(false)
@@ -64,7 +62,6 @@ func newAuthModeSelectionModel(client authd.PAMClient) authModeSelectionModel {
 
 	return authModeSelectionModel{
 		Model:                l,
-		client:               client,
 		supportedUILayoutsMu: &sync.Mutex{},
 	}
 }
