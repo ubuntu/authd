@@ -294,31 +294,6 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 
 		case "webview":
 			// This broker does not support webview
-
-		case "newpassword":
-			if layout["entry"] == "" {
-				break
-			}
-			allModes["mandatoryreset"] = map[string]string{
-				"selection_label": "Password reset",
-				"ui": mapToJSON(map[string]string{
-					"type":  "newpassword",
-					"label": "Enter your new password",
-					"entry": "chars_password",
-				}),
-			}
-
-			if layout["button"] != "" {
-				allModes["optionalreset"] = map[string]string{
-					"selection_label": "Password reset",
-					"ui": mapToJSON(map[string]string{
-						"type":   "newpassword",
-						"label":  "Enter your new password (3 days until mandatory)",
-						"entry":  "chars_password",
-						"button": "Skip",
-					}),
-				}
-			}
 		}
 	}
 
