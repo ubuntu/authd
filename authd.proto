@@ -3,7 +3,8 @@ package authd;
 
 option go_package = "github.com/ubuntu/authd";
 
-message Empty {}
+message Empty {
+}
 
 service PAM {
   rpc AvailableBrokers(Empty) returns (ABResponse);
