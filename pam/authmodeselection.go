@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -73,8 +72,6 @@ func newAuthModeSelectionModel(client authd.PAMClient) authModeSelectionModel {
 // Init initializes authModeSelectionModel.
 func (m *authModeSelectionModel) Init() tea.Cmd {
 	return func() tea.Msg {
-		// REMOVE: This is to test
-		time.Sleep(time.Second * 5)
 		// TODO: call to 3rd party like gdm, to support dynamic ui layouts
 		required, optional := "required", "optional"
 		supportedEntries := "optional:chars,chars_password"
