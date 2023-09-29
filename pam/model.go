@@ -274,7 +274,9 @@ func (m *model) changeStage(s stage) tea.Cmd {
 		m.authModeSelectionModel.Blur()
 		m.authenticationModel.Blur()
 
-		return m.userSelectionModel.Focus()
+		// The session should be ended when going back to previous state, but we don’t quit the stage immediately
+		// and so, we should always ensure we cancel previous session.
+		return tea.Sequence(endSession(m.client, m.currentSession), m.userSelectionModel.Focus())
 
 	case stageBrokerSelection:
 		m.userSelectionModel.Blur()
