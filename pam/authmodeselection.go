@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,8 +17,6 @@ import (
 type authModeSelectionModel struct {
 	list.Model
 	focused bool
-
-	client authd.PAMClient
 
 	supportedUILayouts        []*authd.UILayout
 	supportedUILayoutsMu      *sync.Mutex
@@ -52,7 +49,7 @@ func selectAuthMode(id string) tea.Cmd {
 }
 
 // newAuthModeSelectionModel initializes an empty list with default options of authModeSelectionModel.
-func newAuthModeSelectionModel(client authd.PAMClient) authModeSelectionModel {
+func newAuthModeSelectionModel() authModeSelectionModel {
 	l := list.New(nil, itemLayout{}, 80, 24)
 	l.Title = "Select your authentication method"
 	l.SetShowStatusBar(false)
@@ -65,7 +62,6 @@ func newAuthModeSelectionModel(client authd.PAMClient) authModeSelectionModel {
 
 	return authModeSelectionModel{
 		Model:                l,
-		client:               client,
 		supportedUILayoutsMu: &sync.Mutex{},
 	}
 }
@@ -73,8 +69,6 @@ func newAuthModeSelectionModel(client authd.PAMClient) authModeSelectionModel {
 // Init initializes authModeSelectionModel.
 func (m *authModeSelectionModel) Init() tea.Cmd {
 	return func() tea.Msg {
-		// REMOVE: This is to test
-		time.Sleep(time.Second * 5)
 		// TODO: call to 3rd party like gdm, to support dynamic ui layouts
 		required, optional := "required", "optional"
 		supportedEntries := "optional:chars,chars_password"
