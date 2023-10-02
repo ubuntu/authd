@@ -157,31 +157,9 @@ func updateUsersAndGroups(buckets map[string]bucketWithName, uid int, groupConte
 		if slices.Contains(currentGIDs, previousGID) {
 			continue
 		}
-		grpToUsers, err := getFromBucket[groupToUsersDB](buckets[groupToUsersBucketName], previousGID)
-		// No data means the database was corrupted but we can forgive this (exist in previous user gid but not on system).
-		if err != nil && !errors.Is(err, NoDataFoundError{}) {
+		if err := deleteUserFromGroup(buckets, uid, previousGID); err != nil {
 			return err
 		}
-
-		grpToUsers.UIDs = slices.DeleteFunc(grpToUsers.UIDs, func(eUID int) bool { return eUID == uid })
-
-		if len(grpToUsers.UIDs) != 0 {
-			updateBucket(buckets[groupToUsersBucketName], previousGID, grpToUsers)
-			continue
-		}
-
-		// We now need to delete this group with no remaining user.
-
-		// We need the group.Name to delete from groupByName bucket.
-		group, err := getFromBucket[groupDB](buckets[groupByIDBucketName], previousGID)
-		if err != nil {
-			return err
-		}
-
-		// Delete can't error out as we are not in a RO transaction.
-		_ = buckets[groupByIDBucketName].Delete([]byte(strconv.Itoa(previousGID)))
-		_ = buckets[groupByNameBucketName].Delete([]byte(group.Name))
-		_ = buckets[groupToUsersBucketName].Delete([]byte(strconv.Itoa(previousGID)))
 	}
 
 	return nil
