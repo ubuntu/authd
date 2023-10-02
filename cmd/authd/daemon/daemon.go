@@ -33,7 +33,6 @@ type App struct {
 type systemDirs struct {
 	CacheDir   string
 	SocketPath string
-	RunDir     string
 }
 
 // daemonConfig defines configuration parameters of the daemon.
@@ -61,7 +60,6 @@ func New() *App {
 				SystemDirs: systemDirs{
 					CacheDir:   consts.DefaultCacheDir,
 					SocketPath: consts.DefaultSocketPath, // FIXME bogus: this forces this socket path without activation.
-					RunDir:     consts.DefaultRunDir,
 				},
 			}
 

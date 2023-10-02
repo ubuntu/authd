@@ -44,9 +44,6 @@ func GenerateTestConfig(t *testing.T, origConf *daemonConfig) string {
 		err := os.Chmod(conf.SystemDirs.CacheDir, 0700)
 		require.NoError(t, err, "Setup: could not change permission on cache directory for tests")
 	}
-	if conf.SystemDirs.RunDir == "" {
-		conf.SystemDirs.RunDir = t.TempDir()
-	}
 	if conf.SystemDirs.SocketPath == "" {
 		conf.SystemDirs.SocketPath = filepath.Join(t.TempDir(), "authd.socket")
 	}

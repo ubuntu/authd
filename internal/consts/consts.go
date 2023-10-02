@@ -20,7 +20,4 @@ const (
 
 	// DefaultCacheDir is the default directory for the cache.
 	DefaultCacheDir = "/var/cache/authd/"
-
-	// DefaultRunDir is the default run directory.
-	DefaultRunDir = "/run/authd/"
 )
