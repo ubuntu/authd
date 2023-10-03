@@ -352,7 +352,10 @@ func TestIsAuthenticated(t *testing.T) {
 				require.NoError(t, err, "Setup: could not prepare cache database file")
 			}
 
-			c, err := cache.New(cacheDir)
+			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
+			require.NoError(t, err, "Setup: could not parse time for testing")
+
+			c, err := cache.New(cacheDir, cache.WithExpirationDate(expiration))
 			require.NoError(t, err, "Setup: could not create cache")
 			t.Cleanup(func() { _ = c.Close() })
 			client := newPamClient(t, c)

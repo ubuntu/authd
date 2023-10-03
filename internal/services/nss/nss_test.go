@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
@@ -320,7 +321,10 @@ func newCacheForTests(t *testing.T, sourceDB string) *cache.Cache {
 	err = cachetests.DbfromYAML(f, cacheDir)
 	require.NoError(t, err, "Setup: could not create database from YAML fixture")
 
-	c, err := cache.New(cacheDir)
+	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
+	require.NoError(t, err, "Setup: could not parse time for testing")
+
+	c, err := cache.New(cacheDir, cache.WithExpirationDate(expiration))
 	require.NoError(t, err, "Setup: could not create cache")
 	t.Cleanup(func() { _ = c.Close() })
 	return c
