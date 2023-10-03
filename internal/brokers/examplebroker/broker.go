@@ -672,7 +672,7 @@ func userInfoFromName(name string) string {
 		"uuid": "uuid-{{.Name}}",
 		"gecos": "gecos for {{.Name}}",
 		"dir": "/home/{{.Name}}",
-		"shell": "/bin/sh/{{.Name}}",
+		"shell": "/usr/bin/bash",
 		"avatar": "avatar for {{.Name}}",
 		"groups": [ {"name": "group-{{.Name}}", "ugid": "group-{{.Name}}"} ]
 	}`)).Execute(&buf, user)
