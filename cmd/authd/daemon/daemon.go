@@ -30,17 +30,17 @@ type App struct {
 }
 
 // only overriable for tests.
-type systemDirs struct {
-	BrokersConfPath string
-	CacheDir        string
-	SocketPath      string
+type systemPaths struct {
+	BrokersConf string
+	Cache       string
+	Socket      string
 }
 
 // daemonConfig defines configuration parameters of the daemon.
 type daemonConfig struct {
-	Brokers    []string
-	Verbosity  int
-	SystemDirs systemDirs
+	Brokers   []string
+	Verbosity int
+	Paths     systemPaths
 }
 
 // New registers commands and return a new App.
@@ -58,10 +58,10 @@ func New() *App {
 
 			// Set config defaults
 			a.config = daemonConfig{
-				SystemDirs: systemDirs{
-					BrokersConfPath: consts.DefaultBrokersConfPath,
-					CacheDir:        consts.DefaultCacheDir,
-					SocketPath:      "",
+				Paths: systemPaths{
+					BrokersConf: consts.DefaultBrokersConfPath,
+					Cache:       consts.DefaultCacheDir,
+					Socket:      "",
 				},
 			}
 
@@ -101,13 +101,13 @@ func New() *App {
 func (a *App) serve(config daemonConfig) error {
 	ctx := context.Background()
 
-	cacheDir := config.SystemDirs.CacheDir
+	cacheDir := config.Paths.Cache
 	if err := ensureDirWithPerms(cacheDir, 0700); err != nil {
 		close(a.ready)
 		return fmt.Errorf("error initializing cache directory at %q: %v", cacheDir, err)
 	}
 
-	m, err := services.NewManager(ctx, cacheDir, config.SystemDirs.BrokersConfPath, config.Brokers)
+	m, err := services.NewManager(ctx, cacheDir, config.Paths.BrokersConf, config.Brokers)
 	if err != nil {
 		close(a.ready)
 		return err
@@ -115,7 +115,7 @@ func (a *App) serve(config daemonConfig) error {
 	// We are closing the cache on exit.
 	defer func() { _ = m.Stop() }()
 
-	socketPath := config.SystemDirs.SocketPath
+	socketPath := config.Paths.Socket
 	var daemonopts []daemon.Option
 	if socketPath != "" {
 		daemonopts = append(daemonopts, daemon.WithSocketPath(socketPath))
