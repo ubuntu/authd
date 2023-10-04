@@ -318,7 +318,7 @@ func TestNoConfigSetDefaults(t *testing.T) {
 
 	require.Equal(t, 0, a.Config().Verbosity, "Default Verbosity")
 	require.Equal(t, consts.DefaultCacheDir, a.Config().SystemDirs.CacheDir, "Default cache directory")
-	require.Equal(t, consts.DefaultSocketPath, a.Config().SystemDirs.SocketPath, "Default socket address")
+	require.Equal(t, "", a.Config().SystemDirs.SocketPath, "No socket address as default")
 }
 
 func TestBadConfigReturnsError(t *testing.T) {

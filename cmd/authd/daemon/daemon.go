@@ -59,7 +59,7 @@ func New() *App {
 			a.config = daemonConfig{
 				SystemDirs: systemDirs{
 					CacheDir:   consts.DefaultCacheDir,
-					SocketPath: consts.DefaultSocketPath, // FIXME bogus: this forces this socket path without activation.
+					SocketPath: "",
 				},
 			}
 
