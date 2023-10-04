@@ -50,12 +50,12 @@ func New() *App {
 		Use:                                                                                 fmt.Sprintf("%s COMMAND", cmdName),
 		Short:/*i18n.G(*/ "Authentication daemon",                                           /*)*/
 		Long:/*i18n.G(*/ "Authentication daemon bridging the system with external brokers.", /*)*/
+		Args:                                                                                cobra.NoArgs,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// Command parsing has been successful. Returns to not print usage anymore.
 			a.rootCmd.SilenceUsage = true
 			// TODO: before or after?  cmd.LocalFlags()
 
-			// FIXME: unexisting subcommands? Should print usage
 			// Set config defaults
 			a.config = daemonConfig{
 				SystemDirs: systemDirs{
