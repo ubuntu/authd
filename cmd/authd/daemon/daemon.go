@@ -31,8 +31,9 @@ type App struct {
 
 // only overriable for tests.
 type systemDirs struct {
-	CacheDir   string
-	SocketPath string
+	BrokersConfPath string
+	CacheDir        string
+	SocketPath      string
 }
 
 // daemonConfig defines configuration parameters of the daemon.
@@ -58,8 +59,9 @@ func New() *App {
 			// Set config defaults
 			a.config = daemonConfig{
 				SystemDirs: systemDirs{
-					CacheDir:   consts.DefaultCacheDir,
-					SocketPath: "",
+					BrokersConfPath: consts.DefaultBrokersConfPath,
+					CacheDir:        consts.DefaultCacheDir,
+					SocketPath:      "",
 				},
 			}
 
@@ -105,7 +107,7 @@ func (a *App) serve(config daemonConfig) error {
 		return fmt.Errorf("error initializing cache directory at %q: %v", cacheDir, err)
 	}
 
-	m, err := services.NewManager(ctx, cacheDir, config.Brokers)
+	m, err := services.NewManager(ctx, cacheDir, config.SystemDirs.BrokersConfPath, config.Brokers)
 	if err != nil {
 		close(a.ready)
 		return err

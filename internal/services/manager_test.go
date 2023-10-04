@@ -36,7 +36,7 @@ func TestNewManager(t *testing.T) {
 				t.Setenv("DBUS_SYSTEM_BUS_ADDRESS", tc.systemBusSocket)
 			}
 
-			m, err := services.NewManager(context.Background(), tc.cacheDir, nil)
+			m, err := services.NewManager(context.Background(), tc.cacheDir, t.TempDir(), nil)
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should have returned an error, but did not")
 				return
@@ -51,7 +51,7 @@ func TestNewManager(t *testing.T) {
 func TestRegisterGRPCServices(t *testing.T) {
 	t.Parallel()
 
-	m, err := services.NewManager(context.Background(), t.TempDir(), nil)
+	m, err := services.NewManager(context.Background(), t.TempDir(), t.TempDir(), nil)
 	require.NoError(t, err, "Setup: could not create manager for the test")
 	defer require.NoError(t, m.Stop(), "Teardown: Stop should not have returned an error, but did")
 

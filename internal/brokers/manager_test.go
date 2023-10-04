@@ -16,26 +16,26 @@ import (
 )
 
 var (
-	brokerCfgs = filepath.Join("testdata", "broker.d")
+	brokerConfFixtures = filepath.Join("testdata", "broker.d")
 )
 
 func TestNewManager(t *testing.T) {
 	tests := map[string]struct {
-		cfgDir            string
+		brokerConfigDir   string
 		configuredBrokers []string
 		noBus             bool
 
 		wantErr bool
 	}{
-		"Creates all brokers when config dir has only valid brokers":                 {cfgDir: "valid_brokers"},
-		"Creates without autodiscovery when configuredBrokers is set":                {cfgDir: "valid_brokers", configuredBrokers: []string{"valid_2"}},
-		"Creates only correct brokers when config dir has valid and invalid brokers": {cfgDir: "mixed_brokers"},
-		"Creates only local broker when config dir has only invalid ones":            {cfgDir: "invalid_brokers"},
-		"Creates only local broker when config dir does not exist":                   {cfgDir: "does/not/exist"},
-		"Creates manager even if broker is not exported on dbus":                     {cfgDir: "not_on_bus"},
+		"Creates all brokers when config dir has only valid brokers":                 {brokerConfigDir: "valid_brokers"},
+		"Creates without autodiscovery when configuredBrokers is set":                {brokerConfigDir: "valid_brokers", configuredBrokers: []string{"valid_2"}},
+		"Creates only correct brokers when config dir has valid and invalid brokers": {brokerConfigDir: "mixed_brokers"},
+		"Creates only local broker when config dir has only invalid ones":            {brokerConfigDir: "invalid_brokers"},
+		"Creates only local broker when config dir does not exist":                   {brokerConfigDir: "does/not/exist"},
+		"Creates manager even if broker is not exported on dbus":                     {brokerConfigDir: "not_on_bus"},
 
-		"Error when can't connect to system bus": {cfgDir: "valid_brokers", noBus: true, wantErr: true},
-		"Error when broker config dir is a file": {cfgDir: "file_config_dir", wantErr: true},
+		"Error when can't connect to system bus": {brokerConfigDir: "valid_brokers", noBus: true, wantErr: true},
+		"Error when broker config dir is a file": {brokerConfigDir: "file_config_dir", wantErr: true},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -44,7 +44,7 @@ func TestNewManager(t *testing.T) {
 				t.Setenv("DBUS_SYSTEM_BUS_ADDRESS", "/dev/null")
 			}
 
-			got, err := brokers.NewManager(context.Background(), tc.configuredBrokers, brokers.WithRootDir(brokerCfgs), brokers.WithCfgDir(tc.cfgDir))
+			got, err := brokers.NewManager(context.Background(), filepath.Join(brokerConfFixtures, tc.brokerConfigDir), tc.configuredBrokers)
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should return an error, but did not")
 				return
@@ -80,7 +80,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			m, err := brokers.NewManager(context.Background(), nil, brokers.WithRootDir(brokerCfgs), brokers.WithCfgDir("mixed_brokers"))
+			m, err := brokers.NewManager(context.Background(), filepath.Join(brokerConfFixtures, "mixed_brokers"), nil)
 			require.NoError(t, err, "Setup: could not create manager")
 
 			want := m.AvailableBrokers()[0]
@@ -104,7 +104,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 func TestBrokerForUser(t *testing.T) {
 	t.Parallel()
 
-	m, err := brokers.NewManager(context.Background(), nil, brokers.WithRootDir(brokerCfgs), brokers.WithCfgDir("valid_brokers"))
+	m, err := brokers.NewManager(context.Background(), filepath.Join(brokerConfFixtures, "valid_brokers"), nil)
 	require.NoError(t, err, "Setup: could not create manager")
 
 	err = m.SetDefaultBrokerForUser("local", "user")
@@ -138,9 +138,9 @@ func TestBrokerFromSessionID(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cfgDir := t.TempDir()
-			b := newBrokerForTests(t, cfgDir, "")
-			m, err := brokers.NewManager(context.Background(), nil, brokers.WithCfgDir(cfgDir))
+			brokersConfPath := t.TempDir()
+			b := newBrokerForTests(t, brokersConfPath, "")
+			m, err := brokers.NewManager(context.Background(), brokersConfPath, nil)
 			require.NoError(t, err, "Setup: could not create manager")
 
 			if tc.sessionID == "success" {
@@ -190,19 +190,19 @@ func TestNewSession(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cfgDir := t.TempDir()
+			brokersConfPath := t.TempDir()
 			if tc.configuredBrokers == nil {
 				tc.configuredBrokers = []string{strings.ReplaceAll(t.Name(), "/", "_")}
 			}
 
-			wantBroker := newBrokerForTests(t, cfgDir, tc.configuredBrokers[0])
+			wantBroker := newBrokerForTests(t, brokersConfPath, tc.configuredBrokers[0])
 			if len(tc.configuredBrokers) > 1 {
 				for _, name := range tc.configuredBrokers[1:] {
-					newBrokerForTests(t, cfgDir, name)
+					newBrokerForTests(t, brokersConfPath, name)
 				}
 			}
 
-			m, err := brokers.NewManager(context.Background(), tc.configuredBrokers, brokers.WithCfgDir(cfgDir))
+			m, err := brokers.NewManager(context.Background(), brokersConfPath, tc.configuredBrokers)
 			require.NoError(t, err, "Setup: could not create manager")
 
 			if tc.brokerID == "" {
@@ -257,19 +257,19 @@ func TestEndSession(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cfgDir := t.TempDir()
+			brokersConfPath := t.TempDir()
 			if tc.configuredBrokers == nil {
 				tc.configuredBrokers = []string{strings.ReplaceAll(t.Name(), "/", "_")}
 			}
 
-			wantBroker := newBrokerForTests(t, cfgDir, tc.configuredBrokers[0])
+			wantBroker := newBrokerForTests(t, brokersConfPath, tc.configuredBrokers[0])
 			if len(tc.configuredBrokers) > 1 {
 				for _, name := range tc.configuredBrokers[1:] {
-					newBrokerForTests(t, cfgDir, name)
+					newBrokerForTests(t, brokersConfPath, name)
 				}
 			}
 
-			m, err := brokers.NewManager(context.Background(), tc.configuredBrokers, brokers.WithCfgDir(cfgDir))
+			m, err := brokers.NewManager(context.Background(), brokersConfPath, tc.configuredBrokers)
 			require.NoError(t, err, "Setup: could not create manager")
 
 			if tc.brokerID != "does not exist" {
@@ -291,11 +291,11 @@ func TestEndSession(t *testing.T) {
 func TestStartAndEndSession(t *testing.T) {
 	t.Parallel()
 
-	cfgDir := t.TempDir()
-	b1 := newBrokerForTests(t, cfgDir, t.Name()+"_Broker1")
-	b2 := newBrokerForTests(t, cfgDir, t.Name()+"_Broker2")
+	brokersConfPath := t.TempDir()
+	b1 := newBrokerForTests(t, brokersConfPath, t.Name()+"_Broker1")
+	b2 := newBrokerForTests(t, brokersConfPath, t.Name()+"_Broker2")
 
-	m, err := brokers.NewManager(context.Background(), []string{b1.Name, b2.Name}, brokers.WithCfgDir(cfgDir))
+	m, err := brokers.NewManager(context.Background(), brokersConfPath, []string{b1.Name, b2.Name})
 	require.NoError(t, err, "Setup: could not create manager")
 
 	// Fetches the broker IDs

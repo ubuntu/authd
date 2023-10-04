@@ -13,13 +13,6 @@ func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (Br
 	return newBroker(ctx, name, configFile, bus)
 }
 
-// WithCfgDir uses a dedicated path for the broker config dir.
-func WithCfgDir(p string) func(o *options) {
-	return func(o *options) {
-		o.brokerCfgDir = p
-	}
-}
-
 // SetBrokerForSession sets the broker for a given session.
 //
 // This is to be used only in tests.

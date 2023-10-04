@@ -24,12 +24,12 @@ type Manager struct {
 }
 
 // NewManager returns a new manager after creating all necessary items for our business logic.
-func NewManager(ctx context.Context, cacheDir string, configuredBrokers []string) (m Manager, err error) {
+func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configuredBrokers []string) (m Manager, err error) {
 	defer decorate.OnError(&err /*i18n.G(*/, "can't create authd object") //)
 
 	log.Debug(ctx, "Building authd object")
 
-	brokerManager, err := brokers.NewManager(ctx, configuredBrokers)
+	brokerManager, err := brokers.NewManager(ctx, brokersConfPath, configuredBrokers)
 	if err != nil {
 		return m, err
 	}

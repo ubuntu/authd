@@ -317,6 +317,7 @@ func TestNoConfigSetDefaults(t *testing.T) {
 	require.NoError(t, err, "Run should not return an error")
 
 	require.Equal(t, 0, a.Config().Verbosity, "Default Verbosity")
+	require.Equal(t, consts.DefaultBrokersConfPath, a.Config().SystemDirs.BrokersConfPath, "Default brokers configuration path")
 	require.Equal(t, consts.DefaultCacheDir, a.Config().SystemDirs.CacheDir, "Default cache directory")
 	require.Equal(t, "", a.Config().SystemDirs.SocketPath, "No socket address as default")
 }
