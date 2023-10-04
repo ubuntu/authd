@@ -61,12 +61,12 @@ type Broker struct {
 }
 
 var (
-	exampleUsers = map[string]string{
-		"user1":            "My user",
-		"user2":            "My secondary user",
-		"user-mfa":         "User that needs MFA",
-		"user-needs-reset": "User that needs passwd reset",
-		"user-can-reset":   "User that can passwd reset",
+	exampleUsers = map[string]struct{}{
+		"user1":            {},
+		"user2":            {},
+		"user-mfa":         {},
+		"user-needs-reset": {},
+		"user-can-reset":   {},
 	}
 )
 
@@ -540,12 +540,10 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 	}
 
-	name, exists := exampleUsers[sessionInfo.username]
-	if !exists {
+	if _, exists := exampleUsers[sessionInfo.username]; !exists {
 		return responses.AuthDenied, `{"message": "user not found"}`, nil
 	}
-
-	return responses.AuthGranted, fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(name)), nil
+	return responses.AuthGranted, fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionInfo.username)), nil
 }
 
 // EndSession ends the requested session and triggers the necessary clean up steps, if any.
@@ -674,7 +672,7 @@ func userInfoFromName(name string) string {
 		"uuid": "uuid-{{.Name}}",
 		"gecos": "gecos for {{.Name}}",
 		"dir": "/home/{{.Name}}",
-		"shell": "/bin/sh/{{.Name}}",
+		"shell": "/usr/bin/bash",
 		"avatar": "avatar for {{.Name}}",
 		"groups": [ {"name": "group-{{.Name}}", "ugid": "group-{{.Name}}"} ]
 	}`)).Execute(&buf, user)
