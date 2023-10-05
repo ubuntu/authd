@@ -101,12 +101,13 @@ func New() *App {
 func (a *App) serve(config daemonConfig) error {
 	ctx := context.Background()
 
-	if err := ensureDirWithPerms(config.SystemDirs.CacheDir, 0700); err != nil {
+	cacheDir := config.SystemDirs.CacheDir
+	if err := ensureDirWithPerms(cacheDir, 0700); err != nil {
 		close(a.ready)
-		return fmt.Errorf("error initializing cache directory at %q: %v", config.SystemDirs.CacheDir, err)
+		return fmt.Errorf("error initializing cache directory at %q: %v", cacheDir, err)
 	}
 
-	m, err := services.NewManager(ctx, config.SystemDirs.CacheDir, config.Brokers)
+	m, err := services.NewManager(ctx, cacheDir, config.Brokers)
 	if err != nil {
 		close(a.ready)
 		return err
@@ -114,9 +115,10 @@ func (a *App) serve(config daemonConfig) error {
 	// We are closing the cache on exit.
 	defer func() { _ = m.Stop() }()
 
+	socketPath := config.SystemDirs.SocketPath
 	var daemonopts []daemon.Option
-	if config.SystemDirs.SocketPath != "" {
-		daemonopts = append(daemonopts, daemon.WithSocketPath(config.SystemDirs.SocketPath))
+	if socketPath != "" {
+		daemonopts = append(daemonopts, daemon.WithSocketPath(socketPath))
 	}
 
 	daemon, err := daemon.New(ctx, m.RegisterGRPCServices, daemonopts...)
