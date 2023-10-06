@@ -342,6 +342,10 @@ func getActiveUsers(procDir string) (activeUsers map[string]struct{}, err error)
 
 		info, err := dirEntry.Info()
 		if err != nil {
+			// If the file doesn't exist, it means the process is not running anymore so we can ignore it.
+			if errors.Is(err, fs.ErrNotExist) {
+				continue
+			}
 			return nil, err
 		}
 
