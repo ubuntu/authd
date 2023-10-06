@@ -66,9 +66,9 @@ func TestNewBroker(t *testing.T) {
 			conn, err := testutils.GetSystemBusConnection(t)
 			require.NoError(t, err, "Setup: could not connect to system bus")
 
-			configDir := filepath.Join(brokerCfgs, "valid_brokers")
+			configDir := filepath.Join(brokerConfFixtures, "valid_brokers")
 			if tc.wantErr {
-				configDir = filepath.Join(brokerCfgs, "invalid_brokers")
+				configDir = filepath.Join(brokerConfFixtures, "invalid_brokers")
 			}
 			if tc.configFile != "" {
 				tc.configFile = filepath.Join(configDir, tc.configFile)

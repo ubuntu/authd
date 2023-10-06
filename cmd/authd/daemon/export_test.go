@@ -11,7 +11,7 @@ import (
 
 type (
 	DaemonConfig = daemonConfig
-	SystemDirs   = systemDirs
+	SystemPaths  = systemPaths
 )
 
 func NewForTests(t *testing.T, conf *DaemonConfig, args ...string) *App {
@@ -38,17 +38,14 @@ func GenerateTestConfig(t *testing.T, origConf *daemonConfig) string {
 	if conf.Verbosity == 0 {
 		conf.Verbosity = 2
 	}
-	if conf.SystemDirs.CacheDir == "" {
-		conf.SystemDirs.CacheDir = t.TempDir()
+	if conf.Paths.Cache == "" {
+		conf.Paths.Cache = t.TempDir()
 		//nolint: gosec // This is a directory owned only by the current user for tests.
-		err := os.Chmod(conf.SystemDirs.CacheDir, 0700)
+		err := os.Chmod(conf.Paths.Cache, 0700)
 		require.NoError(t, err, "Setup: could not change permission on cache directory for tests")
 	}
-	if conf.SystemDirs.RunDir == "" {
-		conf.SystemDirs.RunDir = t.TempDir()
-	}
-	if conf.SystemDirs.SocketPath == "" {
-		conf.SystemDirs.SocketPath = filepath.Join(t.TempDir(), "authd.socket")
+	if conf.Paths.Socket == "" {
+		conf.Paths.Socket = filepath.Join(t.TempDir(), "authd.socket")
 	}
 	d, err := yaml.Marshal(conf)
 	require.NoError(t, err, "Setup: could not marshal configuration for tests")

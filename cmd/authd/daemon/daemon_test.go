@@ -157,25 +157,25 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 			var config daemon.DaemonConfig
 			switch tc.cachePathBehavior {
 			case dirIsFile:
-				config.SystemDirs.CacheDir = filePath
+				config.Paths.Cache = filePath
 			case hasWrongPermission:
-				config.SystemDirs.CacheDir = worldAccessDir
+				config.Paths.Cache = worldAccessDir
 			case parentDirDoesNotExists:
-				config.SystemDirs.CacheDir = filepath.Join(shortTmp, "not-exists", "cache")
+				config.Paths.Cache = filepath.Join(shortTmp, "not-exists", "cache")
 			}
 			switch tc.socketPathBehavior {
 			case dirIsFile:
-				config.SystemDirs.SocketPath = filepath.Join(filePath, "mysocket")
+				config.Paths.Socket = filepath.Join(filePath, "mysocket")
 			default:
-				config.SystemDirs.SocketPath = filepath.Join(shortTmp, "mysocket")
+				config.Paths.Socket = filepath.Join(shortTmp, "mysocket")
 			}
 			switch tc.cacheDBBehavior {
 			case hasWrongPermission:
-				config.SystemDirs.CacheDir = filepath.Join(shortTmp, "cache")
-				err := os.MkdirAll(config.SystemDirs.CacheDir, 0700)
+				config.Paths.Cache = filepath.Join(shortTmp, "cache")
+				err := os.MkdirAll(config.Paths.Cache, 0700)
 				require.NoError(t, err, "Setup: could not create cache directory")
 				//nolint: gosec // This is a file with invalid permission for tests.
-				err = os.WriteFile(filepath.Join(config.SystemDirs.CacheDir, cachetests.DbName), nil, 0644)
+				err = os.WriteFile(filepath.Join(config.Paths.Cache, cachetests.DbName), nil, 0644)
 				require.NoError(t, err, "Setup: could not create database with invalid permissions")
 			}
 
@@ -264,7 +264,7 @@ func TestConfigLoad(t *testing.T) {
 	customizedSocketPath := filepath.Join(t.TempDir(), "mysocket")
 	var config daemon.DaemonConfig
 	config.Verbosity = 1
-	config.SystemDirs.SocketPath = customizedSocketPath
+	config.Paths.Socket = customizedSocketPath
 
 	a, wait := startDaemon(t, &config)
 	defer wait()
@@ -279,7 +279,7 @@ func TestAutoDetectConfig(t *testing.T) {
 	customizedSocketPath := filepath.Join(t.TempDir(), "mysocket")
 	var config daemon.DaemonConfig
 	config.Verbosity = 1
-	config.SystemDirs.SocketPath = customizedSocketPath
+	config.Paths.Socket = customizedSocketPath
 
 	configPath := daemon.GenerateTestConfig(t, &config)
 	configNextToBinaryPath := filepath.Join(filepath.Dir(os.Args[0]), "authd.yaml")
@@ -317,8 +317,9 @@ func TestNoConfigSetDefaults(t *testing.T) {
 	require.NoError(t, err, "Run should not return an error")
 
 	require.Equal(t, 0, a.Config().Verbosity, "Default Verbosity")
-	require.Equal(t, consts.DefaultCacheDir, a.Config().SystemDirs.CacheDir, "Default cache directory")
-	require.Equal(t, consts.DefaultSocketPath, a.Config().SystemDirs.SocketPath, "Default socket address")
+	require.Equal(t, consts.DefaultBrokersConfPath, a.Config().Paths.BrokersConf, "Default brokers configuration path")
+	require.Equal(t, consts.DefaultCacheDir, a.Config().Paths.Cache, "Default cache directory")
+	require.Equal(t, "", a.Config().Paths.Socket, "No socket address as default")
 }
 
 func TestBadConfigReturnsError(t *testing.T) {

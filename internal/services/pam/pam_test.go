@@ -531,18 +531,18 @@ func initBrokers() (brokerConfigPath string, cleanup func(), err error) {
 		return "", nil, err
 	}
 
-	brokerDir := filepath.Join(tmpDir, "etc", "authd", "broker.d")
-	if err = os.MkdirAll(brokerDir, 0750); err != nil {
+	brokersConfPath := filepath.Join(tmpDir, "etc", "authd", "broker.d")
+	if err = os.MkdirAll(brokersConfPath, 0750); err != nil {
 		_ = os.RemoveAll(tmpDir)
 		return "", nil, err
 	}
-	_, brokerCleanup, err := testutils.StartBusBrokerMock(brokerDir, "BrokerMock")
+	_, brokerCleanup, err := testutils.StartBusBrokerMock(brokersConfPath, "BrokerMock")
 	if err != nil {
 		_ = os.RemoveAll(tmpDir)
 		return "", nil, err
 	}
 
-	return tmpDir, func() {
+	return brokersConfPath, func() {
 		brokerCleanup()
 		_ = os.RemoveAll(tmpDir)
 	}, nil
@@ -628,7 +628,7 @@ func TestMain(m *testing.M) {
 	defer busCleanup()
 
 	// Start brokers mock over dbus.
-	brokersConfigPath, cleanup, err := initBrokers()
+	brokersConfPath, cleanup, err := initBrokers()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
@@ -636,7 +636,7 @@ func TestMain(m *testing.M) {
 	defer cleanup()
 
 	// Get manager shared across grpc services.
-	brokerManager, err = brokers.NewManager(context.Background(), nil, brokers.WithRootDir(brokersConfigPath))
+	brokerManager, err = brokers.NewManager(context.Background(), brokersConfPath, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)

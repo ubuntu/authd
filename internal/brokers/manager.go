@@ -30,38 +30,11 @@ type Manager struct {
 	cleanup func()
 }
 
-// Option is the function signature used to tweak the daemon creation.
-type Option func(*options)
-
-type options struct {
-	rootDir      string
-	brokerCfgDir string
-}
-
-// WithRootDir uses a dedicated path for our root.
-func WithRootDir(p string) func(o *options) {
-	return func(o *options) {
-		o.rootDir = p
-	}
-}
-
 // NewManager creates a new broker manager object.
-func NewManager(ctx context.Context, configuredBrokers []string, args ...Option) (m *Manager, err error) {
+func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers []string) (m *Manager, err error) {
 	defer decorate.OnError(&err /*i18n.G(*/, "can't create brokers detection object") //)
 
 	log.Debug(ctx, "Building broker detection")
-
-	// Set default options.
-	opts := options{
-		rootDir:      "/",
-		brokerCfgDir: "etc/authd/broker.d",
-	}
-	// Apply given args.
-	for _, f := range args {
-		f(&opts)
-	}
-
-	brokersConfPath := filepath.Join(opts.rootDir, opts.brokerCfgDir)
 
 	brokersConfPathWithExample, cleanup, err := useExampleBrokers()
 	if err != nil {

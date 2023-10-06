@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -58,6 +59,22 @@ func initViperConfig(name string, cmd *cobra.Command, vip *viper.Viper) (err err
 	// Handle environment.
 	vip.SetEnvPrefix(name)
 	vip.AutomaticEnv()
+
+	// Visit manually env to bind every possibly related environment variable to be able to unmarshall
+	// those into a struct.
+	// More context on https://github.com/spf13/viper/pull/1429.
+	prefix := strings.ToUpper(name) + "_"
+	for _, e := range os.Environ() {
+		if !strings.HasPrefix(e, prefix) {
+			continue
+		}
+
+		s := strings.Split(e, "=")
+		k := strings.ReplaceAll(strings.TrimPrefix(s[0], prefix), "_", ".")
+		if err := vip.BindEnv(k, s[0]); err != nil {
+			return fmt.Errorf("could not bind environment variable: %w", err)
+		}
+	}
 
 	return nil
 }
