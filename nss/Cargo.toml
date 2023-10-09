@@ -17,7 +17,7 @@ custom_socket = []
 [dependencies]
 libnss = "0.5.0"
 lazy_static = "1.4.0"
-libc = "0.2.148"
+libc = "0.2.149"
 paste = "1.0.14"
 tonic = "0.10.2"
 prost = "0.12.1"
