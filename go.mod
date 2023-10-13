@@ -9,6 +9,7 @@ require (
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/godbus/dbus/v5 v5.1.0
 	github.com/google/uuid v1.4.0
+	github.com/msteinert/pam v1.2.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/cobra v1.8.0
@@ -62,3 +63,8 @@ require (
 	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 // indirect
 )
+
+// FIXME: Use released version once we have one!
+// The branch below includes changes from this upstream PR:
+// - https://github.com/msteinert/pam/pull/13
+replace github.com/msteinert/pam => github.com/3v1n0/go-pam v0.0.0-20231130030658-0f1cc6f16d45
