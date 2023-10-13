@@ -43,7 +43,7 @@ func newUserSelectionModel(pamMTx pam.ModuleTransaction) userSelectionModel {
 func (m *userSelectionModel) Init() tea.Cmd {
 	pamUser, err := m.pamMTx.GetItem(pam.User)
 	if err != nil {
-		return sendEvent(pamAbort{err.Error()})
+		return sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
 	}
 	if pamUser != "" {
 		return sendUserSelected(pamUser)
@@ -59,7 +59,7 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 			// synchronise our internal validated field and the text one.
 			m.SetValue(msg.username)
 			if err := m.pamMTx.SetItem(pam.User, msg.username); err != nil {
-				return m, sendEvent(pamAbort{err.Error()})
+				return m, sendEvent(pamError{status: pam.ErrAbort, msg: err.Error()})
 			}
 			return m, sendEvent(UsernameOrBrokerListReceived{})
 		}

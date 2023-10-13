@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/msteinert/pam"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/log"
 )
@@ -241,17 +242,15 @@ func getAuthenticationModes(client authd.PAMClient, sessionID string, uiLayouts 
 
 		gamResp, err := client.GetAuthenticationModes(context.Background(), gamReq)
 		if err != nil {
-			return pamSystemError{
-				msg: fmt.Sprintf("could not get authentication modes: %v", err),
+			return pamError{
+				status: pam.ErrSystem,
+				msg:    fmt.Sprintf("could not get authentication modes: %v", err),
 			}
 		}
 
 		authModes := gamResp.GetAuthenticationModes()
 		if len(authModes) == 0 {
-			return pamIgnore{
-				// TODO: probably go back to broker selection here
-				msg: "no supported authentication mode available for this provider",
-			}
+			return pamIgnore{msg: "no supported authentication mode available for this provider"}
 		}
 		log.Info(context.TODO(), authModes)
 

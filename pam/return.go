@@ -1,64 +1,64 @@
 package main
 
+import (
+	"github.com/msteinert/pam"
+)
+
 // Various signalling return messaging to PAM.
 
-// pamSuccess signals PAM module to return PAM_SUCCESS and Quit tea.Model.
+// pamReturnStatus is the interface that all PAM return types should implement.
+type pamReturnStatus interface {
+	Message() string
+}
+
+// pamReturnError is an interface that PAM errors return types should implement.
+type pamReturnError interface {
+	pamReturnStatus
+	Status() pam.Error
+}
+
+// pamSuccess signals PAM module to return with provided pam.Success and Quit tea.Model.
 type pamSuccess struct {
 	brokerID string
+	msg      string
 }
 
-// String returns the string of pamSuccess.
-func (err pamSuccess) String() string {
-	return ""
+// Message returns the message that should be sent to pam as info message.
+func (p pamSuccess) Message() string {
+	return p.msg
 }
 
-// pamIgnore signals PAM module to return PAM_IGNORE and Quit tea.Model.
+// pamIgnore signals PAM module to return pam.Ignore and Quit tea.Model.
 type pamIgnore struct {
 	localBrokerID string // Only set for local broker to store it globally.
 	msg           string
 }
 
-// String returns the string of pamIgnore message.
-func (err pamIgnore) String() string {
-	return err.msg
+// Status returns [pam.ErrIgnore].
+func (p pamIgnore) Status() pam.Error {
+	return pam.ErrIgnore
 }
 
-// pamAbort signals PAM module to return PAM_ABORT and Quit tea.Model.
-type pamAbort struct {
-	msg string
+// Message returns the message that should be sent to pam as info message.
+func (p pamIgnore) Message() string {
+	return p.msg
 }
 
-// String returns the string of pamAbort message.
-func (err pamAbort) String() string {
-	return err.msg
+// pamIgnore signals PAM module to return the provided error message and Quit tea.Model.
+type pamError struct {
+	status pam.Error
+	msg    string
 }
 
-// pamSystemError signals PAM module to return PAM_SYSTEM_ERROR and Quit tea.Model.
-type pamSystemError struct {
-	msg string
+// Status returns the PAM exit status code.
+func (p pamError) Status() pam.Error {
+	return p.status
 }
 
-// String returns the string of pamSystemError message.
-func (err pamSystemError) String() string {
-	return err.msg
-}
-
-// pamAuthError signals PAM module to return PAM_AUTH_ERROR and Quit tea.Model.
-type pamAuthError struct {
-	msg string
-}
-
-// String returns the string of pamAuthError message.
-func (err pamAuthError) String() string {
-	return err.msg
-}
-
-// pamAuthInfoUnavailable signals PAM module to return PAM_AUTHINFO_UNAVAIL and Quit tea.Model.
-type pamAuthInfoUnavailable struct {
-	msg string
-}
-
-// String returns the string of pamAuthInfoUnavailable message.
-func (err pamAuthInfoUnavailable) String() string {
-	return err.msg
+// Message returns the message that should be sent to pam as error message.
+func (p pamError) Message() string {
+	if p.msg != "" {
+		return p.msg
+	}
+	return p.status.Error()
 }
