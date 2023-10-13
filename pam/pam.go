@@ -41,6 +41,23 @@ var (
 	auth    [success=3 default=die ignore=ignore]   pam_authd.so
 */
 
+func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus pamReturnStatus) {
+	msg := retStatus.Message()
+	if msg == "" {
+		return
+	}
+
+	style := pam.ErrorMsg
+	switch retStatus.(type) {
+	case pamIgnore, pamSuccess:
+		style = pam.TextInfo
+	}
+
+	if _, err := mTx.StartStringConv(style, msg); err != nil {
+		log.Errorf(context.TODO(), "Failed sending message to pam: %v", err)
+	}
+}
+
 // Authenticate is the method that is invoked during pam_authenticate request.
 func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
 	// Initialize localization
@@ -75,6 +92,8 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 		log.Errorf(context.TODO(), "Cancelled authentication: %v", err)
 		return pam.ErrAbort
 	}
+
+	sendReturnMessageToPam(mTx, appState.exitStatus)
 
 	switch exitStatus := appState.exitStatus.(type) {
 	case pamSuccess:
