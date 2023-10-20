@@ -1,3 +1,4 @@
+// Package main is the package for the PAM library
 package main
 
 import (
