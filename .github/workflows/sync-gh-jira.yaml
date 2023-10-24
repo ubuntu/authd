@@ -13,4 +13,4 @@ jobs:
           # TODO: JIRA_WEBHOOK_URL should be stored as secret on the repository.
           # Ask your Jira project administrator for it.
           webhook-url: ${{ secrets.JIRA_WEBHOOK_URL }}
-          component: 'S-Enterprise'
+          component: 'Enterprise'
