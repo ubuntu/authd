@@ -10,6 +10,11 @@ on:
 env:
   apt_deps: >-
     libpam0g-dev
+  # In Rust the grpc stubs are generated at build time
+  # so we always need to install the protobuf compilers
+  # when building the NSS crate.
+  protobuf_compilers: >-
+    protobuf-compiler
 
 jobs:
   go-sanity:
@@ -34,7 +39,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt update
-          sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }} protobuf-compiler protobuf-compiler-grpc
+          sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}}
       - uses: actions/checkout@v4
       - uses: actions-rs/toolchain@v1
         with:
@@ -64,11 +69,23 @@ jobs:
       - name: Install dependencies
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt update
-          sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }}
+
+          # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
+          sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}}
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v4
         with:
           go-version-file: go.mod
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: nightly # We need nightly to enable instrumentation for coverage.
+          override: true
+          components: llvm-tools-preview
+      - name: Install grcov
+        run: |
+          set -eu
+          cargo install grcov
       - name: Run tests
         run: |
           set -eu

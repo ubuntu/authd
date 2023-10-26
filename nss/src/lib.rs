@@ -24,13 +24,6 @@ lazy_static! {
     pub static ref RT: Runtime = Builder::new_current_thread().enable_all().build().unwrap();
 }
 
-#[ctor::ctor]
-/// init_logger is a constructor that ensures the logger object initialization only happens once per
-/// library invocation in order to avoid races to the log file.
-fn init_logger() {
-    logs::init_logger();
-}
-
 /// socket_path returns the socket path to connect to the gRPC server.
 ///
 /// It uses the AUTHD_NSS_SOCKET env value if set and the custom_socket feature is enabled,
@@ -54,5 +47,26 @@ fn grpc_status_to_nss_response<T>(status: Status) -> Response<T> {
     match status.code() {
         Code::NotFound => Response::NotFound,
         _ => Response::Unavail,
+    }
+}
+
+#[ctor::ctor]
+/// init_logger is a constructor that ensures the logger object initialization only happens once per
+/// library invocation in order to avoid races to the log file.
+fn init_logger() {
+    logs::init_logger();
+}
+
+#[cfg(feature = "integration_tests")]
+#[ctor::ctor]
+/// register_local_aad_nss_service_for_tests executes the C API to override the NSS lookup.
+fn register_local_aad_nss_service_for_tests() {
+    #[link(name = "db_override")]
+    extern "C" {
+        fn db_override();
+    }
+
+    unsafe {
+        db_override();
     }
 }

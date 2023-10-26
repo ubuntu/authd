@@ -13,6 +13,7 @@ name = "nss_authd"
 [features]
 # Allows to override the socket path used to connect to the grpc server, through the AUTHD_NSS_SOCKET env variable.
 custom_socket = []
+integration_tests = []
 
 [dependencies]
 libnss = "0.5.0"
@@ -30,3 +31,4 @@ ctor = "0.2.5"
 
 [build-dependencies]
 tonic-build = "0.10.2"
+cc = "1.0.83"
