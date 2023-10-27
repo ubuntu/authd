@@ -3,7 +3,6 @@ package nss_test
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -89,7 +88,7 @@ func TestIntegration(t *testing.T) {
 			var daemonStopped chan struct{}
 			if !tc.noDaemon && !tc.noCustomSocket {
 				ctx, cancel := context.WithCancel(context.Background())
-				socketPath, daemonStopped = runDaemon(ctx, t, tc.cacheDB)
+				socketPath, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath, testutils.WithPreviousDBState(tc.cacheDB))
 				t.Cleanup(func() {
 					cancel()
 					<-daemonStopped
@@ -125,15 +124,7 @@ func TestMain(m *testing.M) {
 	testutils.InstallUpdateFlag()
 	flag.Parse()
 
-	// Start system bus mock.
-	cleanup, err := testutils.StartSystemBusMock()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
-	defer cleanup()
-
-	execPath, cleanup, err := buildDaemon()
+	execPath, cleanup, err := testutils.BuildDaemon()
 	if err != nil {
 		log.Printf("Setup: failed to build daemon: %v", err)
 		os.Exit(1)
