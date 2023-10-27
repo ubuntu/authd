@@ -31,6 +31,10 @@ jobs:
         with:
           golangci-lint-configfile: ".golangci.yaml"
           tools-directory: "tools"
+      - name: Build cmd/authd with withexamplebroker tag
+        run: |
+          set -eu
+          go build -tags withexamplebroker ./cmd/authd
 
   rust-sanity:
     name: "Rust: Code sanity"
