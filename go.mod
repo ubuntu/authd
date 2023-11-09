@@ -1,6 +1,6 @@
 module github.com/ubuntu/authd
 
-go 1.21.1
+go 1.21.4
 
 require (
 	github.com/charmbracelet/bubbles v0.16.1
