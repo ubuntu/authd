@@ -15,18 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// MarkRustFilesForTestCache marks all rust files and related content to be in the Go test caching infra.
-func MarkRustFilesForTestCache(t *testing.T, rustDir string) {
-	t.Helper()
-
-	markForTestCache(t, []string{
-		filepath.Join(rustDir, "src"),
-		filepath.Join(rustDir, "testdata"),
-		filepath.Join(rustDir, "Cargo.toml"),
-		filepath.Join(rustDir, "Cargo.lock"),
-	})
-}
-
 // CanRunRustTests returns if we can run rust tests via cargo on this machine.
 // It checks for code coverage report if supported.
 func CanRunRustTests(coverageWanted bool) (err error) {
@@ -78,18 +66,13 @@ func TrackRustCoverage(t *testing.T, src string) (env []string, target string) {
 		target = t.TempDir()
 	}
 
-	testGoCoverage := TrackTestCoverage(t)
-	if testGoCoverage == "" {
-		return []string{}, target
-	}
-
-	coverDir := filepath.Dir(testGoCoverage)
-	if c := os.Getenv("RAW_COVER_DIR"); c != "" {
-		coverDir = c
+	coverDir := filepath.Join(CoverDir(), "rust-cov")
+	if coverDir == "" {
+		return nil, target
 	}
 
 	t.Cleanup(func() {
-		rustJSONCoverage := testGoCoverage + ".json"
+		rustJSONCoverage := filepath.Join(coverDir, "rust_coverage.json")
 		//nolint:gosec // G204 we define what we cover ourself
 		cmd := exec.Command("grcov", coverDir,
 			"--binary-path", filepath.Join(target, "debug"),
@@ -113,7 +96,7 @@ func TrackRustCoverage(t *testing.T, src string) (env []string, target string) {
 		require.NoError(t, err, "Teardown: decode our json coverage file")
 
 		// This is the destination file for rust coverage in go format.
-		outF, err := os.Create(testGoCoverage)
+		outF, err := os.Create(filepath.Join(coverDir, "rust2go_coverage"))
 		require.NoErrorf(t, err, "Teardown: failed opening output golang compatible cover file: %s", err)
 		defer func() { assert.NoError(t, outF.Close(), "Teardown: can’t close golang compatible cover file") }()
 
@@ -187,17 +170,5 @@ func convertRustFileResult(t *testing.T, results []interface{}, p string, w io.W
 		}
 		// We are doing line coverage and we don’t have the source line handy. Set it to 9999 then.
 		writeGoCoverageLine(t, w, p, l+1, 9999, covered)
-	}
-}
-
-// markForTestCache list all root directories/files so that they are marked in the test cache.
-func markForTestCache(t *testing.T, roots []string) {
-	t.Helper()
-
-	for _, root := range roots {
-		err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
-			return nil
-		})
-		require.NoError(t, err, "Setup: Error when listing input files for caching handling")
 	}
 }
