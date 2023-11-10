@@ -19,7 +19,7 @@ import (
 	"github.com/ubuntu/authd/internal/testutils"
 )
 
-var daemonPath, rawCovDir string
+var daemonPath string
 
 // buildRustNSSLib builds the NSS library and links the compiled file to libPath.
 func buildRustNSSLib(t *testing.T) {
@@ -32,9 +32,8 @@ func buildRustNSSLib(t *testing.T) {
 		cargo = "cargo"
 	}
 
-	rustDir := filepath.Join(projectRoot, "nss")
-	testutils.MarkRustFilesForTestCache(t, rustDir)
 	var target string
+	rustDir := filepath.Join(projectRoot, "nss")
 	rustCovEnv, target = testutils.TrackRustCoverage(t, rustDir)
 
 	// Builds the nss library.
@@ -115,12 +114,7 @@ paths:
 	// #nosec:G204 - we control the command arguments in tests
 	cmd := exec.Command(daemonPath, "-c", configPath)
 	cmd.Stderr = os.Stderr
-	if testutils.WantCoverage() {
-		if rawCovDir == "" {
-			t.Fatalf("Setup: coverage is wanted but no coverage dir was set")
-		}
-		cmd.Env = append(cmd.Env, fmt.Sprintf("GOCOVERDIR=%s", rawCovDir))
-	}
+	cmd.Env = testutils.AppendCovEnv(cmd.Env)
 
 	stopped = make(chan struct{})
 	go func() {
@@ -152,7 +146,7 @@ func buildDaemon() (execPath string, cleanup func(), err error) {
 	execPath = filepath.Join(tempDir, "authd")
 	cmd := exec.Command("go", "build")
 	cmd.Dir = projectRoot
-	if testutils.WantCoverage() {
+	if testutils.CoverDir() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
 	}

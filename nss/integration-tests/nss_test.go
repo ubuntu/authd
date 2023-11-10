@@ -3,11 +3,9 @@ package nss_test
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -134,44 +132,5 @@ func TestMain(m *testing.M) {
 	defer cleanup()
 	daemonPath = execPath
 
-	// Creates the directory to store the coverage files for the integration tests.
-	if testutils.WantCoverage() {
-		rawCovDir = os.Getenv("RAW_COVER_DIR")
-		if rawCovDir == "" {
-			dir, err := os.MkdirTemp("", "authd-coverage")
-			if err != nil {
-				log.Printf("Setup: failed to create temp dir for coverage: %v", err)
-				cleanup()
-				os.Exit(24)
-			}
-			defer os.RemoveAll(dir)
-			rawCovDir = dir
-		}
-	}
-
-	code := m.Run()
-	if code == 0 && rawCovDir != "" {
-		coverprofile := filepath.Join(rawCovDir, "integration-tests.coverprofile")
-		// #nosec:G204 - we control the command arguments in tests
-		cmd := exec.Command("go", "tool", "covdata", "textfmt", fmt.Sprintf("-i=%s", rawCovDir), fmt.Sprintf("-o=%s", coverprofile))
-		if err := cmd.Run(); err != nil {
-			log.Printf("Teardown: failed to parse coverage files: %v", err)
-			cleanup()
-			os.RemoveAll(rawCovDir)
-			os.Exit(24)
-		}
-		testutils.MarkCoverageForMerging(coverprofile)
-	}
-
-	if err := testutils.MergeCoverages(); err != nil {
-		log.Printf("Teardown: failed to merge coverage files: %v", err)
-
-		// This ensures that we fail the test if we can't merge the coverage files, if the test
-		// was successful, otherwise we exit with the code returned by m.Run()
-		if code == 0 {
-			cleanup()
-			os.RemoveAll(rawCovDir)
-			defer os.Exit(24)
-		}
-	}
+	m.Run()
 }
