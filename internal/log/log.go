@@ -43,6 +43,11 @@ func Info(_ context.Context, args ...interface{}) {
 	logrus.Info(args...)
 }
 
+// Warning is a temporary placeholder.
+func Warning(_ context.Context, args ...interface{}) {
+	logrus.Warning(args...)
+}
+
 // Warningf is a temporary placeholder.
 func Warningf(_ context.Context, format string, args ...interface{}) {
 	logrus.Warningf(format, args...)
