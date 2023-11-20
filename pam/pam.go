@@ -15,6 +15,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -175,6 +176,13 @@ func getSocketPath(argc C.int, argv **C.char) string {
 //export pam_sm_setcred
 func pam_sm_setcred(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
 	return C.PAM_IGNORE
+}
+
+// go_pam_cleanup_module is called by the go-loader PAM module during onload
+//
+//export go_pam_cleanup_module
+func go_pam_cleanup_module() {
+	runtime.GC()
 }
 
 // Simulating pam on the CLI for manual testing
