@@ -2,7 +2,6 @@ package testutils
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -13,109 +12,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/exp/slices"
 )
 
 var (
-	goMainCoverProfile     string
-	goMainCoverProfileOnce sync.Once
-
-	coveragesToMerge   []string
-	coveragesToMergeMu sync.Mutex
+	goCoverDir     string
+	goCoverDirOnce sync.Once
 )
-
-// TrackTestCoverage starts tracking coverage in a dedicated file based on current test name.
-// This file will be merged to the current coverage main file.
-// It’s up to the test use the returned path to file golang-compatible cover format content.
-// To collect all coverages, then MergeCoverages() should be called after m.Run().
-// If coverage is not enabled, nothing is done.
-func TrackTestCoverage(t *testing.T) (testCoverFile string) {
-	t.Helper()
-
-	coverProfile := CoverProfile()
-	if coverProfile == "" {
-		return ""
-	}
-
-	coverAbsPath, err := filepath.Abs(coverProfile)
-	require.NoError(t, err, "Setup: can't transform go cover profile to absolute path")
-
-	testCoverFile = fmt.Sprintf("%s.%s", coverAbsPath, strings.ReplaceAll(
-		strings.ReplaceAll(t.Name(), "/", "_"),
-		"\\", "_"))
-
-	MarkCoverageForMerging(testCoverFile)
-
-	return testCoverFile
-}
-
-// MarkCoverageForMerging marks the coverage file to be merged to the main go cover profile.
-func MarkCoverageForMerging(coverFile string) {
-	coveragesToMergeMu.Lock()
-	defer coveragesToMergeMu.Unlock()
-	if slices.Contains(coveragesToMerge, coverFile) {
-		panic(fmt.Sprintf("Trying to adding a second time %q to the list of file to cover. This will create some overwrite and thus, should be only called once", coverFile))
-	}
-	coveragesToMerge = append(coveragesToMerge, coverFile)
-}
-
-// MergeCoverages append all coverage files marked for merging to main Go Cover Profile.
-// This has to be called after m.Run() in TestMain so that the main go cover profile is created.
-// This has no action if profiling is not enabled.
-func MergeCoverages() error {
-	coveragesToMergeMu.Lock()
-	defer coveragesToMergeMu.Unlock()
-	var err error
-	for _, cov := range coveragesToMerge {
-		err = errors.Join(err, appendToFile(cov, goMainCoverProfile))
-	}
-
-	if err != nil {
-		err = fmt.Errorf("teardown: couldn't inject coverages into the golang one: %w", err)
-	}
-	coveragesToMerge = nil
-	return err
-}
-
-// WantCoverage returns true if coverage was requested in test.
-func WantCoverage() bool {
-	for _, arg := range os.Args {
-		if !strings.HasPrefix(arg, "-test.coverprofile=") {
-			continue
-		}
-		return true
-	}
-	return false
-}
-
-// appendToFile appends src to the dst coverprofile file at the end.
-func appendToFile(src, dst string) error {
-	f, err := os.Open(filepath.Clean(src))
-	if err != nil {
-		return fmt.Errorf("can't open coverage file: %w", err)
-	}
-	defer f.Close()
-
-	d, err := os.OpenFile(dst, os.O_APPEND|os.O_WRONLY, 0600)
-	if err != nil {
-		return fmt.Errorf("can't open golang cover profile file: %w", err)
-	}
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		if strings.HasPrefix(scanner.Text(), "mode: ") {
-			continue
-		}
-		if _, err := d.Write([]byte(scanner.Text() + "\n")); err != nil {
-			return fmt.Errorf("can't write to golang cover profile file: %w", err)
-		}
-	}
-	if err := scanner.Err(); err != nil {
-		return fmt.Errorf("error while scanning golang cover profile file: %w", err)
-	}
-	return nil
-}
 
 // fqdnToPath allows to return the fqdn path for this file relative to go.mod.
 func fqdnToPath(t *testing.T, path string) string {
@@ -149,17 +51,25 @@ func fqdnToPath(t *testing.T, path string) string {
 	return ""
 }
 
-// CoverProfile parses the arguments to find the cover profile file.
-func CoverProfile() string {
-	goMainCoverProfileOnce.Do(func() {
+// AppendCovEnv returns the env needed to enable coverage when running a go binary.
+func AppendCovEnv(env []string) []string {
+	if CoverDir() == "" {
+		return env
+	}
+	return append(env, fmt.Sprintf("GOCOVERDIR=%s", CoverDir()))
+}
+
+// CoverDir parses the arguments to find the cover profile file.
+func CoverDir() string {
+	goCoverDirOnce.Do(func() {
 		for _, arg := range os.Args {
-			if !strings.HasPrefix(arg, "-test.coverprofile=") {
+			if !strings.HasPrefix(arg, "-test.gocoverdir=") {
 				continue
 			}
-			goMainCoverProfile = strings.TrimPrefix(arg, "-test.coverprofile=")
+			goCoverDir = strings.TrimPrefix(arg, "-test.gocoverdir=")
 		}
 	})
-	return goMainCoverProfile
+	return goCoverDir
 }
 
 // writeGoCoverageLine writes given line in go coverage format to w.
