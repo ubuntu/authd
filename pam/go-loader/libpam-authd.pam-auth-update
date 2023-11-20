@@ -1,0 +1,12 @@
+Name: Authd authentication
+Default: yes
+Priority: 280
+
+Auth-Type: Primary
+Auth:
+	[success=end default=ignore]	pam_go_loader.so pam_authd.so
+Account:
+	[default=bad success=ok user_unknown=ignore]	pam_go_loader.so pam_authd.so
+Password-Type: Primary
+Password:
+	sufficient			pam_go_loader.so pam_authd.so

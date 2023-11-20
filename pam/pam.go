@@ -15,6 +15,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -32,6 +33,7 @@ var (
 	brokerIDUsedToAuthenticate string
 )
 
+//go:generate sh -c "cc -o go-loader/pam_go_loader.so go-loader/module.c -Wl,--as-needed -Wl,--allow-shlib-undefined -shared -fPIC -Wl,--unresolved-symbols=report-all -lpam && chmod 600 go-loader/pam_go_loader.so"
 //go:generate sh -c "go build -ldflags='-extldflags -Wl,-soname,pam_authd.so' -buildmode=c-shared -o pam_authd.so"
 
 /*
@@ -174,6 +176,13 @@ func getSocketPath(argc C.int, argv **C.char) string {
 //export pam_sm_setcred
 func pam_sm_setcred(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
 	return C.PAM_IGNORE
+}
+
+// go_pam_cleanup_module is called by the go-loader PAM module during onload
+//
+//export go_pam_cleanup_module
+func go_pam_cleanup_module() {
+	runtime.GC()
 }
 
 // Simulating pam on the CLI for manual testing
