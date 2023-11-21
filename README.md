@@ -1,11 +1,11 @@
 # Welcome to Authentication daemon for external Broker
 
-[actions-image]: https://github.com/ubuntu/authd/actions/workflows/test.yaml/badge.svg?branch=main
-[actions-url]: https://github.com/ubuntu/authd/actions?query=branch%3Amain+event%3Apush
+[actions-image]: https://github.com/ubuntu/authd/actions/workflows/qa.yaml/badge.svg
+[actions-url]: https://github.com/ubuntu/authd/actions?query=workflow%3AQA
 
 [license-image]: https://img.shields.io/badge/License-GPL3.0-blue.svg
 
-[codecov-image]: https://codecov.io/gh/ubuntu/authd/branch/master/graph/badge.svg
+[codecov-image]: https://codecov.io/gh/ubuntu/authd/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/ubuntu/authd
 
 [user-documentation-image]: https://pkg.go.dev/github.com/ubuntu/authd
