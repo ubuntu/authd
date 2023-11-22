@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"math/rand"
 	"sort"
 	"strings"
 	"sync"
@@ -62,11 +61,12 @@ type Broker struct {
 
 var (
 	exampleUsers = map[string]struct{}{
-		"user1":            {},
-		"user2":            {},
-		"user-mfa":         {},
-		"user-needs-reset": {},
-		"user-can-reset":   {},
+		"user1":             {},
+		"user2":             {},
+		"user-mfa":          {},
+		"user-needs-reset":  {},
+		"user-can-reset":    {},
+		"user-local-groups": {},
 	}
 )
 
@@ -109,6 +109,8 @@ func (b *Broker) NewSession(ctx context.Context, username, lang string) (session
 	case "user-mfa-with-reset":
 		info.neededAuthSteps = 3
 		info.pwdChange = canReset
+	case "user-unexistent":
+		return "", "", fmt.Errorf("user %q does not exist", username)
 	}
 
 	b.currentSessionsMu.Lock()
@@ -370,10 +372,7 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 		// start transaction with fideo device
 	case "qrcodewithtypo":
 		// generate the url and finish the prompt on the fly.
-		//nolint:gosec // this is some example code not shipped in production
-		i := rand.Intn(3)
-		contents := []string{"https://ubuntu.com", "https://ubuntu-fr.org", "https://canonical.com"}
-		uiLayoutInfo["content"] = contents[i]
+		uiLayoutInfo["content"] = "https://ubuntu.com"
 		uiLayoutInfo["label"] = uiLayoutInfo["label"] + "1337"
 	}
 
@@ -477,7 +476,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 		// Send notification to phone1 and wait on server signal to return if OK or not
 		select {
-		case <-time.After(5 * time.Second):
+		case <-time.After(2 * time.Second):
 		case <-ctx.Done():
 			return responses.AuthCancelled, "", nil
 		}
@@ -502,7 +501,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 
 		// simulate direct exchange with the FIDO device
 		select {
-		case <-time.After(5 * time.Second):
+		case <-time.After(2 * time.Second):
 		case <-ctx.Done():
 			return responses.AuthCancelled, "", nil
 		}
@@ -513,7 +512,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 		// Simulate connexion with remote server to check that the correct code was entered
 		select {
-		case <-time.After(4 * time.Second):
+		case <-time.After(2 * time.Second):
 		case <-ctx.Done():
 			return responses.AuthCancelled, "", nil
 		}
@@ -540,7 +539,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 	}
 
-	if _, exists := exampleUsers[sessionInfo.username]; !exists {
+	if _, exists := exampleUsers[sessionInfo.username]; !exists && !strings.HasPrefix(sessionInfo.username, "user-integration") {
 		return responses.AuthDenied, `{"message": "user not found"}`, nil
 	}
 	return responses.AuthGranted, fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionInfo.username)), nil
@@ -660,21 +659,43 @@ func (b *Broker) updateSession(sessionID string, info sessionInfo) error {
 
 // userInfoFromName transform a given name to the strinfigy userinfo string.
 func userInfoFromName(name string) string {
-	user := struct {
+	type groupJSONInfo struct {
 		Name string
-	}{Name: name}
+		UGID string
+	}
 
+	user := struct {
+		Name   string
+		UUID   string
+		Home   string
+		Shell  string
+		Groups []groupJSONInfo
+		Gecos  string
+	}{
+		Name:   name,
+		UUID:   "uuid-" + name,
+		Home:   "/home/" + name,
+		Shell:  "/usr/bin/bash",
+		Groups: []groupJSONInfo{{Name: "group-" + name, UGID: "ugid-" + name}},
+		Gecos:  "gecos for " + name,
+	}
+
+	if name == "user-local-groups" {
+		user.Groups = append(user.Groups, groupJSONInfo{Name: "localgroup", UGID: ""})
+	}
+
+	// only used for tests, we can ignore the template execution error as the returned data will be failing.
 	var buf bytes.Buffer
-
-	// only used for the example, we can ignore the template execution error as the returned data will be failing.
 	_ = template.Must(template.New("").Parse(`{
 		"name": "{{.Name}}",
-		"uuid": "uuid-{{.Name}}",
-		"gecos": "gecos for {{.Name}}",
-		"dir": "/home/{{.Name}}",
-		"shell": "/usr/bin/bash",
-		"avatar": "avatar for {{.Name}}",
-		"groups": [ {"name": "group-{{.Name}}", "ugid": "group-{{.Name}}"}, {"name": "sudo"} ]
+		"uuid": "{{.UUID}}",
+		"gecos": "{{.Gecos}}",
+		"dir": "{{.Home}}",
+		"shell": "{{.Shell}}",
+		"groups": [ {{range $index, $g := .Groups}}
+			{{- if $index}}, {{end -}}
+			{"name": "{{.Name}}", "ugid": "{{.UGID}}"}
+		{{- end}} ]
 	}`)).Execute(&buf, user)
 
 	return buf.String()
