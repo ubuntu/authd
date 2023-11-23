@@ -12,8 +12,8 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/ubuntu/authd/internal/brokers/responses"
-	"github.com/ubuntu/authd/internal/cache"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
 	"golang.org/x/exp/slices"
 )
@@ -294,11 +294,11 @@ func (b Broker) parseSessionID(sessionID string) string {
 }
 
 // validateUserInfoAndGenerateIDs checks if the specified rawMsg is a valid userinfo and generates the UID and GIDs.
-func validateUserInfoAndGenerateIDs(brokerName string, rawMsg json.RawMessage) (user cache.UserInfo, err error) {
+func validateUserInfoAndGenerateIDs(brokerName string, rawMsg json.RawMessage) (user users.UserInfo, err error) {
 	defer decorate.OnError(&err, "invalid user information provided by the broker (%s)", rawMsg)
 
 	var uInfo struct {
-		cache.UserInfo
+		users.UserInfo
 		UUID   string
 		UGID   string
 		Groups []struct {
@@ -307,39 +307,39 @@ func validateUserInfoAndGenerateIDs(brokerName string, rawMsg json.RawMessage) (
 		}
 	}
 	if err := json.Unmarshal(rawMsg, &uInfo); err != nil {
-		return cache.UserInfo{}, fmt.Errorf("message is not JSON formatted: %v", err)
+		return users.UserInfo{}, fmt.Errorf("message is not JSON formatted: %v", err)
 	}
 
 	// Validate username
 	if uInfo.Name == "" {
-		return cache.UserInfo{}, fmt.Errorf("empty username")
+		return users.UserInfo{}, fmt.Errorf("empty username")
 	}
 
 	// Validate home and shell directories
 	if !filepath.IsAbs(filepath.Clean(uInfo.Dir)) {
-		return cache.UserInfo{}, fmt.Errorf("value provided for homedir is not an absolute path: %s", uInfo.Dir)
+		return users.UserInfo{}, fmt.Errorf("value provided for homedir is not an absolute path: %s", uInfo.Dir)
 	}
 	if !filepath.IsAbs(filepath.Clean(uInfo.Shell)) {
-		return cache.UserInfo{}, fmt.Errorf("value provided for shell is not an absolute path: %s", uInfo.Shell)
+		return users.UserInfo{}, fmt.Errorf("value provided for shell is not an absolute path: %s", uInfo.Shell)
 	}
 
 	// Validate UUID and generate UID
 	if uInfo.UUID == "" {
-		return cache.UserInfo{}, fmt.Errorf("empty UUID")
+		return users.UserInfo{}, fmt.Errorf("empty UUID")
 	}
 	uInfo.UID = generateID(brokerName + uInfo.UUID)
 
 	// Validate UGIDs and generate GIDs
 	for _, g := range uInfo.Groups {
 		if g.Name == "" {
-			return cache.UserInfo{}, fmt.Errorf("group has empty name")
+			return users.UserInfo{}, fmt.Errorf("group has empty name")
 		}
 		var gid *int
 		if g.UGID != "" {
 			gidv := generateID(brokerName + g.UGID)
 			gid = &gidv
 		}
-		uInfo.UserInfo.Groups = append(uInfo.UserInfo.Groups, cache.GroupInfo{Name: g.Name, GID: gid})
+		uInfo.UserInfo.Groups = append(uInfo.UserInfo.Groups, users.GroupInfo{Name: g.Name, GID: gid})
 	}
 
 	return uInfo.UserInfo, nil

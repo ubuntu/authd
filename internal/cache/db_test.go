@@ -13,6 +13,7 @@ import (
 	"github.com/ubuntu/authd/internal/cache"
 	cachetests "github.com/ubuntu/authd/internal/cache/tests"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/users"
 )
 
 func TestNew(t *testing.T) {
@@ -147,17 +148,15 @@ func TestNew(t *testing.T) {
 func TestUpdateFromUserInfo(t *testing.T) {
 	t.Parallel()
 
-	gid11111, gid22222, gid33333 := 11111, 22222, 33333
-
-	userCases := map[string]cache.UserInfo{
+	userCases := map[string]users.UserInfo{
 		"user1": {
 			Name:  "user1",
 			UID:   1111,
 			Gecos: "User1 gecos\nOn multiple lines",
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
-			Groups: []cache.GroupInfo{
-				{Name: "group1", GID: &gid11111},
+			Groups: []users.GroupInfo{
+				{Name: "group1", GID: ptrValue(11111)},
 			},
 		},
 		"user1-new-attributes": {
@@ -166,8 +165,8 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Gecos: "New user1 gecos",
 			Dir:   "/home/newuser1",
 			Shell: "/bin/dash",
-			Groups: []cache.GroupInfo{
-				{Name: "group1", GID: &gid11111},
+			Groups: []users.GroupInfo{
+				{Name: "group1", GID: ptrValue(11111)},
 			},
 		},
 		"group1-new-attributes": {
@@ -176,8 +175,8 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Gecos: "User1 gecos\nOn multiple lines",
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
-			Groups: []cache.GroupInfo{
-				{Name: "newgroup1", GID: &gid11111},
+			Groups: []users.GroupInfo{
+				{Name: "newgroup1", GID: ptrValue(11111)},
 			},
 		},
 		"user1-without-groups": {
@@ -193,9 +192,9 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Gecos: "User1 gecos\nOn multiple lines",
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
-			Groups: []cache.GroupInfo{
-				{Name: "group1", GID: &gid11111},
-				{Name: "group2", GID: &gid22222},
+			Groups: []users.GroupInfo{
+				{Name: "group1", GID: ptrValue(11111)},
+				{Name: "group2", GID: ptrValue(22222)},
 			},
 		},
 		"user1-with-new-default-group": {
@@ -204,9 +203,9 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Gecos: "User1 gecos\nOn multiple lines",
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
-			Groups: []cache.GroupInfo{
-				{Name: "group2", GID: &gid22222},
-				{Name: "group1", GID: &gid11111},
+			Groups: []users.GroupInfo{
+				{Name: "group2", GID: ptrValue(22222)},
+				{Name: "group1", GID: ptrValue(11111)},
 			},
 		},
 		"user1-with-only-new-group": {
@@ -215,8 +214,8 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Gecos: "User1 gecos\nOn multiple lines",
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
-			Groups: []cache.GroupInfo{
-				{Name: "group2", GID: &gid22222},
+			Groups: []users.GroupInfo{
+				{Name: "group2", GID: ptrValue(22222)},
 			},
 		},
 		"user1-with-local-group": {
@@ -225,8 +224,8 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Gecos: "User1 gecos\nOn multiple lines",
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
-			Groups: []cache.GroupInfo{
-				{Name: "group1", GID: &gid11111},
+			Groups: []users.GroupInfo{
+				{Name: "group1", GID: ptrValue(11111)},
 				{Name: "local-group"},
 			},
 		},
@@ -236,8 +235,8 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Gecos: "User3 gecos",
 			Dir:   "/home/user3",
 			Shell: "/bin/zsh",
-			Groups: []cache.GroupInfo{
-				{Name: "group3", GID: &gid33333},
+			Groups: []users.GroupInfo{
+				{Name: "group3", GID: ptrValue(33333)},
 			},
 		},
 	}
@@ -595,4 +594,9 @@ func requireGetAssertions[E any](t *testing.T, got E, wantErrType, err error, c 
 
 	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
 	require.Equal(t, want, got, "Did not get expected database entry")
+}
+
+// ptrValue returns a pointer to the given value to simplify the syntax for const.
+func ptrValue[T any](value T) *T {
+	return &value
 }

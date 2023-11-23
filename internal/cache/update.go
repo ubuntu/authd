@@ -9,11 +9,12 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ubuntu/authd/internal/users"
 	"go.etcd.io/bbolt"
 )
 
 // UpdateFromUserInfo inserts or updates user and group buckets from the user information.
-func (c *Cache) UpdateFromUserInfo(u UserInfo) error {
+func (c *Cache) UpdateFromUserInfo(u users.UserInfo) error {
 	// create bucket contents dynamically
 	gid := -1
 	if len(u.Groups) > 0 && u.Groups[0].GID != nil {
