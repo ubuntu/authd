@@ -1,0 +1,4 @@
+FIRST CALL:
+	access: granted
+	data: {"Name":"IA_info_missing_ugid","UID":96915,"Gecos":"gecos for IA_info_missing_ugid","Dir":"/home/IA_info_missing_ugid","Shell":"/bin/sh/IA_info_missing_ugid","Groups":[{"Name":"group-IA_info_missing_ugid","GID":null}]}
+	err: <nil>

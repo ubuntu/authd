@@ -147,6 +147,8 @@ func TestNew(t *testing.T) {
 func TestUpdateFromUserInfo(t *testing.T) {
 	t.Parallel()
 
+	gid11111, gid22222, gid33333 := 11111, 22222, 33333
+
 	userCases := map[string]cache.UserInfo{
 		"user1": {
 			Name:  "user1",
@@ -155,7 +157,7 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
 			Groups: []cache.GroupInfo{
-				{Name: "group1", GID: 11111},
+				{Name: "group1", GID: &gid11111},
 			},
 		},
 		"user1-new-attributes": {
@@ -165,7 +167,7 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Dir:   "/home/newuser1",
 			Shell: "/bin/dash",
 			Groups: []cache.GroupInfo{
-				{Name: "group1", GID: 11111},
+				{Name: "group1", GID: &gid11111},
 			},
 		},
 		"group1-new-attributes": {
@@ -175,7 +177,7 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
 			Groups: []cache.GroupInfo{
-				{Name: "newgroup1", GID: 11111},
+				{Name: "newgroup1", GID: &gid11111},
 			},
 		},
 		"user1-without-groups": {
@@ -192,8 +194,8 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
 			Groups: []cache.GroupInfo{
-				{Name: "group1", GID: 11111},
-				{Name: "group2", GID: 22222},
+				{Name: "group1", GID: &gid11111},
+				{Name: "group2", GID: &gid22222},
 			},
 		},
 		"user1-with-new-default-group": {
@@ -203,8 +205,8 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
 			Groups: []cache.GroupInfo{
-				{Name: "group2", GID: 22222},
-				{Name: "group1", GID: 11111},
+				{Name: "group2", GID: &gid22222},
+				{Name: "group1", GID: &gid11111},
 			},
 		},
 		"user1-with-only-new-group": {
@@ -214,7 +216,7 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
 			Groups: []cache.GroupInfo{
-				{Name: "group2", GID: 22222},
+				{Name: "group2", GID: &gid22222},
 			},
 		},
 		"user3-without-common-group": {
@@ -224,7 +226,7 @@ func TestUpdateFromUserInfo(t *testing.T) {
 			Dir:   "/home/user3",
 			Shell: "/bin/zsh",
 			Groups: []cache.GroupInfo{
-				{Name: "group3", GID: 33333},
+				{Name: "group3", GID: &gid33333},
 			},
 		},
 	}
