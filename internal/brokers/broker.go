@@ -334,10 +334,11 @@ func validateUserInfoAndGenerateIDs(brokerName string, rawMsg json.RawMessage) (
 		if g.Name == "" {
 			return cache.UserInfo{}, fmt.Errorf("group has empty name")
 		}
-		if g.UGID == "" {
-			return cache.UserInfo{}, fmt.Errorf("group %q has empty UGID", g.Name)
+		var gid *int
+		if g.UGID != "" {
+			gidv := generateID(brokerName + g.UGID)
+			gid = &gidv
 		}
-		gid := generateID(brokerName + g.UGID)
 		uInfo.UserInfo.Groups = append(uInfo.UserInfo.Groups, cache.GroupInfo{Name: g.Name, GID: gid})
 	}
 

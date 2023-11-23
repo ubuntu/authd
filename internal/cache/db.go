@@ -77,7 +77,7 @@ type UserInfo struct {
 // GroupInfo is the group information returned by the broker. We use that to build our own buckets content.
 type GroupInfo struct {
 	Name string
-	GID  int
+	GID  *int
 }
 
 // userDB is the struct stored in json format in the bucket.

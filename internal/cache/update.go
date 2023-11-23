@@ -16,8 +16,8 @@ import (
 func (c *Cache) UpdateFromUserInfo(u UserInfo) error {
 	// create bucket contents dynamically
 	gid := -1
-	if len(u.Groups) > 0 {
-		gid = u.Groups[0].GID
+	if len(u.Groups) > 0 && u.Groups[0].GID != nil {
+		gid = *u.Groups[0].GID
 	}
 	userDB := userDB{
 		UserPasswdShadow: UserPasswdShadow{
@@ -39,7 +39,14 @@ func (c *Cache) UpdateFromUserInfo(u UserInfo) error {
 
 	var groupContents []groupDB
 	for _, g := range u.Groups {
-		groupContents = append(groupContents, groupDB(g))
+		// System group: ignore here, not part of the cache.
+		if g.GID == nil {
+			continue
+		}
+		groupContents = append(groupContents, groupDB{
+			Name: g.Name,
+			GID:  *g.GID,
+		})
 	}
 
 	c.mu.RLock()
