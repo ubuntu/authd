@@ -66,10 +66,11 @@ func TrackRustCoverage(t *testing.T, src string) (env []string, target string) {
 		target = t.TempDir()
 	}
 
-	coverDir := filepath.Join(CoverDir(), "rust-cov")
+	coverDir := CoverDir()
 	if coverDir == "" {
 		return nil, target
 	}
+	coverDir = filepath.Join(coverDir, "rust-cov")
 
 	t.Cleanup(func() {
 		rustJSONCoverage := filepath.Join(coverDir, "rust_coverage.json")
