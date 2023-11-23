@@ -219,6 +219,17 @@ func TestUpdateFromUserInfo(t *testing.T) {
 				{Name: "group2", GID: &gid22222},
 			},
 		},
+		"user1-with-local-group": {
+			Name:  "user1",
+			UID:   1111,
+			Gecos: "User1 gecos\nOn multiple lines",
+			Dir:   "/home/user1",
+			Shell: "/bin/bash",
+			Groups: []cache.GroupInfo{
+				{Name: "group1", GID: &gid11111},
+				{Name: "local-group"},
+			},
+		},
 		"user3-without-common-group": {
 			Name:  "user3",
 			UID:   3333,
@@ -256,6 +267,9 @@ func TestUpdateFromUserInfo(t *testing.T) {
 		"Update only user even if we have multiple of them":     {userCase: "user1", dbFile: "multiple_users_and_groups"},
 		"Add user to group from another user":                   {userCase: "user1-with-new-group", dbFile: "multiple_users_and_groups"},
 		"Remove user from a group still part from another user": {userCase: "user3-without-common-group", dbFile: "multiple_users_and_groups"},
+
+		// Local group with no gid
+		"Local groups are filtered": {userCase: "user1-with-local-group"},
 
 		// Allowed inconsistent cases
 		"Invalid value entry in groupByID but user restating group recreates entries":       {userCase: "user1", dbFile: "invalid_entry_in_groupByID"},
