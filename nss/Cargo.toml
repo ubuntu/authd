@@ -25,7 +25,7 @@ prost = "0.12.3"
 tokio = { version = "1.34.0", features = ["macros", "rt-multi-thread"] }
 tower = "0.4.13"
 log = "0.4.20"
-simple_logger = {version = "4.2.0", features = ["stderr"]}
+simple_logger = {version = "4.3.0", features = ["stderr"]}
 syslog = "6.1.0"
 ctor = "0.2.5"
 
