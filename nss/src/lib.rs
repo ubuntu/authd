@@ -1,5 +1,5 @@
 #[macro_use]
-extern crate lazy_static;
+extern crate lazy_static; // used by libnss_*_hooks macros
 use libnss::{interop::Response, libnss_group_hooks, libnss_passwd_hooks, libnss_shadow_hooks};
 
 mod passwd;
@@ -12,17 +12,12 @@ libnss_group_hooks!(authd, AuthdGroup);
 
 mod shadow;
 use shadow::AuthdShadow;
-use tokio::runtime::{Builder, Runtime};
 use tonic::{Code, Status};
 libnss_shadow_hooks!(authd, AuthdShadow);
 
 mod logs;
 
 mod client;
-
-lazy_static! {
-    pub static ref RT: Runtime = Builder::new_current_thread().enable_all().build().unwrap();
-}
 
 /// socket_path returns the socket path to connect to the gRPC server.
 ///
