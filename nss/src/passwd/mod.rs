@@ -2,6 +2,7 @@ use crate::error;
 use libc::uid_t;
 use libnss::interop::Response;
 use libnss::passwd::{Passwd, PasswdHooks};
+use tokio::runtime::Builder;
 use tonic::Request;
 
 use crate::client::{self, authd};
@@ -27,7 +28,15 @@ impl PasswdHooks for AuthdPasswd {
 
 /// get_all_entries connects to the grpc server and asks for all passwd entries.
 fn get_all_entries() -> Response<Vec<Passwd>> {
-    super::RT.block_on(async {
+    let rt = match Builder::new_current_thread().enable_all().build() {
+        Ok(rt) => rt,
+        Err(e) => {
+            error!("could not create runtime for NSS: {}", e);
+            return Response::Unavail;
+        }
+    };
+
+    rt.block_on(async {
         let mut client = match client::new_client().await {
             Ok(c) => c,
             Err(e) => {
@@ -49,7 +58,15 @@ fn get_all_entries() -> Response<Vec<Passwd>> {
 
 /// get_entry_by_uid connects to the grpc server and asks for the passwd entry with the given uid.
 fn get_entry_by_uid(uid: uid_t) -> Response<Passwd> {
-    super::RT.block_on(async {
+    let rt = match Builder::new_current_thread().enable_all().build() {
+        Ok(rt) => rt,
+        Err(e) => {
+            error!("could not create runtime for NSS: {}", e);
+            return Response::Unavail;
+        }
+    };
+
+    rt.block_on(async {
         let mut client = match client::new_client().await {
             Ok(c) => c,
             Err(e) => {
@@ -71,7 +88,15 @@ fn get_entry_by_uid(uid: uid_t) -> Response<Passwd> {
 
 /// get_entry_by_name connects to the grpc server and asks for the passwd entry with the given name.
 fn get_entry_by_name(name: String) -> Response<Passwd> {
-    super::RT.block_on(async {
+    let rt = match Builder::new_current_thread().enable_all().build() {
+        Ok(rt) => rt,
+        Err(e) => {
+            error!("could not create runtime for NSS: {}", e);
+            return Response::Unavail;
+        }
+    };
+
+    rt.block_on(async {
         let mut client = match client::new_client().await {
             Ok(c) => c,
             Err(e) => {
