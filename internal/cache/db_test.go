@@ -492,6 +492,7 @@ GroupByName: {}
 GroupToUsers: {}
 UserByID: {}
 UserByName: {}
+UserToBroker: {}
 UserToGroups: {}
 `
 

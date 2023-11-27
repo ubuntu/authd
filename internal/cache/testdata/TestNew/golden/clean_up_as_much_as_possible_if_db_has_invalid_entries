@@ -16,6 +16,7 @@ UserByID:
 UserByName:
     user2: '"not-a-valid-json"'
     user3: '"not-a-valid-json"'
+UserToBroker: {}
 UserToGroups:
     "2222": '"not-a-valid-json"'
     "3333": '"not-a-valid-json"'
