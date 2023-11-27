@@ -39,9 +39,10 @@ func TestNew(t *testing.T) {
 		"New with already existing database":   {dbFile: "multiple_users_and_groups"},
 
 		// Clean up tests
-		"Clean up all users":   {dbFile: "only_old_users", expirationDate: "2020-01-01"},
-		"Clean up some users":  {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01"},
-		"Clean up on interval": {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01", cleanupInterval: 1, skipCleanOnNew: true},
+		"Clean up all users":  {dbFile: "only_old_users", expirationDate: "2020-01-01"},
+		"Clean up some users": {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01"},
+		"Clean up also cleans last selected broker for user":     {dbFile: "multiple_users_and_groups_with_brokers", expirationDate: "2020-01-01"},
+		"Clean up on interval":                                   {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01", cleanupInterval: 1, skipCleanOnNew: true},
 		"Clean up as much as possible if db has invalid entries": {dbFile: "invalid_entries_but_user_and_group1", expirationDate: "2020-01-01"},
 		"Clean up user even if it is not listed on the group":    {dbFile: "user_not_in_groupToUsers", expirationDate: "2020-01-01"},
 		"Do not clean any user":                                  {dbFile: "multiple_users_and_groups"},
@@ -464,6 +465,37 @@ func TestAllGroups(t *testing.T) {
 			requireGetAssertions(t, got, tc.wantErrType, err, c, cacheDir)
 		})
 	}
+}
+
+func TestUpdateBrokerForUser(t *testing.T) {
+	t.Parallel()
+
+	c, _ := initCache(t, "one_user_and_group")
+
+	// Update broker for existent user
+	err := c.UpdateBrokerForUser("user1", "ExampleBrokerID")
+	require.NoError(t, err, "UpdateBrokerForUser for an existent user should not return an error")
+
+	// Error when updating broker for nonexistent user
+	err = c.UpdateBrokerForUser("nonexistent", "ExampleBrokerID")
+	require.Error(t, err, "UpdateBrokerForUser for a nonexistent user should return an error")
+}
+
+func TestBrokerForUser(t *testing.T) {
+	t.Parallel()
+
+	c, _ := initCache(t, "multiple_users_and_groups_with_brokers")
+
+	// Get existing BrokerForUser entry
+	gotID, err := c.BrokerForUser("user1")
+	require.NoError(t, err, "BrokerForUser for an existent entry should not return an error")
+	wantID := testutils.LoadWithUpdateFromGolden(t, gotID)
+	require.Equal(t, wantID, gotID, "BrokerForUser should return expected broker ID")
+
+	// Error when entry does not exist
+	gotID, err = c.BrokerForUser("nonexistent")
+	require.Error(t, err, "BrokerForUser for a nonexistent entry should return an error")
+	require.Empty(t, gotID, "BrokerForUser should return empty string when entry does not exist")
 }
 
 func createDBFile(t *testing.T, src, destDir string) {

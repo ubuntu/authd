@@ -84,23 +84,40 @@ func TestAvailableBrokers(t *testing.T) {
 func TestGetPreviousBroker(t *testing.T) {
 	t.Parallel()
 
-	username := t.Name()
+	cacheDir := t.TempDir()
+	f, err := os.Open(filepath.Join(testutils.TestFamilyPath(t), "get-previous-broker.db"))
+	require.NoError(t, err, "Setup: could not open fixture database file")
+	defer f.Close()
+	err = cachetests.DbfromYAML(f, cacheDir)
+	require.NoError(t, err, "Setup: could not prepare cache database file")
 
-	client := newPamClient(t, nil)
+	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
+	require.NoError(t, err, "Setup: could not parse time for testing")
 
-	// Try to get the broker for the user before assigning it.
-	gotResp, _ := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: username})
-	require.Empty(t, gotResp.GetPreviousBroker(), "GetPreviousBroker should return nil when the user has no broker assigned")
+	c, err := cache.New(cacheDir, cache.WithExpirationDate(expiration))
+	require.NoError(t, err, "Setup: could not create cache")
+	t.Cleanup(func() { _ = c.Close() })
+	client := newPamClient(t, c)
 
-	_, err := client.SetDefaultBrokerForUser(context.Background(), &authd.SDBFURequest{
-		BrokerId: "local",
-		Username: username,
-	})
-	require.NoError(t, err, "Setup: could not set default broker for user for tests")
+	// Get existing entry
+	gotResp, _ := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithbroker"})
+	require.Equal(t, "local", gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID")
 
-	// Assert that the broker assigned to the user is correct.
-	gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: username})
-	require.Equal(t, "local", gotResp.GetPreviousBroker(), "GetPreviousBroker did not return the correct broker")
+	// Get brokerID from memory if it was already assigned
+	gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithbroker"})
+	require.Equal(t, "local", gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID from memory")
+
+	// Return empty when user does not exist
+	gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "nonexistent"})
+	require.Empty(t, gotResp.GetPreviousBroker(), "GetPreviousBroker should return empty when user does not exist")
+
+	// Return empty when user does not have a broker
+	gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithoutbroker"})
+	require.Empty(t, gotResp.GetPreviousBroker(), "GetPreviousBroker should return empty when user does not have a broker")
+
+	// Return empty when broker is not available
+	gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithinactivebroker"})
+	require.Empty(t, gotResp.GetPreviousBroker(), "GetPreviousBroker should return empty when broker is not active")
 }
 
 func TestSelectBroker(t *testing.T) {
@@ -417,9 +434,9 @@ func TestIsAuthenticated(t *testing.T) {
 
 			// Check that cache has been updated too.
 			gotDB, err := cachetests.DumpToYaml(c)
-			require.NoError(t, err, "Setup: dump database for comparing")
+			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
-			require.Equal(t, wantDB, gotDB, "IsAuthenticated should udpate the cache database as expected")
+			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
 		})
 	}
 }
@@ -437,39 +454,53 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		// This is the expected return.
 		wantErr bool
 	}{
-		"Set default broker for existing user": {username: "success"},
+		"Set default broker for existing user": {username: "usersetbroker"},
 
 		"Error when username is empty":     {wantErr: true},
-		"Error when broker does not exist": {username: "no broker", noBroker: true, wantErr: true},
+		"Error when user does not exist ":  {username: "doesnotexist", wantErr: true},
+		"Error when broker does not exist": {username: "userwithbroker", noBroker: true, wantErr: true},
 	}
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t, nil)
+			cacheDir := t.TempDir()
+			f, err := os.Open(filepath.Join(testutils.TestFamilyPath(t), "set-default-broker.db"))
+			require.NoError(t, err, "Setup: could not open fixture database file")
+			defer f.Close()
+			err = cachetests.DbfromYAML(f, cacheDir)
+			require.NoError(t, err, "Setup: could not prepare cache database file")
+
+			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
+			require.NoError(t, err, "Setup: could not parse time for testing")
+
+			c, err := cache.New(cacheDir, cache.WithExpirationDate(expiration))
+			require.NoError(t, err, "Setup: could not create cache")
+			t.Cleanup(func() { _ = c.Close() })
+			client := newPamClient(t, c)
 
 			wantID := mockBrokerGeneratedID
 			if tc.noBroker {
 				wantID = "does not exist"
-			}
-			if tc.username != "" {
-				tc.username = t.Name() + tc.username
 			}
 
 			sdbfuReq := &authd.SDBFURequest{
 				BrokerId: wantID,
 				Username: tc.username,
 			}
-			_, err := client.SetDefaultBrokerForUser(context.Background(), sdbfuReq)
+			_, err = client.SetDefaultBrokerForUser(context.Background(), sdbfuReq)
 			if tc.wantErr {
 				require.Error(t, err, "SetDefaultBrokerForUser should return an error, but did not")
 				return
 			}
 			require.NoError(t, err, "SetDefaultBrokerForUser should not return an error, but did")
 
-			gotResp, _ := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: tc.username})
-			require.Equal(t, wantID, gotResp.GetPreviousBroker(), "SetDefaultBrokerForUser did not set the correct broker for the user")
+			// Check that cache has been updated too.
+			gotDB, err := cachetests.DumpToYaml(c)
+			require.NoError(t, err, "Setup: failed to dump database for comparing")
+			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
+			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
 		})
 	}
 }
