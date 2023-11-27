@@ -1,4 +1,4 @@
-//go:generate go run github.com/msteinert/pam/cmd/pam-moduler -libname "pam_authd.so" -no-main -type pamModule
+//go:generate go run github.com/msteinert/pam/cmd/pam-moduler -libname "pam_authd.so" -type pamModule -tags !pam_binary_cli
 //go:generate go generate --skip="pam_module.go"
 //go:generate sh -c "cc -o go-loader/pam_go_loader.so go-loader/module.c -Wl,--as-needed -Wl,--allow-shlib-undefined -shared -fPIC -Wl,--unresolved-symbols=report-all -lpam && chmod 600 go-loader/pam_go_loader.so"
 
@@ -17,7 +17,6 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/msteinert/pam"
-	"github.com/sirupsen/logrus"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
@@ -232,24 +231,4 @@ func (h *pamModule) CloseSession(pam.ModuleTransaction, pam.Flags, []string) err
 //export go_pam_cleanup_module
 func go_pam_cleanup_module() {
 	runtime.GC()
-}
-
-// Simulating pam on the CLI for manual testing.
-func main() {
-	log.SetLevel(log.DebugLevel)
-	f, err := os.OpenFile("/tmp/logdebug", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0600)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	logrus.SetOutput(f)
-
-	module := &pamModule{}
-
-	authResult := module.Authenticate(nil, pam.Flags(0), nil)
-	fmt.Println("Auth return:", authResult)
-
-	// Simulate setting auth broker as default.
-	accMgmtResult := module.AcctMgmt(nil, pam.Flags(0), nil)
-	fmt.Println("Acct mgmt return:", accMgmtResult)
 }
