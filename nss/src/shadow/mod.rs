@@ -1,6 +1,7 @@
 use crate::error;
 use libnss::interop::Response;
 use libnss::shadow::{Shadow, ShadowHooks};
+use tokio::runtime::Builder;
 use tonic::Request;
 
 use crate::client::{self, authd};
@@ -22,7 +23,15 @@ impl ShadowHooks for AuthdShadow {
 
 /// get_all_entries connects to the grpc server and asks for all shadow entries.
 fn get_all_entries() -> Response<Vec<Shadow>> {
-    super::RT.block_on(async {
+    let rt = match Builder::new_current_thread().enable_all().build() {
+        Ok(rt) => rt,
+        Err(e) => {
+            error!("could not create runtime for NSS: {}", e);
+            return Response::Unavail;
+        }
+    };
+
+    rt.block_on(async {
         let mut client = match client::new_client().await {
             Ok(c) => c,
             Err(e) => {
@@ -44,7 +53,15 @@ fn get_all_entries() -> Response<Vec<Shadow>> {
 
 /// get_entry_by_name connects to the grpc server and asks for the shadow entry with the given name.
 fn get_entry_by_name(name: String) -> Response<Shadow> {
-    super::RT.block_on(async {
+    let rt = match Builder::new_current_thread().enable_all().build() {
+        Ok(rt) => rt,
+        Err(e) => {
+            error!("could not create runtime for NSS: {}", e);
+            return Response::Unavail;
+        }
+    };
+
+    rt.block_on(async {
         let mut client = match client::new_client().await {
             Ok(c) => c,
             Err(e) => {
