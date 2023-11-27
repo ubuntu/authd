@@ -187,3 +187,26 @@ func updateBucket[K int | string](bucket bucketWithName, key K, value any) {
 		panic(fmt.Sprintf("programming error: Put is not executed in a RW transaction: %v", err))
 	}
 }
+
+// UpdateBrokerForUser updates the last broker the user successfully authenticated with.
+func (c *Cache) UpdateBrokerForUser(username, brokerID string) error {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	u, err := c.UserByName(username)
+	if err != nil {
+		return err
+	}
+
+	err = c.db.Update(func(tx *bbolt.Tx) error {
+		bucket, err := getBucket(tx, userToBrokerBucketName)
+		if err != nil {
+			c.requestClearDatabase()
+			return err
+		}
+		updateBucket(bucket, u.UID, brokerID)
+		return nil
+	})
+
+	return err
+}

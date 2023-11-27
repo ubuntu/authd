@@ -54,14 +54,23 @@ func (s Service) AvailableBrokers(ctx context.Context, _ *authd.Empty) (*authd.A
 
 // GetPreviousBroker returns the previous broker set for a given user, if any.
 func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (*authd.GPBResponse, error) {
-	var r authd.GPBResponse
-
-	b := s.brokerManager.BrokerForUser(req.GetUsername())
-	if b != nil {
-		r.PreviousBroker = &b.ID
+	if b := s.brokerManager.BrokerForUser(req.GetUsername()); b != nil {
+		return &authd.GPBResponse{PreviousBroker: &b.ID}, nil
 	}
 
-	return &r, nil
+	brokerID, err := s.cache.BrokerForUser(req.GetUsername())
+	if err != nil {
+		log.Infof(ctx, "Could not get previous broker for user %q from cache: %v", req.GetUsername(), err)
+		return &authd.GPBResponse{}, nil
+	}
+
+	// Updates manager memory to stop needing to query the database for the broker.
+	if err = s.brokerManager.SetDefaultBrokerForUser(brokerID, req.GetUsername()); err != nil {
+		log.Warningf(ctx, "Last broker used by %q is not available: %v", req.GetUsername(), err)
+		return &authd.GPBResponse{}, nil
+	}
+
+	return &authd.GPBResponse{PreviousBroker: &brokerID}, nil
 }
 
 // SelectBroker starts a new session and selects the requested broker for the user.
@@ -212,9 +221,15 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURe
 		return nil, status.Error(codes.InvalidArgument, "no user name given")
 	}
 
-	err = s.brokerManager.SetDefaultBrokerForUser(req.GetBrokerId(), req.GetUsername())
+	if err = s.brokerManager.SetDefaultBrokerForUser(req.GetBrokerId(), req.GetUsername()); err != nil {
+		return &authd.Empty{}, err
+	}
 
-	return &authd.Empty{}, err
+	if err = s.cache.UpdateBrokerForUser(req.GetUsername(), req.GetBrokerId()); err != nil {
+		return &authd.Empty{}, err
+	}
+
+	return &authd.Empty{}, nil
 }
 
 // EndSession asks the broker associated with the sessionID to end the session.
