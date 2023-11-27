@@ -512,8 +512,7 @@ func createDBFile(t *testing.T, src, destDir string) {
 func requireNoDirtyFileInDir(t *testing.T, cacheDir string) {
 	t.Helper()
 
-	_, err := os.Stat(filepath.Join(cacheDir, cachetests.DirtyFlagDbName))
-	require.ErrorIs(t, err, fs.ErrNotExist, "Dirty flag should have been removed")
+	require.NoFileExists(t, filepath.Join(cacheDir, cachetests.DirtyFlagDbName), "Dirty flag should have been removed")
 }
 
 func requireClearedDatabase(t *testing.T, c *cache.Cache) {
