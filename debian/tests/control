@@ -1,0 +1,3 @@
+Test-Command: go test -v -mod=vendor ./...
+Restrictions: allow-stderr
+Depends: @builddeps@

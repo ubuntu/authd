@@ -1,0 +1,9 @@
+# NSS libraries don't provide symlinks to the versioned library
+authd: lacks-versioned-link-to-shared-library usr/lib/*/libnss_authd.so [usr/lib/*/libnss_authd.so.2]
+
+# cargo build currently does not support changing the output name of libraries and the functionality
+# is still being tracked at https://github.com/rust-lang/cargo/issues/9778. Therefore, we must build
+# it with the base name (i.e. libnss_authd.so) and then manually rename it to contain the version, as
+# done in the dh_auto_install step.
+# With this approach, libnss is not using soname to track compatibility, so this override is safe.
+authd: shared-library-lacks-version usr/lib/*/libnss_authd.so.2 libnss_authd.so

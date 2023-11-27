@@ -1,0 +1,86 @@
+#!/usr/bin/make -f
+#export DH_VERBOSE = 1
+
+export GOCACHE := $(shell mktemp -d /tmp/gocache-XXXX)
+export GOFLAGS := -ldflags=-X=github.com/ubuntu/authd/internal/consts.Version=$(shell dpkg-parsechangelog -S Version) --mod=vendor -buildmode=pie
+
+export DEB_BUILD_MAINT_OPTIONS := optimize=-lto
+
+# Strict symbols checking
+export DPKG_GENSYMBOLS_CHECK_LEVEL := 4
+
+# Copy in build directory all content to embed
+export DH_GOLANG_INSTALL_ALL := 1
+
+# The following definitions are necessary because of the manual steps
+# we need to do to work around some issues with either dh-cargo,
+# the wrapper, or cargo
+include /usr/share/rustc/architecture.mk
+CARGO := /usr/share/cargo/bin/cargo
+
+# Needed for Rust vendored sources tracking
+DH_CARGO_VENDORED_SOURCES := /usr/share/cargo/bin/dh-cargo-vendored-sources
+export CARGO_VENDOR_DIR = vendor_rust
+
+%:
+	dh $@ --buildsystem=golang --with=golang,apport
+
+override_dh_auto_clean:
+	dh_auto_clean
+	dh_auto_clean --buildsystem=cargo
+
+	# Vendor Go dependencies when building the source package
+	[ -d vendor/ ] || go mod vendor
+
+	# Vendor Rust dependencies when building the source package
+	[ -d vendor_rust/ ] || \
+		CARGO=$(CARGO) DH_CARGO_VENDORED_SOURCES=$(DH_CARGO_VENDORED_SOURCES) \
+		CARGO_VENDOR_DIR=$(CARGO_VENDOR_DIR) debian/vendor-rust.sh
+
+override_dh_auto_configure:
+	dh_auto_configure
+
+	[ ! -e $(DH_CARGO_VENDORED_SOURCES) ] || $(DH_CARGO_VENDORED_SOURCES)
+	DEB_HOST_GNU_TYPE=$(DEB_HOST_GNU_TYPE) DEB_HOST_RUST_TYPE=$(DEB_HOST_RUST_TYPE) \
+	CARGO_HOME=$(CURDIR)/debian/cargo_home DEB_CARGO_CRATE=nss_$(shell dpkg-parsechangelog --show-field Version) \
+	RUSTFLAGS="--cfg=rustix_use_libc" \
+		$(CARGO) prepare-debian $(CARGO_VENDOR_DIR)
+
+override_dh_auto_build:
+	# Build PAM library & Go loader
+	go generate -x ./pam
+
+	# Build the NSS library
+	DEB_HOST_GNU_TYPE=$(DEB_HOST_GNU_TYPE) \
+	DEB_HOST_RUST_TYPE=$(DEB_HOST_RUST_TYPE) \
+	CARGO_HOME=$(CURDIR)/debian/cargo_home \
+		$(CARGO) build --release
+
+	# Build the daemon
+	DH_GOLANG_BUILDPKG=github.com/ubuntu/authd/cmd/authd dh_auto_build
+
+override_dh_auto_test:
+	# We need to specify these Rust related variables to the Go tests in order to build the NSS lib
+	# with the cargo wrapper in the integration tests in order to force cargo to use vendored deps
+	# instead of querying crates.io for them.
+	DEB_HOST_GNU_TYPE=$(DEB_HOST_GNU_TYPE) \
+	DEB_HOST_RUST_TYPE=$(DEB_HOST_RUST_TYPE) \
+	CARGO_HOME=$(CURDIR)/debian/cargo_home \
+	CARGO_PATH=$(CARGO) \
+		dh_auto_test
+
+override_dh_auto_install:
+	dh_auto_install -- --no-source
+
+	# Install daemon in /sbin
+	mv debian/authd/usr/bin/ debian/authd/usr/sbin
+
+	# Install PAM module configuration
+	install -Dm644 debian/pam-configs/authd debian/authd/usr/share/pam-configs/authd
+
+	# Install PAM
+	install -Dm644 pam/go-loader/pam_go_loader.so debian/authd/usr/lib/$(DEB_TARGET_GNU_TYPE)/security/pam_go_loader.so
+	install -Dm644 pam/pam_authd.so debian/authd/usr/lib/$(DEB_TARGET_GNU_TYPE)/security/pam_authd.so
+
+	# Install NSS
+	install -Dm644 target/$(DEB_TARGET_RUST_TYPE)/release/libnss_authd.so debian/authd/usr/lib/$(DEB_TARGET_GNU_TYPE)/libnss_authd.so.2
