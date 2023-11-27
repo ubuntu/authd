@@ -50,7 +50,7 @@ func TestVersion(t *testing.T) {
 	want := "authd"
 
 	require.Equal(t, want, fields[0], "Wrong executable name")
-	require.Equal(t, "Dev", fields[1], "Wrong version")
+	require.Equal(t, consts.Version, fields[1], "Wrong version")
 }
 
 func TestNoUsageError(t *testing.T) {
