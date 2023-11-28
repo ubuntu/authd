@@ -378,6 +378,8 @@ func (c *Cache) Close() error {
 
 // requestClearDatabase ask for the clean goroutine to clear up the database.
 // If we already have a pending request, do not block on it.
+// TODO: improve behavior when cleanup is already running
+// (either remove the dangling dirty file or queue the cleanup request).
 func (c *Cache) requestClearDatabase() {
 	if err := os.WriteFile(c.dirtyFlagPath, nil, 0600); err != nil {
 		slog.Warn(fmt.Sprintf("Could not write dirty file flag to signal clearing up the database: %v", err))
