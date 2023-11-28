@@ -193,7 +193,7 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 		return nil, err
 	}
 
-	// Update database on granted auth.
+	// Update database and local groups on granted auth.
 	if access == responses.AuthGranted {
 		var user users.UserInfo
 		if err := json.Unmarshal([]byte(data), &user); err != nil {
@@ -201,6 +201,10 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 		}
 
 		if err := s.cache.UpdateFromUserInfo(user); err != nil {
+			return nil, err
+		}
+
+		if err := user.UpdateLocalGroups(); err != nil {
 			return nil, err
 		}
 
