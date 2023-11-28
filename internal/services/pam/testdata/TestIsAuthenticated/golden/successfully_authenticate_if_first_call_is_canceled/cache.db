@@ -8,5 +8,6 @@ UserByID:
     "73793": '{"Name":"IA_second_call","UID":73793,"GID":73625,"Gecos":"gecos for IA_second_call","Dir":"/home/IA_second_call","Shell":"/bin/sh/IA_second_call","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserByName:
     IA_second_call: '{"Name":"IA_second_call","UID":73793,"GID":73625,"Gecos":"gecos for IA_second_call","Dir":"/home/IA_second_call","Shell":"/bin/sh/IA_second_call","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+UserToBroker: {}
 UserToGroups:
     "73793": '{"UID":73793,"GIDs":[73625]}'

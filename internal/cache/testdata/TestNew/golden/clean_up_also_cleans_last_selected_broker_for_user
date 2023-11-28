@@ -11,6 +11,7 @@ UserByID:
     "3333": '{"Name":"user3","UID":3333,"GID":33333,"Gecos":"User3","Dir":"/home/user3","Shell":"/bin/zsh","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserByName:
     user3: '{"Name":"user3","UID":3333,"GID":33333,"Gecos":"User3","Dir":"/home/user3","Shell":"/bin/zsh","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
-UserToBroker: {}
+UserToBroker:
+    "3333": '"ExampleBrokerID"'
 UserToGroups:
     "3333": '{"UID":3333,"GIDs":[33333,99999]}'

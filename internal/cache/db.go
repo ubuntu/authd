@@ -32,6 +32,7 @@ const (
 	groupByIDBucketName    = "GroupByID"
 	userToGroupsBucketName = "UserToGroups"
 	groupToUsersBucketName = "GroupToUsers"
+	userToBrokerBucketName = "UserToBroker"
 
 	// defaultEntryExpiration is the amount of time the user is allowed on the cache without authenticating.
 	// It's equivalent to 6 months.
@@ -45,7 +46,9 @@ var (
 	allBuckets = [][]byte{
 		[]byte(userByNameBucketName), []byte(userByIDBucketName),
 		[]byte(groupByNameBucketName), []byte(groupByIDBucketName),
-		[]byte(userToGroupsBucketName), []byte(groupToUsersBucketName)}
+		[]byte(userToGroupsBucketName), []byte(groupToUsersBucketName),
+		[]byte(userToBrokerBucketName),
+	}
 )
 
 // Cache is our database API.
@@ -257,7 +260,7 @@ func openAndInitDB(path, dirtyFlagPath string) (*bbolt.DB, error) {
 
 		// Clear up any unknown buckets
 		var bucketNamesToDelete [][]byte
-		err = tx.ForEach(func(name []byte, b *bbolt.Bucket) error {
+		err = tx.ForEach(func(name []byte, _ *bbolt.Bucket) error {
 			if slices.Contains(allBucketsNames, string(name)) {
 				return nil
 			}

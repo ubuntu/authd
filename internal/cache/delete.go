@@ -75,5 +75,8 @@ func deleteUser(buckets map[string]bucketWithName, uid int) (err error) {
 	if err = buckets[userByNameBucketName].Delete([]byte(u.Name)); err != nil {
 		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
 	}
+	if err = buckets[userToBrokerBucketName].Delete([]byte(strconv.Itoa(u.UID))); err != nil {
+		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
+	}
 	return nil
 }
