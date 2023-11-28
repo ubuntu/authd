@@ -384,7 +384,7 @@ func (c *Cache) requestClearDatabase() {
 	}
 	select {
 	case c.doClear <- struct{}{}:
-	case <-time.After(time.Millisecond): // Let the time for the cleanup goroutine for the initial start.
+	case <-time.After(10 * time.Millisecond): // Let the time for the cleanup goroutine for the initial start.
 	}
 }
 
