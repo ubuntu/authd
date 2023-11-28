@@ -674,7 +674,7 @@ func userInfoFromName(name string) string {
 		"dir": "/home/{{.Name}}",
 		"shell": "/usr/bin/bash",
 		"avatar": "avatar for {{.Name}}",
-		"groups": [ {"name": "group-{{.Name}}", "ugid": "group-{{.Name}}"} ]
+		"groups": [ {"name": "group-{{.Name}}", "ugid": "group-{{.Name}}"}, {"name": "sudo"} ]
 	}`)).Execute(&buf, user)
 
 	return buf.String()
