@@ -64,7 +64,10 @@ func (c *Cache) dumpToYaml() (string, error) {
 	defer c.mu.RUnlock()
 
 	username := "root"
-	currentUser, _ := user.Current()
+	currentUser, err := user.Current()
+	if err != nil {
+		return "", err
+	}
 	if currentUser.Name != "" {
 		username = currentUser.Name
 	}
@@ -112,7 +115,10 @@ func dbfromYAML(r io.Reader, destDir string) error {
 	}
 
 	username := "root"
-	currentUser, _ := user.Current()
+	currentUser, err := user.Current()
+	if err != nil {
+		return err
+	}
 	if currentUser.Name != "" {
 		username = currentUser.Name
 	}
