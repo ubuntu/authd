@@ -359,7 +359,10 @@ func getActiveUsers(procDir string) (activeUsers map[string]struct{}, err error)
 
 		u, err := user.LookupId(strconv.Itoa(int(stats.Uid)))
 		if err != nil {
-			return nil, err
+			// Possibly a ghost/orphaned UID - no reason to error out,
+			// warn the user and continue.
+			slog.Warn(fmt.Sprintf("Could not map active user ID to an actual user: %v", err))
+			continue
 		}
 
 		activeUsers[u.Name] = struct{}{}
