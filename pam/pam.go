@@ -18,6 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/internal/adapter"
+	"github.com/ubuntu/authd/pam/internal/gdm"
 	"golang.org/x/term"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
@@ -76,13 +77,13 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 
 	var pamClientType adapter.PamClientType
 	var teaOpts []tea.ProgramOption
-	if term.IsTerminal(int(os.Stdin.Fd())) {
-		pamClientType = adapter.InteractiveTerminal
-	}
 
-	if pamClientType != adapter.InteractiveTerminal {
-		//nolint:staticcheck // FIXME: This will be used when adding other UIs.
+	if gdm.IsPamExtensionSupported(gdm.PamExtensionCustomJSON) {
+		pamClientType = adapter.Gdm
 		teaOpts = append(teaOpts, tea.WithInput(nil), tea.WithoutRenderer())
+	} else if term.IsTerminal(int(os.Stdin.Fd())) {
+		pamClientType = adapter.InteractiveTerminal
+	} else {
 		return fmt.Errorf("pam module used through an unsupported client: %w", pam.ErrSystem)
 	}
 

@@ -65,7 +65,9 @@ type isAuthenticatedResultReceived struct {
 }
 
 // isAuthenticatedCancelled is the event to cancel the auth request.
-type isAuthenticatedCancelled struct{}
+type isAuthenticatedCancelled struct {
+	msg string
+}
 
 // reselectAuthMode signals to restart auth mode selection with the same id (to resend sms or
 // reenable the broker).

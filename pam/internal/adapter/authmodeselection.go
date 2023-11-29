@@ -80,8 +80,11 @@ func newAuthModeSelectionModel(clientType PamClientType) authModeSelectionModel 
 
 // Init initializes authModeSelectionModel.
 func (m *authModeSelectionModel) Init() tea.Cmd {
+	if m.clientType == Gdm {
+		// This is handled by the GDM model!
+		return nil
+	}
 	return func() tea.Msg {
-		// TODO: call to 3rd party like gdm, to support dynamic ui layouts
 		required, optional := "required", "optional"
 		supportedEntries := "optional:chars,chars_password"
 		requiredWithBooleans := "required:true,false"
