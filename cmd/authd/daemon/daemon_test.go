@@ -2,6 +2,7 @@ package daemon_test
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 	"github.com/ubuntu/authd/cmd/authd/daemon"
 	cachetests "github.com/ubuntu/authd/internal/cache/tests"
 	"github.com/ubuntu/authd/internal/consts"
+	"github.com/ubuntu/authd/internal/testutils"
 )
 
 func TestHelp(t *testing.T) {
@@ -397,4 +399,16 @@ func captureStdout(t *testing.T) func() string {
 
 		return out.String()
 	}
+}
+
+func TestMain(m *testing.M) {
+	// Start system bus mock.
+	cleanup, err := testutils.StartSystemBusMock()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+	defer cleanup()
+
+	m.Run()
 }
