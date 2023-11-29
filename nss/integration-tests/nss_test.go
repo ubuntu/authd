@@ -3,6 +3,7 @@ package nss_test
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -123,6 +124,14 @@ func TestIntegration(t *testing.T) {
 func TestMain(m *testing.M) {
 	testutils.InstallUpdateFlag()
 	flag.Parse()
+
+	// Start system bus mock.
+	cleanup, err := testutils.StartSystemBusMock()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+	defer cleanup()
 
 	execPath, cleanup, err := buildDaemon()
 	if err != nil {
