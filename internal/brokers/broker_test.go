@@ -214,6 +214,8 @@ func TestIsAuthenticated(t *testing.T) {
 		"Denies authentication when broker times out":           {sessionID: "IA_timeout"},
 		"No error when auth.Next and no data":                   {sessionID: "IA_next"},
 
+		"No UGID means local group": {sessionID: "IA_info_missing_ugid"},
+
 		// broker errors
 		"Error when authenticating":                                           {sessionID: "IA_error"},
 		"Error on empty data even if granted":                                 {sessionID: "IA_empty_data"},
@@ -223,7 +225,6 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error when broker returns userinfo with empty username":              {sessionID: "IA_info_missing_user_name"},
 		"Error when broker returns userinfo with empty group name":            {sessionID: "IA_info_missing_group_name"},
 		"Error when broker returns userinfo with empty UUID":                  {sessionID: "IA_info_missing_uuid"},
-		"Error when broker returns userinfo with empty UGID":                  {sessionID: "IA_info_missing_ugid"},
 		"Error when broker returns userinfo with invalid homedir":             {sessionID: "IA_info_invalid_home"},
 		"Error when broker returns userinfo with invalid shell":               {sessionID: "IA_info_invalid_shell"},
 		"Error when broker returns data on auth.Next":                         {sessionID: "IA_next_with_data"},

@@ -15,6 +15,7 @@ import (
 	"github.com/godbus/dbus/v5/introspect"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/responses"
+	"github.com/ubuntu/authd/internal/users"
 )
 
 const (
@@ -223,7 +224,7 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 	}()
 
 	access = responses.AuthGranted
-	data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID))
+	data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID, nil))
 	if parsedID == "IA_invalid_access" {
 		access = "invalid"
 	}
@@ -248,7 +249,7 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 				data = ""
 			case <-time.After(2 * time.Second):
 				access = responses.AuthGranted
-				data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID))
+				data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID, nil))
 			}
 
 		case "IA_next":
@@ -260,6 +261,9 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 	<-done
 
 	switch parsedID {
+	case "success_with_local_groups":
+		extragroups := []users.GroupInfo{{Name: "localgroup1"}, {Name: "localgroup3"}}
+		data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID, extragroups))
 	case "IA_invalid_data":
 		data = "invalid"
 	case "IA_empty_data":
@@ -317,7 +321,7 @@ func parseSessionID(sessionID string) string {
 }
 
 // userInfoFromName transform a given name to the strinfigy userinfo string.
-func userInfoFromName(parsedID string) string {
+func userInfoFromName(parsedID string, extraGroups []users.GroupInfo) string {
 	// Default values
 	name := parsedID
 	group := "group-" + parsedID
@@ -341,14 +345,30 @@ func userInfoFromName(parsedID string) string {
 		shell = "this is not a valid shell"
 	}
 
+	type groupJSONInfo struct {
+		Name string
+		UGID string
+	}
+
+	groups := []groupJSONInfo{{Name: group, UGID: ugid}}
+	for _, g := range extraGroups {
+		var ugid string
+		if g.GID != nil {
+			ugid = fmt.Sprintf("ugid-%d", *g.GID)
+		}
+		groups = append(groups, groupJSONInfo{
+			Name: g.Name,
+			UGID: ugid,
+		})
+	}
+
 	user := struct {
-		Name  string
-		UUID  string
-		Home  string
-		Shell string
-		Group string
-		UGID  string
-	}{Name: name, UUID: uuid, Home: home, Shell: shell, Group: group, UGID: ugid}
+		Name   string
+		UUID   string
+		Home   string
+		Shell  string
+		Groups []groupJSONInfo
+	}{Name: name, UUID: uuid, Home: home, Shell: shell, Groups: groups}
 
 	// only used for tests, we can ignore the template execution error as the returned data will be failing.
 	var buf bytes.Buffer
@@ -359,7 +379,10 @@ func userInfoFromName(parsedID string) string {
 		"dir": "{{.Home}}",
 		"shell": "{{.Shell}}",
 		"avatar": "avatar for {{.Name}}",
-		"groups": [ {"name": "{{.Group}}", "ugid": "{{.UGID}}"} ]
+		"groups": [ {{range $index, $g := .Groups}}
+			{{- if $index}}, {{end -}}
+			{"name": "{{.Name}}", "ugid": "{{.UGID}}"}
+		{{- end}} ]
 	}`)).Execute(&buf, user)
 
 	return buf.String()

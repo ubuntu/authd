@@ -11,6 +11,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers/responses"
 	"github.com/ubuntu/authd/internal/cache"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -192,14 +193,18 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 		return nil, err
 	}
 
-	// Update database on granted auth.
+	// Update database and local groups on granted auth.
 	if access == responses.AuthGranted {
-		var user cache.UserInfo
+		var user users.UserInfo
 		if err := json.Unmarshal([]byte(data), &user); err != nil {
 			return nil, fmt.Errorf("user data from broker invalid: %v", err)
 		}
 
 		if err := s.cache.UpdateFromUserInfo(user); err != nil {
+			return nil, err
+		}
+
+		if err := user.UpdateLocalGroups(); err != nil {
 			return nil, err
 		}
 
