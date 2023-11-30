@@ -500,7 +500,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			gotDB, err := cachetests.DumpToYaml(c)
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
-			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
+			require.Equal(t, wantDB, gotDB, "SetDefaultBrokerForUser should update the cache database as expected")
 		})
 	}
 }
