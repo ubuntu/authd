@@ -1,25 +1,22 @@
+//go:generate go run github.com/msteinert/pam/cmd/pam-moduler -libname "pam_authd.so" -type pamModule -tags !pam_binary_cli
+//go:generate go generate --skip="pam_module.go"
+//go:generate sh -c "cc -o go-loader/pam_go_loader.so go-loader/module.c -Wl,--as-needed -Wl,--allow-shlib-undefined -shared -fPIC -Wl,--unresolved-symbols=report-all -lpam && chmod 600 go-loader/pam_go_loader.so"
+
+// Package main is the package for the PAM library.
 package main
 
-/*
-#cgo LDFLAGS: -lpam -fPIC
-#include <security/pam_appl.h>
-#include <security/pam_ext.h>
-#include <stdlib.h>
-#include <string.h>
-
-char *string_from_argv(int i, char **argv);
-*/
 import "C"
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/sirupsen/logrus"
+	"github.com/msteinert/pam"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
@@ -28,21 +25,54 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-var (
-	// brokerIDUsedToAuthenticate global variable is for the second stage authentication to select the default broker for the current user.
-	brokerIDUsedToAuthenticate string
+// pamModule is the structure that implements the pam.ModuleHandler interface
+// that is called during pam operations.
+type pamModule struct {
+}
+
+const (
+	// authenticationBrokerIDKey is the Key used to store the data in the
+	// PAM module for the second stage authentication to select the default
+	// broker for the current user.
+	authenticationBrokerIDKey = "authentication-broker-id"
 )
 
-//go:generate sh -c "cc -o go-loader/pam_go_loader.so go-loader/module.c -Wl,--as-needed -Wl,--allow-shlib-undefined -shared -fPIC -Wl,--unresolved-symbols=report-all -lpam && chmod 600 go-loader/pam_go_loader.so"
-//go:generate sh -c "go build -ldflags='-extldflags -Wl,-soname,pam_authd.so' -buildmode=c-shared -o pam_authd.so"
-
 /*
+	FIXME: provide instructions using pam-auth-update instead!
 	Add to /etc/pam.d/common-auth
 	auth    [success=3 default=die ignore=ignore]   pam_authd.so
 */
 
-//export pam_sm_authenticate
-func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+func showPamMessage(mTx pam.ModuleTransaction, style pam.Style, msg string) error {
+	switch style {
+	case pam.TextInfo | pam.ErrorMsg:
+	default:
+		return fmt.Errorf("message style not supported: %v", style)
+	}
+	if _, err := mTx.StartStringConv(style, msg); err != nil {
+		log.Errorf(context.TODO(), "Failed sending message to pam: %v", err)
+		return err
+	}
+	return nil
+}
+
+func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus pamReturnStatus) {
+	msg := retStatus.Message()
+	if msg == "" {
+		return
+	}
+
+	style := pam.ErrorMsg
+	switch retStatus.(type) {
+	case pamIgnore, pamSuccess:
+		style = pam.TextInfo
+	}
+
+	_ = showPamMessage(mTx, style, msg)
+}
+
+// Authenticate is the method that is invoked during pam_authenticate request.
+func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
 	// Initialize localization
 	// TODO
 
@@ -51,17 +81,21 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 
 	interactiveTerminal := term.IsTerminal(int(os.Stdin.Fd()))
 
-	client, closeConn, err := newClient(argc, argv)
+	client, closeConn, err := newClient(args)
 	if err != nil {
 		log.Debug(context.TODO(), err)
-		return C.PAM_IGNORE
+		return pam.ErrAuthinfoUnavail
 	}
 	defer closeConn()
 
 	appState := model{
-		pamh:                pamh,
+		pamMTx:              mTx,
 		client:              client,
 		interactiveTerminal: interactiveTerminal,
+	}
+
+	if err := mTx.SetData(authenticationBrokerIDKey, nil); err != nil {
+		return err
 	}
 
 	//tea.WithInput(nil)
@@ -73,68 +107,67 @@ func pam_sm_authenticate(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char)
 	p := tea.NewProgram(&appState, opts...)
 	if _, err := p.Run(); err != nil {
 		log.Errorf(context.TODO(), "Cancelled authentication: %v", err)
-		return C.PAM_ABORT
+		return pam.ErrAbort
 	}
 
-	logErrMsg := "unknown"
-	var errCode C.int = C.PAM_SYSTEM_ERR
+	sendReturnMessageToPam(mTx, appState.exitStatus)
 
-	switch exitMsg := appState.exitMsg.(type) {
+	switch exitStatus := appState.exitStatus.(type) {
 	case pamSuccess:
-		brokerIDUsedToAuthenticate = exitMsg.brokerID
-		return C.PAM_SUCCESS
+		if err := mTx.SetData(authenticationBrokerIDKey, exitStatus.brokerID); err != nil {
+			return err
+		}
+		return nil
+
 	case pamIgnore:
 		// localBrokerID is only set on pamIgnore if the user has chosen local broker.
-		brokerIDUsedToAuthenticate = exitMsg.localBrokerID
-		if exitMsg.String() != "" {
-			log.Debugf(context.TODO(), "Ignoring authd authentication: %s", exitMsg)
+		if err := mTx.SetData(authenticationBrokerIDKey, exitStatus.localBrokerID); err != nil {
+			return err
 		}
-		logErrMsg = ""
-		errCode = C.PAM_IGNORE
-	case pamAbort:
-		if exitMsg.String() != "" {
-			logErrMsg = fmt.Sprintf("cancelled authentication: %s", exitMsg)
-		}
-		errCode = C.PAM_ABORT
-	case pamAuthError:
-		if exitMsg.String() != "" {
-			logErrMsg = fmt.Sprintf("authentication: %s", exitMsg)
-		}
-		errCode = C.PAM_AUTH_ERR
-	case pamSystemError:
-		if exitMsg.String() != "" {
-			logErrMsg = fmt.Sprintf("system: %s", exitMsg)
-		}
-		errCode = C.PAM_SYSTEM_ERR
+		return fmt.Errorf("%w: %s", exitStatus.Status(), exitStatus.Message())
+
+	case pamReturnError:
+		return fmt.Errorf("%w: %s", exitStatus.Status(), exitStatus.Message())
 	}
 
-	if logErrMsg != "" {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", logErrMsg)
-	}
-
-	return errCode
+	return fmt.Errorf("%w: unknown exit code", pam.ErrSystem)
 }
 
-// pam_sm_acct_mgmt sets any used brokerID as default for the user.
-//
-//export pam_sm_acct_mgmt
-func pam_sm_acct_mgmt(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
+// AcctMgmt sets any used brokerID as default for the user.
+func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
+	brokerData, err := mTx.GetData(authenticationBrokerIDKey)
+	if err != nil && errors.Is(err, pam.ErrNoModuleData) {
+		return pam.ErrIgnore
+	}
+
+	brokerIDUsedToAuthenticate, ok := brokerData.(string)
+	if !ok {
+		msg := fmt.Sprintf("broker data as an invalid type %#v", brokerData)
+		log.Errorf(context.TODO(), msg)
+		_ = showPamMessage(mTx, pam.ErrorMsg, msg)
+		return pam.ErrIgnore
+	}
+
 	// Only set the brokerID as default if we stored one after authentication.
 	if brokerIDUsedToAuthenticate == "" {
-		return C.PAM_IGNORE
+		return pam.ErrIgnore
 	}
 
 	// Get current user for broker
-	user := getPAMUser(pamh)
-	if user == "" {
-		log.Infof(context.TODO(), "can't get user from PAM")
-		return C.PAM_IGNORE
+	user, err := mTx.GetItem(pam.User)
+	if err != nil {
+		return err
 	}
 
-	client, closeConn, err := newClient(argc, argv)
+	if user == "" {
+		log.Infof(context.TODO(), "can't get user from PAM")
+		return pam.ErrIgnore
+	}
+
+	client, closeConn, err := newClient(args)
 	if err != nil {
 		log.Debugf(context.TODO(), "%s", err)
-		return C.PAM_IGNORE
+		return pam.ErrIgnore
 	}
 	defer closeConn()
 
@@ -144,15 +177,15 @@ func pam_sm_acct_mgmt(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.
 	}
 	if _, err := client.SetDefaultBrokerForUser(context.TODO(), &req); err != nil {
 		log.Infof(context.TODO(), "Can't set default broker  (%q) for %q: %v", brokerIDUsedToAuthenticate, user, err)
-		return C.PAM_IGNORE
+		return pam.ErrIgnore
 	}
 
-	return C.PAM_SUCCESS
+	return nil
 }
 
-// newClient returns a new GRPC client ready to emit requests
-func newClient(argc C.int, argv **C.char) (client authd.PAMClient, close func(), err error) {
-	conn, err := grpc.Dial("unix://"+getSocketPath(argc, argv), grpc.WithTransportCredentials(insecure.NewCredentials()))
+// newClient returns a new GRPC client ready to emit requests.
+func newClient(args []string) (client authd.PAMClient, close func(), err error) {
+	conn, err := grpc.Dial("unix://"+getSocketPath(args), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not connect to authd: %v", err)
 	}
@@ -160,9 +193,9 @@ func newClient(argc C.int, argv **C.char) (client authd.PAMClient, close func(),
 }
 
 // getSocketPath returns the socket path to connect to which can be overridden manually.
-func getSocketPath(argc C.int, argv **C.char) string {
+func getSocketPath(args []string) string {
 	socketPath := consts.DefaultSocketPath
-	for _, arg := range sliceFromArgv(argc, argv) {
+	for _, arg := range args {
 		opt, optarg, _ := strings.Cut(arg, "=")
 		switch opt {
 		case "socket":
@@ -173,32 +206,29 @@ func getSocketPath(argc C.int, argv **C.char) string {
 	return socketPath
 }
 
-//export pam_sm_setcred
-func pam_sm_setcred(pamh *C.pam_handle_t, flags, argc C.int, argv **C.char) C.int {
-	return C.PAM_IGNORE
+// SetCred is the method that is invoked during pam_setcred request.
+func (h *pamModule) SetCred(pam.ModuleTransaction, pam.Flags, []string) error {
+	return pam.ErrIgnore
 }
 
-// go_pam_cleanup_module is called by the go-loader PAM module during onload
+// ChangeAuthTok is the method that is invoked during pam_chauthtok request.
+func (h *pamModule) ChangeAuthTok(pam.ModuleTransaction, pam.Flags, []string) error {
+	return pam.ErrIgnore
+}
+
+// OpenSession is the method that is invoked during pam_open_session request.
+func (h *pamModule) OpenSession(pam.ModuleTransaction, pam.Flags, []string) error {
+	return pam.ErrIgnore
+}
+
+// CloseSession is the method that is invoked during pam_close_session request.
+func (h *pamModule) CloseSession(pam.ModuleTransaction, pam.Flags, []string) error {
+	return pam.ErrIgnore
+}
+
+// go_pam_cleanup_module is called by the go-loader PAM module during onload.
 //
 //export go_pam_cleanup_module
 func go_pam_cleanup_module() {
 	runtime.GC()
-}
-
-// Simulating pam on the CLI for manual testing
-func main() {
-	log.SetLevel(log.DebugLevel)
-	f, err := os.OpenFile("/tmp/logdebug", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	logrus.SetOutput(f)
-
-	authResult := pam_sm_authenticate(nil, 0, 0, nil)
-	fmt.Println("Auth return:", authResult)
-
-	// Simulate setting auth broker as default.
-	accMgmtResult := pam_sm_acct_mgmt(nil, 0, 0, nil)
-	fmt.Println("Acct mgmt return:", accMgmtResult)
 }

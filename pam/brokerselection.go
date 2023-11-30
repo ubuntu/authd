@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/msteinert/pam"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/log"
 )
@@ -232,8 +233,9 @@ func getAvailableBrokers(client authd.PAMClient) tea.Cmd {
 	return func() tea.Msg {
 		brokersInfo, err := client.AvailableBrokers(context.TODO(), &authd.Empty{})
 		if err != nil {
-			return pamSystemError{
-				msg: fmt.Sprintf("could not get current available brokers: %v", err),
+			return pamError{
+				status: pam.ErrSystem,
+				msg:    fmt.Sprintf("could not get current available brokers: %v", err),
 			}
 		}
 

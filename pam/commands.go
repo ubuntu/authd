@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/msteinert/pam"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/log"
 )
@@ -44,16 +45,16 @@ func startBrokerSession(client authd.PAMClient, brokerID, username string) tea.C
 
 		sbResp, err := client.SelectBroker(context.TODO(), sbReq)
 		if err != nil {
-			return pamSystemError{msg: fmt.Sprintf("can't select broker: %v", err)}
+			return pamError{status: pam.ErrSystem, msg: fmt.Sprintf("can't select broker: %v", err)}
 		}
 
 		sessionID := sbResp.GetSessionId()
 		if sessionID == "" {
-			return pamSystemError{msg: "no session ID returned by broker"}
+			return pamError{status: pam.ErrSystem, msg: "no session ID returned by broker"}
 		}
 		encryptionKey := sbResp.GetEncryptionKey()
 		if encryptionKey == "" {
-			return pamSystemError{msg: "no encryption key returned by broker"}
+			return pamError{status: pam.ErrSystem, msg: "no encryption key returned by broker"}
 		}
 
 		return SessionStarted{
@@ -73,16 +74,18 @@ func getLayout(client authd.PAMClient, sessionID, authModeID string) tea.Cmd {
 		}
 		uiInfo, err := client.SelectAuthenticationMode(context.TODO(), samReq)
 		if err != nil {
-			return pamSystemError{
-				// TODO: probably go back to broker selection here
-				msg: fmt.Sprintf("can't select authentication mode: %v", err),
+			// TODO: probably go back to broker selection here
+			return pamError{
+				status: pam.ErrSystem,
+				msg:    fmt.Sprintf("can't select authentication mode: %v", err),
 			}
 		}
 
 		if uiInfo.UiLayoutInfo == nil {
-			return pamSystemError{
-				// TODO: probably go back to broker selection here
-				msg: "invalid empty UI Layout information from broker",
+			// TODO: probably go back to broker selection here
+			return pamError{
+				status: pam.ErrSystem,
+				msg:    "invalid empty UI Layout information from broker",
 			}
 		}
 

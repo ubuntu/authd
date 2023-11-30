@@ -3,13 +3,14 @@ package main
 import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/msteinert/pam"
 )
 
 // userSelectionModel allows selecting from PAM or interactively an user.
 type userSelectionModel struct {
 	textinput.Model
 
-	pamh pamHandle
+	pamMTx pam.ModuleTransaction
 }
 
 // userSelected events to select a new username.
@@ -25,7 +26,7 @@ func sendUserSelected(username string) tea.Cmd {
 }
 
 // newUserSelectionModel returns an initialized userSelectionModel.
-func newUserSelectionModel(pamh pamHandle) userSelectionModel {
+func newUserSelectionModel(pamMTx pam.ModuleTransaction) userSelectionModel {
 	u := textinput.New()
 	u.Prompt = "Username: " // TODO: i18n
 	u.Placeholder = "user name"
@@ -34,13 +35,16 @@ func newUserSelectionModel(pamh pamHandle) userSelectionModel {
 	return userSelectionModel{
 		Model: u,
 
-		pamh: pamh,
+		pamMTx: pamMTx,
 	}
 }
 
 // Init initializes userSelectionModel, by getting it from PAM if prefilled.
 func (m *userSelectionModel) Init() tea.Cmd {
-	pamUser := getPAMUser(m.pamh)
+	pamUser, err := m.pamMTx.GetItem(pam.User)
+	if err != nil {
+		return sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+	}
 	if pamUser != "" {
 		return sendUserSelected(pamUser)
 	}
@@ -54,7 +58,9 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 		if msg.username != "" {
 			// synchronise our internal validated field and the text one.
 			m.SetValue(msg.username)
-			setPAMUser(m.pamh, msg.username)
+			if err := m.pamMTx.SetItem(pam.User, msg.username); err != nil {
+				return m, sendEvent(pamError{status: pam.ErrAbort, msg: err.Error()})
+			}
 			return m, sendEvent(UsernameOrBrokerListReceived{})
 		}
 		return m, nil
