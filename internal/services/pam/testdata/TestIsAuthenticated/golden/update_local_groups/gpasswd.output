@@ -1,0 +1,2 @@
+--add success_with_local_groups localgroup3
+--delete success_with_local_groups localgroup2
