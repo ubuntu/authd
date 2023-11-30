@@ -19,6 +19,7 @@ import (
 	cachetests "github.com/ubuntu/authd/internal/cache/tests"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/testutils"
+	usertests "github.com/ubuntu/authd/internal/users/tests"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -326,8 +327,6 @@ func TestSelectAuthenticationMode(t *testing.T) {
 }
 
 func TestIsAuthenticated(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		// These are the function arguments.
 		sessionID  string
@@ -337,11 +336,13 @@ func TestIsAuthenticated(t *testing.T) {
 		username        string
 		secondCall      bool
 		cancelFirstCall bool
+		localGroupsFile string
 	}{
 		"Successfully authenticate":                           {username: "success"},
 		"Successfully authenticate if first call is canceled": {username: "IA_second_call", secondCall: true, cancelFirstCall: true},
 		"Denies authentication when broker times out":         {username: "IA_timeout"},
 		"Update existing DB on success":                       {username: "success", existingDB: "cache-with-user.db"},
+		"Update local groups":                                 {username: "success_with_local_groups", localGroupsFile: "valid.group"},
 
 		// service errors
 		"Error when sessionID is empty": {sessionID: "-"},
@@ -354,11 +355,29 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error when broker returns invalid data":            {username: "IA_invalid_data"},
 		"Error when broker returns invalid userinfo":        {username: "IA_invalid_userinfo"},
 		"Error when calling second time without cancelling": {username: "IA_second_call", secondCall: true},
+
+		// local group error
+		"Error on updating local groups with invalid file": {username: "success_with_local_groups", localGroupsFile: "invalid.group"},
 	}
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			if tc.localGroupsFile == "" {
+				t.Parallel()
+			}
+
+			destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
+			f, err := os.Create(destCmdsFile)
+			require.NoError(t, err, "Setup: dest trace file was not created successfully")
+			require.NoError(t, f.Close(), "Setup: could not close dest trace file")
+			if tc.localGroupsFile != "" {
+				groupFilePath := filepath.Join(testutils.TestFamilyPath(t), tc.localGroupsFile)
+				gpasswd := []string{"env", "GO_WANT_HELPER_PROCESS=1",
+					fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
+					fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
+					os.Args[0], "-test.run=TestMockgpasswd", "--"}
+				usertests.OverrideDefaultOptions(t, groupFilePath, gpasswd)
+			}
 
 			cacheDir := t.TempDir()
 			if tc.existingDB != "" {
@@ -437,6 +456,11 @@ func TestIsAuthenticated(t *testing.T) {
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
+
+			// Finally, check the group file gpasswd commands.
+			gotGPasswd := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
+			wantGPasswd := testutils.LoadWithUpdateFromGolden(t, gotGPasswd, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "gpasswd.output")))
+			require.Equal(t, wantGPasswd, gotGPasswd, "IsAuthenticated should return the expected combined data, but did not")
 		})
 	}
 }
@@ -555,6 +579,10 @@ func TestEndSession(t *testing.T) {
 	}
 }
 
+func TestMockgpasswd(t *testing.T) {
+	usertests.Mockgpasswd(t)
+}
+
 // initBrokers starts dbus mock brokers on the system bus. It returns its config path.
 func initBrokers() (brokerConfigPath string, cleanup func(), err error) {
 	tmpDir, err := os.MkdirTemp("", "authd-internal-pam-tests-")
@@ -647,6 +675,10 @@ func startSession(t *testing.T, client authd.PAMClient, username string) string 
 }
 
 func TestMain(m *testing.M) {
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
+		os.Exit(m.Run())
+	}
+
 	testutils.InstallUpdateFlag()
 	flag.Parse()
 
