@@ -357,7 +357,7 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error when calling second time without cancelling": {username: "IA_second_call", secondCall: true},
 
 		// local group error
-		"Error on updating local groups with invalid file": {username: "success_with_local_groups", localGroupsFile: "invalid.group"},
+		"Error on updating local groups with unexisting file": {username: "success_with_local_groups", localGroupsFile: "does_not_exists.group"},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -456,7 +456,7 @@ func TestIsAuthenticated(t *testing.T) {
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
 
 			// Finally, check the group file gpasswd commands.
-			// TODO: this should be extracted in testutils, but still allow post-traitement of file like sorting.
+			// TODO: this should be extracted in testutils, but still allow post-treatement of file like sorting.
 			// Always check the golden files missing for no-op too on error.
 			goldenGpasswdPath := filepath.Join(testutils.GoldenPath(t), "gpasswd.output")
 			referenceFilePath := goldenGpasswdPath
