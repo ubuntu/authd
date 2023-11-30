@@ -90,9 +90,6 @@ func TestUpdateLocalGroups(t *testing.T) {
 			}
 
 			destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
-			f, err := os.Create(destCmdsFile)
-			require.NoError(t, err, "Setup: dest trace file was not created successfully")
-			require.NoError(t, f.Close(), "Setup: could not close dest trace file")
 
 			groupFilePath := filepath.Join("testdata", tc.groupFilePath)
 			cmdArgs := []string{"env", "GO_WANT_HELPER_PROCESS=1",
@@ -100,14 +97,30 @@ func TestUpdateLocalGroups(t *testing.T) {
 				fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
 				os.Args[0], "-test.run=TestMockgpasswd", "--"}
 
-			err = u.UpdateLocalGroups(users.WithGroupPath(groupFilePath), users.WithGpasswdCmd(cmdArgs))
+			err := u.UpdateLocalGroups(users.WithGroupPath(groupFilePath), users.WithGpasswdCmd(cmdArgs))
 			if tc.wantErr {
 				require.Error(t, err, "UpdateLocalGroups should have failed")
 			} else {
 				require.NoError(t, err, "UpdateLocalGroups should not have failed")
 			}
 
-			// Always check the golden files for no-op too on error
+			// Always check the golden files missing for no-op too on error
+			referenceFilePath := testutils.GoldenPath(t)
+			if testutils.Update() {
+				// The file may already not exists.
+				_ = os.Remove(testutils.GoldenPath(t))
+				referenceFilePath = destCmdsFile
+			}
+
+			var shouldExists bool
+			if _, err := os.Stat(referenceFilePath); err == nil {
+				shouldExists = true
+			}
+			if !shouldExists {
+				require.NoFileExists(t, destCmdsFile, "UpdateLocalGroups should not call gpasswd by did")
+				return
+			}
+
 			got := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")

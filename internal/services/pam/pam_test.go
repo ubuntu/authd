@@ -367,9 +367,7 @@ func TestIsAuthenticated(t *testing.T) {
 			}
 
 			destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
-			f, err := os.Create(destCmdsFile)
-			require.NoError(t, err, "Setup: dest trace file was not created successfully")
-			require.NoError(t, f.Close(), "Setup: could not close dest trace file")
+
 			if tc.localGroupsFile != "" {
 				groupFilePath := filepath.Join(testutils.TestFamilyPath(t), tc.localGroupsFile)
 				gpasswd := []string{"env", "GO_WANT_HELPER_PROCESS=1",
@@ -458,8 +456,27 @@ func TestIsAuthenticated(t *testing.T) {
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
 
 			// Finally, check the group file gpasswd commands.
+			// TODO: this should be extracted in testutils, but still allow post-traitement of file like sorting.
+			// Always check the golden files missing for no-op too on error.
+			goldenGpasswdPath := filepath.Join(testutils.GoldenPath(t), "gpasswd.output")
+			referenceFilePath := goldenGpasswdPath
+			if testutils.Update() {
+				// The file may already not exists.
+				_ = os.Remove(testutils.GoldenPath(t))
+				referenceFilePath = destCmdsFile
+			}
+
+			var shouldExists bool
+			if _, err := os.Stat(referenceFilePath); err == nil {
+				shouldExists = true
+			}
+			if !shouldExists {
+				require.NoFileExists(t, destCmdsFile, "UpdateLocalGroups should not call gpasswd by did")
+				return
+			}
+
 			gotGPasswd := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
-			wantGPasswd := testutils.LoadWithUpdateFromGolden(t, gotGPasswd, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "gpasswd.output")))
+			wantGPasswd := testutils.LoadWithUpdateFromGolden(t, gotGPasswd, testutils.WithGoldenPath(goldenGpasswdPath))
 			require.Equal(t, wantGPasswd, gotGPasswd, "IsAuthenticated should return the expected combined data, but did not")
 		})
 	}

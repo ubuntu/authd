@@ -86,7 +86,7 @@ func Mockgpasswd(_ *testing.T) {
 	}
 
 	dest := os.Getenv("GO_WANT_HELPER_PROCESS_DEST")
-	f, err := os.OpenFile(dest, os.O_WRONLY|os.O_APPEND, 0600)
+	f, err := os.OpenFile(dest, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Mock: error opening file in append mode: %v", err)
 		os.Exit(1)
