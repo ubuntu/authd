@@ -58,10 +58,7 @@ func (u *UserInfo) UpdateLocalGroups(args ...Option) (err error) {
 		}
 	}
 
-	opts := options{
-		gpasswdCmd: []string{"gpasswd"},
-		groupPath:  "/etc/group",
-	}
+	opts := defaultOptions
 	for _, arg := range args {
 		arg(&opts)
 	}
