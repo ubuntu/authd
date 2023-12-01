@@ -46,7 +46,9 @@ go test -cover -covermode=set $@ -shuffle=on -args -test.gocoverdir="${raw_cov_d
 go tool covdata textfmt -i="${raw_cov_dir}" -o="${cov_dir}/coverage.out"
 
 # Append the Rust coverage data to the Go one
-cat "${raw_cov_dir}/rust-cov/rust2go_coverage" >>"${cov_dir}/coverage.out"
+if [ -f "${raw_cov_dir}/rust-cov/rust2go_coverage" ]; then
+    cat "${raw_cov_dir}/rust-cov/rust2go_coverage" >>"${cov_dir}/coverage.out"
+fi
 
 # Filter out the testutils package and the pb.go file
 grep -v -e "testutils" -e "pb.go" "${cov_dir}/coverage.out" >"${cov_dir}/coverage.out.filtered"
