@@ -23,7 +23,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/msteinert/pam"
+	"github.com/msteinert/pam/v2"
 )
 
 // maybeDoLeakCheck triggers the garbage collector and if the go program is

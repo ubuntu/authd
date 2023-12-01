@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/msteinert/pam"
+	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
 )
 

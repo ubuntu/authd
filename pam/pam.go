@@ -1,4 +1,4 @@
-//go:generate go run github.com/msteinert/pam/cmd/pam-moduler -libname "pam_authd.so" -type pamModule -tags !pam_binary_cli
+//go:generate go run github.com/msteinert/pam/v2/cmd/pam-moduler -libname "pam_authd.so" -type pamModule -tags !pam_binary_cli
 //go:generate go generate --skip="pam_module.go"
 //go:generate sh -c "cc -o go-loader/pam_go_loader.so go-loader/module.c -Wl,--as-needed -Wl,--allow-shlib-undefined -shared -fPIC -Wl,--unresolved-symbols=report-all -lpam && chmod 600 go-loader/pam_go_loader.so"
 
@@ -16,7 +16,7 @@ import (
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/msteinert/pam"
+	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"

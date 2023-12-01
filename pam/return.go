@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/msteinert/pam"
+	"github.com/msteinert/pam/v2"
 )
 
 // Various signalling return messaging to PAM.
