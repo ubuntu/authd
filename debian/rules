@@ -22,6 +22,10 @@ CARGO := /usr/share/cargo/bin/cargo
 DH_CARGO_VENDORED_SOURCES := /usr/share/cargo/bin/dh-cargo-vendored-sources
 export CARGO_VENDOR_DIR = vendor_rust
 
+# Needed for Rust configure/build/test stages
+export DEB_HOST_GNU_TYPE DEB_HOST_RUST_TYPE
+export CARGO_HOME = $(CURDIR)/debian/cargo_home
+
 %:
 	dh $@ --buildsystem=golang --with=golang,apport
 
@@ -41,8 +45,7 @@ override_dh_auto_configure:
 	dh_auto_configure
 
 	[ ! -e $(DH_CARGO_VENDORED_SOURCES) ] || $(DH_CARGO_VENDORED_SOURCES)
-	DEB_HOST_GNU_TYPE=$(DEB_HOST_GNU_TYPE) DEB_HOST_RUST_TYPE=$(DEB_HOST_RUST_TYPE) \
-	CARGO_HOME=$(CURDIR)/debian/cargo_home DEB_CARGO_CRATE=nss_$(shell dpkg-parsechangelog --show-field Version) \
+	DEB_CARGO_CRATE=nss_$(shell dpkg-parsechangelog --show-field Version) \
 	RUSTFLAGS="--cfg=rustix_use_libc" \
 		$(CARGO) prepare-debian $(CARGO_VENDOR_DIR)
 
@@ -51,10 +54,7 @@ override_dh_auto_build:
 	go generate -x ./pam
 
 	# Build the NSS library
-	DEB_HOST_GNU_TYPE=$(DEB_HOST_GNU_TYPE) \
-	DEB_HOST_RUST_TYPE=$(DEB_HOST_RUST_TYPE) \
-	CARGO_HOME=$(CURDIR)/debian/cargo_home \
-		$(CARGO) build --release
+	$(CARGO) build --release
 
 	# Build the daemon
 	DH_GOLANG_BUILDPKG=github.com/ubuntu/authd/cmd/authd dh_auto_build
@@ -63,11 +63,7 @@ override_dh_auto_test:
 	# We need to specify these Rust related variables to the Go tests in order to build the NSS lib
 	# with the cargo wrapper in the integration tests in order to force cargo to use vendored deps
 	# instead of querying crates.io for them.
-	DEB_HOST_GNU_TYPE=$(DEB_HOST_GNU_TYPE) \
-	DEB_HOST_RUST_TYPE=$(DEB_HOST_RUST_TYPE) \
-	CARGO_HOME=$(CURDIR)/debian/cargo_home \
-	CARGO_PATH=$(CARGO) \
-		dh_auto_test
+	CARGO_PATH=$(CARGO) dh_auto_test
 
 override_dh_auto_install:
 	dh_auto_install -- --no-source
@@ -83,4 +79,5 @@ override_dh_auto_install:
 	install -Dm644 pam/pam_authd.so debian/authd/usr/lib/$(DEB_TARGET_GNU_TYPE)/security/pam_authd.so
 
 	# Install NSS
-	install -Dm644 target/$(DEB_TARGET_RUST_TYPE)/release/libnss_authd.so debian/authd/usr/lib/$(DEB_TARGET_GNU_TYPE)/libnss_authd.so.2
+	# In Rust, HOST actually refers to the build target (see README.Debian in rustc)
+	install -Dm644 target/$(DEB_HOST_RUST_TYPE)/release/libnss_authd.so debian/authd/usr/lib/$(DEB_TARGET_GNU_TYPE)/libnss_authd.so.2
