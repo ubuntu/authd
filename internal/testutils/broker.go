@@ -225,60 +225,60 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 
 	access = responses.AuthGranted
 	data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID, nil))
-	if parsedID == "IA_invalid_access" {
-		access = "invalid"
-	}
-
-	done := make(chan struct{})
-	go func() {
-		switch parsedID {
-		case "IA_timeout":
-			time.Sleep(time.Second)
-			access = responses.AuthDenied
-			data = `{"message": "denied by time out"}`
-
-		case "IA_wait":
-			<-ctx.Done()
-			access = responses.AuthCancelled
-			data = ""
-
-		case "IA_second_call":
-			select {
-			case <-ctx.Done():
-				access = responses.AuthCancelled
-				data = ""
-			case <-time.After(2 * time.Second):
-				access = responses.AuthGranted
-				data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID, nil))
-			}
-
-		case "IA_next":
-			access = responses.AuthNext
-			data = ""
-		}
-		close(done)
-	}()
-	<-done
 
 	switch parsedID {
+	case "IA_timeout":
+		time.Sleep(time.Second)
+		access = responses.AuthDenied
+		data = `{"message": "denied by time out"}`
+
+	case "IA_wait":
+		<-ctx.Done()
+		access = responses.AuthCancelled
+		data = ""
+
+	case "IA_second_call":
+		select {
+		case <-ctx.Done():
+			access = responses.AuthCancelled
+			data = ""
+		case <-time.After(2 * time.Second):
+			access = responses.AuthGranted
+			data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID, nil))
+		}
+
+	case "IA_next":
+		access = responses.AuthNext
+		data = ""
+
 	case "success_with_local_groups":
 		extragroups := []users.GroupInfo{{Name: "localgroup1"}, {Name: "localgroup3"}}
 		data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID, extragroups))
+
+	case "IA_invalid_access":
+		access = "invalid"
+
 	case "IA_invalid_data":
 		data = "invalid"
+
 	case "IA_empty_data":
 		data = ""
+
 	case "IA_invalid_userinfo":
 		data = `{"userinfo": "not valid"}`
+
 	case "IA_denied_without_data":
 		access = responses.AuthDenied
 		data = ""
+
 	case "IA_retry_without_data":
 		access = responses.AuthRetry
 		data = ""
+
 	case "IA_next_with_data":
 		access = responses.AuthNext
 		data = `{"message": "there should not be a message here"}`
+
 	case "IA_cancelled_with_data":
 		access = responses.AuthCancelled
 		data = `{"message": "there should not be a message here"}`
