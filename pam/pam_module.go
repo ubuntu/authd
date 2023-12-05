@@ -18,7 +18,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
-	"github.com/msteinert/pam"
+	"github.com/msteinert/pam/v2"
 	"os"
 	"unsafe"
 )

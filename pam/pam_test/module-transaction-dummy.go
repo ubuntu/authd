@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/msteinert/pam"
+	"github.com/msteinert/pam/v2"
 )
 
 // ModuleTransactionDummy is an implementation of PamModuleTransaction for

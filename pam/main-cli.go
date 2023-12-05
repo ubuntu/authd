@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/msteinert/pam"
+	"github.com/msteinert/pam/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/pam_test"

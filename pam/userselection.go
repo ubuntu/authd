@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/msteinert/pam"
+	"github.com/msteinert/pam/v2"
 )
 
 // userSelectionModel allows selecting from PAM or interactively an user.
