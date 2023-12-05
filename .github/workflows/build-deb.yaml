@@ -69,3 +69,49 @@ jobs:
     - name: Lint generated debs
       run: |
         $AS_USER lintian --pedantic --fail-on error ./*.deb
+
+    - name: Build package sources
+      run: |
+        dpkg-buildpackage -S
+        mkdir deb-sources
+        mv -v  ../authd_* deb-sources
+
+    - name: Archiving source packages
+      uses: actions/upload-artifact@v3
+      with:
+        name: debian-packages-sources
+        path: deb-sources
+        if-no-files-found: error
+
+
+  run-autopkgtests:
+    name: Run autopkgtests
+    needs: build-deb-package
+    runs-on: ubuntu-latest
+
+    container:
+      image: ubuntu:devel
+
+    steps:
+    - name: Prepare container
+      run: |
+        echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90aptyes
+        apt update
+        apt upgrade
+        apt install git
+        git config --system --add safe.directory $PWD
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+
+    - name: Install dependencies
+      run: |
+        apt install autopkgtest
+
+    - name: Run autopkgtests
+      run: |
+        find
+        mv ./debian-packages-sources/* .
+        mv ./debian-packages/* .
+        autopkgtest --apt-pocket proposed --apt-upgrade --no-built-binaries \
+          *.deb *.changes -- null
