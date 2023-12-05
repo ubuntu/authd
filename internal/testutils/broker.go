@@ -182,6 +182,12 @@ func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeNa
 			"type":  "optional-entry",
 			"entry": "invalid entry",
 		}, nil
+	case "SAM_unknown_field":
+		return map[string]string{
+			"type":          "required-entry",
+			"entry":         "entry_type",
+			"unknown_field": "unknown",
+		}, nil
 	case "SAM_error":
 		return nil, dbus.MakeFailedError(fmt.Errorf("broker %q: SelectAuthenticationMode errored out", b.name))
 	case "SAM_no_layout":

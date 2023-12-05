@@ -158,7 +158,8 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		"Successfully select mode with missing optional value": {sessionID: "SAM_missing_optional_entry", supportedUILayouts: []string{"optional-entry"}},
 
 		// broker errors
-		"Error when selecting invalid auth mode": {sessionID: "SAM_error", wantErr: true},
+		"Error when selecting invalid auth mode":              {sessionID: "SAM_error", wantErr: true},
+		"Error when no validators were generated for session": {sessionID: "no-validators", wantErr: true},
 
 		/* Layout errors */
 		"Error when returns no layout":                          {sessionID: "SAM_no_layout", wantErr: true},
@@ -166,6 +167,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		"Error when returns layout with no type":                {sessionID: "SAM_no_layout_type", wantErr: true},
 		"Error when returns layout with invalid type":           {sessionID: "SAM_invalid_layout_type", wantErr: true},
 		"Error when returns layout without required value":      {sessionID: "SAM_missing_required_entry", wantErr: true},
+		"Error when returns layout with unknown field":          {sessionID: "SAM_unknown_field", wantErr: true},
 		"Error when returns layout with invalid required value": {sessionID: "SAM_invalid_required_entry", wantErr: true},
 		"Error when returns layout with invalid optional value": {sessionID: "SAM_invalid_optional_entry", wantErr: true},
 	}
@@ -182,8 +184,11 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			for _, layout := range tc.supportedUILayouts {
 				supportedUILayouts = append(supportedUILayouts, supportedLayouts[layout])
 			}
-			// This is normally done in the broker's GetAuthenticationModes method, but we need to do it here to test the SelectAuthenticationMode method.
-			brokers.GenerateLayoutValidators(&b, prefixID(t, tc.sessionID), supportedUILayouts)
+
+			if tc.sessionID != "no-validators" {
+				// This is normally done in the broker's GetAuthenticationModes method, but we need to do it here to test the SelectAuthenticationMode method.
+				brokers.GenerateLayoutValidators(&b, prefixID(t, tc.sessionID), supportedUILayouts)
+			}
 
 			gotUI, err := b.SelectAuthenticationMode(context.Background(), prefixID(t, tc.sessionID), "mode1")
 			if tc.wantErr {
