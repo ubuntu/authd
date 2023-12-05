@@ -1,0 +1,33 @@
+name: Build debian packages
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+  DEBCONF_NONINTERACTIVE_SEEN: true
+  TERM: dumb
+
+jobs:
+  build-deb-package:
+    name: Build ubuntu package
+    runs-on: ubuntu-latest
+    outputs:
+      run-id: ${{ github.run_id }}
+      pkg-name: ${{ env.PKG_NAME }}
+      pkg-version: ${{ env.PKG_VERSION }}
+
+    steps:
+      - name: Checkout authd code
+        uses: actions/checkout@v4
+
+      - name: Build debian packages and sources
+        uses: 3v1n0/desktop-engineering/gh-actions/common/build-debian@build-deb-docker
+        with:
+          docker-image: ubuntu:devel
+          extra-source-build-deps: |
+            ca-certificates
+            git
