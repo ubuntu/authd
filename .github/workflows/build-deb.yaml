@@ -1,0 +1,71 @@
+name: Build debian packages
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+  pull_request:
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+  DEBCONF_NONINTERACTIVE_SEEN: true
+  TERM: dumb
+
+jobs:
+  build-deb-package:
+    name: Build ubuntu package
+    runs-on: ubuntu-latest
+
+    env:
+      AS_USER: runuser -u builder --
+
+    container:
+      image: ubuntu:devel
+
+    steps:
+    - name: Prepare container
+      run: |
+        echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90aptyes
+        apt update
+        apt upgrade
+        apt install git
+        git config --system --add safe.directory $PWD
+
+    - name: Checkout authd code
+      uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        apt install equivs devscripts lintian
+        mk-build-deps -ir
+
+    - name: Setup build user
+      run: |
+        adduser --disabled-password --gecos "" builder
+        chown builder:builder . -R
+
+    - name: Build packages
+      run: |
+        export DEBEMAIL="$(git log -1 --format='%ae' HEAD)"
+        export DEBFULLNAME="$(git log -1 --format='%an' HEAD)"
+        $AS_USER dch --local "+git$(git rev-parse --short HEAD)" "CI: Autoamtic build"
+        $AS_USER dpkg-buildpackage -b --jobs=$(getconf _NPROCESSORS_ONLN)
+        mv -v ../*.*deb .
+        ls -lht *.*deb
+
+    - name: Archiving built debs
+      uses: actions/upload-artifact@v3
+      with:
+        name: debian-packages
+        path: ./*.*deb
+        if-no-files-found: error
+
+    - name: Install built debs
+      run: |
+        apt install --simulate ./*.deb
+
+    - name: Lint generated debs
+      run: |
+        $AS_USER lintian --pedantic --fail-on error ./*.deb
