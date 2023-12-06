@@ -9,4 +9,4 @@ FIRST CALL:
 		"shell": "/bin/sh/IA_info_missing_ugid",
 		"avatar": "avatar for IA_info_missing_ugid",
 		"groups": [ {"name": "group-IA_info_missing_ugid", "ugid": ""} ]
-	}): group "group-IA_info_missing_ugid" has empty UGID
+	}): default group has empty UGID

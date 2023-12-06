@@ -179,6 +179,25 @@ func TestUpdateFromUserInfo(t *testing.T) {
 				{Name: "newgroup1", GID: ptrValue(11111)},
 			},
 		},
+		"user1-with-only-local-group": {
+			Name:  "user1",
+			UID:   1111,
+			Gecos: "User1 gecos\nOn multiple lines",
+			Dir:   "/home/user1",
+			Shell: "/bin/bash",
+			Groups: []users.GroupInfo{
+				{Name: "local-group"},
+			},
+		},
+		"user1-without-gecos": {
+			Name:  "user1",
+			UID:   1111,
+			Dir:   "/home/user1",
+			Shell: "/bin/bash",
+			Groups: []users.GroupInfo{
+				{Name: "group1", GID: ptrValue(11111)},
+			},
+		},
 		"user1-without-groups": {
 			Name:  "user1",
 			UID:   1111,
@@ -249,18 +268,19 @@ func TestUpdateFromUserInfo(t *testing.T) {
 		wantErr     bool
 	}{
 		// New user
-		"Insert new user":                 {userCase: "user1"},
-		"Update last login time for user": {userCase: "user1", dbFile: "one_user_and_group"},
+		"Insert new user":                              {userCase: "user1"},
+		"Update last login time for user":              {userCase: "user1", dbFile: "one_user_and_group"},
+		"Insert new user without optional gecos field": {userCase: "user1-without-gecos"},
 
 		// User and Group renames
-		"Update user by changing attributes":  {userCase: "user1-new-attributes", dbFile: "one_user_and_group"},
-		"Update group by changing attributes": {userCase: "group1-new-attributes", dbFile: "one_user_and_group"},
+		"Update user by changing attributes":                      {userCase: "user1-new-attributes", dbFile: "one_user_and_group"},
+		"Update user by removing optional gecos field if not set": {userCase: "user1-without-gecos", dbFile: "one_user_and_group"},
+		"Update group by changing attributes":                     {userCase: "group1-new-attributes", dbFile: "one_user_and_group"},
 
 		// Group updates
-		"Update user and keep existing groups without specifying them": {userCase: "user1-without-groups", dbFile: "one_user_and_group"},
-		"Update user by adding a new group":                            {userCase: "user1-with-new-group", dbFile: "one_user_and_group"},
-		"Update user by adding a new default group":                    {userCase: "user1-with-new-default-group", dbFile: "one_user_and_group"},
-		"Remove group from user":                                       {userCase: "user1-with-only-new-group", dbFile: "one_user_and_group"},
+		"Update user by adding a new group":         {userCase: "user1-with-new-group", dbFile: "one_user_and_group"},
+		"Update user by adding a new default group": {userCase: "user1-with-new-default-group", dbFile: "one_user_and_group"},
+		"Remove group from user":                    {userCase: "user1-with-only-new-group", dbFile: "one_user_and_group"},
 
 		// Multi users handling
 		"Update only user even if we have multiple of them":     {userCase: "user1", dbFile: "multiple_users_and_groups"},
@@ -271,17 +291,16 @@ func TestUpdateFromUserInfo(t *testing.T) {
 		"Local groups are filtered": {userCase: "user1-with-local-group"},
 
 		// Allowed inconsistent cases
-		"Invalid value entry in groupByID but user restating group recreates entries":       {userCase: "user1", dbFile: "invalid_entry_in_groupByID"},
-		"Invalid value entry in userByID recreates entries":                                 {userCase: "user1", dbFile: "invalid_entry_in_userByID"},
-		"Invalid value entry in groupByName recreates entries":                              {userCase: "user1", dbFile: "invalid_entry_in_groupByName"},
-		"Invalid value entry in groupByName recreates entries even without restating group": {userCase: "user1-without-groups", dbFile: "invalid_entry_in_groupByName"},
-		"Invalid value entry in userByName recreates entries":                               {userCase: "user1", dbFile: "invalid_entry_in_userByName"},
-		"Invalid value entries in other user and groups don't impact current request":       {userCase: "user1", dbFile: "invalid_entries_but_user_and_group1"},
+		"Invalid value entry in groupByID but user restating group recreates entries": {userCase: "user1", dbFile: "invalid_entry_in_groupByID"},
+		"Invalid value entry in userByID recreates entries":                           {userCase: "user1", dbFile: "invalid_entry_in_userByID"},
+		"Invalid value entry in groupByName recreates entries":                        {userCase: "user1", dbFile: "invalid_entry_in_groupByName"},
+		"Invalid value entry in userByName recreates entries":                         {userCase: "user1", dbFile: "invalid_entry_in_userByName"},
+		"Invalid value entries in other user and groups don't impact current request": {userCase: "user1", dbFile: "invalid_entries_but_user_and_group1"},
 
 		// Error cases
-		"Error on new user without any groups":                                                     {userCase: "user1-without-groups", wantErr: true},
+		"Error on user without any groups":                                                         {userCase: "user1-without-groups", wantErr: true},
+		"Error on user with only local group":                                                      {userCase: "user1-with-only-local-group", wantErr: true},
 		"Error on invalid value entry in userToGroups clear database":                              {userCase: "user1", dbFile: "invalid_entry_in_userToGroups", wantErr: true, wantClearDB: true},
-		"Error on invalid value entry in groupByID with user not restating groups clear database":  {userCase: "user1-without-groups", dbFile: "invalid_entry_in_groupByID", wantErr: true, wantClearDB: true},
 		"Error on invalid value entry in groupToUsers clear database":                              {userCase: "user1", dbFile: "invalid_entry_in_groupToUsers", wantErr: true, wantClearDB: true},
 		"Error on invalid value entry in groupToUsers for user dropping from group clear database": {userCase: "user1", dbFile: "invalid_entry_in_groupToUsers_secondary_group", wantErr: true, wantClearDB: true},
 		"Error on invalid value entry in groupByID for user dropping from group clear database":    {userCase: "user1", dbFile: "invalid_entry_in_groupByID_secondary_group", wantErr: true, wantClearDB: true},

@@ -333,6 +333,7 @@ func userInfoFromName(parsedID string, extraGroups []users.GroupInfo) string {
 	group := "group-" + parsedID
 	home := "/home/" + parsedID
 	shell := "/bin/sh/" + parsedID
+	gecos := "gecos for " + parsedID
 	uuid := "uuid-" + parsedID
 	ugid := "ugid-" + parsedID
 
@@ -345,6 +346,10 @@ func userInfoFromName(parsedID string, extraGroups []users.GroupInfo) string {
 		uuid = ""
 	case "IA_info_missing_ugid":
 		ugid = ""
+	case "IA_info_missing_gecos":
+		gecos = ""
+	case "IA_info_missing_groups":
+		group = "-"
 	case "IA_info_invalid_home":
 		home = "this is not a homedir"
 	case "IA_info_invalid_shell":
@@ -367,6 +372,9 @@ func userInfoFromName(parsedID string, extraGroups []users.GroupInfo) string {
 			UGID: ugid,
 		})
 	}
+	if group == "-" {
+		groups = []groupJSONInfo{}
+	}
 
 	user := struct {
 		Name   string
@@ -374,14 +382,15 @@ func userInfoFromName(parsedID string, extraGroups []users.GroupInfo) string {
 		Home   string
 		Shell  string
 		Groups []groupJSONInfo
-	}{Name: name, UUID: uuid, Home: home, Shell: shell, Groups: groups}
+		Gecos  string
+	}{Name: name, UUID: uuid, Home: home, Shell: shell, Groups: groups, Gecos: gecos}
 
 	// only used for tests, we can ignore the template execution error as the returned data will be failing.
 	var buf bytes.Buffer
 	_ = template.Must(template.New("").Parse(`{
 		"name": "{{.Name}}",
 		"uuid": "{{.UUID}}",
-		"gecos": "gecos for {{.Name}}",
+		"gecos": "{{.Gecos}}",
 		"dir": "{{.Home}}",
 		"shell": "{{.Shell}}",
 		"avatar": "avatar for {{.Name}}",
