@@ -77,7 +77,7 @@ jobs:
           # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
           sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}}
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
       - uses: actions-rs/toolchain@v1
