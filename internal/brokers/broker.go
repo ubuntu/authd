@@ -336,6 +336,14 @@ func validateUserInfoAndGenerateIDs(brokerName string, rawMsg json.RawMessage) (
 	}
 	uInfo.UID = generateID(brokerName + uInfo.UUID)
 
+	// User must be a part of at least one group.
+	if len(uInfo.Groups) == 0 {
+		return users.UserInfo{}, fmt.Errorf("empty groups")
+	}
+	// The default group for the user is the default and it must have a UGID.
+	if uInfo.Groups[0].UGID == "" {
+		return users.UserInfo{}, fmt.Errorf("default group has empty UGID")
+	}
 	// Validate UGIDs and generate GIDs
 	for _, g := range uInfo.Groups {
 		if g.Name == "" {
