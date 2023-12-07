@@ -7,10 +7,11 @@ on:
       - debian/control
 concurrency: auto-update
 
+# Jobs in this action must not run concurrently, as they modify the repository.
+# When adding more jobs, make sure to use the "needs:" atribute to make sure they run sequentially.
 jobs:
   update-rust-packaging:
     name: Update packaging related Rust files
-    needs: update-po
     runs-on: ubuntu-latest
     # Right now, ubuntu 22.04 does not have the dh-cargo-vendored-sources script that is needed to
     # run this job, so we need to run it inside a rolling container to get the latest version possible.
