@@ -16,15 +16,17 @@ import (
 // UpdateFromUserInfo inserts or updates user and group buckets from the user information.
 func (c *Cache) UpdateFromUserInfo(u users.UserInfo) error {
 	// create bucket contents dynamically
-	gid := -1
-	if len(u.Groups) > 0 && u.Groups[0].GID != nil {
-		gid = *u.Groups[0].GID
+	if len(u.Groups) == 0 {
+		return fmt.Errorf("no group provided for user %s (%v)", u.Name, u.UID)
+	}
+	if u.Groups[0].GID == nil {
+		return fmt.Errorf("no gid provided for default group %q", u.Groups[0].Name)
 	}
 	userDB := userDB{
 		UserPasswdShadow: UserPasswdShadow{
 			Name:           u.Name,
 			UID:            u.UID,
-			GID:            gid,
+			GID:            *u.Groups[0].GID,
 			Gecos:          u.Gecos,
 			Dir:            u.Dir,
 			Shell:          u.Shell,
@@ -64,26 +66,6 @@ func (c *Cache) UpdateFromUserInfo(u users.UserInfo) error {
 		if err != nil && !errors.Is(err, NoDataFoundError{}) {
 			c.requestClearDatabase()
 			return err
-		}
-
-		// No groups were specified for this request.
-		if userDB.GID == -1 {
-			if len(previousGroupsForCurrentUser.GIDs) == 0 {
-				return fmt.Errorf("no group provided for user %v (%v) and no previous record found", userDB.Name, userDB.UID)
-			}
-
-			for _, gid := range previousGroupsForCurrentUser.GIDs {
-				g, err := getFromBucket[groupDB](buckets[groupByIDBucketName], gid)
-				if err != nil {
-					c.requestClearDatabase()
-					return err
-				}
-				groupContents = append(groupContents, groupDB{
-					Name: g.Name,
-					GID:  g.GID,
-				})
-			}
-			userDB.GID = groupContents[0].GID
 		}
 
 		/* 1. Handle user update */
