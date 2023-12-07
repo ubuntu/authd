@@ -272,6 +272,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		"Error when returns no layout":                     {username: "SAM_no_layout", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
 		"Error when returns layout with no type":           {username: "SAM_no_layout_type", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
 		"Error when returns layout without required value": {username: "SAM_missing_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error when returns layout with unknown field":     {username: "SAM_unknown_field", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
 	}
 	for name, tc := range tests {
 		tc := tc

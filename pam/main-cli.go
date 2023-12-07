@@ -36,10 +36,10 @@ func main() {
 			return "", nil
 		}))
 
-	authResult := module.Authenticate(mTx, pam.Flags(0), nil)
+	authResult := module.Authenticate(mTx, pam.Flags(0), os.Args)
 	fmt.Println("Auth return:", authResult)
 
 	// Simulate setting auth broker as default.
-	accMgmtResult := module.AcctMgmt(mTx, pam.Flags(0), nil)
+	accMgmtResult := module.AcctMgmt(mTx, pam.Flags(0), os.Args)
 	fmt.Println("Acct mgmt return:", accMgmtResult)
 }

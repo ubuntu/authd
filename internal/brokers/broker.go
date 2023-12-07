@@ -259,19 +259,28 @@ func (b Broker) validateUILayout(sessionID string, layout map[string]string) (r 
 	b.layoutValidatorsMu.Lock()
 	defer b.layoutValidatorsMu.Unlock()
 
-	layoutValidator, exists := b.layoutValidators[sessionID]
+	layoutValidators, exists := b.layoutValidators[sessionID]
 	if !exists {
 		return nil, fmt.Errorf("session %q does not have any layout validator", sessionID)
 	}
 
-	typ := layout["type"]
-	layoutTypeValidator, exists := layoutValidator[typ]
+	// layoutValidator is UI Layout validator generated based on the supported layouts.
+	layoutValidator, exists := layoutValidators[layout["type"]]
 	if !exists {
-		return nil, fmt.Errorf("no validator for UI layout type %q", typ)
+		return nil, fmt.Errorf("no validator for UI layout type %q", layout["type"])
 	}
 
-	r = map[string]string{"type": typ}
-	for key, validator := range layoutTypeValidator {
+	// Ensure that all fields provided in the layout returned by the broker are valid.
+	for key := range layout {
+		if key == "type" {
+			continue
+		}
+		if _, exists := layoutValidator[key]; !exists {
+			return nil, fmt.Errorf("unrecognized field %q provided for layout %q", key, layout["type"])
+		}
+	}
+	// Ensure that all required fields were provided and that the values are valid.
+	for key, validator := range layoutValidator {
 		value, exists := layout[key]
 		if !exists || value == "" {
 			if validator.required {
@@ -279,13 +288,11 @@ func (b Broker) validateUILayout(sessionID string, layout map[string]string) (r 
 			}
 			continue
 		}
-
 		if validator.supportedValues != nil && !slices.Contains(validator.supportedValues, value) {
 			return nil, fmt.Errorf("field %q has invalid value %q, expected one of %s", key, value, strings.Join(validator.supportedValues, ","))
 		}
-		r[key] = value
 	}
-	return r, nil
+	return layout, nil
 }
 
 // parseSessionID strips broker ID prefix from sessionID.
