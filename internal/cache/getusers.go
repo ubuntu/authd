@@ -13,7 +13,7 @@ type UserPasswdShadow struct {
 	Name  string
 	UID   int
 	GID   int
-	Gecos string
+	Gecos string // Gecos is an optional field. It can be empty.
 	Dir   string
 	Shell string
 
