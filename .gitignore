@@ -13,6 +13,13 @@ target/
 *.test
 coverage/
 
+# Packaging artifacts
+debian/*debhelper*
+debian/files
+debian/*.substvars
+debian/tmp
+debian/authd
+
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
