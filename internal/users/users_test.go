@@ -1,6 +1,7 @@
 package users_test
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -124,6 +125,53 @@ func TestUpdateLocalGroups(t *testing.T) {
 			got := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
+		})
+	}
+}
+
+func TestCleanupSystemGroups(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		groupFilePath string
+
+		getentCmd []string
+
+		wantErr bool
+	}{
+		"Successfully cleans up groups": {groupFilePath: "root_in_groups.group"},
+
+		"Error when NSS errors out":                   {groupFilePath: "root_in_groups.group", getentCmd: []string{"nss-fail"}, wantErr: true},
+		"Error on missing groups file":                {groupFilePath: "does_not_exists.group", wantErr: true},
+		"Error when groups file is malformed":         {groupFilePath: "malformed_file.group", wantErr: true},
+		"Error on any unignored delete gpasswd error": {groupFilePath: "gpasswdfail_in_deleted_group.group", wantErr: true},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
+			groupFilePath := filepath.Join("testdata", tc.groupFilePath)
+			cmdArgs := []string{"env", "GO_WANT_HELPER_PROCESS=1",
+				fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
+				fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
+				os.Args[0], "-test.run=TestMockgpasswd", "--"}
+
+			cleanupOptions := []users.Option{users.WithGpasswdCmd(cmdArgs), users.WithGroupPath(groupFilePath)}
+			if tc.getentCmd != nil {
+				cleanupOptions = append(cleanupOptions, users.WithGetentCmd(tc.getentCmd))
+			}
+
+			err := users.CleanupSystemGroups(context.Background(), cleanupOptions...)
+			if tc.wantErr {
+				require.Error(t, err, "CleanupSystemGroups should have failed")
+				return
+			}
+			require.NoError(t, err, "CleanupSystemGroups should not have failed")
+			got := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
+			want := testutils.LoadWithUpdateFromGolden(t, got)
+			require.Equal(t, want, got, "Clean up should do the expected gpasswd operation, but did not")
 		})
 	}
 }

@@ -5,11 +5,15 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/services"
+	servicestests "github.com/ubuntu/authd/internal/services/tests"
 	"github.com/ubuntu/authd/internal/testutils"
+	usertests "github.com/ubuntu/authd/internal/users/tests"
 	"google.golang.org/grpc"
 )
 
@@ -18,10 +22,14 @@ func TestNewManager(t *testing.T) {
 		cacheDir string
 
 		systemBusSocket string
+		cleanupInterval time.Duration
+		groupsFile      string
 
 		wantErr bool
 	}{
-		"Successfully create the manager": {},
+		"Successfully create the manager":                        {},
+		"Successfully create the manager cleaning system groups": {cleanupInterval: 2 * time.Second, groupsFile: "groups.group"},
+		"Successfully create the manager even if cleanup fails":  {cleanupInterval: 2 * time.Second, groupsFile: "nonexistent.group"},
 
 		"Error when can not create cache":          {cacheDir: "doesnotexist", wantErr: true},
 		"Error when can not create broker manager": {systemBusSocket: "doesnotexist", wantErr: true},
@@ -36,14 +44,36 @@ func TestNewManager(t *testing.T) {
 				t.Setenv("DBUS_SYSTEM_BUS_ADDRESS", tc.systemBusSocket)
 			}
 
+			destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
+			if tc.cleanupInterval != 0 {
+				groupFilePath := filepath.Join(testutils.TestFamilyPath(t), tc.groupsFile)
+				cmdArgs := []string{"env", "GO_WANT_HELPER_PROCESS=1",
+					fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
+					fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
+					os.Args[0], "-test.run=TestMockgpasswd", "--"}
+				usertests.OverrideDefaultOptions(t, groupFilePath, cmdArgs)
+				servicestests.OverrideCleanupInterval(t, tc.cleanupInterval)
+			}
+
 			m, err := services.NewManager(context.Background(), tc.cacheDir, t.TempDir(), nil)
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should have returned an error, but did not")
 				return
 			}
-			defer require.NoError(t, m.Stop(), "Teardown: Stop should not have returned an error, but did")
-
 			require.NoError(t, err, "NewManager should not have returned an error, but did")
+
+			if tc.cleanupInterval > 0 {
+				// Sleep for a while to ensure the cleanup interval is triggered.
+				time.Sleep(tc.cleanupInterval + time.Second)
+			}
+
+			if tc.groupsFile == "groups.group" {
+				got := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
+				want := testutils.LoadWithUpdateFromGolden(t, got)
+				require.Equal(t, want, got, "Clean up should do the expected gpasswd operation, but did not")
+			}
+
+			require.NoError(t, m.Stop(), "Teardown: Stop should not have returned an error, but did")
 		})
 	}
 }
@@ -78,7 +108,15 @@ func requireEqualServices(t *testing.T, want, got map[string]grpc.ServiceInfo) {
 	require.Empty(t, got, "Expected no extra services, but got %v", got)
 }
 
+func TestMockgpasswd(t *testing.T) {
+	usertests.Mockgpasswd(t)
+}
+
 func TestMain(m *testing.M) {
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
+		os.Exit(m.Run())
+	}
+
 	testutils.InstallUpdateFlag()
 	flag.Parse()
 
