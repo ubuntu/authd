@@ -3,6 +3,7 @@ package services
 
 import (
 	"context"
+	"time"
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
@@ -10,6 +11,7 @@ import (
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/services/pam"
+	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
 	"golang.org/x/exp/slog"
 	"google.golang.org/grpc"
@@ -21,7 +23,11 @@ type Manager struct {
 	brokerManager *brokers.Manager
 	pamService    pam.Service
 	nssService    nss.Service
+
+	quitGrpCleanup chan struct{}
 }
+
+var grpCleanInterval = 24 * time.Hour
 
 // NewManager returns a new manager after creating all necessary items for our business logic.
 func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configuredBrokers []string) (m Manager, err error) {
@@ -41,12 +47,14 @@ func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configure
 
 	nssService := nss.NewService(ctx, c)
 	pamService := pam.NewService(ctx, c, brokerManager)
+	quitGrpCleanup := startSystemGroupsCleanup(ctx, grpCleanInterval)
 
 	return Manager{
-		cache:         c,
-		brokerManager: brokerManager,
-		nssService:    nssService,
-		pamService:    pamService,
+		cache:          c,
+		brokerManager:  brokerManager,
+		nssService:     nssService,
+		pamService:     pamService,
+		quitGrpCleanup: quitGrpCleanup,
 	}, nil
 }
 
@@ -62,9 +70,33 @@ func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 	return grpcServer
 }
 
+func startSystemGroupsCleanup(ctx context.Context, cleanupInterval time.Duration) chan struct{} {
+	quit := make(chan struct{})
+	routineStarted := make(chan struct{})
+	go func() {
+		close(routineStarted)
+		for {
+			select {
+			case <-time.After(cleanupInterval):
+				if err := users.CleanupSystemGroups(ctx); err != nil {
+					log.Errorf(ctx, "Failed to cleanup system groups: %v", err)
+				}
+			case <-quit:
+				log.Debug(ctx, "Stopping system groups cleanup")
+				return
+			}
+		}
+	}()
+	<-routineStarted
+
+	return quit
+}
+
 // stop stops the underlying cache.
 func (m *Manager) stop() error {
 	slog.Debug("Closing grpc manager and cache")
+
+	close(m.quitGrpCleanup)
 
 	return m.cache.Close()
 }
