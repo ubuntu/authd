@@ -3,6 +3,8 @@ package users
 
 import (
 	"bufio"
+	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -34,11 +36,13 @@ type GroupInfo struct {
 type options struct {
 	groupPath  string
 	gpasswdCmd []string
+	getentCmd  []string
 }
 
 var defaultOptions = options{
 	groupPath:  "/etc/group",
 	gpasswdCmd: []string{"gpasswd"},
+	getentCmd:  []string{"getent", "passwd"},
 }
 
 // Option represents an optional function to override UpdateLocalGroups default values.
@@ -96,6 +100,7 @@ func existingLocalGroups(user, groupPath string) (groups []string, err error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	// Format of a line composing the group file is:
 	// group_name:password:group_id:user1,…,usern
@@ -159,6 +164,88 @@ func computeGroupOperation(newGroupsInfo []GroupInfo, currentLocalGroups []strin
 	}
 
 	return groupsToAdd, groupsToRemove
+}
+
+// CleanupSystemGroups removes all unexistent users from the system groups.
+//
+// In order to do that, it needs to query NSS for all existent users and then look at /etc/groups.
+func CleanupSystemGroups(_ context.Context, args ...Option) (err error) {
+	defer decorate.OnError(&err, "could not clean system groups completely")
+
+	opts := defaultOptions
+	for _, arg := range args {
+		arg(&opts)
+	}
+
+	// Get the list of users from NSS
+	// #nosec:G204 - the cmd arguments are only overridable in a controlled way during tests.
+	cmd := exec.Command(opts.getentCmd[0], opts.getentCmd[1:]...)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	if err = cmd.Run(); err != nil {
+		return fmt.Errorf("could not get list of users from NSS (%v): %s", err, out.String())
+	}
+
+	// Add the existingUsers to a map to speed up search
+	existingUsers := make(map[string]struct{})
+	for _, line := range strings.Split(out.String(), "\n") {
+		if line == "" {
+			continue
+		}
+		name, _, found := strings.Cut(line, ":")
+		if !found {
+			return fmt.Errorf("could not parse passwd entry: %q", line)
+		}
+		existingUsers[name] = struct{}{}
+	}
+
+	// Get the list of groups
+	f, err := os.Open(opts.groupPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	// Format of a line composing the group file is:
+	// group_name:password:group_id:user1,…,usern
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		t := strings.TrimSpace(scanner.Text())
+		if t == "" {
+			continue
+		}
+		elems := strings.Split(t, ":")
+		if len(elems) != 4 {
+			err = errors.Join(err, fmt.Errorf("unexpected number of elements in group file on line (should have 4 separators): %q", t))
+			continue
+		}
+
+		groupName := elems[0]
+		users := strings.Split(elems[3], ",")
+		for _, user := range users {
+			if _, ok := existingUsers[user]; ok {
+				continue
+			}
+
+			// User doesn't exist anymore, remove it from the group
+			args := opts.gpasswdCmd[1:]
+			args = append(args, "--delete", user, groupName)
+			if cmdErr := runGPasswd(opts.gpasswdCmd[0], args...); cmdErr != nil {
+				err = errors.Join(err, cmdErr)
+			}
+		}
+	}
+	// At least one user could not be cleaned from the system groups
+	if err != nil {
+		return err
+	}
+
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // runGPasswd is a wrapper to cmdName ignoring exit code 3, meaning that the group doesn't exist.
