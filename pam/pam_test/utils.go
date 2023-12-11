@@ -26,12 +26,12 @@ import (
 	"github.com/msteinert/pam/v2"
 )
 
-// maybeDoLeakCheck triggers the garbage collector and if the go program is
+// MaybeDoLeakCheck triggers the garbage collector and if the go program is
 // compiled with -asan flag, do a memory leak check.
 // This is meant to be used as a test Cleanup function, to force Go detecting
 // if allocated resources have been released, e.g. using
-// t.Cleanup(pam_test.maybeDoLeakCheck)
-func maybeDoLeakCheck() {
+// t.Cleanup(pam_test.MaybeDoLeakCheck)
+func MaybeDoLeakCheck() {
 	runtime.GC()
 	time.Sleep(time.Millisecond * 10)
 	C.maybe_do_leak_check()
