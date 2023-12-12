@@ -1,8 +1,10 @@
 #!/usr/bin/make -f
 #export DH_VERBOSE = 1
 
-export GOCACHE := $(shell mktemp -d /tmp/gocache-XXXX)
-export GOFLAGS := -ldflags=-X=github.com/ubuntu/authd/internal/consts.Version=$(shell dpkg-parsechangelog -S Version) --mod=vendor -buildmode=pie
+# The package name for authd, used only locally to avoid repetitions
+AUTHD_GO_PACKAGE := $(shell grep-dctrl -s XS-Go-Import-Path -n - ./debian/control)
+
+export GOFLAGS := -ldflags=-X=$(AUTHD_GO_PACKAGE)/internal/consts.Version=$(shell dpkg-parsechangelog -S Version) --mod=vendor -buildmode=pie
 
 export DEB_BUILD_MAINT_OPTIONS := optimize=-lto
 
@@ -37,6 +39,12 @@ export AUTHD_SKIP_EXTERNAL_DEPENDENT_TESTS=1
 # in sbuild or similar environments.
 export AUTHD_SKIP_ROOT_TESTS := 1
 
+# Defines the targets to be built as part of dh_auto_build
+export DH_GOLANG_BUILDPKG := $(AUTHD_GO_PACKAGE)/... \
+	$(NULL)
+
+BUILDDIR := $(CURDIR)/obj-$(DEB_HOST_GNU_TYPE)
+
 %:
 	dh $@ --buildsystem=golang --with=golang,apport
 
@@ -62,13 +70,13 @@ override_dh_auto_configure:
 
 override_dh_auto_build:
 	# Build PAM library & Go loader
-	go generate -x ./pam
+	DH_GOLANG_GO_GENERATE=1 dh_auto_build -- $(AUTHD_GO_PACKAGE)/pam
 
 	# Build the NSS library
 	$(CARGO) build --release
 
 	# Build the daemon
-	DH_GOLANG_BUILDPKG=github.com/ubuntu/authd/cmd/authd dh_auto_build
+	dh_auto_build -- $(AUTHD_GO_PACKAGE)/cmd/authd
 
 override_dh_auto_test:
 	# We need to specify these Rust related variables to the Go tests in order to build the NSS lib
@@ -79,6 +87,9 @@ override_dh_auto_test:
 override_dh_auto_install:
 	dh_auto_install -- --no-source
 
+	# Ignore pam dummy binary
+	rm debian/authd/usr/bin/pam
+
 	# Install daemon in /sbin
 	mv debian/authd/usr/bin/ debian/authd/usr/sbin
 
@@ -86,8 +97,10 @@ override_dh_auto_install:
 	install -Dm644 debian/pam-configs/authd debian/authd/usr/share/pam-configs/authd
 
 	# Install PAM
-	install -Dm644 pam/go-loader/pam_go_loader.so debian/authd/$(AUTHD_PAM_MODULES_PATH)/pam_go_loader.so
-	install -Dm644 pam/pam_authd.so debian/authd/$(AUTHD_PAM_MODULES_PATH)/pam_authd.so
+	install -m644 $(BUILDDIR)/src/$(AUTHD_GO_PACKAGE)/pam/go-loader/pam_go_loader.so \
+		-Dt debian/authd/$(AUTHD_PAM_MODULES_PATH)
+	install -m644 $(BUILDDIR)/src/$(AUTHD_GO_PACKAGE)/pam/pam_authd.so \
+		-Dt debian/authd/$(AUTHD_PAM_MODULES_PATH)
 
 	# Install NSS
 	# In Rust, HOST actually refers to the build target (see README.Debian in rustc)
