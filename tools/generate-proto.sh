@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+set -euo pipefail
 
 # TODO: Watch https://github.com/protocolbuffers/protobuf for any changes on the
 # experimental status of optional fields, previously described on:
