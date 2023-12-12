@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 set -ex
 
@@ -14,9 +14,14 @@ else
         "${@}"
 fi
 
+cc_args=()
+if [ -v AUTHD_PAM_MODULES_PATH ]; then
+    cc_args+=(-DAUTHD_PAM_MODULES_PATH=\""${AUTHD_PAM_MODULES_PATH}"\")
+fi
+
 ${CC:-cc} -o go-loader/"$loader_libname" \
     go-loader/module.c -Wl,--as-needed -Wl,--allow-shlib-undefined \
     -shared -fPIC -Wl,--unresolved-symbols=report-all \
-    -Wl,-soname,"$loader_libname" -lpam
+    -Wl,-soname,"$loader_libname" -lpam "${cc_args[@]}"
 
 chmod 644 go-loader/"$loader_libname"

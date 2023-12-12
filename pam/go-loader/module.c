@@ -28,6 +28,15 @@
 #include <stdio.h>
 #include <string.h>
 
+#ifndef AUTHD_PAM_MODULES_PATH
+#  if defined(__x86_64__) && defined(__gnu_linux__)
+#    define AUTHD_PAM_MODULES_PATH "/lib/x86_64-linux-gnu/security"
+#    warning No AUTHD_PAM_MODULES_PATH provided, hardcoding AUTHD_PAM_MODULES_PATH to /lib/x86_64-linux-gnu/security
+#  else
+#    error "Can't build without a AUTHD_PAM_MODULES_PATH defined"
+#  endif
+#endif
+
 /* When a Go shared library is loaded from C, go starts various goroutine
  * (as init() at first) and if the loading code is then performing a fork
  * we end up having an undefined behavior and very likely, deadlocks.
@@ -104,7 +113,17 @@ call_pam_function (pam_handle_t *pamh,
   argc -= 1;
   argv = (argc == 0) ? NULL : &argv[1];
 
-  strncpy (module_path, sub_module, PATH_MAX - 1);
+  if (!sub_module || *sub_module == '\0')
+    {
+      pam_error (pamh, "%s: no valid module name provided", function);
+      return PAM_MODULE_UNKNOWN;
+    }
+
+  if (*sub_module == '/')
+    strncpy (module_path, sub_module, PATH_MAX - 1);
+  else
+    snprintf (module_path, PATH_MAX - 1, AUTHD_PAM_MODULES_PATH "/%s", sub_module);
+
   go_module = load_module (pamh, module_path);
   if (!go_module)
     {
