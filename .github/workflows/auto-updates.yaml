@@ -7,6 +7,10 @@ on:
       - debian/control
 concurrency: auto-update
 
+permissions:
+  pull-requests: write
+  contents: write
+
 # Jobs in this action must not run concurrently, as they modify the repository.
 # When adding more jobs, make sure to use the "needs:" atribute to make sure they run sequentially.
 jobs:
