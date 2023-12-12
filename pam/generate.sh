@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -ex
+set -euo pipefail
 
 PROEJECT_ROOT=$PWD/..
 module_libname=pam_authd.so
