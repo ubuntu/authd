@@ -33,12 +33,6 @@ const (
 	authenticationBrokerIDKey = "authentication-broker-id"
 )
 
-/*
-	FIXME: provide instructions using pam-auth-update instead!
-	Add to /etc/pam.d/common-auth
-	auth    [success=3 default=die ignore=ignore]   pam_authd.so
-*/
-
 func showPamMessage(mTx pam.ModuleTransaction, style pam.Style, msg string) error {
 	switch style {
 	case pam.TextInfo | pam.ErrorMsg:
