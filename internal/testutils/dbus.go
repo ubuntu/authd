@@ -2,12 +2,14 @@
 package testutils
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -56,17 +58,47 @@ func StartSystemBusMock() (func(), error) {
 
 	busCtx, busCancel := context.WithCancel(context.Background())
 	//#nosec:G204 // This is a test helper and we are in control of the arguments.
-	cmd := exec.CommandContext(busCtx, "dbus-daemon", "--config-file="+cfgPath)
+	cmd := exec.CommandContext(busCtx, "dbus-daemon", "--config-file="+cfgPath, "--print-address=1")
+	dbusStdout, err := cmd.StdoutPipe()
+	if err != nil {
+		busCancel()
+		return nil, errors.Join(err, os.RemoveAll(tmp))
+	}
 	if err := cmd.Start(); err != nil {
 		busCancel()
 		err = errors.Join(err, os.RemoveAll(tmp))
 		return nil, err
 	}
-	// Give some time for the daemon to start.
-	time.Sleep(500 * time.Millisecond)
 
+	waitDone := make(chan struct{})
+	var busAddress string
+
+	go func() {
+		scanner := bufio.NewScanner(dbusStdout)
+		for scanner.Scan() {
+			busAddress = scanner.Text()
+			close(waitDone)
+			break
+		}
+	}()
+
+	select {
+	case <-time.After(10 * time.Second):
+		busCancel()
+		err = errors.New("dbus-daemon failed to start in 10 seconds")
+		return nil, errors.Join(err, os.RemoveAll(tmp))
+	case <-waitDone:
+	}
+
+	if !strings.HasPrefix(busAddress, "unix:path=") {
+		busCancel()
+		err = fmt.Errorf("invalid bus path: %s", busAddress)
+		return nil, errors.Join(err, os.RemoveAll(tmp))
+	}
+
+	busAddress, _, _ = strings.Cut(busAddress, ",")
 	prev, set := os.LookupEnv("DBUS_SYSTEM_BUS_ADDRESS")
-	os.Setenv("DBUS_SYSTEM_BUS_ADDRESS", "unix:path="+listenPath)
+	os.Setenv("DBUS_SYSTEM_BUS_ADDRESS", busAddress)
 
 	return func() {
 		busCancel()
