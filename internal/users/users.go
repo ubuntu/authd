@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/ubuntu/decorate"
 )
@@ -44,6 +45,8 @@ var defaultOptions = options{
 	gpasswdCmd: []string{"gpasswd"},
 	getentCmd:  []string{"getent", "passwd"},
 }
+
+var defaultOptionsMu sync.RWMutex
 
 // Option represents an optional function to override UpdateLocalGroups default values.
 type Option func(*options)
@@ -172,7 +175,10 @@ func computeGroupOperation(newGroupsInfo []GroupInfo, currentLocalGroups []strin
 func CleanupSystemGroups(_ context.Context, args ...Option) (err error) {
 	defer decorate.OnError(&err, "could not clean system groups completely")
 
+	defaultOptionsMu.RLock()
 	opts := defaultOptions
+	defaultOptionsMu.RUnlock()
+
 	for _, arg := range args {
 		arg(&opts)
 	}

@@ -1,12 +1,15 @@
 // Package tests export users test functionalities used by other packages to change cmdline and group file.
 package tests
 
+//nolint:gci // We import unsafe as it is needed for go:linkname, but this confuses gci so we should ignore it.
 import (
 	"fmt"
 	"os"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
+
 	//nolint:revive,nolintlint // needed for go:linkname, but only used in tests. nolinlint as false positive then.
 	_ "unsafe"
 
@@ -19,6 +22,9 @@ var (
 		groupPath  string
 		gpasswdCmd []string
 	}
+
+	//go:linkname defaultOptionsMu github.com/ubuntu/authd/internal/users.defaultOptionsMu
+	defaultOptionsMu sync.RWMutex
 )
 
 // OverrideDefaultOptions allow to change groupPath and gpasswdCmd without using options.
@@ -27,8 +33,15 @@ var (
 func OverrideDefaultOptions(t *testing.T, groupPath string, gpasswdCmd []string) {
 	t.Helper()
 
+	defaultOptionsMu.Lock()
+	defer defaultOptionsMu.Unlock()
+
 	origin := defaultOptions
-	t.Cleanup(func() { defaultOptions = origin })
+	t.Cleanup(func() {
+		defaultOptionsMu.Lock()
+		defer defaultOptionsMu.Unlock()
+		defaultOptions = origin
+	})
 
 	defaultOptions.groupPath = groupPath
 	defaultOptions.gpasswdCmd = gpasswdCmd
@@ -54,7 +67,6 @@ func Mockgpasswd(_ *testing.T) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS_DEST") == "" {
 		return
 	}
-	defer os.Exit(0)
 
 	args := os.Args
 	for len(args) > 0 {
@@ -97,4 +109,5 @@ func Mockgpasswd(_ *testing.T) {
 		fmt.Fprintf(os.Stderr, "Mock: error while writing in file: %v", err)
 		os.Exit(1)
 	}
+	f.Close()
 }
