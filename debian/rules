@@ -26,6 +26,9 @@ export CARGO_VENDOR_DIR = vendor_rust
 export DEB_HOST_GNU_TYPE DEB_HOST_RUST_TYPE
 export CARGO_HOME = $(CURDIR)/debian/cargo_home
 
+# Needed by the pam module loader
+export AUTHD_PAM_MODULES_PATH = /usr/lib/$(DEB_TARGET_GNU_TYPE)/security
+
 %:
 	dh $@ --buildsystem=golang --with=golang,apport
 
@@ -75,8 +78,8 @@ override_dh_auto_install:
 	install -Dm644 debian/pam-configs/authd debian/authd/usr/share/pam-configs/authd
 
 	# Install PAM
-	install -Dm644 pam/go-loader/pam_go_loader.so debian/authd/usr/lib/$(DEB_TARGET_GNU_TYPE)/security/pam_go_loader.so
-	install -Dm644 pam/pam_authd.so debian/authd/usr/lib/$(DEB_TARGET_GNU_TYPE)/security/pam_authd.so
+	install -Dm644 pam/go-loader/pam_go_loader.so debian/authd/$(AUTHD_PAM_MODULES_PATH)/pam_go_loader.so
+	install -Dm644 pam/pam_authd.so debian/authd/$(AUTHD_PAM_MODULES_PATH)/pam_authd.so
 
 	# Install NSS
 	# In Rust, HOST actually refers to the build target (see README.Debian in rustc)

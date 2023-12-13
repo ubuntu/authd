@@ -1,7 +1,3 @@
-//go:generate sh -c "[ -d ../vendor ] && echo Vendored dependencies detected, not re-generating pam_module.go || go run github.com/msteinert/pam/v2/cmd/pam-moduler -libname pam_authd.so -type pamModule -tags !pam_binary_cli"
-//go:generate go generate --skip="pam_module.go"
-//go:generate sh -c "cc -o go-loader/pam_go_loader.so go-loader/module.c -Wl,--as-needed -Wl,--allow-shlib-undefined -shared -fPIC -Wl,--unresolved-symbols=report-all -lpam && chmod 600 go-loader/pam_go_loader.so"
-
 // Package main is the package for the PAM library.
 package main
 
@@ -36,12 +32,6 @@ const (
 	// broker for the current user.
 	authenticationBrokerIDKey = "authentication-broker-id"
 )
-
-/*
-	FIXME: provide instructions using pam-auth-update instead!
-	Add to /etc/pam.d/common-auth
-	auth    [success=3 default=die ignore=ignore]   pam_authd.so
-*/
 
 func showPamMessage(mTx pam.ModuleTransaction, style pam.Style, msg string) error {
 	switch style {
