@@ -1,0 +1,32 @@
+[Unit]
+Description=Authd daemon service
+After=authd.socket
+Requires=authd.socket
+PartOf=authd.socket
+
+[Service]
+Type=notify
+ExecStart=/sbin/authd
+
+# Some daemon restrictions
+CapabilityBoundingSet=
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+NoNewPrivileges=true
+PrivateDevices=yes
+PrivateMounts=yes
+PrivateNetwork=yes
+PrivateTmp=yes
+ProcSubset=pid
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
