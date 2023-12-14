@@ -35,6 +35,20 @@ jobs:
         run: |
           set -eu
           go build -tags withexamplebroker ./cmd/authd
+      - name: Generate PAM module
+        run: |
+          set -eu
+          find pam -name '*.so' -print -delete
+          go generate -C pam -x
+          test -e pam/pam_authd.so
+          test -e pam/go-loader/pam_go_loader.so
+      - name: Generate PAM module with pam_debug tag
+        run: |
+          set -eu
+          find pam -name '*.so' -print -delete
+          go generate -C pam -x -tags pam_debug
+          test -e pam/pam_authd.so
+          test -e pam/go-loader/pam_go_loader.so
 
   rust-sanity:
     name: "Rust: Code sanity"
