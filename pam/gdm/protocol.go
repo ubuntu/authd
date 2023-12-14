@@ -40,9 +40,7 @@ func NewDataFromJSON(bytes []byte) (*Data, error) {
 	return &gdmData, nil
 }
 
-// FIXME: Do not do this when building the module in release mode, this is
-// just relevant for testing purposes.
-func (d *Data) checkMembers(acceptedMembers []string) error {
+func checkMembersDebug(d *Data, acceptedMembers []string) error {
 	//nolint:govet //We only redirect the value to figure out its type.
 	val := reflect.ValueOf(*d)
 	typ := val.Type()
@@ -66,6 +64,12 @@ func (d *Data) checkMembers(acceptedMembers []string) error {
 	return nil
 }
 
+func checkMembersDisabled(d *Data, acceptedMembers []string) error {
+	return nil
+}
+
+var checkMembersFunc = checkMembersDisabled
+
 // Check allows to check the sanity of a data value.
 func (d *Data) Check() error {
 	switch d.Type {
@@ -73,7 +77,7 @@ func (d *Data) Check() error {
 		return fmt.Errorf("unexpected type %v", d.Type.String())
 
 	case DataType_hello:
-		if err := d.checkMembers([]string{"Hello"}); err != nil {
+		if err := checkMembersFunc(d, []string{"Hello"}); err != nil {
 			return err
 		}
 
@@ -90,12 +94,12 @@ func (d *Data) Check() error {
 		if d.Event.Data == nil {
 			return fmt.Errorf("missing event data")
 		}
-		if err := d.checkMembers([]string{"Event"}); err != nil {
+		if err := checkMembersFunc(d, []string{"Event"}); err != nil {
 			return err
 		}
 
 	case DataType_eventAck:
-		if err := d.checkMembers([]string{}); err != nil {
+		if err := checkMembersFunc(d, []string{}); err != nil {
 			return err
 		}
 
@@ -109,7 +113,7 @@ func (d *Data) Check() error {
 		if _, ok := RequestType_name[int32(d.Request.Type)]; !ok {
 			return fmt.Errorf("unexpected request type %v", d.Request.Type)
 		}
-		if err := d.checkMembers([]string{"Request"}); err != nil {
+		if err := checkMembersFunc(d, []string{"Request"}); err != nil {
 			return err
 		}
 
@@ -123,17 +127,17 @@ func (d *Data) Check() error {
 		if _, ok := RequestType_name[int32(d.Response.Type)]; !ok {
 			return fmt.Errorf("unexpected request type %v", d.Response.Type)
 		}
-		if err := d.checkMembers([]string{"Response"}); err != nil {
+		if err := checkMembersFunc(d, []string{"Response"}); err != nil {
 			return err
 		}
 
 	case DataType_poll:
-		if err := d.checkMembers([]string{}); err != nil {
+		if err := checkMembersFunc(d, []string{}); err != nil {
 			return err
 		}
 
 	case DataType_pollResponse:
-		if err := d.checkMembers([]string{"PollResponse"}); err != nil {
+		if err := checkMembersFunc(d, []string{"PollResponse"}); err != nil {
 			return err
 		}
 		for i, response := range d.PollResponse {

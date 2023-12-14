@@ -35,14 +35,18 @@ var ErrProtoNotSupported = errors.New("protocol not supported")
 // ErrInvalidJSON is an error used when processed JSON is not valid.
 var ErrInvalidJSON = errors.New("invalid JSON")
 
-func validateJSON(jsonValue []byte) error {
-	// FIXME: Disable this check in GDM builds, this is only useful
-	// for testing as GDM does JSON sanity check by default.
+func validateJSONDebug(jsonValue []byte) error {
 	if !json.Valid(jsonValue) {
 		return ErrInvalidJSON
 	}
 	return nil
 }
+
+func validateJSONDisabled(jsonValue []byte) error {
+	return nil
+}
+
+var validateJSONFunc = validateJSONDisabled
 
 // IsPamExtensionSupported returns if the provided extension is supported
 func IsPamExtensionSupported(extension string) bool {
@@ -78,7 +82,7 @@ func allocateJSONProtoMessage() *jsonProtoMessage {
 }
 
 func newJSONProtoMessage(jsonValue []byte) (*jsonProtoMessage, error) {
-	if err := validateJSON(jsonValue); err != nil {
+	if err := validateJSONFunc(jsonValue); err != nil {
 		return nil, err
 	}
 	msg := allocateJSONProtoMessage()
@@ -126,7 +130,7 @@ func (msg *jsonProtoMessage) JSON() ([]byte, error) {
 	jsonLen := C.strlen(msg.json)
 	jsonValue := C.GoBytes(unsafe.Pointer(msg.json), C.int(jsonLen))
 
-	if err := validateJSON(jsonValue); err != nil {
+	if err := validateJSONFunc(jsonValue); err != nil {
 		return nil, err
 	}
 	return jsonValue, nil
