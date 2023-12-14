@@ -5,7 +5,7 @@ go 1.21.0
 toolchain go1.21.5
 
 require (
-	github.com/charmbracelet/bubbles v0.16.1
+	github.com/charmbracelet/bubbles v0.17.1
 	github.com/charmbracelet/bubbletea v0.25.0
 	github.com/charmbracelet/lipgloss v0.9.1
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
@@ -51,7 +51,7 @@ require (
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
-	github.com/sahilm/fuzzy v0.1.0 // indirect
+	github.com/sahilm/fuzzy v0.1.1-0.20230530133925-c48e322e2a8f // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
