@@ -10,6 +10,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/msteinert/pam/v2"
@@ -19,6 +20,7 @@ import (
 	"github.com/ubuntu/authd/pam/internal/adapter"
 	"golang.org/x/term"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -179,6 +181,14 @@ func newClient(args []string) (client authd.PAMClient, close func(), err error) 
 	conn, err := grpc.Dial("unix://"+getSocketPath(args), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not connect to authd: %v", err)
+	}
+	waitCtx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
+	defer cancel()
+	for conn.GetState() != connectivity.Ready {
+		if !conn.WaitForStateChange(waitCtx, conn.GetState()) {
+			conn.Close()
+			return nil, func() {}, fmt.Errorf("could not connect to authd: %w", waitCtx.Err())
+		}
 	}
 	return authd.NewPAMClient(conn), func() { conn.Close() }, nil
 }
