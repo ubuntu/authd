@@ -13,6 +13,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/responses"
 	"github.com/ubuntu/authd/internal/testutils"
+	brokertestutils "github.com/ubuntu/authd/internal/testutils/broker"
 )
 
 var supportedLayouts = map[string]map[string]string{
@@ -325,7 +326,7 @@ func newBrokerForTests(t *testing.T, cfgDir, brokerName string) (b brokers.Broke
 		brokerName = strings.ReplaceAll(t.Name(), "/", "_")
 	}
 
-	cfgPath, cleanup, err := testutils.StartBusBrokerMock(cfgDir, brokerName)
+	cfgPath, cleanup, err := brokertestutils.StartBusBrokerMock(cfgDir, brokerName)
 	require.NoError(t, err, "Setup: could not start bus broker mock")
 	t.Cleanup(cleanup)
 
@@ -342,5 +343,5 @@ func newBrokerForTests(t *testing.T, cfgDir, brokerName string) (b brokers.Broke
 // prefixID is a helper function that prefixes the given ID with the test name to avoid conflicts.
 func prefixID(t *testing.T, id string) string {
 	t.Helper()
-	return t.Name() + testutils.IDSeparator + id
+	return t.Name() + brokertestutils.IDSeparator + id
 }
