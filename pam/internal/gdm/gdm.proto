@@ -4,6 +4,7 @@ package gdm;
 option go_package = "github.com/ubuntu/authd/pam/gdm";
 
 import "authd.proto";
+import "pam.proto";
 
 enum DataType {
     // DataType_unknownType is an unknown DataType.
@@ -54,7 +55,7 @@ enum RequestType {
 message Requests {
     message UiLayoutCapabilities {}
     message ChangeStage {
-        int32 stage = 1;
+        pam.Stage stage = 1;
     }
 }
 
@@ -143,7 +144,7 @@ message Events {
     }
 
     message StageChanged {
-        int32 stage = 1;
+        pam.Stage stage = 1;
     }
 
     message UiLayoutReceived {
