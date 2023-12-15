@@ -36,7 +36,7 @@ const (
 
 func showPamMessage(mTx pam.ModuleTransaction, style pam.Style, msg string) error {
 	switch style {
-	case pam.TextInfo | pam.ErrorMsg:
+	case pam.TextInfo, pam.ErrorMsg:
 	default:
 		return fmt.Errorf("message style not supported: %v", style)
 	}

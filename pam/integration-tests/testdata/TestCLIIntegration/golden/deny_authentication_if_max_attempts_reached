@@ -265,10 +265,10 @@ invalid password, should be goodpass
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
 Gimme your password
 >
+PAM ERROR: invalid password, should be goodpass
 Auth return: Authentication failure: invalid password, should be goodpass
 Acct mgmt return: The return value should be ignored by PAM dispatch
 >
-
 
 
 
@@ -298,10 +298,10 @@ Acct mgmt return: The return value should be ignored by PAM dispatch
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
 Gimme your password
 >
+PAM ERROR: invalid password, should be goodpass
 Auth return: Authentication failure: invalid password, should be goodpass
 Acct mgmt return: The return value should be ignored by PAM dispatch
 >
-
 
 
 

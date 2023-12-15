@@ -132,10 +132,10 @@ Gimme your password
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
 Gimme your password
+PAM ERROR: cancel requested
 Auth return: Critical error - immediate abort: cancel requested
 Acct mgmt return: The return value should be ignored by PAM dispatch
 >
-
 
 
 
@@ -165,10 +165,10 @@ Acct mgmt return: The return value should be ignored by PAM dispatch
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
 Gimme your password
+PAM ERROR: cancel requested
 Auth return: Critical error - immediate abort: cancel requested
 Acct mgmt return: The return value should be ignored by PAM dispatch
 >
-
 
 
 
