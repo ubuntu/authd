@@ -107,6 +107,12 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case supportedUILayoutsReceived:
+		if len(msg.layouts) == 0 {
+			return m, sendEvent(pamError{
+				status: pam.ErrCredUnavail,
+				msg:    "UI does not support any layouts",
+			})
+		}
 		m.supportedUILayoutsMu.Lock()
 		m.supportedUILayouts = msg.layouts
 		m.supportedUILayoutsMu.Unlock()
