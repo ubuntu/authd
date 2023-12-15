@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/testutils"
+	brokertestutils "github.com/ubuntu/authd/internal/testutils/broker"
 )
 
 var (
@@ -328,10 +329,14 @@ func TestStartAndEndSession(t *testing.T) {
 	require.NoError(t, *firstErr, "First NewSession should not return an error, but did")
 	require.NoError(t, *secondErr, "Second NewSession should not return an error, but did")
 
-	require.Equal(t, b1.ID+"-"+testutils.GenerateSessionID("user1"), *firstID, "First NewSession should return the expected session ID, but did not")
-	require.Equal(t, testutils.GenerateEncryptionKey(b1.Name), *firstKey, "First NewSession should return the expected encryption key, but did not")
-	require.Equal(t, b2.ID+"-"+testutils.GenerateSessionID("user2"), *secondID, "Second NewSession should return the expected session ID, but did not")
-	require.Equal(t, testutils.GenerateEncryptionKey(b2.Name), *secondKey, "Second NewSession should return the expected encryption key, but did not")
+	require.Equal(t, b1.ID+"-"+brokertestutils.GenerateSessionID("user1"),
+		*firstID, "First NewSession should return the expected session ID, but did not")
+	require.Equal(t, brokertestutils.GenerateEncryptionKey(b1.Name),
+		*firstKey, "First NewSession should return the expected encryption key, but did not")
+	require.Equal(t, b2.ID+"-"+brokertestutils.GenerateSessionID("user2"),
+		*secondID, "Second NewSession should return the expected session ID, but did not")
+	require.Equal(t, brokertestutils.GenerateEncryptionKey(b2.Name),
+		*secondKey, "Second NewSession should return the expected encryption key, but did not")
 
 	assignedBroker, err := m.BrokerFromSessionID(*firstID)
 	require.NoError(t, err, "First NewSession should have assigned a broker for the session, but did not")

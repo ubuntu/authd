@@ -19,6 +19,7 @@ import (
 	cachetests "github.com/ubuntu/authd/internal/cache/tests"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/testutils"
+	brokertestutils "github.com/ubuntu/authd/internal/testutils/broker"
 	usertests "github.com/ubuntu/authd/internal/users/tests"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -154,7 +155,7 @@ func TestSelectBroker(t *testing.T) {
 			}
 
 			if tc.username != "" {
-				tc.username = t.Name() + testutils.IDSeparator + tc.username
+				tc.username = t.Name() + brokertestutils.IDSeparator + tc.username
 			}
 
 			sbRequest := &authd.SBRequest{
@@ -613,7 +614,7 @@ func initBrokers() (brokerConfigPath string, cleanup func(), err error) {
 		_ = os.RemoveAll(tmpDir)
 		return "", nil, err
 	}
-	_, brokerCleanup, err := testutils.StartBusBrokerMock(brokersConfPath, "BrokerMock")
+	_, brokerCleanup, err := brokertestutils.StartBusBrokerMock(brokersConfPath, "BrokerMock")
 	if err != nil {
 		_ = os.RemoveAll(tmpDir)
 		return "", nil, err
@@ -682,7 +683,7 @@ func startSession(t *testing.T, client authd.PAMClient, username string) string 
 	t.Helper()
 
 	// Prefixes the username to avoid concurrency issues.
-	username = t.Name() + testutils.IDSeparator + username
+	username = t.Name() + brokertestutils.IDSeparator + username
 
 	sbResp, err := client.SelectBroker(context.Background(), &authd.SBRequest{
 		BrokerId: mockBrokerGeneratedID,
