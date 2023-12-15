@@ -37,9 +37,9 @@ gdm_extensions_advertise_supported (const char *extensions[],
 
 static inline void
 gdm_custom_json_request_init (GdmPamExtensionJSONProtocol *request,
-                               const char                  *proto_name,
-                               unsigned int                 proto_version,
-                               const char                  *json)
+                              const char                  *proto_name,
+                              unsigned int                 proto_version,
+                              const char                  *json)
 {
   GDM_PAM_EXTENSION_CUSTOM_JSON_REQUEST_INIT (request, proto_name,
                                                proto_version, json);
