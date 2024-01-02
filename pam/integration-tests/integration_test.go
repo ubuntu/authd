@@ -77,6 +77,7 @@ func TestCLIIntegration(t *testing.T) {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+			defer saveArtifactsForDebug(t, []string{filepath.Join(outDir, tc.tape+".gif"), filepath.Join(outDir, tc.tape+".txt")})
 
 			// #nosec:G204 - we control the command arguments in tests
 			cmd := exec.Command("vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
@@ -155,6 +156,33 @@ func getMockArgs(t *testing.T) (args []string) {
 		args = append(args, arg)
 	}
 	return args
+}
+
+// saveArtifactsForDebug saves the specified artifacts to a temporary directory if the test failed.
+func saveArtifactsForDebug(t *testing.T, artifacts []string) {
+	t.Helper()
+	if !t.Failed() {
+		return
+	}
+
+	// We need to copy the artifacts to a temporary directory, since the test directory will be cleaned up.
+	tmpDir := filepath.Join("/tmp/authd-test-artifacts", testutils.GoldenPath(t))
+	if err := os.MkdirAll(tmpDir, 0750); err != nil && !os.IsExist(err) {
+		require.NoError(t, err, "Could not create temporary directory for artifacts")
+		return
+	}
+
+	// Copy the artifacts to the temporary directory.
+	for _, artifact := range artifacts {
+		content, err := os.ReadFile(artifact)
+		if err != nil {
+			t.Logf("Could not read artifact %q: %v", artifact, err)
+			continue
+		}
+		if err := os.WriteFile(filepath.Join(tmpDir, filepath.Base(artifact)), content, 0600); err != nil {
+			t.Logf("Could not write artifact %q: %v", artifact, err)
+		}
+	}
 }
 
 func TestMain(m *testing.M) {
