@@ -186,6 +186,11 @@ func saveArtifactsForDebug(t *testing.T, artifacts []string) {
 }
 
 func TestMain(m *testing.M) {
+	// Needed to skip the test setup when running the gpasswd mock.
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
+		os.Exit(m.Run())
+	}
+
 	testutils.InstallUpdateFlag()
 	flag.Parse()
 
