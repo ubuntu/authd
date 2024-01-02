@@ -36,8 +36,8 @@ func OverrideDefaultOptions(t *testing.T, groupPath string, gpasswdCmd []string)
 	defaultOptions.gpasswdCmd = gpasswdCmd
 }
 
-// IdemnpotentOutputFromGPasswd sort and trim spaces around mock gpasswd output.
-func IdemnpotentOutputFromGPasswd(t *testing.T, cmdsFilePath string) string {
+// IdempotentGPasswdOutput sort and trim spaces around mock gpasswd output.
+func IdempotentGPasswdOutput(t *testing.T, cmdsFilePath string) string {
 	t.Helper()
 
 	d, err := os.ReadFile(cmdsFilePath)

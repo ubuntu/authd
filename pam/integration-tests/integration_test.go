@@ -104,7 +104,7 @@ func TestCLIIntegration(t *testing.T) {
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
 			if tc.tape == "local_group" {
-				got := usertests.IdemnpotentOutputFromGPasswd(t, filepath.Join(outDir, "gpasswd.output"))
+				got := usertests.IdempotentGPasswdOutput(t, filepath.Join(outDir, "gpasswd.output"))
 				want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(testutils.GoldenPath(t)+".gpasswd_out"))
 				require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
 			}
