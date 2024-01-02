@@ -5,6 +5,8 @@ on:
       - main
     paths-ignore:
       - debian/control
+  # Just for testing purposes
+  pull_request:
 concurrency: auto-update
 
 permissions:
@@ -27,7 +29,7 @@ jobs:
       - name: Install dependencies
         run: |
           DEBIAN_FRONTEND=noninteractive apt update
-          DEBIAN_FRONTEND=noninteractive apt install -y cargo dh-cargo git jq
+          DEBIAN_FRONTEND=noninteractive apt install -y cargo dh-cargo git jq gh
       - uses: actions/checkout@v4
         with:
           ref: main
@@ -55,6 +57,7 @@ jobs:
       - name: work around permission issue with git vulnerability (we are local here). TO REMOVE
         run: git config --global --add safe.directory "$PWD"
       - name: Create Pull Request
+        id: create-pr
         if: ${{ env.modified == 'true' }}
         uses: peter-evans/create-pull-request@v5
         with:
@@ -63,8 +66,14 @@ jobs:
           labels: control, automated pr
           branch: auto-update-rust-packaging
           delete-branch: true
+          author: GitHub <noreply@github.com>
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Push branch
-        if: ${{ env.modified == 'true' }}
+      - name: Merge changes
+        if: ${{ env.modified == 'true' }} && steps.create-pr.outputs.pull-request-operation == 'created'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git push origin auto-update-rust-packaging:main
+          gh pr review ${{ steps.create-pr.outputs.pull-request-number }} --comment -b "Checking which user comments this"
+          gh pr review ${{ steps.create-pr.outputs.pull-request-number }} --approve
+          # Do not merge it yet
+          # git push origin auto-update-rust-packaging:main
