@@ -34,6 +34,8 @@ jobs:
         with:
           golangci-lint-configfile: ".golangci.yaml"
           tools-directory: "tools"
+        env:
+          AUTHD_PAM_MODULES_PATH: "/tmp/authd_pam_modules"
       - name: Build cmd/authd with withexamplebroker tag
         run: |
           set -eu
