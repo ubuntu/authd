@@ -9,24 +9,28 @@ Type=notify
 ExecStart=/sbin/authd
 
 # Some daemon restrictions
-CapabilityBoundingSet=
 LockPersonality=yes
 MemoryDenyWriteExecute=yes
 NoNewPrivileges=true
 PrivateDevices=yes
 PrivateMounts=yes
-PrivateNetwork=yes
 PrivateTmp=yes
-ProcSubset=pid
 ProtectClock=yes
 ProtectControlGroups=yes
 ProtectHostname=yes
 ProtectKernelLogs=yes
 ProtectKernelModules=yes
 ProtectKernelTunables=yes
-RestrictAddressFamilies=AF_UNIX
 RestrictNamespaces=yes
 RestrictRealtime=yes
 RestrictSUIDSGID=yes
 SystemCallArchitectures=native
+
+# Only permit system calls used by common system services, excluding any special purpose calls
 SystemCallFilter=@system-service
+
+# This makes all files and directories not associated with process management invisible in /proc
+ProcSubset=pid
+
+# gpasswd requires this specific capability to alter the shadow files
+CapabilityBoundingSet=CAP_CHOWN

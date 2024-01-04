@@ -86,5 +86,5 @@ override_dh_auto_install:
 	install -Dm644 target/$(DEB_HOST_RUST_TYPE)/release/libnss_authd.so debian/authd/usr/lib/$(DEB_TARGET_GNU_TYPE)/libnss_authd.so.2
 
 	# Install systemd units
-	install -Dm644 systemd/authd.service debian/authd/lib/systemd/system/authd.service
-	install -Dm644 systemd/authd.socket debian/authd/lib/systemd/system/authd.socket
+	mkdir -p debian/authd/lib/systemd/system
+	install -m644 systemd/* debian/authd/lib/systemd/system/
