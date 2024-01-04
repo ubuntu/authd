@@ -89,7 +89,7 @@ func Mockgpasswd(_ *testing.T) {
 	}
 
 	// Other error
-	if args[1] == "gpasswdfail" {
+	if slices.Contains(args, "gpasswdfail") {
 		fmt.Fprint(os.Stderr, "Error requested in mock")
 		os.Exit(1)
 	}

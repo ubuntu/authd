@@ -187,6 +187,71 @@ func TestCleanupSystemGroups(t *testing.T) {
 	}
 }
 
+func TestCleanUserFromSystemGroups(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		username string
+
+		groupFilePath   string
+		wantMockFailure bool
+
+		noOp    bool
+		wantErr bool
+	}{
+		"Cleans up user from group":                   {},
+		"Cleans up user from multiple groups":         {groupFilePath: "user_in_many_groups.group"},
+		"No op if user does not belong to any groups": {username: "groupless", noOp: true},
+
+		"Error on missing groups file":                {groupFilePath: "does_not_exists.group", wantErr: true},
+		"Error when groups file is malformed":         {groupFilePath: "malformed_file.group", wantErr: true},
+		"Error on any unignored delete gpasswd error": {wantMockFailure: true, wantErr: true},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if tc.username == "" {
+				tc.username = "myuser"
+			}
+			if tc.groupFilePath == "" {
+				tc.groupFilePath = "user_in_one_group.group"
+			}
+
+			destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
+			groupFilePath := filepath.Join("testdata", tc.groupFilePath)
+			gpasswdCmd := []string{"env", "GO_WANT_HELPER_PROCESS=1",
+				fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
+				fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
+				os.Args[0], "-test.run=TestMockgpasswd", "--",
+			}
+			if tc.wantMockFailure {
+				gpasswdCmd = append(gpasswdCmd, "gpasswdfail")
+			}
+
+			cleanupOptions := []users.Option{
+				users.WithGpasswdCmd(gpasswdCmd),
+				users.WithGroupPath(groupFilePath),
+			}
+			err := users.CleanUserFromSystemGroups(tc.username, cleanupOptions...)
+			if tc.wantErr {
+				require.Error(t, err, "CleanupSystemGroups should have failed")
+				return
+			}
+			require.NoError(t, err, "CleanupSystemGroups should not have failed")
+
+			if tc.noOp {
+				return
+			}
+
+			got := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
+			want := testutils.LoadWithUpdateFromGolden(t, got)
+			require.Equal(t, want, got, "Clean up should do the expected gpasswd operation, but did not")
+		})
+	}
+}
+
 func TestMockgpasswd(t *testing.T) {
 	usertests.Mockgpasswd(t)
 }
