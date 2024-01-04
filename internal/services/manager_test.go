@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/services"
@@ -19,8 +18,6 @@ func TestNewManager(t *testing.T) {
 		cacheDir string
 
 		systemBusSocket string
-		cleanupInterval time.Duration
-		groupsFile      string
 
 		wantErr bool
 	}{
@@ -44,8 +41,9 @@ func TestNewManager(t *testing.T) {
 				require.Error(t, err, "NewManager should have returned an error, but did not")
 				return
 			}
+			defer require.NoError(t, m.Stop(), "Teardown: Stop should not have returned an error, but did")
+
 			require.NoError(t, err, "NewManager should not have returned an error, but did")
-			require.NoError(t, m.Stop(), "Teardown: Stop should not have returned an error, but did")
 		})
 	}
 }
