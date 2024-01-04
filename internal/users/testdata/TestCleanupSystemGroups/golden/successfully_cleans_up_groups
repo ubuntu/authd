@@ -1,5 +1,0 @@
---delete myuser localgroup1
---delete otheruser localgroup2
---delete otheruser2 localgroup4
---delete otheruser3 cloudgroup1
---delete otheruser4 cloudgroup2

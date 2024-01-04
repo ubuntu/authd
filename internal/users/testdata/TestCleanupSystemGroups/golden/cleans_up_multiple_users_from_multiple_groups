@@ -1,0 +1,9 @@
+--delete inactiveuser localgroup1
+--delete inactiveuser localgroup2
+--delete inactiveuser localgroup3
+--delete inactiveuser2 localgroup1
+--delete inactiveuser2 localgroup2
+--delete inactiveuser2 localgroup3
+--delete inactiveuser3 localgroup1
+--delete inactiveuser3 localgroup2
+--delete inactiveuser3 localgroup3

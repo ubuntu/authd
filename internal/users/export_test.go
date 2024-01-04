@@ -14,8 +14,8 @@ func WithGpasswdCmd(cmds []string) Option {
 	}
 }
 
-func WithGetentCmd(cmds []string) Option {
+func WithGetUsersCmd(cmds []string) Option {
 	return func(o *options) {
-		o.getentCmd = cmds
+		o.getUsersCmd = cmds
 	}
 }

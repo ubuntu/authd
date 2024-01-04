@@ -375,7 +375,7 @@ func TestIsAuthenticated(t *testing.T) {
 					fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
 					fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
 					os.Args[0], "-test.run=TestMockgpasswd", "--"}
-				usertests.OverrideDefaultOptions(t, groupFilePath, gpasswd)
+				usertests.OverrideDefaultOptions(t, groupFilePath, gpasswd, []string{})
 			}
 
 			cacheDir := t.TempDir()

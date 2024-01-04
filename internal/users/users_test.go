@@ -1,11 +1,11 @@
 package users_test
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -135,13 +135,16 @@ func TestCleanupSystemGroups(t *testing.T) {
 	tests := map[string]struct {
 		groupFilePath string
 
-		getentCmd []string
+		getUsersArgs []string
 
 		wantErr bool
 	}{
-		"Successfully cleans up groups": {groupFilePath: "root_in_groups.group"},
+		"Cleans up user from group":                     {groupFilePath: "inactive_user_in_one_group.group"},
+		"Cleans up user from multiple groups":           {groupFilePath: "inactive_user_in_many_groups.group"},
+		"Cleans up multiple users from group":           {groupFilePath: "inactive_users_in_one_group.group"},
+		"Cleans up multiple users from multiple groups": {groupFilePath: "inactive_users_in_many_groups.group"},
 
-		"Error when NSS errors out":                   {groupFilePath: "root_in_groups.group", getentCmd: []string{"nss-fail"}, wantErr: true},
+		"Error when NSS errors out":                   {groupFilePath: "inactive_user_in_one_group.group", getUsersArgs: []string{"nss-fail"}, wantErr: true},
 		"Error on missing groups file":                {groupFilePath: "does_not_exists.group", wantErr: true},
 		"Error when groups file is malformed":         {groupFilePath: "malformed_file.group", wantErr: true},
 		"Error on any unignored delete gpasswd error": {groupFilePath: "gpasswdfail_in_deleted_group.group", wantErr: true},
@@ -153,22 +156,30 @@ func TestCleanupSystemGroups(t *testing.T) {
 
 			destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
 			groupFilePath := filepath.Join("testdata", tc.groupFilePath)
-			cmdArgs := []string{"env", "GO_WANT_HELPER_PROCESS=1",
+			gpasswdCmd := []string{"env", "GO_WANT_HELPER_PROCESS=1",
 				fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
 				fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
-				os.Args[0], "-test.run=TestMockgpasswd", "--"}
-
-			cleanupOptions := []users.Option{users.WithGpasswdCmd(cmdArgs), users.WithGroupPath(groupFilePath)}
-			if tc.getentCmd != nil {
-				cleanupOptions = append(cleanupOptions, users.WithGetentCmd(tc.getentCmd))
+				os.Args[0], "-test.run=TestMockgpasswd", "--",
 			}
 
-			err := users.CleanupSystemGroups(context.Background(), cleanupOptions...)
+			getUsersCmd := []string{"env", "GO_WANT_HELPER_PROCESS=1", os.Args[0], "-test.run=TestMockgetusers", "--"}
+			if tc.getUsersArgs == nil {
+				tc.getUsersArgs = []string{"myuser", "otheruser", "otheruser2", "otheruser3", "otheruser4"}
+			}
+			getUsersCmd = append(getUsersCmd, strings.Join(tc.getUsersArgs, ","))
+
+			cleanupOptions := []users.Option{
+				users.WithGpasswdCmd(gpasswdCmd),
+				users.WithGroupPath(groupFilePath),
+				users.WithGetUsersCmd(getUsersCmd),
+			}
+			err := users.CleanSystemGroups(cleanupOptions...)
 			if tc.wantErr {
 				require.Error(t, err, "CleanupSystemGroups should have failed")
 				return
 			}
 			require.NoError(t, err, "CleanupSystemGroups should not have failed")
+
 			got := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Clean up should do the expected gpasswd operation, but did not")
@@ -178,6 +189,10 @@ func TestCleanupSystemGroups(t *testing.T) {
 
 func TestMockgpasswd(t *testing.T) {
 	usertests.Mockgpasswd(t)
+}
+
+func TestMockgetusers(t *testing.T) {
+	usertests.Mockgetusers(t)
 }
 
 func TestMain(m *testing.M) {

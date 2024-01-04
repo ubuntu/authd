@@ -1,13 +1,13 @@
 // Package tests export users test functionalities used by other packages to change cmdline and group file.
 package tests
 
-//nolint:gci // We import unsafe as it is needed for go:linkname, but this confuses gci so we should ignore it.
+//nolint:gci // We import unsafe as it is needed for go:linkname, but the nolint comment confuses gofmt and it adds
+// a black space between the imports, which creates problems with gci so we should ignore it.
 import (
 	"fmt"
 	"os"
 	"slices"
 	"strings"
-	"sync"
 	"testing"
 
 	//nolint:revive,nolintlint // needed for go:linkname, but only used in tests. nolinlint as false positive then.
@@ -19,32 +19,29 @@ import (
 var (
 	//go:linkname defaultOptions github.com/ubuntu/authd/internal/users.defaultOptions
 	defaultOptions struct {
-		groupPath  string
-		gpasswdCmd []string
+		groupPath   string
+		gpasswdCmd  []string
+		getUsersCmd []string
 	}
-
-	//go:linkname defaultOptionsMu github.com/ubuntu/authd/internal/users.defaultOptionsMu
-	defaultOptionsMu sync.RWMutex
 )
 
 // OverrideDefaultOptions allow to change groupPath and gpasswdCmd without using options.
 // This is used for tests when we don’t have access to the users object directly, like integration tests.
 // Tests using this can't be run in parallel.
-func OverrideDefaultOptions(t *testing.T, groupPath string, gpasswdCmd []string) {
+func OverrideDefaultOptions(t *testing.T, groupPath string, gpasswdCmd []string, getUsersCmd []string) {
 	t.Helper()
-
-	defaultOptionsMu.Lock()
-	defer defaultOptionsMu.Unlock()
 
 	origin := defaultOptions
 	t.Cleanup(func() {
-		defaultOptionsMu.Lock()
-		defer defaultOptionsMu.Unlock()
 		defaultOptions = origin
 	})
 
 	defaultOptions.groupPath = groupPath
 	defaultOptions.gpasswdCmd = gpasswdCmd
+
+	if getUsersCmd != nil {
+		defaultOptions.getUsersCmd = getUsersCmd
+	}
 }
 
 // IdemnpotentOutputFromGPasswd sort and trim spaces around mock gpasswd output.
@@ -107,7 +104,33 @@ func Mockgpasswd(_ *testing.T) {
 
 	if _, err := f.Write([]byte(strings.Join(args, " ") + "\n")); err != nil {
 		fmt.Fprintf(os.Stderr, "Mock: error while writing in file: %v", err)
+		f.Close()
 		os.Exit(1)
 	}
-	f.Close()
+}
+
+// Mockgetusers is the getent mock.
+func Mockgetusers(_ *testing.T) {
+	if os.Getenv("GO_WANT_HELPER_PROCESS") == "" {
+		return
+	}
+
+	args := os.Args
+	for len(args) > 0 {
+		if args[0] != "--" {
+			args = args[1:]
+			continue
+		}
+		args = args[1:]
+		break
+	}
+
+	if args[0] == "nss-fail" {
+		fmt.Fprint(os.Stderr, "Error requested in mock")
+		os.Exit(1)
+	}
+
+	for _, username := range strings.Split(args[0], ",") {
+		fmt.Printf("%s::::::\n", username)
+	}
 }
