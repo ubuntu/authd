@@ -122,7 +122,7 @@ func TestUpdateLocalGroups(t *testing.T) {
 				return
 			}
 
-			got := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
+			got := usertests.IdempotentGPasswdOutput(t, destCmdsFile)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
 		})
@@ -139,6 +139,7 @@ func TestCleanupSystemGroups(t *testing.T) {
 
 		wantErr bool
 	}{
+		"No-op when there are no inactive users":        {groupFilePath: "user_in_many_groups.group"},
 		"Cleans up user from group":                     {groupFilePath: "inactive_user_in_one_group.group"},
 		"Cleans up user from multiple groups":           {groupFilePath: "inactive_user_in_many_groups.group"},
 		"Cleans up multiple users from group":           {groupFilePath: "inactive_users_in_one_group.group"},
@@ -180,7 +181,24 @@ func TestCleanupSystemGroups(t *testing.T) {
 			}
 			require.NoError(t, err, "CleanupSystemGroups should not have failed")
 
-			got := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
+			// Always check the golden files missing for no-op too on error
+			referenceFilePath := testutils.GoldenPath(t)
+			if testutils.Update() {
+				// The file may already not exists.
+				_ = os.Remove(testutils.GoldenPath(t))
+				referenceFilePath = destCmdsFile
+			}
+
+			var shouldExists bool
+			if _, err := os.Stat(referenceFilePath); err == nil {
+				shouldExists = true
+			}
+			if !shouldExists {
+				require.NoFileExists(t, destCmdsFile, "UpdateLocalGroups should not call gpasswd by did")
+				return
+			}
+
+			got := usertests.IdempotentGPasswdOutput(t, destCmdsFile)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Clean up should do the expected gpasswd operation, but did not")
 		})
@@ -196,12 +214,11 @@ func TestCleanUserFromSystemGroups(t *testing.T) {
 		groupFilePath   string
 		wantMockFailure bool
 
-		noOp    bool
 		wantErr bool
 	}{
 		"Cleans up user from group":                   {},
 		"Cleans up user from multiple groups":         {groupFilePath: "user_in_many_groups.group"},
-		"No op if user does not belong to any groups": {username: "groupless", noOp: true},
+		"No op if user does not belong to any groups": {username: "groupless"},
 
 		"Error on missing groups file":                {groupFilePath: "does_not_exists.group", wantErr: true},
 		"Error when groups file is malformed":         {groupFilePath: "malformed_file.group", wantErr: true},
@@ -241,11 +258,24 @@ func TestCleanUserFromSystemGroups(t *testing.T) {
 			}
 			require.NoError(t, err, "CleanupSystemGroups should not have failed")
 
-			if tc.noOp {
+			// Always check the golden files missing for no-op too on error
+			referenceFilePath := testutils.GoldenPath(t)
+			if testutils.Update() {
+				// The file may already not exists.
+				_ = os.Remove(testutils.GoldenPath(t))
+				referenceFilePath = destCmdsFile
+			}
+
+			var shouldExists bool
+			if _, err := os.Stat(referenceFilePath); err == nil {
+				shouldExists = true
+			}
+			if !shouldExists {
+				require.NoFileExists(t, destCmdsFile, "UpdateLocalGroups should not call gpasswd by did")
 				return
 			}
 
-			got := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
+			got := usertests.IdempotentGPasswdOutput(t, destCmdsFile)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Clean up should do the expected gpasswd operation, but did not")
 		})

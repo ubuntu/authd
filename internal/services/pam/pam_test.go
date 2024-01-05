@@ -476,7 +476,7 @@ func TestIsAuthenticated(t *testing.T) {
 				return
 			}
 
-			gotGPasswd := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
+			gotGPasswd := usertests.IdempotentGPasswdOutput(t, destCmdsFile)
 			wantGPasswd := testutils.LoadWithUpdateFromGolden(t, gotGPasswd, testutils.WithGoldenPath(goldenGpasswdPath))
 			require.Equal(t, wantGPasswd, gotGPasswd, "IsAuthenticated should return the expected combined data, but did not")
 		})
