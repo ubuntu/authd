@@ -54,7 +54,7 @@ enum RequestType {
 message Requests {
     message UiLayoutCapabilities {}
     message ChangeStage {
-        int32 stage = 1;
+        authd.Stage stage = 1;
     }
 }
 
@@ -143,7 +143,7 @@ message Events {
     }
 
     message StageChanged {
-        int32 stage = 1;
+        authd.Stage stage = 1;
     }
 
     message UiLayoutReceived {

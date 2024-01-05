@@ -169,3 +169,11 @@ message ShadowEntry {
 message ShadowEntries {
   repeated ShadowEntry entries = 1;
 }
+
+enum Stage {
+    undefined = 0;
+    userSelection = 1;
+    brokerSelection = 2;
+    authModeSelection = 3;
+    challenge = 4;
+}
