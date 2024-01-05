@@ -1,0 +1,36 @@
+[Unit]
+Description=Authd daemon service
+After=authd.socket
+Requires=authd.socket
+PartOf=authd.socket
+
+[Service]
+Type=notify
+ExecStart=/sbin/authd
+
+# Some daemon restrictions
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+NoNewPrivileges=true
+PrivateDevices=yes
+PrivateMounts=yes
+PrivateTmp=yes
+ProtectClock=yes
+ProtectControlGroups=yes
+ProtectHostname=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+SystemCallArchitectures=native
+
+# Only permit system calls used by common system services, excluding any special purpose calls
+SystemCallFilter=@system-service
+
+# This makes all files and directories not associated with process management invisible in /proc
+ProcSubset=pid
+
+# gpasswd requires this specific capability to alter the shadow files
+CapabilityBoundingSet=CAP_CHOWN

@@ -84,3 +84,7 @@ override_dh_auto_install:
 	# Install NSS
 	# In Rust, HOST actually refers to the build target (see README.Debian in rustc)
 	install -Dm644 target/$(DEB_HOST_RUST_TYPE)/release/libnss_authd.so debian/authd/usr/lib/$(DEB_TARGET_GNU_TYPE)/libnss_authd.so.2
+
+	# Install systemd units
+	mkdir -p debian/authd/lib/systemd/system
+	install -m644 systemd/* debian/authd/lib/systemd/system/
