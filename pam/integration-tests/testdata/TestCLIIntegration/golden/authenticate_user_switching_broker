@@ -1,0 +1,264 @@
+> ./pam_authd socket=/tmp/pam-cli-tests.sock
+Username: user name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd socket=/tmp/pam-cli-tests.sock
+Username: user-integration-switch-broker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd socket=/tmp/pam-cli-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd socket=/tmp/pam-cli-tests.sock
+Gimme your password
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd socket=/tmp/pam-cli-tests.sock
+  Select your authentication method
+
+> 1. Password authentication
+  2. Send URL to user-integration-switch-broker@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Use a QR code
+  7. Authentication code
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd socket=/tmp/pam-cli-tests.sock
+  Select your provider
+
+  1. local
+> 2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd socket=/tmp/pam-cli-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Auth return: The return value should be ignored by PAM dispatch:
+Acct mgmt return: The return value should be ignored by PAM dispatch
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd socket=/tmp/pam-cli-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Auth return: The return value should be ignored by PAM dispatch:
+Acct mgmt return: The return value should be ignored by PAM dispatch
+>
+────────────────────────────────────────────────────────────────────────────────

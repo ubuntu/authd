@@ -36,11 +36,6 @@ type options struct {
 	gpasswdCmd []string
 }
 
-var defaultOptions = options{
-	groupPath:  "/etc/group",
-	gpasswdCmd: []string{"gpasswd"},
-}
-
 // Option represents an optional function to override UpdateLocalGroups default values.
 type Option func(*options)
 
@@ -96,6 +91,7 @@ func existingLocalGroups(user, groupPath string) (groups []string, err error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	// Format of a line composing the group file is:
 	// group_name:password:group_id:user1,…,usern

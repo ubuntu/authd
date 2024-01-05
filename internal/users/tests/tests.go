@@ -1,12 +1,14 @@
 // Package tests export users test functionalities used by other packages to change cmdline and group file.
 package tests
 
+//nolint:gci // The GCI linter gets confused when dealing with _ imports, so we need to ignore it.
 import (
 	"fmt"
 	"os"
 	"slices"
 	"strings"
 	"testing"
+
 	//nolint:revive,nolintlint // needed for go:linkname, but only used in tests. nolinlint as false positive then.
 	_ "unsafe"
 
@@ -34,8 +36,8 @@ func OverrideDefaultOptions(t *testing.T, groupPath string, gpasswdCmd []string)
 	defaultOptions.gpasswdCmd = gpasswdCmd
 }
 
-// IdemnpotentOutputFromGPasswd sort and trim spaces around mock gpasswd output.
-func IdemnpotentOutputFromGPasswd(t *testing.T, cmdsFilePath string) string {
+// IdempotentGPasswdOutput sort and trim spaces around mock gpasswd output.
+func IdempotentGPasswdOutput(t *testing.T, cmdsFilePath string) string {
 	t.Helper()
 
 	d, err := os.ReadFile(cmdsFilePath)
