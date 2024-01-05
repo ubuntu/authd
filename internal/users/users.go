@@ -3,6 +3,7 @@ package users
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -32,13 +33,15 @@ type GroupInfo struct {
 }
 
 type options struct {
-	groupPath  string
-	gpasswdCmd []string
+	groupPath   string
+	gpasswdCmd  []string
+	getUsersCmd []string
 }
 
 var defaultOptions = options{
-	groupPath:  "/etc/group",
-	gpasswdCmd: []string{"gpasswd"},
+	groupPath:   "/etc/group",
+	gpasswdCmd:  []string{"gpasswd"},
+	getUsersCmd: []string{"getent", "passwd"},
 }
 
 // Option represents an optional function to override UpdateLocalGroups default values.
@@ -96,6 +99,7 @@ func existingLocalGroups(user, groupPath string) (groups []string, err error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	// Format of a line composing the group file is:
 	// group_name:password:group_id:user1,…,usern
@@ -159,6 +163,116 @@ func computeGroupOperation(newGroupsInfo []GroupInfo, currentLocalGroups []strin
 	}
 
 	return groupsToAdd, groupsToRemove
+}
+
+// CleanUserFromSystemGroups removes the user from all system groups.
+func CleanUserFromSystemGroups(user string, args ...Option) (err error) {
+	defer decorate.OnError(&err, "could not clean user %q from system groups", user)
+
+	opts := defaultOptions
+	for _, arg := range args {
+		arg(&opts)
+	}
+
+	// Get the list of groups the user belong to
+	groups, err := existingLocalGroups(user, opts.groupPath)
+	if err != nil {
+		return err
+	}
+
+	for _, group := range groups {
+		args := opts.gpasswdCmd[1:]
+		args = append(args, "--delete", user, group)
+		if err := runGPasswd(opts.gpasswdCmd[0], args...); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// CleanSystemGroups removes all unexistent users from the system groups.
+//
+// In order to do that, it needs to query NSS for all existent users and then look at /etc/groups.
+func CleanSystemGroups(args ...Option) (err error) {
+	defer decorate.OnError(&err, "could not clean system groups completely")
+
+	opts := defaultOptions
+	for _, arg := range args {
+		arg(&opts)
+	}
+
+	// Get the list of users from NSS
+	// #nosec:G204 - the cmd arguments are only overridable in a controlled way during tests.
+	cmd := exec.Command(opts.getUsersCmd[0], opts.getUsersCmd[1:]...)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("could not get list of users from NSS (%v): %s", err, out.String())
+	}
+
+	// Add the existingUsers to a map to speed up search
+	existingUsers := make(map[string]struct{})
+	for _, line := range strings.Split(out.String(), "\n") {
+		if line == "" {
+			continue
+		}
+		name, _, found := strings.Cut(line, ":")
+		if !found {
+			slog.Warn(fmt.Sprintf("could not parse NSS output: badly formatted entry %s", line))
+			continue
+		}
+		existingUsers[name] = struct{}{}
+	}
+
+	// Get the list of groups
+	f, err := os.Open(opts.groupPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	// Format of a line composing the group file is:
+	// group_name:password:group_id:user1,…,usern
+	var delOps [][]string
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		t := strings.TrimSpace(scanner.Text())
+		if t == "" {
+			continue
+		}
+		elems := strings.Split(t, ":")
+		if len(elems) != 4 {
+			e := fmt.Errorf("unexpected number of elements in group file on line (should have 4 separators): %q", t)
+			err = errors.Join(err, e)
+			continue
+		}
+
+		groupName := elems[0]
+		users := strings.Split(elems[3], ",")
+		for _, user := range users {
+			if _, ok := existingUsers[user]; ok {
+				continue
+			}
+
+			// User doesn't exist anymore, remove it from the group
+			args := opts.gpasswdCmd[1:]
+			delOps = append(delOps, append(args, "--delete", user, groupName))
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+	f.Close()
+
+	// Execute the deletion operations
+	for _, op := range delOps {
+		if cmdErr := runGPasswd(opts.gpasswdCmd[0], op...); cmdErr != nil {
+			err = errors.Join(err, cmdErr)
+		}
+	}
+
+	return err
 }
 
 // runGPasswd is a wrapper to cmdName ignoring exit code 3, meaning that the group doesn't exist.
