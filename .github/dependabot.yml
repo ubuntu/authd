@@ -10,7 +10,7 @@ updates:
     # default location of `.github/workflows`
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: "deps(ci)"
 
@@ -19,14 +19,14 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/" # Location of package manifests
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: "deps(go)"
 
   - package-ecosystem: "gomod"
     directory: "/tools"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: "deps(go-tools)"
 
@@ -34,6 +34,6 @@ updates:
   - package-ecosystem: "cargo"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     commit-message:
       prefix: "deps(rust)"
