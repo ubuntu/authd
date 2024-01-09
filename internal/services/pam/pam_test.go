@@ -376,7 +376,7 @@ func TestIsAuthenticated(t *testing.T) {
 					fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
 					fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
 					os.Args[0], "-test.run=TestMockgpasswd", "--"}
-				usertests.OverrideDefaultOptions(t, groupFilePath, gpasswd)
+				usertests.OverrideDefaultOptions(t, groupFilePath, gpasswd, nil)
 			}
 
 			cacheDir := t.TempDir()
@@ -477,7 +477,7 @@ func TestIsAuthenticated(t *testing.T) {
 				return
 			}
 
-			gotGPasswd := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
+			gotGPasswd := usertests.IdempotentGPasswdOutput(t, destCmdsFile)
 			wantGPasswd := testutils.LoadWithUpdateFromGolden(t, gotGPasswd, testutils.WithGoldenPath(goldenGpasswdPath))
 			require.Equal(t, wantGPasswd, gotGPasswd, "IsAuthenticated should return the expected combined data, but did not")
 		})

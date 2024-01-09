@@ -121,7 +121,7 @@ func TestUpdateLocalGroups(t *testing.T) {
 				return
 			}
 
-			got := usertests.IdemnpotentOutputFromGPasswd(t, destCmdsFile)
+			got := usertests.IdempotentGPasswdOutput(t, destCmdsFile)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
 		})
