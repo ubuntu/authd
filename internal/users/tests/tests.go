@@ -1,13 +1,16 @@
 // Package tests export users test functionalities used by other packages to change cmdline and group file.
 package tests
 
+//nolint:gci // We import unsafe as it is needed for go:linkname, but the nolint comment confuses gofmt and it adds
+// a blank space between the imports, which creates problems with gci so we need to ignore it.
 import (
 	"fmt"
 	"os"
 	"slices"
 	"strings"
 	"testing"
-	//nolint:revive,nolintlint // needed for go:linkname, but only used in tests. nolinlint as false positive then.
+
+	//nolint:revive,nolintlint // needed for go:linkname, but only used in tests. nolintlint as false positive then.
 	_ "unsafe"
 
 	"github.com/stretchr/testify/require"
@@ -16,15 +19,16 @@ import (
 var (
 	//go:linkname defaultOptions github.com/ubuntu/authd/internal/users.defaultOptions
 	defaultOptions struct {
-		groupPath  string
-		gpasswdCmd []string
+		groupPath    string
+		gpasswdCmd   []string
+		getUsersFunc func() []string
 	}
 )
 
 // OverrideDefaultOptions allow to change groupPath and gpasswdCmd without using options.
 // This is used for tests when we don’t have access to the users object directly, like integration tests.
 // Tests using this can't be run in parallel.
-func OverrideDefaultOptions(t *testing.T, groupPath string, gpasswdCmd []string) {
+func OverrideDefaultOptions(t *testing.T, groupPath string, gpasswdCmd []string, getUsersFunc func() []string) {
 	t.Helper()
 
 	origin := defaultOptions
@@ -32,10 +36,14 @@ func OverrideDefaultOptions(t *testing.T, groupPath string, gpasswdCmd []string)
 
 	defaultOptions.groupPath = groupPath
 	defaultOptions.gpasswdCmd = gpasswdCmd
+
+	if getUsersFunc != nil {
+		defaultOptions.getUsersFunc = getUsersFunc
+	}
 }
 
-// IdemnpotentOutputFromGPasswd sort and trim spaces around mock gpasswd output.
-func IdemnpotentOutputFromGPasswd(t *testing.T, cmdsFilePath string) string {
+// IdempotentGPasswdOutput sort and trim spaces around mock gpasswd output.
+func IdempotentGPasswdOutput(t *testing.T, cmdsFilePath string) string {
 	t.Helper()
 
 	d, err := os.ReadFile(cmdsFilePath)
@@ -54,7 +62,6 @@ func Mockgpasswd(_ *testing.T) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS_DEST") == "" {
 		return
 	}
-	defer os.Exit(0)
 
 	args := os.Args
 	for len(args) > 0 {
@@ -80,7 +87,7 @@ func Mockgpasswd(_ *testing.T) {
 	}
 
 	// Other error
-	if args[1] == "gpasswdfail" {
+	if slices.Contains(args, "gpasswdfail") {
 		fmt.Fprint(os.Stderr, "Error requested in mock")
 		os.Exit(1)
 	}
@@ -95,6 +102,7 @@ func Mockgpasswd(_ *testing.T) {
 
 	if _, err := f.Write([]byte(strings.Join(args, " ") + "\n")); err != nil {
 		fmt.Fprintf(os.Stderr, "Mock: error while writing in file: %v", err)
+		f.Close()
 		os.Exit(1)
 	}
 }
