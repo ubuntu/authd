@@ -32,13 +32,15 @@ type GroupInfo struct {
 }
 
 type options struct {
-	groupPath  string
-	gpasswdCmd []string
+	groupPath    string
+	gpasswdCmd   []string
+	getUsersFunc func() []string
 }
 
 var defaultOptions = options{
-	groupPath:  "/etc/group",
-	gpasswdCmd: []string{"gpasswd"},
+	groupPath:    "/etc/group",
+	gpasswdCmd:   []string{"gpasswd"},
+	getUsersFunc: getPasswdUsernames,
 }
 
 // Option represents an optional function to override UpdateLocalGroups default values.
@@ -160,6 +162,100 @@ func computeGroupOperation(newGroupsInfo []GroupInfo, currentLocalGroups []strin
 	}
 
 	return groupsToAdd, groupsToRemove
+}
+
+// CleanUserFromLocalGroups removes the user from all local groups.
+func CleanUserFromLocalGroups(user string, args ...Option) (err error) {
+	defer decorate.OnError(&err, "could not clean user %q from local groups", user)
+
+	opts := defaultOptions
+	for _, arg := range args {
+		arg(&opts)
+	}
+
+	// Get the list of local groups the user belong to
+	groups, err := existingLocalGroups(user, opts.groupPath)
+	if err != nil {
+		return err
+	}
+
+	for _, group := range groups {
+		args := opts.gpasswdCmd[1:]
+		args = append(args, "--delete", user, group)
+		if err := runGPasswd(opts.gpasswdCmd[0], args...); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// CleanLocalGroups removes all unexistent users from the local groups.
+func CleanLocalGroups(args ...Option) (err error) {
+	defer decorate.OnError(&err, "could not clean local groups completely")
+
+	opts := defaultOptions
+	for _, arg := range args {
+		arg(&opts)
+	}
+
+	// Add the existingUsers to a map to speed up search
+	existingUsers := make(map[string]struct{})
+	for _, username := range opts.getUsersFunc() {
+		existingUsers[username] = struct{}{}
+	}
+	// If no username was returned, something probably went wrong during the getpwent call and we should stop,
+	// otherwise we would remove all users from the local groups.
+	if len(existingUsers) == 0 {
+		return fmt.Errorf("no existing users found, local groups won't be cleaned")
+	}
+
+	// Get the list of local groups
+	f, err := os.Open(opts.groupPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	// Format of a line composing the group file is:
+	// group_name:password:group_id:user1,…,usern
+	var delOps [][]string
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		t := strings.TrimSpace(scanner.Text())
+		if t == "" {
+			continue
+		}
+		elems := strings.Split(t, ":")
+		if len(elems) != 4 {
+			return fmt.Errorf("malformed entry in group file (should have 4 separators): %q", t)
+		}
+
+		groupName := elems[0]
+		users := strings.Split(elems[3], ",")
+		for _, user := range users {
+			if _, ok := existingUsers[user]; ok {
+				continue
+			}
+
+			// User doesn't exist anymore, remove it from the group
+			args := opts.gpasswdCmd[1:]
+			delOps = append(delOps, append(args, "--delete", user, groupName))
+		}
+	}
+	if scanner.Err() != nil {
+		return scanner.Err()
+	}
+	f.Close()
+
+	// Execute the deletion operations
+	for _, op := range delOps {
+		if cmdErr := runGPasswd(opts.gpasswdCmd[0], op...); cmdErr != nil {
+			err = errors.Join(err, cmdErr)
+		}
+	}
+
+	return err
 }
 
 // runGPasswd is a wrapper to cmdName ignoring exit code 3, meaning that the group doesn't exist.
