@@ -96,6 +96,7 @@ func existingLocalGroups(user, groupPath string) (groups []string, err error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	// Format of a line composing the group file is:
 	// group_name:password:group_id:user1,…,usern
@@ -107,7 +108,7 @@ func existingLocalGroups(user, groupPath string) (groups []string, err error) {
 		}
 		elems := strings.Split(t, ":")
 		if len(elems) != 4 {
-			return nil, fmt.Errorf("unexpected number of elements in group file on line (should have 4 separators): %q", t)
+			return nil, fmt.Errorf("malformed entry in group file (should have 4 separators): %q", t)
 		}
 
 		n := elems[0]
