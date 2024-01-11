@@ -37,12 +37,6 @@ type options struct {
 	getUsersFunc func() []string
 }
 
-var defaultOptions = options{
-	groupPath:    "/etc/group",
-	gpasswdCmd:   []string{"gpasswd"},
-	getUsersFunc: getPasswdUsernames,
-}
-
 // Option represents an optional function to override UpdateLocalGroups default values.
 type Option func(*options)
 
