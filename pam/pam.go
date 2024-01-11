@@ -77,7 +77,10 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 	client, closeConn, err := newClient(args)
 	if err != nil {
 		log.Debug(context.TODO(), err)
-		return pam.ErrAuthinfoUnavail
+		if err := showPamMessage(mTx, pam.ErrorMsg, err.Error()); err != nil {
+			log.Warningf(context.TODO(), "Impossible to show PAM message: %v", err)
+		}
+		return errors.Join(err, pam.ErrAuthinfoUnavail)
 	}
 	defer closeConn()
 
