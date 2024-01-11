@@ -3,6 +3,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -37,9 +38,21 @@ func main() {
 		}))
 
 	authResult := module.Authenticate(mTx, pam.Flags(0), os.Args)
-	fmt.Println("Auth return:", authResult)
+	printPamResult("PAM Authenticate()", authResult)
 
 	// Simulate setting auth broker as default.
-	accMgmtResult := module.AcctMgmt(mTx, pam.Flags(0), os.Args)
-	fmt.Println("Acct mgmt return:", accMgmtResult)
+	printPamResult("PAM AcctMgmt()", module.AcctMgmt(mTx, pam.Flags(0), os.Args))
+}
+
+func printPamResult(action string, result error) {
+	var pamErr pam.Error
+	if errors.As(result, &pamErr) {
+		fmt.Printf("%s exited with error (PAM exit code: %d): %v\n", action, pamErr, result)
+		return
+	}
+	if result != nil {
+		fmt.Printf("%s exited with error: %v\n", action, result)
+		return
+	}
+	fmt.Printf("%s exited with success\n", action)
 }

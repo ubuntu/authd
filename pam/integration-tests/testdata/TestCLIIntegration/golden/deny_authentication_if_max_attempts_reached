@@ -266,11 +266,11 @@ invalid password, should be goodpass
 Gimme your password
 >
 PAM ERROR: invalid password, should be goodpass
-Auth return: Authentication failure: invalid password, should be goodpass
-Acct mgmt return: The return value should be ignored by PAM dispatch
+PAM Authenticate() exited with error (PAM exit code: 7): Authentication failure: invalid passwor
+d, should be goodpass
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
 >
-
-
 
 
 
@@ -299,11 +299,11 @@ Acct mgmt return: The return value should be ignored by PAM dispatch
 Gimme your password
 >
 PAM ERROR: invalid password, should be goodpass
-Auth return: Authentication failure: invalid password, should be goodpass
-Acct mgmt return: The return value should be ignored by PAM dispatch
+PAM Authenticate() exited with error (PAM exit code: 7): Authentication failure: invalid passwor
+d, should be goodpass
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
 >
-
-
 
 
 

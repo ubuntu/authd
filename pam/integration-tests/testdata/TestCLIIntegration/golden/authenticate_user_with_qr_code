@@ -284,8 +284,8 @@ Enter the following code after flashing the address: 1337
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 
-Auth return: <nil>
-Acct mgmt return: <nil>
+PAM Authenticate() exited with success
+PAM AcctMgmt() exited with success
 >
 
 
@@ -317,8 +317,8 @@ Enter the following code after flashing the address: 1337
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 
-Auth return: <nil>
-Acct mgmt return: <nil>
+PAM Authenticate() exited with success
+PAM AcctMgmt() exited with success
 >
 
 

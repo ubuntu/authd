@@ -126,9 +126,9 @@ Username: user-local-broker
 
 
 
-Auth return: The return value should be ignored by PAM dispatch:
-Acct mgmt return: The return value should be ignored by PAM dispatch
->
+PAM Authenticate() exited with error (PAM exit code: 25): The return value should be ignored by
+PAM dispatch:
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
   Select your provider
@@ -159,7 +159,7 @@ Acct mgmt return: The return value should be ignored by PAM dispatch
 
 
 
-Auth return: The return value should be ignored by PAM dispatch:
-Acct mgmt return: The return value should be ignored by PAM dispatch
->
+PAM Authenticate() exited with error (PAM exit code: 25): The return value should be ignored by
+PAM dispatch:
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 ────────────────────────────────────────────────────────────────────────────────
