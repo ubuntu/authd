@@ -225,8 +225,8 @@ Gimme your password
 
 
 
-PAM Authenticate() exited with error (PAM exit code: 25): The return value should be ignored by
-PAM dispatch:
+PAM Authenticate() for user 'user-integration-switch-broker' exited with error (PAM exit code: 2
+5): The return value should be ignored by PAM dispatch:
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
@@ -258,7 +258,7 @@ PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be
 
 
 
-PAM Authenticate() exited with error (PAM exit code: 25): The return value should be ignored by
-PAM dispatch:
+PAM Authenticate() for user 'user-integration-switch-broker' exited with error (PAM exit code: 2
+5): The return value should be ignored by PAM dispatch:
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 ────────────────────────────────────────────────────────────────────────────────

@@ -167,7 +167,7 @@ Enter your one time credential
 Enter your one time credential
 > temporary pass0
 
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-integration-remember-mode' exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -200,7 +200,7 @@ PAM AcctMgmt() exited with success
 Enter your one time credential
 > temporary pass0
 
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-integration-remember-mode' exited with success
 PAM AcctMgmt() exited with success
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
 Username: user name
@@ -233,7 +233,7 @@ Username: user name
 Enter your one time credential
 > temporary pass0
 
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-integration-remember-mode' exited with success
 PAM AcctMgmt() exited with success
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
 Username: user-integration-remember-mode
@@ -266,7 +266,7 @@ Username: user-integration-remember-mode
 Enter your one time credential
 > temporary pass0
 
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-integration-remember-mode' exited with success
 PAM AcctMgmt() exited with success
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
 Enter your one time credential
@@ -299,13 +299,13 @@ Enter your one time credential
 Enter your one time credential
 > temporary pass0
 
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-integration-remember-mode' exited with success
 PAM AcctMgmt() exited with success
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
 Enter your one time credential
 > temporary pass0
 
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-integration-remember-mode' exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -332,13 +332,13 @@ PAM AcctMgmt() exited with success
 Enter your one time credential
 > temporary pass0
 
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-integration-remember-mode' exited with success
 PAM AcctMgmt() exited with success
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
 Enter your one time credential
 > temporary pass0
 
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-integration-remember-mode' exited with success
 PAM AcctMgmt() exited with success
 >
 

@@ -266,8 +266,8 @@ invalid password, should be goodpass
 Gimme your password
 >
 PAM ERROR: invalid password, should be goodpass
-PAM Authenticate() exited with error (PAM exit code: 7): Authentication failure: invalid passwor
-d, should be goodpass
+PAM Authenticate() for user 'user-integration-max-attempts' exited with error (PAM exit code: 7)
+: Authentication failure: invalid password, should be goodpass
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch
 >
@@ -299,8 +299,8 @@ dispatch
 Gimme your password
 >
 PAM ERROR: invalid password, should be goodpass
-PAM Authenticate() exited with error (PAM exit code: 7): Authentication failure: invalid passwor
-d, should be goodpass
+PAM Authenticate() for user 'user-integration-max-attempts' exited with error (PAM exit code: 7)
+: Authentication failure: invalid password, should be goodpass
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch
 >

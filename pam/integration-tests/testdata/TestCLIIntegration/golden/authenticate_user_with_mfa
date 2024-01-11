@@ -296,7 +296,7 @@ Unlock your phone +33… or accept request on web interface:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-mfa' exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -329,7 +329,7 @@ PAM AcctMgmt() exited with success
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-mfa' exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -362,7 +362,7 @@ PAM AcctMgmt() exited with success
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-mfa' exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -395,7 +395,7 @@ PAM AcctMgmt() exited with success
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-mfa' exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -428,7 +428,7 @@ PAM AcctMgmt() exited with success
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-mfa' exited with success
 PAM AcctMgmt() exited with success
 >
 

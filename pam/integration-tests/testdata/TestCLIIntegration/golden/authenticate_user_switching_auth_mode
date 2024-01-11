@@ -330,7 +330,7 @@ Gimme your password
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
 Gimme your password
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-integration-switch-mode' exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -363,7 +363,7 @@ PAM AcctMgmt() exited with success
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
 Gimme your password
-PAM Authenticate() exited with success
+PAM Authenticate() for user 'user-integration-switch-mode' exited with success
 PAM AcctMgmt() exited with success
 >
 
