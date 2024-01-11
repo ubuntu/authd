@@ -1,4 +1,4 @@
-package main
+package adapter
 
 import (
 	"github.com/msteinert/pam/v2"
@@ -6,41 +6,41 @@ import (
 
 // Various signalling return messaging to PAM.
 
-// pamReturnStatus is the interface that all PAM return types should implement.
-type pamReturnStatus interface {
+// PamReturnStatus is the interface that all PAM return types should implement.
+type PamReturnStatus interface {
 	Message() string
 }
 
-// pamReturnError is an interface that PAM errors return types should implement.
-type pamReturnError interface {
-	pamReturnStatus
+// PamReturnError is an interface that PAM errors return types should implement.
+type PamReturnError interface {
+	PamReturnStatus
 	Status() pam.Error
 }
 
-// pamSuccess signals PAM module to return with provided pam.Success and Quit tea.Model.
-type pamSuccess struct {
-	brokerID string
+// PamSuccess signals PAM module to return with provided pam.Success and Quit tea.Model.
+type PamSuccess struct {
+	BrokerID string
 	msg      string
 }
 
 // Message returns the message that should be sent to pam as info message.
-func (p pamSuccess) Message() string {
+func (p PamSuccess) Message() string {
 	return p.msg
 }
 
-// pamIgnore signals PAM module to return pam.Ignore and Quit tea.Model.
-type pamIgnore struct {
-	localBrokerID string // Only set for local broker to store it globally.
+// PamIgnore signals PAM module to return pam.Ignore and Quit tea.Model.
+type PamIgnore struct {
+	LocalBrokerID string // Only set for local broker to store it globally.
 	msg           string
 }
 
 // Status returns [pam.ErrIgnore].
-func (p pamIgnore) Status() pam.Error {
+func (p PamIgnore) Status() pam.Error {
 	return pam.ErrIgnore
 }
 
 // Message returns the message that should be sent to pam as info message.
-func (p pamIgnore) Message() string {
+func (p PamIgnore) Message() string {
 	return p.msg
 }
 

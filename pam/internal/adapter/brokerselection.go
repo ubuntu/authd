@@ -1,4 +1,4 @@
-package main
+package adapter
 
 import (
 	"context"
@@ -141,8 +141,6 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 }
 
 // Focus focuses this model. It always returns nil.
-//
-//nolint:unparam // Always returns nil.
 func (m *brokerSelectionModel) Focus() tea.Cmd {
 	m.focused = true
 	return nil

@@ -1,4 +1,4 @@
-package main
+package adapter
 
 import (
 	"context"
@@ -23,7 +23,7 @@ func sendEvent(msg tea.Msg) tea.Cmd {
 func startBrokerSession(client authd.PAMClient, brokerID, username string) tea.Cmd {
 	return func() tea.Msg {
 		if brokerID == "local" {
-			return pamIgnore{localBrokerID: brokerID}
+			return PamIgnore{LocalBrokerID: brokerID}
 		}
 
 		// Start a transaction for this user with the broker.
@@ -96,11 +96,11 @@ func getLayout(client authd.PAMClient, sessionID, authModeID string) tea.Cmd {
 }
 
 // quit tears down any active session and quit the main loop.
-func (m *model) quit() tea.Cmd {
+func (m *UIModel) quit() tea.Cmd {
 	if m.currentSession == nil {
 		return tea.Quit
 	}
-	return tea.Sequence(endSession(m.client, m.currentSession), tea.Quit)
+	return tea.Sequence(endSession(m.Client, m.currentSession), tea.Quit)
 }
 
 // endSession requests the broker to end the session.

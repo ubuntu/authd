@@ -1,5 +1,4 @@
-// Package main is the package for the PAM library
-package main
+package adapter
 
 import (
 	"context"
@@ -126,7 +125,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 		log.Infof(context.TODO(), "isAuthenticatedResultReceived: %v", msg.access)
 		switch msg.access {
 		case responses.AuthGranted:
-			return *m, sendEvent(pamSuccess{brokerID: m.currentBrokerID})
+			return *m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID})
 
 		case responses.AuthRetry:
 			errorMsg, err := dataToMsg(msg.msg)

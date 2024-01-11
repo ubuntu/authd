@@ -16,6 +16,7 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/pam/internal/adapter"
 	"golang.org/x/term"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -46,7 +47,7 @@ func showPamMessage(mTx pam.ModuleTransaction, style pam.Style, msg string) erro
 	return nil
 }
 
-func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus pamReturnStatus) {
+func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus adapter.PamReturnStatus) {
 	msg := retStatus.Message()
 	if msg == "" {
 		return
@@ -54,7 +55,7 @@ func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus pamReturnStatus
 
 	style := pam.ErrorMsg
 	switch retStatus.(type) {
-	case pamIgnore, pamSuccess:
+	case adapter.PamIgnore, adapter.PamSuccess:
 		style = pam.TextInfo
 	}
 
@@ -78,10 +79,10 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 	}
 	defer closeConn()
 
-	appState := model{
-		pamMTx:              mTx,
-		client:              client,
-		interactiveTerminal: interactiveTerminal,
+	appState := adapter.UIModel{
+		PamMTx:              mTx,
+		Client:              client,
+		InteractiveTerminal: interactiveTerminal,
 	}
 
 	if err := mTx.SetData(authenticationBrokerIDKey, nil); err != nil {
@@ -100,23 +101,23 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 		return pam.ErrAbort
 	}
 
-	sendReturnMessageToPam(mTx, appState.exitStatus)
+	sendReturnMessageToPam(mTx, appState.ExitStatus())
 
-	switch exitStatus := appState.exitStatus.(type) {
-	case pamSuccess:
-		if err := mTx.SetData(authenticationBrokerIDKey, exitStatus.brokerID); err != nil {
+	switch exitStatus := appState.ExitStatus().(type) {
+	case adapter.PamSuccess:
+		if err := mTx.SetData(authenticationBrokerIDKey, exitStatus.BrokerID); err != nil {
 			return err
 		}
 		return nil
 
-	case pamIgnore:
+	case adapter.PamIgnore:
 		// localBrokerID is only set on pamIgnore if the user has chosen local broker.
-		if err := mTx.SetData(authenticationBrokerIDKey, exitStatus.localBrokerID); err != nil {
+		if err := mTx.SetData(authenticationBrokerIDKey, exitStatus.LocalBrokerID); err != nil {
 			return err
 		}
 		return fmt.Errorf("%w: %s", exitStatus.Status(), exitStatus.Message())
 
-	case pamReturnError:
+	case adapter.PamReturnError:
 		return fmt.Errorf("%w: %s", exitStatus.Status(), exitStatus.Message())
 	}
 
