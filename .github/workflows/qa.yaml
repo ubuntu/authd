@@ -10,6 +10,9 @@ on:
 env:
   apt_deps: >-
     libpam0g-dev
+
+  test_apt_deps: >-
+    ffmpeg
   # In Rust the grpc stubs are generated at build time
   # so we always need to install the protobuf compilers
   # when building the NSS crate.
@@ -31,6 +34,11 @@ jobs:
         with:
           golangci-lint-configfile: ".golangci.yaml"
           tools-directory: "tools"
+        env:
+          # The PAM module generator relies on this environment variable to define the output directory for the modules.
+          # If it does not exist, it uses a default value but emits a warning which fails the action so we need to
+          # define the variable for the action to pass successfully.
+          AUTHD_PAM_MODULES_PATH: "/tmp/authd_pam_modules"
       - name: Build cmd/authd with withexamplebroker tag
         run: |
           set -eu
@@ -89,11 +97,21 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt update
 
           # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
-          sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}}
+          sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}} ${{ env.test_apt_deps }}
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+      - name: Install VHS and ttyd for integration tests
+        run: |
+          set -eu
+          go install github.com/charmbracelet/vhs@latest
+
+          # VHS requires ttyd >= 1.7.2 to work properly.
+          wget https://github.com/tsl0922/ttyd/releases/download/1.7.4/ttyd.x86_64
+          chmod +x ttyd.x86_64
+          sudo mv ttyd.x86_64 /usr/bin/ttyd
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
@@ -137,7 +155,7 @@ jobs:
           CGO_CFLAGS: "-O0 -g3 -fno-omit-frame-pointer"
         run: |
           # Use `-dwarflocationlists` to give ASAN a better time to unwind the stack trace
-          go test -C pam -asan -gcflags="-dwarflocationlists=true" ./...
+          go test -asan -gcflags="-dwarflocationlists=true" ./pam/pam_test ./pam/gdm/
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:

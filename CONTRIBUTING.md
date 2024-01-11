@@ -8,13 +8,20 @@ These are mostly guidelines, not rules. Use your best judgment, and feel free to
 
 ## Quicklinks
 
-* [Code of Conduct](#code-of-conduct)
-* [Getting Started](#getting-started)
-* [Issues](#issues)
-* [Pull Requests](#pull-requests)
-* [Contributing to the code](#contributing-to-the-code)
-* [Contributor License Agreement](#contributor-license-agreement)
-* [Getting Help](#getting-help)
+- [Contributing to authd](#contributing-to-authd)
+  - [Quicklinks](#quicklinks)
+  - [Code of Conduct](#code-of-conduct)
+  - [Getting Started](#getting-started)
+    - [Issues](#issues)
+    - [Pull Requests](#pull-requests)
+  - [Contributing to the code](#contributing-to-the-code)
+    - [Required dependencies](#required-dependencies)
+    - [Building and running the binaries](#building-and-running-the-binaries)
+    - [About the testsuite](#about-the-testsuite)
+      - [Tests with dependencies](#tests-with-dependencies)
+    - [Code style](#code-style)
+  - [Contributor License Agreement](#contributor-license-agreement)
+  - [Getting Help](#getting-help)
 
 ## Code of Conduct
 
@@ -78,6 +85,15 @@ The project includes a comprehensive testsuite made of unit and integration test
 TODO
 
 The test suite must pass before merging the PR to our main branch. Any new feature, change or fix must be covered by corresponding tests.
+
+#### Tests with dependencies
+
+Some tests, e.g. the [PAM CLI tests](https://github.com/ubuntu/authd/blob/5ba54c0a573f34e99782fe624b090ab229798fc3/pam/integration-tests/integration_test.go#L21), use external tools such as [vhs](https://github.com/charmbracelet/vhs)
+to record and run the tape files needed for the tests. Those tools are not included in the project dependencies and must be installed manually.
+
+For more information about their usage, refer to the following documentations:
+
+- [vhs](https://github.com/charmbracelet/vhs?tab=readme-ov-file#tutorial)
 
 ### Code style
 
