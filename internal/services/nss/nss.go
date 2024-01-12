@@ -6,24 +6,25 @@ import (
 	"errors"
 
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/cache"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/newusers"
+	"github.com/ubuntu/authd/internal/newusers/cache"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 // Service is the implementation of the NSS module service.
 type Service struct {
-	cache *cache.Cache
+	userManager *newusers.Manager
 	authd.UnimplementedNSSServer
 }
 
 // NewService returns a new NSS GRPC service.
-func NewService(ctx context.Context, cache *cache.Cache) Service {
+func NewService(ctx context.Context, userManager *newusers.Manager) Service {
 	log.Debug(ctx, "Building new GRPC NSS service")
 
 	return Service{
-		cache: cache,
+		userManager: userManager,
 	}
 }
 
@@ -32,7 +33,7 @@ func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetByNameReques
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
-	u, err := s.cache.UserByName(req.GetName())
+	u, err := s.userManager.UserByName(req.GetName())
 	if err != nil {
 		return nil, noDataFoundErrorToGRPCError(err)
 	}
@@ -42,7 +43,7 @@ func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetByNameReques
 
 // GetPasswdByUID returns the passwd entry for the given UID.
 func (s Service) GetPasswdByUID(ctx context.Context, req *authd.GetByIDRequest) (*authd.PasswdEntry, error) {
-	u, err := s.cache.UserByID(int(req.GetId()))
+	u, err := s.userManager.UserByID(int(req.GetId()))
 	if err != nil {
 		return nil, noDataFoundErrorToGRPCError(err)
 	}
@@ -52,7 +53,7 @@ func (s Service) GetPasswdByUID(ctx context.Context, req *authd.GetByIDRequest) 
 
 // GetPasswdEntries returns all passwd entries.
 func (s Service) GetPasswdEntries(ctx context.Context, req *authd.Empty) (*authd.PasswdEntries, error) {
-	allUsers, err := s.cache.AllUsers()
+	allUsers, err := s.userManager.AllUsers()
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +71,7 @@ func (s Service) GetGroupByName(ctx context.Context, req *authd.GetByNameRequest
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "no group name provided")
 	}
-	g, err := s.cache.GroupByName(req.GetName())
+	g, err := s.userManager.GroupByName(req.GetName())
 	if err != nil {
 		return nil, noDataFoundErrorToGRPCError(err)
 	}
@@ -80,7 +81,7 @@ func (s Service) GetGroupByName(ctx context.Context, req *authd.GetByNameRequest
 
 // GetGroupByGID returns the group entry for the given GID.
 func (s Service) GetGroupByGID(ctx context.Context, req *authd.GetByIDRequest) (*authd.GroupEntry, error) {
-	g, err := s.cache.GroupByID(int(req.GetId()))
+	g, err := s.userManager.GroupByID(int(req.GetId()))
 	if err != nil {
 		return nil, noDataFoundErrorToGRPCError(err)
 	}
@@ -90,7 +91,7 @@ func (s Service) GetGroupByGID(ctx context.Context, req *authd.GetByIDRequest) (
 
 // GetGroupEntries returns all group entries.
 func (s Service) GetGroupEntries(ctx context.Context, req *authd.Empty) (*authd.GroupEntries, error) {
-	allGroups, err := s.cache.AllGroups()
+	allGroups, err := s.userManager.AllGroups()
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +109,7 @@ func (s Service) GetShadowByName(ctx context.Context, req *authd.GetByNameReques
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "no shadow name provided")
 	}
-	u, err := s.cache.UserByName(req.GetName())
+	u, err := s.userManager.UserByName(req.GetName())
 	if err != nil {
 		return nil, noDataFoundErrorToGRPCError(err)
 	}
@@ -118,7 +119,7 @@ func (s Service) GetShadowByName(ctx context.Context, req *authd.GetByNameReques
 
 // GetShadowEntries returns all shadow entries.
 func (s Service) GetShadowEntries(ctx context.Context, req *authd.Empty) (*authd.ShadowEntries, error) {
-	allUsers, err := s.cache.AllUsers()
+	allUsers, err := s.userManager.AllUsers()
 	if err != nil {
 		return nil, err
 	}

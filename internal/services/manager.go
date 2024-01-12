@@ -6,8 +6,8 @@ import (
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/cache"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/newusers"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/decorate"
@@ -17,7 +17,7 @@ import (
 
 // Manager mediate the whole business logic of the application.
 type Manager struct {
-	cache         *cache.Cache
+	userManager   *newusers.Manager
 	brokerManager *brokers.Manager
 	pamService    pam.Service
 	nssService    nss.Service
@@ -34,16 +34,16 @@ func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configure
 		return m, err
 	}
 
-	c, err := cache.New(cacheDir)
+	userManager, err := newusers.NewManager(cacheDir)
 	if err != nil {
 		return m, err
 	}
 
-	nssService := nss.NewService(ctx, c)
-	pamService := pam.NewService(ctx, c, brokerManager)
+	nssService := nss.NewService(ctx, userManager)
+	pamService := pam.NewService(ctx, userManager, brokerManager)
 
 	return Manager{
-		cache:         c,
+		userManager:   userManager,
 		brokerManager: brokerManager,
 		nssService:    nssService,
 		pamService:    pamService,
@@ -66,5 +66,5 @@ func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 func (m *Manager) stop() error {
 	slog.Debug("Closing grpc manager and cache")
 
-	return m.cache.Close()
+	return m.userManager.Stop()
 }

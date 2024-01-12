@@ -15,8 +15,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/cache"
-	cachetests "github.com/ubuntu/authd/internal/cache/tests"
+	"github.com/ubuntu/authd/internal/newusers"
+	"github.com/ubuntu/authd/internal/newusers/cache"
+	cachetests "github.com/ubuntu/authd/internal/newusers/cache/tests"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/testutils"
 	brokertestutils "github.com/ubuntu/authd/internal/testutils/broker"
@@ -57,10 +58,10 @@ var (
 func TestNewService(t *testing.T) {
 	t.Parallel()
 
-	c, err := cache.New(t.TempDir())
-	require.NoError(t, err, "Setup: could not create cache")
+	m, err := newusers.NewManager(t.TempDir())
+	require.NoError(t, err, "Setup: could not create user manager")
 
-	service := pam.NewService(context.Background(), c, brokerManager)
+	service := pam.NewService(context.Background(), m, brokerManager)
 
 	brokers, err := service.AvailableBrokers(context.Background(), &authd.Empty{})
 	require.NoError(t, err, "can’t create the service directly")
@@ -293,9 +294,10 @@ func TestSelectAuthenticationMode(t *testing.T) {
 				}
 			}
 
-			if tc.authMode == "" {
+			switch tc.authMode {
+			case "":
 				tc.authMode = "some mode"
-			} else if tc.authMode == "-" {
+			case "-":
 				tc.authMode = ""
 			}
 
@@ -646,7 +648,10 @@ func newPamClient(t *testing.T, c *cache.Cache) (client authd.PAMClient) {
 		t.Cleanup(func() { _ = c.Close() })
 	}
 
-	service := pam.NewService(context.Background(), c, brokerManager)
+	m, err := newusers.NewManager("", newusers.WithCache(c))
+	require.NoError(t, err, "Setup: could not create user manager")
+
+	service := pam.NewService(context.Background(), m, brokerManager)
 
 	grpcServer := grpc.NewServer()
 	authd.RegisterPAMServer(grpcServer, service)

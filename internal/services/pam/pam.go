@@ -9,8 +9,8 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/responses"
-	"github.com/ubuntu/authd/internal/cache"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/newusers"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
 	"google.golang.org/grpc/codes"
@@ -21,18 +21,18 @@ var _ authd.PAMServer = Service{}
 
 // Service is the implementation of the PAM module service.
 type Service struct {
-	cache         *cache.Cache
+	userManager   *newusers.Manager
 	brokerManager *brokers.Manager
 
 	authd.UnimplementedPAMServer
 }
 
 // NewService returns a new PAM GRPC service.
-func NewService(ctx context.Context, cache *cache.Cache, brokerManager *brokers.Manager) Service {
+func NewService(ctx context.Context, userManager *newusers.Manager, brokerManager *brokers.Manager) Service {
 	log.Debug(ctx, "Building new GRPC PAM service")
 
 	return Service{
-		cache:         cache,
+		userManager:   userManager,
 		brokerManager: brokerManager,
 	}
 }
@@ -59,7 +59,7 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 		return &authd.GPBResponse{PreviousBroker: &b.ID}, nil
 	}
 
-	brokerID, err := s.cache.BrokerForUser(req.GetUsername())
+	brokerID, err := s.userManager.BrokerForUser(req.GetUsername())
 	if err != nil {
 		log.Infof(ctx, "Could not get previous broker for user %q from cache: %v", req.GetUsername(), err)
 		return &authd.GPBResponse{}, nil
@@ -200,7 +200,7 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 			return nil, fmt.Errorf("user data from broker invalid: %v", err)
 		}
 
-		if err := s.cache.UpdateFromUserInfo(user); err != nil {
+		if err := s.userManager.UpdateUser(user); err != nil {
 			return nil, err
 		}
 
@@ -230,7 +230,7 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURe
 		return &authd.Empty{}, err
 	}
 
-	if err = s.cache.UpdateBrokerForUser(req.GetUsername(), req.GetBrokerId()); err != nil {
+	if err = s.userManager.UpdateBrokerForUser(req.GetUsername(), req.GetBrokerId()); err != nil {
 		return &authd.Empty{}, err
 	}
 
