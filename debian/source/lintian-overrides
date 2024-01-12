@@ -1,2 +1,25 @@
 # We must specify the XS-Vendored-Sources-Rust field in control to use the vendored dependencies.
 authd source: unknown-field Vendored-Sources-Rust
+
+# Examples are shipped in rust vendorised code but obviously not installed
+authd source: package-does-not-install-examples [vendor_rust/addr2line/examples/]
+authd source: package-does-not-install-examples [vendor_rust/async-stream/examples/]
+authd source: package-does-not-install-examples [vendor_rust/autocfg/examples/]
+authd source: package-does-not-install-examples [vendor_rust/backtrace/examples/]
+authd source: package-does-not-install-examples [vendor_rust/base64/examples/]
+authd source: package-does-not-install-examples [vendor_rust/bitflags/examples/]
+authd source: package-does-not-install-examples [vendor_rust/colored/examples/]
+authd source: package-does-not-install-examples [vendor_rust/error-chain/examples/]
+authd source: package-does-not-install-examples [vendor_rust/h2/examples/]
+authd source: package-does-not-install-examples [vendor_rust/hostname/examples/]
+authd source: package-does-not-install-examples [vendor_rust/hyper-timeout/examples/]
+authd source: package-does-not-install-examples [vendor_rust/itertools/examples/]
+authd source: package-does-not-install-examples [vendor_rust/matchit/examples/]
+authd source: package-does-not-install-examples [vendor_rust/mio/examples/]
+authd source: package-does-not-install-examples [vendor_rust/num_cpus/examples/]
+authd source: package-does-not-install-examples [vendor_rust/once_cell/examples/]
+authd source: package-does-not-install-examples [vendor_rust/pin-project/examples/]
+authd source: package-does-not-install-examples [vendor_rust/prettyplease/examples/]
+authd source: package-does-not-install-examples [vendor_rust/simple_logger/examples/]
+authd source: package-does-not-install-examples [vendor_rust/syslog/examples/]
+authd source: package-does-not-install-examples [vendor_rust/tower/examples/]
