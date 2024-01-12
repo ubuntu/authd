@@ -24,9 +24,9 @@
 [![Reference documentation][reference-documentation-image]][reference-documentation-url]
 [![Go Report Card][goreport-image]][goreport-url]
 
-This is the code repository for authd*, an authentication daemon for external Broker.
+This is the code repository for authd, an authentication daemon for cloud-based identity provider.
 
-TODO: More general description about the project.
+Authd is a versatile authentication service for Ubuntu, designed to seamlessly integrate with cloud identity providers like OpenID Connect and Entra ID. It offers a secure interface for system authentication, supporting cloud-based identity management. Authd features a modular structure, facilitating straightforward integration with different cloud services. This design aids in maintaining strong security and effective user authentication. It's well-suited for handling access to cloud identities, offering a balance of security and ease of use.
 
 For general details, including [installation](TODO link to installation instruction) and [Getting started](TODO link to getting started instructions) guides, head over to our [PROJECT_TODO documentation](link to project documentation).
 
