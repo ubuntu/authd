@@ -63,20 +63,20 @@ type Cache struct {
 	cleanupQuitted chan struct{}
 }
 
-// userDB is the struct stored in json format in the bucket.
-type userDB struct {
+// UserDB is the struct stored in json format in the bucket.
+type UserDB struct {
 	UserPasswdShadow
 
 	// Additional entries
 	LastLogin time.Time
 }
 
-func (u userDB) toUserPasswdShadow() UserPasswdShadow {
+func (u UserDB) toUserPasswdShadow() UserPasswdShadow {
 	return u.UserPasswdShadow
 }
 
-// groupDB is the struct stored in json format in the bucket.
-type groupDB struct {
+// GroupDB is the struct stored in json format in the bucket.
+type GroupDB struct {
 	Name string
 	GID  int
 }
@@ -283,10 +283,10 @@ func (c *Cache) cleanExpiredUsers(expirationDate time.Time) (err error) {
 			return err
 		}
 
-		var expiredUsers []userDB
+		var expiredUsers []UserDB
 		// The foreach closure can't error out, so we can ignore the error.
 		_ = buckets[userByIDBucketName].ForEach(func(k, v []byte) error {
-			var u userDB
+			var u UserDB
 			if err := json.Unmarshal(v, &u); err != nil {
 				slog.Warn(fmt.Sprintf("Could not unmarshal user %q: %v", string(k), err))
 				return nil

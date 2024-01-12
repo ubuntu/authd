@@ -52,7 +52,7 @@ func (c *Cache) AllUsers() (all []UserPasswdShadow, err error) {
 		}
 
 		return bucket.ForEach(func(key, value []byte) error {
-			var e userDB
+			var e UserDB
 			if err := json.Unmarshal(value, &e); err != nil {
 				return fmt.Errorf("can't unmarshal user in bucket %q for key %v: %v", userByIDBucketName, key, err)
 			}
@@ -71,7 +71,7 @@ func (c *Cache) AllUsers() (all []UserPasswdShadow, err error) {
 
 // getUser returns an user matching the key or an error if the database is corrupted or no entry was found.
 // Upon corruption, clearing the database is requested.
-func getUser[K int | string](c *Cache, bucketName string, key K) (u userDB, err error) {
+func getUser[K int | string](c *Cache, bucketName string, key K) (u UserDB, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
@@ -81,7 +81,7 @@ func getUser[K int | string](c *Cache, bucketName string, key K) (u userDB, err 
 			return err
 		}
 
-		u, err = getFromBucket[userDB](bucket, key)
+		u, err = getFromBucket[UserDB](bucket, key)
 		if err != nil {
 			if !errors.Is(err, NoDataFoundError{}) {
 				c.requestClearDatabase()
@@ -93,7 +93,7 @@ func getUser[K int | string](c *Cache, bucketName string, key K) (u userDB, err 
 	})
 
 	if err != nil {
-		return userDB{}, err
+		return UserDB{}, err
 	}
 
 	return u, nil

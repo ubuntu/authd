@@ -40,7 +40,7 @@ func (c *Cache) AllGroups() (all []Group, err error) {
 		}
 
 		return buckets[groupByIDBucketName].ForEach(func(key, value []byte) error {
-			var g groupDB
+			var g GroupDB
 			if err := json.Unmarshal(value, &g); err != nil {
 				return fmt.Errorf("can't unmarshal user in bucket %q for key %v: %v", userByIDBucketName, key, err)
 			}
@@ -85,7 +85,7 @@ func getGroup[K int | string](c *Cache, bucketName string, key K) (Group, error)
 		}
 
 		// Get id and name of the group.
-		g, err := getFromBucket[groupDB](buckets[bucketName], key)
+		g, err := getFromBucket[GroupDB](buckets[bucketName], key)
 		if err != nil {
 			// no entry is valid, no need to clean the database but return the error.
 			if !errors.Is(err, NoDataFoundError{}) {
@@ -127,7 +127,7 @@ func getUsersInGroup(buckets map[string]bucketWithName, gid int) (users []string
 
 	for _, uid := range usersInGroup.UIDs {
 		// we should always get an entry
-		u, err := getFromBucket[userDB](buckets[userByIDBucketName], uid)
+		u, err := getFromBucket[UserDB](buckets[userByIDBucketName], uid)
 		if err != nil {
 			return nil, err
 		}

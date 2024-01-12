@@ -10,10 +10,9 @@ import (
 	_ "unsafe"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/cache"
-	cachetests "github.com/ubuntu/authd/internal/cache/tests"
+	"github.com/ubuntu/authd/internal/newusers/cache"
+	cachetests "github.com/ubuntu/authd/internal/newusers/cache/tests"
 	"github.com/ubuntu/authd/internal/testutils"
-	"github.com/ubuntu/authd/internal/users"
 )
 
 func TestNew(t *testing.T) {
@@ -145,165 +144,113 @@ func TestNew(t *testing.T) {
 	}
 }
 
-func TestUpdateFromUserInfo(t *testing.T) {
+func TestUpdateUserEntry(t *testing.T) {
 	t.Parallel()
 
-	userCases := map[string]users.UserInfo{
+	userCases := map[string]cache.UserDB{
 		"user1": {
-			Name:  "user1",
-			UID:   1111,
-			Gecos: "User1 gecos\nOn multiple lines",
-			Dir:   "/home/user1",
-			Shell: "/bin/bash",
-			Groups: []users.GroupInfo{
-				{Name: "group1", GID: ptrValue(11111)},
+			UserPasswdShadow: cache.UserPasswdShadow{
+				Name:  "user1",
+				UID:   1111,
+				Gecos: "User1 gecos\nOn multiple lines",
+				Dir:   "/home/user1",
+				Shell: "/bin/bash",
+				// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+				LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 			},
 		},
 		"user1-new-attributes": {
-			Name:  "newuser1",
-			UID:   1111,
-			Gecos: "New user1 gecos",
-			Dir:   "/home/newuser1",
-			Shell: "/bin/dash",
-			Groups: []users.GroupInfo{
-				{Name: "group1", GID: ptrValue(11111)},
-			},
-		},
-		"group1-new-attributes": {
-			Name:  "user1",
-			UID:   1111,
-			Gecos: "User1 gecos\nOn multiple lines",
-			Dir:   "/home/user1",
-			Shell: "/bin/bash",
-			Groups: []users.GroupInfo{
-				{Name: "newgroup1", GID: ptrValue(11111)},
-			},
-		},
-		"user1-with-only-local-group": {
-			Name:  "user1",
-			UID:   1111,
-			Gecos: "User1 gecos\nOn multiple lines",
-			Dir:   "/home/user1",
-			Shell: "/bin/bash",
-			Groups: []users.GroupInfo{
-				{Name: "local-group"},
+			UserPasswdShadow: cache.UserPasswdShadow{
+				Name:  "newuser1",
+				UID:   1111,
+				Gecos: "New user1 gecos",
+				Dir:   "/home/newuser1",
+				Shell: "/bin/dash",
+				// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+				LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 			},
 		},
 		"user1-without-gecos": {
-			Name:  "user1",
-			UID:   1111,
-			Dir:   "/home/user1",
-			Shell: "/bin/bash",
-			Groups: []users.GroupInfo{
-				{Name: "group1", GID: ptrValue(11111)},
+			UserPasswdShadow: cache.UserPasswdShadow{
+				Name:  "user1",
+				UID:   1111,
+				Dir:   "/home/user1",
+				Shell: "/bin/bash",
+				// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+				LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 			},
 		},
-		"user1-without-groups": {
-			Name:  "user1",
-			UID:   1111,
-			Gecos: "User1 gecos\nOn multiple lines",
-			Dir:   "/home/user1",
-			Shell: "/bin/bash",
-		},
-		"user1-with-new-group": {
-			Name:  "user1",
-			UID:   1111,
-			Gecos: "User1 gecos\nOn multiple lines",
-			Dir:   "/home/user1",
-			Shell: "/bin/bash",
-			Groups: []users.GroupInfo{
-				{Name: "group1", GID: ptrValue(11111)},
-				{Name: "group2", GID: ptrValue(22222)},
+		"user3": {
+			UserPasswdShadow: cache.UserPasswdShadow{
+				Name:  "user3",
+				UID:   3333,
+				Gecos: "User3 gecos",
+				Dir:   "/home/user3",
+				Shell: "/bin/zsh",
+				// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+				LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 			},
 		},
-		"user1-with-new-default-group": {
-			Name:  "user1",
-			UID:   1111,
-			Gecos: "User1 gecos\nOn multiple lines",
-			Dir:   "/home/user1",
-			Shell: "/bin/bash",
-			Groups: []users.GroupInfo{
-				{Name: "group2", GID: ptrValue(22222)},
-				{Name: "group1", GID: ptrValue(11111)},
-			},
+	}
+	groupCases := map[string]cache.GroupDB{
+		"group1": {
+			Name: "group1",
+			GID:  11111,
 		},
-		"user1-with-only-new-group": {
-			Name:  "user1",
-			UID:   1111,
-			Gecos: "User1 gecos\nOn multiple lines",
-			Dir:   "/home/user1",
-			Shell: "/bin/bash",
-			Groups: []users.GroupInfo{
-				{Name: "group2", GID: ptrValue(22222)},
-			},
+		"newgroup1": {
+			Name: "newgroup1",
+			GID:  11111,
 		},
-		"user1-with-local-group": {
-			Name:  "user1",
-			UID:   1111,
-			Gecos: "User1 gecos\nOn multiple lines",
-			Dir:   "/home/user1",
-			Shell: "/bin/bash",
-			Groups: []users.GroupInfo{
-				{Name: "group1", GID: ptrValue(11111)},
-				{Name: "local-group"},
-			},
+		"group2": {
+			Name: "group2",
+			GID:  22222,
 		},
-		"user3-without-common-group": {
-			Name:  "user3",
-			UID:   3333,
-			Gecos: "User3 gecos",
-			Dir:   "/home/user3",
-			Shell: "/bin/zsh",
-			Groups: []users.GroupInfo{
-				{Name: "group3", GID: ptrValue(33333)},
-			},
+		"group3": {
+			Name: "group3",
+			GID:  33333,
 		},
 	}
 
 	tests := map[string]struct {
-		userCase string
-		dbFile   string
+		userCase   string
+		groupCases []string
+		dbFile     string
 
 		wantClearDB bool
 		wantErr     bool
 	}{
 		// New user
-		"Insert new user":                              {userCase: "user1"},
-		"Update last login time for user":              {userCase: "user1", dbFile: "one_user_and_group"},
+		"Insert new user":                              {},
+		"Update last login time for user":              {dbFile: "one_user_and_group"},
 		"Insert new user without optional gecos field": {userCase: "user1-without-gecos"},
 
 		// User and Group renames
 		"Update user by changing attributes":                      {userCase: "user1-new-attributes", dbFile: "one_user_and_group"},
 		"Update user by removing optional gecos field if not set": {userCase: "user1-without-gecos", dbFile: "one_user_and_group"},
-		"Update group by changing attributes":                     {userCase: "group1-new-attributes", dbFile: "one_user_and_group"},
+		"Update group by changing attributes":                     {groupCases: []string{"newgroup1"}, dbFile: "one_user_and_group"},
 
 		// Group updates
-		"Update user by adding a new group":         {userCase: "user1-with-new-group", dbFile: "one_user_and_group"},
-		"Update user by adding a new default group": {userCase: "user1-with-new-default-group", dbFile: "one_user_and_group"},
-		"Remove group from user":                    {userCase: "user1-with-only-new-group", dbFile: "one_user_and_group"},
+		"Update user by adding a new group":         {groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group"},
+		"Update user by adding a new default group": {groupCases: []string{"group2", "group1"}, dbFile: "one_user_and_group"},
+		"Remove group from user":                    {groupCases: []string{"group2"}, dbFile: "one_user_and_group"},
 
 		// Multi users handling
-		"Update only user even if we have multiple of them":     {userCase: "user1", dbFile: "multiple_users_and_groups"},
-		"Add user to group from another user":                   {userCase: "user1-with-new-group", dbFile: "multiple_users_and_groups"},
-		"Remove user from a group still part from another user": {userCase: "user3-without-common-group", dbFile: "multiple_users_and_groups"},
-
-		// Local group with no gid
-		"Local groups are filtered": {userCase: "user1-with-local-group"},
+		"Update only user even if we have multiple of them":     {dbFile: "multiple_users_and_groups"},
+		"Add user to group from another user":                   {groupCases: []string{"group1", "group2"}, dbFile: "multiple_users_and_groups"},
+		"Remove user from a group still part from another user": {userCase: "user3", groupCases: []string{"group3"}, dbFile: "multiple_users_and_groups"},
 
 		// Allowed inconsistent cases
-		"Invalid value entry in groupByID but user restating group recreates entries": {userCase: "user1", dbFile: "invalid_entry_in_groupByID"},
-		"Invalid value entry in userByID recreates entries":                           {userCase: "user1", dbFile: "invalid_entry_in_userByID"},
-		"Invalid value entry in groupByName recreates entries":                        {userCase: "user1", dbFile: "invalid_entry_in_groupByName"},
-		"Invalid value entry in userByName recreates entries":                         {userCase: "user1", dbFile: "invalid_entry_in_userByName"},
-		"Invalid value entries in other user and groups don't impact current request": {userCase: "user1", dbFile: "invalid_entries_but_user_and_group1"},
+		"Invalid value entry in groupByID but user restating group recreates entries": {dbFile: "invalid_entry_in_groupByID"},
+		"Invalid value entry in userByID recreates entries":                           {dbFile: "invalid_entry_in_userByID"},
+		"Invalid value entry in groupByName recreates entries":                        {dbFile: "invalid_entry_in_groupByName"},
+		"Invalid value entry in userByName recreates entries":                         {dbFile: "invalid_entry_in_userByName"},
+		"Invalid value entries in other user and groups don't impact current request": {dbFile: "invalid_entries_but_user_and_group1"},
 
 		// Error cases
-		"Error on user without any groups":                                                         {userCase: "user1-without-groups", wantErr: true},
-		"Error on user with only local group":                                                      {userCase: "user1-with-only-local-group", wantErr: true},
-		"Error on invalid value entry in userToGroups clear database":                              {userCase: "user1", dbFile: "invalid_entry_in_userToGroups", wantErr: true, wantClearDB: true},
-		"Error on invalid value entry in groupToUsers clear database":                              {userCase: "user1", dbFile: "invalid_entry_in_groupToUsers", wantErr: true, wantClearDB: true},
-		"Error on invalid value entry in groupToUsers for user dropping from group clear database": {userCase: "user1", dbFile: "invalid_entry_in_groupToUsers_secondary_group", wantErr: true, wantClearDB: true},
-		"Error on invalid value entry in groupByID for user dropping from group clear database":    {userCase: "user1", dbFile: "invalid_entry_in_groupByID_secondary_group", wantErr: true, wantClearDB: true},
+		"Error on invalid value entry in userToGroups clear database":                              {dbFile: "invalid_entry_in_userToGroups", wantErr: true, wantClearDB: true},
+		"Error on invalid value entry in groupToUsers clear database":                              {dbFile: "invalid_entry_in_groupToUsers", wantErr: true, wantClearDB: true},
+		"Error on invalid value entry in groupToUsers for user dropping from group clear database": {dbFile: "invalid_entry_in_groupToUsers_secondary_group", wantErr: true, wantClearDB: true},
+		"Error on invalid value entry in groupByID for user dropping from group clear database":    {dbFile: "invalid_entry_in_groupByID_secondary_group", wantErr: true, wantClearDB: true},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -312,8 +259,22 @@ func TestUpdateFromUserInfo(t *testing.T) {
 
 			c, cacheDir := initCache(t, tc.dbFile)
 
-			userInfo := userCases[tc.userCase]
-			err := c.UpdateFromUserInfo(userInfo)
+			if tc.userCase == "" {
+				tc.userCase = "user1"
+			}
+			if tc.groupCases == nil {
+				tc.groupCases = []string{"group1"}
+			}
+
+			user := userCases[tc.userCase]
+			var groups []cache.GroupDB
+			for _, g := range tc.groupCases {
+				groups = append(groups, groupCases[g])
+			}
+			user.GID = groups[0].GID
+			user.LastLogin = time.Now()
+
+			err := c.UpdateUserEntry(user, groups)
 			if tc.wantErr {
 				require.Error(t, err, "UpdateFromUserInfo should return an error but didn't")
 
@@ -613,9 +574,4 @@ func requireGetAssertions[E any](t *testing.T, got E, wantErrType, err error, c 
 
 	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
 	require.Equal(t, want, got, "Did not get expected database entry")
-}
-
-// ptrValue returns a pointer to the given value to simplify the syntax for const.
-func ptrValue[T any](value T) *T {
-	return &value
 }

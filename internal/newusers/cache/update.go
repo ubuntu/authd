@@ -7,51 +7,12 @@ import (
 	"log/slog"
 	"slices"
 	"strconv"
-	"time"
 
-	"github.com/ubuntu/authd/internal/users"
 	"go.etcd.io/bbolt"
 )
 
-// UpdateFromUserInfo inserts or updates user and group buckets from the user information.
-func (c *Cache) UpdateFromUserInfo(u users.UserInfo) error {
-	// create bucket contents dynamically
-	if len(u.Groups) == 0 {
-		return fmt.Errorf("no group provided for user %s (%v)", u.Name, u.UID)
-	}
-	if u.Groups[0].GID == nil {
-		return fmt.Errorf("no gid provided for default group %q", u.Groups[0].Name)
-	}
-	userDB := userDB{
-		UserPasswdShadow: UserPasswdShadow{
-			Name:           u.Name,
-			UID:            u.UID,
-			GID:            *u.Groups[0].GID,
-			Gecos:          u.Gecos,
-			Dir:            u.Dir,
-			Shell:          u.Shell,
-			LastPwdChange:  -1,
-			MaxPwdAge:      -1,
-			PwdWarnPeriod:  -1,
-			PwdInactivity:  -1,
-			MinPwdAge:      -1,
-			ExpirationDate: -1,
-		},
-		LastLogin: time.Now(),
-	}
-
-	var groupContents []groupDB
-	for _, g := range u.Groups {
-		// System group: ignore here, not part of the cache.
-		if g.GID == nil {
-			continue
-		}
-		groupContents = append(groupContents, groupDB{
-			Name: g.Name,
-			GID:  *g.GID,
-		})
-	}
-
+// UpdateUserEntry inserts or updates user and group buckets from the user information.
+func (c *Cache) UpdateUserEntry(userDB UserDB, groupContents []GroupDB) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	err := c.db.Update(func(tx *bbolt.Tx) error {
@@ -87,8 +48,8 @@ func (c *Cache) UpdateFromUserInfo(u users.UserInfo) error {
 }
 
 // updateUser updates both user buckets with userContent. It handles any potential login rename.
-func updateUser(buckets map[string]bucketWithName, userContent userDB) {
-	existingUser, err := getFromBucket[userDB](buckets[userByIDBucketName], userContent.UID)
+func updateUser(buckets map[string]bucketWithName, userContent UserDB) {
+	existingUser, err := getFromBucket[UserDB](buckets[userByIDBucketName], userContent.UID)
 	if err != nil && !errors.Is(err, NoDataFoundError{}) {
 		slog.Warn(fmt.Sprintf("Could not fetch previous record for user %v: %v", userContent.UID, err))
 	}
@@ -104,9 +65,9 @@ func updateUser(buckets map[string]bucketWithName, userContent userDB) {
 }
 
 // updateUser updates both group buckets with groupContent. It handles any potential group rename.
-func updateGroups(buckets map[string]bucketWithName, groupContents []groupDB) {
+func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) {
 	for _, groupContent := range groupContents {
-		existingGroup, err := getFromBucket[groupDB](buckets[groupByIDBucketName], groupContent.GID)
+		existingGroup, err := getFromBucket[GroupDB](buckets[groupByIDBucketName], groupContent.GID)
 		if err != nil && !errors.Is(err, NoDataFoundError{}) {
 			slog.Warn(fmt.Sprintf("Could not fetch previous record for group %v: %v", groupContent.GID, err))
 		}
@@ -124,7 +85,7 @@ func updateGroups(buckets map[string]bucketWithName, groupContents []groupDB) {
 
 // updateUserAndGroups updates the pivot table for user to groups and group to users. It handles any update
 // to groups uid is not part of anymore.
-func updateUsersAndGroups(buckets map[string]bucketWithName, uid int, groupContents []groupDB, previousGIDs []int) error {
+func updateUsersAndGroups(buckets map[string]bucketWithName, uid int, groupContents []GroupDB, previousGIDs []int) error {
 	var currentGIDs []int
 	for _, groupContent := range groupContents {
 		currentGIDs = append(currentGIDs, groupContent.GID)

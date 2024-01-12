@@ -26,7 +26,7 @@ func deleteUserFromGroup(buckets map[string]bucketWithName, uid, gid int) error 
 
 	// We now need to delete this group with no remaining user.
 	// We need the group.Name to delete from groupByName bucket.
-	group, err := getFromBucket[groupDB](buckets[groupByIDBucketName], gid)
+	group, err := getFromBucket[GroupDB](buckets[groupByIDBucketName], gid)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func deleteUserFromGroup(buckets map[string]bucketWithName, uid, gid int) error 
 func deleteUser(buckets map[string]bucketWithName, uid int) (err error) {
 	defer decorate.OnError(&err, "could not remove user %d from db", uid)
 
-	u, err := getFromBucket[userDB](buckets[userByIDBucketName], uid)
+	u, err := getFromBucket[UserDB](buckets[userByIDBucketName], uid)
 	if err != nil {
 		return err
 	}
