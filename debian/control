@@ -9,7 +9,6 @@ Build-Depends: debhelper-compat (= 13),
                dh-golang,
                golang-go (>= 2:1.21~),
                jq,
-               libpam0g-dev,
                libc6-dev (>= 2.35),
                libpam0g-dev,
                pkg-config,
@@ -20,6 +19,7 @@ XS-Vendored-Sources-Rust: addr2line@0.21.0, adler@1.0.2, aho-corasick@1.0.5, any
 Homepage: https://github.com/ubuntu/authd
 Vcs-Browser: https://github.com/ubuntu/authd
 Vcs-Git: https://github.com/ubuntu/authd.git
+Rules-Requires-Root: no
 Description: Authentication daemon for cloud-based identity provider
  .
  Authd is a versatile authentication service designed to seamlessly integrate
