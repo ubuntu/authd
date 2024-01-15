@@ -61,7 +61,9 @@ func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus adapter.PamRetu
 		style = pam.TextInfo
 	}
 
-	_ = showPamMessage(mTx, style, msg)
+	if err := showPamMessage(mTx, style, msg); err != nil {
+		log.Warningf(context.TODO(), "Impossible to send PAM message: %v", err)
+	}
 }
 
 // Authenticate is the method that is invoked during pam_authenticate request.
@@ -140,7 +142,10 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 	if !ok {
 		msg := fmt.Sprintf("broker data as an invalid type %#v", brokerData)
 		log.Errorf(context.TODO(), msg)
-		_ = showPamMessage(mTx, pam.ErrorMsg, msg)
+		if err := showPamMessage(mTx, pam.ErrorMsg, msg); err != nil {
+			log.Warningf(context.TODO(), "Impossible to show PAM message: %v", err)
+		}
+
 		return pam.ErrIgnore
 	}
 
