@@ -5,7 +5,7 @@ import (
 
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/pam/pam_test"
+	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
 func TestSendToGdm(t *testing.T) {

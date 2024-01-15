@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/pam/gdm"
+	"github.com/ubuntu/authd/pam/internal/gdm"
 )
 
 func reformatJSON(t *testing.T, input []byte) []byte {

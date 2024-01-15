@@ -148,6 +148,7 @@ jobs:
       - name: Run tests (with race detector)
         run: |
           go test -race ./...
+
       - name: Run PAM tests (with Address Sanitizer)
         env:
           # Do not optimize, keep debug symbols and frame pointer for better
@@ -155,7 +156,7 @@ jobs:
           CGO_CFLAGS: "-O0 -g3 -fno-omit-frame-pointer"
         run: |
           # Use `-dwarflocationlists` to give ASAN a better time to unwind the stack trace
-          go test -asan -gcflags="-dwarflocationlists=true" ./pam/pam_test ./pam/gdm/
+          go test -C ./pam/internal -asan -gcflags="-dwarflocationlists=true" ./...
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:

@@ -1,4 +1,4 @@
-package main
+package adapter
 
 // convertTo converts an interface I value to T. It will panic (progamming error) if this is not the case.
 func convertTo[T any, I any](elem I) T {

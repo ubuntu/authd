@@ -1,4 +1,5 @@
-package main
+// Package adapter is the package for the PAM library
+package adapter
 
 import (
 	"context"
@@ -33,14 +34,17 @@ type sessionInfo struct {
 	encryptionKey string
 }
 
-// model is the global models orchestrator.
-type model struct {
-	pamMTx pam.ModuleTransaction
-	client authd.PAMClient
+// UIModel is the global models orchestrator.
+type UIModel struct {
+	// PamMTx is the [pam.ModuleTransaction] used to communicate with PAM.
+	PamMTx pam.ModuleTransaction
+	// Client is the [authd.PAMClient] handle used to communicate with authd.
+	Client authd.PAMClient
+	// InteractiveTerminal whether the underlying PAM system is using an interactive terminal.
+	InteractiveTerminal bool
 
-	height              int
-	width               int
-	interactiveTerminal bool
+	height int
+	width  int
 
 	currentSession *sessionInfo
 
@@ -49,7 +53,7 @@ type model struct {
 	authModeSelectionModel authModeSelectionModel
 	authenticationModel    authenticationModel
 
-	exitStatus pamReturnStatus
+	exitStatus PamReturnStatus
 }
 
 /* global events */
@@ -86,19 +90,19 @@ type UILayoutReceived struct {
 type SessionEnded struct{}
 
 // Init initializes the main model orchestrator.
-func (m *model) Init() tea.Cmd {
+func (m *UIModel) Init() tea.Cmd {
 	m.exitStatus = pamError{status: pam.ErrSystem, msg: "model did not return anything"}
-	m.userSelectionModel = newUserSelectionModel(m.pamMTx)
+	m.userSelectionModel = newUserSelectionModel(m.PamMTx)
 	var cmds []tea.Cmd
 	cmds = append(cmds, m.userSelectionModel.Init())
 
-	m.brokerSelectionModel = newBrokerSelectionModel(m.client)
+	m.brokerSelectionModel = newBrokerSelectionModel(m.Client)
 	cmds = append(cmds, m.brokerSelectionModel.Init())
 
 	m.authModeSelectionModel = newAuthModeSelectionModel()
 	cmds = append(cmds, m.authModeSelectionModel.Init())
 
-	m.authenticationModel = newAuthenticationModel(m.client)
+	m.authenticationModel = newAuthenticationModel(m.Client)
 	cmds = append(cmds, m.authenticationModel.Init())
 
 	cmds = append(cmds, m.changeStage(stageUserSelection))
@@ -106,7 +110,7 @@ func (m *model) Init() tea.Cmd {
 }
 
 // Update handles events and actions to be done from the main model orchestrator.
-func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	log.Debugf(context.TODO(), "%+v", msg)
 
 	switch msg := msg.(type) {
@@ -141,7 +145,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.brokerSelectionModel.SetWidth(m.width)
 
 	// Exit cases
-	case pamReturnStatus:
+	case PamReturnStatus:
 		m.exitStatus = msg
 		return m, m.quit()
 
@@ -157,10 +161,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Got user and brokers? Time to auto or manually select.
 		return m, tea.Sequence(
 			m.changeStage(stageBrokerSelection),
-			AutoSelectForUser(m.client, m.username()))
+			AutoSelectForUser(m.Client, m.username()))
 
 	case BrokerSelected:
-		return m, startBrokerSession(m.client, msg.BrokerID, m.username())
+		return m, startBrokerSession(m.Client, msg.BrokerID, m.username())
 
 	case SessionStarted:
 		m.currentSession = &sessionInfo{
@@ -176,7 +180,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		return m, tea.Sequence(
-			getAuthenticationModes(m.client, m.currentSession.sessionID, m.authModeSelectionModel.SupportedUILayouts()),
+			getAuthenticationModes(m.Client, m.currentSession.sessionID, m.authModeSelectionModel.SupportedUILayouts()),
 			m.changeStage(stageAuthModeSelection),
 		)
 
@@ -191,7 +195,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				msg:    "reselection of current auth mode without current ID",
 			})
 		}
-		return m, getLayout(m.client, m.currentSession.sessionID, msg.ID)
+		return m, getLayout(m.Client, m.currentSession.sessionID, msg.ID)
 
 	case UILayoutReceived:
 		log.Info(context.TODO(), "UILayoutReceived")
@@ -220,7 +224,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 // View renders a text view of the whole UI.
-func (m *model) View() string {
+func (m *UIModel) View() string {
 	var view strings.Builder
 
 	log.Info(context.TODO(), m.currentStage())
@@ -245,7 +249,7 @@ func (m *model) View() string {
 }
 
 // currentStage returns our current stage step.
-func (m *model) currentStage() stage {
+func (m *UIModel) currentStage() stage {
 	if m.userSelectionModel.Focused() {
 		return stageUserSelection
 	}
@@ -262,7 +266,7 @@ func (m *model) currentStage() stage {
 }
 
 // changeStage returns a command acting to change the current stage and reset any previous views.
-func (m *model) changeStage(s stage) tea.Cmd {
+func (m *UIModel) changeStage(s stage) tea.Cmd {
 	switch s {
 	case stageUserSelection:
 		m.brokerSelectionModel.Blur()
@@ -271,7 +275,7 @@ func (m *model) changeStage(s stage) tea.Cmd {
 
 		// The session should be ended when going back to previous state, but we don’t quit the stage immediately
 		// and so, we should always ensure we cancel previous session.
-		return tea.Sequence(endSession(m.client, m.currentSession), m.userSelectionModel.Focus())
+		return tea.Sequence(endSession(m.Client, m.currentSession), m.userSelectionModel.Focus())
 
 	case stageBrokerSelection:
 		m.userSelectionModel.Blur()
@@ -280,7 +284,7 @@ func (m *model) changeStage(s stage) tea.Cmd {
 
 		m.authModeSelectionModel.Reset()
 
-		return tea.Sequence(endSession(m.client, m.currentSession), m.brokerSelectionModel.Focus())
+		return tea.Sequence(endSession(m.Client, m.currentSession), m.brokerSelectionModel.Focus())
 
 	case stageAuthModeSelection:
 		m.userSelectionModel.Blur()
@@ -303,12 +307,17 @@ func (m *model) changeStage(s stage) tea.Cmd {
 	return nil
 }
 
+// ExitStatus exposes the [PamReturnStatus] externally.
+func (m *UIModel) ExitStatus() PamReturnStatus {
+	return m.exitStatus
+}
+
 // username returns currently selected user name.
-func (m model) username() string {
+func (m UIModel) username() string {
 	return m.userSelectionModel.Value()
 }
 
 // availableBrokers returns currently available brokers.
-func (m model) availableBrokers() []*authd.ABResponse_BrokerInfo {
+func (m UIModel) availableBrokers() []*authd.ABResponse_BrokerInfo {
 	return m.brokerSelectionModel.availableBrokers
 }
