@@ -9,7 +9,7 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/sirupsen/logrus"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/pam/pam_test"
+	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
 // Simulating pam on the CLI for manual testing.
