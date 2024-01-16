@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/newusers"
-	"github.com/ubuntu/authd/internal/newusers/cache"
 	cachetests "github.com/ubuntu/authd/internal/newusers/cache/tests"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/testutils"
@@ -325,10 +324,7 @@ func newManagerForTests(t *testing.T, sourceDB string) *newusers.Manager {
 	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 	require.NoError(t, err, "Setup: could not parse time for testing")
 
-	c, err := cache.New(cacheDir, cache.WithExpirationDate(expiration))
-	require.NoError(t, err, "Setup: could not create cache")
-
-	m, err := newusers.NewManager(cacheDir, newusers.WithCache(c))
+	m, err := newusers.NewManager(cacheDir, newusers.WithUserExpirationDate(expiration))
 	require.NoError(t, err, "Setup: could not create user manager")
 
 	t.Cleanup(func() { _ = m.Stop() })

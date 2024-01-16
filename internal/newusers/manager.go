@@ -323,10 +323,3 @@ func getActiveUsers(procDir string) (activeUsers map[string]struct{}, err error)
 	}
 	return activeUsers, nil
 }
-
-// getCache returns the underlying cache. This is only used for tests.
-//
-//nolint:unused // This is used for tests, with go linking. Not part of exported API.
-func (m *Manager) getCache() *cache.Cache {
-	return m.cache
-}

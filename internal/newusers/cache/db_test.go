@@ -38,26 +38,6 @@ func TestNew(t *testing.T) {
 		"New without any initialized database": {},
 		"New with already existing database":   {dbFile: "multiple_users_and_groups"},
 
-		// Clean up tests
-		"Clean up all users":  {dbFile: "only_old_users", expirationDate: "2020-01-01"},
-		"Clean up some users": {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01"},
-		"Clean up also cleans last selected broker for user":     {dbFile: "multiple_users_and_groups_with_brokers", expirationDate: "2020-01-01"},
-		"Clean up on interval":                                   {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01", cleanupInterval: 1, skipCleanOnNew: true},
-		"Clean up as much as possible if db has invalid entries": {dbFile: "invalid_entries_but_user_and_group1", expirationDate: "2020-01-01"},
-		"Clean up user even if it is not listed on the group":    {dbFile: "user_not_in_groupToUsers", expirationDate: "2020-01-01"},
-		"Do not clean any user":                                  {dbFile: "multiple_users_and_groups"},
-		"Do not clean active user":                               {dbFile: "active_user", expirationDate: "2020-01-01"},
-		"Do not prevent cache creation if cleanup fails":         {dbFile: "multiple_users_and_groups", procDir: "does-not-exist"},
-		"Do not stop cache if cleanup routine fails":             {dbFile: "multiple_users_and_groups", procDir: "does-not-exist", skipCleanOnNew: true, cleanupInterval: 1},
-		"Do not clean user if can not get groups":                {dbFile: "invalid_entry_in_userToGroups", expirationDate: "2020-01-01"},
-		"Do not clean user if can not delete user from group":    {dbFile: "invalid_entry_in_groupByID", expirationDate: "2020-01-01"},
-
-		// Corrupted databases
-		"New recreates any missing buckets and delete unknowns": {dbFile: "database_with_unknown_bucket"},
-		"Database flagged as dirty is cleared up":               {dbFile: "multiple_users_and_groups", dirtyFlag: true},
-		"Corrupted database when opening is cleared up":         {corruptedDbFile: true},
-		"Dynamically mark database as corrupted is cleared up":  {markDirty: true},
-
 		"Error on cacheDir non existent cacheDir":      {dbFile: "-", wantErr: true},
 		"Error on invalid permission on database file": {dbFile: "multiple_users_and_groups", perm: &perm0644, wantErr: true},
 		"Error on unreadable database file":            {dbFile: "multiple_users_and_groups", perm: &perm0000, wantErr: true},
@@ -76,37 +56,13 @@ func TestNew(t *testing.T) {
 			} else if tc.dbFile != "" {
 				createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
 			}
-			if tc.dirtyFlag {
-				err := os.WriteFile(filepath.Join(cacheDir, cachetests.DirtyFlagDbName), nil, 0600)
-				require.NoError(t, err, "Setup: could not create dirty flag file")
-			}
+
 			if tc.perm != nil {
 				err := os.Chmod(dbDestPath, *tc.perm)
 				require.NoError(t, err, "Setup: could not change mode of database file")
 			}
-			if tc.corruptedDbFile {
-				err := os.WriteFile(filepath.Join(cacheDir, cachetests.DbName), []byte("Corrupted db"), 0600)
-				require.NoError(t, err, "Setup: Can't update the file with invalid db content")
-			}
 
-			if tc.expirationDate == "" {
-				tc.expirationDate = "2004-01-01"
-			}
-			expiration, err := time.Parse(time.DateOnly, tc.expirationDate)
-			require.NoError(t, err, "Setup: could not calculate expiration date for tests")
-			cacheOpts := []cache.Option{cache.WithExpirationDate(expiration)}
-
-			if tc.cleanupInterval > 0 {
-				cacheOpts = append(cacheOpts, cache.WithCleanupInterval(time.Second*time.Duration(tc.cleanupInterval)))
-			}
-			if tc.skipCleanOnNew {
-				cacheOpts = append(cacheOpts, cache.WithoutCleaningOnNew())
-			}
-			if tc.procDir != "" {
-				cacheOpts = append(cacheOpts, cache.WithProcDir(tc.procDir))
-			}
-
-			c, err := cache.New(cacheDir, cacheOpts...)
+			c, err := cache.New(cacheDir)
 			if tc.wantErr {
 				require.Error(t, err, "New should return an error but didn't")
 				return
@@ -117,13 +73,6 @@ func TestNew(t *testing.T) {
 			if tc.cleanupInterval > 0 {
 				// Wait for the clean up routine to start
 				time.Sleep(time.Duration(tc.cleanupInterval*2) * time.Second)
-			}
-
-			if tc.markDirty {
-				// Mark the database to be cleared. This is not part of the API and only for tests.
-				cache.RequestClearDatabase(c)
-				// Let the cache cleanup start proceeding
-				time.Sleep(time.Millisecond)
 			}
 
 			got, err := cachetests.DumpToYaml(c)
@@ -277,11 +226,8 @@ func TestUpdateUserEntry(t *testing.T) {
 			err := c.UpdateUserEntry(user, groups)
 			if tc.wantErr {
 				require.Error(t, err, "UpdateFromUserInfo should return an error but didn't")
-
 				if tc.wantClearDB {
-					time.Sleep(10 * time.Millisecond)
-					requireNoDirtyFileInDir(t, cacheDir)
-					requireClearedDatabase(t, c)
+					require.ErrorIs(t, err, cache.ErrNeedsClearing, "UpdateFromUserInfo should return ErrNeedsClearing")
 				}
 				return
 			}
@@ -309,7 +255,7 @@ func TestUserByID(t *testing.T) {
 		"Get existing user": {dbFile: "one_user_and_group"},
 
 		"Error on missing user":           {wantErrType: cache.NoDataFoundError{}},
-		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByID", wantErrType: shouldError{}},
+		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByID", wantErrType: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -319,7 +265,7 @@ func TestUserByID(t *testing.T) {
 			c, cacheDir := initCache(t, tc.dbFile)
 
 			got, err := c.UserByID(1111)
-			requireGetAssertions(t, got, tc.wantErrType, err, c, cacheDir)
+			requireGetAssertions(t, got, tc.wantErrType, err, cacheDir)
 		})
 	}
 }
@@ -335,7 +281,7 @@ func TestUserByName(t *testing.T) {
 		"Get existing user": {dbFile: "one_user_and_group"},
 
 		"Error on missing user":           {wantErrType: cache.NoDataFoundError{}},
-		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByName", wantErrType: shouldError{}},
+		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByName", wantErrType: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -345,7 +291,7 @@ func TestUserByName(t *testing.T) {
 			c, cacheDir := initCache(t, tc.dbFile)
 
 			got, err := c.UserByName("user1")
-			requireGetAssertions(t, got, tc.wantErrType, err, c, cacheDir)
+			requireGetAssertions(t, got, tc.wantErrType, err, cacheDir)
 		})
 	}
 }
@@ -363,7 +309,7 @@ func TestAllUsers(t *testing.T) {
 
 		"Get users only rely on valid userByID": {dbFile: "partially_valid_multiple_users_and_groups_only_userByID"},
 
-		"Error on some invalid users entry": {dbFile: "invalid_entries_but_user_and_group1", wantErrType: shouldError{}},
+		"Error on some invalid users entry": {dbFile: "invalid_entries_but_user_and_group1", wantErrType: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -373,7 +319,7 @@ func TestAllUsers(t *testing.T) {
 			c, cacheDir := initCache(t, tc.dbFile)
 
 			got, err := c.AllUsers()
-			requireGetAssertions(t, got, tc.wantErrType, err, c, cacheDir)
+			requireGetAssertions(t, got, tc.wantErrType, err, cacheDir)
 		})
 	}
 }
@@ -389,8 +335,8 @@ func TestGroupByID(t *testing.T) {
 		"Get existing group": {dbFile: "one_user_and_group"},
 
 		"Error on missing group":          {wantErrType: cache.NoDataFoundError{}},
-		"Error on invalid database entry": {dbFile: "invalid_entry_in_groupByID", wantErrType: shouldError{}},
-		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: shouldError{}},
+		"Error on invalid database entry": {dbFile: "invalid_entry_in_groupByID", wantErrType: cache.ErrNeedsClearing},
+		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -400,7 +346,7 @@ func TestGroupByID(t *testing.T) {
 			c, cacheDir := initCache(t, tc.dbFile)
 
 			got, err := c.GroupByID(11111)
-			requireGetAssertions(t, got, tc.wantErrType, err, c, cacheDir)
+			requireGetAssertions(t, got, tc.wantErrType, err, cacheDir)
 		})
 	}
 }
@@ -416,8 +362,8 @@ func TestGroupByName(t *testing.T) {
 		"Get existing group": {dbFile: "one_user_and_group"},
 
 		"Error on missing group":          {wantErrType: cache.NoDataFoundError{}},
-		"Error on invalid database entry": {dbFile: "invalid_entry_in_groupByName", wantErrType: shouldError{}},
-		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: shouldError{}},
+		"Error on invalid database entry": {dbFile: "invalid_entry_in_groupByName", wantErrType: cache.ErrNeedsClearing},
+		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -427,7 +373,7 @@ func TestGroupByName(t *testing.T) {
 			c, cacheDir := initCache(t, tc.dbFile)
 
 			got, err := c.GroupByName("group1")
-			requireGetAssertions(t, got, tc.wantErrType, err, c, cacheDir)
+			requireGetAssertions(t, got, tc.wantErrType, err, cacheDir)
 		})
 	}
 }
@@ -445,9 +391,9 @@ func TestAllGroups(t *testing.T) {
 
 		"Get groups rely on groupByID, groupToUsers, UserByID": {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers_UserByID"},
 
-		"Error on some invalid groups entry":     {dbFile: "invalid_entries_but_user_and_group1", wantErrType: shouldError{}},
-		"Error as not only relying on groupByID": {dbFile: "partially_valid_multiple_users_and_groups_only_groupByID", wantErrType: shouldError{}},
-		"Error as missing userByID":              {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: shouldError{}},
+		"Error on some invalid groups entry":     {dbFile: "invalid_entries_but_user_and_group1", wantErrType: cache.ErrNeedsClearing},
+		"Error as not only relying on groupByID": {dbFile: "partially_valid_multiple_users_and_groups_only_groupByID", wantErrType: cache.ErrNeedsClearing},
+		"Error as missing userByID":              {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -457,7 +403,7 @@ func TestAllGroups(t *testing.T) {
 			c, cacheDir := initCache(t, tc.dbFile)
 
 			got, err := c.AllGroups()
-			requireGetAssertions(t, got, tc.wantErrType, err, c, cacheDir)
+			requireGetAssertions(t, got, tc.wantErrType, err, cacheDir)
 		})
 	}
 }
@@ -510,32 +456,11 @@ func requireNoDirtyFileInDir(t *testing.T, cacheDir string) {
 	require.NoFileExists(t, filepath.Join(cacheDir, cachetests.DirtyFlagDbName), "Dirty flag should have been removed")
 }
 
-func requireClearedDatabase(t *testing.T, c *cache.Cache) {
-	t.Helper()
-
-	want := `GroupByID: {}
-GroupByName: {}
-GroupToUsers: {}
-UserByID: {}
-UserByName: {}
-UserToBroker: {}
-UserToGroups: {}
-`
-
-	got, err := cachetests.DumpToYaml(c)
-	require.NoError(t, err, "Created database should be valid yaml content")
-	require.Equal(t, want, got, "Database should only have empty buckets")
-}
-
 func TestMain(m *testing.M) {
 	testutils.InstallUpdateFlag()
 
 	os.Exit(m.Run())
 }
-
-type shouldError struct{}
-
-func (shouldError) Error() string { return "" }
 
 // initCache returns a new cache ready to be used alongside its cache directory.
 func initCache(t *testing.T, dbFile string) (c *cache.Cache, cacheDir string) {
@@ -546,17 +471,14 @@ func initCache(t *testing.T, dbFile string) (c *cache.Cache, cacheDir string) {
 		createDBFile(t, filepath.Join("testdata", dbFile+".db.yaml"), cacheDir)
 	}
 
-	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
-	require.NoError(t, err, "Setup: could not parse time for testing")
-
-	c, err = cache.New(cacheDir, cache.WithExpirationDate(expiration))
+	c, err := cache.New(cacheDir)
 	require.NoError(t, err)
 	t.Cleanup(func() { c.Close() })
 
 	return c, cacheDir
 }
 
-func requireGetAssertions[E any](t *testing.T, got E, wantErrType, err error, c *cache.Cache, cacheDir string) {
+func requireGetAssertions[E any](t *testing.T, got E, wantErrType, err error, cacheDir string) {
 	t.Helper()
 
 	if wantErrType != nil {
@@ -567,7 +489,6 @@ func requireGetAssertions[E any](t *testing.T, got E, wantErrType, err error, c 
 		require.Error(t, err, "Should return an error but didn't")
 		time.Sleep(10 * time.Millisecond)
 		requireNoDirtyFileInDir(t, cacheDir)
-		requireClearedDatabase(t, c)
 		return
 	}
 	require.NoError(t, err)
