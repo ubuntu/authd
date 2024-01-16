@@ -62,8 +62,7 @@ func (c *Cache) AllUsers() (all []UserPasswdShadow, err error) {
 	})
 
 	if err != nil {
-		c.requestClearDatabase()
-		return nil, err
+		return nil, errors.Join(ErrNeedsClearing, err)
 	}
 
 	return all, nil
@@ -77,14 +76,13 @@ func getUser[K int | string](c *Cache, bucketName string, key K) (u UserDB, err 
 	err = c.db.View(func(tx *bbolt.Tx) error {
 		bucket, err := getBucket(tx, bucketName)
 		if err != nil {
-			c.requestClearDatabase()
-			return err
+			return errors.Join(ErrNeedsClearing, err)
 		}
 
 		u, err = getFromBucket[UserDB](bucket, key)
 		if err != nil {
 			if !errors.Is(err, NoDataFoundError{}) {
-				c.requestClearDatabase()
+				err = errors.Join(ErrNeedsClearing, err)
 			}
 			return err
 		}

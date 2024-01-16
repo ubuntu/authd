@@ -18,15 +18,13 @@ func (c *Cache) UpdateUserEntry(userDB UserDB, groupContents []GroupDB) error {
 	err := c.db.Update(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
-			c.requestClearDatabase()
-			return err
+			return errors.Join(ErrNeedsClearing, err)
 		}
 
 		previousGroupsForCurrentUser, err := getFromBucket[userToGroupsDB](buckets[userToGroupsBucketName], userDB.UID)
 		// No data is valid and means this is the first insertion.
 		if err != nil && !errors.Is(err, NoDataFoundError{}) {
-			c.requestClearDatabase()
-			return err
+			return errors.Join(ErrNeedsClearing, err)
 		}
 
 		/* 1. Handle user update */
@@ -37,8 +35,7 @@ func (c *Cache) UpdateUserEntry(userDB UserDB, groupContents []GroupDB) error {
 
 		/* 3. Users and groups mapping buckets */
 		if err := updateUsersAndGroups(buckets, userDB.UID, groupContents, previousGroupsForCurrentUser.GIDs); err != nil {
-			c.requestClearDatabase()
-			return err
+			return errors.Join(ErrNeedsClearing, err)
 		}
 
 		return nil
@@ -152,8 +149,7 @@ func (c *Cache) UpdateBrokerForUser(username, brokerID string) error {
 	err = c.db.Update(func(tx *bbolt.Tx) error {
 		bucket, err := getBucket(tx, userToBrokerBucketName)
 		if err != nil {
-			c.requestClearDatabase()
-			return err
+			return errors.Join(ErrNeedsClearing, err)
 		}
 		updateBucket(bucket, u.UID, brokerID)
 		return nil

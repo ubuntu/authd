@@ -35,8 +35,7 @@ func (c *Cache) AllGroups() (all []Group, err error) {
 	err = c.db.View(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
-			c.requestClearDatabase()
-			return err
+			return errors.Join(ErrNeedsClearing, err)
 		}
 
 		return buckets[groupByIDBucketName].ForEach(func(key, value []byte) error {
@@ -61,8 +60,7 @@ func (c *Cache) AllGroups() (all []Group, err error) {
 	})
 
 	if err != nil {
-		c.requestClearDatabase()
-		return nil, err
+		return nil, errors.Join(ErrNeedsClearing, err)
 	}
 
 	return all, nil
@@ -80,8 +78,7 @@ func getGroup[K int | string](c *Cache, bucketName string, key K) (Group, error)
 	err := c.db.View(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
-			c.requestClearDatabase()
-			return err
+			return errors.Join(ErrNeedsClearing, err)
 		}
 
 		// Get id and name of the group.
@@ -89,7 +86,7 @@ func getGroup[K int | string](c *Cache, bucketName string, key K) (Group, error)
 		if err != nil {
 			// no entry is valid, no need to clean the database but return the error.
 			if !errors.Is(err, NoDataFoundError{}) {
-				c.requestClearDatabase()
+				err = errors.Join(ErrNeedsClearing, err)
 			}
 			return err
 		}
@@ -100,8 +97,7 @@ func getGroup[K int | string](c *Cache, bucketName string, key K) (Group, error)
 		// Get user names in the group.
 		users, err = getUsersInGroup(buckets, gid)
 		if err != nil {
-			c.requestClearDatabase()
-			return err
+			return errors.Join(ErrNeedsClearing, err)
 		}
 
 		return nil

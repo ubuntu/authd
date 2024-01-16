@@ -8,12 +8,10 @@ import (
 	"io/fs"
 	"log/slog"
 	"os"
-	"os/user"
 	"path/filepath"
 	"slices"
 	"strconv"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/ubuntu/decorate"
@@ -33,13 +31,6 @@ const (
 	userToGroupsBucketName = "UserToGroups"
 	groupToUsersBucketName = "GroupToUsers"
 	userToBrokerBucketName = "UserToBroker"
-
-	// defaultEntryExpiration is the amount of time the user is allowed on the cache without authenticating.
-	// It's equivalent to 6 months.
-	defaultEntryExpiration = time.Hour * 24 * 30 * 6
-
-	// defaultCleanupInterval is the interval upon which the cache will be cleaned of expired users.
-	defaultCleanupInterval = time.Hour * 24
 )
 
 var (
@@ -56,11 +47,7 @@ type Cache struct {
 	db *bbolt.DB
 	mu sync.RWMutex
 
-	dirtyFlagPath  string
-	procDir        string
-	doClear        chan struct{}
-	quit           chan struct{}
-	cleanupQuitted chan struct{}
+	dirtyFlagPath string
 }
 
 // UserDB is the struct stored in json format in the bucket.
@@ -93,44 +80,15 @@ type groupToUsersDB struct {
 	UIDs []int
 }
 
-type options struct {
-	expirationDate  time.Time
-	cleanOnNew      bool
-	cleanupInterval time.Duration
-	procDir         string // This is to force failure in tests.
-}
-
-// Option represents an optional function to override Cache default values.
-type Option func(*options)
-
-// WithExpirationDate overrides the default time for when a user should be cleaned from the cache.
-func WithExpirationDate(date time.Time) Option {
-	return func(o *options) {
-		o.expirationDate = date
-	}
-}
-
 // New creates a new database cache by creating or opening the underlying db.
-func New(cacheDir string, args ...Option) (cache *Cache, err error) {
+func New(cacheDir string) (cache *Cache, err error) {
 	dbPath := filepath.Join(cacheDir, dbName)
 	defer decorate.OnError(&err, "could not create new database object at %q", dbPath)
-
-	opts := options{
-		expirationDate:  time.Now().Add(-1 * defaultEntryExpiration),
-		cleanupInterval: defaultCleanupInterval,
-		cleanOnNew:      true,
-		procDir:         "/proc/",
-	}
-	for _, arg := range args {
-		arg(&opts)
-	}
-
-	dirtyFlagPath := filepath.Join(cacheDir, dirtyFlagDbName)
 
 	var db *bbolt.DB
 	var i int
 	for {
-		db, err = openAndInitDB(dbPath, dirtyFlagPath)
+		db, err = openAndInitDB(dbPath, filepath.Join(cacheDir, dirtyFlagDbName))
 		if err == nil {
 			break
 		}
@@ -146,64 +104,7 @@ func New(cacheDir string, args ...Option) (cache *Cache, err error) {
 		return nil, err
 	}
 
-	c := Cache{
-		db:             db,
-		dirtyFlagPath:  dirtyFlagPath,
-		procDir:        opts.procDir,
-		doClear:        make(chan struct{}),
-		quit:           make(chan struct{}),
-		cleanupQuitted: make(chan struct{}),
-	}
-
-	if opts.cleanOnNew {
-		// Triggers a cleanup call when the db is opened
-		if err := c.cleanExpiredUsers(opts.expirationDate); err != nil {
-			slog.Warn(fmt.Sprintf("Could not clean database %v", err))
-		}
-	}
-
-	cleanupRoutineStarted := make(chan struct{})
-	go func() {
-		defer close(c.cleanupQuitted)
-		close(cleanupRoutineStarted)
-		for {
-			select {
-			case <-c.doClear:
-				func() {
-					c.mu.Lock()
-					defer c.mu.Unlock()
-
-					if err := c.db.Close(); err != nil {
-						slog.Warn(fmt.Sprintf("Could not close database %v", err))
-					}
-
-					db, err := openAndInitDB(dbPath, c.dirtyFlagPath)
-					if err != nil {
-						panic(fmt.Sprintf("CRITICAL: unrecoverable state: could not recreate database: %v", err))
-					}
-					c.db = db
-				}()
-
-			case <-time.After(opts.cleanupInterval):
-				func() {
-					c.mu.RLock()
-					defer c.mu.RUnlock()
-
-					slog.Debug("Starting scheduled cleaning of expired users")
-
-					if err := c.cleanExpiredUsers(opts.expirationDate); err != nil {
-						slog.Warn(fmt.Sprintf("Could not clean database %v", err))
-					}
-				}()
-
-			case <-c.quit:
-				return
-			}
-		}
-	}()
-	<-cleanupRoutineStarted
-
-	return &c, nil
+	return &Cache{db: db, mu: sync.RWMutex{}, dirtyFlagPath: filepath.Join(cacheDir, dirtyFlagDbName)}, nil
 }
 
 // openAndInitDB open a pre-existing database and potentially intializes its buckets.
@@ -267,17 +168,14 @@ func openAndInitDB(path, dirtyFlagPath string) (*bbolt.DB, error) {
 	return db, nil
 }
 
-// cleanExpiredUsers removes from the cache any user that exceeded the maximum amount of days without authentication.
-func (c *Cache) cleanExpiredUsers(expirationDate time.Time) (err error) {
+// CleanExpiredUsers removes from the cache any user that exceeded the maximum amount of days without authentication.
+func (c *Cache) CleanExpiredUsers(activeUsers map[string]struct{}, expirationDate time.Time) (err error) {
 	defer decorate.OnError(&err, "could not clean up database")
 
-	return c.db.Update(func(tx *bbolt.Tx) (err error) {
-		// Cleans up the database
-		activeUsers, err := getActiveUsers(c.procDir)
-		if err != nil {
-			return err
-		}
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
+	return c.db.Update(func(tx *bbolt.Tx) (err error) {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
 			return err
@@ -309,71 +207,32 @@ func (c *Cache) cleanExpiredUsers(expirationDate time.Time) (err error) {
 	})
 }
 
-// getActiveUsers walks through procDir and returns a map with the usernames of the owners of all active processes.
-func getActiveUsers(procDir string) (activeUsers map[string]struct{}, err error) {
-	defer decorate.OnError(&err, "could not get list of active users")
-
-	activeUsers = make(map[string]struct{})
-
-	dirEntries, err := os.ReadDir(procDir)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, dirEntry := range dirEntries {
-		// Checks if the dirEntry represents a process dir (i.e. /proc/<pid>/)
-		if _, err := strconv.Atoi(dirEntry.Name()); err != nil {
-			continue
-		}
-
-		info, err := dirEntry.Info()
-		if err != nil {
-			// If the file doesn't exist, it means the process is not running anymore so we can ignore it.
-			if errors.Is(err, fs.ErrNotExist) {
-				continue
-			}
-			return nil, err
-		}
-
-		stats, ok := info.Sys().(*syscall.Stat_t)
-		if !ok {
-			return nil, fmt.Errorf("could not get ownership of file %q", info.Name())
-		}
-
-		u, err := user.LookupId(strconv.Itoa(int(stats.Uid)))
-		if err != nil {
-			// Possibly a ghost/orphaned UID - no reason to error out,
-			// warn the user and continue.
-			slog.Warn(fmt.Sprintf("Could not map active user ID to an actual user: %v", err))
-			continue
-		}
-
-		activeUsers[u.Name] = struct{}{}
-	}
-	return activeUsers, nil
-}
-
 // Close closes the db and signal the monitoring goroutine to stop.
 func (c *Cache) Close() error {
-	close(c.quit)
-	<-c.cleanupQuitted
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.db.Close()
 }
 
-// requestClearDatabase ask for the clean goroutine to clear up the database.
-// If we already have a pending request, do not block on it.
-// TODO: improve behavior when cleanup is already running
-// (either remove the dangling dirty file or queue the cleanup request).
-func (c *Cache) requestClearDatabase() {
-	if err := os.WriteFile(c.dirtyFlagPath, nil, 0600); err != nil {
-		slog.Warn(fmt.Sprintf("Could not write dirty file flag to signal clearing up the database: %v", err))
+// ClearAndRebuild closes the db and reopens it.
+func (c *Cache) ClearAndRebuild(cacheDir string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if err := c.db.Close(); err != nil {
+		slog.Warn(fmt.Sprintf("Could not close database %v", err))
 	}
-	select {
-	case c.doClear <- struct{}{}:
-	case <-time.After(10 * time.Millisecond): // Let the time for the cleanup goroutine for the initial start.
+
+	db, err := openAndInitDB(filepath.Join(cacheDir, dbName), c.dirtyFlagPath)
+	if err != nil {
+		panic(fmt.Sprintf("CRITICAL: unrecoverable state: could not recreate database: %v", err))
 	}
+	c.db = db
+}
+
+// MarkDatabaseAsDirty creates a file to signal that the database needs to be cleared and rebuilt.
+func (c *Cache) MarkDatabaseAsDirty() error {
+	return os.WriteFile(c.dirtyFlagPath, nil, 0600)
 }
 
 func clearDatabase(dbPath, dirtyFlagPath string) {
@@ -473,3 +332,6 @@ func (err shouldRetryDBError) Unwrap() error {
 
 // Is makes this error insensitive to the key and bucket name.
 func (shouldRetryDBError) Is(target error) bool { return target == shouldRetryDBError{} }
+
+// ErrNeedsClearing is returned when the database is corrupted and needs to be cleared.
+var ErrNeedsClearing = errors.New("database needs to be cleared and rebuilt")

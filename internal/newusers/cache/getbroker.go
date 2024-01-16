@@ -1,6 +1,8 @@
 package cache
 
 import (
+	"errors"
+
 	"go.etcd.io/bbolt"
 )
 
@@ -17,8 +19,7 @@ func (c *Cache) BrokerForUser(username string) (brokerID string, err error) {
 	err = c.db.View(func(tx *bbolt.Tx) error {
 		bucket, err := getBucket(tx, userToBrokerBucketName)
 		if err != nil {
-			c.requestClearDatabase()
-			return err
+			return errors.Join(ErrNeedsClearing, err)
 		}
 
 		brokerID, err = getFromBucket[string](bucket, u.UID)
