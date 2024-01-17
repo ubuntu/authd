@@ -16,6 +16,16 @@ import (
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 )
 
+// PamClientType indicates the type of the PAM client we're handling.
+type PamClientType int
+
+const (
+	// Native indicates a PAM Client that is not supporting any special protocol.
+	Native PamClientType = iota
+	// InteractiveTerminal indicates an interactive terminal we can directly write our interface to.
+	InteractiveTerminal
+)
+
 var debug string
 
 // sessionInfo contains the global broker session information.
@@ -31,8 +41,8 @@ type UIModel struct {
 	PamMTx pam.ModuleTransaction
 	// Client is the [authd.PAMClient] handle used to communicate with authd.
 	Client authd.PAMClient
-	// InteractiveTerminal whether the underlying PAM system is using an interactive terminal.
-	InteractiveTerminal bool
+	// PamClientType is the kind of the PAM client we're handling.
+	ClientType PamClientType
 
 	height int
 	width  int
