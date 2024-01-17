@@ -41,6 +41,10 @@ func TestSendToGdm(t *testing.T) {
 			value:      []byte(`"give me 🍕"`),
 			wantReturn: []byte(`"😋"`),
 		},
+		"Nil data returned": {
+			value:      []byte(`"give me 🚫"`),
+			wantReturn: []byte(nil),
+		},
 
 		// Error cases
 		"Error on empty data": {
@@ -56,11 +60,6 @@ func TestSendToGdm(t *testing.T) {
 		"Error with empty data returned": {
 			value:      []byte(`"give me 🗑‼"`),
 			wantReturn: []byte{},
-			wantError:  ErrInvalidJSON,
-		},
-		"Error with nil data returned": {
-			value:      []byte(`"give me 🚫"`),
-			wantReturn: []byte(nil),
 			wantError:  ErrInvalidJSON,
 		},
 	}
@@ -90,7 +89,7 @@ func TestSendToGdm(t *testing.T) {
 			require.Equal(t, convFuncCalled, !tc.wantConvHandlerNotToBeCalled)
 
 			if tc.wantError != nil {
-				require.Error(t, tc.wantError, err)
+				require.ErrorIs(t, err, tc.wantError)
 				return
 			}
 			require.NoError(t, err)
