@@ -21,6 +21,25 @@ License: LGPL-3
  On Debian systems, the complete text of the GNU Lesser General
  Public License version 3 can be found in "/usr/share/common-licenses/LGPL-3".
 
+Files: cmd/*
+Copyright: 2023 Canonical Ltd.
+License: GPL-3
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <https://www.gnu.org/licenses/>
+ .
+ On Debian systems, the complete text of the GNU General
+ Public License version 3 can be found in "/usr/share/common-licenses/GPL-3".
+
 Files: vendor/go.etcd.io/bbolt/*
 Copyright: 2013 Ben Johnson
 License: MIT
@@ -508,17 +527,6 @@ License: BSD-3
    * Neither the name of Google Inc., Jonas Obrist nor the names of its
      contributors may be used to endorse or promote products derived from
      this software without specific prior written permission.
-
-License: LGPL-3+
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 3 of the License, or (at your option) any later version.
- .
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- Lesser General Public License for more details.
 
 License: ISC
  Permission to use, copy, modify, and/or distribute this software for any
