@@ -28,11 +28,11 @@ func main() {
 		func(style pam.Style, msg string) (string, error) {
 			switch style {
 			case pam.TextInfo:
-				fmt.Fprintf(os.Stderr, "PAM INFO: %s\n", msg)
+				fmt.Fprintf(os.Stderr, "PAM Info Message: %s\n", msg)
 			case pam.ErrorMsg:
-				fmt.Fprintf(os.Stderr, "PAM ERROR: %s\n", msg)
+				fmt.Fprintf(os.Stderr, "PAM Error Message: %s\n", msg)
 			default:
-				return "", fmt.Errorf("pam style %d not implemented", style)
+				return "", fmt.Errorf("PAM style %d not implemented", style)
 			}
 			return "", nil
 		}))
