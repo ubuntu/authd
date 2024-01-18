@@ -1,11 +1,10 @@
 package adapter
 
 import (
-	"fmt"
-
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ubuntu/authd"
 )
 
 // newPasswordModel is the form layout type to allow authentication and return a challenge.
@@ -75,10 +74,14 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				m.errorMsg = ""
-				return m, sendEvent(isAuthenticatedRequested{content: fmt.Sprintf(`{"challenge": "%s"}`, entry.Value())})
+				return m, sendEvent(isAuthenticatedRequested{
+					item: &authd.IARequest_AuthenticationData_Challenge{Challenge: entry.Value()},
+				})
 
 			case *buttonModel:
-				return m, sendEvent(isAuthenticatedRequested{`{"skip": "true"}`})
+				return m, sendEvent(isAuthenticatedRequested{
+					item: &authd.IARequest_AuthenticationData_Skip{Skip: "true"},
+				})
 			}
 
 			return m, nil

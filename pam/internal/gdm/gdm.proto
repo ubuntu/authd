@@ -139,8 +139,7 @@ message Events {
     message ReselectAuthMode {}
 
     message IsAuthenticatedRequested {
-        optional string challenge = 1;
-        optional bool wait = 2;
+        authd.IARequest.AuthenticationData authentication_data = 1;
     }
 
     message StageChanged {

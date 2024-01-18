@@ -663,8 +663,8 @@ type IARequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	SessionId          string `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	AuthenticationData string `protobuf:"bytes,2,opt,name=authentication_data,json=authenticationData,proto3" json:"authentication_data,omitempty"`
+	SessionId          string                        `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	AuthenticationData *IARequest_AuthenticationData `protobuf:"bytes,2,opt,name=authentication_data,json=authenticationData,proto3" json:"authentication_data,omitempty"`
 }
 
 func (x *IARequest) Reset() {
@@ -706,11 +706,11 @@ func (x *IARequest) GetSessionId() string {
 	return ""
 }
 
-func (x *IARequest) GetAuthenticationData() string {
+func (x *IARequest) GetAuthenticationData() *IARequest_AuthenticationData {
 	if x != nil {
 		return x.AuthenticationData
 	}
-	return ""
+	return nil
 }
 
 type IAResponse struct {
@@ -1492,6 +1492,101 @@ func (x *GAMResponse_AuthenticationMode) GetLabel() string {
 	return ""
 }
 
+type IARequest_AuthenticationData struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	// Types that are assignable to Item:
+	//
+	//	*IARequest_AuthenticationData_Challenge
+	//	*IARequest_AuthenticationData_Wait
+	//	*IARequest_AuthenticationData_Skip
+	Item isIARequest_AuthenticationData_Item `protobuf_oneof:"item"`
+}
+
+func (x *IARequest_AuthenticationData) Reset() {
+	*x = IARequest_AuthenticationData{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_authd_proto_msgTypes[26]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *IARequest_AuthenticationData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IARequest_AuthenticationData) ProtoMessage() {}
+
+func (x *IARequest_AuthenticationData) ProtoReflect() protoreflect.Message {
+	mi := &file_authd_proto_msgTypes[26]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IARequest_AuthenticationData.ProtoReflect.Descriptor instead.
+func (*IARequest_AuthenticationData) Descriptor() ([]byte, []int) {
+	return file_authd_proto_rawDescGZIP(), []int{12, 0}
+}
+
+func (m *IARequest_AuthenticationData) GetItem() isIARequest_AuthenticationData_Item {
+	if m != nil {
+		return m.Item
+	}
+	return nil
+}
+
+func (x *IARequest_AuthenticationData) GetChallenge() string {
+	if x, ok := x.GetItem().(*IARequest_AuthenticationData_Challenge); ok {
+		return x.Challenge
+	}
+	return ""
+}
+
+func (x *IARequest_AuthenticationData) GetWait() string {
+	if x, ok := x.GetItem().(*IARequest_AuthenticationData_Wait); ok {
+		return x.Wait
+	}
+	return ""
+}
+
+func (x *IARequest_AuthenticationData) GetSkip() string {
+	if x, ok := x.GetItem().(*IARequest_AuthenticationData_Skip); ok {
+		return x.Skip
+	}
+	return ""
+}
+
+type isIARequest_AuthenticationData_Item interface {
+	isIARequest_AuthenticationData_Item()
+}
+
+type IARequest_AuthenticationData_Challenge struct {
+	Challenge string `protobuf:"bytes,1,opt,name=challenge,proto3,oneof"`
+}
+
+type IARequest_AuthenticationData_Wait struct {
+	Wait string `protobuf:"bytes,2,opt,name=wait,proto3,oneof"`
+}
+
+type IARequest_AuthenticationData_Skip struct {
+	Skip string `protobuf:"bytes,3,opt,name=skip,proto3,oneof"`
+}
+
+func (*IARequest_AuthenticationData_Challenge) isIARequest_AuthenticationData_Item() {}
+
+func (*IARequest_AuthenticationData_Wait) isIARequest_AuthenticationData_Item() {}
+
+func (*IARequest_AuthenticationData_Skip) isIARequest_AuthenticationData_Item() {}
+
 var File_authd_proto protoreflect.FileDescriptor
 
 var file_authd_proto_rawDesc = []byte{
@@ -1571,12 +1666,21 @@ var file_authd_proto_rawDesc = []byte{
 	0x6c, 0x61, 0x79, 0x6f, 0x75, 0x74, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x0b, 0x32, 0x0f, 0x2e, 0x61, 0x75, 0x74, 0x68, 0x64, 0x2e, 0x55, 0x49, 0x4c, 0x61, 0x79, 0x6f,
 	0x75, 0x74, 0x52, 0x0c, 0x75, 0x69, 0x4c, 0x61, 0x79, 0x6f, 0x75, 0x74, 0x49, 0x6e, 0x66, 0x6f,
-	0x22, 0x5b, 0x0a, 0x09, 0x49, 0x41, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1d, 0x0a,
-	0x0a, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x09, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x2f, 0x0a, 0x13,
-	0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x64,
-	0x61, 0x74, 0x61, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x12, 0x61, 0x75, 0x74, 0x68, 0x65,
-	0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x44, 0x61, 0x74, 0x61, 0x22, 0x36, 0x0a,
+	0x22, 0xea, 0x01, 0x0a, 0x09, 0x49, 0x41, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x1d,
+	0x0a, 0x0a, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x09, 0x73, 0x65, 0x73, 0x73, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x54, 0x0a,
+	0x13, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f,
+	0x64, 0x61, 0x74, 0x61, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x23, 0x2e, 0x61, 0x75, 0x74,
+	0x68, 0x64, 0x2e, 0x49, 0x41, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x2e, 0x41, 0x75, 0x74,
+	0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x44, 0x61, 0x74, 0x61, 0x52,
+	0x12, 0x61, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x44,
+	0x61, 0x74, 0x61, 0x1a, 0x68, 0x0a, 0x12, 0x41, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x44, 0x61, 0x74, 0x61, 0x12, 0x1e, 0x0a, 0x09, 0x63, 0x68, 0x61,
+	0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x09,
+	0x63, 0x68, 0x61, 0x6c, 0x6c, 0x65, 0x6e, 0x67, 0x65, 0x12, 0x14, 0x0a, 0x04, 0x77, 0x61, 0x69,
+	0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52, 0x04, 0x77, 0x61, 0x69, 0x74, 0x12,
+	0x14, 0x0a, 0x04, 0x73, 0x6b, 0x69, 0x70, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x48, 0x00, 0x52,
+	0x04, 0x73, 0x6b, 0x69, 0x70, 0x42, 0x06, 0x0a, 0x04, 0x69, 0x74, 0x65, 0x6d, 0x22, 0x36, 0x0a,
 	0x0a, 0x49, 0x41, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x61,
 	0x63, 0x63, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x61, 0x63, 0x63,
 	0x65, 0x73, 0x73, 0x12, 0x10, 0x0a, 0x03, 0x6d, 0x73, 0x67, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
@@ -1716,7 +1820,7 @@ func file_authd_proto_rawDescGZIP() []byte {
 	return file_authd_proto_rawDescData
 }
 
-var file_authd_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
+var file_authd_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_authd_proto_goTypes = []interface{}{
 	(*Empty)(nil),                          // 0: authd.Empty
 	(*GPBRequest)(nil),                     // 1: authd.GPBRequest
@@ -1744,52 +1848,54 @@ var file_authd_proto_goTypes = []interface{}{
 	(*ShadowEntries)(nil),                  // 23: authd.ShadowEntries
 	(*ABResponse_BrokerInfo)(nil),          // 24: authd.ABResponse.BrokerInfo
 	(*GAMResponse_AuthenticationMode)(nil), // 25: authd.GAMResponse.AuthenticationMode
+	(*IARequest_AuthenticationData)(nil),   // 26: authd.IARequest.AuthenticationData
 }
 var file_authd_proto_depIdxs = []int32{
 	24, // 0: authd.ABResponse.brokers_infos:type_name -> authd.ABResponse.BrokerInfo
 	8,  // 1: authd.GAMRequest.supported_ui_layouts:type_name -> authd.UILayout
 	25, // 2: authd.GAMResponse.authentication_modes:type_name -> authd.GAMResponse.AuthenticationMode
 	8,  // 3: authd.SAMResponse.ui_layout_info:type_name -> authd.UILayout
-	18, // 4: authd.PasswdEntries.entries:type_name -> authd.PasswdEntry
-	20, // 5: authd.GroupEntries.entries:type_name -> authd.GroupEntry
-	22, // 6: authd.ShadowEntries.entries:type_name -> authd.ShadowEntry
-	0,  // 7: authd.PAM.AvailableBrokers:input_type -> authd.Empty
-	1,  // 8: authd.PAM.GetPreviousBroker:input_type -> authd.GPBRequest
-	5,  // 9: authd.PAM.SelectBroker:input_type -> authd.SBRequest
-	7,  // 10: authd.PAM.GetAuthenticationModes:input_type -> authd.GAMRequest
-	10, // 11: authd.PAM.SelectAuthenticationMode:input_type -> authd.SAMRequest
-	12, // 12: authd.PAM.IsAuthenticated:input_type -> authd.IARequest
-	15, // 13: authd.PAM.EndSession:input_type -> authd.ESRequest
-	14, // 14: authd.PAM.SetDefaultBrokerForUser:input_type -> authd.SDBFURequest
-	16, // 15: authd.NSS.GetPasswdByName:input_type -> authd.GetByNameRequest
-	17, // 16: authd.NSS.GetPasswdByUID:input_type -> authd.GetByIDRequest
-	0,  // 17: authd.NSS.GetPasswdEntries:input_type -> authd.Empty
-	16, // 18: authd.NSS.GetGroupByName:input_type -> authd.GetByNameRequest
-	17, // 19: authd.NSS.GetGroupByGID:input_type -> authd.GetByIDRequest
-	0,  // 20: authd.NSS.GetGroupEntries:input_type -> authd.Empty
-	16, // 21: authd.NSS.GetShadowByName:input_type -> authd.GetByNameRequest
-	0,  // 22: authd.NSS.GetShadowEntries:input_type -> authd.Empty
-	3,  // 23: authd.PAM.AvailableBrokers:output_type -> authd.ABResponse
-	2,  // 24: authd.PAM.GetPreviousBroker:output_type -> authd.GPBResponse
-	6,  // 25: authd.PAM.SelectBroker:output_type -> authd.SBResponse
-	9,  // 26: authd.PAM.GetAuthenticationModes:output_type -> authd.GAMResponse
-	11, // 27: authd.PAM.SelectAuthenticationMode:output_type -> authd.SAMResponse
-	13, // 28: authd.PAM.IsAuthenticated:output_type -> authd.IAResponse
-	0,  // 29: authd.PAM.EndSession:output_type -> authd.Empty
-	0,  // 30: authd.PAM.SetDefaultBrokerForUser:output_type -> authd.Empty
-	18, // 31: authd.NSS.GetPasswdByName:output_type -> authd.PasswdEntry
-	18, // 32: authd.NSS.GetPasswdByUID:output_type -> authd.PasswdEntry
-	19, // 33: authd.NSS.GetPasswdEntries:output_type -> authd.PasswdEntries
-	20, // 34: authd.NSS.GetGroupByName:output_type -> authd.GroupEntry
-	20, // 35: authd.NSS.GetGroupByGID:output_type -> authd.GroupEntry
-	21, // 36: authd.NSS.GetGroupEntries:output_type -> authd.GroupEntries
-	22, // 37: authd.NSS.GetShadowByName:output_type -> authd.ShadowEntry
-	23, // 38: authd.NSS.GetShadowEntries:output_type -> authd.ShadowEntries
-	23, // [23:39] is the sub-list for method output_type
-	7,  // [7:23] is the sub-list for method input_type
-	7,  // [7:7] is the sub-list for extension type_name
-	7,  // [7:7] is the sub-list for extension extendee
-	0,  // [0:7] is the sub-list for field type_name
+	26, // 4: authd.IARequest.authentication_data:type_name -> authd.IARequest.AuthenticationData
+	18, // 5: authd.PasswdEntries.entries:type_name -> authd.PasswdEntry
+	20, // 6: authd.GroupEntries.entries:type_name -> authd.GroupEntry
+	22, // 7: authd.ShadowEntries.entries:type_name -> authd.ShadowEntry
+	0,  // 8: authd.PAM.AvailableBrokers:input_type -> authd.Empty
+	1,  // 9: authd.PAM.GetPreviousBroker:input_type -> authd.GPBRequest
+	5,  // 10: authd.PAM.SelectBroker:input_type -> authd.SBRequest
+	7,  // 11: authd.PAM.GetAuthenticationModes:input_type -> authd.GAMRequest
+	10, // 12: authd.PAM.SelectAuthenticationMode:input_type -> authd.SAMRequest
+	12, // 13: authd.PAM.IsAuthenticated:input_type -> authd.IARequest
+	15, // 14: authd.PAM.EndSession:input_type -> authd.ESRequest
+	14, // 15: authd.PAM.SetDefaultBrokerForUser:input_type -> authd.SDBFURequest
+	16, // 16: authd.NSS.GetPasswdByName:input_type -> authd.GetByNameRequest
+	17, // 17: authd.NSS.GetPasswdByUID:input_type -> authd.GetByIDRequest
+	0,  // 18: authd.NSS.GetPasswdEntries:input_type -> authd.Empty
+	16, // 19: authd.NSS.GetGroupByName:input_type -> authd.GetByNameRequest
+	17, // 20: authd.NSS.GetGroupByGID:input_type -> authd.GetByIDRequest
+	0,  // 21: authd.NSS.GetGroupEntries:input_type -> authd.Empty
+	16, // 22: authd.NSS.GetShadowByName:input_type -> authd.GetByNameRequest
+	0,  // 23: authd.NSS.GetShadowEntries:input_type -> authd.Empty
+	3,  // 24: authd.PAM.AvailableBrokers:output_type -> authd.ABResponse
+	2,  // 25: authd.PAM.GetPreviousBroker:output_type -> authd.GPBResponse
+	6,  // 26: authd.PAM.SelectBroker:output_type -> authd.SBResponse
+	9,  // 27: authd.PAM.GetAuthenticationModes:output_type -> authd.GAMResponse
+	11, // 28: authd.PAM.SelectAuthenticationMode:output_type -> authd.SAMResponse
+	13, // 29: authd.PAM.IsAuthenticated:output_type -> authd.IAResponse
+	0,  // 30: authd.PAM.EndSession:output_type -> authd.Empty
+	0,  // 31: authd.PAM.SetDefaultBrokerForUser:output_type -> authd.Empty
+	18, // 32: authd.NSS.GetPasswdByName:output_type -> authd.PasswdEntry
+	18, // 33: authd.NSS.GetPasswdByUID:output_type -> authd.PasswdEntry
+	19, // 34: authd.NSS.GetPasswdEntries:output_type -> authd.PasswdEntries
+	20, // 35: authd.NSS.GetGroupByName:output_type -> authd.GroupEntry
+	20, // 36: authd.NSS.GetGroupByGID:output_type -> authd.GroupEntry
+	21, // 37: authd.NSS.GetGroupEntries:output_type -> authd.GroupEntries
+	22, // 38: authd.NSS.GetShadowByName:output_type -> authd.ShadowEntry
+	23, // 39: authd.NSS.GetShadowEntries:output_type -> authd.ShadowEntries
+	24, // [24:40] is the sub-list for method output_type
+	8,  // [8:24] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_authd_proto_init() }
@@ -2110,17 +2216,34 @@ func file_authd_proto_init() {
 				return nil
 			}
 		}
+		file_authd_proto_msgTypes[26].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*IARequest_AuthenticationData); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	file_authd_proto_msgTypes[2].OneofWrappers = []interface{}{}
 	file_authd_proto_msgTypes[8].OneofWrappers = []interface{}{}
 	file_authd_proto_msgTypes[24].OneofWrappers = []interface{}{}
+	file_authd_proto_msgTypes[26].OneofWrappers = []interface{}{
+		(*IARequest_AuthenticationData_Challenge)(nil),
+		(*IARequest_AuthenticationData_Wait)(nil),
+		(*IARequest_AuthenticationData_Skip)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_authd_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   26,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

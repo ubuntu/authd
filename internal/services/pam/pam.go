@@ -15,6 +15,7 @@ import (
 	"github.com/ubuntu/decorate"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 var _ authd.PAMServer = Service{}
@@ -188,7 +189,12 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 		return nil, err
 	}
 
-	access, data, err := broker.IsAuthenticated(ctx, sessionID, req.GetAuthenticationData())
+	authenticationDataJSON, err := protojson.Marshal(req.GetAuthenticationData())
+	if err != nil {
+		return nil, err
+	}
+
+	access, data, err := broker.IsAuthenticated(ctx, sessionID, string(authenticationDataJSON))
 	if err != nil {
 		return nil, err
 	}

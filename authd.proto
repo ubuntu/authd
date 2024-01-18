@@ -92,7 +92,15 @@ message SAMResponse {
 
 message IARequest {
   string session_id = 1;
-  string authentication_data = 2;
+
+  message AuthenticationData {
+    oneof item {
+      string challenge = 1;
+      string wait = 2;
+      string skip = 3;
+    }
+  }
+  AuthenticationData authentication_data = 2;
 }
 
 message IAResponse {
