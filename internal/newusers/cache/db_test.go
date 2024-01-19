@@ -98,66 +98,46 @@ func TestUpdateUserEntry(t *testing.T) {
 
 	userCases := map[string]cache.UserDB{
 		"user1": {
-			UserPasswdShadow: cache.UserPasswdShadow{
-				Name:  "user1",
-				UID:   1111,
-				Gecos: "User1 gecos\nOn multiple lines",
-				Dir:   "/home/user1",
-				Shell: "/bin/bash",
-				// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
-				LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
-			},
+			Name:  "user1",
+			UID:   1111,
+			Gecos: "User1 gecos\nOn multiple lines",
+			Dir:   "/home/user1",
+			Shell: "/bin/bash",
+			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user1-new-attributes": {
-			UserPasswdShadow: cache.UserPasswdShadow{
-				Name:  "newuser1",
-				UID:   1111,
-				Gecos: "New user1 gecos",
-				Dir:   "/home/newuser1",
-				Shell: "/bin/dash",
-				// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
-				LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
-			},
+			Name:  "newuser1",
+			UID:   1111,
+			Gecos: "New user1 gecos",
+			Dir:   "/home/newuser1",
+			Shell: "/bin/dash",
+			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user1-without-gecos": {
-			UserPasswdShadow: cache.UserPasswdShadow{
-				Name:  "user1",
-				UID:   1111,
-				Dir:   "/home/user1",
-				Shell: "/bin/bash",
-				// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
-				LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
-			},
+			Name:  "user1",
+			UID:   1111,
+			Dir:   "/home/user1",
+			Shell: "/bin/bash",
+			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user3": {
-			UserPasswdShadow: cache.UserPasswdShadow{
-				Name:  "user3",
-				UID:   3333,
-				Gecos: "User3 gecos",
-				Dir:   "/home/user3",
-				Shell: "/bin/zsh",
-				// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
-				LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
-			},
+			Name:  "user3",
+			UID:   3333,
+			Gecos: "User3 gecos",
+			Dir:   "/home/user3",
+			Shell: "/bin/zsh",
+			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 	}
 	groupCases := map[string]cache.GroupDB{
-		"group1": {
-			Name: "group1",
-			GID:  11111,
-		},
-		"newgroup1": {
-			Name: "newgroup1",
-			GID:  11111,
-		},
-		"group2": {
-			Name: "group2",
-			GID:  22222,
-		},
-		"group3": {
-			Name: "group3",
-			GID:  33333,
-		},
+		"group1":    cache.NewGroupDB("group1", 11111, nil),
+		"newgroup1": cache.NewGroupDB("newgroup1", 11111, nil),
+		"group2":    cache.NewGroupDB("group2", 22222, nil),
+		"group3":    cache.NewGroupDB("group3", 33333, nil),
 	}
 
 	tests := map[string]struct {
@@ -221,7 +201,6 @@ func TestUpdateUserEntry(t *testing.T) {
 				groups = append(groups, groupCases[g])
 			}
 			user.GID = groups[0].GID
-			user.LastLogin = time.Now()
 
 			err := c.UpdateUserEntry(user, groups)
 			if tc.wantErr {

@@ -499,6 +499,77 @@ func TestAllGroups(t *testing.T) {
 	}
 }
 
+//nolint:dupl // This is not a duplicate test
+func TestShadowByName(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		username string
+		dbFile   string
+
+		wantErr error
+	}{
+		"Successfully get shadow by name": {username: "user1", dbFile: "multiple_users_and_groups"},
+
+		"Error if shadow does not exist": {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErr: cache.NoDataFoundError{}},
+		"Error if db has invalid entry":  {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: cache.ErrNeedsClearing},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			cacheDir := t.TempDir()
+			createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
+
+			m := newManagerForTests(t, cacheDir)
+
+			got, err := m.ShadowByName(tc.username)
+			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
+			if tc.wantErr != nil {
+				return
+			}
+
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			require.Equal(t, want, got, "ShadowByName should return the expected user, but did not")
+		})
+	}
+}
+
+func TestAllShadows(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		dbFile string
+
+		wantErr error
+	}{
+		"Successfully get all users": {dbFile: "multiple_users_and_groups"},
+
+		"Error if db has invalid entry": {dbFile: "invalid_entry_in_userByID", wantErr: cache.ErrNeedsClearing},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			cacheDir := t.TempDir()
+			createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
+
+			m := newManagerForTests(t, cacheDir)
+
+			got, err := m.AllShadows()
+			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
+			if tc.wantErr != nil {
+				return
+			}
+
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			require.Equal(t, want, got, "AllShadows should return the expected users, but did not")
+		})
+	}
+}
+
 func createDBFile(t *testing.T, src, destDir string) {
 	t.Helper()
 

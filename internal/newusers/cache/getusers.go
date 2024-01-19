@@ -4,45 +4,54 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"go.etcd.io/bbolt"
 )
 
-// UserPasswdShadow is the struct representing an user ready for nss requests.
-type UserPasswdShadow struct {
-	Name  string
-	UID   int
-	GID   int
-	Gecos string // Gecos is an optional field. It can be empty.
-	Dir   string
-	Shell string
+// userDB is the struct stored in json format in the bucket.
+//
+// It prevents leaking of lastLogin, which is only relevant to the cache.
+type userDB struct {
+	UserDB
+	LastLogin time.Time
+}
 
-	// Shadow entries
-	LastPwdChange  int
-	MaxPwdAge      int
-	PwdWarnPeriod  int
-	PwdInactivity  int
-	MinPwdAge      int
-	ExpirationDate int
+// NewUserDB creates a new UserDB.
+func NewUserDB(name string, uid, gid int, gecos, dir, shell string) UserDB {
+	return UserDB{
+		Name:           name,
+		UID:            uid,
+		GID:            gid,
+		Gecos:          gecos,
+		Dir:            dir,
+		Shell:          shell,
+		LastPwdChange:  -1,
+		MaxPwdAge:      -1,
+		PwdWarnPeriod:  -1,
+		PwdInactivity:  -1,
+		MinPwdAge:      -1,
+		ExpirationDate: -1,
+	}
 }
 
 // UserByID returns a user matching this uid or an error if the database is corrupted or no entry was found.
 // Upon corruption, clearing the database is requested.
-func (c *Cache) UserByID(uid int) (UserPasswdShadow, error) {
+func (c *Cache) UserByID(uid int) (UserDB, error) {
 	u, err := getUser(c, userByIDBucketName, uid)
-	return u.toUserPasswdShadow(), err
+	return u.UserDB, err
 }
 
 // UserByName returns a user matching this name or an error if the database is corrupted or no entry was found.
 // Upon corruption, clearing the database is requested.
-func (c *Cache) UserByName(name string) (UserPasswdShadow, error) {
+func (c *Cache) UserByName(name string) (UserDB, error) {
 	u, err := getUser(c, userByNameBucketName, name)
-	return u.toUserPasswdShadow(), err
+	return u.UserDB, err
 }
 
 // AllUsers returns all users or an error if the database is corrupted.
 // Upon corruption, clearing the database is requested.
-func (c *Cache) AllUsers() (all []UserPasswdShadow, err error) {
+func (c *Cache) AllUsers() (all []UserDB, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
@@ -52,11 +61,11 @@ func (c *Cache) AllUsers() (all []UserPasswdShadow, err error) {
 		}
 
 		return bucket.ForEach(func(key, value []byte) error {
-			var e UserDB
+			var e userDB
 			if err := json.Unmarshal(value, &e); err != nil {
 				return fmt.Errorf("can't unmarshal user in bucket %q for key %v: %v", userByIDBucketName, key, err)
 			}
-			all = append(all, e.toUserPasswdShadow())
+			all = append(all, e.UserDB)
 			return nil
 		})
 	})
@@ -70,7 +79,7 @@ func (c *Cache) AllUsers() (all []UserPasswdShadow, err error) {
 
 // getUser returns an user matching the key or an error if the database is corrupted or no entry was found.
 // Upon corruption, clearing the database is requested.
-func getUser[K int | string](c *Cache, bucketName string, key K) (u UserDB, err error) {
+func getUser[K int | string](c *Cache, bucketName string, key K) (u userDB, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
@@ -79,7 +88,7 @@ func getUser[K int | string](c *Cache, bucketName string, key K) (u UserDB, err 
 			return errors.Join(ErrNeedsClearing, err)
 		}
 
-		u, err = getFromBucket[UserDB](bucket, key)
+		u, err = getFromBucket[userDB](bucket, key)
 		if err != nil {
 			if !errors.Is(err, NoDataFoundError{}) {
 				err = errors.Join(ErrNeedsClearing, err)
@@ -91,7 +100,7 @@ func getUser[K int | string](c *Cache, bucketName string, key K) (u UserDB, err 
 	})
 
 	if err != nil {
-		return UserDB{}, err
+		return userDB{}, err
 	}
 
 	return u, nil

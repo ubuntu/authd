@@ -34,23 +34,6 @@ type Manager struct {
 	cleanupStopped chan struct{}
 }
 
-// UserInfo is the user information returned by the broker.
-type UserInfo struct {
-	Name  string
-	UID   int
-	Gecos string
-	Dir   string
-	Shell string
-
-	Groups []GroupInfo
-}
-
-// GroupInfo is the group information returned by the broker.
-type GroupInfo struct {
-	Name string
-	GID  *int
-}
-
 type options struct {
 	expirationDate  time.Time
 	cleanOnNew      bool
@@ -127,30 +110,11 @@ func (m *Manager) UpdateUser(u users.UserInfo) (err error) {
 		if g.GID == nil {
 			continue
 		}
-		groupContents = append(groupContents, cache.GroupDB{
-			Name: g.Name,
-			GID:  *g.GID,
-		})
+		groupContents = append(groupContents, cache.NewGroupDB(g.Name, *g.GID, nil))
 	}
 
 	// Update user information in the cache.
-	userDB := cache.UserDB{
-		UserPasswdShadow: cache.UserPasswdShadow{
-			Name:           u.Name,
-			UID:            u.UID,
-			GID:            *u.Groups[0].GID,
-			Gecos:          u.Gecos,
-			Dir:            u.Dir,
-			Shell:          u.Shell,
-			LastPwdChange:  -1,
-			MaxPwdAge:      -1,
-			PwdWarnPeriod:  -1,
-			PwdInactivity:  -1,
-			MinPwdAge:      -1,
-			ExpirationDate: -1,
-		},
-		LastLogin: time.Now(),
-	}
+	userDB := cache.NewUserDB(u.Name, u.UID, *u.Groups[0].GID, u.Gecos, u.Dir, u.Shell)
 	if err := m.cache.UpdateUserEntry(userDB, groupContents); err != nil {
 		return m.shouldClearDb(err)
 	}
@@ -173,57 +137,90 @@ func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 }
 
 // UserByName returns the user information for the given user name.
-func (m *Manager) UserByName(username string) (cache.UserPasswdShadow, error) {
+func (m *Manager) UserByName(username string) (UserEntry, error) {
 	usr, err := m.cache.UserByName(username)
 	if err != nil {
-		return cache.UserPasswdShadow{}, m.evaluateError(err)
+		return UserEntry{}, m.shouldClearDb(err)
 	}
-	return usr, nil
+	return userEntryFromUserDB(usr), nil
 }
 
 // UserByID returns the user information for the given user ID.
-func (m *Manager) UserByID(uid int) (cache.UserPasswdShadow, error) {
+func (m *Manager) UserByID(uid int) (UserEntry, error) {
 	usr, err := m.cache.UserByID(uid)
 	if err != nil {
-		return cache.UserPasswdShadow{}, m.evaluateError(err)
+		return UserEntry{}, m.shouldClearDb(err)
 	}
-	return usr, nil
+	return userEntryFromUserDB(usr), nil
 }
 
 // AllUsers returns all users.
-func (m *Manager) AllUsers() ([]cache.UserPasswdShadow, error) {
+func (m *Manager) AllUsers() ([]UserEntry, error) {
 	usrs, err := m.cache.AllUsers()
 	if err != nil {
 		return nil, m.shouldClearDb(err)
 	}
-	return usrs, err
+
+	var usrEntries []UserEntry
+	for _, usr := range usrs {
+		usrEntries = append(usrEntries, userEntryFromUserDB(usr))
+	}
+	return usrEntries, err
 }
 
 // GroupByName returns the group information for the given group name.
-func (m *Manager) GroupByName(groupname string) (cache.Group, error) {
+func (m *Manager) GroupByName(groupname string) (GroupEntry, error) {
 	grp, err := m.cache.GroupByName(groupname)
 	if err != nil {
-		return cache.Group{}, m.evaluateError(err)
+		return GroupEntry{}, m.shouldClearDb(err)
 	}
-	return grp, nil
+	return groupEntryFromGroupDB(grp), nil
 }
 
 // GroupByID returns the group information for the given group ID.
-func (m *Manager) GroupByID(gid int) (cache.Group, error) {
+func (m *Manager) GroupByID(gid int) (GroupEntry, error) {
 	grp, err := m.cache.GroupByID(gid)
 	if err != nil {
-		return cache.Group{}, m.evaluateError(err)
+		return GroupEntry{}, m.shouldClearDb(err)
 	}
-	return grp, nil
+	return groupEntryFromGroupDB(grp), nil
 }
 
 // AllGroups returns all groups.
-func (m *Manager) AllGroups() ([]cache.Group, error) {
+func (m *Manager) AllGroups() ([]GroupEntry, error) {
 	grps, err := m.cache.AllGroups()
 	if err != nil {
 		return nil, m.shouldClearDb(err)
 	}
-	return grps, nil
+
+	var grpEntries []GroupEntry
+	for _, grp := range grps {
+		grpEntries = append(grpEntries, groupEntryFromGroupDB(grp))
+	}
+	return grpEntries, nil
+}
+
+// ShadowByName returns the shadow information for the given user name.
+func (m *Manager) ShadowByName(username string) (ShadowEntry, error) {
+	usr, err := m.cache.UserByName(username)
+	if err != nil {
+		return ShadowEntry{}, m.shouldClearDb(err)
+	}
+	return shadowEntryFromUserDB(usr), nil
+}
+
+// AllShadows returns all shadow entries.
+func (m *Manager) AllShadows() ([]ShadowEntry, error) {
+	usrs, err := m.cache.AllUsers()
+	if err != nil {
+		return nil, m.shouldClearDb(err)
+	}
+
+	var shadowEntries []ShadowEntry
+	for _, usr := range usrs {
+		shadowEntries = append(shadowEntries, shadowEntryFromUserDB(usr))
+	}
+	return shadowEntries, err
 }
 
 // shouldClearDb checks the error and requests a database clearing if needed.

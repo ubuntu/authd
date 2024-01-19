@@ -50,22 +50,29 @@ type Cache struct {
 	dirtyFlagPath string
 }
 
-// UserDB is the struct stored in json format in the bucket.
+// UserDB is the public type that is shared to external packages.
 type UserDB struct {
-	UserPasswdShadow
+	Name  string
+	UID   int
+	GID   int
+	Gecos string // Gecos is an optional field. It can be empty.
+	Dir   string
+	Shell string
 
-	// Additional entries
-	LastLogin time.Time
-}
-
-func (u UserDB) toUserPasswdShadow() UserPasswdShadow {
-	return u.UserPasswdShadow
+	// Shadow entries
+	LastPwdChange  int
+	MaxPwdAge      int
+	PwdWarnPeriod  int
+	PwdInactivity  int
+	MinPwdAge      int
+	ExpirationDate int
 }
 
 // GroupDB is the struct stored in json format in the bucket.
 type GroupDB struct {
-	Name string
-	GID  int
+	Name  string
+	GID   int
+	Users []string
 }
 
 // userToGroupsDB is the struct stored in json format to match uid to gids in the bucket.
@@ -181,10 +188,10 @@ func (c *Cache) CleanExpiredUsers(activeUsers map[string]struct{}, expirationDat
 			return err
 		}
 
-		var expiredUsers []UserDB
+		var expiredUsers []userDB
 		// The foreach closure can't error out, so we can ignore the error.
 		_ = buckets[userByIDBucketName].ForEach(func(k, v []byte) error {
-			var u UserDB
+			var u userDB
 			if err := json.Unmarshal(v, &u); err != nil {
 				slog.Warn(fmt.Sprintf("Could not unmarshal user %q: %v", string(k), err))
 				return nil

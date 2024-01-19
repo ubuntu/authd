@@ -8,28 +8,35 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-// Group is the struct representing a group for nss requests.
-type Group struct {
-	Name  string
-	GID   int
-	Users []string
+type groupDB struct {
+	Name string
+	GID  int
+}
+
+// NewGroupDB creates a new GroupDB.
+func NewGroupDB(name string, gid int, members []string) GroupDB {
+	return GroupDB{
+		Name:  name,
+		GID:   gid,
+		Users: members,
+	}
 }
 
 // GroupByID returns a group matching this gid or an error if the database is corrupted or no entry was found.
 // Upon corruption, clearing the database is requested.
-func (c *Cache) GroupByID(gid int) (Group, error) {
+func (c *Cache) GroupByID(gid int) (GroupDB, error) {
 	return getGroup(c, groupByIDBucketName, gid)
 }
 
 // GroupByName returns a group matching a given name or an error if the database is corrupted or no entry was found.
 // Upon corruption, clearing the database is requested.
-func (c *Cache) GroupByName(name string) (Group, error) {
+func (c *Cache) GroupByName(name string) (GroupDB, error) {
 	return getGroup(c, groupByNameBucketName, name)
 }
 
 // AllGroups returns all groups or an error if the database is corrupted.
 // Upon corruption, clearing the database is requested.
-func (c *Cache) AllGroups() (all []Group, err error) {
+func (c *Cache) AllGroups() (all []GroupDB, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
@@ -39,7 +46,7 @@ func (c *Cache) AllGroups() (all []Group, err error) {
 		}
 
 		return buckets[groupByIDBucketName].ForEach(func(key, value []byte) error {
-			var g GroupDB
+			var g groupDB
 			if err := json.Unmarshal(value, &g); err != nil {
 				return fmt.Errorf("can't unmarshal user in bucket %q for key %v: %v", userByIDBucketName, key, err)
 			}
@@ -50,11 +57,7 @@ func (c *Cache) AllGroups() (all []Group, err error) {
 				return err
 			}
 
-			all = append(all, Group{
-				Name:  g.Name,
-				GID:   g.GID,
-				Users: users,
-			})
+			all = append(all, NewGroupDB(g.Name, g.GID, users))
 			return nil
 		})
 	})
@@ -66,9 +69,9 @@ func (c *Cache) AllGroups() (all []Group, err error) {
 	return all, nil
 }
 
-// getGroup returns a group matching the key or an error if the database is corrupted or no entry was found.
-// Upon corruption, clearing the database is requested.
-func getGroup[K int | string](c *Cache, bucketName string, key K) (Group, error) {
+// getGroup returns a group matching the key and its members or an error if the database is corrupted
+// or no entry was found. Upon corruption, clearing the database is requested.
+func getGroup[K int | string](c *Cache, bucketName string, key K) (GroupDB, error) {
 	var groupName string
 	var gid int
 	var users []string
@@ -82,7 +85,7 @@ func getGroup[K int | string](c *Cache, bucketName string, key K) (Group, error)
 		}
 
 		// Get id and name of the group.
-		g, err := getFromBucket[GroupDB](buckets[bucketName], key)
+		g, err := getFromBucket[groupDB](buckets[bucketName], key)
 		if err != nil {
 			// no entry is valid, no need to clean the database but return the error.
 			if !errors.Is(err, NoDataFoundError{}) {
@@ -104,14 +107,10 @@ func getGroup[K int | string](c *Cache, bucketName string, key K) (Group, error)
 	})
 
 	if err != nil {
-		return Group{}, err
+		return GroupDB{}, err
 	}
 
-	return Group{
-		Name:  groupName,
-		GID:   gid,
-		Users: users,
-	}, nil
+	return NewGroupDB(groupName, gid, users), nil
 }
 
 // usersInGroup returns all user names in a given group. It returns an error if the database is corrupted.

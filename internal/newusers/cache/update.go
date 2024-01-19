@@ -7,14 +7,21 @@ import (
 	"log/slog"
 	"slices"
 	"strconv"
+	"time"
 
 	"go.etcd.io/bbolt"
 )
 
 // UpdateUserEntry inserts or updates user and group buckets from the user information.
-func (c *Cache) UpdateUserEntry(userDB UserDB, groupContents []GroupDB) error {
+func (c *Cache) UpdateUserEntry(usr UserDB, groupContents []GroupDB) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
+
+	userDB := userDB{
+		UserDB:    usr,
+		LastLogin: time.Now(),
+	}
+
 	err := c.db.Update(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
@@ -45,8 +52,8 @@ func (c *Cache) UpdateUserEntry(userDB UserDB, groupContents []GroupDB) error {
 }
 
 // updateUser updates both user buckets with userContent. It handles any potential login rename.
-func updateUser(buckets map[string]bucketWithName, userContent UserDB) {
-	existingUser, err := getFromBucket[UserDB](buckets[userByIDBucketName], userContent.UID)
+func updateUser(buckets map[string]bucketWithName, userContent userDB) {
+	existingUser, err := getFromBucket[userDB](buckets[userByIDBucketName], userContent.UID)
 	if err != nil && !errors.Is(err, NoDataFoundError{}) {
 		slog.Warn(fmt.Sprintf("Could not fetch previous record for user %v: %v", userContent.UID, err))
 	}
@@ -64,7 +71,7 @@ func updateUser(buckets map[string]bucketWithName, userContent UserDB) {
 // updateUser updates both group buckets with groupContent. It handles any potential group rename.
 func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) {
 	for _, groupContent := range groupContents {
-		existingGroup, err := getFromBucket[GroupDB](buckets[groupByIDBucketName], groupContent.GID)
+		existingGroup, err := getFromBucket[groupDB](buckets[groupByIDBucketName], groupContent.GID)
 		if err != nil && !errors.Is(err, NoDataFoundError{}) {
 			slog.Warn(fmt.Sprintf("Could not fetch previous record for group %v: %v", groupContent.GID, err))
 		}
@@ -75,8 +82,8 @@ func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) {
 		}
 
 		// Update group buckets
-		updateBucket(buckets[groupByIDBucketName], groupContent.GID, groupContent)
-		updateBucket(buckets[groupByNameBucketName], groupContent.Name, groupContent)
+		updateBucket(buckets[groupByIDBucketName], groupContent.GID, groupDB{Name: groupContent.Name, GID: groupContent.GID})
+		updateBucket(buckets[groupByNameBucketName], groupContent.Name, groupDB{Name: groupContent.Name, GID: groupContent.GID})
 	}
 }
 
