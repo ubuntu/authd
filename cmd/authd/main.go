@@ -1,4 +1,4 @@
-// Package main is the windows-agent entry point.
+// Package main is the entry point.
 package main
 
 import (

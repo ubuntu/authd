@@ -97,6 +97,7 @@ func (b *Broker) NewSession(ctx context.Context, username, lang string) (session
 		neededAuthSteps: 1,
 		attemptsPerMode: make(map[string]int),
 	}
+
 	switch username {
 	case "user-mfa":
 		info.neededAuthSteps = 3
