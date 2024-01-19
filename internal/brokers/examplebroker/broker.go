@@ -5,6 +5,11 @@ import (
 	"bytes"
 	"context"
 	"crypto/aes"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha512"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -57,6 +62,8 @@ type Broker struct {
 	userLastSelectedModeMu sync.Mutex
 	isAuthenticatedCalls   map[string]isAuthenticatedCtx
 	isAuthenticatedCallsMu sync.Mutex
+
+	privateKey *rsa.PrivateKey
 }
 
 var (
@@ -70,12 +77,14 @@ var (
 	}
 )
 
-const (
-	brokerEncryptionKey = "encryptionkey"
-)
-
 // New creates a new examplebroker object.
 func New(name string) (b *Broker, fullName, brandIcon string) {
+	// Generate a new private key for the broker.
+	privateKey, err := rsa.GenerateKey(rand.Reader, 2048)
+	if err != nil {
+		panic(fmt.Sprintf("could not create an valid rsa key: %v", err))
+	}
+
 	return &Broker{
 		currentSessions:        make(map[string]sessionInfo),
 		currentSessionsMu:      sync.RWMutex{},
@@ -83,6 +92,7 @@ func New(name string) (b *Broker, fullName, brandIcon string) {
 		userLastSelectedModeMu: sync.Mutex{},
 		isAuthenticatedCalls:   make(map[string]isAuthenticatedCtx),
 		isAuthenticatedCallsMu: sync.Mutex{},
+		privateKey:             privateKey,
 	}, strings.ReplaceAll(name, "_", " "), fmt.Sprintf("/usr/share/brokers/%s.png", name)
 }
 
@@ -114,10 +124,15 @@ func (b *Broker) NewSession(ctx context.Context, username, lang string) (session
 		return "", "", fmt.Errorf("user %q does not exist", username)
 	}
 
+	pubASN1, err := x509.MarshalPKIXPublicKey(&b.privateKey.PublicKey)
+	if err != nil {
+		return "", "", err
+	}
+
 	b.currentSessionsMu.Lock()
 	b.currentSessions[sessionID] = info
 	b.currentSessionsMu.Unlock()
-	return sessionID, brokerEncryptionKey, nil
+	return sessionID, base64.StdEncoding.EncodeToString(pubASN1), nil
 }
 
 // GetAuthenticationModes returns the list of supported authentication modes for the selected broker depending on session info.
@@ -451,22 +466,28 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 
 //nolint:unparam // This is an static example implementation, so we don't return an error other than nil.
 func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (access, data string, err error) {
+	// Decrypt challenge if present.
+	challenge, err := decodeRawChallenge(b.privateKey, authData["challenge"])
+	if err != nil {
+		return responses.AuthRetry, fmt.Sprintf(`{"message": "could not decode challenge: %v"}`, err), nil
+	}
+
 	// Note that the "wait" authentication can be cancelled and switch to another mode with a challenge.
 	// Take into account the cancellation.
 	switch sessionInfo.selectedMode {
 	case "password":
-		if authData["challenge"] != "goodpass" {
+		if challenge != "goodpass" {
 			return responses.AuthRetry, `{"message": "invalid password, should be goodpass"}`, nil
 		}
 
 	case "pincode":
-		if authData["challenge"] != "4242" {
+		if challenge != "4242" {
 			return responses.AuthRetry, `{"message": "invalid pincode, should be 4242"}`, nil
 		}
 
 	case "totp_with_button", "totp":
 		wantedCode := sessionInfo.allModes[sessionInfo.selectedMode]["wantedCode"]
-		if authData["challenge"] != wantedCode {
+		if challenge != wantedCode {
 			return responses.AuthRetry, `{"message": "invalid totp code"}`, nil
 		}
 
@@ -522,9 +543,9 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 	// this case name was dynamically generated
 	if strings.HasPrefix(sessionInfo.selectedMode, "entry_or_wait_for_") {
 		// do we have a challenge sent or should we just wait?
-		if authData["challenge"] != "" {
+		if challenge != "" {
 			// validate challenge given manually by the user
-			if authData["challenge"] != "aaaaa" {
+			if challenge != "aaaaa" {
 				return responses.AuthDenied, `{"message": "invalid challenge, should be aaaaa"}`, nil
 			}
 		} else if authData["wait"] == "true" {
@@ -544,6 +565,25 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		return responses.AuthDenied, `{"message": "user not found"}`, nil
 	}
 	return responses.AuthGranted, fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionInfo.username)), nil
+}
+
+// decodeRawChallenge extract the base64 challenge and try to decrypt it with the private key.
+func decodeRawChallenge(priv *rsa.PrivateKey, rawChallenge string) (string, error) {
+	if rawChallenge == "" {
+		return "", nil
+	}
+
+	ciphertext, err := base64.StdEncoding.DecodeString(rawChallenge)
+	if err != nil {
+		return "", err
+	}
+
+	plaintext, err := rsa.DecryptOAEP(sha512.New(), nil, priv, ciphertext, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(plaintext), nil
 }
 
 // EndSession ends the requested session and triggers the necessary clean up steps, if any.

@@ -2,6 +2,10 @@ package adapter
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/sha512"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 
@@ -83,6 +87,8 @@ type authenticationModel struct {
 	currentBrokerID       string
 	cancelIsAuthenticated func()
 
+	encryptionKey *rsa.PublicKey
+
 	errorMsg string
 }
 
@@ -119,7 +125,13 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 		m.cancelIsAuthenticated()
 		ctx, cancel := context.WithCancel(context.Background())
 		m.cancelIsAuthenticated = cancel
-		return *m, sendIsAuthenticated(ctx, m.client, m.currentSessionID, msg.content)
+
+		content, err := encryptChallengeIfPresent(m.encryptionKey, msg.content)
+		if err != nil {
+			return *m, sendEvent(pamError{status: pam.ErrSystem, msg: fmt.Sprintf("could not encrypt challenge payload: %v", err)})
+		}
+
+		return *m, sendIsAuthenticated(ctx, m.client, m.currentSessionID, content)
 
 	case isAuthenticatedResultReceived:
 		log.Infof(context.TODO(), "isAuthenticatedResultReceived: %v", msg.access)
@@ -197,10 +209,12 @@ func (m *authenticationModel) Blur() {
 	m.currentModel.Blur()
 }
 
-// Compose creates and attaches the sub layout models based on UILayout.
-func (m *authenticationModel) Compose(brokerID, sessionID string, layout *authd.UILayout) tea.Cmd {
+// Compose initialize the authentication model to be used.
+// It creates and attaches the sub layout models based on UILayout.
+func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey *rsa.PublicKey, layout *authd.UILayout) tea.Cmd {
 	m.currentBrokerID = brokerID
 	m.currentSessionID = sessionID
+	m.encryptionKey = encryptionKey
 	m.cancelIsAuthenticated = func() {}
 
 	m.errorMsg = ""
@@ -276,4 +290,39 @@ func dataToMsg(data string) (string, error) {
 		return "", fmt.Errorf("no message entry in json data from provider: %v", v)
 	}
 	return r, nil
+}
+
+func encryptChallengeIfPresent(publicKey *rsa.PublicKey, msg string) (string, error) {
+	content := make(map[string]interface{})
+
+	// not a json, let the rest of the stack validating it
+	if err := json.Unmarshal([]byte(msg), &content); err != nil {
+		return msg, nil
+	}
+
+	cleartext, ok := content["challenge"]
+	// no challenge key, pass it as is
+	if !ok {
+		return msg, nil
+	}
+
+	data, ok := cleartext.(string)
+	// not a valid content, pass it as is
+	if !ok {
+		return msg, nil
+	}
+
+	ciphertext, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, publicKey, []byte(data), nil)
+	if err != nil {
+		return "", err
+	}
+
+	// encrypt it to base64 and replace the challenge with it
+	content["challenge"] = base64.StdEncoding.EncodeToString(ciphertext)
+	out, err := json.Marshal(content)
+	if err != nil {
+		return "", err
+	}
+
+	return string(out), nil
 }
