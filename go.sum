@@ -1,5 +1,5 @@
-github.com/3v1n0/go-pam/v2 v2.0.0-20231201224106-589d1096d49a h1:DxblMfw7t4A5O/UiQAo74yVi5M7B8YxRMRp3MYgLfkc=
-github.com/3v1n0/go-pam/v2 v2.0.0-20231201224106-589d1096d49a/go.mod h1:KT28NNIcDFf3PcBmNI2mIGO4zZJ+9RSs/At2PB3IDVc=
+github.com/3v1n0/go-pam/v2 v2.0.0-20240119152522-79364f5b2eed h1:s7ioiXl7hgPDHp+dKPAeUDE7g0A7fzy7ikZ/IfJeah8=
+github.com/3v1n0/go-pam/v2 v2.0.0-20240119152522-79364f5b2eed/go.mod h1:KT28NNIcDFf3PcBmNI2mIGO4zZJ+9RSs/At2PB3IDVc=
 github.com/atotto/clipboard v0.1.4 h1:EH0zSVneZPSuFR11BlR9YppQTVDbh5+16AmcJi4g1z4=
 github.com/atotto/clipboard v0.1.4/go.mod h1:ZY9tmq7sm5xIbd9bOK4onWV4S6X0u6GY7Vn0Yu86PYI=
 github.com/aymanbagabas/go-osc52/v2 v2.0.1 h1:HwpRHbFMcZLEVr42D4p7XBqjyuxQH5SMiErDT4WkJ2k=
