@@ -3,6 +3,10 @@ package adapter
 
 import (
 	"context"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
+	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -31,7 +35,7 @@ const (
 type sessionInfo struct {
 	brokerID      string
 	sessionID     string
-	encryptionKey string
+	encryptionKey *rsa.PublicKey
 }
 
 // UIModel is the global models orchestrator.
@@ -167,10 +171,33 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, startBrokerSession(m.Client, msg.BrokerID, m.username())
 
 	case SessionStarted:
+		pubASN1, err := base64.StdEncoding.DecodeString(msg.encryptionKey)
+		if err != nil {
+			return nil, sendEvent(pamError{
+				status: pam.ErrSystem,
+				msg:    fmt.Sprintf("encryption key sent by broker is not a valid base64 encoded string: %v", err),
+			})
+		}
+
+		pubKey, err := x509.ParsePKIXPublicKey(pubASN1)
+		if err != nil {
+			return nil, sendEvent(pamError{
+				status: pam.ErrSystem,
+				msg:    fmt.Sprintf("encryption key send by broker is not valid: %v", err),
+			})
+		}
+		rsaPublicKey, ok := pubKey.(*rsa.PublicKey)
+		if !ok {
+			return nil, sendEvent(pamError{
+				status: pam.ErrSystem,
+				msg:    fmt.Sprintf("expected encryption key sent by broker to be  RSA public key, got %T", pubKey),
+			})
+		}
+
 		m.currentSession = &sessionInfo{
 			brokerID:      msg.brokerID,
 			sessionID:     msg.sessionID,
-			encryptionKey: msg.encryptionKey,
+			encryptionKey: rsaPublicKey,
 		}
 		return m, sendEvent(GetAuthenticationModesRequested{})
 
@@ -201,7 +228,7 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Info(context.TODO(), "UILayoutReceived")
 
 		return m, tea.Sequence(
-			m.authenticationModel.Compose(m.currentSession.brokerID, m.currentSession.sessionID, msg.layout),
+			m.authenticationModel.Compose(m.currentSession.brokerID, m.currentSession.sessionID, m.currentSession.encryptionKey, msg.layout),
 			m.changeStage(stageChallenge))
 
 	case SessionEnded:
