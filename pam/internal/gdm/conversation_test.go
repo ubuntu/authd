@@ -206,6 +206,128 @@ func TestSendData(t *testing.T) {
 	}
 }
 
+func TestDataConversationFunc(t *testing.T) {
+	t.Parallel()
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+	testCases := map[string]struct {
+		inData   *Data
+		inBinReq pam.BinaryConvRequester
+		outData  *Data
+
+		// Some tests may lead to some false-positive leak errors, however in TestMain
+		// we have a final check for all tests ensuring this is not the case.
+		mayHitLeakSanitizer bool
+
+		wantReturn                   *Data
+		wantError                    error
+		wantConvHandlerNotToBeCalled bool
+	}{
+		"Send valid data and return it back": {
+			inData: &Data{
+				Type:  DataType_hello,
+				Hello: &HelloData{Version: 12345},
+			},
+			outData:    &Data{Type: DataType_hello},
+			wantReturn: &Data{Type: DataType_hello},
+		},
+
+		// Error cases
+		"Error on invalid protocol": {
+			mayHitLeakSanitizer: true,
+			inBinReq: func() pam.BinaryConvRequester {
+				if pam_test.IsAddressSanitizerActive() {
+					return nil
+				}
+				invalidData := allocateJSONProtoMessage()
+				invalidData.init("testProto", 20, nil)
+				return pam.NewBinaryConvRequest(invalidData.encode(),
+					func(ptr pam.BinaryPointer) { (*jsonProtoMessage)(ptr).release() })
+			}(),
+			wantConvHandlerNotToBeCalled: true,
+			wantError:                    ErrProtoNotSupported,
+		},
+		"Error on unexpected JSON": {
+			mayHitLeakSanitizer: true,
+			inBinReq: func() pam.BinaryConvRequester {
+				if pam_test.IsAddressSanitizerActive() {
+					return nil
+				}
+				req, err := NewBinaryJSONProtoRequest([]byte("null"))
+				require.NoError(t, err)
+				return req
+			}(),
+			wantConvHandlerNotToBeCalled: true,
+			wantError:                    errors.New("syntax error"),
+		},
+		"Error on invalid Returned Data": {
+			inData: &Data{
+				Type:  DataType_hello,
+				Hello: &HelloData{Version: 12345},
+			},
+			outData:   &Data{},
+			wantError: pam.ErrConv,
+		},
+	}
+	for name, tc := range testCases {
+		tc := tc
+		name := name
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+			if pam_test.IsAddressSanitizerActive() && tc.mayHitLeakSanitizer {
+				t.Skip("This test may cause false positive detection of leaks, so we ignore it")
+			}
+
+			convFuncCalled := false
+			var outData *Data
+			var outErr error
+			if tc.inBinReq != nil {
+				defer tc.inBinReq.Release()
+				outPtr, err := DataConversationFunc(func(d *Data) (*Data, error) {
+					convFuncCalled = true
+					requireEqualData(t, tc.inData, d)
+					if tc.outData != nil {
+						return tc.outData, nil
+					}
+					return nil, tc.wantError
+				}).RespondPAMBinary(tc.inBinReq.Pointer())
+
+				if err != nil {
+					require.Nil(t, outPtr)
+					outErr = err
+				} else {
+					json, err := decodeJSONProtoMessage(outPtr)
+					require.NoError(t, err)
+					defer (*jsonProtoMessage)(outPtr).release()
+					outData, err = NewDataFromJSON(json)
+					require.NoError(t, err)
+				}
+			} else {
+				mtx := pam_test.NewModuleTransactionDummy(DataConversationFunc(
+					func(data *Data) (*Data, error) {
+						convFuncCalled = true
+						requireEqualData(t, data, tc.inData)
+						if tc.outData != nil {
+							return tc.outData, nil
+						}
+						return nil, tc.wantError
+					}))
+				outData, outErr = SendData(mtx, tc.inData)
+			}
+			require.Equal(t, !convFuncCalled, tc.wantConvHandlerNotToBeCalled)
+
+			if tc.wantError != nil {
+				require.ErrorContains(t, outErr, tc.wantError.Error())
+				return
+			}
+			require.NoError(t, outErr)
+			requireEqualData(t, outData, tc.wantReturn)
+		})
+	}
+}
+
 func TestDataSendChecked(t *testing.T) {
 	t.Parallel()
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
@@ -270,25 +392,15 @@ func TestDataSendChecked(t *testing.T) {
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
 
 			convFuncCalled := false
-			mtx := pam_test.NewModuleTransactionDummy(pam.BinaryPointerConversationFunc(
-				func(ptr pam.BinaryPointer) (pam.BinaryPointer, error) {
+			mtx := pam_test.NewModuleTransactionDummy(DataConversationFunc(
+				func(req *Data) (*Data, error) {
 					convFuncCalled = true
-					require.NotNil(t, ptr)
-					req, err := decodeJSONProtoMessage(ptr)
-					require.NoError(t, err)
-					valueJSON, err := tc.value.JSON()
-					require.NoError(t, err)
-					require.Equal(t, valueJSON, req)
+					requireEqualData(t, tc.value, req)
+
 					if tc.wantReturn != nil {
-						bytes, err := tc.wantReturn.JSON()
-						require.NoError(t, err)
-						msg, err := newJSONProtoMessage(bytes)
-						require.NoError(t, err)
-						return pam.BinaryPointer(msg), nil
+						return tc.wantReturn, nil
 					}
-					msg, err := newJSONProtoMessage(req)
-					require.NoError(t, err)
-					return pam.BinaryPointer(msg), nil
+					return req, nil
 				}))
 
 			data, err := SendData(mtx, tc.value)
@@ -359,20 +471,19 @@ func TestDataSendPoll(t *testing.T) {
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
 
 			convFuncCalled := false
-			mtx := pam_test.NewModuleTransactionDummy(pam.BinaryPointerConversationFunc(
-				func(ptr pam.BinaryPointer) (pam.BinaryPointer, error) {
+			mtx := pam_test.NewModuleTransactionDummy(DataConversationFunc(
+				func(data *Data) (*Data, error) {
 					convFuncCalled = true
-					require.NotNil(t, ptr)
 					if tc.wantReturn != nil {
-						bytes, err := tc.wantReturn.JSON()
-						require.NoError(t, err)
-						msg, err := newJSONProtoMessage(bytes)
-						require.NoError(t, err)
-						return pam.BinaryPointer(msg), nil
+						return tc.wantReturn, nil
 					}
+
 					msg, err := newJSONProtoMessage([]byte("null"))
 					require.NoError(t, err)
-					return pam.BinaryPointer(msg), nil
+					defer msg.release()
+					json, err := msg.JSON()
+					require.NoError(t, err)
+					return NewDataFromJSON(json)
 				}))
 
 			eventData, err := SendPoll(mtx)
@@ -633,20 +744,19 @@ func TestDataSendRequestTyped(t *testing.T) {
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
 
 			convFuncCalled := false
-			mtx := pam_test.NewModuleTransactionDummy(pam.BinaryPointerConversationFunc(
-				func(ptr pam.BinaryPointer) (pam.BinaryPointer, error) {
+			mtx := pam_test.NewModuleTransactionDummy(DataConversationFunc(
+				func(data *Data) (*Data, error) {
 					convFuncCalled = true
-					require.NotNil(t, ptr)
 					if tc.wantData != nil {
-						bytes, err := tc.wantData.JSON()
-						require.NoError(t, err)
-						msg, err := newJSONProtoMessage(bytes)
-						require.NoError(t, err)
-						return pam.BinaryPointer(msg), nil
+						return tc.wantData, nil
 					}
+
 					msg, err := newJSONProtoMessage([]byte("null"))
 					require.NoError(t, err)
-					return pam.BinaryPointer(msg), nil
+					defer msg.release()
+					json, err := msg.JSON()
+					require.NoError(t, err)
+					return NewDataFromJSON(json)
 				}))
 			var response Response
 			var err error
@@ -754,27 +864,21 @@ func TestDataEmitEvent(t *testing.T) {
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
 
 			convFuncCalled := false
-			mtx := pam_test.NewModuleTransactionDummy(pam.BinaryPointerConversationFunc(
-				func(ptr pam.BinaryPointer) (pam.BinaryPointer, error) {
+			mtx := pam_test.NewModuleTransactionDummy(DataConversationFunc(
+				func(data *Data) (*Data, error) {
 					convFuncCalled = true
-					require.NotNil(t, ptr)
 					if tc.returnedData != nil {
 						msg, err := newJSONProtoMessage(tc.returnedData)
 						require.NoError(t, err)
-						return pam.BinaryPointer(msg), nil
+						defer msg.release()
+						json, err := msg.JSON()
+						require.NoError(t, err)
+						return NewDataFromJSON(json)
 					}
 
-					jsonReq, err := decodeJSONProtoMessage(ptr)
-					require.NoError(t, err)
-					data, err := NewDataFromJSON(jsonReq)
-					require.NoError(t, err)
 					require.Equal(t, data.Type, DataType_event)
 					require.Equal(t, data.Event.Type, tc.wantEventType)
-					json, err := (&Data{Type: DataType_eventAck}).JSON()
-					require.NoError(t, err)
-					msg, err := newJSONProtoMessage(json)
-					require.NoError(t, err)
-					return pam.BinaryPointer(msg), nil
+					return &Data{Type: DataType_eventAck}, nil
 				}))
 
 			err := EmitEvent(mtx, tc.event)
