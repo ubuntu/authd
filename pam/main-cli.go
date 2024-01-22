@@ -3,6 +3,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -27,19 +28,32 @@ func main() {
 		func(style pam.Style, msg string) (string, error) {
 			switch style {
 			case pam.TextInfo:
-				fmt.Fprintf(os.Stderr, "PAM INFO: %s\n", msg)
+				fmt.Fprintf(os.Stderr, "PAM Info Message: %s\n", msg)
 			case pam.ErrorMsg:
-				fmt.Fprintf(os.Stderr, "PAM ERROR: %s\n", msg)
+				fmt.Fprintf(os.Stderr, "PAM Error Message: %s\n", msg)
 			default:
-				return "", fmt.Errorf("pam style %d not implemented", style)
+				return "", fmt.Errorf("PAM style %d not implemented", style)
 			}
 			return "", nil
 		}))
 
 	authResult := module.Authenticate(mTx, pam.Flags(0), os.Args)
-	fmt.Println("Auth return:", authResult)
+	user, _ := mTx.GetItem(pam.User)
+	printPamResult(fmt.Sprintf("PAM Authenticate() for user '%s'", user), authResult)
 
 	// Simulate setting auth broker as default.
-	accMgmtResult := module.AcctMgmt(mTx, pam.Flags(0), os.Args)
-	fmt.Println("Acct mgmt return:", accMgmtResult)
+	printPamResult("PAM AcctMgmt()", module.AcctMgmt(mTx, pam.Flags(0), os.Args))
+}
+
+func printPamResult(action string, result error) {
+	var pamErr pam.Error
+	if errors.As(result, &pamErr) {
+		fmt.Printf("%s exited with error (PAM exit code: %d): %v\n", action, pamErr, result)
+		return
+	}
+	if result != nil {
+		fmt.Printf("%s exited with error: %v\n", action, result)
+		return
+	}
+	fmt.Printf("%s exited with success\n", action)
 }

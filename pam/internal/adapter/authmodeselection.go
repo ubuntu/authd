@@ -107,6 +107,12 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case supportedUILayoutsReceived:
+		if len(msg.layouts) == 0 {
+			return m, sendEvent(pamError{
+				status: pam.ErrCredUnavail,
+				msg:    "UI does not support any layouts",
+			})
+		}
 		m.supportedUILayoutsMu.Lock()
 		m.supportedUILayouts = msg.layouts
 		m.supportedUILayoutsMu.Unlock()
@@ -251,7 +257,10 @@ func getAuthenticationModes(client authd.PAMClient, sessionID string, uiLayouts 
 
 		authModes := gamResp.GetAuthenticationModes()
 		if len(authModes) == 0 {
-			return PamIgnore{msg: "no supported authentication mode available for this provider"}
+			return pamError{
+				status: pam.ErrCredUnavail,
+				msg:    "no supported authentication mode available for this provider",
+			}
 		}
 		log.Info(context.TODO(), authModes)
 

@@ -126,9 +126,9 @@ Username: user-unexistent
 
 
 
-Auth return: System error: can't select broker: rpc error: code = Unknown desc = can't start aut
-hentication transaction: user "user-unexistent" does not exist
-Acct mgmt return: The return value should be ignored by PAM dispatch
+PAM Error Message: can't select broker: rpc error: code = Unknown desc = can't start authenticat
+ion transaction: user "user-unexistent" does not exist
+PAM Authenticate() for user 'user-unexistent' exited with error (PAM exit code: 4): System error
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
   Select your provider
@@ -159,7 +159,7 @@ Acct mgmt return: The return value should be ignored by PAM dispatch
 
 
 
-Auth return: System error: can't select broker: rpc error: code = Unknown desc = can't start aut
-hentication transaction: user "user-unexistent" does not exist
-Acct mgmt return: The return value should be ignored by PAM dispatch
+PAM Error Message: can't select broker: rpc error: code = Unknown desc = can't start authenticat
+ion transaction: user "user-unexistent" does not exist
+PAM Authenticate() for user 'user-unexistent' exited with error (PAM exit code: 4): System error
 ────────────────────────────────────────────────────────────────────────────────

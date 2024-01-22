@@ -10,6 +10,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/msteinert/pam/v2"
@@ -19,6 +20,7 @@ import (
 	"github.com/ubuntu/authd/pam/internal/adapter"
 	"golang.org/x/term"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -36,7 +38,7 @@ const (
 
 func showPamMessage(mTx pam.ModuleTransaction, style pam.Style, msg string) error {
 	switch style {
-	case pam.TextInfo | pam.ErrorMsg:
+	case pam.TextInfo, pam.ErrorMsg:
 	default:
 		return fmt.Errorf("message style not supported: %v", style)
 	}
@@ -59,7 +61,9 @@ func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus adapter.PamRetu
 		style = pam.TextInfo
 	}
 
-	_ = showPamMessage(mTx, style, msg)
+	if err := showPamMessage(mTx, style, msg); err != nil {
+		log.Warningf(context.TODO(), "Impossible to send PAM message: %v", err)
+	}
 }
 
 // Authenticate is the method that is invoked during pam_authenticate request.
@@ -70,32 +74,39 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 	// Attach logger and info handler.
 	// TODO
 
-	interactiveTerminal := term.IsTerminal(int(os.Stdin.Fd()))
+	var pamClientType adapter.PamClientType
+	var teaOpts []tea.ProgramOption
+	if term.IsTerminal(int(os.Stdin.Fd())) {
+		pamClientType = adapter.InteractiveTerminal
+	}
+
+	if pamClientType != adapter.InteractiveTerminal {
+		//nolint:staticcheck // FIXME: This will be used when adding other UIs.
+		teaOpts = append(teaOpts, tea.WithInput(nil), tea.WithoutRenderer())
+		return fmt.Errorf("pam module used through an unsupported client: %w", pam.ErrSystem)
+	}
 
 	client, closeConn, err := newClient(args)
 	if err != nil {
 		log.Debug(context.TODO(), err)
-		return pam.ErrAuthinfoUnavail
+		if err := showPamMessage(mTx, pam.ErrorMsg, err.Error()); err != nil {
+			log.Warningf(context.TODO(), "Impossible to show PAM message: %v", err)
+		}
+		return errors.Join(err, pam.ErrAuthinfoUnavail)
 	}
 	defer closeConn()
 
 	appState := adapter.UIModel{
-		PamMTx:              mTx,
-		Client:              client,
-		InteractiveTerminal: interactiveTerminal,
+		PamMTx:     mTx,
+		Client:     client,
+		ClientType: pamClientType,
 	}
 
 	if err := mTx.SetData(authenticationBrokerIDKey, nil); err != nil {
 		return err
 	}
 
-	//tea.WithInput(nil)
-	//tea.WithoutRenderer()
-	var opts []tea.ProgramOption
-	if !interactiveTerminal {
-		opts = append(opts, tea.WithInput(nil), tea.WithoutRenderer())
-	}
-	p := tea.NewProgram(&appState, opts...)
+	p := tea.NewProgram(&appState, teaOpts...)
 	if _, err := p.Run(); err != nil {
 		log.Errorf(context.TODO(), "Cancelled authentication: %v", err)
 		return pam.ErrAbort
@@ -135,7 +146,10 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 	if !ok {
 		msg := fmt.Sprintf("broker data as an invalid type %#v", brokerData)
 		log.Errorf(context.TODO(), msg)
-		_ = showPamMessage(mTx, pam.ErrorMsg, msg)
+		if err := showPamMessage(mTx, pam.ErrorMsg, msg); err != nil {
+			log.Warningf(context.TODO(), "Impossible to show PAM message: %v", err)
+		}
+
 		return pam.ErrIgnore
 	}
 
@@ -158,7 +172,7 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 	client, closeConn, err := newClient(args)
 	if err != nil {
 		log.Debugf(context.TODO(), "%s", err)
-		return pam.ErrIgnore
+		return pam.ErrAuthinfoUnavail
 	}
 	defer closeConn()
 
@@ -179,6 +193,14 @@ func newClient(args []string) (client authd.PAMClient, close func(), err error) 
 	conn, err := grpc.Dial("unix://"+getSocketPath(args), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not connect to authd: %v", err)
+	}
+	waitCtx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
+	defer cancel()
+	for conn.GetState() != connectivity.Ready {
+		if !conn.WaitForStateChange(waitCtx, conn.GetState()) {
+			conn.Close()
+			return nil, func() {}, fmt.Errorf("could not connect to authd: %w", waitCtx.Err())
+		}
 	}
 	return authd.NewPAMClient(conn), func() { conn.Close() }, nil
 }

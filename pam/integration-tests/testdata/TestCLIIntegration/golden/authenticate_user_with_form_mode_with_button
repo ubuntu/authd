@@ -266,8 +266,8 @@ Enter your one time credential
 Enter your one time credential
 > temporary pass00
 
-Auth return: <nil>
-Acct mgmt return: <nil>
+PAM Authenticate() for user 'user-integration-form-w-button' exited with success
+PAM AcctMgmt() exited with success
 >
 
 
@@ -299,8 +299,8 @@ Acct mgmt return: <nil>
 Enter your one time credential
 > temporary pass00
 
-Auth return: <nil>
-Acct mgmt return: <nil>
+PAM Authenticate() for user 'user-integration-form-w-button' exited with success
+PAM AcctMgmt() exited with success
 >
 
 

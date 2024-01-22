@@ -296,8 +296,8 @@ Unlock your phone +33… or accept request on web interface:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
-Auth return: <nil>
-Acct mgmt return: <nil>
+PAM Authenticate() for user 'user-mfa' exited with success
+PAM AcctMgmt() exited with success
 >
 
 
@@ -329,8 +329,8 @@ Acct mgmt return: <nil>
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
-Auth return: <nil>
-Acct mgmt return: <nil>
+PAM Authenticate() for user 'user-mfa' exited with success
+PAM AcctMgmt() exited with success
 >
 
 
@@ -362,8 +362,8 @@ Acct mgmt return: <nil>
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
-Auth return: <nil>
-Acct mgmt return: <nil>
+PAM Authenticate() for user 'user-mfa' exited with success
+PAM AcctMgmt() exited with success
 >
 
 
@@ -395,8 +395,8 @@ Acct mgmt return: <nil>
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
-Auth return: <nil>
-Acct mgmt return: <nil>
+PAM Authenticate() for user 'user-mfa' exited with success
+PAM AcctMgmt() exited with success
 >
 
 
@@ -428,8 +428,8 @@ Acct mgmt return: <nil>
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
-Auth return: <nil>
-Acct mgmt return: <nil>
+PAM Authenticate() for user 'user-mfa' exited with success
+PAM AcctMgmt() exited with success
 >
 
 

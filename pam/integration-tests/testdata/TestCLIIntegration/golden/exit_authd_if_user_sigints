@@ -132,12 +132,12 @@ Gimme your password
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
 Gimme your password
-Auth return: Critical error - immediate abort: cancel requested
-Acct mgmt return: The return value should be ignored by PAM dispatch
+PAM Error Message: cancel requested
+PAM Authenticate() for user 'user-integration-sigint' exited with error (PAM exit code: 26): Cri
+tical error - immediate abort: cancel requested
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
 >
-
-
-
 
 
 
@@ -165,12 +165,12 @@ Acct mgmt return: The return value should be ignored by PAM dispatch
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd socket=/tmp/pam-cli-tests.sock
 Gimme your password
-Auth return: Critical error - immediate abort: cancel requested
-Acct mgmt return: The return value should be ignored by PAM dispatch
+PAM Error Message: cancel requested
+PAM Authenticate() for user 'user-integration-sigint' exited with error (PAM exit code: 26): Cri
+tical error - immediate abort: cancel requested
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
 >
-
-
-
 
 
 
