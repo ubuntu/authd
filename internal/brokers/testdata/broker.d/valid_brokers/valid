@@ -4,4 +4,3 @@ brand_icon = some_icon.png
 [dbus]
 name = com.ubuntu.authd.Broker
 object = /com/ubuntu/authd/Broker
-interface = com.ubuntu.authd.Broker

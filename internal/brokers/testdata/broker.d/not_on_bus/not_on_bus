@@ -4,4 +4,3 @@ brand_icon = some_icon.png
 [dbus]
 name = not.exported.onbus.OfflineBroker
 object = /not/exported/onbus/Broker
-interface = not.exported.onbus.OfflineBroker
