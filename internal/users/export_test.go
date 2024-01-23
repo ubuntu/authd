@@ -1,4 +1,4 @@
-package newusers
+package users
 
 import "time"
 

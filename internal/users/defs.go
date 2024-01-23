@@ -1,4 +1,4 @@
-package newusers
+package users
 
 import (
 	"github.com/ubuntu/authd/internal/newusers/cache"

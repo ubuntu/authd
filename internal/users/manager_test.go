@@ -1,4 +1,4 @@
-package newusers_test
+package users_test
 
 import (
 	"errors"

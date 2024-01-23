@@ -1,5 +1,5 @@
-// Package newusers is a transitional package that will replaces the users one.
-package newusers
+// Package users support all common action on the system for user handling.
+package users
 
 import (
 	"errors"
