@@ -42,5 +42,5 @@ gdm_custom_json_request_init (GdmPamExtensionJSONProtocol *request,
                               const char                  *json)
 {
   GDM_PAM_EXTENSION_CUSTOM_JSON_REQUEST_INIT (request, proto_name,
-                                               proto_version, json);
+                                              proto_version, json);
 }
