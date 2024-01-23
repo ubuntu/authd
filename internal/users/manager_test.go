@@ -9,12 +9,11 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/newusers"
-	"github.com/ubuntu/authd/internal/newusers/cache"
-	cachetests "github.com/ubuntu/authd/internal/newusers/cache/tests"
-	newusertests "github.com/ubuntu/authd/internal/newusers/tests"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
+	"github.com/ubuntu/authd/internal/users/cache"
+	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
+	newusertests "github.com/ubuntu/authd/internal/users/tests"
 )
 
 func TestNewManager(t *testing.T) {
@@ -70,7 +69,7 @@ func TestNewManager(t *testing.T) {
 				createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
 			}
 			if tc.dirtyFlag {
-				err := os.WriteFile(filepath.Join(cacheDir, newusertests.DirtyFlagName), nil, 0600)
+				err := os.WriteFile(filepath.Join(cacheDir, usertests.DirtyFlagName), nil, 0600)
 				require.NoError(t, err, "Setup: could not create dirty flag file")
 			}
 			if tc.corruptedDbFile {
@@ -83,19 +82,19 @@ func TestNewManager(t *testing.T) {
 			}
 			expiration, err := time.Parse(time.DateOnly, tc.expirationDate)
 			require.NoError(t, err, "Setup: could not calculate expiration date for tests")
-			managerOpts := []newusers.Option{newusers.WithUserExpirationDate(expiration)}
+			managerOpts := []users.Option{users.WithUserExpirationDate(expiration)}
 
 			if tc.cleanupInterval > 0 {
-				managerOpts = append(managerOpts, newusers.WithCacheCleanupInterval(time.Second*time.Duration(tc.cleanupInterval)))
+				managerOpts = append(managerOpts, users.WithCacheCleanupInterval(time.Second*time.Duration(tc.cleanupInterval)))
 			}
 			if tc.skipCleanOnNew {
-				managerOpts = append(managerOpts, newusers.WithoutCleaningCacheOnNew())
+				managerOpts = append(managerOpts, users.WithoutCleaningCacheOnNew())
 			}
 			if tc.procDir != "" {
-				managerOpts = append(managerOpts, newusers.WithProcDir(tc.procDir))
+				managerOpts = append(managerOpts, users.WithProcDir(tc.procDir))
 			}
 
-			m, err := newusers.NewManager(cacheDir, managerOpts...)
+			m, err := users.NewManager(cacheDir, managerOpts...)
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should return an error, but did not")
 				return
@@ -607,7 +606,7 @@ func requireErrorAssertions(t *testing.T, gotErr, wantErr error, cacheDir string
 func requireNoDirtyFileInDir(t *testing.T, cacheDir string) {
 	t.Helper()
 
-	require.NoFileExists(t, filepath.Join(cacheDir, newusertests.DirtyFlagName), "Dirty flag should have been removed")
+	require.NoFileExists(t, filepath.Join(cacheDir, usertests.DirtyFlagName), "Dirty flag should have been removed")
 }
 
 func requireClearedDatabase(t *testing.T, c *cache.Cache) {
@@ -627,13 +626,13 @@ UserToGroups: {}
 	require.Equal(t, want, got, "Database should only have empty buckets")
 }
 
-func newManagerForTests(t *testing.T, cacheDir string) *newusers.Manager {
+func newManagerForTests(t *testing.T, cacheDir string) *users.Manager {
 	t.Helper()
 
 	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 	require.NoError(t, err, "Setup: could not calculate expiration date for tests")
 
-	m, err := newusers.NewManager(cacheDir, newusers.WithUserExpirationDate(expiration), newusers.WithoutCleaningCacheOnNew())
+	m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration), users.WithoutCleaningCacheOnNew())
 	require.NoError(t, err, "NewManager should not return an error, but did")
 	t.Cleanup(func() { _ = m.Stop() })
 

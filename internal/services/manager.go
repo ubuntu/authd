@@ -7,9 +7,9 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/newusers"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/services/pam"
+	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
 	"golang.org/x/exp/slog"
 	"google.golang.org/grpc"
@@ -17,7 +17,7 @@ import (
 
 // Manager mediate the whole business logic of the application.
 type Manager struct {
-	userManager   *newusers.Manager
+	userManager   *users.Manager
 	brokerManager *brokers.Manager
 	pamService    pam.Service
 	nssService    nss.Service
@@ -34,7 +34,7 @@ func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configure
 		return m, err
 	}
 
-	userManager, err := newusers.NewManager(cacheDir)
+	userManager, err := users.NewManager(cacheDir)
 	if err != nil {
 		return m, err
 	}

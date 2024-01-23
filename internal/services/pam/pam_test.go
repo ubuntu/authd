@@ -15,12 +15,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/newusers"
-	cachetests "github.com/ubuntu/authd/internal/newusers/cache/tests"
-	newusertests "github.com/ubuntu/authd/internal/newusers/tests"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/testutils"
 	brokertestutils "github.com/ubuntu/authd/internal/testutils/broker"
+	"github.com/ubuntu/authd/internal/users"
+	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
+	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 	usertests "github.com/ubuntu/authd/internal/users/tests"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -58,7 +58,7 @@ var (
 func TestNewService(t *testing.T) {
 	t.Parallel()
 
-	m, err := newusers.NewManager(t.TempDir())
+	m, err := users.NewManager(t.TempDir())
 	require.NoError(t, err, "Setup: could not create user manager")
 
 	service := pam.NewService(context.Background(), m, brokerManager)
@@ -97,7 +97,7 @@ func TestGetPreviousBroker(t *testing.T) {
 	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 	require.NoError(t, err, "Setup: could not parse time for testing")
 
-	m, err := newusers.NewManager(cacheDir, newusers.WithUserExpirationDate(expiration))
+	m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
 	require.NoError(t, err, "Setup: could not create user manager")
 	t.Cleanup(func() { _ = m.Stop() })
 	client := newPamClient(t, m)
@@ -378,7 +378,7 @@ func TestIsAuthenticated(t *testing.T) {
 					fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
 					fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
 					os.Args[0], "-test.run=TestMockgpasswd", "--"}
-				usertests.OverrideDefaultOptions(t, groupFilePath, gpasswd, nil)
+				grouptests.OverrideDefaultOptions(t, groupFilePath, gpasswd, nil)
 			}
 
 			cacheDir := t.TempDir()
@@ -393,7 +393,7 @@ func TestIsAuthenticated(t *testing.T) {
 			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 			require.NoError(t, err, "Setup: could not parse time for testing")
 
-			m, err := newusers.NewManager(cacheDir, newusers.WithUserExpirationDate(expiration))
+			m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			client := newPamClient(t, m)
@@ -454,7 +454,7 @@ func TestIsAuthenticated(t *testing.T) {
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
 
 			// Check that cache has been updated too.
-			gotDB, err := cachetests.DumpToYaml(newusertests.GetManagerCache(m))
+			gotDB, err := cachetests.DumpToYaml(usertests.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
@@ -479,7 +479,7 @@ func TestIsAuthenticated(t *testing.T) {
 				return
 			}
 
-			gotGPasswd := usertests.IdempotentGPasswdOutput(t, destCmdsFile)
+			gotGPasswd := grouptests.IdempotentGPasswdOutput(t, destCmdsFile)
 			wantGPasswd := testutils.LoadWithUpdateFromGolden(t, gotGPasswd, testutils.WithGoldenPath(goldenGpasswdPath))
 			require.Equal(t, wantGPasswd, gotGPasswd, "IsAuthenticated should return the expected combined data, but did not")
 		})
@@ -520,7 +520,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 			require.NoError(t, err, "Setup: could not parse time for testing")
 
-			m, err := newusers.NewManager(cacheDir, newusers.WithUserExpirationDate(expiration))
+			m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			client := newPamClient(t, m)
@@ -542,7 +542,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			require.NoError(t, err, "SetDefaultBrokerForUser should not return an error, but did")
 
 			// Check that cache has been updated too.
-			gotDB, err := cachetests.DumpToYaml(newusertests.GetManagerCache(m))
+			gotDB, err := cachetests.DumpToYaml(usertests.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "SetDefaultBrokerForUser should update the cache database as expected")
@@ -601,7 +601,7 @@ func TestEndSession(t *testing.T) {
 }
 
 func TestMockgpasswd(t *testing.T) {
-	usertests.Mockgpasswd(t)
+	grouptests.Mockgpasswd(t)
 }
 
 // initBrokers starts dbus mock brokers on the system bus. It returns its config path.
@@ -630,7 +630,7 @@ func initBrokers() (brokerConfigPath string, cleanup func(), err error) {
 
 // newPAMClient returns a new GRPC PAM client for tests connected to the global brokerManager with the given cache.
 // If the one passed is nil, this function will create the cache and close it upon test teardown.
-func newPamClient(t *testing.T, m *newusers.Manager) (client authd.PAMClient) {
+func newPamClient(t *testing.T, m *users.Manager) (client authd.PAMClient) {
 	t.Helper()
 
 	// socket path is limited in length.
@@ -643,7 +643,7 @@ func newPamClient(t *testing.T, m *newusers.Manager) (client authd.PAMClient) {
 	require.NoError(t, err, "Setup: could not create unix socket")
 
 	if m == nil {
-		m, err = newusers.NewManager(t.TempDir())
+		m, err = users.NewManager(t.TempDir())
 		require.NoError(t, err, "Setup: could not create user manager")
 		t.Cleanup(func() { _ = m.Stop() })
 	}

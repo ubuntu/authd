@@ -8,9 +8,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/newusers/cache"
-	cachetests "github.com/ubuntu/authd/internal/newusers/cache/tests"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/users/cache"
+	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
 )
 
 func TestNew(t *testing.T) {
@@ -21,15 +21,8 @@ func TestNew(t *testing.T) {
 
 	tests := map[string]struct {
 		dbFile          string
-		dirtyFlag       bool
 		perm            *fs.FileMode
 		corruptedDbFile bool
-		markDirty       bool
-
-		expirationDate  string
-		skipCleanOnNew  bool
-		cleanupInterval int
-		procDir         string
 
 		wantErr bool
 	}{

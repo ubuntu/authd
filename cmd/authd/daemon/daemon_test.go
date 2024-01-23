@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/cmd/authd/daemon"
 	"github.com/ubuntu/authd/internal/consts"
-	cachetests "github.com/ubuntu/authd/internal/newusers/cache/tests"
 	"github.com/ubuntu/authd/internal/testutils"
+	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
 )
 
 func TestHelp(t *testing.T) {

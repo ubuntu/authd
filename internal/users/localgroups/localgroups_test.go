@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
-	"github.com/ubuntu/authd/internal/users"
-	usertests "github.com/ubuntu/authd/internal/users/tests"
+	"github.com/ubuntu/authd/internal/users/localgroups"
+	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 )
 
 func TestUpdateLocalGroups(t *testing.T) {
@@ -121,7 +121,7 @@ func TestUpdateLocalGroups(t *testing.T) {
 				return
 			}
 
-			got := usertests.IdempotentGPasswdOutput(t, destCmdsFile)
+			got := grouptests.IdempotentGPasswdOutput(t, destCmdsFile)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
 		})
@@ -166,12 +166,12 @@ func TestCleanLocalGroups(t *testing.T) {
 				tc.getUsersReturn = []string{"myuser", "otheruser", "otheruser2", "otheruser3", "otheruser4"}
 			}
 
-			cleanupOptions := []users.Option{
-				users.WithGpasswdCmd(gpasswdCmd),
-				users.WithGroupPath(groupFilePath),
-				users.WithGetUsersFunc(func() []string { return tc.getUsersReturn }),
+			cleanupOptions := []localgroups.Option{
+				localgroups.WithGpasswdCmd(gpasswdCmd),
+				localgroups.WithGroupPath(groupFilePath),
+				localgroups.WithGetUsersFunc(func() []string { return tc.getUsersReturn }),
 			}
-			err := users.CleanLocalGroups(cleanupOptions...)
+			err := localgroups.CleanLocalGroups(cleanupOptions...)
 			if tc.wantErr {
 				require.Error(t, err, "CleanupLocalGroups should have failed")
 			} else {
@@ -195,7 +195,7 @@ func TestCleanLocalGroups(t *testing.T) {
 				return
 			}
 
-			got := usertests.IdempotentGPasswdOutput(t, destCmdsFile)
+			got := grouptests.IdempotentGPasswdOutput(t, destCmdsFile)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Clean up should do the expected gpasswd operation, but did not")
 		})
@@ -244,11 +244,11 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 				gpasswdCmd = append(gpasswdCmd, "gpasswdfail")
 			}
 
-			cleanupOptions := []users.Option{
-				users.WithGpasswdCmd(gpasswdCmd),
-				users.WithGroupPath(groupFilePath),
+			cleanupOptions := []localgroups.Option{
+				localgroups.WithGpasswdCmd(gpasswdCmd),
+				localgroups.WithGroupPath(groupFilePath),
 			}
-			err := users.CleanUserFromLocalGroups(tc.username, cleanupOptions...)
+			err := localgroups.CleanUserFromLocalGroups(tc.username, cleanupOptions...)
 			if tc.wantErr {
 				require.Error(t, err, "CleanUserFromLocalGroups should have failed")
 			} else {
@@ -272,7 +272,7 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 				return
 			}
 
-			got := usertests.IdempotentGPasswdOutput(t, destCmdsFile)
+			got := grouptests.IdempotentGPasswdOutput(t, destCmdsFile)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Clean up should do the expected gpasswd operation, but did not")
 		})
@@ -280,7 +280,7 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 }
 
 func TestMockgpasswd(t *testing.T) {
-	usertests.Mockgpasswd(t)
+	grouptests.Mockgpasswd(t)
 }
 
 func TestMain(m *testing.M) {

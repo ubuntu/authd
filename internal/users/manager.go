@@ -13,8 +13,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/ubuntu/authd/internal/newusers/cache"
-	"github.com/ubuntu/authd/internal/users"
+	"github.com/ubuntu/authd/internal/users/cache"
 	"github.com/ubuntu/decorate"
 )
 
@@ -115,7 +114,7 @@ func (m *Manager) Stop() error {
 }
 
 // UpdateUser updates the user information in the cache.
-func (m *Manager) UpdateUser(u users.UserInfo) (err error) {
+func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	defer decorate.OnError(&err, "failed to update user %q", u.Name)
 
 	if len(u.Groups) == 0 {

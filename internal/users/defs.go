@@ -1,7 +1,7 @@
 package users
 
 import (
-	"github.com/ubuntu/authd/internal/newusers/cache"
+	"github.com/ubuntu/authd/internal/users/cache"
 )
 
 // UserInfo is the user information returned by the broker.

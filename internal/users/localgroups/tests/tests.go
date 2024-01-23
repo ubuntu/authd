@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	//go:linkname defaultOptions github.com/ubuntu/authd/internal/users.defaultOptions
+	//go:linkname defaultOptions github.com/ubuntu/authd/internal/users/localgroups.defaultOptions
 	defaultOptions struct {
 		groupPath    string
 		gpasswdCmd   []string

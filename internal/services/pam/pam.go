@@ -10,7 +10,6 @@ import (
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/responses"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/newusers"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
 	"google.golang.org/grpc/codes"
@@ -22,14 +21,14 @@ var _ authd.PAMServer = Service{}
 
 // Service is the implementation of the PAM module service.
 type Service struct {
-	userManager   *newusers.Manager
+	userManager   *users.Manager
 	brokerManager *brokers.Manager
 
 	authd.UnimplementedPAMServer
 }
 
 // NewService returns a new PAM GRPC service.
-func NewService(ctx context.Context, userManager *newusers.Manager, brokerManager *brokers.Manager) Service {
+func NewService(ctx context.Context, userManager *users.Manager, brokerManager *brokers.Manager) Service {
 	log.Debug(ctx, "Building new GRPC PAM service")
 
 	return Service{
