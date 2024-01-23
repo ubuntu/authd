@@ -28,22 +28,22 @@ func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b db
 		return b, "", "", fmt.Errorf("could not read ini configuration for broker %v", err)
 	}
 
-	fullNameVal, err := cfg.Section("").GetKey("name")
+	fullNameVal, err := cfg.Section("authd").GetKey("name")
 	if err != nil {
 		return b, "", "", fmt.Errorf("missing field for broker: %v", err)
 	}
 
-	brandIconVal, err := cfg.Section("").GetKey("brand_icon")
+	brandIconVal, err := cfg.Section("authd").GetKey("brand_icon")
 	if err != nil {
 		return b, "", "", fmt.Errorf("missing field for broker: %v", err)
 	}
 
-	dbusName, err := cfg.Section("dbus").GetKey("name")
+	dbusName, err := cfg.Section("authd").GetKey("dbus_name")
 	if err != nil {
 		return b, "", "", fmt.Errorf("missing field for broker: %v", err)
 	}
 
-	objectName, err := cfg.Section("dbus").GetKey("object")
+	objectName, err := cfg.Section("authd").GetKey("dbus_object")
 	if err != nil {
 		return b, "", "", fmt.Errorf("missing field for broker: %v", err)
 	}
