@@ -1,5 +1,5 @@
-// Package users support all common action on the system for user handling.
-package users
+// Package localgroups handles the synchronization of local groups the users.
+package localgroups
 
 import (
 	"bufio"

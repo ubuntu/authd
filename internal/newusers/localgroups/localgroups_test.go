@@ -1,4 +1,4 @@
-package users_test
+package localgroups_test
 
 import (
 	"flag"

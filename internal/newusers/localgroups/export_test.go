@@ -1,4 +1,4 @@
-package users
+package localgroups
 
 // WithGroupPath overrides the default /etc/group path for tests.
 func WithGroupPath(p string) Option {

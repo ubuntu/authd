@@ -1,6 +1,6 @@
 //go:build !integrationtests
 
-package users
+package localgroups
 
 var defaultOptions options
 
