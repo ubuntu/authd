@@ -1,5 +1,4 @@
+[authd]
 name = Broker
-
-[dbus]
-name = com.ubuntu.authd.Broker
-object = /com/ubuntu/authd/Broker
+dbus_name = com.ubuntu.authd.Broker
+dbus_object = /com/ubuntu/authd/Broker

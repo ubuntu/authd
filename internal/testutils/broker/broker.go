@@ -27,12 +27,11 @@ const (
 	IDSeparator = "_separator_"
 )
 
-var brokerConfigTemplate = `name = %s
+var brokerConfigTemplate = `[authd]
+name = %s
 brand_icon = mock_icon.png
-
-[dbus]
-name = com.ubuntu.authd.%s
-object = /com/ubuntu/authd/%s
+dbus_name = com.ubuntu.authd.%s
+dbus_object = /com/ubuntu/authd/%s
 `
 
 type isAuthenticatedCtx struct {

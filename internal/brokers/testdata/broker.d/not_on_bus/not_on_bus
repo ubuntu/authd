@@ -1,6 +1,5 @@
+[authd]
 name = OfflineBroker
 brand_icon = some_icon.png
-
-[dbus]
-name = not.exported.onbus.OfflineBroker
-object = /not/exported/onbus/Broker
+dbus_name = not.exported.onbus.OfflineBroker
+dbus_object = /not/exported/onbus/Broker

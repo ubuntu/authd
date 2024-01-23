@@ -62,13 +62,11 @@ func StartBus(ctx context.Context, cfgPath string) (err error) {
 	}
 
 	if err = os.WriteFile(filepath.Join(cfgPath, "examplebroker.conf"),
-		[]byte(fmt.Sprintf(`
+		[]byte(fmt.Sprintf(`[authd]
 name = ExampleBroker
 brand_icon = /usr/share/backgrounds/warty-final-ubuntu.png
-
-[dbus]
-name = %s
-object = %s
+dbus_name = %s
+dbus_object = %s
 `, busName, dbusObjectPath)),
 		0600); err != nil {
 		return err
