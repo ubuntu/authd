@@ -1,0 +1,20 @@
+- name: user1
+  uid: 1111
+  gid: 11111
+  gecos: |-
+    User1 gecos
+    On multiple lines
+  dir: /home/user1
+  shell: /bin/bash
+- name: user2
+  uid: 2222
+  gid: 22222
+  gecos: User2
+  dir: /home/user2
+  shell: /bin/dash
+- name: user3
+  uid: 3333
+  gid: 33333
+  gecos: User3
+  dir: /home/user3
+  shell: /bin/zsh

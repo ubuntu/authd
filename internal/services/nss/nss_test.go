@@ -12,8 +12,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/cache"
-	cachetests "github.com/ubuntu/authd/internal/cache/tests"
+	"github.com/ubuntu/authd/internal/newusers"
+	cachetests "github.com/ubuntu/authd/internal/newusers/cache/tests"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/testutils"
 	"google.golang.org/grpc"
@@ -26,11 +26,11 @@ import (
 func TestNewService(t *testing.T) {
 	t.Parallel()
 
-	c, err := cache.New(t.TempDir())
-	require.NoError(t, err, "Setup: could not create cache")
-	t.Cleanup(func() { _ = c.Close() })
+	m, err := newusers.NewManager(t.TempDir())
+	require.NoError(t, err, "Setup: could not create user manager")
+	t.Cleanup(func() { _ = m.Stop() })
 
-	_ = nss.NewService(context.Background(), c)
+	_ = nss.NewService(context.Background(), m)
 }
 
 func TestGetPasswdByName(t *testing.T) {
@@ -55,7 +55,7 @@ func TestGetPasswdByName(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := newCacheForTests(t, tc.sourceDB)
+			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
 
 			got, err := client.GetPasswdByName(context.Background(), &authd.GetByNameRequest{Name: tc.username})
@@ -87,7 +87,7 @@ func TestGetPasswdByUID(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := newCacheForTests(t, tc.sourceDB)
+			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
 
 			got, err := client.GetPasswdByUID(context.Background(), &authd.GetByIDRequest{Id: uint32(tc.uid)})
@@ -114,7 +114,7 @@ func TestGetPasswdEntries(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := newCacheForTests(t, tc.sourceDB)
+			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
 
 			got, err := client.GetPasswdEntries(context.Background(), &authd.Empty{})
@@ -145,7 +145,7 @@ func TestGetGroupByName(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := newCacheForTests(t, tc.sourceDB)
+			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
 
 			got, err := client.GetGroupByName(context.Background(), &authd.GetByNameRequest{Name: tc.groupname})
@@ -177,7 +177,7 @@ func TestGetGroupByGID(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := newCacheForTests(t, tc.sourceDB)
+			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
 
 			got, err := client.GetGroupByGID(context.Background(), &authd.GetByIDRequest{Id: uint32(tc.gid)})
@@ -204,7 +204,7 @@ func TestGetGroupEntries(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := newCacheForTests(t, tc.sourceDB)
+			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
 
 			got, err := client.GetGroupEntries(context.Background(), &authd.Empty{})
@@ -235,7 +235,7 @@ func TestGetShadowByName(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := newCacheForTests(t, tc.sourceDB)
+			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
 
 			got, err := client.GetShadowByName(context.Background(), &authd.GetByNameRequest{Name: tc.username})
@@ -262,7 +262,7 @@ func TestGetShadowEntries(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := newCacheForTests(t, tc.sourceDB)
+			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
 
 			got, err := client.GetShadowEntries(context.Background(), &authd.Empty{})
@@ -271,8 +271,8 @@ func TestGetShadowEntries(t *testing.T) {
 	}
 }
 
-// newNSSClient returns a new GRPC PAM client for tests connected to the global brokerManager with the given cache.
-func newNSSClient(t *testing.T, c *cache.Cache) (client authd.NSSClient) {
+// newNSSClient returns a new GRPC PAM client for tests connected to the global brokerManager with the given user manager.
+func newNSSClient(t *testing.T, m *newusers.Manager) (client authd.NSSClient) {
 	t.Helper()
 
 	// socket path is limited in length.
@@ -284,7 +284,7 @@ func newNSSClient(t *testing.T, c *cache.Cache) (client authd.NSSClient) {
 	lis, err := net.Listen("unix", socketPath)
 	require.NoError(t, err, "Setup: could not create unix socket")
 
-	service := nss.NewService(context.Background(), c)
+	service := nss.NewService(context.Background(), m)
 
 	grpcServer := grpc.NewServer()
 	authd.RegisterNSSServer(grpcServer, service)
@@ -305,8 +305,8 @@ func newNSSClient(t *testing.T, c *cache.Cache) (client authd.NSSClient) {
 	return authd.NewNSSClient(conn)
 }
 
-// newCacheForTests returns a cache object cleaned up with the test ends.
-func newCacheForTests(t *testing.T, sourceDB string) *cache.Cache {
+// newManagerForTests returns a cache object cleaned up with the test ends.
+func newManagerForTests(t *testing.T, sourceDB string) *newusers.Manager {
 	t.Helper()
 
 	cacheDir := t.TempDir()
@@ -324,10 +324,11 @@ func newCacheForTests(t *testing.T, sourceDB string) *cache.Cache {
 	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 	require.NoError(t, err, "Setup: could not parse time for testing")
 
-	c, err := cache.New(cacheDir, cache.WithExpirationDate(expiration))
-	require.NoError(t, err, "Setup: could not create cache")
-	t.Cleanup(func() { _ = c.Close() })
-	return c
+	m, err := newusers.NewManager(cacheDir, newusers.WithUserExpirationDate(expiration))
+	require.NoError(t, err, "Setup: could not create user manager")
+
+	t.Cleanup(func() { _ = m.Stop() })
+	return m
 }
 
 // requireExpectedResult asserts expected behaviour from any get* NSS requests and can update them from golden content.
