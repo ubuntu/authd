@@ -1,5 +1,4 @@
+[authd]
 name = Broker
 brand_icon = some_icon.png
-
-[dbus]
-name = com.ubuntu.authd.Broker
+dbus_name = com.ubuntu.authd.Broker

@@ -35,6 +35,8 @@ func TestNewManager(t *testing.T) {
 		"Creates only local broker when config dir does not exist":                   {brokerConfigDir: "does/not/exist"},
 		"Creates manager even if broker is not exported on dbus":                     {brokerConfigDir: "not_on_bus"},
 
+		"Ignores any unknown sections and fields": {brokerConfigDir: "extra_fields"},
+
 		"Error when can't connect to system bus": {brokerConfigDir: "valid_brokers", noBus: true, wantErr: true},
 		"Error when broker config dir is a file": {brokerConfigDir: "file_config_dir", wantErr: true},
 	}
