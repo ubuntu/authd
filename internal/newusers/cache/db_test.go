@@ -6,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
-	_ "unsafe"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/newusers/cache"
@@ -70,11 +68,6 @@ func TestNew(t *testing.T) {
 			require.NoError(t, err)
 			defer c.Close()
 
-			if tc.cleanupInterval > 0 {
-				// Wait for the clean up routine to start
-				time.Sleep(time.Duration(tc.cleanupInterval*2) * time.Second)
-			}
-
 			got, err := cachetests.DumpToYaml(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
@@ -86,9 +79,6 @@ func TestNew(t *testing.T) {
 			require.NoError(t, err, "Failed to stat database")
 			perm := fileInfo.Mode().Perm()
 			require.Equal(t, fs.FileMode(0600), perm, "Database permission should be 0600")
-
-			// database should not be marked as dirty
-			requireNoDirtyFileInDir(t, cacheDir)
 		})
 	}
 }
@@ -186,7 +176,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c, cacheDir := initCache(t, tc.dbFile)
+			c := initCache(t, tc.dbFile)
 
 			if tc.userCase == "" {
 				tc.userCase = "user1"
@@ -211,8 +201,6 @@ func TestUpdateUserEntry(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-
-			requireNoDirtyFileInDir(t, cacheDir)
 
 			got, err := cachetests.DumpToYaml(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
@@ -241,10 +229,10 @@ func TestUserByID(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c, cacheDir := initCache(t, tc.dbFile)
+			c := initCache(t, tc.dbFile)
 
 			got, err := c.UserByID(1111)
-			requireGetAssertions(t, got, tc.wantErrType, err, cacheDir)
+			requireGetAssertions(t, got, tc.wantErrType, err)
 		})
 	}
 }
@@ -267,10 +255,10 @@ func TestUserByName(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c, cacheDir := initCache(t, tc.dbFile)
+			c := initCache(t, tc.dbFile)
 
 			got, err := c.UserByName("user1")
-			requireGetAssertions(t, got, tc.wantErrType, err, cacheDir)
+			requireGetAssertions(t, got, tc.wantErrType, err)
 		})
 	}
 }
@@ -295,10 +283,10 @@ func TestAllUsers(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c, cacheDir := initCache(t, tc.dbFile)
+			c := initCache(t, tc.dbFile)
 
 			got, err := c.AllUsers()
-			requireGetAssertions(t, got, tc.wantErrType, err, cacheDir)
+			requireGetAssertions(t, got, tc.wantErrType, err)
 		})
 	}
 }
@@ -322,10 +310,10 @@ func TestGroupByID(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c, cacheDir := initCache(t, tc.dbFile)
+			c := initCache(t, tc.dbFile)
 
 			got, err := c.GroupByID(11111)
-			requireGetAssertions(t, got, tc.wantErrType, err, cacheDir)
+			requireGetAssertions(t, got, tc.wantErrType, err)
 		})
 	}
 }
@@ -349,10 +337,10 @@ func TestGroupByName(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c, cacheDir := initCache(t, tc.dbFile)
+			c := initCache(t, tc.dbFile)
 
 			got, err := c.GroupByName("group1")
-			requireGetAssertions(t, got, tc.wantErrType, err, cacheDir)
+			requireGetAssertions(t, got, tc.wantErrType, err)
 		})
 	}
 }
@@ -379,10 +367,10 @@ func TestAllGroups(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c, cacheDir := initCache(t, tc.dbFile)
+			c := initCache(t, tc.dbFile)
 
 			got, err := c.AllGroups()
-			requireGetAssertions(t, got, tc.wantErrType, err, cacheDir)
+			requireGetAssertions(t, got, tc.wantErrType, err)
 		})
 	}
 }
@@ -390,7 +378,7 @@ func TestAllGroups(t *testing.T) {
 func TestUpdateBrokerForUser(t *testing.T) {
 	t.Parallel()
 
-	c, _ := initCache(t, "one_user_and_group")
+	c := initCache(t, "one_user_and_group")
 
 	// Update broker for existent user
 	err := c.UpdateBrokerForUser("user1", "ExampleBrokerID")
@@ -404,7 +392,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 func TestBrokerForUser(t *testing.T) {
 	t.Parallel()
 
-	c, _ := initCache(t, "multiple_users_and_groups_with_brokers")
+	c := initCache(t, "multiple_users_and_groups_with_brokers")
 
 	// Get existing BrokerForUser entry
 	gotID, err := c.BrokerForUser("user1")
@@ -418,6 +406,69 @@ func TestBrokerForUser(t *testing.T) {
 	require.Empty(t, gotID, "BrokerForUser should return empty string when entry does not exist")
 }
 
+func TestRemoveDb(t *testing.T) {
+	t.Parallel()
+
+	c := initCache(t, "multiple_users_and_groups")
+	cacheDir := filepath.Dir(c.DbPath())
+
+	// First call should return with no error.
+	require.NoError(t, cache.RemoveDb(cacheDir), "RemoveDb should not return an error on the first call")
+	require.NoFileExists(t, cacheDir, "RemoveDb should remove the database file")
+
+	// Second call should return ErrNotExist as the database file was already removed.
+	require.ErrorIs(t, cache.RemoveDb(cacheDir), fs.ErrNotExist, "RemoveDb should return os.ErrNotExist on the second call")
+}
+
+func TestClear(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		readOnlyDir bool
+		noDbFile    bool
+		closedDb    bool
+
+		wantErr bool
+	}{
+		"Successfully clear the database":                {},
+		"No error when clearing a non existent database": {noDbFile: true},
+		"No error if db is already closed":               {closedDb: true},
+
+		"Error when cache dir has invalid permissions": {readOnlyDir: true, wantErr: true},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			c := initCache(t, "multiple_users_and_groups")
+
+			if tc.closedDb {
+				require.NoError(t, c.Close(), "Setup: should be able to close database")
+			}
+			if tc.noDbFile {
+				require.NoError(t, os.Remove(c.DbPath()), "Setup: should be able to remove database file")
+			}
+			if tc.readOnlyDir {
+				testutils.MakeReadOnly(t, filepath.Dir(c.DbPath()))
+			}
+
+			err := c.Clear(filepath.Dir(c.DbPath()))
+			if tc.wantErr {
+				require.Error(t, err, "Clear should return an error but didn't")
+				return
+			}
+			require.NoError(t, err)
+
+			got, err := cachetests.DumpToYaml(c)
+			require.NoError(t, err, "Created database should be valid yaml content")
+
+			want := testutils.LoadWithUpdateFromGolden(t, got)
+			require.Equal(t, want, got, "Did not get expected database content")
+		})
+	}
+}
+
 func createDBFile(t *testing.T, src, destDir string) {
 	t.Helper()
 
@@ -429,12 +480,6 @@ func createDBFile(t *testing.T, src, destDir string) {
 	require.NoError(t, err, "Setup: should be able to write database file")
 }
 
-func requireNoDirtyFileInDir(t *testing.T, cacheDir string) {
-	t.Helper()
-
-	require.NoFileExists(t, filepath.Join(cacheDir, cachetests.DirtyFlagDbName), "Dirty flag should have been removed")
-}
-
 func TestMain(m *testing.M) {
 	testutils.InstallUpdateFlag()
 
@@ -442,10 +487,10 @@ func TestMain(m *testing.M) {
 }
 
 // initCache returns a new cache ready to be used alongside its cache directory.
-func initCache(t *testing.T, dbFile string) (c *cache.Cache, cacheDir string) {
+func initCache(t *testing.T, dbFile string) (c *cache.Cache) {
 	t.Helper()
 
-	cacheDir = t.TempDir()
+	cacheDir := t.TempDir()
 	if dbFile != "" {
 		createDBFile(t, filepath.Join("testdata", dbFile+".db.yaml"), cacheDir)
 	}
@@ -454,10 +499,10 @@ func initCache(t *testing.T, dbFile string) (c *cache.Cache, cacheDir string) {
 	require.NoError(t, err)
 	t.Cleanup(func() { c.Close() })
 
-	return c, cacheDir
+	return c
 }
 
-func requireGetAssertions[E any](t *testing.T, got E, wantErrType, err error, cacheDir string) {
+func requireGetAssertions[E any](t *testing.T, got E, wantErrType, err error) {
 	t.Helper()
 
 	if wantErrType != nil {
@@ -466,8 +511,6 @@ func requireGetAssertions[E any](t *testing.T, got E, wantErrType, err error, ca
 			return
 		}
 		require.Error(t, err, "Should return an error but didn't")
-		time.Sleep(10 * time.Millisecond)
-		requireNoDirtyFileInDir(t, cacheDir)
 		return
 	}
 	require.NoError(t, err)

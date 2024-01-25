@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"os"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"syscall"
 	"time"
@@ -26,9 +27,15 @@ const (
 	defaultCleanupInterval = time.Hour * 24
 )
 
+var (
+	dirtyFlagName = ".corrupted"
+)
+
 // Manager is the manager for any user related operation.
 type Manager struct {
-	cache          *cache.Cache
+	cache         *cache.Cache
+	dirtyFlagPath string
+
 	doClear        chan struct{}
 	quit           chan struct{}
 	cleanupStopped chan struct{}
@@ -64,21 +71,35 @@ func NewManager(cacheDir string, args ...Option) (m *Manager, err error) {
 	}
 
 	m = &Manager{
+		dirtyFlagPath:  filepath.Join(cacheDir, dirtyFlagName),
 		doClear:        make(chan struct{}),
 		quit:           make(chan struct{}),
 		cleanupStopped: make(chan struct{}),
 	}
-	c, err := cache.New(cacheDir)
-	if err != nil {
-		return nil, err
+
+	for i := 0; i < 2; i++ {
+		c, err := cache.New(cacheDir)
+		if err != nil && errors.Is(err, cache.ErrNeedsClearing) {
+			if err := cache.RemoveDb(cacheDir); err != nil {
+				return nil, fmt.Errorf("could not clear database: %v", err)
+			}
+			continue
+		} else if err != nil {
+			return nil, err
+		}
+		m.cache = c
+		break
 	}
-	m.cache = c
+
+	if m.isMarkedCorrupted() {
+		if err := m.clear(cacheDir); err != nil {
+			return nil, fmt.Errorf("could not clear corrupted data: %v", err)
+		}
+	}
 
 	if opts.cleanOnNew {
-		if activeUsers, err := getActiveUsers(opts.procDir); err != nil {
-			slog.Warn(fmt.Sprintf("Could not get list of active users: %v", err))
-		} else if err := m.cache.CleanExpiredUsers(activeUsers, opts.expirationDate); err != nil {
-			slog.Warn(fmt.Sprintf("Could not clean database: %v", err))
+		if err := m.cleanExpiredUserData(opts); err != nil {
+			slog.Warn(fmt.Sprintf("Could not fully clean expired user data: %v", err))
 		}
 	}
 	m.startUserCleanupRoutine(cacheDir, opts)
@@ -236,7 +257,7 @@ func (m *Manager) shouldClearDb(err error) error {
 // TODO: improve behavior when cleanup is already running
 // (either remove the dangling dirty file or queue the cleanup request).
 func (m *Manager) requestClearDatabase() {
-	if err := m.cache.MarkDatabaseAsDirty(); err != nil {
+	if err := m.markCorrupted(); err != nil {
 		slog.Warn(fmt.Sprintf("Could not mark database as dirty: %v", err))
 	}
 	select {
@@ -254,19 +275,15 @@ func (m *Manager) startUserCleanupRoutine(cacheDir string, opts *options) {
 			select {
 			case <-m.doClear:
 				func() {
-					m.cache.ClearAndRebuild(cacheDir)
+					if err := m.clear(cacheDir); err != nil {
+						slog.Warn(fmt.Sprintf("Could not clear corrupted data: %v", err))
+					}
 				}()
 
 			case <-time.After(opts.cleanupInterval):
 				func() {
-					activeUsers, err := getActiveUsers(opts.procDir)
-					if err != nil {
-						slog.Warn(fmt.Sprintf("Could not get list of active users: %v", err))
-						return
-					}
-
-					if err := m.cache.CleanExpiredUsers(activeUsers, opts.expirationDate); err != nil {
-						slog.Warn(fmt.Sprintf("Could not clean database: %v", err))
+					if err := m.cleanExpiredUserData(opts); err != nil {
+						slog.Warn(fmt.Sprintf("Could not clean expired user data: %v", err))
 					}
 				}()
 
@@ -276,6 +293,46 @@ func (m *Manager) startUserCleanupRoutine(cacheDir string, opts *options) {
 		}
 	}()
 	<-cleanupRoutineStarted
+}
+
+// isMarkedCorrupted checks if the database is marked as corrupted.
+func (m *Manager) isMarkedCorrupted() bool {
+	_, err := os.Stat(m.dirtyFlagPath)
+	return err == nil
+}
+
+// markCorrupted writes a dirty flag in the cache directory to mark the database as corrupted.
+func (m *Manager) markCorrupted() error {
+	if m.isMarkedCorrupted() {
+		return nil
+	}
+	return os.WriteFile(m.dirtyFlagPath, nil, 0600)
+}
+
+// clear clears the corrupted database and rebuilds it.
+func (m *Manager) clear(cacheDir string) error {
+	if err := m.cache.Clear(cacheDir); err != nil {
+		return fmt.Errorf("could not clear corrupted data: %v", err)
+	}
+	if err := os.Remove(m.dirtyFlagPath); err != nil {
+		slog.Warn(fmt.Sprintf("Could not remove dirty flag file: %v", err))
+	}
+
+	return nil
+}
+
+// cleanExpiredUserData cleans up the data belonging to expired users.
+func (m *Manager) cleanExpiredUserData(opts *options) error {
+	activeUsers, err := getActiveUsers(opts.procDir)
+	if err != nil {
+		return fmt.Errorf("could not get list of active users: %v", err)
+	}
+
+	if err := m.cache.CleanExpiredUsers(activeUsers, opts.expirationDate); err != nil {
+		return fmt.Errorf("could not clean database of expired users: %v", err)
+	}
+
+	return nil
 }
 
 // getActiveUsers walks through procDir and returns a map with the usernames of the owners of all active processes.
