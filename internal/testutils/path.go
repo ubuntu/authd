@@ -1,9 +1,15 @@
 package testutils
 
 import (
+	"errors"
+	"io/fs"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 // ProjectRoot returns the absolute path to the project root.
@@ -19,4 +25,31 @@ func ProjectRoot() string {
 
 	// strings.Split removes the first "/" that indicated an AbsPath, so we append it back in the final string.
 	return "/" + filepath.Join(l...)
+}
+
+// MakeReadOnly makes dest read only and restore permission on cleanup.
+func MakeReadOnly(t *testing.T, dest string) {
+	t.Helper()
+
+	// Get current dest permissions
+	fi, err := os.Stat(dest)
+	require.NoError(t, err, "Cannot stat %s", dest)
+	mode := fi.Mode()
+
+	var perms fs.FileMode = 0444
+	if fi.IsDir() {
+		perms = 0555
+	}
+	err = os.Chmod(dest, perms)
+	require.NoError(t, err)
+
+	t.Cleanup(func() {
+		_, err := os.Stat(dest)
+		if errors.Is(err, os.ErrNotExist) {
+			return
+		}
+
+		err = os.Chmod(dest, mode)
+		require.NoError(t, err)
+	})
 }

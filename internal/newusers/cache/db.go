@@ -19,8 +19,7 @@ import (
 )
 
 var (
-	dbName          = "authd.db"
-	dirtyFlagDbName = dbName + ".dirty"
+	dbName = "authd.db"
 )
 
 const (
@@ -46,8 +45,6 @@ var (
 type Cache struct {
 	db *bbolt.DB
 	mu sync.RWMutex
-
-	dirtyFlagPath string
 }
 
 // UserDB is the public type that is shared to external packages.
@@ -93,39 +90,21 @@ func New(cacheDir string) (cache *Cache, err error) {
 	defer decorate.OnError(&err, "could not create new database object at %q", dbPath)
 
 	var db *bbolt.DB
-	var i int
-	for {
-		db, err = openAndInitDB(dbPath, filepath.Join(cacheDir, dirtyFlagDbName))
-		if err == nil {
-			break
-		}
-
-		if errors.Is(err, shouldRetryDBError{}) {
-			if i == 3 {
-				return nil, errors.Unwrap(err)
-			}
-			i++
-			continue
-		}
-
+	db, err = openAndInitDB(dbPath)
+	if err != nil {
 		return nil, err
 	}
 
-	return &Cache{db: db, mu: sync.RWMutex{}, dirtyFlagPath: filepath.Join(cacheDir, dirtyFlagDbName)}, nil
+	return &Cache{db: db, mu: sync.RWMutex{}}, nil
 }
 
 // openAndInitDB open a pre-existing database and potentially intializes its buckets.
 // It clears up any database previously marked as dirty or if it’s corrupted.
-func openAndInitDB(path, dirtyFlagPath string) (*bbolt.DB, error) {
-	if _, err := os.Stat(dirtyFlagPath); err == nil {
-		clearDatabase(path, dirtyFlagPath)
-	}
-
+func openAndInitDB(path string) (*bbolt.DB, error) {
 	db, err := bbolt.Open(path, 0600, nil)
 	if err != nil {
 		if errors.Is(err, bbolt.ErrInvalid) {
-			clearDatabase(path, dirtyFlagPath)
-			return nil, shouldRetryDBError{err: err}
+			return nil, ErrNeedsClearing
 		}
 		return nil, fmt.Errorf("can't open database file: %v", err)
 	}
@@ -221,34 +200,31 @@ func (c *Cache) Close() error {
 	return c.db.Close()
 }
 
-// ClearAndRebuild closes the db and reopens it.
-func (c *Cache) ClearAndRebuild(cacheDir string) {
+// RemoveDb removes the database file.
+func RemoveDb(cacheDir string) error {
+	return os.Remove(filepath.Join(cacheDir, dbName))
+}
+
+// Clear closes the db and reopens it.
+func (c *Cache) Clear(cacheDir string) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if err := c.db.Close(); err != nil {
-		slog.Warn(fmt.Sprintf("Could not close database %v", err))
+	if err := c.db.Close(); err != nil && !errors.Is(err, bbolt.ErrDatabaseNotOpen) {
+		return fmt.Errorf("could not close database: %v", err)
 	}
 
-	db, err := openAndInitDB(filepath.Join(cacheDir, dbName), c.dirtyFlagPath)
+	if err := RemoveDb(cacheDir); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		return fmt.Errorf("could not delete %v to clear up cache: %v", filepath.Join(cacheDir, dbName), err)
+	}
+
+	db, err := openAndInitDB(filepath.Join(cacheDir, dbName))
 	if err != nil {
 		panic(fmt.Sprintf("CRITICAL: unrecoverable state: could not recreate database: %v", err))
 	}
 	c.db = db
-}
 
-// MarkDatabaseAsDirty creates a file to signal that the database needs to be cleared and rebuilt.
-func (c *Cache) MarkDatabaseAsDirty() error {
-	return os.WriteFile(c.dirtyFlagPath, nil, 0600)
-}
-
-func clearDatabase(dbPath, dirtyFlagPath string) {
-	if err := os.Remove(dbPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
-		slog.Error(fmt.Sprintf("Could not delete %v to clear up cache: %v", dbPath, err))
-	}
-	if err := os.Remove(dirtyFlagPath); err != nil && !errors.Is(err, fs.ErrNotExist) {
-		slog.Error(fmt.Sprintf("Could not delete %v to clear up dirty flag file: %v", dirtyFlagPath, err))
-	}
+	return nil
 }
 
 // bucketWithName is a wrapper adding the name on top of a bbolt Bucket.
@@ -321,24 +297,6 @@ func (err NoDataFoundError) Error() string {
 
 // Is makes this error insensitive to the key and bucket name.
 func (NoDataFoundError) Is(target error) bool { return target == NoDataFoundError{} }
-
-// shouldRetryDBError is returned when we want to retry opening the database.
-type shouldRetryDBError struct {
-	err error
-}
-
-// Error implements the error interface.
-func (err shouldRetryDBError) Error() string {
-	return "ErrRetryDB"
-}
-
-// Unwrap allows to unwrap original error.
-func (err shouldRetryDBError) Unwrap() error {
-	return err.err
-}
-
-// Is makes this error insensitive to the key and bucket name.
-func (shouldRetryDBError) Is(target error) bool { return target == shouldRetryDBError{} }
 
 // ErrNeedsClearing is returned when the database is corrupted and needs to be cleared.
 var ErrNeedsClearing = errors.New("database needs to be cleared and rebuilt")

@@ -70,7 +70,7 @@ func TestNewManager(t *testing.T) {
 				createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
 			}
 			if tc.dirtyFlag {
-				err := os.WriteFile(filepath.Join(cacheDir, cachetests.DirtyFlagDbName), nil, 0600)
+				err := os.WriteFile(filepath.Join(cacheDir, newusertests.DirtyFlagName), nil, 0600)
 				require.NoError(t, err, "Setup: could not create dirty flag file")
 			}
 			if tc.corruptedDbFile {
@@ -607,7 +607,7 @@ func requireErrorAssertions(t *testing.T, gotErr, wantErr error, cacheDir string
 func requireNoDirtyFileInDir(t *testing.T, cacheDir string) {
 	t.Helper()
 
-	require.NoFileExists(t, filepath.Join(cacheDir, cachetests.DirtyFlagDbName), "Dirty flag should have been removed")
+	require.NoFileExists(t, filepath.Join(cacheDir, newusertests.DirtyFlagName), "Dirty flag should have been removed")
 }
 
 func requireClearedDatabase(t *testing.T, c *cache.Cache) {
