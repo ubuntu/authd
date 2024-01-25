@@ -418,7 +418,7 @@ func TestIsAuthenticated(t *testing.T) {
 				defer close(done)
 				iaReq := &authd.IARequest{
 					SessionId:          tc.sessionID,
-					AuthenticationData: "some data",
+					AuthenticationData: &authd.IARequest_AuthenticationData{},
 				}
 				iaResp, err := client.IsAuthenticated(ctx, iaReq)
 				firstCall = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tmsg: %s\n\terr: %v\n",
@@ -438,7 +438,7 @@ func TestIsAuthenticated(t *testing.T) {
 			if tc.secondCall {
 				iaReq := &authd.IARequest{
 					SessionId:          tc.sessionID,
-					AuthenticationData: "some data",
+					AuthenticationData: &authd.IARequest_AuthenticationData{},
 				}
 				iaResp, err := client.IsAuthenticated(context.Background(), iaReq)
 				secondCall = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tmsg: %s\n\terr: %v\n",
