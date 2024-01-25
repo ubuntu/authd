@@ -594,7 +594,7 @@ func requireErrorAssertions(t *testing.T, gotErr, wantErr error, cacheDir string
 		if errors.Is(wantErr, cache.ErrNeedsClearing) {
 			require.ErrorIs(t, gotErr, cache.ErrNeedsClearing, "Error should be of the expected type")
 			// Give some time for the cleanup routine to run.
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 			requireNoDirtyFileInDir(t, cacheDir)
 			return
 		}
