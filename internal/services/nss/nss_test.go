@@ -16,6 +16,7 @@ import (
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
 	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
+	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -33,9 +34,8 @@ func TestNewService(t *testing.T) {
 	_ = nss.NewService(context.Background(), m)
 }
 
+//nolint:dupl // This is a dedicated test, not a duplicate.
 func TestGetPasswdByName(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		username string
 
@@ -53,7 +53,8 @@ func TestGetPasswdByName(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
@@ -64,10 +65,7 @@ func TestGetPasswdByName(t *testing.T) {
 	}
 }
 
-//nolint:dupl // This is a dedicated test, not a duplicate.
 func TestGetPasswdByUID(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		uid int
 
@@ -85,7 +83,8 @@ func TestGetPasswdByUID(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
@@ -97,8 +96,6 @@ func TestGetPasswdByUID(t *testing.T) {
 }
 
 func TestGetPasswdEntries(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		sourceDB string
 
@@ -112,7 +109,8 @@ func TestGetPasswdEntries(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
@@ -123,9 +121,8 @@ func TestGetPasswdEntries(t *testing.T) {
 	}
 }
 
+//nolint:dupl // This is a dedicated test, not a duplicate.
 func TestGetGroupByName(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		groupname string
 
@@ -143,7 +140,8 @@ func TestGetGroupByName(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
@@ -154,10 +152,7 @@ func TestGetGroupByName(t *testing.T) {
 	}
 }
 
-//nolint:dupl // This is a dedicated test, not a duplicate.
 func TestGetGroupByGID(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		gid int
 
@@ -175,7 +170,8 @@ func TestGetGroupByGID(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
@@ -187,8 +183,6 @@ func TestGetGroupByGID(t *testing.T) {
 }
 
 func TestGetGroupEntries(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		sourceDB string
 
@@ -202,7 +196,8 @@ func TestGetGroupEntries(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
@@ -213,9 +208,8 @@ func TestGetGroupEntries(t *testing.T) {
 	}
 }
 
+//nolint:dupl // This is a dedicated test, not a duplicate.
 func TestGetShadowByName(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		username string
 
@@ -233,7 +227,8 @@ func TestGetShadowByName(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
@@ -245,8 +240,6 @@ func TestGetShadowByName(t *testing.T) {
 }
 
 func TestGetShadowEntries(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		sourceDB string
 
@@ -260,7 +253,8 @@ func TestGetShadowEntries(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
@@ -269,6 +263,10 @@ func TestGetShadowEntries(t *testing.T) {
 			requireExpectedEntriesResult(t, "GetShadowEntries", got.GetEntries(), err, tc.wantErr)
 		})
 	}
+}
+
+func TestMockgpasswd(t *testing.T) {
+	grouptests.Mockgpasswd(t)
 }
 
 // newNSSClient returns a new GRPC PAM client for tests connected to the global brokerManager with the given user manager.
@@ -389,6 +387,11 @@ func requireExportedEquals[T authd.PasswdEntry | authd.GroupEntry | authd.Shadow
 }
 
 func TestMain(m *testing.M) {
+	// Needed to skip the test setup when running the gpasswd mock.
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
+		os.Exit(m.Run())
+	}
+
 	testutils.InstallUpdateFlag()
 	flag.Parse()
 
