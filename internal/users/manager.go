@@ -83,6 +83,9 @@ func NewManager(cacheDir string, args ...Option) (m *Manager, err error) {
 			if err := cache.RemoveDb(cacheDir); err != nil {
 				return nil, fmt.Errorf("could not clear database: %v", err)
 			}
+			if err := localgroups.Clean(); err != nil {
+				slog.Warn(fmt.Sprintf("Could not clean local groups: %v", err))
+			}
 			continue
 		} else if err != nil {
 			return nil, err
@@ -332,6 +335,10 @@ func (m *Manager) clear(cacheDir string) error {
 		slog.Warn(fmt.Sprintf("Could not remove dirty flag file: %v", err))
 	}
 
+	if err := localgroups.Clean(); err != nil {
+		return fmt.Errorf("could not clean local groups: %v", err)
+	}
+
 	return nil
 }
 
@@ -342,11 +349,18 @@ func (m *Manager) cleanExpiredUserData(opts *options) error {
 		return fmt.Errorf("could not get list of active users: %v", err)
 	}
 
-	if err := m.cache.CleanExpiredUsers(activeUsers, opts.expirationDate); err != nil {
+	cleanedUsers, err := m.cache.CleanExpiredUsers(activeUsers, opts.expirationDate)
+	if err != nil {
 		return fmt.Errorf("could not clean database of expired users: %v", err)
 	}
 
-	return nil
+	for _, u := range cleanedUsers {
+		err = localgroups.CleanUser(u)
+		if err != nil {
+			slog.Warn(fmt.Sprintf("Could not clean user %q from local groups: %v", u, err))
+		}
+	}
+	return err
 }
 
 // getActiveUsers walks through procDir and returns a map with the usernames of the owners of all active processes.

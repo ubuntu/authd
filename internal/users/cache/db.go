@@ -155,13 +155,13 @@ func openAndInitDB(path string) (*bbolt.DB, error) {
 }
 
 // CleanExpiredUsers removes from the cache any user that exceeded the maximum amount of days without authentication.
-func (c *Cache) CleanExpiredUsers(activeUsers map[string]struct{}, expirationDate time.Time) (err error) {
+func (c *Cache) CleanExpiredUsers(activeUsers map[string]struct{}, expirationDate time.Time) (cleanedUsers []string, err error) {
 	defer decorate.OnError(&err, "could not clean up database")
 
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	return c.db.Update(func(tx *bbolt.Tx) (err error) {
+	err = c.db.Update(func(tx *bbolt.Tx) (err error) {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
 			return err
@@ -186,11 +186,15 @@ func (c *Cache) CleanExpiredUsers(activeUsers map[string]struct{}, expirationDat
 			slog.Debug(fmt.Sprintf("Deleting expired user %q", u.Name))
 			if err := deleteUser(buckets, u.UID); err != nil {
 				slog.Warn(fmt.Sprintf("Could not delete user %q: %v", u.Name, err))
+				continue
 			}
+			cleanedUsers = append(cleanedUsers, u.Name)
 		}
 
 		return nil
 	})
+
+	return cleanedUsers, err
 }
 
 // Close closes the db and signal the monitoring goroutine to stop.

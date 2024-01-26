@@ -128,8 +128,8 @@ func computeGroupOperation(newGroupsInfo []string, currentLocalGroups []string) 
 	return groupsToAdd, groupsToRemove
 }
 
-// CleanUserFromLocalGroups removes the user from all local groups.
-func CleanUserFromLocalGroups(user string, args ...Option) (err error) {
+// CleanUser removes the user from all local groups.
+func CleanUser(user string, args ...Option) (err error) {
 	defer decorate.OnError(&err, "could not clean user %q from local groups", user)
 
 	opts := defaultOptions
@@ -154,8 +154,8 @@ func CleanUserFromLocalGroups(user string, args ...Option) (err error) {
 	return nil
 }
 
-// CleanLocalGroups removes all unexistent users from the local groups.
-func CleanLocalGroups(args ...Option) (err error) {
+// Clean removes all unexistent users from the local groups.
+func Clean(args ...Option) (err error) {
 	defer decorate.OnError(&err, "could not clean local groups completely")
 
 	opts := defaultOptions
