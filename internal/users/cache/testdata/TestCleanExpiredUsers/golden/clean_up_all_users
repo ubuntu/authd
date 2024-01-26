@@ -1,3 +1,6 @@
+Cleaned users: [user1 user2 user3]
+
+Resulting Database:
 GroupByID: {}
 GroupByName: {}
 GroupToUsers: {}

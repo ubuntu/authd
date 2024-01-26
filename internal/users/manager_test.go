@@ -13,12 +13,12 @@ import (
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/cache"
 	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
-	newusertests "github.com/ubuntu/authd/internal/users/tests"
+	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
+	usertests "github.com/ubuntu/authd/internal/users/tests"
+	"go.etcd.io/bbolt"
 )
 
 func TestNewManager(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		dbFile          string
 		corruptedDbFile bool
@@ -30,43 +30,45 @@ func TestNewManager(t *testing.T) {
 		cleanupInterval int
 		procDir         string
 
+		localGroupsFile string
+
 		wantErr bool
 	}{
 		"Successfully create a new manager": {},
 
-		// Clean up tests
-		"Clean up all users":  {dbFile: "only_old_users", expirationDate: "2020-01-01"},
-		"Clean up some users": {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01"},
-		"Clean up also cleans last selected broker for user":     {dbFile: "multiple_users_and_groups_with_brokers", expirationDate: "2020-01-01"},
-		"Clean up on interval":                                   {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01", cleanupInterval: 1, skipCleanOnNew: true},
-		"Clean up as much as possible if db has invalid entries": {dbFile: "invalid_entries_but_user_and_group1", expirationDate: "2020-01-01"},
-		"Clean up user even if it is not listed on the group":    {dbFile: "user_not_in_groupToUsers", expirationDate: "2020-01-01"},
-		"Do not clean any user":                                  {dbFile: "multiple_users_and_groups"},
-		"Do not clean active user":                               {dbFile: "active_user", expirationDate: "2020-01-01"},
-		"Do not prevent cache creation if cleanup fails":         {dbFile: "multiple_users_and_groups", procDir: "does-not-exist"},
-		"Do not stop cache if cleanup routine fails":             {dbFile: "multiple_users_and_groups", procDir: "does-not-exist", skipCleanOnNew: true, cleanupInterval: 1},
-		"Do not clean user if can not get groups":                {dbFile: "invalid_entry_in_userToGroups", expirationDate: "2020-01-01"},
-		"Do not clean user if can not delete user from group":    {dbFile: "invalid_entry_in_groupByID", expirationDate: "2020-01-01"},
+		// Clean up routine tests
+		"Clean up on interval": {expirationDate: "2020-01-01", cleanupInterval: 1, skipCleanOnNew: true},
+		"Do not prevent manager creation if cache cleanup fails":     {procDir: "does-not-exist"},
+		"Do not stop manager if cleanup routine fails":               {procDir: "does-not-exist", skipCleanOnNew: true, cleanupInterval: 1},
+		"Do not touch local groups if no user is cleaned from cache": {expirationDate: "2004-01-01"},
+		"Do not prevent manager creation if group cleanup fails":     {expirationDate: "2020-01-01", localGroupsFile: "gpasswdfail_in_deleted_group.group"},
 
 		// Corrupted databases
-		"New recreates any missing buckets and delete unknowns": {dbFile: "database_with_unknown_bucket"},
-		"Database flagged as dirty is cleared up":               {dbFile: "multiple_users_and_groups", dirtyFlag: true},
-		"Corrupted database when opening is cleared up":         {corruptedDbFile: true},
-		"Dynamically mark database as corrupted is cleared up":  {markDirty: true},
+		"New recreates any missing buckets and delete unknowns":          {dbFile: "database_with_unknown_bucket"},
+		"Database flagged as dirty is cleared up":                        {dirtyFlag: true},
+		"Corrupted database when opening is cleared up":                  {corruptedDbFile: true},
+		"Do not prevent manager creation if clearing local groups fails": {corruptedDbFile: true, localGroupsFile: "gpasswdfail_in_deleted_group.group"},
+		"Dynamically mark database as corrupted is cleared up":           {markDirty: true},
 
 		"Error if cacheDir does not exist": {dbFile: "-", wantErr: true},
 	}
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			if tc.localGroupsFile == "" {
+				tc.localGroupsFile = "users_in_groups.group"
+			}
+			destCmdsFile := grouptests.SetupGPasswdMock(t, tc.localGroupsFile)
 
 			cacheDir := t.TempDir()
+			if tc.dbFile == "" {
+				tc.dbFile = "multiple_users_and_groups"
+			}
 			if tc.dbFile == "-" {
 				err := os.RemoveAll(cacheDir)
 				require.NoError(t, err, "Setup: could not remove temporary cache directory")
 			} else if tc.dbFile != "" {
-				createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
+				createDBFile(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
 			if tc.dirtyFlag {
 				err := os.WriteFile(filepath.Join(cacheDir, usertests.DirtyFlagName), nil, 0600)
@@ -100,12 +102,15 @@ func TestNewManager(t *testing.T) {
 				return
 			}
 			require.NoError(t, err, "NewManager should not return an error, but did")
-			t.Cleanup(func() { _ = m.Stop() })
 
-			// Wait for the cleanup routine
-			time.Sleep(3 * time.Second)
+			if tc.markDirty {
+				m.RequestClearDatabase()
+			}
 
-			got, err := cachetests.DumpToYaml(newusertests.GetManagerCache(m))
+			// Sync on the clean up routine
+			m.WaitCleanupRoutineDone(t, users.WithCacheCleanupInterval(time.Second*time.Duration(tc.cleanupInterval)))
+
+			got, err := cachetests.DumpToYaml(usertests.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := testutils.LoadWithUpdateFromGolden(t, got)
@@ -113,21 +118,52 @@ func TestNewManager(t *testing.T) {
 
 			requireNoDirtyFileInDir(t, cacheDir)
 			if tc.corruptedDbFile {
-				requireClearedDatabase(t, newusertests.GetManagerCache(m))
+				requireClearedDatabase(t, usertests.GetManagerCache(m))
 			}
+
+			grouptests.RequireGPasswdOutput(t, destCmdsFile)
 		})
 	}
 }
 
-func TestUpdateUser(t *testing.T) {
-	t.Parallel()
+func TestStop(t *testing.T) {
+	destCmdsFile := grouptests.SetupGPasswdMock(t, "users_in_groups.group")
 
-	gid := 11111
+	cacheDir := t.TempDir()
+	err := os.WriteFile(filepath.Join(cacheDir, cachetests.DbName), []byte("Corrupted db"), 0600)
+	require.NoError(t, err, "Setup: Can't update the file with invalid db content")
+
+	m := newManagerForTests(t, cacheDir)
+	require.NoError(t, m.Stop(), "Stop should not return an error, but did")
+
+	// Should fail, because the cache is closed
+	_, err = usertests.GetManagerCache(m).AllUsers()
+	require.ErrorIs(t, err, bbolt.ErrDatabaseNotOpen, "AllUsers should return an error, but did not")
+
+	// Ensure that the manager only stopped after the routine was done.
+	grouptests.RequireGPasswdOutput(t, destCmdsFile)
+}
+
+func TestUpdateUser(t *testing.T) {
+	userCases := map[string]users.UserInfo{
+		"newuser": {
+			Name: "newuser",
+			UID:  1111,
+		},
+		"nameless": {
+			Name: "",
+			UID:  1111,
+		},
+		"user2": {
+			Name: "user2",
+			UID:  2222,
+		},
+	}
 
 	groupsCases := map[string][]users.GroupInfo{
 		"cloud-group": {{
 			Name: "group1",
-			GID:  &gid,
+			GID:  ptrValue(11111),
 		}},
 		"local-group": {{
 			Name: "localgroup1",
@@ -135,7 +171,7 @@ func TestUpdateUser(t *testing.T) {
 		}},
 		"mixed-groups-cloud-first": {{
 			Name: "group1",
-			GID:  &gid,
+			GID:  ptrValue(11111),
 		}, {
 			Name: "localgroup1",
 			GID:  nil,
@@ -145,66 +181,95 @@ func TestUpdateUser(t *testing.T) {
 			GID:  nil,
 		}, {
 			Name: "group1",
-			GID:  &gid,
+			GID:  ptrValue(11111),
+		}},
+		"mixed-groups-gpasswd-fail": {{
+			Name: "group1",
+			GID:  ptrValue(11111),
+		}, {
+			Name: "gpasswdfail",
+			GID:  nil,
+		}},
+		"nameless-group": {{
+			Name: "",
+			GID:  ptrValue(11111),
 		}},
 		"no-groups": {},
 	}
 
 	tests := map[string]struct {
+		userCase   string
 		groupsCase string
 
-		dbFile string
+		dbFile          string
+		localGroupsFile string
 
-		wantErr error
+		wantErr  error
+		noOutput bool
 	}{
-		"Successfully update user": {groupsCase: "cloud-group"},
-		"Local groups get ignored": {groupsCase: "mixed-groups-cloud-first"},
+		"Successfully update user":                       {groupsCase: "cloud-group"},
+		"Successfully update user updating local groups": {groupsCase: "mixed-groups-cloud-first", localGroupsFile: "users_in_groups.group"},
 
-		"Error if no groups were provided":          {groupsCase: "no-groups", wantErr: shouldError{}},
-		"Error if only local group was provided":    {groupsCase: "local-group", wantErr: shouldError{}},
-		"Error if local group is the default group": {groupsCase: "mixed-groups-local-first", wantErr: shouldError{}},
+		"Error if user has no username":             {userCase: "nameless", wantErr: shouldError{}, noOutput: true},
+		"Error if group has no name":                {groupsCase: "nameless-group", wantErr: shouldError{}, noOutput: true},
+		"Error if no groups were provided":          {groupsCase: "no-groups", wantErr: shouldError{}, noOutput: true},
+		"Error if only local group was provided":    {groupsCase: "local-group", wantErr: shouldError{}, noOutput: true},
+		"Error if local group is the default group": {groupsCase: "mixed-groups-local-first", wantErr: shouldError{}, noOutput: true},
 
-		"Invalid entry clears the database": {groupsCase: "cloud-group", dbFile: "invalid_entry_in_userToGroups", wantErr: cache.ErrNeedsClearing},
+		"Error when updating local groups remove user from db":                              {groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: shouldError{}},
+		"Error when updating local groups remove user from db without touching other users": {dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: shouldError{}},
+		"Error when updating local groups remove user from db even if already existed":      {userCase: "user2", dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: shouldError{}},
+
+		"Invalid entry clears the database": {groupsCase: "cloud-group", dbFile: "invalid_entry_in_userToGroups", localGroupsFile: "users_in_groups.group", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			user := users.UserInfo{
-				Name:   "user1",
-				UID:    1111,
-				Gecos:  "gecos for user1",
-				Dir:    "/home/user1",
-				Shell:  "/bin/bash",
-				Groups: groupsCases[tc.groupsCase],
+			if tc.localGroupsFile == "" {
+				t.Parallel()
 			}
+
+			var destCmdsFile string
+			if tc.localGroupsFile != "" {
+				destCmdsFile = grouptests.SetupGPasswdMock(t, tc.localGroupsFile)
+			}
+
+			if tc.userCase == "" {
+				tc.userCase = "newuser"
+			}
+
+			user := userCases[tc.userCase]
+			user.Dir = "/home/" + user.Name
+			user.Shell = "/bin/bash"
+			user.Gecos = "gecos for " + user.Name
+			user.Groups = groupsCases[tc.groupsCase]
 
 			cacheDir := t.TempDir()
 			if tc.dbFile != "" {
-				createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
+				createDBFile(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
-
 			m := newManagerForTests(t, cacheDir)
 
 			err := m.UpdateUser(user)
+			m.WaitCleanupRoutineDone(t)
+
 			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
-			if tc.wantErr != nil {
+			if tc.wantErr != nil && tc.noOutput {
 				return
 			}
 
-			got, err := cachetests.DumpToYaml(newusertests.GetManagerCache(m))
+			got, err := cachetests.DumpToYaml(usertests.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
+
+			grouptests.RequireGPasswdOutput(t, destCmdsFile)
 		})
 	}
 }
 
 func TestBrokerForUser(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		username string
 		dbFile   string
@@ -220,26 +285,27 @@ func TestBrokerForUser(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about the output of gpasswd in this test, but we still need to mock it.
+			_ = grouptests.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
-
+			createDBFile(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			brokerID, err := m.BrokerForUser(tc.username)
+			m.WaitCleanupRoutineDone(t)
+
 			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
 			if tc.wantErr != nil {
 				return
 			}
+
 			require.Equal(t, "ExampleBrokerID", brokerID, "BrokerForUser should return the expected brokerID, but did not")
 		})
 	}
 }
 
 func TestUpdateBrokerForUser(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		username string
 
@@ -255,7 +321,8 @@ func TestUpdateBrokerForUser(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about the output of gpasswd in this test, but we still need to mock it.
+			_ = grouptests.SetupGPasswdMock(t, "empty.group")
 
 			if tc.username == "" {
 				tc.username = "user1"
@@ -265,17 +332,18 @@ func TestUpdateBrokerForUser(t *testing.T) {
 			}
 
 			cacheDir := t.TempDir()
-			createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
-
+			createDBFile(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			err := m.UpdateBrokerForUser(tc.username, "ExampleBrokerID")
+			m.WaitCleanupRoutineDone(t)
+
 			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
 			if tc.wantErr != nil {
 				return
 			}
 
-			got, err := cachetests.DumpToYaml(newusertests.GetManagerCache(m))
+			got, err := cachetests.DumpToYaml(usertests.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
@@ -286,8 +354,6 @@ func TestUpdateBrokerForUser(t *testing.T) {
 
 //nolint:dupl // This is not a duplicate test
 func TestUserByName(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		username string
 		dbFile   string
@@ -302,14 +368,16 @@ func TestUserByName(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about the output of gpasswd in this test, but we still need to mock it.
+			_ = grouptests.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
-
+			createDBFile(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.UserByName(tc.username)
+			m.WaitCleanupRoutineDone(t)
+
 			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
 			if tc.wantErr != nil {
 				return
@@ -322,8 +390,6 @@ func TestUserByName(t *testing.T) {
 }
 
 func TestUserByID(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		uid    int
 		dbFile string
@@ -338,14 +404,17 @@ func TestUserByID(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about the output of gpasswd in this test, but we still need to mock it.
+			_ = grouptests.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
+			createDBFile(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.UserByID(tc.uid)
+			m.WaitCleanupRoutineDone(t)
+
 			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
 			if tc.wantErr != nil {
 				return
@@ -358,8 +427,6 @@ func TestUserByID(t *testing.T) {
 }
 
 func TestAllUsers(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		dbFile string
 
@@ -372,14 +439,16 @@ func TestAllUsers(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about the output of gpasswd in this test, but we still need to mock it.
+			_ = grouptests.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
-
+			createDBFile(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.AllUsers()
+			m.WaitCleanupRoutineDone(t)
+
 			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
 			if tc.wantErr != nil {
 				return
@@ -393,8 +462,6 @@ func TestAllUsers(t *testing.T) {
 
 //nolint:dupl // This is not a duplicate test
 func TestGroupByName(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		groupname string
 		dbFile    string
@@ -409,14 +476,16 @@ func TestGroupByName(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about the output of gpasswd in this test, but we still need to mock it.
+			_ = grouptests.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
-
+			createDBFile(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.GroupByName(tc.groupname)
+			m.WaitCleanupRoutineDone(t)
+
 			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
 			if tc.wantErr != nil {
 				return
@@ -429,8 +498,6 @@ func TestGroupByName(t *testing.T) {
 }
 
 func TestGroupByID(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		gid    int
 		dbFile string
@@ -445,14 +512,16 @@ func TestGroupByID(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about the output of gpasswd in this test, but we still need to mock it.
+			_ = grouptests.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
-
+			createDBFile(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.GroupByID(tc.gid)
+			m.WaitCleanupRoutineDone(t)
+
 			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
 			if tc.wantErr != nil {
 				return
@@ -465,8 +534,6 @@ func TestGroupByID(t *testing.T) {
 }
 
 func TestAllGroups(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		dbFile string
 
@@ -479,14 +546,17 @@ func TestAllGroups(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about the output of gpasswd in this test, but we still need to mock it.
+			_ = grouptests.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
+			createDBFile(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.AllGroups()
+			m.WaitCleanupRoutineDone(t)
+
 			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
 			if tc.wantErr != nil {
 				return
@@ -500,8 +570,6 @@ func TestAllGroups(t *testing.T) {
 
 //nolint:dupl // This is not a duplicate test
 func TestShadowByName(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		username string
 		dbFile   string
@@ -516,14 +584,17 @@ func TestShadowByName(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about the output of gpasswd in this test, but we still need to mock it.
+			_ = grouptests.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
+			createDBFile(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.ShadowByName(tc.username)
+			m.WaitCleanupRoutineDone(t)
+
 			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
 			if tc.wantErr != nil {
 				return
@@ -536,8 +607,6 @@ func TestShadowByName(t *testing.T) {
 }
 
 func TestAllShadows(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		dbFile string
 
@@ -550,14 +619,17 @@ func TestAllShadows(t *testing.T) {
 	for name, tc := range tests {
 		tc := tc
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
+			// We don't care about the output of gpasswd in this test, but we still need to mock it.
+			_ = grouptests.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
+			createDBFile(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.AllShadows()
+			m.WaitCleanupRoutineDone(t)
+
 			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
 			if tc.wantErr != nil {
 				return
@@ -567,6 +639,10 @@ func TestAllShadows(t *testing.T) {
 			require.Equal(t, want, got, "AllShadows should return the expected users, but did not")
 		})
 	}
+}
+
+func TestMockgpasswd(t *testing.T) {
+	grouptests.Mockgpasswd(t)
 }
 
 func createDBFile(t *testing.T, src, destDir string) {
@@ -592,8 +668,6 @@ func requireErrorAssertions(t *testing.T, gotErr, wantErr error, cacheDir string
 		}
 		if errors.Is(wantErr, cache.ErrNeedsClearing) {
 			require.ErrorIs(t, gotErr, cache.ErrNeedsClearing, "Error should be of the expected type")
-			// Give some time for the cleanup routine to run.
-			time.Sleep(100 * time.Millisecond)
 			requireNoDirtyFileInDir(t, cacheDir)
 			return
 		}
@@ -634,12 +708,19 @@ func newManagerForTests(t *testing.T, cacheDir string) *users.Manager {
 
 	m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration), users.WithoutCleaningCacheOnNew())
 	require.NoError(t, err, "NewManager should not return an error, but did")
-	t.Cleanup(func() { _ = m.Stop() })
 
 	return m
 }
 
+func ptrValue[T any](v T) *T {
+	return &v
+}
+
 func TestMain(m *testing.M) {
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
+		os.Exit(m.Run())
+	}
+
 	testutils.InstallUpdateFlag()
 	flag.Parse()
 

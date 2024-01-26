@@ -6,6 +6,7 @@ package tests
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -14,6 +15,7 @@ import (
 	_ "unsafe"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/testutils"
 )
 
 var (
@@ -105,4 +107,50 @@ func Mockgpasswd(_ *testing.T) {
 		f.Close()
 		os.Exit(1)
 	}
+}
+
+// SetupGPasswdMock setup the gpasswd mock and return the path to the file where the commands will be written.
+//
+// Tests that require this can not be run in parallel.
+func SetupGPasswdMock(t *testing.T, localGroupsFile string) string {
+	t.Helper()
+
+	destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
+	groupFilePath := filepath.Join("testdata", "groups", localGroupsFile)
+
+	gpasswd := []string{"env", "GO_WANT_HELPER_PROCESS=1",
+		fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
+		fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
+		os.Args[0], "-test.run=TestMockgpasswd", "--"}
+
+	OverrideDefaultOptions(t, groupFilePath, gpasswd, nil)
+
+	return destCmdsFile
+}
+
+// RequireGPasswdOutput compare the output of gpasswd with the golden file.
+func RequireGPasswdOutput(t *testing.T, destCmdsFile string) {
+	t.Helper()
+
+	// TODO: this should be extracted in testutils, but still allow post-treatement of file like sorting.
+	goldenGpasswdPath := filepath.Join(testutils.GoldenPath(t) + ".gpasswd.output")
+	referenceFilePath := goldenGpasswdPath
+	if testutils.Update() {
+		// The file may already not exists.
+		_ = os.Remove(goldenGpasswdPath)
+		referenceFilePath = destCmdsFile
+	}
+
+	var shouldExists bool
+	if _, err := os.Stat(referenceFilePath); err == nil {
+		shouldExists = true
+	}
+	if !shouldExists {
+		require.NoFileExists(t, destCmdsFile, "UpdateLocalGroups should not call gpasswd by did")
+		return
+	}
+
+	gotGPasswd := IdempotentGPasswdOutput(t, destCmdsFile)
+	wantGPasswd := testutils.LoadWithUpdateFromGolden(t, gotGPasswd, testutils.WithGoldenPath(goldenGpasswdPath))
+	require.Equal(t, wantGPasswd, gotGPasswd, "IsAuthenticated should return the expected combined data, but did not")
 }

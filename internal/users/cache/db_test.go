@@ -2,10 +2,13 @@ package cache_test
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
+	"os/user"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
@@ -26,10 +29,12 @@ func TestNew(t *testing.T) {
 
 		wantErr bool
 	}{
-		"New without any initialized database": {},
-		"New with already existing database":   {dbFile: "multiple_users_and_groups"},
+		"New without any initialized database":                  {},
+		"New with already existing database":                    {dbFile: "multiple_users_and_groups"},
+		"New recreates any missing buckets and delete unknowns": {dbFile: "database_with_unknown_bucket"},
 
 		"Error on cacheDir non existent cacheDir":      {dbFile: "-", wantErr: true},
+		"Error on corrupted db file":                   {corruptedDbFile: true, wantErr: true},
 		"Error on invalid permission on database file": {dbFile: "multiple_users_and_groups", perm: &perm0644, wantErr: true},
 		"Error on unreadable database file":            {dbFile: "multiple_users_and_groups", perm: &perm0000, wantErr: true},
 	}
@@ -46,6 +51,10 @@ func TestNew(t *testing.T) {
 				require.NoError(t, err, "Setup: could not remove temporary cache directory")
 			} else if tc.dbFile != "" {
 				createDBFile(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
+			}
+			if tc.corruptedDbFile {
+				err := os.WriteFile(dbDestPath, []byte("corrupted"), 0600)
+				require.NoError(t, err, "Setup: could not write corrupted database file")
 			}
 
 			if tc.perm != nil {
@@ -456,6 +465,93 @@ func TestClear(t *testing.T) {
 			got, err := cachetests.DumpToYaml(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
+			want := testutils.LoadWithUpdateFromGolden(t, got)
+			require.Equal(t, want, got, "Did not get expected database content")
+		})
+	}
+}
+
+func TestCleanExpiredUsers(t *testing.T) {
+	t.Parallel()
+
+	username := "root"
+	currentUser, err := user.Current()
+	require.NoError(t, err, "Setup: should be able to get current user")
+	if currentUser.Name != "" {
+		username = currentUser.Name
+	}
+
+	tests := map[string]struct {
+		dbFile string
+
+		expirationDate string
+	}{
+		"Clean up all users":  {dbFile: "only_old_users", expirationDate: "2020-01-01"},
+		"Clean up some users": {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01"},
+		"Clean up as much as possible if db has invalid entries": {dbFile: "invalid_entries_but_user_and_group1", expirationDate: "2020-01-01"},
+		"Clean up also cleans last selected broker for user":     {dbFile: "multiple_users_and_groups_with_brokers", expirationDate: "2020-01-01"},
+		"Clean up user even if it is not listed on the group":    {dbFile: "user_not_in_groupToUsers", expirationDate: "2020-01-01"},
+
+		"Do not clean any users":                              {dbFile: "multiple_users_and_groups", expirationDate: "2004-01-01"},
+		"Do not clean active user":                            {dbFile: "active_user", expirationDate: "2020-01-01"},
+		"Do not clean user if can not get groups":             {dbFile: "invalid_entry_in_userToGroups", expirationDate: "2020-01-01"},
+		"Do not clean user if can not delete user from group": {dbFile: "invalid_entry_in_groupByID", expirationDate: "2020-01-01"},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			c := initCache(t, tc.dbFile)
+
+			expirationDate, err := time.Parse(time.DateOnly, tc.expirationDate)
+			require.NoError(t, err, "Setup: should be able to parse expiration date")
+
+			activeUsers := map[string]struct{}{username: {}}
+			cleanedUsers, err := c.CleanExpiredUsers(activeUsers, expirationDate)
+			require.NoError(t, err, "CleanExpiredUsers should not return an error")
+
+			gotDump, err := cachetests.DumpToYaml(c)
+			require.NoError(t, err, "Created database should be valid yaml content")
+
+			got := fmt.Sprintf("Cleaned users: %s\n\nResulting Database:\n%s", cleanedUsers, gotDump)
+
+			want := testutils.LoadWithUpdateFromGolden(t, got)
+			require.Equal(t, want, got, "Did not get expected database content")
+		})
+	}
+}
+
+func TestDeleteUser(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		dbFile string
+
+		wantErrType error
+	}{
+		"Delete existing user":                            {dbFile: "one_user_and_group"},
+		"Delete existing user keeping other users intact": {dbFile: "multiple_users_and_groups"},
+
+		"Error on missing user":           {wantErrType: cache.NoDataFoundError{}},
+		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByID", wantErrType: cache.ErrNeedsClearing},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			c := initCache(t, tc.dbFile)
+
+			err := c.DeleteUser(1111)
+			if tc.wantErrType != nil {
+				require.ErrorIs(t, err, tc.wantErrType, "DeleteUser should return expected error")
+				return
+			}
+			require.NoError(t, err, "DeleteUser should not return an error")
+
+			got, err := cachetests.DumpToYaml(c)
+			require.NoError(t, err, "Created database should be valid yaml content")
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
 		})

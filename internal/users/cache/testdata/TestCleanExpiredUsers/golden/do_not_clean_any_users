@@ -1,3 +1,6 @@
+Cleaned users: []
+
+Resulting Database:
 GroupByID:
     "11111": '{"Name":"group1","GID":11111}'
     "22222": '{"Name":"group2","GID":22222}'

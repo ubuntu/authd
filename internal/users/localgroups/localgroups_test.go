@@ -16,12 +16,10 @@ import (
 func TestUpdateLocalGroups(t *testing.T) {
 	t.Parallel()
 
-	gid1 := 42424242
-
 	tests := map[string]struct {
-		user string
+		username string
 
-		groups        []users.GroupInfo
+		groups        []string
 		groupFilePath string
 
 		wantErr bool
@@ -45,16 +43,14 @@ func TestUpdateLocalGroups(t *testing.T) {
 		"Group file with empty line is ignored": {groupFilePath: "empty_line.group"},
 
 		// No group
-		"No-Op for user with no groups and was in none": {groups: []users.GroupInfo{}, groupFilePath: "no_users_in_our_groups.group"},
-		"Remove user with no groups from existing ones": {groups: []users.GroupInfo{}, groupFilePath: "user_in_both_groups.group"},
+		"No-Op for user with no groups and was in none": {groups: []string{}, groupFilePath: "no_users_in_our_groups.group"},
+		"Remove user with no groups from existing ones": {groups: []string{}, groupFilePath: "user_in_both_groups.group"},
 
 		// Error cases
 		"Error on missing groups file":                {groupFilePath: "does_not_exists.group", wantErr: true},
 		"Error when groups file is malformed":         {groupFilePath: "malformed_file.group", wantErr: true},
-		"Error on any unignored add gpasswd error":    {user: "gpasswdfail", groupFilePath: "no_users.group", wantErr: true},
-		"Error on any unignored delete gpasswd error": {user: "gpasswdfail", groupFilePath: "gpasswdfail_in_deleted_group.group", wantErr: true},
-		"Error on empty user name":                    {user: "-", groupFilePath: "no_users.group", wantErr: true},
-		"Error on empty group name":                   {groups: []users.GroupInfo{{Name: ""}}, groupFilePath: "no_users.group", wantErr: true},
+		"Error on any unignored add gpasswd error":    {username: "gpasswdfail", groupFilePath: "no_users.group", wantErr: true},
+		"Error on any unignored delete gpasswd error": {username: "gpasswdfail", groupFilePath: "gpasswdfail_in_deleted_group.group", wantErr: true},
 	}
 	for name, tc := range tests {
 		name := name
@@ -63,30 +59,14 @@ func TestUpdateLocalGroups(t *testing.T) {
 			t.Parallel()
 
 			if tc.groups == nil {
-				tc.groups = []users.GroupInfo{
-					{ // this group should be ignored (still on the file to ensure we don’t match it)
-						Name: "cloudgroup1",
-						GID:  &gid1,
-					},
-					{
-						Name: "localgroup1",
-					},
-					{
-						Name: "localgroup3",
-					},
-				}
+				tc.groups = []string{"localgroup1", "localgroup3"}
 			}
 
-			switch tc.user {
+			switch tc.username {
 			case "":
-				tc.user = "myuser"
+				tc.username = "myuser"
 			case "-":
-				tc.user = ""
-			}
-
-			u := users.UserInfo{
-				Name:   tc.user,
-				Groups: tc.groups,
+				tc.username = ""
 			}
 
 			destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
@@ -97,7 +77,7 @@ func TestUpdateLocalGroups(t *testing.T) {
 				fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
 				os.Args[0], "-test.run=TestMockgpasswd", "--"}
 
-			err := u.UpdateLocalGroups(users.WithGroupPath(groupFilePath), users.WithGpasswdCmd(cmdArgs))
+			err := localgroups.Update(tc.username, tc.groups, localgroups.WithGroupPath(groupFilePath), localgroups.WithGpasswdCmd(cmdArgs))
 			if tc.wantErr {
 				require.Error(t, err, "UpdateLocalGroups should have failed")
 			} else {
@@ -171,7 +151,7 @@ func TestCleanLocalGroups(t *testing.T) {
 				localgroups.WithGroupPath(groupFilePath),
 				localgroups.WithGetUsersFunc(func() []string { return tc.getUsersReturn }),
 			}
-			err := localgroups.CleanLocalGroups(cleanupOptions...)
+			err := localgroups.Clean(cleanupOptions...)
 			if tc.wantErr {
 				require.Error(t, err, "CleanupLocalGroups should have failed")
 			} else {
@@ -248,7 +228,7 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 				localgroups.WithGpasswdCmd(gpasswdCmd),
 				localgroups.WithGroupPath(groupFilePath),
 			}
-			err := localgroups.CleanUserFromLocalGroups(tc.username, cleanupOptions...)
+			err := localgroups.CleanUser(tc.username, cleanupOptions...)
 			if tc.wantErr {
 				require.Error(t, err, "CleanUserFromLocalGroups should have failed")
 			} else {
