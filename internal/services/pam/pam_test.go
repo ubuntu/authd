@@ -370,15 +370,9 @@ func TestIsAuthenticated(t *testing.T) {
 				t.Parallel()
 			}
 
-			destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
-
+			var destCmdsFile string
 			if tc.localGroupsFile != "" {
-				groupFilePath := filepath.Join(testutils.TestFamilyPath(t), tc.localGroupsFile)
-				gpasswd := []string{"env", "GO_WANT_HELPER_PROCESS=1",
-					fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
-					fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
-					os.Args[0], "-test.run=TestMockgpasswd", "--"}
-				grouptests.OverrideDefaultOptions(t, groupFilePath, gpasswd, nil)
+				destCmdsFile = grouptests.SetupGPasswdMock(t, filepath.Join(testutils.TestFamilyPath(t), tc.localGroupsFile))
 			}
 
 			cacheDir := t.TempDir()
@@ -459,29 +453,7 @@ func TestIsAuthenticated(t *testing.T) {
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
 
-			// Finally, check the group file gpasswd commands.
-			// TODO: this should be extracted in testutils, but still allow post-treatement of file like sorting.
-			// Always check the golden files missing for no-op too on error.
-			goldenGpasswdPath := filepath.Join(testutils.GoldenPath(t), "gpasswd.output")
-			referenceFilePath := goldenGpasswdPath
-			if testutils.Update() {
-				// The file may already not exists.
-				_ = os.Remove(testutils.GoldenPath(t))
-				referenceFilePath = destCmdsFile
-			}
-
-			var shouldExists bool
-			if _, err := os.Stat(referenceFilePath); err == nil {
-				shouldExists = true
-			}
-			if !shouldExists {
-				require.NoFileExists(t, destCmdsFile, "UpdateLocalGroups should not call gpasswd by did")
-				return
-			}
-
-			gotGPasswd := grouptests.IdempotentGPasswdOutput(t, destCmdsFile)
-			wantGPasswd := testutils.LoadWithUpdateFromGolden(t, gotGPasswd, testutils.WithGoldenPath(goldenGpasswdPath))
-			require.Equal(t, wantGPasswd, gotGPasswd, "IsAuthenticated should return the expected combined data, but did not")
+			grouptests.RequireGPasswdOutput(t, destCmdsFile, filepath.Join(testutils.GoldenPath(t), "gpasswd.output"))
 		})
 	}
 }
