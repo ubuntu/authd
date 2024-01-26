@@ -209,10 +209,6 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 			return nil, err
 		}
 
-		if err := user.UpdateLocalGroups(); err != nil {
-			return nil, err
-		}
-
 		// The data is not the message for the user then.
 		data = ""
 	}

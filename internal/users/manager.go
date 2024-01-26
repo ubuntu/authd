@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/internal/users/localgroups"
 	"github.com/ubuntu/decorate"
 )
 
@@ -117,6 +118,9 @@ func (m *Manager) Stop() error {
 func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	defer decorate.OnError(&err, "failed to update user %q", u.Name)
 
+	if u.Name == "" {
+		return errors.New("empty username")
+	}
 	if len(u.Groups) == 0 {
 		return fmt.Errorf("no group provided for user %s (%v)", u.Name, u.UID)
 	}
@@ -125,9 +129,15 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	}
 
 	var groupContents []cache.GroupDB
+	var localGroups []string
 	for _, g := range u.Groups {
-		// System group: ignore here, not part of the cache.
+		if g.Name == "" {
+			return fmt.Errorf("empty group name for user %q", u.Name)
+		}
+
+		// Empty GID assume local group
 		if g.GID == nil {
+			localGroups = append(localGroups, g.Name)
 			continue
 		}
 		groupContents = append(groupContents, cache.NewGroupDB(g.Name, *g.GID, nil))
@@ -137,6 +147,11 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	userDB := cache.NewUserDB(u.Name, u.UID, *u.Groups[0].GID, u.Gecos, u.Dir, u.Shell)
 	if err := m.cache.UpdateUserEntry(userDB, groupContents); err != nil {
 		return m.shouldClearDb(err)
+	}
+
+	// Update local groups.
+	if err := localgroups.Update(u.Name, localGroups); err != nil {
+		return errors.Join(err, m.shouldClearDb(m.cache.DeleteUser(u.UID)))
 	}
 
 	return nil

@@ -23,42 +23,32 @@ type options struct {
 // Option represents an optional function to override UpdateLocalGroups default values.
 type Option func(*options)
 
-// UpdateLocalGroups synchronizes for the given user the local group list with the current group list from UserInfo.
-func (u *UserInfo) UpdateLocalGroups(args ...Option) (err error) {
-	defer decorate.OnError(&err, "could not update local groups for user %q", u.Name)
-
-	if u.Name == "" {
-		return errors.New("empty user name")
-	}
-
-	for _, g := range u.Groups {
-		if g.Name == "" && g.GID == nil {
-			return errors.New("empty group provided")
-		}
-	}
+// Update synchronizes for the given user the local group list with the current group list from UserInfo.
+func Update(username string, groups []string, args ...Option) (err error) {
+	defer decorate.OnError(&err, "could not update local groups for user %q", username)
 
 	opts := defaultOptions
 	for _, arg := range args {
 		arg(&opts)
 	}
 
-	currentLocalGroups, err := existingLocalGroups(u.Name, opts.groupPath)
+	currentLocalGroups, err := existingLocalGroups(username, opts.groupPath)
 	if err != nil {
 		return err
 	}
 
-	groupsToAdd, groupsToRemove := computeGroupOperation(u.Groups, currentLocalGroups)
+	groupsToAdd, groupsToRemove := computeGroupOperation(groups, currentLocalGroups)
 
 	for _, g := range groupsToRemove {
 		args := opts.gpasswdCmd[1:]
-		args = append(args, "--delete", u.Name, g)
+		args = append(args, "--delete", username, g)
 		if err := runGPasswd(opts.gpasswdCmd[0], args...); err != nil {
 			return err
 		}
 	}
 	for _, g := range groupsToAdd {
 		args := opts.gpasswdCmd[1:]
-		args = append(args, "--add", u.Name, g)
+		args = append(args, "--add", username, g)
 		if err := runGPasswd(opts.gpasswdCmd[0], args...); err != nil {
 			return err
 		}
@@ -108,13 +98,10 @@ func existingLocalGroups(user, groupPath string) (groups []string, err error) {
 
 // computeGroupOperation returns which local groups to add and which to remove comparing with the existing group state.
 // Only local groups (with no GID) are considered from GroupInfo.
-func computeGroupOperation(newGroupsInfo []GroupInfo, currentLocalGroups []string) (groupsToAdd []string, groupsToRemove []string) {
+func computeGroupOperation(newGroupsInfo []string, currentLocalGroups []string) (groupsToAdd []string, groupsToRemove []string) {
 	newGroups := make(map[string]struct{})
 	for _, grp := range newGroupsInfo {
-		if grp.GID != nil {
-			continue
-		}
-		newGroups[grp.Name] = struct{}{}
+		newGroups[grp] = struct{}{}
 	}
 
 	currGroups := make(map[string]struct{})

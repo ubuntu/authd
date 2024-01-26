@@ -7,7 +7,29 @@ import (
 	"strconv"
 
 	"github.com/ubuntu/decorate"
+	"go.etcd.io/bbolt"
 )
+
+// DeleteUser removes the user from the database.
+func (c *Cache) DeleteUser(uid int) error {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	return c.db.Update(func(tx *bbolt.Tx) error {
+		buckets, err := getAllBuckets(tx)
+		if err != nil {
+			return errors.Join(ErrNeedsClearing, err)
+		}
+
+		if err := deleteUser(buckets, uid); err != nil {
+			if !errors.Is(err, NoDataFoundError{}) {
+				return errors.Join(ErrNeedsClearing, err)
+			}
+			return err
+		}
+		return nil
+	})
+}
 
 // deleteUserFromGroup removes the uid from the group.
 // If the group is empty after the uid gets removed, the group is deleted from the database.
