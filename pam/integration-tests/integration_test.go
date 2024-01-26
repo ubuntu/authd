@@ -13,7 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
-	usertests "github.com/ubuntu/authd/internal/users/tests"
+	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 )
 
 var daemonPath string
@@ -104,7 +104,7 @@ func TestCLIIntegration(t *testing.T) {
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
 			if tc.tape == "local_group" {
-				got := usertests.IdempotentGPasswdOutput(t, filepath.Join(outDir, "gpasswd.output"))
+				got := grouptests.IdempotentGPasswdOutput(t, filepath.Join(outDir, "gpasswd.output"))
 				want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(testutils.GoldenPath(t)+".gpasswd_out"))
 				require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
 			}
@@ -128,7 +128,7 @@ func buildPAM(execPath string) (cleanup func(), err error) {
 }
 
 func TestMockgpasswd(t *testing.T) {
-	usertests.Mockgpasswd(t)
+	grouptests.Mockgpasswd(t)
 }
 
 // appendGoBinToPath returns the value of the GOPATH defined in go env appended to PATH.

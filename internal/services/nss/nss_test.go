@@ -12,10 +12,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/newusers"
-	cachetests "github.com/ubuntu/authd/internal/newusers/cache/tests"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/users"
+	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -26,7 +26,7 @@ import (
 func TestNewService(t *testing.T) {
 	t.Parallel()
 
-	m, err := newusers.NewManager(t.TempDir())
+	m, err := users.NewManager(t.TempDir())
 	require.NoError(t, err, "Setup: could not create user manager")
 	t.Cleanup(func() { _ = m.Stop() })
 
@@ -272,7 +272,7 @@ func TestGetShadowEntries(t *testing.T) {
 }
 
 // newNSSClient returns a new GRPC PAM client for tests connected to the global brokerManager with the given user manager.
-func newNSSClient(t *testing.T, m *newusers.Manager) (client authd.NSSClient) {
+func newNSSClient(t *testing.T, m *users.Manager) (client authd.NSSClient) {
 	t.Helper()
 
 	// socket path is limited in length.
@@ -306,7 +306,7 @@ func newNSSClient(t *testing.T, m *newusers.Manager) (client authd.NSSClient) {
 }
 
 // newManagerForTests returns a cache object cleaned up with the test ends.
-func newManagerForTests(t *testing.T, sourceDB string) *newusers.Manager {
+func newManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 	t.Helper()
 
 	cacheDir := t.TempDir()
@@ -324,7 +324,7 @@ func newManagerForTests(t *testing.T, sourceDB string) *newusers.Manager {
 	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 	require.NoError(t, err, "Setup: could not parse time for testing")
 
-	m, err := newusers.NewManager(cacheDir, newusers.WithUserExpirationDate(expiration))
+	m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
 	require.NoError(t, err, "Setup: could not create user manager")
 
 	t.Cleanup(func() { _ = m.Stop() })

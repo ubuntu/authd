@@ -7,19 +7,19 @@ import (
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/newusers"
+	"github.com/ubuntu/authd/internal/users"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 // Service is the implementation of the NSS module service.
 type Service struct {
-	userManager *newusers.Manager
+	userManager *users.Manager
 	authd.UnimplementedNSSServer
 }
 
 // NewService returns a new NSS GRPC service.
-func NewService(ctx context.Context, userManager *newusers.Manager) Service {
+func NewService(ctx context.Context, userManager *users.Manager) Service {
 	log.Debug(ctx, "Building new GRPC NSS service")
 
 	return Service{
@@ -132,7 +132,7 @@ func (s Service) GetShadowEntries(ctx context.Context, req *authd.Empty) (*authd
 }
 
 // nssPasswdFromUsersPasswd returns a PasswdEntry from users.UserEntry.
-func nssPasswdFromUsersPasswd(u newusers.UserEntry) *authd.PasswdEntry {
+func nssPasswdFromUsersPasswd(u users.UserEntry) *authd.PasswdEntry {
 	return &authd.PasswdEntry{
 		Name:    u.Name,
 		Passwd:  "x",
@@ -145,7 +145,7 @@ func nssPasswdFromUsersPasswd(u newusers.UserEntry) *authd.PasswdEntry {
 }
 
 // nssGroupFromUsersGroup returns a GroupEntry from users.GroupEntry.
-func nssGroupFromUsersGroup(g newusers.GroupEntry) *authd.GroupEntry {
+func nssGroupFromUsersGroup(g users.GroupEntry) *authd.GroupEntry {
 	return &authd.GroupEntry{
 		Name:    g.Name,
 		Passwd:  "x",
@@ -155,7 +155,7 @@ func nssGroupFromUsersGroup(g newusers.GroupEntry) *authd.GroupEntry {
 }
 
 // nssShadowFromUsersShadow returns a ShadowEntry from users.ShadowEntry.
-func nssShadowFromUsersShadow(u newusers.ShadowEntry) *authd.ShadowEntry {
+func nssShadowFromUsersShadow(u users.ShadowEntry) *authd.ShadowEntry {
 	return &authd.ShadowEntry{
 		Name:               u.Name,
 		Passwd:             "x",
@@ -171,7 +171,7 @@ func nssShadowFromUsersShadow(u newusers.ShadowEntry) *authd.ShadowEntry {
 // noDataFoundErrorToGRPCError converts a data not found to proper GRPC status code.
 // This code is picked up by the NSS module to return corresponding NSS status.
 func noDataFoundErrorToGRPCError(err error) error {
-	if !errors.Is(err, newusers.ErrNoDataFound{}) {
+	if !errors.Is(err, users.ErrNoDataFound{}) {
 		return err
 	}
 

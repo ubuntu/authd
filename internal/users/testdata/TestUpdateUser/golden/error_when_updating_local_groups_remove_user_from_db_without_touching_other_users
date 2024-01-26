@@ -1,0 +1,23 @@
+|
+    GroupByID:
+        "22222": '{"Name":"group2","GID":22222}'
+        "33333": '{"Name":"group3","GID":33333}'
+        "99999": '{"Name":"commongroup","GID":99999}'
+    GroupByName:
+        commongroup: '{"Name":"commongroup","GID":99999}'
+        group2: '{"Name":"group2","GID":22222}'
+        group3: '{"Name":"group3","GID":33333}'
+    GroupToUsers:
+        "22222": '{"GID":22222,"UIDs":[2222]}'
+        "33333": '{"GID":33333,"UIDs":[3333]}'
+        "99999": '{"GID":99999,"UIDs":[2222,3333]}'
+    UserByID:
+        "2222": '{"Name":"user2","UID":2222,"GID":22222,"Gecos":"User2","Dir":"/home/user2","Shell":"/bin/dash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"BBBBBTIME"}'
+        "3333": '{"Name":"user3","UID":3333,"GID":33333,"Gecos":"User3","Dir":"/home/user3","Shell":"/bin/zsh","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+    UserByName:
+        user2: '{"Name":"user2","UID":2222,"GID":22222,"Gecos":"User2","Dir":"/home/user2","Shell":"/bin/dash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"BBBBBTIME"}'
+        user3: '{"Name":"user3","UID":3333,"GID":33333,"Gecos":"User3","Dir":"/home/user3","Shell":"/bin/zsh","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+    UserToBroker: {}
+    UserToGroups:
+        "2222": '{"UID":2222,"GIDs":[22222,99999]}'
+        "3333": '{"UID":3333,"GIDs":[33333,99999]}'

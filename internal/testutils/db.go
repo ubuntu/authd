@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	cachetests "github.com/ubuntu/authd/internal/newusers/cache/tests"
+	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
 )
 
 // CreateDBFromYAML creates the database inside destDir and loads the src file content into it.

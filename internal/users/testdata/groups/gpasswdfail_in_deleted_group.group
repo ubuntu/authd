@@ -1,0 +1,2 @@
+gpasswdfail:x:42:user1
+localgroup1:x:43:otheruser
