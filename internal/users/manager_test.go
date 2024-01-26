@@ -58,7 +58,7 @@ func TestNewManager(t *testing.T) {
 			if tc.localGroupsFile == "" {
 				tc.localGroupsFile = "users_in_groups.group"
 			}
-			destCmdsFile := grouptests.SetupGPasswdMock(t, tc.localGroupsFile)
+			destCmdsFile := grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "groups", tc.localGroupsFile))
 
 			cacheDir := t.TempDir()
 			if tc.dbFile == "" {
@@ -121,13 +121,13 @@ func TestNewManager(t *testing.T) {
 				requireClearedDatabase(t, usertests.GetManagerCache(m))
 			}
 
-			grouptests.RequireGPasswdOutput(t, destCmdsFile)
+			grouptests.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t)+".gpasswd.output")
 		})
 	}
 }
 
 func TestStop(t *testing.T) {
-	destCmdsFile := grouptests.SetupGPasswdMock(t, "users_in_groups.group")
+	destCmdsFile := grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "groups", "users_in_groups.group"))
 
 	cacheDir := t.TempDir()
 	err := os.WriteFile(filepath.Join(cacheDir, cachetests.DbName), []byte("Corrupted db"), 0600)
@@ -141,7 +141,7 @@ func TestStop(t *testing.T) {
 	require.ErrorIs(t, err, bbolt.ErrDatabaseNotOpen, "AllUsers should return an error, but did not")
 
 	// Ensure that the manager only stopped after the routine was done.
-	grouptests.RequireGPasswdOutput(t, destCmdsFile)
+	grouptests.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t)+".gpasswd.output")
 }
 
 func TestUpdateUser(t *testing.T) {
@@ -231,7 +231,7 @@ func TestUpdateUser(t *testing.T) {
 
 			var destCmdsFile string
 			if tc.localGroupsFile != "" {
-				destCmdsFile = grouptests.SetupGPasswdMock(t, tc.localGroupsFile)
+				destCmdsFile = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "groups", tc.localGroupsFile))
 			}
 
 			if tc.userCase == "" {
@@ -264,7 +264,7 @@ func TestUpdateUser(t *testing.T) {
 			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
 
-			grouptests.RequireGPasswdOutput(t, destCmdsFile)
+			grouptests.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t)+".gpasswd.output")
 		})
 	}
 }

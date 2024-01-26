@@ -112,28 +112,26 @@ func Mockgpasswd(_ *testing.T) {
 // SetupGPasswdMock setup the gpasswd mock and return the path to the file where the commands will be written.
 //
 // Tests that require this can not be run in parallel.
-func SetupGPasswdMock(t *testing.T, localGroupsFile string) string {
+func SetupGPasswdMock(t *testing.T, localGroupsFilepath string) string {
 	t.Helper()
 
 	destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
-	groupFilePath := filepath.Join("testdata", "groups", localGroupsFile)
 
 	gpasswd := []string{"env", "GO_WANT_HELPER_PROCESS=1",
 		fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
-		fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
+		fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", localGroupsFilepath),
 		os.Args[0], "-test.run=TestMockgpasswd", "--"}
 
-	OverrideDefaultOptions(t, groupFilePath, gpasswd, nil)
+	OverrideDefaultOptions(t, localGroupsFilepath, gpasswd, nil)
 
 	return destCmdsFile
 }
 
 // RequireGPasswdOutput compare the output of gpasswd with the golden file.
-func RequireGPasswdOutput(t *testing.T, destCmdsFile string) {
+func RequireGPasswdOutput(t *testing.T, destCmdsFile, goldenGpasswdPath string) {
 	t.Helper()
 
 	// TODO: this should be extracted in testutils, but still allow post-treatement of file like sorting.
-	goldenGpasswdPath := filepath.Join(testutils.GoldenPath(t) + ".gpasswd.output")
 	referenceFilePath := goldenGpasswdPath
 	if testutils.Update() {
 		// The file may already not exists.
