@@ -92,6 +92,11 @@ type UILayoutReceived struct {
 // SessionEnded signals that the session is done and closed from the broker.
 type SessionEnded struct{}
 
+// ChangeStage signals that the model requires a stage change.
+type ChangeStage struct {
+	Stage pam_proto.Stage
+}
+
 // Init initializes the main model orchestrator.
 func (m *UIModel) Init() tea.Cmd {
 	m.exitStatus = pamError{status: pam.ErrSystem, msg: "model did not return anything"}
@@ -197,6 +202,9 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			encryptionKey: rsaPublicKey,
 		}
 		return m, sendEvent(GetAuthenticationModesRequested{})
+
+	case ChangeStage:
+		return m, m.changeStage(msg.Stage)
 
 	case GetAuthenticationModesRequested:
 		if m.currentSession == nil || !m.authModeSelectionModel.IsReady() {
