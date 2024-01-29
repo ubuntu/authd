@@ -128,6 +128,28 @@ func SetupGPasswdMock(t *testing.T, localGroupsFile string) string {
 	return destCmdsFile
 }
 
+// GPasswdMockEnv return the environment variables needed to run the gpasswd mock through the binary setup used in
+// integration tests. In order to enable it, the binary must be built with the tag integrationtests.
+func GPasswdMockEnv(t *testing.T, outputFilePath, groupsFilePath string) []string {
+	t.Helper()
+
+	gpasswdArgs := []string{
+		"env",
+		"GO_WANT_HELPER_PROCESS=1",
+		fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", outputFilePath),
+		fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupsFilePath),
+	}
+
+	gpasswdArgs = append(gpasswdArgs, os.Args...)
+	gpasswdArgs = append(gpasswdArgs, "-test.run=TestMockgpasswd", "--")
+	env := []string{
+		"TESTS_GPASSWD_ARGS=" + strings.Join(gpasswdArgs, "-sep-"),
+		"TESTS_GPASSWD_GRP_FILE_PATH=" + groupsFilePath,
+	}
+
+	return env
+}
+
 // RequireGPasswdOutput compare the output of gpasswd with the golden file.
 func RequireGPasswdOutput(t *testing.T, destCmdsFile string) {
 	t.Helper()
