@@ -100,7 +100,7 @@ type ChangeStage struct {
 // Init initializes the main model orchestrator.
 func (m *UIModel) Init() tea.Cmd {
 	m.exitStatus = pamError{status: pam.ErrSystem, msg: "model did not return anything"}
-	m.userSelectionModel = newUserSelectionModel(m.PamMTx)
+	m.userSelectionModel = newUserSelectionModel(m.PamMTx, m.ClientType)
 	var cmds []tea.Cmd
 	cmds = append(cmds, m.userSelectionModel.Init())
 
