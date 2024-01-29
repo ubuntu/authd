@@ -72,6 +72,12 @@ func (m brokerSelectionModel) Init() tea.Cmd {
 func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case brokersListReceived:
+		if len(msg.brokers) == 0 {
+			return m, sendEvent(pamError{
+				status: pam.ErrAuthinfoUnavail,
+				msg:    "No brokers available",
+			})
+		}
 		m.availableBrokers = msg.brokers
 
 		var allBrokers []list.Item

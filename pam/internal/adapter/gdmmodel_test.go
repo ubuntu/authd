@@ -1078,6 +1078,22 @@ func TestGdmModel(t *testing.T) {
 				msg:    "Sending GDM poll failed: Conversation error: poll response data member 0 invalid: missing event type",
 			},
 		},
+		"Error on no brokers": {
+			clientOptions: append(slices.Clone(singleBrokerClientOptions),
+				pam_test.WithAvailableBrokers(nil, nil),
+			),
+			wantGdmRequests: []gdm.RequestType{
+				gdm.RequestType_uiLayoutCapabilities,
+			},
+			wantNoGdmEvents: []gdm.EventType{
+				gdm.EventType_brokersReceived,
+				gdm.EventType_userSelected,
+			},
+			wantExitStatus: pamError{
+				status: pam.ErrAuthinfoUnavail,
+				msg:    "No brokers available",
+			},
+		},
 		"Error on invalid broker selection": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
