@@ -6,10 +6,12 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
+	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 )
 
 var libPath string
@@ -19,6 +21,24 @@ func TestIntegration(t *testing.T) {
 	t.Parallel()
 
 	buildRustNSSLib(t)
+
+	// Create a default daemon to use for most test cases.
+	defaultSocket := "/tmp/nss-integration-tests.sock"
+	defaultDbState := "multiple_users_and_groups"
+	defaultOutputPath := filepath.Join(filepath.Dir(daemonPath), "gpasswd.output")
+	defaultGroupsFilePath := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+
+	ctx, cancel := context.WithCancel(context.Background())
+	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
+		testutils.WithSocketPath(defaultSocket),
+		testutils.WithPreviousDBState(defaultDbState),
+		testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, defaultOutputPath, defaultGroupsFilePath)...),
+	)
+
+	t.Cleanup(func() {
+		cancel()
+		<-stopped
+	})
 
 	originOuts := map[string]string{}
 	for _, db := range []string{"passwd", "group", "shadow"} {
@@ -81,18 +101,28 @@ func TestIntegration(t *testing.T) {
 			t.Parallel()
 
 			if tc.cacheDB == "" {
-				tc.cacheDB = "multiple_users_and_groups"
+				tc.cacheDB = defaultDbState
 			}
 
 			var socketPath string
-			var daemonStopped chan struct{}
 			if !tc.noDaemon && !tc.noCustomSocket {
-				ctx, cancel := context.WithCancel(context.Background())
-				socketPath, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath, testutils.WithPreviousDBState(tc.cacheDB))
-				t.Cleanup(func() {
-					cancel()
-					<-daemonStopped
-				})
+				socketPath = defaultSocket
+				if tc.cacheDB != defaultDbState {
+					// Run a new daemon with a different cache state for special test cases.
+					outPath := filepath.Join(t.TempDir(), "gpasswd.output")
+					groupsFilePath := filepath.Join("testdata", "empty.group")
+
+					var daemonStopped chan struct{}
+					ctx, cancel := context.WithCancel(context.Background())
+					socketPath, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath,
+						testutils.WithPreviousDBState(tc.cacheDB),
+						testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, outPath, groupsFilePath)...),
+					)
+					t.Cleanup(func() {
+						cancel()
+						<-daemonStopped
+					})
+				}
 			}
 
 			cmds := []string{"getent", tc.db}
@@ -120,11 +150,20 @@ func TestIntegration(t *testing.T) {
 	}
 }
 
+func TestMockgpasswd(t *testing.T) {
+	grouptests.Mockgpasswd(t)
+}
+
 func TestMain(m *testing.M) {
+	// Needed to skip the test setup when running the gpasswd mock.
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
+		os.Exit(m.Run())
+	}
+
 	testutils.InstallUpdateFlag()
 	flag.Parse()
 
-	execPath, cleanup, err := testutils.BuildDaemon()
+	execPath, cleanup, err := testutils.BuildDaemon("-tags=withexamplebroker,integrationtests")
 	if err != nil {
 		log.Printf("Setup: failed to build daemon: %v", err)
 		os.Exit(1)

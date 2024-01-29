@@ -22,24 +22,15 @@ func TestCLIIntegration(t *testing.T) {
 	t.Parallel()
 
 	outDir := filepath.Dir(daemonPath)
-	gpasswdFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
-	testArgs := getMockArgs(t)
-	gpasswdArgs := []string{
-		"env",
-		"GO_WANT_HELPER_PROCESS=1",
-		fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", filepath.Join(outDir, "gpasswd.output")),
-		fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", gpasswdFile),
-	}
-	gpasswdArgs = append(gpasswdArgs, testArgs...)
-	gpasswdArgs = append(gpasswdArgs, "-test.run=TestMockgpasswd", "--")
-	addEnv := []string{
-		"TESTS_GPASSWD_ARGS=" + strings.Join(gpasswdArgs, "-sep-"),
-		"TESTS_GPASSWD_GRP_FILE_PATH=" + gpasswdFile,
-	}
+	gpasswdOutput := filepath.Join(outDir, "gpasswd.output")
+	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
 	ctx, cancel := context.WithCancel(context.Background())
-	_, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithSocketPath("/tmp/pam-cli-tests.sock"), testutils.WithEnvironment(addEnv...))
+	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
+		testutils.WithSocketPath("/tmp/pam-cli-tests.sock"),
+		testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile)...),
+	)
 	t.Cleanup(func() {
 		cancel()
 		<-stopped
@@ -141,21 +132,6 @@ func appendGoBinToPath(t *testing.T) string {
 
 	env := os.Getenv("PATH")
 	return fmt.Sprintf("PATH=%s:%s", strings.TrimSpace(string(out)+"/bin"), env)
-}
-
-func getMockArgs(t *testing.T) (args []string) {
-	t.Helper()
-
-	args = []string{
-		os.Args[0],
-	}
-	for _, arg := range os.Args[1:] {
-		if !strings.HasPrefix(arg, "-test.gocoverdir=") {
-			continue
-		}
-		args = append(args, arg)
-	}
-	return args
 }
 
 // saveArtifactsForDebug saves the specified artifacts to a temporary directory if the test failed.
