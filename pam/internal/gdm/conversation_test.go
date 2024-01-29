@@ -840,6 +840,10 @@ func TestDataEmitEvent(t *testing.T) {
 			event:         &EventData_ReselectAuthMode{},
 			wantEventType: EventType_reselectAuthMode,
 		},
+		"Emit event UserSelected": {
+			event:         &EventData_UserSelected{},
+			wantEventType: EventType_userSelected,
+		},
 
 		// Error cases
 		"Error on nil event": {

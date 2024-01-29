@@ -143,6 +143,8 @@ func EmitEvent(pamMTx pam.ModuleTransaction, event Event) error {
 		evType = EventType_authEvent
 	case *EventData_ReselectAuthMode:
 		evType = EventType_reselectAuthMode
+	case *EventData_UserSelected:
+		evType = EventType_userSelected
 	default:
 		return fmt.Errorf("no known event type %#v", event)
 	}
