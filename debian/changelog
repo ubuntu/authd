@@ -1,3 +1,46 @@
+authd (0.2) noble; urgency=medium
+
+  * Create and package systemd units
+  * Rework broker configuration file
+  * Update user info validations
+    - Users now must be part of at least one remote group
+  * Add encryption for exchanged challenges
+  * Local groups are now cleaned when a user expires or the cache is
+    cleaned
+  * Remove unused values from configuration file
+  * Skip NSS lookup from dbus-daemon through systemd
+    - This could cause a deadlock when lookups were triggered while
+      the daemon was starting up.
+  * Add GDM json protocol definition and implementation
+  * Refactor internal/users package
+  * Add integration tests for the PAM cli protocol
+  * Update package description
+  * Fix lintian warnings and copyright inconsistencies
+  * Reduce the ammount of log messages
+  * Changes in CI that do not affect package functionality:
+    - Run dependabot less frequently
+    - Update test script to cover all Go packages by default
+  * Update dependencies to latest
+    ** Go
+      - github.com/msteinert/pam
+      - github.com/charmbracelet/bubbles
+      - github.com/charmbracelet/bubbletea
+      - github.com/google/uuid
+      - github.com/spf13/viper
+      - golang.org/x/term
+      - google.golang.org/grpc
+      - google.golang.org/protobuf
+    ** Rust
+      - ctor
+      - libc
+      - simple_logger
+      - tokio
+  * Update tools and CI dependencies not related to package 
+    functionality
+      - google.golang.org/protobuf
+
+ -- Denison Barbosa <denison.barbosa@canonical.com>  Mon, 29 Jan 2024 06:12:02 -0400
+
 authd (0.1) noble; urgency=medium
 
   * Initial release
