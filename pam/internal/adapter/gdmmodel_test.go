@@ -358,8 +358,7 @@ func TestGdmModel(t *testing.T) {
 			}},
 			wantExitStatus: PamSuccess{
 				BrokerID: firstBrokerInfo.Id,
-				// FIXME: Message is not sent in success case but it probably should!
-				// msg: "Hi GDM, it's a pleasure to get you in!",
+				msg:      "Hi GDM, it's a pleasure to get you in!",
 			},
 		},
 		"Authentication is ignored if not requested by model first": {

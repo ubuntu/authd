@@ -146,7 +146,11 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 		log.Infof(context.TODO(), "isAuthenticatedResultReceived: %v", msg.access)
 		switch msg.access {
 		case brokers.AuthGranted:
-			return *m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID})
+			infoMsg, err := dataToMsg(msg.msg)
+			if err != nil {
+				return *m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+			}
+			return *m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID, msg: infoMsg})
 
 		case brokers.AuthRetry:
 			errorMsg, err := dataToMsg(msg.msg)
