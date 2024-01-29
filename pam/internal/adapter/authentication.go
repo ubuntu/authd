@@ -64,6 +64,9 @@ type isAuthenticatedResultReceived struct {
 	msg    string
 }
 
+// isAuthenticatedCancelled is the event to cancel the auth request.
+type isAuthenticatedCancelled struct{}
+
 // reselectAuthMode signals to restart auth mode selection with the same id (to resend sms or
 // reenable the broker).
 type reselectAuthMode struct{}
@@ -132,6 +135,10 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 			return *m, sendEvent(pamError{status: pam.ErrSystem, msg: fmt.Sprintf("could not encrypt challenge payload: %v", err)})
 		}
 		return *m, sendIsAuthenticated(ctx, m.client, m.currentSessionID, &authd.IARequest_AuthenticationData{Item: msg.item})
+
+	case isAuthenticatedCancelled:
+		m.cancelIsAuthenticated()
+		return *m, nil
 
 	case isAuthenticatedResultReceived:
 		log.Infof(context.TODO(), "isAuthenticatedResultReceived: %v", msg.access)
