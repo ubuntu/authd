@@ -1164,9 +1164,7 @@ func TestGdmModel(t *testing.T) {
 				}, nil),
 			),
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker"}
-				}))(),
+				userSelected{username: "daemon-selected-user-and-broker"},
 			},
 			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
