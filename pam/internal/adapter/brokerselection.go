@@ -19,7 +19,8 @@ type brokerSelectionModel struct {
 	list.Model
 	focused bool
 
-	client authd.PAMClient
+	client     authd.PAMClient
+	clientType PamClientType
 
 	availableBrokers []*authd.ABResponse_BrokerInfo
 }
@@ -44,7 +45,7 @@ func selectBroker(brokerID string) tea.Cmd {
 }
 
 // newBrokerSelectionModel initializes an empty list with default options of brokerSelectionModel.
-func newBrokerSelectionModel(client authd.PAMClient) brokerSelectionModel {
+func newBrokerSelectionModel(client authd.PAMClient, clientType PamClientType) brokerSelectionModel {
 	l := list.New(nil, itemLayout{}, 80, 24)
 	l.Title = "Select your provider"
 	l.SetShowStatusBar(false)
@@ -56,8 +57,9 @@ func newBrokerSelectionModel(client authd.PAMClient) brokerSelectionModel {
 	l.Styles.HelpStyle = helpStyle*/
 
 	return brokerSelectionModel{
-		Model:  l,
-		client: client,
+		Model:      l,
+		client:     client,
+		clientType: clientType,
 	}
 }
 
@@ -103,6 +105,10 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 		return m, sendEvent(BrokerSelected{
 			BrokerID: broker.Id,
 		})
+	}
+
+	if m.clientType != InteractiveTerminal {
+		return m, nil
 	}
 
 	// interaction events

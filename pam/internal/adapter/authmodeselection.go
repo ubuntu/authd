@@ -19,6 +19,7 @@ type authModeSelectionModel struct {
 	list.Model
 	focused bool
 
+	clientType                PamClientType
 	supportedUILayouts        []*authd.UILayout
 	supportedUILayoutsMu      *sync.Mutex
 	availableAuthModes        []*authd.GAMResponse_AuthenticationMode
@@ -50,7 +51,16 @@ func selectAuthMode(id string) tea.Cmd {
 }
 
 // newAuthModeSelectionModel initializes an empty list with default options of authModeSelectionModel.
-func newAuthModeSelectionModel() authModeSelectionModel {
+func newAuthModeSelectionModel(clientType PamClientType) authModeSelectionModel {
+	// FIXME: decouple UI from data model.
+	if clientType != InteractiveTerminal {
+		return authModeSelectionModel{
+			Model:                list.New(nil, itemLayout{}, 0, 0),
+			clientType:           clientType,
+			supportedUILayoutsMu: &sync.Mutex{},
+		}
+	}
+
 	l := list.New(nil, itemLayout{}, 80, 24)
 	l.Title = "Select your authentication method"
 	l.SetShowStatusBar(false)
@@ -63,6 +73,7 @@ func newAuthModeSelectionModel() authModeSelectionModel {
 
 	return authModeSelectionModel{
 		Model:                l,
+		clientType:           clientType,
 		supportedUILayoutsMu: &sync.Mutex{},
 	}
 }
@@ -161,6 +172,10 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 		return m, sendEvent(AuthModeSelected{
 			ID: msg.id,
 		})
+	}
+
+	if m.clientType != InteractiveTerminal {
+		return m, nil
 	}
 
 	// interaction events

@@ -104,13 +104,13 @@ func (m *UIModel) Init() tea.Cmd {
 	var cmds []tea.Cmd
 	cmds = append(cmds, m.userSelectionModel.Init())
 
-	m.brokerSelectionModel = newBrokerSelectionModel(m.Client)
+	m.brokerSelectionModel = newBrokerSelectionModel(m.Client, m.ClientType)
 	cmds = append(cmds, m.brokerSelectionModel.Init())
 
-	m.authModeSelectionModel = newAuthModeSelectionModel()
+	m.authModeSelectionModel = newAuthModeSelectionModel(m.ClientType)
 	cmds = append(cmds, m.authModeSelectionModel.Init())
 
-	m.authenticationModel = newAuthenticationModel(m.Client)
+	m.authenticationModel = newAuthenticationModel(m.Client, m.ClientType)
 	cmds = append(cmds, m.authenticationModel.Init())
 
 	cmds = append(cmds, m.changeStage(pam_proto.Stage_userSelection))
@@ -257,6 +257,10 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders a text view of the whole UI.
 func (m *UIModel) View() string {
+	if m.ClientType != InteractiveTerminal {
+		return ""
+	}
+
 	var view strings.Builder
 
 	switch m.currentStage() {
