@@ -79,8 +79,23 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 	var teaOpts []tea.ProgramOption
 
 	if gdm.IsPamExtensionSupported(gdm.PamExtensionCustomJSON) {
+		// Explicitly set the output to something so that the program
+		// won't try to init some terminal fancy things that also appear
+		// to be racy...
+		// See: https://github.com/charmbracelet/bubbletea/issues/910
+		devNull, err := os.OpenFile(os.DevNull, os.O_WRONLY|os.O_APPEND, 0600)
+		if err != nil {
+			return errors.Join(err, pam.ErrSystem)
+		}
 		pamClientType = adapter.Gdm
-		teaOpts = append(teaOpts, tea.WithInput(nil), tea.WithoutRenderer())
+		teaOpts = append(teaOpts,
+			tea.WithInput(nil),
+			tea.WithoutRenderer(),
+			tea.WithoutSignals(),
+			tea.WithoutSignalHandler(),
+			tea.WithoutCatchPanics(),
+			tea.WithOutput(devNull),
+		)
 	} else if term.IsTerminal(int(os.Stdin.Fd())) {
 		pamClientType = adapter.InteractiveTerminal
 	} else {
