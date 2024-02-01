@@ -21,6 +21,8 @@ var daemonPath string
 func TestCLIAuthenticate(t *testing.T) {
 	t.Parallel()
 
+	prepareCLITest(t)
+
 	outDir := filepath.Dir(daemonPath)
 
 	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
@@ -109,6 +111,8 @@ func TestCLIAuthenticate(t *testing.T) {
 func TestCLIChangeAuthTok(t *testing.T) {
 	t.Parallel()
 
+	prepareCLITest(t)
+
 	outDir := filepath.Dir(daemonPath)
 
 	// we don't care about the output of gpasswd for this test, but we still need to mock it.
@@ -180,6 +184,20 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	}
 }
 
+func prepareCLITest(t *testing.T) {
+	t.Helper()
+
+	// Due to external dependencies such as `vhs`, we can't run the tests in some environments (like LP builders), as we
+	// can't install the dependencies there. So we need to be able to skip these tests on-demand.
+	if os.Getenv("AUTHD_SKIP_EXTERNAL_DEPENDENT_TESTS") != "" {
+		t.Skip("Skipping tests with external dependencies as requested")
+	}
+
+	pamCleanup, err := buildPAM(filepath.Dir(daemonPath))
+	require.NoError(t, err, "Setup: Failed to build PAM executable")
+	t.Cleanup(pamCleanup)
+}
+
 // buildPAM builds the PAM module in a temporary directory and returns a cleanup function.
 func buildPAM(execPath string) (cleanup func(), err error) {
 	cmd := exec.Command("go", "build")
@@ -239,13 +257,6 @@ func saveArtifactsForDebug(t *testing.T, artifacts []string) {
 }
 
 func TestMain(m *testing.M) {
-	// Due to external dependecies such as `vhs`, we can't run the tests in some environments (like LP builders), as we
-	// can't install the dependencies there. So we need to be able to skip these tests on-demand.
-	if os.Getenv("AUTHD_SKIP_EXTERNAL_DEPENDENT_TESTS") != "" {
-		fmt.Println("Skipping tests with external dependencies as requested")
-		return
-	}
-
 	// Needed to skip the test setup when running the gpasswd mock.
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
 		os.Exit(m.Run())
@@ -261,14 +272,6 @@ func TestMain(m *testing.M) {
 	}
 	defer daemonCleanup()
 	daemonPath = execPath
-
-	pamCleanup, err := buildPAM(filepath.Dir(execPath))
-	if err != nil {
-		log.Printf("Setup: Failed to build PAM executable: %v", err)
-		daemonCleanup()
-		os.Exit(1)
-	}
-	defer pamCleanup()
 
 	m.Run()
 }
