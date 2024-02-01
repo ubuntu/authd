@@ -844,6 +844,10 @@ func TestDataEmitEvent(t *testing.T) {
 			event:         &EventData_UserSelected{},
 			wantEventType: EventType_userSelected,
 		},
+		"Emit event StartAuthentication": {
+			event:         &EventData_StartAuthentication{},
+			wantEventType: EventType_startAuthentication,
+		},
 
 		// Error cases
 		"Error on nil event": {
