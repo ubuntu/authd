@@ -39,7 +39,7 @@ func TestCLIAuthenticate(t *testing.T) {
 	})
 
 	// If vhs is installed with "go install", we need to add GOPATH to PATH.
-	pathEnv := appendGoBinToPath(t)
+	pathEnv := prependBinToPath(t)
 
 	currentDir, err := os.Getwd()
 	require.NoError(t, err, "Setup: Could not get current directory for the tests")
@@ -128,7 +128,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	})
 
 	// If vhs is installed with "go install", we need to add GOPATH to PATH.
-	pathEnv := appendGoBinToPath(t)
+	pathEnv := prependBinToPath(t)
 
 	currentDir, err := os.Getwd()
 	require.NoError(t, err, "Setup: Could not get current directory for the tests")
@@ -199,8 +199,8 @@ func TestMockgpasswd(t *testing.T) {
 	grouptests.Mockgpasswd(t)
 }
 
-// appendGoBinToPath returns the value of the GOPATH defined in go env appended to PATH.
-func appendGoBinToPath(t *testing.T) string {
+// prependBinToPath returns the value of the GOPATH defined in go env prepended to PATH.
+func prependBinToPath(t *testing.T) string {
 	t.Helper()
 
 	cmd := exec.Command("go", "env", "GOPATH")
