@@ -1,3 +1,12 @@
+authd (0.2.1) noble; urgency=medium
+
+  * Adjust Rust dependencies
+    ** Rollback cc to 1.83
+      - Version 1.84 was removed due to some problems with other ecossystems
+    ** Bump transitive dependencies to latest SemVer version.
+
+ -- Denison Barbosa <denison.barbosa@canonical.com>  Mon, 05 Feb 2024 11:02:10 -0400
+
 authd (0.2) noble; urgency=medium
 
   * Create and package systemd units
