@@ -31,4 +31,4 @@ ctor = "0.2.6"
 
 [build-dependencies]
 tonic-build = "0.10.2"
-cc = "1.0.84"
+cc = "1.0.83"
