@@ -158,6 +158,6 @@ jobs:
           # Use `-dwarflocationlists` to give ASAN a better time to unwind the stack trace
           go test -C ./pam/internal -asan -gcflags="-dwarflocationlists=true" ./...
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: /tmp/coverage.out.filtered
