@@ -17,8 +17,10 @@ import (
 )
 
 type gdmConvHandler struct {
-	mu *sync.Mutex
-	t  *testing.T
+	mu           *sync.Mutex
+	t            *testing.T
+	protoVersion uint32
+	convError    map[string]error
 
 	wantRequests        []gdm.RequestType
 	handledRequests     []gdm.RequestType
@@ -74,6 +76,21 @@ func (h *gdmConvHandler) RespondPAMBinary(ptr pam.BinaryPointer) (pam.BinaryPoin
 	defer h.mu.Unlock()
 
 	return gdm.DataConversationFunc(func(inData *gdm.Data) (*gdm.Data, error) {
+		var json []byte
+
+		if len(h.convError) > 0 {
+			var err error
+			json, err = inData.JSON()
+			if err != nil {
+				return nil, err
+			}
+
+			err, ok := h.convError[string(json)]
+			if ok {
+				return nil, err
+			}
+		}
+
 		outData, err := h.handleGdmData(inData)
 		if err != nil {
 			return nil, err
@@ -81,9 +98,11 @@ func (h *gdmConvHandler) RespondPAMBinary(ptr pam.BinaryPointer) (pam.BinaryPoin
 		if inData.Type == gdm.DataType_poll && len(outData.PollResponse) == 0 {
 			return outData, err
 		}
-		json, err := inData.JSON()
-		if err != nil {
-			return nil, err
+		if json == nil {
+			json, err = inData.JSON()
+			if err != nil {
+				return nil, err
+			}
 		}
 		h.t.Log("->", string(json))
 		json, err = outData.JSON()
@@ -102,7 +121,7 @@ func (h *gdmConvHandler) handleGdmData(gdmData *gdm.Data) (*gdm.Data, error) {
 	case gdm.DataType_hello:
 		return &gdm.Data{
 			Type:  gdm.DataType_hello,
-			Hello: &gdm.HelloData{Version: gdm.ProtoVersion},
+			Hello: &gdm.HelloData{Version: h.protoVersion},
 		}, nil
 
 	case gdm.DataType_request:

@@ -82,6 +82,8 @@ func TestGdmModel(t *testing.T) {
 		commands         []tea.Cmd
 		gdmEvents        []*gdm.EventData
 		pamUser          string
+		protoVersion     uint32
+		convError        map[string]error
 
 		wantExitStatus     PamReturnStatus
 		wantGdmRequests    []gdm.RequestType
@@ -1697,6 +1699,70 @@ func TestGdmModel(t *testing.T) {
 				msg:    `unknown PAM stage: "-1"`,
 			},
 		},
+		"Error during hello conversation": {
+			convError: map[string]error{
+				gdm_test.DataToJSON(t, &gdm.Data{
+					Type: gdm.DataType_hello,
+				}): errors.New("this is an hello error"),
+			},
+			wantExitStatus: pamError{
+				status: pam.ErrCredUnavail,
+				msg:    "GDM initialization failed: Conversation error: this is an hello error",
+			},
+		},
+		"Error during hello on protocol mismatch": {
+			protoVersion: 99999999,
+			wantExitStatus: pamError{
+				status: pam.ErrCredUnavail,
+				msg:    "GDM protocol initialization failed, type hello, version 99999999",
+			},
+		},
+		"Error during poll": {
+			convError: map[string]error{
+				gdm_test.DataToJSON(t, &gdm.Data{Type: gdm.DataType_poll}): errors.New("this is a poll error"),
+			},
+			wantExitStatus: pamError{
+				status: pam.ErrSystem,
+				msg:    "Sending GDM poll failed: Conversation error: this is a poll error",
+			},
+		},
+		"Error on change stage": {
+			convError: map[string]error{
+				gdm_test.DataToJSON(t, &gdm.Data{
+					Type: gdm.DataType_request,
+					Request: &gdm.RequestData{
+						Type: gdm.RequestType_changeStage,
+						Data: &gdm.RequestData_ChangeStage{
+							ChangeStage: &gdm.Requests_ChangeStage{
+								Stage: proto.Stage_brokerSelection,
+							},
+						},
+					},
+				}): errors.New("this is a stage change error"),
+			},
+			gdmEvents: []*gdm.EventData{
+				gdm_test.ChangeStageEvent(pam_proto.Stage_brokerSelection),
+			},
+			wantExitStatus: pamError{
+				status: pam.ErrSystem,
+				msg:    "Changing GDM stage failed: Conversation error: this is a stage change error",
+			},
+		},
+		"Error on request UI capabilities": {
+			convError: map[string]error{
+				gdm_test.DataToJSON(t, &gdm.Data{
+					Type: gdm.DataType_request,
+					Request: &gdm.RequestData{
+						Type: gdm.RequestType_uiLayoutCapabilities,
+						Data: &gdm.RequestData_UiLayoutCapabilities{},
+					},
+				}): errors.New("this is an UI capabilities request error"),
+			},
+			wantExitStatus: pamError{
+				status: pam.ErrSystem,
+				msg:    "Sending GDM UI capabilities Request failed: Conversation error: this is an UI capabilities request error",
+			},
+		},
 	}
 	for name, tc := range testCases {
 		tc := tc
@@ -1721,6 +1787,8 @@ func TestGdmModel(t *testing.T) {
 			gdmHandler := &gdmConvHandler{
 				t:                    t,
 				mu:                   &gdmMutex,
+				protoVersion:         gdm.ProtoVersion,
+				convError:            tc.convError,
 				currentStageChanged:  *sync.NewCond(&gdmMutex),
 				pendingEventsFlushed: make(chan struct{}),
 				allRequestsReceived:  make(chan struct{}),
@@ -1745,6 +1813,10 @@ func TestGdmModel(t *testing.T) {
 
 			if tc.supportedLayouts == nil {
 				gdmHandler.supportedLayouts = []*authd.UILayout{pam_test.FormUILayout()}
+			}
+
+			if tc.protoVersion != 0 {
+				gdmHandler.protoVersion = tc.protoVersion
 			}
 
 			if tc.pamUser != "" {
