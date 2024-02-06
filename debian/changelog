@@ -1,3 +1,21 @@
+authd (0.2.1) noble; urgency=medium
+
+  * Adjust Rust dependencies
+    - Rollback cc to 1.83: Version 1.84 was removed due to some problems with
+      other ecosystems.
+    - Bump transitive dependencies to latest SemVer version to fix
+      RUSTSEC-2024-0003
+  * Updated dependencies:
+    - Vendored deps:
+      - github.com/charmbracelet/bubbles
+      - github.com/google/uuid
+      - google.golang.org/grpc
+    - CI:
+      - peter-evans/create-pull-request
+      - codecov/codecov-action
+
+ -- Denison Barbosa <denison.barbosa@canonical.com>  Mon, 05 Feb 2024 11:02:10 -0400
+
 authd (0.2) noble; urgency=medium
 
   * Create and package systemd units
