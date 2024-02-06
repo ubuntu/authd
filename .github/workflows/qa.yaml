@@ -161,3 +161,4 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           file: /tmp/coverage.out.filtered
+          token: ${{ secrets.CODECOV_TOKEN }}
