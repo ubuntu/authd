@@ -1670,6 +1670,33 @@ func TestGdmModel(t *testing.T) {
 				msg:    `Access "no way you get here!" is not valid`,
 			},
 		},
+		"Error on change stage using an unknown stage": {
+			gdmEvents: []*gdm.EventData{
+				gdm_test.ChangeStageEvent(gdmTestIgnoreStage),
+			},
+			wantGdmRequests: []gdm.RequestType{
+				gdm.RequestType_uiLayoutCapabilities,
+			},
+			wantNoGdmRequests: []gdm.RequestType{
+				gdm.RequestType_changeStage,
+			},
+			wantGdmEvents: []gdm.EventType{
+				gdm.EventType_brokersReceived,
+			},
+			wantNoGdmEvents: []gdm.EventType{
+				gdm.EventType_userSelected,
+				gdm.EventType_brokerSelected,
+				gdm.EventType_authModesReceived,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_authEvent,
+			},
+			wantStage: gdmTestIgnoreStage,
+			wantExitStatus: pamError{
+				status: pam.ErrSystem,
+				msg:    `unknown PAM stage: "-1"`,
+			},
+		},
 	}
 	for name, tc := range testCases {
 		tc := tc
