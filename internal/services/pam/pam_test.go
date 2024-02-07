@@ -128,15 +128,19 @@ func TestSelectBroker(t *testing.T) {
 
 	tests := map[string]struct {
 		// These are the function arguments.
-		brokerID string
-		username string
+		brokerID    string
+		username    string
+		sessionMode string
 
 		// This is the expected return.
 		wantErr bool
 	}{
-		"Successfully select a broker and creates the session": {username: "success"},
+		"Successfully select a broker and creates auth session":   {username: "success"},
+		"Successfully select a broker and creates passwd session": {username: "success", sessionMode: "passwd"},
 
 		"Error when username is empty":                    {wantErr: true},
+		"Error when mode is empty":                        {sessionMode: "-", wantErr: true},
+		"Error when mode does not exist":                  {sessionMode: "does not exist", wantErr: true},
 		"Error when brokerID is empty":                    {username: "empty broker", brokerID: "-", wantErr: true},
 		"Error when broker does not exist":                {username: "no broker", brokerID: "does not exist", wantErr: true},
 		"Error when broker does not provide a session ID": {username: "NS_no_id", wantErr: true},
@@ -149,9 +153,10 @@ func TestSelectBroker(t *testing.T) {
 
 			client := newPamClient(t, nil)
 
-			if tc.brokerID == "" {
+			switch tc.brokerID {
+			case "":
 				tc.brokerID = mockBrokerGeneratedID
-			} else if tc.brokerID == "-" {
+			case "-":
 				tc.brokerID = ""
 			}
 
@@ -159,9 +164,20 @@ func TestSelectBroker(t *testing.T) {
 				tc.username = t.Name() + brokertestutils.IDSeparator + tc.username
 			}
 
+			var sessionMode authd.SessionMode
+			switch tc.sessionMode {
+			case "":
+				sessionMode = authd.SessionMode_AUTH
+			case "passwd":
+				sessionMode = authd.SessionMode_PASSWD
+			case "-":
+				sessionMode = authd.SessionMode_UNDEFINED
+			}
+
 			sbRequest := &authd.SBRequest{
 				BrokerId: tc.brokerID,
 				Username: tc.username,
+				Mode:     sessionMode,
 			}
 			sbResp, err := client.SelectBroker(context.Background(), sbRequest)
 			if tc.wantErr {
@@ -662,6 +678,7 @@ func startSession(t *testing.T, client authd.PAMClient, username string) string 
 	sbResp, err := client.SelectBroker(context.Background(), &authd.SBRequest{
 		BrokerId: mockBrokerGeneratedID,
 		Username: username,
+		Mode:     authd.SessionMode_AUTH,
 	})
 	require.NoError(t, err, "Setup: failed to create session for tests")
 	return sbResp.GetSessionId()

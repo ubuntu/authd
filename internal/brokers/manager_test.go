@@ -174,14 +174,16 @@ func TestNewSession(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		brokerID string
-		username string
+		brokerID    string
+		username    string
+		sessionMode string
 
 		configuredBrokers []string
 
 		wantErr bool
 	}{
-		"Successfully start a new session":                         {username: "success"},
+		"Successfully start a new auth session":                    {username: "success"},
+		"Successfully start a new passwd session":                  {username: "success", sessionMode: "passwd"},
 		"Successfully start a new session with the correct broker": {username: "success", configuredBrokers: []string{t.Name() + "_Broker1", t.Name() + "_Broker2"}},
 
 		"Error when broker does not exist":         {brokerID: "does_not_exist", wantErr: true},
@@ -219,7 +221,11 @@ func TestNewSession(t *testing.T) {
 				tc.brokerID = wantBroker.ID
 			}
 
-			gotID, gotEKey, err := m.NewSession(tc.brokerID, tc.username, "some_lang")
+			if tc.sessionMode == "" {
+				tc.sessionMode = "auth"
+			}
+
+			gotID, gotEKey, err := m.NewSession(tc.brokerID, tc.username, "some_lang", tc.sessionMode)
 			if tc.wantErr {
 				require.Error(t, err, "NewSession should return an error, but did not")
 				return
@@ -317,13 +323,13 @@ func TestStartAndEndSession(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		id, key, err := m.NewSession(b1.ID, "user1", "some_lang")
+		id, key, err := m.NewSession(b1.ID, "user1", "some_lang", "auth")
 		firstID, firstKey, firstErr = &id, &key, &err
 	}()
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		id, key, err := m.NewSession(b2.ID, "user2", "some_lang")
+		id, key, err := m.NewSession(b2.ID, "user2", "some_lang", "auth")
 		secondID, secondKey, secondErr = &id, &key, &err
 	}()
 	wg.Wait()

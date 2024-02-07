@@ -43,6 +43,8 @@ type UIModel struct {
 	Client authd.PAMClient
 	// PamClientType is the kind of the PAM client we're handling.
 	ClientType PamClientType
+	// SessionMode is the mode of the session invoked by the module.
+	SessionMode authd.SessionMode
 
 	height int
 	width  int
@@ -163,7 +165,7 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			AutoSelectForUser(m.Client, m.username()))
 
 	case BrokerSelected:
-		return m, startBrokerSession(m.Client, msg.BrokerID, m.username())
+		return m, startBrokerSession(m.Client, msg.BrokerID, m.username(), m.SessionMode)
 
 	case SessionStarted:
 		pubASN1, err := base64.StdEncoding.DecodeString(msg.encryptionKey)

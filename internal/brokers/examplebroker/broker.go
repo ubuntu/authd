@@ -36,9 +36,11 @@ const (
 )
 
 type sessionInfo struct {
-	username        string
-	selectedMode    string
-	lang            string
+	username    string
+	lang        string
+	sessionMode string
+
+	currentAuthMode string
 	allModes        map[string]map[string]string
 	attemptsPerMode map[string]int
 
@@ -97,11 +99,12 @@ func New(name string) (b *Broker, fullName, brandIcon string) {
 }
 
 // NewSession creates a new session for the specified user.
-func (b *Broker) NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error) {
+func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (sessionID, encryptionKey string, err error) {
 	sessionID = uuid.New().String()
 	info := sessionInfo{
 		username:        username,
 		lang:            lang,
+		sessionMode:     mode,
 		pwdChange:       noReset,
 		currentAuthStep: 1,
 		neededAuthSteps: 1,
@@ -321,7 +324,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 func getMfaModes(info sessionInfo, supportedModes map[string]map[string]string) map[string]map[string]string {
 	mfaModes := make(map[string]map[string]string)
 	for _, mode := range []string{"phoneack1", "totp_with_button", "fidodevice1"} {
-		if _, exists := supportedModes[mode]; exists && info.selectedMode != mode {
+		if _, exists := supportedModes[mode]; exists && info.currentAuthMode != mode {
 			mfaModes[mode] = supportedModes[mode]
 		}
 	}
@@ -393,7 +396,7 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 	}
 
 	// Store selected mode
-	sessionInfo.selectedMode = authenticationModeName
+	sessionInfo.currentAuthMode = authenticationModeName
 	// Store the first one to use to update the lastSelectedMode in MFA cases.
 	if sessionInfo.currentAuthStep == 1 {
 		sessionInfo.firstSelectedMode = authenticationModeName
@@ -444,8 +447,8 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 		access = responses.AuthNext
 		data = ""
 	} else if access == responses.AuthRetry {
-		sessionInfo.attemptsPerMode[sessionInfo.selectedMode]++
-		if sessionInfo.attemptsPerMode[sessionInfo.selectedMode] >= maxAttempts {
+		sessionInfo.attemptsPerMode[sessionInfo.currentAuthMode]++
+		if sessionInfo.attemptsPerMode[sessionInfo.currentAuthMode] >= maxAttempts {
 			access = responses.AuthDenied
 		}
 	}
@@ -474,7 +477,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 
 	// Note that the "wait" authentication can be cancelled and switch to another mode with a challenge.
 	// Take into account the cancellation.
-	switch sessionInfo.selectedMode {
+	switch sessionInfo.currentAuthMode {
 	case "password":
 		if challenge != "goodpass" {
 			return responses.AuthRetry, `{"message": "invalid password, should be goodpass"}`, nil
@@ -486,7 +489,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 
 	case "totp_with_button", "totp":
-		wantedCode := sessionInfo.allModes[sessionInfo.selectedMode]["wantedCode"]
+		wantedCode := sessionInfo.allModes[sessionInfo.currentAuthMode]["wantedCode"]
 		if challenge != wantedCode {
 			return responses.AuthRetry, `{"message": "invalid totp code"}`, nil
 		}
@@ -541,7 +544,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 	}
 
 	// this case name was dynamically generated
-	if strings.HasPrefix(sessionInfo.selectedMode, "entry_or_wait_for_") {
+	if strings.HasPrefix(sessionInfo.currentAuthMode, "entry_or_wait_for_") {
 		// do we have a challenge sent or should we just wait?
 		if challenge != "" {
 			// validate challenge given manually by the user
