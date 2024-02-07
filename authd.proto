@@ -41,10 +41,17 @@ message StringResponse {
   string msg = 1;
 }
 
+enum SessionMode {
+  UNDEFINED = 0;
+  AUTH = 1;
+  PASSWD = 2;
+}
+
 message SBRequest {
   string broker_id = 1;
   string username = 2;
   string lang = 3;
+  SessionMode mode = 4;
 }
 
 message SBResponse {
