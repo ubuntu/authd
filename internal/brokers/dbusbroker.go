@@ -54,10 +54,10 @@ func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b db
 }
 
 // NewSession calls the corresponding method on the broker bus and returns the session ID and encryption key.
-func (b dbusBroker) NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error) {
+func (b dbusBroker) NewSession(ctx context.Context, username, lang, mode string) (sessionID, encryptionKey string, err error) {
 	dbusMethod := DbusInterface + ".NewSession"
 
-	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, username, lang)
+	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, username, lang, mode)
 	if err = call.Err; err != nil {
 		return "", "", err
 	}

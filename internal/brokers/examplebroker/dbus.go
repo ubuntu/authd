@@ -77,8 +77,8 @@ dbus_object = %s
 }
 
 // NewSession is the method through which the broker and the daemon will communicate once dbusInterface.NewSession is called.
-func (b *Bus) NewSession(username, lang string) (sessionID, encryptionKey string, dbusErr *dbus.Error) {
-	sessionID, encryptionKey, err := b.broker.NewSession(context.Background(), username, lang)
+func (b *Bus) NewSession(username, lang, mode string) (sessionID, encryptionKey string, dbusErr *dbus.Error) {
+	sessionID, encryptionKey, err := b.broker.NewSession(context.Background(), username, lang, mode)
 	if err != nil {
 		return "", "", dbus.MakeFailedError(err)
 	}

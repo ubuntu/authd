@@ -92,8 +92,18 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 		lang = "C"
 	}
 
+	var mode string
+	switch req.GetMode() {
+	case authd.SessionMode_AUTH:
+		mode = "auth"
+	case authd.SessionMode_PASSWD:
+		mode = "passwd"
+	default:
+		return nil, status.Error(codes.InvalidArgument, "invalid session mode")
+	}
+
 	// Create a session and Memorize selected broker for it.
-	sessionID, encryptionKey, err := s.brokerManager.NewSession(brokerID, username, lang)
+	sessionID, encryptionKey, err := s.brokerManager.NewSession(brokerID, username, lang, mode)
 	if err != nil {
 		return nil, err
 	}

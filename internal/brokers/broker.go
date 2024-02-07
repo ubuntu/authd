@@ -23,7 +23,7 @@ const (
 )
 
 type brokerer interface {
-	NewSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error)
+	NewSession(ctx context.Context, username, lang, mode string) (sessionID, encryptionKey string, err error)
 	GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error)
 	SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error)
 	IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (access, data string, err error)
@@ -82,8 +82,8 @@ func newBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 }
 
 // newSession calls the broker corresponding method, expanding sessionID with the broker ID prefix.
-func (b Broker) newSession(ctx context.Context, username, lang string) (sessionID, encryptionKey string, err error) {
-	sessionID, encryptionKey, err = b.brokerer.NewSession(ctx, username, lang)
+func (b Broker) newSession(ctx context.Context, username, lang, mode string) (sessionID, encryptionKey string, err error) {
+	sessionID, encryptionKey, err = b.brokerer.NewSession(ctx, username, lang, mode)
 	if err != nil {
 		return "", "", err
 	}

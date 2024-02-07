@@ -147,13 +147,13 @@ func (m *Manager) BrokerFromSessionID(id string) (broker *Broker, err error) {
 }
 
 // NewSession create a new session for the broker and store the sesssionID on the manager.
-func (m *Manager) NewSession(brokerID, username, lang string) (sessionID string, encryptionKey string, err error) {
+func (m *Manager) NewSession(brokerID, username, lang, mode string) (sessionID string, encryptionKey string, err error) {
 	broker, err := m.brokerFromID(brokerID)
 	if err != nil {
 		return "", "", fmt.Errorf("invalid broker: %v", err)
 	}
 
-	sessionID, encryptionKey, err = broker.newSession(context.Background(), username, lang)
+	sessionID, encryptionKey, err = broker.newSession(context.Background(), username, lang, mode)
 	if err != nil {
 		return "", "", err
 	}
