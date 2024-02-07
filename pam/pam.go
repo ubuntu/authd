@@ -97,9 +97,10 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 	defer closeConn()
 
 	appState := adapter.UIModel{
-		PamMTx:     mTx,
-		Client:     client,
-		ClientType: pamClientType,
+		PamMTx:      mTx,
+		Client:      client,
+		ClientType:  pamClientType,
+		SessionMode: authd.SessionMode_AUTH,
 	}
 
 	if err := mTx.SetData(authenticationBrokerIDKey, nil); err != nil {

@@ -20,7 +20,7 @@ func sendEvent(msg tea.Msg) tea.Cmd {
 }
 
 // startBrokerSession returns the sessionID after marking a broker as current.
-func startBrokerSession(client authd.PAMClient, brokerID, username string) tea.Cmd {
+func startBrokerSession(client authd.PAMClient, brokerID, username string, mode authd.SessionMode) tea.Cmd {
 	return func() tea.Msg {
 		if brokerID == "local" {
 			return PamIgnore{LocalBrokerID: brokerID}
@@ -41,6 +41,7 @@ func startBrokerSession(client authd.PAMClient, brokerID, username string) tea.C
 			BrokerId: brokerID,
 			Username: username,
 			Lang:     lang,
+			Mode:     mode,
 		}
 
 		sbResp, err := client.SelectBroker(context.TODO(), sbReq)
