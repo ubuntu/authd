@@ -111,7 +111,7 @@ func writeConfig(cfgDir, name string) (string, error) {
 }
 
 // NewSession returns default values to be used in tests or an error if requested.
-func (b *BrokerBusMock) NewSession(username, lang string) (sessionID, encryptionKey string, dbusErr *dbus.Error) {
+func (b *BrokerBusMock) NewSession(username, lang, mode string) (sessionID, encryptionKey string, dbusErr *dbus.Error) {
 	parsedUsername := parseSessionID(username)
 	if parsedUsername == "NS_error" {
 		return "", "", dbus.MakeFailedError(fmt.Errorf("broker %q: NewSession errored out", b.name))
