@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/testutils"
+	testutils "github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/cache"
 	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"

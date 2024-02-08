@@ -1,5 +1,4 @@
-// Package brokertestutils provides utility functions and behaviors for testing brokers.
-package brokertestutils
+package testutils
 
 import (
 	"bytes"
