@@ -8,7 +8,6 @@ import (
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/brokers/responses"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
@@ -209,7 +208,7 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 	}
 
 	// Update database and local groups on granted auth.
-	if access == responses.AuthGranted {
+	if access == brokers.AuthGranted {
 		var user users.UserInfo
 		if err := json.Unmarshal([]byte(data), &user); err != nil {
 			return nil, fmt.Errorf("user data from broker invalid: %v", err)

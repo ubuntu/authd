@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/brokers/responses"
 	"github.com/ubuntu/authd/internal/testutils"
 	brokertestutils "github.com/ubuntu/authd/internal/testutils/broker"
 )
@@ -288,8 +287,8 @@ func TestCancelIsAuthenticated(t *testing.T) {
 
 		wantAnswer string
 	}{
-		"Successfully cancels IsAuthenticated": {sessionID: "IA_wait", wantAnswer: responses.AuthCancelled},
-		"Call returns denied if not cancelled": {sessionID: "IA_timeout", wantAnswer: responses.AuthDenied},
+		"Successfully cancels IsAuthenticated": {sessionID: "IA_wait", wantAnswer: brokers.AuthCancelled},
+		"Call returns denied if not cancelled": {sessionID: "IA_timeout", wantAnswer: brokers.AuthDenied},
 	}
 	for name, tc := range tests {
 		tc := tc

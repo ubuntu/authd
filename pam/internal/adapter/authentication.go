@@ -13,7 +13,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/brokers/responses"
+	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -35,7 +35,7 @@ func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID 
 		if err != nil {
 			if st := status.Convert(err); st.Code() == codes.Canceled {
 				return isAuthenticatedResultReceived{
-					access: responses.AuthCancelled,
+					access: brokers.AuthCancelled,
 				}
 			}
 			return pamError{
@@ -134,10 +134,10 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 	case isAuthenticatedResultReceived:
 		log.Infof(context.TODO(), "isAuthenticatedResultReceived: %v", msg.access)
 		switch msg.access {
-		case responses.AuthGranted:
+		case brokers.AuthGranted:
 			return *m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID})
 
-		case responses.AuthRetry:
+		case brokers.AuthRetry:
 			errorMsg, err := dataToMsg(msg.msg)
 			if err != nil {
 				return *m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
@@ -145,7 +145,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 			m.errorMsg = errorMsg
 			return *m, sendEvent(startAuthentication{})
 
-		case responses.AuthDenied:
+		case brokers.AuthDenied:
 			errMsg, err := dataToMsg(msg.msg)
 			if err != nil {
 				return *m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
@@ -155,10 +155,10 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 			}
 			return *m, sendEvent(pamError{status: pam.ErrAuth, msg: errMsg})
 
-		case responses.AuthNext:
+		case brokers.AuthNext:
 			return *m, sendEvent(GetAuthenticationModesRequested{})
 
-		case responses.AuthCancelled:
+		case brokers.AuthCancelled:
 			// nothing to do
 			return *m, nil
 		}
