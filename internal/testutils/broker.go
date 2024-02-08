@@ -1,5 +1,4 @@
-// Package brokertestutils provides utility functions and behaviors for testing brokers.
-package brokertestutils
+package testutils
 
 import (
 	"bytes"
@@ -14,17 +13,28 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
-	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/brokers/responses"
-	"github.com/ubuntu/authd/internal/users"
 )
 
 const (
+	dbusInterface = "com.ubuntu.authd.Broker"
 	objectPathFmt = "/com/ubuntu/authd/%s"
 	nameFmt       = "com.ubuntu.authd.%s"
 
 	// IDSeparator is the value used to append values to the sessionID in the broker mock.
 	IDSeparator = "_separator_"
+)
+
+const (
+	// authGranted is the response when the authentication is granted.
+	authGranted = "granted"
+	// authDenied is the response when the authentication is denied.
+	authDenied = "denied"
+	// authCancelled is the response when the authentication is cancelled.
+	authCancelled = "cancelled"
+	// authRetry is the response when the authentication needs to be retried (another chance).
+	authRetry = "retry"
+	// authNext is the response when another MFA (including changing password) authentication is necessary.
+	authNext = "next"
 )
 
 var brokerConfigTemplate = `[authd]
@@ -63,7 +73,7 @@ func StartBusBrokerMock(cfgDir string, brokerName string) (string, func(), error
 		isAuthenticatedCallsMu: sync.RWMutex{},
 	}
 
-	if err = conn.Export(&bus, dbus.ObjectPath(busObjectPath), brokers.DbusInterface); err != nil {
+	if err = conn.Export(&bus, dbus.ObjectPath(busObjectPath), dbusInterface); err != nil {
 		conn.Close()
 		return "", nil, err
 	}
@@ -73,7 +83,7 @@ func StartBusBrokerMock(cfgDir string, brokerName string) (string, func(), error
 		Interfaces: []introspect.Interface{
 			introspect.IntrospectData,
 			{
-				Name:    brokers.DbusInterface,
+				Name:    dbusInterface,
 				Methods: introspect.Methods(&bus),
 			},
 		},
@@ -229,36 +239,36 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 		b.isAuthenticatedCallsMu.Unlock()
 	}()
 
-	access = responses.AuthGranted
+	access = authGranted
 	data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID, nil))
 
 	switch parsedID {
 	case "IA_timeout":
 		time.Sleep(time.Second)
-		access = responses.AuthDenied
+		access = authDenied
 		data = `{"message": "denied by time out"}`
 
 	case "IA_wait":
 		<-ctx.Done()
-		access = responses.AuthCancelled
+		access = authCancelled
 		data = ""
 
 	case "IA_second_call":
 		select {
 		case <-ctx.Done():
-			access = responses.AuthCancelled
+			access = authCancelled
 			data = ""
 		case <-time.After(2 * time.Second):
-			access = responses.AuthGranted
+			access = authGranted
 			data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID, nil))
 		}
 
 	case "IA_next":
-		access = responses.AuthNext
+		access = authNext
 		data = ""
 
 	case "success_with_local_groups":
-		extragroups := []users.GroupInfo{{Name: "localgroup1"}, {Name: "localgroup3"}}
+		extragroups := []groupJSONInfo{{Name: "localgroup1"}, {Name: "localgroup3"}}
 		data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID, extragroups))
 
 	case "IA_invalid_access":
@@ -274,19 +284,19 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 		data = `{"userinfo": "not valid"}`
 
 	case "IA_denied_without_data":
-		access = responses.AuthDenied
+		access = authDenied
 		data = ""
 
 	case "IA_retry_without_data":
-		access = responses.AuthRetry
+		access = authRetry
 		data = ""
 
 	case "IA_next_with_data":
-		access = responses.AuthNext
+		access = authNext
 		data = `{"message": "there should not be a message here"}`
 
 	case "IA_cancelled_with_data":
-		access = responses.AuthCancelled
+		access = authCancelled
 		data = `{"message": "there should not be a message here"}`
 	}
 
@@ -326,8 +336,13 @@ func parseSessionID(sessionID string) string {
 	return strings.TrimSuffix(cut[len(cut)-1], "-session_id")
 }
 
+type groupJSONInfo struct {
+	Name string
+	UGID string
+}
+
 // userInfoFromName transform a given name to the strinfigy userinfo string.
-func userInfoFromName(parsedID string, extraGroups []users.GroupInfo) string {
+func userInfoFromName(parsedID string, extraGroups []groupJSONInfo) string {
 	// Default values
 	name := parsedID
 	group := "group-" + parsedID
@@ -356,22 +371,15 @@ func userInfoFromName(parsedID string, extraGroups []users.GroupInfo) string {
 		shell = "this is not a valid shell"
 	}
 
-	type groupJSONInfo struct {
-		Name string
-		UGID string
-	}
-
 	groups := []groupJSONInfo{{Name: group, UGID: ugid}}
 	for _, g := range extraGroups {
 		var ugid string
-		if g.GID != nil {
-			ugid = fmt.Sprintf("ugid-%d", *g.GID)
+		if g.UGID != "" {
+			ugid = g.UGID
 		}
-		groups = append(groups, groupJSONInfo{
-			Name: g.Name,
-			UGID: ugid,
-		})
+		groups = append(groups, groupJSONInfo{Name: g.Name, UGID: ugid})
 	}
+
 	if group == "-" {
 		groups = []groupJSONInfo{}
 	}

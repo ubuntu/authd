@@ -11,16 +11,29 @@ import (
 	"sync"
 
 	"github.com/godbus/dbus/v5"
-	"github.com/ubuntu/authd/internal/brokers/responses"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
 	"golang.org/x/exp/slices"
 )
 
+const localBrokerName = "local"
+
 const (
-	localBrokerName = "local"
+	// AuthGranted is the response when the authentication is granted.
+	AuthGranted = "granted"
+	// AuthDenied is the response when the authentication is denied.
+	AuthDenied = "denied"
+	// AuthCancelled is the response when the authentication is cancelled.
+	AuthCancelled = "cancelled"
+	// AuthRetry is the response when the authentication needs to be retried (another chance).
+	AuthRetry = "retry"
+	// AuthNext is the response when another MFA (including changing password) authentication is necessary.
+	AuthNext = "next"
 )
+
+// AuthReplies is the list of all possible authentication replies.
+var AuthReplies = []string{AuthGranted, AuthDenied, AuthCancelled, AuthRetry, AuthNext}
 
 type brokerer interface {
 	NewSession(ctx context.Context, username, lang, mode string) (sessionID, encryptionKey string, err error)
@@ -151,7 +164,7 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 	}
 
 	// Validate access authentication.
-	if !slices.Contains(responses.AuthReplies, access) {
+	if !slices.Contains(AuthReplies, access) {
 		return "", "", fmt.Errorf("invalid access authentication key: %v", access)
 	}
 
@@ -160,7 +173,7 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 	}
 
 	switch access {
-	case responses.AuthGranted:
+	case AuthGranted:
 		rawUserInfo, err := unmarshalAndGetKey(data, "userinfo")
 		if err != nil {
 			return "", "", err
@@ -177,12 +190,12 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 		}
 		data = string(d)
 
-	case responses.AuthDenied, responses.AuthRetry:
+	case AuthDenied, AuthRetry:
 		if _, err := unmarshalAndGetKey(data, "message"); err != nil {
 			return "", "", err
 		}
 
-	case responses.AuthCancelled, responses.AuthNext:
+	case AuthCancelled, AuthNext:
 		if data != "{}" {
 			return "", "", fmt.Errorf("access mode %q should not return any data, got: %v", access, data)
 		}

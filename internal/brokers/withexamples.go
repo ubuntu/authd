@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/ubuntu/authd/internal/brokers/examplebroker"
+	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/testutils"
 )
