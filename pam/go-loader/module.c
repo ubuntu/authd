@@ -148,6 +148,7 @@ call_pam_function (pam_handle_t *pamh,
     return call_pam_function (pamh, "pam_sm_" #name, flags, argc, argv); \
   }
 
+DEFINE_PAM_WRAPPER (acct_mgmt)
 DEFINE_PAM_WRAPPER (authenticate)
 DEFINE_PAM_WRAPPER (chauthtok)
 DEFINE_PAM_WRAPPER (close_session)
