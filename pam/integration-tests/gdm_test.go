@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -35,11 +36,10 @@ const (
 	phoneAck1ID    = "phoneack1"
 )
 
-func TestGdmModule(t *testing.T) {
-	t.Parallel()
-
+//nolint:thelper // This is actually a test!
+func testGdmModule(t *testing.T, libPath string, args []string) {
 	if !pam.CheckPamHasStartConfdir() {
-		t.Skip("can't test with this libpam version!")
+		t.Fatal("can't test with this libpam version!")
 	}
 
 	require.True(t, pam.CheckPamHasBinaryProtocol(),
@@ -48,7 +48,6 @@ func TestGdmModule(t *testing.T) {
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
-	libPath := buildPAMLibrary(t)
 	// libpam won't ever return a pam.ErrIgnore, so we use a fallback error.
 	// We use incomplete here, but it could be any.
 	const ignoreError = pam.ErrIncomplete
@@ -285,7 +284,7 @@ func TestGdmModule(t *testing.T) {
 				<-stopped
 			})
 			serviceFile := createServiceFile(t, "module-loader", libPath,
-				[]string{"socket=" + socketPath}, pamDebugIgnoreError)
+				append(slices.Clone(args), "socket="+socketPath), pamDebugIgnoreError)
 
 			gh := newGdmTestModuleHandler(t, serviceFile, tc.pamUser)
 			t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
@@ -342,7 +341,24 @@ func TestGdmModule(t *testing.T) {
 	}
 }
 
-func buildPAMLibrary(t *testing.T) string {
+func TestGdmModule(t *testing.T) {
+	t.Parallel()
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+	libPath := buildPAMModule(t)
+	testGdmModule(t, libPath, nil)
+}
+
+func TestGdmModuleWithCWrapper(t *testing.T) {
+	t.Parallel()
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+	wrapperLibPath := buildPAMWrapperModule(t)
+	libPath := buildPAMModule(t)
+	testGdmModule(t, wrapperLibPath, []string{libPath})
+}
+
+func buildPAMModule(t *testing.T) string {
 	t.Helper()
 
 	cmd := exec.Command("go", "build", "-C", "..")
@@ -362,6 +378,66 @@ func buildPAMLibrary(t *testing.T) string {
 	cmd.Args = append(cmd.Args, "-tags=pam_debug,pam_gdm_debug", "-o", libPath)
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, string(out), "Setup: could not compile PAM module")
+
+	return libPath
+}
+
+func buildPAMWrapperModule(t *testing.T) string {
+	t.Helper()
+
+	compiler := os.Getenv("CC")
+	if compiler == "" {
+		compiler = "cc"
+	}
+
+	//nolint:gosec // G204 it's a test so we should allow using any compiler safely.
+	cmd := exec.Command(compiler)
+	soname := "pam_authd_loader"
+	libPath := filepath.Join(t.TempDir(), soname+".so")
+
+	require.NoError(t, os.MkdirAll(filepath.Dir(libPath), 0700),
+		"Setup: Can't create loader build path")
+	t.Logf("Compiling PAM Wrapper library at %s", libPath)
+	cmd.Args = append(cmd.Args, []string{
+		"-o", libPath,
+		"../go-loader/module.c",
+		"-g3",
+		"-O0",
+	}...)
+
+	if modulesPath := os.Getenv("AUTHD_PAM_MODULES_PATH"); modulesPath != "" {
+		cmd.Args = append(cmd.Args, fmt.Sprintf("-DAUTHD_PAM_MODULES_PATH=%q",
+			os.Getenv("AUTHD_PAM_MODULES_PATH")))
+	}
+	if pam_test.IsAddressSanitizerActive() {
+		cmd.Args = append(cmd.Args, "-fsanitize=address,undefined")
+	}
+	if cflags := os.Getenv("CFLAGS"); cflags != "" && os.Getenv("DEB_BUILD_ARCH") == "" {
+		cmd.Args = append(cmd.Args, strings.Split(cflags, " ")...)
+	}
+
+	cmd.Args = append(cmd.Args, []string{
+		"-Wl,--as-needed",
+		"-Wl,--allow-shlib-undefined",
+		"-shared",
+		"-fPIC",
+		"-Wl,--unresolved-symbols=report-all",
+		"-Wl,-soname," + soname + "",
+		"-lpam",
+	}...)
+	if ldflags := os.Getenv("LDFLAGS"); ldflags != "" && os.Getenv("DEB_BUILD_ARCH") == "" {
+		cmd.Args = append(cmd.Args, strings.Split(ldflags, " ")...)
+	}
+
+	if testutils.CoverDir() != "" {
+		cmd.Args = append(cmd.Args, "--coverage")
+		cmd.Args = append(cmd.Args, "-fprofile-abs-path")
+		cmd.Args = append(cmd.Args, "-fprofile-dir="+testutils.CoverDir())
+	}
+
+	t.Logf("Running compiler command: %s %s", cmd.Path, strings.Join(cmd.Args[1:], " "))
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, string(out), "Setup: could not compile PAM module wrapper")
 
 	return libPath
 }
