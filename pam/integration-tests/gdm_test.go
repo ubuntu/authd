@@ -432,7 +432,19 @@ func buildPAMWrapperModule(t *testing.T) string {
 	if testutils.CoverDir() != "" {
 		cmd.Args = append(cmd.Args, "--coverage")
 		cmd.Args = append(cmd.Args, "-fprofile-abs-path")
-		cmd.Args = append(cmd.Args, "-fprofile-dir="+testutils.CoverDir())
+
+		t.Cleanup(func() {
+			t.Log("Running gcov...")
+			gcov := exec.Command("gcov")
+			gcov.Args = append(gcov.Args,
+				"-pb", "-o", filepath.Dir(libPath),
+				soname+".so-module.gcno")
+			gcov.Dir = testutils.CoverDir()
+			out, err := gcov.CombinedOutput()
+			require.NoError(t, err, string(out),
+				"Teardown: Can't get coverage report on C library")
+			t.Log(string(out))
+		})
 	}
 
 	t.Logf("Running compiler command: %s %s", cmd.Path, strings.Join(cmd.Args[1:], " "))
