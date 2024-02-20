@@ -131,6 +131,9 @@ jobs:
           # Filter out the testutils package and the pb.go file
           grep -v -e "testutils" -e "pb.go" "${cov_dir}/coverage.out" >"${cod_cov_dir}/coverage.out.filtered"
 
+          # Move gcov output to coverage dir
+          mv "${raw_cov_dir}"/*.gcov "${cod_cov_dir}"
+
       - name: Run tests (with race detector)
         run: |
           go test -race ./...
