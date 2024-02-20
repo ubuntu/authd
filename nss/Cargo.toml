@@ -16,7 +16,7 @@ custom_socket = []
 integration_tests = []
 
 [dependencies]
-libnss = "0.5.0"
+libnss = "0.6.0"
 lazy_static = "1.4.0"
 libc = "0.2.152"
 paste = "1.0.14"
