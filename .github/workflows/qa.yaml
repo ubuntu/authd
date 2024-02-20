@@ -157,6 +157,9 @@ jobs:
         run: |
           # Use `-dwarflocationlists` to give ASAN a better time to unwind the stack trace
           go test -C ./pam/internal -asan -gcflags="-dwarflocationlists=true" ./...
+          # FIXME: Suppression may be removed with newer libpam, as the one we ship in ubuntu as some leaks
+          env LSAN_OPTIONS=suppressions=$(pwd)/pam/integration-tests/lsan.supp \
+            go test -C ./pam/integration-tests -asan -gcflags="-dwarflocationlists=true" -run TestGdmModule
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
