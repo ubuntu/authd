@@ -2,6 +2,8 @@ module github.com/ubuntu/authd/tools
 
 go 1.21.0
 
+toolchain go1.21.6
+
 require (
 	github.com/golangci/golangci-lint v1.56.1
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
