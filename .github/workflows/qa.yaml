@@ -10,7 +10,7 @@ on:
 env:
   DEBIAN_FRONTEND: noninteractive
   apt_deps: >-
-    libpam0g-dev
+    libpam-dev
 
   test_apt_deps: >-
     ffmpeg
@@ -83,6 +83,17 @@ jobs:
 
           # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
           sudo apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}} ${{ env.test_apt_deps }}
+      - name: Install PAM debug symbols
+        run: |
+          set -eu
+          sudo apt-get install ubuntu-dbgsym-keyring -y
+          echo "deb http://ddebs.ubuntu.com $(lsb_release -cs) main restricted universe multiverse
+          deb http://ddebs.ubuntu.com $(lsb_release -cs)-updates main restricted universe multiverse
+          deb http://ddebs.ubuntu.com $(lsb_release -cs)-proposed main restricted universe multiverse" | \
+          sudo tee -a /etc/apt/sources.list.d/ddebs.list
+          # Sometimes ddebs archive is stuck, so in case of failure we ignore this step, it's not fundamental.
+          sudo apt update -y || true
+          sudo apt install -y libpam-modules-dbgsym libpam0*-dbgsym || true
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
