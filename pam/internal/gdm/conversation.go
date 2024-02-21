@@ -6,12 +6,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync/atomic"
 
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/log"
 )
 
+var conversations atomic.Int32
+
+// ConversationInProgress checks if conversations are currently active.
+func ConversationInProgress() bool {
+	return conversations.Load() > 0
+}
+
 func sendToGdm(pamMTx pam.ModuleTransaction, data []byte) ([]byte, error) {
+	conversations.Add(1)
+	defer conversations.Add(-1)
 	binReq, err := NewBinaryJSONProtoRequest(data)
 	if err != nil {
 		return nil, err
