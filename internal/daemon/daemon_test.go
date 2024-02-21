@@ -306,6 +306,7 @@ func createClientConnection(t *testing.T, socketPath string) (success bool, disc
 	select {
 	case <-connected:
 	case <-time.After(10 * time.Millisecond):
+		disconnect()
 		return false, func() {}
 	}
 
