@@ -377,6 +377,14 @@ func (m *UIModel) changeStage(s pam_proto.Stage) tea.Cmd {
 
 // MsgFilter is the handler for the UI model.
 func (m *UIModel) MsgFilter(model tea.Model, msg tea.Msg) tea.Msg {
+	if m.ClientType != Gdm {
+		return msg
+	}
+
+	if _, ok := msg.(tea.QuitMsg); ok {
+		m.gdmModel = m.gdmModel.stopConversations()
+	}
+
 	return msg
 }
 

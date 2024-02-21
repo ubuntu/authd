@@ -1966,6 +1966,8 @@ func TestGdmModel(t *testing.T) {
 				require.Equal(t, tc.wantExitStatus, appState.ExitStatus())
 			}
 
+			require.True(t, appState.gdmModel.conversationsStopped)
+
 			for _, req := range tc.wantNoGdmRequests {
 				require.NotContains(t, gdmHandler.handledRequests, req)
 			}
