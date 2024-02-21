@@ -1,0 +1,20 @@
+[Unit]
+Description=Authd Example Broker
+After=authd.service
+Requires=authd.service
+
+[Service]
+Type=dbus
+BusName=com.ubuntu.authd.ExampleBroker
+ExecStart=/usr/libexec/authd-examplebroker
+Restart=on-failure
+
+# Some daemon restrictions
+ProtectSystem=strict
+ProtectControlGroups=true
+ProtectHome=true
+ProtectKernelModules=true
+PrivateTmp=true
+RestrictAddressFamilies=AF_UNIX AF_LOCAL AF_NETLINK
+MemoryDenyWriteExecute=true
+RestrictRealtime=true
