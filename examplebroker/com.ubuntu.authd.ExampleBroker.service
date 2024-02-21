@@ -1,0 +1,5 @@
+[D-BUS Service]
+Name=com.ubuntu.authd.ExampleBroker
+Exec=/bin/false
+User=root
+SystemdService=authd-example-broker.service
