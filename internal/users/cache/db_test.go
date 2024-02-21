@@ -60,6 +60,14 @@ func TestNew(t *testing.T) {
 			if tc.perm != nil {
 				err := os.Chmod(dbDestPath, *tc.perm)
 				require.NoError(t, err, "Setup: could not change mode of database file")
+
+				if *tc.perm == perm0644 {
+					currentUser, err := user.Current()
+					require.NoError(t, err)
+					if os.Getenv("AUTHD_SKIP_ROOT_TESTS") != "" && currentUser.Username == "root" {
+						t.Skip("Can't do permission checks as root")
+					}
+				}
 			}
 
 			c, err := cache.New(cacheDir)
@@ -452,6 +460,11 @@ func TestClear(t *testing.T) {
 				require.NoError(t, os.Remove(c.DbPath()), "Setup: should be able to remove database file")
 			}
 			if tc.readOnlyDir {
+				currentUser, err := user.Current()
+				require.NoError(t, err)
+				if os.Getenv("AUTHD_SKIP_ROOT_TESTS") != "" && currentUser.Username == "root" {
+					t.Skip("Can't do permission checks as root")
+				}
 				testutils.MakeReadOnly(t, filepath.Dir(c.DbPath()))
 			}
 
