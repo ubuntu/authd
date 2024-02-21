@@ -69,4 +69,4 @@ require (
 // FIXME: Use released version once we have one!
 // The branch below includes changes from this upstream PR:
 // - https://github.com/msteinert/pam/pull/13
-replace github.com/msteinert/pam/v2 => github.com/3v1n0/go-pam/v2 v2.0.0-20240119152522-79364f5b2eed
+replace github.com/msteinert/pam/v2 => github.com/3v1n0/go-pam/v2 v2.0.0-20240218173232-e182844e4e11
