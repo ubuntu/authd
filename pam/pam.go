@@ -37,6 +37,17 @@ const (
 	authenticationBrokerIDKey = "authentication-broker-id"
 )
 
+func parseArgs(args []string) map[string]string {
+	parsed := make(map[string]string)
+
+	for _, arg := range args {
+		opt, value, _ := strings.Cut(arg, "=")
+		parsed[opt] = value
+	}
+
+	return parsed
+}
+
 func showPamMessage(mTx pam.ModuleTransaction, style pam.Style, msg string) error {
 	switch style {
 	case pam.TextInfo, pam.ErrorMsg:
@@ -111,7 +122,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		return fmt.Errorf("pam module used through an unsupported client: %w", pam.ErrSystem)
 	}
 
-	client, closeConn, err := newClient(args)
+	client, closeConn, err := newClient(parseArgs(args))
 	if err != nil {
 		log.Debug(context.TODO(), err)
 		if err := showPamMessage(mTx, pam.ErrorMsg, err.Error()); err != nil {
@@ -196,7 +207,7 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 		return pam.ErrIgnore
 	}
 
-	client, closeConn, err := newClient(args)
+	client, closeConn, err := newClient(parseArgs(args))
 	if err != nil {
 		log.Debugf(context.TODO(), "%s", err)
 		return pam.ErrAuthinfoUnavail
@@ -216,7 +227,7 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 }
 
 // newClient returns a new GRPC client ready to emit requests.
-func newClient(args []string) (client authd.PAMClient, close func(), err error) {
+func newClient(args map[string]string) (client authd.PAMClient, close func(), err error) {
 	conn, err := grpc.Dial("unix://"+getSocketPath(args), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not connect to authd: %v", err)
@@ -233,17 +244,11 @@ func newClient(args []string) (client authd.PAMClient, close func(), err error) 
 }
 
 // getSocketPath returns the socket path to connect to which can be overridden manually.
-func getSocketPath(args []string) string {
-	socketPath := consts.DefaultSocketPath
-	for _, arg := range args {
-		opt, optarg, _ := strings.Cut(arg, "=")
-		switch opt {
-		case "socket":
-			socketPath = optarg
-		default:
-		}
+func getSocketPath(args map[string]string) string {
+	if val, ok := args["socket"]; ok {
+		return val
 	}
-	return socketPath
+	return consts.DefaultSocketPath
 }
 
 // SetCred is the method that is invoked during pam_setcred request.
