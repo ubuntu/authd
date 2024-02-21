@@ -67,26 +67,10 @@ jobs:
           sudo DEBIAN_FRONTEND=noninteractive apt update
           sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}}
       - uses: actions/checkout@v4
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: rustfmt, clippy
-      - name: Build crate
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args:  --all-features
-      - name: Check code format with rustfmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-      - name: Check code format with clippy
-        uses: actions-rs/clippy-check@v1
+      - name: Rust code sanity check
+        uses: canonical/desktop-engineering/gh-actions/rust/code-sanity@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features
 
   go-tests:
     name: "Go: Tests"
