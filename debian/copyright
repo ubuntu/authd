@@ -321,10 +321,6 @@ Files: vendor_rust/errno/*
 Copyright: 2014 Chris Wong
 License: MIT
 
-Files: vendor_rust/errno-dragonfly/*
-Copyright: 2017 Michael Neumann
-License: MIT
-
 Files: vendor_rust/error-chain/*
 Copyright: 2017 The Error-Chain Project Developers
 License: MIT
@@ -384,10 +380,6 @@ Files: vendor_rust/hyper-timeout/*
 Copyright: 2016 The weldr Project Developers
 License: MIT
 
-Files: vendor_rust/is-terminal/*
-Copyright: 2015-2019 Doug Tangren
-License: MIT
-
 Files: vendor_rust/matchit/*
 Copyright: 2022 Ibraheem Ahmed
 License: MIT
@@ -423,10 +415,6 @@ Files: vendor_rust/rand/*
        vendor_rust/rand_chacha/*
        vendor_rust/rand_core/*
 Copyright: 2018 Developers of the Rand project / 2014 The Rust Project Developers
-License: MIT
-
-Files: vendor_rust/redox_syscall/*
-Copyright: 2017 Redox OS Developers
 License: MIT
 
 Files: vendor_rust/simple_logger/*
