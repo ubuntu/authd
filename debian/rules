@@ -65,7 +65,6 @@ override_dh_auto_configure:
 
 	[ ! -e $(DH_CARGO_VENDORED_SOURCES) ] || $(DH_CARGO_VENDORED_SOURCES)
 	DEB_CARGO_CRATE=nss_$(shell dpkg-parsechangelog --show-field Version) \
-	RUSTFLAGS="--cfg=rustix_use_libc" \
 		$(CARGO) prepare-debian $(CARGO_VENDOR_DIR)
 
 override_dh_auto_build:
