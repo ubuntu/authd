@@ -125,19 +125,28 @@ message ESRequest {
 }
 
 service NSS {
-  rpc GetPasswdByName(GetByNameRequest) returns (PasswdEntry);
+  rpc GetPasswdByName(GetPasswdByNameRequest) returns (PasswdEntry);
   rpc GetPasswdByUID(GetByIDRequest) returns (PasswdEntry);
   rpc GetPasswdEntries(Empty) returns (PasswdEntries);
 
-  rpc GetGroupByName(GetByNameRequest) returns (GroupEntry);
+  rpc GetGroupByName(GetGroupByNameRequest) returns (GroupEntry);
   rpc GetGroupByGID(GetByIDRequest) returns (GroupEntry);
   rpc GetGroupEntries(Empty) returns (GroupEntries);
 
-  rpc GetShadowByName(GetByNameRequest) returns (ShadowEntry);
+  rpc GetShadowByName(GetShadowByNameRequest) returns (ShadowEntry);
   rpc GetShadowEntries(Empty) returns (ShadowEntries);
 }
 
-message GetByNameRequest{
+message GetPasswdByNameRequest{
+  string name = 1;
+  bool shouldPreCheck = 2;
+}
+
+message GetGroupByNameRequest{
+  string name = 1;
+}
+
+message GetShadowByNameRequest{
   string name = 1;
 }
 
