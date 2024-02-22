@@ -80,15 +80,20 @@ type Broker struct {
 	privateKey *rsa.PrivateKey
 }
 
+type userInfoBroker struct {
+	Password string
+}
+
 var (
-	exampleUsers = map[string]struct{}{
-		"user1":             {},
-		"user2":             {},
-		"user-mfa":          {},
-		"user-needs-reset":  {},
-		"user-can-reset":    {},
-		"user-local-groups": {},
-		"user-pre-check":    {},
+	exampleUsersMu = sync.RWMutex{}
+	exampleUsers   = map[string]userInfoBroker{
+		"user1":             {Password: "goodpass"},
+		"user2":             {Password: "goodpass"},
+		"user-mfa":          {Password: "goodpass"},
+		"user-needs-reset":  {Password: "goodpass"},
+		"user-can-reset":    {Password: "goodpass"},
+		"user-local-groups": {Password: "goodpass"},
+		"user-pre-check":    {Password: "goodpass"},
 	}
 )
 
@@ -138,6 +143,17 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 		info.pwdChange = canReset
 	case "user-unexistent":
 		return "", "", fmt.Errorf("user %q does not exist", username)
+	}
+
+	if info.sessionMode == "passwd" {
+		info.neededAuthSteps++
+		info.pwdChange = mustReset
+	}
+
+	exampleUsersMu.Lock()
+	defer exampleUsersMu.Unlock()
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-integration") {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
 	}
 
 	pubASN1, err := x509.MarshalPKIXPublicKey(&b.privateKey.PublicKey)
@@ -480,7 +496,6 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 	return access, data, err
 }
 
-//nolint:unparam // This is an static example implementation, so we don't return an error other than nil.
 func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (access, data string, err error) {
 	// Decrypt challenge if present.
 	challenge, err := decodeRawChallenge(b.privateKey, authData["challenge"])
@@ -492,8 +507,12 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 	// Take into account the cancellation.
 	switch sessionInfo.currentAuthMode {
 	case "password":
-		if challenge != "goodpass" {
-			return AuthRetry, `{"message": "invalid password, should be goodpass"}`, nil
+		exampleUsersMu.RLock()
+		defer exampleUsersMu.RUnlock()
+		expectedChallenge := exampleUsers[sessionInfo.username].Password
+
+		if challenge != expectedChallenge {
+			return AuthRetry, fmt.Sprintf(`{"message": "invalid password '%s', should be '%s'"}`, challenge, expectedChallenge), nil
 		}
 
 	case "pincode":
@@ -554,6 +573,20 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		case <-ctx.Done():
 			return AuthCancelled, "", nil
 		}
+
+	case "optionalreset":
+		if authData["skip"] == "true" {
+			break
+		}
+		fallthrough
+	case "mandatoryreset":
+		exampleUsersMu.Lock()
+		defer exampleUsersMu.Unlock()
+
+		if challenge != "newpass" {
+			return AuthRetry, `{"message": "new password does not match criteria: must be newpass"}`, nil
+		}
+		exampleUsers[sessionInfo.username] = userInfoBroker{Password: challenge}
 	}
 
 	// this case name was dynamically generated
@@ -577,7 +610,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 	}
 
-	if _, exists := exampleUsers[sessionInfo.username]; !exists && !strings.HasPrefix(sessionInfo.username, "user-integration") {
+	if _, exists := exampleUsers[sessionInfo.username]; !exists {
 		return AuthDenied, `{"message": "user not found"}`, nil
 	}
 	return AuthGranted, fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionInfo.username)), nil
