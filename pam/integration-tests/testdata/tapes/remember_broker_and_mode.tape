@@ -14,7 +14,7 @@ Set Margin 0
 Set Shell bash
 
 Hide
-Type "./pam_authd socket=/tmp/pam-cli-tests.sock"
+Type "./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock"
 Enter
 Sleep 100ms
 Show
@@ -50,7 +50,7 @@ Sleep 2s
 Show
 
 Hide
-Type "./pam_authd socket=/tmp/pam-cli-tests.sock"
+Type "./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock"
 Enter
 Sleep 100ms
 Show

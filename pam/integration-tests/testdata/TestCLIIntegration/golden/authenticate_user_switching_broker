@@ -1,4 +1,4 @@
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Username: user name
 
 
@@ -31,7 +31,7 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Username: user-integration-switch-broker
 
 
@@ -64,7 +64,7 @@ Username: user-integration-switch-broker
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
 
 > 1. local
@@ -97,7 +97,7 @@ Username: user-integration-switch-broker
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Gimme your password
 >
 
@@ -130,7 +130,7 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your authentication method
 
 > 1. Password authentication
@@ -163,7 +163,7 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
 
   1. local
@@ -196,7 +196,7 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
 
 > 1. local
@@ -225,11 +225,11 @@ Gimme your password
 
 
 
-PAM Authenticate() for user 'user-integration-switch-broker' exited with error (PAM exit code: 2
+PAM Authenticate() for user "user-integration-switch-broker" exited with error (PAM exit code: 2
 5): The return value should be ignored by PAM dispatch:
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
 
 > 1. local
@@ -258,7 +258,7 @@ PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be
 
 
 
-PAM Authenticate() for user 'user-integration-switch-broker' exited with error (PAM exit code: 2
+PAM Authenticate() for user "user-integration-switch-broker" exited with error (PAM exit code: 2
 5): The return value should be ignored by PAM dispatch:
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 ────────────────────────────────────────────────────────────────────────────────

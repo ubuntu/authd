@@ -1,4 +1,4 @@
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Username: user name
 
 
@@ -31,7 +31,7 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Username: user-integration-qr-code
 
 
@@ -64,7 +64,7 @@ Username: user-integration-qr-code
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
 
 > 1. local
@@ -97,7 +97,7 @@ Username: user-integration-qr-code
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Gimme your password
 >
 
@@ -130,7 +130,7 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your authentication method
 
 > 1. Password authentication
@@ -163,7 +163,7 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Enter the following code after flashing the address: 1337
 
 █████████████████████████████████
@@ -196,7 +196,7 @@ Enter the following code after flashing the address: 1337
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Enter the following code after flashing the address: 1337
 
 █████████████████████████████████
@@ -229,7 +229,7 @@ Enter the following code after flashing the address: 1337
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Enter the following code after flashing the address: 1337
 
 █████████████████████████████████
@@ -262,7 +262,7 @@ Enter the following code after flashing the address: 1337
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Enter the following code after flashing the address: 1337
 
 █████████████████████████████████
@@ -284,7 +284,7 @@ Enter the following code after flashing the address: 1337
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 
-PAM Authenticate() for user 'user-integration-qr-code' exited with success
+PAM Authenticate() for user "user-integration-qr-code" exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -295,7 +295,7 @@ PAM AcctMgmt() exited with success
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Enter the following code after flashing the address: 1337
 
 █████████████████████████████████
@@ -317,7 +317,7 @@ Enter the following code after flashing the address: 1337
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 
-PAM Authenticate() for user 'user-integration-qr-code' exited with success
+PAM Authenticate() for user "user-integration-qr-code" exited with success
 PAM AcctMgmt() exited with success
 >
 

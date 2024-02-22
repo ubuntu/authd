@@ -23,12 +23,15 @@ func TestCLIIntegration(t *testing.T) {
 
 	outDir := filepath.Dir(daemonPath)
 
-	gpasswdOutput := filepath.Join(outDir, "gpasswd.output")
+	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
+	require.NoError(t, err, "Setup: Could not create gpasswd output directory")
+	gpasswdOutput := filepath.Join(outDir, "gpasswd", "authenticate.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
+	socketPath := "/tmp/pam-cli-authenticate-tests.sock"
 	ctx, cancel := context.WithCancel(context.Background())
 	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
-		testutils.WithSocketPath("/tmp/pam-cli-tests.sock"),
+		testutils.WithSocketPath(socketPath),
 		testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile)...),
 	)
 	t.Cleanup(func() {
@@ -86,7 +89,7 @@ func TestCLIIntegration(t *testing.T) {
 			var got string
 			splitTmp := strings.Split(string(tmp), "\n")
 			for i, str := range splitTmp {
-				if strings.HasPrefix(str, "> ./pam_authd socket=/tmp/pam-cli-tests.sock") {
+				if strings.HasPrefix(str, fmt.Sprintf("> ./pam_authd login socket=%s", socketPath)) {
 					got = strings.Join(splitTmp[i:], "\n")
 					break
 				}
@@ -95,7 +98,7 @@ func TestCLIIntegration(t *testing.T) {
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
 			if tc.tape == "local_group" {
-				got := grouptests.IdempotentGPasswdOutput(t, filepath.Join(outDir, "gpasswd.output"))
+				got := grouptests.IdempotentGPasswdOutput(t, gpasswdOutput)
 				want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(testutils.GoldenPath(t)+".gpasswd_out"))
 				require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
 			}

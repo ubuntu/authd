@@ -1,4 +1,4 @@
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Username: user name
 
 
@@ -31,7 +31,7 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Username: user-integration-sigint
 
 
@@ -64,7 +64,7 @@ Username: user-integration-sigint
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
 
 > 1. local
@@ -97,7 +97,7 @@ Username: user-integration-sigint
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Gimme your password
 >
 
@@ -130,10 +130,10 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Gimme your password
 PAM Error Message: cancel requested
-PAM Authenticate() for user 'user-integration-sigint' exited with error (PAM exit code: 26): Cri
+PAM Authenticate() for user "user-integration-sigint" exited with error (PAM exit code: 26): Cri
 tical error - immediate abort: cancel requested
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch
@@ -163,10 +163,10 @@ dispatch
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Gimme your password
 PAM Error Message: cancel requested
-PAM Authenticate() for user 'user-integration-sigint' exited with error (PAM exit code: 26): Cri
+PAM Authenticate() for user "user-integration-sigint" exited with error (PAM exit code: 26): Cri
 tical error - immediate abort: cancel requested
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch

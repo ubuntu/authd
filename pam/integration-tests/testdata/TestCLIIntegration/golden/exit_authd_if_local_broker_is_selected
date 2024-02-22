@@ -1,4 +1,4 @@
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Username: user name
 
 
@@ -31,7 +31,7 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Username: user-local-broker
 
 
@@ -64,7 +64,7 @@ Username: user-local-broker
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
 
 > 1. local
@@ -97,7 +97,7 @@ Username: user-local-broker
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
 
 > 1. local
@@ -126,11 +126,11 @@ Username: user-local-broker
 
 
 
-PAM Authenticate() for user 'user-local-broker' exited with error (PAM exit code: 25): The retur
+PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
 n value should be ignored by PAM dispatch:
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
 
 > 1. local
@@ -159,7 +159,7 @@ PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be
 
 
 
-PAM Authenticate() for user 'user-local-broker' exited with error (PAM exit code: 25): The retur
+PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
 n value should be ignored by PAM dispatch:
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 ────────────────────────────────────────────────────────────────────────────────
