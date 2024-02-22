@@ -1,6 +1,8 @@
 #!/usr/bin/make -f
 #export DH_VERBOSE = 1
 
+include /usr/share/rustc/architecture.mk
+
 # The package name for authd, used only locally to avoid repetitions
 AUTHD_GO_PACKAGE := $(shell grep-dctrl -s XS-Go-Import-Path -n - ./debian/control)
 
@@ -14,15 +16,12 @@ export DPKG_GENSYMBOLS_CHECK_LEVEL := 4
 # Copy in build directory all content to embed
 export DH_GOLANG_INSTALL_ALL := 1
 
-# The following definitions are necessary because of the manual steps
-# we need to do to work around some issues with either dh-cargo,
-# the wrapper, or cargo
-include /usr/share/rustc/architecture.mk
-CARGO := /usr/share/cargo/bin/cargo
+# Use the debian cargo wrapper
+export CARGO_PATH := /usr/share/cargo/bin/cargo
 
 # Needed for Rust vendored sources tracking
-DH_CARGO_VENDORED_SOURCES := /usr/share/cargo/bin/dh-cargo-vendored-sources
-export CARGO_VENDOR_DIR = vendor_rust
+export DH_CARGO_VENDORED_SOURCES := /usr/share/cargo/bin/dh-cargo-vendored-sources
+export CARGO_VENDOR_DIR := $(CURDIR)/vendor_rust
 
 # Needed for Rust configure/build/test stages
 export DEB_HOST_GNU_TYPE DEB_HOST_RUST_TYPE
@@ -56,32 +55,26 @@ override_dh_auto_clean:
 	[ -d vendor/ ] || go mod vendor
 
 	# Vendor Rust dependencies when building the source package
-	[ -d vendor_rust/ ] || \
-		CARGO=$(CARGO) DH_CARGO_VENDORED_SOURCES=$(DH_CARGO_VENDORED_SOURCES) \
-		CARGO_VENDOR_DIR=$(CARGO_VENDOR_DIR) debian/vendor-rust.sh
+	[ -d vendor_rust/ ] || debian/vendor-rust.sh
+
+	# Cleanup empty cargo-checksum
+	rm -f debian/cargo-checksum.json
 
 override_dh_auto_configure:
 	dh_auto_configure
 
-	[ ! -e $(DH_CARGO_VENDORED_SOURCES) ] || $(DH_CARGO_VENDORED_SOURCES)
-	DEB_CARGO_CRATE=nss_$(shell dpkg-parsechangelog --show-field Version) \
-		$(CARGO) prepare-debian $(CARGO_VENDOR_DIR)
+	touch debian/cargo-checksum.json
+	dh_auto_configure --buildsystem=cargo
 
 override_dh_auto_build:
 	# Build PAM library & Go loader
 	DH_GOLANG_GO_GENERATE=1 dh_auto_build -- $(AUTHD_GO_PACKAGE)/pam
 
 	# Build the NSS library
-	$(CARGO) build --release
+	$(CARGO_PATH) build --release
 
 	# Build the daemon
 	dh_auto_build -- $(AUTHD_GO_PACKAGE)/cmd/authd
-
-override_dh_auto_test:
-	# We need to specify these Rust related variables to the Go tests in order to build the NSS lib
-	# with the cargo wrapper in the integration tests in order to force cargo to use vendored deps
-	# instead of querying crates.io for them.
-	CARGO_PATH=$(CARGO) dh_auto_test
 
 override_dh_auto_install:
 	dh_auto_install -- --no-source
