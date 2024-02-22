@@ -32,24 +32,32 @@ func TestNewService(t *testing.T) {
 	require.NoError(t, err, "Setup: could not create user manager")
 	t.Cleanup(func() { _ = m.Stop() })
 
-	_ = nss.NewService(context.Background(), m)
+	b, err := brokers.NewManager(context.Background(), t.TempDir(), nil)
+	require.NoError(t, err, "Setup: could not create broker manager")
+
+	_ = nss.NewService(context.Background(), m, b)
 }
 
-//nolint:dupl // This is a dedicated test, not a duplicate.
 func TestGetPasswdByName(t *testing.T) {
 	tests := map[string]struct {
 		username string
 
-		sourceDB string
+		sourceDB       string
+		shouldPreCheck bool
 
 		wantErr          bool
 		wantErrNotExists bool
 	}{
-		"Return existing user": {username: "user1"},
+		"Return existing user":          {username: "user1"},
+		"Precheck user if not in cache": {username: "user-pre-check", shouldPreCheck: true},
 
 		"Error in database fetched content":                      {username: "user1", sourceDB: "invalid.db.yaml", wantErr: true},
 		"Error with typed GRPC notfound code on unexisting user": {username: "does-not-exists", wantErr: true, wantErrNotExists: true},
 		"Error on missing name":                                  {wantErr: true},
+
+		"Error in database fetched content does not trigger precheck": {username: "user1", sourceDB: "invalid.db.yaml", shouldPreCheck: true, wantErr: true},
+		"Error if user not in cache and precheck is disabled":         {username: "user-pre-check", wantErr: true, wantErrNotExists: true},
+		"Error if user not in cache and precheck fails":               {username: "does-not-exist", sourceDB: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -59,7 +67,7 @@ func TestGetPasswdByName(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB)
 
-			got, err := client.GetPasswdByName(context.Background(), &authd.GetByNameRequest{Name: tc.username})
+			got, err := client.GetPasswdByName(context.Background(), &authd.GetPasswdByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
 			requireExpectedResult(t, "GetPasswdByName", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}

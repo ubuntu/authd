@@ -56,6 +56,7 @@ func TestIntegration(t *testing.T) {
 		noDaemon       bool
 		noCustomSocket bool
 		wantSecondCall bool
+		shouldPreCheck bool
 
 		wantErr bool
 	}{
@@ -70,6 +71,8 @@ func TestIntegration(t *testing.T) {
 		"Get entry from passwd by id": {db: "passwd", key: "1111"},
 		"Get entry from group by id":  {db: "group", key: "11111"},
 
+		"Check user with broker if not found in cache": {db: "passwd", key: "user-pre-check", shouldPreCheck: true},
+
 		// Even though those are "error" cases, the getent command won't fail since the other databases on the machine will return some entries.
 		"Returns empty when getting all entries from passwd and daemon is not available": {db: "passwd", noDaemon: true},
 		"Returns empty when getting all entries from group and daemon is not available":  {db: "group", noDaemon: true},
@@ -81,9 +84,10 @@ func TestIntegration(t *testing.T) {
 
 		/* Error cases */
 		// We can't assert on the returned error type since the error returned by getent will always be 2 (i.e. Not Found), even though the library returns other types.
-		"Error when getting passwd by name and entry does not exist": {db: "passwd", key: "doesnotexit", wantErr: true},
-		"Error when getting group by name and entry does not exist":  {db: "group", key: "doesnotexit", wantErr: true},
-		"Error when getting shadow by name and entry does not exist": {db: "shadow", key: "doesnotexit", wantErr: true},
+		"Error when getting passwd by name and entry does not exist":                        {db: "passwd", key: "doesnotexit", wantErr: true},
+		"Error when getting passwd by name entry exists in broker but precheck is disabled": {db: "passwd", key: "user-pre-check", wantErr: true},
+		"Error when getting group by name and entry does not exist":                         {db: "group", key: "doesnotexit", wantErr: true},
+		"Error when getting shadow by name and entry does not exist":                        {db: "shadow", key: "doesnotexit", wantErr: true},
 
 		"Error when getting passwd by id and entry does not exist": {db: "passwd", key: "404", wantErr: true},
 		"Error when getting group by id and entry does not exist":  {db: "group", key: "404", wantErr: true},
@@ -130,7 +134,7 @@ func TestIntegration(t *testing.T) {
 				cmds = append(cmds, tc.key)
 			}
 
-			got, err := outNSSCommandForLib(t, socketPath, originOuts[tc.db], cmds...)
+			got, err := outNSSCommandForLib(t, socketPath, originOuts[tc.db], tc.shouldPreCheck, cmds...)
 			if tc.wantErr {
 				require.Error(t, err, "Expected an error, but got none")
 				return
@@ -142,7 +146,7 @@ func TestIntegration(t *testing.T) {
 
 			// This is to check that some cache tasks, such as cleaning a corrupted database, work as expected.
 			if tc.wantSecondCall {
-				got, err := outNSSCommandForLib(t, socketPath, originOuts[tc.db], cmds...)
+				got, err := outNSSCommandForLib(t, socketPath, originOuts[tc.db], tc.shouldPreCheck, cmds...)
 				require.NoError(t, err, "Expected no error, but got %v", err)
 				require.Empty(t, got, "Expected empty output, but got %q", got)
 			}

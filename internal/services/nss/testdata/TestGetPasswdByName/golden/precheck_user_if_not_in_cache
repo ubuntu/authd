@@ -1,0 +1,7 @@
+name: user-pre-check
+passwd: x
+uid: 4294967295
+gid: 4294967295
+gecos: ""
+homedir: ""
+shell: ""

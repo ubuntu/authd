@@ -56,7 +56,7 @@ func buildRustNSSLib(t *testing.T) {
 
 // outNSSCommandForLib returns the specific part for the nss command, filtering originOut.
 // It uses the locally build authd nss module for the integration tests.
-func outNSSCommandForLib(t *testing.T, socketPath, originOut string, cmds ...string) (got string, err error) {
+func outNSSCommandForLib(t *testing.T, socketPath, originOut string, shouldPreCheck bool, cmds ...string) (got string, err error) {
 	t.Helper()
 
 	// #nosec:G204 - we control the command arguments in tests
@@ -71,6 +71,10 @@ func outNSSCommandForLib(t *testing.T, socketPath, originOut string, cmds ...str
 
 	if socketPath != "" {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", socketPath))
+	}
+
+	if shouldPreCheck {
+		cmd.Env = append(cmd.Env, "AUTHD_NSS_SHOULD_PRE_CHECK=1")
 	}
 
 	var out bytes.Buffer
