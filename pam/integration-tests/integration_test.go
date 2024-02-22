@@ -18,7 +18,7 @@ import (
 
 var daemonPath string
 
-func TestCLIIntegration(t *testing.T) {
+func TestCLIAuthenticate(t *testing.T) {
 	t.Parallel()
 
 	outDir := filepath.Dir(daemonPath)
