@@ -44,8 +44,11 @@ export DH_GOLANG_BUILDPKG := $(AUTHD_GO_PACKAGE)/... \
 
 BUILDDIR := $(CURDIR)/obj-$(DEB_HOST_GNU_TYPE)
 
+export BUILT_PAM_LIBS_PATH := obj-$(DEB_HOST_GNU_TYPE)/src/$(AUTHD_GO_PACKAGE)/pam
+
 %:
-	dh $@ --buildsystem=golang --with=golang,apport
+	# --without=single-binary can be removed with dh 15.
+	dh $@ --buildsystem=golang --with=golang,apport --without=single-binary
 
 override_dh_auto_clean:
 	dh_auto_clean
@@ -77,35 +80,10 @@ override_dh_auto_build:
 	dh_auto_build -- $(AUTHD_GO_PACKAGE)/cmd/authd
 
 override_dh_auto_install:
-	dh_auto_install -- --no-source
-
-	# Ignore pam dummy binary
-	rm debian/authd/usr/bin/pam
+	dh_auto_install --destdir=debian/tmp -- --no-source
 
 	# Fills the built-using variables for rust
 	/usr/share/cargo/bin/dh-cargo-built-using authd
-
-	# Install daemon in /sbin
-	mv debian/authd/usr/bin/ debian/authd/usr/sbin
-
-	# Install PAM module configuration
-	install -m644 debian/pam-configs/authd \
-		-Dt debian/authd/usr/share/pam-configs
-
-	# Install PAM
-	install -m644 $(BUILDDIR)/src/$(AUTHD_GO_PACKAGE)/pam/go-loader/pam_go_loader.so \
-		-Dt debian/authd/$(AUTHD_PAM_MODULES_PATH)
-	install -m644 $(BUILDDIR)/src/$(AUTHD_GO_PACKAGE)/pam/pam_authd.so \
-		-Dt debian/authd/$(AUTHD_PAM_MODULES_PATH)
-
-	# Install NSS
-	# In Rust, HOST actually refers to the build target (see README.Debian in rustc)
-	install -m644 target/$(DEB_HOST_RUST_TYPE)/release/libnss_authd.so \
-		debian/authd/usr/lib/$(DEB_TARGET_GNU_TYPE)/libnss_authd.so.2
-
-	# Install systemd units
-	mkdir -p debian/authd/lib/systemd/system
-	install -m644 systemd/* debian/authd/usr/lib/systemd/system/
 
 	# Install gdm-PAM config file
 	dh_installpam -pauthd --name=gdm-authd
