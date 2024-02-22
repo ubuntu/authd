@@ -69,6 +69,15 @@ func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus adapter.PamRetu
 
 // Authenticate is the method that is invoked during pam_authenticate request.
 func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
+	return h.handleAuthRequest(authd.SessionMode_AUTH, mTx, flags, args)
+}
+
+// ChangeAuthTok is the method that is invoked during pam_sm_chauthtok request.
+func (h *pamModule) ChangeAuthTok(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
+	return h.handleAuthRequest(authd.SessionMode_PASSWD, mTx, flags, args)
+}
+
+func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
 	// Initialize localization
 	// TODO
 
@@ -116,7 +125,7 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 		PamMTx:      mTx,
 		Client:      client,
 		ClientType:  pamClientType,
-		SessionMode: authd.SessionMode_AUTH,
+		SessionMode: mode,
 	}
 
 	if err := mTx.SetData(authenticationBrokerIDKey, nil); err != nil {
@@ -238,11 +247,6 @@ func getSocketPath(args []string) string {
 
 // SetCred is the method that is invoked during pam_setcred request.
 func (h *pamModule) SetCred(pam.ModuleTransaction, pam.Flags, []string) error {
-	return pam.ErrIgnore
-}
-
-// ChangeAuthTok is the method that is invoked during pam_chauthtok request.
-func (h *pamModule) ChangeAuthTok(pam.ModuleTransaction, pam.Flags, []string) error {
 	return pam.ErrIgnore
 }
 
