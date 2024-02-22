@@ -34,6 +34,9 @@
     <method name="EndSession">
         <arg type="s" direction="in" name="sessionID"/>
     </method>
+    <method name="UserPreCheck">
+        <arg type="s" direction="in" name="username"/>
+  </method>
     <method name="CancelIsAuthenticated">
         <arg type="s" direction="in" name="sessionID"/>
     </method>

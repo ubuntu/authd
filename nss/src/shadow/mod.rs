@@ -70,7 +70,7 @@ fn get_entry_by_name(name: String) -> Response<Shadow> {
             }
         };
 
-        let req = Request::new(authd::GetByNameRequest { name });
+        let req = Request::new(authd::GetShadowByNameRequest { name });
         match client.get_shadow_by_name(req).await {
             Ok(r) => Response::Success(shadow_entry_to_shadow(r.into_inner())),
             Err(e) => {

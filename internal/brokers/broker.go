@@ -17,7 +17,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-const localBrokerName = "local"
+// LocalBrokerName is the name of the local broker.
+const LocalBrokerName = "local"
 
 const (
 	// AuthGranted is the response when the authentication is granted.
@@ -42,6 +43,8 @@ type brokerer interface {
 	IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (access, data string, err error)
 	EndSession(ctx context.Context, sessionID string) (err error)
 	CancelIsAuthenticated(ctx context.Context, sessionID string)
+
+	UserPreCheck(ctx context.Context, username string) (err error)
 }
 
 // Broker represents a broker object that can be used for authentication.
@@ -69,7 +72,7 @@ func newBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 	h.Write([]byte(name))
 	id := fmt.Sprint(h.Sum32())
 
-	if name == localBrokerName {
+	if name == LocalBrokerName {
 		id = name
 	}
 
@@ -216,6 +219,11 @@ func (b Broker) endSession(ctx context.Context, sessionID string) (err error) {
 // Even though this is a public method, it should only be interacted with through IsAuthenticated and ctx cancellation.
 func (b Broker) cancelIsAuthenticated(ctx context.Context, sessionID string) {
 	b.brokerer.CancelIsAuthenticated(ctx, sessionID)
+}
+
+// UserPreCheck calls the broker corresponding method.
+func (b Broker) UserPreCheck(ctx context.Context, username string) (err error) {
+	return b.brokerer.UserPreCheck(ctx, username)
 }
 
 // generateValidators generates layout validators based on what is supported by the system.

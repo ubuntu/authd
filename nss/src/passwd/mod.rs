@@ -2,6 +2,7 @@ use crate::error;
 use libc::uid_t;
 use libnss::interop::Response;
 use libnss::passwd::{Passwd, PasswdHooks};
+use sysinfo::{Pid, System};
 use tokio::runtime::Builder;
 use tonic::Request;
 
@@ -105,7 +106,10 @@ fn get_entry_by_name(name: String) -> Response<Passwd> {
             }
         };
 
-        let req = Request::new(authd::GetByNameRequest { name });
+        let req = Request::new(authd::GetPasswdByNameRequest {
+            name,
+            should_pre_check: should_pre_check(),
+        });
         match client.get_passwd_by_name(req).await {
             Ok(r) => Response::Success(passwd_entry_to_passwd(r.into_inner())),
             Err(e) => {
@@ -132,4 +136,29 @@ fn passwd_entry_to_passwd(entry: PasswdEntry) -> Passwd {
 /// passwd_entries_to_passwds converts a Vec<PasswdEntry> to a Vec<libnss::Passwd>.
 fn passwd_entries_to_passwds(entries: Vec<PasswdEntry>) -> Vec<Passwd> {
     entries.into_iter().map(passwd_entry_to_passwd).collect()
+}
+
+/// should_pre_check returns true if the current process is a child of sshd.
+#[allow(unreachable_code)] // This function body is overridden in integration tests, so we need to ignore the warning.
+fn should_pre_check() -> bool {
+    #[cfg(feature = "integration_tests")]
+    return std::env::var("AUTHD_NSS_SHOULD_PRE_CHECK").is_ok();
+
+    let sys = System::new_all();
+    let ppid: Option<Pid>;
+    if let Some(p) = sys.process(Pid::from_u32(std::process::id())) {
+        ppid = p.parent();
+    } else {
+        return false;
+    }
+
+    if let Some(id) = ppid {
+        if let Some(p) = sys.process(id) {
+            if p.name() == "sshd" {
+                return true;
+            }
+        }
+    }
+
+    false
 }

@@ -73,7 +73,7 @@ func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers [
 	var brokersOrder []string
 
 	// First broker is always the local one.
-	b, err := newBroker(ctx, localBrokerName, "", nil)
+	b, err := newBroker(ctx, LocalBrokerName, "", nil)
 	brokersOrder = append(brokersOrder, b.ID)
 	brokers[b.ID] = &b
 
@@ -135,7 +135,7 @@ func (m *Manager) BrokerFromSessionID(id string) (broker *Broker, err error) {
 
 	// no session ID means local broker
 	if id == "" {
-		return m.brokerFromID(localBrokerName)
+		return m.brokerFromID(LocalBrokerName)
 	}
 
 	broker, exists := m.transactionsToBroker[id]

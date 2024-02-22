@@ -105,7 +105,7 @@ fn get_entry_by_name(name: String) -> Response<Group> {
             }
         };
 
-        let req = Request::new(authd::GetByNameRequest { name });
+        let req = Request::new(authd::GetGroupByNameRequest { name });
         match client.get_group_by_name(req).await {
             Ok(r) => Response::Success(group_entry_to_group(r.into_inner())),
             Err(e) => {

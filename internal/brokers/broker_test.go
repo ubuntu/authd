@@ -314,6 +314,35 @@ func TestCancelIsAuthenticated(t *testing.T) {
 	}
 }
 
+func TestUserPreCheck(t *testing.T) {
+	t.Parallel()
+
+	b := newBrokerForTests(t, "", "")
+
+	tests := map[string]struct {
+		username string
+
+		wantErr bool
+	}{
+		"Successfully pre-check user": {username: "user-pre-check"},
+
+		"Error if user is not available": {username: "unexistent", wantErr: true},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			err := b.UserPreCheck(context.Background(), tc.username)
+			if tc.wantErr {
+				require.Error(t, err, "UserPreCheck should return an error, but did not")
+				return
+			}
+			require.NoError(t, err, "UserPreCheck should not return an error, but did")
+		})
+	}
+}
+
 func newBrokerForTests(t *testing.T, cfgDir, brokerName string) (b brokers.Broker) {
 	t.Helper()
 

@@ -88,6 +88,7 @@ var (
 		"user-needs-reset":  {},
 		"user-can-reset":    {},
 		"user-local-groups": {},
+		"user-pre-check":    {},
 	}
 )
 
@@ -628,6 +629,14 @@ func (b *Broker) CancelIsAuthenticated(ctx context.Context, sessionID string) {
 	}
 	b.isAuthenticatedCalls[sessionID].cancelFunc()
 	delete(b.isAuthenticatedCalls, sessionID)
+}
+
+// UserPreCheck checks if the user is known to the broker.
+func (b *Broker) UserPreCheck(ctx context.Context, username string) error {
+	if _, exists := exampleUsers[username]; !exists {
+		return fmt.Errorf("user %q does not exist", username)
+	}
+	return nil
 }
 
 func mapToJSON(input map[string]string) string {
