@@ -82,6 +82,9 @@ override_dh_auto_install:
 	# Ignore pam dummy binary
 	rm debian/authd/usr/bin/pam
 
+	# Fills the built-using variables for rust
+	/usr/share/cargo/bin/dh-cargo-built-using authd
+
 	# Install daemon in /sbin
 	mv debian/authd/usr/bin/ debian/authd/usr/sbin
 
