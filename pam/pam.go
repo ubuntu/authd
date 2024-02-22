@@ -36,10 +36,16 @@ const (
 	// PAM module for the second stage authentication to select the default
 	// broker for the current user.
 	authenticationBrokerIDKey = "authentication-broker-id"
+
+	// alreadyAuthenticatedKey is the Key used to store in the library that
+	// we've already authenticated with this module and so that we should not
+	// do this again.
+	alreadyAuthenticatedKey = "already-authenticated-flag"
 )
 
 var supportedArgs = []string{
-	"socket", // The authd socket to connect to.
+	"socket",       // The authd socket to connect to.
+	"force_reauth", // Whether the authentication should be performed again even if it has been already completed.
 }
 
 func parseArgs(args []string) map[string]string {
@@ -89,7 +95,25 @@ func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus adapter.PamRetu
 
 // Authenticate is the method that is invoked during pam_authenticate request.
 func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
-	return h.handleAuthRequest(authd.SessionMode_AUTH, mTx, flags, args)
+	// Do not try to start authentication again if we've been already through this.
+	// Since PAM modules can be stacked, so we may suffer reentry that is fine but it should
+	// be explicitly allowed.
+	_, err := mTx.GetData(alreadyAuthenticatedKey)
+	if err == nil && parseArgs(args)["force_reauth"] != "true" {
+		return pam.ErrIgnore
+	}
+	if err != nil && !errors.Is(err, pam.ErrNoModuleData) {
+		return err
+	}
+
+	err = h.handleAuthRequest(authd.SessionMode_AUTH, mTx, flags, args)
+	if err != nil && !errors.Is(err, pam.ErrIgnore) {
+		return err
+	}
+	if err := mTx.SetData(alreadyAuthenticatedKey, struct{}{}); err != nil {
+		return err
+	}
+	return err
 }
 
 // ChangeAuthTok is the method that is invoked during pam_sm_chauthtok request.
