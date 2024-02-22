@@ -106,6 +106,81 @@ func TestCLIIntegration(t *testing.T) {
 	}
 }
 
+func TestCLIChangeAuthTok(t *testing.T) {
+	t.Parallel()
+
+	outDir := filepath.Dir(daemonPath)
+
+	// we don't care about the output of gpasswd for this test, but we still need to mock it.
+	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
+	require.NoError(t, err, "Setup: Could not create gpasswd output directory")
+	gpasswdOutput := filepath.Join(outDir, "gpasswd", "chauthtok.output")
+	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+
+	socketPath := "/tmp/pam-cli-chauthtok-tests.sock"
+	ctx, cancel := context.WithCancel(context.Background())
+	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
+		testutils.WithSocketPath(socketPath),
+		testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile)...),
+	)
+	t.Cleanup(func() {
+		cancel()
+		<-stopped
+	})
+
+	// If vhs is installed with "go install", we need to add GOPATH to PATH.
+	pathEnv := appendGoBinToPath(t)
+
+	currentDir, err := os.Getwd()
+	require.NoError(t, err, "Setup: Could not get current directory for the tests")
+
+	tests := map[string]struct {
+		tape string
+	}{
+		"Change password successfully and authenticate with new one": {tape: "passwd_simple"},
+		"Change passwd after MFA auth":                               {tape: "passwd_mfa"},
+
+		"Retry if new password is rejected by broker":    {tape: "passwd_rejected"},
+		"Retry if password confirmation is not the same": {tape: "passwd_not_confirmed"},
+
+		"Prevent change password if auth fails": {"passwd_auth_fail"},
+
+		"Exit authd if local broker is selected": {tape: "passwd_local_broker"},
+		"Exit authd if user sigints":             {tape: "passwd_sigint"},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			defer saveArtifactsForDebug(t, []string{filepath.Join(outDir, tc.tape+".gif"), filepath.Join(outDir, tc.tape+".txt")})
+
+			// #nosec:G204 - we control the command arguments in tests
+			cmd := exec.Command("vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
+			cmd.Env = testutils.AppendCovEnv(cmd.Env)
+			cmd.Env = append(cmd.Env, pathEnv)
+			cmd.Dir = outDir
+
+			out, err := cmd.CombinedOutput()
+			require.NoError(t, err, "Failed to run tape %q: %v: %s", tc.tape, err, out)
+
+			tmp, err := os.ReadFile(filepath.Join(outDir, tc.tape+".txt"))
+			require.NoError(t, err, "Could not read output file of tape %q", tc.tape)
+
+			// We need to format the output a little bit, since the txt file can have some noise at the beginning.
+			var got string
+			splitTmp := strings.Split(string(tmp), "\n")
+			for i, str := range splitTmp {
+				if strings.HasPrefix(str, fmt.Sprintf("> ./pam_authd passwd socket=%s", socketPath)) {
+					got = strings.Join(splitTmp[i:], "\n")
+					break
+				}
+			}
+			want := testutils.LoadWithUpdateFromGolden(t, got)
+			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
+		})
+	}
+}
+
 // buildPAM builds the PAM module in a temporary directory and returns a cleanup function.
 func buildPAM(execPath string) (cleanup func(), err error) {
 	cmd := exec.Command("go", "build")

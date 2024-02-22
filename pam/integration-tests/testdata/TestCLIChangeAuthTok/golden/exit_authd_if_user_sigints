@@ -1,0 +1,198 @@
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Username: user name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Username: user-integration-sigint
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Gimme your password
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Gimme your password
+PAM Error Message: cancel requested
+PAM ChangeAuthTok() for user "user-integration-sigint" exited with error (PAM exit code: 26): Cr
+itical error - immediate abort: cancel requested
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Gimme your password
+PAM Error Message: cancel requested
+PAM ChangeAuthTok() for user "user-integration-sigint" exited with error (PAM exit code: 26): Cr
+itical error - immediate abort: cancel requested
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
