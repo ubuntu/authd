@@ -15,6 +15,7 @@ else
     go run github.com/msteinert/pam/v2/cmd/pam-moduler \
         -libname "$module_libname" -type pamModule \
         "${@}"
+    go generate -x -tags pam_module_generation
 fi
 
 cc_args=()
