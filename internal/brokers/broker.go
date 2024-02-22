@@ -17,7 +17,8 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-const localBrokerName = "local"
+// LocalBrokerName is the name of the local broker.
+const LocalBrokerName = "local"
 
 const (
 	// AuthGranted is the response when the authentication is granted.
@@ -69,7 +70,7 @@ func newBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 	h.Write([]byte(name))
 	id := fmt.Sprint(h.Sum32())
 
-	if name == localBrokerName {
+	if name == LocalBrokerName {
 		id = name
 	}
 
