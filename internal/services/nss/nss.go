@@ -4,6 +4,7 @@ package nss
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
@@ -31,16 +32,25 @@ func NewService(ctx context.Context, userManager *users.Manager, brokerManager *
 }
 
 // GetPasswdByName returns the passwd entry for the given username.
-func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetByNameRequest) (*authd.PasswdEntry, error) {
+func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetPasswdByNameRequest) (*authd.PasswdEntry, error) {
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
 	u, err := s.userManager.UserByName(req.GetName())
-	if err != nil {
+	if err == nil {
+		return nssPasswdFromUsersPasswd(u), nil
+	}
+
+	if !errors.Is(err, users.ErrNoDataFound{}) || !req.GetShouldPreCheck() {
 		return nil, noDataFoundErrorToGRPCError(err)
 	}
 
-	return nssPasswdFromUsersPasswd(u), nil
+	// If the user is not found in the local cache, we check if it exists in at least one broker.
+	if err := s.userPreCheck(ctx, req.GetName()); err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	return nssPasswdFromUsersPasswd(users.UserEntry{Name: req.GetName(), UID: -1, GID: -1}), nil
 }
 
 // GetPasswdByUID returns the passwd entry for the given UID.
@@ -132,6 +142,22 @@ func (s Service) GetShadowEntries(ctx context.Context, req *authd.Empty) (*authd
 	}
 
 	return &r, nil
+}
+
+// userPreCheck checks if the user exists in at least one broker.
+func (s Service) userPreCheck(ctx context.Context, username string) error {
+	// Check if the user exists in at least one broker.
+	for _, b := range s.brokerManager.AvailableBrokers() {
+		// The local broker is not a real broker, so we skip it.
+		if b.ID == brokers.LocalBrokerName {
+			continue
+		}
+		if err := b.UserPreCheck(ctx, username); err != nil {
+			continue
+		}
+		return nil
+	}
+	return fmt.Errorf("user %q is not known by any broker", username)
 }
 
 // nssPasswdFromUsersPasswd returns a PasswdEntry from users.UserEntry.
