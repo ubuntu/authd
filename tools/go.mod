@@ -6,6 +6,7 @@ toolchain go1.21.6
 
 require (
 	github.com/golangci/golangci-lint v1.56.1
+	github.com/msteinert/pam/v2 v2.0.0-00010101000000-000000000000
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
 	google.golang.org/protobuf v1.32.0
 )
@@ -194,3 +195,5 @@ require (
 	mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b // indirect
 	mvdan.cc/unparam v0.0.0-20240104100049-c549a3470d14 // indirect
 )
+
+replace github.com/msteinert/pam/v2 => github.com/3v1n0/go-pam/v2 v2.0.0-20240218173232-e182844e4e11
