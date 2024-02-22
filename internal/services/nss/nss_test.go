@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
@@ -56,8 +57,7 @@ func TestGetPasswdByName(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			c := newManagerForTests(t, tc.sourceDB)
-			client := newNSSClient(t, c)
+			client := newNSSClient(t, tc.sourceDB)
 
 			got, err := client.GetPasswdByName(context.Background(), &authd.GetByNameRequest{Name: tc.username})
 			requireExpectedResult(t, "GetPasswdByName", got, err, tc.wantErr, tc.wantErrNotExists)
@@ -86,8 +86,7 @@ func TestGetPasswdByUID(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			c := newManagerForTests(t, tc.sourceDB)
-			client := newNSSClient(t, c)
+			client := newNSSClient(t, tc.sourceDB)
 
 			got, err := client.GetPasswdByUID(context.Background(), &authd.GetByIDRequest{Id: uint32(tc.uid)})
 			requireExpectedResult(t, "GetPasswdByUID", got, err, tc.wantErr, tc.wantErrNotExists)
@@ -112,8 +111,7 @@ func TestGetPasswdEntries(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			c := newManagerForTests(t, tc.sourceDB)
-			client := newNSSClient(t, c)
+			client := newNSSClient(t, tc.sourceDB)
 
 			got, err := client.GetPasswdEntries(context.Background(), &authd.Empty{})
 			requireExpectedEntriesResult(t, "GetPasswdEntries", got.GetEntries(), err, tc.wantErr)
@@ -121,7 +119,6 @@ func TestGetPasswdEntries(t *testing.T) {
 	}
 }
 
-//nolint:dupl // This is a dedicated test, not a duplicate.
 func TestGetGroupByName(t *testing.T) {
 	tests := map[string]struct {
 		groupname string
@@ -143,8 +140,7 @@ func TestGetGroupByName(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			c := newManagerForTests(t, tc.sourceDB)
-			client := newNSSClient(t, c)
+			client := newNSSClient(t, tc.sourceDB)
 
 			got, err := client.GetGroupByName(context.Background(), &authd.GetGroupByNameRequest{Name: tc.groupname})
 			requireExpectedResult(t, "GetGroupByName", got, err, tc.wantErr, tc.wantErrNotExists)
@@ -173,8 +169,7 @@ func TestGetGroupByGID(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			c := newManagerForTests(t, tc.sourceDB)
-			client := newNSSClient(t, c)
+			client := newNSSClient(t, tc.sourceDB)
 
 			got, err := client.GetGroupByGID(context.Background(), &authd.GetByIDRequest{Id: uint32(tc.gid)})
 			requireExpectedResult(t, "GetGroupByGID", got, err, tc.wantErr, tc.wantErrNotExists)
@@ -199,8 +194,7 @@ func TestGetGroupEntries(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			c := newManagerForTests(t, tc.sourceDB)
-			client := newNSSClient(t, c)
+			client := newNSSClient(t, tc.sourceDB)
 
 			got, err := client.GetGroupEntries(context.Background(), &authd.Empty{})
 			requireExpectedEntriesResult(t, "GetGroupEntries", got.GetEntries(), err, tc.wantErr)
@@ -208,7 +202,6 @@ func TestGetGroupEntries(t *testing.T) {
 	}
 }
 
-//nolint:dupl // This is a dedicated test, not a duplicate.
 func TestGetShadowByName(t *testing.T) {
 	tests := map[string]struct {
 		username string
@@ -230,8 +223,7 @@ func TestGetShadowByName(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			c := newManagerForTests(t, tc.sourceDB)
-			client := newNSSClient(t, c)
+			client := newNSSClient(t, tc.sourceDB)
 
 			got, err := client.GetShadowByName(context.Background(), &authd.GetShadowByNameRequest{Name: tc.username})
 			requireExpectedResult(t, "GetShadowByName", got, err, tc.wantErr, tc.wantErrNotExists)
@@ -256,8 +248,7 @@ func TestGetShadowEntries(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			c := newManagerForTests(t, tc.sourceDB)
-			client := newNSSClient(t, c)
+			client := newNSSClient(t, tc.sourceDB)
 
 			got, err := client.GetShadowEntries(context.Background(), &authd.Empty{})
 			requireExpectedEntriesResult(t, "GetShadowEntries", got.GetEntries(), err, tc.wantErr)
@@ -269,8 +260,8 @@ func TestMockgpasswd(t *testing.T) {
 	grouptests.Mockgpasswd(t)
 }
 
-// newNSSClient returns a new GRPC PAM client for tests connected to the global brokerManager with the given user manager.
-func newNSSClient(t *testing.T, m *users.Manager) (client authd.NSSClient) {
+// newNSSClient returns a new GRPC PAM client for tests with the provided sourceDB as its initial cache.
+func newNSSClient(t *testing.T, sourceDB string) (client authd.NSSClient) {
 	t.Helper()
 
 	// socket path is limited in length.
@@ -282,7 +273,7 @@ func newNSSClient(t *testing.T, m *users.Manager) (client authd.NSSClient) {
 	lis, err := net.Listen("unix", socketPath)
 	require.NoError(t, err, "Setup: could not create unix socket")
 
-	service := nss.NewService(context.Background(), m)
+	service := nss.NewService(context.Background(), newUserManagerForTests(t, sourceDB), newBrokersManagerForTests(t))
 
 	grpcServer := grpc.NewServer()
 	authd.RegisterNSSServer(grpcServer, service)
@@ -303,8 +294,8 @@ func newNSSClient(t *testing.T, m *users.Manager) (client authd.NSSClient) {
 	return authd.NewNSSClient(conn)
 }
 
-// newManagerForTests returns a cache object cleaned up with the test ends.
-func newManagerForTests(t *testing.T, sourceDB string) *users.Manager {
+// newUserManagerForTests returns a cache object cleaned up with the test ends.
+func newUserManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 	t.Helper()
 
 	cacheDir := t.TempDir()
@@ -326,6 +317,21 @@ func newManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 	require.NoError(t, err, "Setup: could not create user manager")
 
 	t.Cleanup(func() { _ = m.Stop() })
+	return m
+}
+
+// newBrokersManagerForTests returns a new broker manager with a broker mock for tests, it's cleaned when the test ends.
+func newBrokersManagerForTests(t *testing.T) *brokers.Manager {
+	t.Helper()
+
+	cfg, cleanup, err := testutils.StartBusBrokerMock(t.TempDir(), "BrokerMock")
+	require.NoError(t, err, "Setup: could not start bus broker mock")
+	t.Cleanup(cleanup)
+
+	m, err := brokers.NewManager(context.Background(), filepath.Dir(cfg), nil)
+	require.NoError(t, err, "Setup: could not create broker manager")
+	t.Cleanup(m.Stop)
+
 	return m
 }
 
@@ -394,6 +400,13 @@ func TestMain(m *testing.M) {
 
 	testutils.InstallUpdateFlag()
 	flag.Parse()
+
+	cleanup, err := testutils.StartSystemBusMock()
+	if err != nil {
+		fmt.Println("Error starting system bus mock:", err)
+		os.Exit(1)
+	}
+	defer cleanup()
 
 	m.Run()
 }

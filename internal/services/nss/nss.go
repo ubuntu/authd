@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/users"
 	"google.golang.org/grpc/codes"
@@ -14,16 +15,18 @@ import (
 
 // Service is the implementation of the NSS module service.
 type Service struct {
-	userManager *users.Manager
+	userManager   *users.Manager
+	brokerManager *brokers.Manager
 	authd.UnimplementedNSSServer
 }
 
 // NewService returns a new NSS GRPC service.
-func NewService(ctx context.Context, userManager *users.Manager) Service {
+func NewService(ctx context.Context, userManager *users.Manager, brokerManager *brokers.Manager) Service {
 	log.Debug(ctx, "Building new GRPC NSS service")
 
 	return Service{
-		userManager: userManager,
+		userManager:   userManager,
+		brokerManager: brokerManager,
 	}
 }
 

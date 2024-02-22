@@ -39,7 +39,7 @@ func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configure
 		return m, err
 	}
 
-	nssService := nss.NewService(ctx, userManager)
+	nssService := nss.NewService(ctx, userManager, brokerManager)
 	pamService := pam.NewService(ctx, userManager, brokerManager)
 
 	return Manager{
