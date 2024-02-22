@@ -23,6 +23,8 @@ if [ -v AUTHD_PAM_MODULES_PATH ]; then
     cc_args+=(-DAUTHD_PAM_MODULES_PATH=\""${AUTHD_PAM_MODULES_PATH}"\")
 fi
 
+# shellcheck disable=SC2086
+# we do want to do word splitting on flags
 ${CC:-cc} -o go-loader/"$loader_libname" \
     go-loader/module.c ${CFLAGS:-} -Wl,--as-needed -Wl,--allow-shlib-undefined \
     -shared -fPIC -Wl,--unresolved-symbols=report-all \
