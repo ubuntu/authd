@@ -12,7 +12,7 @@ Build-Depends: debhelper-compat (= 13),
                jq,
                libc6-dev (>= 2.35),
                libpam0g-dev,
-               pkg-config,
+               pkgconf,
                protobuf-compiler,
 Standards-Version: 4.6.2
 XS-Go-Import-Path: github.com/ubuntu/authd
