@@ -66,7 +66,7 @@ func (s Service) GetPasswdEntries(ctx context.Context, req *authd.Empty) (*authd
 }
 
 // GetGroupByName returns the group entry for the given group name.
-func (s Service) GetGroupByName(ctx context.Context, req *authd.GetByNameRequest) (*authd.GroupEntry, error) {
+func (s Service) GetGroupByName(ctx context.Context, req *authd.GetGroupByNameRequest) (*authd.GroupEntry, error) {
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "no group name provided")
 	}
@@ -104,7 +104,7 @@ func (s Service) GetGroupEntries(ctx context.Context, req *authd.Empty) (*authd.
 }
 
 // GetShadowByName returns the shadow entry for the given username.
-func (s Service) GetShadowByName(ctx context.Context, req *authd.GetByNameRequest) (*authd.ShadowEntry, error) {
+func (s Service) GetShadowByName(ctx context.Context, req *authd.GetShadowByNameRequest) (*authd.ShadowEntry, error) {
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "no shadow name provided")
 	}

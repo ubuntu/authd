@@ -146,7 +146,7 @@ func TestGetGroupByName(t *testing.T) {
 			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
 
-			got, err := client.GetGroupByName(context.Background(), &authd.GetByNameRequest{Name: tc.groupname})
+			got, err := client.GetGroupByName(context.Background(), &authd.GetGroupByNameRequest{Name: tc.groupname})
 			requireExpectedResult(t, "GetGroupByName", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
@@ -233,7 +233,7 @@ func TestGetShadowByName(t *testing.T) {
 			c := newManagerForTests(t, tc.sourceDB)
 			client := newNSSClient(t, c)
 
-			got, err := client.GetShadowByName(context.Background(), &authd.GetByNameRequest{Name: tc.username})
+			got, err := client.GetShadowByName(context.Background(), &authd.GetShadowByNameRequest{Name: tc.username})
 			requireExpectedResult(t, "GetShadowByName", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
