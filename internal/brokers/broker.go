@@ -43,6 +43,8 @@ type brokerer interface {
 	IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (access, data string, err error)
 	EndSession(ctx context.Context, sessionID string) (err error)
 	CancelIsAuthenticated(ctx context.Context, sessionID string)
+
+	UserPreCheck(ctx context.Context, username string) (err error)
 }
 
 // Broker represents a broker object that can be used for authentication.
@@ -217,6 +219,11 @@ func (b Broker) endSession(ctx context.Context, sessionID string) (err error) {
 // Even though this is a public method, it should only be interacted with through IsAuthenticated and ctx cancellation.
 func (b Broker) cancelIsAuthenticated(ctx context.Context, sessionID string) {
 	b.brokerer.CancelIsAuthenticated(ctx, sessionID)
+}
+
+// UserPreCheck calls the broker corresponding method.
+func (b Broker) UserPreCheck(ctx context.Context, username string) (err error) {
+	return b.brokerer.UserPreCheck(ctx, username)
 }
 
 // generateValidators generates layout validators based on what is supported by the system.
