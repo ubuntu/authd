@@ -106,3 +106,10 @@ override_dh_auto_install:
 
 	# Install gdm-PAM config file
 	dh_installpam -pauthd --name=gdm-authd
+
+override_dh_installsystemd:
+	dh_installsystemd -pauthd
+	dh_installsystemd -pauthd-example-broker \
+		--no-enable \
+		--no-start \
+		$(NULL)
