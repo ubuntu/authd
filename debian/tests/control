@@ -1,3 +1,4 @@
-Test-Command: AUTHD_SKIP_EXTERNAL_DEPENDENT_TESTS=1 go test -v -mod=vendor ./...
+Test-Command: debian/tests/run-tests.sh
+Features: test-name=go_tests
 Restrictions: allow-stderr
 Depends: @builddeps@
