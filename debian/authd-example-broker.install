@@ -1,0 +1,7 @@
+#!/usr/bin/dh-exec
+
+usr/bin/examplebroker-bin => ${AUTHD_DAEMONS_PATH}/authd-examplebroker
+
+examplebroker/com.ubuntu.authd.ExampleBroker.conf /usr/share/dbus-1/system.d
+examplebroker/ExampleBroker /etc/authd/brokers.d
+examplebroker/com.ubuntu.authd.ExampleBroker.service /usr/share/dbus-1/system-services

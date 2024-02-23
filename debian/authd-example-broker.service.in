@@ -6,7 +6,7 @@ Requires=authd.service
 [Service]
 Type=dbus
 BusName=com.ubuntu.authd.ExampleBroker
-ExecStart=/usr/libexec/authd-examplebroker
+ExecStart=@AUTHD_DAEMONS_PATH@/authd-examplebroker
 Restart=on-failure
 
 # Some daemon restrictions
