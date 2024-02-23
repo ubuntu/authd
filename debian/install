@@ -1,7 +1,7 @@
 #!/usr/bin/dh-exec
 
-# Install daemon in /sbin
-usr/bin/authd /usr/sbin/
+# Install daemon
+usr/bin/authd /usr/libexec
 
 # pam-auth-update files
 debian/pam-configs/* /usr/share/pam-configs

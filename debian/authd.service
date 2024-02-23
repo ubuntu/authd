@@ -6,7 +6,7 @@ PartOf=authd.socket
 
 [Service]
 Type=notify
-ExecStart=/usr/sbin/authd
+ExecStart=/usr/libexec/authd
 
 # Some daemon restrictions
 LockPersonality=yes
