@@ -58,8 +58,11 @@ func (m newPasswordModel) Init() tea.Cmd {
 // Update handles events and actions.
 func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	// Key presses
-	case tea.KeyMsg:
+	case startAuthentication:
+		m.Clear()
+		return m, nil
+
+	case tea.KeyMsg: // Key presses
 		switch msg.String() {
 		case "enter":
 			if m.focusIndex >= len(m.focusableModels) {
@@ -70,6 +73,7 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case *textinputModel:
 				// Check both entries are matching
 				if m.passwordEntries[0].Value() != m.passwordEntries[1].Value() {
+					m.Clear()
 					return m, sendEvent(errMsgToDisplay{msg: "Password entries don't match"})
 				}
 
@@ -145,4 +149,19 @@ func (m newPasswordModel) Blur() {
 		return
 	}
 	m.focusableModels[m.focusIndex].Blur()
+}
+
+func (m *newPasswordModel) Clear() {
+	m.focusIndex = 0
+	for i, fm := range m.focusableModels {
+		switch entry := fm.(type) {
+		case *textinputModel:
+			entry.SetValue("")
+		}
+		if i != m.focusIndex {
+			fm.Blur()
+			continue
+		}
+		fm.Focus()
+	}
 }
