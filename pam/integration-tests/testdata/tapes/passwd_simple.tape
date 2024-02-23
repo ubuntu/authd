@@ -1,5 +1,5 @@
-Output mfa_auth.txt
-Output mfa_auth.gif # If we don't specify a .gif output, it will create a default out.gif file.
+Output passwd_simple.txt
+Output passwd_simple.gif # If we don't specify a .gif output, it will create a default out.gif file.
 
 # Configuration header to standardize the output.
 # Does not work with the "Source" command.
@@ -14,7 +14,7 @@ Set Margin 0
 Set Shell bash
 
 Hide
-Type "./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock"
+Type "./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock"
 Enter
 Sleep 100ms
 Show
@@ -22,7 +22,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user-mfa"
+Type "user1"
 Sleep 100ms
 Show
 
@@ -37,23 +37,37 @@ Sleep 100ms
 Show
 
 Hide
-Escape
-Sleep 100ms
-Show
-
-Hide
-Type "1"
-Sleep 100ms
-Show
-
-Hide
 Type "goodpass"
 Enter
 Sleep 2s
 Show
 
 Hide
+Type "newpass"
+Sleep 100ms
+Show
+
+Hide
+Tab
+Type "newpass"
+Sleep 100ms
+Show
+
+Hide
+Enter
+Sleep 2s
+Show
+
+Hide
+Type "./pam_authd login socket=/tmp/pam-cli-chauthtok-tests.sock"
+Enter
+Sleep 100ms
+Show
+
+Hide
 Escape
+Backspace
+Type "user1"
 Sleep 100ms
 Show
 
@@ -63,21 +77,9 @@ Sleep 100ms
 Show
 
 Hide
-Sleep 5s
-Show
-
-Hide
-Escape
-Sleep 100ms
-Show
-
-Hide
+Type "newpass"
 Enter
-Sleep 100ms
-Show
-
-Hide
-Sleep 5s
+Sleep 2s
 Show
 
 Sleep 100ms

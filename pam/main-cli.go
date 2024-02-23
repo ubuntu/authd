@@ -37,9 +37,24 @@ func main() {
 			return "", nil
 		}))
 
-	authResult := module.Authenticate(mTx, pam.Flags(0), os.Args)
+	var resultMsg string
+	var pamFunc func(pam.ModuleTransaction, pam.Flags, []string) error
+	switch os.Args[1] {
+	case "login":
+		pamFunc = module.Authenticate
+		resultMsg = "PAM Authenticate() for user %q"
+	case "passwd":
+		pamFunc = module.ChangeAuthTok
+		resultMsg = "PAM ChangeAuthTok() for user %q"
+	default:
+		f.Close()
+		panic("Unknown PAM operation: " + os.Args[1])
+	}
+
+	pamRes := pamFunc(mTx, pam.Flags(0), os.Args)
 	user, _ := mTx.GetItem(pam.User)
-	printPamResult(fmt.Sprintf("PAM Authenticate() for user '%s'", user), authResult)
+
+	printPamResult(fmt.Sprintf(resultMsg, user), pamRes)
 
 	// Simulate setting auth broker as default.
 	printPamResult("PAM AcctMgmt()", module.AcctMgmt(mTx, pam.Flags(0), os.Args))

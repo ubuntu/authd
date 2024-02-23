@@ -1,4 +1,4 @@
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
 Username: user name
 
 
@@ -31,8 +31,8 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Username: user1
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Username: user-local-broker
 
 
 
@@ -64,7 +64,7 @@ Username: user1
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
   Select your provider
 
 > 1. local
@@ -97,9 +97,11 @@ Username: user1
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Gimme your password
->
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
 
 
 
@@ -124,17 +126,15 @@ Gimme your password
 
 
 
-
-
-
-
-
+PAM ChangeAuthTok() for user "user-local-broker" exited with error (PAM exit code: 25): The retu
+rn value should be ignored by PAM dispatch:
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Gimme your password
-PAM Authenticate() for user 'user1' exited with success
-PAM AcctMgmt() exited with success
->
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
 
 
 
@@ -159,40 +159,7 @@ PAM AcctMgmt() exited with success
 
 
 
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Gimme your password
-PAM Authenticate() for user 'user1' exited with success
-PAM AcctMgmt() exited with success
->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+PAM ChangeAuthTok() for user "user-local-broker" exited with error (PAM exit code: 25): The retu
+rn value should be ignored by PAM dispatch:
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 ────────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,165 @@
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Username: user name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Username: user-local-broker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
+n value should be ignored by PAM dispatch:
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
+n value should be ignored by PAM dispatch:
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+────────────────────────────────────────────────────────────────────────────────

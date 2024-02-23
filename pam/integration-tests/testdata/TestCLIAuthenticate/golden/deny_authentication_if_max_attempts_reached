@@ -1,4 +1,4 @@
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Username: user name
 
 
@@ -31,8 +31,8 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Username: user-integration-switch-username
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Username: user-integration-max-attempts
 
 
 
@@ -64,7 +64,7 @@ Username: user-integration-switch-username
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
 
 > 1. local
@@ -97,73 +97,7 @@ Username: user-integration-switch-username
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Username: user-integration-username-switched
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-  Select your provider
-
-> 1. local
-  2. ExampleBroker
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Gimme your password
 >
 
@@ -196,11 +130,11 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Gimme your password
-PAM Authenticate() for user 'user-integration-username-switched' exited with success
-PAM AcctMgmt() exited with success
 >
+invalid password 'wrongpass', should be 'goodpass'
+
 
 
 
@@ -229,15 +163,147 @@ PAM AcctMgmt() exited with success
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Gimme your password
-PAM Authenticate() for user 'user-integration-username-switched' exited with success
-PAM AcctMgmt() exited with success
+>
+invalid password 'wrongpass', should be 'goodpass'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Gimme your password
+>
+invalid password 'wrongpass', should be 'goodpass'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Gimme your password
+>
+invalid password 'wrongpass', should be 'goodpass'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Gimme your password
+>
+PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
+PAM Authenticate() for user "user-integration-max-attempts" exited with error (PAM exit code: 7)
+: Authentication failure: invalid password 'wrongpass', should be 'goodpass'
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
 >
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Gimme your password
+>
+PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
+PAM Authenticate() for user "user-integration-max-attempts" exited with error (PAM exit code: 7)
+: Authentication failure: invalid password 'wrongpass', should be 'goodpass'
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
 
 
 

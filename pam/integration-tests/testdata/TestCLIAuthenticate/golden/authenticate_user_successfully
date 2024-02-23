@@ -1,4 +1,4 @@
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Username: user name
 
 
@@ -31,8 +31,8 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Username: user-can-reset
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Username: user1
 
 
 
@@ -64,7 +64,7 @@ Username: user-can-reset
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
 
 > 1. local
@@ -97,7 +97,7 @@ Username: user-can-reset
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Gimme your password
 >
 
@@ -130,78 +130,9 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your new password (3 days until mandatory)
->
->
-
-  [ Skip ]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your new password (3 days until mandatory)
->
->
-
-  [ Skip ]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your new password (3 days until mandatory)
->
->
-
-PAM Authenticate() for user 'user-can-reset' exited with success
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Gimme your password
+PAM Authenticate() for user "user1" exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -228,15 +159,18 @@ PAM AcctMgmt() exited with success
 
 
 
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your new password (3 days until mandatory)
->
->
 
-PAM Authenticate() for user 'user-can-reset' exited with success
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Gimme your password
+PAM Authenticate() for user "user1" exited with success
 PAM AcctMgmt() exited with success
 >
+
+
+
 
 
 

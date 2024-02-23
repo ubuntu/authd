@@ -1,0 +1,363 @@
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Username: user name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Username: user-integration-remember-mode
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+  Select your authentication method
+
+> 1. Password authentication
+  2. Send URL to user-integration-remember-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Use a QR code
+  7. Authentication code
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+>
+
+  [ Resend sms ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+> temporary pass0
+
+PAM Authenticate() for user "user-integration-remember-mode" exited with success
+PAM AcctMgmt() exited with success
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+> temporary pass0
+
+PAM Authenticate() for user "user-integration-remember-mode" exited with success
+PAM AcctMgmt() exited with success
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Username: user name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+> temporary pass0
+
+PAM Authenticate() for user "user-integration-remember-mode" exited with success
+PAM AcctMgmt() exited with success
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Username: user-integration-remember-mode
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+> temporary pass0
+
+PAM Authenticate() for user "user-integration-remember-mode" exited with success
+PAM AcctMgmt() exited with success
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+>
+
+  [ Resend sms ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+> temporary pass0
+
+PAM Authenticate() for user "user-integration-remember-mode" exited with success
+PAM AcctMgmt() exited with success
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+> temporary pass0
+
+PAM Authenticate() for user "user-integration-remember-mode" exited with success
+PAM AcctMgmt() exited with success
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+> temporary pass0
+
+PAM Authenticate() for user "user-integration-remember-mode" exited with success
+PAM AcctMgmt() exited with success
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+> temporary pass0
+
+PAM Authenticate() for user "user-integration-remember-mode" exited with success
+PAM AcctMgmt() exited with success
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────

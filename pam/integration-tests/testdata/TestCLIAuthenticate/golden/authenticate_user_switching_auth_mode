@@ -1,4 +1,4 @@
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Username: user name
 
 
@@ -31,8 +31,8 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Username: user-integration-remember-mode
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Username: user-integration-switch-mode
 
 
 
@@ -64,7 +64,7 @@ Username: user-integration-remember-mode
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
 
 > 1. local
@@ -97,11 +97,44 @@ Username: user-integration-remember-mode
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Gimme your password
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your authentication method
 
 > 1. Password authentication
-  2. Send URL to user-integration-remember-mode@gmail.com
+  2. Send URL to user-integration-switch-mode@gmail.com
   3. Use your fido device foo
   4. Use your phone +33…
   5. Use your phone +1…
@@ -130,45 +163,8 @@ Username: user-integration-remember-mode
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your one time credential
->
-
-  [ Resend sms ]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your one time credential
-> temporary pass0
-
-PAM Authenticate() for user 'user-integration-remember-mode' exited with success
-PAM AcctMgmt() exited with success
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
 >
 
 
@@ -195,50 +191,21 @@ PAM AcctMgmt() exited with success
 
 
 
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your one time credential
-> temporary pass0
-
-PAM Authenticate() for user 'user-integration-remember-mode' exited with success
-PAM AcctMgmt() exited with success
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Username: user name
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your one time credential
-> temporary pass0
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+  Select your authentication method
 
-PAM Authenticate() for user 'user-integration-remember-mode' exited with success
-PAM AcctMgmt() exited with success
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Username: user-integration-remember-mode
-
-
+  1. Password authentication
+> 2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Use a QR code
+  7. Authentication code
 
 
 
@@ -262,17 +229,17 @@ Username: user-integration-remember-mode
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your one time credential
-> temporary pass0
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Plug your fido device and press with your thumb
 
-PAM Authenticate() for user 'user-integration-remember-mode' exited with success
-PAM AcctMgmt() exited with success
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your one time credential
->
 
-  [ Resend sms ]
+
+
+
+
+
+
+
 
 
 
@@ -295,18 +262,41 @@ Enter your one time credential
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your one time credential
-> temporary pass0
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+  Select your authentication method
 
-PAM Authenticate() for user 'user-integration-remember-mode' exited with success
-PAM AcctMgmt() exited with success
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your one time credential
-> temporary pass0
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+> 3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Use a QR code
+  7. Authentication code
 
-PAM Authenticate() for user 'user-integration-remember-mode' exited with success
-PAM AcctMgmt() exited with success
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Gimme your password
 >
 
 
@@ -327,20 +317,63 @@ PAM AcctMgmt() exited with success
 
 
 
+
+
+
+
+
+
+
+
+
+
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your one time credential
-> temporary pass0
-
-PAM Authenticate() for user 'user-integration-remember-mode' exited with success
-PAM AcctMgmt() exited with success
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Enter your one time credential
-> temporary pass0
-
-PAM Authenticate() for user 'user-integration-remember-mode' exited with success
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Gimme your password
+PAM Authenticate() for user "user-integration-switch-mode" exited with success
 PAM AcctMgmt() exited with success
 >
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Gimme your password
+PAM Authenticate() for user "user-integration-switch-mode" exited with success
+PAM AcctMgmt() exited with success
+>
+
+
+
+
+
+
+
+
 
 
 

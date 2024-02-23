@@ -1,0 +1,264 @@
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Username: user name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Username: user-integration-switch-broker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Gimme your password
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+  Select your authentication method
+
+> 1. Password authentication
+  2. Send URL to user-integration-switch-broker@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Use a QR code
+  7. Authentication code
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+  Select your provider
+
+  1. local
+> 2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PAM Authenticate() for user "user-integration-switch-broker" exited with error (PAM exit code: 2
+5): The return value should be ignored by PAM dispatch:
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PAM Authenticate() for user "user-integration-switch-broker" exited with error (PAM exit code: 2
+5): The return value should be ignored by PAM dispatch:
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+────────────────────────────────────────────────────────────────────────────────

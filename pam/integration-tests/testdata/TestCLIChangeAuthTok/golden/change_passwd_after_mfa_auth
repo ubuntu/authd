@@ -1,0 +1,561 @@
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Username: user name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Username: user-mfa
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Gimme your password
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+  Select your authentication method
+
+> 1. Password authentication
+  2. Send URL to user-mfa@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Use a QR code
+  7. Authentication code
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Gimme your password
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Unlock your phone +33… or accept request on web interface:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+  Select your authentication method
+
+> 1. Use your phone +33…
+  2. Authentication code
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Unlock your phone +33… or accept request on web interface:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Enter your new password
+>
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+  Select your authentication method
+
+> 1. Password reset
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Enter your new password
+>
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Enter your new password
+>
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Enter your new password
+> *******
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Enter your new password
+> *******
+> *******
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Enter your new password
+> *******
+PAM ChangeAuthTok() for user "user-mfa" exited with success
+PAM AcctMgmt() exited with success
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Enter your new password
+> *******
+PAM ChangeAuthTok() for user "user-mfa" exited with success
+PAM AcctMgmt() exited with success
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────

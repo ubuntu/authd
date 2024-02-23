@@ -1,4 +1,4 @@
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Username: user name
 
 
@@ -31,8 +31,8 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Username: user-mfa
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Username: user-integration-form-w-button
 
 
 
@@ -64,7 +64,7 @@ Username: user-mfa
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
 
 > 1. local
@@ -97,7 +97,7 @@ Username: user-mfa
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
 Gimme your password
 >
 
@@ -130,11 +130,11 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your authentication method
 
 > 1. Password authentication
-  2. Send URL to user-mfa@gmail.com
+  2. Send URL to user-integration-form-w-button@gmail.com
   3. Use your fido device foo
   4. Use your phone +33…
   5. Use your phone +1…
@@ -163,44 +163,11 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Gimme your password
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
 >
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Unlock your phone +33… or accept request on web interface:
-
-
-
+  [ Resend sms ]
 
 
 
@@ -229,44 +196,11 @@ Unlock your phone +33… or accept request on web interface:
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-  Select your authentication method
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+>
 
-> 1. Use your phone +33…
-  2. Authentication code
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Unlock your phone +33… or accept request on web interface:
-
-
-
+  [ Resend sms ]
 
 
 
@@ -295,8 +229,44 @@ Unlock your phone +33… or accept request on web interface:
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-PAM Authenticate() for user 'user-mfa' exited with success
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+>
+
+  [ Resend sms ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+> temporary pass00
+
+PAM Authenticate() for user "user-integration-form-w-button" exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -324,116 +294,14 @@ PAM AcctMgmt() exited with success
 
 
 
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-PAM Authenticate() for user 'user-mfa' exited with success
+> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+Enter your one time credential
+> temporary pass00
+
+PAM Authenticate() for user "user-integration-form-w-button" exited with success
 PAM AcctMgmt() exited with success
 >
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-PAM Authenticate() for user 'user-mfa' exited with success
-PAM AcctMgmt() exited with success
->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-PAM Authenticate() for user 'user-mfa' exited with success
-PAM AcctMgmt() exited with success
->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-PAM Authenticate() for user 'user-mfa' exited with success
-PAM AcctMgmt() exited with success
->
-
-
-
 
 
 

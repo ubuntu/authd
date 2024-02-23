@@ -1,4 +1,4 @@
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
 Username: user name
 
 
@@ -31,8 +31,8 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
-Username: user-local-groups
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+Username: user-integration-sigint
 
 
 
@@ -64,7 +64,7 @@ Username: user-local-groups
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
   Select your provider
 
 > 1. local
@@ -97,7 +97,7 @@ Username: user-local-groups
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
 Gimme your password
 >
 
@@ -130,14 +130,14 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
 Gimme your password
-PAM Authenticate() for user 'user-local-groups' exited with success
-PAM AcctMgmt() exited with success
+PAM Error Message: cancel requested
+PAM ChangeAuthTok() for user "user-integration-sigint" exited with error (PAM exit code: 26): Cr
+itical error - immediate abort: cancel requested
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
 >
-
-
-
 
 
 
@@ -163,14 +163,14 @@ PAM AcctMgmt() exited with success
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd socket=/tmp/pam-cli-tests.sock
+> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
 Gimme your password
-PAM Authenticate() for user 'user-local-groups' exited with success
-PAM AcctMgmt() exited with success
+PAM Error Message: cancel requested
+PAM ChangeAuthTok() for user "user-integration-sigint" exited with error (PAM exit code: 26): Cr
+itical error - immediate abort: cancel requested
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
 >
-
-
-
 
 
 

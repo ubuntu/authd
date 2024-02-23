@@ -18,17 +18,20 @@ import (
 
 var daemonPath string
 
-func TestCLIIntegration(t *testing.T) {
+func TestCLIAuthenticate(t *testing.T) {
 	t.Parallel()
 
 	outDir := filepath.Dir(daemonPath)
 
-	gpasswdOutput := filepath.Join(outDir, "gpasswd.output")
+	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
+	require.NoError(t, err, "Setup: Could not create gpasswd output directory")
+	gpasswdOutput := filepath.Join(outDir, "gpasswd", "authenticate.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
+	socketPath := "/tmp/pam-cli-authenticate-tests.sock"
 	ctx, cancel := context.WithCancel(context.Background())
 	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
-		testutils.WithSocketPath("/tmp/pam-cli-tests.sock"),
+		testutils.WithSocketPath(socketPath),
 		testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile)...),
 	)
 	t.Cleanup(func() {
@@ -86,7 +89,7 @@ func TestCLIIntegration(t *testing.T) {
 			var got string
 			splitTmp := strings.Split(string(tmp), "\n")
 			for i, str := range splitTmp {
-				if strings.HasPrefix(str, "> ./pam_authd socket=/tmp/pam-cli-tests.sock") {
+				if strings.HasPrefix(str, fmt.Sprintf("> ./pam_authd login socket=%s", socketPath)) {
 					got = strings.Join(splitTmp[i:], "\n")
 					break
 				}
@@ -95,10 +98,85 @@ func TestCLIIntegration(t *testing.T) {
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
 			if tc.tape == "local_group" {
-				got := grouptests.IdempotentGPasswdOutput(t, filepath.Join(outDir, "gpasswd.output"))
+				got := grouptests.IdempotentGPasswdOutput(t, gpasswdOutput)
 				want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(testutils.GoldenPath(t)+".gpasswd_out"))
 				require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
 			}
+		})
+	}
+}
+
+func TestCLIChangeAuthTok(t *testing.T) {
+	t.Parallel()
+
+	outDir := filepath.Dir(daemonPath)
+
+	// we don't care about the output of gpasswd for this test, but we still need to mock it.
+	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
+	require.NoError(t, err, "Setup: Could not create gpasswd output directory")
+	gpasswdOutput := filepath.Join(outDir, "gpasswd", "chauthtok.output")
+	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+
+	socketPath := "/tmp/pam-cli-chauthtok-tests.sock"
+	ctx, cancel := context.WithCancel(context.Background())
+	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
+		testutils.WithSocketPath(socketPath),
+		testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile)...),
+	)
+	t.Cleanup(func() {
+		cancel()
+		<-stopped
+	})
+
+	// If vhs is installed with "go install", we need to add GOPATH to PATH.
+	pathEnv := appendGoBinToPath(t)
+
+	currentDir, err := os.Getwd()
+	require.NoError(t, err, "Setup: Could not get current directory for the tests")
+
+	tests := map[string]struct {
+		tape string
+	}{
+		"Change password successfully and authenticate with new one": {tape: "passwd_simple"},
+		"Change passwd after MFA auth":                               {tape: "passwd_mfa"},
+
+		"Retry if new password is rejected by broker":    {tape: "passwd_rejected"},
+		"Retry if password confirmation is not the same": {tape: "passwd_not_confirmed"},
+
+		"Prevent change password if auth fails": {"passwd_auth_fail"},
+
+		"Exit authd if local broker is selected": {tape: "passwd_local_broker"},
+		"Exit authd if user sigints":             {tape: "passwd_sigint"},
+	}
+	for name, tc := range tests {
+		tc := tc
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			defer saveArtifactsForDebug(t, []string{filepath.Join(outDir, tc.tape+".gif"), filepath.Join(outDir, tc.tape+".txt")})
+
+			// #nosec:G204 - we control the command arguments in tests
+			cmd := exec.Command("vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
+			cmd.Env = testutils.AppendCovEnv(cmd.Env)
+			cmd.Env = append(cmd.Env, pathEnv)
+			cmd.Dir = outDir
+
+			out, err := cmd.CombinedOutput()
+			require.NoError(t, err, "Failed to run tape %q: %v: %s", tc.tape, err, out)
+
+			tmp, err := os.ReadFile(filepath.Join(outDir, tc.tape+".txt"))
+			require.NoError(t, err, "Could not read output file of tape %q", tc.tape)
+
+			// We need to format the output a little bit, since the txt file can have some noise at the beginning.
+			var got string
+			splitTmp := strings.Split(string(tmp), "\n")
+			for i, str := range splitTmp {
+				if strings.HasPrefix(str, fmt.Sprintf("> ./pam_authd passwd socket=%s", socketPath)) {
+					got = strings.Join(splitTmp[i:], "\n")
+					break
+				}
+			}
+			want := testutils.LoadWithUpdateFromGolden(t, got)
+			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 		})
 	}
 }
