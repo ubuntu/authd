@@ -2,9 +2,12 @@
 
 set -euo pipefail
 
-PROJECT_ROOT=$PWD/..
+SCRIPT_PATH=$(dirname "$0")
+PROJECT_ROOT=$(realpath "$SCRIPT_PATH")/..
 module_libname=pam_authd.so
 loader_libname=pam_go_loader.so
+
+cd "$SCRIPT_PATH"
 
 if [ -d "$PROJECT_ROOT"/vendor ]; then
     echo Vendored dependencies detected, not re-generating pam_module.go
