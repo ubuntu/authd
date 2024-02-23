@@ -10,7 +10,7 @@ import (
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
-func TestMain(t *testing.T) {
+func TestExtension(t *testing.T) {
 	// We need to ensure that the the size of the data structures respects our
 	// expectations, so we check this at test time. It's not worth it doing this at
 	// runtime since the size of the data is not expected to change once compiled.

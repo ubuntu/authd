@@ -64,6 +64,11 @@ type isAuthenticatedResultReceived struct {
 	msg    string
 }
 
+// isAuthenticatedCancelled is the event to cancel the auth request.
+type isAuthenticatedCancelled struct {
+	msg string
+}
+
 // reselectAuthMode signals to restart auth mode selection with the same id (to resend sms or
 // reenable the broker).
 type reselectAuthMode struct{}
@@ -81,7 +86,8 @@ type authenticationComponent interface {
 type authenticationModel struct {
 	focused bool
 
-	client authd.PAMClient
+	client     authd.PAMClient
+	clientType PamClientType
 
 	currentModel          authenticationComponent
 	currentSessionID      string
@@ -103,9 +109,10 @@ type errMsgToDisplay struct {
 }
 
 // newAuthenticationModel initializes a authenticationModel which needs to be Compose then.
-func newAuthenticationModel(client authd.PAMClient) authenticationModel {
+func newAuthenticationModel(client authd.PAMClient, clientType PamClientType) authenticationModel {
 	return authenticationModel{
 		client:                client,
+		clientType:            clientType,
 		cancelIsAuthenticated: func() {},
 	}
 }
@@ -131,11 +138,19 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 		}
 		return *m, sendIsAuthenticated(ctx, m.client, m.currentSessionID, &authd.IARequest_AuthenticationData{Item: msg.item})
 
+	case isAuthenticatedCancelled:
+		m.cancelIsAuthenticated()
+		return *m, nil
+
 	case isAuthenticatedResultReceived:
 		log.Infof(context.TODO(), "isAuthenticatedResultReceived: %v", msg.access)
 		switch msg.access {
 		case brokers.AuthGranted:
-			return *m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID})
+			infoMsg, err := dataToMsg(msg.msg)
+			if err != nil {
+				return *m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+			}
+			return *m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID, msg: infoMsg})
 
 		case brokers.AuthRetry:
 			errorMsg, err := dataToMsg(msg.msg)
@@ -165,6 +180,10 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 
 	case errMsgToDisplay:
 		m.errorMsg = msg.msg
+		return *m, nil
+	}
+
+	if m.clientType != InteractiveTerminal {
 		return *m, nil
 	}
 
@@ -216,6 +235,10 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 	m.cancelIsAuthenticated = func() {}
 
 	m.errorMsg = ""
+
+	if m.clientType != InteractiveTerminal {
+		return sendEvent(startAuthentication{})
+	}
 
 	switch layout.Type {
 	case "form":

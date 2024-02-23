@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/msteinert/pam/v2"
@@ -10,7 +11,8 @@ import (
 type userSelectionModel struct {
 	textinput.Model
 
-	pamMTx pam.ModuleTransaction
+	pamMTx     pam.ModuleTransaction
+	clientType PamClientType
 }
 
 // userSelected events to select a new username.
@@ -26,8 +28,13 @@ func sendUserSelected(username string) tea.Cmd {
 }
 
 // newUserSelectionModel returns an initialized userSelectionModel.
-func newUserSelectionModel(pamMTx pam.ModuleTransaction) userSelectionModel {
+func newUserSelectionModel(pamMTx pam.ModuleTransaction, clientType PamClientType) userSelectionModel {
 	u := textinput.New()
+	if clientType != InteractiveTerminal {
+		// Cursor events are racy: https://github.com/charmbracelet/bubbletea/issues/909.
+		// FIXME: Avoid initializing the text input Model at all.
+		u.Cursor.SetMode(cursor.CursorHide)
+	}
 	u.Prompt = "Username: " // TODO: i18n
 	u.Placeholder = "user name"
 
@@ -35,7 +42,8 @@ func newUserSelectionModel(pamMTx pam.ModuleTransaction) userSelectionModel {
 	return userSelectionModel{
 		Model: u,
 
-		pamMTx: pamMTx,
+		pamMTx:     pamMTx,
+		clientType: clientType,
 	}
 }
 
@@ -63,6 +71,10 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 			}
 			return m, sendEvent(UsernameOrBrokerListReceived{})
 		}
+		return m, nil
+	}
+
+	if m.clientType != InteractiveTerminal {
 		return m, nil
 	}
 

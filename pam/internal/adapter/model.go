@@ -24,6 +24,8 @@ const (
 	Native PamClientType = iota
 	// InteractiveTerminal indicates an interactive terminal we can directly write our interface to.
 	InteractiveTerminal
+	// Gdm is a gnome-shell client via GDM display manager.
+	Gdm
 )
 
 var debug string
@@ -49,12 +51,14 @@ type UIModel struct {
 	height int
 	width  int
 
-	currentSession *sessionInfo
+	sessionStartingForBroker string
+	currentSession           *sessionInfo
 
 	userSelectionModel     userSelectionModel
 	brokerSelectionModel   brokerSelectionModel
 	authModeSelectionModel authModeSelectionModel
 	authenticationModel    authenticationModel
+	gdmModel               gdmModel
 
 	exitStatus PamReturnStatus
 }
@@ -92,20 +96,30 @@ type UILayoutReceived struct {
 // SessionEnded signals that the session is done and closed from the broker.
 type SessionEnded struct{}
 
+// ChangeStage signals that the model requires a stage change.
+type ChangeStage struct {
+	Stage pam_proto.Stage
+}
+
 // Init initializes the main model orchestrator.
 func (m *UIModel) Init() tea.Cmd {
-	m.exitStatus = pamError{status: pam.ErrSystem, msg: "model did not return anything"}
-	m.userSelectionModel = newUserSelectionModel(m.PamMTx)
 	var cmds []tea.Cmd
+
+	if m.ClientType == Gdm {
+		m.gdmModel = gdmModel{pamMTx: m.PamMTx}
+		cmds = append(cmds, m.gdmModel.Init())
+	}
+
+	m.userSelectionModel = newUserSelectionModel(m.PamMTx, m.ClientType)
 	cmds = append(cmds, m.userSelectionModel.Init())
 
-	m.brokerSelectionModel = newBrokerSelectionModel(m.Client)
+	m.brokerSelectionModel = newBrokerSelectionModel(m.Client, m.ClientType)
 	cmds = append(cmds, m.brokerSelectionModel.Init())
 
-	m.authModeSelectionModel = newAuthModeSelectionModel()
+	m.authModeSelectionModel = newAuthModeSelectionModel(m.ClientType)
 	cmds = append(cmds, m.authModeSelectionModel.Init())
 
-	m.authenticationModel = newAuthenticationModel(m.Client)
+	m.authenticationModel = newAuthenticationModel(m.Client, m.ClientType)
 	cmds = append(cmds, m.authenticationModel.Init())
 
 	cmds = append(cmds, m.changeStage(pam_proto.Stage_userSelection))
@@ -147,6 +161,10 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Exit cases
 	case PamReturnStatus:
+		if m.exitStatus != nil {
+			// Nothing to do, we're already exiting...
+			return m, nil
+		}
 		m.exitStatus = msg
 		return m, m.quit()
 
@@ -165,9 +183,15 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			AutoSelectForUser(m.Client, m.username()))
 
 	case BrokerSelected:
-		return m, startBrokerSession(m.Client, msg.BrokerID, m.username(), m.SessionMode)
-
+		if m.sessionStartingForBroker == "" {
+			m.sessionStartingForBroker = msg.BrokerID
+			return m, startBrokerSession(m.Client, msg.BrokerID, m.username(), m.SessionMode)
+		}
+		if m.sessionStartingForBroker != msg.BrokerID {
+			return m, tea.Sequence(endSession(m.Client, m.currentSession), sendEvent(msg))
+		}
 	case SessionStarted:
+		m.sessionStartingForBroker = ""
 		pubASN1, err := base64.StdEncoding.DecodeString(msg.encryptionKey)
 		if err != nil {
 			return m, sendEvent(pamError{
@@ -198,6 +222,9 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, sendEvent(GetAuthenticationModesRequested{})
 
+	case ChangeStage:
+		return m, m.changeStage(msg.Stage)
+
 	case GetAuthenticationModesRequested:
 		if m.currentSession == nil || !m.authModeSelectionModel.IsReady() {
 			return m, nil
@@ -209,6 +236,9 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		)
 
 	case AuthModeSelected:
+		if m.currentSession == nil {
+			return m, nil
+		}
 		// Reselection/reset of current authentication mode requested (button clicked for instance)
 		if msg.ID == "" {
 			msg.ID = m.authModeSelectionModel.currentAuthModeSelectedID
@@ -223,12 +253,22 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case UILayoutReceived:
 		log.Info(context.TODO(), "UILayoutReceived")
+		if m.currentSession == nil {
+			return m, nil
+		}
+
+		var gdmCmd tea.Cmd
+		if m.ClientType == Gdm {
+			m.gdmModel, gdmCmd = m.gdmModel.Update(msg)
+		}
 
 		return m, tea.Sequence(
 			m.authenticationModel.Compose(m.currentSession.brokerID, m.currentSession.sessionID, m.currentSession.encryptionKey, msg.layout),
+			gdmCmd,
 			m.changeStage(pam_proto.Stage_challenge))
 
 	case SessionEnded:
+		m.sessionStartingForBroker = ""
 		m.currentSession = nil
 		return m, nil
 	}
@@ -244,11 +284,20 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.authenticationModel, cmd = m.authenticationModel.Update(msg)
 	cmds = append(cmds, cmd)
 
+	if m.ClientType == Gdm {
+		m.gdmModel, cmd = m.gdmModel.Update(msg)
+		cmds = append(cmds, cmd)
+	}
+
 	return m, tea.Batch(cmds...)
 }
 
 // View renders a text view of the whole UI.
 func (m *UIModel) View() string {
+	if m.ClientType != InteractiveTerminal {
+		return ""
+	}
+
 	var view strings.Builder
 
 	switch m.currentStage() {
@@ -290,6 +339,7 @@ func (m *UIModel) currentStage() pam_proto.Stage {
 
 // changeStage returns a command acting to change the current stage and reset any previous views.
 func (m *UIModel) changeStage(s pam_proto.Stage) tea.Cmd {
+	var commands []tea.Cmd
 	if m.currentStage() != s {
 		switch m.currentStage() {
 		case pam_proto.Stage_userSelection:
@@ -301,33 +351,44 @@ func (m *UIModel) changeStage(s pam_proto.Stage) tea.Cmd {
 		case pam_proto.Stage_challenge:
 			m.authenticationModel.Blur()
 		}
+
+		if m.ClientType == Gdm {
+			commands = append(commands, m.gdmModel.changeStage(s))
+		}
 	}
 
 	switch s {
 	case pam_proto.Stage_userSelection:
 		// The session should be ended when going back to previous state, but we don’t quit the stage immediately
 		// and so, we should always ensure we cancel previous session.
-		return tea.Sequence(endSession(m.Client, m.currentSession), m.userSelectionModel.Focus())
+		commands = append(commands, endSession(m.Client, m.currentSession), m.userSelectionModel.Focus())
 
 	case pam_proto.Stage_brokerSelection:
 		m.authModeSelectionModel.Reset()
-		return tea.Sequence(endSession(m.Client, m.currentSession), m.brokerSelectionModel.Focus())
+		commands = append(commands, endSession(m.Client, m.currentSession), m.brokerSelectionModel.Focus())
 
 	case pam_proto.Stage_authModeSelection:
 		m.authenticationModel.Reset()
-
-		return m.authModeSelectionModel.Focus()
+		commands = append(commands, m.authModeSelectionModel.Focus())
 
 	case pam_proto.Stage_challenge:
-		return m.authenticationModel.Focus()
+		commands = append(commands, m.authenticationModel.Focus())
+
+	default:
+		return sendEvent(pamError{
+			status: pam.ErrSystem,
+			msg:    fmt.Sprintf("unknown PAM stage: %q", s),
+		})
 	}
 
-	// TODO: error
-	return nil
+	return tea.Sequence(commands...)
 }
 
 // ExitStatus exposes the [PamReturnStatus] externally.
 func (m *UIModel) ExitStatus() PamReturnStatus {
+	if m.exitStatus == nil {
+		return pamError{status: pam.ErrSystem, msg: "model did not return anything"}
+	}
 	return m.exitStatus
 }
 

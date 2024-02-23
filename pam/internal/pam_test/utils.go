@@ -3,10 +3,21 @@ package pam_test
 
 /*
 #include <stdlib.h>
+#include <stdbool.h>
 
 #ifdef __SANITIZE_ADDRESS__
 #include <sanitizer/lsan_interface.h>
 #endif
+
+static inline bool
+have_asan_support (void)
+{
+#ifdef __SANITIZE_ADDRESS__
+	return true;
+#else
+	return false;
+#endif
+}
 
 static inline void
 maybe_do_leak_check (void)
@@ -35,6 +46,11 @@ func MaybeDoLeakCheck() {
 	runtime.GC()
 	time.Sleep(time.Millisecond * 10)
 	C.maybe_do_leak_check()
+}
+
+// IsAddressSanitizerActive can be used to detect if address sanitizer is active.
+func IsAddressSanitizerActive() bool {
+	return bool(C.have_asan_support())
 }
 
 func allocateCBytes(bytes []byte) pam.BinaryPointer {

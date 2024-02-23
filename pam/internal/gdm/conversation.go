@@ -143,6 +143,10 @@ func EmitEvent(pamMTx pam.ModuleTransaction, event Event) error {
 		evType = EventType_authEvent
 	case *EventData_ReselectAuthMode:
 		evType = EventType_reselectAuthMode
+	case *EventData_UserSelected:
+		evType = EventType_userSelected
+	case *EventData_StartAuthentication:
+		evType = EventType_startAuthentication
 	default:
 		return fmt.Errorf("no known event type %#v", event)
 	}
@@ -158,4 +162,38 @@ func EmitEvent(pamMTx pam.ModuleTransaction, event Event) error {
 	}
 
 	return nil
+}
+
+// DataConversationFunc is an adapter to allow the use of ordinary
+// functions as gdm conversation callbacks.
+type DataConversationFunc func(*Data) (*Data, error)
+
+// RespondPAMBinary is a conversation callback adapter.
+func (f DataConversationFunc) RespondPAMBinary(ptr pam.BinaryPointer) (pam.BinaryPointer, error) {
+	json, err := decodeJSONProtoMessage(ptr)
+	if err != nil {
+		return nil, err
+	}
+	gdmData, err := NewDataFromJSON(json)
+	if err != nil {
+		return nil, err
+	}
+	retData, err := f(gdmData)
+	if err != nil {
+		return nil, err
+	}
+	json, err = retData.JSON()
+	if err != nil {
+		return nil, err
+	}
+	msg, err := newJSONProtoMessage(json)
+	if err != nil {
+		return nil, err
+	}
+	return pam.BinaryPointer(msg), nil
+}
+
+// RespondPAM is a dummy conversation callback adapter to implement pam.BinaryPointerConversationFunc.
+func (f DataConversationFunc) RespondPAM(pam.Style, string) (string, error) {
+	return "", pam.ErrConv
 }

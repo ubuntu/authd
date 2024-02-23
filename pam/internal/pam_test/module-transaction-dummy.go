@@ -232,7 +232,7 @@ func (m *ModuleTransactionDummy) StartConvMulti(requests []pam.ConvRequest) (
 	responses []pam.ConvResponse, err error) {
 	defer func() {
 		if err != nil {
-			err = errors.Join(pam.ErrConv, err)
+			err = fmt.Errorf("%w: %w", pam.ErrConv, err)
 		}
 	}()
 

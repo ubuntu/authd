@@ -18,6 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/internal/adapter"
+	"github.com/ubuntu/authd/pam/internal/gdm"
 	"golang.org/x/term"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
@@ -76,13 +77,28 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 
 	var pamClientType adapter.PamClientType
 	var teaOpts []tea.ProgramOption
-	if term.IsTerminal(int(os.Stdin.Fd())) {
-		pamClientType = adapter.InteractiveTerminal
-	}
 
-	if pamClientType != adapter.InteractiveTerminal {
-		//nolint:staticcheck // FIXME: This will be used when adding other UIs.
-		teaOpts = append(teaOpts, tea.WithInput(nil), tea.WithoutRenderer())
+	if gdm.IsPamExtensionSupported(gdm.PamExtensionCustomJSON) {
+		// Explicitly set the output to something so that the program
+		// won't try to init some terminal fancy things that also appear
+		// to be racy...
+		// See: https://github.com/charmbracelet/bubbletea/issues/910
+		devNull, err := os.OpenFile(os.DevNull, os.O_WRONLY|os.O_APPEND, 0600)
+		if err != nil {
+			return errors.Join(err, pam.ErrSystem)
+		}
+		pamClientType = adapter.Gdm
+		teaOpts = append(teaOpts,
+			tea.WithInput(nil),
+			tea.WithoutRenderer(),
+			tea.WithoutSignals(),
+			tea.WithoutSignalHandler(),
+			tea.WithoutCatchPanics(),
+			tea.WithOutput(devNull),
+		)
+	} else if term.IsTerminal(int(os.Stdin.Fd())) {
+		pamClientType = adapter.InteractiveTerminal
+	} else {
 		return fmt.Errorf("pam module used through an unsupported client: %w", pam.ErrSystem)
 	}
 
