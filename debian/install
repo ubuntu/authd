@@ -12,6 +12,3 @@ ${env:BUILT_PAM_LIBS_PATH}/go-loader/pam_go_loader.so ${env:AUTHD_PAM_MODULES_PA
 
 # Install NSS library with right soname
 target/${DEB_HOST_RUST_TYPE}/release/libnss_authd.so => /usr/lib/${DEB_TARGET_GNU_TYPE}/libnss_authd.so.2
-
-# Install systemd units
-systemd/authd.* /usr/lib/systemd/system/
