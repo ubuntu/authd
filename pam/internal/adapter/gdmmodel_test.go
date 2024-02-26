@@ -2007,7 +2007,7 @@ func TestGdmModel(t *testing.T) {
 				tc.wantBrokers = availableBrokers.GetBrokersInfos()
 			}
 
-			require.Equal(t, tc.wantBrokers, gdmHandler.receivedBrokers)
+			gdm_test.RequireEqualData(t, tc.wantBrokers, gdmHandler.receivedBrokers)
 			require.Equal(t, tc.wantSelectedBroker, gdmHandler.selectedBrokerID)
 		})
 	}
