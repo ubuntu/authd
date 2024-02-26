@@ -108,8 +108,5 @@ override_dh_auto_install:
 	dh_installpam -pauthd --name=gdm-authd
 
 override_dh_installsystemd:
+	# Install example-broker service file only by default
 	dh_installsystemd -pauthd
-	dh_installsystemd -pauthd-example-broker \
-		--no-enable \
-		--no-start \
-		$(NULL)
