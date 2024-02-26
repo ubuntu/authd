@@ -8,6 +8,7 @@ on:
   pull_request:
 
 env:
+  DEBIAN_FRONTEND: noninteractive
   apt_deps: >-
     libpam0g-dev
 
@@ -26,8 +27,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt update
-          sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }}
+          sudo apt update
+          sudo apt install -y ${{ env.apt_deps }}
       - uses: actions/checkout@v4
       - name: Go code sanity check
         uses: canonical/desktop-engineering/gh-actions/go/code-sanity@main
@@ -64,8 +65,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt update
-          sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}}
+          sudo apt update
+          sudo apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}}
       - uses: actions/checkout@v4
       - name: Rust code sanity check
         uses: canonical/desktop-engineering/gh-actions/rust/code-sanity@main
@@ -78,10 +79,10 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo DEBIAN_FRONTEND=noninteractive apt update
+          sudo apt update
 
           # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
-          sudo DEBIAN_FRONTEND=noninteractive apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}} ${{ env.test_apt_deps }}
+          sudo apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}} ${{ env.test_apt_deps }}
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
