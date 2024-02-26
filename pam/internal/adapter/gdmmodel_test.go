@@ -91,7 +91,7 @@ func TestGdmModel(t *testing.T) {
 		wantGdmAuthRes     []*authd.IAResponse
 		wantNoGdmRequests  []gdm.RequestType
 		wantNoGdmEvents    []gdm.EventType
-		wantBrokers        []*authd.ABResponse_BrokerInfo
+		wantNoBrokers      bool
 		wantSelectedBroker string
 		wantStage          pam_proto.Stage
 		wantUsername       string
@@ -1035,6 +1035,7 @@ func TestGdmModel(t *testing.T) {
 				status: pam.ErrSystem,
 				msg:    "could not get current available brokers: brokers loading failed",
 			},
+			wantNoBrokers: true,
 		},
 		"Error on forced quit": {
 			messages:       []tea.Msg{tea.Quit()},
@@ -2001,13 +2002,14 @@ func TestGdmModel(t *testing.T) {
 				return
 			}
 
-			if tc.wantBrokers == nil {
+			wantBrokers := []*authd.ABResponse_BrokerInfo(nil)
+			if !tc.wantNoBrokers {
 				availableBrokers, err := appState.Client.AvailableBrokers(context.TODO(), nil)
 				require.NoError(t, err)
-				tc.wantBrokers = availableBrokers.GetBrokersInfos()
+				wantBrokers = availableBrokers.GetBrokersInfos()
 			}
 
-			gdm_test.RequireEqualData(t, tc.wantBrokers, gdmHandler.receivedBrokers)
+			gdm_test.RequireEqualData(t, wantBrokers, gdmHandler.receivedBrokers)
 			require.Equal(t, tc.wantSelectedBroker, gdmHandler.selectedBrokerID)
 		})
 	}
