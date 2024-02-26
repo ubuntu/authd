@@ -45,7 +45,8 @@ func main() {
 
 	var resultMsg string
 	var pamFunc func(pam.ModuleTransaction, pam.Flags, []string) error
-	switch os.Args[1] {
+	action, args := os.Args[1], os.Args[2:]
+	switch action {
 	case "login":
 		pamFunc = module.Authenticate
 		resultMsg = "PAM Authenticate() for user %q"
@@ -54,16 +55,16 @@ func main() {
 		resultMsg = "PAM ChangeAuthTok() for user %q"
 	default:
 		f.Close()
-		panic("Unknown PAM operation: " + os.Args[1])
+		panic("Unknown PAM operation: " + action)
 	}
 
-	pamRes := pamFunc(mTx, pam.Flags(0), os.Args)
+	pamRes := pamFunc(mTx, pam.Flags(0), args)
 	user, _ := mTx.GetItem(pam.User)
 
 	printPamResult(fmt.Sprintf(resultMsg, user), pamRes)
 
 	// Simulate setting auth broker as default.
-	printPamResult("PAM AcctMgmt()", module.AcctMgmt(mTx, pam.Flags(0), os.Args))
+	printPamResult("PAM AcctMgmt()", module.AcctMgmt(mTx, pam.Flags(0), args))
 }
 
 func printPamResult(action string, result error) {
