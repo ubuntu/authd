@@ -1,2 +1,2 @@
-examplebroker/ExampleBroker
+examplebroker/ExampleBroker.conf
 debian/authd-example-broker.service
