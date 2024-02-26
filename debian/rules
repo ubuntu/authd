@@ -16,6 +16,10 @@ export DPKG_GENSYMBOLS_CHECK_LEVEL := 4
 # Copy in build directory all content to embed
 export DH_GOLANG_INSTALL_ALL := 1
 
+# We want to take whatever ubuntu propose to us (as it won’t download a newer version),
+# as long as it matches the go.mod go stenza which is the language requirement.
+export GOTOOLCHAIN := local
+
 # Use the debian cargo wrapper
 export CARGO_PATH := /usr/share/cargo/bin/cargo
 
