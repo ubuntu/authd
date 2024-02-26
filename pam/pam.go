@@ -236,7 +236,9 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 	}
 
 	if user == "" {
-		log.Infof(context.TODO(), "can't get user from PAM")
+		if err := showPamMessage(mTx, pam.ErrorMsg, "Can't get user from PAM"); err != nil {
+			log.Warningf(context.TODO(), "Impossible to show PAM message: %v", err)
+		}
 		return pam.ErrIgnore
 	}
 
@@ -252,7 +254,11 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 		Username: user,
 	}
 	if _, err := client.SetDefaultBrokerForUser(context.TODO(), &req); err != nil {
-		log.Infof(context.TODO(), "Can't set default broker  (%q) for %q: %v", brokerIDUsedToAuthenticate, user, err)
+		msg := fmt.Sprintf("Can't set default broker (%q) for %q: %v",
+			brokerIDUsedToAuthenticate, user, err)
+		if err := showPamMessage(mTx, pam.ErrorMsg, msg); err != nil {
+			log.Warningf(context.TODO(), "Impossible to show PAM message: %v", err)
+		}
 		return pam.ErrIgnore
 	}
 
