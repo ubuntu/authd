@@ -31,3 +31,44 @@ jobs:
           extra-source-build-deps: |
             ca-certificates
             git
+
+  run-lintian:
+    name: Run lintian
+    needs: build-deb-package
+    runs-on: ubuntu-latest
+
+    container:
+      image: ubuntu:devel
+
+    steps:
+    - name: Prepare container
+      run: |
+        set -eu
+
+        echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90aptyes
+        apt update
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        run-id: ${{ needs.build-deb-package.outputs.run-id }}
+
+    - name: Install dependencies
+      run: |
+        apt install lintian
+
+    - name: Create test user
+      run: |
+        apt install adduser
+        adduser --disabled-password --gecos "" tester
+        chown tester:tester . -R
+
+    - name: Run lintian on source package
+      run: |
+        runuser -u tester -- lintian --pedantic --fail-on error \
+          ./*-debian-source/${{ needs.build-deb-package.outputs.pkg-name }}_${{ needs.build-deb-package.outputs.pkg-version }}_source.changes
+
+    - name: Run lintian on binary packages
+      run: |
+        runuser -u tester -- lintian --pedantic --fail-on error \
+          ./*-debian-packages/*_${{ needs.build-deb-package.outputs.pkg-version }}_*.deb
