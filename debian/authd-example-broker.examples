@@ -1,2 +1,3 @@
 examplebroker/ExampleBroker.conf
 debian/authd-example-broker.service
+debian/authd-example-broker.installer.sh
