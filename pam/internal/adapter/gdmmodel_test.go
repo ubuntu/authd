@@ -1995,11 +1995,16 @@ func TestGdmModel(t *testing.T) {
 			require.Equal(t, tc.wantUsername, username)
 			gdm_test.RequireEqualData(t, tc.wantGdmAuthRes, gdmHandler.authEvents)
 
-			if _, ok := tc.wantExitStatus.(PamReturnError); ok && tc.wantExitStatus != gdmTestEarlyStopExitStatus {
+			if ret, ok := tc.wantExitStatus.(PamReturnError); ok {
 				// If the model exited with error and that matches, we don't
 				// care much comparing all the expectations, since the final exit status
 				// is matching what we expect.
-				return
+				switch ret.Status() {
+				case pam.ErrIgnore, pam.ErrAuth:
+				case gdmTestEarlyStopExitStatus.Status():
+				default:
+					return
+				}
 			}
 
 			wantBrokers := []*authd.ABResponse_BrokerInfo(nil)
