@@ -375,6 +375,11 @@ func (m *UIModel) changeStage(s pam_proto.Stage) tea.Cmd {
 	return tea.Sequence(commands...)
 }
 
+// MsgFilter is the handler for the UI model.
+func (m *UIModel) MsgFilter(model tea.Model, msg tea.Msg) tea.Msg {
+	return msg
+}
+
 // ExitStatus exposes the [PamReturnStatus] externally.
 func (m *UIModel) ExitStatus() PamReturnStatus {
 	if m.exitStatus == nil {
