@@ -132,6 +132,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		return err
 	}
 
+	teaOpts = append(teaOpts, tea.WithFilter(appState.MsgFilter))
 	p := tea.NewProgram(&appState, teaOpts...)
 	if _, err := p.Run(); err != nil {
 		log.Errorf(context.TODO(), "Cancelled authentication: %v", err)
