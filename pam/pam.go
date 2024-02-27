@@ -129,8 +129,19 @@ func initLogging(args map[string]string) (func(), error) {
 		}, nil
 	}
 
+	disableTerminalLogging := func() {
+		if log.IsLevelEnabled(log.DebugLevel) {
+			return
+		}
+		if term.IsTerminal(int(os.Stdin.Fd())) {
+			return
+		}
+		log.SetLevel(log.WarnLevel)
+	}
+
 	if !journal.Enabled() || args["disable_journal"] == "true" {
 		log.SetHandler(nil)
+		disableTerminalLogging()
 		return resetLevel, nil
 	}
 

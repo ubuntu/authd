@@ -91,7 +91,7 @@ func SetHandler(handler Handler) {
 }
 
 func log(context context.Context, level Level, args ...interface{}) {
-	if !logrus.IsLevelEnabled(level) {
+	if !IsLevelEnabled(level) {
 		return
 	}
 
@@ -99,7 +99,7 @@ func log(context context.Context, level Level, args ...interface{}) {
 }
 
 func logf(context context.Context, level Level, format string, args ...interface{}) {
-	if !logrus.IsLevelEnabled(level) {
+	if !IsLevelEnabled(level) {
 		return
 	}
 
