@@ -44,23 +44,32 @@ const (
 )
 
 var supportedArgs = []string{
+	"debug",        // When this is set to "true", then debug logging is enabled.
 	"socket",       // The authd socket to connect to.
 	"force_reauth", // Whether the authentication should be performed again even if it has been already completed.
 }
 
-func parseArgs(args []string) map[string]string {
+// parseArgs parses the PAM arguments and returns a map of them and a function that logs the parsing issues.
+// Such function should be called once the logger is setup, as the arguments may change the logging behavior.
+func parseArgs(args []string) (map[string]string, func()) {
 	parsed := make(map[string]string)
+	var warnings []string
 
 	for _, arg := range args {
 		opt, value, _ := strings.Cut(arg, "=")
 		parsed[opt] = value
 
 		if !slices.Contains(supportedArgs, opt) {
-			log.Warningf(context.TODO(), "Provided argument %q is not supported and will be ignored", arg)
+			warnings = append(warnings,
+				fmt.Sprintf("Provided argument %q is not supported and will be ignored", arg))
 		}
 	}
 
-	return parsed
+	return parsed, func() {
+		for _, warn := range warnings {
+			log.Warning(context.TODO(), warn)
+		}
+	}
 }
 
 func showPamMessage(mTx pam.ModuleTransaction, style pam.Style, msg string) error {
@@ -93,20 +102,35 @@ func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus adapter.PamRetu
 	}
 }
 
+// initLogging initializes the logging given the passed parameters.
+// It returns a function that should be called in order to reset the logging to
+// the default and potentially close the opened resources.
+func initLogging(args map[string]string) (func(), error) {
+	log.SetLevel(log.InfoLevel)
+	resetLevel := func() {}
+	if args["debug"] == "true" {
+		log.SetLevel(log.DebugLevel)
+		resetLevel = func() { log.SetLevel(log.InfoLevel) }
+	}
+
+	return resetLevel, nil
+}
+
 // Authenticate is the method that is invoked during pam_authenticate request.
 func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
 	// Do not try to start authentication again if we've been already through this.
 	// Since PAM modules can be stacked, so we may suffer reentry that is fine but it should
 	// be explicitly allowed.
+	parsedArgs, logArgsIssues := parseArgs(args)
 	_, err := mTx.GetData(alreadyAuthenticatedKey)
-	if err == nil && parseArgs(args)["force_reauth"] != "true" {
+	if err == nil && parsedArgs["force_reauth"] != "true" {
 		return pam.ErrIgnore
 	}
 	if err != nil && !errors.Is(err, pam.ErrNoModuleData) {
 		return err
 	}
 
-	err = h.handleAuthRequest(authd.SessionMode_AUTH, mTx, flags, args)
+	err = h.handleAuthRequest(authd.SessionMode_AUTH, mTx, flags, parsedArgs, logArgsIssues)
 	if err != nil && !errors.Is(err, pam.ErrIgnore) {
 		return err
 	}
@@ -118,18 +142,23 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 
 // ChangeAuthTok is the method that is invoked during pam_sm_chauthtok request.
 func (h *pamModule) ChangeAuthTok(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
-	return h.handleAuthRequest(authd.SessionMode_PASSWD, mTx, flags, args)
+	parsedArgs, logArgsIssues := parseArgs(args)
+	return h.handleAuthRequest(authd.SessionMode_PASSWD, mTx, flags, parsedArgs, logArgsIssues)
 }
 
-func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
+func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTransaction, flags pam.Flags, parsedArgs map[string]string, logArgsIssues func()) error {
 	// Initialize localization
-	// TODO
-
-	// Attach logger and info handler.
 	// TODO
 
 	var pamClientType adapter.PamClientType
 	var teaOpts []tea.ProgramOption
+
+	closeLogging, err := initLogging(parsedArgs)
+	defer closeLogging()
+	if err != nil {
+		return err
+	}
+	logArgsIssues()
 
 	if gdm.IsPamExtensionSupported(gdm.PamExtensionCustomJSON) {
 		// Explicitly set the output to something so that the program
@@ -155,7 +184,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		return fmt.Errorf("pam module used through an unsupported client: %w", pam.ErrSystem)
 	}
 
-	client, closeConn, err := newClient(parseArgs(args))
+	client, closeConn, err := newClient(parsedArgs)
 	if err != nil {
 		log.Debug(context.TODO(), err)
 		if err := showPamMessage(mTx, pam.ErrorMsg, err.Error()); err != nil {
@@ -208,6 +237,14 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 
 // AcctMgmt sets any used brokerID as default for the user.
 func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
+	parsedArgs, logArgsIssues := parseArgs(args)
+	closeLogging, err := initLogging(parsedArgs)
+	defer closeLogging()
+	if err != nil {
+		return err
+	}
+	logArgsIssues()
+
 	brokerData, err := mTx.GetData(authenticationBrokerIDKey)
 	if err != nil && errors.Is(err, pam.ErrNoModuleData) {
 		return pam.ErrIgnore
@@ -242,7 +279,7 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 		return pam.ErrIgnore
 	}
 
-	client, closeConn, err := newClient(parseArgs(args))
+	client, closeConn, err := newClient(parsedArgs)
 	if err != nil {
 		log.Debugf(context.TODO(), "%s", err)
 		return pam.ErrAuthinfoUnavail
