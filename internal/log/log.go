@@ -17,6 +17,8 @@ var (
 	SetFormatter = logrus.SetFormatter
 	// SetLevel sets the standard logger level.
 	SetLevel = logrus.SetLevel
+	// SetOutput sets the log output.
+	SetOutput = logrus.SetOutput
 	// SetReportCaller sets whether the standard logger will include the calling method as a field.
 	SetReportCaller = logrus.SetReportCaller
 )
