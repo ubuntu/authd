@@ -14,7 +14,7 @@ Set Margin 0
 Set Shell bash
 
 Hide
-Type "./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock"
+Type "./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}"
 Enter
 Sleep 100ms
 Show
@@ -59,7 +59,7 @@ Sleep 2s
 Show
 
 Hide
-Type "./pam_authd login socket=/tmp/pam-cli-chauthtok-tests.sock"
+Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}"
 Enter
 Sleep 100ms
 Show

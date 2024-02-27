@@ -1,4 +1,4 @@
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Username: user name
 
 
@@ -31,7 +31,7 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Username: user-mfa
 
 
@@ -64,7 +64,7 @@ Username: user-mfa
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
   Select your provider
 
 > 1. local
@@ -97,7 +97,7 @@ Username: user-mfa
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Gimme your password
 >
 
@@ -130,7 +130,7 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
   Select your authentication method
 
 > 1. Password authentication
@@ -163,7 +163,7 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Gimme your password
 >
 
@@ -196,7 +196,7 @@ Gimme your password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Unlock your phone +33… or accept request on web interface:
 
 
@@ -229,7 +229,7 @@ Unlock your phone +33… or accept request on web interface:
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
   Select your authentication method
 
 > 1. Use your phone +33…
@@ -262,7 +262,7 @@ Unlock your phone +33… or accept request on web interface:
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Unlock your phone +33… or accept request on web interface:
 
 
@@ -295,7 +295,7 @@ Unlock your phone +33… or accept request on web interface:
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
 >
 >
@@ -328,7 +328,7 @@ Enter your new password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
   Select your authentication method
 
 > 1. Password reset
@@ -361,7 +361,7 @@ Enter your new password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
 >
 >
@@ -394,7 +394,7 @@ Enter your new password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
 >
 >
@@ -427,42 +427,42 @@ Enter your new password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
-Enter your new password
-> *******
->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
 > *******
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
+Enter your new password
+> *******
 > *******
 
 
@@ -493,7 +493,7 @@ Enter your new password
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
 > *******
 PAM ChangeAuthTok() for user "user-mfa" exited with success
@@ -526,7 +526,7 @@ PAM AcctMgmt() exited with success
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
 > *******
 PAM ChangeAuthTok() for user "user-mfa" exited with success

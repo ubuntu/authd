@@ -1,4 +1,4 @@
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Username: user name
 
 
@@ -31,7 +31,7 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Username: user-unexistent
 
 
@@ -64,7 +64,7 @@ Username: user-unexistent
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
   Select your provider
 
 > 1. local
@@ -97,7 +97,7 @@ Username: user-unexistent
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
   Select your provider
 
   1. local
@@ -130,7 +130,7 @@ PAM Error Message: can't select broker: rpc error: code = Unknown desc = can't s
 ion transaction: user "user-unexistent" does not exist
 PAM Authenticate() for user 'user-unexistent' exited with error (PAM exit code: 4): System error
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=/tmp/pam-cli-chauthtok-tests.sock
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
   Select your provider
 
   1. local

@@ -1,4 +1,4 @@
-> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Username: user name
 
 
@@ -31,7 +31,7 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Username: user-local-broker
 
 
@@ -64,7 +64,7 @@ Username: user-local-broker
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
 
 > 1. local
@@ -97,7 +97,7 @@ Username: user-local-broker
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
 
 > 1. local
@@ -130,7 +130,7 @@ PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code
 n value should be ignored by PAM dispatch:
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
 
 > 1. local
