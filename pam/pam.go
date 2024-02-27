@@ -45,6 +45,7 @@ const (
 
 var supportedArgs = []string{
 	"debug",        // When this is set to "true", then debug logging is enabled.
+	"logfile",      // The path of the file that will be used for logging.
 	"socket",       // The authd socket to connect to.
 	"force_reauth", // Whether the authentication should be performed again even if it has been already completed.
 }
@@ -111,6 +112,19 @@ func initLogging(args map[string]string) (func(), error) {
 	if args["debug"] == "true" {
 		log.SetLevel(log.DebugLevel)
 		resetLevel = func() { log.SetLevel(log.InfoLevel) }
+	}
+
+	if out, ok := args["logfile"]; ok && out != "" {
+		f, err := os.OpenFile(out, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0600)
+		if err != nil {
+			return resetLevel, err
+		}
+		log.SetOutput(f)
+		return func() {
+			resetLevel()
+			log.SetOutput(os.Stderr)
+			f.Close()
+		}, nil
 	}
 
 	return resetLevel, nil
