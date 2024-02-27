@@ -18,7 +18,7 @@ require (
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.8.4
 	github.com/ubuntu/decorate v0.0.0-20230606064312-bc4ac83958d6
-	go.etcd.io/bbolt v1.3.8
+	go.etcd.io/bbolt v1.3.9
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	golang.org/x/term v0.17.0
 	google.golang.org/grpc v1.62.0
