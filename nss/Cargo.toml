@@ -27,7 +27,7 @@ tower = "0.4.13"
 log = "0.4.20"
 simple_logger = {version = "4.3.3", features = ["stderr"]}
 syslog = "6.1.0"
-ctor = "0.2.6"
+ctor = "0.2.7"
 sysinfo = "0.30.5"
 
 [build-dependencies]
