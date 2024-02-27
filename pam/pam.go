@@ -14,6 +14,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/coreos/go-systemd/journal"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/consts"
@@ -44,10 +45,11 @@ const (
 )
 
 var supportedArgs = []string{
-	"debug",        // When this is set to "true", then debug logging is enabled.
-	"logfile",      // The path of the file that will be used for logging.
-	"socket",       // The authd socket to connect to.
-	"force_reauth", // Whether the authentication should be performed again even if it has been already completed.
+	"debug",           // When this is set to "true", then debug logging is enabled.
+	"logfile",         // The path of the file that will be used for logging.
+	"disable_journal", // Disable logging on systemd journal (this is implicit when `logfile` is set).
+	"socket",          // The authd socket to connect to.
+	"force_reauth",    // Whether the authentication should be performed again even if it has been already completed.
 }
 
 // parseArgs parses the PAM arguments and returns a map of them and a function that logs the parsing issues.
@@ -127,7 +129,30 @@ func initLogging(args map[string]string) (func(), error) {
 		}, nil
 	}
 
-	return resetLevel, nil
+	if !journal.Enabled() || args["disable_journal"] == "true" {
+		log.SetHandler(nil)
+		return resetLevel, nil
+	}
+
+	log.SetHandler(func(_ context.Context, level log.Level, format string, args ...interface{}) {
+		journalPriority := journal.PriInfo
+		switch level {
+		case log.DebugLevel:
+			journalPriority = journal.PriDebug
+		case log.InfoLevel:
+			journalPriority = journal.PriInfo
+		case log.WarnLevel:
+			journalPriority = journal.PriWarning
+		case log.ErrorLevel:
+			journalPriority = journal.PriErr
+		}
+		journal.Print(journalPriority, format, args...)
+	})
+
+	return func() {
+		resetLevel()
+		log.SetHandler(nil)
+	}, nil
 }
 
 // Authenticate is the method that is invoked during pam_authenticate request.
