@@ -156,8 +156,6 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.height = msg.Height
 		m.width = msg.Width
-		m.brokerSelectionModel.SetHeight(m.height - 3)
-		m.brokerSelectionModel.SetWidth(m.width)
 
 	// Exit cases
 	case PamReturnStatus:

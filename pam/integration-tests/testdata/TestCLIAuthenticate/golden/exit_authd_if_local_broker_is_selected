@@ -121,14 +121,14 @@ Username: user-local-broker
 
 
 
-
-
-
-
-
 PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
 n value should be ignored by PAM dispatch:
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=/tmp/pam-cli-authenticate-tests.sock
   Select your provider
@@ -154,12 +154,12 @@ PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be
 
 
 
-
-
-
-
-
 PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
 n value should be ignored by PAM dispatch:
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
 ────────────────────────────────────────────────────────────────────────────────
