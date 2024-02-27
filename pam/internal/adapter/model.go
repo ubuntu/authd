@@ -243,7 +243,7 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, getLayout(m.Client, m.currentSession.sessionID, msg.ID)
 
 	case UILayoutReceived:
-		log.Info(context.TODO(), "UILayoutReceived")
+		log.Debug(context.TODO(), "UILayoutReceived", msg.layout)
 		if m.currentSession == nil {
 			return m, nil
 		}

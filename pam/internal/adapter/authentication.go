@@ -143,7 +143,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 		return *m, nil
 
 	case isAuthenticatedResultReceived:
-		log.Infof(context.TODO(), "isAuthenticatedResultReceived: %v", msg.access)
+		log.Debugf(context.TODO(), "isAuthenticatedResultReceived: %v", msg.access)
 		switch msg.access {
 		case brokers.AuthGranted:
 			infoMsg, err := dataToMsg(msg.msg)

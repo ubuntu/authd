@@ -280,7 +280,7 @@ func getAuthenticationModes(client authd.PAMClient, sessionID string, uiLayouts 
 				msg:    "no supported authentication mode available for this provider",
 			}
 		}
-		log.Info(context.TODO(), authModes)
+		log.Debug(context.TODO(), "authModes", authModes)
 
 		return authModesReceived{
 			authModes: authModes,
