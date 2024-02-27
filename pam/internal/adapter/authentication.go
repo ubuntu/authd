@@ -130,6 +130,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 		return *m, sendEvent(AuthModeSelected{})
 
 	case isAuthenticatedRequested:
+		log.Debugf(context.TODO(), "%#v", msg)
 		m.cancelIsAuthenticated()
 		ctx, cancel := context.WithCancel(context.Background())
 		m.cancelIsAuthenticated = cancel
@@ -139,11 +140,12 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 		return *m, sendIsAuthenticated(ctx, m.client, m.currentSessionID, &authd.IARequest_AuthenticationData{Item: msg.item})
 
 	case isAuthenticatedCancelled:
+		log.Debugf(context.TODO(), "%#v", msg)
 		m.cancelIsAuthenticated()
 		return *m, nil
 
 	case isAuthenticatedResultReceived:
-		log.Debugf(context.TODO(), "isAuthenticatedResultReceived: %v", msg.access)
+		log.Debugf(context.TODO(), "%#v", msg)
 		switch msg.access {
 		case brokers.AuthGranted:
 			infoMsg, err := dataToMsg(msg.msg)
