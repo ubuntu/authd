@@ -19,9 +19,8 @@ var daemonPath string
 func TestCLIAuthenticate(t *testing.T) {
 	t.Parallel()
 
-	prepareCLITest(t)
-
-	outDir := filepath.Dir(daemonPath)
+	outDir := t.TempDir()
+	prepareCLITest(t, outDir)
 
 	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
 	require.NoError(t, err, "Setup: Could not create gpasswd output directory")
@@ -109,9 +108,8 @@ func TestCLIAuthenticate(t *testing.T) {
 func TestCLIChangeAuthTok(t *testing.T) {
 	t.Parallel()
 
-	prepareCLITest(t)
-
-	outDir := filepath.Dir(daemonPath)
+	outDir := t.TempDir()
+	prepareCLITest(t, outDir)
 
 	// we don't care about the output of gpasswd for this test, but we still need to mock it.
 	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
@@ -182,7 +180,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	}
 }
 
-func prepareCLITest(t *testing.T) {
+func prepareCLITest(t *testing.T, clientPath string) {
 	t.Helper()
 
 	// Due to external dependencies such as `vhs`, we can't run the tests in some environments (like LP builders), as we
@@ -191,7 +189,7 @@ func prepareCLITest(t *testing.T) {
 		t.Skip("Skipping tests with external dependencies as requested")
 	}
 
-	pamCleanup, err := buildPAM(filepath.Dir(daemonPath))
+	pamCleanup, err := buildPAM(clientPath)
 	require.NoError(t, err, "Setup: Failed to build PAM executable")
 	t.Cleanup(pamCleanup)
 }
