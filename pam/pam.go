@@ -36,7 +36,10 @@ const (
 	// broker for the current user.
 	authenticationBrokerIDKey = "authentication-broker-id"
 
-	authenticatedKey = "authenticated-key"
+	// alreadyAuthenticatedKey is the Key used to store in the library that
+	// we've already authenticated with this module and so that we should not
+	// do this again.
+	alreadyAuthenticatedKey = "already-authenticated-flag"
 )
 
 func parseArgs(args []string) map[string]string {
@@ -85,7 +88,7 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 	// Do not try to start authentication again if we've been already through this.
 	// Since PAM modules can be stacked, so we may suffer reentry that is fine but it should
 	// be explicitly allowed.
-	_, err := mTx.GetData(authenticatedKey)
+	_, err := mTx.GetData(alreadyAuthenticatedKey)
 	if err == nil && parseArgs(args)["force_reauth"] != "true" {
 		return pam.ErrIgnore
 	}
@@ -97,7 +100,7 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 	if err != nil && !errors.Is(err, pam.ErrIgnore) {
 		return err
 	}
-	if err := mTx.SetData(authenticatedKey, struct{}{}); err != nil {
+	if err := mTx.SetData(alreadyAuthenticatedKey, struct{}{}); err != nil {
 		return err
 	}
 	return err
