@@ -46,8 +46,6 @@ func TestCLIAuthenticate(t *testing.T) {
 
 	tests := map[string]struct {
 		tape string
-
-		wantLogContents []string
 	}{
 		"Authenticate user successfully":                      {tape: "simple_auth"},
 		"Authenticate user with mfa":                          {tape: "mfa_auth"},
