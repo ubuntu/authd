@@ -46,6 +46,8 @@ func TestCLIAuthenticate(t *testing.T) {
 
 	tests := map[string]struct {
 		tape string
+
+		wantLogContents []string
 	}{
 		"Authenticate user successfully":               {tape: "simple_auth"},
 		"Authenticate user with mfa":                   {tape: "mfa_auth"},
@@ -65,6 +67,14 @@ func TestCLIAuthenticate(t *testing.T) {
 
 		"Exit authd if local broker is selected": {tape: "local_broker"},
 		"Exit authd if user sigints":             {tape: "sigint"},
+
+		"Warns on unsupported arguments": {
+			tape: "unsupported_arg",
+			wantLogContents: []string{
+				`Provided argument "invalid_flag=foo" is not supported and will be ignored`,
+				`Provided argument "bar" is not supported and will be ignored`,
+			},
+		},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -108,6 +118,15 @@ func TestCLIAuthenticate(t *testing.T) {
 				got := grouptests.IdempotentGPasswdOutput(t, gpasswdOutput)
 				want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(testutils.GoldenPath(t)+".gpasswd_out"))
 				require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
+			}
+
+			if len(tc.wantLogContents) > 0 {
+				out, err := os.ReadFile(cliLog)
+				require.NoError(t, err)
+
+				for _, c := range tc.wantLogContents {
+					require.Contains(t, string(out), strings.ReplaceAll(c, `"`, `\"`))
+				}
 			}
 		})
 	}

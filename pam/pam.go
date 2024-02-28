@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -42,12 +43,20 @@ const (
 	alreadyAuthenticatedKey = "authd.already-authenticated-flag"
 )
 
+var supportedArgs = []string{
+	"socket", // The authd socket to connect to.
+}
+
 func parseArgs(args []string) map[string]string {
 	parsed := make(map[string]string)
 
 	for _, arg := range args {
 		opt, value, _ := strings.Cut(arg, "=")
 		parsed[opt] = value
+
+		if !slices.Contains(supportedArgs, opt) {
+			log.Warningf(context.TODO(), "Provided argument %q is not supported and will be ignored", arg)
+		}
 	}
 
 	return parsed
