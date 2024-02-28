@@ -1,5 +1,5 @@
-Output unsupported_arg.txt
-Output unsupported_arg.gif # If we don't specify a .gif output, it will create a default out.gif file.
+Output simple_auth_with_unsupported_args.txt
+Output simple_auth_with_unsupported_args.gif # If we don't specify a .gif output, it will create a default out.gif file.
 
 # Configuration header to standardize the output.
 # Does not work with the "Source" command.
@@ -20,7 +20,26 @@ Sleep 100ms
 Show
 
 Hide
-Sleep 5s
+Escape
+Backspace
+Type "user2"
+Sleep 100ms
+Show
+
+Hide
+Enter
+Sleep 100ms
+Show
+
+Hide
+Type "2"
+Sleep 100ms
+Show
+
+Hide
+Type "goodpass"
+Enter
+Sleep 2s
 Show
 
 Sleep 100ms

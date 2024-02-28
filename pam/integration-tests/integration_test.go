@@ -49,16 +49,17 @@ func TestCLIAuthenticate(t *testing.T) {
 
 		wantLogContents []string
 	}{
-		"Authenticate user successfully":               {tape: "simple_auth"},
-		"Authenticate user with mfa":                   {tape: "mfa_auth"},
-		"Authenticate user with form mode with button": {tape: "form_with_button"},
-		"Authenticate user with qr code":               {tape: "qr_code"},
-		"Authenticate user and reset password":         {tape: "mandatory_password_reset"},
-		"Authenticate user and offer password reset":   {tape: "optional_password_reset"},
-		"Authenticate user switching auth mode":        {tape: "switch_auth_mode"},
-		"Authenticate user switching username":         {tape: "switch_username"},
-		"Authenticate user switching broker":           {tape: "switch_broker"},
-		"Authenticate user and add it to local group":  {tape: "local_group"},
+		"Authenticate user successfully":                      {tape: "simple_auth"},
+		"Authenticate user with mfa":                          {tape: "mfa_auth"},
+		"Authenticate user with form mode with button":        {tape: "form_with_button"},
+		"Authenticate user with qr code":                      {tape: "qr_code"},
+		"Authenticate user and reset password":                {tape: "mandatory_password_reset"},
+		"Authenticate user and offer password reset":          {tape: "optional_password_reset"},
+		"Authenticate user switching auth mode":               {tape: "switch_auth_mode"},
+		"Authenticate user switching username":                {tape: "switch_username"},
+		"Authenticate user switching broker":                  {tape: "switch_broker"},
+		"Authenticate user and add it to local group":         {tape: "local_group"},
+		"Authenticate with warnings on unsupported arguments": {tape: "simple_auth_with_unsupported_args"},
 
 		"Remember last successful broker and mode": {tape: "remember_broker_and_mode"},
 
@@ -67,14 +68,6 @@ func TestCLIAuthenticate(t *testing.T) {
 
 		"Exit authd if local broker is selected": {tape: "local_broker"},
 		"Exit authd if user sigints":             {tape: "sigint"},
-
-		"Warns on unsupported arguments": {
-			tape: "unsupported_arg",
-			wantLogContents: []string{
-				`Provided argument "invalid_flag=foo" is not supported and will be ignored`,
-				`Provided argument "bar" is not supported and will be ignored`,
-			},
-		},
 	}
 	for name, tc := range tests {
 		tc := tc
@@ -118,15 +111,6 @@ func TestCLIAuthenticate(t *testing.T) {
 				got := grouptests.IdempotentGPasswdOutput(t, gpasswdOutput)
 				want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(testutils.GoldenPath(t)+".gpasswd_out"))
 				require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
-			}
-
-			if len(tc.wantLogContents) > 0 {
-				out, err := os.ReadFile(cliLog)
-				require.NoError(t, err)
-
-				for _, c := range tc.wantLogContents {
-					require.Contains(t, string(out), strings.ReplaceAll(c, `"`, `\"`))
-				}
 			}
 		})
 	}
