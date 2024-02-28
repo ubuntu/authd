@@ -23,6 +23,16 @@ type gdmModel struct {
 	pamMTx pam.ModuleTransaction
 
 	waitingAuth bool
+
+	// Given the bubbletea async nature we may end up receiving and forwarding
+	// events after we've got a PamReturnStatus and even after the PAM module
+	// has returned to libpam caller (since go goroutines can still be alive).
+	// However, after the quit point we should really not interact anymore with
+	// GDM or we'll make it crash (as it doesn't expect any conversation
+	// happening at that point).
+	// So we ue this as a control point, once we've set this to true, no further
+	// conversation with GDM should happen.
+	conversationsStopped bool
 }
 
 type gdmPollDone struct{}
@@ -167,6 +177,10 @@ func (m *gdmModel) emitEventSync(event gdm.Event) tea.Msg {
 }
 
 func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
+	if m.conversationsStopped {
+		return m, nil
+	}
+
 	switch msg := msg.(type) {
 	case gdmPollDone:
 		return m, tea.Sequence(
@@ -257,6 +271,10 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 }
 
 func (m gdmModel) changeStage(s proto.Stage) tea.Cmd {
+	if m.conversationsStopped {
+		return nil
+	}
+
 	return func() tea.Msg {
 		_, err := gdm.SendRequest(m.pamMTx, &gdm.RequestData_ChangeStage{
 			ChangeStage: &gdm.Requests_ChangeStage{Stage: s},
@@ -270,4 +288,28 @@ func (m gdmModel) changeStage(s proto.Stage) tea.Cmd {
 		log.Debugf(context.TODO(), "Gdm stage change to %v sent", s)
 		return nil
 	}
+}
+
+func (m gdmModel) stopConversations() gdmModel {
+	// We're about to exit: let's ensure that all the messages have been processed.
+
+	wait := make(chan struct{})
+	go func() {
+		for {
+			time.Sleep(gdmPollFrequency + 1)
+			if !gdm.ConversationInProgress() {
+				break
+			}
+		}
+		wait <- struct{}{}
+	}()
+
+	select {
+	case <-wait:
+	case <-time.After(time.Second):
+		log.Error(context.TODO(), "Failed waiting for GDM tasks completion")
+	}
+
+	m.conversationsStopped = true
+	return m
 }

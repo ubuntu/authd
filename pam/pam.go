@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -34,8 +35,33 @@ const (
 	// authenticationBrokerIDKey is the Key used to store the data in the
 	// PAM module for the second stage authentication to select the default
 	// broker for the current user.
-	authenticationBrokerIDKey = "authentication-broker-id"
+	authenticationBrokerIDKey = "authd.authentication-broker-id"
+
+	// alreadyAuthenticatedKey is the Key used to store in the library that
+	// we've already authenticated with this module and so that we should not
+	// do this again.
+	alreadyAuthenticatedKey = "authd.already-authenticated-flag"
 )
+
+var supportedArgs = []string{
+	"socket",       // The authd socket to connect to.
+	"force_reauth", // Whether the authentication should be performed again even if it has been already completed.
+}
+
+func parseArgs(args []string) map[string]string {
+	parsed := make(map[string]string)
+
+	for _, arg := range args {
+		opt, value, _ := strings.Cut(arg, "=")
+		parsed[opt] = value
+
+		if !slices.Contains(supportedArgs, opt) {
+			log.Warningf(context.TODO(), "Provided argument %q is not supported and will be ignored", arg)
+		}
+	}
+
+	return parsed
+}
 
 func showPamMessage(mTx pam.ModuleTransaction, style pam.Style, msg string) error {
 	switch style {
@@ -69,7 +95,25 @@ func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus adapter.PamRetu
 
 // Authenticate is the method that is invoked during pam_authenticate request.
 func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
-	return h.handleAuthRequest(authd.SessionMode_AUTH, mTx, flags, args)
+	// Do not try to start authentication again if we've been already through this.
+	// Since PAM modules can be stacked, so we may suffer reentry that is fine but it should
+	// be explicitly allowed.
+	_, err := mTx.GetData(alreadyAuthenticatedKey)
+	if err == nil && parseArgs(args)["force_reauth"] != "true" {
+		return pam.ErrIgnore
+	}
+	if err != nil && !errors.Is(err, pam.ErrNoModuleData) {
+		return err
+	}
+
+	err = h.handleAuthRequest(authd.SessionMode_AUTH, mTx, flags, args)
+	if err != nil && !errors.Is(err, pam.ErrIgnore) {
+		return err
+	}
+	if err := mTx.SetData(alreadyAuthenticatedKey, struct{}{}); err != nil {
+		return err
+	}
+	return err
 }
 
 // ChangeAuthTok is the method that is invoked during pam_sm_chauthtok request.
@@ -111,7 +155,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		return fmt.Errorf("pam module used through an unsupported client: %w", pam.ErrSystem)
 	}
 
-	client, closeConn, err := newClient(args)
+	client, closeConn, err := newClient(parseArgs(args))
 	if err != nil {
 		log.Debug(context.TODO(), err)
 		if err := showPamMessage(mTx, pam.ErrorMsg, err.Error()); err != nil {
@@ -132,6 +176,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		return err
 	}
 
+	teaOpts = append(teaOpts, tea.WithFilter(appState.MsgFilter))
 	p := tea.NewProgram(&appState, teaOpts...)
 	if _, err := p.Run(); err != nil {
 		log.Errorf(context.TODO(), "Cancelled authentication: %v", err)
@@ -195,7 +240,7 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 		return pam.ErrIgnore
 	}
 
-	client, closeConn, err := newClient(args)
+	client, closeConn, err := newClient(parseArgs(args))
 	if err != nil {
 		log.Debugf(context.TODO(), "%s", err)
 		return pam.ErrAuthinfoUnavail
@@ -215,7 +260,7 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 }
 
 // newClient returns a new GRPC client ready to emit requests.
-func newClient(args []string) (client authd.PAMClient, close func(), err error) {
+func newClient(args map[string]string) (client authd.PAMClient, close func(), err error) {
 	conn, err := grpc.Dial("unix://"+getSocketPath(args), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not connect to authd: %v", err)
@@ -232,17 +277,11 @@ func newClient(args []string) (client authd.PAMClient, close func(), err error) 
 }
 
 // getSocketPath returns the socket path to connect to which can be overridden manually.
-func getSocketPath(args []string) string {
-	socketPath := consts.DefaultSocketPath
-	for _, arg := range args {
-		opt, optarg, _ := strings.Cut(arg, "=")
-		switch opt {
-		case "socket":
-			socketPath = optarg
-		default:
-		}
+func getSocketPath(args map[string]string) string {
+	if val, ok := args["socket"]; ok {
+		return val
 	}
-	return socketPath
+	return consts.DefaultSocketPath
 }
 
 // SetCred is the method that is invoked during pam_setcred request.
