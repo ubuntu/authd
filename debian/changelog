@@ -1,6 +1,6 @@
 authd (0.3) noble; urgency=medium
 
-  * New upstream release
+  * New major release
   * Add functionality to precheck user with brokers
   * Add support for passwd session mode to allow password changes
   * Implement pam_sm_chauthtok in the PAM module
@@ -11,20 +11,20 @@ authd (0.3) noble; urgency=medium
     - Replace Rust QA check with composite action
     - Use noninteractive debian fronted by default
     - Align coverage report with our other projects
-  * Update dependencies to latest
-    - Go
+  * Update dependencies to latest:
+    - Go:
       + go.etcd.io/bbolt
       + golang.org/x/term
       + google.golang.org/grpc
-    - Rust
+    - Rust:
       + cc
       + ctor
       + libnss
       + tonic
       + tonic-build
-    - Tools
+    - Tools:
       + github.com/golangci/golangci-lint
-  * Packaging changes
+  * Packaging changes:
     - debian:
       + Fill the built using information for rust
       + Use install file to install artifacts
