@@ -121,14 +121,14 @@ Username: user-local-broker
 
 
 
-
-
-
-
-
 PAM ChangeAuthTok() for user "user-local-broker" exited with error (PAM exit code: 25): The retu
 rn value should be ignored by PAM dispatch:
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
   Select your provider
@@ -154,12 +154,12 @@ PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be
 
 
 
-
-
-
-
-
 PAM ChangeAuthTok() for user "user-local-broker" exited with error (PAM exit code: 25): The retu
 rn value should be ignored by PAM dispatch:
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
 ────────────────────────────────────────────────────────────────────────────────

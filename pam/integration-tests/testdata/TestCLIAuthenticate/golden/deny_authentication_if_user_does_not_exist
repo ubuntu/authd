@@ -121,14 +121,14 @@ Username: user-unexistent
 
 
 
-
-
-
-
-
 PAM Error Message: can't select broker: rpc error: code = Unknown desc = can't start authenticat
 ion transaction: user "user-unexistent" does not exist
 PAM Authenticate() for user "user-unexistent" exited with error (PAM exit code: 4): System error
+: can't select broker: rpc error: code = Unknown desc = can't start authentication transaction:
+user "user-unexistent" does not exist
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
@@ -154,12 +154,12 @@ PAM Authenticate() for user "user-unexistent" exited with error (PAM exit code: 
 
 
 
-
-
-
-
-
 PAM Error Message: can't select broker: rpc error: code = Unknown desc = can't start authenticat
 ion transaction: user "user-unexistent" does not exist
 PAM Authenticate() for user "user-unexistent" exited with error (PAM exit code: 4): System error
+: can't select broker: rpc error: code = Unknown desc = can't start authentication transaction:
+user "user-unexistent" does not exist
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
 ────────────────────────────────────────────────────────────────────────────────

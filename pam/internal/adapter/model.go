@@ -48,9 +48,6 @@ type UIModel struct {
 	// SessionMode is the mode of the session invoked by the module.
 	SessionMode authd.SessionMode
 
-	height int
-	width  int
-
 	sessionStartingForBroker string
 	currentSession           *sessionInfo
 
@@ -152,12 +149,6 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, cmd
 		}
-
-	case tea.WindowSizeMsg:
-		m.height = msg.Height
-		m.width = msg.Width
-		m.brokerSelectionModel.SetHeight(m.height - 3)
-		m.brokerSelectionModel.SetWidth(m.width)
 
 	// Exit cases
 	case PamReturnStatus:
