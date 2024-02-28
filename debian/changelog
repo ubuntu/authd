@@ -1,3 +1,32 @@
+authd (0.3) noble; urgency=medium
+
+  * Add functionality to precheck user with brokers
+  * Add support for passwd session mode to allow password changes
+  * Implement pam_sm_chauthtok in the PAM module
+  * Add GDM model implementation and tests
+  * Stop using fullscreen view in interactive mode
+  * Example and Mock brokers no longer rely on internal packages
+  * Clean up packaging by using more debhelper features
+  * Changes in CI that do not affect package functionality:
+    - Replace Rust QA check with composite action
+    - Use noninteractive debian fronted by default
+    - Align coverage report with our other projects
+  * Update dependencies to latest
+    ** Go
+      - go.etcd.io/bbolt
+      - golang.org/x/term
+      - google.golang.org/grpc
+    ** Rust
+      - cc
+      - ctor
+      - libnss
+      - tonic
+      - tonic-build
+    ** Tools
+      - github.com/golangci/golangci-lint
+
+ -- Denison Barbosa <denison.barbosa@canonical.com>  Wed, 28 Feb 2024 10:25:07 -0400
+
 authd (0.2.1) noble; urgency=medium
 
   * Adjust Rust dependencies
