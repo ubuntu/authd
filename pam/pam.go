@@ -44,7 +44,8 @@ const (
 )
 
 var supportedArgs = []string{
-	"socket", // The authd socket to connect to.
+	"socket",       // The authd socket to connect to.
+	"force_reauth", // Whether the authentication should be performed again even if it has been already completed.
 }
 
 func parseArgs(args []string) map[string]string {
