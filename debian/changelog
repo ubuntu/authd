@@ -1,3 +1,67 @@
+authd (0.3) noble; urgency=medium
+
+  * New major release
+  * Bump Go version to 1.22
+  * Add functionality to precheck user with brokers
+  * Add default group for broker users
+  * Add support for passwd session mode to allow password changes
+  * Implement pam_sm_chauthtok in the PAM module
+  * Add GDM model implementation and tests
+  * Add C module to execute the Go PAM client
+  * Add timeout to gRPC connections and requests
+    - NSS connections and requests
+    - PAM connections
+  * Stop using fullscreen view in interactive mode
+  * Example and Mock brokers no longer rely on internal packages
+  * Clean up log messages
+  * Changes in CI and tests that do not affect package functionality:
+    - Replace Rust QA check with composite action
+    - Update dependency updates strategy
+    - Use noninteractive debian frontend by default
+    - Align coverage report with our other projects
+    - Install debug symbols from launchpad if ddebs fail
+    - Save test artifacts on test failures
+    - Golden files are now updated with an environemnt variable
+  * Update dependencies to latest:
+    - Go:
+      + go.etcd.io/bbolt
+      + golang.org/x/term
+      + google.golang.org/grpc
+    - Rust:
+      + cc
+      + ctor
+      + libnss
+      + tonic
+      + tonic-build
+    - Tools:
+      + github.com/golangci/golangci-lint
+  * Packaging changes:
+    - debian:
+      + Clean up build process by using more debhelper features
+      + Fill the built using information for rust
+      + Use install file to install artifacts
+      + Use dh-systemd to install systemd services
+      + Install authd in /usr/libexec
+      + Reduce the amount of verdored Rust crates
+    - debian/control:
+      + Do not install dbus if tests are disabled
+      + Do not add an empty paragraph on description
+      + Depend on pkgconf not on legacy pkg-config
+    - debian/rules:
+      + Use dh-golang features to generate our targets
+      + Install files without repeating their name
+      + Rely more on dh-cargo for buildling the NSS library
+      + Install systemd units under /usr
+      + Explicitly set GOTOOLCHAIN=local
+      + Do not hardcode the authd daemons path
+    - debian/source/options: Exclude rust .a files from source
+    - debian/copyright: Remove superflous patterns
+    - debian/vendor-rust: Use a temporary CARGO_HOME unless specified
+    - debian/docs: Expose the Cargo.locks file in docs
+    - debian/tests: Use a script to launch autopkgtests
+
+ -- Denison Barbosa <denison.barbosa@canonical.com>  Wed, 28 Feb 2024 10:25:07 -0400
+
 authd (0.2.1) noble; urgency=medium
 
   * Adjust Rust dependencies
@@ -53,7 +117,7 @@ authd (0.2) noble; urgency=medium
       - libc
       - simple_logger
       - tokio
-  * Update tools and CI dependencies not related to package 
+  * Update tools and CI dependencies not related to package
     functionality
       - google.golang.org/protobuf
 
