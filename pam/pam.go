@@ -35,12 +35,12 @@ const (
 	// authenticationBrokerIDKey is the Key used to store the data in the
 	// PAM module for the second stage authentication to select the default
 	// broker for the current user.
-	authenticationBrokerIDKey = "authentication-broker-id"
+	authenticationBrokerIDKey = "authd.authentication-broker-id"
 
 	// alreadyAuthenticatedKey is the Key used to store in the library that
 	// we've already authenticated with this module and so that we should not
 	// do this again.
-	alreadyAuthenticatedKey = "already-authenticated-flag"
+	alreadyAuthenticatedKey = "authd.already-authenticated-flag"
 )
 
 var supportedArgs = []string{
