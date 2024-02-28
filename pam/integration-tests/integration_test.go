@@ -93,7 +93,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			cmd.Env = testutils.AppendCovEnv(cmd.Env)
 			cmd.Env = append(cmd.Env, pathEnv)
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", socketPathEnv, socketPath))
-			cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_LOG_DIR=%s", filepath.Dir(cliLog)))
+			cmd.Env = append(cmd.Env, "AUTHD_PAM_CLI_LOG_DIR="+outDir)
 			cmd.Dir = outDir
 
 			out, err := cmd.CombinedOutput()
@@ -190,7 +190,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			cmd.Env = testutils.AppendCovEnv(cmd.Env)
 			cmd.Env = append(cmd.Env, pathEnv)
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", socketPathEnv, socketPath))
-			cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_LOG_DIR=%s", filepath.Dir(cliLog)))
+			cmd.Env = append(cmd.Env, "AUTHD_PAM_CLI_LOG_DIR="+filepath.Dir(cliLog))
 			cmd.Dir = outDir
 
 			out, err := cmd.CombinedOutput()

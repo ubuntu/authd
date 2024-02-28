@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/msteinert/pam/v2"
 	"github.com/sirupsen/logrus"
@@ -17,12 +16,7 @@ import (
 // Simulating pam on the CLI for manual testing.
 func main() {
 	log.SetLevel(log.DebugLevel)
-	logDir := os.Getenv("AUTHD_PAM_CLI_LOG_DIR")
-	if logDir == "" {
-		logDir = os.TempDir()
-	}
-	logPath := filepath.Join(logDir, "authd-pam-cli.log")
-	f, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0600)
+	f, err := os.OpenFile("/tmp/logdebug", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0600)
 	if err != nil {
 		panic(err)
 	}
