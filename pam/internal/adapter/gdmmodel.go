@@ -293,11 +293,13 @@ func (m gdmModel) changeStage(s proto.Stage) tea.Cmd {
 func (m gdmModel) stopConversations() gdmModel {
 	// We're about to exit: let's ensure that all the messages have been processed.
 
-	time.Sleep(gdmPollFrequency * 2)
-
 	wait := make(chan struct{})
 	go func() {
-		for gdm.ConversationInProgress() {
+		for {
+			time.Sleep(gdmPollFrequency + 1)
+			if !gdm.ConversationInProgress() {
+				break
+			}
 		}
 		wait <- struct{}{}
 	}()
