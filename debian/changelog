@@ -9,7 +9,7 @@ authd (0.3) noble; urgency=medium
   * Example and Mock brokers no longer rely on internal packages
   * Changes in CI that do not affect package functionality:
     - Replace Rust QA check with composite action
-    - Use noninteractive debian fronted by default
+    - Use noninteractive debian frontend by default
     - Align coverage report with our other projects
   * Update dependencies to latest:
     - Go:
