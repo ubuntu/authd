@@ -6,7 +6,7 @@ PartOf=authd.socket
 
 [Service]
 Type=notify
-ExecStart=/sbin/authd
+ExecStart=@AUTHD_DAEMONS_PATH@/authd
 
 # Some daemon restrictions
 LockPersonality=yes

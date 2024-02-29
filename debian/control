@@ -3,15 +3,17 @@ Section: admin
 Priority: optional
 Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
 Build-Depends: debhelper-compat (= 13),
-               dbus,
+               dbus <!nocheck>,
                dh-apport,
                dh-cargo,
+               dh-exec,
                dh-golang,
+               dctrl-tools,
                golang-go (>= 2:1.21~),
                jq,
                libc6-dev (>= 2.35),
                libpam0g-dev,
-               pkg-config,
+               pkgconf,
                protobuf-compiler,
 Standards-Version: 4.6.2
 XS-Go-Import-Path: github.com/ubuntu/authd
@@ -21,7 +23,6 @@ Vcs-Browser: https://github.com/ubuntu/authd
 Vcs-Git: https://github.com/ubuntu/authd.git
 Rules-Requires-Root: no
 Description: Authentication daemon for cloud-based identity provider
- .
  Authd is a versatile authentication service designed to seamlessly integrate
  with cloud identity providers like OpenID Connect and Entra ID. It offers a
  secure interface for system authentication, supporting cloud-based identity
@@ -31,7 +32,9 @@ Description: Authentication daemon for cloud-based identity provider
 
 Package: authd
 Architecture: any
-Built-Using: ${misc:Built-Using},
+Built-Using: ${misc:Built-Using}, ${cargo:Built-Using}
+Static-Built-Using: ${misc:Static-Built-Using}, ${cargo:Static-Built-Using},
+X-Cargo-Built-Using: ${cargo:X-Cargo-Built-Using},
 Depends: ${shlibs:Depends},
          ${misc:Depends},
 Description: ${source:Synopsis}
