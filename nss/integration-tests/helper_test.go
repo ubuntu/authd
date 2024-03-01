@@ -63,7 +63,7 @@ func outNSSCommandForLib(t *testing.T, socketPath, originOut string, shouldPreCh
 	cmd := exec.Command(cmds[0], cmds[1:]...)
 	cmd.Env = append(cmd.Env, rustCovEnv...)
 	cmd.Env = append(cmd.Env,
-		"AUTHD_NSS_DEBUG=stderr",
+		"AUTHD_NSS_INFO=stderr",
 		// NSS needs both LD_PRELOAD and LD_LIBRARY_PATH to load the module library
 		fmt.Sprintf("LD_PRELOAD=%s:%s", libPath, os.Getenv("LD_PRELOAD")),
 		fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", filepath.Dir(libPath), os.Getenv("LD_LIBRARY_PATH")),

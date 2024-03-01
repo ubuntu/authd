@@ -33,7 +33,7 @@ fn socket_path() -> String {
     match std::env::var("AUTHD_NSS_SOCKET") {
         Ok(s) => return s,
         Err(err) => {
-            debug!(
+            info!(
                 "AUTHD_NSS_SOCKET not set or badly configured, using default value: {}",
                 err
             );
