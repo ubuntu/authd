@@ -2,7 +2,6 @@ use crate::error;
 use libc::uid_t;
 use libnss::interop::Response;
 use libnss::passwd::{Passwd, PasswdHooks};
-use sysinfo::{Pid, System};
 use tokio::runtime::Builder;
 use tonic::Request;
 
@@ -144,21 +143,17 @@ fn should_pre_check() -> bool {
     #[cfg(feature = "integration_tests")]
     return std::env::var("AUTHD_NSS_SHOULD_PRE_CHECK").is_ok();
 
-    let sys = System::new_all();
-    let ppid: Option<Pid>;
-    if let Some(p) = sys.process(Pid::from_u32(std::process::id())) {
-        ppid = p.parent();
-    } else {
+    let ppid = std::os::unix::process::parent_id();
+    let parent = procfs::process::Process::new(ppid as i32);
+    if parent.is_err() {
         return false;
     }
 
-    if let Some(id) = ppid {
-        if let Some(p) = sys.process(id) {
-            if p.name() == "sshd" {
-                return true;
-            }
-        }
+    let cmds = parent.unwrap().cmdline();
+    if cmds.is_err() {
+        return false;
     }
 
-    false
+    let cmds = cmds.unwrap();
+    matches!(&cmds[0], s if s == "sshd")
 }
