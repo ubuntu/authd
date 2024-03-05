@@ -16,7 +16,7 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/ubuntu/decorate v0.0.0-20230606064312-bc4ac83958d6
 	go.etcd.io/bbolt v1.3.9
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
