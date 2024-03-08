@@ -60,7 +60,6 @@ func TestGetPasswdByName(t *testing.T) {
 		"Error if user not in cache and precheck fails":               {username: "does-not-exist", sourceDB: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
@@ -89,7 +88,6 @@ func TestGetPasswdByUID(t *testing.T) {
 		"Error on missing uid":                                   {wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
@@ -114,7 +112,6 @@ func TestGetPasswdEntries(t *testing.T) {
 		"Error in database fetched content": {sourceDB: "invalid.db.yaml", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
@@ -143,7 +140,6 @@ func TestGetGroupByName(t *testing.T) {
 		"Error on missing name":                                  {wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
@@ -172,7 +168,6 @@ func TestGetGroupByGID(t *testing.T) {
 		"Error on missing uid":                                   {wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
@@ -197,7 +192,6 @@ func TestGetGroupEntries(t *testing.T) {
 		"Error in database fetched content": {sourceDB: "invalid.db.yaml", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
@@ -226,7 +220,6 @@ func TestGetShadowByName(t *testing.T) {
 		"Error on missing name":                                  {wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
@@ -251,7 +244,6 @@ func TestGetShadowEntries(t *testing.T) {
 		"Error in database fetched content": {sourceDB: "invalid.db.yaml", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))

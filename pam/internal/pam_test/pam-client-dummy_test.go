@@ -59,7 +59,6 @@ func TestAvailableBrokers(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -115,7 +114,6 @@ func TestGetPreviousBroker(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -351,7 +349,6 @@ func TestSelectBroker(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -519,7 +516,6 @@ func TestGetAuthenticationModes(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -631,7 +627,6 @@ func TestSelectAuthenticationModes(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1012,7 +1007,6 @@ func TestIsAuthenticated(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1084,7 +1078,6 @@ func TestEndSession(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1153,7 +1146,6 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

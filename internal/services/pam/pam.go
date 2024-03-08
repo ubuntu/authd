@@ -41,7 +41,6 @@ func (s Service) AvailableBrokers(ctx context.Context, _ *authd.Empty) (*authd.A
 	var r authd.ABResponse
 
 	for _, b := range s.brokerManager.AvailableBrokers() {
-		b := b
 		r.BrokersInfos = append(r.BrokersInfos, &authd.ABResponse_BrokerInfo{
 			Id:        b.ID,
 			Name:      b.Name,

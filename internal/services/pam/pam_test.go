@@ -146,7 +146,6 @@ func TestSelectBroker(t *testing.T) {
 		"Error when starting the session":                 {username: "NS_error", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -218,7 +217,6 @@ func TestGetAuthenticationModes(t *testing.T) {
 		"Error when broker returns invalid modes": {username: "GAM_invalid", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -292,7 +290,6 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		"Error when returns layout with unknown field":     {username: "SAM_unknown_field", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -379,7 +376,6 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error on updating local groups with unexisting file": {username: "success_with_local_groups", localGroupsFile: "does_not_exists.group"},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			if tc.localGroupsFile == "" {
 				t.Parallel()
@@ -493,7 +489,6 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		"Error when broker does not exist": {username: "userwithbroker", noBroker: true, wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -557,7 +552,6 @@ func TestEndSession(t *testing.T) {
 		"Error when ending session":       {username: "ES_error", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

@@ -27,7 +27,6 @@ func TestNewManager(t *testing.T) {
 		"Error when can not create broker manager": {systemBusSocket: "doesnotexist", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			if tc.cacheDir == "" {
 				tc.cacheDir = t.TempDir()

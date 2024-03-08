@@ -64,7 +64,6 @@ func TestSendToGdm(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
@@ -162,7 +161,6 @@ func TestSendData(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
@@ -270,8 +268,6 @@ func TestDataConversationFunc(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
-		name := name
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
@@ -386,7 +382,6 @@ func TestDataSendChecked(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
@@ -465,7 +460,6 @@ func TestDataSendPoll(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
@@ -738,7 +732,6 @@ func TestDataSendRequestTyped(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
@@ -866,7 +859,6 @@ func TestDataEmitEvent(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)

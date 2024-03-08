@@ -94,7 +94,6 @@ func TestGdmJSONProto(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
@@ -145,7 +144,6 @@ func TestGdmJSONProtoRequestErrors(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
@@ -200,7 +198,6 @@ func TestGdmJSONProtoResponseErrors(t *testing.T) {
 		},
 	}
 	for name, tc := range testCases {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)

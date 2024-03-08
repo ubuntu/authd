@@ -62,7 +62,6 @@ func TestSetGetItem(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(MaybeDoLeakCheck)
@@ -141,7 +140,6 @@ func TestSetPutEnv(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(MaybeDoLeakCheck)
@@ -244,7 +242,6 @@ func TestSetGetData(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(MaybeDoLeakCheck)
@@ -319,7 +316,6 @@ func TestGetUser(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(MaybeDoLeakCheck)
@@ -391,7 +387,6 @@ func TestStartStringConv(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(MaybeDoLeakCheck)
@@ -479,7 +474,6 @@ func TestStartBinaryConv(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(MaybeDoLeakCheck)
@@ -579,7 +573,6 @@ func TestStartBinaryPointerConv(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(MaybeDoLeakCheck)
@@ -777,7 +770,6 @@ func TestStartConvMulti(t *testing.T) {
 	}
 
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(MaybeDoLeakCheck)
