@@ -58,7 +58,6 @@ func TestNewBroker(t *testing.T) {
 		"Error when config does not have dbus.object field": {configFile: "no_dbus_object", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -111,7 +110,6 @@ func TestGetAuthenticationModes(t *testing.T) {
 		"Error when broker returns invalid modes": {sessionID: "GAM_invalid", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -171,7 +169,6 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		"Error when returns layout with invalid optional value": {sessionID: "SAM_invalid_optional_entry", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -239,7 +236,6 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error when calling IsAuthenticated a second time without cancelling": {sessionID: "IA_second_call", secondCall: true, cancelFirstCall: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -290,7 +286,6 @@ func TestCancelIsAuthenticated(t *testing.T) {
 		"Call returns denied if not cancelled": {sessionID: "IA_timeout", wantAnswer: brokers.AuthDenied},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -329,7 +324,6 @@ func TestUserPreCheck(t *testing.T) {
 		"Error if user is not available": {username: "unexistent", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

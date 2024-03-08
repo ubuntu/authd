@@ -53,8 +53,6 @@ func TestUpdateLocalGroups(t *testing.T) {
 		"Error on any unignored delete gpasswd error": {username: "gpasswdfail", groupFilePath: "gpasswdfail_in_deleted_group.group", wantErr: true},
 	}
 	for name, tc := range tests {
-		name := name
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -130,7 +128,6 @@ func TestCleanLocalGroups(t *testing.T) {
 		"Error on any unignored delete gpasswd error": {groupFilePath: "gpasswdfail_in_deleted_group.group", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -202,7 +199,6 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 		"Error on any unignored delete gpasswd error": {wantMockFailure: true, wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

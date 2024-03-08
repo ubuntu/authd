@@ -68,7 +68,6 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Exit authd if user sigints":             {tape: "sigint"},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			defer saveArtifactsForDebug(t, []string{filepath.Join(outDir, tc.tape+".gif"), filepath.Join(outDir, tc.tape+".txt")})
@@ -149,7 +148,6 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		"Exit authd if user sigints":             {tape: "passwd_sigint"},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			defer saveArtifactsForDebug(t, []string{filepath.Join(outDir, tc.tape+".gif"), filepath.Join(outDir, tc.tape+".txt")})

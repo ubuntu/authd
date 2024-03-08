@@ -100,7 +100,6 @@ func TestIntegration(t *testing.T) {
 		"Error when getting group by id and daemon is not available":  {db: "group", key: "11111", noDaemon: true, wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

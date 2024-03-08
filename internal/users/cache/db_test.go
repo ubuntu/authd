@@ -39,7 +39,6 @@ func TestNew(t *testing.T) {
 		"Error on unreadable database file":            {dbFile: "multiple_users_and_groups", perm: &perm0000, wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -182,7 +181,6 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Error on invalid value entry in groupByID for user dropping from group clear database":    {dbFile: "invalid_entry_in_groupByID_secondary_group", wantErr: true, wantClearDB: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -235,7 +233,6 @@ func TestUserByID(t *testing.T) {
 		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByID", wantErrType: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -261,7 +258,6 @@ func TestUserByName(t *testing.T) {
 		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByName", wantErrType: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -289,7 +285,6 @@ func TestAllUsers(t *testing.T) {
 		"Error on some invalid users entry": {dbFile: "invalid_entries_but_user_and_group1", wantErrType: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -316,7 +311,6 @@ func TestGroupByID(t *testing.T) {
 		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -343,7 +337,6 @@ func TestGroupByName(t *testing.T) {
 		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -373,7 +366,6 @@ func TestAllGroups(t *testing.T) {
 		"Error as missing userByID":              {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErrType: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -447,7 +439,6 @@ func TestClear(t *testing.T) {
 		"Error when cache dir has invalid permissions": {readOnlyDir: true, wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -511,7 +502,6 @@ func TestCleanExpiredUsers(t *testing.T) {
 		"Do not clean user if can not delete user from group": {dbFile: "invalid_entry_in_groupByID", expirationDate: "2020-01-01"},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -550,7 +540,6 @@ func TestDeleteUser(t *testing.T) {
 		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByID", wantErrType: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 

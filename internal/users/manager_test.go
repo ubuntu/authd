@@ -53,7 +53,6 @@ func TestNewManager(t *testing.T) {
 		"Error if cacheDir does not exist": {dbFile: "-", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			if tc.localGroupsFile == "" {
 				tc.localGroupsFile = "users_in_groups.group"
@@ -223,7 +222,6 @@ func TestUpdateUser(t *testing.T) {
 		"Invalid entry clears the database": {groupsCase: "cloud-group", dbFile: "invalid_entry_in_userToGroups", localGroupsFile: "users_in_groups.group", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			if tc.localGroupsFile == "" {
 				t.Parallel()
@@ -283,7 +281,6 @@ func TestBrokerForUser(t *testing.T) {
 		"Error if db has invalid entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = grouptests.SetupGPasswdMock(t, "empty.group")
@@ -319,7 +316,6 @@ func TestUpdateBrokerForUser(t *testing.T) {
 		"Error if db has invalid entry": {dbFile: "invalid_entry_in_userByName", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = grouptests.SetupGPasswdMock(t, "empty.group")
@@ -366,7 +362,6 @@ func TestUserByName(t *testing.T) {
 		"Error if db has invalid entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = grouptests.SetupGPasswdMock(t, "empty.group")
@@ -402,7 +397,6 @@ func TestUserByID(t *testing.T) {
 		"Error if db has invalid entry": {uid: 1111, dbFile: "invalid_entry_in_userByID", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = grouptests.SetupGPasswdMock(t, "empty.group")
@@ -437,7 +431,6 @@ func TestAllUsers(t *testing.T) {
 		"Error if db has invalid entry": {dbFile: "invalid_entry_in_userByID", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = grouptests.SetupGPasswdMock(t, "empty.group")
@@ -474,7 +467,6 @@ func TestGroupByName(t *testing.T) {
 		"Error if db has invalid entry": {groupname: "group1", dbFile: "invalid_entry_in_groupByName", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = grouptests.SetupGPasswdMock(t, "empty.group")
@@ -510,7 +502,6 @@ func TestGroupByID(t *testing.T) {
 		"Error if db has invalid entry": {gid: 11111, dbFile: "invalid_entry_in_groupByID", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = grouptests.SetupGPasswdMock(t, "empty.group")
@@ -544,7 +535,6 @@ func TestAllGroups(t *testing.T) {
 		"Error if db has invalid entry": {dbFile: "invalid_entry_in_groupByID", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = grouptests.SetupGPasswdMock(t, "empty.group")
@@ -582,7 +572,6 @@ func TestShadowByName(t *testing.T) {
 		"Error if db has invalid entry":  {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = grouptests.SetupGPasswdMock(t, "empty.group")
@@ -617,7 +606,6 @@ func TestAllShadows(t *testing.T) {
 		"Error if db has invalid entry": {dbFile: "invalid_entry_in_userByID", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = grouptests.SetupGPasswdMock(t, "empty.group")

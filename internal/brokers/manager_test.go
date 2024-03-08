@@ -40,7 +40,6 @@ func TestNewManager(t *testing.T) {
 		"Error when broker config dir is a file": {brokerConfigDir: "file_config_dir", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			if tc.noBus {
 				t.Setenv("DBUS_SYSTEM_BUS_ADDRESS", "/dev/null")
@@ -78,7 +77,6 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		"Error when broker does not exist": {wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -136,7 +134,6 @@ func TestBrokerFromSessionID(t *testing.T) {
 		"Error if broker does not exist": {sessionID: "does not exist", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -190,7 +187,6 @@ func TestNewSession(t *testing.T) {
 		"Error when starting a new session":        {username: "NS_error", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -261,7 +257,6 @@ func TestEndSession(t *testing.T) {
 		"Error when ending session":        {sessionID: "ES_error", wantErr: true},
 	}
 	for name, tc := range tests {
-		tc := tc
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
