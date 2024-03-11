@@ -392,8 +392,8 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 		pamFlags = pam.Silent
 	}
 
-	require.ErrorIs(t, gh.tx.Authenticate(pamFlags), pam.ErrSystem,
-		"Authentication should fail")
+	require.ErrorIs(t, gh.tx.Authenticate(pamFlags), pam_test.ErrIgnore,
+		"Authentication should be ignored")
 	requirePreviousBrokerForUser(t, socketPath, "", pamUser)
 }
 
