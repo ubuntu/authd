@@ -12,6 +12,7 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/pam/internal/proto"
 )
 
 // brokerSelectionModel is the model list selection layout to allow authenticating and return a challenge.
@@ -34,6 +35,9 @@ type brokersListReceived struct {
 type brokerSelected struct {
 	brokerID string
 }
+
+// brokerSelectionRequired is the internal event that a broker needs to be selected.
+type brokerSelectionRequired struct{}
 
 // selectBroker selects a given broker.
 func selectBroker(brokerID string) tea.Cmd {
@@ -93,6 +97,9 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 		cmds = append(cmds, sendEvent(UsernameOrBrokerListReceived{}))
 
 		return m, tea.Batch(cmds...)
+
+	case brokerSelectionRequired:
+		return m, sendEvent(ChangeStage{Stage: proto.Stage_brokerSelection})
 
 	case brokerSelected:
 		log.Debugf(context.TODO(), "%#v", msg)
@@ -180,11 +187,11 @@ func AutoSelectForUser(client authd.PAMClient, username string) tea.Cmd {
 		// We keep a chance to manually select the broker, not a blocker issue.
 		if err != nil {
 			log.Infof(context.TODO(), "can't get previous broker for %q", username)
-			return nil
+			return brokerSelectionRequired{}
 		}
 		brokerID := r.GetPreviousBroker()
 		if brokerID == "" {
-			return nil
+			return brokerSelectionRequired{}
 		}
 
 		return selectBroker(brokerID)()
