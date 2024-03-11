@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"os"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -1846,21 +1845,9 @@ func TestGdmModel(t *testing.T) {
 				require.NoError(t, uiModel.PamMTx.SetItem(pam.User, tc.pamUser))
 			}
 
-			devNull, err := os.OpenFile(os.DevNull, os.O_WRONLY|os.O_APPEND, 0600)
-			require.NoError(t, err)
-			teaOpts := []tea.ProgramOption{
-				tea.WithInput(nil),
-				tea.WithoutRenderer(),
-				tea.WithoutSignals(),
-				tea.WithoutSignalHandler(),
-				tea.WithFilter(appState.filterFunc),
-				tea.WithoutCatchPanics(),
-				// Explicitly set the output to something so that the program
-				// won't try to init some terminal fancy things that also appear
-				// to be racy...
-				// See: https://github.com/charmbracelet/bubbletea/issues/910
-				tea.WithOutput(devNull),
-			}
+			teaOpts, err := TeaHeadlessOptions()
+			require.NoError(t, err, "Setup: Can't setup bubble tea options")
+			teaOpts = append(teaOpts, tea.WithFilter(appState.filterFunc))
 			p := tea.NewProgram(&appState, teaOpts...)
 			appState.program = p
 
