@@ -8,6 +8,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/pam/internal/proto"
 )
 
 // userSelectionModel allows selecting from PAM or interactively an user.
@@ -18,10 +19,13 @@ type userSelectionModel struct {
 	clientType PamClientType
 }
 
-// userSelected events to select a new username.
+// userSelected events to report that a new username has been selected.
 type userSelected struct {
 	username string
 }
+
+// userRequired events to pick a new username.
+type userRequired struct{}
 
 // sendUserSelected sends the event to select a new username.
 func sendUserSelected(username string) tea.Cmd {
@@ -59,7 +63,7 @@ func (m *userSelectionModel) Init() tea.Cmd {
 	if pamUser != "" {
 		return sendUserSelected(pamUser)
 	}
-	return nil
+	return sendEvent(userRequired{})
 }
 
 // Update handles events and actions.
@@ -76,6 +80,9 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 			return m, sendEvent(UsernameOrBrokerListReceived{})
 		}
 		return m, nil
+
+	case userRequired:
+		return m, sendEvent(ChangeStage{Stage: proto.Stage_userSelection})
 	}
 
 	if m.clientType != InteractiveTerminal {
