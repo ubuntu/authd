@@ -118,6 +118,12 @@ jobs:
         run: |
           set -eu
           cargo install grcov
+      - name: Prepare tests artifacts path
+        run: |
+          set -eu
+
+          artifacts_dir=$(mktemp -u --tmpdir authd-test-artifacts-XXXXXX)
+          echo AUTHD_TEST_ARTIFACTS_PATH="${artifacts_dir}" >> $GITHUB_ENV
       - name: Run tests (with coverage collection)
         run: |
           set -eu
@@ -166,3 +172,10 @@ jobs:
         with:
           directory: ./coverage/codecov
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload test failures artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: authd-test-artifacts
+          path: ${{ env.AUTHD_TEST_ARTIFACTS_PATH }}
