@@ -38,7 +38,7 @@ func main() {
 		}))
 
 	var resultMsg string
-	var pamFunc func(pam.ModuleTransaction, pam.Flags, []string) error
+	var pamFunc pam.ModuleHandlerFunc
 	action, args := os.Args[1], os.Args[2:]
 	switch action {
 	case "login":

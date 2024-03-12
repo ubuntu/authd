@@ -574,7 +574,7 @@ func createDBFile(t *testing.T, src, destDir string) {
 func TestMain(m *testing.M) {
 	testutils.InstallUpdateFlag()
 
-	os.Exit(m.Run())
+	m.Run()
 }
 
 // initCache returns a new cache ready to be used alongside its cache directory.

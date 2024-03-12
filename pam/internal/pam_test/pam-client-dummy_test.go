@@ -9,7 +9,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"os"
 	"testing"
 	"time"
 
@@ -1175,5 +1174,5 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(fmt.Sprintf("could not create an valid rsa key: %v", err))
 	}
-	os.Exit(m.Run())
+	m.Run()
 }

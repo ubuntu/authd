@@ -1,0 +1,11 @@
+# FIXME: libpam in ubuntu seems to have some leaks, sadly the trace is not really clear
+# to help us understand what exactly it is:
+#
+# ==409464==ERROR: LeakSanitizer: detected memory leaks
+#
+# Direct leak of 64 byte(s) in 1 object(s) allocated from:
+#     #0 0x7ff0a98b4887 in __interceptor_malloc ../../../../src/libsanitizer/asan/asan_malloc_linux.cpp:145
+#     #1 0x7ff0aa2eab51 in _pam_strdup /build/pam-WCKv3W/pam-1.4.0/libpam/pam_misc.c:129
+#
+# So for now, we just ignore it.
+leak:_pam_strdup
