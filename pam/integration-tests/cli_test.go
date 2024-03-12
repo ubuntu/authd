@@ -268,8 +268,12 @@ func saveArtifactsForDebug(t *testing.T, artifacts []string) {
 		return
 	}
 
-	// We need to copy the artifacts to a temporary directory, since the test directory will be cleaned up.
-	tmpDir := filepath.Join("/tmp/authd-test-artifacts", testutils.GoldenPath(t))
+	// We need to copy the artifacts to another directory, since the test directory will be cleaned up.
+	artifactPath := os.Getenv("AUTHD_TEST_ARTIFACTS_PATH")
+	if artifactPath == "" {
+		artifactPath = filepath.Join(os.TempDir(), "authd-test-artifacts")
+	}
+	tmpDir := filepath.Join(artifactPath, testutils.GoldenPath(t))
 	if err := os.MkdirAll(tmpDir, 0750); err != nil && !os.IsExist(err) {
 		require.NoError(t, err, "Could not create temporary directory for artifacts")
 		return
