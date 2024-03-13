@@ -1,10 +1,13 @@
 package adapter
 
 import (
+	"context"
+
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/msteinert/pam/v2"
+	"github.com/ubuntu/authd/internal/log"
 )
 
 // userSelectionModel allows selecting from PAM or interactively an user.
@@ -63,6 +66,7 @@ func (m *userSelectionModel) Init() tea.Cmd {
 func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case userSelected:
+		log.Debugf(context.TODO(), "%#v", msg)
 		if msg.username != "" {
 			// synchronise our internal validated field and the text one.
 			m.SetValue(msg.username)

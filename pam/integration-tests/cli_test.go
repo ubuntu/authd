@@ -2,7 +2,9 @@ package main_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -69,13 +71,22 @@ func TestCLIAuthenticate(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			defer saveArtifactsForDebug(t, []string{filepath.Join(outDir, tc.tape+".gif"), filepath.Join(outDir, tc.tape+".txt")})
+
+			cliLog := prepareCLILogging(t)
+			t.Cleanup(func() {
+				saveArtifactsForDebug(t, []string{
+					filepath.Join(outDir, tc.tape+".gif"),
+					filepath.Join(outDir, tc.tape+".txt"),
+					cliLog,
+				})
+			})
 
 			// #nosec:G204 - we control the command arguments in tests
 			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
 			cmd.Env = testutils.AppendCovEnv(cmd.Env)
 			cmd.Env = append(cmd.Env, pathEnv)
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", socketPathEnv, socketPath))
+			cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_LOG_DIR=%s", filepath.Dir(cliLog)))
 			cmd.Dir = outDir
 
 			out, err := cmd.CombinedOutput()
@@ -150,13 +161,22 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			defer saveArtifactsForDebug(t, []string{filepath.Join(outDir, tc.tape+".gif"), filepath.Join(outDir, tc.tape+".txt")})
+
+			cliLog := prepareCLILogging(t)
+			t.Cleanup(func() {
+				saveArtifactsForDebug(t, []string{
+					filepath.Join(outDir, tc.tape+".gif"),
+					filepath.Join(outDir, tc.tape+".txt"),
+					cliLog,
+				})
+			})
 
 			// #nosec:G204 - we control the command arguments in tests
 			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
 			cmd.Env = testutils.AppendCovEnv(cmd.Env)
 			cmd.Env = append(cmd.Env, pathEnv)
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", socketPathEnv, socketPath))
+			cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_LOG_DIR=%s", filepath.Dir(cliLog)))
 			cmd.Dir = outDir
 
 			out, err := cmd.CombinedOutput()
@@ -192,6 +212,22 @@ func prepareCLITest(t *testing.T, clientPath string) {
 	pamCleanup, err := buildPAM(clientPath)
 	require.NoError(t, err, "Setup: Failed to build PAM executable")
 	t.Cleanup(pamCleanup)
+}
+
+func prepareCLILogging(t *testing.T) string {
+	t.Helper()
+
+	cliLog := filepath.Join(t.TempDir(), "authd-pam-cli.log")
+	t.Cleanup(func() {
+		out, err := os.ReadFile(cliLog)
+		if errors.Is(err, fs.ErrNotExist) {
+			return
+		}
+		require.NoError(t, err, "Teardown: Impossible to read PAM client logs")
+		t.Log(string(out))
+	})
+
+	return cliLog
 }
 
 // buildPAM builds the PAM module in a temporary directory and returns a cleanup function.

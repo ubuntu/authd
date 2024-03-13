@@ -72,6 +72,7 @@ func (m brokerSelectionModel) Init() tea.Cmd {
 func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case brokersListReceived:
+		log.Debugf(context.TODO(), "%#v", msg)
 		if len(msg.brokers) == 0 {
 			return m, sendEvent(pamError{
 				status: pam.ErrAuthinfoUnavail,
@@ -94,6 +95,7 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 		return m, tea.Batch(cmds...)
 
 	case brokerSelected:
+		log.Debugf(context.TODO(), "%#v", msg)
 		broker := brokerFromID(msg.brokerID, m.availableBrokers)
 		if broker == nil {
 			log.Infof(context.TODO(), "broker %q is not part of current active brokers", msg.brokerID)

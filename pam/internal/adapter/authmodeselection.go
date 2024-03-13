@@ -121,6 +121,7 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case supportedUILayoutsReceived:
+		log.Debugf(context.TODO(), "%#v", msg)
 		if len(msg.layouts) == 0 {
 			return m, sendEvent(pamError{
 				status: pam.ErrCredUnavail,
@@ -133,6 +134,7 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 		return m, sendEvent(GetAuthenticationModesRequested{})
 
 	case authModesReceived:
+		log.Debugf(context.TODO(), "%#v", msg)
 		m.availableAuthModes = msg.authModes
 
 		var allAuthModes []list.Item
@@ -156,6 +158,7 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 		return m, tea.Sequence(cmds...)
 
 	case authModeSelected:
+		log.Debugf(context.TODO(), "%#v", msg)
 		// Ensure auth mode id is valid
 		if !validAuthModeID(msg.id, m.availableAuthModes) {
 			log.Infof(context.TODO(), "authentication mode %q is not part of currently available authentication mode", msg.id)
@@ -280,7 +283,7 @@ func getAuthenticationModes(client authd.PAMClient, sessionID string, uiLayouts 
 				msg:    "no supported authentication mode available for this provider",
 			}
 		}
-		log.Info(context.TODO(), authModes)
+		log.Debug(context.TODO(), "authModes", authModes)
 
 		return authModesReceived{
 			authModes: authModes,

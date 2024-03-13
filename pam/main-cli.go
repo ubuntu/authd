@@ -6,22 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/msteinert/pam/v2"
-	"github.com/sirupsen/logrus"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
 // Simulating pam on the CLI for manual testing.
 func main() {
-	log.SetLevel(log.DebugLevel)
-	f, err := os.OpenFile("/tmp/logdebug", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0600)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	logrus.SetOutput(f)
+	logDir := os.Getenv("AUTHD_PAM_CLI_LOG_DIR")
 
 	module := &pamModule{}
 	mTx := pam_test.NewModuleTransactionDummy(pam.ConversationFunc(
@@ -48,10 +41,16 @@ func main() {
 		pamFunc = module.ChangeAuthTok
 		resultMsg = "PAM ChangeAuthTok() for user %q"
 	default:
-		f.Close()
 		panic("Unknown PAM operation: " + action)
 	}
 
+	defaultArgs := []string{"debug=true"}
+	if logDir != "" {
+		logPath := filepath.Join(logDir, "authd-pam-cli.log")
+		defaultArgs = append(defaultArgs, "logfile="+logPath)
+	}
+
+	args = append(defaultArgs, args...)
 	pamRes := pamFunc(mTx, pam.Flags(0), args)
 	user, _ := mTx.GetItem(pam.User)
 
