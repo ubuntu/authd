@@ -1,4 +1,4 @@
-use crate::error;
+use crate::{error, REQUEST_TIMEOUT};
 use libc::gid_t;
 use libnss::group::{Group, GroupHooks};
 use libnss::interop::Response;
@@ -45,8 +45,9 @@ fn get_all_entries() -> Response<Vec<Group>> {
             }
         };
 
-        let request = Request::new(authd::Empty {});
-        match client.get_group_entries(request).await {
+        let mut req = Request::new(authd::Empty {});
+        req.set_timeout(REQUEST_TIMEOUT);
+        match client.get_group_entries(req).await {
             Ok(r) => Response::Success(group_entries_to_groups(r.into_inner().entries)),
             Err(e) => {
                 error!("error when listing groups: {}", e.message());
@@ -75,7 +76,8 @@ fn get_entry_by_gid(gid: gid_t) -> Response<Group> {
             }
         };
 
-        let req = Request::new(authd::GetByIdRequest { id: gid });
+        let mut req = Request::new(authd::GetByIdRequest { id: gid });
+        req.set_timeout(REQUEST_TIMEOUT);
         match client.get_group_by_gid(req).await {
             Ok(r) => Response::Success(group_entry_to_group(r.into_inner())),
             Err(e) => {
@@ -105,7 +107,8 @@ fn get_entry_by_name(name: String) -> Response<Group> {
             }
         };
 
-        let req = Request::new(authd::GetGroupByNameRequest { name });
+        let mut req = Request::new(authd::GetGroupByNameRequest { name });
+        req.set_timeout(REQUEST_TIMEOUT);
         match client.get_group_by_name(req).await {
             Ok(r) => Response::Success(group_entry_to_group(r.into_inner())),
             Err(e) => {

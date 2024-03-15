@@ -4,7 +4,7 @@ use tokio::net::UnixStream;
 use tonic::transport::{Channel, Endpoint, Uri};
 use tower::service_fn;
 
-use crate::debug;
+use crate::{debug, REQUEST_TIMEOUT};
 
 pub mod authd {
     tonic::include_proto!("authd");
@@ -26,6 +26,7 @@ pub async fn new_client() -> Result<NssClient<Channel>, Box<dyn Error>> {
 
     // The URL must have a valid format, even though we don't use it.
     let ch = Endpoint::try_from("https://not-used:404")?
+        .connect_timeout(REQUEST_TIMEOUT)
         .connect_with_connector(service_fn(|_: Uri| {
             UnixStream::connect(super::socket_path())
         }))

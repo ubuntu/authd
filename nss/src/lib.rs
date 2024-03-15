@@ -1,5 +1,8 @@
 #[macro_use]
-extern crate lazy_static; // used by libnss_*_hooks macros
+extern crate lazy_static;
+use std::time::Duration;
+
+// used by libnss_*_hooks macros
 use libnss::{interop::Response, libnss_group_hooks, libnss_passwd_hooks, libnss_shadow_hooks};
 
 mod passwd;
@@ -18,6 +21,8 @@ libnss_shadow_hooks!(authd, AuthdShadow);
 mod logs;
 
 mod client;
+
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// socket_path returns the socket path to connect to the gRPC server.
 ///
