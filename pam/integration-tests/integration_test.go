@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"flag"
 	"log"
 	"os"
 	"testing"
@@ -14,9 +13,6 @@ func TestMain(m *testing.M) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
 		os.Exit(m.Run())
 	}
-
-	testutils.InstallUpdateFlag()
-	flag.Parse()
 
 	execPath, daemonCleanup, err := testutils.BuildDaemon("-tags=withexamplebroker,integrationtests")
 	if err != nil {

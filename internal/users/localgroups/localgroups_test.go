@@ -1,7 +1,6 @@
 package localgroups_test
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -84,7 +83,7 @@ func TestUpdateLocalGroups(t *testing.T) {
 
 			// Always check the golden files missing for no-op too on error
 			referenceFilePath := testutils.GoldenPath(t)
-			if testutils.Update() {
+			if testutils.UpdateEnabled() {
 				// The file may already not exists.
 				_ = os.Remove(testutils.GoldenPath(t))
 				referenceFilePath = destCmdsFile
@@ -157,7 +156,7 @@ func TestCleanLocalGroups(t *testing.T) {
 
 			// Always check the golden files missing for no-op too on error
 			referenceFilePath := testutils.GoldenPath(t)
-			if testutils.Update() {
+			if testutils.UpdateEnabled() {
 				// The file may already not exists.
 				_ = os.Remove(testutils.GoldenPath(t))
 				referenceFilePath = destCmdsFile
@@ -233,7 +232,7 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 
 			// Always check the golden files missing for no-op too on error
 			referenceFilePath := testutils.GoldenPath(t)
-			if testutils.Update() {
+			if testutils.UpdateEnabled() {
 				// The file may already not exists.
 				_ = os.Remove(testutils.GoldenPath(t))
 				referenceFilePath = destCmdsFile
@@ -263,9 +262,6 @@ func TestMain(m *testing.M) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
 		os.Exit(m.Run())
 	}
-
-	testutils.InstallUpdateFlag()
-	flag.Parse()
 
 	m.Run()
 }

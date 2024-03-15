@@ -2,7 +2,6 @@ package users_test
 
 import (
 	"errors"
-	"flag"
 	"os"
 	"path/filepath"
 	"testing"
@@ -708,9 +707,6 @@ func TestMain(m *testing.M) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
 		os.Exit(m.Run())
 	}
-
-	testutils.InstallUpdateFlag()
-	flag.Parse()
 
 	m.Run()
 }
