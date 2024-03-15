@@ -164,7 +164,7 @@ func RequireGPasswdOutput(t *testing.T, destCmdsFile, goldenGpasswdPath string) 
 
 	// TODO: this should be extracted in testutils, but still allow post-treatement of file like sorting.
 	referenceFilePath := goldenGpasswdPath
-	if testutils.Update() {
+	if testutils.UpdateEnabled() {
 		// The file may already not exists.
 		_ = os.Remove(goldenGpasswdPath)
 		referenceFilePath = destCmdsFile

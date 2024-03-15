@@ -113,7 +113,7 @@ func InstallUpdateFlag() {
 	flag.BoolVar(&update, "update", false, "update golden files")
 }
 
-// Update returns true if the update flag was set, false otherwise.
-func Update() bool {
+// UpdateEnabled returns true if updating the golden files is requested.
+func UpdateEnabled() bool {
 	return update
 }
