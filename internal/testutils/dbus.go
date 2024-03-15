@@ -59,6 +59,17 @@ func StartSystemBusMock() (func(), error) {
 	busCtx, busCancel := context.WithCancel(context.Background())
 	//#nosec:G204 // This is a test helper and we are in control of the arguments.
 	cmd := exec.CommandContext(busCtx, "dbus-daemon", "--config-file="+cfgPath, "--print-address=1")
+
+	// dbus-daemon can perform some NSS lookups when a client establishes a new connection, usually to determine the
+	// group membership of the caller -- if examplebroker is running via systemd activation and our NSS module is
+	// enabled the operation would time out, as the NSS module will send a request to authd that will never be answered,
+	// due to the fact that the socket is present but our gRPC server is not yet listening on it.
+	//
+	// Setting this environment variable causes the authd NSS module to return early and skip the lookup.
+	// For brevity, we reuse the same variable systemd uses when running the dbus service, which is already configured
+	// in our module.
+	cmd.Env = []string{"SYSTEMD_NSS_DYNAMIC_BYPASS=1"}
+
 	dbusStdout, err := cmd.StdoutPipe()
 	if err != nil {
 		busCancel()
