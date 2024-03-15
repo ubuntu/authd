@@ -2,7 +2,6 @@ package nss_test
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -397,9 +396,6 @@ func TestMain(m *testing.M) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
 		os.Exit(m.Run())
 	}
-
-	testutils.InstallUpdateFlag()
-	flag.Parse()
 
 	cleanup, err := testutils.StartSystemBusMock()
 	if err != nil {

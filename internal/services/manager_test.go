@@ -2,7 +2,6 @@ package services_test
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"testing"
@@ -78,9 +77,6 @@ func requireEqualServices(t *testing.T, want, got map[string]grpc.ServiceInfo) {
 }
 
 func TestMain(m *testing.M) {
-	testutils.InstallUpdateFlag()
-	flag.Parse()
-
 	// Start system bus mock.
 	cleanup, err := testutils.StartSystemBusMock()
 	if err != nil {

@@ -2,7 +2,6 @@ package brokers_test
 
 import (
 	"context"
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -371,9 +370,6 @@ func TestStartAndEndSession(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	testutils.InstallUpdateFlag()
-	flag.Parse()
-
 	// Start system bus mock.
 	cleanup, err := testutils.StartSystemBusMock()
 	if err != nil {

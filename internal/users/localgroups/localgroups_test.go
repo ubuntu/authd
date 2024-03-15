@@ -1,7 +1,6 @@
 package localgroups_test
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -263,9 +262,6 @@ func TestMain(m *testing.M) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
 		os.Exit(m.Run())
 	}
-
-	testutils.InstallUpdateFlag()
-	flag.Parse()
 
 	m.Run()
 }

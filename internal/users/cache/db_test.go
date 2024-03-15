@@ -571,12 +571,6 @@ func createDBFile(t *testing.T, src, destDir string) {
 	require.NoError(t, err, "Setup: should be able to write database file")
 }
 
-func TestMain(m *testing.M) {
-	testutils.InstallUpdateFlag()
-
-	m.Run()
-}
-
 // initCache returns a new cache ready to be used alongside its cache directory.
 func initCache(t *testing.T, dbFile string) (c *cache.Cache) {
 	t.Helper()
