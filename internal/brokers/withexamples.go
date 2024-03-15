@@ -5,7 +5,6 @@ package brokers
 import (
 	"context"
 	"os"
-	"time"
 
 	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/log"
@@ -27,23 +26,21 @@ func useExampleBrokers() (string, func(), error) {
 		return "", nil, err
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		defer os.RemoveAll(cfgPath)
-		defer busCleanup()
-		if err = examplebroker.StartBus(ctx, cfgPath); err != nil {
-			log.Errorf(ctx, "Error starting examplebroker: %v", err)
+	conn, err := examplebroker.StartBus(cfgPath)
+	if err != nil {
+		if err := os.RemoveAll(cfgPath); err != nil {
+			log.Warningf(context.Background(), "Failed to remove the broker configuration directory: %v", err)
 		}
-	}()
-
-	// Give some time for the broker to start
-	time.Sleep(time.Second)
+		busCleanup()
+		return "", nil, err
+	}
 
 	return cfgPath, func() {
-		cancel()
-		<-done
+		conn.Close()
+		if err := os.RemoveAll(cfgPath); err != nil {
+			log.Warningf(context.Background(), "Failed to remove the broker configuration directory: %v", err)
+		}
+		busCleanup()
 	}, nil
 }
 

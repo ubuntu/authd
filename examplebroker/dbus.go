@@ -24,20 +24,19 @@ type Bus struct {
 }
 
 // StartBus starts the D-Bus service and exports it on the system bus.
-func StartBus(ctx context.Context, cfgPath string) (err error) {
+func StartBus(cfgPath string) (conn *dbus.Conn, err error) {
 	defer decorate.OnError(&err, "could not start example broker bus")
 
-	conn, err := dbus.ConnectSystemBus()
+	conn, err = dbus.ConnectSystemBus()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	defer conn.Close()
 
 	b, _, _ := New("ExampleBroker")
 	obj := Bus{broker: b}
 	err = conn.Export(&obj, dbusObjectPath, dbusInterface)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if err = conn.Export(introspect.NewIntrospectable(&introspect.Node{
@@ -50,15 +49,15 @@ func StartBus(ctx context.Context, cfgPath string) (err error) {
 			},
 		},
 	}), dbusObjectPath, introspect.IntrospectData.Name); err != nil {
-		return err
+		return nil, err
 	}
 
 	reply, err := conn.RequestName(busName, dbus.NameFlagDoNotQueue)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if reply != dbus.RequestNameReplyPrimaryOwner {
-		return fmt.Errorf("D-Bus name already taken")
+		return nil, fmt.Errorf("D-Bus name already taken")
 	}
 
 	if err = os.WriteFile(filepath.Join(cfgPath, "examplebroker.conf"),
@@ -69,11 +68,10 @@ dbus_name = %s
 dbus_object = %s
 `, busName, dbusObjectPath)),
 		0600); err != nil {
-		return err
+		return nil, err
 	}
 
-	<-ctx.Done()
-	return nil
+	return conn, nil
 }
 
 // NewSession is the method through which the broker and the daemon will communicate once dbusInterface.NewSession is called.
