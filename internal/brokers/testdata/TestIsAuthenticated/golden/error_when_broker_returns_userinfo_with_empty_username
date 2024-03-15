@@ -1,12 +1,4 @@
 FIRST CALL:
 	access: 
 	data: 
-	err: invalid user information provided by the broker ({
-		"name": "",
-		"uuid": "uuid-IA_info_missing_user_name",
-		"gecos": "gecos for IA_info_missing_user_name",
-		"dir": "/home/IA_info_missing_user_name",
-		"shell": "/bin/sh/IA_info_missing_user_name",
-		"avatar": "avatar for ",
-		"groups": [ {"name": "group-IA_info_missing_user_name", "ugid": "ugid-IA_info_missing_user_name"} ]
-	}): empty username
+	err: provided userinfo is invalid: empty username
