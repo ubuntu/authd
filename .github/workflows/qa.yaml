@@ -134,6 +134,8 @@ jobs:
 
           echo ASAN_OPTIONS="log_path=${artifacts_dir}/asan.log:print_stats=true" >> $GITHUB_ENV
       - name: Run tests (with coverage collection)
+        env:
+          G_DEBUG: "fatal-criticals"
         run: |
           set -eu
 
@@ -169,6 +171,7 @@ jobs:
           # Do not optimize, keep debug symbols and frame pointer for better
           # stack trace information in case of ASAN errors.
           CGO_CFLAGS: "-O0 -g3 -fno-omit-frame-pointer"
+          G_DEBUG: "fatal-criticals"
         run: |
           # Use `-dwarflocationlists` to give ASAN a better time to unwind the stack trace
           go test -C ./pam/internal -asan -gcflags="-dwarflocationlists=true" ./...
