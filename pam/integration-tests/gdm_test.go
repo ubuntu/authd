@@ -514,7 +514,12 @@ func createServiceFile(t *testing.T, name string, libPath string, args []string,
 		[]byte(fmt.Sprintf(`auth [success=done ignore=ignore default=die] %[1]s %[2]s
 auth requisite pam_debug.so auth=%[3]s
 account [success=done ignore=ignore default=die] %[1]s %[2]s
-account requisite pam_debug.so acct=%[3]s`, libPath, strings.Join(args, " "), ignoreError)),
+account requisite pam_debug.so acct=%[3]s
+session [success=done ignore=ignore default=die] %[1]s %[2]s
+session requisite pam_debug.so open_session=%[3]s close_session=%[3]s
+password [success=done ignore=ignore default=die] %[1]s %[2]s
+password requisite pam_debug.so cred=%[3]s prechauthtok=%[3]s chauthtok=%[3]s`,
+			libPath, strings.Join(args, " "), ignoreError)),
 		0600)
 	require.NoError(t, err, "Setup: could not create service file")
 	return serviceFile
