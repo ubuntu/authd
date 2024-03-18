@@ -1,4 +1,4 @@
-use crate::error;
+use crate::{error, REQUEST_TIMEOUT};
 use libnss::interop::Response;
 use libnss::shadow::{Shadow, ShadowHooks};
 use tokio::runtime::Builder;
@@ -40,7 +40,8 @@ fn get_all_entries() -> Response<Vec<Shadow>> {
             }
         };
 
-        let req = Request::new(authd::Empty {});
+        let mut req = Request::new(authd::Empty {});
+        req.set_timeout(REQUEST_TIMEOUT);
         match client.get_shadow_entries(req).await {
             Ok(r) => Response::Success(shadow_entries_to_shadows(r.into_inner().entries)),
             Err(e) => {
@@ -70,7 +71,8 @@ fn get_entry_by_name(name: String) -> Response<Shadow> {
             }
         };
 
-        let req = Request::new(authd::GetShadowByNameRequest { name });
+        let mut req = Request::new(authd::GetShadowByNameRequest { name });
+        req.set_timeout(REQUEST_TIMEOUT);
         match client.get_shadow_by_name(req).await {
             Ok(r) => Response::Success(shadow_entry_to_shadow(r.into_inner())),
             Err(e) => {

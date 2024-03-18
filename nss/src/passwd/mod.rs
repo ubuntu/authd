@@ -1,4 +1,4 @@
-use crate::error;
+use crate::{error, REQUEST_TIMEOUT};
 use libc::uid_t;
 use libnss::interop::Response;
 use libnss::passwd::{Passwd, PasswdHooks};
@@ -45,7 +45,8 @@ fn get_all_entries() -> Response<Vec<Passwd>> {
             }
         };
 
-        let req = Request::new(authd::Empty {});
+        let mut req = Request::new(authd::Empty {});
+        req.set_timeout(REQUEST_TIMEOUT);
         match client.get_passwd_entries(req).await {
             Ok(r) => Response::Success(passwd_entries_to_passwds(r.into_inner().entries)),
             Err(e) => {
@@ -75,7 +76,8 @@ fn get_entry_by_uid(uid: uid_t) -> Response<Passwd> {
             }
         };
 
-        let req = Request::new(authd::GetByIdRequest { id: uid });
+        let mut req = Request::new(authd::GetByIdRequest { id: uid });
+        req.set_timeout(REQUEST_TIMEOUT);
         match client.get_passwd_by_uid(req).await {
             Ok(r) => Response::Success(passwd_entry_to_passwd(r.into_inner())),
             Err(e) => {
@@ -105,10 +107,11 @@ fn get_entry_by_name(name: String) -> Response<Passwd> {
             }
         };
 
-        let req = Request::new(authd::GetPasswdByNameRequest {
+        let mut req = Request::new(authd::GetPasswdByNameRequest {
             name,
             should_pre_check: should_pre_check(),
         });
+        req.set_timeout(REQUEST_TIMEOUT);
         match client.get_passwd_by_name(req).await {
             Ok(r) => Response::Success(passwd_entry_to_passwd(r.into_inner())),
             Err(e) => {
