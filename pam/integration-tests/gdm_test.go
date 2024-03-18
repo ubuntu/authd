@@ -506,6 +506,10 @@ func createServiceFile(t *testing.T, name string, libPath string, args []string,
 	serviceFile := filepath.Join(t.TempDir(), name)
 	t.Logf("Creating service file at %s", serviceFile)
 
+	for idx, arg := range args {
+		args[idx] = fmt.Sprintf("[%s]", strings.ReplaceAll(arg, "]", "\\]"))
+	}
+
 	err := os.WriteFile(serviceFile,
 		[]byte(fmt.Sprintf(`auth [success=done ignore=ignore default=die] %[1]s %[2]s
 auth requisite pam_debug.so auth=%[3]s
