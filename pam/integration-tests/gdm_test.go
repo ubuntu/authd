@@ -377,7 +377,10 @@ func buildPAMModule(t *testing.T) string {
 
 	cmd.Args = append(cmd.Args, "-tags=pam_debug,pam_gdm_debug", "-o", libPath)
 	out, err := cmd.CombinedOutput()
-	require.NoError(t, err, string(out), "Setup: could not compile PAM module")
+	require.NoError(t, err, "Setup: could not compile PAM module: %s", out)
+	if string(out) != "" {
+		t.Log(string(out))
+	}
 
 	return libPath
 }
@@ -441,15 +444,20 @@ func buildPAMWrapperModule(t *testing.T) string {
 				soname+".so-module.gcno")
 			gcov.Dir = testutils.CoverDir()
 			out, err := gcov.CombinedOutput()
-			require.NoError(t, err, string(out),
-				"Teardown: Can't get coverage report on C library")
-			t.Log(string(out))
+			require.NoError(t, err,
+				"Teardown: Can't get coverage report on C library: %s", out)
+			if string(out) != "" {
+				t.Log(string(out))
+			}
 		})
 	}
 
 	t.Logf("Running compiler command: %s %s", cmd.Path, strings.Join(cmd.Args[1:], " "))
 	out, err := cmd.CombinedOutput()
-	require.NoError(t, err, string(out), "Setup: could not compile PAM module wrapper")
+	require.NoError(t, err, "Setup: could not compile PAM module %s: %s", soname, out)
+	if string(out) != "" {
+		t.Log(string(out))
+	}
 
 	return libPath
 }
