@@ -43,6 +43,7 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, son
 		"-Wall",
 		"-g3",
 		"-O0",
+		"-DAUTHD_TEST_MODULE=1",
 	)
 	if len(pkgConfigDeps) > 0 {
 		cmd.Args = append(cmd.Args,
