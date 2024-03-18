@@ -83,8 +83,8 @@ func TestExecModule(t *testing.T) {
 	}{
 		"SetGet Item": {
 			methodCalls: []cliMethodCall{
-				{m: "SetItem", args: []any{pam.Rhost, "some-rhost-value"}, r: []any{pam.Error(0)}},
-				{m: "GetItem", args: []any{pam.Rhost}, r: []any{"some-rhost-value", pam.Error(0)}},
+				{m: "SetItem", args: []any{pam.Rhost, "some-rhost-value"}, r: []any{nil}},
+				{m: "GetItem", args: []any{pam.Rhost}, r: []any{"some-rhost-value", nil}},
 			},
 		},
 		"SetGet Item handling errors": {
@@ -93,12 +93,13 @@ func TestExecModule(t *testing.T) {
 				{m: "GetItem", args: []any{pam.Item(-1)}, r: []any{"", pam.ErrBadItem}},
 			},
 		},
-		// FIXME: add test to ensure we're handling pam.Error(0) too, once we're converting to nil
 		"SetGet Env": {
 			methodCalls: []cliMethodCall{
-				{m: "PutEnv", args: []any{"FooEnv=bar"}, r: []any{pam.Error(0)}},
+				{m: "PutEnv", args: []any{"FooEnv=bar"}, r: []any{nil}},
 				{m: "GetEnv", args: []any{"FooEnv"}, r: []any{"bar"}},
 				{m: "GetEnv", args: []any{"AnotherEnv"}, r: []any{}},
+
+				{m: "PutEnv", args: []any{"Bar=foo"}, r: []any{pam.Error(0)}},
 
 				{m: "PutEnv", args: []any{"FooEnv="}},
 				{m: "GetEnv", args: []any{"FooEnv"}, r: []any{}},
@@ -109,13 +110,13 @@ func TestExecModule(t *testing.T) {
 		},
 		"SetGet Data": {
 			methodCalls: []cliMethodCall{
-				{m: "SetData", args: []any{"FooData", "bar"}, r: []any{pam.Error(0)}},
-				{m: "GetData", args: []any{"FooData"}, r: []any{"bar", pam.Error(0)}},
+				{m: "SetData", args: []any{"FooData", "bar"}, r: []any{nil}},
+				{m: "GetData", args: []any{"FooData"}, r: []any{"bar", nil}},
 
 				{m: "GetData", args: []any{"AnotherData"}, r: []any{nil, pam.ErrNoModuleData}},
 
 				{m: "SetData", args: []any{"FooData", []int{1, 2, 3}}},
-				{m: "GetData", args: []any{"FooData"}, r: []any{[]int{1, 2, 3}, pam.Error(0)}},
+				{m: "GetData", args: []any{"FooData"}, r: []any{[]int{1, 2, 3}, nil}},
 
 				{m: "SetData", args: []any{"FooData", nil}},
 				{m: "GetData", args: []any{"FooData"}, r: []any{nil, pam.ErrNoModuleData}},
@@ -123,7 +124,7 @@ func TestExecModule(t *testing.T) {
 		},
 		"GetEnvList empty": {
 			methodCalls: []cliMethodCall{
-				{m: "GetEnvList", r: []any{map[string]string{}, pam.Error(0)}},
+				{m: "GetEnvList", r: []any{map[string]string{}, nil}},
 			},
 		},
 		"GetEnvList populated": {
@@ -135,7 +136,7 @@ func TestExecModule(t *testing.T) {
 						"Env":  "value",
 						"Env2": "value2",
 					},
-					pam.Error(0),
+					nil,
 				}},
 			},
 		},
@@ -180,11 +181,11 @@ func TestExecModule(t *testing.T) {
 			wantError: pam_test.ErrReturnMismatch,
 		},
 		"Error when trying to compare an unexpected variant value": {
-			methodCalls: []cliMethodCall{{m: "GetEnvList", r: []any{"", pam.Error(0)}}},
+			methodCalls: []cliMethodCall{{m: "GetEnvList", r: []any{"", nil}}},
 			wantError:   pam_test.ErrReturnMismatch,
 		},
 		"Error when trying to compare a not-matching variant value": {
-			methodCalls: []cliMethodCall{{m: "GetEnvList", r: []any{"string", pam.Error(0)}}},
+			methodCalls: []cliMethodCall{{m: "GetEnvList", r: []any{"string", nil}}},
 			wantError:   pam_test.ErrReturnMismatch,
 		},
 		"Error when getting not-available user data": {
@@ -220,7 +221,7 @@ func TestExecModule(t *testing.T) {
 
 			// FIXME: Do data-check per action.
 			methodCalls := []cliMethodCall{
-				{"GetData", []any{"exec-client-flags"}, []any{tc.flags, pam.Error(0)}},
+				{"GetData", []any{"exec-client-flags"}, []any{tc.flags, nil}},
 			}
 
 			tx := preparePamTransaction(t, libPath, execClient, methodCallsAsArgs(methodCalls), "")
@@ -327,7 +328,7 @@ func TestExecModule(t *testing.T) {
 		skipPut      bool
 
 		wantValue    *string
-		wantPutError pam.Error
+		wantPutError error
 	}{
 		"Put var": {
 			env:   "AN_ENV",
@@ -376,18 +377,18 @@ func TestExecModule(t *testing.T) {
 			wantEnvList := map[string]string{}
 
 			methodCalls := []cliMethodCall{
-				{m: "GetEnvList", r: []any{map[string]string{}, pam.Error(0)}},
+				{m: "GetEnvList", r: []any{map[string]string{}, nil}},
 			}
 
 			if tc.presetValues != nil && !tc.skipPut {
 				for env, value := range tc.presetValues {
 					methodCalls = append(methodCalls, cliMethodCall{
-						m: "PutEnv", args: []any{fmt.Sprintf("%s=%s", env, value)}, r: []any{pam.Error(0)},
+						m: "PutEnv", args: []any{fmt.Sprintf("%s=%s", env, value)}, r: []any{nil},
 					})
 				}
 				wantEnvList = maps.Clone(tc.presetValues)
 				methodCalls = append(methodCalls, cliMethodCall{
-					m: "GetEnvList", r: []any{maps.Clone(wantEnvList), pam.Error(0)},
+					m: "GetEnvList", r: []any{maps.Clone(wantEnvList), nil},
 				})
 
 				// TODO: Actually call another operation here with different arguments and
@@ -405,7 +406,7 @@ func TestExecModule(t *testing.T) {
 					m: "PutEnv", args: []any{env}, r: []any{tc.wantPutError},
 				})
 
-				if tc.wantPutError == pam.Error(0) {
+				if tc.wantPutError == nil {
 					if tc.value != nil {
 						wantEnvList[tc.env] = *tc.value
 					}
@@ -417,7 +418,7 @@ func TestExecModule(t *testing.T) {
 					}
 				}
 				methodCalls = append(methodCalls, cliMethodCall{
-					m: "GetEnvList", r: []any{maps.Clone(wantEnvList), pam.Error(0)},
+					m: "GetEnvList", r: []any{maps.Clone(wantEnvList), nil},
 				})
 			}
 
@@ -450,8 +451,8 @@ func TestExecModule(t *testing.T) {
 		skipGet    bool
 
 		wantData     any
-		wantSetError pam.Error
-		wantGetError pam.Error
+		wantSetError error
+		wantGetError error
 	}{
 		"Sets and gets data": {
 			presetData: map[string]any{"some-data": []string{"hey! That's", "true"}},
