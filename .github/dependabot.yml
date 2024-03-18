@@ -1,5 +1,5 @@
 # See the documentation for all configuration options:
-# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
 version: 2
 updates:
@@ -11,6 +11,12 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "thursday"
+      time: "09:00"
+    groups:
+      gh-actions:
+        applies-to: version-updates
+        patterns: ["*"]
     commit-message:
       prefix: "deps(ci)"
 
@@ -20,6 +26,12 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+      day: "thursday"
+      time: "09:00"
+    groups:
+      minor-updates:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]
     commit-message:
       prefix: "deps(go)"
 
@@ -27,6 +39,12 @@ updates:
     directory: "/tools"
     schedule:
       interval: "weekly"
+      day: "thursday"
+      time: "09:00"
+    groups:
+      minor-updates:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]
     commit-message:
       prefix: "deps(go-tools)"
 
@@ -35,5 +53,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+      day: "thursday"
+      time: "09:00"
+    groups:
+      minor-updates:
+        applies-to: version-updates
+        update-types: ["minor", "patch"]
     commit-message:
       prefix: "deps(rust)"
