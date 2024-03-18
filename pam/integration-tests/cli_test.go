@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
 	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
+	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
 var daemonPath string
@@ -236,6 +237,10 @@ func buildPAM(execPath string) (cleanup func(), err error) {
 	if testutils.CoverDir() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
+	}
+	if pam_test.IsAddressSanitizerActive() {
+		// -asan is a "positional flag", so it needs to come right after the "build" command.
+		cmd.Args = append(cmd.Args, "-asan")
 	}
 	cmd.Args = append(cmd.Args, "-tags=pam_binary_cli", "-o", filepath.Join(execPath, "pam_authd"), "../.")
 	if out, err := cmd.CombinedOutput(); err != nil {
