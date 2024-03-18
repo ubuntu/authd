@@ -436,12 +436,15 @@ func buildPAMWrapperModule(t *testing.T) string {
 		cmd.Args = append(cmd.Args, "--coverage")
 		cmd.Args = append(cmd.Args, "-fprofile-abs-path")
 
+		notesFilename := soname + ".so-module.gcno"
+		dataFilename := soname + ".so-module.gcda"
+
 		t.Cleanup(func() {
 			t.Log("Running gcov...")
 			gcov := exec.Command("gcov")
 			gcov.Args = append(gcov.Args,
 				"-pb", "-o", filepath.Dir(libPath),
-				soname+".so-module.gcno")
+				notesFilename)
 			gcov.Dir = testutils.CoverDir()
 			out, err := gcov.CombinedOutput()
 			require.NoError(t, err,
@@ -449,6 +452,17 @@ func buildPAMWrapperModule(t *testing.T) string {
 			if string(out) != "" {
 				t.Log(string(out))
 			}
+
+			// Also keep track of notes and data files as they're useful to generate
+			// an html output locally using geninfo + genhtml.
+			err = os.Rename(filepath.Join(filepath.Dir(libPath), dataFilename),
+				filepath.Join(testutils.CoverDir(), dataFilename))
+			require.NoError(t, err,
+				"Teardown: Can't move coverage report data for c Library: %v", err)
+			err = os.Rename(filepath.Join(filepath.Dir(libPath), notesFilename),
+				filepath.Join(testutils.CoverDir(), notesFilename))
+			require.NoError(t, err,
+				"Teardown: Can't move coverage report notes for c Library: %v", err)
 		})
 	}
 
