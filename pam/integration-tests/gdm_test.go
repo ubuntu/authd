@@ -388,6 +388,20 @@ func buildPAMModule(t *testing.T) string {
 func buildPAMWrapperModule(t *testing.T) string {
 	t.Helper()
 
+	return buildCPAMModule(t, []string{"./pam/go-loader/module.c"}, nil, "pam_authd_loader")
+}
+
+func getPkgConfigFlags(t *testing.T, args []string) []string {
+	t.Helper()
+
+	out, err := exec.Command("pkg-config", args...).CombinedOutput()
+	require.NoError(t, err, "Can't run pkg-config: %s", out)
+	return strings.Split(strings.TrimSpace(string(out)), " ")
+}
+
+func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, soname string) string {
+	t.Helper()
+
 	compiler := os.Getenv("CC")
 	if compiler == "" {
 		compiler = "cc"
@@ -395,18 +409,23 @@ func buildPAMWrapperModule(t *testing.T) string {
 
 	//nolint:gosec // G204 it's a test so we should allow using any compiler safely.
 	cmd := exec.Command(compiler)
-	soname := "pam_authd_loader"
+	cmd.Dir = testutils.ProjectRoot()
 	libPath := filepath.Join(t.TempDir(), soname+".so")
 
 	require.NoError(t, os.MkdirAll(filepath.Dir(libPath), 0700),
 		"Setup: Can't create loader build path")
 	t.Logf("Compiling PAM Wrapper library at %s", libPath)
-	cmd.Args = append(cmd.Args, []string{
-		"-o", libPath,
-		"../go-loader/module.c",
+	cmd.Args = append(cmd.Args, "-o", libPath)
+	cmd.Args = append(cmd.Args, sources...)
+	cmd.Args = append(cmd.Args,
+		"-Wall",
 		"-g3",
 		"-O0",
-	}...)
+	)
+	if len(pkgConfigDeps) > 0 {
+		cmd.Args = append(cmd.Args,
+			getPkgConfigFlags(t, append([]string{"--cflags"}, pkgConfigDeps...))...)
+	}
 
 	if modulesPath := os.Getenv("AUTHD_PAM_MODULES_PATH"); modulesPath != "" {
 		cmd.Args = append(cmd.Args, fmt.Sprintf("-DAUTHD_PAM_MODULES_PATH=%q",
@@ -428,6 +447,11 @@ func buildPAMWrapperModule(t *testing.T) string {
 		"-Wl,-soname," + soname + "",
 		"-lpam",
 	}...)
+	if len(pkgConfigDeps) > 0 {
+		cmd.Args = append(cmd.Args,
+			getPkgConfigFlags(t, append([]string{"--libs"}, pkgConfigDeps...))...)
+	}
+
 	if ldflags := os.Getenv("LDFLAGS"); ldflags != "" && os.Getenv("DEB_BUILD_ARCH") == "" {
 		cmd.Args = append(cmd.Args, strings.Split(ldflags, " ")...)
 	}
