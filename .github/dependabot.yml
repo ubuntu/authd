@@ -15,7 +15,7 @@ updates:
       time: "09:00"
     groups:
       gh-actions:
-        applies-to: version-updates
+        #applies-to: version-updates
         patterns: ["*"]
     commit-message:
       prefix: "deps(ci)"
@@ -30,7 +30,7 @@ updates:
       time: "09:00"
     groups:
       minor-updates:
-        applies-to: version-updates
+        #applies-to: version-updates
         update-types: ["minor", "patch"]
     commit-message:
       prefix: "deps(go)"
@@ -43,7 +43,7 @@ updates:
       time: "09:00"
     groups:
       minor-updates:
-        applies-to: version-updates
+        #applies-to: version-updates
         update-types: ["minor", "patch"]
     commit-message:
       prefix: "deps(go-tools)"
@@ -57,7 +57,7 @@ updates:
       time: "09:00"
     groups:
       minor-updates:
-        applies-to: version-updates
+        #applies-to: version-updates
         update-types: ["minor", "patch"]
     commit-message:
       prefix: "deps(rust)"
