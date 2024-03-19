@@ -91,9 +91,15 @@ jobs:
           deb http://ddebs.ubuntu.com $(lsb_release -cs)-updates main restricted universe multiverse
           deb http://ddebs.ubuntu.com $(lsb_release -cs)-proposed main restricted universe multiverse" | \
           sudo tee -a /etc/apt/sources.list.d/ddebs.list
-          # Sometimes ddebs archive is stuck, so in case of failure we ignore this step, it's not fundamental.
+          # Sometimes ddebs archive is stuck, so in case of failure we need to go manual
           sudo apt update -y || true
-          sudo apt install -y libpam-modules-dbgsym libpam0*-dbgsym || true
+          if ! sudo apt install -y libpam-modules-dbgsym libpam0*-dbgsym; then
+            sudo apt install -y ubuntu-dev-tools
+            pull-lp-ddebs pam $(lsb_release -cs)
+            sudo apt install -y ./libpam0*.ddeb ./libpam-modules*.ddeb
+            sudo apt remove -y ubuntu-dev-tools
+            sudo apt autoremove -y
+          fi
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
