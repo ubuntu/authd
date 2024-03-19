@@ -22,7 +22,7 @@ func TestIntegration(t *testing.T) {
 	buildRustNSSLib(t)
 
 	// Create a default daemon to use for most test cases.
-	defaultSocket := "/tmp/nss-integration-tests.sock"
+	defaultSocket := filepath.Join(os.TempDir(), "nss-integration-tests.sock")
 	defaultDbState := "multiple_users_and_groups"
 	defaultOutputPath := filepath.Join(filepath.Dir(daemonPath), "gpasswd.output")
 	defaultGroupsFilePath := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
