@@ -125,27 +125,21 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, son
 	return libPath
 }
 
-func createServiceFile(t *testing.T, name string, libPath string, args []string, ignoreError string) string {
+func createServiceFile(t *testing.T, name string, libPath string, args []string) string {
 	t.Helper()
 
-	serviceFile := filepath.Join(t.TempDir(), name)
-	t.Logf("Creating service file at %s", serviceFile)
+	serviceFile, err := pam_test.CreateService(t.TempDir(), name, []pam_test.ServiceLine{
+		{Action: pam_test.Auth, Control: pam_test.SufficientRequisite, Module: libPath, Args: args},
+		{Action: pam_test.Auth, Control: pam_test.Requisite, Module: pam_test.Ignore.String()},
+		{Action: pam_test.Account, Control: pam_test.SufficientRequisite, Module: libPath, Args: args},
+		{Action: pam_test.Account, Control: pam_test.Requisite, Module: pam_test.Ignore.String()},
+		{Action: pam_test.Password, Control: pam_test.SufficientRequisite, Module: libPath, Args: args},
+		{Action: pam_test.Password, Control: pam_test.Requisite, Module: pam_test.Ignore.String()},
+		{Action: pam_test.Session, Control: pam_test.SufficientRequisite, Module: libPath, Args: args},
+		{Action: pam_test.Session, Control: pam_test.Requisite, Module: pam_test.Ignore.String()},
+	})
+	require.NoError(t, err, "Setup: Can't create service file %s", serviceFile)
+	t.Logf("Created service file at %s", serviceFile)
 
-	for idx, arg := range args {
-		args[idx] = fmt.Sprintf("[%s]", strings.ReplaceAll(arg, "]", "\\]"))
-	}
-
-	err := os.WriteFile(serviceFile,
-		[]byte(fmt.Sprintf(`auth [success=done ignore=ignore default=die] %[1]s %[2]s
-auth requisite pam_debug.so auth=%[3]s
-account [success=done ignore=ignore default=die] %[1]s %[2]s
-account requisite pam_debug.so acct=%[3]s
-session [success=done ignore=ignore default=die] %[1]s %[2]s
-session requisite pam_debug.so acct=%[3]s
-password [success=done ignore=ignore default=die] %[1]s %[2]s
-password requisite pam_debug.so acct=%[3]s`,
-			libPath, strings.Join(args, " "), ignoreError)),
-		0600)
-	require.NoError(t, err, "Setup: could not create service file")
 	return serviceFile
 }

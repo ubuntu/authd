@@ -46,11 +46,6 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
-	// libpam won't ever return a pam.ErrIgnore, so we use a fallback error.
-	// We use incomplete here, but it could be any.
-	const ignoreError = pam.ErrIncomplete
-	const pamDebugIgnoreError = "incomplete"
-
 	testCases := map[string]struct {
 		supportedLayouts   []*authd.UILayout
 		pamUser            string
@@ -152,7 +147,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				"GDM protocol initialization failed, type hello, version 9999",
 			},
 			wantError:       pam.ErrCredUnavail,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on missing user": {
 			pamUser: "",
@@ -160,7 +155,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				"can't select broker: rpc error: code = InvalidArgument desc = can't start authentication transaction: rpc error: code = InvalidArgument desc = no user name provided",
 			},
 			wantError:       pam.ErrSystem,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on no supported layouts": {
 			pamUser:          "user-bar",
@@ -169,7 +164,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				"UI does not support any layouts",
 			},
 			wantError:       pam.ErrCredUnavail,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on unknown broker": {
 			pamUser:    "user-foo",
@@ -183,15 +178,15 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				"Sending GDM event failed: Conversation error",
 			},
 			wantError:       pam.ErrSystem,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error (ignored) on local broker causes fallback error": {
 			pamUser:    "user-foo",
 			brokerName: localBrokerName,
 			wantPamInfoMessages: []string{
-				"auth=" + pamDebugIgnoreError,
+				"auth=incomplete",
 			},
-			wantError:       ignoreError,
+			wantError:       pam_test.ErrIgnore,
 			wantAcctMgmtErr: pam.ErrAbort,
 		},
 		"Error on authenticating user2 with too many retries": {
@@ -230,7 +225,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				"invalid password 'really, it's not a goodpass!', should be 'goodpass'",
 			},
 			wantError:       pam.ErrAuth,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on authenticating unknown user": {
 			pamUser: "user-unknown",
@@ -245,7 +240,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				"user not found",
 			},
 			wantError:       pam.ErrAuth,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on invalid fido ack": {
 			pamUser:     "user-mfa",
@@ -262,7 +257,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				fido1AuthID + " should have wait set to true",
 			},
 			wantError:       pam.ErrAuth,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 	}
 	for name, tc := range testCases {
@@ -282,7 +277,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				<-stopped
 			})
 			serviceFile := createServiceFile(t, "module-loader", libPath,
-				append(slices.Clone(args), "socket="+socketPath), pamDebugIgnoreError)
+				append(slices.Clone(args), "socket="+socketPath))
 
 			gh := newGdmTestModuleHandler(t, serviceFile, tc.pamUser)
 			t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
