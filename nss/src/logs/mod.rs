@@ -4,10 +4,10 @@ use std::env;
 use syslog::{BasicLogger, Facility, Formatter3164};
 
 #[macro_export]
-macro_rules! debug {
+macro_rules! info {
     ($($arg:tt)*) => {
         let log_prefix = "authd:";
-        log::debug!("{} {}", log_prefix, format_args!($($arg)*));
+        log::info!("{} {}", log_prefix, format_args!($($arg)*));
     }
 }
 
@@ -22,15 +22,15 @@ macro_rules! error {
 /// init_logger initialize the global logger with a default level set to info. This function is only
 /// required to be called once and is a no-op on subsequent calls.
 ///
-/// The log level can be set to debug by setting the environment variable AUTHD_NSS_DEBUG.
+/// The log level can be set to info by setting the environment variable AUTHD_NSS_INFO.
 pub fn init_logger() {
     if log::logger().enabled(&Metadata::builder().build()) {
         return;
     }
 
-    let mut level = LevelFilter::Info;
-    if let Ok(target) = env::var("AUTHD_NSS_DEBUG") {
-        level = LevelFilter::Debug;
+    let mut level = LevelFilter::Error;
+    if let Ok(target) = env::var("AUTHD_NSS_INFO") {
+        level = LevelFilter::Info;
         match target {
             s if s == *"stderr" => init_stderr_logger(level),
             _ => init_sys_logger(level),
@@ -39,7 +39,7 @@ pub fn init_logger() {
         init_sys_logger(level);
     }
 
-    debug!("Log level set to {:?}", level);
+    info!("Log level set to {:?}", level);
 }
 
 /// init_sys_logger initializes a global log that prints messages to the system logs.
@@ -66,11 +66,11 @@ fn init_sys_logger(log_level: LevelFilter) {
         return;
     };
 
-    debug!("Log output set to syslog");
+    info!("Log output set to syslog");
 }
 
 /// init_stderr_logger initializes a global log that prints the messages to stderr.
 fn init_stderr_logger(log_level: LevelFilter) {
     SimpleLogger::new().with_level(log_level).init().unwrap();
-    debug!("Log output set to stderr");
+    info!("Log output set to stderr");
 }
