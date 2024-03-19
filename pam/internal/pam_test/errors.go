@@ -6,6 +6,11 @@ import "github.com/msteinert/pam/v2"
 type ErrorTest pam.Error
 
 const (
+	// ErrIgnore is returned when we've an incomplete error.
+	// Since libpam won't ever return [pam.ErrIgnore] when used directly, we use
+	// [pam.ErrIncomplete] as synonymous of it.
+	ErrIgnore = pam.ErrIncomplete
+
 	// ErrInvalid is an invalid error value.
 	ErrInvalid = pam.ErrAbort
 
