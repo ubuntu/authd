@@ -11,8 +11,6 @@ import (
 	"os"
 	"reflect"
 	"regexp"
-	"strconv"
-	"strings"
 
 	"github.com/godbus/dbus/v5"
 	"github.com/msteinert/pam/v2"
@@ -101,32 +99,53 @@ func handleArgs(mTx pam.ModuleTransaction, args []string) error {
 }
 
 func handleArg(mTx pam.ModuleTransaction, arg string) error {
-	// We support handing operations such as:
-	//   <Action>|<input>[|<expected-ret>]
+	// We support handing operations with variant values such as:
+	//   {"act": <"$action">, "args": <[$input...]>, "exp": <[$expected...]>}
 	// Where:
-	//  - <Action> is the method to call
-	//  - <input> is a semicolon-separated list of arguments
-	//  - <expected-ret> is an optional semicolon-separated list of expected return values
+	//  - $action is the method to call
+	//  - $input is a list of variant arguments
+	//  - $expected is an optional list of expected variant return values
 	// For example:
-	//   SetItem|2;user SetItem|-1;foo|29
+	//   {"act": <"SetItem">, "args": <[<2>, <"user">]>}
+	// or:
+	//   {"act": <"SetItem">, "args": <[<-1>, <"foo">]>, "exp": <[<29>]>}
 
 	log.Debugf(context.TODO(), "Parsing argument '%v'", arg)
-	splitArgs := strings.SplitN(arg, "|", 3)
-	action := splitArgs[0]
 
-	var inputArgs *string
-	if len(splitArgs) > 1 && splitArgs[1] != "" {
-		inputArgs = &splitArgs[1]
+	var parsedArg map[string]dbus.Variant
+	variant, err := dbus.ParseVariant(arg, dbus.SignatureOf(parsedArg))
+	if err != nil {
+		return fmt.Errorf("can't parse %s as variant: %w, %w", arg, err, pam_test.ErrInvalidArguments)
 	}
 
-	var expectedRet *string
-	if len(splitArgs) == 3 {
-		expectedRet = &splitArgs[2]
+	if err := variant.Store(&parsedArg); err != nil {
+		return fmt.Errorf("can't store %s as variant map: %w, %w", arg, err, pam_test.ErrInvalidArguments)
+	}
+
+	action, err := getVariantMapItem[string](parsedArg, "act")
+	if err != nil {
+		return fmt.Errorf("can't parse action: %v: %w", err, pam_test.ErrInvalidMethod)
+	}
+	if action == "" {
+		return fmt.Errorf("no action found: %w", pam_test.ErrInvalidMethod)
 	}
 
 	method := reflect.ValueOf(mTx).MethodByName(action)
 	if method == (reflect.Value{}) {
 		return fmt.Errorf("no method %s found: %w", action, pam_test.ErrInvalidMethod)
+	}
+
+	inputArgs, err := getVariantMapItem[[]dbus.Variant](parsedArg, "args")
+	if err != nil {
+		return fmt.Errorf("can't parse arguments: %w", err)
+	}
+	if inputArgs == nil {
+		return fmt.Errorf("can't find arguments: %w", pam_test.ErrInvalidArguments)
+	}
+
+	expectedRet, err := getVariantMapItem[[]dbus.Variant](parsedArg, "exp")
+	if err != nil {
+		return fmt.Errorf("can't parse expected return values: %w", err)
 	}
 
 	callArgs, err := getCallArgs(action, method, inputArgs)
@@ -145,59 +164,45 @@ func handleArg(mTx pam.ModuleTransaction, arg string) error {
 			switch value := iface.(type) {
 			case error:
 				return value
+			default:
+				log.Debugf(context.TODO(), "Ignoring %s returned value %#v", action, ret)
 			}
 		}
 		return nil
 	}
 
-	return checkReturnedValues(action, method, *expectedRet, retValues)
+	return checkReturnedValues(action, method, expectedRet, retValues)
 }
 
-func checkConversion(wantedType reflect.Type, inputType reflect.Type) error {
-	if inputType.ConvertibleTo(wantedType) {
-		return nil
+func getVariantMapItem[T any](parsedArg map[string]dbus.Variant, key string) (T, error) {
+	var variantValue T
+	args, ok := parsedArg[key]
+	if !ok {
+		return *new(T), nil
+	}
+	err := args.Store(&variantValue)
+	if err != nil {
+		return *new(T), pam_test.ErrInvalidArguments
 	}
 
-	return fmt.Errorf("cannot convert %s to %s", inputType, wantedType)
+	return variantValue, nil
 }
 
 func tryConvertTyped[T any](arg T, expected reflect.Type) (reflect.Value, error) {
 	argValue := reflect.ValueOf(arg)
-	err := checkConversion(expected, argValue.Type())
-	if err != nil {
-		return reflect.Value{}, err
+	argValueType := argValue.Type()
+	if !argValueType.ConvertibleTo(expected) {
+		return reflect.Value{}, fmt.Errorf("cannot convert %s to %s", argValueType, expected)
 	}
+
 	return argValue.Convert(expected), nil
 }
 
-func canBeVariant(arg string) bool {
-	return len(arg) > 0 && arg[0] == '<' && arg[len(arg)-1] == '>'
-}
-
-func tryConvertString(arg string, expected reflect.Type) (reflect.Value, error) {
-	if canBeVariant(arg) {
-		return tryParseVariant(arg, expected)
-	}
-
-	argValue := reflect.ValueOf(arg)
-	err := checkConversion(expected, argValue.Type())
-	if err == nil {
-		return argValue.Convert(expected), nil
-	}
-
-	switch expected.Kind() {
-	case reflect.Int:
-		intArg, err := strconv.Atoi(arg)
-		if err != nil {
-			return reflect.Value{}, err
-		}
-		return tryConvertTyped(intArg, expected)
-	}
-
+func tryConvertVariant(variant dbus.Variant, expected reflect.Type) (reflect.Value, error) {
 	if expected.ConvertibleTo(reflect.TypeFor[error]()) {
-		pamError, err := tryConvertString(arg, reflect.TypeFor[pam.Error]())
+		pamError, err := tryExtractVariant(variant, reflect.TypeFor[pam.Error]())
 		if err != nil {
-			return tryConvertTyped(errors.New(arg), expected)
+			return tryConvertTyped(errors.New(variant.String()), expected)
 		}
 		if pamError.IsZero() {
 			return reflect.Zero(expected), nil
@@ -205,40 +210,31 @@ func tryConvertString(arg string, expected reflect.Type) (reflect.Value, error) 
 		return pamError, nil
 	}
 
-	return tryParseVariant(arg, expected)
+	return tryExtractVariant(variant, expected)
 }
 
-func isVariantNothing(arg string) bool {
-	if arg == "nothing" || arg == "<nothing>" {
-		return true
+func isVariantNothing(variant dbus.Variant) bool {
+	strValue, ok := variant.Value().(string)
+	if !ok {
+		return false
 	}
 
+	return isVariantNothingString(strValue)
+}
+
+func isVariantNothingString(arg string) bool {
 	ok, _ := regexp.MatchString("<@m[vbynqiuxthd] nothing>", arg)
 	return ok
 }
 
-func tryParseVariant(arg string, expected reflect.Type) (reflect.Value, error) {
-	// FIXME: go dbus.Variant doesn't support maybe types syntax... So we handle it manually.
-	if isVariantNothing(arg) {
+func tryExtractVariant(variant dbus.Variant, expected reflect.Type) (reflect.Value, error) {
+	if isVariantNothing(variant) {
 		return reflect.Zero(expected), nil
 	}
-	variant, err := dbus.ParseVariant(arg, dbus.ParseSignatureMust("v"))
-	if err != nil {
-		return reflect.Value{}, fmt.Errorf("can't convert '%s' to variant", arg)
-	}
-	innerValue, ok := variant.Value().(dbus.Variant)
-	if !ok {
-		return reflect.Value{}, fmt.Errorf("%w: can't find a variant in %v",
-			pam_test.ErrInvalid, variant)
-	}
-	return tryConvertTyped(innerValue.Value(), expected)
+	return tryConvertTyped(variant.Value(), expected)
 }
 
-func getCallArgs(action string, method reflect.Value, inputArgs *string) ([]reflect.Value, error) {
-	var args []string
-	if inputArgs != nil {
-		args = strings.Split(*inputArgs, ";")
-	}
+func getCallArgs(action string, method reflect.Value, args []dbus.Variant) ([]reflect.Value, error) {
 	methodType := method.Type()
 	if len(args) != methodType.NumIn() {
 		return nil, fmt.Errorf("method %s %s needs %d arguments (%d provided): %w",
@@ -246,8 +242,8 @@ func getCallArgs(action string, method reflect.Value, inputArgs *string) ([]refl
 	}
 
 	var callArgs []reflect.Value
-	for idx, input := range args {
-		value, err := tryConvertString(input, methodType.In(idx))
+	for idx, arg := range args {
+		value, err := tryConvertVariant(arg, methodType.In(idx))
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", err, pam_test.ErrArgumentTypeMismatch)
 		}
@@ -258,9 +254,8 @@ func getCallArgs(action string, method reflect.Value, inputArgs *string) ([]refl
 	return callArgs, nil
 }
 
-func checkReturnedValues(action string, method reflect.Value, wantArgsStr string, retValues []reflect.Value) error {
+func checkReturnedValues(action string, method reflect.Value, wantArgs []dbus.Variant, retValues []reflect.Value) error {
 	methodType := method.Type()
-	wantArgs := strings.Split(wantArgsStr, ";")
 	if len(wantArgs) != methodType.NumOut() || len(wantArgs) != len(retValues) {
 		return fmt.Errorf("method %s %s returns %d arguments (%d provided): %w",
 			action, methodType, methodType.NumOut(), len(wantArgs), pam_test.ErrReturnMismatch)
@@ -270,7 +265,7 @@ func checkReturnedValues(action string, method reflect.Value, wantArgsStr string
 		retValue := retValues[idx]
 		log.Debugf(context.TODO(), "Checking %s returned value %#v", action, retValue.Interface())
 
-		wantValue, err := tryConvertString(wantArg, methodType.Out(idx))
+		wantValue, err := tryConvertVariant(wantArg, methodType.Out(idx))
 		if err != nil {
 			return fmt.Errorf("%w: %w", err, pam_test.ErrReturnMismatch)
 		}

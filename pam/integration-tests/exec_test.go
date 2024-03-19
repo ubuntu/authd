@@ -97,15 +97,15 @@ func TestExecModule(t *testing.T) {
 			methodCalls: []cliMethodCall{
 				{m: "PutEnv", args: []any{"FooEnv=bar"}, r: []any{nil}},
 				{m: "GetEnv", args: []any{"FooEnv"}, r: []any{"bar"}},
-				{m: "GetEnv", args: []any{"AnotherEnv"}, r: []any{}},
+				{m: "GetEnv", args: []any{"AnotherEnv"}},
 
 				{m: "PutEnv", args: []any{"Bar=foo"}, r: []any{pam.Error(0)}},
 
 				{m: "PutEnv", args: []any{"FooEnv="}},
-				{m: "GetEnv", args: []any{"FooEnv"}, r: []any{}},
+				{m: "GetEnv", args: []any{"FooEnv"}},
 
 				{m: "PutEnv", args: []any{"FooEnv"}},
-				{m: "GetEnv", args: []any{"FooEnv"}, r: []any{}},
+				{m: "GetEnv", args: []any{"FooEnv"}},
 			},
 		},
 		"SetGet Data": {
@@ -142,13 +142,43 @@ func TestExecModule(t *testing.T) {
 		},
 
 		// Error cases
-		"Error when not providing arguments": {
-			rawModuleArgs: []string{"SetItem"},
+		"Error providing invalid variant argument": {
+			rawModuleArgs: []string{"$not_A-variant Action"},
 			wantError:     pam_test.ErrInvalidArguments,
 		},
-		"Error when not providing no arguments": {
-			rawModuleArgs: []string{"SetData|"},
-			wantError:     pam_test.ErrInvalidArguments,
+		"Error providing no action": {
+			rawModuleArgs: []string{dbus.MakeVariant(map[string]dbus.Variant{}).String()},
+			wantError:     pam_test.ErrInvalidMethod,
+		},
+		"Error providing invalid action type": {
+			rawModuleArgs: []string{dbus.MakeVariant(
+				map[string]dbus.Variant{"act": dbus.MakeVariant([]int{1, 2, 3})},
+			).String()},
+			wantError: pam_test.ErrInvalidMethod,
+		},
+		"Error when not providing arguments": {
+			rawModuleArgs: []string{dbus.MakeVariant(
+				map[string]dbus.Variant{"act": dbus.MakeVariant("SetItem")},
+			).String()},
+			wantError: pam_test.ErrInvalidArguments,
+		},
+		"Error when providing no arguments": {
+			rawModuleArgs: []string{dbus.MakeVariant(
+				map[string]dbus.Variant{
+					"act":  dbus.MakeVariant("SetItem"),
+					"args": dbus.MakeVariant([]dbus.Variant{}),
+				},
+			).String()},
+			wantError: pam_test.ErrInvalidArguments,
+		},
+		"Error providing invalid arguments type": {
+			rawModuleArgs: []string{dbus.MakeVariant(
+				map[string]dbus.Variant{
+					"act":  dbus.MakeVariant("GetItem"),
+					"args": dbus.MakeVariant("not enough"),
+				},
+			).String()},
+			wantError: pam_test.ErrInvalidArguments,
 		},
 		"Error when providing empty arguments": {
 			methodCalls: []cliMethodCall{{m: "SetItem", args: []any{}}},
@@ -607,34 +637,33 @@ type cliMethodCall struct {
 }
 
 func (cmc cliMethodCall) format() string {
-	strMethodCall := cmc.m
-
-	argsParser := func(values []any) string {
-		var strValues []string
-		for _, r := range values {
-			strValues = append(strValues, getVariantString(r))
+	argsParser := func(values []any) []dbus.Variant {
+		var variantValues []dbus.Variant
+		for _, v := range values {
+			variantValues = append(variantValues, getVariant(v))
 		}
-		return strings.Join(strValues, ";")
+		return variantValues
 	}
 
-	strMethodCall += "|" + argsParser(cmc.args)
+	callMap := map[string]dbus.Variant{}
+	callMap["act"] = dbus.MakeVariant(cmc.m)
+	callMap["args"] = dbus.MakeVariant(argsParser(cmc.args))
 
 	if cmc.r != nil {
-		strMethodCall += "|" + argsParser(cmc.r)
+		callMap["exp"] = dbus.MakeVariant(argsParser(cmc.r))
 	}
 
-	return strMethodCall
+	return dbus.MakeVariant(callMap).String()
 }
 
-func getVariantString(value any) string {
+func getVariant(value any) dbus.Variant {
 	switch v := value.(type) {
 	case pam.Error:
-		return fmt.Sprint(int(v))
+		return getVariant(int(v))
 	case nil:
-		return "<@mv nothing>"
+		return getVariant("<@mv nothing>")
 	default:
-		variant := dbus.MakeVariant(value)
-		return dbus.MakeVariantWithSignature(variant, dbus.ParseSignatureMust("v")).String()
+		return dbus.MakeVariant(value)
 	}
 }
 
