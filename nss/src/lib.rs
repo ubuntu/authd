@@ -22,7 +22,7 @@ mod logs;
 
 mod client;
 
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
 
 /// socket_path returns the socket path to connect to the gRPC server.
 ///

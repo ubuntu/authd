@@ -354,12 +354,20 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 
 // newClient returns a new GRPC client ready to emit requests.
 func newClient(args map[string]string) (client authd.PAMClient, close func(), err error) {
-	conn, err := grpc.Dial("unix://"+getSocketPath(args), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	dialCtx, dialCancel := context.WithTimeout(context.TODO(), time.Second*5)
+	defer dialCancel()
+	conn, err := grpc.DialContext(
+		dialCtx,
+		"unix://"+getSocketPath(args),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not connect to authd: %v", err)
 	}
-	waitCtx, cancel := context.WithTimeout(context.TODO(), time.Second*5)
-	defer cancel()
+
+	waitCtx, waitCancel := context.WithTimeout(context.TODO(), time.Second*5)
+	defer waitCancel()
 	for conn.GetState() != connectivity.Ready {
 		if !conn.WaitForStateChange(waitCtx, conn.GetState()) {
 			conn.Close()
