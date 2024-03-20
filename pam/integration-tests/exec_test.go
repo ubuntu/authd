@@ -420,9 +420,6 @@ func TestExecModule(t *testing.T) {
 				methodCalls = append(methodCalls, cliMethodCall{
 					m: "GetEnvList", r: []any{maps.Clone(wantEnvList), nil},
 				})
-
-				// TODO: Actually call another operation here with different arguments and
-				// ensure that we set those env variables everywhere.
 			}
 
 			if !tc.skipPut {
@@ -458,11 +455,17 @@ func TestExecModule(t *testing.T) {
 				})
 			}
 
-			tx := preparePamTransaction(t, libPath, execClient, methodCallsAsArgs(methodCalls), "")
+			tx := preparePamTransactionWithActionArgs(t, libPath, execClient, actionArgsMap{
+				pam_test.Auth: methodCallsAsArgs(methodCalls),
+				pam_test.Account: methodCallsAsArgs([]cliMethodCall{
+					{m: "GetEnvList", r: []any{maps.Clone(wantEnvList), nil}},
+				}),
+			}, "")
 			envList, err := tx.GetEnvList()
 			require.NoError(t, err, "Setup: GetEnvList should not return an error")
 			require.Len(t, envList, 0, "Setup: GetEnvList should have elements")
 
+			require.NoError(t, tx.Authenticate(0), "Calling AcctMgmt should not error")
 			require.NoError(t, tx.AcctMgmt(0), "Calling AcctMgmt should not error")
 
 			gotEnv, err := tx.GetEnvList()
@@ -489,6 +492,12 @@ func TestExecModule(t *testing.T) {
 			key:        "data",
 			data:       []string{"hey! That's", "true"},
 			wantData:   []string{"hey! That's", "true"},
+		},
+		"Gets previously set data": {
+			presetData: map[string]any{"some-old-data": []int{3, 2, 1}},
+			key:        "some-old-data",
+			skipSet:    true,
+			wantData:   []int{3, 2, 1},
 		},
 		"Set replaces data": {
 			presetData: map[string]any{"some-data": []string{"hey! That's", "true"}},
@@ -521,16 +530,16 @@ func TestExecModule(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
 
+			var presetMethodCalls []cliMethodCall
 			var methodCalls []cliMethodCall
+			var postMethodCalls []cliMethodCall
 
-			if tc.presetData != nil && !tc.skipSet {
+			if tc.presetData != nil {
 				for key, value := range tc.presetData {
-					methodCalls = append(methodCalls, cliMethodCall{
+					presetMethodCalls = append(methodCalls, cliMethodCall{
 						m: "SetData", args: []any{key, value},
 					})
 				}
-
-				// TODO: Check those values are still valid for other action
 			}
 
 			if !tc.skipSet {
@@ -540,27 +549,56 @@ func TestExecModule(t *testing.T) {
 			}
 
 			if !tc.skipGet {
-				methodCalls = append(methodCalls, cliMethodCall{
+				mc := cliMethodCall{
 					"GetData", []any{tc.key}, []any{tc.wantData, tc.wantGetError},
-				})
+				}
+				methodCalls = append(methodCalls, mc)
+				postMethodCalls = append(methodCalls, mc)
 			}
 
-			tx := preparePamTransaction(t, libPath, execClient, methodCallsAsArgs(methodCalls), "")
+			tx := preparePamTransactionWithActionArgs(t, libPath, execClient, actionArgsMap{
+				pam_test.Auth:     methodCallsAsArgs(presetMethodCalls),
+				pam_test.Account:  methodCallsAsArgs(methodCalls),
+				pam_test.Password: methodCallsAsArgs(postMethodCalls),
+			}, "")
 			require.NoError(t, tx.Authenticate(0))
+			require.NoError(t, tx.AcctMgmt(0))
+			require.NoError(t, tx.ChangeAuthTok(0))
 		})
 	}
 }
 
-func preparePamTransaction(t *testing.T, libPath string, clientPath string, args []string, user string) *pam.Transaction {
-	t.Helper()
-
+func getModuleArgs(clientPath string, args []string) []string {
 	moduleArgs := []string{"--exec-debug"}
 	if env := testutils.CoverDirEnv(); env != "" {
 		moduleArgs = append(moduleArgs, "--exec-env", testutils.CoverDirEnv())
 	}
 	moduleArgs = append(moduleArgs, clientPath)
+	return append(moduleArgs, args...)
+}
 
-	serviceFile := createServiceFile(t, execServiceName, libPath, append(moduleArgs, args...))
+func preparePamTransaction(t *testing.T, libPath string, clientPath string, args []string, user string) *pam.Transaction {
+	t.Helper()
+
+	serviceFile := createServiceFile(t, execServiceName, libPath, getModuleArgs(clientPath, args))
+	return preparePamTransactionForServiceFile(t, serviceFile, user)
+}
+
+func preparePamTransactionWithActionArgs(t *testing.T, libPath string, clientPath string, actionArgs actionArgsMap, user string) *pam.Transaction {
+	t.Helper()
+
+	actionArgs = maps.Clone(actionArgs)
+	for a := range actionArgs {
+		actionArgs[a] = getModuleArgs(clientPath, actionArgs[a])
+	}
+
+	serviceFile := createServiceFileWithActionArgs(t, execServiceName, libPath, actionArgs)
+	return preparePamTransactionForServiceFile(t, serviceFile, user)
+}
+
+func preparePamTransactionForServiceFile(t *testing.T, serviceFile string, user string) *pam.Transaction {
+	t.Helper()
+
 	tx, err := pam.StartConfDir(filepath.Base(serviceFile), user, nil, filepath.Dir(serviceFile))
 	require.NoError(t, err, "PAM: Error to initialize module")
 	require.NotNil(t, tx, "PAM: Transaction is not set")
