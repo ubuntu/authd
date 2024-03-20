@@ -1,4 +1,4 @@
 FIRST CALL:
 	access: 
 	data: 
-	err: invalid user information provided by the broker ("not valid"): message is not JSON formatted: json: cannot unmarshal string into Go value of type struct { users.UserInfo; UUID string; UGID string; Groups []struct { Name string; UGID string } }
+	err: message is not JSON formatted: json: cannot unmarshal string into Go value of type brokers.userInfo

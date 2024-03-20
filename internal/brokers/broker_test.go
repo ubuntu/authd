@@ -213,6 +213,7 @@ func TestIsAuthenticated(t *testing.T) {
 		"Successfully authenticate":                              {sessionID: "success"},
 		"Successfully authenticate after cancelling first call":  {sessionID: "IA_second_call", secondCall: true},
 		"Denies authentication when broker times out":            {sessionID: "IA_timeout"},
+		"Adds default groups even if broker did not set them":    {sessionID: "IA_info_missing_groups"},
 		"No error when auth.Next and no data":                    {sessionID: "IA_next"},
 		"No error when broker returns userinfo with empty gecos": {sessionID: "IA_info_missing_gecos"},
 
@@ -223,9 +224,7 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error when broker returns invalid access":                            {sessionID: "IA_invalid_access"},
 		"Error when broker returns invalid userinfo":                          {sessionID: "IA_invalid_userinfo"},
 		"Error when broker returns userinfo with empty username":              {sessionID: "IA_info_missing_user_name"},
-		"Error when broker returns userinfo with no groups":                   {sessionID: "IA_info_missing_groups"},
 		"Error when broker returns userinfo with empty group name":            {sessionID: "IA_info_missing_group_name"},
-		"Error when broker returns userinfo with first group with empty UGID": {sessionID: "IA_info_missing_ugid"},
 		"Error when broker returns userinfo with empty UUID":                  {sessionID: "IA_info_missing_uuid"},
 		"Error when broker returns userinfo with invalid homedir":             {sessionID: "IA_info_invalid_home"},
 		"Error when broker returns userinfo with invalid shell":               {sessionID: "IA_info_invalid_shell"},

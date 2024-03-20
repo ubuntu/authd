@@ -182,7 +182,12 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 			return "", "", err
 		}
 
-		u, err := validateUserInfoAndGenerateIDs(b.Name, rawUserInfo)
+		info, err := unmarshalUserInfo(rawUserInfo)
+		if err != nil {
+			return "", "", err
+		}
+
+		u, err := validateUserInfoAndGenerateIDs(b.Name, info)
 		if err != nil {
 			return "", "", err
 		}
@@ -321,22 +326,28 @@ func (b Broker) parseSessionID(sessionID string) string {
 	return strings.TrimPrefix(sessionID, fmt.Sprintf("%s-", b.ID))
 }
 
-// validateUserInfoAndGenerateIDs checks if the specified rawMsg is a valid userinfo and generates the UID and GIDs.
-func validateUserInfoAndGenerateIDs(brokerName string, rawMsg json.RawMessage) (user users.UserInfo, err error) {
-	defer decorate.OnError(&err, "invalid user information provided by the broker (%s)", rawMsg)
+type userInfo struct {
+	users.UserInfo
+	UUID   string
+	UGID   string
+	Groups []struct {
+		Name string
+		UGID string
+	}
+}
 
-	var uInfo struct {
-		users.UserInfo
-		UUID   string
-		UGID   string
-		Groups []struct {
-			Name string
-			UGID string
-		}
+// unmarshalUserInfo tries to unmarshal the rawMsg into a userinfo.
+func unmarshalUserInfo(rawMsg json.RawMessage) (userInfo, error) {
+	var u userInfo
+	if err := json.Unmarshal(rawMsg, &u); err != nil {
+		return userInfo{}, fmt.Errorf("message is not JSON formatted: %v", err)
 	}
-	if err := json.Unmarshal(rawMsg, &uInfo); err != nil {
-		return users.UserInfo{}, fmt.Errorf("message is not JSON formatted: %v", err)
-	}
+	return u, nil
+}
+
+// validateUserInfoAndGenerateIDs checks if the specified userinfo is valid and generates the UID and GIDs.
+func validateUserInfoAndGenerateIDs(brokerName string, uInfo userInfo) (user users.UserInfo, err error) {
+	defer decorate.OnError(&err, "provided userinfo is invalid")
 
 	// Validate username
 	if uInfo.Name == "" {
@@ -357,14 +368,6 @@ func validateUserInfoAndGenerateIDs(brokerName string, rawMsg json.RawMessage) (
 	}
 	uInfo.UID = generateID(brokerName + uInfo.UUID)
 
-	// User must be a part of at least one group.
-	if len(uInfo.Groups) == 0 {
-		return users.UserInfo{}, fmt.Errorf("empty groups")
-	}
-	// The default group for the user is the default and it must have a UGID.
-	if uInfo.Groups[0].UGID == "" {
-		return users.UserInfo{}, fmt.Errorf("default group has empty UGID")
-	}
 	// Validate UGIDs and generate GIDs
 	for _, g := range uInfo.Groups {
 		if g.Name == "" {
@@ -377,6 +380,10 @@ func validateUserInfoAndGenerateIDs(brokerName string, rawMsg json.RawMessage) (
 		}
 		uInfo.UserInfo.Groups = append(uInfo.UserInfo.Groups, users.GroupInfo{Name: g.Name, GID: gid})
 	}
+
+	// Ensure that the user groups contain its own group and that it is the main one (first on the list).
+	defaultGroup := []users.GroupInfo{{Name: uInfo.Name, GID: &uInfo.UID}}
+	uInfo.UserInfo.Groups = append(defaultGroup, uInfo.UserInfo.Groups...)
 
 	return uInfo.UserInfo, nil
 }
