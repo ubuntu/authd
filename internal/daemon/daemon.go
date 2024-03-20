@@ -76,8 +76,8 @@ func New(ctx context.Context, registerGRPCService GRPCServiceRegisterer, args ..
 		if err != nil {
 			return nil, err
 		}
-		// We want everyone to be able to write to our socket and we will filter permissions
-		// #nosec G302
+
+		//nolint:gosec // We want everyone to be able to write to our socket and we will filter permissions
 		if err = os.Chmod(opts.socketPath, 0666); err != nil {
 			return nil, fmt.Errorf("could not change socket permission: %v", err)
 		}
