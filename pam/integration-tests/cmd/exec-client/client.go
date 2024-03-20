@@ -66,7 +66,7 @@ func mainFunc() error {
 		actionFlags = pam.Flags(*pamFlags)
 	}
 
-	if err := mTx.SetData("exec-client-flags", actionFlags); err != nil {
+	if err := mTx.SetData("exec-client-flags-"+actionToServiceType(action), actionFlags); err != nil {
 		return err
 	}
 
@@ -85,6 +85,21 @@ func mainFunc() error {
 		return handleArgs(mTx, args)
 	default:
 		return fmt.Errorf("unknown action %s", action)
+	}
+}
+
+func actionToServiceType(action string) string {
+	switch action {
+	case "open_session":
+		return "session"
+	case "close_session":
+		return "session"
+	case "chauthtok":
+		return "password"
+	case "setcred":
+		return "password"
+	default:
+		return action
 	}
 }
 
