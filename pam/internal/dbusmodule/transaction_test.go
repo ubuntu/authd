@@ -3,6 +3,7 @@ package dbusmodule_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
 
@@ -428,6 +429,193 @@ func TestTransactionGetData(t *testing.T) {
 			requireDbusErrorIs(t, err, tc.wantError)
 		})
 	}
+}
+
+func TestStartStringConv(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		prompt                string
+		promptFormat          string
+		promptFormatArgs      []interface{}
+		convStyle             pam.Style
+		convError             pam.Error
+		convShouldNotBeCalled bool
+
+		want            string
+		wantMethodCalls *methodCallExpectations
+		wantError       error
+	}{
+		"Messages with error style are handled by conversation": {
+			prompt:    "This is an error!",
+			convStyle: pam.ErrorMsg,
+			want:      "I'm handling it fine though",
+		},
+		"Conversation prompt can be formatted": {
+			promptFormat:     "Sending some %s, right? %v",
+			promptFormatArgs: []interface{}{"info", true},
+			convStyle:        pam.TextInfo,
+			want:             "And returning some text back",
+		},
+
+		// Error cases
+		"Error if conversation receives a DBus error": {
+			wantError:             pam.ErrSystem,
+			convShouldNotBeCalled: true,
+		},
+		"Error if the conversation handler fails": {
+			prompt:    "Tell me your secret!",
+			convStyle: pam.PromptEchoOff,
+			convError: pam.ErrBuf,
+			wantError: pam.ErrBuf,
+		},
+		"Error when conversation uses binary content style": {
+			prompt:                "I am a binary content\xff!",
+			convStyle:             pam.BinaryPrompt,
+			convError:             pam.ErrConv,
+			wantError:             pam.ErrConv,
+			convShouldNotBeCalled: true,
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			mce := methodCallExpectations{}
+			prompt := tc.prompt
+			if tc.promptFormat != "" {
+				prompt = fmt.Sprintf(tc.promptFormat, tc.promptFormatArgs...)
+			}
+
+			if !tc.convShouldNotBeCalled {
+				mce.add("Prompt", []any{tc.convStyle, prompt}, []any{tc.convError, tc.want})
+			}
+
+			tx, ts := prepareTransaction(t, mce.methodReturns)
+
+			var reply pam.StringConvResponse
+			var err error
+			if tc.promptFormat != "" {
+				reply, err = tx.StartStringConvf(tc.convStyle, tc.promptFormat,
+					tc.promptFormatArgs...)
+			} else {
+				reply, err = tx.StartStringConv(tc.convStyle, tc.prompt)
+			}
+
+			if !errors.Is(tc.wantError, pam.ErrSystem) {
+				require.Equal(t, mce.wantMethodCalls, ts.getCalledMethods(), "Method calls mismatch")
+			}
+			requireDbusErrorIs(t, err, tc.wantError)
+
+			if tc.wantError != nil {
+				require.Zero(t, reply)
+				return
+			}
+
+			require.NotNil(t, reply)
+			require.Equal(t, tc.want, reply.Response())
+			require.Equal(t, tc.convStyle, reply.Style())
+		})
+	}
+}
+
+func TestTransactionGetUser(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		presetUser string
+		getError   pam.Error
+		convUser   string
+		convError  pam.Error
+
+		want      string
+		wantError error
+	}{
+		"Getting a previously set user does not require conversation handler": {
+			presetUser: "an-user",
+			want:       "an-user",
+		},
+		"Getting a previously set user does not use conversation handler": {
+			presetUser: "an-user",
+			convUser:   "another-user",
+			want:       "an-user",
+		},
+		"Getting the user uses conversation handler if none was set": {
+			want:     "provided-user",
+			convUser: "provided-user",
+		},
+
+		// Error cases
+		"Error when can't get user item": {
+			want:      "",
+			getError:  pam.ErrBadItem,
+			wantError: pam.ErrBadItem,
+		},
+		"Error when conversation fails": {
+			want:      "",
+			convError: pam.ErrConv,
+			wantError: pam.ErrConv,
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			mce := methodCallExpectations{}
+			prompt := "Who are you?"
+
+			mce.add("GetItem", []any{pam.User}, []any{tc.getError, tc.presetUser})
+			if tc.presetUser == "" && tc.getError == pam.Error(0) {
+				mce.add("Prompt", []any{pam.PromptEchoOn, prompt}, []any{tc.convError, tc.convUser})
+			}
+
+			tx, ts := prepareTransaction(t, mce.methodReturns)
+			user, err := tx.GetUser(prompt)
+			require.Equal(t, tc.want, user, "User dos not mach")
+			if !errors.Is(tc.wantError, pam.ErrSystem) {
+				require.Equal(t, mce.wantMethodCalls, ts.getCalledMethods(), "Method calls mismatch")
+			}
+			requireDbusErrorIs(t, err, tc.wantError)
+		})
+	}
+}
+
+func TestStartBinaryConv(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		data      []byte
+		wantError error
+	}{
+		// Error cases
+		"Error as they are not supported": {
+			wantError: pam.ErrConv,
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			tx, _ := prepareTransaction(t, nil)
+			ret, err := tx.StartBinaryConv(tc.data)
+			require.ErrorIs(t, err, tc.wantError)
+			require.Nil(t, ret)
+		})
+	}
+}
+
+type methodCallExpectations struct {
+	methodReturns   []methodReturn
+	wantMethodCalls []methodCall
+}
+
+func (mce *methodCallExpectations) add(method string, args []any, ret []any) {
+	mce.wantMethodCalls = append(mce.wantMethodCalls, methodCall{
+		m: method, args: args,
+	})
+	mce.methodReturns = append(mce.methodReturns, methodReturn{
+		m: method, values: ret,
+	})
 }
 
 func requireDbusErrorIs(t *testing.T, err error, wantError error) {

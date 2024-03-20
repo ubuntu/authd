@@ -139,6 +139,18 @@ func (ts *testServer) GetData(key string) (int, dbus.Variant, *dbus.Error) {
 	return status, variant, nil
 }
 
+// Prompt prompts for a PAM string conversation.
+func (ts *testServer) Prompt(style pam.Style, prompt string) (int, string, *dbus.Error) {
+	methodName := ts.getMethodName()
+	ts.addCalledMethod(methodName, style, prompt)
+
+	status, reply, err := getGetterReturnValues[string](ts, methodName)
+	if err != nil {
+		return -1, "", dbus.NewError(testDBusErrorName, []any{err.Error()})
+	}
+	return status, reply, nil
+}
+
 func (ts *testServer) getMethodName() string {
 	pc := make([]uintptr, 2)
 	runtime.Callers(2, pc)

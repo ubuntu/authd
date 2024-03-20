@@ -3,18 +3,18 @@ package dbusmodule
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/godbus/dbus/v5"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/pam/internal/pam_test"
+	"github.com/ubuntu/decorate"
 )
 
 // Transaction is a [pam.Transaction] with dbus support.
 type Transaction struct {
-	pam.ModuleTransaction
 	obj dbus.BusObject
 }
 
@@ -61,10 +61,7 @@ func NewTransaction(ctx context.Context, address string, o ...TransactionOptions
 		}
 	}
 	obj := conn.Object(ifaceName, objectPath)
-	return &Transaction{
-		ModuleTransaction: &pam_test.ModuleTransactionDummy{},
-		obj:               obj,
-	}, cleanup, nil
+	return &Transaction{obj: obj}, cleanup, nil
 }
 
 // SetData allows to save any value in the module data that is preserved
@@ -131,6 +128,115 @@ func (tx *Transaction) GetEnvList() (map[string]string, error) {
 	return envMap, nil
 }
 
+// GetUser is similar to GetItem(User), but it would start a conversation if
+// no user is currently set in PAM.
+func (tx *Transaction) GetUser(prompt string) (string, error) {
+	user, err := tx.GetItem(pam.User)
+	if err != nil {
+		return "", err
+	}
+	if user != "" {
+		return user, nil
+	}
+
+	resp, err := tx.StartStringConv(pam.PromptEchoOn, prompt)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.Response(), nil
+}
+
+// StartStringConv starts a text-based conversation using the provided style
+// and prompt.
+func (tx *Transaction) StartStringConv(style pam.Style, prompt string) (
+	pam.StringConvResponse, error) {
+	res, err := tx.StartConv(pam.NewStringConvRequest(style, prompt))
+	if err != nil {
+		return nil, err
+	}
+
+	stringRes, ok := res.(pam.StringConvResponse)
+	if !ok {
+		return nil, fmt.Errorf("%w: can't convert to pam.StringConvResponse", pam.ErrConv)
+	}
+	return stringRes, nil
+}
+
+// StartStringConvf allows to start string conversation with formatting support.
+func (tx *Transaction) StartStringConvf(style pam.Style, format string, args ...interface{}) (
+	pam.StringConvResponse, error) {
+	return tx.StartStringConv(style, fmt.Sprintf(format, args...))
+}
+
+// StartBinaryConv starts a binary conversation using the provided bytes.
+func (tx *Transaction) StartBinaryConv(bytes []byte) (
+	pam.BinaryConvResponse, error) {
+	return nil, fmt.Errorf("%w: binary conversations are not supported", pam.ErrConv)
+}
+
+// StartConv initiates a PAM conversation using the provided ConvRequest.
+func (tx *Transaction) StartConv(req pam.ConvRequest) (
+	pam.ConvResponse, error) {
+	resp, err := tx.StartConvMulti([]pam.ConvRequest{req})
+	if err != nil {
+		return nil, err
+	}
+	if len(resp) != 1 {
+		return nil, fmt.Errorf("%w: not enough values returned", pam.ErrConv)
+	}
+	return resp[0], nil
+}
+
+func (tx *Transaction) handleStringRequest(req pam.StringConvRequest) (pam.StringConvResponse, error) {
+	if req.Style() == pam.BinaryPrompt {
+		return nil, fmt.Errorf("%w: binary style is not supported", pam.ErrConv)
+	}
+
+	var r int
+	var reply string
+	method := fmt.Sprintf("%s.Prompt", ifaceName)
+	err := tx.obj.Call(method, dbus.FlagNoAutoStart, req.Style(), req.Prompt()).Store(&r, &reply)
+	if err != nil {
+		log.Debugf(context.TODO(), "failed to call %s: %v", method, err)
+		return nil, fmt.Errorf("%w: %w", pam.ErrSystem, err)
+	}
+	if r != 0 {
+		log.Debugf(context.TODO(), "failed to call %s: %s", method, pam.Error(r))
+		return nil, pam.Error(r)
+	}
+	return StringResponse{
+		req.Style(),
+		reply,
+	}, nil
+}
+
+// StartConvMulti initiates a PAM conversation with multiple ConvRequest's.
+func (tx *Transaction) StartConvMulti(requests []pam.ConvRequest) (
+	responses []pam.ConvResponse, err error) {
+	defer decorate.OnError(&err, "%v", err)
+
+	if len(requests) == 0 {
+		return nil, errors.New("no requests defined")
+	}
+
+	responses = make([]pam.ConvResponse, 0, len(requests))
+	for _, req := range requests {
+		switch r := req.(type) {
+		case pam.StringConvRequest:
+			response, err := tx.handleStringRequest(r)
+			if err != nil {
+				return nil, err
+			}
+			responses = append(responses, response)
+		default:
+			return nil, fmt.Errorf("unsupported conversation type %#v", r)
+		}
+	}
+
+	return responses, nil
+}
+
 // InvokeHandler is called by the C code to invoke the proper handler.
 func (tx *Transaction) InvokeHandler(handler pam.ModuleHandlerFunc,
 	flags pam.Flags, args []string) error {
@@ -181,4 +287,20 @@ func dbusGetter[V any, K any](obj dbus.BusObject, method string, key K) (V, erro
 		return *new(V), pam.Error(r)
 	}
 	return v, nil
+}
+
+// StringResponse is a simple implementation of [pam.StringConvResponse].
+type StringResponse struct {
+	ConvStyle pam.Style
+	Content   string
+}
+
+// Style returns the conversation style of the StringResponse.
+func (s StringResponse) Style() pam.Style {
+	return s.ConvStyle
+}
+
+// Response returns the string response of the StringResponse.
+func (s StringResponse) Response() string {
+	return s.Content
 }
