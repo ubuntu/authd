@@ -193,7 +193,12 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 // ChangeAuthTok is the method that is invoked during pam_sm_chauthtok request.
 func (h *pamModule) ChangeAuthTok(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
 	parsedArgs, logArgsIssues := parseArgs(args)
-	return h.handleAuthRequest(authd.SessionMode_PASSWD, mTx, flags, parsedArgs, logArgsIssues)
+
+	err := h.handleAuthRequest(authd.SessionMode_PASSWD, mTx, flags, parsedArgs, logArgsIssues)
+	if errors.Is(err, pam.ErrPermDenied) {
+		return pam.ErrAuthtokRecovery
+	}
+	return err
 }
 
 func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTransaction, flags pam.Flags, parsedArgs map[string]string, logArgsIssues func()) error {
