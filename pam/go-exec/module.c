@@ -104,6 +104,12 @@ const char *UBUNTU_AUTHD_PAM_OBJECT_NODE =
   "      <arg type='i' name='status' direction='out'/>"
   "      <arg type='v' name='ret' direction='out'/>"
   "    </method>"
+  "    <method name='Prompt'>"
+  "      <arg type='i' name='style' direction='in'/>"
+  "      <arg type='s' name='msg' direction='in'/>"
+  "      <arg type='i' name='status' direction='out'/>"
+  "      <arg type='s' name='response' direction='out'/>"
+  "    </method>"
   "  </interface>"
   "</node>";
 
@@ -510,6 +516,20 @@ on_pam_method_call (GDBusConnection       *connection,
 
       g_dbus_method_invocation_return_value (invocation,
                                              g_variant_new ("(iv)", ret, variant));
+    }
+  else if (g_str_equal (method_name, "Prompt"))
+    {
+      g_autofree char *response = NULL;
+      const char *prompt;
+      int style;
+      int ret;
+
+      g_variant_get (parameters, "(i&s)", &style, &prompt);
+
+      ret = pam_prompt (module_data->pamh, style, &response, "%s", prompt);
+      g_dbus_method_invocation_return_value (invocation,
+                                             g_variant_new ("(is)", ret,
+                                                            response ? response : ""));
     }
   else
     {

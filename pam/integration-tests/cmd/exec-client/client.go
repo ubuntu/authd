@@ -225,6 +225,28 @@ func tryConvertVariant(variant dbus.Variant, expected reflect.Type) (reflect.Val
 		return pamError, nil
 	}
 
+	if expected.ConvertibleTo(reflect.TypeFor[pam.StringConvResponse]()) {
+		variantMapValue, err := tryExtractVariant(variant, reflect.TypeFor[map[string]dbus.Variant]())
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		if variantMapValue.IsZero() {
+			return reflect.Zero(expected), nil
+		}
+
+		variantMap := variantMapValue.Interface().(map[string]dbus.Variant)
+		style, err := getVariantMapItem[pam.Style](variantMap, "style")
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		reply, err := getVariantMapItem[string](variantMap, "reply")
+		if err != nil {
+			return reflect.Value{}, err
+		}
+
+		return reflect.ValueOf(dbusmodule.StringResponse{style, reply}), nil
+	}
+
 	return tryExtractVariant(variant, expected)
 }
 
@@ -251,14 +273,21 @@ func tryExtractVariant(variant dbus.Variant, expected reflect.Type) (reflect.Val
 
 func getCallArgs(action string, method reflect.Value, args []dbus.Variant) ([]reflect.Value, error) {
 	methodType := method.Type()
-	if len(args) != methodType.NumIn() {
+	if len(args) != methodType.NumIn() && !methodType.IsVariadic() {
 		return nil, fmt.Errorf("method %s %s needs %d arguments (%d provided): %w",
 			action, methodType, methodType.NumIn(), len(args), pam_test.ErrInvalidArguments)
 	}
 
 	var callArgs []reflect.Value
 	for idx, arg := range args {
-		value, err := tryConvertVariant(arg, methodType.In(idx))
+		var inType reflect.Type
+		if !methodType.IsVariadic() || idx < methodType.NumIn()-1 {
+			inType = methodType.In(idx)
+		} else {
+			// We're handling a variadic type as per the check above.
+			inType = methodType.In(methodType.NumIn() - 1).Elem()
+		}
+		value, err := tryConvertVariant(arg, inType)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", err, pam_test.ErrArgumentTypeMismatch)
 		}
@@ -288,10 +317,24 @@ func checkReturnedValues(action string, method reflect.Value, wantArgs []dbus.Va
 		if reflect.DeepEqual(retValue.Interface(), wantValue.Interface()) {
 			continue
 		}
+		if tryCompareValues(wantValue.Interface(), retValue.Interface()) {
+			continue
+		}
 
 		return fmt.Errorf("values do not match: expected '%#v', got '%#v': %w",
 			wantValue.Interface(), retValue.Interface(), pam_test.ErrReturnMismatch)
 	}
 
 	return nil
+}
+
+func tryCompareValues(wantValue any, actualValue any) bool {
+	switch w := wantValue.(type) {
+	case error:
+		if err, ok := actualValue.(error); ok {
+			return errors.Is(err, w)
+		}
+	}
+
+	return false
 }

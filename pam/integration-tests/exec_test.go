@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -567,6 +568,215 @@ func TestExecModule(t *testing.T) {
 			require.NoError(t, tx.ChangeAuthTok(0))
 		})
 	}
+
+	// These tests are checking that string conversations are working as expected.
+	stringConvTests := map[string]struct {
+		prompt                string
+		promptFormat          string
+		promptFormatArgs      []interface{}
+		convStyle             pam.Style
+		convError             error
+		convHandler           *pam.ConversationFunc
+		convShouldNotBeCalled bool
+
+		want           string
+		stringResponse any
+		wantError      error
+		wantExitError  error
+	}{
+		"Messages with info style are handled by conversation": {
+			prompt:    "This is an info message!",
+			convStyle: pam.TextInfo,
+		},
+		"Messages with error style are handled by conversation": {
+			prompt:    "This is an error message!",
+			convStyle: pam.ErrorMsg,
+		},
+		"Messages with echo on style are handled by conversation": {
+			prompt:    "This is an echo on message!",
+			convStyle: pam.PromptEchoOn,
+			want:      "I'm handling it perfectly!",
+		},
+		"Conversation prompt can be formatted": {
+			promptFormat:     "Sending some %s, right? %v - But that's %v or %d?",
+			promptFormatArgs: []interface{}{"info", true, nil, 123},
+			convStyle:        pam.PromptEchoOff,
+			want:             "And returning some text back",
+		},
+
+		// Error cases
+		"Error if no conversation handler is set": {
+			convHandler: ptrValue(pam.ConversationFunc(nil)),
+			wantError:   pam.ErrConv,
+		},
+		"Error if the conversation handler fails": {
+			prompt:    "Tell me your secret!",
+			convStyle: pam.PromptEchoOff,
+			convError: pam.ErrBuf,
+			wantError: pam.ErrConv,
+		},
+		"Error when conversation uses binary content style": {
+			prompt:                "I am a binary content\xff!",
+			convStyle:             pam.BinaryPrompt,
+			convError:             pam.ErrConv,
+			wantError:             pam.ErrConv,
+			convShouldNotBeCalled: true,
+		},
+		"Error when when parsing returned response fails": {
+			prompt:         "Hello!",
+			convStyle:      pam.PromptEchoOn,
+			want:           "Hey, hey!",
+			stringResponse: "Hey, hey!",
+			wantExitError:  pam_test.ErrReturnMismatch,
+		},
+		"Error when when parsing returned value style fails": {
+			prompt:    "Hello!",
+			convStyle: pam.PromptEchoOn,
+			want:      "Hey, hey!",
+			stringResponse: map[string]dbus.Variant{
+				"style": dbus.MakeVariant("shouldn't be a string"),
+				"reply": dbus.MakeVariant("Hey, hey!"),
+			},
+			wantExitError: pam_test.ErrInvalidArguments,
+		},
+		"Error when when parsing returned reply fails": {
+			prompt:    "Hello!",
+			convStyle: pam.PromptEchoOff,
+			want:      "Hey, hey!",
+			stringResponse: map[string]dbus.Variant{
+				"style": dbus.MakeVariant(pam.PromptEchoOff),
+				"reply": dbus.MakeVariant(2.55),
+			},
+			wantExitError: pam_test.ErrInvalidArguments,
+		},
+	}
+	for name, tc := range stringConvTests {
+		t.Run("StringConv "+name, func(t *testing.T) {
+			t.Parallel()
+			t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+			convFunCalled := false
+			convHandler := func() pam.ConversationFunc {
+				if tc.convHandler != nil {
+					return *tc.convHandler
+				}
+				prompt := tc.prompt
+				if tc.promptFormat != "" {
+					prompt = fmt.Sprintf(tc.promptFormat, tc.promptFormatArgs...)
+				}
+				return pam.ConversationFunc(
+					func(style pam.Style, msg string) (string, error) {
+						convFunCalled = true
+						require.Equal(t, prompt, msg)
+						require.Equal(t, tc.convStyle, style)
+						switch style {
+						case pam.PromptEchoOff, pam.PromptEchoOn:
+							return tc.want, tc.convError
+						default:
+							return "", tc.convError
+						}
+					})
+			}()
+
+			var methodCalls []cliMethodCall
+			wantStringResponse := any(nil)
+			if tc.wantError == nil && tc.stringResponse == nil {
+				wantStringResponse = map[string]dbus.Variant{
+					"style": dbus.MakeVariant(tc.convStyle),
+					"reply": dbus.MakeVariant(tc.want),
+				}
+			}
+			if tc.stringResponse != nil {
+				wantStringResponse = tc.stringResponse
+			}
+
+			wantReturnValues := []any{
+				wantStringResponse,
+				tc.wantError,
+			}
+
+			if tc.promptFormat != "" {
+				methodCalls = append(methodCalls, cliMethodCall{
+					m:    "StartStringConvf",
+					args: append([]any{tc.convStyle, tc.promptFormat}, tc.promptFormatArgs...),
+					r:    wantReturnValues,
+				})
+			} else {
+				methodCalls = append(methodCalls, cliMethodCall{
+					m:    "StartStringConv",
+					args: []any{tc.convStyle, tc.prompt},
+					r:    wantReturnValues,
+				})
+			}
+
+			tx := preparePamTransactionWithConv(t, libPath, execClient,
+				methodCallsAsArgs(methodCalls), "", convHandler)
+			require.ErrorIs(t, tx.Authenticate(0), tc.wantExitError,
+				"Authenticate does not return expected error")
+
+			wantConFuncCalled := !tc.convShouldNotBeCalled && tc.convHandler == nil
+			require.Equal(t, wantConFuncCalled, convFunCalled)
+		})
+	}
+
+	// These tests are checking that GetUser works as expected, in case using conversation.
+	tests := map[string]struct {
+		presetUser  string
+		convHandler pam.ConversationHandler
+
+		want      string
+		wantError error
+	}{
+		"Getting a previously set user does not require conversation handler": {
+			presetUser: "an-user",
+			want:       "an-user",
+		},
+		"Getting a previously set user does not use conversation handler": {
+			presetUser: "an-user",
+			want:       "an-user",
+			convHandler: pam.ConversationFunc(func(s pam.Style, msg string) (string, error) {
+				return "another-user", pam.ErrConv
+			}),
+		},
+		"Getting the user uses conversation handler if none was set": {
+			want: "provided-user",
+			convHandler: pam.ConversationFunc(
+				func(s pam.Style, msg string) (string, error) {
+					require.Equal(t, msg, "Who are you?")
+					if msg != "Who are you?" {
+						return "", pam.ErrConv
+					}
+					if s == pam.PromptEchoOn {
+						return "provided-user", nil
+					}
+					return "", pam.ErrConv
+				}),
+		},
+
+		// Error cases
+		"Error when no conversation is set": {
+			want:      "",
+			wantError: pam.ErrConv,
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			var methodCalls []cliMethodCall
+
+			prompt := "Who are you?"
+			methodCalls = append(methodCalls, cliMethodCall{
+				m:    "GetUser",
+				args: []any{prompt},
+				r:    []any{tc.want, tc.wantError},
+			})
+
+			tx := preparePamTransactionWithConv(t, libPath, execClient,
+				methodCallsAsArgs(methodCalls), tc.presetUser, tc.convHandler)
+			require.NoError(t, tx.Authenticate(0), "Authenticate should not fail")
+		})
+	}
 }
 
 func getModuleArgs(clientPath string, args []string) []string {
@@ -581,8 +791,14 @@ func getModuleArgs(clientPath string, args []string) []string {
 func preparePamTransaction(t *testing.T, libPath string, clientPath string, args []string, user string) *pam.Transaction {
 	t.Helper()
 
+	return preparePamTransactionWithConv(t, libPath, clientPath, args, user, nil)
+}
+
+func preparePamTransactionWithConv(t *testing.T, libPath string, clientPath string, args []string, user string, conv pam.ConversationHandler) *pam.Transaction {
+	t.Helper()
+
 	serviceFile := createServiceFile(t, execServiceName, libPath, getModuleArgs(clientPath, args))
-	return preparePamTransactionForServiceFile(t, serviceFile, user)
+	return preparePamTransactionForServiceFile(t, serviceFile, user, conv)
 }
 
 func preparePamTransactionWithActionArgs(t *testing.T, libPath string, clientPath string, actionArgs actionArgsMap, user string) *pam.Transaction {
@@ -594,13 +810,21 @@ func preparePamTransactionWithActionArgs(t *testing.T, libPath string, clientPat
 	}
 
 	serviceFile := createServiceFileWithActionArgs(t, execServiceName, libPath, actionArgs)
-	return preparePamTransactionForServiceFile(t, serviceFile, user)
+	return preparePamTransactionForServiceFile(t, serviceFile, user, nil)
 }
 
-func preparePamTransactionForServiceFile(t *testing.T, serviceFile string, user string) *pam.Transaction {
+func preparePamTransactionForServiceFile(t *testing.T, serviceFile string, user string, conv pam.ConversationHandler) *pam.Transaction {
 	t.Helper()
 
-	tx, err := pam.StartConfDir(filepath.Base(serviceFile), user, nil, filepath.Dir(serviceFile))
+	var tx *pam.Transaction
+	var err error
+
+	// FIXME: pam.Transaction doesn't handle well pam.ConversationHandler(nil)
+	if conv != nil && !reflect.ValueOf(conv).IsNil() {
+		tx, err = pam.StartConfDir(filepath.Base(serviceFile), user, conv, filepath.Dir(serviceFile))
+	} else {
+		tx, err = pam.StartConfDir(filepath.Base(serviceFile), user, nil, filepath.Dir(serviceFile))
+	}
 	require.NoError(t, err, "PAM: Error to initialize module")
 	require.NotNil(t, tx, "PAM: Transaction is not set")
 	t.Cleanup(func() { require.NoError(t, tx.End(), "PAM: can't end transaction") })
