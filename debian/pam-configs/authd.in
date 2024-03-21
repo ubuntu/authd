@@ -1,0 +1,13 @@
+Name: Authd authentication
+Default: yes
+Priority: 280
+
+Auth-Type: Primary
+Auth:
+	[success=end default=ignore]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
+Account-Type: Additional
+Account:
+	[default=ignore success=ok user_unknown=ignore]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
+Password-Type: Primary
+Password:
+	sufficient			pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam

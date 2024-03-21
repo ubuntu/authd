@@ -56,6 +56,7 @@ jobs:
           go generate -C pam -x
           test -e pam/pam_authd.so
           test -e pam/go-loader/pam_go_loader.so
+          test -e pam/go-exec/pam_authd_exec.so
       - name: Generate PAM module with pam_debug tag
         run: |
           set -eu
@@ -63,6 +64,7 @@ jobs:
           go generate -C pam -x -tags pam_debug
           test -e pam/pam_authd.so
           test -e pam/go-loader/pam_go_loader.so
+          test -e pam/go-exec/pam_authd_exec.so
 
   rust-sanity:
     name: "Rust: Code sanity"
