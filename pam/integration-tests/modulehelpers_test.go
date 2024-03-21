@@ -87,6 +87,9 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, son
 		dataFilename := soname + ".so-module.gcda"
 
 		libDir := filepath.Dir(libPath)
+		gcovDir := filepath.Join(testutils.CoverDir(), t.Name()+".gcov")
+		err := os.MkdirAll(gcovDir, 0700)
+		require.NoError(t, err, "TearDown: Impossible to create path %q", gcovDir)
 
 		t.Cleanup(func() {
 			t.Log("Running gcov...")
@@ -94,7 +97,7 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, son
 			gcov.Args = append(gcov.Args,
 				"-pb", "-o", libDir,
 				notesFilename)
-			gcov.Dir = testutils.CoverDir()
+			gcov.Dir = gcovDir
 			out, err := gcov.CombinedOutput()
 			require.NoError(t, err,
 				"Teardown: Can't get coverage report on C library: %s", out)
@@ -105,11 +108,11 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, son
 			// Also keep track of notes and data files as they're useful to generate
 			// an html output locally using geninfo + genhtml.
 			err = os.Rename(filepath.Join(libDir, dataFilename),
-				filepath.Join(testutils.CoverDir(), dataFilename))
+				filepath.Join(gcovDir, dataFilename))
 			require.NoError(t, err,
 				"Teardown: Can't move coverage report data for c Library: %v", err)
 			err = os.Rename(filepath.Join(libDir, notesFilename),
-				filepath.Join(testutils.CoverDir(), notesFilename))
+				filepath.Join(gcovDir, notesFilename))
 			require.NoError(t, err,
 				"Teardown: Can't move coverage report notes for c Library: %v", err)
 		})
