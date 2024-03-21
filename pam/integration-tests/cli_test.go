@@ -23,7 +23,7 @@ func TestCLIAuthenticate(t *testing.T) {
 	t.Parallel()
 
 	outDir := t.TempDir()
-	prepareCLITest(t, outDir)
+	cliEnv := prepareCLITest(t, outDir)
 
 	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
 	require.NoError(t, err, "Setup: Could not create gpasswd output directory")
@@ -85,6 +85,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			// #nosec:G204 - we control the command arguments in tests
 			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
 			cmd.Env = testutils.AppendCovEnv(cmd.Env)
+			cmd.Env = append(cmd.Env, cliEnv...)
 			cmd.Env = append(cmd.Env, pathEnv)
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", socketPathEnv, socketPath))
 			cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_LOG_DIR=%s", filepath.Dir(cliLog)))
@@ -121,7 +122,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	t.Parallel()
 
 	outDir := t.TempDir()
-	prepareCLITest(t, outDir)
+	cliEnv := prepareCLITest(t, outDir)
 
 	// we don't care about the output of gpasswd for this test, but we still need to mock it.
 	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
@@ -175,6 +176,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			// #nosec:G204 - we control the command arguments in tests
 			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
 			cmd.Env = testutils.AppendCovEnv(cmd.Env)
+			cmd.Env = append(cmd.Env, cliEnv...)
 			cmd.Env = append(cmd.Env, pathEnv)
 			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", socketPathEnv, socketPath))
 			cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_LOG_DIR=%s", filepath.Dir(cliLog)))
@@ -201,7 +203,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	}
 }
 
-func prepareCLITest(t *testing.T, clientPath string) {
+func prepareCLITest(t *testing.T, clientPath string) []string {
 	t.Helper()
 
 	// Due to external dependencies such as `vhs`, we can't run the tests in some environments (like LP builders), as we
@@ -210,9 +212,14 @@ func prepareCLITest(t *testing.T, clientPath string) {
 		t.Skip("Skipping tests with external dependencies as requested")
 	}
 
-	pamCleanup, err := buildPAM(clientPath)
+	pamCleanup, err := buildPAMTestClient(clientPath)
 	require.NoError(t, err, "Setup: Failed to build PAM executable")
 	t.Cleanup(pamCleanup)
+
+	return []string{
+		fmt.Sprintf("AUTHD_PAM_EXEC_MODULE=%s", buildExecModule(t)),
+		fmt.Sprintf("AUTHD_PAM_CLI_PATH=%s", buildPAMClient(t)),
+	}
 }
 
 func prepareCLILogging(t *testing.T) string {
@@ -231,8 +238,8 @@ func prepareCLILogging(t *testing.T) string {
 	return cliLog
 }
 
-// buildPAM builds the PAM module in a temporary directory and returns a cleanup function.
-func buildPAM(execPath string) (cleanup func(), err error) {
+// buildPAMTestClient builds the PAM module in a temporary directory and returns a cleanup function.
+func buildPAMTestClient(execPath string) (cleanup func(), err error) {
 	cmd := exec.Command("go", "build")
 	if testutils.CoverDir() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
@@ -248,6 +255,33 @@ func buildPAM(execPath string) (cleanup func(), err error) {
 	}
 
 	return func() { _ = os.Remove(filepath.Join(execPath, "pam_authd")) }, nil
+}
+
+func buildPAMClient(t *testing.T) string {
+	t.Helper()
+
+	cmd := exec.Command("go", "build", "-C", "pam")
+	cmd.Dir = testutils.ProjectRoot()
+	if testutils.CoverDir() != "" {
+		// -cover is a "positional flag", so it needs to come right after the "build" command.
+		cmd.Args = append(cmd.Args, "-cover")
+	}
+	if pam_test.IsAddressSanitizerActive() {
+		// -asan is a "positional flag", so it needs to come right after the "build" command.
+		cmd.Args = append(cmd.Args, "-asan")
+	}
+	cmd.Args = append(cmd.Args, "-gcflags=-dwarflocationlists=true")
+	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)
+
+	authdPam := filepath.Join(t.TempDir(), "authd-pam")
+	t.Logf("Compiling Exec client at %s", authdPam)
+	t.Logf(strings.Join(cmd.Args, " "))
+
+	cmd.Args = append(cmd.Args, "-o", authdPam)
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, "Setup: could not compile PAM client: %s", out)
+
+	return authdPam
 }
 
 func TestMockgpasswd(t *testing.T) {
