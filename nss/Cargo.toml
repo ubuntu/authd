@@ -22,7 +22,7 @@ libc = "0.2.152"
 paste = "1.0.14"
 tonic = "0.11.0"
 prost = "0.12.3"
-rustix = { version = "0.38.31", features = ["use-libc"] }
+rustix = { version = "0.38.32", features = ["use-libc"] }
 tokio = { version = "1.35.1", features = ["macros", "rt-multi-thread"] }
 tower = "0.4.13"
 log = "0.4.20"
