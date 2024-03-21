@@ -354,7 +354,6 @@ func TestGdmStructsMarshal(t *testing.T) {
 			wantErrMsg: "field Event should not be defined",
 		},
 	}
-
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -604,7 +603,6 @@ func TestGdmStructsUnMarshal(t *testing.T) {
 			wantErrMsg: "field Response should not be defined",
 		},
 	}
-
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
