@@ -5,7 +5,7 @@ set -euo pipefail
 SCRIPT_PATH=$(dirname "$0")
 PROJECT_ROOT=$(realpath "$SCRIPT_PATH")/..
 module_libname=pam_authd.so
-loader_libname=pam_go_loader.so
+loader_libname=pam_authd_loader.so
 exec_libname=pam_authd_exec.so
 
 cd "$SCRIPT_PATH"
