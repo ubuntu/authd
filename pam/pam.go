@@ -184,7 +184,7 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 	if err != nil && !errors.Is(err, pam.ErrIgnore) {
 		return err
 	}
-	if err := mTx.SetData(alreadyAuthenticatedKey, struct{}{}); err != nil {
+	if err := mTx.SetData(alreadyAuthenticatedKey, true); err != nil {
 		return err
 	}
 	return err
