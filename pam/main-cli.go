@@ -5,6 +5,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -32,6 +33,7 @@ func main() {
 
 	var resultMsg string
 	var pamFunc pam.ModuleHandlerFunc
+	var pamFlags pam.Flags
 	action, args := os.Args[1], os.Args[2:]
 	switch action {
 	case "login":
@@ -39,6 +41,7 @@ func main() {
 		resultMsg = "PAM Authenticate() for user %q"
 	case "passwd":
 		pamFunc = module.ChangeAuthTok
+		pamFlags = pam.UpdateAuthtok
 		resultMsg = "PAM ChangeAuthTok() for user %q"
 	default:
 		panic("Unknown PAM operation: " + action)
@@ -50,8 +53,16 @@ func main() {
 		defaultArgs = append(defaultArgs, "logfile="+logPath)
 	}
 
+	if action == "passwd" {
+		// Do a preliminary check as PAM does first.
+		err := pamFunc(mTx, pam.Silent|pam.PrelimCheck, args)
+		if err != nil {
+			log.Fatalf("PAM ChangeAuthTok(), unexpected error: %v", err)
+		}
+	}
+
 	args = append(defaultArgs, args...)
-	pamRes := pamFunc(mTx, pam.Flags(0), args)
+	pamRes := pamFunc(mTx, pamFlags, args)
 	user, _ := mTx.GetItem(pam.User)
 
 	printPamResult(fmt.Sprintf(resultMsg, user), pamRes)

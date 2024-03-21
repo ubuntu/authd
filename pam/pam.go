@@ -210,6 +210,22 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 	}
 	logArgsIssues()
 
+	if mode == authd.SessionMode_PASSWD && flags&pam.PrelimCheck != 0 {
+		log.Debug(context.TODO(), "ChangeAuthTok, preliminary check")
+		_, closeConn, err := newClient(parsedArgs)
+		if err != nil {
+			log.Debugf(context.TODO(), "%s", err)
+			return fmt.Errorf("%w: %w", pam.ErrTryAgain, err)
+		}
+		closeConn()
+		return nil
+	}
+
+	if mode == authd.SessionMode_PASSWD {
+		log.Debugf(context.TODO(), "ChangeAuthTok, password update phase: %d",
+			flags&pam.UpdateAuthtok)
+	}
+
 	if gdm.IsPamExtensionSupported(gdm.PamExtensionCustomJSON) {
 		// Explicitly set the output to something so that the program
 		// won't try to init some terminal fancy things that also appear
