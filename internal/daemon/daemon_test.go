@@ -46,7 +46,6 @@ func TestNew(t *testing.T) {
 		"Error when systemd activated socket does not exists":      {socketType: systemdActivationListenerSocketDoesNotExists, wantErr: true},
 		"Error when manually provided socket path does not exists": {socketType: manualSocketParentDirectoryDoesNotExists, wantErr: true},
 	}
-
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -144,7 +143,6 @@ func TestServe(t *testing.T) {
 		"Error on call to Quit before serve": {quitBeforeServe: true, wantErr: true},
 		"Error on systemd notifier failing":  {systemdNotifier: systemdNotifierFails, wantErr: true},
 	}
-
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -211,7 +209,6 @@ func TestQuit(t *testing.T) {
 		"Graceful stop is blocked on active connection": {activeConnection: true},
 		"Force stop drops active connection":            {force: true, activeConnection: true},
 	}
-
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
