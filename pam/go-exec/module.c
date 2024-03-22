@@ -508,8 +508,6 @@ on_pam_method_call (GDBusConnection       *connection,
 
           maybe_variant = g_variant_new ("v", g_variant_new_maybe (G_VARIANT_TYPE_VARIANT, NULL));
           variant = g_variant_new_take_string (g_variant_print (maybe_variant, TRUE));
-
-          ret = PAM_NO_MODULE_DATA;
         }
 
       g_dbus_method_invocation_return_value (invocation,

@@ -120,7 +120,7 @@ func TestExecModule(t *testing.T) {
 				{m: "GetData", args: []any{"FooData"}, r: []any{[]int{1, 2, 3}, nil}},
 
 				{m: "SetData", args: []any{"FooData", nil}},
-				{m: "GetData", args: []any{"FooData"}, r: []any{nil, pam.ErrNoModuleData}},
+				{m: "GetData", args: []any{"FooData"}, r: []any{nil, nil}},
 			},
 		},
 		"GetEnvList empty": {
@@ -501,6 +501,13 @@ func TestExecModule(t *testing.T) {
 			skipSet:    true,
 			wantData:   []int{3, 2, 1},
 		},
+		"Data can be nil": {
+			// This is actually a libpam issue, but we should respect that for now
+			// See: https://github.com/linux-pam/linux-pam/pull/780
+			data:     nil,
+			key:      "nil-data",
+			wantData: nil,
+		},
 		"Set replaces data": {
 			presetData: map[string]any{"some-data": []string{"hey! That's", "true"}},
 			key:        "some-data",
@@ -513,17 +520,17 @@ func TestExecModule(t *testing.T) {
 				{"foo": "bar"},
 			},
 		},
+		"No error when getting data that has been removed": {
+			presetData: map[string]any{"some-data": []string{"hey! That's", "true"}},
+			key:        "some-data",
+			data:       nil,
+			wantData:   nil,
+		},
 
 		// Error cases
 		"Error when getting data that has never been set": {
 			skipSet:      true,
 			key:          "not set",
-			wantGetError: pam.ErrNoModuleData,
-		},
-		"Error when getting data that has been removed": {
-			presetData:   map[string]any{"some-data": []string{"hey! That's", "true"}},
-			key:          "some-data",
-			data:         nil,
 			wantGetError: pam.ErrNoModuleData,
 		},
 	}

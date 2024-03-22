@@ -35,6 +35,9 @@ func WithSharedConnection(isShared bool) func(o *options) {
 const ifaceName = "com.ubuntu.authd.pam"
 const objectPath = "/com/ubuntu/authd/pam"
 
+// FIXME: dbus.Variant does not support maybe types, so we're using a variant string instead.
+const variantNothing = "<@mv nothing>"
+
 // NewTransaction creates a new [dbusmodule.Transaction] with the provided connection.
 // A [pam.ModuleTransaction] implementation is returned together with a cleanup function that
 // should be called to release the connection.
@@ -76,7 +79,12 @@ func (tx *Transaction) SetData(key string, data any) error {
 // GetData allows to get any value from the module data saved using SetData
 // that is preserved across the whole time the module is loaded.
 func (tx *Transaction) GetData(key string) (any, error) {
-	return dbusGetter[any](tx.obj, "GetData", key)
+	// See the FIXME on variantNothing, all this should be managed by variant.
+	data, err := dbusGetter[any](tx.obj, "GetData", key)
+	if data == variantNothing {
+		return nil, err
+	}
+	return data, err
 }
 
 // SetItem sets a PAM item.

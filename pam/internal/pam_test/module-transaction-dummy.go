@@ -106,11 +106,6 @@ func (m *ModuleTransactionDummy) GetUser(prompt string) (string, error) {
 // SetData allows to save any value in the module data that is preserved
 // during the whole time the module is loaded.
 func (m *ModuleTransactionDummy) SetData(key string, data any) error {
-	if data == nil {
-		delete(m.Data, key)
-		return nil
-	}
-
 	m.Data[key] = data
 	return nil
 }

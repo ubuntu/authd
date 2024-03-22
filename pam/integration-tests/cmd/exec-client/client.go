@@ -334,6 +334,10 @@ func tryCompareValues(wantValue any, actualValue any) bool {
 		if err, ok := actualValue.(error); ok {
 			return errors.Is(err, w)
 		}
+	case nil:
+		if string, ok := actualValue.(string); ok {
+			return isVariantNothingString(string)
+		}
 	}
 
 	return false

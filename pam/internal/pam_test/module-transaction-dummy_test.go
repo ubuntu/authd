@@ -215,17 +215,18 @@ func TestSetGetData(t *testing.T) {
 				Env:   map[string]string{"foo": "bar"},
 			},
 		},
+		// This is weird, but it's to mimic actual PAM behavior:
+		// See: https://github.com/linux-pam/linux-pam/pull/780
+		"Nil is returned when getting data that has been removed": {
+			presetData: map[string]any{"some-data": []any{"hey! That's", true}},
+			key:        "some-data",
+			data:       nil,
+		},
 
 		// Error cases
 		"Error when getting data that has never been set": {
 			skipSet:      true,
 			key:          "not set",
-			wantGetError: pam.ErrNoModuleData,
-		},
-		"Error when getting data that has been removed": {
-			presetData:   map[string]any{"some-data": []any{"hey! That's", true}},
-			key:          "some-data",
-			data:         nil,
 			wantGetError: pam.ErrNoModuleData,
 		},
 	}
