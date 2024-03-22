@@ -193,7 +193,12 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 // ChangeAuthTok is the method that is invoked during pam_sm_chauthtok request.
 func (h *pamModule) ChangeAuthTok(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
 	parsedArgs, logArgsIssues := parseArgs(args)
-	return h.handleAuthRequest(authd.SessionMode_PASSWD, mTx, flags, parsedArgs, logArgsIssues)
+
+	err := h.handleAuthRequest(authd.SessionMode_PASSWD, mTx, flags, parsedArgs, logArgsIssues)
+	if errors.Is(err, pam.ErrPermDenied) {
+		return pam.ErrAuthtokRecovery
+	}
+	return err
 }
 
 func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTransaction, flags pam.Flags, parsedArgs map[string]string, logArgsIssues func()) error {
@@ -209,6 +214,22 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		return err
 	}
 	logArgsIssues()
+
+	if mode == authd.SessionMode_PASSWD && flags&pam.PrelimCheck != 0 {
+		log.Debug(context.TODO(), "ChangeAuthTok, preliminary check")
+		_, closeConn, err := newClient(parsedArgs)
+		if err != nil {
+			log.Debugf(context.TODO(), "%s", err)
+			return fmt.Errorf("%w: %w", pam.ErrTryAgain, err)
+		}
+		closeConn()
+		return nil
+	}
+
+	if mode == authd.SessionMode_PASSWD {
+		log.Debugf(context.TODO(), "ChangeAuthTok, password update phase: %d",
+			flags&pam.UpdateAuthtok)
+	}
 
 	if gdm.IsPamExtensionSupported(gdm.PamExtensionCustomJSON) {
 		// Explicitly set the output to something so that the program
