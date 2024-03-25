@@ -302,9 +302,14 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				gh.selectedAuthModeIDs = []string{passwordAuthID}
 			}
 
+			var pamFlags pam.Flags
+			if !testutils.IsVerbose() {
+				pamFlags = pam.Silent
+			}
+
 			authResult := make(chan error)
 			go func() {
-				authResult <- gh.tx.Authenticate(pam.Flags(0))
+				authResult <- gh.tx.Authenticate(pamFlags)
 			}()
 
 			var err error
@@ -320,7 +325,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 			require.Equal(t, tc.wantPamInfoMessages, gh.pamInfoMessages,
 				"PAM Info messages do not match")
 
-			require.ErrorIs(t, gh.tx.AcctMgmt(pam.Flags(0)), tc.wantAcctMgmtErr,
+			require.ErrorIs(t, gh.tx.AcctMgmt(pamFlags), tc.wantAcctMgmtErr,
 				"Account Management PAM Error messages do not match")
 
 			if tc.wantError != nil {
