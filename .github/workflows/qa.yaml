@@ -182,7 +182,6 @@ jobs:
           # FIXME: Suppression may be removed with newer libpam, as the one we ship in ubuntu as some leaks
           env LSAN_OPTIONS=suppressions=$(pwd)/pam/integration-tests/lsan.supp \
             go test -C ./pam/integration-tests -asan -gcflags="-dwarflocationlists=true" \
-            -run TestGdmModule -run TestExecModule \
             || exit_code=$?
 
           # We're logging to a file, and this is useful for having artifacts, but we still may want to see it in logs:
