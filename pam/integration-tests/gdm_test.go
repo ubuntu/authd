@@ -265,6 +265,8 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
 
+			moduleArgs := slices.Clone(args)
+
 			// We run a daemon for each test, because here we don't want to
 			// make assumptions whether the state of the broker and each test
 			// should run in parallel and work the same way in any order is ran.
@@ -276,8 +278,14 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				cancel()
 				<-stopped
 			})
+			moduleArgs = append(moduleArgs, "socket="+socketPath)
+
+			gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
+			t.Cleanup(func() { saveArtifactsForDebug(t, []string{gdmLog}) })
+			moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
+
 			serviceFile := createServiceFile(t, "module-loader", libPath,
-				append(slices.Clone(args), "socket="+socketPath))
+				moduleArgs)
 
 			gh := newGdmTestModuleHandler(t, serviceFile, tc.pamUser)
 			t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
