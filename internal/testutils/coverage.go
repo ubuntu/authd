@@ -64,10 +64,10 @@ func AppendCovEnv(env []string) []string {
 func CoverDir() string {
 	goCoverDirOnce.Do(func() {
 		for _, arg := range os.Args {
-			if !strings.HasPrefix(arg, "-test.gocoverdir=") {
+			goCoverDir, ok := strings.CutPrefix(arg, "-test.gocoverdir=")
+			if !ok {
 				continue
 			}
-			goCoverDir = strings.TrimPrefix(arg, "-test.gocoverdir=")
 
 			_, err := os.Stat(goCoverDir)
 			if err == nil {
