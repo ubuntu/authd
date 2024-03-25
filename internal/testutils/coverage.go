@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -67,6 +68,18 @@ func CoverDir() string {
 				continue
 			}
 			goCoverDir = strings.TrimPrefix(arg, "-test.gocoverdir=")
+
+			_, err := os.Stat(goCoverDir)
+			if err == nil {
+				return
+			}
+			if !errors.Is(err, os.ErrNotExist) {
+				panic(err)
+			}
+			err = os.MkdirAll(goCoverDir, 0700)
+			if err != nil {
+				panic(err)
+			}
 		}
 	})
 	return goCoverDir

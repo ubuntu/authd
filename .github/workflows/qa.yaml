@@ -138,7 +138,6 @@ jobs:
           cov_dir="$(pwd)/coverage"
           cod_cov_dir="$(pwd)/coverage/codecov"
           raw_cov_dir="${cov_dir}/raw"
-          mkdir -p "${raw_cov_dir}" "${cod_cov_dir}"
 
           # Overriding the default coverage directory is not an exported flag of go test (yet), so
           # we need to override it using the test.gocoverdir flag instead.
