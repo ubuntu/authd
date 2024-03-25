@@ -938,6 +938,24 @@ do_pam_action (pam_handle_t *pamh,
     g_child_watch_add_full (G_PRIORITY_HIGH, child_pid,
                             on_child_gone, &action_data, NULL);
 
+#ifdef AUTHD_TEST_MODULE
+  /* The previous code implicitly just added a SIGCHLD signal handler.
+   * This is perfectly fine for the purpose of this module, however in
+   * case we're running as part of a Go application (as during authd tests)
+   * we should make sure that the signal handler is called with the go provided
+   * alternate stack. See:
+   *  - https://pkg.go.dev/os/signal#hdr-Go_programs_that_use_cgo_or_SWIG
+   *
+   * This can be removed when/if this GLib change will be part of the release
+   * we're targeting:
+   *  - https://gitlab.gnome.org/GNOME/glib/-/merge_requests/3983
+   */
+  struct sigaction sigchild_handler;
+  sigaction (SIGCHLD, NULL, &sigchild_handler);
+  sigchild_handler.sa_flags |= SA_ONSTACK;
+  sigaction (SIGCHLD, &sigchild_handler, NULL);
+#endif
+
   g_main_loop_run (action_data.loop);
 
   if (action_data.exit_status >= _PAM_RETURN_VALUES)
