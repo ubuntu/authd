@@ -53,7 +53,7 @@ func mainFunc() error {
 		return fmt.Errorf("%w: no connection provided", pam_test.ErrInvalid)
 	}
 
-	mTx, closeFunc, err := dbusmodule.NewTransaction(context.TODO(), *serverAddress)
+	mTx, closeFunc, err := newModuleWrapper(*serverAddress)
 	if err != nil {
 		return fmt.Errorf("%w: can't connect to server: %w", pam_test.ErrInvalid, err)
 	}

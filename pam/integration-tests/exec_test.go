@@ -223,6 +223,14 @@ func TestExecModule(t *testing.T) {
 			methodCalls: []cliMethodCall{{m: "GetData", args: []any{"NotAvailable"}}},
 			wantError:   pam.ErrNoModuleData,
 		},
+		"Error when client fails panicking": {
+			methodCalls: []cliMethodCall{{m: "SimulateClientPanic", args: []any{"Client panicked! (As expected)"}}},
+			wantError:   pam.ErrSymbol,
+		},
+		"Error when client fails because an unhandled error": {
+			methodCalls: []cliMethodCall{{m: "SimulateClientError", args: []any{"Client error!"}}},
+			wantError:   pam.ErrSystem,
+		},
 	}
 	for name, tc := range cliTests {
 		t.Run("Client "+name, func(t *testing.T) {
