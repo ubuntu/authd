@@ -24,10 +24,12 @@ func TestCLIAuthenticate(t *testing.T) {
 	outDir := t.TempDir()
 	prepareCLITest(t, outDir)
 
+	currentDir := testutils.CurrentDir()
+
 	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
 	require.NoError(t, err, "Setup: Could not create gpasswd output directory")
 	gpasswdOutput := filepath.Join(outDir, "gpasswd", "authenticate.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+	groupsFile := filepath.Join(currentDir, testutils.TestFamilyPath(t), "gpasswd.group")
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 	ctx, cancel := context.WithCancel(context.Background())
@@ -41,9 +43,6 @@ func TestCLIAuthenticate(t *testing.T) {
 
 	// If vhs is installed with "go install", we need to add GOPATH to PATH.
 	pathEnv := prependBinToPath(t)
-
-	currentDir, err := os.Getwd()
-	require.NoError(t, err, "Setup: Could not get current directory for the tests")
 
 	tests := map[string]struct {
 		tape string
@@ -104,12 +103,13 @@ func TestCLIAuthenticate(t *testing.T) {
 					break
 				}
 			}
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			goldenDir := testutils.WithGoldenDir(currentDir)
+			want := testutils.LoadWithUpdateFromGolden(t, got, goldenDir)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
 			if tc.tape == "local_group" {
 				got := grouptests.IdempotentGPasswdOutput(t, gpasswdOutput)
-				want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(testutils.GoldenPath(t)+".gpasswd_out"))
+				want := testutils.LoadWithUpdateFromGolden(t, got, goldenDir, testutils.WithGoldenPath(testutils.GoldenPath(t)+".gpasswd_out"))
 				require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
 			}
 		})
@@ -122,11 +122,13 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	outDir := t.TempDir()
 	prepareCLITest(t, outDir)
 
+	currentDir := testutils.CurrentDir()
+
 	// we don't care about the output of gpasswd for this test, but we still need to mock it.
 	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
 	require.NoError(t, err, "Setup: Could not create gpasswd output directory")
 	gpasswdOutput := filepath.Join(outDir, "gpasswd", "chauthtok.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+	groupsFile := filepath.Join(currentDir, testutils.TestFamilyPath(t), "gpasswd.group")
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
 	ctx, cancel := context.WithCancel(context.Background())
@@ -140,9 +142,6 @@ func TestCLIChangeAuthTok(t *testing.T) {
 
 	// If vhs is installed with "go install", we need to add GOPATH to PATH.
 	pathEnv := prependBinToPath(t)
-
-	currentDir, err := os.Getwd()
-	require.NoError(t, err, "Setup: Could not get current directory for the tests")
 
 	tests := map[string]struct {
 		tape string
@@ -194,7 +193,8 @@ func TestCLIChangeAuthTok(t *testing.T) {
 					break
 				}
 			}
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			goldenDir := testutils.WithGoldenDir(currentDir)
+			want := testutils.LoadWithUpdateFromGolden(t, got, goldenDir)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 		})
 	}
@@ -233,11 +233,13 @@ func prepareCLILogging(t *testing.T) string {
 // buildPAM builds the PAM module in a temporary directory and returns a cleanup function.
 func buildPAM(execPath string) (cleanup func(), err error) {
 	cmd := exec.Command("go", "build")
+	cmd.Args = append(cmd.Args, "-C", "pam")
+	cmd.Dir = testutils.ProjectRoot()
 	if testutils.CoverDir() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
 	}
-	cmd.Args = append(cmd.Args, "-tags=pam_binary_cli", "-o", filepath.Join(execPath, "pam_authd"), "../.")
+	cmd.Args = append(cmd.Args, "-tags=pam_binary_cli", "-o", filepath.Join(execPath, "pam_authd"))
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return func() {}, fmt.Errorf("%v: %s", err, out)
 	}
