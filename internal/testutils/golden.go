@@ -25,6 +25,7 @@ func init() {
 }
 
 type goldenOptions struct {
+	goldenDir  string
 	goldenPath string
 }
 
@@ -40,6 +41,15 @@ func WithGoldenPath(path string) GoldenOption {
 	}
 }
 
+// WithGoldenDir overrides the default directory for golden files used.
+func WithGoldenDir(dir string) GoldenOption {
+	return func(o *goldenOptions) {
+		if dir != "" {
+			o.goldenDir = dir
+		}
+	}
+}
+
 // LoadWithUpdateFromGolden loads the element from a plaintext golden file.
 // It will update the file if the update flag is used prior to loading it.
 func LoadWithUpdateFromGolden(t *testing.T, data string, opts ...GoldenOption) string {
@@ -51,6 +61,10 @@ func LoadWithUpdateFromGolden(t *testing.T, data string, opts ...GoldenOption) s
 
 	for _, opt := range opts {
 		opt(&o)
+	}
+
+	if o.goldenDir != "" {
+		o.goldenPath = filepath.Join(o.goldenDir, o.goldenPath)
 	}
 
 	if update {
