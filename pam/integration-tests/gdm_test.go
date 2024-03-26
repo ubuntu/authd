@@ -361,7 +361,8 @@ func TestGdmModuleWithCWrapper(t *testing.T) {
 func buildPAMModule(t *testing.T) string {
 	t.Helper()
 
-	cmd := exec.Command("go", "build", "-C", "..")
+	cmd := exec.Command("go", "build", "-C", "pam")
+	cmd.Dir = testutils.ProjectRoot()
 	if testutils.CoverDir() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
@@ -392,6 +393,7 @@ func buildPAMWrapperModule(t *testing.T) string {
 
 	//nolint:gosec // G204 it's a test so we should allow using any compiler safely.
 	cmd := exec.Command(compiler)
+	cmd.Dir = testutils.CurrentDir()
 	soname := "pam_authd_loader"
 	libPath := filepath.Join(t.TempDir(), soname+".so")
 
