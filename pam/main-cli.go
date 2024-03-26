@@ -21,6 +21,7 @@ func main() {
 	logDir := os.Getenv("AUTHD_PAM_CLI_LOG_DIR")
 	execModule := os.Getenv("AUTHD_PAM_EXEC_MODULE")
 	cliPath := os.Getenv("AUTHD_PAM_CLI_PATH")
+	testName := os.Getenv("AUTHD_PAM_CLI_TEST_NAME")
 
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "pam-cli-tester-")
 	if err != nil {
@@ -87,6 +88,11 @@ func main() {
 		log.Fatalf("Impossible to start transaction %v: %v", cliPath, err)
 	}
 	defer tx.End()
+
+	err = tx.PutEnv("AUTHD_PAM_CLI_TEST_NAME=" + testName)
+	if err != nil {
+		log.Fatalf("Impossible to set environment: %v", err)
+	}
 
 	var resultMsg string
 	var pamFunc func(pam.Flags) error

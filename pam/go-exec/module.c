@@ -601,6 +601,26 @@ on_new_connection (G_GNUC_UNUSED GDBusServer *server,
       return FALSE;
     }
 
+  /* During CLI integration tests, Go might start the dbus transaction from
+   * a non-main thread so the child PID check may fail. We don't really care
+   * about checking for parent/child processes here since that's something that
+   * only affects Go programs loading this module, so let's just ignore this in
+   * some tests.
+   */
+#ifdef AUTHD_TEST_MODULE
+  if (client_pid != action_data->child_pid)
+    {
+      const char *test_name;
+
+      test_name = pam_getenv (pamh, "AUTHD_PAM_CLI_TEST_NAME");
+      g_debug ("%s: Client pid %d does not match with expected %d",
+               test_name, client_pid, action_data->child_pid);
+
+      if (test_name && g_str_has_prefix (test_name, "TestCLI"))
+        client_pid = action_data->child_pid;
+    }
+#endif
+
   if (client_pid != action_data->child_pid && client_pid != getpid ())
     {
       notify_error (pamh, action_data->current_action,
