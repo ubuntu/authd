@@ -80,6 +80,55 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  c-sanity:
+    name: "C Code sanity"
+    runs-on: ubuntu-latest
+    env:
+      CFLAGS: "-Werror"
+    steps:
+      - name: Install dependencies
+        run: |
+          set -eu
+
+          sudo apt update
+          sudo apt install -y ${{ env.apt_deps }} clang-tools clang
+      - name: Prepare report dir
+        run: |
+          set -eu
+
+          scan_build_dir=$(mktemp -d --tmpdir scan-build-dir-XXXXXX)
+          echo SCAN_BUILD_REPORTS_PATH="${scan_build_dir}" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
+      - name: Run scan build on GDM extensions
+        run: |
+          set -eu
+
+          scan-build -v -o "${SCAN_BUILD_REPORTS_PATH}" clang ${CFLAGS} \
+            -Wno-gnu-variable-sized-type-not-at-end \
+            pam/internal/gdm/extension.h
+      - name: Run scan build on go-loader module
+        run: |
+          set -eu
+
+          scan-build -v -o "${SCAN_BUILD_REPORTS_PATH}" clang ${CFLAGS} \
+            -DAUTHD_PAM_MODULES_PATH='"any-path"' \
+            -lpam -shared -fPIC \
+            pam/go-loader/module.c
+      - name: Run scan build on go-exec module
+        run: |
+          set -eu
+
+          scan-build -v -o "${SCAN_BUILD_REPORTS_PATH}" clang ${CFLAGS} \
+            -DAUTHD_TEST_MODULE=1 \
+            $(pkg-config --cflags --libs gio-unix-2.0 gio-2.0) \
+            -lpam -shared -fPIC \
+            pam/go-exec/module.c
+      - name: Upload scan build reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: authd-test-artifacts
+          path: ${{ env.SCAN_BUILD_REPORTS_PATH }}
+
   go-tests:
     name: "Go: Tests"
     runs-on: ubuntu-latest
