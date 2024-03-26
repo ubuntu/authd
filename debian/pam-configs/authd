@@ -4,10 +4,10 @@ Priority: 280
 
 Auth-Type: Primary
 Auth:
-	[success=end default=ignore]	pam_go_loader.so pam_authd.so
+	[success=end default=bad ignore=ignore authinfo_unavail=ignore]	pam_go_loader.so pam_authd.so
 Account-Type: Additional
 Account:
-	[default=ignore success=ok user_unknown=ignore]	pam_go_loader.so pam_authd.so
+	[success=ok default=bad ignore=ignore authinfo_unavail=ignore]	pam_go_loader.so pam_authd.so
 Password-Type: Primary
 Password:
 	sufficient			pam_go_loader.so pam_authd.so
