@@ -2,9 +2,7 @@ package main_test
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -257,17 +255,7 @@ func prepareCLITest(t *testing.T, clientPath string) []string {
 func prepareCLILogging(t *testing.T) string {
 	t.Helper()
 
-	cliLog := filepath.Join(t.TempDir(), "authd-pam-cli.log")
-	t.Cleanup(func() {
-		out, err := os.ReadFile(cliLog)
-		if errors.Is(err, fs.ErrNotExist) {
-			return
-		}
-		require.NoError(t, err, "Teardown: Impossible to read PAM client logs")
-		t.Log(string(out))
-	})
-
-	return cliLog
+	return prepareFileLogging(t, "authd-pam-cli.log")
 }
 
 // buildPAMTestClient builds the PAM module in a temporary directory and returns a cleanup function.
