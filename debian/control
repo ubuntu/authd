@@ -6,7 +6,7 @@ Build-Depends: debhelper-compat (= 13),
                dbus <!nocheck>,
                dh-apport,
                dh-cargo,
-               dh-exec,
+               dh-exec (>= 0.29),
                dh-golang,
                dctrl-tools,
                golang-go (>= 2:1.22~),
@@ -41,3 +41,14 @@ Description: ${source:Synopsis}
  .
  This package contains the authentication daemon together with the PAM & NSS
  modules.
+
+Package: authd-example-broker
+Recommends: authd
+Architecture: any
+Built-Using: ${misc:Built-Using},
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: ${source:Synopsis} - Example broker
+ ${source:Extended-Description}
+ .
+ This package contains an example broker for testing and autopkgtests purposes.

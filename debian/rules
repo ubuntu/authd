@@ -49,9 +49,9 @@ export AUTHD_SKIP_ROOT_TESTS := 1
 export DH_GOLANG_BUILDPKG := $(AUTHD_GO_PACKAGE)/... \
 	$(NULL)
 
-BUILDDIR := $(CURDIR)/obj-$(DEB_HOST_GNU_TYPE)
-
 export BUILT_PAM_LIBS_PATH := obj-$(DEB_HOST_GNU_TYPE)/src/$(AUTHD_GO_PACKAGE)/pam
+
+EXAMPLE_BROKER_BUILD_TAG := with_standalone_examplebroker
 
 %:
 	# --without=single-binary can be removed with dh 15.
@@ -93,6 +93,11 @@ override_dh_auto_build:
 	# Build the daemon
 	dh_auto_build -- $(AUTHD_GO_PACKAGE)/cmd/authd
 
+	# Build the example broker because otherwise it's not
+	# part of the normal install.
+	dh_auto_build -- -tags $(EXAMPLE_BROKER_BUILD_TAG) \
+		$(AUTHD_GO_PACKAGE)/examplebroker/examplebroker-bin
+
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/tmp -- --no-source
 
@@ -101,3 +106,7 @@ override_dh_auto_install:
 
 	# Install gdm-PAM config file
 	dh_installpam -pauthd --name=gdm-authd
+
+override_dh_installsystemd:
+	# Install example-broker service file only by default
+	dh_installsystemd -pauthd
