@@ -47,6 +47,7 @@ func main() {
 	if logDir != "" {
 		logPath := filepath.Join(logDir, "authd-pam-cli.log")
 		defaultArgs = append(defaultArgs, "logfile="+logPath)
+		defaultArgs = append(defaultArgs, "--exec-debug", "--exec-log", logPath)
 	}
 
 	if coverDir := os.Getenv("GOCOVERDIR"); coverDir != "" {

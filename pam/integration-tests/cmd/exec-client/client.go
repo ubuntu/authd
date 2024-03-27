@@ -22,6 +22,7 @@ import (
 var (
 	pamFlags      = flag.Int64("flags", 0, "pam flags")
 	serverAddress = flag.String("server-address", "", "the dbus connection address to use to communicate with module")
+	logFile       = flag.String("client-log", "", "the file where to save logs")
 )
 
 func main() {
@@ -43,8 +44,6 @@ func mainFunc() error {
 	flag.Parse()
 	args := flag.Args()
 
-	log.SetLevel(log.DebugLevel)
-
 	if len(args) < 1 {
 		return fmt.Errorf("%w: not enough arguments", pam_test.ErrInvalid)
 	}
@@ -60,6 +59,19 @@ func mainFunc() error {
 	defer closeFunc()
 
 	action, args := args[0], args[1:]
+
+	// We parse again the remaining arguments again
+	flag.CommandLine.Parse(args)
+	args = flag.CommandLine.Args()
+
+	log.SetLevel(log.DebugLevel)
+	if logFile != nil && *logFile != "" {
+		f, err := os.OpenFile(*logFile, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+		if err != nil {
+			return err
+		}
+		log.SetOutput(f)
+	}
 
 	actionFlags := pam.Flags(0)
 	if pamFlags != nil {

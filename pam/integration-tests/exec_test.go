@@ -794,12 +794,25 @@ func TestExecModule(t *testing.T) {
 	}
 }
 
-func getModuleArgs(clientPath string, args []string) []string {
+func getModuleArgs(t *testing.T, clientPath string, args []string) []string {
+	t.Helper()
+
 	moduleArgs := []string{"--exec-debug"}
 	if env := testutils.CoverDirEnv(); env != "" {
 		moduleArgs = append(moduleArgs, "--exec-env", testutils.CoverDirEnv())
 	}
-	moduleArgs = append(moduleArgs, clientPath)
+
+	logFile := os.Stderr.Name()
+	if !testutils.IsVerbose() {
+		logFile = prepareFileLogging(t, "exec-module.log")
+		saveArtifactsForDebug(t, []string{logFile})
+	}
+	moduleArgs = append(moduleArgs, "--exec-log", logFile)
+
+	if clientPath != "" {
+		moduleArgs = append(moduleArgs, "--", clientPath)
+		moduleArgs = append(moduleArgs, "-client-log", logFile)
+	}
 	return append(moduleArgs, args...)
 }
 
@@ -812,7 +825,7 @@ func preparePamTransaction(t *testing.T, libPath string, clientPath string, args
 func preparePamTransactionWithConv(t *testing.T, libPath string, clientPath string, args []string, user string, conv pam.ConversationHandler) *pam.Transaction {
 	t.Helper()
 
-	serviceFile := createServiceFile(t, execServiceName, libPath, getModuleArgs(clientPath, args))
+	serviceFile := createServiceFile(t, execServiceName, libPath, getModuleArgs(t, clientPath, args))
 	return preparePamTransactionForServiceFile(t, serviceFile, user, conv)
 }
 
@@ -821,7 +834,7 @@ func preparePamTransactionWithActionArgs(t *testing.T, libPath string, clientPat
 
 	actionArgs = maps.Clone(actionArgs)
 	for a := range actionArgs {
-		actionArgs[a] = getModuleArgs(clientPath, actionArgs[a])
+		actionArgs[a] = getModuleArgs(t, clientPath, actionArgs[a])
 	}
 
 	serviceFile := createServiceFileWithActionArgs(t, execServiceName, libPath, actionArgs)
