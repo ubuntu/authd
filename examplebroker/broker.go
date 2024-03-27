@@ -94,6 +94,7 @@ var (
 		"user-can-reset":    {Password: "goodpass"},
 		"user-local-groups": {Password: "goodpass"},
 		"user-pre-check":    {Password: "goodpass"},
+		"user-sudo":         {Password: "goodpass"},
 	}
 )
 
@@ -780,6 +781,9 @@ func userInfoFromName(name string) string {
 
 	if name == "user-local-groups" {
 		user.Groups = append(user.Groups, groupJSONInfo{Name: "localgroup", UGID: ""})
+	}
+	if name == "user-sudo" {
+		user.Groups = append(user.Groups, groupJSONInfo{Name: "sudo", UGID: ""}, groupJSONInfo{Name: "admin", UGID: ""})
 	}
 
 	// only used for tests, we can ignore the template execution error as the returned data will be failing.
