@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
 	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
@@ -201,6 +202,35 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 		})
 	}
+}
+
+func TestPamCLIRunStandalone(t *testing.T) {
+	t.Parallel()
+
+	clientPath := t.TempDir()
+	pamCleanup, err := buildPAMTestClient(clientPath)
+	require.NoError(t, err, "Setup: Failed to build PAM executable")
+	t.Cleanup(pamCleanup)
+
+	// #nosec:G204 - we control the command arguments in tests
+	cmd := exec.Command("go", "run")
+	if testutils.CoverDir() != "" {
+		// -cover is a "positional flag", so it needs to come right after the "build" command.
+		cmd.Args = append(cmd.Args, "-cover")
+		cmd.Env = testutils.AppendCovEnv(os.Environ())
+	}
+
+	cmd.Dir = testutils.ProjectRoot()
+	cmd.Args = append(cmd.Args, "-tags", "pam_binary_cli", "./pam", "login", "--exec-debug")
+	cmd.Args = append(cmd.Args, "logfile="+os.Stdout.Name())
+
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, "Could not run PAM client: %s", out)
+	outStr := string(out)
+	t.Log(outStr)
+
+	require.Contains(t, outStr, pam.ErrSystem.Error())
+	require.Contains(t, outStr, pam_test.ErrIgnore.Error())
 }
 
 func prepareCLITest(t *testing.T, clientPath string) []string {
