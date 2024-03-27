@@ -51,12 +51,21 @@ func fqdnToPath(t *testing.T, path string) string {
 	return ""
 }
 
+// CoverDirEnv returns the cover dir env variable to run a go binary.
+func CoverDirEnv() string {
+	if CoverDir() == "" {
+		return ""
+	}
+	return fmt.Sprintf("GOCOVERDIR=%s", CoverDir())
+}
+
 // AppendCovEnv returns the env needed to enable coverage when running a go binary.
 func AppendCovEnv(env []string) []string {
-	if CoverDir() == "" {
+	envVar := CoverDirEnv()
+	if envVar == "" {
 		return env
 	}
-	return append(env, fmt.Sprintf("GOCOVERDIR=%s", CoverDir()))
+	return append(env, envVar)
 }
 
 // CoverDir parses the arguments to find the cover profile file.

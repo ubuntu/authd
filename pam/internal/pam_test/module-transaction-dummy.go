@@ -10,7 +10,7 @@ import (
 	"github.com/msteinert/pam/v2"
 )
 
-// ModuleTransactionDummy is an implementation of PamModuleTransaction for
+// ModuleTransactionDummy is an implementation of [pam.ModuleTransaction] for
 // testing purposes.
 type ModuleTransactionDummy struct {
 	Items       map[pam.Item]string
@@ -61,6 +61,9 @@ func (m *ModuleTransactionDummy) GetItem(item pam.Item) (string, error) {
 func (m *ModuleTransactionDummy) PutEnv(nameVal string) error {
 	env, value, found := strings.Cut(nameVal, "=")
 	if !found {
+		if _, found := m.Env[env]; !found {
+			return pam.ErrBadItem
+		}
 		delete(m.Env, env)
 		return nil
 	}
@@ -103,11 +106,6 @@ func (m *ModuleTransactionDummy) GetUser(prompt string) (string, error) {
 // SetData allows to save any value in the module data that is preserved
 // during the whole time the module is loaded.
 func (m *ModuleTransactionDummy) SetData(key string, data any) error {
-	if data == nil {
-		delete(m.Data, key)
-		return nil
-	}
-
 	m.Data[key] = data
 	return nil
 }

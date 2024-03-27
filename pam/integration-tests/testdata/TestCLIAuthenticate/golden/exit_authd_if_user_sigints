@@ -134,9 +134,9 @@ Gimme your password
 Gimme your password
 PAM Error Message: cancel requested
 PAM Authenticate() for user "user-integration-sigint" exited with error (PAM exit code: 26): Cri
-tical error - immediate abort: cancel requested
-PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
-dispatch
+tical error - immediate abort
+PAM Info Message: acct=incomplete
+PAM AcctMgmt() exited with error (PAM exit code: 31): Application needs to call libpam again
 >
 
 
@@ -167,9 +167,9 @@ dispatch
 Gimme your password
 PAM Error Message: cancel requested
 PAM Authenticate() for user "user-integration-sigint" exited with error (PAM exit code: 26): Cri
-tical error - immediate abort: cancel requested
-PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
-dispatch
+tical error - immediate abort
+PAM Info Message: acct=incomplete
+PAM AcctMgmt() exited with error (PAM exit code: 31): Application needs to call libpam again
 >
 
 

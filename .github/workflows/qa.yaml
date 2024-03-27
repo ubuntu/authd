@@ -11,6 +11,7 @@ env:
   DEBIAN_FRONTEND: noninteractive
   apt_deps: >-
     libpam-dev
+    libglib2.0-dev
 
   test_apt_deps: >-
     ffmpeg
@@ -44,20 +45,26 @@ jobs:
         run: |
           set -eu
           go build -tags withexamplebroker ./cmd/authd
+      - name: Run PAM client for interactive testing purposes
+        run: |
+          set -eu
+          go run -tags pam_binary_cli ./pam login --exec-debug
       - name: Generate PAM module
         run: |
           set -eu
           find pam -name '*.so' -print -delete
           go generate -C pam -x
           test -e pam/pam_authd.so
-          test -e pam/go-loader/pam_go_loader.so
+          test -e pam/go-loader/pam_authd_loader.so
+          test -e pam/go-exec/pam_authd_exec.so
       - name: Generate PAM module with pam_debug tag
         run: |
           set -eu
           find pam -name '*.so' -print -delete
           go generate -C pam -x -tags pam_debug
           test -e pam/pam_authd.so
-          test -e pam/go-loader/pam_go_loader.so
+          test -e pam/go-loader/pam_authd_loader.so
+          test -e pam/go-exec/pam_authd_exec.so
 
   rust-sanity:
     name: "Rust: Code sanity"
@@ -128,9 +135,13 @@ jobs:
         run: |
           set -eu
 
-          artifacts_dir=$(mktemp -u --tmpdir authd-test-artifacts-XXXXXX)
+          artifacts_dir=$(mktemp -d --tmpdir authd-test-artifacts-XXXXXX)
           echo AUTHD_TEST_ARTIFACTS_PATH="${artifacts_dir}" >> $GITHUB_ENV
+
+          echo ASAN_OPTIONS="log_path=${artifacts_dir}/asan.log:print_stats=true" >> $GITHUB_ENV
       - name: Run tests (with coverage collection)
+        env:
+          G_DEBUG: "fatal-criticals"
         run: |
           set -eu
 
@@ -166,12 +177,19 @@ jobs:
           # Do not optimize, keep debug symbols and frame pointer for better
           # stack trace information in case of ASAN errors.
           CGO_CFLAGS: "-O0 -g3 -fno-omit-frame-pointer"
+          G_DEBUG: "fatal-criticals"
         run: |
           # Use `-dwarflocationlists` to give ASAN a better time to unwind the stack trace
           go test -C ./pam/internal -asan -gcflags="-dwarflocationlists=true" ./...
           # FIXME: Suppression may be removed with newer libpam, as the one we ship in ubuntu as some leaks
           env LSAN_OPTIONS=suppressions=$(pwd)/pam/integration-tests/lsan.supp \
-            go test -C ./pam/integration-tests -asan -gcflags="-dwarflocationlists=true" -run TestGdmModule
+            go test -C ./pam/integration-tests -asan -gcflags="-dwarflocationlists=true" \
+            || exit_code=$?
+
+          # We're logging to a file, and this is useful for having artifacts, but we still may want to see it in logs:
+          cat "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log* || true
+
+          exit ${exit_code}
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

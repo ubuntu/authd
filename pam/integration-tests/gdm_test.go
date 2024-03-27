@@ -2,12 +2,10 @@ package main_test
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"slices"
-	"strings"
 	"testing"
 	"time"
 
@@ -47,11 +45,6 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-
-	// libpam won't ever return a pam.ErrIgnore, so we use a fallback error.
-	// We use incomplete here, but it could be any.
-	const ignoreError = pam.ErrIncomplete
-	const pamDebugIgnoreError = "incomplete"
 
 	testCases := map[string]struct {
 		supportedLayouts   []*authd.UILayout
@@ -154,7 +147,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				"GDM protocol initialization failed, type hello, version 9999",
 			},
 			wantError:       pam.ErrCredUnavail,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on missing user": {
 			pamUser: "",
@@ -162,7 +155,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				"can't select broker: rpc error: code = InvalidArgument desc = can't start authentication transaction: rpc error: code = InvalidArgument desc = no user name provided",
 			},
 			wantError:       pam.ErrSystem,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on no supported layouts": {
 			pamUser:          "user-bar",
@@ -171,7 +164,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				"UI does not support any layouts",
 			},
 			wantError:       pam.ErrCredUnavail,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on unknown broker": {
 			pamUser:    "user-foo",
@@ -185,15 +178,15 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				"Sending GDM event failed: Conversation error",
 			},
 			wantError:       pam.ErrSystem,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error (ignored) on local broker causes fallback error": {
 			pamUser:    "user-foo",
 			brokerName: localBrokerName,
 			wantPamInfoMessages: []string{
-				"auth=" + pamDebugIgnoreError,
+				"auth=incomplete",
 			},
-			wantError:       ignoreError,
+			wantError:       pam_test.ErrIgnore,
 			wantAcctMgmtErr: pam.ErrAbort,
 		},
 		"Error on authenticating user2 with too many retries": {
@@ -232,7 +225,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				"invalid password 'really, it's not a goodpass!', should be 'goodpass'",
 			},
 			wantError:       pam.ErrAuth,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on authenticating unknown user": {
 			pamUser: "user-unknown",
@@ -247,7 +240,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				"user not found",
 			},
 			wantError:       pam.ErrAuth,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on invalid fido ack": {
 			pamUser:     "user-mfa",
@@ -264,7 +257,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				fido1AuthID + " should have wait set to true",
 			},
 			wantError:       pam.ErrAuth,
-			wantAcctMgmtErr: ignoreError,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 	}
 	for name, tc := range testCases {
@@ -284,7 +277,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				<-stopped
 			})
 			serviceFile := createServiceFile(t, "module-loader", libPath,
-				append(slices.Clone(args), "socket="+socketPath), pamDebugIgnoreError)
+				append(slices.Clone(args), "socket="+socketPath))
 
 			gh := newGdmTestModuleHandler(t, serviceFile, tc.pamUser)
 			t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
@@ -377,7 +370,10 @@ func buildPAMModule(t *testing.T) string {
 
 	cmd.Args = append(cmd.Args, "-tags=pam_debug,pam_gdm_debug", "-o", libPath)
 	out, err := cmd.CombinedOutput()
-	require.NoError(t, err, string(out), "Setup: could not compile PAM module")
+	require.NoError(t, err, "Setup: could not compile PAM module: %s", out)
+	if string(out) != "" {
+		t.Log(string(out))
+	}
 
 	return libPath
 }
@@ -385,87 +381,5 @@ func buildPAMModule(t *testing.T) string {
 func buildPAMWrapperModule(t *testing.T) string {
 	t.Helper()
 
-	compiler := os.Getenv("CC")
-	if compiler == "" {
-		compiler = "cc"
-	}
-
-	//nolint:gosec // G204 it's a test so we should allow using any compiler safely.
-	cmd := exec.Command(compiler)
-	soname := "pam_authd_loader"
-	libPath := filepath.Join(t.TempDir(), soname+".so")
-
-	require.NoError(t, os.MkdirAll(filepath.Dir(libPath), 0700),
-		"Setup: Can't create loader build path")
-	t.Logf("Compiling PAM Wrapper library at %s", libPath)
-	cmd.Args = append(cmd.Args, []string{
-		"-o", libPath,
-		"../go-loader/module.c",
-		"-g3",
-		"-O0",
-	}...)
-
-	if modulesPath := os.Getenv("AUTHD_PAM_MODULES_PATH"); modulesPath != "" {
-		cmd.Args = append(cmd.Args, fmt.Sprintf("-DAUTHD_PAM_MODULES_PATH=%q",
-			os.Getenv("AUTHD_PAM_MODULES_PATH")))
-	}
-	if pam_test.IsAddressSanitizerActive() {
-		cmd.Args = append(cmd.Args, "-fsanitize=address,undefined")
-	}
-	if cflags := os.Getenv("CFLAGS"); cflags != "" && os.Getenv("DEB_BUILD_ARCH") == "" {
-		cmd.Args = append(cmd.Args, strings.Split(cflags, " ")...)
-	}
-
-	cmd.Args = append(cmd.Args, []string{
-		"-Wl,--as-needed",
-		"-Wl,--allow-shlib-undefined",
-		"-shared",
-		"-fPIC",
-		"-Wl,--unresolved-symbols=report-all",
-		"-Wl,-soname," + soname + "",
-		"-lpam",
-	}...)
-	if ldflags := os.Getenv("LDFLAGS"); ldflags != "" && os.Getenv("DEB_BUILD_ARCH") == "" {
-		cmd.Args = append(cmd.Args, strings.Split(ldflags, " ")...)
-	}
-
-	if testutils.CoverDir() != "" {
-		cmd.Args = append(cmd.Args, "--coverage")
-		cmd.Args = append(cmd.Args, "-fprofile-abs-path")
-
-		t.Cleanup(func() {
-			t.Log("Running gcov...")
-			gcov := exec.Command("gcov")
-			gcov.Args = append(gcov.Args,
-				"-pb", "-o", filepath.Dir(libPath),
-				soname+".so-module.gcno")
-			gcov.Dir = testutils.CoverDir()
-			out, err := gcov.CombinedOutput()
-			require.NoError(t, err, string(out),
-				"Teardown: Can't get coverage report on C library")
-			t.Log(string(out))
-		})
-	}
-
-	t.Logf("Running compiler command: %s %s", cmd.Path, strings.Join(cmd.Args[1:], " "))
-	out, err := cmd.CombinedOutput()
-	require.NoError(t, err, string(out), "Setup: could not compile PAM module wrapper")
-
-	return libPath
-}
-
-func createServiceFile(t *testing.T, name string, libPath string, args []string, ignoreError string) string {
-	t.Helper()
-
-	serviceFile := filepath.Join(t.TempDir(), name)
-	t.Logf("Creating service file at %s", serviceFile)
-
-	err := os.WriteFile(serviceFile,
-		[]byte(fmt.Sprintf(`auth [success=done ignore=ignore default=die] %[1]s %[2]s
-auth requisite pam_debug.so auth=%[3]s
-account [success=done ignore=ignore default=die] %[1]s %[2]s
-account requisite pam_debug.so acct=%[3]s`, libPath, strings.Join(args, " "), ignoreError)),
-		0600)
-	require.NoError(t, err, "Setup: could not create service file")
-	return serviceFile
+	return buildCPAMModule(t, []string{"./pam/go-loader/module.c"}, nil, "pam_authd_loader")
 }

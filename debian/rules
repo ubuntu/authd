@@ -79,7 +79,7 @@ override_dh_auto_configure:
 	touch debian/cargo-checksum.json
 	dh_auto_configure --buildsystem=cargo
 
-	for i in debian/*.service.in; do \
+	for i in debian/*.service.in debian/pam-configs/*.in; do \
 		sed s,@AUTHD_DAEMONS_PATH@,$(AUTHD_DAEMONS_PATH),g $$i > $${i%.*}; \
 	done
 

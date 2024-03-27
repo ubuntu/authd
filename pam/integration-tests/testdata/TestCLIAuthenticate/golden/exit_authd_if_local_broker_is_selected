@@ -121,14 +121,14 @@ Username: user-local-broker
 
 
 
-PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
-n value should be ignored by PAM dispatch:
-PAM Error Message: Can't set default broker ("local") for "user-local-broker": rpc error: code =
- Unknown desc = can't set default broker "local" for user "user-local-broker": no result matchin
-g user-local-broker in UserByName
-PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
-dispatch
+PAM Info Message: auth=incomplete
+PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 31): Applicati
+on needs to call libpam again
+PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
+
+
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
@@ -154,12 +154,12 @@ dispatch
 
 
 
-PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
-n value should be ignored by PAM dispatch:
-PAM Error Message: Can't set default broker ("local") for "user-local-broker": rpc error: code =
- Unknown desc = can't set default broker "local" for user "user-local-broker": no result matchin
-g user-local-broker in UserByName
-PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
-dispatch
+PAM Info Message: auth=incomplete
+PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 31): Applicati
+on needs to call libpam again
+PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
+
+
+
 ────────────────────────────────────────────────────────────────────────────────

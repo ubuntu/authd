@@ -172,8 +172,8 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 	// Since PAM modules can be stacked, so we may suffer reentry that is fine but it should
 	// be explicitly allowed.
 	parsedArgs, logArgsIssues := parseArgs(args)
-	_, err := mTx.GetData(alreadyAuthenticatedKey)
-	if err == nil && parsedArgs["force_reauth"] != "true" {
+	alreadyAuth, err := mTx.GetData(alreadyAuthenticatedKey)
+	if alreadyAuth != nil && err == nil && parsedArgs["force_reauth"] != "true" {
 		return pam.ErrIgnore
 	}
 	if err != nil && !errors.Is(err, pam.ErrNoModuleData) {
@@ -184,7 +184,7 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 	if err != nil && !errors.Is(err, pam.ErrIgnore) {
 		return err
 	}
-	if err := mTx.SetData(alreadyAuthenticatedKey, struct{}{}); err != nil {
+	if err := mTx.SetData(alreadyAuthenticatedKey, true); err != nil {
 		return err
 	}
 	return err
@@ -201,7 +201,7 @@ func (h *pamModule) ChangeAuthTok(mTx pam.ModuleTransaction, flags pam.Flags, ar
 	return err
 }
 
-func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTransaction, flags pam.Flags, parsedArgs map[string]string, logArgsIssues func()) error {
+func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTransaction, flags pam.Flags, parsedArgs map[string]string, logArgsIssues func()) (err error) {
 	// Initialize localization
 	// TODO
 
@@ -210,6 +210,9 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 
 	closeLogging, err := initLogging(parsedArgs)
 	defer closeLogging()
+	defer func() {
+		log.Debugf(context.TODO(), "%s: exiting with error %v", mode, err)
+	}()
 	if err != nil {
 		return err
 	}
@@ -307,10 +310,13 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 }
 
 // AcctMgmt sets any used brokerID as default for the user.
-func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
+func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []string) (err error) {
 	parsedArgs, logArgsIssues := parseArgs(args)
 	closeLogging, err := initLogging(parsedArgs)
 	defer closeLogging()
+	defer func() {
+		log.Debugf(context.TODO(), "AcctMgmt: exiting with error %v", err)
+	}()
 	if err != nil {
 		return err
 	}
@@ -318,6 +324,11 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 
 	brokerData, err := mTx.GetData(authenticationBrokerIDKey)
 	if err != nil && errors.Is(err, pam.ErrNoModuleData) {
+		return pam.ErrIgnore
+	}
+	if brokerData == nil {
+		// PAM can return no data without an error after that has been unset:
+		// See: https://github.com/linux-pam/linux-pam/pull/780
 		return pam.ErrIgnore
 	}
 

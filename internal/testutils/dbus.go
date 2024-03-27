@@ -33,18 +33,15 @@ var systemBusMockCfg = `<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-Bus Bu
 </busconfig>
 `
 
-// StartSystemBusMock starts a mock dbus daemon and returns a cancel function to stop it.
-//
-// This function uses t.Setenv to set the DBUS_SYSTEM_BUS_ADDRESS environment, so it shouldn't be used in parallel tests
-// that rely on the mentioned variable.
-func StartSystemBusMock() (func(), error) {
+// StartBusMock starts a mock dbus daemon and returns its address and a cancel function to stop it.
+func StartBusMock() (string, func(), error) {
 	if isRunning() {
-		return nil, errors.New("system bus mock is already running")
+		return "", nil, errors.New("system bus mock is already running")
 	}
 
 	tmp, err := os.MkdirTemp(os.TempDir(), "authd-system-bus-mock")
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 
 	cfgPath := filepath.Join(tmp, "bus.conf")
@@ -53,7 +50,7 @@ func StartSystemBusMock() (func(), error) {
 	err = os.WriteFile(cfgPath, []byte(fmt.Sprintf(systemBusMockCfg, listenPath)), 0600)
 	if err != nil {
 		err = errors.Join(err, os.RemoveAll(tmp))
-		return nil, err
+		return "", nil, err
 	}
 
 	busCtx, busCancel := context.WithCancel(context.Background())
@@ -73,12 +70,12 @@ func StartSystemBusMock() (func(), error) {
 	dbusStdout, err := cmd.StdoutPipe()
 	if err != nil {
 		busCancel()
-		return nil, errors.Join(err, os.RemoveAll(tmp))
+		return "", nil, errors.Join(err, os.RemoveAll(tmp))
 	}
 	if err := cmd.Start(); err != nil {
 		busCancel()
 		err = errors.Join(err, os.RemoveAll(tmp))
-		return nil, err
+		return "", nil, err
 	}
 
 	waitDone := make(chan struct{})
@@ -97,25 +94,38 @@ func StartSystemBusMock() (func(), error) {
 	case <-time.After(10 * time.Second):
 		busCancel()
 		err = errors.New("dbus-daemon failed to start in 10 seconds")
-		return nil, errors.Join(err, os.RemoveAll(tmp))
+		return "", nil, errors.Join(err, os.RemoveAll(tmp))
 	case <-waitDone:
 	}
 
 	if !strings.HasPrefix(busAddress, "unix:path=") {
 		busCancel()
 		err = fmt.Errorf("invalid bus path: %s", busAddress)
-		return nil, errors.Join(err, os.RemoveAll(tmp))
+		return "", nil, errors.Join(err, os.RemoveAll(tmp))
 	}
 
 	busAddress, _, _ = strings.Cut(busAddress, ",")
+	return busAddress, func() {
+		busCancel()
+		_ = cmd.Wait()
+		_ = os.RemoveAll(tmp)
+	}, nil
+}
+
+// StartSystemBusMock starts a mock dbus daemon and returns a cancel function to stop it.
+//
+// This function uses t.Setenv to set the DBUS_SYSTEM_BUS_ADDRESS environment, so it shouldn't be used in parallel tests
+// that rely on the mentioned variable.
+func StartSystemBusMock() (func(), error) {
+	busAddress, busCancel, err := StartBusMock()
+	if err != nil {
+		return nil, err
+	}
 	prev, set := os.LookupEnv("DBUS_SYSTEM_BUS_ADDRESS")
 	os.Setenv("DBUS_SYSTEM_BUS_ADDRESS", busAddress)
 
 	return func() {
 		busCancel()
-		_ = cmd.Wait()
-		_ = os.RemoveAll(tmp)
-
 		if !set {
 			os.Unsetenv("DBUS_SYSTEM_BUS_ADDRESS")
 		} else {

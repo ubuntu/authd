@@ -12,6 +12,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// CurrentDir returns the current file directory.
+func CurrentDir() string {
+	// p is the path to the caller file
+	_, p, _, _ := runtime.Caller(1)
+	return filepath.Dir(p)
+}
+
 // ProjectRoot returns the absolute path to the project root.
 func ProjectRoot() string {
 	// p is the path to the current file, in this case -> {PROJECT_ROOT}/internal/testutils/path.go
