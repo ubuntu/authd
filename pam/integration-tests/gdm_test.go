@@ -265,6 +265,8 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
 
+			moduleArgs := slices.Clone(args)
+
 			// We run a daemon for each test, because here we don't want to
 			// make assumptions whether the state of the broker and each test
 			// should run in parallel and work the same way in any order is ran.
@@ -276,8 +278,14 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				cancel()
 				<-stopped
 			})
+			moduleArgs = append(moduleArgs, "socket="+socketPath)
+
+			gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
+			t.Cleanup(func() { saveArtifactsForDebug(t, []string{gdmLog}) })
+			moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
+
 			serviceFile := createServiceFile(t, "module-loader", libPath,
-				append(slices.Clone(args), "socket="+socketPath))
+				moduleArgs)
 
 			gh := newGdmTestModuleHandler(t, serviceFile, tc.pamUser)
 			t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
@@ -302,9 +310,14 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				gh.selectedAuthModeIDs = []string{passwordAuthID}
 			}
 
+			var pamFlags pam.Flags
+			if !testutils.IsVerbose() {
+				pamFlags = pam.Silent
+			}
+
 			authResult := make(chan error)
 			go func() {
-				authResult <- gh.tx.Authenticate(pam.Flags(0))
+				authResult <- gh.tx.Authenticate(pamFlags)
 			}()
 
 			var err error
@@ -320,7 +333,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 			require.Equal(t, tc.wantPamInfoMessages, gh.pamInfoMessages,
 				"PAM Info messages do not match")
 
-			require.ErrorIs(t, gh.tx.AcctMgmt(pam.Flags(0)), tc.wantAcctMgmtErr,
+			require.ErrorIs(t, gh.tx.AcctMgmt(pamFlags), tc.wantAcctMgmtErr,
 				"Account Management PAM Error messages do not match")
 
 			if tc.wantError != nil {

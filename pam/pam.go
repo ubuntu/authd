@@ -108,22 +108,33 @@ func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus adapter.PamRetu
 // initLogging initializes the logging given the passed parameters.
 // It returns a function that should be called in order to reset the logging to
 // the default and potentially close the opened resources.
-func initLogging(args map[string]string) (func(), error) {
+func initLogging(args map[string]string, flags pam.Flags) (func(), error) {
 	log.SetLevel(log.InfoLevel)
-	resetLevel := func() {}
+	resetFunc := func() {}
 	if args["debug"] == "true" {
 		log.SetLevel(log.DebugLevel)
-		resetLevel = func() { log.SetLevel(log.InfoLevel) }
+		resetFunc = func() { log.SetLevel(log.InfoLevel) }
+	}
+
+	isSilent := flags&pam.Silent != 0
+	if isSilent {
+		// If PAM required us to be silent, let's use an empty log handler.
+		baseResetFunc := resetFunc
+		log.SetHandler(func(_ context.Context, level log.Level, format string, args ...interface{}) {})
+		resetFunc = func() {
+			baseResetFunc()
+			log.SetHandler(nil)
+		}
 	}
 
 	if out, ok := args["logfile"]; ok && out != "" {
 		f, err := os.OpenFile(out, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0600)
 		if err != nil {
-			return resetLevel, err
+			return resetFunc, err
 		}
 		log.SetOutput(f)
 		return func() {
-			resetLevel()
+			resetFunc()
 			log.SetOutput(os.Stderr)
 			f.Close()
 		}, nil
@@ -140,9 +151,8 @@ func initLogging(args map[string]string) (func(), error) {
 	}
 
 	if !journal.Enabled() || args["disable_journal"] == "true" {
-		log.SetHandler(nil)
 		disableTerminalLogging()
-		return resetLevel, nil
+		return resetFunc, nil
 	}
 
 	log.SetHandler(func(_ context.Context, level log.Level, format string, args ...interface{}) {
@@ -161,7 +171,7 @@ func initLogging(args map[string]string) (func(), error) {
 	})
 
 	return func() {
-		resetLevel()
+		resetFunc()
 		log.SetHandler(nil)
 	}, nil
 }
@@ -208,7 +218,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 	var pamClientType adapter.PamClientType
 	var teaOpts []tea.ProgramOption
 
-	closeLogging, err := initLogging(parsedArgs)
+	closeLogging, err := initLogging(parsedArgs, flags)
 	defer closeLogging()
 	defer func() {
 		log.Debugf(context.TODO(), "%s: exiting with error %v", mode, err)
@@ -312,7 +322,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 // AcctMgmt sets any used brokerID as default for the user.
 func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []string) (err error) {
 	parsedArgs, logArgsIssues := parseArgs(args)
-	closeLogging, err := initLogging(parsedArgs)
+	closeLogging, err := initLogging(parsedArgs, flags)
 	defer closeLogging()
 	defer func() {
 		log.Debugf(context.TODO(), "AcctMgmt: exiting with error %v", err)
