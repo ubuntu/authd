@@ -220,14 +220,14 @@ Gimme your password
 
 
 
-PAM Authenticate() for user "user-integration-switch-broker" exited with error (PAM exit code: 2
-5): The return value should be ignored by PAM dispatch:
-PAM Error Message: Can't set default broker ("local") for "user-integration-switch-broker": rpc
-error: code = Unknown desc = can't set default broker "local" for user "user-integration-switch-
-broker": no result matching user-integration-switch-broker in UserByName
-PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
-dispatch
+PAM Info Message: auth=incomplete
+PAM Authenticate() for user "user-integration-switch-broker" exited with error (PAM exit code: 3
+1): Application needs to call libpam again
+PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
+
+
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
@@ -253,12 +253,12 @@ dispatch
 
 
 
-PAM Authenticate() for user "user-integration-switch-broker" exited with error (PAM exit code: 2
-5): The return value should be ignored by PAM dispatch:
-PAM Error Message: Can't set default broker ("local") for "user-integration-switch-broker": rpc
-error: code = Unknown desc = can't set default broker "local" for user "user-integration-switch-
-broker": no result matching user-integration-switch-broker in UserByName
-PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
-dispatch
+PAM Info Message: auth=incomplete
+PAM Authenticate() for user "user-integration-switch-broker" exited with error (PAM exit code: 3
+1): Application needs to call libpam again
+PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
+
+
+
 ────────────────────────────────────────────────────────────────────────────────
