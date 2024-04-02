@@ -23,29 +23,29 @@ Hide
 Escape
 Backspace
 Type "user-integration-switch-username"
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Enter
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Escape
 Backspace 15
 Type "username-switched"
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Enter
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Type "2"
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
@@ -54,4 +54,4 @@ Enter
 Sleep 2s
 Show
 
-Sleep 100ms
+Sleep 300ms

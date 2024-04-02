@@ -23,32 +23,32 @@ Hide
 Escape
 Backspace
 Type "user-integration-qr-code"
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Enter
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Type "2"
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Escape
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Type "6"
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Tab
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
@@ -60,4 +60,4 @@ Hide
 Sleep 5s
 Show
 
-Sleep 100ms
+Sleep 300ms
