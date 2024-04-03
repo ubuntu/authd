@@ -23,17 +23,17 @@ Hide
 Escape
 Backspace
 Type "user-local-broker"
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Enter
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Enter
-Sleep 100ms
+Sleep 300ms
 Show
 
-Sleep 100ms
+Sleep 300ms

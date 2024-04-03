@@ -23,22 +23,22 @@ Hide
 Escape
 Backspace
 Type "user-integration-sigint"
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Enter
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Type "2"
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Ctrl+C
-Sleep 100ms
+Sleep 300ms
 Show
 
-Sleep 100ms
+Sleep 300ms

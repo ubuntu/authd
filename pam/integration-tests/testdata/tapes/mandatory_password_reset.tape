@@ -23,17 +23,17 @@ Hide
 Escape
 Backspace
 Type "user-needs-reset"
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Enter
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Type "2"
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
@@ -44,13 +44,13 @@ Show
 
 Hide
 Type "newpass"
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
 Tab
 Type "newpass"
-Sleep 100ms
+Sleep 300ms
 Show
 
 Hide
@@ -58,4 +58,4 @@ Enter
 Sleep 2s
 Show
 
-Sleep 100ms
+Sleep 300ms
