@@ -24,7 +24,7 @@ message GPBRequest {
 }
 
 message GPBResponse {
-  optional string previous_broker = 1;
+  string previous_broker = 1;
 }
 
 message ABResponse {
