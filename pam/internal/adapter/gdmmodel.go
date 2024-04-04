@@ -160,7 +160,7 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 			commands = append(commands, sendEvent(ChangeStage{res.StageChanged.Stage}))
 		}
 	}
-	return tea.Batch(commands...)
+	return tea.Sequence(commands...)
 }
 
 func (m *gdmModel) emitEvent(event gdm.Event) tea.Cmd {
