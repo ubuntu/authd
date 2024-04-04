@@ -84,3 +84,11 @@ func IsAuthenticatedEvent(item authd.IARequestAuthenticationDataItem) *gdm.Event
 		},
 	}
 }
+
+// IsAuthenticatedCancelledEvent generates a IsAuthenticated event.
+func IsAuthenticatedCancelledEvent() *gdm.EventData {
+	return &gdm.EventData{
+		Type: gdm.EventType_isAuthenticatedCancelled,
+		Data: &gdm.EventData_IsAuthenticatedCancelled{},
+	}
+}

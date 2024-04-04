@@ -145,6 +145,8 @@ func EmitEvent(pamMTx pam.ModuleTransaction, event Event) error {
 		evType = EventType_authModeSelected
 	case *EventData_IsAuthenticatedRequested:
 		evType = EventType_isAuthenticatedRequested
+	case *EventData_IsAuthenticatedCancelled:
+		evType = EventType_isAuthenticatedCancelled
 	case *EventData_StageChanged:
 		evType = EventType_stageChanged
 	case *EventData_UiLayoutReceived:

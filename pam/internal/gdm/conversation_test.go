@@ -817,6 +817,10 @@ func TestDataEmitEvent(t *testing.T) {
 			event:         &EventData_IsAuthenticatedRequested{},
 			wantEventType: EventType_isAuthenticatedRequested,
 		},
+		"Emit event IsAuthenticatedCancelled": {
+			event:         &EventData_IsAuthenticatedCancelled{},
+			wantEventType: EventType_isAuthenticatedCancelled,
+		},
 		"Emit event StageChanged": {
 			event:         &EventData_StageChanged{},
 			wantEventType: EventType_stageChanged,
