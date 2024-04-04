@@ -398,14 +398,19 @@ func TestBrokerForUser(t *testing.T) {
 
 	// Get existing BrokerForUser entry
 	gotID, err := c.BrokerForUser("user1")
-	require.NoError(t, err, "BrokerForUser for an existent entry should not return an error")
+	require.NoError(t, err, "BrokerForUser for an existent user should not return an error")
 	wantID := testutils.LoadWithUpdateFromGolden(t, gotID)
 	require.Equal(t, wantID, gotID, "BrokerForUser should return expected broker ID")
 
-	// Error when entry does not exist
+	// Get unassigned broker to existent user
+	gotID, err = c.BrokerForUser("user4")
+	require.NoError(t, err, "BrokerForUser for an existent user should not return an error")
+	require.Empty(t, gotID, "BrokerForUser should return empty broker ID for unassigned broker to existent user")
+
+	// Error when user does not exist
 	gotID, err = c.BrokerForUser("nonexistent")
-	require.Error(t, err, "BrokerForUser for a nonexistent entry should return an error")
-	require.Empty(t, gotID, "BrokerForUser should return empty string when entry does not exist")
+	require.Error(t, err, "BrokerForUser for a nonexistent user should return an error")
+	require.Empty(t, gotID, "BrokerForUser should return empty broker ID when user entry does not exist")
 }
 
 func TestRemoveDb(t *testing.T) {

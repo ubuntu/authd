@@ -4,7 +4,9 @@ package pam
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"os/user"
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
@@ -52,24 +54,46 @@ func (s Service) AvailableBrokers(ctx context.Context, _ *authd.Empty) (*authd.A
 }
 
 // GetPreviousBroker returns the previous broker set for a given user, if any.
+// If the user is not in our cache, it will try to check if it’s on the system, and return then "local".
 func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (*authd.GPBResponse, error) {
+	// Use in memory cache first
 	if b := s.brokerManager.BrokerForUser(req.GetUsername()); b != nil {
 		return &authd.GPBResponse{PreviousBroker: b.ID}, nil
 	}
 
+	// Load from database cache.
 	brokerID, err := s.userManager.BrokerForUser(req.GetUsername())
-	if err != nil {
+	// User is not in our cache.
+	if err != nil && errors.Is(err, users.ErrNoDataFound{}) {
+		// User not acccessible through NSS, first time login or no valid user. Anyway, no broker selected.
+		if _, err := user.Lookup(req.GetUsername()); err != nil {
+			log.Debugf(ctx, "User %q is unknown", req.GetUsername())
+			return &authd.GPBResponse{}, nil
+		}
+
+		// We could resolve the user through NSS, which means then that another non authd service
+		// service (passwd, winbind, sss…) is handling that user.
+		brokerID = brokers.LocalBrokerName
+	} else if err != nil {
 		log.Infof(ctx, "Could not get previous broker for user %q from cache: %v", req.GetUsername(), err)
+		return &authd.GPBResponse{}, nil
+	}
+
+	// No error but the brokerID is empty (broker in cache but default broker not stored yet due no successful login)
+	if brokerID == "" {
+		log.Infof(ctx, "No assigned broker for user %q from cache", req.GetUsername())
 		return &authd.GPBResponse{}, nil
 	}
 
 	// Updates manager memory to stop needing to query the database for the broker.
 	if err = s.brokerManager.SetDefaultBrokerForUser(brokerID, req.GetUsername()); err != nil {
-		log.Warningf(ctx, "Last broker used by %q is not available: %v", req.GetUsername(), err)
+		log.Warningf(ctx, "Last broker used by %q is not available, letting the user selecting one: %v", req.GetUsername(), err)
 		return &authd.GPBResponse{}, nil
 	}
 
-	return &authd.GPBResponse{PreviousBroker: brokerID}, nil
+	return &authd.GPBResponse{
+		PreviousBroker: brokerID,
+	}, nil
 }
 
 // SelectBroker starts a new session and selects the requested broker for the user.

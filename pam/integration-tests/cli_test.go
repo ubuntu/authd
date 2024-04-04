@@ -61,6 +61,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Authenticate with warnings on unsupported arguments": {tape: "simple_auth_with_unsupported_args"},
 
 		"Remember last successful broker and mode": {tape: "remember_broker_and_mode"},
+		"Autoselect local broker for local user":   {tape: "local_user"},
 
 		"Deny authentication if max attempts reached": {tape: "max_attempts"},
 		"Deny authentication if user does not exist":  {tape: "unexistent_user"},

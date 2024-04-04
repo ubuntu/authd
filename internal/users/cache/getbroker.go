@@ -6,7 +6,8 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-// BrokerForUser returns the broker ID assigned to the given username or an error if no entry was found.
+// BrokerForUser returns the broker ID assigned to the given username, empty if it's not assigned yet
+// or an error if no user was found in cache.
 func (c *Cache) BrokerForUser(username string) (brokerID string, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -23,15 +24,15 @@ func (c *Cache) BrokerForUser(username string) (brokerID string, err error) {
 		}
 
 		brokerID, err = getFromBucket[string](bucket, u.UID)
-		// The UserToBroker bucket is a string to string mapping, so there's no issues with marshalling.
-		if err != nil {
-			return err
+		// Ignore the error if the user doesn't have an assigned broker yet.
+		if err != nil && errors.Is(err, NoDataFoundError{}) {
+			err = nil
 		}
-		return nil
+		return err
 	})
-
 	if err != nil {
 		return "", err
 	}
+
 	return brokerID, nil
 }
