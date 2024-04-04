@@ -212,7 +212,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Challenge stage caused by server-side broker and authMode selection": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil)),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil)),
 			messages: []tea.Msg{
 				tea.Sequence(tea.Tick(gdmPollFrequency, func(t time.Time) tea.Msg {
 					return userSelected{username: "daemon-selected-user-and-broker"}
@@ -279,7 +279,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Authenticated after server-side user, broker and authMode selection": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password")),
 			messages: []tea.Msg{
 				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
@@ -317,7 +317,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Authenticated with message after server-side user, broker and authMode selection": {
 			clientOptions: append(slices.Clone(multiBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
 					Access: brokers.AuthGranted,
 					Msg:    `{"message": "Hi GDM, it's a pleasure to get you in!"}`,
@@ -393,7 +393,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Cancelled after server-side user, broker and authMode selection": {
 			clientOptions: append(slices.Clone(multiBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
 					Access: brokers.AuthCancelled,
 				}, nil),
@@ -429,7 +429,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Authenticated after server-side user, broker and authMode selection and after various retries": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
 				pam_test.WithIsAuthenticatedMaxRetries(1),
 			),
@@ -623,7 +623,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"AuthMode selection stage from client after server-side broker and auth mode selection if there is only one auth mode": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 			),
 			messages: []tea.Msg{
 				tea.Sequence(tea.Tick(gdmPollFrequency, func(t time.Time) tea.Msg {
@@ -667,7 +667,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"AuthMode selection stage from client after server-side broker and auth mode selection with multiple auth modes": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithUILayout("pincode", "Pin Code", pam_test.FormUILayout()),
 			),
 			messages: []tea.Msg{
@@ -1098,7 +1098,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Error on invalid broker selection": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithSelectBrokerReturn(nil, errors.New("error during broker selection")),
 			),
 			messages: []tea.Msg{
@@ -1124,7 +1124,7 @@ func TestGdmModel(t *testing.T) {
 		"Error during broker selection if session ID is empty": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithIgnoreSessionIDGeneration(),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithSelectBrokerReturn(&authd.SBResponse{}, nil),
 			),
 			messages: []tea.Msg{
@@ -1149,7 +1149,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Error during broker selection if encryption key is empty": {
 			client: pam_test.NewDummyClient(nil, append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithSelectBrokerReturn(&authd.SBResponse{SessionId: "session-id"}, nil),
 			)...),
 			messages: []tea.Msg{
@@ -1175,7 +1175,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Error during broker selection if encryption key is not valid base64": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithSelectBrokerReturn(&authd.SBResponse{
 					SessionId:     "session-id",
 					EncryptionKey: "no encryption key returned by broker",
@@ -1202,7 +1202,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Error during broker selection if encryption key is not valid key": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithSelectBrokerReturn(&authd.SBResponse{
 					SessionId: "session-id",
 					EncryptionKey: base64.StdEncoding.EncodeToString(
@@ -1402,7 +1402,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Error on authentication client invalid message": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
 					Access: brokers.AuthDenied,
 					Msg:    "invalid JSON",
@@ -1532,7 +1532,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Error on authentication client denied because of wrong password after retry": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
 				pam_test.WithIsAuthenticatedMaxRetries(1),
 			),
@@ -1582,7 +1582,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Error on authentication client because of empty auth data access": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{}, nil),
 			),
 			messages: []tea.Msg{
@@ -1627,7 +1627,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Error on authentication client because of invalid auth data access with message": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithGetPreviousBrokerReturn(&firstBrokerInfo.Id, nil),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
 					Access: "no way you get here!",
 					Msg:    `{"message": "This is not a valid access"}`,

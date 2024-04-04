@@ -83,17 +83,17 @@ func TestGetPreviousBroker(t *testing.T) {
 			wantRet: &authd.GPBResponse{},
 		},
 		"With Error return value": {
-			client:    NewDummyClient(nil, WithGetPreviousBrokerReturn(nil, errTest)),
+			client:    NewDummyClient(nil, WithGetPreviousBrokerReturn("", errTest)),
 			wantError: errTest,
 		},
 		"With defined return value": {
-			client: NewDummyClient(nil, WithGetPreviousBrokerReturn(ptrValue("my-previous-broker"), nil)),
+			client: NewDummyClient(nil, WithGetPreviousBrokerReturn("my-previous-broker", nil)),
 			wantRet: &authd.GPBResponse{
-				PreviousBroker: ptrValue("my-previous-broker"),
+				PreviousBroker: "my-previous-broker",
 			},
 		},
 		"With defined empty return value": {
-			client:  NewDummyClient(nil, WithGetPreviousBrokerReturn(nil, nil)),
+			client:  NewDummyClient(nil, WithGetPreviousBrokerReturn("", nil)),
 			wantRet: &authd.GPBResponse{},
 		},
 		"With predefined default for user empty return value": {
@@ -102,12 +102,12 @@ func TestGetPreviousBroker(t *testing.T) {
 				WithPreviousBrokerForUser("user1", "broker1"),
 			),
 			args:    &authd.GPBRequest{Username: "user1"},
-			wantRet: &authd.GPBResponse{PreviousBroker: ptrValue("broker1")},
+			wantRet: &authd.GPBResponse{PreviousBroker: "broker1"},
 		},
 
 		// Error cases
 		"Error with missing user": {
-			client:    NewDummyClient(nil, WithGetPreviousBrokerReturn(nil, nil)),
+			client:    NewDummyClient(nil, WithGetPreviousBrokerReturn("", nil)),
 			args:      &authd.GPBRequest{},
 			wantError: errors.New("no username provided"),
 		},
@@ -1163,7 +1163,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			retBroker, err := tc.client.GetPreviousBroker(context.TODO(),
 				&authd.GPBRequest{Username: tc.args.Username})
 			require.NoError(t, err)
-			require.Equal(t, tc.args.BrokerId, *retBroker.PreviousBroker)
+			require.Equal(t, tc.args.BrokerId, retBroker.PreviousBroker)
 		})
 	}
 }

@@ -25,7 +25,7 @@ type options struct {
 	availableBrokersRet []*authd.ABResponse_BrokerInfo
 	availableBrokersErr error
 
-	getPreviousBrokerRet *string
+	getPreviousBrokerRet string
 	getPreviousBrokerErr error
 
 	selectBrokerRet *authd.SBResponse
@@ -90,7 +90,7 @@ func WithPreviousBrokerForUser(user string, brokerID string) func(o *options) {
 }
 
 // WithGetPreviousBrokerReturn is the option to define the GetPreviousBroker return values.
-func WithGetPreviousBrokerReturn(ret *string, err error) func(o *options) {
+func WithGetPreviousBrokerReturn(ret string, err error) func(o *options) {
 	return func(o *options) {
 		o.getPreviousBrokerRet = ret
 		o.getPreviousBrokerErr = err
@@ -254,7 +254,7 @@ func (dc *DummyClient) GetPreviousBroker(ctx context.Context, in *authd.GPBReque
 	if dc.getPreviousBrokerErr != nil {
 		return nil, dc.getPreviousBrokerErr
 	}
-	if dc.getPreviousBrokerRet != nil {
+	if dc.getPreviousBrokerRet != "" {
 		return &authd.GPBResponse{PreviousBroker: dc.getPreviousBrokerRet}, nil
 	}
 	if in == nil {
@@ -264,7 +264,7 @@ func (dc *DummyClient) GetPreviousBroker(ctx context.Context, in *authd.GPBReque
 		return nil, errors.New("no username provided")
 	}
 	brokerID := dc.defaultBrokerForUser[in.Username]
-	return &authd.GPBResponse{PreviousBroker: &brokerID}, nil
+	return &authd.GPBResponse{PreviousBroker: brokerID}, nil
 }
 
 // SelectBroker simulates SelectBroker using the provided parameters.

@@ -54,7 +54,7 @@ func (s Service) AvailableBrokers(ctx context.Context, _ *authd.Empty) (*authd.A
 // GetPreviousBroker returns the previous broker set for a given user, if any.
 func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (*authd.GPBResponse, error) {
 	if b := s.brokerManager.BrokerForUser(req.GetUsername()); b != nil {
-		return &authd.GPBResponse{PreviousBroker: &b.ID}, nil
+		return &authd.GPBResponse{PreviousBroker: b.ID}, nil
 	}
 
 	brokerID, err := s.userManager.BrokerForUser(req.GetUsername())
@@ -69,7 +69,7 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 		return &authd.GPBResponse{}, nil
 	}
 
-	return &authd.GPBResponse{PreviousBroker: &brokerID}, nil
+	return &authd.GPBResponse{PreviousBroker: brokerID}, nil
 }
 
 // SelectBroker starts a new session and selects the requested broker for the user.
