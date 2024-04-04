@@ -1,9 +1,11 @@
 package pam_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"path/filepath"
@@ -89,7 +91,10 @@ func TestGetPreviousBroker(t *testing.T) {
 	f, err := os.Open(filepath.Join(testutils.TestFamilyPath(t), "get-previous-broker.db"))
 	require.NoError(t, err, "Setup: could not open fixture database file")
 	defer f.Close()
-	err = cachetests.DbfromYAML(f, cacheDir)
+	d, err := io.ReadAll(f)
+	require.NoError(t, err, "Setup: could not read fixture database file")
+	d = bytes.ReplaceAll(d, []byte("MOCKBROKERID"), []byte(mockBrokerGeneratedID))
+	err = cachetests.DbfromYAML(bytes.NewBuffer(d), cacheDir)
 	require.NoError(t, err, "Setup: could not prepare cache database file")
 
 	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
@@ -102,11 +107,11 @@ func TestGetPreviousBroker(t *testing.T) {
 
 	// Get existing entry
 	gotResp, _ := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithbroker"})
-	require.Equal(t, "local", gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID")
+	require.Equal(t, mockBrokerGeneratedID, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID")
 
-	// Get brokerID from memory if it was already assigned
+	// Get brokerID from memory if it was already assigned // FIXME: how do we know this is from memory?
 	gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithbroker"})
-	require.Equal(t, "local", gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID from memory")
+	require.Equal(t, mockBrokerGeneratedID, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID from memory")
 
 	// Return empty when user does not exist
 	gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "nonexistent"})

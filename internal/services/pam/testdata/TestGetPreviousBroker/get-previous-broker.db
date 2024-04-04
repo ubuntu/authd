@@ -26,5 +26,5 @@ UserToGroups:
   "2222": '{"UID":2222,"GIDs":[22222,99999]}'
   "3333": '{"UID":3333,"GIDs":[33333,99999]}'
 UserToBroker:
-  "1111": '"local"'
+  "1111": '"MOCKBROKERID"'
   "2222": '"inactive-broker-id"'
