@@ -166,12 +166,17 @@ func (m *Manager) BrokerForUser(username string) (string, error) {
 	if err != nil {
 		return "", m.shouldClearDb(err)
 	}
-	return brokerID, err
+
+	return brokerID, nil
 }
 
 // UpdateBrokerForUser updates the broker ID for the given user.
 func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
-	return m.shouldClearDb(m.cache.UpdateBrokerForUser(username, brokerID))
+	if err := m.cache.UpdateBrokerForUser(username, brokerID); err != nil {
+		return m.shouldClearDb(err)
+	}
+
+	return nil
 }
 
 // UserByName returns the user information for the given user name.
