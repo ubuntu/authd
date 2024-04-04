@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -112,6 +113,13 @@ func TestGetPreviousBroker(t *testing.T) {
 	// Get brokerID from memory if it was already assigned // FIXME: how do we know this is from memory?
 	gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithbroker"})
 	require.Equal(t, mockBrokerGeneratedID, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID from memory")
+
+	// Get local user and get it set to local broker
+	u, err := user.Current()
+	require.NoError(t, err, "Setup: could not fetch current user")
+	gotResp, err = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: u.Username})
+	require.NoError(t, err, "GetPreviousBroker should not return an error")
+	require.Equal(t, brokers.LocalBrokerName, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID from memory")
 
 	// Return empty when user does not exist
 	gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "nonexistent"})
