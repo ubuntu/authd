@@ -163,7 +163,10 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 // BrokerForUser returns the broker ID for the given user.
 func (m *Manager) BrokerForUser(username string) (string, error) {
 	brokerID, err := m.cache.BrokerForUser(username)
-	if err != nil {
+	// User not in cache.
+	if err != nil && errors.Is(err, cache.NoDataFoundError{}) {
+		return "", ErrNoDataFound{}
+	} else if err != nil {
 		return "", m.shouldClearDb(err)
 	}
 
