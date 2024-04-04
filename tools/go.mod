@@ -2,7 +2,7 @@ module github.com/ubuntu/authd/tools
 
 go 1.22.0
 
-toolchain go1.22.1
+toolchain go1.22.2
 
 require (
 	github.com/golangci/golangci-lint v1.57.1
