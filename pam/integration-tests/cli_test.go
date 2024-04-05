@@ -231,7 +231,7 @@ func TestPamCLIRunStandalone(t *testing.T) {
 	t.Log(outStr)
 
 	require.Contains(t, outStr, pam.ErrSystem.Error())
-	require.Contains(t, outStr, pam_test.ErrIgnore.Error())
+	require.Contains(t, outStr, pam.ErrIgnore.Error())
 }
 
 func prepareCLITest(t *testing.T, clientPath string) []string {
