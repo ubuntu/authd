@@ -136,9 +136,9 @@ PAM Error Message: cancel requested
 PAM ChangeAuthTok() for user "user-integration-sigint" exited with error (PAM exit code: 26): Cr
 itical error - immediate abort
 PAM Info Message: acct=incomplete
-PAM AcctMgmt() exited with error (PAM exit code: 31): Application needs to call libpam again
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
 >
-
 
 
 
@@ -169,9 +169,9 @@ PAM Error Message: cancel requested
 PAM ChangeAuthTok() for user "user-integration-sigint" exited with error (PAM exit code: 26): Cr
 itical error - immediate abort
 PAM Info Message: acct=incomplete
-PAM AcctMgmt() exited with error (PAM exit code: 31): Application needs to call libpam again
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
 >
-
 
 
 

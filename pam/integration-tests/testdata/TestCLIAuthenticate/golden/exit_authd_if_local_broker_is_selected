@@ -122,8 +122,8 @@ Username: user-local-broker
 
 
 PAM Info Message: auth=incomplete
-PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 31): Applicati
-on needs to call libpam again
+PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
+n value should be ignored by PAM dispatch
 PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
 
@@ -155,8 +155,8 @@ PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate
 
 
 PAM Info Message: auth=incomplete
-PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 31): Applicati
-on needs to call libpam again
+PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
+n value should be ignored by PAM dispatch
 PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
 
