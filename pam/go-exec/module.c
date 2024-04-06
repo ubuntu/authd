@@ -24,10 +24,15 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdint.h>
 #include <gio/gio.h>
 #include <glib/gstdio.h>
 #include <security/pam_ext.h>
 #include <security/pam_modules.h>
+#include "../internal/gdm/extension.h"
+
+#define GDM_PROTO_NAME "com.ubuntu.authd.gdm"
+#define GDM_PROTO_VERSION 1
 
 /* If this fails then our assumptions on using the return value as the pam
  * exit status is not valid anymore, so we need to refactor things to use
@@ -69,6 +74,7 @@ typedef struct _ActionData
   guint            object_registered_id;
   guint            log_handler_id;
   int              log_file_fd;
+  gboolean         has_gdm_extension;
   int              exit_status;
 } ActionData;
 
@@ -122,6 +128,11 @@ const char *UBUNTU_AUTHD_PAM_OBJECT_NODE =
   "      <arg type='s' name='msg' direction='in'/>"
   "      <arg type='i' name='status' direction='out'/>"
   "      <arg type='s' name='response' direction='out'/>"
+  "    </method>"
+  /* We don't return status, but errors to keep conversations faster */
+  "    <method name='JSONConversation'>"
+  "      <arg type='ay' name='request' direction='in'/>"
+  "      <arg type='ay' name='response' direction='out'/>"
   "    </method>"
   "  </interface>"
   "</node>";
@@ -413,6 +424,30 @@ sanitize_variant_key (const char *key)
   return g_strdup_printf ("exec-module-variant-%s", key);
 }
 
+struct pam_response *
+send_binary_data (pam_handle_t *pamh,
+                  const void   *msg)
+{
+  const struct pam_conv *pc;
+  struct pam_response *resp;
+
+  if (pam_get_item (pamh, PAM_CONV, (const void **) &pc) != PAM_SUCCESS)
+    return NULL;
+
+  if (!pc || !pc->conv)
+    return NULL;
+
+  if (pc->conv (1, (const struct pam_message *[]) {
+        &(const struct pam_message) {
+          .msg_style = PAM_BINARY_PROMPT,
+          .msg = msg,
+        }
+      }, &resp, pc->appdata_ptr) != PAM_SUCCESS)
+    return NULL;
+
+  return resp;
+}
+
 static void
 on_pam_method_call (GDBusConnection       *connection,
                     const char            *sender,
@@ -589,6 +624,66 @@ on_pam_method_call (GDBusConnection       *connection,
       g_dbus_method_invocation_return_value (invocation,
                                              g_variant_new ("(is)", ret,
                                                             response ? response : ""));
+    }
+  else if (g_str_equal (method_name, "JSONConversation"))
+    {
+      g_autofree char *response = NULL;
+      g_autofree struct pam_response *reply = NULL;
+      g_autoptr(GVariant) data_variant = NULL;
+      g_autoptr(GBytes) data_bytes = NULL;
+      GdmPamExtensionJSONProtocol *gdm_reply;
+      GdmPamExtensionJSONProtocol gdm_request;
+
+      if G_UNLIKELY (action_data->has_gdm_extension)
+        {
+          g_warning ("GDM JSON extension is not supported!");
+          g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR,
+                                                 G_DBUS_ERROR_NOT_SUPPORTED,
+                                                 "Extension not supported %s",
+                                                 GDM_PAM_EXTENSION_CUSTOM_JSON);
+          return;
+        }
+
+      g_assert (g_variant_n_children (parameters) == 1);
+      data_variant = g_variant_get_child_value (parameters, 0);
+      data_bytes = g_variant_get_data_as_bytes (data_variant);
+
+      g_debug ("JSON request is '%s'", (const char *)
+               g_bytes_get_data (data_bytes, NULL));
+
+      gdm_custom_json_request_init (&gdm_request, GDM_PROTO_NAME, GDM_PROTO_VERSION,
+                                    g_bytes_get_data (data_bytes, NULL));
+
+      reply = send_binary_data (pamh, (void *) &gdm_request);
+      if (!reply)
+        {
+          /* This should be handled as conversation error! */
+          g_debug ("Got NO binary conversation reply");
+          g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR,
+                                                 G_DBUS_ERROR_FAILED,
+                                                 "No conversation reply");
+          return;
+        }
+
+      gdm_reply = GDM_PAM_EXTENSION_REPLY_TO_CUSTOM_JSON_RESPONSE (reply);
+      if (!gdm_reply)
+        {
+          g_debug ("Got NO GDM conversation reply");
+          g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR,
+                                                 G_DBUS_ERROR_INVALID_ARGS,
+                                                 "No valid data returned");
+          return;
+        }
+      g_debug ("JSON reply is '%s'", gdm_reply->json);
+
+      g_dbus_method_invocation_return_value (invocation,
+        g_variant_new_tuple ((GVariant *[]){
+          g_variant_new_from_data (G_VARIANT_TYPE_BYTESTRING,
+                                   gdm_reply->json,
+                                   gdm_reply->json ?
+                                    strlen (gdm_reply->json) : 0,
+                                   FALSE, g_free, NULL),
+        }, 1));
     }
   else
     {
@@ -1011,12 +1106,17 @@ do_pam_action (pam_handle_t *pamh,
   /* FIXME: use g_ptr_array_new_null_terminated when we can use newer GLib. */
   g_ptr_array_add (envp, NULL);
 
+  action_data.has_gdm_extension =
+    is_gdm_pam_extension_supported (GDM_PAM_EXTENSION_CUSTOM_JSON);
+
   int idx = 0;
   g_ptr_array_insert (args, idx++, g_strdup (exe));
   g_ptr_array_insert (args, idx++, g_strdup ("-flags"));
   g_ptr_array_insert (args, idx++, g_strdup_printf ("%d", flags));
   g_ptr_array_insert (args, idx++, g_strdup ("-server-address"));
   g_ptr_array_insert (args, idx++, g_strdup (g_dbus_server_get_client_address (server)));
+  if (action_data.has_gdm_extension)
+    g_ptr_array_insert (args, idx++, g_strdup ("-enable-gdm"));
   g_ptr_array_insert (args, idx++, g_strdup (action));
   /* FIXME: use g_ptr_array_new_null_terminated when we can use newer GLib. */
   g_ptr_array_add (args, NULL);
