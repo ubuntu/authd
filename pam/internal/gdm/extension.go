@@ -152,8 +152,8 @@ func NewBinaryJSONProtoRequest(data []byte) (*pam.BinaryConvRequest, error) {
 		func(ptr pam.BinaryPointer) { (*jsonProtoMessage)(ptr).release() }), nil
 }
 
-// decodeJSONProtoMessage decodes a binary pointer into its JSON representation.
-func decodeJSONProtoMessage(response pam.BinaryPointer) ([]byte, error) {
+// DecodeJSONProtoMessage decodes a binary pointer into its JSON representation.
+func DecodeJSONProtoMessage(response pam.BinaryPointer) ([]byte, error) {
 	reply := (*jsonProtoMessage)(response)
 
 	if reply.protoName() != JSONProtoName ||

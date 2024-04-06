@@ -37,7 +37,7 @@ func sendToGdm(pamMTx pam.ModuleTransaction, data []byte) ([]byte, error) {
 		return nil, errors.New("returned value is not in binary form")
 	}
 	defer binRes.Release()
-	return binRes.Decode(decodeJSONProtoMessage)
+	return binRes.Decode(DecodeJSONProtoMessage)
 }
 
 // sendData sends the data to the PAM Module, returning the JSON data.
@@ -182,7 +182,7 @@ type DataConversationFunc func(*Data) (*Data, error)
 
 // RespondPAMBinary is a conversation callback adapter.
 func (f DataConversationFunc) RespondPAMBinary(ptr pam.BinaryPointer) (pam.BinaryPointer, error) {
-	json, err := decodeJSONProtoMessage(ptr)
+	json, err := DecodeJSONProtoMessage(ptr)
 	if err != nil {
 		return nil, err
 	}
