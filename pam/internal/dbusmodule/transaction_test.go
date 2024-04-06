@@ -10,9 +10,10 @@ import (
 	"github.com/godbus/dbus/v5"
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/dbusmodule"
+	"github.com/ubuntu/authd/pam/internal/gdm"
+	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
 const ifaceName = "com.ubuntu.authd.pam"
@@ -519,6 +520,95 @@ func TestStartStringConv(t *testing.T) {
 	}
 }
 
+func TestGdmConv(t *testing.T) {
+	t.Parallel()
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+	tests := map[string]struct {
+		prompt                []byte
+		convError             pam.Error
+		convShouldNotBeCalled bool
+		retValue              any
+
+		want            []byte
+		wantMethodCalls *methodCallExpectations
+		wantError       error
+	}{
+		"GDM JSON conversations are handled by conversation": {
+			prompt: []byte("Hello binary transaction!"),
+			want:   []byte("I'm handling it fine though"),
+		},
+
+		// Error cases
+		"Error if conversation receives a DBus error": {
+			prompt:    []byte("Hello binary transaction!"),
+			wantError: pam.ErrConv,
+			retValue:  "some non-byte value",
+		},
+		"Error if conversation receives a JSON parsing error": {
+			wantError:             gdm.ErrInvalidJSON,
+			convShouldNotBeCalled: true,
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+			mce := methodCallExpectations{}
+			if !tc.convShouldNotBeCalled {
+				if tc.retValue == nil {
+					tc.retValue = tc.want
+				}
+				mce.add("JSONConversation", []any{append(tc.prompt, 0)}, []any{tc.retValue})
+			}
+
+			tx, ts := prepareTransaction(t, mce.methodReturns)
+
+			jsonReq, err := gdm.NewBinaryJSONProtoRequest(tc.prompt)
+			require.NoError(t, err, "Setup: failed creating GDM JSON proto request")
+			reply, err := tx.StartConv(jsonReq)
+
+			if !errors.Is(tc.wantError, pam.ErrSystem) {
+				require.Equal(t, mce.wantMethodCalls, ts.getCalledMethods(), "Method calls mismatch")
+			}
+			requireDbusErrorIs(t, err, tc.wantError)
+
+			if tc.wantError != nil {
+				require.Zero(t, reply)
+				return
+			}
+
+			require.NotNil(t, reply)
+			binaryReply, ok := reply.(pam.BinaryConvResponse)
+			require.True(t, ok, "Response is not a conversation response")
+			require.NotNil(t, binaryReply)
+
+			decoded, err := binaryReply.Decode(gdm.DecodeJSONProtoMessage)
+			require.NoError(t, err, "Decoding error of the binary data")
+
+			require.Equal(t, string(tc.want), string(decoded))
+		})
+	}
+}
+
+func TestGdmConvUnsupported(t *testing.T) {
+	// This cannot be parallel!
+
+	// Disable extensions and set them back
+	gdm.AdvertisePamExtensions([]string{})
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
+	t.Cleanup(func() { gdm.AdvertisePamExtensions([]string{gdm.PamExtensionCustomJSON}) })
+
+	tx, _ := prepareTransaction(t, nil)
+	jsonReq, err := gdm.NewBinaryJSONProtoRequest([]byte("some request..."))
+	require.NoError(t, err, "Setup: failed creating GDM JSON proto request")
+
+	resp, err := tx.StartConv(jsonReq)
+	require.ErrorIs(t, err, gdm.ErrProtoNotSupported)
+	require.Nil(t, resp)
+}
+
 func TestTransactionGetUser(t *testing.T) {
 	t.Parallel()
 
@@ -671,6 +761,6 @@ func prepareTestServer(t *testing.T, expectedReturns []methodReturn) (string, *t
 }
 
 func TestMain(m *testing.M) {
-	log.SetLevel(log.DebugLevel)
+	gdm.AdvertisePamExtensions([]string{gdm.PamExtensionCustomJSON})
 	m.Run()
 }

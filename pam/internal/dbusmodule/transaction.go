@@ -10,7 +10,7 @@ import (
 	"github.com/godbus/dbus/v5"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/decorate"
+	"github.com/ubuntu/authd/pam/internal/gdm"
 )
 
 // Transaction is a [pam.Transaction] with dbus support.
@@ -219,11 +219,32 @@ func (tx *Transaction) handleStringRequest(req pam.StringConvRequest) (pam.Strin
 	}, nil
 }
 
+func (tx *Transaction) handleBinaryRequest(req pam.BinaryConvRequester) (pam.BinaryConvResponse, error) {
+	if !gdm.IsPamExtensionSupported(gdm.PamExtensionCustomJSON) {
+		log.Debugf(context.TODO(), "protocol not supported")
+		return nil, fmt.Errorf("%w: %w", pam.ErrSystem, gdm.ErrProtoNotSupported)
+	}
+
+	json, err := gdm.DecodeJSONProtoMessage(req.Pointer())
+	if err != nil {
+		log.Debugf(context.TODO(), "failed to decode data: %v", err)
+		return nil, fmt.Errorf("%w: %w", pam.ErrSystem, err)
+	}
+
+	var reply []byte
+	method := fmt.Sprintf("%s.JSONConversation", ifaceName)
+	err = tx.obj.Call(method, dbus.FlagNoAutoStart, append(json, 0)).Store(&reply)
+	if err != nil {
+		log.Debugf(context.TODO(), "failed to call %s: %v", method, err)
+		return nil, pam.ErrConv
+	}
+
+	return gdm.NewBinaryJSONProtoResponse(reply)
+}
+
 // StartConvMulti initiates a PAM conversation with multiple ConvRequest's.
 func (tx *Transaction) StartConvMulti(requests []pam.ConvRequest) (
 	responses []pam.ConvResponse, err error) {
-	defer decorate.OnError(&err, "%v", err)
-
 	if len(requests) == 0 {
 		return nil, errors.New("no requests defined")
 	}
@@ -233,6 +254,12 @@ func (tx *Transaction) StartConvMulti(requests []pam.ConvRequest) (
 		switch r := req.(type) {
 		case pam.StringConvRequest:
 			response, err := tx.handleStringRequest(r)
+			if err != nil {
+				return nil, err
+			}
+			responses = append(responses, response)
+		case pam.BinaryConvRequester:
+			response, err := tx.handleBinaryRequest(r)
 			if err != nil {
 				return nil, err
 			}

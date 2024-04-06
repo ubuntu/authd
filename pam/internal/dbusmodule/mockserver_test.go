@@ -151,6 +151,24 @@ func (ts *testServer) Prompt(style pam.Style, prompt string) (int, string, *dbus
 	return status, reply, nil
 }
 
+// JSONConversation prompts for a PAM json binary conversation.
+func (ts *testServer) JSONConversation(prompt []byte) ([]byte, *dbus.Error) {
+	methodName := ts.getMethodName()
+	ts.addCalledMethod(methodName, prompt)
+
+	retValue, err := ts.getReturnValues(methodName, 1)
+	if err != nil {
+		return nil, dbus.NewError(testDBusErrorName, []any{err.Error()})
+	}
+	retBytes, ok := retValue[0].([]byte)
+	if !ok {
+		return nil, dbus.NewError(testDBusErrorName, []any{
+			fmt.Sprintf("Not a byte type: %#v", retValue[0]),
+		})
+	}
+	return retBytes, nil
+}
+
 func (ts *testServer) getMethodName() string {
 	pc := make([]uintptr, 2)
 	runtime.Callers(2, pc)
