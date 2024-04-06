@@ -62,7 +62,7 @@ func TestGdmExtensionSupport(t *testing.T) {
 	}
 }
 
-func TestGdmJSONProto(t *testing.T) {
+func TestGdmJSONProtoRequest(t *testing.T) {
 	t.Parallel()
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
@@ -155,7 +155,106 @@ func TestGdmJSONProtoRequestErrors(t *testing.T) {
 	}
 }
 
+func TestGdmJSONProtoResponse(t *testing.T) {
+	t.Parallel()
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+	testCases := map[string]struct {
+		value []byte
+	}{
+		"With null data": {
+			value: []byte("null"),
+		},
+		"With single int": {
+			value: []byte("55"),
+		},
+		"With single float": {
+			value: []byte("5.5"),
+		},
+		"With single string": {
+			value: []byte(`"hello"`),
+		},
+		"With single boolean": {
+			value: []byte("true"),
+		},
+		"With empty object": {
+			value: []byte("{}"),
+		},
+		"With complex object": {
+			value: []byte(`{"type":"pollResponse","pollResponse":` +
+				`[{"type":"brokerSelected","brokerSelected":{"brokerId":"a broker"}},` +
+				`{"type":"authModeSelected","authModeSelected":{"authModeId":"auth mode"}}]}`),
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+			response, err := NewBinaryJSONProtoResponse(tc.value)
+			require.NoError(t, err)
+			t.Cleanup(response.Release)
+			require.NotNil(t, response)
+			require.NotNil(t, response.Data())
+			require.Equal(t, pam.BinaryPrompt, response.Style())
+
+			decoded, err := response.Decode(DecodeJSONProtoMessage)
+			require.NoError(t, err)
+			require.Equalf(t, tc.value, decoded, "JSON mismatch '%s' vs '%s'",
+				string(tc.value), string(decoded))
+		})
+	}
+}
+
 func TestGdmJSONProtoResponseErrors(t *testing.T) {
+	t.Parallel()
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+	testCases := map[string]struct {
+		protoName    string
+		protoVersion uint
+		jsonValue    []byte
+
+		wantError error
+	}{
+		"On nil JSON": {
+			protoName:    JSONProtoName,
+			protoVersion: JSONProtoVersion,
+			jsonValue:    nil,
+			wantError:    ErrInvalidJSON,
+		},
+		"On empty JSON": {
+			protoName:    JSONProtoName,
+			protoVersion: JSONProtoVersion,
+			jsonValue:    []byte{},
+			wantError:    ErrInvalidJSON,
+		},
+		"On invalid JSON": {
+			protoName:    JSONProtoName,
+			protoVersion: JSONProtoVersion,
+			jsonValue:    []byte("{]"),
+			wantError:    ErrInvalidJSON,
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+			req := allocateJSONProtoMessage()
+			t.Cleanup(req.release)
+			req.init(tc.protoName, tc.protoVersion, tc.jsonValue)
+			require.Equal(t, req.protoVersion(), tc.protoVersion)
+			require.Equal(t, req.protoName(), tc.protoName)
+
+			binRes, err := NewBinaryJSONProtoResponse(tc.jsonValue)
+			require.Nil(t, binRes)
+			require.ErrorIs(t, err, tc.wantError)
+		})
+	}
+}
+
+func TestGdmJSONProtoResponseInternalErrors(t *testing.T) {
 	t.Parallel()
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
@@ -177,24 +276,6 @@ func TestGdmJSONProtoResponseErrors(t *testing.T) {
 			protoVersion: JSONProtoVersion + 100,
 			jsonValue:    []byte("{}"),
 			wantError:    ErrProtoNotSupported,
-		},
-		"On nil JSON": {
-			protoName:    JSONProtoName,
-			protoVersion: JSONProtoVersion,
-			jsonValue:    nil,
-			wantError:    ErrInvalidJSON,
-		},
-		"On empty JSON": {
-			protoName:    JSONProtoName,
-			protoVersion: JSONProtoVersion,
-			jsonValue:    []byte{},
-			wantError:    ErrInvalidJSON,
-		},
-		"On invalid JSON": {
-			protoName:    JSONProtoName,
-			protoVersion: JSONProtoVersion,
-			jsonValue:    []byte("{]"),
-			wantError:    ErrInvalidJSON,
 		},
 	}
 	for name, tc := range testCases {

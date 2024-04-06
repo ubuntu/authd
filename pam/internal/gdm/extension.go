@@ -147,9 +147,21 @@ func NewBinaryJSONProtoRequest(data []byte) (*pam.BinaryConvRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf(context.TODO(), "Sending to gdm %s", string(data))
+	log.Debugf(context.TODO(), "Sending to gdm %s", data)
 	return pam.NewBinaryConvRequest(request.encode(),
 		func(ptr pam.BinaryPointer) { (*jsonProtoMessage)(ptr).release() }), nil
+}
+
+// NewBinaryJSONProtoResponse returns a new pam.BinaryConvResponse from the
+// provided data.
+func NewBinaryJSONProtoResponse(data []byte) (pam.BinaryConvResponse, error) {
+	request, err := newJSONProtoMessage(data)
+	if err != nil {
+		return nil, err
+	}
+	log.Debugf(context.TODO(), "Sending to gdm %s", data)
+	releaseFunc := func(ptr pam.BinaryPointer) { (*jsonProtoMessage)(ptr).release() }
+	return pam.NewBinaryConvRequestFull(nil, nil, releaseFunc).CreateResponse(request.encode()), nil
 }
 
 // DecodeJSONProtoMessage decodes a binary pointer into its JSON representation.
