@@ -634,7 +634,7 @@ on_pam_method_call (GDBusConnection       *connection,
       GdmPamExtensionJSONProtocol *gdm_reply;
       GdmPamExtensionJSONProtocol gdm_request;
 
-      if G_UNLIKELY (action_data->has_gdm_extension)
+      if G_UNLIKELY (!action_data->has_gdm_extension)
         {
           g_warning ("GDM JSON extension is not supported!");
           g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR,
