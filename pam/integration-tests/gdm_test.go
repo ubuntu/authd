@@ -370,21 +370,36 @@ func TestGdmModule(t *testing.T) {
 	testGdmModule(t, libPath, nil)
 }
 
-func TestGdmModuleWithCWrapper(t *testing.T) {
+func TestGdmModuleWithExecModule(t *testing.T) {
 	t.Parallel()
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
-	wrapperLibPath := buildPAMWrapperModule(t)
-	libPath := buildPAMModule(t)
-	testGdmModule(t, wrapperLibPath, []string{libPath})
+	execLib, moduleArgs := prepareGdmModuleTestsWithExecModule(t)
+	testGdmModule(t, execLib, moduleArgs)
 }
 
-func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
-	// This cannot be parallel!
-	t.Cleanup(pam_test.MaybeDoLeakCheck)
+func prepareGdmModuleTestsWithExecModule(t *testing.T) (string, []string) {
+	t.Helper()
 
-	libPath := buildPAMModule(t)
-	moduleArgs := []string{libPath}
+	execLib := buildExecModule(t)
+	cliPath := buildPAMClient(t)
+	moduleArgs := []string{"--exec-debug"}
+	if !testutils.IsVerbose() {
+		logFile := prepareFileLogging(t, "exec-module.log")
+		saveArtifactsForDebug(t, []string{logFile})
+		moduleArgs = append(moduleArgs, "--exec-log", logFile)
+	}
+	if env := testutils.CoverDirEnv(); env != "" {
+		moduleArgs = append(moduleArgs, "--exec-env", testutils.CoverDirEnv())
+	}
+	moduleArgs = append(moduleArgs, "--", cliPath)
+
+	return execLib, moduleArgs
+}
+
+//nolint:thelper // This is actually a test!
+func testGdmModuleAuthenticateWithoutGdmExtension(t *testing.T, libPath string, moduleArgs []string) {
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
@@ -421,12 +436,23 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	requirePreviousBrokerForUser(t, socketPath, "", pamUser)
 }
 
-func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
+func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
+	// This cannot be parallel!
+
+	testGdmModuleAuthenticateWithoutGdmExtension(t, buildPAMModule(t), nil)
+}
+
+func TestGdmModuleAuthenticateWithoutGdmExtensionWithExecModule(t *testing.T) {
+	// This cannot be parallel!
+
+	execLib, moduleArgs := prepareGdmModuleTestsWithExecModule(t)
+	testGdmModuleAuthenticateWithoutGdmExtension(t, execLib, moduleArgs)
+}
+
+//nolint:thelper // This is actually a test!
+func testGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T, libPath string, moduleArgs []string) {
 	// This cannot be parallel!
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
-
-	libPath := buildPAMModule(t)
-	moduleArgs := []string{libPath}
 
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
@@ -478,6 +504,18 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	requirePreviousBrokerForUser(t, socketPath, "", pamUser)
 }
 
+func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
+	// This cannot be parallel!
+	testGdmModuleAcctMgmtWithoutGdmExtension(t, buildPAMModule(t), nil)
+}
+
+func TestGdmModuleAcctMgmtWithoutGdmExtensionWithExecModule(t *testing.T) {
+	// This cannot be parallel!
+
+	execLib, moduleArgs := prepareGdmModuleTestsWithExecModule(t)
+	testGdmModuleAcctMgmtWithoutGdmExtension(t, execLib, moduleArgs)
+}
+
 func buildPAMModule(t *testing.T) string {
 	t.Helper()
 
@@ -503,10 +541,4 @@ func buildPAMModule(t *testing.T) string {
 	}
 
 	return libPath
-}
-
-func buildPAMWrapperModule(t *testing.T) string {
-	t.Helper()
-
-	return buildCPAMModule(t, []string{"./pam/go-loader/module.c"}, nil, "pam_authd_loader")
 }
