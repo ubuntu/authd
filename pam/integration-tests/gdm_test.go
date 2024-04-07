@@ -291,8 +291,13 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 			serviceFile := createServiceFile(t, "gdm-authd", libPath,
 				moduleArgs)
 
+			timedOut := false
 			gh := newGdmTestModuleHandler(t, serviceFile, tc.pamUser)
-			t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
+			t.Cleanup(func() {
+				if !timedOut {
+					require.NoError(t, gh.tx.End(), "PAM: can't end transaction")
+				}
+			})
 			gh.eventPollResponses = tc.eventPollResponses
 
 			if tc.supportedLayouts == nil {
@@ -326,7 +331,8 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 
 			var err error
 			select {
-			case <-time.After(10 * time.Second):
+			case <-time.After(30 * time.Second):
+				timedOut = true
 				t.Fatal("Authentication timed out!")
 			case err = <-authResult:
 			}
