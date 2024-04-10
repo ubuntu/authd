@@ -80,6 +80,55 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  c-sanity:
+    name: "C Code sanity"
+    runs-on: ubuntu-latest
+    env:
+      CFLAGS: "-Werror"
+    steps:
+      - name: Install dependencies
+        run: |
+          set -eu
+
+          sudo apt update
+          sudo apt install -y ${{ env.apt_deps }} clang-tools clang
+      - name: Prepare report dir
+        run: |
+          set -eu
+
+          scan_build_dir=$(mktemp -d --tmpdir scan-build-dir-XXXXXX)
+          echo SCAN_BUILD_REPORTS_PATH="${scan_build_dir}" >> $GITHUB_ENV
+      - uses: actions/checkout@v4
+      - name: Run scan build on GDM extensions
+        run: |
+          set -eu
+
+          scan-build -v -o "${SCAN_BUILD_REPORTS_PATH}" clang ${CFLAGS} \
+            -Wno-gnu-variable-sized-type-not-at-end \
+            pam/internal/gdm/extension.h
+      - name: Run scan build on go-loader module
+        run: |
+          set -eu
+
+          scan-build -v -o "${SCAN_BUILD_REPORTS_PATH}" clang ${CFLAGS} \
+            -DAUTHD_PAM_MODULES_PATH='"any-path"' \
+            -lpam -shared -fPIC \
+            pam/go-loader/module.c
+      - name: Run scan build on go-exec module
+        run: |
+          set -eu
+
+          scan-build -v -o "${SCAN_BUILD_REPORTS_PATH}" clang ${CFLAGS} \
+            -DAUTHD_TEST_MODULE=1 \
+            $(pkg-config --cflags --libs gio-unix-2.0 gio-2.0) \
+            -lpam -shared -fPIC \
+            pam/go-exec/module.c
+      - name: Upload scan build reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: authd-test-artifacts
+          path: ${{ env.SCAN_BUILD_REPORTS_PATH }}
+
   go-tests:
     name: "Go: Tests"
     runs-on: ubuntu-latest
@@ -90,7 +139,7 @@ jobs:
 
           # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
           sudo apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}} ${{ env.test_apt_deps }}
-      - name: Install PAM debug symbols
+      - name: Install PAM and GLib debug symbols
         run: |
           set -eu
           sudo apt-get install ubuntu-dbgsym-keyring -y
@@ -100,10 +149,11 @@ jobs:
           sudo tee -a /etc/apt/sources.list.d/ddebs.list
           # Sometimes ddebs archive is stuck, so in case of failure we need to go manual
           sudo apt update -y || true
-          if ! sudo apt install -y libpam-modules-dbgsym libpam0*-dbgsym; then
+          if ! sudo apt install -y libpam-modules-dbgsym libpam0*-dbgsym libglib2.0-0-dbgsym; then
             sudo apt install -y ubuntu-dev-tools
             pull-lp-ddebs pam $(lsb_release -cs)
-            sudo apt install -y ./libpam0*.ddeb ./libpam-modules*.ddeb
+            pull-lp-ddebs libglib2.0-0 $(lsb_release -cs)
+            sudo apt install -y ./libpam0*.ddeb ./libpam-modules*.ddeb ./libglib2.0-0-dbgsym*.ddeb
             sudo apt remove -y ubuntu-dev-tools
             sudo apt autoremove -y
           fi
