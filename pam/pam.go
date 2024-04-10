@@ -42,6 +42,10 @@ const (
 	// we've already authenticated with this module and so that we should not
 	// do this again.
 	alreadyAuthenticatedKey = "authd.already-authenticated-flag"
+
+	// gdmServiceName is the name of the service that is loaded by GDM.
+	// Keep this in sync with the service file installed by the package.
+	gdmServiceName = "gdm-authd"
 )
 
 var supportedArgs = []string{
@@ -331,6 +335,16 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 		return err
 	}
 	logArgsIssues()
+
+	// We ignore AcctMgmt in case we're loading the module through the exec client
+	serviceName, err := mTx.GetItem(pam.Service)
+	if err != nil {
+		log.Warningf(context.TODO(), "Impossible to get PAM service name: %v", err)
+		return pam.ErrIgnore
+	}
+	if serviceName == gdmServiceName && !gdm.IsPamExtensionSupported(gdm.PamExtensionCustomJSON) {
+		return pam.ErrIgnore
+	}
 
 	brokerData, err := mTx.GetData(authenticationBrokerIDKey)
 	if err != nil && errors.Is(err, pam.ErrNoModuleData) {
