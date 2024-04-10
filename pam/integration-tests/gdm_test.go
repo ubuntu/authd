@@ -333,16 +333,21 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 			require.Equal(t, tc.wantPamInfoMessages, gh.pamInfoMessages,
 				"PAM Info messages do not match")
 
+			requirePreviousBrokerForUser(t, socketPath, "", tc.pamUser)
+
 			require.ErrorIs(t, gh.tx.AcctMgmt(pamFlags), tc.wantAcctMgmtErr,
 				"Account Management PAM Error messages do not match")
 
 			if tc.wantError != nil {
+				requirePreviousBrokerForUser(t, socketPath, "", tc.pamUser)
 				return
 			}
 
 			user, err := gh.tx.GetItem(pam.User)
 			require.NoError(t, err, "Can't get the pam user")
 			require.Equal(t, tc.pamUser, user, "PAM user name does not match expected")
+
+			requirePreviousBrokerForUser(t, socketPath, gh.selectedBrokerName, user)
 		})
 	}
 }
