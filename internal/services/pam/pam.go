@@ -263,6 +263,10 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURe
 		return &authd.Empty{}, err
 	}
 
+	if req.GetBrokerId() == brokers.LocalBrokerName {
+		return &authd.Empty{}, nil
+	}
+
 	if err = s.userManager.UpdateBrokerForUser(req.GetUsername(), req.GetBrokerId()); err != nil {
 		return &authd.Empty{}, err
 	}
