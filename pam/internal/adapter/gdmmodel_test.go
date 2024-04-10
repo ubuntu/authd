@@ -427,6 +427,42 @@ func TestGdmModel(t *testing.T) {
 			wantGdmAuthRes: []*authd.IAResponse{{Access: brokers.AuthCancelled}},
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
+		"Explicitly cancelled after server-side user, broker and authMode selection": {
+			clientOptions: append(slices.Clone(multiBrokerClientOptions),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
+			),
+			messages: []tea.Msg{
+				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
+					return userSelected{username: "daemon-selected-user-and-broker"}
+				}))(),
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_challenge,
+					events: []*gdm.EventData{
+						gdm_test.IsAuthenticatedCancelledEvent(),
+					},
+				},
+			},
+			wantUsername:       "daemon-selected-user-and-broker",
+			wantSelectedBroker: firstBrokerInfo.Id,
+			wantGdmRequests: []gdm.RequestType{
+				gdm.RequestType_uiLayoutCapabilities,
+				gdm.RequestType_changeStage, // -> broker Selection
+				gdm.RequestType_changeStage, // -> authMode Selection
+				gdm.RequestType_changeStage, // -> challenge
+			},
+			wantGdmEvents: []gdm.EventType{
+				gdm.EventType_userSelected,
+				gdm.EventType_brokersReceived,
+				gdm.EventType_brokerSelected,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent,
+			},
+			wantStage:      pam_proto.Stage_challenge,
+			wantGdmAuthRes: []*authd.IAResponse{{Access: brokers.AuthCancelled}},
+			wantExitStatus: gdmTestEarlyStopExitStatus,
+		},
 		"Authenticated after server-side user, broker and authMode selection and after various retries": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),

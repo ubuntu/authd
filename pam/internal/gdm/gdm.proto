@@ -105,8 +105,10 @@ enum EventType {
     startAuthentication = 9;
     // EventType_isAuthenticatedRequested is an authentication request EventType.
     isAuthenticatedRequested = 10;
+    // EventType_isAuthenticationCancelled is authentication cancellation EventType.
+    isAuthenticatedCancelled = 11;
     // EventType_stageChanged is stage changed EventType.
-    stageChanged = 11;
+    stageChanged = 12;
 }
 
 message Events {
@@ -142,6 +144,8 @@ message Events {
         authd.IARequest.AuthenticationData authentication_data = 1;
     }
 
+    message IsAuthenticatedCancelled {}
+
     message StageChanged {
         pam.Stage stage = 1;
     }
@@ -165,5 +169,6 @@ message EventData {
         Events.ReselectAuthMode reselectAuthMode = 18;
         Events.StartAuthentication startAuthentication = 19;
         Events.UserSelected userSelected = 20;
+        Events.IsAuthenticatedCancelled isAuthenticatedCancelled = 21;
     }
 }
