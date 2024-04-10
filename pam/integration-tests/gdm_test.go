@@ -20,8 +20,12 @@ import (
 	"github.com/ubuntu/authd/pam/internal/proto"
 )
 
-func init() {
+func enableGdmExtension() {
 	gdm.AdvertisePamExtensions([]string{gdm.PamExtensionCustomJSON})
+}
+
+func init() {
+	enableGdmExtension()
 }
 
 const (
@@ -284,7 +288,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 			t.Cleanup(func() { saveArtifactsForDebug(t, []string{gdmLog}) })
 			moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
-			serviceFile := createServiceFile(t, "module-loader", libPath,
+			serviceFile := createServiceFile(t, "gdm-authd", libPath,
 				moduleArgs)
 
 			gh := newGdmTestModuleHandler(t, serviceFile, tc.pamUser)
@@ -367,6 +371,105 @@ func TestGdmModuleWithCWrapper(t *testing.T) {
 	wrapperLibPath := buildPAMWrapperModule(t)
 	libPath := buildPAMModule(t)
 	testGdmModule(t, wrapperLibPath, []string{libPath})
+}
+
+func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
+	// This cannot be parallel!
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+	libPath := buildPAMModule(t)
+	moduleArgs := []string{libPath}
+
+	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
+	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+	ctx, cancel := context.WithCancel(context.Background())
+	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath,
+		testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile)...))
+	t.Cleanup(func() {
+		cancel()
+		<-stopped
+	})
+	moduleArgs = append(moduleArgs, "socket="+socketPath)
+
+	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
+	t.Cleanup(func() { saveArtifactsForDebug(t, []string{gdmLog}) })
+	moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
+
+	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
+	pamUser := "user1"
+	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
+	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
+
+	// We disable gdm extension support, as if it was the case when the module is loaded
+	// outside GDM.
+	gdm.AdvertisePamExtensions(nil)
+	t.Cleanup(enableGdmExtension)
+
+	var pamFlags pam.Flags
+	if !testutils.IsVerbose() {
+		pamFlags = pam.Silent
+	}
+
+	require.ErrorIs(t, gh.tx.Authenticate(pamFlags), pam.ErrSystem,
+		"Authentication should fail")
+	requirePreviousBrokerForUser(t, socketPath, "", pamUser)
+}
+
+func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
+	// This cannot be parallel!
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+	libPath := buildPAMModule(t)
+	moduleArgs := []string{libPath}
+
+	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
+	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+	ctx, cancel := context.WithCancel(context.Background())
+	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath,
+		testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile)...))
+	t.Cleanup(func() {
+		cancel()
+		<-stopped
+	})
+	moduleArgs = append(moduleArgs, "socket="+socketPath)
+
+	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
+	t.Cleanup(func() { saveArtifactsForDebug(t, []string{gdmLog}) })
+	moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
+
+	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
+	pamUser := "user1"
+	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
+	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
+
+	gh.supportedLayouts = []*authd.UILayout{pam_test.FormUILayout()}
+	gh.protoVersion = gdm.ProtoVersion
+	gh.selectedBrokerName = exampleBrokerName
+	gh.selectedAuthModeIDs = []string{passwordAuthID}
+	gh.eventPollResponses = map[gdm.EventType][]*gdm.EventData{
+		gdm.EventType_startAuthentication: {
+			gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+				Challenge: "goodpass",
+			}),
+		},
+	}
+
+	var pamFlags pam.Flags
+	if !testutils.IsVerbose() {
+		pamFlags = pam.Silent
+	}
+
+	require.NoError(t, gh.tx.Authenticate(pamFlags), "Setup: Authentication failed")
+	requirePreviousBrokerForUser(t, socketPath, "", pamUser)
+
+	// We disable gdm extension support, as if it was the case when the module is loaded
+	// again from the exec module.
+	gdm.AdvertisePamExtensions(nil)
+	t.Cleanup(enableGdmExtension)
+
+	require.ErrorIs(t, gh.tx.AcctMgmt(pamFlags), pam_test.ErrIgnore,
+		"Account Management PAM Error message do not match")
+	requirePreviousBrokerForUser(t, socketPath, "", pamUser)
 }
 
 func buildPAMModule(t *testing.T) string {
