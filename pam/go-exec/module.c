@@ -38,8 +38,6 @@ G_STATIC_ASSERT (_PAM_RETURN_VALUES < 255);
 G_LOCK_DEFINE_STATIC (exec_module);
 G_LOCK_DEFINE_STATIC (logger);
 
-static char *global_log_file = NULL;
-
 typedef struct _ActionData ActionData;
 
 /* This struct contains the data of the module, note that it can be shared
@@ -69,6 +67,8 @@ typedef struct _ActionData
   gulong           connection_new_id;
   gulong           connection_closed_id;
   guint            object_registered_id;
+  guint            log_handler_id;
+  int              log_file_fd;
   int              exit_status;
 } ActionData;
 
@@ -186,26 +186,24 @@ notify_error (pam_handle_t *pamh,
 
 static GLogWriterOutput
 log_writer (GLogLevelFlags   log_level,
+            const char      *log_domain,
             const GLogField *fields,
             gsize            n_fields,
             gpointer         user_data)
 {
+  ActionData *action_data = user_data;
   g_autoptr(GMutexLocker) G_GNUC_UNUSED locker = NULL;
   g_autofree char *log_line = NULL;
-  g_autofd int log_file_fd = -1;
+  int log_file_fd;
   gboolean use_colors;
   size_t length;
 
-  if (g_log_writer_default_would_drop (log_level, G_LOG_DOMAIN))
+  if (g_log_writer_default_would_drop (log_level, log_domain))
     return G_LOG_WRITER_HANDLED;
 
   locker = g_mutex_locker_new (&G_LOCK_NAME (logger));
 
-  if (global_log_file && *global_log_file != '\0')
-    log_file_fd = open (global_log_file, O_CREAT | O_WRONLY | O_APPEND, 0600);
-  else
-    log_file_fd = dup (STDERR_FILENO);
-
+  log_file_fd = action_data->log_file_fd;
   if (log_file_fd <= 0)
     return G_LOG_WRITER_UNHANDLED;
 
@@ -222,6 +220,35 @@ log_writer (GLogLevelFlags   log_level,
 
   g_printerr ("Can't write log to file: %s", g_strerror (errno));
   return G_LOG_WRITER_UNHANDLED;
+}
+
+static void
+log_handler (const gchar   *log_domain,
+             GLogLevelFlags log_level,
+             const gchar   *message,
+             gpointer       user_data)
+{
+  GLogField log_fields[] = {
+    {
+      .key = "MESSAGE",
+      .value = message,
+      .length = -1,
+    },
+    {
+      .key = "GLIB_DOMAIN",
+      .value = log_domain,
+      .length = -1,
+    }
+  };
+
+  if (log_writer (log_level, log_domain, log_fields, G_N_ELEMENTS (log_fields),
+                  user_data) == G_LOG_WRITER_HANDLED)
+    {
+      g_assert (!(log_level & G_LOG_FLAG_FATAL));
+      return;
+    }
+
+  g_log_default_handler (log_domain, log_level, message, user_data);
 }
 
 static void
@@ -244,15 +271,21 @@ action_module_data_cleanup (ActionData *action_data)
 
   g_log_set_debug_enabled (FALSE);
 
-  G_LOCK (logger);
-  g_clear_pointer (&global_log_file, g_free);
-  G_UNLOCK (logger);
-
   g_clear_object (&action_data->cancellable);
   g_clear_object (&action_data->connection);
   g_clear_pointer (&action_data->loop, g_main_loop_unref);
   g_clear_handle_id (&action_data->child_watch_id, g_source_remove);
   g_clear_handle_id (&action_data->child_pid, g_spawn_close_pid);
+
+  G_LOCK (logger);
+  if (action_data->log_handler_id)
+    g_log_remove_handler (G_LOG_DOMAIN, action_data->log_handler_id);
+#if AUTHD_TEST_MODULE
+  /* During tests we are catching catch all the domains! */
+  g_log_set_default_handler (g_log_default_handler, NULL);
+#endif
+  g_clear_fd (&action_data->log_file_fd, NULL);
+  G_UNLOCK (logger);
 
   if (module_data &&
       !g_atomic_pointer_compare_and_exchange (&module_data->action_data, action_data, NULL))
@@ -839,28 +872,46 @@ do_pam_action (pam_handle_t *pamh,
   g_autofd int stdin_fd = -1;
   g_autofd int stdout_fd = -1;
   g_autofd int stderr_fd = -1;
-  static gsize logger_set = FALSE;
+  g_autofd int log_file_fd = -1;
   gboolean interactive_mode;
   GPid child_pid;
 
-  if (g_once_init_enter (&logger_set))
-    {
-      g_log_set_writer_func (log_writer, NULL, NULL);
-      g_once_init_leave (&logger_set, TRUE);
-    }
+  G_LOCK (logger);
+
+#ifdef AUTHD_TEST_MODULE
+  /* When running tests we also set the default handler, so that we can have
+   * better debugging experience in case of failures in other log domains.
+   */
+  g_log_set_default_handler (log_handler, &action_data);
+#endif
+
+  action_data.log_handler_id =
+    g_log_set_handler (G_LOG_DOMAIN, G_LOG_LEVEL_MASK | G_LOG_FLAG_FATAL,
+                       log_handler, &action_data);
 
   if (!handle_module_options (argc, argv, &args, &env_variables, &log_file, &error))
     {
+      G_UNLOCK (logger);
       notify_error (pamh, action, "impossible to parse arguments: %s", error->message);
       return PAM_SYSTEM_ERR;
     }
 
-  locker = g_mutex_locker_new (&G_LOCK_NAME (exec_module));
+  if (log_file && *log_file != '\0')
+    log_file_fd = open (log_file, O_CREAT | O_WRONLY | O_APPEND, 0600);
+  else
+    log_file_fd = dup (STDERR_FILENO);
 
-  G_LOCK (logger);
-  g_assert (global_log_file == NULL);
-  global_log_file = g_steal_pointer (&log_file);
+  if (log_file_fd == -1)
+    {
+      g_warning ("Impossible to open log file %s: %s",
+                 (log_file && *log_file != '\0') ? log_file : "<sderr>",
+                 g_strerror (errno));
+    }
+
+  action_data.log_file_fd = g_steal_fd (&log_file_fd);
   G_UNLOCK (logger);
+
+  locker = g_mutex_locker_new (&G_LOCK_NAME (exec_module));
 
   g_debug ("Starting %s", action);
 

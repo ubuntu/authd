@@ -132,6 +132,8 @@ jobs:
   go-tests:
     name: "Go: Tests"
     runs-on: ubuntu-latest
+    env:
+      AUTHD_PAM_MODULES_PATH: /lib/x86_64-linux-gnu/security
     steps:
       - name: Install dependencies
         run: |
