@@ -11,6 +11,16 @@ import (
 	"github.com/ubuntu/authd/internal/testsdetection"
 )
 
+// withCurrentUserAsRoot returns an Option that sets the rootUID to the current user's UID.
+func withCurrentUserAsRoot() Option {
+	testsdetection.MustBeTesting()
+
+	uid := currentUserUID()
+	return func(o *options) {
+		o.rootUID = uid
+	}
+}
+
 // currentUserUID returns the current user UID or panics.
 func currentUserUID() uint32 {
 	testsdetection.MustBeTesting()
