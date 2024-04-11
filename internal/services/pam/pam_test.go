@@ -487,18 +487,18 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 	tests := map[string]struct {
 		// These are the function arguments.
 		username string
-
-		// These are auxiliary inputs that affect the test setup and help control the mock output.
-		noBroker bool
+		brokerID string
 
 		// This is the expected return.
 		wantErr bool
 	}{
-		"Set default broker for existing user": {username: "usersetbroker"},
+		"Set default broker for existing user with no broker":   {username: "usersetbroker"},
+		"Update default broker for existing user with a broker": {username: "userupdatebroker"},
+		"Setting local broker as default should not save on DB": {username: "userlocalbroker", brokerID: brokers.LocalBrokerName},
 
 		"Error when username is empty":     {wantErr: true},
 		"Error when user does not exist ":  {username: "doesnotexist", wantErr: true},
-		"Error when broker does not exist": {username: "userwithbroker", noBroker: true, wantErr: true},
+		"Error when broker does not exist": {username: "userwithbroker", brokerID: "does not exist", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -519,13 +519,12 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			t.Cleanup(func() { _ = m.Stop() })
 			client := newPamClient(t, m)
 
-			wantID := mockBrokerGeneratedID
-			if tc.noBroker {
-				wantID = "does not exist"
+			if tc.brokerID == "" {
+				tc.brokerID = mockBrokerGeneratedID
 			}
 
 			sdbfuReq := &authd.SDBFURequest{
-				BrokerId: wantID,
+				BrokerId: tc.brokerID,
 				Username: tc.username,
 			}
 			_, err = client.SetDefaultBrokerForUser(context.Background(), sdbfuReq)
@@ -534,6 +533,10 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 				return
 			}
 			require.NoError(t, err, "SetDefaultBrokerForUser should not return an error, but did")
+
+			gpbResp, err := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: tc.username})
+			require.NoError(t, err, "GetPreviousBroker should not return an error")
+			require.Equal(t, tc.brokerID, gpbResp.GetPreviousBroker(), "SetDefaultBrokerForUser should set the default broker as expected")
 
 			// Check that cache has been updated too.
 			gotDB, err := cachetests.DumpToYaml(usertests.GetManagerCache(m))
