@@ -84,9 +84,8 @@ func LoadWithUpdateFromGoldenYAML[E any](t *testing.T, got E, opts ...GoldenOpti
 	return wantDeserialized
 }
 
-// NormalizeGoldenName returns the name of the golden file with illegal Windows
-// characters replaced or removed.
-func NormalizeGoldenName(t *testing.T, name string) string {
+// NormalizeName transforms name input with illegal characters replaced or removed.
+func NormalizeName(t *testing.T, name string) string {
 	t.Helper()
 
 	name = strings.ReplaceAll(name, `\`, "_")
@@ -112,7 +111,7 @@ func GoldenPath(t *testing.T) string {
 	path := filepath.Join(TestFamilyPath(t), "golden")
 	_, sub, found := strings.Cut(t.Name(), "/")
 	if found {
-		path = filepath.Join(path, NormalizeGoldenName(t, sub))
+		path = filepath.Join(path, NormalizeName(t, sub))
 	}
 
 	return path
