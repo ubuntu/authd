@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -51,10 +50,6 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, son
 			getPkgConfigFlags(t, append([]string{"--cflags"}, pkgConfigDeps...))...)
 	}
 
-	if modulesPath := os.Getenv("AUTHD_PAM_MODULES_PATH"); modulesPath != "" {
-		cmd.Args = append(cmd.Args, fmt.Sprintf("-DAUTHD_PAM_MODULES_PATH=%q",
-			os.Getenv("AUTHD_PAM_MODULES_PATH")))
-	}
 	if pam_test.IsAddressSanitizerActive() {
 		cmd.Args = append(cmd.Args, "-fsanitize=address,undefined")
 	}

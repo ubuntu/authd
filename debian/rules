@@ -31,9 +31,6 @@ export CARGO_VENDOR_DIR := $(CURDIR)/vendor_rust
 export DEB_HOST_GNU_TYPE DEB_HOST_RUST_TYPE
 export CARGO_HOME = $(CURDIR)/debian/cargo_home
 
-# Needed by the pam module loader
-export AUTHD_PAM_MODULES_PATH = /usr/lib/$(DEB_TARGET_GNU_TYPE)/security
-
 # Used not to hardcore the daemons paths
 export AUTHD_DAEMONS_PATH := /usr/libexec
 
