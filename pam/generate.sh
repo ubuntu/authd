@@ -4,7 +4,6 @@ set -euo pipefail
 
 SCRIPT_PATH=$(dirname "$0")
 PROJECT_ROOT=$(realpath "$SCRIPT_PATH")/..
-module_libname=pam_authd.so
 exec_libname=pam_authd_exec.so
 
 cd "$SCRIPT_PATH"
@@ -13,9 +12,8 @@ if [ -d "$PROJECT_ROOT"/vendor ]; then
     echo Vendored dependencies detected, not re-generating pam_module.go
 else
     go run github.com/msteinert/pam/v2/cmd/pam-moduler \
-        -libname "$module_libname" -type pamModule -no-main \
+        -type pamModule -no-main \
         "${@}"
-    go generate -x -tags pam_module_generation
 fi
 
 # shellcheck disable=SC2086

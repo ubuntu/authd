@@ -81,7 +81,7 @@ override_dh_auto_configure:
 	done
 
 override_dh_auto_build:
-	# Build PAM library & Go loader
+	# Build PAM exec library
 	DH_GOLANG_GO_GENERATE=1 dh_auto_build -- $(AUTHD_GO_PACKAGE)/pam
 
 	# Build the NSS library
