@@ -348,6 +348,12 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 			require.ErrorIs(t, gh.tx.AcctMgmt(pamFlags), tc.wantAcctMgmtErr,
 				"Account Management PAM Error messages do not match")
 
+			if tc.wantAcctMgmtErr == nil {
+				// Ensure that we ignore a second request to it.
+				require.ErrorIs(t, gh.tx.AcctMgmt(pamFlags), pam_test.ErrIgnore,
+					"Account Management PAM Error messages do not match")
+			}
+
 			if tc.wantError != nil {
 				requirePreviousBrokerForUser(t, socketPath, "", tc.pamUser)
 				return
@@ -498,6 +504,10 @@ func testGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T, libPath string, modu
 	// again from the exec module.
 	gdm.AdvertisePamExtensions(nil)
 	t.Cleanup(enableGdmExtension)
+
+	require.ErrorIs(t, gh.tx.AcctMgmt(pamFlags), pam_test.ErrIgnore,
+		"Account Management PAM Error message do not match")
+	requirePreviousBrokerForUser(t, socketPath, "", pamUser)
 
 	require.ErrorIs(t, gh.tx.AcctMgmt(pamFlags), pam_test.ErrIgnore,
 		"Account Management PAM Error message do not match")
