@@ -21,7 +21,7 @@ lazy_static = "1.4.0"
 libc = "0.2.152"
 paste = "1.0.14"
 tonic = "0.11.0"
-prost = "0.12.3"
+prost = "0.12.4"
 rustix = { version = "0.38.32", features = ["use-libc"] }
 tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread"] }
 tower = "0.4.13"
@@ -33,4 +33,4 @@ procfs = "0.16.0"
 
 [build-dependencies]
 tonic-build = "0.11.0"
-cc = "1.0.90"
+cc = "1.0.92"
