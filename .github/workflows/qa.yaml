@@ -231,10 +231,14 @@ jobs:
         run: |
           # Use `-dwarflocationlists` to give ASAN a better time to unwind the stack trace
           go test -C ./pam/internal -asan -gcflags="-dwarflocationlists=true" ./...
+
+          pushd ./pam/integration-tests
+          go test -asan -gcflags="-dwarflocationlists=true" -c
           # FIXME: Suppression may be removed with newer libpam, as the one we ship in ubuntu as some leaks
-          env LSAN_OPTIONS=suppressions=$(pwd)/pam/integration-tests/lsan.supp \
-            go test -C ./pam/integration-tests -asan -gcflags="-dwarflocationlists=true" \
+          env LSAN_OPTIONS=suppressions=$(pwd)/lsan.supp \
+            ./integration-tests.test \
             || exit_code=$?
+          popd
 
           # We're logging to a file, and this is useful for having artifacts, but we still may want to see it in logs:
           cat "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log* || true
