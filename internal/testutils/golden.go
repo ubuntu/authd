@@ -84,8 +84,7 @@ func LoadWithUpdateFromGoldenYAML[E any](t *testing.T, got E, opts ...GoldenOpti
 	return wantDeserialized
 }
 
-// NormalizeName returns the name of the golden file with illegal Windows
-// characters replaced or removed.
+// NormalizeName transforms name input with illegal characters replaced or removed.
 func NormalizeName(t *testing.T, name string) string {
 	t.Helper()
 
