@@ -36,3 +36,17 @@ func currentUserUID() uint32 {
 
 	return uint32(uid)
 }
+
+// setCurrentRootAsRoot mutates a default permission to the current user's UID if currentUserAsRoot is true.
+//
+//nolint:unused // false positive as used in authorizertests with linkname.
+func (a *Authorizer) setCurrentRootAsRoot(currentUserAsRoot bool) {
+	testsdetection.MustBeTesting()
+
+	if !currentUserAsRoot {
+		a.rootUID = defaultOptions.rootUID
+		return
+	}
+
+	a.rootUID = currentUserUID()
+}
