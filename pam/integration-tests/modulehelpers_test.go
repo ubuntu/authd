@@ -51,9 +51,20 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, son
 			getPkgConfigFlags(t, append([]string{"--cflags"}, pkgConfigDeps...))...)
 	}
 
-	if modulesPath := os.Getenv("AUTHD_PAM_MODULES_PATH"); modulesPath != "" {
+	modulesPath := os.Getenv("AUTHD_PAM_MODULES_PATH")
+	if modulesPath != "" {
 		cmd.Args = append(cmd.Args, fmt.Sprintf("-DAUTHD_PAM_MODULES_PATH=%q",
 			os.Getenv("AUTHD_PAM_MODULES_PATH")))
+	}
+	if modulesPath == "" {
+		archTriplet, err := exec.Command("gcc", "-dumpmachine").CombinedOutput()
+		if err == nil {
+			cmd.Args = append(cmd.Args,
+				fmt.Sprintf(`-DAUTHD_PAM_MODULES_PATH="/usr/lib/%s/security"`,
+					strings.TrimSpace(string(archTriplet))))
+		} else {
+			t.Logf("Failed getting arch triplet: %v", err)
+		}
 	}
 	if pam_test.IsAddressSanitizerActive() {
 		cmd.Args = append(cmd.Args, "-fsanitize=address,undefined")
