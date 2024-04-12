@@ -51,26 +51,32 @@ func fqdnToPath(t *testing.T, path string) string {
 	return ""
 }
 
-// CoverDirEnv returns the cover dir env variable to run a go binary.
+// CoverDirEnv returns the cover dir env variable to run a go binary, if coverage is enabled.
 func CoverDirEnv() string {
-	if CoverDir() == "" {
+	if CoverDirForTests() == "" {
 		return ""
 	}
-	return fmt.Sprintf("GOCOVERDIR=%s", CoverDir())
+	return fmt.Sprintf("GOCOVERDIR=%s", CoverDirForTests())
 }
 
-// AppendCovEnv returns the env needed to enable coverage when running a go binary.
+// AppendCovEnv returns the env needed to enable coverage when running a go binary,
+// if coverage is enabled.
 func AppendCovEnv(env []string) []string {
-	envVar := CoverDirEnv()
-	if envVar == "" {
+	coverDir := CoverDirEnv()
+	if coverDir == "" {
 		return env
 	}
-	return append(env, envVar)
+	return append(env, coverDir)
 }
 
-// CoverDir parses the arguments to find the cover profile file.
-func CoverDir() string {
+// CoverDirForTests parses the test arguments and return the cover profile directory,
+// if coverage is enabled.
+func CoverDirForTests() string {
 	goCoverDirOnce.Do(func() {
+		if testing.CoverMode() == "" {
+			return
+		}
+
 		for _, arg := range os.Args {
 			if !strings.HasPrefix(arg, "-test.gocoverdir=") {
 				continue
@@ -78,6 +84,7 @@ func CoverDir() string {
 			goCoverDir = strings.TrimPrefix(arg, "-test.gocoverdir=")
 		}
 	})
+
 	return goCoverDir
 }
 

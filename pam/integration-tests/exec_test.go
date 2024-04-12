@@ -886,7 +886,7 @@ func buildExecClient(t *testing.T) string {
 
 	cmd := exec.Command("go", "build", "-C", "cmd/exec-client")
 	cmd.Dir = filepath.Join(testutils.CurrentDir())
-	if testutils.CoverDir() != "" {
+	if testutils.CoverDirForTests() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
 	}

@@ -215,7 +215,7 @@ func TestPamCLIRunStandalone(t *testing.T) {
 
 	// #nosec:G204 - we control the command arguments in tests
 	cmd := exec.Command("go", "run")
-	if testutils.CoverDir() != "" {
+	if testutils.CoverDirForTests() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
 		cmd.Env = testutils.AppendCovEnv(os.Environ())
@@ -262,7 +262,7 @@ func prepareCLILogging(t *testing.T) string {
 // buildPAMTestClient builds the PAM module in a temporary directory and returns a cleanup function.
 func buildPAMTestClient(execPath string) (cleanup func(), err error) {
 	cmd := exec.Command("go", "build")
-	if testutils.CoverDir() != "" {
+	if testutils.CoverDirForTests() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
 	}
@@ -283,7 +283,7 @@ func buildPAMClient(t *testing.T) string {
 
 	cmd := exec.Command("go", "build", "-C", "pam")
 	cmd.Dir = testutils.ProjectRoot()
-	if testutils.CoverDir() != "" {
+	if testutils.CoverDirForTests() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
 	}
