@@ -9,6 +9,7 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/services/authorizer"
 	"github.com/ubuntu/authd/internal/users"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -18,16 +19,19 @@ import (
 type Service struct {
 	userManager   *users.Manager
 	brokerManager *brokers.Manager
+	authorizer    *authorizer.Authorizer
+
 	authd.UnimplementedNSSServer
 }
 
 // NewService returns a new NSS GRPC service.
-func NewService(ctx context.Context, userManager *users.Manager, brokerManager *brokers.Manager) Service {
+func NewService(ctx context.Context, userManager *users.Manager, brokerManager *brokers.Manager, authorizer *authorizer.Authorizer) Service {
 	log.Debug(ctx, "Building new GRPC NSS service")
 
 	return Service{
 		userManager:   userManager,
 		brokerManager: brokerManager,
+		authorizer:    authorizer,
 	}
 }
 
@@ -118,6 +122,10 @@ func (s Service) GetGroupEntries(ctx context.Context, req *authd.Empty) (*authd.
 
 // GetShadowByName returns the shadow entry for the given username.
 func (s Service) GetShadowByName(ctx context.Context, req *authd.GetShadowByNameRequest) (*authd.ShadowEntry, error) {
+	if err := s.authorizer.IsRequestFromRoot(ctx); err != nil {
+		return nil, err
+	}
+
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "no shadow name provided")
 	}
@@ -131,6 +139,10 @@ func (s Service) GetShadowByName(ctx context.Context, req *authd.GetShadowByName
 
 // GetShadowEntries returns all shadow entries.
 func (s Service) GetShadowEntries(ctx context.Context, req *authd.Empty) (*authd.ShadowEntries, error) {
+	if err := s.authorizer.IsRequestFromRoot(ctx); err != nil {
+		return nil, err
+	}
+
 	allUsers, err := s.userManager.AllShadows()
 	if err != nil {
 		return nil, err
