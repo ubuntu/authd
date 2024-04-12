@@ -236,7 +236,7 @@ func TestQuit(t *testing.T) {
 			}()
 
 			// make sure Serve() is called. Even std golang grpc has this timeout in tests
-			time.Sleep(time.Millisecond * 10)
+			time.Sleep(100 * time.Millisecond)
 
 			var disconnectClient func()
 			if tc.activeConnection {
@@ -253,7 +253,7 @@ func TestQuit(t *testing.T) {
 				d.Quit(context.Background(), tc.force)
 			}()
 
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 
 			// Any new connection is disallowed
 			connected, _ := createClientConnection(t, socketPath)
