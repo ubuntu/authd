@@ -91,29 +91,36 @@ func TestIntegration(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if tc.cacheDB == "" {
+			socketPath := defaultSocket
+
+			var useAlternativeDaemon bool
+			if tc.cacheDB != "" {
+				useAlternativeDaemon = true
+			} else {
 				tc.cacheDB = defaultDbState
 			}
 
-			var socketPath string
-			if !tc.noDaemon {
-				socketPath = defaultSocket
-				if tc.cacheDB != defaultDbState {
-					// Run a new daemon with a different cache state for special test cases.
-					outPath := filepath.Join(t.TempDir(), "gpasswd.output")
-					groupsFilePath := filepath.Join("testdata", "empty.group")
+			// We don't check compatibility of arguments, have noDaemon taking precedences to the others.
+			if tc.noDaemon {
+				socketPath = ""
+				useAlternativeDaemon = false
+			}
 
-					var daemonStopped chan struct{}
-					ctx, cancel := context.WithCancel(context.Background())
-					socketPath, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath,
-						testutils.WithPreviousDBState(tc.cacheDB),
-						testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, outPath, groupsFilePath)...),
-					)
-					t.Cleanup(func() {
-						cancel()
-						<-daemonStopped
-					})
-				}
+			if useAlternativeDaemon {
+				// Run a specific new daemon for special test cases.
+				outPath := filepath.Join(t.TempDir(), "gpasswd.output")
+				groupsFilePath := filepath.Join("testdata", "empty.group")
+
+				var daemonStopped chan struct{}
+				ctx, cancel := context.WithCancel(context.Background())
+				socketPath, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath,
+					testutils.WithPreviousDBState(tc.cacheDB),
+					testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, outPath, groupsFilePath)...),
+				)
+				t.Cleanup(func() {
+					cancel()
+					<-daemonStopped
+				})
 			}
 
 			cmds := []string{tc.db}
