@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -37,14 +36,6 @@ func TestIntegration(t *testing.T) {
 		cancel()
 		<-stopped
 	})
-
-	originOuts := map[string]string{}
-	for _, db := range []string{"passwd", "group", "shadow"} {
-		//#nosec:G204 - We control the cmd arguments in tests.
-		data, err := exec.Command("getent", db).CombinedOutput()
-		require.NoError(t, err, "Setup: can't run getent to get original output from system")
-		originOuts[db] = string(data)
-	}
 
 	tests := map[string]struct {
 		db      string
@@ -126,12 +117,12 @@ func TestIntegration(t *testing.T) {
 				}
 			}
 
-			cmds := []string{"getent", tc.db}
+			cmds := []string{tc.db}
 			if tc.key != "" {
 				cmds = append(cmds, tc.key)
 			}
 
-			got, err := outNSSCommandForLib(t, libPath, socketPath, rustCovEnv, originOuts[tc.db], tc.shouldPreCheck, cmds...)
+			got, err := getentOutputForLib(t, libPath, socketPath, rustCovEnv, tc.shouldPreCheck, cmds...)
 			if tc.wantErr {
 				require.Error(t, err, "Expected an error, but got none")
 				return
@@ -143,7 +134,7 @@ func TestIntegration(t *testing.T) {
 
 			// This is to check that some cache tasks, such as cleaning a corrupted database, work as expected.
 			if tc.wantSecondCall {
-				got, err := outNSSCommandForLib(t, libPath, socketPath, rustCovEnv, originOuts[tc.db], tc.shouldPreCheck, cmds...)
+				got, err := getentOutputForLib(t, libPath, socketPath, rustCovEnv, tc.shouldPreCheck, cmds...)
 				require.NoError(t, err, "Expected no error, but got %v", err)
 				require.Empty(t, got, "Expected empty output, but got %q", got)
 			}
