@@ -36,11 +36,6 @@ jobs:
         with:
           golangci-lint-configfile: ".golangci.yaml"
           tools-directory: "tools"
-        env:
-          # The PAM module generator relies on this environment variable to define the output directory for the modules.
-          # If it does not exist, it uses a default value but emits a warning which fails the action so we need to
-          # define the variable for the action to pass successfully.
-          AUTHD_PAM_MODULES_PATH: "/tmp/authd_pam_modules"
       - name: Build cmd/authd with withexamplebroker tag
         run: |
           set -eu
@@ -132,8 +127,6 @@ jobs:
   go-tests:
     name: "Go: Tests"
     runs-on: ubuntu-latest
-    env:
-      AUTHD_PAM_MODULES_PATH: /lib/x86_64-linux-gnu/security
     steps:
       - name: Install dependencies
         run: |
