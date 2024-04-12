@@ -37,27 +37,19 @@ func TestMustBeTestingInProcess(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			temp := t.TempDir()
-			testBinary := filepath.Join(temp, "testbin")
-
-			buildCmd := []string{"build", "-o", testBinary}
+			args := []string{"run"}
 			if tc.integrationtestsTag {
-				buildCmd = append(buildCmd, "-tags=integrationtests")
+				args = append(args, "-tags=integrationtests")
 			}
 			if testutils.CoverDirForTests() != "" {
-				args = append(buildCmd, "-cover")
+				args = append(args, "-cover")
 			}
-			buildCmd = append(buildCmd, "testdata/binary.go")
-
-			//nolint:gosec // G204 we are in control of the arguments in our tests.
-			out, err := exec.Command("go", buildCmd...).CombinedOutput()
-			require.NoErrorf(t, err, "Setup: Could not build test binary: %s", out)
+			args = append(args, "testdata/binary.go")
 
 			// Execute our subprocess
-			//nolint:gosec // G204 we are in control of the arguments in our tests.
-			cmd := exec.Command(testBinary)
+			cmd := exec.Command("go", args...)
 			cmd.Env = testutils.AppendCovEnv(os.Environ())
-			out, err = cmd.CombinedOutput()
+			out, err := cmd.CombinedOutput()
 
 			if tc.wantPanic {
 				require.Errorf(t, err, "MustBeTesting should have panicked the subprocess: %s", string(out))
