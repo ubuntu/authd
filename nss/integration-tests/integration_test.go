@@ -43,7 +43,6 @@ func TestIntegration(t *testing.T) {
 		cacheDB string
 
 		noDaemon       bool
-		noCustomSocket bool
 		wantSecondCall bool
 		shouldPreCheck bool
 
@@ -97,7 +96,7 @@ func TestIntegration(t *testing.T) {
 			}
 
 			var socketPath string
-			if !tc.noDaemon && !tc.noCustomSocket {
+			if !tc.noDaemon {
 				socketPath = defaultSocket
 				if tc.cacheDB != defaultDbState {
 					// Run a new daemon with a different cache state for special test cases.
