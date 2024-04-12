@@ -31,9 +31,6 @@ export CARGO_VENDOR_DIR := $(CURDIR)/vendor_rust
 export DEB_HOST_GNU_TYPE DEB_HOST_RUST_TYPE
 export CARGO_HOME = $(CURDIR)/debian/cargo_home
 
-# Needed by the pam module loader
-export AUTHD_PAM_MODULES_PATH = /usr/lib/$(DEB_TARGET_GNU_TYPE)/security
-
 # Used not to hardcore the daemons paths
 export AUTHD_DAEMONS_PATH := /usr/libexec
 
@@ -79,12 +76,12 @@ override_dh_auto_configure:
 	touch debian/cargo-checksum.json
 	dh_auto_configure --buildsystem=cargo
 
-	for i in debian/*.service.in debian/pam-configs/*.in; do \
+	for i in debian/*.service.in debian/pam-configs/*.in *.pam.in; do \
 		sed s,@AUTHD_DAEMONS_PATH@,$(AUTHD_DAEMONS_PATH),g $$i > $${i%.*}; \
 	done
 
 override_dh_auto_build:
-	# Build PAM library & Go loader
+	# Build PAM exec library
 	DH_GOLANG_GO_GENERATE=1 dh_auto_build -- $(AUTHD_GO_PACKAGE)/pam
 
 	# Build the NSS library

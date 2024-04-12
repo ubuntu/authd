@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"runtime"
 	"slices"
 	"strings"
 	"time"
@@ -43,6 +42,11 @@ const (
 	// do this again.
 	alreadyAuthenticatedKey = "authd.already-authenticated-flag"
 
+	// alreadyAcctMgmt is the Key used to store in the library that
+	// we've already performed account management with this module and so that
+	// there's no need to do this again.
+	alreadyAcctMgmt = "authd.already-acct-mgmt-flag"
+
 	// gdmServiceName is the name of the service that is loaded by GDM.
 	// Keep this in sync with the service file installed by the package.
 	gdmServiceName = "gdm-authd"
@@ -54,6 +58,7 @@ var supportedArgs = []string{
 	"disable_journal", // Disable logging on systemd journal (this is implicit when `logfile` is set).
 	"socket",          // The authd socket to connect to.
 	"force_reauth",    // Whether the authentication should be performed again even if it has been already completed.
+	"force_reaccount", // Whether the account management should be performed again even if it has been already completed.
 }
 
 // parseArgs parses the PAM arguments and returns a map of them and a function that logs the parsing issues.
@@ -336,6 +341,14 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 	}
 	logArgsIssues()
 
+	alreadyDone, err := mTx.GetData(alreadyAcctMgmt)
+	if alreadyDone != nil && err == nil && parsedArgs["force_reaccount"] != "true" {
+		return pam.ErrIgnore
+	}
+	if err != nil && !errors.Is(err, pam.ErrNoModuleData) {
+		return err
+	}
+
 	// We ignore AcctMgmt in case we're loading the module through the exec client
 	serviceName, err := mTx.GetItem(pam.Service)
 	if err != nil {
@@ -405,6 +418,10 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 		return pam.ErrIgnore
 	}
 
+	if err := mTx.SetData(alreadyAcctMgmt, true); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -454,11 +471,4 @@ func (h *pamModule) OpenSession(pam.ModuleTransaction, pam.Flags, []string) erro
 // CloseSession is the method that is invoked during pam_close_session request.
 func (h *pamModule) CloseSession(pam.ModuleTransaction, pam.Flags, []string) error {
 	return pam.ErrIgnore
-}
-
-// go_pam_cleanup_module is called by the go-loader PAM module during onload.
-//
-//export go_pam_cleanup_module
-func go_pam_cleanup_module() {
-	runtime.GC()
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
@@ -792,6 +793,175 @@ func TestExecModule(t *testing.T) {
 			require.NoError(t, tx.Authenticate(0), "Authenticate should not fail")
 		})
 	}
+
+	// These tests are checking that GDM JSON conversations are working as expected.
+	gdmConvTests := map[string]struct {
+		jsonRequest           []byte
+		promptFormat          string
+		promptFormatArgs      []interface{}
+		convError             error
+		convReply             *pam.BinaryPointer
+		convJSONReply         *[]byte
+		convHandler           *pam.BinaryPointerConversationFunc
+		convShouldNotBeCalled bool
+		disableGdmInClient    bool
+
+		want          []byte
+		wantError     error
+		wantExitError error
+	}{
+		"GDM JSON conversations are handled by conversation": {
+			jsonRequest: []byte(`"This is a binary conversation content"`),
+			want:        []byte("I'm handling it perfectly!"),
+		},
+		"GDM JSON conversations with empty values": {
+			jsonRequest: []byte(""),
+			want:        []byte(""),
+		},
+		"GDM JSON conversations with nil response": {
+			jsonRequest:   []byte(`"This will return a null value"`),
+			convJSONReply: ptrValue([]byte(nil)),
+			want:          []byte{},
+		},
+		"GDM JSON conversations with nil request": {
+			jsonRequest: nil,
+			want:        []byte(`"I do want some reply"`),
+		},
+
+		// Error cases
+		"Error if no conversation handler is set": {
+			convHandler: ptrValue(pam.BinaryPointerConversationFunc(nil)),
+			wantError:   pam.ErrConv,
+		},
+		"Error if the conversation handler fails": {
+			jsonRequest: []byte(`"This is a conversation error, is it?!"`),
+			convError:   pam.ErrBuf,
+			wantError:   pam.ErrConv,
+		},
+		"Error if conversation returns a conversation error": {
+			jsonRequest: []byte(`"This request should never be handled"`),
+			convError:   pam.ErrAbort,
+			wantError:   pam.ErrConv,
+		},
+		"Error if conversation returns a nil value": {
+			jsonRequest: []byte("Unlikely but... Let's test all!"),
+			convReply:   ptrValue(pam.BinaryPointer(nil)),
+			wantError:   pam.ErrConv,
+		},
+		"Error if starting conversation without GDM support in client": {
+			jsonRequest:           []byte("This is not really happening"),
+			wantError:             pam.ErrSystem,
+			disableGdmInClient:    true,
+			convShouldNotBeCalled: true,
+		},
+	}
+	for name, tc := range gdmConvTests {
+		t.Run("GdmConv "+name, func(t *testing.T) {
+			t.Parallel()
+			t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+			convFunCalled := false
+			convHandler := func() pam.BinaryPointerConversationFunc {
+				if tc.convHandler != nil {
+					return *tc.convHandler
+				}
+				return pam.BinaryPointerConversationFunc(
+					func(ptr pam.BinaryPointer) (pam.BinaryPointer, error) {
+						convFunCalled = true
+
+						jsonBytes, err := gdm.DecodeJSONProtoMessage(ptr)
+						require.Equal(t, string(tc.jsonRequest), string(jsonBytes))
+						if err != nil {
+							return nil, err
+						}
+						if tc.convError != nil {
+							return nil, tc.convError
+						}
+						if tc.convReply != nil {
+							return *tc.convReply, nil
+						}
+						jsonReply := tc.want
+						if tc.convJSONReply != nil {
+							jsonReply = *tc.convJSONReply
+						}
+						response, err := gdm.NewBinaryJSONProtoResponse(jsonReply)
+						if err != nil {
+							return nil, err
+						}
+						return response.Data(), tc.convError
+					})
+			}()
+
+			var methodCalls []cliMethodCall
+			wantJSONResponse := any(nil)
+			if tc.wantError == nil && tc.want != nil {
+				wantJSONResponse = string(tc.want)
+			}
+
+			wantReturnValues := []any{
+				wantJSONResponse,
+				tc.wantError,
+			}
+
+			request := any(tc.jsonRequest)
+			if tc.jsonRequest != nil {
+				request = string(tc.jsonRequest)
+			}
+
+			methodCalls = append(methodCalls, cliMethodCall{
+				m:    "StartConv",
+				args: []any{request},
+				r:    wantReturnValues,
+			})
+
+			var moduleArgs []string
+			if tc.disableGdmInClient {
+				moduleArgs = append(moduleArgs, "-enable-gdm=false")
+			}
+
+			tx := preparePamTransactionWithConv(t, libPath, execClient,
+				append(moduleArgs, methodCallsAsArgs(methodCalls)...),
+				"", convHandler)
+			require.ErrorIs(t, tx.Authenticate(0), tc.wantExitError,
+				"Authenticate does not return expected error")
+
+			wantConFuncCalled := !tc.convShouldNotBeCalled && tc.convHandler == nil
+			require.Equal(t, wantConFuncCalled, convFunCalled,
+				"Conversation Function call check failed")
+		})
+	}
+}
+
+func TestExecModuleGdmConvModuleErrorWithoutExtensionSupport(t *testing.T) {
+	// This cannot be parallel!
+
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+	libPath := buildExecModule(t)
+	execClient := buildExecClient(t)
+
+	gdm.AdvertisePamExtensions([]string{})
+	t.Cleanup(func() {
+		gdm.AdvertisePamExtensions([]string{gdm.PamExtensionCustomJSON})
+	})
+
+	methodCalls := []cliMethodCall{{
+		m:    "StartConv",
+		args: []any{[]byte(`"some req"`)},
+		r:    []any{nil, pam.ErrConv},
+	}}
+
+	convFunCalled := false
+	tx := preparePamTransactionWithConv(t, libPath, execClient,
+		append([]string{"-enable-gdm=true"}, methodCallsAsArgs(methodCalls)...),
+		"", pam.BinaryPointerConversationFunc(
+			func(ptr pam.BinaryPointer) (pam.BinaryPointer, error) {
+				convFunCalled = true
+				return pam.BinaryPointer(ptrValue([]byte("some bytes"))), nil
+			}))
+	require.NoError(t, tx.Authenticate(0), "Authenticate errors as not expected")
+
+	require.False(t, convFunCalled, "Conversation Function should not have been called")
 }
 
 func getModuleArgs(t *testing.T, clientPath string, args []string) []string {

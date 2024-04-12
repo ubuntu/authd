@@ -16,6 +16,7 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/internal/dbusmodule"
+	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
@@ -23,6 +24,7 @@ var (
 	pamFlags      = flag.Int64("flags", 0, "pam flags")
 	serverAddress = flag.String("server-address", "", "the dbus connection address to use to communicate with module")
 	logFile       = flag.String("client-log", "", "the file where to save logs")
+	enableGdm     = flag.Bool("enable-gdm", false, "toggle to enable GDM protocol")
 )
 
 func main() {
@@ -41,6 +43,8 @@ func main() {
 }
 
 func mainFunc() error {
+	defer pam_test.MaybeDoLeakCheck()
+
 	flag.Parse()
 	args := flag.Args()
 
@@ -76,6 +80,10 @@ func mainFunc() error {
 	actionFlags := pam.Flags(0)
 	if pamFlags != nil {
 		actionFlags = pam.Flags(*pamFlags)
+	}
+
+	if enableGdm != nil && *enableGdm {
+		gdm.AdvertisePamExtensions([]string{gdm.PamExtensionCustomJSON})
 	}
 
 	if err := mTx.SetData("exec-client-flags-"+actionToServiceType(action), actionFlags); err != nil {
@@ -259,6 +267,38 @@ func tryConvertVariant(variant dbus.Variant, expected reflect.Type) (reflect.Val
 		return reflect.ValueOf(dbusmodule.StringResponse{style, reply}), nil
 	}
 
+	if expected == reflect.TypeFor[pam.ConvRequest]() {
+		if isVariantNothing(variant) {
+			return reflect.Zero(expected), nil
+		}
+		variantBytes, err := tryExtractVariant(variant, reflect.TypeFor[[]byte]())
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		bytes := variantBytes.Interface().([]byte)
+		jsonReq, err := gdm.NewBinaryJSONProtoRequest(bytes)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(jsonReq), nil
+	}
+
+	if expected == reflect.TypeFor[pam.ConvResponse]() {
+		if isVariantNothing(variant) {
+			return reflect.Zero(expected), nil
+		}
+		variantBytes, err := tryExtractVariant(variant, reflect.TypeFor[[]byte]())
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		bytes := variantBytes.Interface().([]byte)
+		jsonResp, err := gdm.NewBinaryJSONProtoResponse(bytes)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(jsonResp), nil
+	}
+
 	return tryExtractVariant(variant, expected)
 }
 
@@ -345,6 +385,14 @@ func tryCompareValues(wantValue any, actualValue any) bool {
 	case error:
 		if err, ok := actualValue.(error); ok {
 			return errors.Is(err, w)
+		}
+	case pam.BinaryConvResponse:
+		if actual, ok := actualValue.(pam.BinaryConvResponse); ok {
+			wDecoded, wErr := w.Decode(gdm.DecodeJSONProtoMessage)
+			actualDecoded, aErr := actual.Decode(gdm.DecodeJSONProtoMessage)
+			log.Debugf(context.TODO(), "Wanted response is: %q, actual is %q",
+				wDecoded, actualDecoded)
+			return errors.Is(aErr, wErr) && reflect.DeepEqual(wDecoded, actualDecoded)
 		}
 	case nil:
 		if string, ok := actualValue.(string); ok {

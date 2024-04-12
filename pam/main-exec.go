@@ -13,11 +13,13 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/internal/dbusmodule"
+	"github.com/ubuntu/authd/pam/internal/gdm"
 )
 
 var (
 	pamFlags      = flag.Int64("flags", 0, "pam flags")
 	serverAddress = flag.String("server-address", "", "the dbus connection to use to communicate with module")
+	enableGdm     = flag.Bool("enable-gdm", false, "toggle to enable GDM protocol")
 )
 
 func init() {
@@ -49,9 +51,20 @@ func mainFunc() error {
 
 	action, args := args[0], args[1:]
 
+	// We parse again the remaining arguments again
+	err = flag.CommandLine.Parse(args)
+	if err != nil {
+		return fmt.Errorf("%w: can't parse arguments: %w", pam.ErrSystem, err)
+	}
+	args = flag.CommandLine.Args()
+
 	flags := pam.Flags(0)
 	if pamFlags != nil {
 		flags = pam.Flags(*pamFlags)
+	}
+
+	if enableGdm != nil && *enableGdm {
+		gdm.AdvertisePamExtensions([]string{gdm.PamExtensionCustomJSON})
 	}
 
 	switch action {
