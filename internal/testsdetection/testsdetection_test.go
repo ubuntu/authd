@@ -3,15 +3,12 @@ package testsdetection_test
 import (
 	"os"
 	"os/exec"
-	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testsdetection"
+	"github.com/ubuntu/authd/internal/testutils"
 )
-
-var coverDir string
 
 func TestMustBeTestingInTests(t *testing.T) {
 	t.Parallel()
@@ -47,10 +44,8 @@ func TestMustBeTestingInProcess(t *testing.T) {
 			if tc.integrationtestsTag {
 				buildCmd = append(buildCmd, "-tags=integrationtests")
 			}
-			env := os.Environ()
-			if coverDir != "" {
-				buildCmd = append(buildCmd, "-cover")
-				env = append(env, "GOCOVERDIR="+coverDir)
+			if testutils.CoverDirForTests() != "" {
+				args = append(buildCmd, "-cover")
 			}
 			buildCmd = append(buildCmd, "testdata/binary.go")
 
@@ -61,7 +56,7 @@ func TestMustBeTestingInProcess(t *testing.T) {
 			// Execute our subprocess
 			//nolint:gosec // G204 we are in control of the arguments in our tests.
 			cmd := exec.Command(testBinary)
-			cmd.Env = env
+			cmd.Env = testutils.AppendCovEnv(os.Environ())
 			out, err = cmd.CombinedOutput()
 
 			if tc.wantPanic {
@@ -71,17 +66,4 @@ func TestMustBeTestingInProcess(t *testing.T) {
 			require.NoErrorf(t, err, "MustBeTesting should have returned without panicking the subprocess", string(out))
 		})
 	}
-}
-
-func TestMain(m *testing.M) {
-	if testing.CoverMode() != "" {
-		for _, arg := range os.Args {
-			if !strings.HasPrefix(arg, "-test.gocoverdir=") {
-				continue
-			}
-			coverDir = strings.TrimPrefix(arg, "-test.gocoverdir=")
-		}
-	}
-
-	m.Run()
 }
