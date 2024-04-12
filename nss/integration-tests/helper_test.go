@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -54,20 +53,21 @@ func buildRustNSSLib(t *testing.T) (libPath string, rustCovEnv []string) {
 	return libPath, rustCovEnv
 }
 
-// outNSSCommandForLib returns the specific part for the nss command, filtering originOut.
+// getentOutputForLib returns the specific part for the nss command for the authd service.
 // It uses the locally build authd nss module for the integration tests.
-func outNSSCommandForLib(t *testing.T, libPath, socketPath string, rustCovEnv []string, originOut string, shouldPreCheck bool, cmds ...string) (got string, err error) {
+func getentOutputForLib(t *testing.T, libPath, socketPath string, rustCovEnv []string, shouldPreCheck bool, cmds ...string) (got string, err error) {
 	t.Helper()
 
 	// #nosec:G204 - we control the command arguments in tests
-	cmd := exec.Command(cmds[0], cmds[1:]...)
-	cmd.Env = append(cmd.Env, rustCovEnv...)
+	cmds = append(cmds, "--service", "authd")
+	cmd := exec.Command("getent", cmds...)
 	cmd.Env = append(cmd.Env,
 		"AUTHD_NSS_INFO=stderr",
 		// NSS needs both LD_PRELOAD and LD_LIBRARY_PATH to load the module library
 		fmt.Sprintf("LD_PRELOAD=%s:%s", libPath, os.Getenv("LD_PRELOAD")),
 		fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", filepath.Dir(libPath), os.Getenv("LD_LIBRARY_PATH")),
 	)
+	cmd.Env = append(cmd.Env, rustCovEnv...)
 
 	if socketPath != "" {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", socketPath))
@@ -82,5 +82,5 @@ func outNSSCommandForLib(t *testing.T, libPath, socketPath string, rustCovEnv []
 	cmd.Stderr = os.Stderr
 
 	err = cmd.Run()
-	return strings.Replace(out.String(), originOut, "", 1), err
+	return out.String(), err
 }
