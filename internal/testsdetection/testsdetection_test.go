@@ -52,10 +52,10 @@ func TestMustBeTestingInProcess(t *testing.T) {
 			out, err := cmd.CombinedOutput()
 
 			if tc.wantPanic {
-				require.Errorf(t, err, "MustBeTesting should have panicked the subprocess: %s", string(out))
+				require.Errorf(t, err, "MustBeTesting should have panicked the subprocess: %s", out)
 				return
 			}
-			require.NoErrorf(t, err, "MustBeTesting should have returned without panicking the subprocess", string(out))
+			require.NoErrorf(t, err, "MustBeTesting should have returned without panicking the subprocess: %s", out)
 		})
 	}
 }
