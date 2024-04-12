@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/services/authorizer"
+	"github.com/ubuntu/authd/internal/services/authorizer/authorizertests"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
@@ -34,7 +36,10 @@ func TestNewService(t *testing.T) {
 	b, err := brokers.NewManager(context.Background(), t.TempDir(), nil)
 	require.NoError(t, err, "Setup: could not create broker manager")
 
-	_ = nss.NewService(context.Background(), m, b)
+	a := authorizer.New()
+	s := nss.NewService(context.Background(), m, b, &a)
+
+	require.NotNil(t, s, "NewService should return a service")
 }
 
 func TestGetPasswdByName(t *testing.T) {
@@ -63,7 +68,7 @@ func TestGetPasswdByName(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			client := newNSSClient(t, tc.sourceDB)
+			client := newNSSClient(t, tc.sourceDB, false)
 
 			got, err := client.GetPasswdByName(context.Background(), &authd.GetPasswdByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
 			requireExpectedResult(t, "GetPasswdByName", got, err, tc.wantErr, tc.wantErrNotExists)
@@ -91,7 +96,7 @@ func TestGetPasswdByUID(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			client := newNSSClient(t, tc.sourceDB)
+			client := newNSSClient(t, tc.sourceDB, false)
 
 			got, err := client.GetPasswdByUID(context.Background(), &authd.GetByIDRequest{Id: uint32(tc.uid)})
 			requireExpectedResult(t, "GetPasswdByUID", got, err, tc.wantErr, tc.wantErrNotExists)
@@ -115,7 +120,7 @@ func TestGetPasswdEntries(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			client := newNSSClient(t, tc.sourceDB)
+			client := newNSSClient(t, tc.sourceDB, false)
 
 			got, err := client.GetPasswdEntries(context.Background(), &authd.Empty{})
 			requireExpectedEntriesResult(t, "GetPasswdEntries", got.GetEntries(), err, tc.wantErr)
@@ -143,7 +148,7 @@ func TestGetGroupByName(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			client := newNSSClient(t, tc.sourceDB)
+			client := newNSSClient(t, tc.sourceDB, false)
 
 			got, err := client.GetGroupByName(context.Background(), &authd.GetGroupByNameRequest{Name: tc.groupname})
 			requireExpectedResult(t, "GetGroupByName", got, err, tc.wantErr, tc.wantErrNotExists)
@@ -171,7 +176,7 @@ func TestGetGroupByGID(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			client := newNSSClient(t, tc.sourceDB)
+			client := newNSSClient(t, tc.sourceDB, false)
 
 			got, err := client.GetGroupByGID(context.Background(), &authd.GetByIDRequest{Id: uint32(tc.gid)})
 			requireExpectedResult(t, "GetGroupByGID", got, err, tc.wantErr, tc.wantErrNotExists)
@@ -195,7 +200,7 @@ func TestGetGroupEntries(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			client := newNSSClient(t, tc.sourceDB)
+			client := newNSSClient(t, tc.sourceDB, false)
 
 			got, err := client.GetGroupEntries(context.Background(), &authd.Empty{})
 			requireExpectedEntriesResult(t, "GetGroupEntries", got.GetEntries(), err, tc.wantErr)
@@ -207,13 +212,15 @@ func TestGetShadowByName(t *testing.T) {
 	tests := map[string]struct {
 		username string
 
-		sourceDB string
+		sourceDB           string
+		currentUserNotRoot bool
 
 		wantErr          bool
 		wantErrNotExists bool
 	}{
 		"Return existing user": {username: "user1"},
 
+		"Error when not root":                                    {currentUserNotRoot: true, username: "user1", wantErr: true},
 		"Error in database fetched content":                      {username: "user1", sourceDB: "invalid.db.yaml", wantErr: true},
 		"Error with typed GRPC notfound code on unexisting user": {username: "does-not-exists", wantErr: true, wantErrNotExists: true},
 		"Error on missing name":                                  {wantErr: true},
@@ -223,7 +230,7 @@ func TestGetShadowByName(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			client := newNSSClient(t, tc.sourceDB)
+			client := newNSSClient(t, tc.sourceDB, tc.currentUserNotRoot)
 
 			got, err := client.GetShadowByName(context.Background(), &authd.GetShadowByNameRequest{Name: tc.username})
 			requireExpectedResult(t, "GetShadowByName", got, err, tc.wantErr, tc.wantErrNotExists)
@@ -233,13 +240,15 @@ func TestGetShadowByName(t *testing.T) {
 
 func TestGetShadowEntries(t *testing.T) {
 	tests := map[string]struct {
-		sourceDB string
+		sourceDB           string
+		currentUserNotRoot bool
 
 		wantErr bool
 	}{
 		"Return all users": {},
 		"Return no users":  {sourceDB: "empty.db.yaml"},
 
+		"Error when not root":               {currentUserNotRoot: true, wantErr: true},
 		"Error in database fetched content": {sourceDB: "invalid.db.yaml", wantErr: true},
 	}
 	for name, tc := range tests {
@@ -247,7 +256,7 @@ func TestGetShadowEntries(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
 			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
-			client := newNSSClient(t, tc.sourceDB)
+			client := newNSSClient(t, tc.sourceDB, tc.currentUserNotRoot)
 
 			got, err := client.GetShadowEntries(context.Background(), &authd.Empty{})
 			requireExpectedEntriesResult(t, "GetShadowEntries", got.GetEntries(), err, tc.wantErr)
@@ -260,7 +269,7 @@ func TestMockgpasswd(t *testing.T) {
 }
 
 // newNSSClient returns a new GRPC PAM client for tests with the provided sourceDB as its initial cache.
-func newNSSClient(t *testing.T, sourceDB string) (client authd.NSSClient) {
+func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (client authd.NSSClient) {
 	t.Helper()
 
 	// socket path is limited in length.
@@ -272,9 +281,15 @@ func newNSSClient(t *testing.T, sourceDB string) (client authd.NSSClient) {
 	lis, err := net.Listen("unix", socketPath)
 	require.NoError(t, err, "Setup: could not create unix socket")
 
-	service := nss.NewService(context.Background(), newUserManagerForTests(t, sourceDB), newBrokersManagerForTests(t))
+	var opts []authorizer.Option
+	if !currentUserNotRoot {
+		opts = append(opts, authorizertests.WithCurrentUserAsRoot())
+	}
+	a := authorizer.New(opts...)
 
-	grpcServer := grpc.NewServer()
+	service := nss.NewService(context.Background(), newUserManagerForTests(t, sourceDB), newBrokersManagerForTests(t), &a)
+
+	grpcServer := grpc.NewServer(authorizer.WithUnixPeerCreds(), grpc.UnaryInterceptor(enableCheckGlobalAccess(service)))
 	authd.RegisterNSSServer(grpcServer, service)
 	done := make(chan struct{})
 	go func() {
@@ -291,6 +306,16 @@ func newNSSClient(t *testing.T, sourceDB string) (client authd.NSSClient) {
 	t.Cleanup(func() { _ = conn.Close() }) // We don't care about the error on cleanup
 
 	return authd.NewNSSClient(conn)
+}
+
+func enableCheckGlobalAccess(s nss.Service) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		if err := s.CheckGlobalAccess(ctx, info.FullMethod); err != nil {
+			return nil, err
+		}
+
+		return handler(ctx, req)
+	}
 }
 
 // newUserManagerForTests returns a cache object cleaned up with the test ends.
