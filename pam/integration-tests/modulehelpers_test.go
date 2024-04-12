@@ -91,7 +91,7 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, son
 		cmd.Args = append(cmd.Args, strings.Split(ldflags, " ")...)
 	}
 
-	if testutils.CoverDir() != "" {
+	if testutils.CoverDirForTests() != "" {
 		cmd.Args = append(cmd.Args, "--coverage")
 		cmd.Args = append(cmd.Args, "-fprofile-abs-path")
 
@@ -99,7 +99,7 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, son
 		dataFilename := soname + ".so-module.gcda"
 
 		libDir := filepath.Dir(libPath)
-		gcovDir := filepath.Join(testutils.CoverDir(), t.Name()+".gcov")
+		gcovDir := filepath.Join(testutils.CoverDirForTests(), t.Name()+".gcov")
 		err := os.MkdirAll(gcovDir, 0700)
 		require.NoError(t, err, "TearDown: Impossible to create path %q", gcovDir)
 

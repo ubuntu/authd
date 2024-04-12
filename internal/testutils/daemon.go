@@ -141,7 +141,7 @@ func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err erro
 	execPath = filepath.Join(tempDir, "authd")
 	cmd := exec.Command("go", "build")
 	cmd.Dir = projectRoot
-	if CoverDir() != "" {
+	if CoverDirForTests() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
 	}

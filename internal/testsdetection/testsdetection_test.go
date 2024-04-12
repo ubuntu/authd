@@ -3,15 +3,12 @@ package testsdetection_test
 import (
 	"os"
 	"os/exec"
-	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testsdetection"
+	"github.com/ubuntu/authd/internal/testutils"
 )
-
-var coverDir string
 
 func TestMustBeTestingInTests(t *testing.T) {
 	t.Parallel()
@@ -40,48 +37,25 @@ func TestMustBeTestingInProcess(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			temp := t.TempDir()
-			testBinary := filepath.Join(temp, "testbin")
-
-			buildCmd := []string{"build", "-o", testBinary}
+			args := []string{"run"}
 			if tc.integrationtestsTag {
-				buildCmd = append(buildCmd, "-tags=integrationtests")
+				args = append(args, "-tags=integrationtests")
 			}
-			env := os.Environ()
-			if coverDir != "" {
-				buildCmd = append(buildCmd, "-cover")
-				env = append(env, "GOCOVERDIR="+coverDir)
+			if testutils.CoverDirForTests() != "" {
+				args = append(args, "-cover")
 			}
-			buildCmd = append(buildCmd, "testdata/binary.go")
-
-			//nolint:gosec // G204 we are in control of the arguments in our tests.
-			out, err := exec.Command("go", buildCmd...).CombinedOutput()
-			require.NoErrorf(t, err, "Setup: Could not build test binary: %s", out)
+			args = append(args, "testdata/binary.go")
 
 			// Execute our subprocess
-			//nolint:gosec // G204 we are in control of the arguments in our tests.
-			cmd := exec.Command(testBinary)
-			cmd.Env = env
-			out, err = cmd.CombinedOutput()
+			cmd := exec.Command("go", args...)
+			cmd.Env = testutils.AppendCovEnv(os.Environ())
+			out, err := cmd.CombinedOutput()
 
 			if tc.wantPanic {
-				require.Errorf(t, err, "MustBeTesting should have panicked the subprocess: %s", string(out))
+				require.Errorf(t, err, "MustBeTesting should have panicked the subprocess: %s", out)
 				return
 			}
-			require.NoErrorf(t, err, "MustBeTesting should have returned without panicking the subprocess", string(out))
+			require.NoErrorf(t, err, "MustBeTesting should have returned without panicking the subprocess: %s", out)
 		})
 	}
-}
-
-func TestMain(m *testing.M) {
-	if testing.CoverMode() != "" {
-		for _, arg := range os.Args {
-			if !strings.HasPrefix(arg, "-test.gocoverdir=") {
-				continue
-			}
-			coverDir = strings.TrimPrefix(arg, "-test.gocoverdir=")
-		}
-	}
-
-	m.Run()
 }

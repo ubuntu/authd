@@ -66,7 +66,7 @@ func TrackRustCoverage(t *testing.T, src string) (env []string, target string) {
 		target = t.TempDir()
 	}
 
-	coverDir := CoverDir()
+	coverDir := CoverDirForTests()
 	if coverDir == "" {
 		return nil, target
 	}
