@@ -25,11 +25,12 @@ func TestIntegration(t *testing.T) {
 	defaultOutputPath := filepath.Join(filepath.Dir(daemonPath), "gpasswd.output")
 	defaultGroupsFilePath := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
+	env := append(grouptests.GPasswdMockEnv(t, defaultOutputPath, defaultGroupsFilePath), "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
 	ctx, cancel := context.WithCancel(context.Background())
 	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
 		testutils.WithSocketPath(defaultSocket),
 		testutils.WithPreviousDBState(defaultDbState),
-		testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, defaultOutputPath, defaultGroupsFilePath)...),
+		testutils.WithEnvironment(env...),
 	)
 
 	t.Cleanup(func() {
@@ -113,9 +114,10 @@ func TestIntegration(t *testing.T) {
 
 				var daemonStopped chan struct{}
 				ctx, cancel := context.WithCancel(context.Background())
+				env := append(grouptests.GPasswdMockEnv(t, outPath, groupsFilePath), "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
 				socketPath, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath,
 					testutils.WithPreviousDBState(tc.cacheDB),
-					testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, outPath, groupsFilePath)...),
+					testutils.WithEnvironment(env...),
 				)
 				t.Cleanup(func() {
 					cancel()
