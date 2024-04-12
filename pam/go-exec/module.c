@@ -49,6 +49,7 @@ typedef struct
   /* Per module-instance data */
   pam_handle_t *pamh;
   GDBusServer  *server;
+  GMainContext *main_context;
   GCancellable *cancellable;
 
   ActionData   *action_data;
@@ -325,6 +326,7 @@ on_exec_module_removed (pam_handle_t *pamh,
     }
 
   g_clear_object (&module_data->cancellable);
+  g_clear_pointer (&module_data->main_context, g_main_context_unref);
   g_free (module_data);
 }
 
@@ -740,6 +742,8 @@ setup_dbus_server (ModuleData *module_data,
                    GError    **error)
 {
   GDBusServer *server = NULL;
+  g_autoptr(GMainContextPusher) context_pusher G_GNUC_UNUSED = NULL;
+  g_autoptr(GMainContext) main_context = NULL;
   g_autofree char *escaped = NULL;
   g_autofree char *server_addr = NULL;
   g_autofree char *guid = NULL;
@@ -760,6 +764,16 @@ setup_dbus_server (ModuleData *module_data,
       return NULL;
     }
 
+  /* We need to have the main context set before setting up the dbus server
+   * or we'll not report the events to the right receiver thread
+   */
+  if (G_LIKELY (!module_data->main_context))
+    main_context = g_main_context_new ();
+  else
+    main_context = g_main_context_ref (module_data->main_context);
+
+  context_pusher = g_main_context_pusher_new (main_context);
+
   escaped = g_dbus_address_escape_value (tmpdir);
   server_addr = g_strdup_printf ("unix:tmpdir=%s", escaped);
   guid = g_dbus_generate_guid ();
@@ -773,6 +787,8 @@ setup_dbus_server (ModuleData *module_data,
                                    error);
   if (server == NULL)
     return NULL;
+
+  module_data->main_context = g_steal_pointer (&main_context);
 
   g_object_set_data_full (G_OBJECT (server), "tmpdir",
                           g_steal_pointer (&tmpdir), g_free);
@@ -894,16 +910,18 @@ handle_module_options (int           argc,
   return TRUE;
 }
 
-static inline int
-do_pam_action (pam_handle_t *pamh,
-               const char   *action,
-               int           flags,
-               int           argc,
-               const char  **argv)
+static int
+do_pam_action_thread (pam_handle_t *pamh,
+                      const char   *action,
+                      int           flags,
+                      int           argc,
+                      const char  **argv)
 {
   ModuleData *module_data = NULL;
   g_autoptr(GMutexLocker) G_GNUC_UNUSED locker = NULL;
   g_auto(ActionData) action_data = {.current_action = action, 0};
+  g_autoptr(GMainContextPusher) context_pusher G_GNUC_UNUSED = NULL;
+  g_autoptr(GMainContext) main_context = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(GPtrArray) envp = NULL;
   g_autoptr(GPtrArray) args = NULL;
@@ -1021,6 +1039,9 @@ do_pam_action (pam_handle_t *pamh,
   action_data.module_data = module_data;
   action_data.cancellable = g_cancellable_new ();
 
+  main_context = g_main_context_ref (module_data->main_context);
+  context_pusher = g_main_context_pusher_new (main_context);
+
   interactive_mode = isatty (STDIN_FILENO);
 
   if (interactive_mode)
@@ -1097,7 +1118,7 @@ do_pam_action (pam_handle_t *pamh,
   g_debug ("Launched child %"G_PID_FORMAT, child_pid);
   action_data.child_pid = child_pid;
 
-  action_data.loop = g_main_loop_new (NULL, FALSE);
+  action_data.loop = g_main_loop_new (main_context, FALSE);
 
   wait_thread_name = g_strdup_printf ("exec-%s-wait-child", action);
   wait_thread = g_thread_new (wait_thread_name, wait_child_thread, &(WaitChildThreadData){
@@ -1124,6 +1145,43 @@ do_pam_action (pam_handle_t *pamh,
     return PAM_SYSTEM_ERR;
 
   return exit_status;
+}
+
+typedef struct
+{
+  pam_handle_t *pamh;
+  const char   *action;
+  int           flags;
+  int           argc;
+  const char  **argv;
+} ActionThreadArgs;
+
+static inline gpointer
+do_pam_action_thread_adapter (gpointer data)
+{
+  ActionThreadArgs * args = data;
+  return GINT_TO_POINTER (do_pam_action_thread (args->pamh,
+                                                args->action, args->flags,
+                                                args->argc, args->argv));
+}
+
+static inline int
+do_pam_action (pam_handle_t *pamh,
+               const char   *action,
+               int           flags,
+               int           argc,
+               const char  **argv)
+{
+  g_autoptr(GThread) thread = NULL;
+
+  thread = g_thread_new (action, do_pam_action_thread_adapter, &(ActionThreadArgs){
+    .pamh = pamh,
+    .action = action,
+    .flags = flags,
+    .argc = argc,
+    .argv = argv,
+  });
+  return GPOINTER_TO_INT (g_thread_join (g_steal_pointer (&thread)));
 }
 
 #define DEFINE_PAM_WRAPPER(name) \
