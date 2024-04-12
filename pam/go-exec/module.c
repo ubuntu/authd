@@ -28,6 +28,7 @@
 #include <glib/gstdio.h>
 #include <security/pam_ext.h>
 #include <security/pam_modules.h>
+#include <sys/wait.h>
 
 /* If this fails then our assumptions on using the return value as the pam
  * exit status is not valid anymore, so we need to refactor things to use
@@ -63,13 +64,11 @@ typedef struct _ActionData
   GCancellable    *cancellable;
   const char      *current_action;
   GPid             child_pid;
-  guint            child_watch_id;
   gulong           connection_new_id;
   gulong           connection_closed_id;
   guint            object_registered_id;
   guint            log_handler_id;
   int              log_file_fd;
-  int              exit_status;
 } ActionData;
 
 const char *UBUNTU_AUTHD_PAM_OBJECT_NODE =
@@ -265,6 +264,7 @@ action_module_data_cleanup (ActionData *action_data)
       g_dbus_connection_unregister_object (action_data->connection,
                                            action_data->object_registered_id);
       g_clear_signal_handler (&action_data->connection_closed_id, action_data->connection);
+      g_dbus_connection_close (action_data->connection, NULL, NULL, NULL);
     }
 
   g_cancellable_cancel (action_data->cancellable);
@@ -274,7 +274,6 @@ action_module_data_cleanup (ActionData *action_data)
   g_clear_object (&action_data->cancellable);
   g_clear_object (&action_data->connection);
   g_clear_pointer (&action_data->loop, g_main_loop_unref);
-  g_clear_handle_id (&action_data->child_watch_id, g_source_remove);
   g_clear_handle_id (&action_data->child_pid, g_spawn_close_pid);
 
   G_LOCK (logger);
@@ -366,37 +365,49 @@ is_debug_logging_enabled ()
          strstr (debug_messages, G_LOG_DOMAIN);
 }
 
-static void
-on_child_gone (GPid   pid,
-               int    wait_status,
-               void * user_data)
+typedef struct
 {
-  g_autoptr(GError) error = NULL;
-  ActionData *action_data = user_data;
+  pid_t              child_pid;
+  GMainLoop         *main_loop;
+  GDBusConnection ** connection_ptr;
+} WaitChildThreadData;
 
-  action_data->exit_status = WEXITSTATUS (wait_status);
+static gpointer
+wait_child_thread (gpointer data)
+{
+  WaitChildThreadData *thread_data = data;
+  pid_t child_pid = thread_data->child_pid;
+  int exit_status = PAM_SYSTEM_ERR;
 
-  g_debug ("Child %" G_PID_FORMAT " exited with exit status %d (%s)", pid,
-           action_data->exit_status,
-           pam_strerror (NULL, action_data->exit_status));
-
-  if (action_data->connection)
+  while (TRUE)
     {
-      g_dbus_connection_unregister_object (action_data->connection,
-                                           action_data->object_registered_id);
+      int status;
+      pid_t ret = waitpid (child_pid, &status, 0);
 
-      if (!g_dbus_connection_is_closed (action_data->connection) &&
-          !g_dbus_connection_close_sync (action_data->connection,
-                                         action_data->cancellable,
-                                         &error))
-        if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-          g_warning ("Impossible to close connection: %s", error->message);
+      g_debug ("Waiting pid %" G_PID_FORMAT " returned %" G_PID_FORMAT ", "
+               "exited: %d, signaled: %d", child_pid, ret,
+               WIFEXITED (status), WIFSIGNALED (status));
+
+      if (ret == child_pid && WIFEXITED (status))
+        {
+          exit_status = WEXITSTATUS (status);
+          break;
+        }
+
+      if (ret < 0)
+        {
+          exit_status = -errno;
+          break;
+        }
     }
 
-  action_data->child_watch_id = 0;
+  if (thread_data->connection_ptr && *thread_data->connection_ptr)
+    g_dbus_connection_close (*thread_data->connection_ptr, NULL, NULL, NULL);
 
-  g_clear_handle_id (&action_data->child_pid, g_spawn_close_pid);
-  g_main_loop_quit (action_data->loop);
+  g_main_loop_quit (thread_data->main_loop);
+  g_clear_pointer (&thread_data->main_loop, g_main_loop_unref);
+
+  return GINT_TO_POINTER (exit_status);
 }
 
 static void
@@ -898,14 +909,17 @@ do_pam_action (pam_handle_t *pamh,
   g_autoptr(GPtrArray) args = NULL;
   g_autoptr(GDBusServer) server = NULL;
   g_autoptr(ProgramNameResetter) old_program_name = NULL;
+  g_autoptr(GThread) wait_thread = NULL;
   g_auto(GStrv) env_variables = NULL;
   g_autofree char *exe = NULL;
   g_autofree char *log_file = NULL;
   g_autofree char *program_name = NULL;
+  g_autofree char *wait_thread_name = NULL;
   g_autofd int stdin_fd = -1;
   g_autofd int stdout_fd = -1;
   g_autofd int stderr_fd = -1;
   g_autofd int log_file_fd = -1;
+  int exit_status;
   gboolean interactive_mode;
   GPid child_pid;
 
@@ -1084,34 +1098,32 @@ do_pam_action (pam_handle_t *pamh,
   action_data.child_pid = child_pid;
 
   action_data.loop = g_main_loop_new (NULL, FALSE);
-  action_data.child_watch_id =
-    g_child_watch_add_full (G_PRIORITY_HIGH, child_pid,
-                            on_child_gone, &action_data, NULL);
 
-#ifdef AUTHD_TEST_MODULE
-  /* The previous code implicitly just added a SIGCHLD signal handler.
-   * This is perfectly fine for the purpose of this module, however in
-   * case we're running as part of a Go application (as during authd tests)
-   * we should make sure that the signal handler is called with the go provided
-   * alternate stack. See:
-   *  - https://pkg.go.dev/os/signal#hdr-Go_programs_that_use_cgo_or_SWIG
-   *
-   * This can be removed when/if this GLib change will be part of the release
-   * we're targeting:
-   *  - https://gitlab.gnome.org/GNOME/glib/-/merge_requests/3983
-   */
-  struct sigaction sigchild_handler;
-  sigaction (SIGCHLD, NULL, &sigchild_handler);
-  sigchild_handler.sa_flags |= SA_ONSTACK;
-  sigaction (SIGCHLD, &sigchild_handler, NULL);
-#endif
+  wait_thread_name = g_strdup_printf ("exec-%s-wait-child", action);
+  wait_thread = g_thread_new (wait_thread_name, wait_child_thread, &(WaitChildThreadData){
+    .child_pid = child_pid,
+    .main_loop = g_main_loop_ref (action_data.loop),
+    .connection_ptr = &action_data.connection,
+  });
 
   g_main_loop_run (action_data.loop);
+  exit_status = GPOINTER_TO_INT (g_thread_join (g_steal_pointer (&wait_thread)));
 
-  if (action_data.exit_status >= _PAM_RETURN_VALUES)
+  if (exit_status < 0)
+    {
+      notify_error (pamh, action, "Waiting for PID %" G_PID_FORMAT
+                    " failed with error %s", child_pid,
+                    g_strerror (-exit_status));
+      exit_status = PAM_SYSTEM_ERR;
+    }
+
+  g_debug ("Child %" G_PID_FORMAT " exited with exit status %d (%s)", child_pid,
+           exit_status, pam_strerror (pamh, exit_status));
+
+  if (exit_status >= _PAM_RETURN_VALUES)
     return PAM_SYSTEM_ERR;
 
-  return action_data.exit_status;
+  return exit_status;
 }
 
 #define DEFINE_PAM_WRAPPER(name) \
