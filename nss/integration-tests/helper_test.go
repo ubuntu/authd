@@ -14,10 +14,8 @@ import (
 	"github.com/ubuntu/authd/internal/testutils"
 )
 
-var daemonPath string
-
 // buildRustNSSLib builds the NSS library and links the compiled file to libPath.
-func buildRustNSSLib(t *testing.T) {
+func buildRustNSSLib(t *testing.T) (libPath string, rustCovEnv []string) {
 	t.Helper()
 
 	projectRoot := testutils.ProjectRoot()
@@ -52,11 +50,13 @@ func buildRustNSSLib(t *testing.T) {
 	if err = os.Symlink(filepath.Join(target, "debug", "libnss_authd.so"), libPath); err != nil {
 		require.ErrorIs(t, err, os.ErrExist, "Setup: failed to create versioned link to the library")
 	}
+
+	return libPath, rustCovEnv
 }
 
 // outNSSCommandForLib returns the specific part for the nss command, filtering originOut.
 // It uses the locally build authd nss module for the integration tests.
-func outNSSCommandForLib(t *testing.T, socketPath, originOut string, shouldPreCheck bool, cmds ...string) (got string, err error) {
+func outNSSCommandForLib(t *testing.T, libPath, socketPath string, rustCovEnv []string, originOut string, shouldPreCheck bool, cmds ...string) (got string, err error) {
 	t.Helper()
 
 	// #nosec:G204 - we control the command arguments in tests

@@ -13,13 +13,12 @@ import (
 	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 )
 
-var libPath string
-var rustCovEnv []string
+var daemonPath string
 
 func TestIntegration(t *testing.T) {
 	t.Parallel()
 
-	buildRustNSSLib(t)
+	libPath, rustCovEnv := buildRustNSSLib(t)
 
 	// Create a default daemon to use for most test cases.
 	defaultSocket := filepath.Join(os.TempDir(), "nss-integration-tests.sock")
@@ -132,7 +131,7 @@ func TestIntegration(t *testing.T) {
 				cmds = append(cmds, tc.key)
 			}
 
-			got, err := outNSSCommandForLib(t, socketPath, originOuts[tc.db], tc.shouldPreCheck, cmds...)
+			got, err := outNSSCommandForLib(t, libPath, socketPath, rustCovEnv, originOuts[tc.db], tc.shouldPreCheck, cmds...)
 			if tc.wantErr {
 				require.Error(t, err, "Expected an error, but got none")
 				return
@@ -144,7 +143,7 @@ func TestIntegration(t *testing.T) {
 
 			// This is to check that some cache tasks, such as cleaning a corrupted database, work as expected.
 			if tc.wantSecondCall {
-				got, err := outNSSCommandForLib(t, socketPath, originOuts[tc.db], tc.shouldPreCheck, cmds...)
+				got, err := outNSSCommandForLib(t, libPath, socketPath, rustCovEnv, originOuts[tc.db], tc.shouldPreCheck, cmds...)
 				require.NoError(t, err, "Expected no error, but got %v", err)
 				require.Empty(t, got, "Expected empty output, but got %q", got)
 			}
