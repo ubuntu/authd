@@ -8,6 +8,8 @@ import (
 	"github.com/ubuntu/authd/internal/testutils"
 )
 
+const authdCurrentUserRootEnvVariableContent = "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1"
+
 func TestMain(m *testing.M) {
 	// Needed to skip the test setup when running the gpasswd mock.
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {

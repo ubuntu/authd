@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/services/authorizer"
+	"github.com/ubuntu/authd/internal/services/authorizer/authorizertests"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
@@ -62,7 +64,8 @@ func TestNewService(t *testing.T) {
 	m, err := users.NewManager(t.TempDir())
 	require.NoError(t, err, "Setup: could not create user manager")
 
-	service := pam.NewService(context.Background(), m, brokerManager)
+	a := authorizer.New()
+	service := pam.NewService(context.Background(), m, brokerManager, &a)
 
 	brokers, err := service.AvailableBrokers(context.Background(), &authd.Empty{})
 	require.NoError(t, err, "can’t create the service directly")
@@ -72,66 +75,110 @@ func TestNewService(t *testing.T) {
 func TestAvailableBrokers(t *testing.T) {
 	t.Parallel()
 
-	client := newPamClient(t, nil)
+	tests := map[string]struct {
+		currentUserNotRoot bool
 
-	abResp, err := client.AvailableBrokers(context.Background(), &authd.Empty{})
-	require.NoError(t, err, "AvailableBrokers should not return an error, but did")
+		wantErr bool
+	}{
+		"Success getting available brokers": {},
 
-	got := abResp.GetBrokersInfos()
-	for _, broker := range got {
-		broker.Id = broker.Name + "_ID"
+		"Error when not root": {currentUserNotRoot: true, wantErr: true},
 	}
-	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
-	require.Equal(t, want, got, "AvailableBrokers returned unexpected brokers")
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			a := newAuthorizer(t, tc.currentUserNotRoot)
+			client := newPamClient(t, nil, &a)
+
+			abResp, err := client.AvailableBrokers(context.Background(), &authd.Empty{})
+
+			if tc.wantErr {
+				require.Error(t, err, "AvailableBrokers should return an error, but did not")
+				return
+			}
+			require.NoError(t, err, "AvailableBrokers should not return an error, but did")
+
+			got := abResp.GetBrokersInfos()
+			for _, broker := range got {
+				broker.Id = broker.Name + "_ID"
+			}
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			require.Equal(t, want, got, "AvailableBrokers returned unexpected brokers")
+		})
+	}
 }
 
 func TestGetPreviousBroker(t *testing.T) {
 	t.Parallel()
 
-	cacheDir := t.TempDir()
-	f, err := os.Open(filepath.Join(testutils.TestFamilyPath(t), "get-previous-broker.db"))
-	require.NoError(t, err, "Setup: could not open fixture database file")
-	defer f.Close()
-	d, err := io.ReadAll(f)
-	require.NoError(t, err, "Setup: could not read fixture database file")
-	d = bytes.ReplaceAll(d, []byte("MOCKBROKERID"), []byte(mockBrokerGeneratedID))
-	err = cachetests.DbfromYAML(bytes.NewBuffer(d), cacheDir)
-	require.NoError(t, err, "Setup: could not prepare cache database file")
+	tests := map[string]struct {
+		currentUserNotRoot bool
 
-	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
-	require.NoError(t, err, "Setup: could not parse time for testing")
+		wantErr bool
+	}{
+		"Success getting previous broker": {},
 
-	m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
-	require.NoError(t, err, "Setup: could not create user manager")
-	t.Cleanup(func() { _ = m.Stop() })
-	client := newPamClient(t, m)
+		"Error when not root": {currentUserNotRoot: true, wantErr: true},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 
-	// Get existing entry
-	gotResp, _ := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithbroker"})
-	require.Equal(t, mockBrokerGeneratedID, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID")
+			cacheDir := t.TempDir()
+			f, err := os.Open(filepath.Join(testutils.TestFamilyPath(t), "get-previous-broker.db"))
+			require.NoError(t, err, "Setup: could not open fixture database file")
+			defer f.Close()
+			d, err := io.ReadAll(f)
+			require.NoError(t, err, "Setup: could not read fixture database file")
+			d = bytes.ReplaceAll(d, []byte("MOCKBROKERID"), []byte(mockBrokerGeneratedID))
+			err = cachetests.DbfromYAML(bytes.NewBuffer(d), cacheDir)
+			require.NoError(t, err, "Setup: could not prepare cache database file")
 
-	// Get brokerID from memory if it was already assigned // FIXME: how do we know this is from memory?
-	gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithbroker"})
-	require.Equal(t, mockBrokerGeneratedID, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID from memory")
+			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
+			require.NoError(t, err, "Setup: could not parse time for testing")
 
-	// Get local user and get it set to local broker
-	u, err := user.Current()
-	require.NoError(t, err, "Setup: could not fetch current user")
-	gotResp, err = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: u.Username})
-	require.NoError(t, err, "GetPreviousBroker should not return an error")
-	require.Equal(t, brokers.LocalBrokerName, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID from memory")
+			m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
+			require.NoError(t, err, "Setup: could not create user manager")
+			t.Cleanup(func() { _ = m.Stop() })
+			a := newAuthorizer(t, tc.currentUserNotRoot)
+			client := newPamClient(t, m, &a)
 
-	// Return empty when user does not exist
-	gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "nonexistent"})
-	require.Empty(t, gotResp.GetPreviousBroker(), "GetPreviousBroker should return empty when user does not exist")
+			// Get existing entry
+			gotResp, err := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithbroker"})
 
-	// Return empty when user does not have a broker
-	gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithoutbroker"})
-	require.Empty(t, gotResp.GetPreviousBroker(), "GetPreviousBroker should return empty when user does not have a broker")
+			if tc.wantErr {
+				require.Error(t, err, "GetPreviousBroker should return an error, but did not")
+				return
+			}
+			require.NoError(t, err, "GetPreviousBroker should not return an error, but did")
 
-	// Return empty when broker is not available
-	gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithinactivebroker"})
-	require.Empty(t, gotResp.GetPreviousBroker(), "GetPreviousBroker should return empty when broker is not active")
+			require.Equal(t, mockBrokerGeneratedID, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID")
+
+			// Get brokerID from memory if it was already assigned // FIXME: how do we know this is from memory?
+			gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithbroker"})
+			require.Equal(t, mockBrokerGeneratedID, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID from memory")
+
+			// Get local user and get it set to local broker
+			u, err := user.Current()
+			require.NoError(t, err, "Setup: could not fetch current user")
+			gotResp, err = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: u.Username})
+			require.NoError(t, err, "GetPreviousBroker should not return an error")
+			require.Equal(t, brokers.LocalBrokerName, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID from memory")
+
+			// Return empty when user does not exist
+			gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "nonexistent"})
+			require.Empty(t, gotResp.GetPreviousBroker(), "GetPreviousBroker should return empty when user does not exist")
+
+			// Return empty when user does not have a broker
+			gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithoutbroker"})
+			require.Empty(t, gotResp.GetPreviousBroker(), "GetPreviousBroker should return empty when user does not have a broker")
+
+			// Return empty when broker is not available
+			gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithinactivebroker"})
+			require.Empty(t, gotResp.GetPreviousBroker(), "GetPreviousBroker should return empty when broker is not active")
+		})
+	}
 }
 
 func TestSelectBroker(t *testing.T) {
@@ -143,12 +190,15 @@ func TestSelectBroker(t *testing.T) {
 		username    string
 		sessionMode string
 
+		currentUserNotRoot bool
+
 		// This is the expected return.
 		wantErr bool
 	}{
 		"Successfully select a broker and creates auth session":   {username: "success"},
 		"Successfully select a broker and creates passwd session": {username: "success", sessionMode: "passwd"},
 
+		"Error when not root":                             {username: "success", currentUserNotRoot: true, wantErr: true},
 		"Error when username is empty":                    {wantErr: true},
 		"Error when mode is empty":                        {sessionMode: "-", wantErr: true},
 		"Error when mode does not exist":                  {sessionMode: "does not exist", wantErr: true},
@@ -161,7 +211,8 @@ func TestSelectBroker(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t, nil)
+			a := newAuthorizer(t, tc.currentUserNotRoot)
+			client := newPamClient(t, nil, &a)
 
 			switch tc.brokerID {
 			case "":
@@ -214,7 +265,8 @@ func TestGetAuthenticationModes(t *testing.T) {
 		supportedUILayouts []*authd.UILayout
 
 		// These are auxiliary inputs that affect the test setup and help control the mock output.
-		username string
+		username           string
+		currentUserNotRoot bool
 
 		// This is the expected return.
 		wantErr bool
@@ -222,6 +274,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 		"Successfully get authentication modes":          {},
 		"Successfully get multiple authentication modes": {username: "GAM_multiple_modes"},
 
+		"Error when not root":                     {currentUserNotRoot: true, wantErr: true},
 		"Error when sessionID is empty":           {sessionID: "-", wantErr: true},
 		"Error when passing invalid layout":       {supportedUILayouts: []*authd.UILayout{emptyType}, wantErr: true},
 		"Error when sessionID is invalid":         {sessionID: "invalid-session", wantErr: true},
@@ -232,7 +285,8 @@ func TestGetAuthenticationModes(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t, nil)
+			a := newAuthorizer(t, false) // Allow starting the session (current user considered root)
+			client := newPamClient(t, nil, &a)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -244,6 +298,9 @@ func TestGetAuthenticationModes(t *testing.T) {
 					tc.sessionID = id
 				}
 			}
+
+			// Now, set tests permissions for this use case
+			authorizertests.SetCurrentRootAsRoot(&a, !tc.currentUserNotRoot)
 
 			if tc.supportedUILayouts == nil {
 				tc.supportedUILayouts = []*authd.UILayout{requiredEntry}
@@ -279,6 +336,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		username           string
 		supportedUILayouts []*authd.UILayout
 		noValidators       bool
+		currentUserNotRoot bool
 
 		// This is the expected return.
 		wantErr bool
@@ -287,6 +345,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		"Successfully select mode with missing optional value": {username: "SAM_missing_optional_entry", supportedUILayouts: []*authd.UILayout{optionalEntry}},
 
 		// service errors
+		"Error when not root":                {username: "SAM_success_required_entry", currentUserNotRoot: true, wantErr: true},
 		"Error when sessionID is empty":      {sessionID: "-", wantErr: true},
 		"Error when session ID is invalid":   {sessionID: "invalid-session", wantErr: true},
 		"Error when no authmode is selected": {sessionID: "no auth mode", authMode: "-", wantErr: true},
@@ -305,7 +364,8 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t, nil)
+			a := newAuthorizer(t, false) // Allow starting the session (current user considered root)
+			client := newPamClient(t, nil, &a)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -336,6 +396,9 @@ func TestSelectAuthenticationMode(t *testing.T) {
 				require.NoError(t, err, "Setup: failed to get authentication modes for tests")
 			}
 
+			// Now, set tests permissions for this use case
+			authorizertests.SetCurrentRootAsRoot(&a, !tc.currentUserNotRoot)
+
 			samReq := &authd.SAMRequest{
 				SessionId:            tc.sessionID,
 				AuthenticationModeId: tc.authMode,
@@ -361,10 +424,13 @@ func TestIsAuthenticated(t *testing.T) {
 		existingDB string
 
 		// These are auxiliary inputs that affect the test setup and help control the mock output.
-		username        string
-		secondCall      bool
-		cancelFirstCall bool
-		localGroupsFile string
+		username           string
+		secondCall         bool
+		cancelFirstCall    bool
+		localGroupsFile    string
+		currentUserNotRoot bool
+
+		// There is no wantErr as it's stored in the golden file.
 	}{
 		"Successfully authenticate":                           {username: "success"},
 		"Successfully authenticate if first call is canceled": {username: "IA_second_call", secondCall: true, cancelFirstCall: true},
@@ -373,6 +439,7 @@ func TestIsAuthenticated(t *testing.T) {
 		"Update local groups":                                 {username: "success_with_local_groups", localGroupsFile: "valid.group"},
 
 		// service errors
+		"Error when not root":           {username: "success", currentUserNotRoot: true},
 		"Error when sessionID is empty": {sessionID: "-"},
 		"Error when there is no broker": {sessionID: "invalid-session"},
 
@@ -413,7 +480,8 @@ func TestIsAuthenticated(t *testing.T) {
 			m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
-			client := newPamClient(t, m)
+			a := newAuthorizer(t, false) // Allow starting the session (current user considered root)
+			client := newPamClient(t, m, &a)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -425,6 +493,9 @@ func TestIsAuthenticated(t *testing.T) {
 					tc.sessionID = id
 				}
 			}
+
+			// Now, set tests permissions for this use case
+			authorizertests.SetCurrentRootAsRoot(&a, !tc.currentUserNotRoot)
 
 			var firstCall, secondCall string
 			ctx, cancel := context.WithCancel(context.Background())
@@ -467,6 +538,7 @@ func TestIsAuthenticated(t *testing.T) {
 			<-done
 
 			got := firstCall + secondCall
+			got = authorizertests.IdempotentPermissionError(got)
 			want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "IsAuthenticated")))
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
 
@@ -486,8 +558,9 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 
 	tests := map[string]struct {
 		// These are the function arguments.
-		username string
-		brokerID string
+		username           string
+		brokerID           string
+		currentUserNotRoot bool
 
 		// This is the expected return.
 		wantErr bool
@@ -496,6 +569,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		"Update default broker for existing user with a broker": {username: "userupdatebroker"},
 		"Setting local broker as default should not save on DB": {username: "userlocalbroker", brokerID: brokers.LocalBrokerName},
 
+		"Error when not root":              {username: "usersetbroker", currentUserNotRoot: true, wantErr: true},
 		"Error when username is empty":     {wantErr: true},
 		"Error when user does not exist ":  {username: "doesnotexist", wantErr: true},
 		"Error when broker does not exist": {username: "userwithbroker", brokerID: "does not exist", wantErr: true},
@@ -517,7 +591,8 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
-			client := newPamClient(t, m)
+			a := newAuthorizer(t, tc.currentUserNotRoot)
+			client := newPamClient(t, m, &a)
 
 			if tc.brokerID == "" {
 				tc.brokerID = mockBrokerGeneratedID
@@ -555,13 +630,15 @@ func TestEndSession(t *testing.T) {
 		sessionID string
 
 		// These are auxiliary inputs that affect the test setup and help control the mock output.
-		username string
+		username           string
+		currentUserNotRoot bool
 
 		// This is the expected return.
 		wantErr bool
 	}{
 		"Successfully end session": {username: "success"},
 
+		"Error when not root":             {username: "success", currentUserNotRoot: true, wantErr: true},
 		"Error when sessionID is empty":   {sessionID: "-", wantErr: true},
 		"Error when sessionID is invalid": {sessionID: "invalid-session", wantErr: true},
 		"Error when ending session":       {username: "ES_error", wantErr: true},
@@ -570,7 +647,8 @@ func TestEndSession(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			client := newPamClient(t, nil)
+			a := newAuthorizer(t, false) // Allow starting the session (current user considered root)
+			client := newPamClient(t, nil, &a)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -582,6 +660,9 @@ func TestEndSession(t *testing.T) {
 					tc.sessionID = id
 				}
 			}
+
+			// Now, set tests permissions for this use case
+			authorizertests.SetCurrentRootAsRoot(&a, !tc.currentUserNotRoot)
 
 			esReq := &authd.ESRequest{
 				SessionId: tc.sessionID,
@@ -624,9 +705,10 @@ func initBrokers() (brokerConfigPath string, cleanup func(), err error) {
 	}, nil
 }
 
-// newPAMClient returns a new GRPC PAM client for tests connected to the global brokerManager with the given cache.
+// newPAMClient returns a new GRPC PAM client for tests connected to the global brokerManager with the given cache and
+// authorizer.
 // If the one passed is nil, this function will create the cache and close it upon test teardown.
-func newPamClient(t *testing.T, m *users.Manager) (client authd.PAMClient) {
+func newPamClient(t *testing.T, m *users.Manager, a *authorizer.Authorizer) (client authd.PAMClient) {
 	t.Helper()
 
 	// socket path is limited in length.
@@ -644,9 +726,9 @@ func newPamClient(t *testing.T, m *users.Manager) (client authd.PAMClient) {
 		t.Cleanup(func() { _ = m.Stop() })
 	}
 
-	service := pam.NewService(context.Background(), m, brokerManager)
+	service := pam.NewService(context.Background(), m, brokerManager, a)
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(authorizer.WithUnixPeerCreds(), grpc.UnaryInterceptor(enableCheckGlobalAccess(service)))
 	authd.RegisterPAMServer(grpcServer, service)
 	done := make(chan struct{})
 	go func() {
@@ -663,6 +745,29 @@ func newPamClient(t *testing.T, m *users.Manager) (client authd.PAMClient) {
 	t.Cleanup(func() { _ = conn.Close() }) // We don't care about the error on cleanup
 
 	return authd.NewPAMClient(conn)
+}
+
+// newAuthorizer factors out authorizer creation for tests.
+// this authorizer can then be tweaked for mimicking currentUser considered as root not.
+func newAuthorizer(t *testing.T, currentUserNotRoot bool) authorizer.Authorizer {
+	t.Helper()
+
+	var opts = []authorizer.Option{}
+	if !currentUserNotRoot {
+		opts = append(opts, authorizertests.WithCurrentUserAsRoot())
+	}
+	return authorizer.New(opts...)
+}
+
+// enableCheckGlobalAccess returns the middleware hooking up in CheckGlobalAccess for the given service.
+func enableCheckGlobalAccess(s pam.Service) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		if err := s.CheckGlobalAccess(ctx, info.FullMethod); err != nil {
+			return nil, err
+		}
+
+		return handler(ctx, req)
+	}
 }
 
 // getMockBrokerGeneratedID returns the generated ID for the mock broker.

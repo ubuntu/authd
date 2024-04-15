@@ -11,6 +11,8 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
+var permErrorFmt = "this action is only allowed for root users. Current user is %d"
+
 // Authorizer is an abstraction of authorization process.
 type Authorizer struct {
 	rootUID uint32
@@ -56,7 +58,7 @@ func (a Authorizer) IsRequestFromRoot(ctx context.Context) (err error) {
 	}
 
 	if pci.uid != a.rootUID {
-		return fmt.Errorf("this action is only allowed for root users. Current user is %d", pci.uid)
+		return fmt.Errorf(permErrorFmt, pci.uid)
 	}
 
 	return nil

@@ -1,0 +1,66 @@
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+PAM Error Message: could not get current available brokers: rpc error: code = Unknown desc = per
+mission denied: this action is only allowed for root users. Current user is XXXX
+PAM Authenticate() for user "" exited with error (PAM exit code: 4): System error
+PAM Info Message: acct=incomplete
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+PAM Error Message: could not get current available brokers: rpc error: code = Unknown desc = per
+mission denied: this action is only allowed for root users. Current user is XXXX
+PAM Authenticate() for user "" exited with error (PAM exit code: 4): System error
+PAM Info Message: acct=incomplete
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
