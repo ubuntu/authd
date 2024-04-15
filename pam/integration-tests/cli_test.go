@@ -11,6 +11,7 @@ import (
 
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/services/authorizer/authorizertests"
 	"github.com/ubuntu/authd/internal/testutils"
 	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -30,7 +31,7 @@ func TestCLIAuthenticate(t *testing.T) {
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
-	socketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
+	defaultSocketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
 
 	// If vhs is installed with "go install", we need to add GOPATH to PATH.
 	pathEnv := prependBinToPath(t)
@@ -40,6 +41,8 @@ func TestCLIAuthenticate(t *testing.T) {
 
 	tests := map[string]struct {
 		tape string
+
+		currentUserNotRoot bool
 	}{
 		"Authenticate user successfully":                      {tape: "simple_auth"},
 		"Authenticate user with mfa":                          {tape: "mfa_auth"},
@@ -55,6 +58,8 @@ func TestCLIAuthenticate(t *testing.T) {
 
 		"Remember last successful broker and mode": {tape: "remember_broker_and_mode"},
 		"Autoselect local broker for local user":   {tape: "local_user"},
+
+		"Deny authentication if current user is not considered as root": {tape: "not_root", currentUserNotRoot: true},
 
 		"Deny authentication if max attempts reached": {tape: "max_attempts"},
 		"Deny authentication if user does not exist":  {tape: "unexistent_user"},
@@ -74,6 +79,11 @@ func TestCLIAuthenticate(t *testing.T) {
 					cliLog,
 				})
 			})
+
+			socketPath := defaultSocketPath
+			if tc.currentUserNotRoot {
+				socketPath = runAuthd(t, gpasswdOutput, groupsFile, false)
+			}
 
 			// #nosec:G204 - we control the command arguments in tests
 			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
@@ -100,6 +110,7 @@ func TestCLIAuthenticate(t *testing.T) {
 					break
 				}
 			}
+			got = authorizertests.IdempotentPermissionError(got)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
@@ -125,7 +136,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
-	socketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
+	defaultSocketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
 
 	// If vhs is installed with "go install", we need to add GOPATH to PATH.
 	pathEnv := prependBinToPath(t)
@@ -135,6 +146,8 @@ func TestCLIChangeAuthTok(t *testing.T) {
 
 	tests := map[string]struct {
 		tape string
+
+		currentUserNotRoot bool
 	}{
 		"Change password successfully and authenticate with new one": {tape: "passwd_simple"},
 		"Change passwd after MFA auth":                               {tape: "passwd_mfa"},
@@ -142,7 +155,8 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		"Retry if new password is rejected by broker":    {tape: "passwd_rejected"},
 		"Retry if password confirmation is not the same": {tape: "passwd_not_confirmed"},
 
-		"Prevent change password if auth fails": {"passwd_auth_fail"},
+		"Prevent change password if auth fails":                                     {tape: "passwd_auth_fail"},
+		"Prevent change password if current user is not root as can't authenticate": {tape: "passwd_not_root", currentUserNotRoot: true},
 
 		"Exit authd if local broker is selected": {tape: "passwd_local_broker"},
 		"Exit authd if user sigints":             {tape: "passwd_sigint"},
@@ -150,6 +164,11 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+
+			socketPath := defaultSocketPath
+			if tc.currentUserNotRoot {
+				socketPath = runAuthd(t, gpasswdOutput, groupsFile, false)
+			}
 
 			cliLog := prepareCLILogging(t)
 			t.Cleanup(func() {
@@ -185,6 +204,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 					break
 				}
 			}
+			got = authorizertests.IdempotentPermissionError(got)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 		})
