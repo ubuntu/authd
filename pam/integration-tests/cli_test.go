@@ -30,13 +30,7 @@ func TestCLIAuthenticate(t *testing.T) {
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
-	ctx, cancel := context.WithCancel(context.Background())
-	env := append(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
-	defaultSocketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
-	t.Cleanup(func() {
-		cancel()
-		<-stopped
-	})
+	socketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
 
 	// If vhs is installed with "go install", we need to add GOPATH to PATH.
 	pathEnv := prependBinToPath(t)
@@ -131,13 +125,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
-	ctx, cancel := context.WithCancel(context.Background())
-	env := append(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
-	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
-	t.Cleanup(func() {
-		cancel()
-		<-stopped
-	})
+	socketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
 
 	// If vhs is installed with "go install", we need to add GOPATH to PATH.
 	pathEnv := prependBinToPath(t)
@@ -230,6 +218,22 @@ func TestPamCLIRunStandalone(t *testing.T) {
 
 	require.Contains(t, outStr, pam.ErrSystem.Error())
 	require.Contains(t, outStr, pam.ErrIgnore.Error())
+}
+
+func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool) string {
+	t.Helper()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	env := grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile)
+	if currentUserAsRoot {
+		env = append(env, authdCurrentUserRootEnvVariableContent)
+	}
+	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
+	t.Cleanup(func() {
+		cancel()
+		<-stopped
+	})
+	return socketPath
 }
 
 func prepareCLITest(t *testing.T, clientPath string) []string {
