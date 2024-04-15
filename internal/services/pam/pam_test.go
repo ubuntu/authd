@@ -185,14 +185,12 @@ func TestSelectBroker(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		// These are the function arguments.
 		brokerID    string
 		username    string
 		sessionMode string
 
 		currentUserNotRoot bool
 
-		// This is the expected return.
 		wantErr bool
 	}{
 		"Successfully select a broker and creates auth session":   {username: "success"},
@@ -260,15 +258,12 @@ func TestGetAuthenticationModes(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		// These are the function arguments.
 		sessionID          string
 		supportedUILayouts []*authd.UILayout
 
-		// These are auxiliary inputs that affect the test setup and help control the mock output.
 		username           string
 		currentUserNotRoot bool
 
-		// This is the expected return.
 		wantErr bool
 	}{
 		"Successfully get authentication modes":          {},
@@ -328,17 +323,14 @@ func TestSelectAuthenticationMode(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		// These are the function arguments.
 		sessionID string
 		authMode  string
 
-		// These are auxiliary inputs that affect the test setup and help control the mock output.
 		username           string
 		supportedUILayouts []*authd.UILayout
 		noValidators       bool
 		currentUserNotRoot bool
 
-		// This is the expected return.
 		wantErr bool
 	}{
 		"Successfully select mode with required value":         {username: "SAM_success_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}},
@@ -419,11 +411,9 @@ func TestSelectAuthenticationMode(t *testing.T) {
 
 func TestIsAuthenticated(t *testing.T) {
 	tests := map[string]struct {
-		// These are the function arguments.
 		sessionID  string
 		existingDB string
 
-		// These are auxiliary inputs that affect the test setup and help control the mock output.
 		username           string
 		secondCall         bool
 		cancelFirstCall    bool
@@ -557,12 +547,10 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		// These are the function arguments.
 		username           string
 		brokerID           string
 		currentUserNotRoot bool
 
-		// This is the expected return.
 		wantErr bool
 	}{
 		"Set default broker for existing user with no broker":   {username: "usersetbroker"},
@@ -626,14 +614,11 @@ func TestEndSession(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		// These are the function arguments.
 		sessionID string
 
-		// These are auxiliary inputs that affect the test setup and help control the mock output.
 		username           string
 		currentUserNotRoot bool
 
-		// This is the expected return.
 		wantErr bool
 	}{
 		"Successfully end session": {username: "success"},
