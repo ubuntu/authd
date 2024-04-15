@@ -112,14 +112,27 @@ func TestAvailableBrokers(t *testing.T) {
 func TestGetPreviousBroker(t *testing.T) {
 	t.Parallel()
 
+	// Get local user and get it set to local broker
+	u, err := user.Current()
+	require.NoError(t, err, "Setup: could not fetch current user")
+	currentUsername := u.Username
+
 	tests := map[string]struct {
+		user string
+
 		currentUserNotRoot bool
 
-		wantErr bool
+		wantBroker string
+		wantErr    bool
 	}{
-		"Success getting previous broker": {},
+		"Success getting previous broker":  {user: "userwithbroker", wantBroker: mockBrokerGeneratedID},
+		"For local user, get local broker": {user: currentUsername, wantBroker: brokers.LocalBrokerName},
 
-		"Error when not root": {currentUserNotRoot: true, wantErr: true},
+		"Returns empty when user does not exist":         {user: "nonexistent", wantBroker: ""},
+		"Returns empty when user does not have a broker": {user: "userwithoutbroker", wantBroker: ""},
+		"Returns empty when broker is not available":     {user: "userwithinactivebroker", wantBroker: ""},
+
+		"Error when not root": {user: "userwithbroker", currentUserNotRoot: true, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -145,7 +158,7 @@ func TestGetPreviousBroker(t *testing.T) {
 			client := newPamClient(t, m, &pm)
 
 			// Get existing entry
-			gotResp, err := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithbroker"})
+			gotResp, err := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: tc.user})
 
 			if tc.wantErr {
 				require.Error(t, err, "GetPreviousBroker should return an error, but did not")
@@ -153,30 +166,7 @@ func TestGetPreviousBroker(t *testing.T) {
 			}
 			require.NoError(t, err, "GetPreviousBroker should not return an error, but did")
 
-			require.Equal(t, mockBrokerGeneratedID, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID")
-
-			// Get brokerID from memory if it was already assigned // FIXME: how do we know this is from memory?
-			gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithbroker"})
-			require.Equal(t, mockBrokerGeneratedID, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID from memory")
-
-			// Get local user and get it set to local broker
-			u, err := user.Current()
-			require.NoError(t, err, "Setup: could not fetch current user")
-			gotResp, err = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: u.Username})
-			require.NoError(t, err, "GetPreviousBroker should not return an error")
-			require.Equal(t, brokers.LocalBrokerName, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected brokerID from memory")
-
-			// Return empty when user does not exist
-			gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "nonexistent"})
-			require.Empty(t, gotResp.GetPreviousBroker(), "GetPreviousBroker should return empty when user does not exist")
-
-			// Return empty when user does not have a broker
-			gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithoutbroker"})
-			require.Empty(t, gotResp.GetPreviousBroker(), "GetPreviousBroker should return empty when user does not have a broker")
-
-			// Return empty when broker is not available
-			gotResp, _ = client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithinactivebroker"})
-			require.Empty(t, gotResp.GetPreviousBroker(), "GetPreviousBroker should return empty when broker is not active")
+			require.Equal(t, tc.wantBroker, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected broker")
 		})
 	}
 }
