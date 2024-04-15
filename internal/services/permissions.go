@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-func (m Manager) globalAuthorizations(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+func (m Manager) globalPermissions(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	if strings.HasPrefix(info.FullMethod, "/authd.PAM/") {
 		if err := m.pamService.CheckGlobalAccess(ctx, info.FullMethod); err != nil {
 			return nil, err

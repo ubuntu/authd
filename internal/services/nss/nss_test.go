@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/services/authorizer"
-	"github.com/ubuntu/authd/internal/services/authorizer/authorizertests"
 	"github.com/ubuntu/authd/internal/services/nss"
+	"github.com/ubuntu/authd/internal/services/permissions"
+	"github.com/ubuntu/authd/internal/services/permissions/permissionstests"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
 	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
@@ -36,8 +36,8 @@ func TestNewService(t *testing.T) {
 	b, err := brokers.NewManager(context.Background(), t.TempDir(), nil)
 	require.NoError(t, err, "Setup: could not create broker manager")
 
-	a := authorizer.New()
-	s := nss.NewService(context.Background(), m, b, &a)
+	pm := permissions.New()
+	s := nss.NewService(context.Background(), m, b, &pm)
 
 	require.NotNil(t, s, "NewService should return a service")
 }
@@ -281,15 +281,15 @@ func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (clien
 	lis, err := net.Listen("unix", socketPath)
 	require.NoError(t, err, "Setup: could not create unix socket")
 
-	var opts []authorizer.Option
+	var opts []permissions.Option
 	if !currentUserNotRoot {
-		opts = append(opts, authorizertests.WithCurrentUserAsRoot())
+		opts = append(opts, permissionstests.WithCurrentUserAsRoot())
 	}
-	a := authorizer.New(opts...)
+	pm := permissions.New(opts...)
 
-	service := nss.NewService(context.Background(), newUserManagerForTests(t, sourceDB), newBrokersManagerForTests(t), &a)
+	service := nss.NewService(context.Background(), newUserManagerForTests(t, sourceDB), newBrokersManagerForTests(t), &pm)
 
-	grpcServer := grpc.NewServer(authorizer.WithUnixPeerCreds(), grpc.UnaryInterceptor(enableCheckGlobalAccess(service)))
+	grpcServer := grpc.NewServer(permissions.WithUnixPeerCreds(), grpc.UnaryInterceptor(enableCheckGlobalAccess(service)))
 	authd.RegisterNSSServer(grpcServer, service)
 	done := make(chan struct{})
 	go func() {

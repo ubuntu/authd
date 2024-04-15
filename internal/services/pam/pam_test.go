@@ -17,9 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/services/authorizer"
-	"github.com/ubuntu/authd/internal/services/authorizer/authorizertests"
 	"github.com/ubuntu/authd/internal/services/pam"
+	"github.com/ubuntu/authd/internal/services/permissions"
+	"github.com/ubuntu/authd/internal/services/permissions/permissionstests"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
 	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
@@ -64,8 +64,8 @@ func TestNewService(t *testing.T) {
 	m, err := users.NewManager(t.TempDir())
 	require.NoError(t, err, "Setup: could not create user manager")
 
-	a := authorizer.New()
-	service := pam.NewService(context.Background(), m, brokerManager, &a)
+	pm := permissions.New()
+	service := pam.NewService(context.Background(), m, brokerManager, &pm)
 
 	brokers, err := service.AvailableBrokers(context.Background(), &authd.Empty{})
 	require.NoError(t, err, "can’t create the service directly")
@@ -88,8 +88,8 @@ func TestAvailableBrokers(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			a := newAuthorizer(t, tc.currentUserNotRoot)
-			client := newPamClient(t, nil, &a)
+			pm := newPermissionManager(t, tc.currentUserNotRoot)
+			client := newPamClient(t, nil, &pm)
 
 			abResp, err := client.AvailableBrokers(context.Background(), &authd.Empty{})
 
@@ -141,8 +141,8 @@ func TestGetPreviousBroker(t *testing.T) {
 			m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
-			a := newAuthorizer(t, tc.currentUserNotRoot)
-			client := newPamClient(t, m, &a)
+			pm := newPermissionManager(t, tc.currentUserNotRoot)
+			client := newPamClient(t, m, &pm)
 
 			// Get existing entry
 			gotResp, err := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: "userwithbroker"})
@@ -209,8 +209,8 @@ func TestSelectBroker(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			a := newAuthorizer(t, tc.currentUserNotRoot)
-			client := newPamClient(t, nil, &a)
+			pm := newPermissionManager(t, tc.currentUserNotRoot)
+			client := newPamClient(t, nil, &pm)
 
 			switch tc.brokerID {
 			case "":
@@ -280,8 +280,8 @@ func TestGetAuthenticationModes(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			a := newAuthorizer(t, false) // Allow starting the session (current user considered root)
-			client := newPamClient(t, nil, &a)
+			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
+			client := newPamClient(t, nil, &pm)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -295,7 +295,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			authorizertests.SetCurrentRootAsRoot(&a, !tc.currentUserNotRoot)
+			permissionstests.SetCurrentRootAsRoot(&pm, !tc.currentUserNotRoot)
 
 			if tc.supportedUILayouts == nil {
 				tc.supportedUILayouts = []*authd.UILayout{requiredEntry}
@@ -356,8 +356,8 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			a := newAuthorizer(t, false) // Allow starting the session (current user considered root)
-			client := newPamClient(t, nil, &a)
+			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
+			client := newPamClient(t, nil, &pm)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -389,7 +389,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			authorizertests.SetCurrentRootAsRoot(&a, !tc.currentUserNotRoot)
+			permissionstests.SetCurrentRootAsRoot(&pm, !tc.currentUserNotRoot)
 
 			samReq := &authd.SAMRequest{
 				SessionId:            tc.sessionID,
@@ -470,8 +470,8 @@ func TestIsAuthenticated(t *testing.T) {
 			m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
-			a := newAuthorizer(t, false) // Allow starting the session (current user considered root)
-			client := newPamClient(t, m, &a)
+			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
+			client := newPamClient(t, m, &pm)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -485,7 +485,7 @@ func TestIsAuthenticated(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			authorizertests.SetCurrentRootAsRoot(&a, !tc.currentUserNotRoot)
+			permissionstests.SetCurrentRootAsRoot(&pm, !tc.currentUserNotRoot)
 
 			var firstCall, secondCall string
 			ctx, cancel := context.WithCancel(context.Background())
@@ -528,7 +528,7 @@ func TestIsAuthenticated(t *testing.T) {
 			<-done
 
 			got := firstCall + secondCall
-			got = authorizertests.IdempotentPermissionError(got)
+			got = permissionstests.IdempotentPermissionError(got)
 			want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "IsAuthenticated")))
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
 
@@ -579,8 +579,8 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
-			a := newAuthorizer(t, tc.currentUserNotRoot)
-			client := newPamClient(t, m, &a)
+			pm := newPermissionManager(t, tc.currentUserNotRoot)
+			client := newPamClient(t, m, &pm)
 
 			if tc.brokerID == "" {
 				tc.brokerID = mockBrokerGeneratedID
@@ -632,8 +632,8 @@ func TestEndSession(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			a := newAuthorizer(t, false) // Allow starting the session (current user considered root)
-			client := newPamClient(t, nil, &a)
+			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
+			client := newPamClient(t, nil, &pm)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -647,7 +647,7 @@ func TestEndSession(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			authorizertests.SetCurrentRootAsRoot(&a, !tc.currentUserNotRoot)
+			permissionstests.SetCurrentRootAsRoot(&pm, !tc.currentUserNotRoot)
 
 			esReq := &authd.ESRequest{
 				SessionId: tc.sessionID,
@@ -691,9 +691,9 @@ func initBrokers() (brokerConfigPath string, cleanup func(), err error) {
 }
 
 // newPAMClient returns a new GRPC PAM client for tests connected to the global brokerManager with the given cache and
-// authorizer.
+// permissionmanager.
 // If the one passed is nil, this function will create the cache and close it upon test teardown.
-func newPamClient(t *testing.T, m *users.Manager, a *authorizer.Authorizer) (client authd.PAMClient) {
+func newPamClient(t *testing.T, m *users.Manager, pm *permissions.Manager) (client authd.PAMClient) {
 	t.Helper()
 
 	// socket path is limited in length.
@@ -711,9 +711,9 @@ func newPamClient(t *testing.T, m *users.Manager, a *authorizer.Authorizer) (cli
 		t.Cleanup(func() { _ = m.Stop() })
 	}
 
-	service := pam.NewService(context.Background(), m, brokerManager, a)
+	service := pam.NewService(context.Background(), m, brokerManager, pm)
 
-	grpcServer := grpc.NewServer(authorizer.WithUnixPeerCreds(), grpc.UnaryInterceptor(enableCheckGlobalAccess(service)))
+	grpcServer := grpc.NewServer(permissions.WithUnixPeerCreds(), grpc.UnaryInterceptor(enableCheckGlobalAccess(service)))
 	authd.RegisterPAMServer(grpcServer, service)
 	done := make(chan struct{})
 	go func() {
@@ -732,16 +732,16 @@ func newPamClient(t *testing.T, m *users.Manager, a *authorizer.Authorizer) (cli
 	return authd.NewPAMClient(conn)
 }
 
-// newAuthorizer factors out authorizer creation for tests.
-// this authorizer can then be tweaked for mimicking currentUser considered as root not.
-func newAuthorizer(t *testing.T, currentUserNotRoot bool) authorizer.Authorizer {
+// newPermissionManager factors out permission manager creation for tests.
+// this permission manager can then be tweaked for mimicking currentUser considered as root not.
+func newPermissionManager(t *testing.T, currentUserNotRoot bool) permissions.Manager {
 	t.Helper()
 
-	var opts = []authorizer.Option{}
+	var opts = []permissions.Option{}
 	if !currentUserNotRoot {
-		opts = append(opts, authorizertests.WithCurrentUserAsRoot())
+		opts = append(opts, permissionstests.WithCurrentUserAsRoot())
 	}
-	return authorizer.New(opts...)
+	return permissions.New(opts...)
 }
 
 // enableCheckGlobalAccess returns the middleware hooking up in CheckGlobalAccess for the given service.

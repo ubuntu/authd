@@ -11,7 +11,7 @@ import (
 
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/services/authorizer/authorizertests"
+	"github.com/ubuntu/authd/internal/services/permissions/permissionstests"
 	"github.com/ubuntu/authd/internal/testutils"
 	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -110,7 +110,7 @@ func TestCLIAuthenticate(t *testing.T) {
 					break
 				}
 			}
-			got = authorizertests.IdempotentPermissionError(got)
+			got = permissionstests.IdempotentPermissionError(got)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
@@ -204,7 +204,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 					break
 				}
 			}
-			got = authorizertests.IdempotentPermissionError(got)
+			got = permissionstests.IdempotentPermissionError(got)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 		})
