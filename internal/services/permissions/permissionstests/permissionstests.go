@@ -15,6 +15,11 @@ import (
 	"github.com/ubuntu/authd/internal/testsdetection"
 )
 
+func init() {
+	// No import outside of testing environment.
+	testsdetection.MustBeTesting()
+}
+
 // WithCurrentUserAsRoot returns an Option that sets the rootUID to the current user's UID.
 //
 //go:linkname WithCurrentUserAsRoot github.com/ubuntu/authd/internal/services/permissions.withCurrentUserAsRoot
@@ -39,8 +44,6 @@ func currentUserUID() uint32
 
 // DefaultCurrentUserAsRoot mocks the current user as root for the permission manager.
 func DefaultCurrentUserAsRoot() {
-	testsdetection.MustBeTesting()
-
 	defaultOptions.rootUID = currentUserUID()
 }
 
@@ -49,8 +52,6 @@ var permErrorFmt string
 
 // IdempotentPermissionError strips the UID from the permission error message.
 func IdempotentPermissionError(msg string) string {
-	testsdetection.MustBeTesting()
-
 	// We assume a known format error and we will capture change during the tests.
 	// The issue is that golden files assert on the errors, that should not be the case ideally.
 	permErrorRaw := strings.TrimSuffix(permErrorFmt, "%d")
