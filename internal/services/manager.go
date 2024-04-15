@@ -7,9 +7,9 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/services/authorizer"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/services/pam"
+	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
 	"golang.org/x/exp/slog"
@@ -40,10 +40,10 @@ func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configure
 		return m, err
 	}
 
-	authorizer := authorizer.New()
+	permissionManager := permissions.New()
 
-	nssService := nss.NewService(ctx, userManager, brokerManager, &authorizer)
-	pamService := pam.NewService(ctx, userManager, brokerManager, &authorizer)
+	nssService := nss.NewService(ctx, userManager, brokerManager, &permissionManager)
+	pamService := pam.NewService(ctx, userManager, brokerManager, &permissionManager)
 
 	return Manager{
 		userManager:   userManager,
@@ -57,7 +57,7 @@ func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configure
 func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 	log.Debug(ctx, "Registering GRPC services")
 
-	opts := []grpc.ServerOption{authorizer.WithUnixPeerCreds(), grpc.UnaryInterceptor(m.globalAuthorizations)}
+	opts := []grpc.ServerOption{permissions.WithUnixPeerCreds(), grpc.UnaryInterceptor(m.globalPermissions)}
 	grpcServer := grpc.NewServer(opts...)
 
 	authd.RegisterNSSServer(grpcServer, m.nssService)

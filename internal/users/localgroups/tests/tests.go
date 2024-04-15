@@ -27,10 +27,10 @@ var (
 	}
 )
 
-// OverrideDefaultOptions allow to change groupPath and gpasswdCmd without using options.
+// overrideDefaultOptions allow to change groupPath and gpasswdCmd without using options.
 // This is used for tests when we don’t have access to the users object directly, like integration tests.
 // Tests using this can't be run in parallel.
-func OverrideDefaultOptions(t *testing.T, groupPath string, gpasswdCmd []string, getUsersFunc func() []string) {
+func overrideDefaultOptions(t *testing.T, groupPath string, gpasswdCmd []string, getUsersFunc func() []string) {
 	t.Helper()
 
 	origin := defaultOptions
@@ -122,7 +122,7 @@ func SetupGPasswdMock(t *testing.T, localGroupsFilepath string) string {
 		fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", localGroupsFilepath),
 		os.Args[0], "-test.run=TestMockgpasswd", "--"}
 
-	OverrideDefaultOptions(t, localGroupsFilepath, gpasswd, nil)
+	overrideDefaultOptions(t, localGroupsFilepath, gpasswd, nil)
 
 	return destCmdsFile
 }

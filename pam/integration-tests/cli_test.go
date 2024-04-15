@@ -11,7 +11,7 @@ import (
 
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/services/authorizer/authorizertests"
+	"github.com/ubuntu/authd/internal/services/permissions/permissionstests"
 	"github.com/ubuntu/authd/internal/testutils"
 	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -87,12 +87,12 @@ func TestCLIAuthenticate(t *testing.T) {
 
 			// #nosec:G204 - we control the command arguments in tests
 			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
-			cmd.Env = testutils.AppendCovEnv(cmd.Env)
-			cmd.Env = append(cmd.Env, cliEnv...)
-			cmd.Env = append(cmd.Env, pathEnv)
-			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", socketPathEnv, socketPath))
-			cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_LOG_DIR=%s", filepath.Dir(cliLog)))
-			cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_TEST_NAME=%s", t.Name()))
+			cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
+			cmd.Env = append(cmd.Env,
+				pathEnv,
+				fmt.Sprintf("%s=%s", socketPathEnv, socketPath),
+				fmt.Sprintf("AUTHD_PAM_CLI_LOG_DIR=%s", filepath.Dir(cliLog)),
+				fmt.Sprintf("AUTHD_PAM_CLI_TEST_NAME=%s", t.Name()))
 			cmd.Dir = outDir
 
 			out, err := cmd.CombinedOutput()
@@ -110,7 +110,7 @@ func TestCLIAuthenticate(t *testing.T) {
 					break
 				}
 			}
-			got = authorizertests.IdempotentPermissionError(got)
+			got = permissionstests.IdempotentPermissionError(got)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
@@ -181,12 +181,11 @@ func TestCLIChangeAuthTok(t *testing.T) {
 
 			// #nosec:G204 - we control the command arguments in tests
 			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
-			cmd.Env = testutils.AppendCovEnv(cmd.Env)
-			cmd.Env = append(cmd.Env, cliEnv...)
-			cmd.Env = append(cmd.Env, pathEnv)
-			cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", socketPathEnv, socketPath))
-			cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_LOG_DIR=%s", filepath.Dir(cliLog)))
-			cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_TEST_NAME=%s", t.Name()))
+			cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
+			cmd.Env = append(cmd.Env, pathEnv,
+				fmt.Sprintf("%s=%s", socketPathEnv, socketPath),
+				fmt.Sprintf("AUTHD_PAM_CLI_LOG_DIR=%s", filepath.Dir(cliLog)),
+				fmt.Sprintf("AUTHD_PAM_CLI_TEST_NAME=%s", t.Name()))
 			cmd.Dir = outDir
 
 			out, err := cmd.CombinedOutput()
@@ -204,7 +203,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 					break
 				}
 			}
-			got = authorizertests.IdempotentPermissionError(got)
+			got = permissionstests.IdempotentPermissionError(got)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 		})

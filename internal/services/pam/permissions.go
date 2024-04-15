@@ -4,5 +4,5 @@ import "context"
 
 // CheckGlobalAccess denies all requests not coming from the root user.
 func (s Service) CheckGlobalAccess(ctx context.Context, method string) error {
-	return s.authorizer.IsRequestFromRoot(ctx)
+	return s.permissionManager.IsRequestFromRoot(ctx)
 }

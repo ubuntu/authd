@@ -1,11 +1,11 @@
-package authorizer_test
+package permissions_test
 
 import (
 	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/services/authorizer"
+	"github.com/ubuntu/authd/internal/services/permissions"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/peer"
@@ -14,9 +14,9 @@ import (
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	a := authorizer.New()
+	pm := permissions.New()
 
-	require.NotNil(t, a, "New authorizer is created")
+	require.NotNil(t, pm, "New permission manager is created")
 }
 
 func TestIsRequestFromRoot(t *testing.T) {
@@ -44,8 +44,8 @@ func TestIsRequestFromRoot(t *testing.T) {
 			if !tc.noPeerCredsInfo {
 				var authInfo credentials.AuthInfo
 				if !tc.noAuthInfo {
-					uid := authorizer.CurrentUserUID()
-					authInfo = authorizer.NewTestPeerCredsInfo(uid, int32(uid))
+					uid := permissions.CurrentUserUID()
+					authInfo = permissions.NewTestPeerCredsInfo(uid, int32(uid))
 				}
 				p := peer.Peer{
 					AuthInfo: authInfo,
@@ -53,13 +53,13 @@ func TestIsRequestFromRoot(t *testing.T) {
 				ctx = peer.NewContext(ctx, &p)
 			}
 
-			var opts []authorizer.Option
+			var opts []permissions.Option
 			if !tc.currentUserNotRoot {
-				opts = append(opts, authorizer.WithCurrentUserAsRoot())
+				opts = append(opts, permissions.WithCurrentUserAsRoot())
 			}
-			a := authorizer.New(opts...)
+			pm := permissions.New(opts...)
 
-			err := a.IsRequestFromRoot(ctx)
+			err := pm.IsRequestFromRoot(ctx)
 
 			if tc.wantErr {
 				require.Error(t, err, "IsRequestFromRoot should deny access but didn't")
@@ -73,7 +73,7 @@ func TestIsRequestFromRoot(t *testing.T) {
 func TestWithUnixPeerCreds(t *testing.T) {
 	t.Parallel()
 
-	g := grpc.NewServer(authorizer.WithUnixPeerCreds())
+	g := grpc.NewServer(permissions.WithUnixPeerCreds())
 
 	require.NotNil(t, g, "New grpc with Unix Peer Creds is created")
 }

@@ -1,4 +1,4 @@
-package authorizer
+package permissions
 
 // All those functions and methods are only for tests.
 // They are not exported, and guarded by testing assertions.
@@ -39,14 +39,14 @@ func currentUserUID() uint32 {
 
 // setCurrentRootAsRoot mutates a default permission to the current user's UID if currentUserAsRoot is true.
 //
-//nolint:unused // false positive as used in authorizertests with linkname.
-func (a *Authorizer) setCurrentRootAsRoot(currentUserAsRoot bool) {
+//nolint:unused // false positive as used in permissionstests with linkname.
+func (m *Manager) setCurrentRootAsRoot(currentUserAsRoot bool) {
 	testsdetection.MustBeTesting()
 
 	if !currentUserAsRoot {
-		a.rootUID = defaultOptions.rootUID
+		m.rootUID = defaultOptions.rootUID
 		return
 	}
 
-	a.rootUID = currentUserUID()
+	m.rootUID = currentUserUID()
 }

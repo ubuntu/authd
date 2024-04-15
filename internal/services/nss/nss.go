@@ -9,7 +9,7 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/services/authorizer"
+	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -17,21 +17,21 @@ import (
 
 // Service is the implementation of the NSS module service.
 type Service struct {
-	userManager   *users.Manager
-	brokerManager *brokers.Manager
-	authorizer    *authorizer.Authorizer
+	userManager       *users.Manager
+	brokerManager     *brokers.Manager
+	permissionManager *permissions.Manager
 
 	authd.UnimplementedNSSServer
 }
 
 // NewService returns a new NSS GRPC service.
-func NewService(ctx context.Context, userManager *users.Manager, brokerManager *brokers.Manager, authorizer *authorizer.Authorizer) Service {
+func NewService(ctx context.Context, userManager *users.Manager, brokerManager *brokers.Manager, permissionManager *permissions.Manager) Service {
 	log.Debug(ctx, "Building new GRPC NSS service")
 
 	return Service{
-		userManager:   userManager,
-		brokerManager: brokerManager,
-		authorizer:    authorizer,
+		userManager:       userManager,
+		brokerManager:     brokerManager,
+		permissionManager: permissionManager,
 	}
 }
 
@@ -122,7 +122,7 @@ func (s Service) GetGroupEntries(ctx context.Context, req *authd.Empty) (*authd.
 
 // GetShadowByName returns the shadow entry for the given username.
 func (s Service) GetShadowByName(ctx context.Context, req *authd.GetShadowByNameRequest) (*authd.ShadowEntry, error) {
-	if err := s.authorizer.IsRequestFromRoot(ctx); err != nil {
+	if err := s.permissionManager.IsRequestFromRoot(ctx); err != nil {
 		return nil, err
 	}
 
@@ -139,7 +139,7 @@ func (s Service) GetShadowByName(ctx context.Context, req *authd.GetShadowByName
 
 // GetShadowEntries returns all shadow entries.
 func (s Service) GetShadowEntries(ctx context.Context, req *authd.Empty) (*authd.ShadowEntries, error) {
-	if err := s.authorizer.IsRequestFromRoot(ctx); err != nil {
+	if err := s.permissionManager.IsRequestFromRoot(ctx); err != nil {
 		return nil, err
 	}
 
