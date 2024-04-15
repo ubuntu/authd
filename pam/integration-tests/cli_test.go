@@ -31,9 +31,8 @@ func TestCLIAuthenticate(t *testing.T) {
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 	ctx, cancel := context.WithCancel(context.Background())
-	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath,
-		testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile)...),
-	)
+	env := append(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
+	defaultSocketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
 	t.Cleanup(func() {
 		cancel()
 		<-stopped
@@ -133,9 +132,8 @@ func TestCLIChangeAuthTok(t *testing.T) {
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
 	ctx, cancel := context.WithCancel(context.Background())
-	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath,
-		testutils.WithEnvironment(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile)...),
-	)
+	env := append(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
+	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
 	t.Cleanup(func() {
 		cancel()
 		<-stopped
