@@ -4,6 +4,9 @@ authd (0.3) noble; urgency=medium
   * Bump Go version to 1.22
   * Add functionality to precheck user with brokers
   * Add default group for broker users
+  * Auto select local broker for non-authd (local) users
+  * Add permission checks for gRPC requests
+    - Only allow root to do PAM requests and access shadow in NSS
   * Add support for passwd session mode to allow password changes
   * Implement pam_sm_chauthtok in the PAM module
   * Add GDM model implementation and tests
@@ -27,10 +30,14 @@ authd (0.3) noble; urgency=medium
       + go.etcd.io/bbolt
       + golang.org/x/term
       + google.golang.org/grpc
+      + github.com/charmbracelet/lipgloss
+      + github.com/stretchr/testify
     - Rust:
       + cc
       + ctor
+      + h2
       + libnss
+      + mio
       + tonic
       + tonic-build
     - Tools:
