@@ -12,6 +12,7 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/testutils"
 	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 	"github.com/ubuntu/authd/pam/internal/gdm"
@@ -30,7 +31,6 @@ func init() {
 
 const (
 	exampleBrokerName = "ExampleBroker"
-	localBrokerName   = "local"
 	ignoredBrokerName = "<ignored-broker>"
 
 	passwordAuthID = "password"
@@ -186,7 +186,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 		},
 		"Error (ignored) on local broker causes fallback error": {
 			pamUser:    "user-foo",
-			brokerName: localBrokerName,
+			brokerName: brokers.LocalBrokerName,
 			wantPamInfoMessages: []string{
 				"auth=incomplete",
 			},

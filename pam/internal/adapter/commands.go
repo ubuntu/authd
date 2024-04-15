@@ -9,6 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
 )
 
@@ -22,7 +23,7 @@ func sendEvent(msg tea.Msg) tea.Cmd {
 // startBrokerSession returns the sessionID after marking a broker as current.
 func startBrokerSession(client authd.PAMClient, brokerID, username string, mode authd.SessionMode) tea.Cmd {
 	return func() tea.Msg {
-		if brokerID == "local" {
+		if brokerID == brokers.LocalBrokerName {
 			return PamIgnore{LocalBrokerID: brokerID}
 		}
 
