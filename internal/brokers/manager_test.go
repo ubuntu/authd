@@ -106,12 +106,12 @@ func TestBrokerForUser(t *testing.T) {
 	m, err := brokers.NewManager(context.Background(), filepath.Join(brokerConfFixtures, "valid_brokers"), nil)
 	require.NoError(t, err, "Setup: could not create manager")
 
-	err = m.SetDefaultBrokerForUser("local", "user")
+	err = m.SetDefaultBrokerForUser(brokers.LocalBrokerName, "user")
 	require.NoError(t, err, "Setup: could not set default broker")
 
 	// Broker for user should return the assigned broker
 	got := m.BrokerForUser("user")
-	require.Equal(t, "local", got.ID, "BrokerForUser should return the assigned broker, but did not")
+	require.Equal(t, brokers.LocalBrokerName, got.ID, "BrokerForUser should return the assigned broker, but did not")
 
 	// Broker for user should return nil if no broker is assigned
 	got = m.BrokerForUser("no_broker")
@@ -128,7 +128,7 @@ func TestBrokerFromSessionID(t *testing.T) {
 		wantErr      bool
 	}{
 		"Successfully returns expected broker":       {sessionID: "success"},
-		"Returns local broker if sessionID is empty": {wantBrokerID: "local"},
+		"Returns local broker if sessionID is empty": {wantBrokerID: brokers.LocalBrokerName},
 
 		"Error if broker does not exist": {sessionID: "does not exist", wantErr: true},
 	}

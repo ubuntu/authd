@@ -44,7 +44,7 @@ func TestNewBroker(t *testing.T) {
 		configFile string
 		wantErr    bool
 	}{
-		"No config means local broker":                        {name: "local"},
+		"No config means local broker":                        {name: brokers.LocalBrokerName},
 		"Successfully create broker with correct config file": {name: "broker", configFile: "valid"},
 
 		// General config errors
