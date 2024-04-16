@@ -788,13 +788,43 @@ dup_fd_checked (int fd, GError **error)
   return new_fd;
 }
 
+typedef const char ProgramNameResetter;
+static void program_name_resetter (ProgramNameResetter *pn) { g_set_prgname (pn); }
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (ProgramNameResetter, program_name_resetter)
+
+static char *
+get_program_name (const char *action,
+                  pam_handle_t *pamh)
+{
+  g_autofree char *cmdline = NULL;
+  g_autofree char *proc_name = NULL;
+  const char *service_name = NULL;
+  gsize len;
+
+  if (g_file_get_contents ("/proc/self/cmdline", &cmdline, &len, NULL))
+    proc_name = g_path_get_basename (cmdline);
+
+  pam_get_item (pamh, PAM_SERVICE, (const void **) &service_name);
+
+  if (proc_name && *proc_name && service_name && *service_name)
+    return g_strconcat (proc_name, "_", service_name, "-", action, NULL);
+
+  if (proc_name && *proc_name)
+    return g_strconcat (proc_name, "_", action, NULL);
+
+  if (service_name && *service_name)
+    return g_strconcat (service_name, "-", action, NULL);
+
+  return g_strdup (G_LOG_DOMAIN);
+}
+
 static gboolean
-handle_module_options (int argc, const
-                       char **argv,
-                       GPtrArray **out_args,
-                       char ***out_env_variables,
-                       char **out_log_file,
-                       GError **error)
+handle_module_options (int           argc,
+                       const char  **argv,
+                       GPtrArray   **out_args,
+                       char       ***out_env_variables,
+                       char        **out_log_file,
+                       GError      **error)
 {
   g_autoptr(GOptionContext) options_context = NULL;
   g_autoptr(GStrvBuilder) strv_builder = NULL;
@@ -802,6 +832,7 @@ handle_module_options (int argc, const
   g_auto(GStrv) args_strv = NULL;
   g_auto(GStrv) env_variables = NULL;
   g_autofree char *log_file = NULL;
+  g_autofree char *program_name = NULL;
   gboolean debug_enabled = FALSE;
 
   const GOptionEntry options_entries[] = {
@@ -814,7 +845,7 @@ handle_module_options (int argc, const
   strv_builder = g_strv_builder_new ();
   /* We temporary add a fake item as first one, since the option parser ignores
    * it, since normally it's just the program name */
-  g_strv_builder_add (strv_builder, "pam-go-exec-module");
+  g_strv_builder_add (strv_builder, G_LOG_DOMAIN);
   for (int i = 0; i < argc; ++i)
     g_strv_builder_add (strv_builder, argv[i]);
 
@@ -866,9 +897,11 @@ do_pam_action (pam_handle_t *pamh,
   g_autoptr(GPtrArray) envp = NULL;
   g_autoptr(GPtrArray) args = NULL;
   g_autoptr(GDBusServer) server = NULL;
+  g_autoptr(ProgramNameResetter) old_program_name = NULL;
   g_auto(GStrv) env_variables = NULL;
   g_autofree char *exe = NULL;
   g_autofree char *log_file = NULL;
+  g_autofree char *program_name = NULL;
   g_autofd int stdin_fd = -1;
   g_autofd int stdout_fd = -1;
   g_autofd int stderr_fd = -1;
@@ -877,6 +910,10 @@ do_pam_action (pam_handle_t *pamh,
   GPid child_pid;
 
   G_LOCK (logger);
+
+  old_program_name = g_get_prgname ();
+  program_name = get_program_name (action, pamh);
+  g_set_prgname (program_name);
 
 #ifdef AUTHD_TEST_MODULE
   /* When running tests we also set the default handler, so that we can have
