@@ -1155,6 +1155,19 @@ do_pam_action (pam_handle_t *pamh,
 {
   g_autoptr(GThread) thread = NULL;
 
+#ifndef AUTHD_TEST_EXEC_MODULE
+  /* These actions aren't implemented in the go side, so let's just simplify
+   * the code in this case, and return what the module would do.
+   * But if something changes, keep this in sync with pam.go!
+   */
+  if (g_str_equal (action, "setcred"))
+    return PAM_IGNORE;
+  if (g_str_equal (action, "open_session"))
+    return PAM_IGNORE;
+  if (g_str_equal (action, "close_session"))
+    return PAM_IGNORE;
+#endif
+
   thread = g_thread_new (action, do_pam_action_thread_adapter, &(ActionThreadArgs){
     .pamh = pamh,
     .action = action,

@@ -21,7 +21,7 @@ func getPkgConfigFlags(t *testing.T, args []string) []string {
 	return strings.Split(strings.TrimSpace(string(out)), " ")
 }
 
-func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, soname string) string {
+func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags []string, soname string) string {
 	t.Helper()
 
 	compiler := os.Getenv("CC")
@@ -47,9 +47,10 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, son
 		"-DAUTHD_TEST_MODULE=1",
 	)
 	if len(pkgConfigDeps) > 0 {
-		cmd.Args = append(cmd.Args,
+		cFlags = append(cFlags,
 			getPkgConfigFlags(t, append([]string{"--cflags"}, pkgConfigDeps...))...)
 	}
+	cmd.Args = append(cmd.Args, cFlags...)
 
 	modulesPath := os.Getenv("AUTHD_PAM_MODULES_PATH")
 	if modulesPath != "" {

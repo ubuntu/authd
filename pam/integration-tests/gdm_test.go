@@ -501,5 +501,5 @@ func buildPAMModule(t *testing.T) string {
 func buildPAMWrapperModule(t *testing.T) string {
 	t.Helper()
 
-	return buildCPAMModule(t, []string{"./pam/go-loader/module.c"}, nil, "pam_authd_loader")
+	return buildCPAMModule(t, []string{"./pam/go-loader/module.c"}, nil, nil, "pam_authd_loader")
 }

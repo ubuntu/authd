@@ -29,7 +29,7 @@ func TestExecModule(t *testing.T) {
 		t.Fatal("can't test with this libpam version!")
 	}
 
-	libPath := buildExecModule(t)
+	libPath := buildExecModuleWithCFlags(t, []string{"-DAUTHD_TEST_EXEC_MODULE"})
 	execClient := buildExecClient(t)
 
 	// We do multiple tests inside this test function not to have to re-compile
@@ -794,6 +794,23 @@ func TestExecModule(t *testing.T) {
 	}
 }
 
+func TestExecModuleUnimplementedActions(t *testing.T) {
+	t.Parallel()
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+	if !pam.CheckPamHasStartConfdir() {
+		t.Fatal("can't test with this libpam version!")
+	}
+
+	libPath := buildExecModuleWithCFlags(t, nil)
+	execClient := buildExecClient(t)
+
+	tx := preparePamTransaction(t, libPath, execClient, nil, "an-user")
+	require.Error(t, tx.SetCred(pam.Flags(0)), pam.ErrIgnore)
+	require.Error(t, tx.OpenSession(pam.Flags(0)), pam.ErrIgnore)
+	require.Error(t, tx.CloseSession(pam.Flags(0)), pam.ErrIgnore)
+}
+
 func getModuleArgs(t *testing.T, clientPath string, args []string) []string {
 	t.Helper()
 
@@ -876,8 +893,14 @@ func performAllPAMActions(t *testing.T, tx *pam.Transaction, flags pam.Flags, wa
 func buildExecModule(t *testing.T) string {
 	t.Helper()
 
+	return buildExecModuleWithCFlags(t, nil)
+}
+
+func buildExecModuleWithCFlags(t *testing.T, cFlags []string) string {
+	t.Helper()
+
 	pkgConfigDeps := []string{"gio-2.0", "gio-unix-2.0"}
-	return buildCPAMModule(t, execModuleSources, pkgConfigDeps,
+	return buildCPAMModule(t, execModuleSources, pkgConfigDeps, cFlags,
 		"pam_authd_exec"+strings.ToLower(t.Name()))
 }
 
