@@ -427,7 +427,7 @@ on_pam_method_call (GDBusConnection       *connection,
                     const char            *method_name,
                     GVariant              *parameters,
                     GDBusMethodInvocation *invocation,
-                    void                 * user_data)
+                    void                  *user_data)
 {
   ActionData *action_data = user_data;
   pam_handle_t *pamh = action_data->module_data->pamh;
@@ -802,7 +802,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (ProgramNameResetter, program_name_resetter)
 
 static char *
 get_program_name (const char *action,
-                  pam_handle_t *pamh)
+                  pam_handle_t * pamh)
 {
   g_autofree char *cmdline = NULL;
   g_autofree char *proc_name = NULL;
@@ -827,12 +827,12 @@ get_program_name (const char *action,
 }
 
 static gboolean
-handle_module_options (int           argc,
-                       const char  **argv,
-                       GPtrArray   **out_args,
-                       char       ***out_env_variables,
-                       char        **out_log_file,
-                       GError      **error)
+handle_module_options (int          argc,
+                       const char **argv,
+                       GPtrArray  **out_args,
+                       char      ***out_env_variables,
+                       char       **out_log_file,
+                       GError     **error)
 {
   g_autoptr(GOptionContext) options_context = NULL;
   g_autoptr(GStrvBuilder) strv_builder = NULL;
