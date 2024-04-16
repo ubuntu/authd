@@ -316,14 +316,7 @@ on_exec_module_removed (pam_handle_t *pamh,
 #endif
 
   if (server)
-    {
-      char *tmpdir;
-
-      g_dbus_server_stop (server);
-
-      tmpdir = g_object_get_data (G_OBJECT (server), "tmpdir");
-      g_clear_pointer (&tmpdir, g_rmdir);
-    }
+    g_dbus_server_stop (server);
 
   g_clear_object (&module_data->cancellable);
   g_clear_pointer (&module_data->main_context, g_main_context_unref);
@@ -744,25 +737,15 @@ setup_dbus_server (ModuleData *module_data,
   GDBusServer *server = NULL;
   g_autoptr(GMainContextPusher) context_pusher G_GNUC_UNUSED = NULL;
   g_autoptr(GMainContext) main_context = NULL;
-  g_autofree char *escaped = NULL;
   g_autofree char *server_addr = NULL;
   g_autofree char *guid = NULL;
-  g_autofree char *tmpdir = NULL;
+  const char *service_name = NULL;
 
   /* This pointer is used as a semaphore, so accessing to server-related stuff
    * does not need further atomic checks.
    */
   if ((server = g_atomic_pointer_get (&module_data->server)))
     return server;
-
-  tmpdir = g_dir_make_tmp ("authd-pam-server-XXXXXX", error);
-  if (tmpdir == NULL)
-    {
-      int errsv = errno;
-      g_set_error_literal (error, G_IO_ERROR, g_io_error_from_errno (errsv),
-                           g_strerror (errsv));
-      return NULL;
-    }
 
   /* We need to have the main context set before setting up the dbus server
    * or we'll not report the events to the right receiver thread
@@ -774,9 +757,9 @@ setup_dbus_server (ModuleData *module_data,
 
   context_pusher = g_main_context_pusher_new (main_context);
 
-  escaped = g_dbus_address_escape_value (tmpdir);
-  server_addr = g_strdup_printf ("unix:tmpdir=%s", escaped);
+  pam_get_item (module_data->pamh, PAM_SERVICE, (const void **) &service_name);
   guid = g_dbus_generate_guid ();
+  server_addr = g_strdup_printf ("unix:abstract=authd-%s-%s", service_name, guid);
 
   g_debug ("Setting up connection at %s (%s)", server_addr, guid);
   server = g_dbus_server_new_sync (server_addr,
@@ -790,8 +773,6 @@ setup_dbus_server (ModuleData *module_data,
 
   module_data->main_context = g_steal_pointer (&main_context);
 
-  g_object_set_data_full (G_OBJECT (server), "tmpdir",
-                          g_steal_pointer (&tmpdir), g_free);
   g_dbus_server_start (server);
 
   g_debug ("Server started, connectable address %s",
