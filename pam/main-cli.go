@@ -22,6 +22,7 @@ func main() {
 	execModule := os.Getenv("AUTHD_PAM_EXEC_MODULE")
 	cliPath := os.Getenv("AUTHD_PAM_CLI_PATH")
 	testName := os.Getenv("AUTHD_PAM_CLI_TEST_NAME")
+	pamUser := os.Getenv("AUTHD_PAM_CLI_USER")
 
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "pam-cli-tester-")
 	if err != nil {
@@ -73,7 +74,7 @@ func main() {
 		log.Fatalf("Can't create service file %s: %v", serviceFile, err)
 	}
 
-	tx, err := pam.StartConfDir(filepath.Base(serviceFile), "", pam.ConversationFunc(
+	tx, err := pam.StartConfDir(filepath.Base(serviceFile), pamUser, pam.ConversationFunc(
 		func(style pam.Style, msg string) (string, error) {
 			switch style {
 			case pam.TextInfo:

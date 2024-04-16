@@ -45,6 +45,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		currentUserNotRoot bool
 	}{
 		"Authenticate user successfully":                      {tape: "simple_auth"},
+		"Authenticate user successfully with preset user":     {tape: "simple_auth_with_preset_user"},
 		"Authenticate user with mfa":                          {tape: "mfa_auth"},
 		"Authenticate user with form mode with button":        {tape: "form_with_button"},
 		"Authenticate user with qr code":                      {tape: "qr_code"},
@@ -56,8 +57,9 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Authenticate user and add it to local group":         {tape: "local_group"},
 		"Authenticate with warnings on unsupported arguments": {tape: "simple_auth_with_unsupported_args"},
 
-		"Remember last successful broker and mode": {tape: "remember_broker_and_mode"},
-		"Autoselect local broker for local user":   {tape: "local_user"},
+		"Remember last successful broker and mode":      {tape: "remember_broker_and_mode"},
+		"Autoselect local broker for local user":        {tape: "local_user"},
+		"Autoselect local broker for local user preset": {tape: "local_user_preset"},
 
 		"Deny authentication if current user is not considered as root": {tape: "not_root", currentUserNotRoot: true},
 

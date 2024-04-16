@@ -119,7 +119,6 @@ func (m *UIModel) Init() tea.Cmd {
 	m.authenticationModel = newAuthenticationModel(m.Client, m.ClientType)
 	cmds = append(cmds, m.authenticationModel.Init())
 
-	cmds = append(cmds, m.changeStage(pam_proto.Stage_userSelection))
 	return tea.Batch(cmds...)
 }
 
