@@ -102,10 +102,10 @@ func TestCLIAuthenticate(t *testing.T) {
 			require.NoError(t, err, "Could not read output file of tape %q", tc.tape)
 
 			// We need to format the output a little bit, since the txt file can have some noise at the beginning.
-			var got string
-			splitTmp := strings.Split(string(tmp), "\n")
+			got := string(tmp)
+			splitTmp := strings.Split(got, "\n")
 			for i, str := range splitTmp {
-				if strings.HasPrefix(str, fmt.Sprintf("> ./pam_authd login socket=${%s}", socketPathEnv)) {
+				if strings.Contains(str, " ./pam_authd login socket=$") {
 					got = strings.Join(splitTmp[i:], "\n")
 					break
 				}
@@ -195,10 +195,10 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			require.NoError(t, err, "Could not read output file of tape %q", tc.tape)
 
 			// We need to format the output a little bit, since the txt file can have some noise at the beginning.
-			var got string
-			splitTmp := strings.Split(string(tmp), "\n")
+			got := string(tmp)
+			splitTmp := strings.Split(got, "\n")
 			for i, str := range splitTmp {
-				if strings.HasPrefix(str, fmt.Sprintf("> ./pam_authd passwd socket=${%s}", socketPathEnv)) {
+				if strings.Contains(str, " ./pam_authd passwd socket=$") {
 					got = strings.Join(splitTmp[i:], "\n")
 					break
 				}
