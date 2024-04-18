@@ -28,6 +28,7 @@
 #include <glib/gstdio.h>
 #include <security/pam_ext.h>
 #include <security/pam_modules.h>
+#include <sys/wait.h>
 
 /* If this fails then our assumptions on using the return value as the pam
  * exit status is not valid anymore, so we need to refactor things to use
@@ -48,6 +49,7 @@ typedef struct
   /* Per module-instance data */
   pam_handle_t *pamh;
   GDBusServer  *server;
+  GMainContext *main_context;
   GCancellable *cancellable;
 
   ActionData   *action_data;
@@ -63,13 +65,11 @@ typedef struct _ActionData
   GCancellable    *cancellable;
   const char      *current_action;
   GPid             child_pid;
-  guint            child_watch_id;
   gulong           connection_new_id;
   gulong           connection_closed_id;
   guint            object_registered_id;
   guint            log_handler_id;
   int              log_file_fd;
-  int              exit_status;
 } ActionData;
 
 const char *UBUNTU_AUTHD_PAM_OBJECT_NODE =
@@ -265,6 +265,7 @@ action_module_data_cleanup (ActionData *action_data)
       g_dbus_connection_unregister_object (action_data->connection,
                                            action_data->object_registered_id);
       g_clear_signal_handler (&action_data->connection_closed_id, action_data->connection);
+      g_dbus_connection_close (action_data->connection, NULL, NULL, NULL);
     }
 
   g_cancellable_cancel (action_data->cancellable);
@@ -274,7 +275,6 @@ action_module_data_cleanup (ActionData *action_data)
   g_clear_object (&action_data->cancellable);
   g_clear_object (&action_data->connection);
   g_clear_pointer (&action_data->loop, g_main_loop_unref);
-  g_clear_handle_id (&action_data->child_watch_id, g_source_remove);
   g_clear_handle_id (&action_data->child_pid, g_spawn_close_pid);
 
   G_LOCK (logger);
@@ -316,16 +316,10 @@ on_exec_module_removed (pam_handle_t *pamh,
 #endif
 
   if (server)
-    {
-      char *tmpdir;
-
-      g_dbus_server_stop (server);
-
-      tmpdir = g_object_get_data (G_OBJECT (server), "tmpdir");
-      g_clear_pointer (&tmpdir, g_rmdir);
-    }
+    g_dbus_server_stop (server);
 
   g_clear_object (&module_data->cancellable);
+  g_clear_pointer (&module_data->main_context, g_main_context_unref);
   g_free (module_data);
 }
 
@@ -366,37 +360,49 @@ is_debug_logging_enabled ()
          strstr (debug_messages, G_LOG_DOMAIN);
 }
 
-static void
-on_child_gone (GPid   pid,
-               int    wait_status,
-               void * user_data)
+typedef struct
 {
-  g_autoptr(GError) error = NULL;
-  ActionData *action_data = user_data;
+  pid_t              child_pid;
+  GMainLoop         *main_loop;
+  GDBusConnection ** connection_ptr;
+} WaitChildThreadData;
 
-  action_data->exit_status = WEXITSTATUS (wait_status);
+static gpointer
+wait_child_thread (gpointer data)
+{
+  WaitChildThreadData *thread_data = data;
+  pid_t child_pid = thread_data->child_pid;
+  int exit_status = PAM_SYSTEM_ERR;
 
-  g_debug ("Child %" G_PID_FORMAT " exited with exit status %d (%s)", pid,
-           action_data->exit_status,
-           pam_strerror (NULL, action_data->exit_status));
-
-  if (action_data->connection)
+  while (TRUE)
     {
-      g_dbus_connection_unregister_object (action_data->connection,
-                                           action_data->object_registered_id);
+      int status;
+      pid_t ret = waitpid (child_pid, &status, 0);
 
-      if (!g_dbus_connection_is_closed (action_data->connection) &&
-          !g_dbus_connection_close_sync (action_data->connection,
-                                         action_data->cancellable,
-                                         &error))
-        if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-          g_warning ("Impossible to close connection: %s", error->message);
+      g_debug ("Waiting pid %" G_PID_FORMAT " returned %" G_PID_FORMAT ", "
+               "exited: %d, signaled: %d", child_pid, ret,
+               WIFEXITED (status), WIFSIGNALED (status));
+
+      if (ret == child_pid && WIFEXITED (status))
+        {
+          exit_status = WEXITSTATUS (status);
+          break;
+        }
+
+      if (ret < 0)
+        {
+          exit_status = -errno;
+          break;
+        }
     }
 
-  action_data->child_watch_id = 0;
+  if (thread_data->connection_ptr && *thread_data->connection_ptr)
+    g_dbus_connection_close (*thread_data->connection_ptr, NULL, NULL, NULL);
 
-  g_clear_handle_id (&action_data->child_pid, g_spawn_close_pid);
-  g_main_loop_quit (action_data->loop);
+  g_main_loop_quit (thread_data->main_loop);
+  g_clear_pointer (&thread_data->main_loop, g_main_loop_unref);
+
+  return GINT_TO_POINTER (exit_status);
 }
 
 static void
@@ -421,7 +427,7 @@ on_pam_method_call (GDBusConnection       *connection,
                     const char            *method_name,
                     GVariant              *parameters,
                     GDBusMethodInvocation *invocation,
-                    void                 * user_data)
+                    void                  *user_data)
 {
   ActionData *action_data = user_data;
   pam_handle_t *pamh = action_data->module_data->pamh;
@@ -729,10 +735,11 @@ setup_dbus_server (ModuleData *module_data,
                    GError    **error)
 {
   GDBusServer *server = NULL;
-  g_autofree char *escaped = NULL;
+  g_autoptr(GMainContextPusher) context_pusher G_GNUC_UNUSED = NULL;
+  g_autoptr(GMainContext) main_context = NULL;
   g_autofree char *server_addr = NULL;
   g_autofree char *guid = NULL;
-  g_autofree char *tmpdir = NULL;
+  const char *service_name = NULL;
 
   /* This pointer is used as a semaphore, so accessing to server-related stuff
    * does not need further atomic checks.
@@ -740,18 +747,19 @@ setup_dbus_server (ModuleData *module_data,
   if ((server = g_atomic_pointer_get (&module_data->server)))
     return server;
 
-  tmpdir = g_dir_make_tmp ("authd-pam-server-XXXXXX", error);
-  if (tmpdir == NULL)
-    {
-      int errsv = errno;
-      g_set_error_literal (error, G_IO_ERROR, g_io_error_from_errno (errsv),
-                           g_strerror (errsv));
-      return NULL;
-    }
+  /* We need to have the main context set before setting up the dbus server
+   * or we'll not report the events to the right receiver thread
+   */
+  if (G_LIKELY (!module_data->main_context))
+    main_context = g_main_context_new ();
+  else
+    main_context = g_main_context_ref (module_data->main_context);
 
-  escaped = g_dbus_address_escape_value (tmpdir);
-  server_addr = g_strdup_printf ("unix:tmpdir=%s", escaped);
+  context_pusher = g_main_context_pusher_new (main_context);
+
+  pam_get_item (module_data->pamh, PAM_SERVICE, (const void **) &service_name);
   guid = g_dbus_generate_guid ();
+  server_addr = g_strdup_printf ("unix:abstract=authd-%s-%s", service_name, guid);
 
   g_debug ("Setting up connection at %s (%s)", server_addr, guid);
   server = g_dbus_server_new_sync (server_addr,
@@ -763,8 +771,8 @@ setup_dbus_server (ModuleData *module_data,
   if (server == NULL)
     return NULL;
 
-  g_object_set_data_full (G_OBJECT (server), "tmpdir",
-                          g_steal_pointer (&tmpdir), g_free);
+  module_data->main_context = g_steal_pointer (&main_context);
+
   g_dbus_server_start (server);
 
   g_debug ("Server started, connectable address %s",
@@ -794,7 +802,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (ProgramNameResetter, program_name_resetter)
 
 static char *
 get_program_name (const char *action,
-                  pam_handle_t *pamh)
+                  pam_handle_t * pamh)
 {
   g_autofree char *cmdline = NULL;
   g_autofree char *proc_name = NULL;
@@ -819,12 +827,12 @@ get_program_name (const char *action,
 }
 
 static gboolean
-handle_module_options (int           argc,
-                       const char  **argv,
-                       GPtrArray   **out_args,
-                       char       ***out_env_variables,
-                       char        **out_log_file,
-                       GError      **error)
+handle_module_options (int          argc,
+                       const char **argv,
+                       GPtrArray  **out_args,
+                       char      ***out_env_variables,
+                       char       **out_log_file,
+                       GError     **error)
 {
   g_autoptr(GOptionContext) options_context = NULL;
   g_autoptr(GStrvBuilder) strv_builder = NULL;
@@ -883,29 +891,34 @@ handle_module_options (int           argc,
   return TRUE;
 }
 
-static inline int
-do_pam_action (pam_handle_t *pamh,
-               const char   *action,
-               int           flags,
-               int           argc,
-               const char  **argv)
+static int
+do_pam_action_thread (pam_handle_t *pamh,
+                      const char   *action,
+                      int           flags,
+                      int           argc,
+                      const char  **argv)
 {
   ModuleData *module_data = NULL;
   g_autoptr(GMutexLocker) G_GNUC_UNUSED locker = NULL;
   g_auto(ActionData) action_data = {.current_action = action, 0};
+  g_autoptr(GMainContextPusher) context_pusher G_GNUC_UNUSED = NULL;
+  g_autoptr(GMainContext) main_context = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(GPtrArray) envp = NULL;
   g_autoptr(GPtrArray) args = NULL;
   g_autoptr(GDBusServer) server = NULL;
   g_autoptr(ProgramNameResetter) old_program_name = NULL;
+  g_autoptr(GThread) wait_thread = NULL;
   g_auto(GStrv) env_variables = NULL;
   g_autofree char *exe = NULL;
   g_autofree char *log_file = NULL;
   g_autofree char *program_name = NULL;
+  g_autofree char *wait_thread_name = NULL;
   g_autofd int stdin_fd = -1;
   g_autofd int stdout_fd = -1;
   g_autofd int stderr_fd = -1;
   g_autofd int log_file_fd = -1;
+  int exit_status;
   gboolean interactive_mode;
   GPid child_pid;
 
@@ -1007,6 +1020,9 @@ do_pam_action (pam_handle_t *pamh,
   action_data.module_data = module_data;
   action_data.cancellable = g_cancellable_new ();
 
+  main_context = g_main_context_ref (module_data->main_context);
+  context_pusher = g_main_context_pusher_new (main_context);
+
   interactive_mode = isatty (STDIN_FILENO);
 
   if (interactive_mode)
@@ -1083,35 +1099,83 @@ do_pam_action (pam_handle_t *pamh,
   g_debug ("Launched child %"G_PID_FORMAT, child_pid);
   action_data.child_pid = child_pid;
 
-  action_data.loop = g_main_loop_new (NULL, FALSE);
-  action_data.child_watch_id =
-    g_child_watch_add_full (G_PRIORITY_HIGH, child_pid,
-                            on_child_gone, &action_data, NULL);
+  action_data.loop = g_main_loop_new (main_context, FALSE);
 
-#ifdef AUTHD_TEST_MODULE
-  /* The previous code implicitly just added a SIGCHLD signal handler.
-   * This is perfectly fine for the purpose of this module, however in
-   * case we're running as part of a Go application (as during authd tests)
-   * we should make sure that the signal handler is called with the go provided
-   * alternate stack. See:
-   *  - https://pkg.go.dev/os/signal#hdr-Go_programs_that_use_cgo_or_SWIG
-   *
-   * This can be removed when/if this GLib change will be part of the release
-   * we're targeting:
-   *  - https://gitlab.gnome.org/GNOME/glib/-/merge_requests/3983
-   */
-  struct sigaction sigchild_handler;
-  sigaction (SIGCHLD, NULL, &sigchild_handler);
-  sigchild_handler.sa_flags |= SA_ONSTACK;
-  sigaction (SIGCHLD, &sigchild_handler, NULL);
-#endif
+  wait_thread_name = g_strdup_printf ("exec-%s-wait-child", action);
+  wait_thread = g_thread_new (wait_thread_name, wait_child_thread, &(WaitChildThreadData){
+    .child_pid = child_pid,
+    .main_loop = g_main_loop_ref (action_data.loop),
+    .connection_ptr = &action_data.connection,
+  });
 
   g_main_loop_run (action_data.loop);
+  exit_status = GPOINTER_TO_INT (g_thread_join (g_steal_pointer (&wait_thread)));
 
-  if (action_data.exit_status >= _PAM_RETURN_VALUES)
+  if (exit_status < 0)
+    {
+      notify_error (pamh, action, "Waiting for PID %" G_PID_FORMAT
+                    " failed with error %s", child_pid,
+                    g_strerror (-exit_status));
+      exit_status = PAM_SYSTEM_ERR;
+    }
+
+  g_debug ("Child %" G_PID_FORMAT " exited with exit status %d (%s)", child_pid,
+           exit_status, pam_strerror (pamh, exit_status));
+
+  if (exit_status >= _PAM_RETURN_VALUES)
     return PAM_SYSTEM_ERR;
 
-  return action_data.exit_status;
+  return exit_status;
+}
+
+typedef struct
+{
+  pam_handle_t *pamh;
+  const char   *action;
+  int           flags;
+  int           argc;
+  const char  **argv;
+} ActionThreadArgs;
+
+static inline gpointer
+do_pam_action_thread_adapter (gpointer data)
+{
+  ActionThreadArgs * args = data;
+  return GINT_TO_POINTER (do_pam_action_thread (args->pamh,
+                                                args->action, args->flags,
+                                                args->argc, args->argv));
+}
+
+static inline int
+do_pam_action (pam_handle_t *pamh,
+               const char   *action,
+               int           flags,
+               int           argc,
+               const char  **argv)
+{
+  g_autoptr(GThread) thread = NULL;
+
+#ifndef AUTHD_TEST_EXEC_MODULE
+  /* These actions aren't implemented in the go side, so let's just simplify
+   * the code in this case, and return what the module would do.
+   * But if something changes, keep this in sync with pam.go!
+   */
+  if (g_str_equal (action, "setcred"))
+    return PAM_IGNORE;
+  if (g_str_equal (action, "open_session"))
+    return PAM_IGNORE;
+  if (g_str_equal (action, "close_session"))
+    return PAM_IGNORE;
+#endif
+
+  thread = g_thread_new (action, do_pam_action_thread_adapter, &(ActionThreadArgs){
+    .pamh = pamh,
+    .action = action,
+    .flags = flags,
+    .argc = argc,
+    .argv = argv,
+  });
+  return GPOINTER_TO_INT (g_thread_join (g_steal_pointer (&thread)));
 }
 
 #define DEFINE_PAM_WRAPPER(name) \

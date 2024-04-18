@@ -358,7 +358,7 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 
 	brokerIDUsedToAuthenticate, ok := brokerData.(string)
 	if !ok {
-		msg := fmt.Sprintf("broker data as an invalid type %#v", brokerData)
+		msg := fmt.Sprintf("broker data has an invalid type %#v", brokerData)
 		log.Errorf(context.TODO(), msg)
 		if err := showPamMessage(mTx, pam.ErrorMsg, msg); err != nil {
 			log.Warningf(context.TODO(), "Impossible to show PAM message: %v", err)
