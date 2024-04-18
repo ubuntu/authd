@@ -119,7 +119,6 @@ func (m *UIModel) Init() tea.Cmd {
 	m.authenticationModel = newAuthenticationModel(m.Client, m.ClientType)
 	cmds = append(cmds, m.authenticationModel.Init())
 
-	cmds = append(cmds, m.changeStage(pam_proto.Stage_userSelection))
 	return tea.Batch(cmds...)
 }
 
@@ -171,9 +170,7 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Got user and brokers? Time to auto or manually select.
-		return m, tea.Sequence(
-			m.changeStage(pam_proto.Stage_brokerSelection),
-			AutoSelectForUser(m.Client, m.username()))
+		return m, AutoSelectForUser(m.Client, m.username())
 
 	case BrokerSelected:
 		log.Debugf(context.TODO(), "%#v", msg)

@@ -45,6 +45,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		currentUserNotRoot bool
 	}{
 		"Authenticate user successfully":                      {tape: "simple_auth"},
+		"Authenticate user successfully with preset user":     {tape: "simple_auth_with_preset_user"},
 		"Authenticate user with mfa":                          {tape: "mfa_auth"},
 		"Authenticate user with form mode with button":        {tape: "form_with_button"},
 		"Authenticate user with qr code":                      {tape: "qr_code"},
@@ -56,8 +57,9 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Authenticate user and add it to local group":         {tape: "local_group"},
 		"Authenticate with warnings on unsupported arguments": {tape: "simple_auth_with_unsupported_args"},
 
-		"Remember last successful broker and mode": {tape: "remember_broker_and_mode"},
-		"Autoselect local broker for local user":   {tape: "local_user"},
+		"Remember last successful broker and mode":      {tape: "remember_broker_and_mode"},
+		"Autoselect local broker for local user":        {tape: "local_user"},
+		"Autoselect local broker for local user preset": {tape: "local_user_preset"},
 
 		"Deny authentication if current user is not considered as root": {tape: "not_root", currentUserNotRoot: true},
 
@@ -102,10 +104,10 @@ func TestCLIAuthenticate(t *testing.T) {
 			require.NoError(t, err, "Could not read output file of tape %q", tc.tape)
 
 			// We need to format the output a little bit, since the txt file can have some noise at the beginning.
-			var got string
-			splitTmp := strings.Split(string(tmp), "\n")
+			got := string(tmp)
+			splitTmp := strings.Split(got, "\n")
 			for i, str := range splitTmp {
-				if strings.HasPrefix(str, fmt.Sprintf("> ./pam_authd login socket=${%s}", socketPathEnv)) {
+				if strings.Contains(str, " ./pam_authd login socket=$") {
 					got = strings.Join(splitTmp[i:], "\n")
 					break
 				}
@@ -195,10 +197,10 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			require.NoError(t, err, "Could not read output file of tape %q", tc.tape)
 
 			// We need to format the output a little bit, since the txt file can have some noise at the beginning.
-			var got string
-			splitTmp := strings.Split(string(tmp), "\n")
+			got := string(tmp)
+			splitTmp := strings.Split(got, "\n")
 			for i, str := range splitTmp {
-				if strings.HasPrefix(str, fmt.Sprintf("> ./pam_authd passwd socket=${%s}", socketPathEnv)) {
+				if strings.Contains(str, " ./pam_authd passwd socket=$") {
 					got = strings.Join(splitTmp[i:], "\n")
 					break
 				}

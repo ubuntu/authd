@@ -1,7 +1,40 @@
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Username: user name
+> env AUTHD_PAM_CLI_USER=user3 ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOC
+K}
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> env AUTHD_PAM_CLI_USER=user3 ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOC
+K}
+Gimme your password
+>
 
 
 
@@ -31,44 +64,11 @@ Username: user name
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Username: root
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Info Message: auth=incomplete
-PAM Authenticate() for user "root" exited with error (PAM exit code: 25): The return value shoul
-d be ignored by PAM dispatch
-PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
+> env AUTHD_PAM_CLI_USER=user3 ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOC
+K}
+Gimme your password
+PAM Authenticate() for user "user3" exited with success
+PAM AcctMgmt() exited with success
 >
 
 
@@ -97,11 +97,11 @@ PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate
 
 
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Info Message: auth=incomplete
-PAM Authenticate() for user "root" exited with error (PAM exit code: 25): The return value shoul
-d be ignored by PAM dispatch
-PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
+> env AUTHD_PAM_CLI_USER=user3 ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOC
+K}
+Gimme your password
+PAM Authenticate() for user "user3" exited with success
+PAM AcctMgmt() exited with success
 >
 
 

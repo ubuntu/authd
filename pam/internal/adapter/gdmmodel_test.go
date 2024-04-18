@@ -1139,19 +1139,16 @@ func TestGdmModel(t *testing.T) {
 			),
 			messages: []tea.Msg{
 				userSelected{username: "daemon-selected-user-and-broker"},
-				gdmTestWaitForStage{stage: proto.Stage_brokerSelection},
 			},
 			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
-				gdm.RequestType_changeStage, // -> broker Selection
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
 				gdm.EventType_brokersReceived,
 			},
-			wantStage: pam_proto.Stage_brokerSelection,
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
 				msg:    "can't select broker: error during broker selection",
@@ -1170,14 +1167,12 @@ func TestGdmModel(t *testing.T) {
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
-				gdm.RequestType_changeStage, // -> broker Selection
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
 				gdm.EventType_brokersReceived,
 				gdm.EventType_brokerSelected,
 			},
-			wantStage: pam_proto.Stage_brokerSelection,
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
 				msg:    "no session ID returned by broker",
@@ -1190,20 +1185,17 @@ func TestGdmModel(t *testing.T) {
 			)...),
 			messages: []tea.Msg{
 				userSelected{username: "daemon-selected-user-and-broker"},
-				gdmTestWaitForStage{stage: pam_proto.Stage_brokerSelection},
 			},
 			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
-				gdm.RequestType_changeStage, // -> broker Selection
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
 				gdm.EventType_brokersReceived,
 				gdm.EventType_brokerSelected,
 			},
-			wantStage: pam_proto.Stage_brokerSelection,
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
 				msg:    "no encryption key returned by broker",
@@ -1224,13 +1216,11 @@ func TestGdmModel(t *testing.T) {
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
-				gdm.RequestType_changeStage, // -> broker Selection
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
 				gdm.EventType_brokersReceived,
 			},
-			wantStage: pam_proto.Stage_brokerSelection,
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
 				msg:    "encryption key sent by broker is not a valid base64 encoded string: illegal base64 data at input byte 2",
@@ -1247,19 +1237,16 @@ func TestGdmModel(t *testing.T) {
 			),
 			messages: []tea.Msg{
 				userSelected{username: "daemon-selected-user-and-broker"},
-				gdmTestWaitForStage{stage: proto.Stage_brokerSelection},
 			},
 			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
-				gdm.RequestType_changeStage, // -> broker Selection
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
 				gdm.EventType_brokersReceived,
 			},
-			wantStage: pam_proto.Stage_brokerSelection,
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
 				msg:    gdmTestIgnoredMessage,
