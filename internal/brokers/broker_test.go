@@ -210,12 +210,13 @@ func TestIsAuthenticated(t *testing.T) {
 
 		cancelFirstCall bool
 	}{
-		"Successfully authenticate":                              {sessionID: "success"},
-		"Successfully authenticate after cancelling first call":  {sessionID: "IA_second_call", secondCall: true},
-		"Denies authentication when broker times out":            {sessionID: "IA_timeout"},
-		"Adds default groups even if broker did not set them":    {sessionID: "IA_info_empty_groups"},
-		"No error when auth.Next and no data":                    {sessionID: "IA_next"},
-		"No error when broker returns userinfo with empty gecos": {sessionID: "IA_info_empty_gecos"},
+		"Successfully authenticate":                                        {sessionID: "success"},
+		"Successfully authenticate after cancelling first call":            {sessionID: "IA_second_call", secondCall: true},
+		"Denies authentication when broker times out":                      {sessionID: "IA_timeout"},
+		"Adds default groups even if broker did not set them":              {sessionID: "IA_info_empty_groups"},
+		"No error when auth.Next and no data":                              {sessionID: "IA_next"},
+		"No error when broker returns userinfo with empty gecos":           {sessionID: "IA_info_empty_gecos"},
+		"No error when broker returns userinfo with group with empty UGID": {sessionID: "IA_info_empty_ugid"},
 
 		// broker errors
 		"Error when authenticating":                                           {sessionID: "IA_error"},
