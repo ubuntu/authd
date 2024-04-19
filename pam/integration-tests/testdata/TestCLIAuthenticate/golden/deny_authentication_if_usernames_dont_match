@@ -1,0 +1,198 @@
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+Username: user name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+Username: user-mismatching-name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+Gimme your password
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+Gimme your password
+PAM Error Message: authentication status failure: rpc error: code = Unknown desc = can't check a
+uthentication: provided userinfo is invalid: username "mismatching-username" does not match the
+selected username "user-mismatching-name"
+PAM Authenticate() for user "user-mismatching-name" exited with error (PAM exit code: 4): System
+ error
+PAM Info Message: acct=incomplete
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+Gimme your password
+PAM Error Message: authentication status failure: rpc error: code = Unknown desc = can't check a
+uthentication: provided userinfo is invalid: username "mismatching-username" does not match the
+selected username "user-mismatching-name"
+PAM Authenticate() for user "user-mismatching-name" exited with error (PAM exit code: 4): System
+ error
+PAM Info Message: acct=incomplete
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────

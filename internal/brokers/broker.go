@@ -49,12 +49,15 @@ type brokerer interface {
 
 // Broker represents a broker object that can be used for authentication.
 type Broker struct {
-	ID                 string
-	Name               string
-	BrandIconPath      string
-	layoutValidators   map[string]map[string]layoutValidator
-	layoutValidatorsMu *sync.Mutex
-	brokerer           brokerer
+	ID                    string
+	Name                  string
+	BrandIconPath         string
+	layoutValidators      map[string]map[string]layoutValidator
+	layoutValidatorsMu    *sync.Mutex
+	ongoingUserRequests   map[string]string
+	ongoingUserRequestsMu *sync.Mutex
+
+	brokerer brokerer
 }
 
 type layoutValidator map[string]fieldValidator
@@ -88,12 +91,14 @@ func newBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b 
 	}
 
 	return Broker{
-		ID:                 id,
-		Name:               fullName,
-		BrandIconPath:      brandIcon,
-		brokerer:           broker,
-		layoutValidators:   make(map[string]map[string]layoutValidator),
-		layoutValidatorsMu: &sync.Mutex{},
+		ID:                    id,
+		Name:                  fullName,
+		BrandIconPath:         brandIcon,
+		brokerer:              broker,
+		layoutValidators:      make(map[string]map[string]layoutValidator),
+		layoutValidatorsMu:    &sync.Mutex{},
+		ongoingUserRequests:   make(map[string]string),
+		ongoingUserRequestsMu: &sync.Mutex{},
 	}, nil
 }
 
@@ -107,6 +112,10 @@ func (b Broker) newSession(ctx context.Context, username, lang, mode string) (se
 	if sessionID == "" {
 		return "", "", errors.New("no session ID provided by broker")
 	}
+
+	b.ongoingUserRequestsMu.Lock()
+	b.ongoingUserRequests[sessionID] = username
+	b.ongoingUserRequestsMu.Unlock()
 
 	return fmt.Sprintf("%s-%s", b.ID, sessionID), encryptionKey, nil
 }
@@ -187,7 +196,11 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 			return "", "", err
 		}
 
-		u, err := validateUserInfoAndGenerateIDs(b.Name, info)
+		b.ongoingUserRequestsMu.Lock()
+		selectedUsername := b.ongoingUserRequests[sessionID]
+		b.ongoingUserRequestsMu.Unlock()
+
+		u, err := validateUserInfoAndGenerateIDs(b.Name, selectedUsername, info)
 		if err != nil {
 			return "", "", err
 		}
@@ -215,6 +228,11 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 // endSession calls the broker corresponding method, stripping broker ID prefix from sessionID.
 func (b Broker) endSession(ctx context.Context, sessionID string) (err error) {
 	sessionID = b.parseSessionID(sessionID)
+
+	b.ongoingUserRequestsMu.Lock()
+	defer b.ongoingUserRequestsMu.Unlock()
+	delete(b.ongoingUserRequests, sessionID)
+
 	return b.brokerer.EndSession(ctx, sessionID)
 }
 
@@ -346,12 +364,15 @@ func unmarshalUserInfo(rawMsg json.RawMessage) (userInfo, error) {
 }
 
 // validateUserInfoAndGenerateIDs checks if the specified userinfo is valid and generates the UID and GIDs.
-func validateUserInfoAndGenerateIDs(brokerName string, uInfo userInfo) (user users.UserInfo, err error) {
+func validateUserInfoAndGenerateIDs(brokerName, selectedUsername string, uInfo userInfo) (user users.UserInfo, err error) {
 	defer decorate.OnError(&err, "provided userinfo is invalid")
 
 	// Validate username
 	if uInfo.Name == "" {
 		return users.UserInfo{}, fmt.Errorf("empty username")
+	}
+	if uInfo.Name != selectedUsername {
+		return users.UserInfo{}, fmt.Errorf("username %q does not match the selected username %q", uInfo.Name, selectedUsername)
 	}
 
 	// Validate home and shell directories

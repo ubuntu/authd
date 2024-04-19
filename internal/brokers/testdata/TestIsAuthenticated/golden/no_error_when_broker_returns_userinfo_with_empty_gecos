@@ -1,4 +1,4 @@
 FIRST CALL:
 	access: granted
-	data: {"Name":"IA_info_empty_gecos","UID":92651,"Gecos":"","Dir":"/home/IA_info_empty_gecos","Shell":"/bin/sh/IA_info_empty_gecos","Groups":[{"Name":"IA_info_empty_gecos","GID":92651},{"Name":"group-IA_info_empty_gecos","GID":92357}]}
+	data: {"Name":"TestIsAuthenticated/No_error_when_broker_returns_userinfo_with_empty_gecos_separator_IA_info_empty_gecos","UID":92651,"Gecos":"","Dir":"/home/IA_info_empty_gecos","Shell":"/bin/sh/IA_info_empty_gecos","Groups":[{"Name":"TestIsAuthenticated/No_error_when_broker_returns_userinfo_with_empty_gecos_separator_IA_info_empty_gecos","GID":92651},{"Name":"group-IA_info_empty_gecos","GID":92357}]}
 	err: <nil>
