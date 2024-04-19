@@ -240,7 +240,7 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 	}()
 
 	access = authGranted
-	data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID, nil))
+	data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionID, nil))
 
 	switch parsedID {
 	case "IA_timeout":
@@ -260,7 +260,7 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 			data = ""
 		case <-time.After(2 * time.Second):
 			access = authGranted
-			data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID, nil))
+			data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionID, nil))
 		}
 
 	case "IA_next":
@@ -269,7 +269,7 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 
 	case "success_with_local_groups":
 		extragroups := []groupJSONInfo{{Name: "localgroup1"}, {Name: "localgroup3"}}
-		data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(parsedID, extragroups))
+		data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionID, extragroups))
 
 	case "IA_invalid_access":
 		access = "invalid"
@@ -350,9 +350,11 @@ type groupJSONInfo struct {
 }
 
 // userInfoFromName transform a given name to the strinfigy userinfo string.
-func userInfoFromName(parsedID string, extraGroups []groupJSONInfo) string {
+func userInfoFromName(sessionID string, extraGroups []groupJSONInfo) string {
 	// Default values
-	name := parsedID
+	parsedID := parseSessionID(sessionID)
+
+	name := strings.TrimSuffix(sessionID, "-session_id")
 	group := "group-" + parsedID
 	home := "/home/" + parsedID
 	shell := "/bin/sh/" + parsedID
@@ -363,6 +365,8 @@ func userInfoFromName(parsedID string, extraGroups []groupJSONInfo) string {
 	switch parsedID {
 	case "IA_info_empty_user_name":
 		name = ""
+	case "IA_info_mismatching_user_name":
+		name = "different_username"
 	case "IA_info_empty_group_name":
 		group = ""
 	case "IA_info_empty_uuid":
