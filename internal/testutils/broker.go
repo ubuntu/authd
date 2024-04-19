@@ -361,17 +361,17 @@ func userInfoFromName(parsedID string, extraGroups []groupJSONInfo) string {
 	ugid := "ugid-" + parsedID
 
 	switch parsedID {
-	case "IA_info_missing_user_name":
+	case "IA_info_empty_user_name":
 		name = ""
-	case "IA_info_missing_group_name":
+	case "IA_info_empty_group_name":
 		group = ""
-	case "IA_info_missing_uuid":
+	case "IA_info_empty_uuid":
 		uuid = ""
-	case "IA_info_missing_ugid":
+	case "IA_info_empty_ugid":
 		ugid = ""
-	case "IA_info_missing_gecos":
+	case "IA_info_empty_gecos":
 		gecos = ""
-	case "IA_info_missing_groups":
+	case "IA_info_empty_groups":
 		group = "-"
 	case "IA_info_invalid_home":
 		home = "this is not a homedir"

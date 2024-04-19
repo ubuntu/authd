@@ -1,4 +1,4 @@
 FIRST CALL:
 	access: granted
-	data: {"Name":"IA_info_missing_groups","UID":73587,"Gecos":"gecos for IA_info_missing_groups","Dir":"/home/IA_info_missing_groups","Shell":"/bin/sh/IA_info_missing_groups","Groups":[{"Name":"IA_info_missing_groups","GID":73587}]}
+	data: {"Name":"IA_info_empty_groups","UID":98803,"Gecos":"gecos for IA_info_empty_groups","Dir":"/home/IA_info_empty_groups","Shell":"/bin/sh/IA_info_empty_groups","Groups":[{"Name":"IA_info_empty_groups","GID":98803}]}
 	err: <nil>
