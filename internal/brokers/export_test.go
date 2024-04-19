@@ -62,3 +62,10 @@ func (b *Broker) LayoutValidatorsString(sessionID string) string {
 	}
 	return s
 }
+
+// AddOngoingUserRequest adds an ongoing user request to the broker for tests.
+func (b *Broker) AddOngoingUserRequest(sessionID, username string) {
+	b.ongoingUserRequestsMu.Lock()
+	defer b.ongoingUserRequestsMu.Unlock()
+	b.ongoingUserRequests[sessionID] = username
+}

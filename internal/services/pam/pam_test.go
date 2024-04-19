@@ -424,12 +424,13 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error when there is no broker": {sessionID: "invalid-session"},
 
 		// broker errors
-		"Error when authenticating":                         {username: "IA_error"},
-		"Error on empty data even if granted":               {username: "IA_empty_data"},
-		"Error when broker returns invalid access":          {username: "IA_invalid_access"},
-		"Error when broker returns invalid data":            {username: "IA_invalid_data"},
-		"Error when broker returns invalid userinfo":        {username: "IA_invalid_userinfo"},
-		"Error when calling second time without cancelling": {username: "IA_second_call", secondCall: true},
+		"Error when authenticating":                                          {username: "IA_error"},
+		"Error on empty data even if granted":                                {username: "IA_empty_data"},
+		"Error when broker returns invalid access":                           {username: "IA_invalid_access"},
+		"Error when broker returns invalid data":                             {username: "IA_invalid_data"},
+		"Error when broker returns invalid userinfo":                         {username: "IA_invalid_userinfo"},
+		"Error when broker returns username different than the one selected": {username: "IA_info_mismatching_user_name"},
+		"Error when calling second time without cancelling":                  {username: "IA_second_call", secondCall: true},
 
 		// local group error
 		"Error on updating local groups with unexisting file": {username: "success_with_local_groups", localGroupsFile: "does_not_exists.group"},

@@ -225,6 +225,7 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error when broker returns invalid access":                            {sessionID: "IA_invalid_access"},
 		"Error when broker returns invalid userinfo":                          {sessionID: "IA_invalid_userinfo"},
 		"Error when broker returns userinfo with empty username":              {sessionID: "IA_info_empty_user_name"},
+		"Error when broker returns userinfo with mismatching username":        {sessionID: "IA_info_mismatching_user_name"},
 		"Error when broker returns userinfo with empty group name":            {sessionID: "IA_info_empty_group_name"},
 		"Error when broker returns userinfo with empty UUID":                  {sessionID: "IA_info_empty_uuid"},
 		"Error when broker returns userinfo with invalid homedir":             {sessionID: "IA_info_invalid_home"},
@@ -245,10 +246,15 @@ func TestIsAuthenticated(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
+			sessionID := prefixID(t, tc.sessionID)
+
+			// Add username to the ongoing requests
+			b.AddOngoingUserRequest(sessionID, t.Name()+testutils.IDSeparator+tc.sessionID)
+
 			done := make(chan struct{})
 			go func() {
 				defer close(done)
-				access, gotData, err := b.IsAuthenticated(ctx, prefixID(t, tc.sessionID), "password")
+				access, gotData, err := b.IsAuthenticated(ctx, sessionID, "password")
 				firstCallReturn = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n", access, gotData, err)
 			}()
 
@@ -260,7 +266,7 @@ func TestIsAuthenticated(t *testing.T) {
 					cancel()
 					<-done
 				}
-				access, gotData, err := b.IsAuthenticated(context.Background(), prefixID(t, tc.sessionID), "password")
+				access, gotData, err := b.IsAuthenticated(context.Background(), sessionID, "password")
 				secondCallReturn = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tdata: %s\n\terr: %v\n", access, gotData, err)
 			}
 
