@@ -8,7 +8,7 @@ require (
 	github.com/golangci/golangci-lint v1.57.2
 	github.com/msteinert/pam/v2 v2.0.0-00010101000000-000000000000
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.3.0
-	google.golang.org/protobuf v1.33.0
+	google.golang.org/protobuf v1.34.0
 )
 
 require (
