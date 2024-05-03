@@ -37,10 +37,10 @@ func currentUserUID() uint32 {
 	return uint32(uid)
 }
 
-// setCurrentRootAsRoot mutates a default permission to the current user's UID if currentUserAsRoot is true.
+// setCurrentUserAsRoot mutates a default permission to the current user's UID if currentUserAsRoot is true.
 //
 //nolint:unused // false positive as used in permissionstests with linkname.
-func (m *Manager) setCurrentRootAsRoot(currentUserAsRoot bool) {
+func (m *Manager) setCurrentUserAsRoot(currentUserAsRoot bool) {
 	testsdetection.MustBeTesting()
 
 	if !currentUserAsRoot {
