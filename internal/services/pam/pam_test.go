@@ -285,7 +285,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			permissionstests.SetCurrentRootAsRoot(&pm, !tc.currentUserNotRoot)
+			permissionstests.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			if tc.supportedUILayouts == nil {
 				tc.supportedUILayouts = []*authd.UILayout{requiredEntry}
@@ -379,7 +379,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			permissionstests.SetCurrentRootAsRoot(&pm, !tc.currentUserNotRoot)
+			permissionstests.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			samReq := &authd.SAMRequest{
 				SessionId:            tc.sessionID,
@@ -476,7 +476,7 @@ func TestIsAuthenticated(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			permissionstests.SetCurrentRootAsRoot(&pm, !tc.currentUserNotRoot)
+			permissionstests.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			var firstCall, secondCall string
 			ctx, cancel := context.WithCancel(context.Background())
@@ -638,7 +638,7 @@ func TestEndSession(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			permissionstests.SetCurrentRootAsRoot(&pm, !tc.currentUserNotRoot)
+			permissionstests.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			esReq := &authd.ESRequest{
 				SessionId: tc.sessionID,
