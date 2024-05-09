@@ -6,7 +6,7 @@ toolchain go1.22.3
 
 require (
 	github.com/charmbracelet/bubbles v0.18.0
-	github.com/charmbracelet/bubbletea v0.26.1
+	github.com/charmbracelet/bubbletea v0.26.2
 	github.com/charmbracelet/lipgloss v0.10.0
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/godbus/dbus/v5 v5.1.0
@@ -23,7 +23,7 @@ require (
 	golang.org/x/sys v0.20.0
 	golang.org/x/term v0.20.0
 	google.golang.org/grpc v1.63.2
-	google.golang.org/protobuf v1.34.0
+	google.golang.org/protobuf v1.34.1
 	gopkg.in/ini.v1 v1.67.0
 	gopkg.in/yaml.v3 v3.0.1
 )
