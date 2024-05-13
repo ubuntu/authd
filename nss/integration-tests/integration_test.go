@@ -17,6 +17,9 @@ var daemonPath string
 func TestIntegration(t *testing.T) {
 	t.Parallel()
 
+	// codeNotFound is the expected exit code for the getent subprocess in case of errors.
+	const codeNotFound int = 2
+
 	libPath, rustCovEnv := buildRustNSSLib(t)
 
 	// Create a default daemon to use for most test cases.
@@ -48,7 +51,7 @@ func TestIntegration(t *testing.T) {
 		wantSecondCall     bool
 		shouldPreCheck     bool
 
-		wantErr bool
+		wantStatus int
 	}{
 		"Get all entries from passwd":                    {db: "passwd"},
 		"Get all entries from group":                     {db: "group"},
@@ -76,22 +79,22 @@ func TestIntegration(t *testing.T) {
 
 		/* Error cases */
 		// We can't assert on the returned error type since the error returned by getent will always be 2 (i.e. Not Found), even though the library returns other types.
-		"Error when getting shadow by name if regular user": {db: "shadow", key: "user1", currentUserNotRoot: true, wantErr: true},
+		"Error when getting shadow by name if regular user": {db: "shadow", key: "user1", currentUserNotRoot: true, wantStatus: codeNotFound},
 
-		"Error when getting passwd by name and entry does not exist":                        {db: "passwd", key: "doesnotexit", wantErr: true},
-		"Error when getting passwd by name entry exists in broker but precheck is disabled": {db: "passwd", key: "user-pre-check", wantErr: true},
-		"Error when getting group by name and entry does not exist":                         {db: "group", key: "doesnotexit", wantErr: true},
-		"Error when getting shadow by name and entry does not exist":                        {db: "shadow", key: "doesnotexit", wantErr: true},
+		"Error when getting passwd by name and entry does not exist":                        {db: "passwd", key: "doesnotexit", wantStatus: codeNotFound},
+		"Error when getting passwd by name entry exists in broker but precheck is disabled": {db: "passwd", key: "user-pre-check", wantStatus: codeNotFound},
+		"Error when getting group by name and entry does not exist":                         {db: "group", key: "doesnotexit", wantStatus: codeNotFound},
+		"Error when getting shadow by name and entry does not exist":                        {db: "shadow", key: "doesnotexit", wantStatus: codeNotFound},
 
-		"Error when getting passwd by id and entry does not exist": {db: "passwd", key: "404", wantErr: true},
-		"Error when getting group by id and entry does not exist":  {db: "group", key: "404", wantErr: true},
+		"Error when getting passwd by id and entry does not exist": {db: "passwd", key: "404", wantStatus: codeNotFound},
+		"Error when getting group by id and entry does not exist":  {db: "group", key: "404", wantStatus: codeNotFound},
 
-		"Error when getting passwd by name and daemon is not available": {db: "passwd", key: "user1", noDaemon: true, wantErr: true},
-		"Error when getting group by name and daemon is not available":  {db: "group", key: "group1", noDaemon: true, wantErr: true},
-		"Error when getting shadow by name and daemon is not available": {db: "shadow", key: "user1", noDaemon: true, wantErr: true},
+		"Error when getting passwd by name and daemon is not available": {db: "passwd", key: "user1", noDaemon: true, wantStatus: codeNotFound},
+		"Error when getting group by name and daemon is not available":  {db: "group", key: "group1", noDaemon: true, wantStatus: codeNotFound},
+		"Error when getting shadow by name and daemon is not available": {db: "shadow", key: "user1", noDaemon: true, wantStatus: codeNotFound},
 
-		"Error when getting passwd by id and daemon is not available": {db: "passwd", key: "1111", noDaemon: true, wantErr: true},
-		"Error when getting group by id and daemon is not available":  {db: "group", key: "11111", noDaemon: true, wantErr: true},
+		"Error when getting passwd by id and daemon is not available": {db: "passwd", key: "1111", noDaemon: true, wantStatus: codeNotFound},
+		"Error when getting group by id and daemon is not available":  {db: "group", key: "11111", noDaemon: true, wantStatus: codeNotFound},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -138,20 +141,23 @@ func TestIntegration(t *testing.T) {
 				cmds = append(cmds, tc.key)
 			}
 
-			got, err := getentOutputForLib(t, libPath, socketPath, rustCovEnv, tc.shouldPreCheck, cmds...)
-			if tc.wantErr {
-				require.Error(t, err, "Expected an error, but got none")
+			got, status := getentOutputForLib(t, libPath, socketPath, rustCovEnv, tc.shouldPreCheck, cmds...)
+			require.Equal(t, tc.wantStatus, status, "Expected status %d, but got %d", tc.wantStatus, status)
+
+			// If the exit status is NotFound, there is no need to create an empty golden file.
+			// But we need to ensure that the output is indeed empty.
+			if tc.wantStatus == codeNotFound {
+				require.Empty(t, got, "Expected empty output, but got %q", got)
 				return
 			}
-			require.NoError(t, err, "Expected no error, but got %v", err)
 
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Outputs must match")
 
 			// This is to check that some cache tasks, such as cleaning a corrupted database, work as expected.
 			if tc.wantSecondCall {
-				got, err := getentOutputForLib(t, libPath, socketPath, rustCovEnv, tc.shouldPreCheck, cmds...)
-				require.NoError(t, err, "Expected no error, but got %v", err)
+				got, status := getentOutputForLib(t, libPath, socketPath, rustCovEnv, tc.shouldPreCheck, cmds...)
+				require.NotEqual(t, codeNotFound, status, "Expected no error, but got %v", status)
 				require.Empty(t, got, "Expected empty output, but got %q", got)
 			}
 		})
