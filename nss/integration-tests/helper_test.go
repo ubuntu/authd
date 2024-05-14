@@ -55,7 +55,7 @@ func buildRustNSSLib(t *testing.T) (libPath string, rustCovEnv []string) {
 
 // getentOutputForLib returns the specific part for the nss command for the authd service.
 // It uses the locally build authd nss module for the integration tests.
-func getentOutputForLib(t *testing.T, libPath, socketPath string, rustCovEnv []string, shouldPreCheck bool, cmds ...string) (got string, err error) {
+func getentOutputForLib(t *testing.T, libPath, socketPath string, rustCovEnv []string, shouldPreCheck bool, cmds ...string) (got string, exitCode int) {
 	t.Helper()
 
 	// #nosec:G204 - we control the command arguments in tests
@@ -81,6 +81,8 @@ func getentOutputForLib(t *testing.T, libPath, socketPath string, rustCovEnv []s
 	cmd.Stdout = io.MultiWriter(os.Stdout, &out)
 	cmd.Stderr = os.Stderr
 
-	err = cmd.Run()
-	return out.String(), err
+	// We are only interested in the output and the exit code of the command, so we can ignore the error.
+	_ = cmd.Run()
+
+	return out.String(), cmd.ProcessState.ExitCode()
 }
