@@ -16,12 +16,12 @@ custom_socket = []
 integration_tests = []
 
 [dependencies]
-libnss = "0.7.0"
+libnss = "0.8.0"
 lazy_static = "1.4.0"
-libc = "0.2.154"
+libc = "0.2.155"
 paste = "1.0.15"
 tonic = "0.11.0"
-prost = "0.12.4"
+prost = "0.12.6"
 rustix = { version = "0.38.34", features = ["use-libc"] }
 tokio = { version = "1.37.0", features = ["macros", "rt-multi-thread"] }
 tower = "0.4.13"
@@ -33,4 +33,4 @@ procfs = "0.16.0"
 
 [build-dependencies]
 tonic-build = "0.11.0"
-cc = "1.0.97"
+cc = "1.0.98"
