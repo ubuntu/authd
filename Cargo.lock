@@ -647,11 +647,9 @@ version = "0.1.0"
 dependencies = [
  "cc",
  "ctor",
- "lazy_static",
  "libc",
  "libnss",
  "log",
- "paste",
  "procfs",
  "prost",
  "rustix",
