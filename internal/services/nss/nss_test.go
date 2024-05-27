@@ -14,7 +14,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/services/permissions"
-	"github.com/ubuntu/authd/internal/services/permissions/permissionstests"
+	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
 	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
@@ -283,7 +283,7 @@ func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (clien
 
 	var opts []permissions.Option
 	if !currentUserNotRoot {
-		opts = append(opts, permissionstests.WithCurrentUserAsRoot())
+		opts = append(opts, permissionstestutils.WithCurrentUserAsRoot())
 	}
 	pm := permissions.New(opts...)
 

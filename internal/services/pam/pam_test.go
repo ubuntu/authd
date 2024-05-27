@@ -19,7 +19,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/services/permissions"
-	"github.com/ubuntu/authd/internal/services/permissions/permissionstests"
+	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
 	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
@@ -285,7 +285,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			permissionstests.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
+			permissionstestutils.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			if tc.supportedUILayouts == nil {
 				tc.supportedUILayouts = []*authd.UILayout{requiredEntry}
@@ -379,7 +379,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			permissionstests.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
+			permissionstestutils.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			samReq := &authd.SAMRequest{
 				SessionId:            tc.sessionID,
@@ -476,7 +476,7 @@ func TestIsAuthenticated(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			permissionstests.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
+			permissionstestutils.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			var firstCall, secondCall string
 			ctx, cancel := context.WithCancel(context.Background())
@@ -519,7 +519,7 @@ func TestIsAuthenticated(t *testing.T) {
 			<-done
 
 			got := firstCall + secondCall
-			got = permissionstests.IdempotentPermissionError(got)
+			got = permissionstestutils.IdempotentPermissionError(got)
 			want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "IsAuthenticated")))
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
 
@@ -638,7 +638,7 @@ func TestEndSession(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			permissionstests.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
+			permissionstestutils.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			esReq := &authd.ESRequest{
 				SessionId: tc.sessionID,
@@ -730,7 +730,7 @@ func newPermissionManager(t *testing.T, currentUserNotRoot bool) permissions.Man
 
 	var opts = []permissions.Option{}
 	if !currentUserNotRoot {
-		opts = append(opts, permissionstests.WithCurrentUserAsRoot())
+		opts = append(opts, permissionstestutils.WithCurrentUserAsRoot())
 	}
 	return permissions.New(opts...)
 }
