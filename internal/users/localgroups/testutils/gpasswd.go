@@ -1,5 +1,4 @@
-// Package tests export users test functionalities used by other packages to change cmdline and group file.
-package tests
+package localgrouptestutils
 
 //nolint:gci // We import unsafe as it is needed for go:linkname, but the nolint comment confuses gofmt and it adds
 // a blank space between the imports, which creates problems with gci so we need to ignore it.
@@ -17,47 +16,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
 )
-
-var (
-	//go:linkname defaultOptions github.com/ubuntu/authd/internal/users/localgroups.defaultOptions
-	defaultOptions struct {
-		groupPath    string
-		gpasswdCmd   []string
-		getUsersFunc func() []string
-	}
-)
-
-// overrideDefaultOptions allow to change groupPath and gpasswdCmd without using options.
-// This is used for tests when we don’t have access to the users object directly, like integration tests.
-// Tests using this can't be run in parallel.
-func overrideDefaultOptions(t *testing.T, groupPath string, gpasswdCmd []string, getUsersFunc func() []string) {
-	t.Helper()
-
-	origin := defaultOptions
-	t.Cleanup(func() { defaultOptions = origin })
-
-	defaultOptions.groupPath = groupPath
-	defaultOptions.gpasswdCmd = gpasswdCmd
-
-	if getUsersFunc != nil {
-		defaultOptions.getUsersFunc = getUsersFunc
-	}
-}
-
-// IdempotentGPasswdOutput sort and trim spaces around mock gpasswd output.
-func IdempotentGPasswdOutput(t *testing.T, cmdsFilePath string) string {
-	t.Helper()
-
-	d, err := os.ReadFile(cmdsFilePath)
-	require.NoError(t, err, "Teardown: could not read dest trace file")
-
-	// need to sort out all operations
-	ops := strings.Split(string(d), "\n")
-	slices.Sort(ops)
-	content := strings.TrimSpace(strings.Join(ops, "\n"))
-
-	return content
-}
 
 // Mockgpasswd is the gpasswd mock.
 func Mockgpasswd(_ *testing.T) {
@@ -115,14 +73,16 @@ func Mockgpasswd(_ *testing.T) {
 func SetupGPasswdMock(t *testing.T, localGroupsFilepath string) string {
 	t.Helper()
 
-	destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
+	origin := defaultOptions
+	t.Cleanup(func() { defaultOptions = origin })
 
-	gpasswd := []string{"env", "GO_WANT_HELPER_PROCESS=1",
+	SetGroupPath(localGroupsFilepath)
+
+	destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
+	SetGpasswdCmd([]string{"env", "GO_WANT_HELPER_PROCESS=1",
 		fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
 		fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", localGroupsFilepath),
-		os.Args[0], "-test.run=TestMockgpasswd", "--"}
-
-	overrideDefaultOptions(t, localGroupsFilepath, gpasswd, nil)
+		os.Args[0], "-test.run=TestMockgpasswd", "--"})
 
 	return destCmdsFile
 }
@@ -156,6 +116,21 @@ func GPasswdMockEnv(t *testing.T, outputFilePath, groupsFilePath string) []strin
 	}
 
 	return env
+}
+
+// IdempotentGPasswdOutput sort and trim spaces around mock gpasswd output.
+func IdempotentGPasswdOutput(t *testing.T, cmdsFilePath string) string {
+	t.Helper()
+
+	d, err := os.ReadFile(cmdsFilePath)
+	require.NoError(t, err, "Teardown: could not read dest trace file")
+
+	// need to sort out all operations
+	ops := strings.Split(string(d), "\n")
+	slices.Sort(ops)
+	content := strings.TrimSpace(strings.Join(ops, "\n"))
+
+	return content
 }
 
 // RequireGPasswdOutput compare the output of gpasswd with the golden file.

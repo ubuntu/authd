@@ -18,7 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
 	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
-	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -66,7 +66,7 @@ func TestGetPasswdByName(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
-			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
@@ -94,7 +94,7 @@ func TestGetPasswdByUID(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
-			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
@@ -118,7 +118,7 @@ func TestGetPasswdEntries(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
-			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
@@ -146,7 +146,7 @@ func TestGetGroupByName(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
-			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
@@ -174,7 +174,7 @@ func TestGetGroupByGID(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
-			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
@@ -198,7 +198,7 @@ func TestGetGroupEntries(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
-			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
@@ -228,7 +228,7 @@ func TestGetShadowByName(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
-			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, tc.currentUserNotRoot)
 
@@ -254,7 +254,7 @@ func TestGetShadowEntries(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
-			_ = grouptests.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, tc.currentUserNotRoot)
 
@@ -265,7 +265,7 @@ func TestGetShadowEntries(t *testing.T) {
 }
 
 func TestMockgpasswd(t *testing.T) {
-	grouptests.Mockgpasswd(t)
+	localgroupstestutils.Mockgpasswd(t)
 }
 
 // newNSSClient returns a new GRPC PAM client for tests with the provided sourceDB as its initial cache.

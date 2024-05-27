@@ -23,7 +23,7 @@ import (
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
 	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
-	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	usertests "github.com/ubuntu/authd/internal/users/tests"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -444,7 +444,7 @@ func TestIsAuthenticated(t *testing.T) {
 
 			var destCmdsFile string
 			if tc.localGroupsFile != "" {
-				destCmdsFile = grouptests.SetupGPasswdMock(t, filepath.Join(testutils.TestFamilyPath(t), tc.localGroupsFile))
+				destCmdsFile = localgroupstestutils.SetupGPasswdMock(t, filepath.Join(testutils.TestFamilyPath(t), tc.localGroupsFile))
 			}
 
 			cacheDir := t.TempDir()
@@ -526,7 +526,7 @@ func TestIsAuthenticated(t *testing.T) {
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
 
-			grouptests.RequireGPasswdOutput(t, destCmdsFile, filepath.Join(testutils.GoldenPath(t), "gpasswd.output"))
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, filepath.Join(testutils.GoldenPath(t), "gpasswd.output"))
 		})
 	}
 }
@@ -647,7 +647,7 @@ func TestEndSession(t *testing.T) {
 }
 
 func TestMockgpasswd(t *testing.T) {
-	grouptests.Mockgpasswd(t)
+	localgroupstestutils.Mockgpasswd(t)
 }
 
 // initBrokers starts dbus mock brokers on the system bus. It returns its config path.
