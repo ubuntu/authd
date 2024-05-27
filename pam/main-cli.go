@@ -9,10 +9,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/msteinert/pam/v2"
-	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
@@ -153,7 +153,7 @@ func buildExecModule(path string) (string, error) {
 	cmd := exec.Command("cc", "pam/go-exec/module.c", "-o", execModule,
 		"-shared", "-fPIC")
 	cmd.Args = append(cmd.Args, deps...)
-	cmd.Dir = testutils.ProjectRoot()
+	cmd.Dir = projectRoot()
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("can't compile exec module %s: %w\n%s", execModule, err, out)
@@ -165,10 +165,25 @@ func buildExecModule(path string) (string, error) {
 func buildClient(path string) (string, error) {
 	cliPath := filepath.Join(path, "exec-client")
 	cmd := exec.Command("go", "build", "-C", "pam", "-o", cliPath)
-	cmd.Dir = testutils.ProjectRoot()
+	cmd.Dir = projectRoot()
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("can't compile client %s: %v\n%s", cliPath, err, out)
 	}
 	return cliPath, nil
+}
+
+// projectRoot returns the absolute path to the project root.
+func projectRoot() string {
+	// p is the path to the current file, in this case -> {PROJECT_ROOT}/internal/testutils/path.go
+	_, p, _, _ := runtime.Caller(0)
+
+	// Walk up the tree to get the path of the project root
+	l := strings.Split(p, "/")
+
+	// Ignores the last 2 elements -> /pam/main-cli.go
+	l = l[:len(l)-2]
+
+	// strings.Split removes the first "/" that indicated an AbsPath, so we append it back in the final string.
+	return "/" + filepath.Join(l...)
 }
