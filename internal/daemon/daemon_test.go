@@ -14,6 +14,7 @@ import (
 	"github.com/ubuntu/authd/internal/daemon"
 	"github.com/ubuntu/authd/internal/daemon/testdata/grpctestservice"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -294,8 +295,13 @@ func createClientConnection(t *testing.T, socketPath string) (success bool, disc
 	go func() {
 		defer close(connected)
 		var err error
-		conn, err = grpc.Dial("unix://"+socketPath, grpc.WithBlock(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err = grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		require.NoError(t, err, "Could not connect to grpc server")
+
+		conn.Connect()
+		for conn.GetState() != connectivity.Ready {
+			conn.WaitForStateChange(context.Background(), conn.GetState())
+		}
 	}()
 	select {
 	case <-connected:

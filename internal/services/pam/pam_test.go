@@ -26,6 +26,7 @@ import (
 	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 	usertests "github.com/ubuntu/authd/internal/users/tests"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -716,8 +717,14 @@ func newPamClient(t *testing.T, m *users.Manager, pm *permissions.Manager) (clie
 		<-done
 	})
 
-	conn, err := grpc.Dial("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err, "Setup: Could not connect to GRPC server")
+
+	conn.Connect()
+	for conn.GetState() != connectivity.Ready {
+		conn.WaitForStateChange(context.Background(), conn.GetState())
+	}
+
 	t.Cleanup(func() { _ = conn.Close() }) // We don't care about the error on cleanup
 
 	return authd.NewPAMClient(conn)

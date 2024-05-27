@@ -412,22 +412,16 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 func newClient(args map[string]string) (client authd.PAMClient, close func(), err error) {
 	dialCtx, dialCancel := context.WithTimeout(context.TODO(), time.Second*5)
 	defer dialCancel()
-	conn, err := grpc.DialContext(
-		dialCtx,
-		"unix://"+getSocketPath(args),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(),
-	)
+	conn, err := grpc.NewClient("unix://"+getSocketPath(args), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not connect to authd: %v", err)
 	}
+	conn.Connect()
 
-	waitCtx, waitCancel := context.WithTimeout(context.TODO(), time.Second*5)
-	defer waitCancel()
 	for conn.GetState() != connectivity.Ready {
-		if !conn.WaitForStateChange(waitCtx, conn.GetState()) {
+		if !conn.WaitForStateChange(dialCtx, conn.GetState()) {
 			conn.Close()
-			return nil, func() {}, fmt.Errorf("could not connect to authd: %w", waitCtx.Err())
+			return nil, func() {}, fmt.Errorf("could not connect to authd: %w", dialCtx.Err())
 		}
 	}
 	return authd.NewPAMClient(conn), func() { conn.Close() }, nil
