@@ -1,5 +1,8 @@
 package cache
 
+// All those functions and methods are only for tests.
+// They are not exported, and guarded by testing assertions.
+
 import (
 	"io"
 	"os/user"
@@ -8,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ubuntu/authd/internal/testsdetection"
 	"go.etcd.io/bbolt"
 	"gopkg.in/yaml.v3"
 )
@@ -26,6 +30,8 @@ var redactedTimes = map[string]string{
 //
 //nolint:unused // This is used for tests, with methods that are using go linking. Not part of exported API.
 func redactTime(line string) string {
+	testsdetection.MustBeTesting()
+
 	re := regexp.MustCompile(`"LastLogin":"(.*?)"`)
 	match := re.FindSubmatch([]byte(line))
 
@@ -54,10 +60,12 @@ func redactTime(line string) string {
 	return line
 }
 
-// dumpToYaml deserializes the cache database to a writer in a yaml format.
+// dumpToYaml deserializes the cache database as a string in yaml format.
 //
 //nolint:unused // This is used for tests, with go linking. Not part of exported API.
 func (c *Cache) dumpToYaml() (string, error) {
+	testsdetection.MustBeTesting()
+
 	d := make(map[string]map[string]string)
 
 	c.mu.RLock()
@@ -93,10 +101,12 @@ func (c *Cache) dumpToYaml() (string, error) {
 	return string(content), nil
 }
 
-// dbfromYAML loads a yaml formatted of the buckets and dump it into destDir, with its dbname.
+// dbfromYAML loads a yaml formatted of the buckets from a reader and dump it into destDir, with its dbname.
 //
 //nolint:unused // This is used for tests, with go linking. Not part of exported API.
 func dbfromYAML(r io.Reader, destDir string) error {
+	testsdetection.MustBeTesting()
+
 	dbPath := filepath.Join(destDir, dbName)
 	db, err := bbolt.Open(dbPath, 0600, nil)
 	if err != nil {

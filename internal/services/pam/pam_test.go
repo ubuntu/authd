@@ -22,7 +22,7 @@ import (
 	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
-	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
+	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
 	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 	usertests "github.com/ubuntu/authd/internal/users/tests"
 	"google.golang.org/grpc"
@@ -139,13 +139,14 @@ func TestGetPreviousBroker(t *testing.T) {
 			t.Parallel()
 
 			cacheDir := t.TempDir()
+			// We have to replace MOCKBROKERID with our generated broker id.
 			f, err := os.Open(filepath.Join(testutils.TestFamilyPath(t), "get-previous-broker.db"))
 			require.NoError(t, err, "Setup: could not open fixture database file")
 			defer f.Close()
 			d, err := io.ReadAll(f)
 			require.NoError(t, err, "Setup: could not read fixture database file")
 			d = bytes.ReplaceAll(d, []byte("MOCKBROKERID"), []byte(mockBrokerGeneratedID))
-			err = cachetests.DbfromYAML(bytes.NewBuffer(d), cacheDir)
+			err = cachetestutils.DbfromYAML(bytes.NewBuffer(d), cacheDir)
 			require.NoError(t, err, "Setup: could not prepare cache database file")
 
 			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
@@ -448,11 +449,7 @@ func TestIsAuthenticated(t *testing.T) {
 
 			cacheDir := t.TempDir()
 			if tc.existingDB != "" {
-				f, err := os.Open(filepath.Join(testutils.TestFamilyPath(t), tc.existingDB))
-				require.NoError(t, err, "Setup: could not open fixture database file")
-				defer f.Close()
-				err = cachetests.DbfromYAML(f, cacheDir)
-				require.NoError(t, err, "Setup: could not prepare cache database file")
+				cachetestutils.CreateDBFromYAML(t, filepath.Join(testutils.TestFamilyPath(t), tc.existingDB), cacheDir)
 			}
 
 			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
@@ -524,7 +521,7 @@ func TestIsAuthenticated(t *testing.T) {
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
 
 			// Check that cache has been updated too.
-			gotDB, err := cachetests.DumpToYaml(usertests.GetManagerCache(m))
+			gotDB, err := cachetestutils.DumpToYaml(usertests.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
@@ -558,11 +555,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			t.Parallel()
 
 			cacheDir := t.TempDir()
-			f, err := os.Open(filepath.Join(testutils.TestFamilyPath(t), "set-default-broker.db"))
-			require.NoError(t, err, "Setup: could not open fixture database file")
-			defer f.Close()
-			err = cachetests.DbfromYAML(f, cacheDir)
-			require.NoError(t, err, "Setup: could not prepare cache database file")
+			cachetestutils.CreateDBFromYAML(t, filepath.Join(testutils.TestFamilyPath(t), "set-default-broker.db"), cacheDir)
 
 			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 			require.NoError(t, err, "Setup: could not parse time for testing")
@@ -593,7 +586,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			require.Equal(t, tc.brokerID, gpbResp.GetPreviousBroker(), "SetDefaultBrokerForUser should set the default broker as expected")
 
 			// Check that cache has been updated too.
-			gotDB, err := cachetests.DumpToYaml(usertests.GetManagerCache(m))
+			gotDB, err := cachetestutils.DumpToYaml(usertests.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "SetDefaultBrokerForUser should update the cache database as expected")

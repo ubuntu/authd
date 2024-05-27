@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
@@ -75,7 +76,7 @@ func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...Daemo
 	}
 
 	if opts.existentDB != "" {
-		CreateDBFromYAML(t, filepath.Join("testdata", "db", opts.existentDB+".db.yaml"), opts.cachePath)
+		cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", opts.existentDB+".db.yaml"), opts.cachePath)
 	}
 
 	if opts.socketPath == "" {

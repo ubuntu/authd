@@ -17,7 +17,7 @@ import (
 	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users"
-	cachetests "github.com/ubuntu/authd/internal/users/cache/tests"
+	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
 	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -323,16 +323,10 @@ func newUserManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 	t.Helper()
 
 	cacheDir := t.TempDir()
-
 	if sourceDB == "" {
 		sourceDB = "cache.db.yaml"
 	}
-
-	f, err := os.Open(filepath.Join("testdata", sourceDB))
-	require.NoError(t, err, "Setup: could open fixture cache")
-	defer f.Close()
-	err = cachetests.DbfromYAML(f, cacheDir)
-	require.NoError(t, err, "Setup: could not create database from YAML fixture")
+	cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", sourceDB), cacheDir)
 
 	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 	require.NoError(t, err, "Setup: could not parse time for testing")
