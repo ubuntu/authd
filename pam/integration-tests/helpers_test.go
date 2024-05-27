@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -36,12 +35,6 @@ func requirePreviousBrokerForUser(t *testing.T, socketPath string, brokerName st
 
 	conn, err := grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err, "Can't connect to authd socket")
-
-	conn.Connect()
-	if conn.GetState() != connectivity.Ready {
-		changed := conn.WaitForStateChange(context.Background(), conn.GetState())
-		require.True(t, changed, "Connection state should change")
-	}
 
 	t.Cleanup(func() { conn.Close() })
 	pamClient := authd.NewPAMClient(conn)

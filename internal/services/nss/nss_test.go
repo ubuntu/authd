@@ -21,7 +21,6 @@ import (
 	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"gopkg.in/yaml.v3"
@@ -304,11 +303,6 @@ func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (clien
 
 	conn, err := grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err, "Setup: Could not connect to GRPC server")
-
-	conn.Connect()
-	for conn.GetState() != connectivity.Ready {
-		conn.WaitForStateChange(context.Background(), conn.GetState())
-	}
 
 	t.Cleanup(func() { _ = conn.Close() }) // We don't care about the error on cleanup
 

@@ -298,6 +298,7 @@ func createClientConnection(t *testing.T, socketPath string) (success bool, disc
 		conn, err = grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		require.NoError(t, err, "Could not connect to grpc server")
 
+		// The daemon tests require an active connection, so we need to block here until the connection is ready.
 		conn.Connect()
 		for conn.GetState() != connectivity.Ready {
 			conn.WaitForStateChange(context.Background(), conn.GetState())

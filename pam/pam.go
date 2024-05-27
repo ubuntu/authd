@@ -11,7 +11,6 @@ import (
 	"runtime"
 	"slices"
 	"strings"
-	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/coreos/go-systemd/journal"
@@ -23,7 +22,6 @@ import (
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"golang.org/x/term"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -410,19 +408,9 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 
 // newClient returns a new GRPC client ready to emit requests.
 func newClient(args map[string]string) (client authd.PAMClient, close func(), err error) {
-	dialCtx, dialCancel := context.WithTimeout(context.TODO(), time.Second*5)
-	defer dialCancel()
 	conn, err := grpc.NewClient("unix://"+getSocketPath(args), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not connect to authd: %v", err)
-	}
-	conn.Connect()
-
-	for conn.GetState() != connectivity.Ready {
-		if !conn.WaitForStateChange(dialCtx, conn.GetState()) {
-			conn.Close()
-			return nil, func() {}, fmt.Errorf("could not connect to authd: %w", dialCtx.Err())
-		}
 	}
 	return authd.NewPAMClient(conn), func() { conn.Close() }, nil
 }
