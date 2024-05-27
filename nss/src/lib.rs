@@ -1,5 +1,3 @@
-#[macro_use]
-extern crate lazy_static;
 use std::time::Duration;
 
 // used by libnss_*_hooks macros
