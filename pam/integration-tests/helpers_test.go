@@ -33,12 +33,9 @@ func prepareFileLogging(t *testing.T, fileName string) string {
 func requirePreviousBrokerForUser(t *testing.T, socketPath string, brokerName string, user string) {
 	t.Helper()
 
-	conn, err := grpc.Dial(
-		"unix://"+socketPath,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(),
-	)
+	conn, err := grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err, "Can't connect to authd socket")
+
 	t.Cleanup(func() { conn.Close() })
 	pamClient := authd.NewPAMClient(conn)
 	brokers, err := pamClient.AvailableBrokers(context.TODO(), nil)

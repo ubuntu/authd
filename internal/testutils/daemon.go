@@ -112,16 +112,16 @@ paths:
 		t.Logf("Daemon stopped (%v)\n ##### STDOUT #####\n %s \n ##### END #####", err, out)
 	}()
 
-	// Block until the daemon is started and ready to accept connections.
-	conn, err := grpc.Dial("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err, "Setup: could not connect to the daemon on %s", opts.socketPath)
 	defer conn.Close()
 
 	waitCtx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
+
+	// Block until the daemon is started and ready to accept connections.
+	conn.Connect()
 	for conn.GetState() != connectivity.Ready {
-		// conn.WaitForStateChange is an experimental API, so we need to watch it carefully.
-		// Since this is not production code, we should be fine with using it.
 		conn.WaitForStateChange(waitCtx, conn.GetState())
 		require.NoError(t, waitCtx.Err(), "Setup: wait for daemon to be ready timed out")
 	}
