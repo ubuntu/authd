@@ -14,7 +14,7 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/testutils"
-	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -275,7 +275,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 			// make assumptions whether the state of the broker and each test
 			// should run in parallel and work the same way in any order is ran.
 			ctx, cancel := context.WithCancel(context.Background())
-			env := append(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
+			env := append(localgroupstestutils.GPasswdMockEnv(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
 			socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
 			t.Cleanup(func() {
 				cancel()
@@ -382,7 +382,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 	ctx, cancel := context.WithCancel(context.Background())
-	env := append(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
+	env := append(localgroupstestutils.GPasswdMockEnv(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
 	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
 	t.Cleanup(func() {
 		cancel()
@@ -424,7 +424,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 	ctx, cancel := context.WithCancel(context.Background())
-	env := append(grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
+	env := append(localgroupstestutils.GPasswdMockEnv(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
 	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
 	t.Cleanup(func() {
 		cancel()

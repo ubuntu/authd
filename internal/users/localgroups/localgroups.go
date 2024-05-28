@@ -14,6 +14,12 @@ import (
 	"github.com/ubuntu/decorate"
 )
 
+var defaultOptions = options{
+	groupPath:    "/etc/group",
+	gpasswdCmd:   []string{"gpasswd"},
+	getUsersFunc: getPasswdUsernames,
+}
+
 type options struct {
 	groupPath    string
 	gpasswdCmd   []string

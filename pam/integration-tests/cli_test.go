@@ -11,9 +11,9 @@ import (
 
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/services/permissions/permissionstests"
+	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
 	"github.com/ubuntu/authd/internal/testutils"
-	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
@@ -113,12 +113,12 @@ func TestCLIAuthenticate(t *testing.T) {
 					break
 				}
 			}
-			got = permissionstests.IdempotentPermissionError(got)
+			got = permissionstestutils.IdempotentPermissionError(got)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
 			if tc.tape == "local_group" {
-				got := grouptests.IdempotentGPasswdOutput(t, gpasswdOutput)
+				got := localgroupstestutils.IdempotentGPasswdOutput(t, gpasswdOutput)
 				want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(testutils.GoldenPath(t)+".gpasswd_out"))
 				require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
 			}
@@ -206,7 +206,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 					break
 				}
 			}
-			got = permissionstests.IdempotentPermissionError(got)
+			got = permissionstestutils.IdempotentPermissionError(got)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 		})
@@ -246,7 +246,7 @@ func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot 
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	env := grouptests.GPasswdMockEnv(t, gpasswdOutput, groupsFile)
+	env := localgroupstestutils.GPasswdMockEnv(t, gpasswdOutput, groupsFile)
 	if currentUserAsRoot {
 		env = append(env, authdCurrentUserRootEnvVariableContent)
 	}
@@ -330,7 +330,7 @@ func buildPAMClient(t *testing.T) string {
 }
 
 func TestMockgpasswd(t *testing.T) {
-	grouptests.Mockgpasswd(t)
+	localgroupstestutils.Mockgpasswd(t)
 }
 
 // prependBinToPath returns the value of the GOPATH defined in go env prepended to PATH.

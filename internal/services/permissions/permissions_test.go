@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/services/permissions"
+	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/peer"
@@ -55,7 +56,7 @@ func TestIsRequestFromRoot(t *testing.T) {
 
 			var opts []permissions.Option
 			if !tc.currentUserNotRoot {
-				opts = append(opts, permissions.WithCurrentUserAsRoot())
+				opts = append(opts, permissionstestutils.WithCurrentUserAsRoot())
 			}
 			pm := permissions.New(opts...)
 

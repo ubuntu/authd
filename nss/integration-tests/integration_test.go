@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
-	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 )
 
 var daemonPath string
@@ -28,7 +28,7 @@ func TestIntegration(t *testing.T) {
 	defaultOutputPath := filepath.Join(filepath.Dir(daemonPath), "gpasswd.output")
 	defaultGroupsFilePath := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
-	env := append(grouptests.GPasswdMockEnv(t, defaultOutputPath, defaultGroupsFilePath), "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
+	env := append(localgroupstestutils.GPasswdMockEnv(t, defaultOutputPath, defaultGroupsFilePath), "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
 	ctx, cancel := context.WithCancel(context.Background())
 	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
 		testutils.WithSocketPath(defaultSocket),
@@ -122,7 +122,7 @@ func TestIntegration(t *testing.T) {
 
 				var daemonStopped chan struct{}
 				ctx, cancel := context.WithCancel(context.Background())
-				env := grouptests.GPasswdMockEnv(t, outPath, groupsFilePath)
+				env := localgroupstestutils.GPasswdMockEnv(t, outPath, groupsFilePath)
 				if !tc.currentUserNotRoot {
 					env = append(env, "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
 				}
@@ -165,7 +165,7 @@ func TestIntegration(t *testing.T) {
 }
 
 func TestMockgpasswd(t *testing.T) {
-	grouptests.Mockgpasswd(t)
+	localgroupstestutils.Mockgpasswd(t)
 }
 
 func TestMain(m *testing.M) {

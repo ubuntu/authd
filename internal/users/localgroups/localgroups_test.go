@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users/localgroups"
-	grouptests "github.com/ubuntu/authd/internal/users/localgroups/tests"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 )
 
 func TestUpdateLocalGroups(t *testing.T) {
@@ -98,7 +98,7 @@ func TestUpdateLocalGroups(t *testing.T) {
 				return
 			}
 
-			got := grouptests.IdempotentGPasswdOutput(t, destCmdsFile)
+			got := localgroupstestutils.IdempotentGPasswdOutput(t, destCmdsFile)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
 		})
@@ -171,7 +171,7 @@ func TestCleanLocalGroups(t *testing.T) {
 				return
 			}
 
-			got := grouptests.IdempotentGPasswdOutput(t, destCmdsFile)
+			got := localgroupstestutils.IdempotentGPasswdOutput(t, destCmdsFile)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Clean up should do the expected gpasswd operation, but did not")
 		})
@@ -247,7 +247,7 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 				return
 			}
 
-			got := grouptests.IdempotentGPasswdOutput(t, destCmdsFile)
+			got := localgroupstestutils.IdempotentGPasswdOutput(t, destCmdsFile)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Clean up should do the expected gpasswd operation, but did not")
 		})
@@ -255,7 +255,7 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 }
 
 func TestMockgpasswd(t *testing.T) {
-	grouptests.Mockgpasswd(t)
+	localgroupstestutils.Mockgpasswd(t)
 }
 
 func TestMain(m *testing.M) {
