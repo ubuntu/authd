@@ -1,12 +1,18 @@
-// Package tests export cache test functionalities used by other packages.
-package tests
+// Package userstestutils export cache test functionalities used by other packages.
+package userstestutils
 
 import (
 	"unsafe"
 
+	"github.com/ubuntu/authd/internal/testsdetection"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/cache"
 )
+
+func init() {
+	// No import outside of testing environment.
+	testsdetection.MustBeTesting()
+}
 
 var (
 	// DirtyFlagName is the dirty flag name exported for tests

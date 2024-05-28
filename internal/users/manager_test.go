@@ -13,7 +13,7 @@ import (
 	"github.com/ubuntu/authd/internal/users/cache"
 	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
-	usertests "github.com/ubuntu/authd/internal/users/tests"
+	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"go.etcd.io/bbolt"
 )
 
@@ -69,7 +69,7 @@ func TestNewManager(t *testing.T) {
 				cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
 			if tc.dirtyFlag {
-				err := os.WriteFile(filepath.Join(cacheDir, usertests.DirtyFlagName), nil, 0600)
+				err := os.WriteFile(filepath.Join(cacheDir, userstestutils.DirtyFlagName), nil, 0600)
 				require.NoError(t, err, "Setup: could not create dirty flag file")
 			}
 			if tc.corruptedDbFile {
@@ -108,7 +108,7 @@ func TestNewManager(t *testing.T) {
 			// Sync on the clean up routine
 			m.WaitCleanupRoutineDone(t, users.WithCacheCleanupInterval(time.Second*time.Duration(tc.cleanupInterval)))
 
-			got, err := cachetestutils.DumpToYaml(usertests.GetManagerCache(m))
+			got, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := testutils.LoadWithUpdateFromGolden(t, got)
@@ -116,7 +116,7 @@ func TestNewManager(t *testing.T) {
 
 			requireNoDirtyFileInDir(t, cacheDir)
 			if tc.corruptedDbFile {
-				requireClearedDatabase(t, usertests.GetManagerCache(m))
+				requireClearedDatabase(t, userstestutils.GetManagerCache(m))
 			}
 
 			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t)+".gpasswd.output")
@@ -135,7 +135,7 @@ func TestStop(t *testing.T) {
 	require.NoError(t, m.Stop(), "Stop should not return an error, but did")
 
 	// Should fail, because the cache is closed
-	_, err = usertests.GetManagerCache(m).AllUsers()
+	_, err = userstestutils.GetManagerCache(m).AllUsers()
 	require.ErrorIs(t, err, bbolt.ErrDatabaseNotOpen, "AllUsers should return an error, but did not")
 
 	// Ensure that the manager only stopped after the routine was done.
@@ -255,7 +255,7 @@ func TestUpdateUser(t *testing.T) {
 				return
 			}
 
-			got, err := cachetestutils.DumpToYaml(usertests.GetManagerCache(m))
+			got, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
@@ -339,7 +339,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 				return
 			}
 
-			got, err := cachetestutils.DumpToYaml(usertests.GetManagerCache(m))
+			got, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
@@ -659,7 +659,7 @@ func requireErrorAssertions(t *testing.T, gotErr, wantErr error, cacheDir string
 func requireNoDirtyFileInDir(t *testing.T, cacheDir string) {
 	t.Helper()
 
-	require.NoFileExists(t, filepath.Join(cacheDir, usertests.DirtyFlagName), "Dirty flag should have been removed")
+	require.NoFileExists(t, filepath.Join(cacheDir, userstestutils.DirtyFlagName), "Dirty flag should have been removed")
 }
 
 func requireClearedDatabase(t *testing.T, c *cache.Cache) {

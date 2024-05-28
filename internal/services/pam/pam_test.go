@@ -24,7 +24,7 @@ import (
 	"github.com/ubuntu/authd/internal/users"
 	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
-	usertests "github.com/ubuntu/authd/internal/users/tests"
+	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -521,7 +521,7 @@ func TestIsAuthenticated(t *testing.T) {
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
 
 			// Check that cache has been updated too.
-			gotDB, err := cachetestutils.DumpToYaml(usertests.GetManagerCache(m))
+			gotDB, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
@@ -586,7 +586,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			require.Equal(t, tc.brokerID, gpbResp.GetPreviousBroker(), "SetDefaultBrokerForUser should set the default broker as expected")
 
 			// Check that cache has been updated too.
-			gotDB, err := cachetestutils.DumpToYaml(usertests.GetManagerCache(m))
+			gotDB, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "SetDefaultBrokerForUser should update the cache database as expected")
