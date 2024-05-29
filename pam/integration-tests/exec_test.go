@@ -900,8 +900,9 @@ func buildExecModuleWithCFlags(t *testing.T, cFlags []string) string {
 	t.Helper()
 
 	pkgConfigDeps := []string{"gio-2.0", "gio-unix-2.0"}
+	// t.Name() can be a subtest, so replace the directory slash to get a valid filename.
 	return buildCPAMModule(t, execModuleSources, pkgConfigDeps, cFlags,
-		"pam_authd_exec"+strings.ToLower(t.Name()))
+		"pam_authd_exec"+strings.ToLower(strings.ReplaceAll(t.Name(), "/", "_")))
 }
 
 func buildExecClient(t *testing.T) string {
