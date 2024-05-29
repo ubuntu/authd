@@ -81,26 +81,7 @@ func TestUpdateLocalGroups(t *testing.T) {
 				require.NoError(t, err, "UpdateLocalGroups should not have failed")
 			}
 
-			// Always check the golden files missing for no-op too on error
-			referenceFilePath := testutils.GoldenPath(t)
-			if testutils.UpdateEnabled() {
-				// The file may already not exists.
-				_ = os.Remove(testutils.GoldenPath(t))
-				referenceFilePath = destCmdsFile
-			}
-
-			var shouldExists bool
-			if _, err := os.Stat(referenceFilePath); err == nil {
-				shouldExists = true
-			}
-			if !shouldExists {
-				require.NoFileExists(t, destCmdsFile, "UpdateLocalGroups should not call gpasswd by did")
-				return
-			}
-
-			got := localgroupstestutils.IdempotentGPasswdOutput(t, destCmdsFile)
-			want := testutils.LoadWithUpdateFromGolden(t, got)
-			require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t))
 		})
 	}
 }
@@ -154,26 +135,7 @@ func TestCleanLocalGroups(t *testing.T) {
 				require.NoError(t, err, "CleanupLocalGroups should not have failed")
 			}
 
-			// Always check the golden files missing for no-op too on error
-			referenceFilePath := testutils.GoldenPath(t)
-			if testutils.UpdateEnabled() {
-				// The file may already not exists.
-				_ = os.Remove(testutils.GoldenPath(t))
-				referenceFilePath = destCmdsFile
-			}
-
-			var shouldExists bool
-			if _, err := os.Stat(referenceFilePath); err == nil {
-				shouldExists = true
-			}
-			if !shouldExists {
-				require.NoFileExists(t, destCmdsFile, "UpdateLocalGroups should not call gpasswd by did")
-				return
-			}
-
-			got := localgroupstestutils.IdempotentGPasswdOutput(t, destCmdsFile)
-			want := testutils.LoadWithUpdateFromGolden(t, got)
-			require.Equal(t, want, got, "Clean up should do the expected gpasswd operation, but did not")
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t))
 		})
 	}
 }
@@ -230,26 +192,7 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 				require.NoError(t, err, "CleanUserFromLocalGroups should not have failed")
 			}
 
-			// Always check the golden files missing for no-op too on error
-			referenceFilePath := testutils.GoldenPath(t)
-			if testutils.UpdateEnabled() {
-				// The file may already not exists.
-				_ = os.Remove(testutils.GoldenPath(t))
-				referenceFilePath = destCmdsFile
-			}
-
-			var shouldExists bool
-			if _, err := os.Stat(referenceFilePath); err == nil {
-				shouldExists = true
-			}
-			if !shouldExists {
-				require.NoFileExists(t, destCmdsFile, "UpdateLocalGroups should not call gpasswd by did")
-				return
-			}
-
-			got := localgroupstestutils.IdempotentGPasswdOutput(t, destCmdsFile)
-			want := testutils.LoadWithUpdateFromGolden(t, got)
-			require.Equal(t, want, got, "Clean up should do the expected gpasswd operation, but did not")
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t))
 		})
 	}
 }

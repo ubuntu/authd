@@ -22,17 +22,6 @@ var daemonPath string
 func TestCLIAuthenticate(t *testing.T) {
 	t.Parallel()
 
-	outDir := t.TempDir()
-	cliEnv := prepareCLITest(t, outDir)
-
-	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
-	require.NoError(t, err, "Setup: Could not create gpasswd output directory")
-	gpasswdOutput := filepath.Join(outDir, "gpasswd", "authenticate.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-
-	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
-	defaultSocketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
-
 	// If vhs is installed with "go install", we need to add GOPATH to PATH.
 	pathEnv := prependBinToPath(t)
 
@@ -74,6 +63,9 @@ func TestCLIAuthenticate(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
+			outDir := t.TempDir()
+
+			cliEnv := prepareCLITest(t, outDir)
 			cliLog := prepareCLILogging(t)
 			t.Cleanup(func() {
 				saveArtifactsForDebug(t, []string{
@@ -83,11 +75,11 @@ func TestCLIAuthenticate(t *testing.T) {
 				})
 			})
 
-			socketPath := defaultSocketPath
-			if tc.currentUserNotRoot {
-				socketPath = runAuthd(t, gpasswdOutput, groupsFile, false)
-			}
+			gpasswdOutput := filepath.Join(outDir, "gpasswd.output")
+			groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+			socketPath := runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
 
+			const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 			// #nosec:G204 - we control the command arguments in tests
 			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
 			cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
@@ -117,11 +109,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
-			if tc.tape == "local_group" {
-				got := localgroupstestutils.IdempotentGPasswdOutput(t, gpasswdOutput)
-				want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(testutils.GoldenPath(t)+".gpasswd_out"))
-				require.Equal(t, want, got, "UpdateLocalGroups should do the expected gpasswd operation, but did not")
-			}
+			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, testutils.GoldenPath(t)+".gpasswd_out")
 		})
 	}
 }
