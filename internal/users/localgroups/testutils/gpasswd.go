@@ -118,21 +118,6 @@ func GPasswdMockEnv(t *testing.T, outputFilePath, groupsFilePath string) []strin
 	return env
 }
 
-// IdempotentGPasswdOutput sort and trim spaces around mock gpasswd output.
-func IdempotentGPasswdOutput(t *testing.T, cmdsFilePath string) string {
-	t.Helper()
-
-	d, err := os.ReadFile(cmdsFilePath)
-	require.NoError(t, err, "Teardown: could not read dest trace file")
-
-	// need to sort out all operations
-	ops := strings.Split(string(d), "\n")
-	slices.Sort(ops)
-	content := strings.TrimSpace(strings.Join(ops, "\n"))
-
-	return content
-}
-
 // RequireGPasswdOutput compare the output of gpasswd with the golden file.
 func RequireGPasswdOutput(t *testing.T, destCmdsFile, goldenGpasswdPath string) {
 	t.Helper()
@@ -154,7 +139,22 @@ func RequireGPasswdOutput(t *testing.T, destCmdsFile, goldenGpasswdPath string) 
 		return
 	}
 
-	gotGPasswd := IdempotentGPasswdOutput(t, destCmdsFile)
+	gotGPasswd := idempotentGPasswdOutput(t, destCmdsFile)
 	wantGPasswd := testutils.LoadWithUpdateFromGolden(t, gotGPasswd, testutils.WithGoldenPath(goldenGpasswdPath))
 	require.Equal(t, wantGPasswd, gotGPasswd, "IsAuthenticated should return the expected combined data, but did not")
+}
+
+// idempotentGPasswdOutput sort and trim spaces around mock gpasswd output.
+func idempotentGPasswdOutput(t *testing.T, cmdsFilePath string) string {
+	t.Helper()
+
+	d, err := os.ReadFile(cmdsFilePath)
+	require.NoError(t, err, "Teardown: could not read dest trace file")
+
+	// need to sort out all operations
+	ops := strings.Split(string(d), "\n")
+	slices.Sort(ops)
+	content := strings.TrimSpace(strings.Join(ops, "\n"))
+
+	return content
 }
