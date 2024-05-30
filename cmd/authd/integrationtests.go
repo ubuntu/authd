@@ -16,10 +16,10 @@ func init() {
 		permissionstestutils.DefaultCurrentUserAsRoot()
 	}
 
-	gpasswdArgs := os.Getenv("TESTS_GPASSWD_ARGS")
-	grpFilePath := os.Getenv("TESTS_GPASSWD_GRP_FILE_PATH")
+	gpasswdArgs := os.Getenv("AUTHD_INTEGRATIONTESTS_GPASSWD_ARGS")
+	grpFilePath := os.Getenv("AUTHD_INTEGRATIONTESTS_GPASSWD_GRP_FILE_PATH")
 	if gpasswdArgs == "" || grpFilePath == "" {
-		panic("TESTS_GPASSWD_ARGS and TESTS_GPASSWD_GRP_FILE_PATH must be set")
+		panic("AUTHD_INTEGRATIONTESTS_GPASSWD_ARGS and AUTHD_INTEGRATIONTESTS_GPASSWD_GRP_FILE_PATH must be set")
 	}
 	localgroupstestutils.SetGpasswdCmd(strings.Split(gpasswdArgs, "-sep-"))
 	localgroupstestutils.SetGroupPath(grpFilePath)

@@ -111,8 +111,8 @@ func GPasswdMockEnv(t *testing.T, outputFilePath, groupsFilePath string) []strin
 	gpasswdArgs = append(gpasswdArgs, args...)
 	gpasswdArgs = append(gpasswdArgs, "-test.run=TestMockgpasswd", "--")
 	env := []string{
-		"TESTS_GPASSWD_ARGS=" + strings.Join(gpasswdArgs, "-sep-"),
-		"TESTS_GPASSWD_GRP_FILE_PATH=" + groupsFilePath,
+		"AUTHD_INTEGRATIONTESTS_GPASSWD_ARGS=" + strings.Join(gpasswdArgs, "-sep-"),
+		"AUTHD_INTEGRATIONTESTS_GPASSWD_GRP_FILE_PATH=" + groupsFilePath,
 	}
 
 	return env
