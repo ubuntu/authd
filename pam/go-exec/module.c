@@ -1061,6 +1061,8 @@ do_pam_action_thread (pam_handle_t *pamh,
     g_ptr_array_add (envp, g_strdup_printf ("TERM=%s", g_getenv ("TERM")));
   for (int i = 0; env_variables && env_variables[i]; ++i)
     g_ptr_array_add (envp, g_strdup (env_variables[i]));
+  g_ptr_array_add (envp, g_strdup_printf ("AUTHD_PAM_SERVER_ADDRESS=%s",
+                                          g_dbus_server_get_client_address (server)));
   /* FIXME: use g_ptr_array_new_null_terminated when we can use newer GLib. */
   g_ptr_array_add (envp, NULL);
 
@@ -1068,8 +1070,6 @@ do_pam_action_thread (pam_handle_t *pamh,
   g_ptr_array_insert (args, idx++, g_strdup (exe));
   g_ptr_array_insert (args, idx++, g_strdup ("-flags"));
   g_ptr_array_insert (args, idx++, g_strdup_printf ("%d", flags));
-  g_ptr_array_insert (args, idx++, g_strdup ("-server-address"));
-  g_ptr_array_insert (args, idx++, g_strdup (g_dbus_server_get_client_address (server)));
   g_ptr_array_insert (args, idx++, g_strdup (action));
   /* FIXME: use g_ptr_array_new_null_terminated when we can use newer GLib. */
   g_ptr_array_add (args, NULL);
