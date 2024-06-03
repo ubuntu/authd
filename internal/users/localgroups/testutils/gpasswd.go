@@ -99,15 +99,6 @@ func GPasswdMockEnv(t *testing.T, outputFilePath, groupsFilePath string) []strin
 		fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupsFilePath),
 	}
 
-	// Ignore the --update flag when updating golden files
-	var args []string
-	for _, arg := range os.Args {
-		if arg == "-update" || arg == "--update" {
-			continue
-		}
-		args = append(args, arg)
-	}
-
 	gpasswdArgs = append(gpasswdArgs, args...)
 	gpasswdArgs = append(gpasswdArgs, "-test.run=TestMockgpasswd", "--")
 	env := []string{
