@@ -246,7 +246,7 @@ func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot 
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
-	env := localgroupstestutils.GPasswdMockEnv(t, gpasswdOutput, groupsFile)
+	env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile)
 	if currentUserAsRoot {
 		env = append(env, authdCurrentUserRootEnvVariableContent)
 	}

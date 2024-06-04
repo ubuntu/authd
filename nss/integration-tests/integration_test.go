@@ -28,7 +28,7 @@ func TestIntegration(t *testing.T) {
 	defaultOutputPath := filepath.Join(filepath.Dir(daemonPath), "gpasswd.output")
 	defaultGroupsFilePath := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
-	env := append(localgroupstestutils.GPasswdMockEnv(t, defaultOutputPath, defaultGroupsFilePath), "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
+	env := append(localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, defaultOutputPath, defaultGroupsFilePath), "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
 	ctx, cancel := context.WithCancel(context.Background())
 	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
 		testutils.WithSocketPath(defaultSocket),
@@ -122,7 +122,7 @@ func TestIntegration(t *testing.T) {
 
 				var daemonStopped chan struct{}
 				ctx, cancel := context.WithCancel(context.Background())
-				env := localgroupstestutils.GPasswdMockEnv(t, outPath, groupsFilePath)
+				env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, outPath, groupsFilePath)
 				if !tc.currentUserNotRoot {
 					env = append(env, "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
 				}

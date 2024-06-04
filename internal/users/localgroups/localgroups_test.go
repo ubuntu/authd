@@ -1,7 +1,6 @@
 package localgroups_test
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -70,9 +69,9 @@ func TestUpdateLocalGroups(t *testing.T) {
 
 			groupFilePath := filepath.Join("testdata", tc.groupFilePath)
 			cmdArgs := []string{"env", "GO_WANT_HELPER_PROCESS=1",
-				fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
-				fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
-				os.Args[0], "-test.run=TestMockgpasswd", "--"}
+				os.Args[0], "-test.run=TestMockgpasswd", "--",
+				groupFilePath, destCmdsFile,
+			}
 
 			err := localgroups.Update(tc.username, tc.groups, localgroups.WithGroupPath(groupFilePath), localgroups.WithGpasswdCmd(cmdArgs))
 			if tc.wantErr {
@@ -133,9 +132,8 @@ func TestCleanLocalGroups(t *testing.T) {
 			destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
 			groupFilePath := filepath.Join("testdata", tc.groupFilePath)
 			gpasswdCmd := []string{"env", "GO_WANT_HELPER_PROCESS=1",
-				fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
-				fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
 				os.Args[0], "-test.run=TestMockgpasswd", "--",
+				groupFilePath, destCmdsFile,
 			}
 
 			if tc.getUsersReturn == nil {
@@ -211,9 +209,8 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 			destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
 			groupFilePath := filepath.Join("testdata", tc.groupFilePath)
 			gpasswdCmd := []string{"env", "GO_WANT_HELPER_PROCESS=1",
-				fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
-				fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupFilePath),
 				os.Args[0], "-test.run=TestMockgpasswd", "--",
+				groupFilePath, destCmdsFile,
 			}
 			if tc.wantMockFailure {
 				gpasswdCmd = append(gpasswdCmd, "gpasswdfail")

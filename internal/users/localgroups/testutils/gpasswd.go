@@ -32,8 +32,12 @@ func Mockgpasswd(_ *testing.T) {
 		args = args[1:]
 		break
 	}
+	groupsFilePath, outputFilePath := args[0], args[1]
 
-	d, err := os.ReadFile(os.Getenv("GO_WANT_HELPER_PROCESS_GROUPFILE"))
+	// args are now the real args passed by authd.
+	args = args[2:]
+
+	d, err := os.ReadFile(groupsFilePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Mock: error reading group file: %v", err)
 		os.Exit(1)
@@ -52,8 +56,7 @@ func Mockgpasswd(_ *testing.T) {
 		os.Exit(1)
 	}
 
-	dest := os.Getenv("GO_WANT_HELPER_PROCESS_DEST")
-	f, err := os.OpenFile(dest, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
+	f, err := os.OpenFile(outputFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Mock: error opening file in append mode: %v", err)
 		os.Exit(1)
@@ -80,33 +83,31 @@ func SetupGPasswdMock(t *testing.T, localGroupsFilepath string) string {
 
 	destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
 	SetGpasswdCmd([]string{"env", "GO_WANT_HELPER_PROCESS=1",
-		fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", destCmdsFile),
-		fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", localGroupsFilepath),
-		os.Args[0], "-test.run=TestMockgpasswd", "--"})
+		os.Args[0], "-test.run=TestMockgpasswd", "--",
+		localGroupsFilePath, destCmdsFile,
+	})
 
 	return destCmdsFile
 }
 
-// GPasswdMockEnv return the environment variables needed to run the gpasswd mock through the binary setup used in
-// integration tests. In order to enable it, the binary must be built with the tag integrationtests.
-func GPasswdMockEnv(t *testing.T, outputFilePath, groupsFilePath string) []string {
+// AuthdIntegrationTestsEnvWithGpasswdMock returns the environment to pass to the authd daemon to use the gpasswd
+// mock. In order to enable it, the authd binary must be built with the tag integrationtests.
+// You need to install a TestMockgpasswd (generally calling Mockgpasswd) in your integration tests files.
+func AuthdIntegrationTestsEnvWithGpasswdMock(t *testing.T, outputFilePath, groupsFilePath string) []string {
 	t.Helper()
 
-	gpasswdArgs := []string{
-		"env",
-		"GO_WANT_HELPER_PROCESS=1",
-		fmt.Sprintf("GO_WANT_HELPER_PROCESS_DEST=%s", outputFilePath),
-		fmt.Sprintf("GO_WANT_HELPER_PROCESS_GROUPFILE=%s", groupsFilePath),
-	}
+	gpasswdArgs := append([]string{
+		"env", "GO_WANT_HELPER_PROCESS=1"},
+		os.Args...)
+	gpasswdArgs = append(gpasswdArgs,
+		"-test.run=TestMockgpasswd", "--",
+		groupsFilePath, outputFilePath,
+	)
 
-	gpasswdArgs = append(gpasswdArgs, args...)
-	gpasswdArgs = append(gpasswdArgs, "-test.run=TestMockgpasswd", "--")
-	env := []string{
+	return []string{
 		"AUTHD_INTEGRATIONTESTS_GPASSWD_ARGS=" + strings.Join(gpasswdArgs, " "),
 		"AUTHD_INTEGRATIONTESTS_GPASSWD_GRP_FILE_PATH=" + groupsFilePath,
 	}
-
-	return env
 }
 
 // IdempotentGPasswdOutput sort and trim spaces around mock gpasswd output.
