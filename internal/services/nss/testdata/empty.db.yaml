@@ -4,3 +4,4 @@ GroupToUsers:
 UserByID:
 UserByName:
 UserToGroups:
+UserToBroker:

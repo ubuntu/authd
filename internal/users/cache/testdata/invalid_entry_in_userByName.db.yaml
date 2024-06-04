@@ -10,3 +10,5 @@ UserByName:
   user1: '"not-a-valid-json"'
 UserToGroups:
   "1111": '{"UID":1111,"GIDs":[11111]}'
+UserToBroker:
+  "1111": '"broker-id"'

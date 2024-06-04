@@ -274,10 +274,10 @@ func TestBrokerForUser(t *testing.T) {
 		wantBrokerID string
 		wantErr      error
 	}{
-		"Successfully get broker for user":                        {username: "user1", dbFile: "multiple_users_and_groups_with_brokers", wantBrokerID: "ExampleBrokerID"},
-		"Return no broker but in cache if user has no broker yet": {username: "user4", dbFile: "multiple_users_and_groups_with_brokers", wantBrokerID: ""},
+		"Successfully get broker for user":                        {username: "user1", dbFile: "multiple_users_and_groups", wantBrokerID: "broker-id"},
+		"Return no broker but in cache if user has no broker yet": {username: "userwithoutbroker", dbFile: "multiple_users_and_groups", wantBrokerID: ""},
 
-		"Error if user does not exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups_with_brokers", wantErr: cache.NoDataFoundError{}},
+		"Error if user does not exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErr: cache.NoDataFoundError{}},
 		"Error if db has invalid entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {

@@ -13,3 +13,6 @@ UserByName:
 UserToGroups:
   "1111": '{"UID":1111,"GIDs":[11111]}'
   "2222": '{"UID":2222,"GIDs":[11111]}'
+UserToBroker:
+  "1111": '"broker-id"'
+  "2222": '"broker-id"'

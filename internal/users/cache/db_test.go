@@ -394,7 +394,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 func TestBrokerForUser(t *testing.T) {
 	t.Parallel()
 
-	c := initCache(t, "multiple_users_and_groups_with_brokers")
+	c := initCache(t, "multiple_users_and_groups")
 
 	// Get existing BrokerForUser entry
 	gotID, err := c.BrokerForUser("user1")
@@ -403,7 +403,7 @@ func TestBrokerForUser(t *testing.T) {
 	require.Equal(t, wantID, gotID, "BrokerForUser should return expected broker ID")
 
 	// Get unassigned broker to existent user
-	gotID, err = c.BrokerForUser("user4")
+	gotID, err = c.BrokerForUser("userwithoutbroker")
 	require.NoError(t, err, "BrokerForUser for an existent user should not return an error")
 	require.Empty(t, gotID, "BrokerForUser should return empty broker ID for unassigned broker to existent user")
 
@@ -498,7 +498,7 @@ func TestCleanExpiredUsers(t *testing.T) {
 		"Clean up all users":  {dbFile: "only_old_users", expirationDate: "2020-01-01"},
 		"Clean up some users": {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01"},
 		"Clean up as much as possible if db has invalid entries": {dbFile: "invalid_entries_but_user_and_group1", expirationDate: "2020-01-01"},
-		"Clean up also cleans last selected broker for user":     {dbFile: "multiple_users_and_groups_with_brokers", expirationDate: "2020-01-01"},
+		"Clean up also cleans last selected broker for user":     {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01"},
 		"Clean up user even if it is not listed on the group":    {dbFile: "user_not_in_groupToUsers", expirationDate: "2020-01-01"},
 
 		"Do not clean any users":                              {dbFile: "multiple_users_and_groups", expirationDate: "2004-01-01"},
