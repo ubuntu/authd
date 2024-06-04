@@ -73,18 +73,18 @@ func Mockgpasswd(_ *testing.T) {
 // SetupGPasswdMock setup the gpasswd mock and return the path to the file where the commands will be written.
 //
 // Tests that require this can not be run in parallel.
-func SetupGPasswdMock(t *testing.T, localGroupsFilepath string) string {
+func SetupGPasswdMock(t *testing.T, groupsFilePath string) string {
 	t.Helper()
 
 	origin := defaultOptions
 	t.Cleanup(func() { defaultOptions = origin })
 
-	SetGroupPath(localGroupsFilepath)
+	SetGroupPath(groupsFilePath)
 
 	destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
 	SetGpasswdCmd([]string{"env", "GO_WANT_HELPER_PROCESS=1",
 		os.Args[0], "-test.run=TestMockgpasswd", "--",
-		localGroupsFilePath, destCmdsFile,
+		groupsFilePath, destCmdsFile,
 	})
 
 	return destCmdsFile
