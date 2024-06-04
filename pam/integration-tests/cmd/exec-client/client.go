@@ -48,6 +48,11 @@ func mainFunc() error {
 		return fmt.Errorf("%w: not enough arguments", pam_test.ErrInvalid)
 	}
 
+	serverAddressEnv := os.Getenv("AUTHD_PAM_SERVER_ADDRESS")
+	if serverAddressEnv != "" {
+		*serverAddress = serverAddressEnv
+	}
+
 	if serverAddress == nil {
 		return fmt.Errorf("%w: no connection provided", pam_test.ErrInvalid)
 	}
