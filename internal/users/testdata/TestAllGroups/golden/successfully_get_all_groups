@@ -13,7 +13,7 @@
 - name: group4
   gid: 44444
   users:
-    - user4
+    - userwithoutbroker
 - name: commongroup
   gid: 99999
   users:

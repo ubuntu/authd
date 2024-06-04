@@ -23,13 +23,16 @@ UserByID:
     "1111": '{"Name":"user1","UID":1111,"GID":11111,"Gecos":"User1 gecos\nOn multiple lines","Dir":"/home/user1","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"AAAAATIME"}'
     "2222": '{"Name":"user2","UID":2222,"GID":22222,"Gecos":"User2","Dir":"/home/user2","Shell":"/bin/dash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"BBBBBTIME"}'
     "3333": '{"Name":"user3","UID":3333,"GID":33333,"Gecos":"User3","Dir":"/home/user3","Shell":"/bin/zsh","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
-    "4444": '{"Name":"user4","UID":4444,"GID":44444,"Gecos":"User4","Dir":"/home/user4","Shell":"/bin/sh","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+    "4444": '{"Name":"userwithoutbroker","UID":4444,"GID":44444,"Gecos":"userwithoutbroker","Dir":"/home/userwithoutbroker","Shell":"/bin/sh","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserByName:
     user1: '{"Name":"user1","UID":1111,"GID":11111,"Gecos":"User1 gecos\nOn multiple lines","Dir":"/home/user1","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"AAAAATIME"}'
     user2: '{"Name":"user2","UID":2222,"GID":22222,"Gecos":"User2","Dir":"/home/user2","Shell":"/bin/dash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"BBBBBTIME"}'
     user3: '{"Name":"user3","UID":3333,"GID":33333,"Gecos":"User3","Dir":"/home/user3","Shell":"/bin/zsh","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
-    user4: '{"Name":"user4","UID":4444,"GID":44444,"Gecos":"User4","Dir":"/home/user4","Shell":"/bin/sh","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
-UserToBroker: {}
+    userwithoutbroker: '{"Name":"userwithoutbroker","UID":4444,"GID":44444,"Gecos":"userwithoutbroker","Dir":"/home/userwithoutbroker","Shell":"/bin/sh","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+UserToBroker:
+    "1111": '"broker-id"'
+    "2222": '"broker-id"'
+    "3333": '"broker-id"'
 UserToGroups:
     "1111": '{"UID":1111,"GIDs":[11111]}'
     "2222": '{"UID":2222,"GIDs":[22222,99999]}'
