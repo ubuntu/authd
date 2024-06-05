@@ -961,7 +961,7 @@ do_pam_action_thread (pam_handle_t *pamh,
   g_autoptr(GPtrArray) envp = NULL;
   g_autoptr(GPtrArray) args = NULL;
   g_autoptr(GDBusServer) server = NULL;
-  g_autoptr(ProgramNameResetter) old_program_name = NULL;
+  g_autoptr(ProgramNameResetter) old_program_name G_GNUC_UNUSED = NULL;
   g_autoptr(GThread) wait_thread = NULL;
   g_auto(GStrv) env_variables = NULL;
   g_autofree char *exe = NULL;
