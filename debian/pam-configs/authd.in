@@ -1,6 +1,7 @@
 Name: Authd authentication
 Default: yes
-Priority: 280
+# We need to come before some modules, such as pam_pwquality (it uses 1024), so we need a high priority number.
+Priority: 1050
 
 Auth-Type: Primary
 Auth:

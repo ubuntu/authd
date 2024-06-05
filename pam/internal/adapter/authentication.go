@@ -92,6 +92,7 @@ type authenticationModel struct {
 	currentModel          authenticationComponent
 	currentSessionID      string
 	currentBrokerID       string
+	currentChallenge      string
 	cancelIsAuthenticated func()
 
 	encryptionKey *rsa.PublicKey
@@ -134,6 +135,15 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 		m.cancelIsAuthenticated()
 		ctx, cancel := context.WithCancel(context.Background())
 		m.cancelIsAuthenticated = cancel
+
+		// Store the current challenge, if present, for password verifications.
+		challenge, ok := msg.item.(*authd.IARequest_AuthenticationData_Challenge)
+		if !ok {
+			challenge = &authd.IARequest_AuthenticationData_Challenge{Challenge: ""}
+		}
+		m.currentChallenge = challenge.Challenge
+
+		// no challenge value, pass it as is
 		if err := msg.encryptChallengeIfPresent(m.encryptionKey); err != nil {
 			return *m, sendEvent(pamError{status: pam.ErrSystem, msg: fmt.Sprintf("could not encrypt challenge payload: %v", err)})
 		}
@@ -146,6 +156,14 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 
 	case isAuthenticatedResultReceived:
 		log.Debugf(context.TODO(), "%#v", msg)
+
+		// Resets challenge if the authentication wasn't successful.
+		defer func() {
+			if msg.access != brokers.AuthGranted && msg.access != brokers.AuthNext {
+				m.currentChallenge = ""
+			}
+		}()
+
 		switch msg.access {
 		case brokers.AuthGranted:
 			infoMsg, err := dataToMsg(msg.msg)
@@ -256,6 +274,7 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 
 	case "newpassword":
 		newPasswordModel := newNewPasswordModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton())
+		newPasswordModel.currentChallenge = m.currentChallenge
 		m.currentModel = newPasswordModel
 
 	default:

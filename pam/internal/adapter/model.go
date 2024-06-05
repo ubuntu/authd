@@ -258,9 +258,15 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		return m, tea.Sequence(
-			m.authenticationModel.Compose(m.currentSession.brokerID, m.currentSession.sessionID, m.currentSession.encryptionKey, msg.layout),
+			m.authenticationModel.Compose(
+				m.currentSession.brokerID,
+				m.currentSession.sessionID,
+				m.currentSession.encryptionKey,
+				msg.layout,
+			),
 			gdmCmd,
-			m.changeStage(pam_proto.Stage_challenge))
+			m.changeStage(pam_proto.Stage_challenge),
+		)
 
 	case SessionEnded:
 		log.Debugf(context.TODO(), "%#v", msg)
