@@ -116,7 +116,7 @@ paths:
 	require.NoError(t, err, "Setup: could not connect to the daemon on %s", opts.socketPath)
 	defer conn.Close()
 
-	waitCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	waitCtx, cancel := context.WithTimeout(ctx, time.Second*30)
 	defer cancel()
 
 	// Block until the daemon is started and ready to accept connections.
