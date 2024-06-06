@@ -10,4 +10,4 @@ Account:
 	[default=ignore success=ok user_unknown=ignore]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
 Password-Type: Primary
 Password:
-	sufficient			pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
+	[success=end default=ignore]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam

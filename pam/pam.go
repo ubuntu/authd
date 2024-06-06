@@ -15,6 +15,7 @@ import (
 	"github.com/coreos/go-systemd/journal"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/internal/adapter"
@@ -231,12 +232,30 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 
 	if mode == authd.SessionMode_PASSWD && flags&pam.PrelimCheck != 0 {
 		log.Debug(context.TODO(), "ChangeAuthTok, preliminary check")
-		_, closeConn, err := newClient(parsedArgs)
+		c, closeConn, err := newClient(parsedArgs)
 		if err != nil {
 			log.Debugf(context.TODO(), "%s", err)
 			return fmt.Errorf("%w: %w", pam.ErrTryAgain, err)
 		}
-		closeConn()
+		defer closeConn()
+
+		username, err := mTx.GetItem(pam.User)
+		if err != nil || username == "" {
+			return err
+		}
+
+		response, err := c.GetPreviousBroker(context.TODO(), &authd.GPBRequest{Username: username})
+		if err != nil {
+			err = fmt.Errorf("could not get current available brokers: %w", err)
+			if msgErr := showPamMessage(mTx, pam.ErrorMsg, err.Error()); msgErr != nil {
+				log.Warningf(context.TODO(), "Impossible to show PAM message: %v", msgErr)
+			}
+			return fmt.Errorf("%w: %w", pam.ErrSystem, err)
+		}
+
+		if response.GetPreviousBroker() == brokers.LocalBrokerName {
+			return pam.ErrIgnore
+		}
 		return nil
 	}
 
