@@ -21,6 +21,6 @@ func init() {
 	if gpasswdArgs == "" || grpFilePath == "" {
 		panic("AUTHD_INTEGRATIONTESTS_GPASSWD_ARGS and AUTHD_INTEGRATIONTESTS_GPASSWD_GRP_FILE_PATH must be set")
 	}
-	localgroupstestutils.SetGpasswdCmd(strings.Split(gpasswdArgs, "-sep-"))
+	localgroupstestutils.SetGpasswdCmd(strings.Split(gpasswdArgs, " "))
 	localgroupstestutils.SetGroupPath(grpFilePath)
 }
