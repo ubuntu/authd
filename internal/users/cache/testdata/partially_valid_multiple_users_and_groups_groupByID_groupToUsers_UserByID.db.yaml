@@ -25,3 +25,7 @@ UserToGroups:
   "1111": '"not-a-valid-json"'
   "2222": '"not-a-valid-json"'
   "3333": '"not-a-valid-json"'
+UserToBroker:
+  "1111": '"broker-id"'
+  "2222": '"broker-id"'
+  "3333": '"broker-id"'

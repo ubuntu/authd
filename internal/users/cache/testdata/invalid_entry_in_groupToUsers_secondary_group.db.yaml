@@ -13,3 +13,5 @@ UserByName:
   user1: '{"Name":"user1","UID":1111,"GID":11111,"Gecos":"User1 gecos\nOn multiple lines","Dir":"/home/user1","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"AAAAATIME"}'
 UserToGroups:
   "1111": '{"UID":1111,"GIDs":[11111,22222]}'
+UserToBroker:
+  "1111": '"broker-id"'

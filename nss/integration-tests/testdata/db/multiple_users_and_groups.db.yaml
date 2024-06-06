@@ -25,3 +25,7 @@ UserToGroups:
   "1111": '{"UID":1111,"GIDs":[11111]}'
   "2222": '{"UID":2222,"GIDs":[22222,99999]}'
   "3333": '{"UID":3333,"GIDs":[33333,99999]}'
+UserToBroker:
+  "1111": '"ExampleBrokerID"'
+  "2222": '"ExampleBrokerID"'
+  "3333": '"ExampleBrokerID"'

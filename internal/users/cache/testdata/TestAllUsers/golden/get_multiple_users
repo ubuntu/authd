@@ -36,11 +36,11 @@
   pwdinactivity: -1
   minpwdage: -1
   expirationdate: -1
-- name: user4
+- name: userwithoutbroker
   uid: 4444
   gid: 44444
-  gecos: User4
-  dir: /home/user4
+  gecos: userwithoutbroker
+  dir: /home/userwithoutbroker
   shell: /bin/sh
   lastpwdchange: -1
   maxpwdage: -1
