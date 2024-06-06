@@ -121,7 +121,7 @@ jobs:
       - name: Upload scan build reports
         uses: actions/upload-artifact@v4
         with:
-          name: authd-test-artifacts
+          name: authd-${{ github.job }}-artifacts-${{ github.run_attempt }}
           path: ${{ env.SCAN_BUILD_REPORTS_PATH }}
 
   go-tests:
@@ -250,5 +250,5 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: authd-test-artifacts
+          name: authd-${{ github.job }}-artifacts-${{ github.run_attempt }}
           path: ${{ env.AUTHD_TEST_ARTIFACTS_PATH }}
