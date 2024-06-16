@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"fmt"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -83,7 +84,8 @@ func (m qrcodeModel) View() string {
 		fields = append(fields, m.label, "")
 	}
 
-	fields = append(fields, m.qrCode.ToSmallString(false))
+	qr := strings.TrimRight(m.qrCode.ToSmallString(false), "\n")
+	fields = append(fields, qr)
 
 	if m.buttonModel != nil {
 		fields = append(fields, m.buttonModel.View())
