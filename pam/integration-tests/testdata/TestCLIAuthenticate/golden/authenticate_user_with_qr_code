@@ -164,7 +164,7 @@ Gimme your password
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Enter the following code after flashing the address: 1337
+Scan the qrcode or enter the code in the login page
 
 █████████████████████████████████
 █████████████████████████████████
@@ -183,6 +183,7 @@ Enter the following code after flashing the address: 1337
 ████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
 █████████████████████████████████
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+              1337
 
       [ regenerate QR code ]
 
@@ -194,10 +195,9 @@ Enter the following code after flashing the address: 1337
 
 
 
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Enter the following code after flashing the address: 1337
+Scan the qrcode or enter the code in the login page
 
 █████████████████████████████████
 █████████████████████████████████
@@ -216,6 +216,7 @@ Enter the following code after flashing the address: 1337
 ████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
 █████████████████████████████████
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+              1337
 
       [ regenerate QR code ]
 
@@ -227,10 +228,9 @@ Enter the following code after flashing the address: 1337
 
 
 
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Enter the following code after flashing the address: 1337
+Scan the qrcode or enter the code in the login page
 
 █████████████████████████████████
 █████████████████████████████████
@@ -249,6 +249,7 @@ Enter the following code after flashing the address: 1337
 ████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
 █████████████████████████████████
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+              1337
 
       [ regenerate QR code ]
 
@@ -260,10 +261,9 @@ Enter the following code after flashing the address: 1337
 
 
 
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Enter the following code after flashing the address: 1337
+Scan the qrcode or enter the code in the login page
 
 █████████████████████████████████
 █████████████████████████████████
@@ -282,6 +282,7 @@ Enter the following code after flashing the address: 1337
 ████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
 █████████████████████████████████
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+              1337
 
 PAM Authenticate() for user "user-integration-qr-code" exited with success
 PAM AcctMgmt() exited with success
@@ -293,10 +294,9 @@ PAM AcctMgmt() exited with success
 
 
 
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Enter the following code after flashing the address: 1337
+Scan the qrcode or enter the code in the login page
 
 █████████████████████████████████
 █████████████████████████████████
@@ -315,11 +315,11 @@ Enter the following code after flashing the address: 1337
 ████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
 █████████████████████████████████
 ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+              1337
 
 PAM Authenticate() for user "user-integration-qr-code" exited with success
 PAM AcctMgmt() exited with success
 >
-
 
 
 

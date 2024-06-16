@@ -339,7 +339,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				"selection_label": "Use a QR code",
 				"ui": mapToJSON(map[string]string{
 					"type":   "qrcode",
-					"label":  "Enter the following code after flashing the address: ",
+					"label":  "Scan the qrcode or enter the code in the login page",
 					"wait":   "true",
 					"button": "regenerate QR code",
 				}),
@@ -424,7 +424,7 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 	case "qrcodewithtypo":
 		// generate the url and finish the prompt on the fly.
 		uiLayoutInfo["content"] = "https://ubuntu.com"
-		uiLayoutInfo["label"] = uiLayoutInfo["label"] + "1337"
+		uiLayoutInfo["code"] = "1337"
 	}
 
 	// Store selected mode

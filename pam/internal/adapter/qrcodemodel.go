@@ -18,13 +18,14 @@ type qrcodeModel struct {
 	buttonModel *buttonModel
 
 	content string
+	code    string
 	qrCode  *qrcode.QRCode
 
 	wait bool
 }
 
 // newQRCodeModel initializes and return a new qrcodeModel.
-func newQRCodeModel(content, label, buttonLabel string, wait bool) (qrcodeModel, error) {
+func newQRCodeModel(content, code, label, buttonLabel string, wait bool) (qrcodeModel, error) {
 	var button *buttonModel
 	if buttonLabel != "" {
 		button = &buttonModel{label: buttonLabel}
@@ -39,6 +40,7 @@ func newQRCodeModel(content, label, buttonLabel string, wait bool) (qrcodeModel,
 		label:       label,
 		buttonModel: button,
 		content:     content,
+		code:        code,
 		qrCode:      qrCode,
 		wait:        wait,
 	}, nil
@@ -90,8 +92,10 @@ func (m qrcodeModel) View() string {
 	fields = append(fields, qr)
 	qrcodeWidth := lipgloss.Width(qr)
 
+	style := centeredStyle.Width(qrcodeWidth)
+	fields = append(fields, style.Render(m.code))
+
 	if m.buttonModel != nil {
-		style := centeredStyle.Width(qrcodeWidth)
 		fields = append(fields, style.Render(m.buttonModel.View()))
 	}
 
