@@ -10,6 +10,8 @@ import (
 	"github.com/ubuntu/authd"
 )
 
+var centeredStyle = lipgloss.NewStyle().Align(lipgloss.Center, lipgloss.Top)
+
 // qrcodeModel is the form layout type to allow authenticating and return a challenge.
 type qrcodeModel struct {
 	label       string
@@ -86,9 +88,11 @@ func (m qrcodeModel) View() string {
 
 	qr := strings.TrimRight(m.qrCode.ToSmallString(false), "\n")
 	fields = append(fields, qr)
+	qrcodeWidth := lipgloss.Width(qr)
 
 	if m.buttonModel != nil {
-		fields = append(fields, m.buttonModel.View())
+		style := centeredStyle.Width(qrcodeWidth)
+		fields = append(fields, style.Render(m.buttonModel.View()))
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left,
