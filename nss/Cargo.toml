@@ -31,4 +31,4 @@ procfs = "0.16.0"
 
 [build-dependencies]
 tonic-build = "0.11.0"
-cc = "1.0.97"
+cc = "1.0.99"
