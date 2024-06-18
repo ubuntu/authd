@@ -41,6 +41,16 @@ G_LOCK_DEFINE_STATIC (logger);
 
 typedef struct _ActionData ActionData;
 
+typedef enum _ActionType {
+  action_type_none,
+  action_type_acct_mgmt,
+  action_type_authenticate,
+  action_type_chauthtok,
+  action_type_close_session,
+  action_type_open_session,
+  action_type_setcred,
+} ActionType;
+
 /* This struct contains the data of the module, note that it can be shared
  * between different actions when the module has been loaded.
  */
@@ -63,7 +73,7 @@ typedef struct _ActionData
   GMainLoop       *loop;
   GDBusConnection *connection;
   GCancellable    *cancellable;
-  const char      *current_action;
+  ActionType       current_action;
   GPid             child_pid;
   gulong           connection_new_id;
   gulong           connection_closed_id;
@@ -160,13 +170,44 @@ _g_clear_fd_ignore_error (int *fd_ptr)
 #define g_autofd _GLIB_CLEANUP (_g_clear_fd_ignore_error)
 #endif
 
+const char *
+action_type_to_string (ActionType action_type)
+{
+  switch (action_type)
+    {
+    case action_type_none:
+      g_return_val_if_reached ("none");
+
+    case action_type_acct_mgmt:
+      return "acct_mgmt";
+
+    case action_type_authenticate:
+      return "authenticate";
+
+    case action_type_chauthtok:
+      return "chauthtok";
+
+    case action_type_close_session:
+      return "close_session";
+
+    case action_type_open_session:
+      return "open_session";
+
+    case action_type_setcred:
+      return "setcred";
+    }
+
+  g_return_val_if_reached ("unknown");
+}
+
 G_GNUC_PRINTF (3, 4)
 static void
 notify_error (pam_handle_t *pamh,
-              const char   *action,
+              ActionType    action_type,
               const char   *format,
               ...)
 {
+  const char *action = action_type_to_string (action_type);
   g_autofree char *message = NULL;
   va_list args;
 
@@ -396,8 +437,21 @@ wait_child_thread (gpointer data)
         }
     }
 
-  if (thread_data->connection_ptr && *thread_data->connection_ptr)
-    g_dbus_connection_close (*thread_data->connection_ptr, NULL, NULL, NULL);
+  if (thread_data->connection_ptr)
+    {
+      g_autoptr(GDBusConnection) connection = NULL;
+
+#if GLIB_CHECK_VERSION (2, 74, 0)
+      connection = g_atomic_pointer_exchange (thread_data->connection_ptr, NULL);
+#else
+      /* TODO: This is to support CI and old LTS (24.04) */
+      connection = g_atomic_pointer_get (thread_data->connection_ptr);
+      g_atomic_pointer_set (thread_data->connection_ptr, NULL);
+#endif
+
+      if (connection)
+        g_dbus_connection_close (connection, NULL, NULL, NULL);
+    }
 
   g_main_loop_quit (thread_data->main_loop);
   g_clear_pointer (&thread_data->main_loop, g_main_loop_unref);
@@ -437,7 +491,8 @@ on_pam_method_call (GDBusConnection       *connection,
       g_autofree char *args = g_variant_print (parameters, TRUE);
 
       g_debug ("%s: called method %s(%s)",
-               action_data->current_action, method_name, args);
+               action_type_to_string (action_data->current_action),
+               method_name, args);
     }
 
   if (g_str_equal (method_name, "SetItem"))
@@ -731,7 +786,6 @@ on_new_connection (G_GNUC_UNUSED GDBusServer *server,
 
 static GDBusServer *
 setup_dbus_server (ModuleData *module_data,
-                   const char *action,
                    GError    **error)
 {
   GDBusServer *server = NULL;
@@ -893,7 +947,7 @@ handle_module_options (int          argc,
 
 static int
 do_pam_action_thread (pam_handle_t *pamh,
-                      const char   *action,
+                      ActionType    action,
                       int           flags,
                       int           argc,
                       const char  **argv)
@@ -907,7 +961,7 @@ do_pam_action_thread (pam_handle_t *pamh,
   g_autoptr(GPtrArray) envp = NULL;
   g_autoptr(GPtrArray) args = NULL;
   g_autoptr(GDBusServer) server = NULL;
-  g_autoptr(ProgramNameResetter) old_program_name = NULL;
+  g_autoptr(ProgramNameResetter) old_program_name G_GNUC_UNUSED = NULL;
   g_autoptr(GThread) wait_thread = NULL;
   g_auto(GStrv) env_variables = NULL;
   g_autofree char *exe = NULL;
@@ -918,14 +972,16 @@ do_pam_action_thread (pam_handle_t *pamh,
   g_autofd int stdout_fd = -1;
   g_autofd int stderr_fd = -1;
   g_autofd int log_file_fd = -1;
+  const char *action_name;
   int exit_status;
   gboolean interactive_mode;
   GPid child_pid;
 
   G_LOCK (logger);
 
+  action_name = action_type_to_string (action);
   old_program_name = g_get_prgname ();
-  program_name = get_program_name (action, pamh);
+  program_name = get_program_name (action_name, pamh);
   g_set_prgname (program_name);
 
 #ifdef AUTHD_TEST_MODULE
@@ -963,7 +1019,7 @@ do_pam_action_thread (pam_handle_t *pamh,
 
   locker = g_mutex_locker_new (&G_LOCK_NAME (exec_module));
 
-  g_debug ("Starting %s", action);
+  g_debug ("Starting %s", action_name);
 
   if (is_debug_logging_enabled ())
     {
@@ -1007,7 +1063,7 @@ do_pam_action_thread (pam_handle_t *pamh,
       return PAM_MODULE_UNKNOWN;
     }
 
-  server = setup_dbus_server (module_data, action, &error);
+  server = setup_dbus_server (module_data, &error);
   if (!server)
     {
       notify_error (pamh, action, "can't create DBus connection: %s", error->message);
@@ -1070,7 +1126,7 @@ do_pam_action_thread (pam_handle_t *pamh,
   g_ptr_array_insert (args, idx++, g_strdup (exe));
   g_ptr_array_insert (args, idx++, g_strdup ("-flags"));
   g_ptr_array_insert (args, idx++, g_strdup_printf ("%d", flags));
-  g_ptr_array_insert (args, idx++, g_strdup (action));
+  g_ptr_array_insert (args, idx++, g_strdup (action_name));
   /* FIXME: use g_ptr_array_new_null_terminated when we can use newer GLib. */
   g_ptr_array_add (args, NULL);
 
@@ -1101,7 +1157,7 @@ do_pam_action_thread (pam_handle_t *pamh,
 
   action_data.loop = g_main_loop_new (main_context, FALSE);
 
-  wait_thread_name = g_strdup_printf ("exec-%s-wait-child", action);
+  wait_thread_name = g_strdup_printf ("exec-%s-wait-child", action_name);
   wait_thread = g_thread_new (wait_thread_name, wait_child_thread, &(WaitChildThreadData){
     .child_pid = child_pid,
     .main_loop = g_main_loop_ref (action_data.loop),
@@ -1131,7 +1187,7 @@ do_pam_action_thread (pam_handle_t *pamh,
 typedef struct
 {
   pam_handle_t *pamh;
-  const char   *action;
+  ActionType    action;
   int           flags;
   int           argc;
   const char  **argv;
@@ -1148,7 +1204,7 @@ do_pam_action_thread_adapter (gpointer data)
 
 static inline int
 do_pam_action (pam_handle_t *pamh,
-               const char   *action,
+               ActionType    action,
                int           flags,
                int           argc,
                const char  **argv)
@@ -1160,15 +1216,19 @@ do_pam_action (pam_handle_t *pamh,
    * the code in this case, and return what the module would do.
    * But if something changes, keep this in sync with pam.go!
    */
-  if (g_str_equal (action, "setcred"))
-    return PAM_IGNORE;
-  if (g_str_equal (action, "open_session"))
-    return PAM_IGNORE;
-  if (g_str_equal (action, "close_session"))
-    return PAM_IGNORE;
+  switch (action)
+    {
+    case action_type_setcred:
+    case action_type_open_session:
+    case action_type_close_session:
+      return PAM_IGNORE;
+    default:
+      break;
+    }
 #endif
 
-  thread = g_thread_new (action, do_pam_action_thread_adapter, &(ActionThreadArgs){
+  thread = g_thread_new (action_type_to_string (action),
+                         do_pam_action_thread_adapter, &(ActionThreadArgs){
     .pamh = pamh,
     .action = action,
     .flags = flags,
@@ -1182,7 +1242,7 @@ do_pam_action (pam_handle_t *pamh,
   PAM_EXTERN int \
     (pam_sm_ ## name) (pam_handle_t * pamh, int flags, int argc, const char **argv) \
   { \
-    return do_pam_action (pamh, #name, flags, argc, argv); \
+    return do_pam_action (pamh, action_type_ ## name, flags, argc, argv); \
   }
 
 DEFINE_PAM_WRAPPER (acct_mgmt)
