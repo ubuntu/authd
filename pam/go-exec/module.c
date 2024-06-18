@@ -1132,6 +1132,7 @@ do_pam_action_thread (pam_handle_t *pamh,
       maybe_replicate_env (envp, "TERM");
       maybe_replicate_env (envp, "TERM_PROGRAM");
       maybe_replicate_env (envp, "TERM_PROGRAM_VERSION");
+      maybe_replicate_env (envp, "XDG_SESSION_TYPE");
       maybe_replicate_env (envp, "SHELL");
     }
 
