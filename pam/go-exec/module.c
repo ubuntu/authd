@@ -1007,15 +1007,15 @@ do_pam_action_thread (pam_handle_t *pamh,
   else
     log_file_fd = dup (STDERR_FILENO);
 
-  if (log_file_fd == -1)
+  action_data.log_file_fd = g_steal_fd (&log_file_fd);
+  G_UNLOCK (logger);
+
+  if (action_data.log_file_fd == -1)
     {
       g_warning ("Impossible to open log file %s: %s",
                  (log_file && *log_file != '\0') ? log_file : "<sderr>",
                  g_strerror (errno));
     }
-
-  action_data.log_file_fd = g_steal_fd (&log_file_fd);
-  G_UNLOCK (logger);
 
   locker = g_mutex_locker_new (&G_LOCK_NAME (exec_module));
 
