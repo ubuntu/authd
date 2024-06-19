@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"runtime"
 	"slices"
 	"strings"
 
@@ -436,11 +435,4 @@ func (h *pamModule) OpenSession(pam.ModuleTransaction, pam.Flags, []string) erro
 // CloseSession is the method that is invoked during pam_close_session request.
 func (h *pamModule) CloseSession(pam.ModuleTransaction, pam.Flags, []string) error {
 	return pam.ErrIgnore
-}
-
-// go_pam_cleanup_module is called by the go-loader PAM module during onload.
-//
-//export go_pam_cleanup_module
-func go_pam_cleanup_module() {
-	runtime.GC()
 }

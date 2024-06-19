@@ -50,7 +50,6 @@ jobs:
           find pam -name '*.so' -print -delete
           go generate -C pam -x
           test -e pam/pam_authd.so
-          test -e pam/go-loader/pam_authd_loader.so
           test -e pam/go-exec/pam_authd_exec.so
       - name: Generate PAM module with pam_debug tag
         run: |
@@ -58,7 +57,6 @@ jobs:
           find pam -name '*.so' -print -delete
           go generate -C pam -x -tags pam_debug
           test -e pam/pam_authd.so
-          test -e pam/go-loader/pam_authd_loader.so
           test -e pam/go-exec/pam_authd_exec.so
 
   rust-sanity:
@@ -101,14 +99,6 @@ jobs:
           scan-build -v -o "${SCAN_BUILD_REPORTS_PATH}" clang ${CFLAGS} \
             -Wno-gnu-variable-sized-type-not-at-end \
             pam/internal/gdm/extension.h
-      - name: Run scan build on go-loader module
-        run: |
-          set -eu
-
-          scan-build -v -o "${SCAN_BUILD_REPORTS_PATH}" clang ${CFLAGS} \
-            -DAUTHD_PAM_MODULES_PATH='"any-path"' \
-            -lpam -shared -fPIC \
-            pam/go-loader/module.c
       - name: Run scan build on go-exec module
         run: |
           set -eu

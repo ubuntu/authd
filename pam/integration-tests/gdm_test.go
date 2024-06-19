@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"slices"
 	"testing"
 	"time"
 
@@ -38,8 +37,10 @@ const (
 	phoneAck1ID    = "phoneack1"
 )
 
-//nolint:thelper // This is actually a test!
-func testGdmModule(t *testing.T, libPath string, args []string) {
+func TestGdmModule(t *testing.T) {
+	t.Parallel()
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
+
 	if !pam.CheckPamHasStartConfdir() {
 		t.Fatal("can't test with this libpam version!")
 	}
@@ -47,6 +48,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 	require.True(t, pam.CheckPamHasBinaryProtocol(),
 		"PAM does not support binary protocol")
 
+	libPath := buildPAMModule(t)
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
@@ -269,8 +271,6 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
 
-			moduleArgs := slices.Clone(args)
-
 			// We run a daemon for each test, because here we don't want to
 			// make assumptions whether the state of the broker and each test
 			// should run in parallel and work the same way in any order is ran.
@@ -281,7 +281,7 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 				cancel()
 				<-stopped
 			})
-			moduleArgs = append(moduleArgs, "socket="+socketPath)
+			moduleArgs := []string{"socket=" + socketPath}
 
 			gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
 			t.Cleanup(func() { saveArtifactsForDebug(t, []string{gdmLog}) })
@@ -353,23 +353,6 @@ func testGdmModule(t *testing.T, libPath string, args []string) {
 			requirePreviousBrokerForUser(t, socketPath, gh.selectedBrokerName, user)
 		})
 	}
-}
-
-func TestGdmModule(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(pam_test.MaybeDoLeakCheck)
-
-	libPath := buildPAMModule(t)
-	testGdmModule(t, libPath, nil)
-}
-
-func TestGdmModuleWithCWrapper(t *testing.T) {
-	t.Parallel()
-	t.Cleanup(pam_test.MaybeDoLeakCheck)
-
-	wrapperLibPath := buildPAMWrapperModule(t)
-	libPath := buildPAMModule(t)
-	testGdmModule(t, wrapperLibPath, []string{libPath})
 }
 
 func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
@@ -496,10 +479,4 @@ func buildPAMModule(t *testing.T) string {
 	}
 
 	return libPath
-}
-
-func buildPAMWrapperModule(t *testing.T) string {
-	t.Helper()
-
-	return buildCPAMModule(t, []string{"./pam/go-loader/module.c"}, nil, nil, "pam_authd_loader")
 }
