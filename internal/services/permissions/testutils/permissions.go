@@ -55,6 +55,8 @@ func IdempotentPermissionError(msg string) string {
 	// We assume a known format error and we will capture change during the tests.
 	// The issue is that golden files assert on the errors, that should not be the case ideally.
 	permErrorRaw := strings.TrimSuffix(permErrorFmt, "%d")
+	// Only consider half of the string, since tests golden files may be wrapped
+	permErrorRaw = permErrorRaw[len(permErrorRaw)/2:]
 	permErrorFmt := fmt.Sprintf(`%s\d+`, permErrorRaw)
 	re := regexp.MustCompile(permErrorFmt)
 	return re.ReplaceAllString(msg, fmt.Sprintf("%sXXXX", permErrorRaw))
