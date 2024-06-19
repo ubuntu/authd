@@ -1,0 +1,330 @@
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-max-attempts
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-max-attempts
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-max-attempts
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-max-attempts
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-max-attempts
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-max-attempts
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-max-attempts
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-max-attempts
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+invalid password 'wrongpass', should be 'goodpass'
+PAM Authenticate() for user "user-integration-max-attempts" exited with error (PAM exit code: 7)
+: Authentication failure
+acct=incomplete
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-max-attempts
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+Insert 'r' to cancel the request and go back
+Gimme your password:
+invalid password 'wrongpass', should be 'goodpass'
+invalid password 'wrongpass', should be 'goodpass'
+PAM Authenticate() for user "user-integration-max-attempts" exited with error (PAM exit code: 7)
+: Authentication failure
+acct=incomplete
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
