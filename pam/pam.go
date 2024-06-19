@@ -135,6 +135,10 @@ func initLogging(args map[string]string, flags pam.Flags) (func(), error) {
 			return resetFunc, err
 		}
 		log.SetOutput(f)
+		if isSilent {
+			// We're silent on PAM side, but we want to still log to a file
+			log.SetHandler(nil)
+		}
 		return func() {
 			resetFunc()
 			log.SetOutput(os.Stderr)
