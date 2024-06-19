@@ -3,6 +3,7 @@
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"log"
@@ -14,11 +15,13 @@ import (
 
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
+	"golang.org/x/term"
 )
 
 // Simulating pam on the CLI for manual testing.
 func main() {
 	logDir := os.Getenv("AUTHD_PAM_CLI_LOG_DIR")
+	supportsConversation := os.Getenv("AUTHD_PAM_CLI_SUPPORTS_CONVERSATION") != ""
 	execModule := os.Getenv("AUTHD_PAM_EXEC_MODULE")
 	cliPath := os.Getenv("AUTHD_PAM_CLI_PATH")
 	testName := os.Getenv("AUTHD_PAM_CLI_TEST_NAME")
@@ -74,18 +77,13 @@ func main() {
 		log.Fatalf("Can't create service file %s: %v", serviceFile, err)
 	}
 
-	tx, err := pam.StartConfDir(filepath.Base(serviceFile), pamUser, pam.ConversationFunc(
-		func(style pam.Style, msg string) (string, error) {
-			switch style {
-			case pam.TextInfo:
-				fmt.Fprintf(os.Stderr, "PAM Info Message: %s\n", msg)
-			case pam.ErrorMsg:
-				fmt.Fprintf(os.Stderr, "PAM Error Message: %s\n", msg)
-			default:
-				return "", fmt.Errorf("PAM style %d not implemented", style)
-			}
-			return "", nil
-		}), filepath.Dir(serviceFile))
+	conversationHandler := pam.ConversationFunc(noConversationHandler)
+	if supportsConversation {
+		conversationHandler = pam.ConversationFunc(simpleConversationHandler)
+	}
+
+	tx, err := pam.StartConfDir(filepath.Base(serviceFile), pamUser,
+		conversationHandler, filepath.Dir(serviceFile))
 	if err != nil {
 		log.Fatalf("Impossible to start transaction %v: %v", cliPath, err)
 	}
@@ -117,6 +115,47 @@ func main() {
 
 	// Simulate setting auth broker as default.
 	printPamResult("PAM AcctMgmt()", tx.AcctMgmt(pamFlags))
+}
+
+func noConversationHandler(style pam.Style, msg string) (string, error) {
+	switch style {
+	case pam.TextInfo:
+		fmt.Fprintf(os.Stderr, "PAM Info Message: %s\n", msg)
+	case pam.ErrorMsg:
+		fmt.Fprintf(os.Stderr, "PAM Error Message: %s\n", msg)
+	default:
+		return "", fmt.Errorf("PAM style %d not implemented", style)
+	}
+	return "", nil
+}
+
+func simpleConversationHandler(style pam.Style, msg string) (string, error) {
+	switch style {
+	case pam.TextInfo:
+		fmt.Println(msg)
+	case pam.ErrorMsg:
+		fmt.Fprintf(os.Stderr, "%s\n", msg)
+	case pam.PromptEchoOn:
+		fmt.Print(msg)
+		line, err := bufio.NewReader(os.Stdin).ReadString('\n')
+		if err != nil {
+			log.Fatalf("PAM Prompt error: %v", err)
+			return "", err
+		}
+		return strings.TrimRight(line, "\n"), nil
+	case pam.PromptEchoOff:
+		fmt.Print(msg)
+		input, err := term.ReadPassword(int(os.Stdin.Fd()))
+		fmt.Print("\n")
+		if err != nil {
+			log.Fatalf("PAM Password Prompt error: %v", err)
+			return "", err
+		}
+		return string(input), nil
+	default:
+		return "", fmt.Errorf("PAM style %d not implemented", style)
+	}
+	return "", nil
 }
 
 func printPamResult(action string, result error) {
