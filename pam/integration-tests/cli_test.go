@@ -47,7 +47,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Authenticate user and offer password reset":                  {tape: "optional_password_reset_skip"},
 		"Authenticate user switching auth mode":                       {tape: "switch_auth_mode"},
 		"Authenticate user switching username":                        {tape: "switch_username"},
-		"Authenticate user switching broker":                          {tape: "switch_broker"},
+		"Authenticate user switching to local broker":                 {tape: "switch_local_broker"},
 		"Authenticate user and add it to local group":                 {tape: "local_group"},
 		"Authenticate with warnings on unsupported arguments":         {tape: "simple_auth_with_unsupported_args"},
 
