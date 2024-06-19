@@ -1,5 +1,5 @@
-Output optional_password_reset.txt
-Output optional_password_reset.gif # If we don't specify a .gif output, it will create a default out.gif file.
+Output optional_password_reset_skip.txt
+Output optional_password_reset_skip.gif # If we don't specify a .gif output, it will create a default out.gif file.
 
 # Configuration header to standardize the output.
 # Does not work with the "Source" command.
