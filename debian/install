@@ -11,7 +11,6 @@ debian/pam-configs/authd /usr/share/pam-configs
 
 # PAM libraries
 ${env:BUILT_PAM_LIBS_PATH}/pam_authd.so ${env:AUTHD_PAM_MODULES_PATH}
-${env:BUILT_PAM_LIBS_PATH}/go-loader/pam_authd_loader.so ${env:AUTHD_PAM_MODULES_PATH}
 ${env:BUILT_PAM_LIBS_PATH}/go-exec/pam_authd_exec.so ${env:AUTHD_PAM_MODULES_PATH}
 
 # Install NSS library with right soname
