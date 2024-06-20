@@ -466,6 +466,158 @@ func TestGdmModel(t *testing.T) {
 				msg:      "Hi GDM, it's a pleasure to change your password!",
 			},
 		},
+		"New password can't change because not respecting rules after server-side user, broker and authMode selection": {
+			clientOptions: append(slices.Clone(singleBrokerNewPasswordClientOptions),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
+				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
+					Access: brokers.AuthGranted,
+					Msg:    `{"message": "Hi GDM, it's a pleasure to change your password!"}`,
+				}, nil),
+			),
+			messages: []tea.Msg{
+				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
+					return userSelected{username: "daemon-selected-user-and-broker"}
+				}))(),
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_challenge,
+					commands: []tea.Cmd{
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
+							Challenge: "newpass",
+						}}),
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
+							Challenge: "foolinux",
+						}}),
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
+							Challenge: "gdm-good-password",
+						}}),
+					},
+				},
+			},
+			supportedLayouts:   []*authd.UILayout{pam_test.NewPasswordUILayout()},
+			wantUsername:       "daemon-selected-user-and-broker",
+			wantSelectedBroker: firstBrokerInfo.Id,
+			wantGdmRequests: []gdm.RequestType{
+				gdm.RequestType_uiLayoutCapabilities,
+				gdm.RequestType_changeStage, // -> broker Selection
+				gdm.RequestType_changeStage, // -> authMode Selection
+				gdm.RequestType_changeStage, // -> challenge
+			},
+			wantGdmEvents: []gdm.EventType{
+				gdm.EventType_userSelected,
+				gdm.EventType_brokersReceived,
+				gdm.EventType_brokerSelected,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent, // retry
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent, // retry
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent, // granted
+			},
+			wantStage: pam_proto.Stage_challenge,
+			wantGdmAuthRes: []*authd.IAResponse{
+				{
+					Access: brokers.AuthRetry,
+					Msg:    "The password is shorter than 8 characters",
+				},
+				{
+					Access: brokers.AuthRetry,
+					Msg:    "The password fails the dictionary check - it is based on a dictionary word",
+				},
+				{
+					Access: brokers.AuthGranted,
+					Msg:    "Hi GDM, it's a pleasure to change your password!",
+				},
+			},
+			wantExitStatus: PamSuccess{
+				BrokerID: firstBrokerInfo.Id,
+				msg:      "Hi GDM, it's a pleasure to change your password!",
+			},
+		},
+		"New password can't change because matches previous after server-side user, broker and authMode selection": {
+			clientOptions: append(slices.Clone(singleBrokerClientOptions),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
+				pam_test.WithUILayout(newPasswordUILayoutID, "New Password", pam_test.NewPasswordUILayout()),
+				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
+					Access: brokers.AuthNext,
+					Msg:    `{"message": "Hi GDM, it's a pleasure to let you change your password!"}`,
+				}, nil),
+			),
+			gdmEvents: []*gdm.EventData{
+				gdm_test.SelectUserEvent("gdm-selected-user-broker-and-auth-mode"),
+			},
+			messages: []tea.Msg{
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_authModeSelection,
+					events: []*gdm.EventData{
+						gdm_test.AuthModeSelectedEvent(passwordUILayoutID),
+					},
+					commands: []tea.Cmd{
+						sendEvent(gdmTestWaitForStage{
+							stage: pam_proto.Stage_challenge,
+							commands: []tea.Cmd{
+								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
+									Challenge: "gdm-repeated-password",
+								}}),
+								sendEvent(gdmTestWaitForStage{
+									stage: pam_proto.Stage_authModeSelection,
+									events: []*gdm.EventData{
+										gdm_test.AuthModeSelectedEvent(newPasswordUILayoutID),
+									},
+									commands: []tea.Cmd{
+										sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
+											Challenge: "gdm-repeated-password",
+										}}),
+									},
+								}),
+							},
+						}),
+					},
+				},
+			},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.FormUILayout(),
+				pam_test.NewPasswordUILayout(),
+			},
+			wantUsername:       "gdm-selected-user-broker-and-auth-mode",
+			wantSelectedBroker: firstBrokerInfo.Id,
+			wantGdmRequests: []gdm.RequestType{
+				gdm.RequestType_uiLayoutCapabilities,
+				gdm.RequestType_changeStage, // -> broker Selection
+				gdm.RequestType_changeStage, // -> authMode Selection
+				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> authMode Selection
+				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> authMode Selection
+				gdm.RequestType_changeStage, // -> challenge
+			},
+			wantGdmEvents: []gdm.EventType{
+				gdm.EventType_userSelected,
+				gdm.EventType_brokersReceived,
+				gdm.EventType_brokerSelected,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent, // retry
+				gdm.EventType_authModeSelected,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent, // retry
+				gdm.EventType_startAuthentication,
+			},
+			wantStage: pam_proto.Stage_challenge,
+			wantGdmAuthRes: []*authd.IAResponse{
+				{
+					Access: brokers.AuthNext,
+					Msg:    "Hi GDM, it's a pleasure to let you change your password!",
+				},
+				{
+					Access: brokers.AuthRetry,
+					Msg:    "The password is the same as the old one",
+				},
+			},
+			wantExitStatus: gdmTestEarlyStopExitStatus,
+		},
 		"Authentication is ignored if not requested by model first": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password")),
