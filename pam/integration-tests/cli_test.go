@@ -52,9 +52,10 @@ func TestCLIAuthenticate(t *testing.T) {
 
 		"Deny authentication if current user is not considered as root": {tape: "not_root", currentUserNotRoot: true},
 
-		"Deny authentication if max attempts reached": {tape: "max_attempts"},
-		"Deny authentication if user does not exist":  {tape: "unexistent_user"},
-		"Deny authentication if usernames dont match": {tape: "mismatch_username"},
+		"Deny authentication if max attempts reached":                         {tape: "max_attempts"},
+		"Deny authentication if user does not exist":                          {tape: "unexistent_user"},
+		"Deny authentication if usernames dont match":                         {tape: "mismatch_username"},
+		"Deny authentication if newpassword does not match required criteria": {tape: "bad_password"},
 
 		"Exit authd if local broker is selected": {tape: "local_broker"},
 		"Exit authd if user sigints":             {tape: "sigint"},
@@ -143,8 +144,9 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		"Change password successfully and authenticate with new one": {tape: "passwd_simple"},
 		"Change passwd after MFA auth":                               {tape: "passwd_mfa"},
 
-		"Retry if new password is rejected by broker":    {tape: "passwd_rejected"},
-		"Retry if password confirmation is not the same": {tape: "passwd_not_confirmed"},
+		"Retry if new password is rejected by broker":           {tape: "passwd_rejected"},
+		"Retry if password confirmation is not the same":        {tape: "passwd_not_confirmed"},
+		"Retry if new password does not match quality criteria": {tape: "passwd_bad_password"},
 
 		"Prevent change password if auth fails":                                     {tape: "passwd_auth_fail"},
 		"Prevent change password if current user is not root as can't authenticate": {tape: "passwd_not_root", currentUserNotRoot: true},
