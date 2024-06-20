@@ -43,13 +43,13 @@ Sleep 2s
 Show
 
 Hide
-Type "newpass"
+Type "authd2404"
 Sleep 300ms
 Show
 
 Hide
 Tab
-Type "newpass"
+Type "authd2404"
 Sleep 300ms
 Show
 
