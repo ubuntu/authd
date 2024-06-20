@@ -12,3 +12,7 @@ Account:
 Password-Type: Primary
 Password:
 	[success=end default=ignore]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
+Session-Type: Additional
+Session-Interactive-Only: yes
+Session:
+	optional			pam_mkhomedir.so
