@@ -67,6 +67,14 @@ func TestGdmModel(t *testing.T) {
 		}, nil),
 		pam_test.WithUILayout(passwordUILayoutID, "Password authentication", pam_test.FormUILayout()),
 	}
+	newPasswordUILayoutID := "NewPassword"
+	singleBrokerNewPasswordClientOptions := []pam_test.DummyClientOptions{
+		pam_test.WithIgnoreSessionIDChecks(),
+		pam_test.WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
+			firstBrokerInfo,
+		}, nil),
+		pam_test.WithUILayout(newPasswordUILayoutID, "New Password form", pam_test.NewPasswordUILayout()),
+	}
 	multiBrokerClientOptions := append(slices.Clone(singleBrokerClientOptions),
 		pam_test.WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
 			firstBrokerInfo, secondBrokerInfo,
@@ -361,6 +369,101 @@ func TestGdmModel(t *testing.T) {
 			wantExitStatus: PamSuccess{
 				BrokerID: firstBrokerInfo.Id,
 				msg:      "Hi GDM, it's a pleasure to get you in!",
+			},
+		},
+		"New password changed after server-side user, broker and authMode selection": {
+			clientOptions: append(slices.Clone(singleBrokerNewPasswordClientOptions),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
+				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
+					Access: brokers.AuthGranted,
+				}, nil),
+			),
+			messages: []tea.Msg{
+				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
+					return userSelected{username: "daemon-selected-user-and-broker"}
+				}))(),
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_challenge,
+					commands: []tea.Cmd{
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
+							Challenge: "gdm-good-password",
+						}}),
+					},
+				},
+			},
+			supportedLayouts:   []*authd.UILayout{pam_test.NewPasswordUILayout()},
+			wantUsername:       "daemon-selected-user-and-broker",
+			wantSelectedBroker: firstBrokerInfo.Id,
+			wantGdmRequests: []gdm.RequestType{
+				gdm.RequestType_uiLayoutCapabilities,
+				gdm.RequestType_changeStage, // -> broker Selection
+				gdm.RequestType_changeStage, // -> authMode Selection
+				gdm.RequestType_changeStage, // -> challenge
+			},
+			wantGdmEvents: []gdm.EventType{
+				gdm.EventType_userSelected,
+				gdm.EventType_brokersReceived,
+				gdm.EventType_brokerSelected,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent,
+			},
+			wantStage: pam_proto.Stage_challenge,
+			wantGdmAuthRes: []*authd.IAResponse{{
+				Access: brokers.AuthGranted,
+			}},
+			wantExitStatus: PamSuccess{
+				BrokerID: firstBrokerInfo.Id,
+			},
+		},
+		"New password changed with message after server-side user, broker and authMode selection": {
+			clientOptions: append(slices.Clone(singleBrokerNewPasswordClientOptions),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
+				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
+					Access: brokers.AuthGranted,
+					Msg:    `{"message": "Hi GDM, it's a pleasure to change your password!"}`,
+				}, nil),
+			),
+			messages: []tea.Msg{
+				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
+					return userSelected{username: "daemon-selected-user-and-broker"}
+				}))(),
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_challenge,
+					commands: []tea.Cmd{
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
+							Challenge: "gdm-good-password",
+						}}),
+					},
+				},
+			},
+			supportedLayouts:   []*authd.UILayout{pam_test.NewPasswordUILayout()},
+			wantUsername:       "daemon-selected-user-and-broker",
+			wantSelectedBroker: firstBrokerInfo.Id,
+			wantGdmRequests: []gdm.RequestType{
+				gdm.RequestType_uiLayoutCapabilities,
+				gdm.RequestType_changeStage, // -> broker Selection
+				gdm.RequestType_changeStage, // -> authMode Selection
+				gdm.RequestType_changeStage, // -> challenge
+			},
+			wantGdmEvents: []gdm.EventType{
+				gdm.EventType_userSelected,
+				gdm.EventType_brokersReceived,
+				gdm.EventType_brokerSelected,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent,
+			},
+			wantStage: pam_proto.Stage_challenge,
+			wantGdmAuthRes: []*authd.IAResponse{{
+				Access: brokers.AuthGranted,
+				Msg:    "Hi GDM, it's a pleasure to change your password!",
+			}},
+			wantExitStatus: PamSuccess{
+				BrokerID: firstBrokerInfo.Id,
+				msg:      "Hi GDM, it's a pleasure to change your password!",
 			},
 		},
 		"Authentication is ignored if not requested by model first": {
