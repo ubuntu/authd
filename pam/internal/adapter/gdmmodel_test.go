@@ -502,7 +502,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent, // retry
 				gdm.EventType_startAuthentication,
-				gdm.EventType_authEvent, // denied
+				gdm.EventType_authEvent, // granted
 			},
 			wantMessages: []tea.Msg{
 				startAuthentication{},
