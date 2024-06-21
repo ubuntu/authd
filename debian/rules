@@ -31,8 +31,9 @@ export CARGO_VENDOR_DIR := $(CURDIR)/vendor_rust
 export DEB_HOST_GNU_TYPE DEB_HOST_RUST_TYPE
 export CARGO_HOME = $(CURDIR)/debian/cargo_home
 
-# Used not to hardcore the daemons paths
+# Used not to hardcode the daemons and PAM module paths
 export AUTHD_DAEMONS_PATH := /usr/libexec
+export AUTHD_PAM_MODULES_PATH = /usr/lib/$(DEB_TARGET_GNU_TYPE)/security
 
 # Skip some tests that rely on external dependencies when building package:
 # they need external commands (e.g. `vhs`) that are not available in the build environment.
