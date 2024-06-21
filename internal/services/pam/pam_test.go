@@ -47,6 +47,7 @@ var (
 		Wait:    &optional,
 		Entry:   &requiredEntries,
 		Content: &optional,
+		Code:    &optional,
 	}
 	optionalEntry = &authd.UILayout{
 		Type:  "optional-entry",

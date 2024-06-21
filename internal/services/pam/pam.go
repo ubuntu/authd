@@ -309,6 +309,9 @@ func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err err
 	if c := layout.GetContent(); c != "" {
 		r["content"] = c
 	}
+	if c := layout.GetCode(); c != "" {
+		r["code"] = c
+	}
 	return r, nil
 }
 
@@ -320,6 +323,7 @@ func mapToUILayout(layout map[string]string) (r *authd.UILayout) {
 	button := layout["button"]
 	wait := layout["wait"]
 	content := layout["content"]
+	code := layout["code"]
 
 	return &authd.UILayout{
 		Type:    typ,
@@ -328,5 +332,6 @@ func mapToUILayout(layout map[string]string) (r *authd.UILayout) {
 		Button:  &button,
 		Wait:    &wait,
 		Content: &content,
+		Code:    &code,
 	}
 }

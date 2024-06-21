@@ -102,6 +102,7 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 				{
 					Type:    "qrcode",
 					Content: &required,
+					Code:    &required,
 					Wait:    &requiredWithBooleans,
 					Label:   &optional,
 					Button:  &optional,
