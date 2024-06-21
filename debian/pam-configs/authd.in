@@ -1,6 +1,7 @@
 Name: Authd authentication
 Default: yes
-Priority: 280
+# We need to come before some modules, such as pam_pwquality (it uses 1024), so we need a high priority number.
+Priority: 1050
 
 Auth-Type: Primary
 Auth:
@@ -10,4 +11,4 @@ Account:
 	[default=ignore success=ok user_unknown=ignore]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
 Password-Type: Primary
 Password:
-	sufficient			pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
+	[success=end default=ignore]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam

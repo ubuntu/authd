@@ -12,6 +12,8 @@ type newPasswordModel struct {
 	errorMsg string
 	label    string
 
+	currentChallenge string
+
 	passwordEntries []*textinputModel
 	focusableModels []authenticationComponent
 	focusIndex      int
@@ -71,6 +73,12 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			entry := m.focusableModels[m.focusIndex]
 			switch entry := entry.(type) {
 			case *textinputModel:
+				// Check if the password is empty
+				if m.passwordEntries[0].Value() == "" {
+					m.Clear()
+					return m, sendEvent(errMsgToDisplay{msg: "Password must not be empty"})
+				}
+
 				// Check both entries are matching
 				if m.passwordEntries[0].Value() != m.passwordEntries[1].Value() {
 					m.Clear()
@@ -91,19 +99,28 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case "tab":
+			m.errorMsg = ""
+			if m.focusIndex == 0 && m.passwordEntries[0].Value() != "" {
+				err := checkChallengeQuality(m.currentChallenge, m.passwordEntries[0].Value())
+				if err != nil {
+					m.Clear()
+					return m, sendEvent(errMsgToDisplay{msg: err.Error()})
+				}
+			}
+
+			cmds := []tea.Cmd{sendEvent(errMsgToDisplay{msg: ""})}
 			m.focusIndex++
 			if m.focusIndex == len(m.focusableModels) {
 				m.focusIndex = 0
 			}
-			var cmd tea.Cmd
 			for i, fm := range m.focusableModels {
 				if i != m.focusIndex {
 					fm.Blur()
 					continue
 				}
-				cmd = fm.Focus()
+				cmds = append(cmds, fm.Focus())
 			}
-			return m, cmd
+			return m, tea.Batch(cmds...)
 
 		default:
 			m.errorMsg = ""

@@ -1,5 +1,5 @@
-Output mandatory_password_reset.txt
-Output mandatory_password_reset.gif # If we don't specify a .gif output, it will create a default out.gif file.
+Output bad_password.txt
+Output bad_password.gif # If we don't specify a .gif output, it will create a default out.gif file.
 
 # Configuration header to standardize the output.
 # Does not work with the "Source" command.
@@ -43,14 +43,49 @@ Sleep 2s
 Show
 
 Hide
-Type "authd2404"
 Sleep 300ms
+Enter
 Show
 
 Hide
+Type "1234"
+Sleep 300ms
 Tab
+Show
+
+Hide
+Type "12345678"
+Sleep 300ms
+Tab
+Show
+
+Hide
 Type "authd2404"
 Sleep 300ms
+Tab
+Show
+
+Hide
+Type "123456789"
+Sleep 300ms
+Tab
+Show
+
+Hide
+Enter
+Sleep 2s
+Show
+
+Hide
+Type "authd2404"
+Sleep 300ms
+Tab
+Show
+
+Hide
+Type "authd2404"
+Sleep 300ms
+Tab
 Show
 
 Hide

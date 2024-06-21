@@ -1,5 +1,5 @@
-Output mandatory_password_reset.txt
-Output mandatory_password_reset.gif # If we don't specify a .gif output, it will create a default out.gif file.
+Output passwd_bad_password.txt
+Output passwd_bad_password.gif # If we don't specify a .gif output, it will create a default out.gif file.
 
 # Configuration header to standardize the output.
 # Does not work with the "Source" command.
@@ -14,7 +14,7 @@ Set Margin 0
 Set Shell bash
 
 Hide
-Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}"
+Type "./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}"
 Enter
 Sleep 300ms
 Show
@@ -22,7 +22,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user-needs-reset"
+Type "user-integration-bad-password"
 Sleep 300ms
 Show
 
@@ -43,14 +43,49 @@ Sleep 2s
 Show
 
 Hide
-Type "authd2404"
 Sleep 300ms
+Enter
 Show
 
 Hide
+Type "1234"
+Sleep 300ms
 Tab
+Show
+
+Hide
+Type "12345678"
+Sleep 300ms
+Tab
+Show
+
+Hide
 Type "authd2404"
 Sleep 300ms
+Tab
+Show
+
+Hide
+Type "123456789"
+Sleep 300ms
+Tab
+Show
+
+Hide
+Enter
+Sleep 2s
+Show
+
+Hide
+Type "authd2404"
+Sleep 300ms
+Tab
+Show
+
+Hide
+Type "authd2404"
+Sleep 300ms
+Tab
 Show
 
 Hide

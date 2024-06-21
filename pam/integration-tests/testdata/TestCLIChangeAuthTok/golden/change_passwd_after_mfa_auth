@@ -429,7 +429,7 @@ Enter your new password
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
-> *******
+> *********
 >
 
 
@@ -462,8 +462,8 @@ Enter your new password
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
-> *******
-> *******
+> *********
+> *********
 
 
 
@@ -495,7 +495,7 @@ Enter your new password
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
-> *******
+> *********
 PAM ChangeAuthTok() for user "user-mfa" exited with success
 PAM AcctMgmt() exited with success
 >
@@ -528,7 +528,7 @@ PAM AcctMgmt() exited with success
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
-> *******
+> *********
 PAM ChangeAuthTok() for user "user-mfa" exited with success
 PAM AcctMgmt() exited with success
 >

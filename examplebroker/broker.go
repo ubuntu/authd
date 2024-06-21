@@ -594,8 +594,8 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		exampleUsersMu.Lock()
 		defer exampleUsersMu.Unlock()
 
-		if challenge != "newpass" {
-			return AuthRetry, `{"message": "new password does not match criteria: must be newpass"}`, nil
+		if challenge != "authd2404" {
+			return AuthRetry, `{"message": "new password does not match criteria: must be authd2404"}`, nil
 		}
 		exampleUsers[sessionInfo.username] = userInfoBroker{Password: challenge}
 	}

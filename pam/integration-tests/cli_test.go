@@ -33,18 +33,18 @@ func TestCLIAuthenticate(t *testing.T) {
 
 		currentUserNotRoot bool
 	}{
-		"Authenticate user successfully":                      {tape: "simple_auth"},
-		"Authenticate user successfully with preset user":     {tape: "simple_auth_with_preset_user"},
-		"Authenticate user with mfa":                          {tape: "mfa_auth"},
-		"Authenticate user with form mode with button":        {tape: "form_with_button"},
-		"Authenticate user with qr code":                      {tape: "qr_code"},
-		"Authenticate user and reset password":                {tape: "mandatory_password_reset"},
-		"Authenticate user and offer password reset":          {tape: "optional_password_reset"},
-		"Authenticate user switching auth mode":               {tape: "switch_auth_mode"},
-		"Authenticate user switching username":                {tape: "switch_username"},
-		"Authenticate user switching broker":                  {tape: "switch_broker"},
-		"Authenticate user and add it to local group":         {tape: "local_group"},
-		"Authenticate with warnings on unsupported arguments": {tape: "simple_auth_with_unsupported_args"},
+		"Authenticate user successfully":                              {tape: "simple_auth"},
+		"Authenticate user successfully with preset user":             {tape: "simple_auth_with_preset_user"},
+		"Authenticate user with mfa":                                  {tape: "mfa_auth"},
+		"Authenticate user with form mode with button":                {tape: "form_with_button"},
+		"Authenticate user with qr code":                              {tape: "qr_code"},
+		"Authenticate user and reset password while enforcing policy": {tape: "mandatory_password_reset"},
+		"Authenticate user and offer password reset":                  {tape: "optional_password_reset"},
+		"Authenticate user switching auth mode":                       {tape: "switch_auth_mode"},
+		"Authenticate user switching username":                        {tape: "switch_username"},
+		"Authenticate user switching broker":                          {tape: "switch_broker"},
+		"Authenticate user and add it to local group":                 {tape: "local_group"},
+		"Authenticate with warnings on unsupported arguments":         {tape: "simple_auth_with_unsupported_args"},
 
 		"Remember last successful broker and mode":      {tape: "remember_broker_and_mode"},
 		"Autoselect local broker for local user":        {tape: "local_user"},
@@ -52,9 +52,10 @@ func TestCLIAuthenticate(t *testing.T) {
 
 		"Deny authentication if current user is not considered as root": {tape: "not_root", currentUserNotRoot: true},
 
-		"Deny authentication if max attempts reached": {tape: "max_attempts"},
-		"Deny authentication if user does not exist":  {tape: "unexistent_user"},
-		"Deny authentication if usernames dont match": {tape: "mismatch_username"},
+		"Deny authentication if max attempts reached":                         {tape: "max_attempts"},
+		"Deny authentication if user does not exist":                          {tape: "unexistent_user"},
+		"Deny authentication if usernames dont match":                         {tape: "mismatch_username"},
+		"Deny authentication if newpassword does not match required criteria": {tape: "bad_password"},
 
 		"Exit authd if local broker is selected": {tape: "local_broker"},
 		"Exit authd if user sigints":             {tape: "sigint"},
@@ -143,8 +144,9 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		"Change password successfully and authenticate with new one": {tape: "passwd_simple"},
 		"Change passwd after MFA auth":                               {tape: "passwd_mfa"},
 
-		"Retry if new password is rejected by broker":    {tape: "passwd_rejected"},
-		"Retry if password confirmation is not the same": {tape: "passwd_not_confirmed"},
+		"Retry if new password is rejected by broker":           {tape: "passwd_rejected"},
+		"Retry if password confirmation is not the same":        {tape: "passwd_not_confirmed"},
+		"Retry if new password does not match quality criteria": {tape: "passwd_bad_password"},
 
 		"Prevent change password if auth fails":                                     {tape: "passwd_auth_fail"},
 		"Prevent change password if current user is not root as can't authenticate": {tape: "passwd_not_root", currentUserNotRoot: true},
