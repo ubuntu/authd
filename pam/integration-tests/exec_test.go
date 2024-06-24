@@ -276,6 +276,27 @@ func TestExecModule(t *testing.T) {
 		})
 	}
 
+	// These tests are meant to check the exec client arguments.
+	actionArgs := map[string]struct {
+		moduleArgs []string
+	}{
+		"Do not deadlock if invalid log path is provided": {
+			[]string{"--exec-log", "/not-existent/file-path.log"},
+		},
+	}
+	for name, tc := range actionArgs {
+		t.Run("ActionArgs "+name, func(t *testing.T) {
+			t.Parallel()
+			t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+			moduleArgs := append(getModuleArgs(t, "", nil), tc.moduleArgs...)
+			moduleArgs = append(moduleArgs, "--", execClient)
+			serviceFile := createServiceFile(t, execServiceName, libPath, moduleArgs)
+			tx := preparePamTransactionForServiceFile(t, serviceFile, "", nil)
+			performAllPAMActions(t, tx, pam.Flags(0), nil)
+		})
+	}
+
 	// These tests are checking Get/Set item and ensuring those values are matching
 	// both inside the client and in the calling application.
 	itemsTests := map[string]struct {
