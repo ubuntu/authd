@@ -15,6 +15,7 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
+	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -257,7 +258,8 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 	m.errorMsg = ""
 
 	if m.clientType != InteractiveTerminal {
-		return sendEvent(startAuthentication{})
+		return tea.Sequence(sendEvent(ChangeStage{pam_proto.Stage_challenge}),
+			sendEvent(startAuthentication{}))
 	}
 
 	switch layout.Type {
@@ -285,7 +287,8 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 		})
 	}
 
-	return sendEvent(startAuthentication{})
+	return tea.Sequence(sendEvent(ChangeStage{pam_proto.Stage_challenge}),
+		sendEvent(startAuthentication{}))
 }
 
 // View renders a text view of the authentication UI.

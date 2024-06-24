@@ -265,7 +265,6 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				msg.layout,
 			),
 			gdmCmd,
-			m.changeStage(pam_proto.Stage_challenge),
 		)
 
 	case SessionEnded:
