@@ -87,7 +87,7 @@ func TestCLIAuthenticate(t *testing.T) {
 
 			const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 			// #nosec:G204 - we control the command arguments in tests
-			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
+			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", "cli", tc.tape+".tape"))
 			cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
 			cmd.Env = append(cmd.Env,
 				pathEnv,
@@ -185,7 +185,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			})
 
 			// #nosec:G204 - we control the command arguments in tests
-			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
+			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", "cli", tc.tape+".tape"))
 			cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
 			cmd.Env = append(cmd.Env, pathEnv,
 				fmt.Sprintf("%s=%s", socketPathEnv, socketPath),
