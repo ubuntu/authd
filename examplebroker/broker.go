@@ -432,9 +432,10 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 		// start transaction with fideo device
 	case "qrcodeandcodewithtypo":
 		uiLayoutInfo["code"] = "1337"
-		fallthrough
+		uiLayoutInfo["content"] = "https://ubuntu.com"
 	case "qrcodewithtypo":
 		// generate the url and finish the prompt on the fly.
+		uiLayoutInfo["label"] += "1337"
 		uiLayoutInfo["content"] = "https://ubuntu.com"
 	}
 
