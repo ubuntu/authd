@@ -2,10 +2,12 @@ package adapter
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/muesli/termenv"
 	"github.com/skip2/go-qrcode"
 	"github.com/ubuntu/authd"
 )
@@ -81,6 +83,22 @@ func (m qrcodeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+func (m qrcodeModel) renderQrCode() (qr string) {
+	defer func() { qr = strings.TrimRight(qr, "\n") }()
+
+	if os.Getenv("XDG_SESSION_TYPE") == "tty" {
+		return m.qrCode.ToString(false)
+	}
+
+	switch termenv.DefaultOutput().Profile {
+	case termenv.ANSI, termenv.Ascii:
+		// This applies to less smart terminals such as xterm, or in a multiplexer.
+		return m.qrCode.ToString(false)
+	default:
+		return m.qrCode.ToSmallString(false)
+	}
+}
+
 // View renders a text view of the form.
 func (m qrcodeModel) View() string {
 	fields := []string{}
@@ -88,7 +106,7 @@ func (m qrcodeModel) View() string {
 		fields = append(fields, m.label, "")
 	}
 
-	qr := strings.TrimRight(m.qrCode.ToSmallString(false), "\n")
+	qr := m.renderQrCode()
 	fields = append(fields, qr)
 	qrcodeWidth := lipgloss.Width(qr)
 

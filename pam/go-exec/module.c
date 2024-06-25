@@ -945,6 +945,16 @@ handle_module_options (int          argc,
   return TRUE;
 }
 
+static void
+maybe_replicate_env (GPtrArray  *envp,
+                     const char *env)
+{
+  const char *value = g_getenv (env);
+
+  if (value)
+    g_ptr_array_add (envp, g_strdup_printf ("%s=%s", env, value));
+}
+
 static int
 do_pam_action_thread (pam_handle_t *pamh,
                       ActionType    action,
@@ -1114,7 +1124,18 @@ do_pam_action_thread (pam_handle_t *pamh,
 
   envp = g_ptr_array_new_full (2, g_free);
   if (interactive_mode)
-    g_ptr_array_add (envp, g_strdup_printf ("TERM=%s", g_getenv ("TERM")));
+    {
+      maybe_replicate_env (envp, "COLORTERM");
+      maybe_replicate_env (envp, "COLORFGBG");
+      maybe_replicate_env (envp, "NO_COLOR");
+      maybe_replicate_env (envp, "FORCE_COLOR");
+      maybe_replicate_env (envp, "TERM");
+      maybe_replicate_env (envp, "TERM_PROGRAM");
+      maybe_replicate_env (envp, "TERM_PROGRAM_VERSION");
+      maybe_replicate_env (envp, "XDG_SESSION_TYPE");
+      maybe_replicate_env (envp, "SHELL");
+    }
+
   for (int i = 0; env_variables && env_variables[i]; ++i)
     g_ptr_array_add (envp, g_strdup (env_variables[i]));
   g_ptr_array_add (envp, g_strdup_printf ("AUTHD_PAM_SERVER_ADDRESS=%s",
