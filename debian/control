@@ -38,6 +38,8 @@ Static-Built-Using: ${misc:Static-Built-Using}, ${cargo:Static-Built-Using},
 X-Cargo-Built-Using: ${cargo:X-Cargo-Built-Using},
 Depends: ${shlibs:Depends},
          ${misc:Depends},
+Recommends: ${misc:Recommends},
+            libpam-modules,
 Description: ${source:Synopsis}
  ${source:Extended-Description}
  .

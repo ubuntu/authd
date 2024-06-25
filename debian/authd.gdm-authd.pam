@@ -31,5 +31,6 @@ session required        pam_limits.so
 session required        pam_env.so readenv=1
 session required        pam_env.so readenv=1 envfile=/etc/default/locale
 @include common-session
+session optional        pam_mkhomedir.so
 session optional        pam_gnome_keyring.so auto_start
 @include common-password
