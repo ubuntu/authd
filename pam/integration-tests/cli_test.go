@@ -156,6 +156,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		"Change passwd after MFA auth":                               {tape: "passwd_mfa"},
 
 		"Retry if new password is rejected by broker":           {tape: "passwd_rejected"},
+		"Retry if new password is same of previous":             {tape: "passwd_not_changed"},
 		"Retry if password confirmation is not the same":        {tape: "passwd_not_confirmed"},
 		"Retry if new password does not match quality criteria": {tape: "passwd_bad_password"},
 
