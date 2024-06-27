@@ -50,25 +50,24 @@ Show
 Hide
 Type "1234"
 Sleep 300ms
-Tab
+Enter
 Show
 
 Hide
 Type "12345678"
 Sleep 300ms
-Tab
+Enter
 Show
 
 Hide
 Type "authd2404"
 Sleep 300ms
-Tab
+Enter
 Show
 
 Hide
 Type "123456789"
 Sleep 300ms
-Tab
 Show
 
 Hide
@@ -79,13 +78,12 @@ Show
 Hide
 Type "authd2404"
 Sleep 300ms
-Tab
+Enter
 Show
 
 Hide
 Type "authd2404"
 Sleep 300ms
-Tab
 Show
 
 Hide

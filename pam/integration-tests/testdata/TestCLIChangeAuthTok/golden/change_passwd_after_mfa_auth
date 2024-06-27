@@ -297,9 +297,9 @@ Unlock your phone +33… or accept request on web interface:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
->
->
 
+New password:
+>
 
 
 
@@ -363,9 +363,9 @@ Enter your new password
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
->
->
 
+New password:
+>
 
 
 
@@ -396,9 +396,9 @@ Enter your new password
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
->
->
 
+New password:
+>
 
 
 
@@ -429,9 +429,9 @@ Enter your new password
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
-> *********
->
 
+New password:
+> *********
 
 
 
@@ -462,11 +462,11 @@ Enter your new password
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
+
+New password:
 > *********
+Confirm password:
 > *********
-
-
-
 
 
 
@@ -495,7 +495,10 @@ Enter your new password
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
+
+New password:
 > *********
+Confirm password:
 PAM ChangeAuthTok() for user "user-mfa" exited with success
 PAM AcctMgmt() exited with success
 >
@@ -522,19 +525,16 @@ PAM AcctMgmt() exited with success
 
 
 
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
+
+New password:
 > *********
+Confirm password:
 PAM ChangeAuthTok() for user "user-mfa" exited with success
 PAM AcctMgmt() exited with success
 >
-
-
-
 
 
 

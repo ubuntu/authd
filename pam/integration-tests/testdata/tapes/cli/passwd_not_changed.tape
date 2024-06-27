@@ -48,7 +48,7 @@ Sleep 300ms
 Show
 
 Hide
-Tab
+Enter
 Sleep 300ms
 Show
 
@@ -58,7 +58,7 @@ Sleep 300ms
 Show
 
 Hide
-Tab
+Enter
 Type "authd2404"
 Sleep 300ms
 Show
