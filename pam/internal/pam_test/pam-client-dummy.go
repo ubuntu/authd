@@ -428,7 +428,14 @@ func (dc *DummyClient) IsAuthenticated(ctx context.Context, in *authd.IARequest,
 		if dc.isAuthenticatedWantWait == 0 {
 			return nil, errors.New("no wanted wait provided")
 		}
-		time.Sleep(dc.isAuthenticatedWantWait)
+		select {
+		case <-time.After(dc.isAuthenticatedWantWait):
+		case <-ctx.Done():
+			return &authd.IAResponse{
+				Access: brokers.AuthCancelled,
+				Msg:    fmt.Sprintf(`{"message": "Cancelled: %s"}`, dc.isAuthenticatedMessage),
+			}, nil
+		}
 		return &authd.IAResponse{
 			Access: brokers.AuthGranted,
 			Msg:    msg,
