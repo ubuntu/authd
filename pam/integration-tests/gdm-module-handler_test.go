@@ -23,7 +23,9 @@ type gdmTestModuleHandler struct {
 
 	protoVersion uint32
 
-	supportedLayouts []*authd.UILayout
+	supportedLayouts  []*authd.UILayout
+	currentUILayout   *authd.UILayout
+	selectedUILayouts []*authd.UILayout
 
 	currentStage  proto.Stage
 	pollResponses []*gdm.EventData
@@ -126,6 +128,11 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 		if layout.Label != nil {
 			gh.t.Logf("%s:", *layout.Label)
 		}
+		if layout.Content != nil {
+			gh.t.Logf("%s:", *layout.Content)
+		}
+
+		gh.currentUILayout = layout
 
 	case *gdm.EventData_StartAuthentication:
 		idx := slices.IndexFunc(gh.authModes, func(mode *authd.GAMResponse_AuthenticationMode) bool {
@@ -141,6 +148,15 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 		require.Equal(gh.t, gh.selectedAuthModeIDs[0], gh.authModes[idx].Id,
 			"Selected authentication mode ID does not match expected one")
 		gh.selectedAuthModeIDs = slices.Delete(gh.selectedAuthModeIDs, 0, 1)
+
+		if len(gh.selectedUILayouts) < 1 {
+			// TODO: Make this an error but we don't support checking the layout in all tests yet.
+			return nil
+		}
+
+		gdm_test.RequireEqualData(gh.t, gh.selectedUILayouts[0], gh.currentUILayout,
+			"Selected UI layout does not match expected one")
+		gh.selectedUILayouts = slices.Delete(gh.selectedUILayouts, 0, 1)
 
 	case *gdm.EventData_AuthEvent:
 		gh.t.Logf("Authentication event: %s", ev.AuthEvent.Response)
