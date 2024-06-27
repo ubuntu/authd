@@ -57,10 +57,10 @@ func TestGdmModule(t *testing.T) {
 		pamUser            string
 		protoVersion       uint32
 		brokerName         string
-		authModeIDs        []string
 		eventPollResponses map[gdm.EventType][]*gdm.EventData
 
 		wantError            error
+		wantAuthModeIDs      []string
 		wantPamInfoMessages  []string
 		wantPamErrorMessages []string
 		wantAcctMgmtErr      error
@@ -76,8 +76,8 @@ func TestGdmModule(t *testing.T) {
 			},
 		},
 		"Authenticates user2 with multiple retries": {
-			pamUser:     "user2",
-			authModeIDs: []string{passwordAuthID, passwordAuthID, passwordAuthID},
+			pamUser:         "user2",
+			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, passwordAuthID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
@@ -93,8 +93,8 @@ func TestGdmModule(t *testing.T) {
 			},
 		},
 		"Authenticates user-mfa": {
-			pamUser:     "user-mfa",
-			authModeIDs: []string{passwordAuthID, fido1AuthID, phoneAck1ID},
+			pamUser:         "user-mfa",
+			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
@@ -110,8 +110,8 @@ func TestGdmModule(t *testing.T) {
 			},
 		},
 		"Authenticates user-mfa after retry": {
-			pamUser:     "user-mfa",
-			authModeIDs: []string{passwordAuthID, passwordAuthID, fido1AuthID, phoneAck1ID},
+			pamUser:         "user-mfa",
+			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
@@ -130,8 +130,8 @@ func TestGdmModule(t *testing.T) {
 			},
 		},
 		"Authenticates user2 after switching to phone ack": {
-			pamUser:     "user2",
-			authModeIDs: []string{passwordAuthID, phoneAck1ID},
+			pamUser:         "user2",
+			wantAuthModeIDs: []string{passwordAuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
@@ -197,7 +197,7 @@ func TestGdmModule(t *testing.T) {
 		},
 		"Error on authenticating user2 with too many retries": {
 			pamUser: "user2",
-			authModeIDs: []string{
+			wantAuthModeIDs: []string{
 				passwordAuthID,
 				passwordAuthID,
 				passwordAuthID,
@@ -249,8 +249,8 @@ func TestGdmModule(t *testing.T) {
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on invalid fido ack": {
-			pamUser:     "user-mfa",
-			authModeIDs: []string{passwordAuthID, fido1AuthID},
+			pamUser:         "user-mfa",
+			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
@@ -313,7 +313,7 @@ func TestGdmModule(t *testing.T) {
 				gh.selectedBrokerName = exampleBrokerName
 			}
 
-			gh.selectedAuthModeIDs = tc.authModeIDs
+			gh.selectedAuthModeIDs = tc.wantAuthModeIDs
 			if gh.selectedAuthModeIDs == nil {
 				gh.selectedAuthModeIDs = []string{passwordAuthID}
 			}
