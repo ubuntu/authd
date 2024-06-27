@@ -11,7 +11,7 @@ import (
 )
 
 // RequireEqualData ensures that data is equal by checking the marshalled values.
-func RequireEqualData(t *testing.T, want any, actual any) {
+func RequireEqualData(t *testing.T, want any, actual any, args ...any) {
 	t.Helper()
 
 	wantJSON, err := json.MarshalIndent(want, "", "  ")
@@ -19,7 +19,7 @@ func RequireEqualData(t *testing.T, want any, actual any) {
 	actualJSON, err := json.MarshalIndent(actual, "", "  ")
 	require.NoError(t, err)
 
-	require.Equal(t, string(wantJSON), string(actualJSON))
+	require.Equal(t, string(wantJSON), string(actualJSON), args...)
 }
 
 // DataToJSON is a test helper function to convert GDM data to JSON.
