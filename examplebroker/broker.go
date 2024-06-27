@@ -93,6 +93,7 @@ var (
 		"user-mfa":              {Password: "goodpass"},
 		"user-needs-reset":      {Password: "goodpass"},
 		"user-can-reset":        {Password: "goodpass"},
+		"user-can-reset2":       {Password: "goodpass"},
 		"user-local-groups":     {Password: "goodpass"},
 		"user-pre-check":        {Password: "goodpass"},
 		"user-sudo":             {Password: "goodpass"},
@@ -139,6 +140,8 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 		info.neededAuthSteps = 2
 		info.pwdChange = mustReset
 	case "user-can-reset":
+		fallthrough
+	case "user-can-reset2":
 		info.neededAuthSteps = 2
 		info.pwdChange = canReset
 	case "user-mfa-with-reset":
@@ -429,9 +432,10 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 		// start transaction with fideo device
 	case "qrcodeandcodewithtypo":
 		uiLayoutInfo["code"] = "1337"
-		fallthrough
+		uiLayoutInfo["content"] = "https://ubuntu.com"
 	case "qrcodewithtypo":
 		// generate the url and finish the prompt on the fly.
+		uiLayoutInfo["label"] += "1337"
 		uiLayoutInfo["content"] = "https://ubuntu.com"
 	}
 

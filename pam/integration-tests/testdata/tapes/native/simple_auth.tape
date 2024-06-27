@@ -1,5 +1,5 @@
-Output switch_broker.txt
-Output switch_broker.gif # If we don't specify a .gif output, it will create a default out.gif file.
+Output simple_auth.txt
+Output simple_auth.gif # If we don't specify a .gif output, it will create a default out.gif file.
 
 # Configuration header to standardize the output.
 # Does not work with the "Source" command.
@@ -14,7 +14,7 @@ Set Margin 0
 Set Shell bash
 
 Hide
-Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}"
+Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true"
 Enter
 Sleep 300ms
 Show
@@ -22,7 +22,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user-integration-switch-broker"
+Type "user1"
 Sleep 300ms
 Show
 
@@ -33,22 +33,14 @@ Show
 
 Hide
 Type "2"
-Sleep 300ms
+Enter
+Sleep 500ms
 Show
 
 Hide
-Escape
-Sleep 300ms
-Show
-
-Hide
-Escape
-Sleep 300ms
-Show
-
-Hide
-Type "1"
-Sleep 300ms
+Type "goodpass"
+Enter
+Sleep 2s
 Show
 
 Sleep 300ms

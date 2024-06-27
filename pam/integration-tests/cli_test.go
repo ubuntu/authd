@@ -44,10 +44,10 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Authenticate user with qr code in a TTY session":             {tape: "qr_code", termEnv: "xterm-256color", sessionEnv: "tty"},
 		"Authenticate user with qr code in screen":                    {tape: "qr_code", termEnv: "screen"},
 		"Authenticate user and reset password while enforcing policy": {tape: "mandatory_password_reset"},
-		"Authenticate user and offer password reset":                  {tape: "optional_password_reset"},
+		"Authenticate user and offer password reset":                  {tape: "optional_password_reset_skip"},
 		"Authenticate user switching auth mode":                       {tape: "switch_auth_mode"},
 		"Authenticate user switching username":                        {tape: "switch_username"},
-		"Authenticate user switching broker":                          {tape: "switch_broker"},
+		"Authenticate user switching to local broker":                 {tape: "switch_local_broker"},
 		"Authenticate user and add it to local group":                 {tape: "local_group"},
 		"Authenticate with warnings on unsupported arguments":         {tape: "simple_auth_with_unsupported_args"},
 
@@ -71,7 +71,7 @@ func TestCLIAuthenticate(t *testing.T) {
 
 			outDir := t.TempDir()
 
-			cliEnv := prepareCLITest(t, outDir)
+			cliEnv := prepareClientTest(t, outDir)
 			cliLog := prepareCLILogging(t)
 			t.Cleanup(func() {
 				saveArtifactsForDebug(t, []string{
@@ -87,7 +87,7 @@ func TestCLIAuthenticate(t *testing.T) {
 
 			const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 			// #nosec:G204 - we control the command arguments in tests
-			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
+			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", "cli", tc.tape+".tape"))
 			cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
 			cmd.Env = append(cmd.Env,
 				pathEnv,
@@ -130,7 +130,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	t.Parallel()
 
 	outDir := t.TempDir()
-	cliEnv := prepareCLITest(t, outDir)
+	cliEnv := prepareClientTest(t, outDir)
 
 	// we don't care about the output of gpasswd for this test, but we still need to mock it.
 	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
@@ -156,10 +156,12 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		"Change passwd after MFA auth":                               {tape: "passwd_mfa"},
 
 		"Retry if new password is rejected by broker":           {tape: "passwd_rejected"},
+		"Retry if new password is same of previous":             {tape: "passwd_not_changed"},
 		"Retry if password confirmation is not the same":        {tape: "passwd_not_confirmed"},
 		"Retry if new password does not match quality criteria": {tape: "passwd_bad_password"},
 
 		"Prevent change password if auth fails":                                     {tape: "passwd_auth_fail"},
+		"Prevent change password if user does not exist":                            {tape: "passwd_unexistent_user"},
 		"Prevent change password if current user is not root as can't authenticate": {tape: "passwd_not_root", currentUserNotRoot: true},
 
 		"Exit authd if local broker is selected": {tape: "passwd_local_broker"},
@@ -184,7 +186,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			})
 
 			// #nosec:G204 - we control the command arguments in tests
-			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", tc.tape+".tape"))
+			cmd := exec.Command("env", "vhs", filepath.Join(currentDir, "testdata", "tapes", "cli", tc.tape+".tape"))
 			cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
 			cmd.Env = append(cmd.Env, pathEnv,
 				fmt.Sprintf("%s=%s", socketPathEnv, socketPath),
@@ -259,7 +261,7 @@ func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot 
 	return socketPath
 }
 
-func prepareCLITest(t *testing.T, clientPath string) []string {
+func prepareClientTest(t *testing.T, clientPath string) []string {
 	t.Helper()
 
 	// Due to external dependencies such as `vhs`, we can't run the tests in some environments (like LP builders), as we

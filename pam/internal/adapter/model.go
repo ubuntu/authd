@@ -56,6 +56,7 @@ type UIModel struct {
 	authModeSelectionModel authModeSelectionModel
 	authenticationModel    authenticationModel
 	gdmModel               gdmModel
+	nativeModel            nativeModel
 
 	exitStatus PamReturnStatus
 }
@@ -102,9 +103,13 @@ type ChangeStage struct {
 func (m *UIModel) Init() tea.Cmd {
 	var cmds []tea.Cmd
 
-	if m.ClientType == Gdm {
+	switch m.ClientType {
+	case Gdm:
 		m.gdmModel = gdmModel{pamMTx: m.PamMTx}
 		cmds = append(cmds, m.gdmModel.Init())
+	case Native:
+		m.nativeModel = nativeModel{pamMTx: m.PamMTx}
+		cmds = append(cmds, m.nativeModel.Init())
 	}
 
 	m.userSelectionModel = newUserSelectionModel(m.PamMTx, m.ClientType)
@@ -252,9 +257,12 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		var gdmCmd tea.Cmd
-		if m.ClientType == Gdm {
-			m.gdmModel, gdmCmd = m.gdmModel.Update(msg)
+		var modelCmd tea.Cmd
+		switch m.ClientType {
+		case Gdm:
+			m.gdmModel, modelCmd = m.gdmModel.Update(msg)
+		case Native:
+			m.nativeModel, modelCmd = m.nativeModel.Update(msg)
 		}
 
 		return m, tea.Sequence(
@@ -264,8 +272,7 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentSession.encryptionKey,
 				msg.layout,
 			),
-			gdmCmd,
-			m.changeStage(pam_proto.Stage_challenge),
+			modelCmd,
 		)
 
 	case SessionEnded:
@@ -286,8 +293,12 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.authenticationModel, cmd = m.authenticationModel.Update(msg)
 	cmds = append(cmds, cmd)
 
-	if m.ClientType == Gdm {
+	switch m.ClientType {
+	case Gdm:
 		m.gdmModel, cmd = m.gdmModel.Update(msg)
+		cmds = append(cmds, cmd)
+	case Native:
+		m.nativeModel, cmd = m.nativeModel.Update(msg)
 		cmds = append(cmds, cmd)
 	}
 
@@ -356,6 +367,10 @@ func (m *UIModel) changeStage(s pam_proto.Stage) tea.Cmd {
 
 		if m.ClientType == Gdm {
 			commands = append(commands, m.gdmModel.changeStage(s))
+		}
+
+		if m.ClientType == Native {
+			commands = append(commands, m.nativeModel.changeStage(s))
 		}
 	}
 

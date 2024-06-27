@@ -15,6 +15,7 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
+	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -109,6 +110,17 @@ type errMsgToDisplay struct {
 	msg string
 }
 
+// newPasswordCheck is sent to request a new password quality check.
+type newPasswordCheck struct {
+	challenge string
+}
+
+// newPasswordCheckResult returns the password quality check result.
+type newPasswordCheckResult struct {
+	challenge string
+	msg       string
+}
+
 // newAuthenticationModel initializes a authenticationModel which needs to be Compose then.
 func newAuthenticationModel(client authd.PAMClient, clientType PamClientType) authenticationModel {
 	return authenticationModel{
@@ -129,6 +141,13 @@ func (m *authenticationModel) Update(msg tea.Msg) (authenticationModel, tea.Cmd)
 	case reselectAuthMode:
 		m.cancelIsAuthenticated()
 		return *m, sendEvent(AuthModeSelected{})
+
+	case newPasswordCheck:
+		res := newPasswordCheckResult{challenge: msg.challenge}
+		if err := checkChallengeQuality(m.currentChallenge, msg.challenge); err != nil {
+			res.msg = err.Error()
+		}
+		return *m, sendEvent(res)
 
 	case isAuthenticatedRequested:
 		log.Debugf(context.TODO(), "%#v", msg)
@@ -257,7 +276,8 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 	m.errorMsg = ""
 
 	if m.clientType != InteractiveTerminal {
-		return sendEvent(startAuthentication{})
+		return tea.Sequence(sendEvent(ChangeStage{pam_proto.Stage_challenge}),
+			sendEvent(startAuthentication{}))
 	}
 
 	switch layout.Type {
@@ -275,7 +295,6 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 
 	case "newpassword":
 		newPasswordModel := newNewPasswordModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton())
-		newPasswordModel.currentChallenge = m.currentChallenge
 		m.currentModel = newPasswordModel
 
 	default:
@@ -285,7 +304,8 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 		})
 	}
 
-	return sendEvent(startAuthentication{})
+	return tea.Sequence(sendEvent(ChangeStage{pam_proto.Stage_challenge}),
+		sendEvent(startAuthentication{}))
 }
 
 // View renders a text view of the authentication UI.

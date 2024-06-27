@@ -1,0 +1,198 @@
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-mismatching-name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-mismatching-name
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-mismatching-name
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-mismatching-name
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+authentication status failure: rpc error: code = Unknown desc = can't check authentication: prov
+ided userinfo is invalid: username "mismatching-username" does not match the selected username "
+user-mismatching-name"
+PAM Authenticate() for user "user-mismatching-name" exited with error (PAM exit code: 4): System
+ error
+acct=incomplete
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-mismatching-name
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+authentication status failure: rpc error: code = Unknown desc = can't check authentication: prov
+ided userinfo is invalid: username "mismatching-username" does not match the selected username "
+user-mismatching-name"
+PAM Authenticate() for user "user-mismatching-name" exited with error (PAM exit code: 4): System
+ error
+acct=incomplete
+PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
+dispatch
+>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────

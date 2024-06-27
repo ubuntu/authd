@@ -47,11 +47,12 @@ const (
 )
 
 var supportedArgs = []string{
-	"debug",           // When this is set to "true", then debug logging is enabled.
-	"logfile",         // The path of the file that will be used for logging.
-	"disable_journal", // Disable logging on systemd journal (this is implicit when `logfile` is set).
-	"socket",          // The authd socket to connect to.
-	"force_reauth",    // Whether the authentication should be performed again even if it has been already completed.
+	"debug",               // When this is set to "true", then debug logging is enabled.
+	"logfile",             // The path of the file that will be used for logging.
+	"disable_journal",     // Disable logging on systemd journal (this is implicit when `logfile` is set).
+	"socket",              // The authd socket to connect to.
+	"force_native_client", // Use native PAM client instead of custom UIs.
+	"force_reauth",        // Whether the authentication should be performed again even if it has been already completed.
 }
 
 // parseArgs parses the PAM arguments and returns a map of them and a function that logs the parsing issues.
@@ -135,6 +136,10 @@ func initLogging(args map[string]string, flags pam.Flags) (func(), error) {
 			return resetFunc, err
 		}
 		log.SetOutput(f)
+		if isSilent {
+			// We're silent on PAM side, but we want to still log to a file
+			log.SetHandler(nil)
+		}
 		return func() {
 			resetFunc()
 			log.SetOutput(os.Stderr)
@@ -264,28 +269,32 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 			flags&pam.UpdateAuthtok)
 	}
 
-	if gdm.IsPamExtensionSupported(gdm.PamExtensionCustomJSON) {
-		// Explicitly set the output to something so that the program
-		// won't try to init some terminal fancy things that also appear
-		// to be racy...
-		// See: https://github.com/charmbracelet/bubbletea/issues/910
-		devNull, err := os.OpenFile(os.DevNull, os.O_WRONLY|os.O_APPEND, 0600)
-		if err != nil {
-			return errors.Join(err, pam.ErrSystem)
-		}
+	serviceName, err := mTx.GetItem(pam.Service)
+	if err != nil {
+		log.Warningf(context.TODO(), "Impossible to get PAM service name: %v", err)
+	}
+	if serviceName == gdmServiceName && !gdm.IsPamExtensionSupported(gdm.PamExtensionCustomJSON) {
+		log.Debug(context.TODO(), "GDM service running without JSON extension, skipping...")
+		return pam.ErrIgnore
+	}
+
+	forceNativeClient := parsedArgs["force_native_client"] == "true"
+	if !forceNativeClient && gdm.IsPamExtensionSupported(gdm.PamExtensionCustomJSON) {
 		pamClientType = adapter.Gdm
-		teaOpts = append(teaOpts,
-			tea.WithInput(nil),
-			tea.WithoutRenderer(),
-			tea.WithoutSignals(),
-			tea.WithoutSignalHandler(),
-			tea.WithoutCatchPanics(),
-			tea.WithOutput(devNull),
-		)
-	} else if term.IsTerminal(int(os.Stdin.Fd())) {
+		modeOpts, err := adapter.TeaHeadlessOptions()
+		if err != nil {
+			return fmt.Errorf("%w: can't create tea options: %w", pam.ErrSystem, err)
+		}
+		teaOpts = append(teaOpts, modeOpts...)
+	} else if !forceNativeClient && term.IsTerminal(int(os.Stdin.Fd())) {
 		pamClientType = adapter.InteractiveTerminal
 	} else {
-		return fmt.Errorf("pam module used through an unsupported client: %w", pam.ErrSystem)
+		pamClientType = adapter.Native
+		modeOpts, err := adapter.TeaHeadlessOptions()
+		if err != nil {
+			return fmt.Errorf("%w: can't create tea options: %w", pam.ErrSystem, err)
+		}
+		teaOpts = append(teaOpts, modeOpts...)
 	}
 
 	client, closeConn, err := newClient(parsedArgs)

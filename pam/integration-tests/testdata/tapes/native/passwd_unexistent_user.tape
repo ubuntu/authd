@@ -1,5 +1,5 @@
-Output optional_password_reset.txt
-Output optional_password_reset.gif # If we don't specify a .gif output, it will create a default out.gif file.
+Output passwd_unexistent_user.txt
+Output passwd_unexistent_user.gif # If we don't specify a .gif output, it will create a default out.gif file.
 
 # Configuration header to standardize the output.
 # Does not work with the "Source" command.
@@ -14,15 +14,13 @@ Set Margin 0
 Set Shell bash
 
 Hide
-Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}"
+Type "./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true"
 Enter
 Sleep 300ms
 Show
 
 Hide
-Escape
-Backspace
-Type "user-can-reset"
+Type "user-unexistent"
 Sleep 300ms
 Show
 
@@ -33,23 +31,8 @@ Show
 
 Hide
 Type "2"
-Sleep 300ms
-Show
-
-Hide
-Type "goodpass"
 Enter
-Sleep 2s
-Show
-
-Hide
-Tab 2
 Sleep 300ms
-Show
-
-Hide
-Enter
-Sleep 2s
 Show
 
 Sleep 300ms
