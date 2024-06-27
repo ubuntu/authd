@@ -141,9 +141,7 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 			commands = append(commands, sendEvent(reselectAuthMode{}))
 
 		case *gdm.EventData_IsAuthenticatedCancelled:
-			if m.waitingAuth {
-				commands = append(commands, sendEvent(isAuthenticatedCancelled{}))
-			}
+			commands = append(commands, sendEvent(isAuthenticatedCancelled{}))
 
 		case *gdm.EventData_StageChanged:
 			if res.StageChanged == nil {
