@@ -34,15 +34,16 @@ func TestCLIAuthenticate(t *testing.T) {
 		currentUserNotRoot bool
 		termEnv            string
 		sessionEnv         string
+		pamUser            string
 	}{
 		"Authenticate user successfully":                              {tape: "simple_auth"},
 		"Authenticate user successfully with preset user":             {tape: "simple_auth_with_preset_user"},
 		"Authenticate user with mfa":                                  {tape: "mfa_auth"},
 		"Authenticate user with form mode with button":                {tape: "form_with_button"},
-		"Authenticate user with qr code":                              {tape: "qr_code"},
-		"Authenticate user with qr code in a TTY":                     {tape: "qr_code", termEnv: "linux"},
-		"Authenticate user with qr code in a TTY session":             {tape: "qr_code", termEnv: "xterm-256color", sessionEnv: "tty"},
-		"Authenticate user with qr code in screen":                    {tape: "qr_code", termEnv: "screen"},
+		"Authenticate user with qr code":                              {tape: "qr_code", pamUser: "user-integration-qr-code"},
+		"Authenticate user with qr code in a TTY":                     {tape: "qr_code", pamUser: "user-integration-qr-code-tty", termEnv: "linux"},
+		"Authenticate user with qr code in a TTY session":             {tape: "qr_code", pamUser: "user-integration-qr-code-tty-session", termEnv: "xterm-256color", sessionEnv: "tty"},
+		"Authenticate user with qr code in screen":                    {tape: "qr_code", pamUser: "user-integration-qr-code-screen", termEnv: "screen"},
 		"Authenticate user and reset password while enforcing policy": {tape: "mandatory_password_reset"},
 		"Authenticate user and offer password reset":                  {tape: "optional_password_reset_skip"},
 		"Authenticate user switching auth mode":                       {tape: "switch_auth_mode"},
@@ -94,6 +95,9 @@ func TestCLIAuthenticate(t *testing.T) {
 				fmt.Sprintf("%s=%s", socketPathEnv, socketPath),
 				fmt.Sprintf("AUTHD_PAM_CLI_LOG_DIR=%s", filepath.Dir(cliLog)),
 				fmt.Sprintf("AUTHD_PAM_CLI_TEST_NAME=%s", t.Name()))
+			if tc.pamUser != "" {
+				cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_USER=%s", tc.pamUser))
+			}
 			if tc.termEnv != "" {
 				cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_TERM=%s", tc.termEnv))
 			}

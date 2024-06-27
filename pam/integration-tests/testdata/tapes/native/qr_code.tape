@@ -28,12 +28,6 @@ Sleep 300ms
 Show
 
 Hide
-Type "user-integration-qr-code"
-Enter
-Sleep 300ms
-Show
-
-Hide
 Type "2"
 Enter
 Sleep 500ms

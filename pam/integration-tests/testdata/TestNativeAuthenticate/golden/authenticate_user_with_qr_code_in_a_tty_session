@@ -1,112 +1,4 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-qr-code
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -210,10 +102,10 @@ Select broker:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-qr-code
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -317,10 +209,10 @@ Gimme your password:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-qr-code
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -329,7 +221,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-qr-code@gmail.com
+2 - Send URL to user-integration-qr-code-tty-session@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -424,10 +316,10 @@ Select authentication mode:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-qr-code
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -436,7 +328,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-qr-code@gmail.com
+2 - Send URL to user-integration-qr-code-tty-session@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -531,10 +423,10 @@ Select action:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-qr-code
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -543,7 +435,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-qr-code@gmail.com
+2 - Send URL to user-integration-qr-code-tty-session@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -638,10 +530,10 @@ Select action:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-qr-code
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -650,7 +542,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-qr-code@gmail.com
+2 - Send URL to user-integration-qr-code-tty-session@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -745,10 +637,10 @@ Select action: 1
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-qr-code
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -757,7 +649,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-qr-code@gmail.com
+2 - Send URL to user-integration-qr-code-tty-session@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -845,17 +737,17 @@ Scan the qrcode or enter the code in the login page
 1 - Wait for the QR code scan result
 2 - regenerate QR code
 Select action: 1
-PAM Authenticate() for user "user-integration-qr-code" exited with success
+PAM Authenticate() for user "user-integration-qr-code-tty-session" exited with success
 PAM AcctMgmt() exited with success
 >
 
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-qr-code
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -864,7 +756,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-qr-code@gmail.com
+2 - Send URL to user-integration-qr-code-tty-session@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -952,9 +844,10 @@ Scan the qrcode or enter the code in the login page
 1 - Wait for the QR code scan result
 2 - regenerate QR code
 Select action: 1
-PAM Authenticate() for user "user-integration-qr-code" exited with success
+PAM Authenticate() for user "user-integration-qr-code-tty-session" exited with success
 PAM AcctMgmt() exited with success
 >
+
 
 
 
