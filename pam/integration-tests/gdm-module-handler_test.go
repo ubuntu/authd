@@ -80,9 +80,19 @@ func (gh *gdmTestModuleHandler) exampleHandleGdmData(gdmData *gdm.Data) (*gdm.Da
 func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 	events, ok := gh.eventPollResponses[event.Type]
 	if ok && len(events) > 0 {
-		pollResp := events[0]
-		gh.eventPollResponses[event.Type] = slices.Delete(events, 0, 1)
-		gh.pollResponses = append(gh.pollResponses, pollResp)
+		numEvents := 1
+		if events[0].Type == gdm_test.EventsGroupBegin().Type {
+			numEvents = slices.IndexFunc(events, func(ev *gdm.EventData) bool {
+				return ev.Type == gdm_test.EventsGroupEnd().Type
+			})
+			require.Greater(gh.t, numEvents, 1, "No valid events group found")
+			events = slices.Delete(events, numEvents, numEvents+1)
+			events = slices.Delete(events, 0, 1)
+			numEvents--
+		}
+		pollEvents := slices.Clone(events[0:numEvents])
+		gh.eventPollResponses[event.Type] = slices.Delete(events, 0, numEvents)
+		gh.pollResponses = append(gh.pollResponses, pollEvents...)
 	}
 
 	switch ev := event.Data.(type) {
