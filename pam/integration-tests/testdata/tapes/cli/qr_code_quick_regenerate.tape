@@ -22,7 +22,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user-integration-qrcode-regenerate"
+Type "user-integration-qrcode-static-regenerate"
 Sleep 300ms
 Show
 

@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -251,12 +252,12 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantUILayouts: []*authd.UILayout{
 				&testPasswordUILayout,
-				&testQrcodeUILayout,
-				&testQrcodeUILayout,
-				&testQrcodeUILayout,
-				&testQrcodeUILayout,
-				&testQrcodeUILayout,
-				&testQrcodeUILayout,
+				testQrcodeUILayoutData(0),
+				testQrcodeUILayoutData(1),
+				testQrcodeUILayoutData(2),
+				testQrcodeUILayoutData(3),
+				testQrcodeUILayoutData(4),
+				testQrcodeUILayoutData(5),
 			},
 		},
 
@@ -608,4 +609,31 @@ func buildPAMModule(t *testing.T) string {
 	}
 
 	return libPath
+}
+
+func exampleBrokerQrcodeData(reqN int) (string, string) {
+	// Keep this in sync with example broker's qrcodeData
+	baseCode := 1337
+	qrcodeURIs := []string{
+		"https://ubuntu.com",
+		"https://ubuntu.fr/",
+		"https://ubuntuforum-br.org/",
+		"https://www.ubuntu-it.org/",
+	}
+
+	return qrcodeURIs[reqN%len(qrcodeURIs)], fmt.Sprint(baseCode + reqN)
+}
+
+func testQrcodeUILayoutData(reqN int) *authd.UILayout {
+	content, code := exampleBrokerQrcodeData(reqN)
+	base := &testQrcodeUILayout
+	return &authd.UILayout{
+		Type:    base.Type,
+		Label:   ptrValue("Enter the following code after flashing the address: " + code),
+		Content: &content,
+		Wait:    base.Wait,
+		Button:  base.Button,
+		Code:    base.Code,
+		Entry:   base.Entry,
+	}
 }

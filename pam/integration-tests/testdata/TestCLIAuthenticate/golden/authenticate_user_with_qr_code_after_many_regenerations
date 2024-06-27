@@ -42,7 +42,7 @@ Username: user name
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Username: user-integration-qrcode-regenerate
+Username: user-integration-qrcode-static-regenerate
 
 
 
@@ -174,7 +174,7 @@ Gimme your password
   Select your authentication method
 
 > 1. Password authentication
-  2. Send URL to user-integration-qrcode-regenerate@gmail.com
+  2. Send URL to user-integration-qrcode-static-regenerate@gmail.com
   3. Use your fido device foo
   4. Use your phone +33…
   5. Use your phone +1…
@@ -322,7 +322,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-PAM Authenticate() for user "user-integration-qrcode-regenerate" exited with success
+PAM Authenticate() for user "user-integration-qrcode-static-regenerate" exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -365,7 +365,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-PAM Authenticate() for user "user-integration-qrcode-regenerate" exited with success
+PAM Authenticate() for user "user-integration-qrcode-static-regenerate" exited with success
 PAM AcctMgmt() exited with success
 >
 
