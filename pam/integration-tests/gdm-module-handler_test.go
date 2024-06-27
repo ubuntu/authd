@@ -189,6 +189,14 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 		gh.currentStage = req.ChangeStage.Stage
 		log.Debugf(context.TODO(), "Switching to stage %d", gh.currentStage)
 
+		switch req.ChangeStage.Stage {
+		case proto.Stage_brokerSelection:
+			gh.authModes = nil
+			gh.brokerID = ""
+		case proto.Stage_authModeSelection:
+			gh.currentUILayout = nil
+		}
+
 		return &gdm.Data{
 			Type: gdm.DataType_response,
 			Response: &gdm.ResponseData{
