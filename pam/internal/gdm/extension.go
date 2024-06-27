@@ -8,14 +8,12 @@ package gdm
 import "C"
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"unsafe"
 
 	"github.com/msteinert/pam/v2"
-	"github.com/ubuntu/authd/internal/log"
 )
 
 const (
@@ -147,7 +145,6 @@ func NewBinaryJSONProtoRequest(data []byte) (*pam.BinaryConvRequest, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf(context.TODO(), "Sending to gdm %s", string(data))
 	return pam.NewBinaryConvRequest(request.encode(),
 		func(ptr pam.BinaryPointer) { (*jsonProtoMessage)(ptr).release() }), nil
 }
