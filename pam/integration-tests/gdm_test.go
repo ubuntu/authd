@@ -200,6 +200,65 @@ func TestGdmModule(t *testing.T) {
 				&testQrcodeUILayout,
 			},
 		},
+		"Authenticates user after regenerating the qrcode": {
+			wantAuthModeIDs: []string{
+				passwordAuthID,
+				qrcodeID,
+				qrcodeID,
+				qrcodeID,
+				qrcodeID,
+				qrcodeID,
+				qrcodeID,
+			},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.FormUILayout(),
+				pam_test.QrCodeUILayout(),
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.EventsGroupBegin(),
+					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
+					gdm_test.AuthModeSelectedEvent(qrcodeID),
+					gdm_test.EventsGroupEnd(),
+
+					// Start authentication and regenerate the qrcode (1)
+					gdm_test.EventsGroupBegin(),
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+					gdm_test.ReselectAuthMode(),
+					gdm_test.EventsGroupEnd(),
+
+					// Only regenerate the qr code (2)
+					gdm_test.ReselectAuthMode(),
+
+					// Start authentication and regenerate the qrcode (3)
+					gdm_test.EventsGroupBegin(),
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+					gdm_test.ReselectAuthMode(),
+					gdm_test.EventsGroupEnd(),
+
+					// Only regenerate the qr code (4)
+					gdm_test.ReselectAuthMode(),
+
+					// Start the final authentication (5)
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{
+				&testPasswordUILayout,
+				&testQrcodeUILayout,
+				&testQrcodeUILayout,
+				&testQrcodeUILayout,
+				&testQrcodeUILayout,
+				&testQrcodeUILayout,
+				&testQrcodeUILayout,
+			},
+		},
 
 		// Error cases
 		"Error on unknown protocol": {
