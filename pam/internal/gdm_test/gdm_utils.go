@@ -91,6 +91,16 @@ func AuthModeSelectedEvent(authModeID string) *gdm.EventData {
 	}
 }
 
+// ReselectAuthMode generates a ReselectAuthMode event.
+func ReselectAuthMode() *gdm.EventData {
+	return &gdm.EventData{
+		Type: gdm.EventType_reselectAuthMode,
+		Data: &gdm.EventData_ReselectAuthMode{
+			ReselectAuthMode: &gdm.Events_ReselectAuthMode{},
+		},
+	}
+}
+
 // IsAuthenticatedEvent generates a IsAuthenticated event.
 func IsAuthenticatedEvent(item authd.IARequestAuthenticationDataItem) *gdm.EventData {
 	return &gdm.EventData{
