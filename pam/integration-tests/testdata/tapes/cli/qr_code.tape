@@ -47,6 +47,21 @@ Show
 
 Hide
 Enter
+Sleep 300ms
+Show
+
+Hide
+Enter
+Sleep 300ms
+Show
+
+Hide
+Enter
+Sleep 300ms
+Show
+
+Hide
+Enter
 Sleep 1s
 Show
 
