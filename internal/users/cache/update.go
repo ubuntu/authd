@@ -63,6 +63,12 @@ func updateUser(buckets map[string]bucketWithName, userContent userDB) {
 		_ = buckets[userByNameBucketName].Delete([]byte(existingUser.Name)) // No error as we are not in a RO transaction.
 	}
 
+	// Ensure that we use the same homedir as the one we have in cache.
+	if existingUser.Dir != "" && existingUser.Dir != userContent.Dir {
+		slog.Warn(fmt.Sprintf("User %q already has a homedir. The existing %q one will be kept instead of %q", userContent.Name, existingUser.Dir, userContent.Dir))
+		userContent.Dir = existingUser.Dir
+	}
+
 	// Update user buckets
 	updateBucket(buckets[userByIDBucketName], userContent.UID, userContent)
 	updateBucket(buckets[userByNameBucketName], userContent.Name, userContent)

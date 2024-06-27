@@ -5,9 +5,9 @@ GroupByName:
 GroupToUsers:
     "11111": '{"GID":11111,"UIDs":[1111]}'
 UserByID:
-    "1111": '{"Name":"newuser1","UID":1111,"GID":11111,"Gecos":"New user1 gecos","Dir":"/home/newuser1","Shell":"/bin/dash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+    "1111": '{"Name":"newuser1","UID":1111,"GID":11111,"Gecos":"New user1 gecos","Dir":"/home/user1","Shell":"/bin/dash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserByName:
-    newuser1: '{"Name":"newuser1","UID":1111,"GID":11111,"Gecos":"New user1 gecos","Dir":"/home/newuser1","Shell":"/bin/dash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+    newuser1: '{"Name":"newuser1","UID":1111,"GID":11111,"Gecos":"New user1 gecos","Dir":"/home/user1","Shell":"/bin/dash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserToBroker:
     "1111": '"broker-id"'
 UserToGroups:
