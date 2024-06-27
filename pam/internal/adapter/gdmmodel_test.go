@@ -922,6 +922,79 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
+		"Authenticated with qrcode after auth selection stage from client after client-side broker and auth mode selection": {
+			supportedLayouts: []*authd.UILayout{
+				pam_test.FormUILayout(),
+				pam_test.QrCodeUILayout(),
+			},
+			clientOptions: append(slices.Clone(singleBrokerClientOptions),
+				pam_test.WithUILayout("qrcode", "Hello QR!", pam_test.QrCodeUILayout()),
+				pam_test.WithIsAuthenticatedWantWait(time.Millisecond*500),
+			),
+			gdmEvents: []*gdm.EventData{
+				gdm_test.SelectUserEvent("gdm-selected-user-broker-and-auth-mode"),
+			},
+			messages: []tea.Msg{
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_brokerSelection,
+					events: []*gdm.EventData{
+						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
+					},
+				},
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_challenge,
+					events: []*gdm.EventData{
+						gdm_test.ChangeStageEvent(pam_proto.Stage_authModeSelection),
+					},
+					commands: []tea.Cmd{
+						sendEvent(gdmTestWaitForStage{
+							stage: pam_proto.Stage_authModeSelection,
+							events: []*gdm.EventData{
+								gdm_test.AuthModeSelectedEvent("qrcode"),
+							},
+							commands: []tea.Cmd{
+								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Wait{
+									Wait: "true",
+								}}),
+							},
+						}),
+					},
+				},
+			},
+			wantUsername:       "gdm-selected-user-broker-and-auth-mode",
+			wantSelectedBroker: firstBrokerInfo.Id,
+			wantGdmRequests: []gdm.RequestType{
+				gdm.RequestType_uiLayoutCapabilities,
+				gdm.RequestType_changeStage, // -> broker Selection
+				gdm.RequestType_changeStage, // -> authMode Selection
+				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> authMode Selection
+				gdm.RequestType_changeStage, // -> challenge
+			},
+			wantMessages: []tea.Msg{
+				startAuthentication{},
+				startAuthentication{},
+			},
+			wantGdmEvents: []gdm.EventType{
+				gdm.EventType_userSelected,
+				gdm.EventType_brokersReceived,
+				gdm.EventType_brokerSelected,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent,
+			},
+			wantStage: pam_proto.Stage_challenge,
+			wantGdmAuthRes: []*authd.IAResponse{
+				{Access: brokers.AuthCancelled},
+				{Access: brokers.AuthGranted},
+			},
+			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
+		},
 		"Broker selection stage from client after client-side broker and auth mode selection if there is only one auth mode": {
 			gdmEvents: []*gdm.EventData{
 				gdm_test.SelectUserEvent("gdm-selected-user-broker-and-auth-mode"),
