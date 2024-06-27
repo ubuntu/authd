@@ -43,7 +43,7 @@ Sleep 2s
 Show
 
 Hide
-Tab 2
+Tab
 Sleep 300ms
 Show
 
