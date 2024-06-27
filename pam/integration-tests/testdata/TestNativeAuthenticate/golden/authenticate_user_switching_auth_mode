@@ -801,7 +801,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
 
 
@@ -958,7 +958,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1115,7 +1115,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1127,7 +1127,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb:
 
 
@@ -1272,7 +1272,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1284,7 +1284,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1429,7 +1429,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1441,7 +1441,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1453,7 +1453,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface:
 
 
@@ -1586,7 +1586,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1598,7 +1598,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1610,7 +1610,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1743,7 +1743,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1755,7 +1755,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1767,7 +1767,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1779,7 +1779,7 @@ Unlock your phone +33… or accept request on web interface: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 5
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +1… or accept request on web interface:
 
 
@@ -1900,7 +1900,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1912,7 +1912,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1924,7 +1924,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -1936,7 +1936,7 @@ Unlock your phone +33… or accept request on web interface: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 5
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2057,7 +2057,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2069,7 +2069,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2081,7 +2081,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2093,7 +2093,7 @@ Unlock your phone +33… or accept request on web interface: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 5
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2214,7 +2214,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2226,7 +2226,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2238,7 +2238,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2250,7 +2250,7 @@ Unlock your phone +33… or accept request on web interface: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 5
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2371,7 +2371,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2383,7 +2383,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2395,7 +2395,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2407,7 +2407,7 @@ Unlock your phone +33… or accept request on web interface: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 5
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2528,7 +2528,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2540,7 +2540,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2552,7 +2552,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2564,7 +2564,7 @@ Unlock your phone +33… or accept request on web interface: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 5
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2685,7 +2685,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2697,7 +2697,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2709,7 +2709,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2721,7 +2721,7 @@ Unlock your phone +33… or accept request on web interface: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 5
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2842,7 +2842,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2854,7 +2854,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2866,7 +2866,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2878,7 +2878,7 @@ Unlock your phone +33… or accept request on web interface: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 5
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2999,7 +2999,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3011,7 +3011,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3023,7 +3023,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3035,7 +3035,7 @@ Unlock your phone +33… or accept request on web interface: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 5
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3156,7 +3156,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3168,7 +3168,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3180,7 +3180,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3192,7 +3192,7 @@ Unlock your phone +33… or accept request on web interface: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 5
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3313,7 +3313,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3325,7 +3325,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3337,7 +3337,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3349,7 +3349,7 @@ Unlock your phone +33… or accept request on web interface: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 5
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3470,7 +3470,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3482,7 +3482,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3494,7 +3494,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3506,7 +3506,7 @@ Unlock your phone +33… or accept request on web interface: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 5
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3627,7 +3627,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 2
-Leave the input field empty to wait for other authentication methodor insert 'r' to go back
+Leave the input field empty to wait for other authentication method or insert 'r' to go back
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3639,7 +3639,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 3
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3651,7 +3651,7 @@ Plug your fido device and press with your thumb: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 4
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3663,7 +3663,7 @@ Unlock your phone +33… or accept request on web interface: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 5
-Leave the input field empty to wait for the authentication methodor insert 'r' to go back
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication

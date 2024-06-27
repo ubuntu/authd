@@ -487,10 +487,10 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 	instructions := "Insert '%[1]s' to cancel the request and go back"
 	if hasWait {
 		// Duplicating some contents here, as it will be better for translators once we've them
-		instructions = "Leave the input field empty to wait for other authentication method" +
+		instructions = "Leave the input field empty to wait for other authentication method " +
 			"or insert '%[1]s' to go back"
 		if m.uiLayout.GetEntry() == "" {
-			instructions = "Leave the input field empty to wait for the authentication method" +
+			instructions = "Leave the input field empty to wait for the authentication method " +
 				"or insert '%[1]s' to go back"
 		}
 	}
