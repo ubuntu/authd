@@ -101,12 +101,6 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				// First entry is focused
 				if m.focusIndex == 0 {
-					// Check if the password is empty
-					if m.passwordEntries[0].Value() == "" {
-						m.Clear()
-						return m, sendEvent(errMsgToDisplay{msg: "Password must not be empty"})
-					}
-
 					// Check password quality
 					return m, sendEvent(newPasswordCheck{m.passwordEntries[0].Value()})
 				}
