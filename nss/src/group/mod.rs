@@ -50,7 +50,7 @@ fn get_all_entries() -> Response<Vec<Group>> {
         match client.get_group_entries(req).await {
             Ok(r) => Response::Success(group_entries_to_groups(r.into_inner().entries)),
             Err(e) => {
-                error!("error when listing groups: {}", e.message());
+                error!("error when listing groups: {}", e.code().description());
                 super::grpc_status_to_nss_response(e)
             }
         }
@@ -81,7 +81,11 @@ fn get_entry_by_gid(gid: gid_t) -> Response<Group> {
         match client.get_group_by_gid(req).await {
             Ok(r) => Response::Success(group_entry_to_group(r.into_inner())),
             Err(e) => {
-                error!("error when getting group by gid: {}", e.message());
+                error!(
+                    "error when getting group by gid '{}': {}",
+                    gid,
+                    e.code().description()
+                );
                 super::grpc_status_to_nss_response(e)
             }
         }
@@ -107,12 +111,16 @@ fn get_entry_by_name(name: String) -> Response<Group> {
             }
         };
 
-        let mut req = Request::new(authd::GetGroupByNameRequest { name });
+        let mut req = Request::new(authd::GetGroupByNameRequest { name: name.clone() });
         req.set_timeout(REQUEST_TIMEOUT);
         match client.get_group_by_name(req).await {
             Ok(r) => Response::Success(group_entry_to_group(r.into_inner())),
             Err(e) => {
-                error!("error when getting group by name: {}", e.message());
+                error!(
+                    "error when getting group by name '{}': {}",
+                    name,
+                    e.code().description()
+                );
                 super::grpc_status_to_nss_response(e)
             }
         }
