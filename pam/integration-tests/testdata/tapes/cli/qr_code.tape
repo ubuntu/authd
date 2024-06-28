@@ -26,18 +26,6 @@ Sleep 300ms
 Show
 
 Hide
-Escape
-Backspace
-Type "user-integration-qr-code"
-Sleep 300ms
-Show
-
-Hide
-Enter
-Sleep 300ms
-Show
-
-Hide
 Type "2"
 Sleep 300ms
 Show
