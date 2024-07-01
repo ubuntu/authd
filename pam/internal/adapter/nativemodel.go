@@ -595,14 +595,14 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 		return cmd
 	}
 
+	firstQrCodeLine := strings.SplitN(qrcode, "\n", 2)[0]
+	centeredContent := centerString(m.uiLayout.GetContent(), firstQrCodeLine)
+	if cmd := maybeSendPamError(m.sendInfo(centeredContent)); cmd != nil {
+		return cmd
+	}
+
 	if code := m.uiLayout.GetCode(); code != "" {
-		firstLine := strings.SplitN(qrcode, "\n", 2)[0]
-		sizeDiff := len([]rune(firstLine)) - len(code)
-		var padding string
-		if sizeDiff > 0 {
-			padding = strings.Repeat(" ", sizeDiff/2)
-		}
-		if cmd := maybeSendPamError(m.sendInfo(padding + code + padding)); cmd != nil {
+		if cmd := maybeSendPamError(m.sendInfo(centerString(code, firstQrCodeLine))); cmd != nil {
 			return cmd
 		}
 	}
@@ -638,6 +638,17 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 	default:
 		return nil
 	}
+}
+
+func centerString(s string, reference string) string {
+	sizeDiff := len([]rune(reference)) - len(s)
+	if sizeDiff <= 0 {
+		return s
+	}
+
+	// We put padding in both sides, so that it's respected also by non-terminal UIs
+	padding := strings.Repeat(" ", sizeDiff/2)
+	return padding + s + padding
 }
 
 func (m nativeModel) handleNewPassword() tea.Cmd {
