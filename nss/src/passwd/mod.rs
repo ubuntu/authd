@@ -50,7 +50,7 @@ fn get_all_entries() -> Response<Vec<Passwd>> {
         match client.get_passwd_entries(req).await {
             Ok(r) => Response::Success(passwd_entries_to_passwds(r.into_inner().entries)),
             Err(e) => {
-                error!("error when listing passwd: {}", e.message());
+                error!("error when listing passwd: {}", e.code().description());
                 super::grpc_status_to_nss_response(e)
             }
         }
@@ -81,7 +81,11 @@ fn get_entry_by_uid(uid: uid_t) -> Response<Passwd> {
         match client.get_passwd_by_uid(req).await {
             Ok(r) => Response::Success(passwd_entry_to_passwd(r.into_inner())),
             Err(e) => {
-                error!("error when getting passwd by uid: {}", e.message());
+                error!(
+                    "error when getting passwd by uid '{}': {}",
+                    uid,
+                    e.code().description()
+                );
                 super::grpc_status_to_nss_response(e)
             }
         }
@@ -108,14 +112,18 @@ fn get_entry_by_name(name: String) -> Response<Passwd> {
         };
 
         let mut req = Request::new(authd::GetPasswdByNameRequest {
-            name,
+            name: name.clone(),
             should_pre_check: should_pre_check(),
         });
         req.set_timeout(REQUEST_TIMEOUT);
         match client.get_passwd_by_name(req).await {
             Ok(r) => Response::Success(passwd_entry_to_passwd(r.into_inner())),
             Err(e) => {
-                error!("error when getting passwd by name: {}", e.message());
+                error!(
+                    "error when getting passwd by name '{}': {}",
+                    name,
+                    e.code().description()
+                );
                 super::grpc_status_to_nss_response(e)
             }
         }
