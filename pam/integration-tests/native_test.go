@@ -33,6 +33,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		termEnv            string
 		sessionEnv         string
 		pamUser            string
+		pamServiceName     string
 	}{
 		"Authenticate user successfully":                              {tape: "simple_auth"},
 		"Authenticate user successfully with preset user":             {tape: "simple_auth_with_preset_user"},
@@ -42,6 +43,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Authenticate user with qr code in a TTY":                     {tape: "qr_code", pamUser: "user-integration-qr-code-tty", termEnv: "linux"},
 		"Authenticate user with qr code in a TTY session":             {tape: "qr_code", pamUser: "user-integration-qr-code-tty-session", termEnv: "xterm-256color", sessionEnv: "tty"},
 		"Authenticate user with qr code in screen":                    {tape: "qr_code", pamUser: "user-integration-qr-code-screen", termEnv: "screen"},
+		"Authenticate user with qr code in polkit":                    {tape: "qr_code", pamUser: "user-integration-qr-code-screen", pamServiceName: "polkit-1"},
 		"Authenticate user and reset password while enforcing policy": {tape: "mandatory_password_reset"},
 		"Authenticate user and offer password reset":                  {tape: "optional_password_reset_skip"},
 		"Authenticate user and accept password reset":                 {tape: "optional_password_reset_accept"},
@@ -101,6 +103,9 @@ func TestNativeAuthenticate(t *testing.T) {
 			)
 			if tc.pamUser != "" {
 				cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_USER=%s", tc.pamUser))
+			}
+			if tc.pamServiceName != "" {
+				cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_SERVICE=%s", tc.pamServiceName))
 			}
 			if tc.termEnv != "" {
 				cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_TERM=%s", tc.termEnv))
