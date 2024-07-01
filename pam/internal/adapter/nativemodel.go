@@ -586,29 +586,24 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 		})
 	}
 
-	if cmd := maybeSendPamError(m.sendInfo(m.uiLayout.GetLabel())); cmd != nil {
-		return cmd
-	}
+	var qrcodeView []string
+	qrcodeView = append(qrcodeView, m.uiLayout.GetLabel())
 
 	qrcode := m.renderQrCode(qrCode)
-	if cmd := maybeSendPamError(m.sendInfo(qrcode)); cmd != nil {
-		return cmd
-	}
+	qrcodeView = append(qrcodeView, qrcode)
 
 	firstQrCodeLine := strings.SplitN(qrcode, "\n", 2)[0]
 	centeredContent := centerString(m.uiLayout.GetContent(), firstQrCodeLine)
-	if cmd := maybeSendPamError(m.sendInfo(centeredContent)); cmd != nil {
-		return cmd
-	}
+	qrcodeView = append(qrcodeView, centeredContent)
 
 	if code := m.uiLayout.GetCode(); code != "" {
-		if cmd := maybeSendPamError(m.sendInfo(centerString(code, firstQrCodeLine))); cmd != nil {
-			return cmd
-		}
+		qrcodeView = append(qrcodeView, centerString(code, firstQrCodeLine))
 	}
 
 	// Ass some extra vertical space to improve readability
-	if cmd := maybeSendPamError(m.sendInfo(" ")); cmd != nil {
+	qrcodeView = append(qrcodeView, " ")
+
+	if cmd := maybeSendPamError(m.sendInfo(strings.Join(qrcodeView, "\n"))); cmd != nil {
 		return cmd
 	}
 
