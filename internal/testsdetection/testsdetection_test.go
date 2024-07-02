@@ -44,6 +44,9 @@ func TestMustBeTestingInProcess(t *testing.T) {
 			if testutils.CoverDirForTests() != "" {
 				args = append(args, "-cover")
 			}
+			if testutils.IsRace() {
+				args = append(args, "-race")
+			}
 			args = append(args, "testdata/binary.go")
 
 			// Execute our subprocess

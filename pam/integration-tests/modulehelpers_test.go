@@ -54,6 +54,10 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, cFl
 	if testutils.IsAsan() {
 		cmd.Args = append(cmd.Args, "-fsanitize=address,undefined")
 	}
+	// FIXME: This leads to an EOM error when loading the compiled module:
+	// if testutils.IsRace() {
+	// 	cmd.Args = append(cmd.Args, "-fsanitize=thread")
+	// }
 	if cflags := os.Getenv("CFLAGS"); cflags != "" && os.Getenv("DEB_BUILD_ARCH") == "" {
 		cmd.Args = append(cmd.Args, strings.Split(cflags, " ")...)
 	}

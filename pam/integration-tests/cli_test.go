@@ -201,6 +201,9 @@ func TestPamCLIRunStandalone(t *testing.T) {
 		cmd.Args = append(cmd.Args, "-cover")
 		cmd.Env = testutils.AppendCovEnv(os.Environ())
 	}
+	if testutils.IsRace() {
+		cmd.Args = append(cmd.Args, "-race")
+	}
 
 	cmd.Dir = testutils.ProjectRoot()
 	cmd.Args = append(cmd.Args, "-tags", "pam_binary_cli", "./pam", "login", "--exec-debug")
@@ -267,6 +270,9 @@ func buildPAMTestClient(execPath string) (cleanup func(), err error) {
 		// -asan is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-asan")
 	}
+	if testutils.IsRace() {
+		cmd.Args = append(cmd.Args, "-race")
+	}
 	cmd.Args = append(cmd.Args, "-tags=pam_binary_cli", "-o", filepath.Join(execPath, "pam_authd"), "../.")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return func() {}, fmt.Errorf("%v: %s", err, out)
@@ -287,6 +293,9 @@ func buildPAMClient(t *testing.T) string {
 	if testutils.IsAsan() {
 		// -asan is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-asan")
+	}
+	if testutils.IsRace() {
+		cmd.Args = append(cmd.Args, "-race")
 	}
 	cmd.Args = append(cmd.Args, "-gcflags=-dwarflocationlists=true")
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)

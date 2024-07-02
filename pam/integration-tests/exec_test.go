@@ -950,6 +950,9 @@ func buildExecClient(t *testing.T) string {
 		// -asan is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-asan")
 	}
+	if testutils.IsRace() {
+		cmd.Args = append(cmd.Args, "-race")
+	}
 	cmd.Args = append(cmd.Args, "-gcflags=-dwarflocationlists=true")
 	cmd.Args = append(cmd.Args, "-tags=pam_tests_exec_client")
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)

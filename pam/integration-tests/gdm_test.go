@@ -875,6 +875,10 @@ func buildPAMModule(t *testing.T) string {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
 	}
+	// FIXME: This leads to an EOM error when loading the compiled module:
+	// if testutils.IsRace() {
+	// 	cmd.Args = append(cmd.Args, "-race")
+	// }
 	cmd.Args = append(cmd.Args, "-buildmode=c-shared", "-gcflags=-dwarflocationlists=true")
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)
 	if testutils.IsAsan() {
