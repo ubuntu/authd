@@ -2453,7 +2453,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action:
 
 
@@ -2610,7 +2610,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2767,7 +2767,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -2924,7 +2924,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3081,7 +3081,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3238,7 +3238,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3395,7 +3395,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3552,7 +3552,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
@@ -3709,7 +3709,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
