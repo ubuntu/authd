@@ -11,7 +11,7 @@ import (
 )
 
 // RequireEqualData ensures that data is equal by checking the marshalled values.
-func RequireEqualData(t *testing.T, want any, actual any) {
+func RequireEqualData(t *testing.T, want any, actual any, args ...any) {
 	t.Helper()
 
 	wantJSON, err := json.MarshalIndent(want, "", "  ")
@@ -19,7 +19,7 @@ func RequireEqualData(t *testing.T, want any, actual any) {
 	actualJSON, err := json.MarshalIndent(actual, "", "  ")
 	require.NoError(t, err)
 
-	require.Equal(t, string(wantJSON), string(actualJSON))
+	require.Equal(t, string(wantJSON), string(actualJSON), args...)
 }
 
 // DataToJSON is a test helper function to convert GDM data to JSON.
@@ -29,6 +29,24 @@ func DataToJSON(t *testing.T, data *gdm.Data) string {
 	json, err := data.JSON()
 	require.NoError(t, err)
 	return string(json)
+}
+
+// EventsGroupBegin returns a fake [gdm.EventData] that allows to begin a group multiple events
+// so that it's possible to use this as an header to tell the test module handler that we should
+// respond to an event with multiple events starting from the next one.
+func EventsGroupBegin() *gdm.EventData {
+	return &gdm.EventData{
+		Type: gdm.EventType(-1000),
+	}
+}
+
+// EventsGroupEnd returns a fake [gdm.EventData] that allows to end a group multiple events
+// so that it's possible to use this as a footer to tell the test module handler that we should
+// respond to an event with multiple events finishing with the previous one.
+func EventsGroupEnd() *gdm.EventData {
+	return &gdm.EventData{
+		Type: gdm.EventType(-1001),
+	}
 }
 
 // SelectUserEvent generates a SelectUser event.
@@ -69,6 +87,16 @@ func AuthModeSelectedEvent(authModeID string) *gdm.EventData {
 			AuthModeSelected: &gdm.Events_AuthModeSelected{
 				AuthModeId: authModeID,
 			},
+		},
+	}
+}
+
+// ReselectAuthMode generates a ReselectAuthMode event.
+func ReselectAuthMode() *gdm.EventData {
+	return &gdm.EventData{
+		Type: gdm.EventType_reselectAuthMode,
+		Data: &gdm.EventData_ReselectAuthMode{
+			ReselectAuthMode: &gdm.Events_ReselectAuthMode{},
 		},
 	}
 }

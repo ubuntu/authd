@@ -23,7 +23,9 @@ type gdmTestModuleHandler struct {
 
 	protoVersion uint32
 
-	supportedLayouts []*authd.UILayout
+	supportedLayouts  []*authd.UILayout
+	currentUILayout   *authd.UILayout
+	selectedUILayouts []*authd.UILayout
 
 	currentStage  proto.Stage
 	pollResponses []*gdm.EventData
@@ -78,9 +80,19 @@ func (gh *gdmTestModuleHandler) exampleHandleGdmData(gdmData *gdm.Data) (*gdm.Da
 func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 	events, ok := gh.eventPollResponses[event.Type]
 	if ok && len(events) > 0 {
-		pollResp := events[0]
-		gh.eventPollResponses[event.Type] = slices.Delete(events, 0, 1)
-		gh.pollResponses = append(gh.pollResponses, pollResp)
+		numEvents := 1
+		if events[0].Type == gdm_test.EventsGroupBegin().Type {
+			numEvents = slices.IndexFunc(events, func(ev *gdm.EventData) bool {
+				return ev.Type == gdm_test.EventsGroupEnd().Type
+			})
+			require.Greater(gh.t, numEvents, 1, "No valid events group found")
+			events = slices.Delete(events, numEvents, numEvents+1)
+			events = slices.Delete(events, 0, 1)
+			numEvents--
+		}
+		pollEvents := slices.Clone(events[0:numEvents])
+		gh.eventPollResponses[event.Type] = slices.Delete(events, 0, numEvents)
+		gh.pollResponses = append(gh.pollResponses, pollEvents...)
 	}
 
 	switch ev := event.Data.(type) {
@@ -126,6 +138,11 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 		if layout.Label != nil {
 			gh.t.Logf("%s:", *layout.Label)
 		}
+		if layout.Content != nil {
+			gh.t.Logf("%s:", *layout.Content)
+		}
+
+		gh.currentUILayout = layout
 
 	case *gdm.EventData_StartAuthentication:
 		idx := slices.IndexFunc(gh.authModes, func(mode *authd.GAMResponse_AuthenticationMode) bool {
@@ -141,6 +158,15 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 		require.Equal(gh.t, gh.selectedAuthModeIDs[0], gh.authModes[idx].Id,
 			"Selected authentication mode ID does not match expected one")
 		gh.selectedAuthModeIDs = slices.Delete(gh.selectedAuthModeIDs, 0, 1)
+
+		if len(gh.selectedUILayouts) < 1 {
+			// TODO: Make this an error but we don't support checking the layout in all tests yet.
+			return nil
+		}
+
+		gdm_test.RequireEqualData(gh.t, gh.selectedUILayouts[0], gh.currentUILayout,
+			"Selected UI layout does not match expected one")
+		gh.selectedUILayouts = slices.Delete(gh.selectedUILayouts, 0, 1)
 
 	case *gdm.EventData_AuthEvent:
 		gh.t.Logf("Authentication event: %s", ev.AuthEvent.Response)
@@ -172,6 +198,14 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 		}
 		gh.currentStage = req.ChangeStage.Stage
 		log.Debugf(context.TODO(), "Switching to stage %d", gh.currentStage)
+
+		switch req.ChangeStage.Stage {
+		case proto.Stage_brokerSelection:
+			gh.authModes = nil
+			gh.brokerID = ""
+		case proto.Stage_authModeSelection:
+			gh.currentUILayout = nil
+		}
 
 		return &gdm.Data{
 			Type: gdm.DataType_response,
