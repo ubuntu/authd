@@ -4,13 +4,13 @@ Priority: 1050
 
 Auth-Type: Primary
 Auth:
-	[success=end default=ignore]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
+	[success=end ignore=ignore default=die]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
 Account-Type: Additional
 Account:
 	[default=ignore success=ok user_unknown=ignore]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
 Password-Type: Primary
 Password:
-	[success=end default=ignore]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
+	[success=end ignore=ignore default=die]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
 Session-Type: Additional
 Session-Interactive-Only: yes
 Session:
