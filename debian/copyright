@@ -258,6 +258,8 @@ Files: vendor_rust/anyhow/*
        vendor_rust/pin-project-lite/*
        vendor_rust/prettyplease/*
        vendor_rust/proc-macro2/*
+       vendor_rust/procfs/*
+       vendor_rust/procfs-core/*
        vendor_rust/quote/*
        vendor_rust/regex/*
        vendor_rust/regex-syntax/*
@@ -482,6 +484,31 @@ License: MIT
 
 Files: vendor_rust/windows*/*
 Copyright: Microsoft Corporation.
+License: MIT
+
+Files: vendor_rust/chrono/*
+Copyright: 2014-2017 Kang Seonghoon and contributors
+License: MIT
+
+Files: vendor_rust/crc32fast/*
+Copyright: 2018 Sam Rijs, Alex Crichton and contributors
+License: MIT
+
+Files: vendor_rust/flate2/*
+Copyright: 2014 Alex Crichton
+License: MIT
+
+Files: vendor_rust/hex/*
+Copyright: 2013-2014 The Rust Project Developers
+           2015-2020 The rust-hex Developers
+License: MIT
+
+Files: vendor_rust/iana-time-zone/*
+Copyright: 2020 Andrew D. Straw
+License: MIT
+
+Files: vendor_rust/num-traits/*
+Copyright: 2014 The Rust Project Developers
 License: MIT
 
 License: Apache-2.0
