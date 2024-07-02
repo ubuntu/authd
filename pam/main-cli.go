@@ -26,6 +26,7 @@ func main() {
 	cliPath := os.Getenv("AUTHD_PAM_CLI_PATH")
 	testName := os.Getenv("AUTHD_PAM_CLI_TEST_NAME")
 	pamUser := os.Getenv("AUTHD_PAM_CLI_USER")
+	pamService := os.Getenv("AUTHD_PAM_CLI_SERVICE")
 
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "pam-cli-tester-")
 	if err != nil {
@@ -65,7 +66,10 @@ func main() {
 	action, args := os.Args[1], os.Args[2:]
 	args = append(defaultArgs, args...)
 
-	serviceFile, err := pam_test.CreateService(tmpDir, "authd-cli", []pam_test.ServiceLine{
+	if pamService == "" {
+		pamService = "authd-cli"
+	}
+	serviceFile, err := pam_test.CreateService(tmpDir, pamService, []pam_test.ServiceLine{
 		{Action: pam_test.Auth, Control: pam_test.SufficientRequisite, Module: execModule, Args: args},
 		{Action: pam_test.Auth, Control: pam_test.Sufficient, Module: pam_test.Ignore.String()},
 		{Action: pam_test.Account, Control: pam_test.SufficientRequisite, Module: execModule, Args: args},
