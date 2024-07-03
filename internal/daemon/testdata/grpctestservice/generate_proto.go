@@ -1,4 +1,4 @@
-//go:build generate
+//go:build generate && proto
 
 //go:generate ../../../../tools/generate-proto.sh --with-grpc grpctestservice.proto
 

@@ -45,6 +45,12 @@ jobs:
         run: |
           set -eu
           go run -tags pam_binary_cli ./pam login --exec-debug
+      - name: Generate Proto files
+        run: |
+          set -eu
+          find -name "*.pb.go" -delete -print
+          go generate -x -tags proto ./...
+          find -name "*.pb.go"
       - name: Generate PAM module
         run: |
           set -eu

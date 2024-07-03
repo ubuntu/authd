@@ -4,7 +4,7 @@ set -euo pipefail
 
 if [ -v DEB_HOST_GNU_TYPE ]; then
     echo "Proto files should not be regenerated during package building"
-    exit 0
+    exit 1
 fi
 
 # TODO: Watch https://github.com/protocolbuffers/protobuf for any changes on the
