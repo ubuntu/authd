@@ -111,7 +111,15 @@ func (m qrcodeModel) View() string {
 	qrcodeWidth := lipgloss.Width(qr)
 
 	style := centeredStyle.Width(qrcodeWidth)
-	fields = append(fields, style.Render(m.code))
+	renderedContent := m.content
+	if lipgloss.Width(m.content) < qrcodeWidth {
+		renderedContent = style.Render(m.content)
+	}
+	fields = append(fields, renderedContent)
+
+	if m.code != "" {
+		fields = append(fields, style.Render(m.code))
+	}
 
 	if m.buttonModel != nil {
 		fields = append(fields, style.Render(m.buttonModel.View()))
