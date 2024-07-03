@@ -45,7 +45,7 @@ fn get_all_entries() -> Response<Vec<Shadow>> {
         match client.get_shadow_entries(req).await {
             Ok(r) => Response::Success(shadow_entries_to_shadows(r.into_inner().entries)),
             Err(e) => {
-                error!("error when listing shadow: {}", e.code().description());
+                error!("error when listing shadow: {}", e.code());
                 super::grpc_status_to_nss_response(e)
             }
         }
@@ -76,11 +76,7 @@ fn get_entry_by_name(name: String) -> Response<Shadow> {
         match client.get_shadow_by_name(req).await {
             Ok(r) => Response::Success(shadow_entry_to_shadow(r.into_inner())),
             Err(e) => {
-                error!(
-                    "error when getting shadow by name '{}': {}",
-                    name,
-                    e.code().description()
-                );
+                error!("error when getting shadow by name '{}': {}", name, e.code());
                 super::grpc_status_to_nss_response(e)
             }
         }
