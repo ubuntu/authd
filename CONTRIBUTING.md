@@ -35,7 +35,7 @@ Contributions are made to this project via Issues and Pull Requests (PRs). A few
 * General issues or feature requests should be reported to the [GitHub Project](https://github.com/ubuntu/authd/issues)
 * Search for existing Issues and PRs on the [project's repository](https://github.com/ubuntu/authd) before creating your own.
 * We work hard to makes sure issues are handled in a timely manner but, depending on the impact, it could take a while to investigate the root cause. A friendly ping in the comment thread to the submitter or a contributor can help draw attention if your issue is blocking.
-* If you've never contributed before, see [this Ubuntu discourse post](https://discourse.ubuntu.com/t/contribute/26) for resources and tips on how to get started.
+* If you've never contributed before, see [this post on ubuntu.com](https://ubuntu.com/community/contribute) for resources and tips on how to get started.
 
 ### Issues
 
@@ -73,17 +73,94 @@ Once merged to the main branch, `po` files and any documentation change will be 
 
 ### Required dependencies
 
-TODO
+This project has several build dependencies. You can install these dependencies from the top of the source tree using the `apt` command as follows:
+
+```shell
+sudo apt update
+sudo apt build-dep .
+```
 
 ### Building and running the binaries
 
-TODO
+The project consists of the following binaries:
+
+* `authd`: The main authentication service.
+* `pam_authd.so` and `pam_authd_exec.so`: A PAM module and its helper library.
+* `libnss_authd.so`: An NSS module.
+
+The project can be built as a Debian package. This process will compile all the binaries, run the test suite, and produce the Debian packages.
+
+Alternatively, for development purposes, each binary can be built manually and separately.
+
+#### Building the Debian package from source
+
+Building the Debian package from source is the most straightforward and standard method for compiling the binaries and running the test suite. To do this, run the following command from the top of the source tree:
+
+> [!NOTE]
+> This is required to vendorize the Rust crates and must be only done once.
+> ```shell
+> sudo apt install libssl-dev
+> cargo install cargo-vendor-filterer
+> cargo vendor-filterer vendor_rust
+> ```
+
+Then build the Debian package:
+
+```shell
+dpkg-buildpackage
+```
+
+The debian packages are available in the parent directory.
+
+#### Building authd only
+
+To build `authd` only, run the following command from the top of the source tree:
+
+```shell
+go build ./cmd/authd
+```
+
+The built binary will be in the current directory. The daemon can be run directly from this binary without installing it on the system.
+
+#### Building the PAM module only
+
+To build the PAM module, from the top of the source tree run the following commands:
+
+> [!NOTE]
+> This dependency is required to regenerate the proto files and is only needed once.
+> ```shell
+> sudo apt install protoc-gen-go
+> ```
+
+Then build the PAM module:
+
+```shell
+go generate ./pam/
+```
+
+This command will produce two binaries: `./pam/pam_authd.so` and `./pam/go-exec/pam_authd_exec.so`.
+
+ These modules must be copied to `/usr/lib/x86_64-linux-gnu/security/pam_authd.so` and `/usr/lib/x86_64-linux-gnu/security/pam_authd_exec.so` respectively.
+
+#### Building the NSS module only
+
+To build the NSS module, from the top of the source tree run the command:
+
+```shell
+cargo build
+```
+
+It will build a debug release of the NSS module.
+
+The library resulting from the build is located in `./target/debug/libnss_authd.so`. This module must be copied to `/usr/lib/x86_64-linux-gnu/libnss_authd.so.2`.
 
 ### About the testsuite
 
 The project includes a comprehensive testsuite made of unit and integration tests. All the tests must pass before the review is considered. If you have troubles with the testsuite, feel free to mention it on your PR description.
 
-TODO
+You can run all tests with: `go test ./...` (add -race for race detection).
+
+Every packages have a suite of at least package-level tests. They may integrate more granular unit tests for complex functionalities. Integration tests are located in `./pam/integration-tests` for the PAM module and `./nss/integration-tests` for the NSS module.
 
 The test suite must pass before merging the PR to our main branch. Any new feature, change or fix must be covered by corresponding tests.
 
