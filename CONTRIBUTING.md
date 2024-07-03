@@ -31,14 +31,15 @@ We take our community seriously and hold ourselves and other contributors to hig
 
 Contributions are made to this project via Issues and Pull Requests (PRs). A few general guidelines that cover both:
 
-* To report security vulnerabilities, please use the advisories page of the repository and not a public bug report. Please use [launchpad private bugs](https://bugs.launchpad.net/ubuntu/+source/authd/+filebug) which is monitored by our security team. On ubuntu machine, it’s best to use `ubuntu-bug authd` to collect relevant information. FIXME: snap?
-* Search for existing Issues and PRs on this repository before creating your own.
+* To report security vulnerabilities, please use the advisories page of the repository and not a public bug report. Please use [launchpad private bugs](https://bugs.launchpad.net/ubuntu/+source/authd/+filebug) which is monitored by our security team. On ubuntu machine, it’s best to use `ubuntu-bug authd` to collect relevant information. <!-- FIXME: snap? -->
+* General issues or feature requests should be reported to the [GitHub Project](https://github.com/ubuntu/authd/issues)
+* Search for existing Issues and PRs on the [project's repository](https://github.com/ubuntu/authd) before creating your own.
 * We work hard to makes sure issues are handled in a timely manner but, depending on the impact, it could take a while to investigate the root cause. A friendly ping in the comment thread to the submitter or a contributor can help draw attention if your issue is blocking.
 * If you've never contributed before, see [this Ubuntu discourse post](https://discourse.ubuntu.com/t/contribute/26) for resources and tips on how to get started.
 
 ### Issues
 
-Issues should be used to report problems with the software, request a new feature, or to discuss potential changes before a PR is created. When you create a new Issue, a template will be loaded that will guide you through collecting and providing the information we need to investigate.
+Issues should be used to report problems with the software, request a new feature, or to discuss potential changes before a PR is created. When you [create a new Issue](https://github.com/ubuntu/authd/issues), a template will be loaded that will guide you through collecting and providing the information we need to investigate.
 
 If you find an Issue that addresses the problem you're having, please add your own reproduction information to the existing issue rather than creating a new one. Adding a [reaction](https://github.blog/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) can also help be indicating to our maintainers that a particular problem is affecting more than just the reporter.
 
