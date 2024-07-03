@@ -350,7 +350,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 					"type":   "qrcode",
 					"label":  modeLabel,
 					"wait":   "true",
-					"button": "regenerate QR code",
+					"button": "Regenerate code",
 				}),
 			}
 

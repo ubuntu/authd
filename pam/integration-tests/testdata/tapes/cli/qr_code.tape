@@ -4,7 +4,7 @@ Output qr_code.gif # If we don't specify a .gif output, it will create a default
 # Configuration header to standardize the output.
 # Does not work with the "Source" command.
 Set Width 800
-Set Height 600
+Set Height 650
 # TODO: Ideally, we should use Ubuntu Mono. However, the github runner is still on Jammy, which does not have it.
 # We should update this to use Ubuntu Mono once the runner is updated.
 Set FontFamily "Monospace"

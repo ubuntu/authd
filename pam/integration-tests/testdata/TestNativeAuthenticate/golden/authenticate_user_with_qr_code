@@ -358,7 +358,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action:
 
 
@@ -465,7 +465,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
@@ -489,7 +489,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action:
 
 
@@ -572,7 +572,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
@@ -596,7 +596,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: 1
 
 
@@ -679,7 +679,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
@@ -703,7 +703,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: 1
 PAM Authenticate() for user "user-integration-qr-code" exited with success
 PAM AcctMgmt() exited with success
@@ -786,7 +786,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
@@ -810,7 +810,7 @@ Scan the qrcode or enter the code in the login page
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
-2 - regenerate QR code
+2 - Regenerate code
 Select action: 1
 PAM Authenticate() for user "user-integration-qr-code" exited with success
 PAM AcctMgmt() exited with success
