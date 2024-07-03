@@ -490,7 +490,7 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 		b.isAuthenticatedCallsMu.Unlock()
 	}()
 
-	access, data, err = b.handleIsAuthenticated(b.isAuthenticatedCalls[sessionID].ctx, sessionInfo, authData)
+	access, data, err = b.handleIsAuthenticated(ctx, sessionInfo, authData)
 	if access == AuthGranted && sessionInfo.currentAuthStep < sessionInfo.neededAuthSteps {
 		sessionInfo.currentAuthStep++
 		access = AuthNext
