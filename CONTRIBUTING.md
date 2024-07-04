@@ -85,7 +85,8 @@ sudo apt build-dep .
 The project consists of the following binaries:
 
 * `authd`: The main authentication service.
-* `pam_authd.so` and `pam_authd_exec.so`: A PAM module and its helper library.
+* `pam_authd.so`: A PAM native module (used by GDM)
+* `pam_authd_exec.so`, `authd-pam`: A PAM module and its helper executable (used by other PAM applications).
 * `libnss_authd.so`: An NSS module.
 
 The project can be built as a Debian package. This process will compile all the binaries, run the test suite, and produce the Debian packages.
@@ -136,11 +137,12 @@ Then build the PAM module:
 
 ```shell
 go generate ./pam/
+go build -tags pam_binary_exec -o ./pam/authd-pam ./pam
 ```
 
-This command will produce two binaries: `./pam/pam_authd.so` and `./pam/go-exec/pam_authd_exec.so`.
+This command will produce two libraries (`./pam/pam_authd.so` and `./pam/go-exec/pam_authd_exec.so`) and an executable (`./pam/authd-pam`).
 
- These modules must be copied to `/usr/lib/x86_64-linux-gnu/security/pam_authd.so` and `/usr/lib/x86_64-linux-gnu/security/pam_authd_exec.so` respectively.
+These modules must be copied to `/usr/lib/$(gcc -dumpmachine)/security/` while the executable must be copied to `/usr/libexec/authd-pam`.
 
 #### Building the NSS module only
 
@@ -152,7 +154,7 @@ cargo build
 
 It will build a debug release of the NSS module.
 
-The library resulting from the build is located in `./target/debug/libnss_authd.so`. This module must be copied to `/usr/lib/x86_64-linux-gnu/libnss_authd.so.2`.
+The library resulting from the build is located in `./target/debug/libnss_authd.so`. This module must be copied to `/usr/lib/$(gcc -dumpmachine)/libnss_authd.so.2`.
 
 ### About the testsuite
 
