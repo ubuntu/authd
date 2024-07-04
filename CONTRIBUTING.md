@@ -1,19 +1,19 @@
 # Contributing to authd
 
-A big welcome and thank you for considering contributing to authd and Ubuntu! It’s people like you that make it a reality for users in our community.
+A big welcome and thank you for considering making a contribution to authd and Ubuntu! It’s people like you that help make these products a reality for users in our community.
 
-Reading and following these guidelines will help us make the contribution process easy and effective for everyone involved. It also communicates that you agree to respect the time of the developers managing and developing this project. In return, we will reciprocate that respect by addressing your issue, assessing changes, and helping you finalize your pull requests.
+By agreeing to follow these guidelines the contribution process should be easy and effective for everyone involved. This also communicates that you agree to respect the time of the developers working on this project. In return, we will reciprocate that respect by addressing your issues, assessing proposed changes and helping you finalise your pull requests.
 
-These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
+These are mostly guidelines, not rules. Use your best judgment and feel free to propose changes to this document in a pull request.
 
 ## Quicklinks
 
 - [Contributing to authd](#contributing-to-authd)
   - [Quicklinks](#quicklinks)
-  - [Code of Conduct](#code-of-conduct)
-  - [Getting Started](#getting-started)
+  - [Code of conduct](#code-of-conduct)
+  - [Getting started](#getting-started)
     - [Issues](#issues)
-    - [Pull Requests](#pull-requests)
+    - [Pull requests](#pull-requests)
   - [Contributing to the code](#contributing-to-the-code)
     - [Required dependencies](#required-dependencies)
     - [Building and running the binaries](#building-and-running-the-binaries)
@@ -21,29 +21,30 @@ These are mostly guidelines, not rules. Use your best judgment, and feel free to
       - [Building authd only](#building-authd-only)
       - [Building the PAM module only](#building-the-pam-module-only)
       - [Building the NSS module only](#building-the-nss-module-only)
-    - [About the testsuite](#about-the-testsuite)
+    - [About the test suite](#about-the-testsuite)
       - [Tests with dependencies](#tests-with-dependencies)
     - [Code style](#code-style)
   - [Contributor License Agreement](#contributor-license-agreement)
-  - [Getting Help](#getting-help)
+  - [Getting help](#getting-help)
 
-## Code of Conduct
+## Code of conduct
 
-We take our community seriously and hold ourselves and other contributors to high standards of communication. By participating and contributing to this project, you agree to uphold our [Code of Conduct](https://ubuntu.com/community/code-of-conduct).
+We take our community seriously, holding ourselves and other contributors to high standards of communication. By contributing to this project you agree to uphold the Ubuntu community [Code of Conduct](https://ubuntu.com/community/code-of-conduct).
 
 ## Getting Started
 
-Contributions are made to this project via Issues and Pull Requests (PRs). A few general guidelines that cover both:
+Contributions are made to this project via Issues and Pull Requests (PRs). These are some general guidelines that cover both:
 
-* To report security vulnerabilities, please use the advisories page of the repository and not a public bug report. Please use [launchpad private bugs](https://bugs.launchpad.net/ubuntu/+source/authd/+filebug) which is monitored by our security team. On ubuntu machine, it’s best to use `ubuntu-bug authd` to collect relevant information. <!-- FIXME: snap? -->
+* To report security vulnerabilities, use the advisories page of the repository and not a public bug report. Please use [launchpad private bugs](https://bugs.launchpad.net/ubuntu/+source/authd/+filebug), which is monitored by our security team. On an Ubuntu machine, it’s best to use `ubuntu-bug authd` to collect relevant information. <!-- FIXME: snap? -->
 * General issues or feature requests should be reported to the [GitHub Project](https://github.com/ubuntu/authd/issues)
-* Search for existing Issues and PRs on the [project's repository](https://github.com/ubuntu/authd) before creating your own.
-* We work hard to makes sure issues are handled in a timely manner but, depending on the impact, it could take a while to investigate the root cause. A friendly ping in the comment thread to the submitter or a contributor can help draw attention if your issue is blocking.
 * If you've never contributed before, see [this post on ubuntu.com](https://ubuntu.com/community/contribute) for resources and tips on how to get started.
+* Existing Issues and PRs should be searched for on the [project's repository](https://github.com/ubuntu/authd) before creating your own.
+* While we work hard to ensure that issues are handled in a timely manner, it can take time to investigate the root cause. A friendly ping in the comment thread to the submitter or a contributor can help draw attention if your issue is blocking.
+* If you've never contributed before, read [this post on ubuntu.com](https://ubuntu.com/community/contribute) for resources and tips on how to get started.
 
 ### Issues
 
-Issues should be used to report problems with the software, request a new feature, or to discuss potential changes before a PR is created. When you [create a new Issue](https://github.com/ubuntu/authd/issues), a template will be loaded that will guide you through collecting and providing the information we need to investigate.
+Issues can be used to report problems with the software, request a new feature or discuss potential changes before a PR is created. When you [create a new Issue](https://github.com/ubuntu/authd/issues), a template will be loaded that will guide you through collecting and providing the information that we need to investigate.
 
 If you find an Issue that addresses the problem you're having, please add your own reproduction information to the existing issue rather than creating a new one. Adding a [reaction](https://github.blog/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) can also help be indicating to our maintainers that a particular problem is affecting more than just the reporter.
 
@@ -53,25 +54,25 @@ PRs to our project are always welcome and can be a quick way to get your fix or 
 
 * Only fix/add the functionality in question **OR** address wide-spread whitespace/style issues, not both.
 * Add unit or integration tests for fixed or changed functionality.
-* Address a single concern in the least number of changed lines as possible.
+* Address a single concern in the least possible number of changed lines.
 * Include documentation in the repo or on our [docs site](https://github.com/canonical/authd/wiki).
 * Be accompanied by a complete Pull Request template (loaded automatically when a PR is created).
 
-For changes that address core functionality or would require breaking changes (e.g. a major release), it's best to open an Issue to discuss your proposal first. This is not required but can save time creating and reviewing changes.
+For changes that address core functionality or that would require breaking changes (e.g. a major release), it's best to open an Issue to discuss your proposal first. This is not required but can save time when creating and reviewing changes.
 
-In general, we follow the ["fork-and-pull" Git workflow](https://github.com/susam/gitpr)
+In general, we follow the ["fork-and-pull" Git workflow](https://github.com/susam/gitpr):
 
-1. Fork the repository to your own Github account
-1. Clone the project to your machine
-1. Create a branch locally with a succinct but descriptive name
-1. Commit changes to the branch
-1. Following any formatting and testing guidelines specific to this repo
-1. Push changes to your fork
+1. Fork the repository to your own Github account.
+1. Clone the fork to your machine.
+1. Create a branch locally with a succinct but descriptive name.
+1. Commit changes to that branch.
+1. Follow any formatting and testing guidelines specific to this repo.
+1. Push changes to your fork.
 1. Open a PR in our repository and follow the PR template so that we can efficiently review the changes.
 
-> PRs will trigger unit and integration tests with and without race detection, linting and formatting validations, static and security checks, freshness of generated files verification. All the tests must pass before merging in main branch.
+> PRs will trigger unit and integration tests with and without race detection, linting and formatting validations, static and security checks, and freshness of generated files verification. All these tests must pass before any merge into the main branch.
 
-Once merged to the main branch, `po` files and any documentation change will be automatically updated. Those are thus not necessary in the pull request itself to minimize diff review.
+Once merged into the main branch, `po` files and any documentation change will be automatically updated. Updates to these files are therefore not necessary in the pull request itself, which helps minimise diff review.
 
 ## Contributing to the code
 
@@ -90,24 +91,25 @@ sudo apt install devscripts
 The project consists of the following binaries:
 
 * `authd`: The main authentication service.
-* `pam_authd.so`: A PAM native module (used by GDM)
+* `pam_authd.so`: A PAM native module (used by GDM).
 * `pam_authd_exec.so`, `authd-pam`: A PAM module and its helper executable (used by other PAM applications).
 * `libnss_authd.so`: An NSS module.
 
-The project can be built as a Debian package. This process will compile all the binaries, run the test suite, and produce the Debian packages.
+The project can be built as a Debian package. This process will compile all the binaries, run the test suite and produce the Debian packages.
 
 Alternatively, for development purposes, each binary can be built manually and separately.
 
 #### Building the Debian package from source
 
-Building the Debian package from source is the most straightforward and standard method for compiling the binaries and running the test suite. To do this, run the following command from the top of the source tree:
+Building the Debian package from source is the most straightforward and standard method for compiling the binaries and running the test suite. To do this, run the following commands from the top of the source tree:
 
-> [!NOTE]
-> This is required to vendorize the Rust crates and must be only done once.
-> ```shell
-> sudo apt install libssl-dev
-> cargo install cargo-vendor-filterer
-> ```
+> This is required to vendorize the Rust crates and must be done only once.
+
+```shell
+sudo apt install libssl-dev
+cargo install cargo-vendor-filterer
+cargo vendor-filterer vendor_rust
+```
 
 Then build the Debian package:
 
@@ -125,7 +127,7 @@ To build `authd` only, run the following command from the top of the source tree
 go build ./cmd/authd
 ```
 
-The built binary will be in the current directory. The daemon can be run directly from this binary without installing it on the system.
+The built binary will be found in the current directory. The daemon can be run directly from this binary without installing it on the system.
 
 #### Building the PAM module only
 
@@ -133,11 +135,12 @@ To build the PAM module, from the top of the source tree run the following comma
 
 > [!NOTE]
 > This command installs the tooling to hook up the Go GRPC modules to protoc.
-> ```shell
-> cd tools/
-> grep -o '_ ".*"' *.go | cut -d '"' -f 2 | xargs go install
-> cd ..
-> ```
+
+```shell
+cd tools/
+grep -o '_ ".*"' *.go | cut -d '"' -f 2 | xargs go install
+cd ..
+```
 
 Then build the PAM module:
 
@@ -146,7 +149,7 @@ go generate ./pam/
 go build -tags pam_binary_exec -o ./pam/authd-pam ./pam
 ```
 
-This command will produce two libraries (`./pam/pam_authd.so` and `./pam/go-exec/pam_authd_exec.so`) and an executable (`./pam/authd-pam`).
+This last command will produce two libraries (`./pam/pam_authd.so` and `./pam/go-exec/pam_authd_exec.so`) and an executable (`./pam/authd-pam`).
 
 These modules must be copied to `/usr/lib/$(gcc -dumpmachine)/security/` while the executable must be copied to `/usr/libexec/authd-pam`.
 
@@ -158,41 +161,42 @@ To build the NSS module, from the top of the source tree run the command:
 cargo build
 ```
 
-It will build a debug release of the NSS module.
+This will build a debug release of the NSS module.
 
 The library resulting from the build is located in `./target/debug/libnss_authd.so`. This module must be copied to `/usr/lib/$(gcc -dumpmachine)/libnss_authd.so.2`.
 
-### About the testsuite
+### About the test suite
 
-The project includes a comprehensive testsuite made of unit and integration tests. All the tests must pass before the review is considered. If you have troubles with the testsuite, feel free to mention it on your PR description.
+The project includes a comprehensive test suite made of unit and integration tests. All the tests must pass before the review is considered. If you have troubles with the test suite, feel free to mention it in your PR description.
 
-You can run all tests with: `go test ./...` (add -race for race detection).
+You can run all tests with: `go test ./...` (add the `-race` flag for race detection).
 
-Every packages have a suite of at least package-level tests. They may integrate more granular unit tests for complex functionalities. Integration tests are located in `./pam/integration-tests` for the PAM module and `./nss/integration-tests` for the NSS module.
+Every package has a suite of at least package-level tests. They may integrate more granular unit tests for complex functionalities. Integration tests are located in `./pam/integration-tests` for the PAM module and `./nss/integration-tests` for the NSS module.
 
 The test suite must pass before merging the PR to our main branch. Any new feature, change or fix must be covered by corresponding tests.
 
 #### Tests with dependencies
 
-Some tests, e.g. the [PAM CLI tests](https://github.com/ubuntu/authd/blob/5ba54c0a573f34e99782fe624b090ab229798fc3/pam/integration-tests/integration_test.go#L21), use external tools such as [vhs](https://github.com/charmbracelet/vhs)
+Some tests, such as the [PAM CLI tests](https://github.com/ubuntu/authd/blob/5ba54c0a573f34e99782fe624b090ab229798fc3/pam/integration-tests/integration_test.go#L21), use external tools such as [vhs](https://github.com/charmbracelet/vhs)
 to record and run the tape files needed for the tests. Those tools are not included in the project dependencies and must be installed manually.
 
-For more information about their usage, refer to the following documentations:
+Information about these tools and their usage will be linked below:
 
-- [vhs](https://github.com/charmbracelet/vhs?tab=readme-ov-file#tutorial)
+- [vhs](https://github.com/charmbracelet/vhs?tab=readme-ov-file#tutorial): tutorial on using vhs as a CLI-based video recorder
 
 ### Code style
 
-This project follow the Go code-style. For more informative information about the code style in use, please check <https://google.github.io/styleguide/go/>.
+This project follow the Go code-style. For more detailed information about the code style in use, please check <https://google.github.io/styleguide/go/>.
 
 ## Contributor License Agreement
 
-It is required to sign the [Contributor License Agreement](https://ubuntu.com/legal/contributors) in order to contribute to this project.
+It is a requirement that you sign the [Contributor License Agreement](https://ubuntu.com/legal/contributors) in order to contribute to this project.
+You only need to sign this once and if you have previously signed the agreement when contributing to other Canonical projects you will not need to sign it again.
 
-An automated test is executed on PRs to check if it has been accepted.
+An automated test is executed on PRs to check if this agreement has been accepted.
 
 This project is covered by [THIS LICENSE](LICENSE).
 
-## Getting Help
+## Getting help
 
 Join us in the [Ubuntu Community](https://discourse.ubuntu.com/c/desktop/8) and post your question there with a descriptive tag.
