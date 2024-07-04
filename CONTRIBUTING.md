@@ -108,7 +108,6 @@ Building the Debian package from source is the most straightforward and standard
 ```shell
 sudo apt install libssl-dev
 cargo install cargo-vendor-filterer
-cargo vendor-filterer vendor_rust
 ```
 
 Then build the Debian package:
