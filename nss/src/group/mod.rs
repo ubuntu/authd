@@ -1,4 +1,4 @@
-use crate::{error, REQUEST_TIMEOUT};
+use crate::{info, REQUEST_TIMEOUT};
 use libc::gid_t;
 use libnss::group::{Group, GroupHooks};
 use libnss::interop::Response;
@@ -31,7 +31,7 @@ fn get_all_entries() -> Response<Vec<Group>> {
     let rt = match Builder::new_current_thread().enable_all().build() {
         Ok(rt) => rt,
         Err(e) => {
-            error!("could not create runtime for NSS: {}", e);
+            info!("could not create runtime for NSS: {}", e);
             return Response::Unavail;
         }
     };
@@ -40,7 +40,7 @@ fn get_all_entries() -> Response<Vec<Group>> {
         let mut client = match client::new_client().await {
             Ok(c) => c,
             Err(e) => {
-                error!("could not connect to gRPC server: {}", e);
+                info!("could not connect to gRPC server: {}", e);
                 return Response::Unavail;
             }
         };
@@ -50,7 +50,7 @@ fn get_all_entries() -> Response<Vec<Group>> {
         match client.get_group_entries(req).await {
             Ok(r) => Response::Success(group_entries_to_groups(r.into_inner().entries)),
             Err(e) => {
-                error!("error when listing groups: {}", e.code());
+                info!("error when listing groups: {}", e.code());
                 super::grpc_status_to_nss_response(e)
             }
         }
@@ -62,7 +62,7 @@ fn get_entry_by_gid(gid: gid_t) -> Response<Group> {
     let rt = match Builder::new_current_thread().enable_all().build() {
         Ok(rt) => rt,
         Err(e) => {
-            error!("could not create runtime for NSS: {}", e);
+            info!("could not create runtime for NSS: {}", e);
             return Response::Unavail;
         }
     };
@@ -71,7 +71,7 @@ fn get_entry_by_gid(gid: gid_t) -> Response<Group> {
         let mut client = match client::new_client().await {
             Ok(c) => c,
             Err(e) => {
-                error!("could not connect to gRPC server: {}", e);
+                info!("could not connect to gRPC server: {}", e);
                 return Response::Unavail;
             }
         };
@@ -81,7 +81,7 @@ fn get_entry_by_gid(gid: gid_t) -> Response<Group> {
         match client.get_group_by_gid(req).await {
             Ok(r) => Response::Success(group_entry_to_group(r.into_inner())),
             Err(e) => {
-                error!("error when getting group by gid '{}': {}", gid, e.code());
+                info!("error when getting group by gid '{}': {}", gid, e.code());
                 super::grpc_status_to_nss_response(e)
             }
         }
@@ -93,7 +93,7 @@ fn get_entry_by_name(name: String) -> Response<Group> {
     let rt = match Builder::new_current_thread().enable_all().build() {
         Ok(rt) => rt,
         Err(e) => {
-            error!("could not create runtime for NSS: {}", e);
+            info!("could not create runtime for NSS: {}", e);
             return Response::Unavail;
         }
     };
@@ -102,7 +102,7 @@ fn get_entry_by_name(name: String) -> Response<Group> {
         let mut client = match client::new_client().await {
             Ok(c) => c,
             Err(e) => {
-                error!("could not connect to gRPC server: {}", e);
+                info!("could not connect to gRPC server: {}", e);
                 return Response::Unavail;
             }
         };
@@ -112,7 +112,7 @@ fn get_entry_by_name(name: String) -> Response<Group> {
         match client.get_group_by_name(req).await {
             Ok(r) => Response::Success(group_entry_to_group(r.into_inner())),
             Err(e) => {
-                error!(
+                info!(
                     "error when getting group by name '{}': {}",
                     name,
                     e.code().description()

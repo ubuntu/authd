@@ -1,4 +1,4 @@
-use crate::{error, REQUEST_TIMEOUT};
+use crate::{info, REQUEST_TIMEOUT};
 use libnss::interop::Response;
 use libnss::shadow::{Shadow, ShadowHooks};
 use tokio::runtime::Builder;
@@ -26,7 +26,7 @@ fn get_all_entries() -> Response<Vec<Shadow>> {
     let rt = match Builder::new_current_thread().enable_all().build() {
         Ok(rt) => rt,
         Err(e) => {
-            error!("could not create runtime for NSS: {}", e);
+            info!("could not create runtime for NSS: {}", e);
             return Response::Unavail;
         }
     };
@@ -35,7 +35,7 @@ fn get_all_entries() -> Response<Vec<Shadow>> {
         let mut client = match client::new_client().await {
             Ok(c) => c,
             Err(e) => {
-                error!("could not connect to gRPC server: {}", e);
+                info!("could not connect to gRPC server: {}", e);
                 return Response::Unavail;
             }
         };
@@ -45,7 +45,7 @@ fn get_all_entries() -> Response<Vec<Shadow>> {
         match client.get_shadow_entries(req).await {
             Ok(r) => Response::Success(shadow_entries_to_shadows(r.into_inner().entries)),
             Err(e) => {
-                error!("error when listing shadow: {}", e.code());
+                info!("error when listing shadow: {}", e.code());
                 super::grpc_status_to_nss_response(e)
             }
         }
@@ -57,7 +57,7 @@ fn get_entry_by_name(name: String) -> Response<Shadow> {
     let rt = match Builder::new_current_thread().enable_all().build() {
         Ok(rt) => rt,
         Err(e) => {
-            error!("could not create runtime for NSS: {}", e);
+            info!("could not create runtime for NSS: {}", e);
             return Response::Unavail;
         }
     };
@@ -66,7 +66,7 @@ fn get_entry_by_name(name: String) -> Response<Shadow> {
         let mut client = match client::new_client().await {
             Ok(c) => c,
             Err(e) => {
-                error!("could not connect to gRPC server: {}", e);
+                info!("could not connect to gRPC server: {}", e);
                 return Response::Unavail;
             }
         };
@@ -76,7 +76,7 @@ fn get_entry_by_name(name: String) -> Response<Shadow> {
         match client.get_shadow_by_name(req).await {
             Ok(r) => Response::Success(shadow_entry_to_shadow(r.into_inner())),
             Err(e) => {
-                error!("error when getting shadow by name '{}': {}", name, e.code());
+                info!("error when getting shadow by name '{}': {}", name, e.code());
                 super::grpc_status_to_nss_response(e)
             }
         }

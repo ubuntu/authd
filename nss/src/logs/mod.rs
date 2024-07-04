@@ -15,7 +15,7 @@ macro_rules! info {
 macro_rules! error {
     ($($arg:tt)*) => {
         let log_prefix = "authd:";
-        log::error!("{} {}", log_prefix, format_args!($($arg)*));
+        log::info!("{} {}", log_prefix, format_args!($($arg)*));
     }
 }
 
