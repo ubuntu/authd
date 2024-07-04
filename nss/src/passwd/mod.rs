@@ -1,4 +1,4 @@
-use crate::{error, REQUEST_TIMEOUT};
+use crate::{info, REQUEST_TIMEOUT};
 use libc::uid_t;
 use libnss::interop::Response;
 use libnss::passwd::{Passwd, PasswdHooks};
@@ -31,7 +31,7 @@ fn get_all_entries() -> Response<Vec<Passwd>> {
     let rt = match Builder::new_current_thread().enable_all().build() {
         Ok(rt) => rt,
         Err(e) => {
-            error!("could not create runtime for NSS: {}", e);
+            info!("could not create runtime for NSS: {}", e);
             return Response::Unavail;
         }
     };
@@ -40,7 +40,7 @@ fn get_all_entries() -> Response<Vec<Passwd>> {
         let mut client = match client::new_client().await {
             Ok(c) => c,
             Err(e) => {
-                error!("could not connect to gRPC server: {}", e);
+                info!("could not connect to gRPC server: {}", e);
                 return Response::Unavail;
             }
         };
@@ -50,7 +50,7 @@ fn get_all_entries() -> Response<Vec<Passwd>> {
         match client.get_passwd_entries(req).await {
             Ok(r) => Response::Success(passwd_entries_to_passwds(r.into_inner().entries)),
             Err(e) => {
-                error!("error when listing passwd: {}", e.code());
+                info!("error when listing passwd: {}", e.code());
                 super::grpc_status_to_nss_response(e)
             }
         }
@@ -62,7 +62,7 @@ fn get_entry_by_uid(uid: uid_t) -> Response<Passwd> {
     let rt = match Builder::new_current_thread().enable_all().build() {
         Ok(rt) => rt,
         Err(e) => {
-            error!("could not create runtime for NSS: {}", e);
+            info!("could not create runtime for NSS: {}", e);
             return Response::Unavail;
         }
     };
@@ -71,7 +71,7 @@ fn get_entry_by_uid(uid: uid_t) -> Response<Passwd> {
         let mut client = match client::new_client().await {
             Ok(c) => c,
             Err(e) => {
-                error!("could not connect to gRPC server: {}", e);
+                info!("could not connect to gRPC server: {}", e);
                 return Response::Unavail;
             }
         };
@@ -81,7 +81,7 @@ fn get_entry_by_uid(uid: uid_t) -> Response<Passwd> {
         match client.get_passwd_by_uid(req).await {
             Ok(r) => Response::Success(passwd_entry_to_passwd(r.into_inner())),
             Err(e) => {
-                error!("error when getting passwd by uid '{}': {}", uid, e.code());
+                info!("error when getting passwd by uid '{}': {}", uid, e.code());
                 super::grpc_status_to_nss_response(e)
             }
         }
@@ -93,7 +93,7 @@ fn get_entry_by_name(name: String) -> Response<Passwd> {
     let rt = match Builder::new_current_thread().enable_all().build() {
         Ok(rt) => rt,
         Err(e) => {
-            error!("could not create runtime for NSS: {}", e);
+            info!("could not create runtime for NSS: {}", e);
             return Response::Unavail;
         }
     };
@@ -102,7 +102,7 @@ fn get_entry_by_name(name: String) -> Response<Passwd> {
         let mut client = match client::new_client().await {
             Ok(c) => c,
             Err(e) => {
-                error!("could not connect to gRPC server: {}", e);
+                info!("could not connect to gRPC server: {}", e);
                 return Response::Unavail;
             }
         };
@@ -115,11 +115,7 @@ fn get_entry_by_name(name: String) -> Response<Passwd> {
         match client.get_passwd_by_name(req).await {
             Ok(r) => Response::Success(passwd_entry_to_passwd(r.into_inner())),
             Err(e) => {
-                error!(
-                    "error when getting passwd by name '{}': {}",
-                    name,
-                    e.code()
-                );
+                info!("error when getting passwd by name '{}': {}", name, e.code());
                 super::grpc_status_to_nss_response(e)
             }
         }

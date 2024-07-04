@@ -11,14 +11,6 @@ macro_rules! info {
     }
 }
 
-#[macro_export]
-macro_rules! error {
-    ($($arg:tt)*) => {
-        let log_prefix = "authd:";
-        log::error!("{} {}", log_prefix, format_args!($($arg)*));
-    }
-}
-
 /// init_logger initialize the global logger with a default level set to info. This function is only
 /// required to be called once and is a no-op on subsequent calls.
 ///
