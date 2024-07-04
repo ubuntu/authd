@@ -17,6 +17,10 @@ These are mostly guidelines, not rules. Use your best judgment, and feel free to
   - [Contributing to the code](#contributing-to-the-code)
     - [Required dependencies](#required-dependencies)
     - [Building and running the binaries](#building-and-running-the-binaries)
+      - [Building the Debian package from source](#building-the-debian-package-from-source)
+      - [Building authd only](#building-authd-only)
+      - [Building the PAM module only](#building-the-pam-module-only)
+      - [Building the NSS module only](#building-the-nss-module-only)
     - [About the testsuite](#about-the-testsuite)
       - [Tests with dependencies](#tests-with-dependencies)
     - [Code style](#code-style)
@@ -31,14 +35,15 @@ We take our community seriously and hold ourselves and other contributors to hig
 
 Contributions are made to this project via Issues and Pull Requests (PRs). A few general guidelines that cover both:
 
-* To report security vulnerabilities, please use the advisories page of the repository and not a public bug report. Please use [launchpad private bugs](https://bugs.launchpad.net/ubuntu/+source/authd/+filebug) which is monitored by our security team. On ubuntu machine, it’s best to use `ubuntu-bug authd` to collect relevant information. FIXME: snap?
-* Search for existing Issues and PRs on this repository before creating your own.
+* To report security vulnerabilities, please use the advisories page of the repository and not a public bug report. Please use [launchpad private bugs](https://bugs.launchpad.net/ubuntu/+source/authd/+filebug) which is monitored by our security team. On ubuntu machine, it’s best to use `ubuntu-bug authd` to collect relevant information. <!-- FIXME: snap? -->
+* General issues or feature requests should be reported to the [GitHub Project](https://github.com/ubuntu/authd/issues)
+* Search for existing Issues and PRs on the [project's repository](https://github.com/ubuntu/authd) before creating your own.
 * We work hard to makes sure issues are handled in a timely manner but, depending on the impact, it could take a while to investigate the root cause. A friendly ping in the comment thread to the submitter or a contributor can help draw attention if your issue is blocking.
-* If you've never contributed before, see [this Ubuntu discourse post](https://discourse.ubuntu.com/t/contribute/26) for resources and tips on how to get started.
+* If you've never contributed before, see [this post on ubuntu.com](https://ubuntu.com/community/contribute) for resources and tips on how to get started.
 
 ### Issues
 
-Issues should be used to report problems with the software, request a new feature, or to discuss potential changes before a PR is created. When you create a new Issue, a template will be loaded that will guide you through collecting and providing the information we need to investigate.
+Issues should be used to report problems with the software, request a new feature, or to discuss potential changes before a PR is created. When you [create a new Issue](https://github.com/ubuntu/authd/issues), a template will be loaded that will guide you through collecting and providing the information we need to investigate.
 
 If you find an Issue that addresses the problem you're having, please add your own reproduction information to the existing issue rather than creating a new one. Adding a [reaction](https://github.blog/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) can also help be indicating to our maintainers that a particular problem is affecting more than just the reporter.
 
@@ -72,17 +77,98 @@ Once merged to the main branch, `po` files and any documentation change will be 
 
 ### Required dependencies
 
-TODO
+This project has several build dependencies. You can install these dependencies from the top of the source tree using the `apt` command as follows:
+
+```shell
+sudo apt update
+sudo apt build-dep .
+sudo apt install devscripts
+```
 
 ### Building and running the binaries
 
-TODO
+The project consists of the following binaries:
+
+* `authd`: The main authentication service.
+* `pam_authd.so`: A PAM native module (used by GDM)
+* `pam_authd_exec.so`, `authd-pam`: A PAM module and its helper executable (used by other PAM applications).
+* `libnss_authd.so`: An NSS module.
+
+The project can be built as a Debian package. This process will compile all the binaries, run the test suite, and produce the Debian packages.
+
+Alternatively, for development purposes, each binary can be built manually and separately.
+
+#### Building the Debian package from source
+
+Building the Debian package from source is the most straightforward and standard method for compiling the binaries and running the test suite. To do this, run the following command from the top of the source tree:
+
+> [!NOTE]
+> This is required to vendorize the Rust crates and must be only done once.
+> ```shell
+> sudo apt install libssl-dev
+> cargo install cargo-vendor-filterer
+> ```
+
+Then build the Debian package:
+
+```shell
+debuild --prepend-path=${HOME}/.cargo/bin
+```
+
+The debian packages are available in the parent directory.
+
+#### Building authd only
+
+To build `authd` only, run the following command from the top of the source tree:
+
+```shell
+go build ./cmd/authd
+```
+
+The built binary will be in the current directory. The daemon can be run directly from this binary without installing it on the system.
+
+#### Building the PAM module only
+
+To build the PAM module, from the top of the source tree run the following commands:
+
+> [!NOTE]
+> This command installs the tooling to hook up the Go GRPC modules to protoc.
+> ```shell
+> cd tools/
+> grep -o '_ ".*"' *.go | cut -d '"' -f 2 | xargs go install
+> cd ..
+> ```
+
+Then build the PAM module:
+
+```shell
+go generate ./pam/
+go build -tags pam_binary_exec -o ./pam/authd-pam ./pam
+```
+
+This command will produce two libraries (`./pam/pam_authd.so` and `./pam/go-exec/pam_authd_exec.so`) and an executable (`./pam/authd-pam`).
+
+These modules must be copied to `/usr/lib/$(gcc -dumpmachine)/security/` while the executable must be copied to `/usr/libexec/authd-pam`.
+
+#### Building the NSS module only
+
+To build the NSS module, from the top of the source tree run the command:
+
+```shell
+cargo build
+```
+
+It will build a debug release of the NSS module.
+
+The library resulting from the build is located in `./target/debug/libnss_authd.so`. This module must be copied to `/usr/lib/$(gcc -dumpmachine)/libnss_authd.so.2`.
 
 ### About the testsuite
 
 The project includes a comprehensive testsuite made of unit and integration tests. All the tests must pass before the review is considered. If you have troubles with the testsuite, feel free to mention it on your PR description.
 
-TODO
+You can run all tests with: `go test ./...` (add -race for race detection).
+
+Every packages have a suite of at least package-level tests. They may integrate more granular unit tests for complex functionalities. Integration tests are located in `./pam/integration-tests` for the PAM module and `./nss/integration-tests` for the NSS module.
 
 The test suite must pass before merging the PR to our main branch. Any new feature, change or fix must be covered by corresponding tests.
 
