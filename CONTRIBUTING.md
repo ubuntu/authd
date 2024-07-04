@@ -82,6 +82,7 @@ This project has several build dependencies. You can install these dependencies 
 ```shell
 sudo apt update
 sudo apt build-dep .
+sudo apt install devscripts
 ```
 
 ### Building and running the binaries
@@ -106,13 +107,12 @@ Building the Debian package from source is the most straightforward and standard
 > ```shell
 > sudo apt install libssl-dev
 > cargo install cargo-vendor-filterer
-> cargo vendor-filterer vendor_rust
 > ```
 
 Then build the Debian package:
 
 ```shell
-dpkg-buildpackage
+debuild --prepend-path=${HOME}/.cargo/bin
 ```
 
 The debian packages are available in the parent directory.
@@ -132,9 +132,11 @@ The built binary will be in the current directory. The daemon can be run directl
 To build the PAM module, from the top of the source tree run the following commands:
 
 > [!NOTE]
-> This dependency is required to regenerate the proto files and is only needed once.
+> This command installs the tooling to hook up the Go GRPC modules to protoc.
 > ```shell
-> sudo apt install protoc-gen-go
+> cd tools/
+> grep -o '_ ".*"' *.go | cut -d '"' -f 2 | xargs go install
+> cd ..
 > ```
 
 Then build the PAM module:
