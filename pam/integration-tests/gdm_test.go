@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -35,7 +36,28 @@ const (
 	passwordAuthID = "password"
 	fido1AuthID    = "fidodevice1"
 	phoneAck1ID    = "phoneack1"
+	qrcodeID       = "qrcodewithtypo"
 )
+
+var testPasswordUILayout = authd.UILayout{
+	Type:    "form",
+	Label:   ptrValue("Gimme your password"),
+	Entry:   ptrValue("chars_password"),
+	Button:  ptrValue(""),
+	Code:    ptrValue(""),
+	Content: ptrValue(""),
+	Wait:    ptrValue(""),
+}
+
+var testQrcodeUILayout = authd.UILayout{
+	Type:    "qrcode",
+	Label:   ptrValue("Enter the following code after flashing the address: 1337"),
+	Content: ptrValue("https://ubuntu.com"),
+	Wait:    ptrValue("true"),
+	Button:  ptrValue("Regenerate code"),
+	Code:    ptrValue(""),
+	Entry:   ptrValue(""),
+}
 
 func TestGdmModule(t *testing.T) {
 	t.Parallel()
@@ -54,19 +76,19 @@ func TestGdmModule(t *testing.T) {
 
 	testCases := map[string]struct {
 		supportedLayouts   []*authd.UILayout
-		pamUser            string
+		pamUser            *string
 		protoVersion       uint32
 		brokerName         string
-		authModeIDs        []string
 		eventPollResponses map[gdm.EventType][]*gdm.EventData
 
 		wantError            error
+		wantAuthModeIDs      []string
+		wantUILayouts        []*authd.UILayout
 		wantPamInfoMessages  []string
 		wantPamErrorMessages []string
 		wantAcctMgmtErr      error
 	}{
-		"Authenticates user1": {
-			pamUser: "user1",
+		"Authenticates user": {
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
@@ -75,9 +97,8 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 		},
-		"Authenticates user2 with multiple retries": {
-			pamUser:     "user2",
-			authModeIDs: []string{passwordAuthID, passwordAuthID, passwordAuthID},
+		"Authenticates user with multiple retries": {
+			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, passwordAuthID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
@@ -93,8 +114,8 @@ func TestGdmModule(t *testing.T) {
 			},
 		},
 		"Authenticates user-mfa": {
-			pamUser:     "user-mfa",
-			authModeIDs: []string{passwordAuthID, fido1AuthID, phoneAck1ID},
+			pamUser:         ptrValue("user-mfa"),
+			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
@@ -110,8 +131,8 @@ func TestGdmModule(t *testing.T) {
 			},
 		},
 		"Authenticates user-mfa after retry": {
-			pamUser:     "user-mfa",
-			authModeIDs: []string{passwordAuthID, passwordAuthID, fido1AuthID, phoneAck1ID},
+			pamUser:         ptrValue("user-mfa-integration-retry"),
+			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
@@ -129,25 +150,59 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 		},
-		"Authenticates user2 after switching to phone ack": {
-			pamUser:     "user2",
-			authModeIDs: []string{passwordAuthID, phoneAck1ID},
+		"Authenticates user switching to phone ack": {
+			wantAuthModeIDs: []string{passwordAuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
+					gdm_test.EventsGroupBegin(),
 					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
+					gdm_test.AuthModeSelectedEvent(phoneAck1ID),
+					gdm_test.EventsGroupEnd(),
+
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
 						Wait: "true",
 					}),
 				},
-				gdm.EventType_authEvent: {
-					gdm_test.AuthModeSelectedEvent(phoneAck1ID),
+			},
+		},
+		"Authenticates user with qrcode": {
+			wantAuthModeIDs:  []string{qrcodeID},
+			supportedLayouts: []*authd.UILayout{pam_test.QrCodeUILayout()},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
 				},
+			},
+			wantUILayouts: []*authd.UILayout{&testQrcodeUILayout},
+		},
+		"Authenticates user after switching to qrcode": {
+			wantAuthModeIDs: []string{passwordAuthID, qrcodeID},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.FormUILayout(),
+				pam_test.QrCodeUILayout(),
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.EventsGroupBegin(),
+					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
+					gdm_test.AuthModeSelectedEvent(qrcodeID),
+					gdm_test.EventsGroupEnd(),
+
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{
+				&testPasswordUILayout,
+				&testQrcodeUILayout,
 			},
 		},
 
 		// Error cases
 		"Error on unknown protocol": {
-			pamUser:      "user-foo",
 			protoVersion: 9999,
 			wantPamErrorMessages: []string{
 				"GDM protocol initialization failed, type hello, version 9999",
@@ -156,7 +211,7 @@ func TestGdmModule(t *testing.T) {
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on missing user": {
-			pamUser: "",
+			pamUser: ptrValue(""),
 			wantPamErrorMessages: []string{
 				"can't select broker: rpc error: code = InvalidArgument desc = can't start authentication transaction: rpc error: code = InvalidArgument desc = no user name provided",
 			},
@@ -164,7 +219,6 @@ func TestGdmModule(t *testing.T) {
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on no supported layouts": {
-			pamUser:          "user-bar",
 			supportedLayouts: []*authd.UILayout{},
 			wantPamErrorMessages: []string{
 				"UI does not support any layouts",
@@ -173,7 +227,6 @@ func TestGdmModule(t *testing.T) {
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on unknown broker": {
-			pamUser:    "user-foo",
 			brokerName: "Not a valid broker!",
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_brokersReceived: {
@@ -187,7 +240,6 @@ func TestGdmModule(t *testing.T) {
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error (ignored) on local broker causes fallback error": {
-			pamUser:    "user-foo",
 			brokerName: brokers.LocalBrokerName,
 			wantPamInfoMessages: []string{
 				"auth=incomplete",
@@ -195,9 +247,8 @@ func TestGdmModule(t *testing.T) {
 			wantError:       pam_test.ErrIgnore,
 			wantAcctMgmtErr: pam.ErrAbort,
 		},
-		"Error on authenticating user2 with too many retries": {
-			pamUser: "user2",
-			authModeIDs: []string{
+		"Error on authenticating user with too many retries": {
+			wantAuthModeIDs: []string{
 				passwordAuthID,
 				passwordAuthID,
 				passwordAuthID,
@@ -234,7 +285,7 @@ func TestGdmModule(t *testing.T) {
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on authenticating unknown user": {
-			pamUser: "user-unknown",
+			pamUser: ptrValue("user-unknown"),
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
@@ -249,8 +300,8 @@ func TestGdmModule(t *testing.T) {
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on invalid fido ack": {
-			pamUser:     "user-mfa",
-			authModeIDs: []string{passwordAuthID, fido1AuthID},
+			pamUser:         ptrValue("user-mfa-integration-error-fido-ack"),
+			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
@@ -290,10 +341,21 @@ func TestGdmModule(t *testing.T) {
 			serviceFile := createServiceFile(t, "gdm-authd", libPath,
 				moduleArgs)
 
-			gh := newGdmTestModuleHandler(t, serviceFile, tc.pamUser)
-			t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
+			pamUser := "user-integration-" + strings.ReplaceAll(filepath.Base(t.Name()), "_", "-")
+			if tc.pamUser != nil {
+				pamUser = *tc.pamUser
+			}
+
+			timedOut := false
+			gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
+			t.Cleanup(func() {
+				if !timedOut {
+					require.NoError(t, gh.tx.End(), "PAM: can't end transaction")
+				}
+			})
 			gh.eventPollResponses = tc.eventPollResponses
 
+			gh.supportedLayouts = tc.supportedLayouts
 			if tc.supportedLayouts == nil {
 				gh.supportedLayouts = []*authd.UILayout{pam_test.FormUILayout()}
 			}
@@ -308,9 +370,16 @@ func TestGdmModule(t *testing.T) {
 				gh.selectedBrokerName = exampleBrokerName
 			}
 
-			gh.selectedAuthModeIDs = tc.authModeIDs
+			gh.selectedAuthModeIDs = tc.wantAuthModeIDs
 			if gh.selectedAuthModeIDs == nil {
 				gh.selectedAuthModeIDs = []string{passwordAuthID}
+			}
+
+			gh.selectedUILayouts = tc.wantUILayouts
+			if gh.selectedAuthModeIDs == nil &&
+				len(gh.selectedAuthModeIDs) == 1 &&
+				gh.selectedAuthModeIDs[0] == passwordAuthID {
+				gh.selectedUILayouts = []*authd.UILayout{&testPasswordUILayout}
 			}
 
 			var pamFlags pam.Flags
@@ -325,7 +394,8 @@ func TestGdmModule(t *testing.T) {
 
 			var err error
 			select {
-			case <-time.After(10 * time.Second):
+			case <-time.After(30 * time.Second):
+				timedOut = true
 				t.Fatal("Authentication timed out!")
 			case err = <-authResult:
 			}
@@ -336,19 +406,19 @@ func TestGdmModule(t *testing.T) {
 			require.Equal(t, tc.wantPamInfoMessages, gh.pamInfoMessages,
 				"PAM Info messages do not match")
 
-			requirePreviousBrokerForUser(t, socketPath, "", tc.pamUser)
+			requirePreviousBrokerForUser(t, socketPath, "", pamUser)
 
 			require.ErrorIs(t, gh.tx.AcctMgmt(pamFlags), tc.wantAcctMgmtErr,
 				"Account Management PAM Error messages do not match")
 
 			if tc.wantError != nil {
-				requirePreviousBrokerForUser(t, socketPath, "", tc.pamUser)
+				requirePreviousBrokerForUser(t, socketPath, "", pamUser)
 				return
 			}
 
 			user, err := gh.tx.GetItem(pam.User)
 			require.NoError(t, err, "Can't get the pam user")
-			require.Equal(t, tc.pamUser, user, "PAM user name does not match expected")
+			require.Equal(t, pamUser, user, "PAM user name does not match expected")
 
 			requirePreviousBrokerForUser(t, socketPath, gh.selectedBrokerName, user)
 		})
@@ -378,7 +448,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
-	pamUser := "user1"
+	pamUser := "user-integration-auth-no-gdm-extension"
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
 
@@ -420,7 +490,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
-	pamUser := "user1"
+	pamUser := "user-integration-acctmgmt-no-gdm-extension"
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
 

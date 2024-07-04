@@ -141,9 +141,7 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 			commands = append(commands, sendEvent(reselectAuthMode{}))
 
 		case *gdm.EventData_IsAuthenticatedCancelled:
-			if m.waitingAuth {
-				commands = append(commands, sendEvent(isAuthenticatedCancelled{}))
-			}
+			commands = append(commands, sendEvent(isAuthenticatedCancelled{}))
 
 		case *gdm.EventData_StageChanged:
 			if res.StageChanged == nil {
@@ -231,6 +229,9 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 		return m, sendEvent(m.emitEventSync(&gdm.EventData_StartAuthentication{
 			StartAuthentication: &gdm.Events_StartAuthentication{},
 		}))
+
+	case reselectAuthMode:
+		m.waitingAuth = false
 
 	case isAuthenticatedResultReceived:
 		access := msg.access
