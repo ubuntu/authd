@@ -28,11 +28,16 @@ type nativeModel struct {
 	selectedAuthMode string
 	uiLayout         *authd.UILayout
 
+	serviceName  string
 	currentStage proto.Stage
 	busy         bool
 }
 
-const nativeCancelKey = "r"
+const (
+	nativeCancelKey = "r"
+
+	polkitServiceName = "polkit-1"
+)
 
 // nativeBrokerSelection is the internal event to notify that a stage change is requested.
 type nativeChangeStage ChangeStage
@@ -62,6 +67,12 @@ var errNotAnInteger = errors.New("parsed value is not an integer")
 // Init initializes the main model orchestrator.
 func (m *nativeModel) Init() tea.Cmd {
 	m.currentStage = proto.Stage(-1)
+
+	var err error
+	m.serviceName, err = m.pamMTx.GetItem(pam.Service)
+	if err != nil {
+		log.Errorf(context.TODO(), "failed to get the PAM service: %v", err)
+	}
 
 	return func() tea.Msg {
 		required, optional := "required", "optional"
@@ -586,29 +597,30 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 		})
 	}
 
-	if cmd := maybeSendPamError(m.sendInfo(m.uiLayout.GetLabel())); cmd != nil {
-		return cmd
+	var qrcodeView []string
+	qrcodeView = append(qrcodeView, m.uiLayout.GetLabel())
+
+	var firstQrCodeLine string
+	if m.isQrcodeRenderingSupported() {
+		qrcode := m.renderQrCode(qrCode)
+		qrcodeView = append(qrcodeView, qrcode)
+		firstQrCodeLine = strings.SplitN(qrcode, "\n", 2)[0]
+	}
+	if firstQrCodeLine == "" {
+		firstQrCodeLine = m.uiLayout.GetContent()
 	}
 
-	qrcode := m.renderQrCode(qrCode)
-	if cmd := maybeSendPamError(m.sendInfo(qrcode)); cmd != nil {
-		return cmd
-	}
+	centeredContent := centerString(m.uiLayout.GetContent(), firstQrCodeLine)
+	qrcodeView = append(qrcodeView, centeredContent)
 
 	if code := m.uiLayout.GetCode(); code != "" {
-		firstLine := strings.SplitN(qrcode, "\n", 2)[0]
-		sizeDiff := len([]rune(firstLine)) - len(code)
-		var padding string
-		if sizeDiff > 0 {
-			padding = strings.Repeat(" ", sizeDiff/2)
-		}
-		if cmd := maybeSendPamError(m.sendInfo(padding + code + padding)); cmd != nil {
-			return cmd
-		}
+		qrcodeView = append(qrcodeView, centerString(code, firstQrCodeLine))
 	}
 
 	// Ass some extra vertical space to improve readability
-	if cmd := maybeSendPamError(m.sendInfo(" ")); cmd != nil {
+	qrcodeView = append(qrcodeView, " ")
+
+	if cmd := maybeSendPamError(m.sendInfo(strings.Join(qrcodeView, "\n"))); cmd != nil {
 		return cmd
 	}
 
@@ -638,6 +650,26 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 	default:
 		return nil
 	}
+}
+
+func (m nativeModel) isQrcodeRenderingSupported() bool {
+	switch m.serviceName {
+	case polkitServiceName:
+		return false
+	default:
+		return true
+	}
+}
+
+func centerString(s string, reference string) string {
+	sizeDiff := len([]rune(reference)) - len(s)
+	if sizeDiff <= 0 {
+		return s
+	}
+
+	// We put padding in both sides, so that it's respected also by non-terminal UIs
+	padding := strings.Repeat(" ", sizeDiff/2)
+	return padding + s + padding
 }
 
 func (m nativeModel) handleNewPassword() tea.Cmd {
