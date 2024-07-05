@@ -133,7 +133,7 @@ Gimme your password
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Gimme your password
 >
-invalid password 'wrongpass', should be 'goodpass'
+authentication failure
 
 
 
@@ -166,7 +166,7 @@ invalid password 'wrongpass', should be 'goodpass'
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Gimme your password
 >
-invalid password 'wrongpass', should be 'goodpass'
+authentication failure
 
 
 
@@ -199,7 +199,7 @@ invalid password 'wrongpass', should be 'goodpass'
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Gimme your password
 >
-invalid password 'wrongpass', should be 'goodpass'
+authentication failure
 
 
 
@@ -232,7 +232,7 @@ invalid password 'wrongpass', should be 'goodpass'
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Gimme your password
 >
-invalid password 'wrongpass', should be 'goodpass'
+authentication failure
 
 
 
@@ -265,7 +265,7 @@ invalid password 'wrongpass', should be 'goodpass'
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Gimme your password
 >
-PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
+PAM Error Message: authentication failure
 PAM Authenticate() for user "user-integration-max-attempts" exited with error (PAM exit code: 7)
 : Authentication failure
 PAM Info Message: acct=incomplete
@@ -298,7 +298,7 @@ dispatch
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Gimme your password
 >
-PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
+PAM Error Message: authentication failure
 PAM Authenticate() for user "user-integration-max-attempts" exited with error (PAM exit code: 7)
 : Authentication failure
 PAM Info Message: acct=incomplete

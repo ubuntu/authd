@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os/user"
 
 	"github.com/ubuntu/authd"
@@ -58,7 +59,9 @@ func (s Service) AvailableBrokers(ctx context.Context, _ *authd.Empty) (*authd.A
 
 // GetPreviousBroker returns the previous broker set for a given user, if any.
 // If the user is not in our cache, it will try to check if it’s on the system, and return then "local".
-func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (*authd.GPBResponse, error) {
+func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (gpbr *authd.GPBResponse, err error) {
+	defer redactError(&err)
+
 	// Use in memory cache first
 	if b := s.brokerManager.BrokerForUser(req.GetUsername()); b != nil {
 		return &authd.GPBResponse{PreviousBroker: b.ID}, nil
@@ -101,6 +104,7 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 
 // SelectBroker starts a new session and selects the requested broker for the user.
 func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *authd.SBResponse, err error) {
+	defer redactError(&err)
 	defer decorate.OnError(&err, "can't start authentication transaction")
 
 	username := req.GetUsername()
@@ -141,6 +145,7 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 
 // GetAuthenticationModes fetches a list of authentication modes supported by the broker depending on the session information.
 func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMRequest) (resp *authd.GAMResponse, err error) {
+	defer redactError(&err)
 	defer decorate.OnError(&err, "could not get authentication modes")
 
 	sessionID := req.GetSessionId()
@@ -182,6 +187,7 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMReque
 
 // SelectAuthenticationMode set given authentication mode as selected for this sessionID to the broker.
 func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMRequest) (resp *authd.SAMResponse, err error) {
+	defer redactError(&err)
 	defer decorate.OnError(&err, "can't select authentication mode")
 
 	sessionID := req.GetSessionId()
@@ -211,6 +217,7 @@ func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMReq
 
 // IsAuthenticated returns broker answer to authentication request.
 func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (resp *authd.IAResponse, err error) {
+	defer redactError(&err)
 	defer decorate.OnError(&err, "can't check authentication")
 
 	sessionID := req.GetSessionId()
@@ -248,6 +255,7 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 		data = ""
 	}
 
+	data = redactMessage(data)
 	return &authd.IAResponse{
 		Access: access,
 		Msg:    data,
@@ -256,6 +264,7 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 
 // SetDefaultBrokerForUser sets the default broker for the given user.
 func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURequest) (empty *authd.Empty, err error) {
+	defer redactError(&err)
 	defer decorate.OnError(&err, "can't set default broker %q for user %q", req.GetBrokerId(), req.GetUsername())
 
 	if req.GetUsername() == "" {
@@ -279,6 +288,7 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURe
 
 // EndSession asks the broker associated with the sessionID to end the session.
 func (s Service) EndSession(ctx context.Context, req *authd.ESRequest) (empty *authd.Empty, err error) {
+	defer redactError(&err)
 	defer decorate.OnError(&err, "could not abort session")
 
 	sessionID := req.GetSessionId()
@@ -334,4 +344,38 @@ func mapToUILayout(layout map[string]string) (r *authd.UILayout) {
 		Content: &content,
 		Code:    &code,
 	}
+}
+
+// errGeneric is the error to return when the broker returns an error.
+//
+// This error is returned to the client to prevent information leaks.
+var errGeneric = errors.New("authentication failure")
+
+// redactError replaces the error with a generic one to prevent information leaks.
+//
+// Since the error messages contain useful information for debugging, the original error message
+// is written in the system logs.
+func redactError(err *error) {
+	if *err == nil {
+		return
+	}
+	slog.Debug(fmt.Sprintf("%v", err))
+	*err = errGeneric
+}
+
+// genericErrorMessage is the message to return when the broker returns an error message.
+//
+// This message is returned to the client to prevent information leaks.
+const genericErrorMessage string = `{"message":"authentication failure"}`
+
+// redactMessage replaces the message with a generic one to prevent information leaks.
+//
+// Since the message contains useful information for debugging, the original message is written
+// in the system logs.
+func redactMessage(msg string) string {
+	if msg == "{}" || msg == "" {
+		return msg
+	}
+	slog.Debug(fmt.Sprintf("Got broker message: %q", msg))
+	return genericErrorMessage
 }

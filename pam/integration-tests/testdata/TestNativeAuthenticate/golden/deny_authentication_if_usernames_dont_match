@@ -138,15 +138,15 @@ Username: user-mismatching-name
 Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-authentication status failure: rpc error: code = Unknown desc = can't check authentication: prov
-ided userinfo is invalid: username "mismatching-username" does not match the selected username "
-user-mismatching-name"
+authentication status failure: rpc error: code = Unknown desc = authentication failure
 PAM Authenticate() for user "user-mismatching-name" exited with error (PAM exit code: 4): System
  error
 acct=incomplete
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch
 >
+
+
 
 
 
@@ -171,15 +171,15 @@ Username: user-mismatching-name
 Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-authentication status failure: rpc error: code = Unknown desc = can't check authentication: prov
-ided userinfo is invalid: username "mismatching-username" does not match the selected username "
-user-mismatching-name"
+authentication status failure: rpc error: code = Unknown desc = authentication failure
 PAM Authenticate() for user "user-mismatching-name" exited with error (PAM exit code: 4): System
  error
 acct=incomplete
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch
 >
+
+
 
 
 

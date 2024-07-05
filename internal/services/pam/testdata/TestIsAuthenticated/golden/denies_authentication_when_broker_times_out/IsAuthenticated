@@ -1,4 +1,4 @@
 FIRST CALL:
 	access: denied
-	msg: {"message": "denied by time out"}
+	msg: {"message":"authentication failure"}
 	err: <nil>

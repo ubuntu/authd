@@ -213,7 +213,7 @@ func TestGdmModule(t *testing.T) {
 		"Error on missing user": {
 			pamUser: ptrValue(""),
 			wantPamErrorMessages: []string{
-				"can't select broker: rpc error: code = InvalidArgument desc = can't start authentication transaction: rpc error: code = InvalidArgument desc = no user name provided",
+				"can't select broker: rpc error: code = Unknown desc = authentication failure",
 			},
 			wantError:       pam.ErrSystem,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
@@ -279,7 +279,7 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 			wantPamErrorMessages: []string{
-				"invalid password 'really, it's not a goodpass!', should be 'goodpass'",
+				"authentication failure",
 			},
 			wantError:       pam.ErrAuth,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
@@ -294,7 +294,7 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 			wantPamErrorMessages: []string{
-				"user not found",
+				"authentication failure",
 			},
 			wantError:       pam.ErrAuth,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
@@ -311,7 +311,7 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 			wantPamErrorMessages: []string{
-				fido1AuthID + " should have wait set to true",
+				"authentication failure",
 			},
 			wantError:       pam.ErrAuth,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
