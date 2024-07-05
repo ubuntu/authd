@@ -2,6 +2,7 @@ use crate::{info, REQUEST_TIMEOUT};
 use libc::uid_t;
 use libnss::interop::Response;
 use libnss::passwd::{Passwd, PasswdHooks};
+use std::path::PathBuf;
 use tokio::runtime::Builder;
 use tonic::Request;
 
@@ -140,23 +141,23 @@ fn passwd_entries_to_passwds(entries: Vec<PasswdEntry>) -> Vec<Passwd> {
     entries.into_iter().map(passwd_entry_to_passwd).collect()
 }
 
+static SSHD_BINARY_PATH: &str = "/usr/sbin/sshd";
+
 /// should_pre_check returns true if the current process is a child of sshd.
 #[allow(unreachable_code)] // This function body is overridden in integration tests, so we need to ignore the warning.
 fn should_pre_check() -> bool {
     #[cfg(feature = "integration_tests")]
     return std::env::var("AUTHD_NSS_SHOULD_PRE_CHECK").is_ok();
 
-    let ppid = std::os::unix::process::parent_id();
-    let parent = procfs::process::Process::new(ppid as i32);
+    let parent = procfs::process::Process::new(std::os::unix::process::parent_id() as i32);
     if parent.is_err() {
         return false;
     }
 
-    let cmds = parent.unwrap().cmdline();
-    if cmds.is_err() {
+    let executable_path = parent.unwrap().exe();
+    if executable_path.is_err() {
         return false;
     }
 
-    let cmds = cmds.unwrap();
-    matches!(&cmds[0], s if s == "sshd")
+    PathBuf::from(SSHD_BINARY_PATH) == executable_path.unwrap()
 }
