@@ -54,12 +54,12 @@ Show
 
 Hide
 Escape
-Sleep 300ms
+Sleep 500ms
 Show
 
 Hide
 Enter
-Sleep 300ms
+Sleep 500ms
 Show
 
 Hide
@@ -68,12 +68,12 @@ Show
 
 Hide
 Escape
-Sleep 300ms
+Sleep 500ms
 Show
 
 Hide
 Enter
-Sleep 300ms
+Sleep 1s
 Show
 
 Hide
