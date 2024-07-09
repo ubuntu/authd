@@ -191,11 +191,14 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		return *m, tea.Sequence(m.cancelIsAuthenticated(), sendEvent(AuthModeSelected{}))
 
 	case newPasswordCheck:
-		res := newPasswordCheckResult{ctx: msg.ctx, challenge: msg.challenge}
-		if err := checkChallengeQuality(m.currentChallenge, msg.challenge); err != nil {
-			res.msg = err.Error()
+		currentChallenge := m.currentChallenge
+		return *m, func() tea.Msg {
+			res := newPasswordCheckResult{ctx: msg.ctx, challenge: msg.challenge}
+			if err := checkChallengeQuality(currentChallenge, msg.challenge); err != nil {
+				res.msg = err.Error()
+			}
+			return res
 		}
-		return *m, sendEvent(res)
 
 	case newPasswordCheckResult:
 		if m.clientType != Gdm {
