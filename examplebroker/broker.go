@@ -169,6 +169,12 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 		info.neededAuthSteps = 3
 	}
 
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-needs-reset-integration") {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+		info.neededAuthSteps = 2
+		info.pwdChange = mustReset
+	}
+
 	pubASN1, err := x509.MarshalPKIXPublicKey(&b.privateKey.PublicKey)
 	if err != nil {
 		return "", "", err

@@ -590,12 +590,13 @@ func QrCodeUILayout() *authd.UILayout {
 // NewPasswordUILayout returns an [authd.UILayout] for new password forms.
 func NewPasswordUILayout() *authd.UILayout {
 	required, optional := "required", "optional"
-	requiredWithBooleans := "required:true,false"
+	optionalWithBooleans := "optional:true,false"
+	supportedEntries := "optional:chars,chars_password"
 	return &authd.UILayout{
-		Type:    "newpassword",
-		Content: &required,
-		Wait:    &requiredWithBooleans,
-		Label:   &optional,
-		Button:  &optional,
+		Type:   "newpassword",
+		Label:  &required,
+		Entry:  &supportedEntries,
+		Wait:   &optionalWithBooleans,
+		Button: &optional,
 	}
 }
