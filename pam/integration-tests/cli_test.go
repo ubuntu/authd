@@ -47,6 +47,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Authenticate user with qr code in a TTY":                     {tape: "qr_code", pamUser: "user-integration-qr-code-tty", termEnv: "linux"},
 		"Authenticate user with qr code in a TTY session":             {tape: "qr_code", pamUser: "user-integration-qr-code-tty-session", termEnv: "xterm-256color", sessionEnv: "tty"},
 		"Authenticate user with qr code in screen":                    {tape: "qr_code", pamUser: "user-integration-qr-code-screen", termEnv: "screen"},
+		"Authenticate user with qr code after many regenerations":     {tape: "qr_code_quick_regenerate"},
 		"Authenticate user and reset password while enforcing policy": {tape: "mandatory_password_reset"},
 		"Authenticate user and offer password reset":                  {tape: "optional_password_reset_skip"},
 		"Authenticate user switching auth mode":                       {tape: "switch_auth_mode"},

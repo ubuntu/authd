@@ -385,7 +385,7 @@ func (m *UIModel) changeStage(s pam_proto.Stage) tea.Cmd {
 		commands = append(commands, endSession(m.Client, m.currentSession), m.brokerSelectionModel.Focus())
 
 	case pam_proto.Stage_authModeSelection:
-		m.authenticationModel.Reset()
+		commands = append(commands, m.authenticationModel.Reset())
 		commands = append(commands, m.authModeSelectionModel.Focus())
 
 	case pam_proto.Stage_challenge:

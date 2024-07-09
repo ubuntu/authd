@@ -1,5 +1,5 @@
-Output qr_code.txt
-Output qr_code.gif # If we don't specify a .gif output, it will create a default out.gif file.
+Output qr_code_quick_regenerate.txt
+Output qr_code_quick_regenerate.gif # If we don't specify a .gif output, it will create a default out.gif file.
 
 # Configuration header to standardize the output.
 # Does not work with the "Source" command.
@@ -14,13 +14,19 @@ Set Margin 0
 Set Shell bash
 
 Hide
-Type "if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi"
+Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}"
 Enter
 Sleep 300ms
 Show
 
 Hide
-Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}"
+Escape
+Backspace
+Type "user-integration-qrcode-static-regenerate"
+Sleep 300ms
+Show
+
+Hide
 Enter
 Sleep 300ms
 Show
@@ -46,27 +52,8 @@ Sleep 300ms
 Show
 
 Hide
-Enter
-Sleep 300ms
-Show
-
-Hide
-Enter
-Sleep 300ms
-Show
-
-Hide
-Enter
-Sleep 300ms
-Show
-
-Hide
-Enter
-Sleep 1s
-Show
-
-Hide
-Sleep 5s
+Enter@1ms 50
+Sleep 10s
 Show
 
 Sleep 300ms

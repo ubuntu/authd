@@ -37,6 +37,8 @@ type gdmModel struct {
 
 type gdmPollDone struct{}
 
+type gdmIsAuthenticatedResultReceived isAuthenticatedResultReceived
+
 // Init initializes the main model orchestrator.
 func (m *gdmModel) Init() tea.Cmd {
 	return tea.Sequence(m.protoHello(),
@@ -234,6 +236,9 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 		m.waitingAuth = false
 
 	case isAuthenticatedResultReceived:
+		return m, sendEvent(gdmIsAuthenticatedResultReceived(msg))
+
+	case gdmIsAuthenticatedResultReceived:
 		access := msg.access
 		authMsg, err := dataToMsg(msg.msg)
 		if err != nil {
@@ -248,11 +253,15 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 		case brokers.AuthRetry:
 		case brokers.AuthNext:
 		default:
-			accessJSON, _ := json.Marshal(fmt.Sprintf("Access %q is not valid", access))
-			return m, sendEvent(isAuthenticatedResultReceived{
-				access: brokers.AuthDenied,
-				msg:    fmt.Sprintf(`{"message": %s}`, accessJSON),
-			})
+			errMsg := fmt.Sprintf("Access %q is not valid", access)
+			accessJSON, _ := json.Marshal(errMsg)
+			return m, tea.Sequence(
+				sendEvent(gdmIsAuthenticatedResultReceived{
+					access: brokers.AuthDenied,
+					msg:    fmt.Sprintf(`{"message": %s}`, accessJSON),
+				}),
+				sendEvent(pamError{status: pam.ErrAuth, msg: errMsg}),
+			)
 		}
 
 		return m, sendEvent(m.emitEventSync(&gdm.EventData_AuthEvent{

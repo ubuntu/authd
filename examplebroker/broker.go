@@ -61,6 +61,8 @@ type sessionInfo struct {
 	neededAuthSteps   int
 	currentAuthStep   int
 	firstSelectedMode string
+
+	qrcodeSelections int
 }
 
 type isAuthenticatedCtx struct {
@@ -408,6 +410,24 @@ func getPasswdResetModes(info sessionInfo, supportedUILayouts []map[string]strin
 	return passwdResetModes
 }
 
+func qrcodeData(sessionInfo *sessionInfo) (content string, code string) {
+	baseCode := 1337
+	qrcodeURIs := []string{
+		"https://ubuntu.com",
+		"https://ubuntu.fr/",
+		"https://ubuntuforum-br.org/",
+		"https://www.ubuntu-it.org/",
+	}
+
+	if strings.HasPrefix(sessionInfo.username, "user-integration-qrcode-static") {
+		return qrcodeURIs[0], fmt.Sprint(baseCode)
+	}
+
+	defer func() { sessionInfo.qrcodeSelections++ }()
+	return qrcodeURIs[sessionInfo.qrcodeSelections%len(qrcodeURIs)],
+		fmt.Sprint(baseCode + sessionInfo.qrcodeSelections)
+}
+
 // SelectAuthenticationMode returns the UI layout information for the selected authentication mode.
 func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
 	// Ensure session ID is an active one.
@@ -436,12 +456,12 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 	case "fidodevice1":
 		// start transaction with fideo device
 	case "qrcodeandcodewithtypo":
-		uiLayoutInfo["code"] = "1337"
-		uiLayoutInfo["content"] = "https://ubuntu.com"
+		uiLayoutInfo["content"], uiLayoutInfo["code"] = qrcodeData(&sessionInfo)
 	case "qrcodewithtypo":
 		// generate the url and finish the prompt on the fly.
-		uiLayoutInfo["label"] += "1337"
-		uiLayoutInfo["content"] = "https://ubuntu.com"
+		content, code := qrcodeData(&sessionInfo)
+		uiLayoutInfo["label"] += code
+		uiLayoutInfo["content"] = content
 	}
 
 	// Store selected mode
@@ -490,7 +510,7 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 		b.isAuthenticatedCallsMu.Unlock()
 	}()
 
-	access, data, err = b.handleIsAuthenticated(b.isAuthenticatedCalls[sessionID].ctx, sessionInfo, authData)
+	access, data, err = b.handleIsAuthenticated(ctx, sessionInfo, authData)
 	if access == AuthGranted && sessionInfo.currentAuthStep < sessionInfo.neededAuthSteps {
 		sessionInfo.currentAuthStep++
 		access = AuthNext

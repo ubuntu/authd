@@ -6,7 +6,7 @@ Output qr_code.gif # If we don't specify a .gif output, it will create a default
 Set Width 800
 # We need high terminal view, as vhs doesn't scroll:
 #  https://github.com/charmbracelet/vhs/issues/404
-Set Height 1600
+Set Height 3500
 # TODO: Ideally, we should use Ubuntu Mono. However, the github runner is still on Jammy, which does not have it.
 # We should update this to use Ubuntu Mono once the runner is updated.
 Set FontFamily "Monospace"
@@ -43,6 +43,24 @@ Hide
 Type "7"
 Enter
 Sleep 300ms
+Show
+
+Hide
+Type "2"
+Enter
+Sleep 500ms
+Show
+
+Hide
+Type "2"
+Enter
+Sleep 500ms
+Show
+
+Hide
+Type "2"
+Enter
+Sleep 500ms
 Show
 
 Hide

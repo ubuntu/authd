@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -198,6 +199,65 @@ func TestGdmModule(t *testing.T) {
 			wantUILayouts: []*authd.UILayout{
 				&testPasswordUILayout,
 				&testQrcodeUILayout,
+			},
+		},
+		"Authenticates user after regenerating the qrcode": {
+			wantAuthModeIDs: []string{
+				passwordAuthID,
+				qrcodeID,
+				qrcodeID,
+				qrcodeID,
+				qrcodeID,
+				qrcodeID,
+				qrcodeID,
+			},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.FormUILayout(),
+				pam_test.QrCodeUILayout(),
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.EventsGroupBegin(),
+					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
+					gdm_test.AuthModeSelectedEvent(qrcodeID),
+					gdm_test.EventsGroupEnd(),
+
+					// Start authentication and regenerate the qrcode (1)
+					gdm_test.EventsGroupBegin(),
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+					gdm_test.ReselectAuthMode(),
+					gdm_test.EventsGroupEnd(),
+
+					// Only regenerate the qr code (2)
+					gdm_test.ReselectAuthMode(),
+
+					// Start authentication and regenerate the qrcode (3)
+					gdm_test.EventsGroupBegin(),
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+					gdm_test.ReselectAuthMode(),
+					gdm_test.EventsGroupEnd(),
+
+					// Only regenerate the qr code (4)
+					gdm_test.ReselectAuthMode(),
+
+					// Start the final authentication (5)
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{
+				&testPasswordUILayout,
+				testQrcodeUILayoutData(0),
+				testQrcodeUILayoutData(1),
+				testQrcodeUILayoutData(2),
+				testQrcodeUILayoutData(3),
+				testQrcodeUILayoutData(4),
+				testQrcodeUILayoutData(5),
 			},
 		},
 
@@ -549,4 +609,31 @@ func buildPAMModule(t *testing.T) string {
 	}
 
 	return libPath
+}
+
+func exampleBrokerQrcodeData(reqN int) (string, string) {
+	// Keep this in sync with example broker's qrcodeData
+	baseCode := 1337
+	qrcodeURIs := []string{
+		"https://ubuntu.com",
+		"https://ubuntu.fr/",
+		"https://ubuntuforum-br.org/",
+		"https://www.ubuntu-it.org/",
+	}
+
+	return qrcodeURIs[reqN%len(qrcodeURIs)], fmt.Sprint(baseCode + reqN)
+}
+
+func testQrcodeUILayoutData(reqN int) *authd.UILayout {
+	content, code := exampleBrokerQrcodeData(reqN)
+	base := &testQrcodeUILayout
+	return &authd.UILayout{
+		Type:    base.Type,
+		Label:   ptrValue("Enter the following code after flashing the address: " + code),
+		Content: &content,
+		Wait:    base.Wait,
+		Button:  base.Button,
+		Code:    base.Code,
+		Entry:   base.Entry,
+	}
 }
