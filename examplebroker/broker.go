@@ -629,8 +629,15 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		exampleUsersMu.Lock()
 		defer exampleUsersMu.Unlock()
 
-		if challenge != "authd2404" {
-			return AuthRetry, `{"message": "new password does not match criteria: must be authd2404"}`, nil
+		expectedChallenge := "authd2404"
+		// Reset the password to default if it had already been changed.
+		// As at PAM level we'd refuse a previous password to be re-used.
+		if exampleUsers[sessionInfo.username].Password == expectedChallenge {
+			expectedChallenge = "goodpass"
+		}
+
+		if challenge != expectedChallenge {
+			return AuthRetry, fmt.Sprintf(`{"message": "new password does not match criteria: must be '%s'"}`, expectedChallenge), nil
 		}
 		exampleUsers[sessionInfo.username] = userInfoBroker{Password: challenge}
 	}

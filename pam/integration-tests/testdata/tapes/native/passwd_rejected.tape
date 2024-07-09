@@ -42,13 +42,13 @@ Sleep 2s
 Show
 
 Hide
-Type "badpass"
+Type "noble2404"
 Enter
 Sleep 300ms
 Show
 
 Hide
-Type "badpass"
+Type "noble2404"
 Sleep 300ms
 Show
 
