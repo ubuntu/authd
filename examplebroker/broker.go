@@ -454,7 +454,7 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 	case "phoneack1", "phoneack2":
 		// send request to sessionInfo.allModes[authenticationModeName]["phone"]
 	case "fidodevice1":
-		// start transaction with fideo device
+		// start transaction with fido device
 	case "qrcodeandcodewithtypo":
 		uiLayoutInfo["content"], uiLayoutInfo["code"] = qrcodeData(&sessionInfo)
 	case "qrcodewithtypo":
