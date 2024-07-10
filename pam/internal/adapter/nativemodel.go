@@ -723,7 +723,7 @@ func (m nativeModel) newPasswordChallenge(previousChallenge *string) tea.Cmd {
 	}
 
 	if previousChallenge == nil {
-		return sendEvent(newPasswordCheck{challenge})
+		return sendEvent(newPasswordCheck{challenge: challenge})
 	}
 	if challenge != *previousChallenge {
 		err := m.sendError("Password entries don't match")

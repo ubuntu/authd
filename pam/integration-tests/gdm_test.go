@@ -34,15 +34,26 @@ const (
 	exampleBrokerName = "ExampleBroker"
 	ignoredBrokerName = "<ignored-broker>"
 
-	passwordAuthID = "password"
-	fido1AuthID    = "fidodevice1"
-	phoneAck1ID    = "phoneack1"
-	qrcodeID       = "qrcodewithtypo"
+	passwordAuthID    = "password"
+	newPasswordAuthID = "mandatoryreset"
+	fido1AuthID       = "fidodevice1"
+	phoneAck1ID       = "phoneack1"
+	qrcodeID          = "qrcodewithtypo"
 )
 
 var testPasswordUILayout = authd.UILayout{
 	Type:    "form",
 	Label:   ptrValue("Gimme your password"),
+	Entry:   ptrValue("chars_password"),
+	Button:  ptrValue(""),
+	Code:    ptrValue(""),
+	Content: ptrValue(""),
+	Wait:    ptrValue(""),
+}
+
+var testNewPasswordUILayout = authd.UILayout{
+	Type:    "newpassword",
+	Label:   ptrValue("Enter your new password"),
 	Entry:   ptrValue("chars_password"),
 	Button:  ptrValue(""),
 	Code:    ptrValue(""),
@@ -165,6 +176,63 @@ func TestGdmModule(t *testing.T) {
 					}),
 				},
 			},
+		},
+		"Authenticates after password change": {
+			pamUser:         ptrValue("user-needs-reset-integration-gdm-pass"),
+			wantAuthModeIDs: []string{passwordAuthID, newPasswordAuthID},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.FormUILayout(),
+				pam_test.NewPasswordUILayout(),
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "goodpass",
+					}),
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "authd2404",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{&testPasswordUILayout, &testNewPasswordUILayout},
+		},
+		"Authenticates after various invalid password changes": {
+			pamUser: ptrValue("user-needs-reset-integration-gdm-retries"),
+			wantAuthModeIDs: []string{
+				passwordAuthID,
+				newPasswordAuthID,
+				newPasswordAuthID,
+				newPasswordAuthID,
+				newPasswordAuthID,
+				newPasswordAuthID,
+			},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.FormUILayout(),
+				pam_test.NewPasswordUILayout(),
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "goodpass",
+					}),
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "authd",
+					}),
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "goodpass",
+					}),
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "foolinux",
+					}),
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "newpass",
+					}),
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "authd2404",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{&testPasswordUILayout, &testNewPasswordUILayout},
 		},
 		"Authenticates user with qrcode": {
 			wantAuthModeIDs:  []string{qrcodeID},
