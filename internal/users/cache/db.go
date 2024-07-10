@@ -1,4 +1,4 @@
-// Package cache handles transaction with an underlying database to cache user and group informations.
+// Package cache handles transaction with an underlying database to cache user and group information.
 package cache
 
 import (
@@ -98,7 +98,7 @@ func New(cacheDir string) (cache *Cache, err error) {
 	return &Cache{db: db, mu: sync.RWMutex{}}, nil
 }
 
-// openAndInitDB open a pre-existing database and potentially intializes its buckets.
+// openAndInitDB open a pre-existing database and potentially initializes its buckets.
 // It clears up any database previously marked as dirty or if it’s corrupted.
 func openAndInitDB(path string) (*bbolt.DB, error) {
 	db, err := bbolt.Open(path, 0600, nil)
