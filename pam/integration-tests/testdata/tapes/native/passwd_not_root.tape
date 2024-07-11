@@ -21,7 +21,7 @@ Show
 
 Hide
 Enter
-Sleep 300ms
+Sleep 2s
 Show
 
 Sleep 300ms
