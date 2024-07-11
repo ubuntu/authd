@@ -36,7 +36,7 @@ var (
 // sendIsAuthenticated sends the authentication challenges or wait request to the brokers.
 // The event will contain the returned value from the broker.
 func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID string,
-	authData *authd.IARequest_AuthenticationData, challenge string) tea.Cmd {
+	authData *authd.IARequest_AuthenticationData, challenge *string) tea.Cmd {
 	return func() tea.Msg {
 		res, err := client.IsAuthenticated(ctx, &authd.IARequest{
 			SessionId:          sessionID,
@@ -88,7 +88,7 @@ type isAuthenticatedRequestedSend struct {
 // and data that was retrieved.
 type isAuthenticatedResultReceived struct {
 	access    string
-	challenge string
+	challenge *string
 	msg       string
 }
 
@@ -292,8 +292,9 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		defer func() {
 			// the returned authModel is a copy of function-level's `m` at this point!
 			m := &authModel
-			if msg.access == brokers.AuthGranted || msg.access == brokers.AuthNext {
-				m.currentChallenge = msg.challenge
+			if msg.challenge != nil &&
+				(msg.access == brokers.AuthGranted || msg.access == brokers.AuthNext) {
+				m.currentChallenge = *msg.challenge
 			}
 
 			m.cancelAuthFunc = nil
@@ -473,22 +474,22 @@ func dataToMsg(data string) (string, error) {
 	return r, nil
 }
 
-func (authData *isAuthenticatedRequestedSend) encryptChallengeIfPresent(publicKey *rsa.PublicKey) (string, error) {
+func (authData *isAuthenticatedRequestedSend) encryptChallengeIfPresent(publicKey *rsa.PublicKey) (*string, error) {
 	// no challenge value, pass it as is
 	challenge, ok := authData.item.(*authd.IARequest_AuthenticationData_Challenge)
 	if !ok {
-		return "", nil
+		return nil, nil
 	}
 
 	ciphertext, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, publicKey, []byte(challenge.Challenge), nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// encrypt it to base64 and replace the challenge with it
 	base64Encoded := base64.StdEncoding.EncodeToString(ciphertext)
 	authData.item = &authd.IARequest_AuthenticationData_Challenge{Challenge: base64Encoded}
-	return challenge.Challenge, nil
+	return &challenge.Challenge, nil
 }
 
 // wait waits for the current authentication to be completed.
