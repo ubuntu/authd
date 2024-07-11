@@ -93,6 +93,7 @@ var (
 		"user2":                 {Password: "goodpass"},
 		"user3":                 {Password: "goodpass"},
 		"user-mfa":              {Password: "goodpass"},
+		"user-mfa-with-reset":   {Password: "goodpass"},
 		"user-needs-reset":      {Password: "goodpass"},
 		"user-can-reset":        {Password: "goodpass"},
 		"user-can-reset2":       {Password: "goodpass"},
@@ -167,6 +168,12 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-mfa-integration") {
 		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
 		info.neededAuthSteps = 3
+	}
+
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-mfa-needs-reset-integration") {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+		info.neededAuthSteps = 3
+		info.pwdChange = mustReset
 	}
 
 	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-needs-reset-integration") {
