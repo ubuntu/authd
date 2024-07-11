@@ -265,6 +265,74 @@ func TestGdmModule(t *testing.T) {
 				{Access: brokers.AuthGranted},
 			},
 		},
+		"Authenticates after mfa authentication with wait and password change checking quality": {
+			pamUser: ptrValue("user-mfa-needs-reset-integration-gdm-wait-and-new-password"),
+			wantAuthModeIDs: []string{
+				passwordAuthID,
+				fido1AuthID,
+				newPasswordAuthID,
+				newPasswordAuthID,
+				newPasswordAuthID,
+				newPasswordAuthID,
+			},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.FormUILayout(),
+				pam_test.NewPasswordUILayout(),
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					// Login with password
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "goodpass",
+					}),
+					// Authenticate with fido device
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+					// Use bad dictionary password
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "password",
+					}),
+					// Use password not meeting broker criteria
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "noble2404",
+					}),
+					// Use previous one
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "goodpass",
+					}),
+					// Finally change the password
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "authd2404",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{
+				&testPasswordUILayout,
+				&testFidoDeviceUILayout,
+				&testNewPasswordUILayout,
+				&testNewPasswordUILayout,
+				&testNewPasswordUILayout,
+				&testNewPasswordUILayout,
+			},
+			wantAuthResponses: []*authd.IAResponse{
+				{Access: brokers.AuthNext},
+				{Access: brokers.AuthNext},
+				{
+					Access: brokers.AuthRetry,
+					Msg:    "The password fails the dictionary check - it is based on a dictionary word",
+				},
+				{
+					Access: brokers.AuthRetry,
+					Msg:    "new password does not match criteria: must be 'authd2404'",
+				},
+				{
+					Access: brokers.AuthRetry,
+					Msg:    "The password is the same as the old one",
+				},
+				{Access: brokers.AuthGranted},
+			},
+		},
 		"Authenticates after various invalid password changes": {
 			pamUser: ptrValue("user-needs-reset-integration-gdm-retries"),
 			wantAuthModeIDs: []string{
