@@ -222,7 +222,7 @@ func TestGdmModule(t *testing.T) {
 						Challenge: "goodpass",
 					}),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "foolinux",
+						Challenge: "password",
 					}),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
 						Challenge: "newpass",

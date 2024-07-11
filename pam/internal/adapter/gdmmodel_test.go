@@ -485,7 +485,7 @@ func TestGdmModel(t *testing.T) {
 							Challenge: "newpass",
 						}}),
 						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "foolinux",
+							Challenge: "password",
 						}}),
 						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
 							Challenge: "gdm-good-password",
