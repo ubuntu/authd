@@ -93,6 +93,7 @@ var (
 		"user2":                 {Password: "goodpass"},
 		"user3":                 {Password: "goodpass"},
 		"user-mfa":              {Password: "goodpass"},
+		"user-mfa-with-reset":   {Password: "goodpass"},
 		"user-needs-reset":      {Password: "goodpass"},
 		"user-can-reset":        {Password: "goodpass"},
 		"user-can-reset2":       {Password: "goodpass"},
