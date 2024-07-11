@@ -26,6 +26,7 @@ type gdmTestModuleHandler struct {
 	supportedLayouts  []*authd.UILayout
 	currentUILayout   *authd.UILayout
 	selectedUILayouts []*authd.UILayout
+	authResponses     []*authd.IAResponse
 
 	currentStage  proto.Stage
 	pollResponses []*gdm.EventData
@@ -173,6 +174,7 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 		if msg := ev.AuthEvent.Response.Msg; msg != "" {
 			gh.t.Logf("Got message: %s", msg)
 		}
+		gh.authResponses = append(gh.authResponses, ev.AuthEvent.Response)
 	}
 	return nil
 }
