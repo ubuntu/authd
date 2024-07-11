@@ -71,6 +71,26 @@ var testQrcodeUILayout = authd.UILayout{
 	Entry:   ptrValue(""),
 }
 
+var testFidoDeviceUILayout = authd.UILayout{
+	Type:    "form",
+	Label:   ptrValue("Plug your fido device and press with your thumb"),
+	Content: ptrValue(""),
+	Wait:    ptrValue("true"),
+	Button:  ptrValue(""),
+	Code:    ptrValue(""),
+	Entry:   ptrValue(""),
+}
+
+var testPhoneAckUILayout = authd.UILayout{
+	Type:    "form",
+	Label:   ptrValue("Unlock your phone +33… or accept request on web interface:"),
+	Content: ptrValue(""),
+	Wait:    ptrValue("true"),
+	Button:  ptrValue(""),
+	Code:    ptrValue(""),
+	Entry:   ptrValue(""),
+}
+
 func TestGdmModule(t *testing.T) {
 	t.Parallel()
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
@@ -141,6 +161,11 @@ func TestGdmModule(t *testing.T) {
 					}),
 				},
 			},
+			wantUILayouts: []*authd.UILayout{
+				&testPasswordUILayout,
+				&testFidoDeviceUILayout,
+				&testPhoneAckUILayout,
+			},
 		},
 		"Authenticates user-mfa after retry": {
 			pamUser:         ptrValue("user-mfa-integration-retry"),
@@ -161,6 +186,12 @@ func TestGdmModule(t *testing.T) {
 					}),
 				},
 			},
+			wantUILayouts: []*authd.UILayout{
+				&testPasswordUILayout,
+				&testPasswordUILayout,
+				&testFidoDeviceUILayout,
+				&testPhoneAckUILayout,
+			},
 		},
 		"Authenticates user switching to phone ack": {
 			wantAuthModeIDs: []string{passwordAuthID, phoneAck1ID},
@@ -175,6 +206,10 @@ func TestGdmModule(t *testing.T) {
 						Wait: "true",
 					}),
 				},
+			},
+			wantUILayouts: []*authd.UILayout{
+				&testPasswordUILayout,
+				&testPhoneAckUILayout,
 			},
 		},
 		"Authenticates after password change": {
@@ -440,6 +475,10 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantPamErrorMessages: []string{
 				fido1AuthID + " should have wait set to true",
+			},
+			wantUILayouts: []*authd.UILayout{
+				&testPasswordUILayout,
+				&testFidoDeviceUILayout,
 			},
 			wantError:       pam.ErrAuth,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
