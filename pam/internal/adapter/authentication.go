@@ -123,8 +123,7 @@ type authenticationModel struct {
 	currentChallenge string
 	currentLayout    string
 
-	cancelAuthFunc func()
-	authTracker    *authTracker
+	authTracker *authTracker
 
 	encryptionKey *rsa.PublicKey
 
@@ -132,7 +131,7 @@ type authenticationModel struct {
 }
 
 type authTracker struct {
-	inProgress bool
+	cancelFunc func()
 	cond       *sync.Cond
 }
 
@@ -173,13 +172,9 @@ func (m *authenticationModel) Init() tea.Cmd {
 }
 
 func (m *authenticationModel) cancelIsAuthenticated() tea.Cmd {
-	cancelAuthFunc := m.cancelAuthFunc
-	if cancelAuthFunc == nil {
-		return nil
-	}
-
+	authTracker := m.authTracker
 	return func() tea.Msg {
-		cancelAuthFunc()
+		authTracker.cancelAndWait()
 		return nil
 	}
 }
@@ -188,6 +183,7 @@ func (m *authenticationModel) cancelIsAuthenticated() tea.Cmd {
 func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel, command tea.Cmd) {
 	switch msg := msg.(type) {
 	case reselectAuthMode:
+		log.Debugf(context.TODO(), "%#v", msg)
 		return *m, tea.Sequence(m.cancelIsAuthenticated(), sendEvent(AuthModeSelected{}))
 
 	case newPasswordCheck:
@@ -233,17 +229,8 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 
 		authTracker := m.authTracker
 
-		// An authentication may still be in progress, so we repeat the same
-		// message, until the previous requests have been been handled.
-		if m.cancelAuthFunc != nil {
-			return *m, func() tea.Msg {
-				authTracker.wait()
-				return msg
-			}
-		}
-
 		ctx, cancel := context.WithCancel(context.Background())
-		m.cancelAuthFunc = func() {
+		cancelFunc := func() {
 			// Very very ugly, but we need to ensure that IsAuthenticated call has been delivered
 			// to the broker before calling broker's cancelIsAuthenticated or that cancel request may happen
 			// before than the IsAuthenticated() one has been invoked, and thus we may have nothing
@@ -252,7 +239,6 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 			// the actual cancellation.
 			<-time.After(cancellationWait)
 			cancel()
-			authTracker.wait()
 		}
 
 		// At the point that we proceed with the actual authentication request in the goroutine,
@@ -261,7 +247,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		clientType := m.clientType
 		currentLayout := m.currentLayout
 		return *m, func() tea.Msg {
-			authTracker.waitAndStart()
+			authTracker.waitAndStart(cancelFunc)
 
 			challenge, hasChallenge := msg.item.(*authd.IARequest_AuthenticationData_Challenge)
 			if hasChallenge && clientType == Gdm && currentLayout == "newpassword" {
@@ -297,7 +283,6 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 				m.currentChallenge = *msg.challenge
 			}
 
-			m.cancelAuthFunc = nil
 			m.authTracker.reset()
 		}()
 
@@ -389,7 +374,6 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 	m.currentBrokerID = brokerID
 	m.currentSessionID = sessionID
 	m.encryptionKey = encryptionKey
-	m.cancelAuthFunc = nil
 	m.currentLayout = layout.Type
 
 	m.errorMsg = ""
@@ -497,27 +481,38 @@ func (at *authTracker) wait() {
 	at.cond.L.Lock()
 	defer at.cond.L.Unlock()
 
-	for at.inProgress {
+	for at.cancelFunc != nil {
 		at.cond.Wait()
 	}
 }
 
 // waitAndStart waits for the current authentication to be completed and
 // marks the authentication as in progress.
-func (at *authTracker) waitAndStart() {
+func (at *authTracker) waitAndStart(cancelFunc func()) {
 	at.cond.L.Lock()
 	defer at.cond.L.Unlock()
 
-	for at.inProgress {
+	for at.cancelFunc != nil {
 		at.cond.Wait()
 	}
 
-	at.inProgress = true
+	at.cancelFunc = cancelFunc
+}
+
+func (at *authTracker) cancelAndWait() {
+	at.cond.L.Lock()
+	cancelFunc := at.cancelFunc
+	at.cond.L.Unlock()
+	if cancelFunc == nil {
+		return
+	}
+	cancelFunc()
+	at.wait()
 }
 
 func (at *authTracker) reset() {
 	at.cond.L.Lock()
 	defer at.cond.L.Unlock()
-	at.inProgress = false
+	at.cancelFunc = nil
 	at.cond.Signal()
 }
