@@ -1,16 +1,16 @@
 GroupByID:
-    "82691": '{"Name":"group-success_with_local_groups","GID":82691}'
-    "82859": '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","GID":82859}'
+    "80317": '{"Name":"group-success_with_local_groups","GID":80317}'
+    "90973": '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","GID":90973}'
 GroupByName:
-    TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups: '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","GID":82859}'
-    group-success_with_local_groups: '{"Name":"group-success_with_local_groups","GID":82691}'
+    TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups: '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","GID":90973}'
+    group-success_with_local_groups: '{"Name":"group-success_with_local_groups","GID":80317}'
 GroupToUsers:
-    "82691": '{"GID":82691,"UIDs":[82859]}'
-    "82859": '{"GID":82859,"UIDs":[82859]}'
+    "80317": '{"GID":80317,"UIDs":[90973]}'
+    "90973": '{"GID":90973,"UIDs":[90973]}'
 UserByID:
-    "82859": '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","UID":82859,"GID":82859,"Gecos":"gecos for success_with_local_groups","Dir":"/home/success_with_local_groups","Shell":"/bin/sh/success_with_local_groups","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+    "90973": '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","UID":90973,"GID":90973,"Gecos":"gecos for success_with_local_groups","Dir":"/home/success_with_local_groups","Shell":"/bin/sh/success_with_local_groups","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserByName:
-    TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups: '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","UID":82859,"GID":82859,"Gecos":"gecos for success_with_local_groups","Dir":"/home/success_with_local_groups","Shell":"/bin/sh/success_with_local_groups","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+    TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups: '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","UID":90973,"GID":90973,"Gecos":"gecos for success_with_local_groups","Dir":"/home/success_with_local_groups","Shell":"/bin/sh/success_with_local_groups","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserToBroker: {}
 UserToGroups:
-    "82859": '{"UID":82859,"GIDs":[82859,82691]}'
+    "90973": '{"UID":90973,"GIDs":[90973,80317]}'

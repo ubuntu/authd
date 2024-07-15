@@ -1,0 +1,16 @@
+GroupByID:
+    "73580": '{"Name":"group-success","GID":73580}'
+    "94411": '{"Name":"TestIDGeneration_separator_success","GID":94411}'
+GroupByName:
+    TestIDGeneration_separator_success: '{"Name":"TestIDGeneration_separator_success","GID":94411}'
+    group-success: '{"Name":"group-success","GID":73580}'
+GroupToUsers:
+    "73580": '{"GID":73580,"UIDs":[94411]}'
+    "94411": '{"GID":94411,"UIDs":[94411]}'
+UserByID:
+    "94411": '{"Name":"TestIDGeneration_separator_success","UID":94411,"GID":94411,"Gecos":"gecos for success","Dir":"/home/success","Shell":"/bin/sh/success","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+UserByName:
+    TestIDGeneration_separator_success: '{"Name":"TestIDGeneration_separator_success","UID":94411,"GID":94411,"Gecos":"gecos for success","Dir":"/home/success","Shell":"/bin/sh/success","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+UserToBroker: {}
+UserToGroups:
+    "94411": '{"UID":94411,"GIDs":[94411,73580]}'

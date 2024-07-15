@@ -10,6 +10,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -412,4 +413,15 @@ func getActiveUsers(procDir string) (activeUsers map[string]struct{}, err error)
 		activeUsers[u.Name] = struct{}{}
 	}
 	return activeUsers, nil
+}
+
+// GenerateID generates an integer number based on the provided string lowercased.
+func GenerateID(str string) int {
+	lowerCased := strings.ToLower(str)
+	var sum int
+	for i, c := range lowerCased {
+		// Multiplies the uint value of the rune by its index+1. Subtracts the index to add another layer of conflict prevention.
+		sum += int(uint(c)*uint(i+1)) - i
+	}
+	return (sum % (100000 - 65537)) + 65536 // Ensures that ID is between 65536 and 100000
 }
