@@ -10,6 +10,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/coreos/go-systemd/journal"
@@ -227,9 +228,13 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 	var teaOpts []tea.ProgramOption
 
 	closeLogging, err := initLogging(parsedArgs, flags)
-	defer closeLogging()
 	defer func() {
 		log.Debugf(context.TODO(), "%s: exiting with error %v", mode, err)
+
+		// Wait a moment, before resetting as we may still receive bubbletea
+		// events that we could log in the wrong place.
+		<-time.After(time.Millisecond * 30)
+		closeLogging()
 	}()
 	if err != nil {
 		return err
