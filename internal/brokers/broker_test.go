@@ -333,12 +333,15 @@ func TestUserPreCheck(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			err := b.UserPreCheck(context.Background(), tc.username)
+			got, err := b.UserPreCheck(context.Background(), tc.username)
 			if tc.wantErr {
 				require.Error(t, err, "UserPreCheck should return an error, but did not")
 				return
 			}
 			require.NoError(t, err, "UserPreCheck should not return an error, but did")
+
+			want := testutils.LoadWithUpdateFromGolden(t, got)
+			require.Equal(t, want, got, "UserPreCheck should return the expected data, but did not")
 		})
 	}
 }

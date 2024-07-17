@@ -136,13 +136,17 @@ func (b dbusBroker) CancelIsAuthenticated(ctx context.Context, sessionID string)
 }
 
 // UserPreCheck calls the corresponding method on the broker bus.
-func (b dbusBroker) UserPreCheck(ctx context.Context, username string) (err error) {
+func (b dbusBroker) UserPreCheck(ctx context.Context, username string) (userinfo string, err error) {
 	dbusMethod := DbusInterface + ".UserPreCheck"
 
 	call := b.dbusObject.Call(dbusMethod, 0, username)
 	if err = call.Err; err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	if err = call.Store(&userinfo); err != nil {
+		return "", err
+	}
+
+	return userinfo, nil
 }

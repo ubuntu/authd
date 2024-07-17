@@ -44,7 +44,7 @@ type brokerer interface {
 	EndSession(ctx context.Context, sessionID string) (err error)
 	CancelIsAuthenticated(ctx context.Context, sessionID string)
 
-	UserPreCheck(ctx context.Context, username string) (err error)
+	UserPreCheck(ctx context.Context, username string) (userinfo string, err error)
 }
 
 // Broker represents a broker object that can be used for authentication.
@@ -200,7 +200,7 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 		selectedUsername := b.ongoingUserRequests[sessionID]
 		b.ongoingUserRequestsMu.Unlock()
 
-		u, err := validateUserInfoAndGenerateIDs(b.Name, selectedUsername, info)
+		u, err := validateUserInfoAndGenerateIDs(selectedUsername, info)
 		if err != nil {
 			return "", "", err
 		}
@@ -245,7 +245,7 @@ func (b Broker) cancelIsAuthenticated(ctx context.Context, sessionID string) {
 }
 
 // UserPreCheck calls the broker corresponding method.
-func (b Broker) UserPreCheck(ctx context.Context, username string) (err error) {
+func (b Broker) UserPreCheck(ctx context.Context, username string) (userinfo string, err error) {
 	return b.brokerer.UserPreCheck(ctx, username)
 }
 
@@ -364,7 +364,7 @@ func unmarshalUserInfo(rawMsg json.RawMessage) (userInfo, error) {
 }
 
 // validateUserInfoAndGenerateIDs checks if the specified userinfo is valid and generates the UID and GIDs.
-func validateUserInfoAndGenerateIDs(brokerName, selectedUsername string, uInfo userInfo) (user users.UserInfo, err error) {
+func validateUserInfoAndGenerateIDs(selectedUsername string, uInfo userInfo) (user users.UserInfo, err error) {
 	defer decorate.OnError(&err, "provided userinfo is invalid")
 
 	// Validate username
@@ -387,7 +387,7 @@ func validateUserInfoAndGenerateIDs(brokerName, selectedUsername string, uInfo u
 	if uInfo.UUID == "" {
 		return users.UserInfo{}, fmt.Errorf("empty UUID")
 	}
-	uInfo.UID = generateID(brokerName + uInfo.UUID)
+	uInfo.UID = users.GenerateID(uInfo.Name)
 
 	// Validate UGIDs and generate GIDs
 	for _, g := range uInfo.Groups {
@@ -396,7 +396,7 @@ func validateUserInfoAndGenerateIDs(brokerName, selectedUsername string, uInfo u
 		}
 		var gid *int
 		if g.UGID != "" {
-			gidv := generateID(brokerName + g.UGID)
+			gidv := users.GenerateID(g.UGID)
 			gid = &gidv
 		}
 		uInfo.UserInfo.Groups = append(uInfo.UserInfo.Groups, users.GroupInfo{Name: g.Name, GID: gid})
@@ -407,16 +407,6 @@ func validateUserInfoAndGenerateIDs(brokerName, selectedUsername string, uInfo u
 	uInfo.UserInfo.Groups = append(defaultGroup, uInfo.UserInfo.Groups...)
 
 	return uInfo.UserInfo, nil
-}
-
-// generatedID generates an integer number based on the provided string.
-func generateID(str string) int {
-	var sum int
-	for i, c := range str {
-		// Multiplies the uint value of the rune by its index+1. Subtracts the index to add another layer of conflict prevention.
-		sum += int(uint(c)*uint(i+1)) - i
-	}
-	return (sum % (100000 - 65537)) + 65536 // Ensures that ID is between 65536 and 100000
 }
 
 // unmarshalAndGetKey tries to unmarshal the content in data and returns the value of the requested key.

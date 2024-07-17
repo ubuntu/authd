@@ -325,11 +325,11 @@ func (b *BrokerBusMock) CancelIsAuthenticated(sessionID string) (dbusErr *dbus.E
 }
 
 // UserPreCheck returns default values to be used in tests or an error if requested.
-func (b *BrokerBusMock) UserPreCheck(username string) (dbusErr *dbus.Error) {
-	if username == "user-pre-check" {
-		return nil
+func (b *BrokerBusMock) UserPreCheck(username string) (userinfo string, dbusErr *dbus.Error) {
+	if strings.ToLower(username) != "user-pre-check" {
+		return "", dbus.MakeFailedError(fmt.Errorf("broker %q: UserPreCheck errored out", b.name))
 	}
-	return dbus.MakeFailedError(fmt.Errorf("broker %q: UserPreCheck errored out", b.name))
+	return userInfoFromName(username, nil), nil
 }
 
 // parseSessionID is wrapper around the sessionID to remove some values appended during the tests.

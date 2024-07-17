@@ -725,11 +725,11 @@ func (b *Broker) CancelIsAuthenticated(ctx context.Context, sessionID string) {
 }
 
 // UserPreCheck checks if the user is known to the broker.
-func (b *Broker) UserPreCheck(ctx context.Context, username string) error {
+func (b *Broker) UserPreCheck(ctx context.Context, username string) (string, error) {
 	if _, exists := exampleUsers[username]; !exists {
-		return fmt.Errorf("user %q does not exist", username)
+		return "", fmt.Errorf("user %q does not exist", username)
 	}
-	return nil
+	return userInfoFromName(username), nil
 }
 
 func mapToJSON(input map[string]string) string {

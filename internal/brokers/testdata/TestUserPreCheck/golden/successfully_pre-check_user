@@ -1,0 +1,9 @@
+{
+		"name": "user-pre-check",
+		"uuid": "uuid-user-pre-check",
+		"gecos": "gecos for user-pre-check",
+		"dir": "/home/user-pre-check",
+		"shell": "/bin/sh/user-pre-check",
+		"avatar": "avatar for user-pre-check",
+		"groups": [ {"name": "group-user-pre-check", "ugid": "ugid-user-pre-check"} ]
+	}

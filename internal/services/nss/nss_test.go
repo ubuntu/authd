@@ -52,8 +52,10 @@ func TestGetPasswdByName(t *testing.T) {
 		wantErr          bool
 		wantErrNotExists bool
 	}{
-		"Return existing user":          {username: "user1"},
-		"Precheck user if not in cache": {username: "user-pre-check", shouldPreCheck: true},
+		"Return existing user": {username: "user1"},
+
+		"Precheck user if not in cache":                                          {username: "user-pre-check", shouldPreCheck: true},
+		"Prechecked user with upper cases in username has same id as lower case": {username: "User-Pre-Check", shouldPreCheck: true},
 
 		"Error in database fetched content":                      {username: "user1", sourceDB: "invalid.db.yaml", wantErr: true},
 		"Error with typed GRPC notfound code on unexisting user": {username: "does-not-exists", wantErr: true, wantErrNotExists: true},

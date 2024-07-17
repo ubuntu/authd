@@ -532,6 +532,45 @@ func TestIsAuthenticated(t *testing.T) {
 	}
 }
 
+func TestIDGeneration(t *testing.T) {
+	t.Parallel()
+	usernamePrefix := t.Name()
+
+	tests := map[string]struct {
+		username string
+	}{
+		"Generate ID": {username: "success"},
+		"Generates same ID if user has upper cases in username": {username: "SuCcEsS"},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			m, err := users.NewManager(t.TempDir())
+			require.NoError(t, err, "Setup: could not create user manager")
+			t.Cleanup(func() { _ = m.Stop() })
+			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
+			client := newPamClient(t, m, &pm)
+
+			sbResp, err := client.SelectBroker(context.Background(), &authd.SBRequest{
+				BrokerId: mockBrokerGeneratedID,
+				Username: usernamePrefix + testutils.IDSeparator + tc.username,
+				Mode:     authd.SessionMode_AUTH,
+			})
+			require.NoError(t, err, "Setup: failed to create session for tests")
+
+			resp, err := client.IsAuthenticated(context.Background(), &authd.IARequest{SessionId: sbResp.GetSessionId()})
+			require.NoError(t, err, "Setup: could not authenticate user")
+			require.Equal(t, "granted", resp.GetAccess(), "Setup: authentication should be granted")
+
+			gotDB, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
+			require.NoError(t, err, "Setup: failed to dump database for comparing")
+			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
+			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
+		})
+	}
+}
+
 func TestSetDefaultBrokerForUser(t *testing.T) {
 	t.Parallel()
 
