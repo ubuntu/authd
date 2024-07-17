@@ -5,7 +5,6 @@ package permissionstestutils
 // a blank space between the imports, which creates problems with gci so we need to ignore it.
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	//nolint:revive,nolintlint // needed for go:linkname, but only used in tests. nolintlint as false positive then.
@@ -52,12 +51,5 @@ var permErrorFmt string
 
 // IdempotentPermissionError strips the UID from the permission error message.
 func IdempotentPermissionError(msg string) string {
-	// We assume a known format error and we will capture change during the tests.
-	// The issue is that golden files assert on the errors, that should not be the case ideally.
-	permErrorRaw := strings.TrimSuffix(permErrorFmt, "%d")
-	// Only consider half of the string, since tests golden files may be wrapped
-	permErrorRaw = permErrorRaw[len(permErrorRaw)/2:]
-	permErrorFmt := fmt.Sprintf(`%s\d+`, permErrorRaw)
-	re := regexp.MustCompile(permErrorFmt)
-	return re.ReplaceAllString(msg, fmt.Sprintf("%sXXXX", permErrorRaw))
+	return strings.ReplaceAll(msg, fmt.Sprint(currentUserUID()), "XXXX")
 }

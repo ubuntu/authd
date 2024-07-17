@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/daemon"
 	"github.com/ubuntu/authd/internal/daemon/testdata/grpctestservice"
+	"github.com/ubuntu/authd/internal/services/errmessages"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
@@ -149,7 +150,7 @@ func TestServe(t *testing.T) {
 			t.Parallel()
 
 			registerGRPC := func(context.Context) *grpc.Server {
-				return grpc.NewServer()
+				return grpc.NewServer(grpc.UnaryInterceptor(errmessages.RedactErrorInterceptor))
 			}
 			socketPath := filepath.Join(t.TempDir(), "manual.socket")
 
@@ -214,7 +215,7 @@ func TestQuit(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			grpcServer := grpc.NewServer()
+			grpcServer := grpc.NewServer(grpc.UnaryInterceptor(errmessages.RedactErrorInterceptor))
 			defer grpcServer.Stop()
 			registerGRPC := func(context.Context) *grpc.Server {
 				var service testGRPCService
@@ -295,7 +296,7 @@ func createClientConnection(t *testing.T, socketPath string) (success bool, disc
 	go func() {
 		defer close(connected)
 		var err error
-		conn, err = grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err = grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
 		require.NoError(t, err, "Could not connect to grpc server")
 
 		// The daemon tests require an active connection, so we need to block here until the connection is ready.

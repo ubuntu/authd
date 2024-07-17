@@ -6,6 +6,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/decorate"
 	"gopkg.in/ini.v1"
 )
@@ -59,7 +60,7 @@ func (b dbusBroker) NewSession(ctx context.Context, username, lang, mode string)
 
 	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, username, lang, mode)
 	if err = call.Err; err != nil {
-		return "", "", err
+		return "", "", errmessages.NewErrorToDisplay(err)
 	}
 	if err = call.Store(&sessionID, &encryptionKey); err != nil {
 		return "", "", err
@@ -74,7 +75,7 @@ func (b dbusBroker) GetAuthenticationModes(ctx context.Context, sessionID string
 
 	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID, supportedUILayouts)
 	if err = call.Err; err != nil {
-		return nil, err
+		return nil, errmessages.NewErrorToDisplay(err)
 	}
 	if err = call.Store(&authenticationModes); err != nil {
 		return nil, err
@@ -89,7 +90,7 @@ func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, aut
 
 	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID, authenticationModeName)
 	if err = call.Err; err != nil {
-		return nil, err
+		return nil, errmessages.NewErrorToDisplay(err)
 	}
 	if err = call.Store(&uiLayoutInfo); err != nil {
 		return nil, err
@@ -104,7 +105,7 @@ func (b dbusBroker) IsAuthenticated(_ context.Context, sessionID, authentication
 
 	call := b.dbusObject.Call(dbusMethod, 0, sessionID, authenticationData)
 	if err = call.Err; err != nil {
-		return "", "", err
+		return "", "", errmessages.NewErrorToDisplay(err)
 	}
 	if err = call.Store(&access, &data); err != nil {
 		return "", "", err
@@ -119,7 +120,7 @@ func (b dbusBroker) EndSession(ctx context.Context, sessionID string) (err error
 
 	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID)
 	if err = call.Err; err != nil {
-		return err
+		return errmessages.NewErrorToDisplay(err)
 	}
 
 	return nil
