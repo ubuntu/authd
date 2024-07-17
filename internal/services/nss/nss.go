@@ -3,6 +3,7 @@ package nss
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -40,6 +41,7 @@ func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetPasswdByName
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
+
 	u, err := s.userManager.UserByName(req.GetName())
 	if err == nil {
 		return nssPasswdFromUsersPasswd(u), nil
@@ -50,11 +52,12 @@ func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetPasswdByName
 	}
 
 	// If the user is not found in the local cache, we check if it exists in at least one broker.
-	if err := s.userPreCheck(ctx, req.GetName()); err != nil {
+	pwent, err := s.userPreCheck(ctx, req.GetName())
+	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
-	return nssPasswdFromUsersPasswd(users.UserEntry{Name: req.GetName(), UID: -1, GID: -1}), nil
+	return pwent, nil
 }
 
 // GetPasswdByUID returns the passwd entry for the given UID.
@@ -157,19 +160,34 @@ func (s Service) GetShadowEntries(ctx context.Context, req *authd.Empty) (*authd
 }
 
 // userPreCheck checks if the user exists in at least one broker.
-func (s Service) userPreCheck(ctx context.Context, username string) error {
+func (s Service) userPreCheck(ctx context.Context, username string) (pwent *authd.PasswdEntry, err error) {
 	// Check if the user exists in at least one broker.
+	var userinfo string
 	for _, b := range s.brokerManager.AvailableBrokers() {
 		// The local broker is not a real broker, so we skip it.
 		if b.ID == brokers.LocalBrokerName {
 			continue
 		}
-		if err := b.UserPreCheck(ctx, username); err != nil {
-			continue
+
+		userinfo, err = b.UserPreCheck(ctx, username)
+		if err == nil && userinfo != "" {
+			break
 		}
-		return nil
 	}
-	return fmt.Errorf("user %q is not known by any broker", username)
+
+	if err != nil || userinfo == "" {
+		return nil, fmt.Errorf("user %q is not known by any broker", username)
+	}
+
+	var u users.UserEntry
+	if err := json.Unmarshal([]byte(userinfo), &u); err != nil {
+		return nil, fmt.Errorf("user data from broker invalid: %v", err)
+	}
+	// We need to generate the ID for the user, as its business logic is authd responsibility, not the broker's.
+	u.UID = users.GenerateID(u.Name)
+	u.GID = u.UID
+
+	return nssPasswdFromUsersPasswd(u), nil
 }
 
 // nssPasswdFromUsersPasswd returns a PasswdEntry from users.UserEntry.

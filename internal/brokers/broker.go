@@ -44,7 +44,7 @@ type brokerer interface {
 	EndSession(ctx context.Context, sessionID string) (err error)
 	CancelIsAuthenticated(ctx context.Context, sessionID string)
 
-	UserPreCheck(ctx context.Context, username string) (err error)
+	UserPreCheck(ctx context.Context, username string) (userinfo string, err error)
 }
 
 // Broker represents a broker object that can be used for authentication.
@@ -245,7 +245,7 @@ func (b Broker) cancelIsAuthenticated(ctx context.Context, sessionID string) {
 }
 
 // UserPreCheck calls the broker corresponding method.
-func (b Broker) UserPreCheck(ctx context.Context, username string) (err error) {
+func (b Broker) UserPreCheck(ctx context.Context, username string) (userinfo string, err error) {
 	return b.brokerer.UserPreCheck(ctx, username)
 }
 
