@@ -68,6 +68,14 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 	brokerID, err := s.userManager.BrokerForUser(req.GetUsername())
 	// User is not in our cache.
 	if err != nil && errors.Is(err, users.ErrNoDataFound{}) {
+		// FIXME: this part will not be here in the v2 API version, as we won’t have GetPreviousBroker and handle
+		// autoselection silently in authd.
+		// User not in cache, if there is only the local broker available, return this one without saving it.
+		if len(s.brokerManager.AvailableBrokers()) == 1 {
+			log.Debugf(ctx, "User %q is not handled by authd and only local broker: select it.", req.GetUsername())
+			return &authd.GPBResponse{PreviousBroker: brokers.LocalBrokerName}, nil
+		}
+
 		// User not acccessible through NSS, first time login or no valid user. Anyway, no broker selected.
 		if _, err := user.Lookup(req.GetUsername()); err != nil {
 			log.Debugf(ctx, "User %q is unknown", req.GetUsername())
