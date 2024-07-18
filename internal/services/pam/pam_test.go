@@ -30,7 +30,7 @@ import (
 )
 
 var (
-	brokerManager         *brokers.Manager
+	globalBrokerManager   *brokers.Manager
 	mockBrokerGeneratedID string
 )
 
@@ -66,7 +66,7 @@ func TestNewService(t *testing.T) {
 	require.NoError(t, err, "Setup: could not create user manager")
 
 	pm := permissions.New()
-	service := pam.NewService(context.Background(), m, brokerManager, &pm)
+	service := pam.NewService(context.Background(), m, globalBrokerManager, &pm)
 
 	brokers, err := service.AvailableBrokers(context.Background(), &authd.Empty{})
 	require.NoError(t, err, "can’t create the service directly")
@@ -90,7 +90,7 @@ func TestAvailableBrokers(t *testing.T) {
 			t.Parallel()
 
 			pm := newPermissionManager(t, tc.currentUserNotRoot)
-			client := newPamClient(t, nil, &pm)
+			client := newPamClient(t, nil, globalBrokerManager, &pm)
 
 			abResp, err := client.AvailableBrokers(context.Background(), &authd.Empty{})
 
@@ -122,12 +122,14 @@ func TestGetPreviousBroker(t *testing.T) {
 		user string
 
 		currentUserNotRoot bool
+		onlyLocalBroker    bool
 
 		wantBroker string
 		wantErr    bool
 	}{
-		"Success getting previous broker":  {user: "userwithbroker", wantBroker: mockBrokerGeneratedID},
-		"For local user, get local broker": {user: currentUsername, wantBroker: brokers.LocalBrokerName},
+		"Success getting previous broker":                          {user: "userwithbroker", wantBroker: mockBrokerGeneratedID},
+		"For local user, get local broker":                         {user: currentUsername, wantBroker: brokers.LocalBrokerName},
+		"For unmanaged user and only one broker, get local broker": {user: "nonexistent", onlyLocalBroker: true, wantBroker: brokers.LocalBrokerName},
 
 		"Returns empty when user does not exist":         {user: "nonexistent", wantBroker: ""},
 		"Returns empty when user does not have a broker": {user: "userwithoutbroker", wantBroker: ""},
@@ -157,7 +159,13 @@ func TestGetPreviousBroker(t *testing.T) {
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, tc.currentUserNotRoot)
-			client := newPamClient(t, m, &pm)
+
+			brokerManager := globalBrokerManager
+			if tc.onlyLocalBroker {
+				brokerManager, err = brokers.NewManager(context.Background(), "", nil)
+				require.NoError(t, err, "Setup: could not create broker manager with only local broker")
+			}
+			client := newPamClient(t, m, brokerManager, &pm)
 
 			// Get existing entry
 			gotResp, err := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: tc.user})
@@ -202,7 +210,7 @@ func TestSelectBroker(t *testing.T) {
 			t.Parallel()
 
 			pm := newPermissionManager(t, tc.currentUserNotRoot)
-			client := newPamClient(t, nil, &pm)
+			client := newPamClient(t, nil, globalBrokerManager, &pm)
 
 			switch tc.brokerID {
 			case "":
@@ -273,7 +281,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 			t.Parallel()
 
 			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
-			client := newPamClient(t, nil, &pm)
+			client := newPamClient(t, nil, globalBrokerManager, &pm)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -349,7 +357,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			t.Parallel()
 
 			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
-			client := newPamClient(t, nil, &pm)
+			client := newPamClient(t, nil, globalBrokerManager, &pm)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -460,7 +468,7 @@ func TestIsAuthenticated(t *testing.T) {
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
-			client := newPamClient(t, m, &pm)
+			client := newPamClient(t, m, globalBrokerManager, &pm)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -550,7 +558,7 @@ func TestIDGeneration(t *testing.T) {
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
-			client := newPamClient(t, m, &pm)
+			client := newPamClient(t, m, globalBrokerManager, &pm)
 
 			sbResp, err := client.SelectBroker(context.Background(), &authd.SBRequest{
 				BrokerId: mockBrokerGeneratedID,
@@ -604,7 +612,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, tc.currentUserNotRoot)
-			client := newPamClient(t, m, &pm)
+			client := newPamClient(t, m, globalBrokerManager, &pm)
 
 			if tc.brokerID == "" {
 				tc.brokerID = mockBrokerGeneratedID
@@ -657,7 +665,7 @@ func TestEndSession(t *testing.T) {
 			t.Parallel()
 
 			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
-			client := newPamClient(t, nil, &pm)
+			client := newPamClient(t, nil, globalBrokerManager, &pm)
 
 			switch tc.sessionID {
 			case "invalid-session":
@@ -714,10 +722,10 @@ func initBrokers() (brokerConfigPath string, cleanup func(), err error) {
 	}, nil
 }
 
-// newPAMClient returns a new GRPC PAM client for tests connected to the global brokerManager with the given cache and
+// newPAMClient returns a new GRPC PAM client for tests connected to brokerManager with the given cache and
 // permissionmanager.
 // If the one passed is nil, this function will create the cache and close it upon test teardown.
-func newPamClient(t *testing.T, m *users.Manager, pm *permissions.Manager) (client authd.PAMClient) {
+func newPamClient(t *testing.T, m *users.Manager, brokerManager *brokers.Manager, pm *permissions.Manager) (client authd.PAMClient) {
 	t.Helper()
 
 	// socket path is limited in length.
@@ -829,12 +837,12 @@ func TestMain(m *testing.M) {
 	defer cleanup()
 
 	// Get manager shared across grpc services.
-	brokerManager, err = brokers.NewManager(context.Background(), brokersConfPath, nil)
+	globalBrokerManager, err = brokers.NewManager(context.Background(), brokersConfPath, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
-	mockBrokerGeneratedID, err = getMockBrokerGeneratedID(brokerManager)
+	mockBrokerGeneratedID, err = getMockBrokerGeneratedID(globalBrokerManager)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
