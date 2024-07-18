@@ -122,12 +122,14 @@ func TestGetPreviousBroker(t *testing.T) {
 		user string
 
 		currentUserNotRoot bool
+		onlyLocalBroker    bool
 
 		wantBroker string
 		wantErr    bool
 	}{
-		"Success getting previous broker":  {user: "userwithbroker", wantBroker: mockBrokerGeneratedID},
-		"For local user, get local broker": {user: currentUsername, wantBroker: brokers.LocalBrokerName},
+		"Success getting previous broker":                          {user: "userwithbroker", wantBroker: mockBrokerGeneratedID},
+		"For local user, get local broker":                         {user: currentUsername, wantBroker: brokers.LocalBrokerName},
+		"For unmanaged user and only one broker, get local broker": {user: "nonexistent", onlyLocalBroker: true, wantBroker: brokers.LocalBrokerName},
 
 		"Returns empty when user does not exist":         {user: "nonexistent", wantBroker: ""},
 		"Returns empty when user does not have a broker": {user: "userwithoutbroker", wantBroker: ""},
@@ -157,7 +159,13 @@ func TestGetPreviousBroker(t *testing.T) {
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, tc.currentUserNotRoot)
-			client := newPamClient(t, m, globalBrokerManager, &pm)
+
+			brokerManager := globalBrokerManager
+			if tc.onlyLocalBroker {
+				brokerManager, err = brokers.NewManager(context.Background(), "", nil)
+				require.NoError(t, err, "Setup: could not create broker manager with only local broker")
+			}
+			client := newPamClient(t, m, brokerManager, &pm)
 
 			// Get existing entry
 			gotResp, err := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: tc.user})
