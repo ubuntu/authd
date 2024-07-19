@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
@@ -291,7 +292,7 @@ func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (clien
 
 	service := nss.NewService(context.Background(), newUserManagerForTests(t, sourceDB), newBrokersManagerForTests(t), &pm)
 
-	grpcServer := grpc.NewServer(permissions.WithUnixPeerCreds(), grpc.UnaryInterceptor(enableCheckGlobalAccess(service)))
+	grpcServer := grpc.NewServer(permissions.WithUnixPeerCreds(), grpc.ChainUnaryInterceptor(enableCheckGlobalAccess(service), errmessages.RedactErrorInterceptor))
 	authd.RegisterNSSServer(grpcServer, service)
 	done := make(chan struct{})
 	go func() {

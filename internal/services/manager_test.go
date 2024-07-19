@@ -11,11 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/services"
+	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/status"
 )
 
 func TestNewManager(t *testing.T) {
@@ -89,7 +88,7 @@ func TestAccessAuthorization(t *testing.T) {
 		require.NoError(t, <-serverDone, "gRPC server should not return an error from serving")
 	}()
 
-	conn, err := grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
 	require.NoError(t, err, "Setup: could not dial the server")
 
 	// Global authorization for PAM is always denied for non root user.
@@ -100,10 +99,7 @@ func TestAccessAuthorization(t *testing.T) {
 	// Global authorization for NSS is always granted for non root user.
 	nssClient := authd.NewNSSClient(conn)
 	_, err = nssClient.GetPasswdByName(context.Background(), &authd.GetPasswdByNameRequest{Name: ""})
-	// The returned error should be InvalidArgument, as the name is empty (and prooving we called the method).
-	s, ok := status.FromError(err)
-	require.True(t, ok, "Expected a GRPC error from the server")
-	require.Equal(t, s.Code(), codes.InvalidArgument, "Expected an InvalidArgument error, and thus, the method was called")
+	require.Error(t, err, "Expected a GRPC error from the server")
 
 	err = conn.Close()
 	require.NoError(t, err, "Teardown: could not close the client connection")

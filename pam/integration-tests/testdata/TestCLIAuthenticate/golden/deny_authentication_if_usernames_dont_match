@@ -132,9 +132,9 @@ Gimme your password
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Gimme your password
-PAM Error Message: authentication status failure: rpc error: code = Unknown desc = can't check a
-uthentication: provided userinfo is invalid: username "mismatching-username" does not match the
-selected username "user-mismatching-name"
+PAM Error Message: authentication status failure: can't check authentication: provided userinfo
+is invalid: username "mismatching-username" does not match the selected username "user-mismatchi
+ng-name"
 PAM Authenticate() for user "user-mismatching-name" exited with error (PAM exit code: 4): System
  error
 PAM Info Message: acct=incomplete
@@ -165,9 +165,9 @@ dispatch
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Gimme your password
-PAM Error Message: authentication status failure: rpc error: code = Unknown desc = can't check a
-uthentication: provided userinfo is invalid: username "mismatching-username" does not match the
-selected username "user-mismatching-name"
+PAM Error Message: authentication status failure: can't check authentication: provided userinfo
+is invalid: username "mismatching-username" does not match the selected username "user-mismatchi
+ng-name"
 PAM Authenticate() for user "user-mismatching-name" exited with error (PAM exit code: 4): System
  error
 PAM Info Message: acct=incomplete

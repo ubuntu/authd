@@ -103,13 +103,13 @@ Username: user-unexistent
 1 - local
 2 - ExampleBroker
 Select broker: 2
-can't select broker: rpc error: code = Unknown desc = can't start authentication transaction: us
-er "user-unexistent" does not exist
+can't select broker: user "user-unexistent" does not exist
 PAM Authenticate() for user "user-unexistent" exited with error (PAM exit code: 4): System error
 acct=incomplete
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch
 >
+
 
 
 
@@ -136,13 +136,13 @@ Username: user-unexistent
 1 - local
 2 - ExampleBroker
 Select broker: 2
-can't select broker: rpc error: code = Unknown desc = can't start authentication transaction: us
-er "user-unexistent" does not exist
+can't select broker: user "user-unexistent" does not exist
 PAM Authenticate() for user "user-unexistent" exited with error (PAM exit code: 4): System error
 acct=incomplete
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch
 >
+
 
 
 

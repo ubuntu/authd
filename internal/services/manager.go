@@ -7,6 +7,7 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/services/permissions"
@@ -57,7 +58,7 @@ func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configure
 func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 	log.Debug(ctx, "Registering GRPC services")
 
-	opts := []grpc.ServerOption{permissions.WithUnixPeerCreds(), grpc.UnaryInterceptor(m.globalPermissions)}
+	opts := []grpc.ServerOption{permissions.WithUnixPeerCreds(), grpc.ChainUnaryInterceptor(m.globalPermissions, errmessages.RedactErrorInterceptor)}
 	grpcServer := grpc.NewServer(opts...)
 
 	authd.RegisterNSSServer(grpcServer, m.nssService)

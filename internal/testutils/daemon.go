@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/services/errmessages"
 	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
@@ -112,7 +113,7 @@ paths:
 		t.Logf("Daemon stopped (%v)\n ##### STDOUT #####\n %s \n ##### END #####", err, out)
 	}()
 
-	conn, err := grpc.NewClient("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
 	require.NoError(t, err, "Setup: could not connect to the daemon on %s", opts.socketPath)
 	defer conn.Close()
 

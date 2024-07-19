@@ -18,6 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/pam/internal/adapter"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"golang.org/x/term"
@@ -435,7 +436,7 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 
 // newClient returns a new GRPC client ready to emit requests.
 func newClient(args map[string]string) (client authd.PAMClient, close func(), err error) {
-	conn, err := grpc.NewClient("unix://"+getSocketPath(args), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient("unix://"+getSocketPath(args), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not connect to authd: %v", err)
 	}
