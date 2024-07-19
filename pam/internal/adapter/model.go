@@ -43,6 +43,8 @@ type UIModel struct {
 	PamMTx pam.ModuleTransaction
 	// Client is the [authd.PAMClient] handle used to communicate with authd.
 	Client authd.PAMClient
+	// NssClient is the [authd.NSSClient] handle used to communicate with authd.
+	NssClient authd.NSSClient
 	// PamClientType is the kind of the PAM client we're handling.
 	ClientType PamClientType
 	// SessionMode is the mode of the session invoked by the module.
@@ -108,7 +110,7 @@ func (m *UIModel) Init() tea.Cmd {
 		m.gdmModel = gdmModel{pamMTx: m.PamMTx}
 		cmds = append(cmds, m.gdmModel.Init())
 	case Native:
-		m.nativeModel = nativeModel{pamMTx: m.PamMTx}
+		m.nativeModel = nativeModel{pamMTx: m.PamMTx, nssClient: m.NssClient}
 		cmds = append(cmds, m.nativeModel.Init())
 	}
 

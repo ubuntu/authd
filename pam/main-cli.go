@@ -26,6 +26,7 @@ func main() {
 	cliPath := os.Getenv("AUTHD_PAM_CLI_PATH")
 	testName := os.Getenv("AUTHD_PAM_CLI_TEST_NAME")
 	pamUser := os.Getenv("AUTHD_PAM_CLI_USER")
+	pamEnvs := os.Getenv("AUTHD_PAM_CLI_ENVS")
 	pamService := os.Getenv("AUTHD_PAM_CLI_SERVICE")
 
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "pam-cli-tester-")
@@ -96,6 +97,15 @@ func main() {
 	err = tx.PutEnv("AUTHD_PAM_CLI_TEST_NAME=" + testName)
 	if err != nil {
 		log.Fatalf("Impossible to set environment: %v", err)
+	}
+
+	if pamEnvs != "" {
+		for _, env := range strings.Split(pamEnvs, "\n") {
+			err = tx.PutEnv(env)
+			if err != nil {
+				log.Fatalf("Impossible to set environment: %v", err)
+			}
+		}
 	}
 
 	var resultMsg string

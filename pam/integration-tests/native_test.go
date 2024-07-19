@@ -33,6 +33,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		termEnv            string
 		sessionEnv         string
 		pamUser            string
+		pamEnvs            []string
 		pamServiceName     string
 	}{
 		"Authenticate user successfully":                                       {tape: "simple_auth"},
@@ -52,6 +53,9 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Authenticate user switching username":                                 {tape: "switch_username"},
 		"Authenticate user switching to local broker":                          {tape: "switch_local_broker"},
 		"Authenticate user and add it to local group":                          {tape: "local_group"},
+		"Authenticate user on ssh service":                                     {tape: "simple_ssh_auth", pamUser: "user-integration-pre-check-ssh-service", pamServiceName: "sshd"},
+		"Authenticate user on ssh service with custom name and connection env": {tape: "simple_ssh_auth", pamUser: "user-integration-pre-check-ssh-connection", pamEnvs: []string{"SSH_CONNECTION=foo-connection"}},
+		"Authenticate user on ssh service with custom name and auth info env":  {tape: "simple_ssh_auth", pamUser: "user-integration-pre-check-ssh-auth-info", pamEnvs: []string{"SSH_AUTH_INFO_0=foo-authinfo"}},
 		"Authenticate with warnings on unsupported arguments":                  {tape: "simple_auth_with_unsupported_args"},
 
 		"Remember last successful broker and mode":      {tape: "remember_broker_and_mode"},
@@ -65,7 +69,10 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Deny authentication if usernames dont match":                         {tape: "mismatch_username"},
 		"Deny authentication if newpassword does not match required criteria": {tape: "bad_password"},
 
-		"Exit authd if local broker is selected": {tape: "local_broker"},
+		"Exit authd if local broker is selected":                                    {tape: "local_broker"},
+		"Exit if user is not pre-checked on ssh service":                            {tape: "local_ssh", pamUser: "user-integration-ssh-service", pamServiceName: "sshd"},
+		"Exit if user is not pre-checked on custom ssh service with connection env": {tape: "local_ssh", pamUser: "user-integration-ssh-connection", pamEnvs: []string{"SSH_CONNECTION=foo-connection"}},
+		"Exit if user is not pre-checked on custom ssh service with auth info env":  {tape: "local_ssh", pamUser: "user-integration-ssh-auth-info", pamEnvs: []string{"SSH_AUTH_INFO_0=foo-authinfo"}},
 		// FIXME: While this works now, it requires proper handling via signal_fd
 		"Exit authd if user sigints": {tape: "sigint"},
 	}
@@ -104,6 +111,9 @@ func TestNativeAuthenticate(t *testing.T) {
 			)
 			if tc.pamUser != "" {
 				cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_USER=%s", tc.pamUser))
+			}
+			if tc.pamEnvs != nil {
+				cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_ENVS=%s", strings.Join(tc.pamEnvs, "\n")))
 			}
 			if tc.pamServiceName != "" {
 				cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_SERVICE=%s", tc.pamServiceName))

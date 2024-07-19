@@ -21,7 +21,8 @@ import (
 )
 
 type nativeModel struct {
-	pamMTx pam.ModuleTransaction
+	pamMTx    pam.ModuleTransaction
+	nssClient authd.NSSClient
 
 	availableBrokers []*authd.ABResponse_BrokerInfo
 	authModes        []*authd.GAMResponse_AuthenticationMode
@@ -165,7 +166,20 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		m.authModes = msg.authModes
 
 	case brokerSelectionRequired:
-		return m, sendEvent(nativeBrokerSelection{})
+		if m.busy {
+			// We may receive multiple concurrent requests, but due to the sync nature
+			// of this model, we can't just accept them once we've one in progress already
+			log.Debug(context.TODO(), "Broker selection already in progress")
+			return m, nil
+		}
+
+		user, err := m.pamMTx.GetItem(pam.User)
+		if err != nil {
+			return m, maybeSendPamError(err)
+		}
+		return m.startAsyncOp(func() tea.Cmd {
+			return m.maybePreCheckUser(user, sendEvent(nativeBrokerSelection{}))
+		})
 
 	case nativeBrokerSelection:
 		if m.busy {
@@ -390,7 +404,28 @@ func (m nativeModel) userSelection() tea.Cmd {
 	if err != nil && !errors.Is(err, errGoBack) {
 		return maybeSendPamError(err)
 	}
-	return sendEvent(userSelected{user})
+
+	return m.maybePreCheckUser(user, sendEvent(userSelected{user}))
+}
+
+func (m nativeModel) maybePreCheckUser(user string, nextCmd tea.Cmd) tea.Cmd {
+	if m.nssClient == nil {
+		return nextCmd
+	}
+
+	// When the NSS client is defined (i.e. under SSH for now) we want also
+	// repeat the user pre-check, to ensure that the user is handled by at least
+	// one broker, or we may end up leaking such infos.
+	// We don't care about the content, we only care if the user is known by some broker.
+	_, err := m.nssClient.GetPasswdByName(context.TODO(), &authd.GetPasswdByNameRequest{
+		Name:           user,
+		ShouldPreCheck: true,
+	})
+	if err != nil {
+		log.Infof(context.TODO(), "can't get user info for %q: %v", user, err)
+		return sendEvent(brokerSelected{brokerID: brokers.LocalBrokerName})
+	}
+	return nextCmd
 }
 
 func (m nativeModel) brokerSelection() tea.Cmd {

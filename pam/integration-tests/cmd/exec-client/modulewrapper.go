@@ -19,7 +19,7 @@ func newModuleWrapper(serverAddress string) (pam.ModuleTransaction, func(), erro
 	return &moduleWrapper{mTx}, closeFunc, err
 }
 
-// SimulateClientPanic forces the client to painc with the provided text.
+// SimulateClientPanic forces the client to panic with the provided text.
 func (m *moduleWrapper) SimulateClientPanic(text string) {
 	panic(text)
 }

@@ -10,6 +10,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/coreos/go-systemd/journal"
@@ -227,9 +228,13 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 	var teaOpts []tea.ProgramOption
 
 	closeLogging, err := initLogging(parsedArgs, flags)
-	defer closeLogging()
 	defer func() {
 		log.Debugf(context.TODO(), "%s: exiting with error %v", mode, err)
+
+		// Wait a moment, before resetting as we may still receive bubbletea
+		// events that we could log in the wrong place.
+		<-time.After(time.Millisecond * 30)
+		closeLogging()
 	}()
 	if err != nil {
 		return err
@@ -298,7 +303,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		teaOpts = append(teaOpts, modeOpts...)
 	}
 
-	client, closeConn, err := newClient(parsedArgs)
+	conn, closeConn, err := newClientConnection(parsedArgs)
 	if err != nil {
 		log.Debug(context.TODO(), err)
 		if err := showPamMessage(mTx, pam.ErrorMsg, err.Error()); err != nil {
@@ -310,9 +315,13 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 
 	appState := adapter.UIModel{
 		PamMTx:      mTx,
-		Client:      client,
+		Client:      authd.NewPAMClient(conn),
 		ClientType:  pamClientType,
 		SessionMode: mode,
+	}
+
+	if pamClientType == adapter.Native && isSSHSession(mTx) {
+		appState.NssClient = authd.NewNSSClient(conn)
 	}
 
 	if err := mTx.SetData(authenticationBrokerIDKey, nil); err != nil {
@@ -434,13 +443,23 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 	return nil
 }
 
-// newClient returns a new GRPC client ready to emit requests.
-func newClient(args map[string]string) (client authd.PAMClient, close func(), err error) {
-	conn, err := grpc.NewClient("unix://"+getSocketPath(args), grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
+func newClientConnection(args map[string]string) (conn *grpc.ClientConn, closeConn func(), err error) {
+	conn, err = grpc.NewClient("unix://"+getSocketPath(args),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not connect to authd: %v", err)
 	}
-	return authd.NewPAMClient(conn), func() { conn.Close() }, nil
+	return conn, func() { conn.Close() }, err
+}
+
+// newClient returns a new GRPC client ready to emit requests.
+func newClient(args map[string]string) (client authd.PAMClient, closeConn func(), err error) {
+	conn, closeConn, err := newClientConnection(args)
+	if err != nil {
+		return nil, nil, err
+	}
+	return authd.NewPAMClient(conn), closeConn, nil
 }
 
 // getSocketPath returns the socket path to connect to which can be overridden manually.
@@ -449,6 +468,25 @@ func getSocketPath(args map[string]string) string {
 		return val
 	}
 	return consts.DefaultSocketPath
+}
+
+func isSSHSession(mTx pam.ModuleTransaction) bool {
+	service, _ := mTx.GetItem(pam.Service)
+	if service == "sshd" {
+		return true
+	}
+
+	envs, err := mTx.GetEnvList()
+	if err != nil {
+		return false
+	}
+	if _, ok := envs["SSH_CONNECTION"]; ok {
+		return true
+	}
+	if _, ok := envs["SSH_AUTH_INFO_0"]; ok {
+		return true
+	}
+	return false
 }
 
 // SetCred is the method that is invoked during pam_setcred request.
