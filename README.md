@@ -22,27 +22,17 @@
 
 This is the code repository for authd, an authentication daemon for cloud-based identity provider.
 
-Authd is a versatile authentication service for Ubuntu, designed to seamlessly integrate with cloud identity providers like OpenID Connect and Entra ID. It offers a secure interface for system authentication, supporting cloud-based identity management. Authd features a modular structure, facilitating straightforward integration with different cloud services. This design aids in maintaining strong security and effective user authentication. It's well-suited for handling access to cloud identities, offering a balance of security and ease of use.
+Authd is a versatile authentication service for Ubuntu, designed to seamlessly integrate with cloud identity providers like OpenID Connect and Entra ID. It offers a secure interface for system authentication, supporting cloud-based identity management.
 
-## Installation
+Authd features a modular structure, facilitating straightforward integration with different cloud services. This design aids in maintaining strong security and effective user authentication. It's well-suited for handling access to cloud identities, offering a balance of security and ease of use.
 
-### Package Installation
+Authd uses brokers to interface with cloud identity providers through a [DBus API](https://github.com/ubuntu/authd/blob/HEAD/examplebroker/com.ubuntu.auth.ExampleBroker.xml). Currently only [MS Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) is supported. For development purposes, Authd also provides an example broker to help you develop your own.
 
-authd is available as a Debian package. To install it, run the following command:
+The [MS Entra ID broker](https://github.com/ubuntu/oidc-broker) allows you to authenticate against MS Entra ID using MFA and the device authentication flow.
+ 
+## Installation and usage
 
-```bash
-sudo apt install authd
-```
-
-This command will install the authd the required modules for PAM and NSS and its dependencies.
-
-For NSS it'll update the file ```/etc/nsswitch.conf``` and add the service ```authd``` for the databases ```password```, ```group``` and ```shadow```.
-
-For PAM it'll update the files ```/etc/pam.d/common-auth```, ```/etc/pam.d/common-account``` and ```/etc/pam.d/common-password``` to include the authd module.
-
-### Identity Providers
-
-In addition to the authd service, you'll have to install and configure a cloud identity provider such as OpenID Connect or Microsoft Entra ID. For more information, refer to the documentation of the cloud identity provider.
+The [documentation](https://github.com/ubuntu/authd/wiki/01---Get-started-with-authd) provides detailed instructions for installing, configuring, and using Authd and the MS Entra ID provider.
 
 ## Get involved
 
