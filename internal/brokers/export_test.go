@@ -9,8 +9,8 @@ import (
 )
 
 // NewBroker exports the private newBroker function for testing purposes.
-func NewBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (Broker, error) {
-	return newBroker(ctx, name, configFile, bus)
+func NewBroker(ctx context.Context, configFile string, bus *dbus.Conn) (Broker, error) {
+	return newBroker(ctx, configFile, bus)
 }
 
 // SetBrokerForSession sets the broker for a given session.
