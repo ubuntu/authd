@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/godbus/dbus/v5"
@@ -63,6 +64,10 @@ func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers [
 
 		for _, e := range entries {
 			if !e.Type().IsRegular() {
+				continue
+			}
+			if !strings.HasSuffix(e.Name(), ".conf") {
+				log.Infof(ctx, "Skipping file %q in brokers configuration directory, only .conf files are supported", e.Name())
 				continue
 			}
 			configuredBrokers = append(configuredBrokers, e.Name())
