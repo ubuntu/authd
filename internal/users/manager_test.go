@@ -144,8 +144,8 @@ func TestStop(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	userCases := map[string]users.UserInfo{
-		"newuser": {
-			Name: "newuser",
+		"user1": {
+			Name: "user1",
 			UID:  1111,
 		},
 		"nameless": {
@@ -155,6 +155,10 @@ func TestUpdateUser(t *testing.T) {
 		"user2": {
 			Name: "user2",
 			UID:  2222,
+		},
+		"different-name-same-uid": {
+			Name: "newuser1",
+			UID:  1111,
 		},
 	}
 
@@ -192,6 +196,10 @@ func TestUpdateUser(t *testing.T) {
 			Name: "",
 			GID:  ptrValue(11111),
 		}},
+		"different-name-same-gid": {{
+			Name: "newgroup1",
+			GID:  ptrValue(11111),
+		}},
 		"no-groups": {},
 	}
 
@@ -209,7 +217,9 @@ func TestUpdateUser(t *testing.T) {
 		"Successfully update user updating local groups": {groupsCase: "mixed-groups-cloud-first", localGroupsFile: "users_in_groups.group"},
 
 		"Error if user has no username":             {userCase: "nameless", wantErr: shouldError{}, noOutput: true},
+		"Error if user has conflicting uid":         {userCase: "different-name-same-uid", dbFile: "one_user_and_group", wantErr: shouldError{}, noOutput: true},
 		"Error if group has no name":                {groupsCase: "nameless-group", wantErr: shouldError{}, noOutput: true},
+		"Error if group has conflicting gid":        {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: shouldError{}, noOutput: true},
 		"Error if no groups were provided":          {groupsCase: "no-groups", wantErr: shouldError{}, noOutput: true},
 		"Error if only local group was provided":    {groupsCase: "local-group", wantErr: shouldError{}, noOutput: true},
 		"Error if local group is the default group": {groupsCase: "mixed-groups-local-first", wantErr: shouldError{}, noOutput: true},
@@ -232,7 +242,7 @@ func TestUpdateUser(t *testing.T) {
 			}
 
 			if tc.userCase == "" {
-				tc.userCase = "newuser"
+				tc.userCase = "user1"
 			}
 
 			user := userCases[tc.userCase]

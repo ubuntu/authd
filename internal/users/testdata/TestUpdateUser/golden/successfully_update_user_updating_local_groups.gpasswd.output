@@ -1,1 +1,1 @@
---add newuser localgroup1
+--delete user1 localgroup2

@@ -430,9 +430,11 @@ func TestIsAuthenticated(t *testing.T) {
 		"Update local groups":                                 {username: "success_with_local_groups", localGroupsFile: "valid.group"},
 
 		// service errors
-		"Error when not root":           {username: "success", currentUserNotRoot: true},
-		"Error when sessionID is empty": {sessionID: "-"},
-		"Error when there is no broker": {sessionID: "invalid-session"},
+		"Error when not root": {username: "success", currentUserNotRoot: true},
+		"Error when UID conflicts with existing different user":  {username: "conflicting-uid", existingDB: "cache-with-conflicting-uid.db"},
+		"Error when GID conflicts with existing different group": {username: "conflicting-gid", existingDB: "cache-with-conflicting-gid.db"},
+		"Error when sessionID is empty":                          {sessionID: "-"},
+		"Error when there is no broker":                          {sessionID: "invalid-session"},
 
 		// broker errors
 		"Error when authenticating":                                          {username: "IA_error"},

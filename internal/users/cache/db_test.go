@@ -106,11 +106,20 @@ func TestUpdateUserEntry(t *testing.T) {
 			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user1-new-attributes": {
-			Name:  "newuser1",
+			Name:  "user1",
 			UID:   1111,
 			Gecos: "New user1 gecos",
-			Dir:   "/home/newuser1",
+			Dir:   "/home/user1",
 			Shell: "/bin/dash",
+			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
+		},
+		"user1-new-name": {
+			Name:  "newuser1",
+			UID:   1111,
+			Gecos: "User1 gecos\nOn multiple lines",
+			Dir:   "/home/user1",
+			Shell: "/bin/bash",
 			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
 			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
@@ -161,11 +170,10 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Update last login time for user":              {dbFile: "one_user_and_group"},
 		"Insert new user without optional gecos field": {userCase: "user1-without-gecos"},
 
-		// User and Group renames
+		// User and Group updates
 		"Update user by changing attributes":                      {userCase: "user1-new-attributes", dbFile: "one_user_and_group"},
 		"Update user does not change homedir if it exists":        {userCase: "user1-new-homedir", dbFile: "one_user_and_group"},
 		"Update user by removing optional gecos field if not set": {userCase: "user1-without-gecos", dbFile: "one_user_and_group"},
-		"Update group by changing attributes":                     {groupCases: []string{"newgroup1"}, dbFile: "one_user_and_group"},
 
 		// Group updates
 		"Update user by adding a new group":         {groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group"},
@@ -178,13 +186,17 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Remove user from a group still part from another user": {userCase: "user3", groupCases: []string{"group3"}, dbFile: "multiple_users_and_groups"},
 
 		// Allowed inconsistent cases
-		"Invalid value entry in groupByID but user restating group recreates entries": {dbFile: "invalid_entry_in_groupByID"},
-		"Invalid value entry in userByID recreates entries":                           {dbFile: "invalid_entry_in_userByID"},
 		"Invalid value entry in groupByName recreates entries":                        {dbFile: "invalid_entry_in_groupByName"},
 		"Invalid value entry in userByName recreates entries":                         {dbFile: "invalid_entry_in_userByName"},
 		"Invalid value entries in other user and groups don't impact current request": {dbFile: "invalid_entries_but_user_and_group1"},
 
+		// Renaming errors
+		"Error when user has conflicting uid":  {userCase: "user1-new-name", dbFile: "one_user_and_group", wantErr: true},
+		"Error when group has conflicting gid": {groupCases: []string{"newgroup1"}, dbFile: "one_user_and_group", wantErr: true},
+
 		// Error cases
+		"Error on invalid value entry in groupByID clear database":                                 {dbFile: "invalid_entry_in_groupByID", wantErr: true, wantClearDB: true},
+		"Error on invalid value entry in userByID clear database":                                  {dbFile: "invalid_entry_in_userByID", wantErr: true, wantClearDB: true},
 		"Error on invalid value entry in userToGroups clear database":                              {dbFile: "invalid_entry_in_userToGroups", wantErr: true, wantClearDB: true},
 		"Error on invalid value entry in groupToUsers clear database":                              {dbFile: "invalid_entry_in_groupToUsers", wantErr: true, wantClearDB: true},
 		"Error on invalid value entry in groupToUsers for user dropping from group clear database": {dbFile: "invalid_entry_in_groupToUsers_secondary_group", wantErr: true, wantClearDB: true},
