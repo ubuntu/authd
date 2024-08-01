@@ -67,32 +67,30 @@ type fieldValidator struct {
 	required        bool
 }
 
-// newBroker creates a new broker object based on the provided name and config file.
-func newBroker(ctx context.Context, name, configFile string, bus *dbus.Conn) (b Broker, err error) {
-	defer decorate.OnError(&err, "can't create broker %q", name)
+// newBroker creates a new broker object based on the provided config file. No config means local broker.
+func newBroker(ctx context.Context, configFile string, bus *dbus.Conn) (b Broker, err error) {
+	defer decorate.OnError(&err, "can't create broker from %q", configFile)
 
-	h := fnv.New32a()
-	h.Write([]byte(name))
-	id := fmt.Sprint(h.Sum32())
-
-	if name == LocalBrokerName {
-		id = name
-	}
-
-	fullName := name
+	var name, brandIcon string
 	var broker brokerer
-	var brandIcon string
-	log.Debugf(ctx, "Loading broker %q", name)
-	if configFile != "" {
-		broker, fullName, brandIcon, err = newDbusBroker(ctx, bus, configFile)
+	var id string
+	if configFile == "" {
+		name = LocalBrokerName
+		id = LocalBrokerName
+	} else {
+		log.Debugf(ctx, "Loading broker from %q", configFile)
+		broker, name, brandIcon, err = newDbusBroker(ctx, bus, configFile)
 		if err != nil {
 			return Broker{}, err
 		}
+		h := fnv.New32a()
+		h.Write([]byte(name))
+		id = fmt.Sprint(h.Sum32())
 	}
 
 	return Broker{
 		ID:                    id,
-		Name:                  fullName,
+		Name:                  name,
 		BrandIconPath:         brandIcon,
 		brokerer:              broker,
 		layoutValidators:      make(map[string]map[string]layoutValidator),

@@ -112,7 +112,7 @@ func StartBusBrokerMock(cfgDir string, brokerName string) (string, func(), error
 }
 
 func writeConfig(cfgDir, name string) (string, error) {
-	cfgPath := filepath.Join(cfgDir, name)
+	cfgPath := filepath.Join(cfgDir, name+".conf")
 	s := fmt.Sprintf(brokerConfigTemplate, name, name, name, name)
 	if err := os.WriteFile(cfgPath, []byte(s), 0600); err != nil {
 		return "", err

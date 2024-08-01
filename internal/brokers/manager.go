@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/godbus/dbus/v5"
@@ -65,6 +66,10 @@ func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers [
 			if !e.Type().IsRegular() {
 				continue
 			}
+			if !strings.HasSuffix(e.Name(), ".conf") {
+				log.Infof(ctx, "Skipping file %q in brokers configuration directory, only .conf files are supported", e.Name())
+				continue
+			}
 			configuredBrokers = append(configuredBrokers, e.Name())
 		}
 	}
@@ -73,16 +78,16 @@ func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers [
 	var brokersOrder []string
 
 	// First broker is always the local one.
-	b, err := newBroker(ctx, LocalBrokerName, "", nil)
+	b, err := newBroker(ctx, "", nil)
 	brokersOrder = append(brokersOrder, b.ID)
 	brokers[b.ID] = &b
 
 	// Load brokers configuration
-	for _, n := range configuredBrokers {
-		configFile := filepath.Join(brokersConfPath, n)
-		b, err := newBroker(ctx, n, configFile, bus)
+	for _, cfgFileName := range configuredBrokers {
+		configFile := filepath.Join(brokersConfPath, cfgFileName)
+		b, err := newBroker(ctx, configFile, bus)
 		if err != nil {
-			log.Warningf(ctx, "Skipping broker %q is not correctly configured: %v", n, err)
+			log.Warningf(ctx, "Skipping broker %q is not correctly configured: %v", cfgFileName, err)
 			continue
 		}
 		brokersOrder = append(brokersOrder, b.ID)

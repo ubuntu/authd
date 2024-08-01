@@ -40,22 +40,22 @@ func TestNewBroker(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		name       string
 		configFile string
-		wantErr    bool
+
+		wantErr bool
 	}{
-		"No config means local broker":                        {name: brokers.LocalBrokerName},
-		"Successfully create broker with correct config file": {name: "broker", configFile: "valid"},
+		"No config means local broker":                        {configFile: "-"},
+		"Successfully create broker with correct config file": {configFile: "valid.conf"},
 
 		// General config errors
-		"Error when config file is invalid":     {configFile: "invalid", wantErr: true},
-		"Error when config file does not exist": {configFile: "do not exist", wantErr: true},
+		"Error when config file is invalid":     {configFile: "invalid.conf", wantErr: true},
+		"Error when config file does not exist": {configFile: "do not exist.conf", wantErr: true},
 
 		// Missing field errors
-		"Error when config does not have name field":        {configFile: "no_name", wantErr: true},
-		"Error when config does not have brand_icon field":  {configFile: "no_brand_icon", wantErr: true},
-		"Error when config does not have dbus.name field":   {configFile: "no_dbus_name", wantErr: true},
-		"Error when config does not have dbus.object field": {configFile: "no_dbus_object", wantErr: true},
+		"Error when config does not have name field":        {configFile: "no_name.conf", wantErr: true},
+		"Error when config does not have brand_icon field":  {configFile: "no_brand_icon.conf", wantErr: true},
+		"Error when config does not have dbus.name field":   {configFile: "no_dbus_name.conf", wantErr: true},
+		"Error when config does not have dbus.object field": {configFile: "no_dbus_object.conf", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -68,11 +68,13 @@ func TestNewBroker(t *testing.T) {
 			if tc.wantErr {
 				configDir = filepath.Join(brokerConfFixtures, "invalid_brokers")
 			}
-			if tc.configFile != "" {
+			if tc.configFile == "-" {
+				tc.configFile = ""
+			} else if tc.configFile != "" {
 				tc.configFile = filepath.Join(configDir, tc.configFile)
 			}
 
-			got, err := brokers.NewBroker(context.Background(), tc.name, tc.configFile, conn)
+			got, err := brokers.NewBroker(context.Background(), tc.configFile, conn)
 			if tc.wantErr {
 				require.Error(t, err, "NewBroker should return an error, but did not")
 				return
@@ -346,12 +348,13 @@ func TestUserPreCheck(t *testing.T) {
 	}
 }
 
-func newBrokerForTests(t *testing.T, cfgDir, brokerName string) (b brokers.Broker) {
+func newBrokerForTests(t *testing.T, cfgDir, brokerCfg string) (b brokers.Broker) {
 	t.Helper()
 
 	if cfgDir == "" {
 		cfgDir = t.TempDir()
 	}
+	brokerName := strings.TrimSuffix(brokerCfg, ".conf")
 	if brokerName == "" {
 		brokerName = strings.ReplaceAll(t.Name(), "/", "_")
 	}
@@ -364,7 +367,7 @@ func newBrokerForTests(t *testing.T, cfgDir, brokerName string) (b brokers.Broke
 	require.NoError(t, err, "Setup: could not connect to system bus")
 	t.Cleanup(func() { require.NoError(t, conn.Close(), "Teardown: Failed to close the connection") })
 
-	b, err = brokers.NewBroker(context.Background(), brokerName, cfgPath, conn)
+	b, err = brokers.NewBroker(context.Background(), cfgPath, conn)
 	require.NoError(t, err, "Setup: could not create broker")
 
 	return b

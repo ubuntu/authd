@@ -19,7 +19,7 @@ type dbusBroker struct {
 }
 
 // newDbusBroker returns a dbus broker and broker attributes from its configuration file.
-func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b dbusBroker, fullName, brandIcon string, err error) {
+func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b dbusBroker, name, brandIcon string, err error) {
 	defer decorate.OnError(&err, "dbus broker from configuration file: %q", configFile)
 
 	log.Debugf(ctx, "Dbus broker configuration at %q", configFile)
@@ -29,7 +29,7 @@ func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b db
 		return b, "", "", fmt.Errorf("could not read ini configuration for broker %v", err)
 	}
 
-	fullNameVal, err := cfg.Section("authd").GetKey("name")
+	nameVal, err := cfg.Section("authd").GetKey("name")
 	if err != nil {
 		return b, "", "", fmt.Errorf("missing field for broker: %v", err)
 	}
@@ -51,7 +51,7 @@ func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b db
 
 	return dbusBroker{
 		dbusObject: bus.Object(dbusName.String(), dbus.ObjectPath(objectName.String())),
-	}, fullNameVal.String(), brandIconVal.String(), nil
+	}, nameVal.String(), brandIconVal.String(), nil
 }
 
 // NewSession calls the corresponding method on the broker bus and returns the session ID and encryption key.
