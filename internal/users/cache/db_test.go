@@ -458,6 +458,8 @@ func TestClear(t *testing.T) {
 			t.Parallel()
 
 			c := initCache(t, "multiple_users_and_groups")
+			// We need to store the value here as the cache is closed in one test and the dbPath will be invalid.
+			dbPath := c.DbPath()
 
 			if tc.closedDb {
 				require.NoError(t, c.Close(), "Setup: should be able to close database")
@@ -474,7 +476,7 @@ func TestClear(t *testing.T) {
 				testutils.MakeReadOnly(t, filepath.Dir(c.DbPath()))
 			}
 
-			err := c.Clear(filepath.Dir(c.DbPath()))
+			err := c.Clear(filepath.Dir(dbPath))
 			if tc.wantErr {
 				require.Error(t, err, "Clear should return an error but didn't")
 				return
