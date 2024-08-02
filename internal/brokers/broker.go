@@ -83,7 +83,8 @@ func newBroker(ctx context.Context, configFile string, bus *dbus.Conn) (b Broker
 			return Broker{}, err
 		}
 		h := fnv.New32a()
-		h.Write([]byte(name))
+		// This can’t error out in Hash32 implementation.
+		_, _ = h.Write([]byte(name))
 		id = fmt.Sprint(h.Sum32())
 	}
 
