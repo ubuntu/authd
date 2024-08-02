@@ -71,13 +71,12 @@ type fieldValidator struct {
 func newBroker(ctx context.Context, configFile string, bus *dbus.Conn) (b Broker, err error) {
 	defer decorate.OnError(&err, "can't create broker from %q", configFile)
 
-	var name, brandIcon string
+	name := LocalBrokerName
+	id := LocalBrokerName
+	var brandIcon string
 	var broker brokerer
-	var id string
-	if configFile == "" {
-		name = LocalBrokerName
-		id = LocalBrokerName
-	} else {
+
+	if configFile != "" {
 		log.Debugf(ctx, "Loading broker from %q", configFile)
 		broker, name, brandIcon, err = newDbusBroker(ctx, bus, configFile)
 		if err != nil {
