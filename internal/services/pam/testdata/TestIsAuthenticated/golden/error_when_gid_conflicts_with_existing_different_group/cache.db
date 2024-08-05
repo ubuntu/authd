@@ -1,0 +1,16 @@
+GroupByID:
+    "71705": '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":71705}'
+    "73000": '{"Name":"different-group-same-gid","GID":73000}'
+GroupByName:
+    TestIsAuthenticated/Successfully_authenticate_separator_success: '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":71705}'
+    different-group-same-gid: '{"Name":"different-group-same-gid","GID":73000}'
+GroupToUsers:
+    "71705": '{"GID":71705,"UIDs":[71705]}'
+    "73000": '{"GID":73000,"UIDs":[71705]}'
+UserByID:
+    "71705": '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","UID":71705,"GID":71705,"Gecos":"gecos for success","Dir":"/home/success","Shell":"/bin/sh/success","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+UserByName:
+    TestIsAuthenticated/Successfully_authenticate_separator_success: '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","UID":71705,"GID":71705,"Gecos":"gecos for success","Dir":"/home/success","Shell":"/bin/sh/success","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+UserToBroker: {}
+UserToGroups:
+    "71705": '{"UID":71705,"GIDs":[71705,73000]}'

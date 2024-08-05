@@ -35,10 +35,14 @@ func (c *Cache) UpdateUserEntry(usr UserDB, groupContents []GroupDB) error {
 		}
 
 		/* 1. Handle user update */
-		updateUser(buckets, userDB)
+		if err := updateUser(buckets, userDB); err != nil {
+			return err
+		}
 
 		/* 2. Handle groups update */
-		updateGroups(buckets, groupContents)
+		if err := updateGroups(buckets, groupContents); err != nil {
+			return err
+		}
 
 		/* 3. Users and groups mapping buckets */
 		if err := updateUsersAndGroups(buckets, userDB.UID, groupContents, previousGroupsForCurrentUser.GIDs); err != nil {
@@ -51,16 +55,17 @@ func (c *Cache) UpdateUserEntry(usr UserDB, groupContents []GroupDB) error {
 	return err
 }
 
-// updateUser updates both user buckets with userContent. It handles any potential login rename.
-func updateUser(buckets map[string]bucketWithName, userContent userDB) {
+// updateUser updates both user buckets with userContent.
+func updateUser(buckets map[string]bucketWithName, userContent userDB) error {
 	existingUser, err := getFromBucket[userDB](buckets[userByIDBucketName], userContent.UID)
 	if err != nil && !errors.Is(err, NoDataFoundError{}) {
-		slog.Warn(fmt.Sprintf("Could not fetch previous record for user %v: %v", userContent.UID, err))
+		return errors.Join(ErrNeedsClearing, err)
 	}
 
-	// If we updated the name, remove the previous login name
-	if existingUser.Name != userContent.Name {
-		_ = buckets[userByNameBucketName].Delete([]byte(existingUser.Name)) // No error as we are not in a RO transaction.
+	// If a user with the same UID exists, we need to ensure that it's the same user or fail the update otherwise.
+	if existingUser.Name != "" && existingUser.Name != userContent.Name {
+		slog.Error(fmt.Sprintf("UID for user %q already in use by user %q", userContent.Name, existingUser.Name))
+		return errors.New("UID already in use by a different user")
 	}
 
 	// Ensure that we use the same homedir as the one we have in cache.
@@ -72,25 +77,30 @@ func updateUser(buckets map[string]bucketWithName, userContent userDB) {
 	// Update user buckets
 	updateBucket(buckets[userByIDBucketName], userContent.UID, userContent)
 	updateBucket(buckets[userByNameBucketName], userContent.Name, userContent)
+
+	return nil
 }
 
-// updateUser updates both group buckets with groupContent. It handles any potential group rename.
-func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) {
+// updateUser updates both group buckets with groupContent.
+func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) error {
 	for _, groupContent := range groupContents {
 		existingGroup, err := getFromBucket[groupDB](buckets[groupByIDBucketName], groupContent.GID)
 		if err != nil && !errors.Is(err, NoDataFoundError{}) {
-			slog.Warn(fmt.Sprintf("Could not fetch previous record for group %v: %v", groupContent.GID, err))
+			return errors.Join(ErrNeedsClearing, err)
 		}
 
-		// If we updated the name, remove the previous group name
-		if existingGroup.Name != groupContent.Name {
-			_ = buckets[groupByNameBucketName].Delete([]byte(existingGroup.Name)) // No error as we are not in a RO transaction.
+		// If a group with the same GID exists, we need to ensure that it's the same group or fail the update otherwise.
+		if existingGroup.Name != "" && existingGroup.Name != groupContent.Name {
+			slog.Error(fmt.Sprintf("GID for group %q already in use by group %q", groupContent.Name, existingGroup.Name))
+			return fmt.Errorf("GID for group %q already in use by a different group", groupContent.Name)
 		}
 
 		// Update group buckets
 		updateBucket(buckets[groupByIDBucketName], groupContent.GID, groupDB{Name: groupContent.Name, GID: groupContent.GID})
 		updateBucket(buckets[groupByNameBucketName], groupContent.Name, groupDB{Name: groupContent.Name, GID: groupContent.GID})
 	}
+
+	return nil
 }
 
 // updateUserAndGroups updates the pivot table for user to groups and group to users. It handles any update
