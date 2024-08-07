@@ -1,3 +1,23 @@
+authd (0.3.2) noble; urgency=medium
+
+  * Check for U(G)ID conflict when authenticating
+  * Ensure broker configuration files ends up with .conf
+  * Clarify errors returned by broker
+  * Generate U(G)ID based on username and update UserPreCheck to return
+    complete user info from broker
+  * Decouple broker name from config file
+  * Autoselect local broker if user does not exist on SSH connection
+  * Autoselect local broker if this is the only option
+  * Fix consecutive cancellations are forwarded
+  * Fix pwquality in Shell when creating the password
+  * Ensure password can be changed again after first time
+  * Fix regenerating the qrcode multiple time
+  * Many pam enhancements (TUI and native PAM module)
+  * Fix and enhance tests
+  * Update dependencies
+
+ -- Didier Roche-Tolomelli <didrocks@ubuntu.com>  Wed, 07 Aug 2024 16:03:03 +0200
+
 authd (0.2.1) noble; urgency=medium
 
   * Adjust Rust dependencies
