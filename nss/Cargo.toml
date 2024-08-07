@@ -28,6 +28,7 @@ simple_logger = {version = "5.0.0", features = ["stderr"]}
 syslog = "6.1.1"
 ctor = "0.2.8"
 procfs = "0.16.0"
+hyper-util = "0.1.7"
 
 [build-dependencies]
 tonic-build = "0.12.1"
