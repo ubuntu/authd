@@ -25,7 +25,7 @@ tokio = { version = "1.39.2", features = ["macros", "rt-multi-thread"] }
 tower = "0.4.13"
 log = "0.4.22"
 simple_logger = {version = "5.0.0", features = ["stderr"]}
-syslog = "6.1.1"
+syslog = "7.0.0"
 ctor = "0.2.8"
 procfs = "0.16.0"
 hyper-util = "0.1.7"
