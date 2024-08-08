@@ -32,4 +32,4 @@ hyper-util = "0.1.7"
 
 [build-dependencies]
 tonic-build = "0.12.1"
-cc = "1.1.7"
+cc = "1.1.8"
