@@ -32,11 +32,5 @@ action="$1"
 
 if [ configure = "$action" ]; then
     pam-auth-update --package
-
-    if [ -z "$2" ]; then
-        log "First installation detected..."
-        # first install: setup the recommended configuration (unless
-        # nsswitch.conf already contains authd entries)
-        insert_nss_entry
-    fi
+    insert_nss_entry
 fi
