@@ -22,7 +22,7 @@ tonic = "0.12.1"
 prost = "0.13.1"
 rustix = { version = "0.38.34", features = ["use-libc"] }
 tokio = { version = "1.39.2", features = ["macros", "rt-multi-thread"] }
-tower = "0.4.13"
+tower = "0.5.0"
 log = "0.4.22"
 simple_logger = {version = "5.0.0", features = ["stderr"]}
 syslog = "7.0.0"
@@ -32,4 +32,4 @@ hyper-util = "0.1.7"
 
 [build-dependencies]
 tonic-build = "0.12.1"
-cc = "1.1.8"
+cc = "1.1.11"
