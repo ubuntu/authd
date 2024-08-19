@@ -706,9 +706,5 @@ func ptrValue[T any](v T) *T {
 }
 
 func TestMain(m *testing.M) {
-	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
-		os.Exit(m.Run())
-	}
-
 	os.Exit(m.Run())
 }
