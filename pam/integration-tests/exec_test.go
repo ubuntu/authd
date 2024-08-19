@@ -945,7 +945,7 @@ func buildExecClient(t *testing.T) string {
 
 	execPath := filepath.Join(t.TempDir(), "exec-client")
 	t.Logf("Compiling Exec client at %s", execPath)
-	t.Logf(strings.Join(cmd.Args, " "))
+	t.Log(strings.Join(cmd.Args, " "))
 
 	cmd.Args = append(cmd.Args, "-o", execPath)
 	out, err := cmd.CombinedOutput()
