@@ -203,5 +203,5 @@ func TestMain(m *testing.M) {
 		os.Exit(m.Run())
 	}
 
-	m.Run()
+	os.Exit(m.Run())
 }
