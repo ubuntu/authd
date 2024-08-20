@@ -199,9 +199,5 @@ func TestMockgpasswd(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
-		os.Exit(m.Run())
-	}
-
-	m.Run()
+	os.Exit(m.Run())
 }

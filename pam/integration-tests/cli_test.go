@@ -334,7 +334,7 @@ func buildPAMClient(t *testing.T) string {
 
 	authdPam := filepath.Join(t.TempDir(), "authd-pam")
 	t.Logf("Compiling Exec client at %s", authdPam)
-	t.Logf(strings.Join(cmd.Args, " "))
+	t.Log(strings.Join(cmd.Args, " "))
 
 	cmd.Args = append(cmd.Args, "-o", authdPam)
 	out, err := cmd.CombinedOutput()
