@@ -10,7 +10,6 @@ body:
 
         Be careful with sensitive information and security vulnerabilities. In order to report bugs that could contain
         sensitive information, use [Launchpad](https://bugs.launchpad.net/ubuntu/+source/authd/+filebug) instead.
-        On Ubuntu machines, you can use `ubuntu-bug authd` to collect relevant information.
 
 
         Thanks for taking the time to report an issue and help improve authd! Please fill out the form below as
