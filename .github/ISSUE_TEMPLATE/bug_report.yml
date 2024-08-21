@@ -100,7 +100,7 @@ body:
     attributes:
       label: Relevant information
       description: >
-        Please look at our [Troubleshooting guide](https://github.com/ubuntu/authd/wiki/05--Troubleshooting) and provide logs for both authd and the oidc provider package.
+        Please look at our [Troubleshooting guide](https://github.com/ubuntu/authd/wiki/06--Troubleshooting) and provide logs for both authd and the oidc provider package.
       placeholder: Remember to redact any sensitive information from them.
   - type: checkboxes
     attributes:
