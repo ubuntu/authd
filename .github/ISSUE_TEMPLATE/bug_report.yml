@@ -59,7 +59,7 @@ body:
 
         Please include screenshots (you can drag any image here) where applicable. Redact any sensitive information.
     validations:
-      required: true
+      required: false
   - type: textarea
     attributes:
       label: "System information and logs"
@@ -67,8 +67,8 @@ body:
         Copy this command and run it in a terminal. It will open a text editor with the system information and logs. Paste the output below. Redact any sensitive information from the logs.
         ```bash
         TMPFILE=$(mktemp authd-system-info-XXXXXX.md)
-        if command -v xdg-open > /dev/null && [ -n "${DISPLAY:-}" ]; then EDITOR=xdg-open; elif [ -z "${EDITOR:-}" ]; then EDITOR=editor; fi 
-        cat > "$TMPFILE" <<EOF && $EDITOR "$TMPFILE" && rm -f "$TMPFILE"
+        if command -v xdg-open > /dev/null && [ -n "${DISPLAY:-}" ]; then authd_editor=xdg-open; elif [ -n "${EDITOR:-}" ]; then authd_editor=$EDITOR; fi
+        cat > "$TMPFILE" <<EOF && ${authd_editor:-editor} "$TMPFILE"
         #### authd version
         \`\`\`
         $(/usr/libexec/authd version)
