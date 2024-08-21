@@ -40,17 +40,17 @@ body:
       description: >
         Provide a clear and concise description of what the issue is, including what you expected to happen.
 
-        Please precise if the option is in the graphical display manager or in the terminal. If it is with the graphical
+        Please specify if the option is in the graphical display manager or in the terminal. If it is with the graphical
         display manager, try to login with another local user, and open a terminal. Then, try to login with "login"
         and see if you can reproduce the issue there too. State so in the description.
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Steps to reproduce it
+      label: Steps to reproduce
       description: >
-        Detail the steps taken to reproduce this error, what was expected, and whether this issue can be reproduced
-        consistently or if it is intermittent.
+        Specify the steps you took when you encountered the issue and which behavior you expected.
+        Are you able to reproduce the issue consistently?
       placeholder: |
         1. In this environment...
         2. With this config...
