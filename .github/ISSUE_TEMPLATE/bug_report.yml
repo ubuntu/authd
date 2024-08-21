@@ -37,14 +37,6 @@ body:
         and see if you can reproduce the issue there too. State so in the description.
     validations:
       required: true
-  - type: checkboxes
-    attributes:
-      label: Where does the issue happens
-      options:
-        - label: I can reproduce the issue in the graphical display manager
-          required: false
-        - label: I can reproduce the issue on a terminal with "login"
-          required: false
   - type: textarea
     attributes:
       label: Steps to reproduce it
