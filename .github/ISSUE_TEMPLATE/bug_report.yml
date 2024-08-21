@@ -64,45 +64,49 @@ body:
     attributes:
       label: "System information and logs"
       description: |
-        Provide details about the environment you experienced the issue in. Change msentraid for the provider you are using:
-      value: |
-        ### Environment
-        * broker version: please run `snap info authd-msentraid`
-        * authd version: please run `/usr/libexec/authd version`
-        * gnome shell version: please run `apt policy gnome-shell`
-        * Distribution: (**NAME** in `/etc/os-release`)
-        * Distribution version: (**VERSION_ID** on `/etc/os-release`):
+        Copy this command and run it in a terminal. It will open a text editor with the system information and logs. Paste the output below. Redact any sensitive information from the logs.
+        ```bash
+        TMPFILE=$(mktemp authd-system-info-XXXXXX.md)
+        if command -v xdg-open > /dev/null && [ -n "${DISPLAY:-}" ]; then EDITOR=xdg-open; elif [ -z "${EDITOR:-}" ]; then EDITOR=editor; fi 
+        cat > "$TMPFILE" <<EOF && $EDITOR "$TMPFILE" && rm -f "$TMPFILE"
+        #### authd version
+        \`\`\`
+        $(/usr/libexec/authd version)
+        \`\`\`
 
-        ### Log files
-        Please redact/remove sensitive information:
+        #### authd-msentraid broker version
+        \`\`\`
+        $(snap info authd-msentraid 2>/dev/null)
+        \`\`\`
 
-        #### Authd entries:
+        #### gnome-shell version
+        \`\`\`
+        $(apt policy gnome-shell 2>/dev/null)
+        \`\`\`
 
-        ```raw
-        journalctl -u authd.service
+        #### Distribution
+        \`\`\`
+        $(lsb_release -a)
+        \`\`\`
+
+        #### Logs
+        \`\`\`
+        $(journalctl -o short-monotonic --lines 500  _SYSTEMD_UNIT=authd.service \+ UNIT=authd.service \+ _SYSTEMD_UNIT=snap.authd-msentraid.authd-msentraid.service \+ UNIT=snap.authd-msentraid.authd-msentraid.service \+ '_CMDLINE="gdm-session-worker [pam/gdm-authd]"' | sed -E 's/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/<UUID redacted>/g')
+        \`\`\`
+
+        #### authd broker configuration
+        $(if ! find /etc/authd/brokers.d -name '*.conf' | grep -q .; then echo ":warning: No config files in /etc/authd/brokers.d/"; else for f in /etc/authd/brokers.d/*.conf; do echo "#### $f"; echo "\`\`\`";  cat $f; echo "\`\`\`"; done; fi)
+
+        #### authd-msentraid configuration
+        \`\`\`
+        $(cat 2>&1 /var/snap/authd-msentraid/current/broker.conf | sed -E 's/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/<UUID redacted>/g')
+        \`\`\`
+        EOF
         ```
 
-        ####  MS Entra ID broker entries:
-
-        ```raw
-        journalctl -u snap.authd-msentraid.authd-msentraid.service
-        ```
-
-        ### Application settings
-
-        Please redact/remove sensitive information:
-
-        ####  Broker configuration:
-
-        ```raw
-        cat /var/snap/authd-msentraid/current/broker.conf
-        ```
-
-        ####  Broker authd configuration:
-
-        ```raw
-        cat /etc/authd/brokers.d/msentraid.conf
-        ```
+      placeholder: >
+        Paste the output of the above command here. Redact any sensitive
+        information from the logs.
 
   - type: checkboxes
     attributes:
