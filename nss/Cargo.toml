@@ -29,6 +29,7 @@ syslog = "7.0.0"
 ctor = "0.2.8"
 procfs = "0.16.0"
 hyper-util = "0.1.7"
+tower-layer = "0.3.3"
 
 [build-dependencies]
 tonic-build = "0.12.1"

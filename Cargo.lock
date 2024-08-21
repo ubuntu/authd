@@ -681,6 +681,7 @@ dependencies = [
  "tonic",
  "tonic-build",
  "tower 0.5.0",
+ "tower-layer",
 ]
 
 [[package]]
