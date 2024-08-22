@@ -95,7 +95,10 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 			msg:    fmt.Sprintf("Sending GDM poll failed: %v", err),
 		})
 	}
-	log.Debugf(context.TODO(), "Gdm Poll response is %v", gdmPollResults)
+
+	if len(gdmPollResults) > 0 {
+		log.Debugf(context.TODO(), "Gdm Poll response is %v", gdmPollResults)
+	}
 
 	commands := []tea.Cmd{sendEvent(gdmPollDone{})}
 
