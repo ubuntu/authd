@@ -95,7 +95,16 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 			msg:    fmt.Sprintf("Sending GDM poll failed: %v", err),
 		})
 	}
-	log.Debugf(context.TODO(), "Gdm Poll response is %v", gdmPollResults)
+
+	for _, result := range gdmPollResults {
+		// Don't log EventData_IsAuthenticatedRequested because it contains
+		// the user password
+		if result.GetIsAuthenticatedRequested() != nil {
+			log.Debugf(context.TODO(), "GDM poll returned: IsAuthenticatedRequested")
+		} else {
+			log.Debugf(context.TODO(), "GDM poll returned: %s", result.Data)
+		}
+	}
 
 	commands := []tea.Cmd{sendEvent(gdmPollDone{})}
 

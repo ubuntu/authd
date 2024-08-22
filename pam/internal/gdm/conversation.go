@@ -47,7 +47,11 @@ func sendData(pamMTx pam.ModuleTransaction, d *Data) ([]byte, error) {
 		return nil, err
 	}
 
-	log.Debugf(context.TODO(), "Sending to GDM: %s", bytes)
+	// Log unless it's a poll, which are so frequently that it would be
+	// too verbose to log them.
+	if d.Type != DataType_poll {
+		log.Debugf(context.TODO(), "Sending to GDM: %s", bytes)
+	}
 	return sendToGdm(pamMTx, bytes)
 }
 
@@ -59,7 +63,11 @@ func SendData(pamMTx pam.ModuleTransaction, d *Data) (*Data, error) {
 	}
 
 	gdmData, err := NewDataFromJSON(jsonValue)
-	log.Debugf(context.TODO(), "Got from GDM: %s", jsonValue)
+	// Log unless it's a poll, which are so frequently that it would be
+	// too verbose to log them.
+	if d.Type != DataType_poll {
+		log.Debugf(context.TODO(), "Got from GDM: %s", jsonValue)
+	}
 	if err != nil {
 		return nil, err
 	}
