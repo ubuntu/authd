@@ -1,3 +1,12 @@
+authd (0.3.3) noble; urgency=medium
+
+  * Fix NSS module not being readded to nsswitch.conf on reinstall
+  * Reduce amount of printed debug logs
+  * Bump Go version to 1.23
+  * Update dependencies to latest
+
+ -- Denison Barbosa <denison.barbosa@canonical.com>  Thu, 22 Aug 2024 09:16:45 -0400
+
 authd (0.3.2) noble; urgency=medium
 
   * Check for U(G)ID conflict when authenticating
