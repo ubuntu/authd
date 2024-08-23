@@ -83,6 +83,11 @@ body:
         journalctl -u authd.service
         ```
 
+        #### GDM entries (if relevant):
+        ```shell
+        journalctl /usr/sbin/gdm3 /usr/libexec/gdm-* /usr/bin/gnome-shell
+        ```
+
         ####  MS Entra ID broker entries:
 
         ```raw
