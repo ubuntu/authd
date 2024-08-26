@@ -10,17 +10,24 @@ body:
 
         Be careful with sensitive information and security vulnerabilities. In order to report bugs that could contain
         sensitive information, use [Launchpad](https://bugs.launchpad.net/ubuntu/+source/authd/+filebug) instead.
-        On Ubuntu machines, you can use `ubuntu-bug authd` to collect relevant information.
 
 
         Thanks for taking the time to report an issue and help improve authd! Please fill out the form below as
         best as you can so that we can help you.
 
+
         Your additional work here is greatly appreciated and will help us respond as quickly as possible. For general
         support or usage questions, use [Ubuntu Discourse](https://discourse.ubuntu.com/c/desktop/8).
 
+
         By submitting an Issue to this repository, you agree to the terms within the
         [Ubuntu Code of Conduct](https://ubuntu.com/community/code-of-conduct).
+
+
+        **Troubleshooting**
+
+        Please read our [Troubleshooting wiki page](https://github.com/ubuntu/authd/wiki/06--Troubleshooting)
+        and see if you can find a solution to your problem there.
   - type: checkboxes
     attributes:
       label: Is there an existing issue for this?
@@ -33,25 +40,17 @@ body:
       description: >
         Provide a clear and concise description of what the issue is, including what you expected to happen.
 
-        Please precise if the option is in the graphical display manager or in the terminal. If it is with the graphical
+        Please specify if the option is in the graphical display manager or in the terminal. If it is with the graphical
         display manager, try to login with another local user, and open a terminal. Then, try to login with "login"
         and see if you can reproduce the issue there too. State so in the description.
     validations:
       required: true
-  - type: checkboxes
-    attributes:
-      label: Where does the issue happens
-      options:
-        - label: I can reproduce the issue in the graphical display manager
-          required: false
-        - label: I can reproduce the issue on a terminal with "login"
-          required: false
   - type: textarea
     attributes:
-      label: Steps to reproduce it
+      label: Steps to reproduce
       description: >
-        Detail the steps taken to reproduce this error, what was expected, and whether this issue can be reproduced
-        consistently or if it is intermittent.
+        Specify the steps you took when you encountered the issue and which behavior you expected.
+        Are you able to reproduce the issue consistently?
       placeholder: |
         1. In this environment...
         2. With this config...
@@ -60,57 +59,55 @@ body:
 
         Please include screenshots (you can drag any image here) where applicable. Redact any sensitive information.
     validations:
-      required: true
+      required: false
   - type: textarea
     attributes:
       label: "System information and logs"
       description: |
-        Provide details about the environment you experienced the issue in. Change msentraid for the provider you are using:
-      value: |
-        ### Environment
-        * broker version: please run `snap info authd-msentraid`
-        * authd version: please run `/usr/libexec/authd version`
-        * gnome shell version: please run `apt policy gnome-shell`
-        * Distribution: (**NAME** in `/etc/os-release`)
-        * Distribution version: (**VERSION_ID** on `/etc/os-release`):
+        Copy this command and run it in a terminal. It will open a text editor with the system information and logs. Paste the output below. Redact any sensitive information from the logs.
+        ```bash
+        TMPFILE=$(mktemp authd-system-info-XXXXXX.md)
+        if command -v xdg-open > /dev/null && [ -n "${DISPLAY:-}" ]; then authd_editor=xdg-open; elif [ -n "${EDITOR:-}" ]; then authd_editor=$EDITOR; fi
+        cat > "$TMPFILE" <<EOF && ${authd_editor:-editor} "$TMPFILE"
+        #### authd version
+        \`\`\`
+        $(/usr/libexec/authd version)
+        \`\`\`
 
-        ### Log files
-        Please redact/remove sensitive information:
+        #### authd-msentraid broker version
+        \`\`\`
+        $(snap info authd-msentraid 2>/dev/null)
+        \`\`\`
 
-        #### Authd entries:
+        #### gnome-shell version
+        \`\`\`
+        $(apt policy gnome-shell 2>/dev/null)
+        \`\`\`
 
-        ```raw
-        journalctl -u authd.service
+        #### Distribution
+        \`\`\`
+        $(lsb_release -a)
+        \`\`\`
+
+        #### Logs
+        \`\`\`
+        $(journalctl -o short-monotonic --lines 500  _SYSTEMD_UNIT=authd.service \+ UNIT=authd.service \+ _SYSTEMD_UNIT=snap.authd-msentraid.authd-msentraid.service \+ UNIT=snap.authd-msentraid.authd-msentraid.service \+ '_CMDLINE="gdm-session-worker [pam/gdm-authd]"' | sed -E 's/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/<UUID redacted>/g')
+        \`\`\`
+
+        #### authd broker configuration
+        $(if ! find /etc/authd/brokers.d -name '*.conf' | grep -q .; then echo ":warning: No config files in /etc/authd/brokers.d/"; else for f in /etc/authd/brokers.d/*.conf; do echo "#### $f"; echo "\`\`\`";  cat $f; echo "\`\`\`"; done; fi)
+
+        #### authd-msentraid configuration
+        \`\`\`
+        $(cat 2>&1 /var/snap/authd-msentraid/current/broker.conf | sed -E 's/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/<UUID redacted>/g')
+        \`\`\`
+        EOF
         ```
 
-        ####  MS Entra ID broker entries:
+      placeholder: >
+        Paste the output of the above command here. Redact any sensitive
+        information from the logs.
 
-        ```raw
-        journalctl -u snap.authd-msentraid.authd-msentraid.service
-        ```
-
-        ### Application settings
-
-        Please redact/remove sensitive information:
-
-        ####  Broker configuration:
-
-        ```raw
-        cat /var/snap/authd-msentraid/current/broker.conf
-        ```
-
-        ####  Broker authd configuration:
-
-        ```raw
-        cat /etc/authd/brokers.d/msentraid.conf
-        ```
-
-  - type: textarea
-    attributes:
-      label: Relevant information
-      description: >
-        Please look at our [Troubleshooting guide](https://github.com/ubuntu/authd/wiki/05--Troubleshooting) and provide logs for both authd and the oidc provider package.
-      placeholder: Remember to redact any sensitive information from them.
   - type: checkboxes
     attributes:
       label: Double check your logs
