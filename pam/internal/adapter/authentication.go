@@ -370,7 +370,8 @@ func (m *authenticationModel) Blur() {
 
 // Compose initialize the authentication model to be used.
 // It creates and attaches the sub layout models based on UILayout.
-func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey *rsa.PublicKey, layout *authd.UILayout) tea.Cmd {
+func (m *authenticationModel) Compose(brokerID, sessionID string,
+	encryptionKey *rsa.PublicKey, disableQrCodeRendering bool, layout *authd.UILayout) tea.Cmd {
 	m.currentBrokerID = brokerID
 	m.currentSessionID = sessionID
 	m.encryptionKey = encryptionKey
@@ -389,8 +390,9 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 		m.currentModel = form
 
 	case "qrcode":
-		qrcodeModel, err := newQRCodeModel(layout.GetContent(), layout.GetCode(),
-			layout.GetLabel(), layout.GetButton(), layout.GetWait() == "true")
+		qrcodeModel, err := newQRCodeModel(disableQrCodeRendering,
+			layout.GetContent(), layout.GetCode(), layout.GetLabel(),
+			layout.GetButton(), layout.GetWait() == "true")
 		if err != nil {
 			return sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
 		}

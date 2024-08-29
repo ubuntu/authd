@@ -1,7 +1,7 @@
 package adapter
 
 import (
-	"fmt"
+	"context"
 	"os"
 	"strings"
 
@@ -10,6 +10,7 @@ import (
 	"github.com/muesli/termenv"
 	"github.com/skip2/go-qrcode"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/log"
 )
 
 var centeredStyle = lipgloss.NewStyle().Align(lipgloss.Center, lipgloss.Top)
@@ -27,15 +28,19 @@ type qrcodeModel struct {
 }
 
 // newQRCodeModel initializes and return a new qrcodeModel.
-func newQRCodeModel(content, code, label, buttonLabel string, wait bool) (qrcodeModel, error) {
+func newQRCodeModel(disableRendering bool, content, code, label, buttonLabel string, wait bool) (qrcodeModel, error) {
 	var button *buttonModel
 	if buttonLabel != "" {
 		button = &buttonModel{label: buttonLabel}
 	}
 
-	qrCode, err := qrcode.New(content, qrcode.Medium)
-	if err != nil {
-		return qrcodeModel{}, fmt.Errorf("can't generate QR code: %v", err)
+	var qrCode *qrcode.QRCode
+	if !disableRendering {
+		var err error
+		qrCode, err = qrcode.New(content, qrcode.Medium)
+		if err != nil {
+			log.Errorf(context.TODO(), "can't generate QR code: %v", err)
+		}
 	}
 
 	return qrcodeModel{
@@ -106,9 +111,12 @@ func (m qrcodeModel) View() string {
 		fields = append(fields, m.label, "")
 	}
 
-	qr := m.renderQrCode()
-	fields = append(fields, qr)
-	qrcodeWidth := lipgloss.Width(qr)
+	qrcodeWidth := 0
+	if m.qrCode != nil {
+		qr := m.renderQrCode()
+		fields = append(fields, qr)
+		qrcodeWidth = lipgloss.Width(qr)
+	}
 
 	style := centeredStyle.Width(qrcodeWidth)
 	renderedContent := m.content

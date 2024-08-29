@@ -49,6 +49,8 @@ type UIModel struct {
 	ClientType PamClientType
 	// SessionMode is the mode of the session invoked by the module.
 	SessionMode authd.SessionMode
+	// DisableQrCodeRendering is the flag to disable qrcode rendering
+	DisableQrCodeRendering bool
 
 	sessionStartingForBroker string
 	currentSession           *sessionInfo
@@ -272,6 +274,7 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentSession.brokerID,
 				m.currentSession.sessionID,
 				m.currentSession.encryptionKey,
+				m.DisableQrCodeRendering,
 				msg.layout,
 			),
 			modelCmd,
