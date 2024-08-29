@@ -359,13 +359,19 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 
 		case "qrcode":
 			modeName := "qrcodewithtypo"
+			modeSelectionLabel := "Use a QR code"
 			modeLabel := "Enter the following code after flashing the address: "
 			if layout["code"] != "" {
 				modeName = "qrcodeandcodewithtypo"
 				modeLabel = "Scan the qrcode or enter the code in the login page"
 			}
+			if layout["content"] == "optional" {
+				modeName = "codewithtypo"
+				modeSelectionLabel = "Use a Login code"
+				modeLabel = "Enter the code in the login page"
+			}
 			allModes[modeName] = map[string]string{
-				"selection_label": "Use a QR code",
+				"selection_label": modeSelectionLabel,
 				"ui": mapToJSON(map[string]string{
 					"type":   "qrcode",
 					"label":  modeLabel,
@@ -468,7 +474,7 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 		// send request to sessionInfo.allModes[authenticationModeName]["phone"]
 	case "fidodevice1":
 		// start transaction with fido device
-	case "qrcodeandcodewithtypo":
+	case "qrcodeandcodewithtypo", "codewithtypo":
 		uiLayoutInfo["content"], uiLayoutInfo["code"] = qrcodeData(&sessionInfo)
 	case "qrcodewithtypo":
 		// generate the url and finish the prompt on the fly.
@@ -616,7 +622,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 			return AuthCancelled, "", nil
 		}
 
-	case "qrcodewithtypo", "qrcodeandcodewithtypo":
+	case "qrcodewithtypo", "qrcodeandcodewithtypo", "codewithtypo":
 		if authData["wait"] != "true" {
 			return AuthDenied, fmt.Sprintf(`{"message": "%s should have wait set to true"}`, sessionInfo.currentAuthMode), nil
 		}

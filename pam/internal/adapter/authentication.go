@@ -390,13 +390,9 @@ func (m *authenticationModel) Compose(brokerID, sessionID string,
 		m.currentModel = form
 
 	case "qrcode":
-		qrcodeModel, err := newQRCodeModel(disableQrCodeRendering,
+		m.currentModel = newQRCodeModel(disableQrCodeRendering,
 			layout.GetContent(), layout.GetCode(), layout.GetLabel(),
 			layout.GetButton(), layout.GetWait() == "true")
-		if err != nil {
-			return sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
-		}
-		m.currentModel = qrcodeModel
 
 	case "newpassword":
 		newPasswordModel := newNewPasswordModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton())

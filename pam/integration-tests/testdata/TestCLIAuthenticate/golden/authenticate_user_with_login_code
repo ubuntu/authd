@@ -135,11 +135,11 @@ rue
   Select your authentication method
 
 > 1. Password authentication
-  2. Send URL to user-integration-login-code@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
-  6. Use a QR code
+  2. Use a Login code
+  3. Send URL to user-integration-login-code@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33…
+  6. Use your phone +1…
   7. Authentication code
 
 
@@ -165,7 +165,7 @@ rue
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} disable_qrcode_rendering=t
 rue
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 
 https://ubuntu.com
 1337
@@ -198,7 +198,7 @@ https://ubuntu.com
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} disable_qrcode_rendering=t
 rue
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 
 https://ubuntu.com
 1337
@@ -231,7 +231,7 @@ https://ubuntu.com
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} disable_qrcode_rendering=t
 rue
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 
 https://ubuntu.fr/
 1338
@@ -264,7 +264,7 @@ https://ubuntu.fr/
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} disable_qrcode_rendering=t
 rue
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 
 https://ubuntu.fr/
 1338
@@ -297,7 +297,7 @@ PAM AcctMgmt() exited with success
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} disable_qrcode_rendering=t
 rue
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 
 https://ubuntu.fr/
 1338

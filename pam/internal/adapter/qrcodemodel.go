@@ -28,7 +28,7 @@ type qrcodeModel struct {
 }
 
 // newQRCodeModel initializes and return a new qrcodeModel.
-func newQRCodeModel(disableRendering bool, content, code, label, buttonLabel string, wait bool) (qrcodeModel, error) {
+func newQRCodeModel(disableRendering bool, content, code, label, buttonLabel string, wait bool) qrcodeModel {
 	var button *buttonModel
 	if buttonLabel != "" {
 		button = &buttonModel{label: buttonLabel}
@@ -50,7 +50,7 @@ func newQRCodeModel(disableRendering bool, content, code, label, buttonLabel str
 		code:        code,
 		qrCode:      qrCode,
 		wait:        wait,
-	}, nil
+	}
 }
 
 // Init initializes qrcodeModel.

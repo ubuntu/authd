@@ -122,7 +122,7 @@ func (m *UIModel) Init() tea.Cmd {
 	m.brokerSelectionModel = newBrokerSelectionModel(m.Client, m.ClientType)
 	cmds = append(cmds, m.brokerSelectionModel.Init())
 
-	m.authModeSelectionModel = newAuthModeSelectionModel(m.ClientType)
+	m.authModeSelectionModel = newAuthModeSelectionModel(m.ClientType, m.DisableQrCodeRendering)
 	cmds = append(cmds, m.authModeSelectionModel.Init())
 
 	m.authenticationModel = newAuthenticationModel(m.Client, m.ClientType)

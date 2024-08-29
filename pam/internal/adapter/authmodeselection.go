@@ -20,6 +20,7 @@ type authModeSelectionModel struct {
 	focused bool
 
 	clientType                PamClientType
+	disableQrCodeRendering    bool
 	supportedUILayouts        []*authd.UILayout
 	supportedUILayoutsMu      *sync.Mutex
 	availableAuthModes        []*authd.GAMResponse_AuthenticationMode
@@ -51,13 +52,14 @@ func selectAuthMode(id string) tea.Cmd {
 }
 
 // newAuthModeSelectionModel initializes an empty list with default options of authModeSelectionModel.
-func newAuthModeSelectionModel(clientType PamClientType) authModeSelectionModel {
+func newAuthModeSelectionModel(clientType PamClientType, disableQrCode bool) authModeSelectionModel {
 	// FIXME: decouple UI from data model.
 	if clientType != InteractiveTerminal {
 		return authModeSelectionModel{
-			Model:                list.New(nil, itemLayout{}, 0, 0),
-			clientType:           clientType,
-			supportedUILayoutsMu: &sync.Mutex{},
+			Model:                  list.New(nil, itemLayout{}, 0, 0),
+			clientType:             clientType,
+			disableQrCodeRendering: disableQrCode,
+			supportedUILayoutsMu:   &sync.Mutex{},
 		}
 	}
 
@@ -72,9 +74,10 @@ func newAuthModeSelectionModel(clientType PamClientType) authModeSelectionModel 
 	l.Styles.HelpStyle = helpStyle*/
 
 	return authModeSelectionModel{
-		Model:                l,
-		clientType:           clientType,
-		supportedUILayoutsMu: &sync.Mutex{},
+		Model:                  l,
+		clientType:             clientType,
+		disableQrCodeRendering: disableQrCode,
+		supportedUILayoutsMu:   &sync.Mutex{},
 	}
 }
 
@@ -90,6 +93,11 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 		requiredWithBooleans := "required:true,false"
 		optionalWithBooleans := "optional:true,false"
 
+		qrcodeContentSupportMode := required
+		if m.disableQrCodeRendering {
+			qrcodeContentSupportMode = optional
+		}
+
 		return supportedUILayoutsReceived{
 			layouts: []*authd.UILayout{
 				{
@@ -101,7 +109,7 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 				},
 				{
 					Type:    "qrcode",
-					Content: &required,
+					Content: &qrcodeContentSupportMode,
 					Code:    &optional,
 					Wait:    &requiredWithBooleans,
 					Label:   &optional,

@@ -42,7 +42,7 @@ Sleep 300ms
 Show
 
 Hide
-Type "6"
+Type "2"
 Sleep 300ms
 Show
 
