@@ -18,9 +18,9 @@ integration_tests = []
 [dependencies]
 libnss = "0.8.0"
 libc = "0.2.158"
-tonic = "0.12.1"
+tonic = "0.12.2"
 prost = "0.13.1"
-rustix = { version = "0.38.34", features = ["use-libc"] }
+rustix = { version = "0.38.35", features = ["use-libc"] }
 tokio = { version = "1.39.3", features = ["macros", "rt-multi-thread"] }
 tower = "0.4.13"
 log = "0.4.22"
@@ -31,5 +31,5 @@ procfs = "0.16.0"
 hyper-util = "0.1.7"
 
 [build-dependencies]
-tonic-build = "0.12.1"
-cc = "1.1.13"
+tonic-build = "0.12.2"
+cc = "1.1.15"
