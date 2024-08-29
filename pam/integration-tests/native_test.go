@@ -45,6 +45,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Authenticate user with qr code in a TTY session":                      {tape: "qr_code", pamUser: "user-integration-qr-code-tty-session", termEnv: "xterm-256color", sessionEnv: "tty"},
 		"Authenticate user with qr code in screen":                             {tape: "qr_code", pamUser: "user-integration-qr-code-screen", termEnv: "screen"},
 		"Authenticate user with qr code in polkit":                             {tape: "qr_code", pamUser: "user-integration-qr-code-screen", pamServiceName: "polkit-1"},
+		"Authenticate user with login code":                                    {tape: "login_code"},
 		"Authenticate user and reset password while enforcing policy":          {tape: "mandatory_password_reset"},
 		"Authenticate user with mfa and reset password while enforcing policy": {tape: "mfa_reset_pwquality_auth"},
 		"Authenticate user and offer password reset":                           {tape: "optional_password_reset_skip"},

@@ -24,6 +24,8 @@ type nativeModel struct {
 	pamMTx    pam.ModuleTransaction
 	nssClient authd.NSSClient
 
+	disableQrCodeRendering bool
+
 	availableBrokers []*authd.ABResponse_BrokerInfo
 	authModes        []*authd.GAMResponse_AuthenticationMode
 	selectedAuthMode string
@@ -81,6 +83,11 @@ func (m *nativeModel) Init() tea.Cmd {
 		requiredWithBooleans := "required:true,false"
 		optionalWithBooleans := "optional:true,false"
 
+		qrcodeContentSupportMode := required
+		if m.disableQrCodeRendering {
+			qrcodeContentSupportMode = optional
+		}
+
 		return supportedUILayoutsReceived{
 			layouts: []*authd.UILayout{
 				{
@@ -92,7 +99,7 @@ func (m *nativeModel) Init() tea.Cmd {
 				},
 				{
 					Type:    "qrcode",
-					Content: &required,
+					Content: &qrcodeContentSupportMode,
 					Code:    &optional,
 					Wait:    &requiredWithBooleans,
 					Label:   &optional,
@@ -694,6 +701,9 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 }
 
 func (m nativeModel) isQrcodeRenderingSupported() bool {
+	if m.disableQrCodeRendering {
+		return false
+	}
 	switch m.serviceName {
 	case polkitServiceName:
 		return false

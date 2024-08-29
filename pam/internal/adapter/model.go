@@ -112,7 +112,11 @@ func (m *UIModel) Init() tea.Cmd {
 		m.gdmModel = gdmModel{pamMTx: m.PamMTx}
 		cmds = append(cmds, m.gdmModel.Init())
 	case Native:
-		m.nativeModel = nativeModel{pamMTx: m.PamMTx, nssClient: m.NssClient}
+		m.nativeModel = nativeModel{
+			pamMTx:                 m.PamMTx,
+			nssClient:              m.NssClient,
+			disableQrCodeRendering: m.DisableQrCodeRendering,
+		}
 		cmds = append(cmds, m.nativeModel.Init())
 	}
 

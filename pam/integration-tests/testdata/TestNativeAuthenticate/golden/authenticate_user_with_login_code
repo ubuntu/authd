@@ -1,0 +1,910 @@
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true d
+isable_qrcode_rendering=true
+Username:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true d
+isable_qrcode_rendering=true
+Username: user-integration-login-code
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true d
+isable_qrcode_rendering=true
+Username: user-integration-login-code
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true d
+isable_qrcode_rendering=true
+Username: user-integration-login-code
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true d
+isable_qrcode_rendering=true
+Username: user-integration-login-code
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+== Authentication mode selection (use 'r' to go back) ==
+1 - Password authentication
+2 - Use a Login code
+3 - Send URL to user-integration-login-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
+8 - Authentication code
+Select authentication mode:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true d
+isable_qrcode_rendering=true
+Username: user-integration-login-code
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+== Authentication mode selection (use 'r' to go back) ==
+1 - Password authentication
+2 - Use a Login code
+3 - Send URL to user-integration-login-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
+8 - Authentication code
+Select authentication mode: 2
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true d
+isable_qrcode_rendering=true
+Username: user-integration-login-code
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+== Authentication mode selection (use 'r' to go back) ==
+1 - Password authentication
+2 - Use a Login code
+3 - Send URL to user-integration-login-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
+8 - Authentication code
+Select authentication mode: 2
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true d
+isable_qrcode_rendering=true
+Username: user-integration-login-code
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+== Authentication mode selection (use 'r' to go back) ==
+1 - Password authentication
+2 - Use a Login code
+3 - Send URL to user-integration-login-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
+8 - Authentication code
+Select authentication mode: 2
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true d
+isable_qrcode_rendering=true
+Username: user-integration-login-code
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+== Authentication mode selection (use 'r' to go back) ==
+1 - Password authentication
+2 - Use a Login code
+3 - Send URL to user-integration-login-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
+8 - Authentication code
+Select authentication mode: 2
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true d
+isable_qrcode_rendering=true
+Username: user-integration-login-code
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+== Authentication mode selection (use 'r' to go back) ==
+1 - Password authentication
+2 - Use a Login code
+3 - Send URL to user-integration-login-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
+8 - Authentication code
+Select authentication mode: 2
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntu.com
+       1341
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action:
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true d
+isable_qrcode_rendering=true
+Username: user-integration-login-code
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+== Authentication mode selection (use 'r' to go back) ==
+1 - Password authentication
+2 - Use a Login code
+3 - Send URL to user-integration-login-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
+8 - Authentication code
+Select authentication mode: 2
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntu.com
+       1341
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 1
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true d
+isable_qrcode_rendering=true
+Username: user-integration-login-code
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+== Authentication mode selection (use 'r' to go back) ==
+1 - Password authentication
+2 - Use a Login code
+3 - Send URL to user-integration-login-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
+8 - Authentication code
+Select authentication mode: 2
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntu.com
+       1341
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 1
+PAM Authenticate() for user "user-integration-login-code" exited with success
+PAM AcctMgmt() exited with success
+>
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true d
+isable_qrcode_rendering=true
+Username: user-integration-login-code
+== Broker selection (use 'r' to go back) ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+Insert 'r' to cancel the request and go back
+Gimme your password:
+== Authentication mode selection (use 'r' to go back) ==
+1 - Password authentication
+2 - Use a Login code
+3 - Send URL to user-integration-login-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
+8 - Authentication code
+Select authentication mode: 2
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 2
+Enter the code in the login page
+https://ubuntu.com
+       1341
+
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
+2 - Regenerate code
+Select action: 1
+PAM Authenticate() for user "user-integration-login-code" exited with success
+PAM AcctMgmt() exited with success
+>
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
