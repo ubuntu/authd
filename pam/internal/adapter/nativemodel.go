@@ -659,14 +659,20 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 		return cmd
 	}
 
+	authLabel := "Qr Code authentication"
+	choiceLabel := "Wait for the QR code scan result"
+	if !m.isQrcodeRenderingSupported() {
+		authLabel = "Login Code authentication"
+		choiceLabel = "Wait for the login code result"
+	}
 	choices := []choicePair{
-		{id: "wait", label: "Wait for the QR code scan result"},
+		{id: "wait", label: choiceLabel},
 	}
 	if buttonLabel := m.uiLayout.GetButton(); buttonLabel != "" {
 		choices = append(choices, choicePair{id: "button", label: buttonLabel})
 	}
 
-	id, err := m.promptForChoice("Qr Code authentication", choices, "Select action")
+	id, err := m.promptForChoice(authLabel, choices, "Select action")
 	if errors.Is(err, errGoBack) {
 		return sendEvent(nativeGoBack{})
 	}

@@ -718,8 +718,8 @@ Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action:
 
@@ -951,16 +951,16 @@ Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntu.fr/
        1338
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action:
 
@@ -1184,24 +1184,24 @@ Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntu.fr/
        1338
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action:
 
@@ -1417,32 +1417,32 @@ Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntu.fr/
        1338
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action:
 
@@ -1650,40 +1650,40 @@ Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntu.fr/
        1338
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1341
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action:
 
@@ -1883,40 +1883,40 @@ Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntu.fr/
        1338
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1341
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 1
 
@@ -2116,40 +2116,40 @@ Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntu.fr/
        1338
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1341
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 1
 PAM Authenticate() for user "user-integration-qr-code-screen" exited with success
@@ -2349,40 +2349,40 @@ Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntu.fr/
        1338
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 2
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1341
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
+== Login Code authentication (use 'r' to go back) ==
+1 - Wait for the login code result
 2 - Regenerate code
 Select action: 1
 PAM Authenticate() for user "user-integration-qr-code-screen" exited with success
