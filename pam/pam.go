@@ -75,6 +75,7 @@ func parseArgs(args []string) (map[string]string, func()) {
 	}
 
 	return parsed, func() {
+		log.Debugf(context.TODO(), "Parsed PAM arguments %v", parsed)
 		for _, warn := range warnings {
 			log.Warning(context.TODO(), warn)
 		}
