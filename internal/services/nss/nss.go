@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
@@ -195,8 +196,8 @@ func nssPasswdFromUsersPasswd(u users.UserEntry) *authd.PasswdEntry {
 	return &authd.PasswdEntry{
 		Name:    u.Name,
 		Passwd:  "x",
-		Uid:     uint32(u.UID),
-		Gid:     uint32(u.GID),
+		Uid:     safeIDtoUint32(u.UID),
+		Gid:     safeIDtoUint32(u.GID),
 		Gecos:   u.Gecos,
 		Homedir: u.Dir,
 		Shell:   u.Shell,
@@ -208,7 +209,7 @@ func nssGroupFromUsersGroup(g users.GroupEntry) *authd.GroupEntry {
 	return &authd.GroupEntry{
 		Name:    g.Name,
 		Passwd:  "x",
-		Gid:     uint32(g.GID),
+		Gid:     safeIDtoUint32(g.GID),
 		Members: g.Users,
 	}
 }
@@ -218,12 +219,12 @@ func nssShadowFromUsersShadow(u users.ShadowEntry) *authd.ShadowEntry {
 	return &authd.ShadowEntry{
 		Name:               u.Name,
 		Passwd:             "x",
-		LastChange:         int32(u.LastPwdChange),
-		ChangeMinDays:      int32(u.MinPwdAge),
-		ChangeMaxDays:      int32(u.MaxPwdAge),
-		ChangeWarnDays:     int32(u.PwdWarnPeriod),
-		ChangeInactiveDays: int32(u.PwdInactivity),
-		ExpireDate:         int32(u.ExpirationDate),
+		LastChange:         convertToNumberOfDays(u.LastPwdChange),
+		ChangeMinDays:      convertToNumberOfDays(u.MinPwdAge),
+		ChangeMaxDays:      convertToNumberOfDays(u.MaxPwdAge),
+		ChangeWarnDays:     convertToNumberOfDays(u.PwdWarnPeriod),
+		ChangeInactiveDays: convertToNumberOfDays(u.PwdInactivity),
+		ExpireDate:         convertToNumberOfDays(u.ExpirationDate),
 	}
 }
 
@@ -235,4 +236,28 @@ func noDataFoundErrorToGRPCError(err error) error {
 	}
 
 	return status.Error(codes.NotFound, "")
+}
+
+// safeIDtoUint32 returns an uint32 from an int. This should be only use for safe conversions where
+// we know the numbers can’t be negative like uid/gid.
+// We print a warning if the number is negative and replaced it with max uint32.
+func safeIDtoUint32(i int) uint32 {
+	if i < 0 {
+		log.Warningf(context.Background(), "negative ID number converted to uint32: %d, replaced with maxint", i)
+		return math.MaxUint32
+	}
+	//nolint:gosec // we did check the conversion beforehand.
+	return uint32(i)
+}
+
+// convertToNumberOfDays returns an int32 from an int. This should be only use for safe conversions where
+// we know the numbers can’t be overflow like number of days in shadow.
+// We print a warning if the number overflows and replaced it with max int32.
+func convertToNumberOfDays(i int) int32 {
+	if i > math.MaxInt32 {
+		log.Warningf(context.Background(), "Number of days overflows an int32: %d, replaced with max of int32", i)
+		return math.MaxInt32
+	}
+	//nolint:gosec // we did check the conversion beforehand.
+	return int32(i)
 }

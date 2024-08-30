@@ -5,6 +5,7 @@ package permissions
 
 import (
 	"fmt"
+	"math"
 	"os/user"
 	"strconv"
 
@@ -29,11 +30,12 @@ func currentUserUID() uint32 {
 	if err != nil {
 		panic(fmt.Sprintf("could not get current user: %v", err))
 	}
-	uid, err := strconv.Atoi(u.Uid)
-	if err != nil {
-		panic(fmt.Sprintf("current uid is not an int (%v): %v", u.Uid, err))
+	uid, err := strconv.ParseUint(u.Uid, 10, 0)
+	if err != nil || uid > math.MaxUint32 {
+		panic(fmt.Sprintf("current uid is not an uint32 (%v): %v", u.Uid, err))
 	}
 
+	//nolint:gosec // we did check the conversion beforehand
 	return uint32(uid)
 }
 

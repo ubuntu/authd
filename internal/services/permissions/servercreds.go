@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"net"
 
 	"github.com/ubuntu/decorate"
@@ -37,16 +38,21 @@ func (serverPeerCreds) ServerHandshake(conn net.Conn) (n net.Conn, c credentials
 	}
 
 	// The raw.Control() callback does not return an error directly.
-	// In order to capture errors, we wrap already defined variable 'errGetsockoptUcred' within the closure.
+	// In order to capture errors, we wrap already defined variable 'errClosure'.
 	// 'err' is then the error returned by Control() itself.
-	var errGetsockoptUcred error
+	var errClosure error
 	err = raw.Control(func(fd uintptr) {
-		cred, errGetsockoptUcred = unix.GetsockoptUcred(int(fd),
+		if fd > math.MaxInt {
+			errClosure = fmt.Errorf("file descriptor value %d is too large to convert to int", fd)
+			return
+		}
+		//nolint:gosec // We already checked for the fd validity.
+		cred, errClosure = unix.GetsockoptUcred(int(fd),
 			unix.SOL_SOCKET,
 			unix.SO_PEERCRED)
 	})
-	if errGetsockoptUcred != nil {
-		return nil, nil, fmt.Errorf("GetsockoptUcred() error: %v", errGetsockoptUcred)
+	if errClosure != nil {
+		return nil, nil, fmt.Errorf("GetsockoptUcred() error: %v", errClosure)
 	}
 	if err != nil {
 		return nil, nil, fmt.Errorf("Control() error: %v", err)

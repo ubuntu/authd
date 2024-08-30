@@ -172,7 +172,7 @@ func (ts *testServer) getCalledMethods() []methodCall {
 	return slices.Clone(ts.calledMethods)
 }
 
-func (ts *testServer) getReturnValues(method string, expectedNumber uint) ([]any, error) {
+func (ts *testServer) getReturnValues(method string, expectedNumber int) ([]any, error) {
 	ts.mu.Lock()
 	defer ts.mu.Unlock()
 
@@ -183,7 +183,7 @@ func (ts *testServer) getReturnValues(method string, expectedNumber uint) ([]any
 	if idx < 0 {
 		return nil, fmt.Errorf("no return values defined for method %s", method)
 	}
-	if expectedNumber == 0 || len(ts.returns[idx].values) != int(expectedNumber) {
+	if expectedNumber == 0 || len(ts.returns[idx].values) != expectedNumber {
 		return nil, fmt.Errorf("not enough return values for method %s: found %v", method, ts.returns[idx].values)
 	}
 
