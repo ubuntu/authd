@@ -420,8 +420,8 @@ func GenerateID(str string) int {
 	lowerCased := strings.ToLower(str)
 	var sum int
 	for i, c := range lowerCased {
-		// Multiplies the uint value of the rune by its index+1. Subtracts the index to add another layer of conflict prevention.
-		sum += int(uint(c)*uint(i+1)) - i
+		// Multiplies the value of the rune (which is >0) by its index+1. Subtracts the index to add another layer of conflict prevention.
+		sum += int(c)*(i+1) - i
 	}
 	return (sum % (100000 - 65537)) + 65536 // Ensures that ID is between 65536 and 100000
 }

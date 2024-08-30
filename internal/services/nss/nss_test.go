@@ -101,7 +101,7 @@ func TestGetPasswdByUID(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
-			got, err := client.GetPasswdByUID(context.Background(), &authd.GetByIDRequest{Id: uint32(tc.uid)})
+			got, err := client.GetPasswdByUID(context.Background(), &authd.GetByIDRequest{Id: nss.SafeIDtoUint32(tc.uid)})
 			requireExpectedResult(t, "GetPasswdByUID", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
@@ -181,7 +181,7 @@ func TestGetGroupByGID(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
-			got, err := client.GetGroupByGID(context.Background(), &authd.GetByIDRequest{Id: uint32(tc.gid)})
+			got, err := client.GetGroupByGID(context.Background(), &authd.GetByIDRequest{Id: nss.SafeIDtoUint32(tc.gid)})
 			requireExpectedResult(t, "GetGroupByGID", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}

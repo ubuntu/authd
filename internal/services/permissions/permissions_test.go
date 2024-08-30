@@ -2,6 +2,8 @@ package permissions_test
 
 import (
 	"context"
+	"math"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -46,7 +48,12 @@ func TestIsRequestFromRoot(t *testing.T) {
 				var authInfo credentials.AuthInfo
 				if !tc.noAuthInfo {
 					uid := permissions.CurrentUserUID()
-					authInfo = permissions.NewTestPeerCredsInfo(uid, int32(uid))
+					pid := os.Getpid()
+					if pid > math.MaxInt32 {
+						t.Fatalf("Setup: pid is too large to be converted to int32: %d", pid)
+					}
+					//nolint:gosec // we did check the conversion check beforehand.
+					authInfo = permissions.NewTestPeerCredsInfo(uid, int32(os.Getpid()))
 				}
 				p := peer.Peer{
 					AuthInfo: authInfo,

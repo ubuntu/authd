@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"slices"
 	"strconv"
@@ -579,35 +580,42 @@ func (m nativeModel) promptForChallenge(prompt string) (string, error) {
 	}
 }
 
-func (m nativeModel) getPamTtyFd() (int, func(), error) {
+func (m nativeModel) getPamTty() (*os.File, error) {
 	pamTty, err := m.pamMTx.GetItem(pam.Tty)
 	if err != nil {
-		return -1, func() {}, err
+		return nil, err
 	}
 
 	if pamTty == "" {
-		return -1, func() {}, errors.New("no PAM_TTY value set")
+		return nil, errors.New("no PAM_TTY value set")
 	}
 
-	file, err := os.OpenFile(pamTty, os.O_RDWR, 0600)
+	f, err := os.OpenFile(pamTty, os.O_RDWR, 0600)
 	if err != nil {
-		return -1, func() {}, err
+		return nil, err
 	}
 
-	return int(file.Fd()), func() { file.Close() }, nil
+	return f, nil
 }
 
 func (m nativeModel) renderQrCode(qrCode *qrcode.QRCode) (qr string) {
 	defer func() { qr = strings.TrimRight(qr, "\n") }()
 
-	tty, closeFunc, err := m.getPamTtyFd()
-	defer closeFunc()
+	tty, err := m.getPamTty()
+	// We check the fd could be passed to x/term to decide if we should fallback to stdin
+	if err == nil {
+		defer tty.Close()
+		if tty.Fd() > math.MaxInt {
+			err = fmt.Errorf("unexpected large PAM TTY fd: %d", tty.Fd())
+		}
+	}
 	if err != nil {
 		log.Debugf(context.TODO(), "Failed to open PAM TTY: %s", err)
-		tty = int(os.Stdin.Fd())
+		tty = os.Stdin
 	}
 
-	if !term.IsTerminal(tty) {
+	//nolint:gosec // We did check the Fd previously.
+	if !term.IsTerminal(int(tty.Fd())) {
 		return qrCode.ToString(false)
 	}
 
