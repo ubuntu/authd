@@ -11,9 +11,9 @@ jobs:
         uses: canonical/has-signed-canonical-cla@v1
         with:
           accept-existing-contributors: true
-    - name: Annotate exit status
-    run: |
-      set -eu
-      if [ ${{ steps.check-cla.outcome }} == "failure" ]; then
-        exit 78  # Neutral status
-      fi
+      - name: Annotate exit status
+      run: |
+        set -eu
+        if [ ${{ steps.check-cla.outcome }} == "failure" ]; then
+          exit 78  # Neutral status
+        fi
