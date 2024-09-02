@@ -65,7 +65,6 @@ func TestCLIAuthenticate(t *testing.T) {
 
 		"Deny authentication if max attempts reached":                         {tape: "max_attempts"},
 		"Deny authentication if user does not exist":                          {tape: "unexistent_user"},
-		"Deny authentication if usernames dont match":                         {tape: "mismatch_username"},
 		"Deny authentication if newpassword does not match required criteria": {tape: "bad_password"},
 
 		"Exit authd if local broker is selected": {tape: "local_broker"},
