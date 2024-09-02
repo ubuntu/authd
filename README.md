@@ -1,4 +1,4 @@
-# Welcome to Authentication daemon for external Broker
+# Canonical authd
 
 [actions-image]: https://github.com/ubuntu/authd/actions/workflows/qa.yaml/badge.svg
 [actions-url]: https://github.com/ubuntu/authd/actions?query=workflow%3AQA
@@ -20,27 +20,39 @@
 [![Go Report Card][goreport-image]][goreport-url]
 [![Reference documentation][reference-documentation-image]][reference-documentation-url]
 
-This is the code repository for authd, an authentication daemon for cloud-based identity provider.
+Authd is an authentication daemon for cloud-based identity providers. It helps
+ensure the secure management of identity and access for Ubuntu machines
+anywhere in the world, on desktop and the server. Authd's modular design makes
+it a versatile authentication service that can integrate with multiple identity
+providers. MS Entra ID is currently supported and support for several other
+identity providers is under active development.
 
-Authd is a versatile authentication service for Ubuntu, designed to seamlessly integrate with cloud identity providers like OpenID Connect and Entra ID. It offers a secure interface for system authentication, supporting cloud-based identity management.
+## Documentation
 
-Authd features a modular structure, facilitating straightforward integration with different cloud services. This design aids in maintaining strong security and effective user authentication. It's well-suited for handling access to cloud identities, offering a balance of security and ease of use.
+Documentation for authd is currently available as a [wiki](https://github.com/ubuntu/authd/wiki/01---Get-started-with-authd) that includes how-to guides on:
 
-Authd uses brokers to interface with cloud identity providers through a [DBus API](https://github.com/ubuntu/authd/blob/HEAD/examplebroker/com.ubuntu.auth.ExampleBroker.xml). Currently only [MS Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) is supported. For development purposes, Authd also provides an example broker to help you develop your own.
+- [Installation](https://github.com/ubuntu/authd/wiki/02---How%E2%80%90to-install)
+- [Configuration](https://github.com/ubuntu/authd/wiki/03---How%E2%80%90to-configure)
+- Login through [GDM](https://github.com/ubuntu/authd/wiki/04---How%E2%80%90to-log-in-with-GDM) and [SSH](https://github.com/ubuntu/authd/wiki/05--How%E2%80%90to-log-in-over-SSH)
 
+A reference for [troubleshooting](https://github.com/ubuntu/authd/wiki/06--Troubleshooting-reference) is also provided along with an explanation of authd's [architecture](https://github.com/ubuntu/authd/wiki/07-Architecture-explanation).
+
+## Brokers
+
+Authd uses brokers to interface with cloud identity providers through a [DBus API](https://github.com/ubuntu/authd/blob/HEAD/examplebroker/com.ubuntu.auth.ExampleBroker.xml).
+
+Currently [MS Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) is supported as an identity provider. 
 The [MS Entra ID broker](https://github.com/ubuntu/oidc-broker) allows you to authenticate against MS Entra ID using MFA and the device authentication flow.
- 
-## Installation and usage
 
-The [documentation](https://github.com/ubuntu/authd/wiki/01---Get-started-with-authd) provides detailed instructions for installing, configuring, and using Authd and the MS Entra ID provider.
+For development purposes, authd also provides an example broker to help you develop your own.
 
 ## Get involved
 
 This is an [open source](COPYING) project and we warmly welcome community contributions, suggestions, and constructive feedback. If you're interested in contributing, please take a look at our [Contribution guidelines](CONTRIBUTING.md) first.
 
-- to report an issue, please file a bug report against our repository, using a bug template.
-- for suggestions and constructive feedback, report a feature request bug report, using the proposed template.
+- To report an issue, please file a bug report against our repository, using the **report an issue** template.
+- For suggestions and constructive feedback, report a feature request bug report, using the **request a feature** template.
 
 ## Get in touch
 
-We're friendly! We have a community forum at [https://discourse.ubuntu.com](https://discourse.ubuntu.com) where we discuss feature plans, development news, issues, updates and troubleshooting.
+We're friendly! You can find our community forum at [https://discourse.ubuntu.com](https://discourse.ubuntu.com) where we discuss feature plans, development news, issues, updates and troubleshooting.
