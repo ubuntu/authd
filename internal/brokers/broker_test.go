@@ -219,6 +219,7 @@ func TestIsAuthenticated(t *testing.T) {
 		"No error when auth.Next and no data":                              {sessionID: "IA_next"},
 		"No error when broker returns userinfo with empty gecos":           {sessionID: "IA_info_empty_gecos"},
 		"No error when broker returns userinfo with group with empty UGID": {sessionID: "IA_info_empty_ugid"},
+		"No error when broker returns userinfo with mismatching username":  {sessionID: "IA_info_mismatching_user_name"},
 
 		// broker errors
 		"Error when authenticating":                                           {sessionID: "IA_error"},
@@ -227,7 +228,6 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error when broker returns invalid access":                            {sessionID: "IA_invalid_access"},
 		"Error when broker returns invalid userinfo":                          {sessionID: "IA_invalid_userinfo"},
 		"Error when broker returns userinfo with empty username":              {sessionID: "IA_info_empty_user_name"},
-		"Error when broker returns userinfo with mismatching username":        {sessionID: "IA_info_mismatching_user_name"},
 		"Error when broker returns userinfo with empty group name":            {sessionID: "IA_info_empty_group_name"},
 		"Error when broker returns userinfo with empty UUID":                  {sessionID: "IA_info_empty_uuid"},
 		"Error when broker returns userinfo with invalid homedir":             {sessionID: "IA_info_invalid_home"},

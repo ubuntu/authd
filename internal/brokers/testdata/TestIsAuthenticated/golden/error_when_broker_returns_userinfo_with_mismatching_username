@@ -1,4 +1,0 @@
-FIRST CALL:
-	access: 
-	data: 
-	err: provided userinfo is invalid: username "different_username" does not match the selected username "TestIsAuthenticated/Error_when_broker_returns_userinfo_with_mismatching_username_separator_IA_info_mismatching_user_name"

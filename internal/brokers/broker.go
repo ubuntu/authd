@@ -194,11 +194,7 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 			return "", "", err
 		}
 
-		b.ongoingUserRequestsMu.Lock()
-		selectedUsername := b.ongoingUserRequests[sessionID]
-		b.ongoingUserRequestsMu.Unlock()
-
-		u, err := validateUserInfoAndGenerateIDs(selectedUsername, info)
+		u, err := validateUserInfoAndGenerateIDs(info)
 		if err != nil {
 			return "", "", err
 		}
@@ -362,15 +358,14 @@ func unmarshalUserInfo(rawMsg json.RawMessage) (userInfo, error) {
 }
 
 // validateUserInfoAndGenerateIDs checks if the specified userinfo is valid and generates the UID and GIDs.
-func validateUserInfoAndGenerateIDs(selectedUsername string, uInfo userInfo) (user users.UserInfo, err error) {
+func validateUserInfoAndGenerateIDs(uInfo userInfo) (user users.UserInfo, err error) {
 	defer decorate.OnError(&err, "provided userinfo is invalid")
 
-	// Validate username
+	// Validate username. We don't want to check here if it matches the username from the request, because it's the
+	// broker's responsibility to do that and we don't know which usernames the provider considers equal, for example if
+	// they are case-sensitive or not.
 	if uInfo.Name == "" {
 		return users.UserInfo{}, fmt.Errorf("empty username")
-	}
-	if uInfo.Name != selectedUsername {
-		return users.UserInfo{}, fmt.Errorf("username %q does not match the selected username %q", uInfo.Name, selectedUsername)
 	}
 
 	// Validate home and shell directories
