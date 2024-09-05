@@ -33,7 +33,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y ${{ env.apt_deps }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.1.7
       - name: Go code sanity check
         uses: canonical/desktop-engineering/gh-actions/go/code-sanity@main
         with:
@@ -70,7 +70,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.1.7
       - name: Rust code sanity check
         uses: canonical/desktop-engineering/gh-actions/rust/code-sanity@main
         with:
@@ -94,7 +94,7 @@ jobs:
 
           scan_build_dir=$(mktemp -d --tmpdir scan-build-dir-XXXXXX)
           echo SCAN_BUILD_REPORTS_PATH="${scan_build_dir}" >> $GITHUB_ENV
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.1.7
       - name: Run scan build on GDM extensions
         run: |
           set -eu
@@ -145,7 +145,7 @@ jobs:
             sudo apt remove -y ubuntu-dev-tools
             sudo apt autoremove -y
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.1.7
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod

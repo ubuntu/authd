@@ -28,7 +28,7 @@ jobs:
         run: |
           DEBIAN_FRONTEND=noninteractive apt update
           DEBIAN_FRONTEND=noninteractive apt install -y cargo dh-cargo git jq
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.1.7
         with:
           ref: main
       - name: Vendor the dependencies
@@ -56,7 +56,7 @@ jobs:
         run: git config --global --add safe.directory "$PWD"
       - name: Create Pull Request
         if: ${{ env.modified == 'true' }}
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v7
         with:
           commit-message: Auto update packaging related Rust files
           title: Auto update packaging related Rust files
