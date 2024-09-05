@@ -48,12 +48,12 @@ Show
 
 Hide
 Tab
-Sleep 300ms
+Sleep 500ms
 Show
 
 Hide
-Enter@1ms 50
-Sleep 10s
+Enter@1ms 500
+Sleep 15s
 Show
 
 Sleep 300ms
