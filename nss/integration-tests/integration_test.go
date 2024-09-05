@@ -95,6 +95,9 @@ func TestIntegration(t *testing.T) {
 
 		"Error when getting passwd by id and daemon is not available": {db: "passwd", key: "1111", noDaemon: true, wantStatus: codeNotFound},
 		"Error when getting group by id and daemon is not available":  {db: "group", key: "11111", noDaemon: true, wantStatus: codeNotFound},
+
+		/* Special cases */
+		"Do not query the cache when user is pam_unix_non_existent": {db: "passwd", key: "pam_unix_non_existent:", cacheDB: "pam_unix_non_existent", wantStatus: codeNotFound},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
