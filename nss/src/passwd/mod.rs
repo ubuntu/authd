@@ -108,6 +108,12 @@ fn get_entry_by_name(name: String) -> Response<Passwd> {
             }
         };
 
+        // This is a fake call done by PAM to avoid attacks, so we need to special case it to avoid spamming
+        // logs with "Not Found" messages, as this call is done quite frequently.
+        if name == "pam_unix_non_existent:" {
+            return Response::NotFound;
+        }
+
         let mut req = Request::new(authd::GetPasswdByNameRequest {
             name: name.clone(),
             should_pre_check: should_pre_check(),
