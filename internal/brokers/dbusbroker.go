@@ -2,6 +2,7 @@ package brokers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/godbus/dbus/v5"
@@ -15,6 +16,8 @@ import (
 const DbusInterface string = "com.ubuntu.authd.Broker"
 
 type dbusBroker struct {
+	name string
+
 	dbusObject dbus.BusObject
 }
 
@@ -50,17 +53,16 @@ func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b db
 	}
 
 	return dbusBroker{
+		name:       nameVal.String(),
 		dbusObject: bus.Object(dbusName.String(), dbus.ObjectPath(objectName.String())),
 	}, nameVal.String(), brandIconVal.String(), nil
 }
 
 // NewSession calls the corresponding method on the broker bus and returns the session ID and encryption key.
 func (b dbusBroker) NewSession(ctx context.Context, username, lang, mode string) (sessionID, encryptionKey string, err error) {
-	dbusMethod := DbusInterface + ".NewSession"
-
-	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, username, lang, mode)
-	if err = call.Err; err != nil {
-		return "", "", errmessages.NewErrorToDisplay(err)
+	call, err := b.call(ctx, "NewSession", username, lang, mode)
+	if err != nil {
+		return "", "", err
 	}
 	if err = call.Store(&sessionID, &encryptionKey); err != nil {
 		return "", "", err
@@ -71,11 +73,9 @@ func (b dbusBroker) NewSession(ctx context.Context, username, lang, mode string)
 
 // GetAuthenticationModes calls the corresponding method on the broker bus and returns the authentication modes supported by it.
 func (b dbusBroker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
-	dbusMethod := DbusInterface + ".GetAuthenticationModes"
-
-	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID, supportedUILayouts)
-	if err = call.Err; err != nil {
-		return nil, errmessages.NewErrorToDisplay(err)
+	call, err := b.call(ctx, "GetAuthenticationModes", sessionID, supportedUILayouts)
+	if err != nil {
+		return nil, err
 	}
 	if err = call.Store(&authenticationModes); err != nil {
 		return nil, err
@@ -86,11 +86,9 @@ func (b dbusBroker) GetAuthenticationModes(ctx context.Context, sessionID string
 
 // SelectAuthenticationMode calls the corresponding method on the broker bus and returns the UI layout for the selected mode.
 func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
-	dbusMethod := DbusInterface + ".SelectAuthenticationMode"
-
-	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID, authenticationModeName)
-	if err = call.Err; err != nil {
-		return nil, errmessages.NewErrorToDisplay(err)
+	call, err := b.call(ctx, "SelectAuthenticationMode", sessionID, authenticationModeName)
+	if err != nil {
+		return nil, err
 	}
 	if err = call.Store(&uiLayoutInfo); err != nil {
 		return nil, err
@@ -101,11 +99,10 @@ func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, aut
 
 // IsAuthenticated calls the corresponding method on the broker bus and returns the user information and access.
 func (b dbusBroker) IsAuthenticated(_ context.Context, sessionID, authenticationData string) (access, data string, err error) {
-	dbusMethod := DbusInterface + ".IsAuthenticated"
-
-	call := b.dbusObject.Call(dbusMethod, 0, sessionID, authenticationData)
-	if err = call.Err; err != nil {
-		return "", "", errmessages.NewErrorToDisplay(err)
+	// We don’t want to cancel the context when the parent call is cancelled.
+	call, err := b.call(context.Background(), "IsAuthenticated", sessionID, authenticationData)
+	if err != nil {
+		return "", "", err
 	}
 	if err = call.Store(&access, &data); err != nil {
 		return "", "", err
@@ -116,38 +113,47 @@ func (b dbusBroker) IsAuthenticated(_ context.Context, sessionID, authentication
 
 // EndSession calls the corresponding method on the broker bus.
 func (b dbusBroker) EndSession(ctx context.Context, sessionID string) (err error) {
-	dbusMethod := DbusInterface + ".EndSession"
-
-	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, sessionID)
-	if err = call.Err; err != nil {
-		return errmessages.NewErrorToDisplay(err)
+	if _, err := b.call(ctx, "EndSession", sessionID); err != nil {
+		return err
 	}
-
 	return nil
 }
 
 // CancelIsAuthenticated calls the corresponding method on the broker bus.
 func (b dbusBroker) CancelIsAuthenticated(ctx context.Context, sessionID string) {
-	dbusMethod := DbusInterface + ".CancelIsAuthenticated"
-
-	call := b.dbusObject.Call(dbusMethod, 0, sessionID)
-	if call.Err != nil {
-		log.Errorf(ctx, "could not cancel IsAuthenticated call for session %q: %v", sessionID, call.Err)
+	// We don’t want to cancel the context when the parent call is cancelled.
+	if _, err := b.call(context.Background(), "CancelIsAuthenticated", sessionID); err != nil {
+		log.Errorf(ctx, "could not cancel IsAuthenticated call for session %q: %v", sessionID, err)
 	}
 }
 
 // UserPreCheck calls the corresponding method on the broker bus.
 func (b dbusBroker) UserPreCheck(ctx context.Context, username string) (userinfo string, err error) {
-	dbusMethod := DbusInterface + ".UserPreCheck"
-
-	call := b.dbusObject.Call(dbusMethod, 0, username)
-	if err = call.Err; err != nil {
+	call, err := b.call(ctx, "UserPreCheck", username)
+	if err != nil {
 		return "", err
 	}
-
 	if err = call.Store(&userinfo); err != nil {
 		return "", err
 	}
 
 	return userinfo, nil
+}
+
+// call is an abstraction over dbus calls to ensure we wrap the returned error to an ErrorToDisplay.
+// All wrapped errors will be logged, but not returned to the UI.
+func (b dbusBroker) call(ctx context.Context, method string, args ...interface{}) (*dbus.Call, error) {
+	dbusMethod := DbusInterface + "." + method
+	call := b.dbusObject.CallWithContext(ctx, dbusMethod, 0, args...)
+	if err := call.Err; err != nil {
+		var dbusError dbus.Error
+		// If the broker is not available ib dbus, the original "method was not provided by any .service files" isn't
+		// user-friendly, so we replace it with a better message.
+		if errors.As(err, &dbusError) && dbusError.Name == "org.freedesktop.DBus.Error.ServiceUnknown" {
+			err = fmt.Errorf("couldn't connect to broker %q. Is it running?", b.name)
+		}
+		return nil, errmessages.NewErrorToDisplay(err)
+	}
+
+	return call, nil
 }
