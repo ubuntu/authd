@@ -17,7 +17,7 @@ If you discover a security vulnerability within this repository, we encourage re
 
 ### Private Vulnerability Reporting
 
-The most straightforward way to report a security vulnerability is via [GitHub](https://github.com/canonical/lxd/security/advisories/new).
+The most straightforward way to report a security vulnerability is via [GitHub](https://github.com/ubuntu/authd/security/advisories/new).
 For detailed instructions, please review the [Privately reporting a security vulnerability](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing-information-about-vulnerabilities/privately-reporting-a-security-vulnerability) documentation.
 This method enables you to communicate vulnerabilities directly and confidentially with the `authd` maintainers.
 
