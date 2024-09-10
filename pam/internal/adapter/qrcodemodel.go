@@ -1,23 +1,30 @@
 package adapter
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 	"github.com/skip2/go-qrcode"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/log"
 )
 
 var centeredStyle = lipgloss.NewStyle().Align(lipgloss.Center, lipgloss.Top)
 
+// reselectionWaitTime is the amount of time that we wait before regenerating the qrcode.
+const reselectionWaitTime time.Duration = 300 * time.Millisecond
+
 // qrcodeModel is the form layout type to allow authenticating and return a challenge.
 type qrcodeModel struct {
-	label       string
-	buttonModel *buttonModel
+	label         string
+	buttonModel   *buttonModel
+	selectionTime time.Time
 
 	content string
 	code    string
@@ -39,12 +46,13 @@ func newQRCodeModel(content, code, label, buttonLabel string, wait bool) (qrcode
 	}
 
 	return qrcodeModel{
-		label:       label,
-		buttonModel: button,
-		content:     content,
-		code:        code,
-		qrCode:      qrCode,
-		wait:        wait,
+		label:         label,
+		buttonModel:   button,
+		selectionTime: time.Now(),
+		content:       content,
+		code:          code,
+		qrCode:        qrCode,
+		wait:          wait,
 	}, nil
 }
 
@@ -73,6 +81,12 @@ func (m qrcodeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.buttonModel == nil {
 				return m, nil
 			}
+			now := time.Now()
+			if now.Sub(m.selectionTime) < reselectionWaitTime {
+				log.Debug(context.TODO(), "Button press ignored, too fast!")
+				return m, nil
+			}
+			m.selectionTime = now
 			return m, sendEvent(reselectAuthMode{})
 		}
 	}
