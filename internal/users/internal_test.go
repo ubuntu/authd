@@ -15,10 +15,10 @@ func TestGenerateID(t *testing.T) {
 
 		wantID string
 	}{
-		"Generate ID from input":                            {input: "test", wantID: "66657"},
-		"Generate ID from empty input":                      {input: "", wantID: "65536"},
-		"Generate ID from input with upper case characters": {input: "TeSt", wantID: "66657"},
-		"Generated ID is within the defined range":          {input: "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", wantID: "71452"},
+		"Generate ID from input":                            {input: "test", wantID: "528928898"},
+		"Generate ID from empty input":                      {input: "", wantID: "1672528963"},
+		"Generate ID from input with upper case characters": {input: "TeSt", wantID: "528928898"},
+		"Generated ID is within the defined range":          {input: "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz", wantID: "1102584112"},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

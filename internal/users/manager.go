@@ -2,10 +2,13 @@
 package users
 
 import (
+	"crypto/sha256"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io/fs"
 	"log/slog"
+	"math"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -415,13 +418,28 @@ func getActiveUsers(procDir string) (activeUsers map[string]struct{}, err error)
 	return activeUsers, nil
 }
 
-// GenerateID generates an integer number based on the provided string lowercased.
+// GenerateID deterministically generates an ID between from the given string, ignoring case. The ID is in the range
+// 60000 (the default value of UID_MAX, i.e. the maximum UID for regular users) and MaxInt32 (the maximum for UIDs and
+// GIDs on recent Linux versions is MaxUint32, but some software might cast it to int32, so to avoid overflow issues we
+// use MaxInt32).
 func GenerateID(str string) int {
-	lowerCased := strings.ToLower(str)
-	var sum int
-	for i, c := range lowerCased {
-		// Multiplies the value of the rune (which is >0) by its index+1. Subtracts the index to add another layer of conflict prevention.
-		sum += int(c)*(i+1) - i
+	const minID = 60000
+	const maxID = math.MaxInt32
+
+	str = strings.ToLower(str)
+
+	// Create a SHA-256 hash of the input string
+	hash := sha256.Sum256([]byte(str))
+
+	// Convert the first 4 bytes of the hash into an integer
+	number := binary.BigEndian.Uint32(hash[:4]) % maxID
+
+	// Repeat hashing until we get a number in the desired range. This ensures that the generated IDs are uniformly
+	// distributed in the range, opposed to a simple modulo operation.
+	for number < minID {
+		hash = sha256.Sum256(hash[:])
+		number = binary.BigEndian.Uint32(hash[:4]) % maxID
 	}
-	return (sum % (100000 - 65537)) + 65536 // Ensures that ID is between 65536 and 100000
+
+	return int(number)
 }
