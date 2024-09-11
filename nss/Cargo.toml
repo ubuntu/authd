@@ -31,5 +31,6 @@ procfs = "0.16.0"
 hyper-util = "0.1.7"
 
 [build-dependencies]
-tonic-build = "0.12.2"
+# We need to pin tonic-build to 0.11.* for now until https://github.com/hyperium/tonic/issues/1909 is fixed.
+tonic-build = "0.11.*"
 cc = "1.1.15"
