@@ -1,16 +1,16 @@
 GroupByID:
-    "73580": '{"Name":"group-SuCcEsS","GID":73580}'
-    "94411": '{"Name":"TestIDGeneration_separator_SuCcEsS","GID":94411}'
+    "756418817": '{"Name":"group-SuCcEsS","GID":756418817}'
+    "1500778496": '{"Name":"TestIDGeneration_separator_SuCcEsS","GID":1500778496}'
 GroupByName:
-    TestIDGeneration_separator_SuCcEsS: '{"Name":"TestIDGeneration_separator_SuCcEsS","GID":94411}'
-    group-SuCcEsS: '{"Name":"group-SuCcEsS","GID":73580}'
+    TestIDGeneration_separator_SuCcEsS: '{"Name":"TestIDGeneration_separator_SuCcEsS","GID":1500778496}'
+    group-SuCcEsS: '{"Name":"group-SuCcEsS","GID":756418817}'
 GroupToUsers:
-    "73580": '{"GID":73580,"UIDs":[94411]}'
-    "94411": '{"GID":94411,"UIDs":[94411]}'
+    "756418817": '{"GID":756418817,"UIDs":[1500778496]}'
+    "1500778496": '{"GID":1500778496,"UIDs":[1500778496]}'
 UserByID:
-    "94411": '{"Name":"TestIDGeneration_separator_SuCcEsS","UID":94411,"GID":94411,"Gecos":"gecos for SuCcEsS","Dir":"/home/SuCcEsS","Shell":"/bin/sh/SuCcEsS","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+    "1500778496": '{"Name":"TestIDGeneration_separator_SuCcEsS","UID":1500778496,"GID":1500778496,"Gecos":"gecos for SuCcEsS","Dir":"/home/SuCcEsS","Shell":"/bin/sh/SuCcEsS","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserByName:
-    TestIDGeneration_separator_SuCcEsS: '{"Name":"TestIDGeneration_separator_SuCcEsS","UID":94411,"GID":94411,"Gecos":"gecos for SuCcEsS","Dir":"/home/SuCcEsS","Shell":"/bin/sh/SuCcEsS","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+    TestIDGeneration_separator_SuCcEsS: '{"Name":"TestIDGeneration_separator_SuCcEsS","UID":1500778496,"GID":1500778496,"Gecos":"gecos for SuCcEsS","Dir":"/home/SuCcEsS","Shell":"/bin/sh/SuCcEsS","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserToBroker: {}
 UserToGroups:
-    "94411": '{"UID":94411,"GIDs":[94411,73580]}'
+    "1500778496": '{"UID":1500778496,"GIDs":[1500778496,756418817]}'
