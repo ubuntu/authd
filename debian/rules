@@ -51,6 +51,9 @@ BUILDDIR := $(CURDIR)/obj-$(DEB_HOST_GNU_TYPE)
 
 export BUILT_PAM_LIBS_PATH := obj-$(DEB_HOST_GNU_TYPE)/src/$(AUTHD_GO_PACKAGE)/pam
 
+# Run with Go 1.23
+export PATH := /usr/lib/go-1.23/bin/:$(PATH)
+
 %:
 	# --without=single-binary can be removed with dh 15.
 	dh $@ --buildsystem=golang --with=golang,apport --without=single-binary
