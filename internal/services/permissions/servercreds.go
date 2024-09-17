@@ -46,7 +46,6 @@ func (serverPeerCreds) ServerHandshake(conn net.Conn) (n net.Conn, c credentials
 			errClosure = fmt.Errorf("file descriptor value %d is too large to convert to int", fd)
 			return
 		}
-		//nolint:gosec // We already checked for the fd validity.
 		cred, errClosure = unix.GetsockoptUcred(int(fd),
 			unix.SOL_SOCKET,
 			unix.SO_PEERCRED)

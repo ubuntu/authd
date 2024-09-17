@@ -614,7 +614,6 @@ func (m nativeModel) renderQrCode(qrCode *qrcode.QRCode) (qr string) {
 		tty = os.Stdin
 	}
 
-	//nolint:gosec // We did check the Fd previously.
 	if !term.IsTerminal(int(tty.Fd())) {
 		return qrCode.ToString(false)
 	}
