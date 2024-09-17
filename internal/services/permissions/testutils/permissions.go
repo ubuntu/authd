@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strings"
 
-	//nolint:revive,nolintlint // needed for go:linkname, but only used in tests. nolintlint as false positive then.
 	_ "unsafe"
 
 	"github.com/ubuntu/authd/internal/services/permissions"
