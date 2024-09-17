@@ -35,7 +35,6 @@ func currentUserUID() uint32 {
 		panic(fmt.Sprintf("current uid is not an uint32 (%v): %v", u.Uid, err))
 	}
 
-	//nolint:gosec // we did check the conversion beforehand
 	return uint32(uid)
 }
 
