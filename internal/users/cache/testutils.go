@@ -5,9 +5,10 @@ package cache
 
 import (
 	"io"
-	"os/user"
+	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -71,21 +72,14 @@ func (c *Cache) dumpToYaml() (string, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	username := "root"
-	currentUser, err := user.Current()
-	if err != nil {
-		return "", err
-	}
-	if currentUser.Name != "" {
-		username = currentUser.Name
-	}
+	uid := os.Geteuid()
 
 	if err := c.db.View(func(tx *bbolt.Tx) error {
 		return tx.ForEach(func(name []byte, bucket *bbolt.Bucket) error {
 			d[string(name)] = make(map[string]string)
 			return bucket.ForEach(func(key, value []byte) error {
-				key = []byte(strings.Replace(string(key), username, "ACTIVE_USER", 1))
-				value = []byte(strings.ReplaceAll(string(value), username, "ACTIVE_USER"))
+				key = []byte(strings.Replace(string(key), strconv.Itoa(uid), "{{CURRENT_UID}}", 1))
+				value = []byte(strings.ReplaceAll(string(value), strconv.Itoa(uid), "{{CURRENT_UID}}"))
 
 				d[string(name)][string(key)] = redactTime(string(value))
 				return nil
@@ -124,14 +118,7 @@ func dbfromYAML(r io.Reader, destDir string) error {
 		return err
 	}
 
-	username := "root"
-	currentUser, err := user.Current()
-	if err != nil {
-		return err
-	}
-	if currentUser.Name != "" {
-		username = currentUser.Name
-	}
+	uid := os.Geteuid()
 
 	// Create buckets and content.
 	return db.Update(func(tx *bbolt.Tx) error {
@@ -143,9 +130,9 @@ func dbfromYAML(r io.Reader, destDir string) error {
 
 			for key, val := range bucketContent {
 				if bucketName == userByIDBucketName || bucketName == userByNameBucketName {
-					// Replace ACTIVE_USER name by the uid of an active user.
-					val = strings.ReplaceAll(val, "ACTIVE_USER", username)
-					key = strings.Replace(key, "ACTIVE_USER", username, 1)
+					// Replace {{CURRENT_UID}} with the UID of the current process
+					val = strings.ReplaceAll(val, "{{CURRENT_UID}}", strconv.Itoa(uid))
+					key = strings.Replace(key, "{{CURRENT_UID}}", strconv.Itoa(uid), 1)
 
 					// Replace the redacted time in the json value by a valid time.
 					for redacted, t := range redactedTimes {

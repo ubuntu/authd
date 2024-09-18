@@ -155,7 +155,7 @@ func openAndInitDB(path string) (*bbolt.DB, error) {
 }
 
 // CleanExpiredUsers removes from the cache any user that exceeded the maximum amount of days without authentication.
-func (c *Cache) CleanExpiredUsers(activeUsers map[string]struct{}, expirationDate time.Time) (cleanedUsers []string, err error) {
+func (c *Cache) CleanExpiredUsers(activeUIDs map[uint32]struct{}, expirationDate time.Time) (cleanedUsers []string, err error) {
 	defer decorate.OnError(&err, "could not clean up database")
 
 	c.mu.RLock()
@@ -176,7 +176,9 @@ func (c *Cache) CleanExpiredUsers(activeUsers map[string]struct{}, expirationDat
 				return nil
 			}
 
-			if _, active := activeUsers[u.Name]; !active && u.LastLogin.Before(expirationDate) {
+			//nolint:gosec // This conversion is safe because UIDs can't be larger than a uint32.
+			uid := uint32(u.UID)
+			if _, active := activeUIDs[uid]; !active && u.LastLogin.Before(expirationDate) {
 				expiredUsers = append(expiredUsers, u)
 			}
 			return nil
