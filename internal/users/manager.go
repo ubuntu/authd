@@ -386,6 +386,8 @@ func getActiveUsers(procDir string) (activeUsers map[string]struct{}, err error)
 		return nil, err
 	}
 
+	orphanedUIDs := make(map[uint32]struct{})
+
 	for _, dirEntry := range dirEntries {
 		// Checks if the dirEntry represents a process dir (i.e. /proc/<pid>/)
 		if _, err := strconv.Atoi(dirEntry.Name()); err != nil {
@@ -406,10 +408,15 @@ func getActiveUsers(procDir string) (activeUsers map[string]struct{}, err error)
 			return nil, fmt.Errorf("could not get ownership of file %q", info.Name())
 		}
 
+		if _, ok := orphanedUIDs[stats.Uid]; ok {
+			continue
+		}
+
 		u, err := user.LookupId(strconv.Itoa(int(stats.Uid)))
 		if err != nil {
 			// Possibly a ghost/orphaned UID - no reason to error out. Just warn the user and continue.
 			slog.Warn(fmt.Sprintf("Could not map active user ID to an actual user: %v", err))
+			orphanedUIDs[stats.Uid] = struct{}{}
 			continue
 		}
 
