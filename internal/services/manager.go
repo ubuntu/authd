@@ -3,6 +3,7 @@ package services
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
@@ -13,7 +14,6 @@ import (
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
-	"golang.org/x/exp/slog"
 	"google.golang.org/grpc"
 )
 
