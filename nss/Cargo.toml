@@ -33,4 +33,4 @@ hyper-util = "0.1.8"
 [build-dependencies]
 # We need to pin tonic-build to 0.11.* for now until https://github.com/hyperium/tonic/issues/1909 is fixed.
 tonic-build = "0.11.*"
-cc = "1.1.19"
+cc = "1.1.21"
