@@ -163,6 +163,8 @@ func (m *Manager) NewSession(brokerID, username, lang, mode string) (sessionID s
 		return "", "", err
 	}
 
+	log.Debug(context.Background(), fmt.Sprintf("%s: New session for %q", sessionID, username))
+
 	m.transactionsToBrokerMu.Lock()
 	defer m.transactionsToBrokerMu.Unlock()
 	m.transactionsToBroker[sessionID] = broker
