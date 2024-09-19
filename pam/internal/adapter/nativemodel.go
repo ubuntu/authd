@@ -598,9 +598,7 @@ func (m nativeModel) getPamTty() (*os.File, error) {
 	return f, nil
 }
 
-func (m nativeModel) renderQrCode(qrCode *qrcode.QRCode) (qr string) {
-	defer func() { qr = strings.TrimRight(qr, "\n") }()
-
+func (m nativeModel) isTerminalTty() bool {
 	tty, err := m.getPamTty()
 	// We check the fd could be passed to x/term to decide if we should fallback to stdin
 	if err == nil {
@@ -614,9 +612,11 @@ func (m nativeModel) renderQrCode(qrCode *qrcode.QRCode) (qr string) {
 		tty = os.Stdin
 	}
 
-	if !term.IsTerminal(int(tty.Fd())) {
-		return qrCode.ToString(false)
-	}
+	return term.IsTerminal(int(tty.Fd()))
+}
+
+func (m nativeModel) renderQrCode(qrCode *qrcode.QRCode) (qr string) {
+	defer func() { qr = strings.TrimRight(qr, "\n") }()
 
 	if os.Getenv("XDG_SESSION_TYPE") == "tty" {
 		return qrCode.ToString(false)
@@ -699,7 +699,10 @@ func (m nativeModel) isQrcodeRenderingSupported() bool {
 	case polkitServiceName:
 		return false
 	default:
-		return !IsSSHSession(m.pamMTx)
+		if IsSSHSession(m.pamMTx) {
+			return false
+		}
+		return m.isTerminalTty()
 	}
 }
 
