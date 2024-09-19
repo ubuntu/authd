@@ -256,6 +256,8 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 		data = ""
 	}
 
+	log.Debug(ctx, fmt.Sprintf("%s: Authentication result: %s", sessionID, access))
+
 	return &authd.IAResponse{
 		Access: access,
 		Msg:    data,

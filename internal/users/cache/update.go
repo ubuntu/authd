@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ubuntu/authd/internal/log"
 	"go.etcd.io/bbolt"
 )
 
@@ -75,6 +77,7 @@ func updateUser(buckets map[string]bucketWithName, userContent userDB) error {
 	}
 
 	// Update user buckets
+	log.Debug(context.Background(), fmt.Sprintf("Updating entry of user %q (UID: %d)", userContent.Name, userContent.UID))
 	updateBucket(buckets[userByIDBucketName], userContent.UID, userContent)
 	updateBucket(buckets[userByNameBucketName], userContent.Name, userContent)
 
