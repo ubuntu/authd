@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"math"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -356,12 +355,12 @@ func (m *Manager) clear(cacheDir string) error {
 
 // cleanExpiredUserData cleans up the data belonging to expired users.
 func (m *Manager) cleanExpiredUserData(opts *options) error {
-	activeUsers, err := getActiveUsers(opts.procDir)
+	activeUIDs, err := getUIDsOfRunningProcesses(opts.procDir)
 	if err != nil {
 		return fmt.Errorf("could not get list of active users: %v", err)
 	}
 
-	cleanedUsers, err := m.cache.CleanExpiredUsers(activeUsers, opts.expirationDate)
+	cleanedUsers, err := m.cache.CleanExpiredUsers(activeUIDs, opts.expirationDate)
 	if err != nil {
 		return fmt.Errorf("could not clean database of expired users: %v", err)
 	}
@@ -375,11 +374,11 @@ func (m *Manager) cleanExpiredUserData(opts *options) error {
 	return err
 }
 
-// getActiveUsers walks through procDir and returns a map with the usernames of the owners of all active processes.
-func getActiveUsers(procDir string) (activeUsers map[string]struct{}, err error) {
-	defer decorate.OnError(&err, "could not get list of active users")
+// getUIDsOfRunningProcesses walks through procDir and returns a map with the UIDs of the running processes.
+func getUIDsOfRunningProcesses(procDir string) (uids map[uint32]struct{}, err error) {
+	defer decorate.OnError(&err, "could not get UIDs of running processes")
 
-	activeUsers = make(map[string]struct{})
+	uids = make(map[uint32]struct{})
 
 	dirEntries, err := os.ReadDir(procDir)
 	if err != nil {
@@ -405,17 +404,9 @@ func getActiveUsers(procDir string) (activeUsers map[string]struct{}, err error)
 		if !ok {
 			return nil, fmt.Errorf("could not get ownership of file %q", info.Name())
 		}
-
-		u, err := user.LookupId(strconv.Itoa(int(stats.Uid)))
-		if err != nil {
-			// Possibly a ghost/orphaned UID - no reason to error out. Just warn the user and continue.
-			slog.Warn(fmt.Sprintf("Could not map active user ID to an actual user: %v", err))
-			continue
-		}
-
-		activeUsers[u.Name] = struct{}{}
+		uids[stats.Uid] = struct{}{}
 	}
-	return activeUsers, nil
+	return uids, nil
 }
 
 // GenerateID deterministically generates an ID between from the given string, ignoring case. The ID is in the range

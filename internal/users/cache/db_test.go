@@ -507,13 +507,6 @@ func TestClear(t *testing.T) {
 func TestCleanExpiredUsers(t *testing.T) {
 	t.Parallel()
 
-	username := "root"
-	currentUser, err := user.Current()
-	require.NoError(t, err, "Setup: should be able to get current user")
-	if currentUser.Name != "" {
-		username = currentUser.Name
-	}
-
 	tests := map[string]struct {
 		dbFile string
 
@@ -539,8 +532,10 @@ func TestCleanExpiredUsers(t *testing.T) {
 			expirationDate, err := time.Parse(time.DateOnly, tc.expirationDate)
 			require.NoError(t, err, "Setup: should be able to parse expiration date")
 
-			activeUsers := map[string]struct{}{username: {}}
-			cleanedUsers, err := c.CleanExpiredUsers(activeUsers, expirationDate)
+			//nolint:gosec // This conversion is safe because UIDs can't be larger than a uint32.
+			uid := uint32(os.Geteuid())
+			activeUIDs := map[uint32]struct{}{uid: {}}
+			cleanedUsers, err := c.CleanExpiredUsers(activeUIDs, expirationDate)
 			require.NoError(t, err, "CleanExpiredUsers should not return an error")
 
 			gotDump, err := cachetestutils.DumpToYaml(c)
