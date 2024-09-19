@@ -699,7 +699,7 @@ func (m nativeModel) isQrcodeRenderingSupported() bool {
 	case polkitServiceName:
 		return false
 	default:
-		return true
+		return !IsSSHSession(m.pamMTx)
 	}
 }
 
