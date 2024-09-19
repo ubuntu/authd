@@ -320,7 +320,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		SessionMode: mode,
 	}
 
-	if pamClientType == adapter.Native && isSSHSession(mTx) {
+	if pamClientType == adapter.Native && adapter.IsSSHSession(mTx) {
 		appState.NssClient = authd.NewNSSClient(conn)
 	}
 
@@ -468,25 +468,6 @@ func getSocketPath(args map[string]string) string {
 		return val
 	}
 	return consts.DefaultSocketPath
-}
-
-func isSSHSession(mTx pam.ModuleTransaction) bool {
-	service, _ := mTx.GetItem(pam.Service)
-	if service == "sshd" {
-		return true
-	}
-
-	envs, err := mTx.GetEnvList()
-	if err != nil {
-		return false
-	}
-	if _, ok := envs["SSH_CONNECTION"]; ok {
-		return true
-	}
-	if _, ok := envs["SSH_AUTH_INFO_0"]; ok {
-		return true
-	}
-	return false
 }
 
 // SetCred is the method that is invoked during pam_setcred request.

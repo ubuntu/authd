@@ -33,3 +33,23 @@ func TeaHeadlessOptions() ([]tea.ProgramOption, error) {
 		tea.WithOutput(devNull),
 	}, nil
 }
+
+// IsSSHSession checks if the module transaction is currently handling a SSH session.
+func IsSSHSession(mTx pam.ModuleTransaction) bool {
+	service, _ := mTx.GetItem(pam.Service)
+	if service == "sshd" {
+		return true
+	}
+
+	envs, err := mTx.GetEnvList()
+	if err != nil {
+		return false
+	}
+	if _, ok := envs["SSH_CONNECTION"]; ok {
+		return true
+	}
+	if _, ok := envs["SSH_AUTH_INFO_0"]; ok {
+		return true
+	}
+	return false
+}
