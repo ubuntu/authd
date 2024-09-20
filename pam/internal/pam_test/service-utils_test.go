@@ -42,6 +42,7 @@ func TestCreateService(t *testing.T) {
 				{Account, Required, Deny.String(), []string{}},
 				{Auth, Requisite, "pam_auth_module.so", []string{}},
 				{Auth, Requisite, Deny.String(), []string{}},
+				{Include, Control(0), "common-auth", []string{}},
 				{Password, Sufficient, "pam_password_module.so", []string{"arg"}},
 				{Password, Sufficient, Deny.String(), []string{}},
 				{Session, Optional, "pam_session_module.so", []string{""}},
@@ -51,6 +52,7 @@ func TestCreateService(t *testing.T) {
 account	required	pam_deny.so
 auth	requisite	pam_auth_module.so
 auth	requisite	pam_deny.so
+@include		common-auth
 password	sufficient	pam_password_module.so	arg
 password	sufficient	pam_deny.so
 session	optional	pam_session_module.so
