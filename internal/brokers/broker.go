@@ -13,7 +13,7 @@ import (
 	"github.com/godbus/dbus/v5"
 	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
-	"github.com/ubuntu/authd/internal/users"
+	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
 	"golang.org/x/exp/slices"
@@ -318,16 +318,16 @@ func (b Broker) parseSessionID(sessionID string) string {
 }
 
 // unmarshalUserInfo tries to unmarshal the rawMsg into a userinfo.
-func unmarshalUserInfo(rawMsg json.RawMessage) (users.UserInfo, error) {
-	var u users.UserInfo
+func unmarshalUserInfo(rawMsg json.RawMessage) (types.UserInfo, error) {
+	var u types.UserInfo
 	if err := json.Unmarshal(rawMsg, &u); err != nil {
-		return users.UserInfo{}, fmt.Errorf("message is not JSON formatted: %v", err)
+		return types.UserInfo{}, fmt.Errorf("message is not JSON formatted: %v", err)
 	}
 	return u, nil
 }
 
 // validateUserInfo checks if the specified userinfo is valid.
-func validateUserInfo(uInfo users.UserInfo) (err error) {
+func validateUserInfo(uInfo types.UserInfo) (err error) {
 	defer decorate.OnError(&err, "provided userinfo is invalid")
 
 	// Validate username. We don't want to check here if it matches the username from the request, because it's the

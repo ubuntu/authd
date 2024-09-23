@@ -1,4 +1,4 @@
-package localgroups_test
+package localentries_test
 
 import (
 	"os"
@@ -7,11 +7,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils/golden"
-	"github.com/ubuntu/authd/internal/users/localgroups"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
+	"github.com/ubuntu/authd/internal/users/localentries"
+	localentriestestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 )
 
-func TestUpdateLocalGroups(t *testing.T) {
+func TestUpdatelocalentries(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
@@ -79,19 +79,19 @@ func TestUpdateLocalGroups(t *testing.T) {
 				groupFilePath, destCmdsFile,
 			}
 
-			err := localgroups.Update(tc.username, tc.newGroups, tc.oldGroups, localgroups.WithGroupPath(groupFilePath), localgroups.WithGpasswdCmd(cmdArgs))
+			err := localentries.Update(tc.username, tc.newGroups, tc.oldGroups, localentries.WithGroupPath(groupFilePath), localentries.WithGpasswdCmd(cmdArgs))
 			if tc.wantErr {
-				require.Error(t, err, "UpdateLocalGroups should have failed")
+				require.Error(t, err, "Updatelocalentries should have failed")
 			} else {
-				require.NoError(t, err, "UpdateLocalGroups should not have failed")
+				require.NoError(t, err, "Updatelocalentries should not have failed")
 			}
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
+			localentriestestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
 		})
 	}
 }
 
-func TestCleanLocalGroups(t *testing.T) {
+func TestCleanlocalentries(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
@@ -127,24 +127,24 @@ func TestCleanLocalGroups(t *testing.T) {
 				tc.getUsersReturn = []string{"myuser", "otheruser", "otheruser2", "otheruser3", "otheruser4"}
 			}
 
-			cleanupOptions := []localgroups.Option{
-				localgroups.WithGpasswdCmd(gpasswdCmd),
-				localgroups.WithGroupPath(groupFilePath),
-				localgroups.WithGetUsersFunc(func() []string { return tc.getUsersReturn }),
+			cleanupOptions := []localentries.Option{
+				localentries.WithGpasswdCmd(gpasswdCmd),
+				localentries.WithGroupPath(groupFilePath),
+				localentries.WithGetUsersFunc(func() ([]string, error) { return tc.getUsersReturn, nil }),
 			}
-			err := localgroups.Clean(cleanupOptions...)
+			err := localentries.Clean(cleanupOptions...)
 			if tc.wantErr {
-				require.Error(t, err, "CleanupLocalGroups should have failed")
+				require.Error(t, err, "Cleanuplocalentries should have failed")
 			} else {
-				require.NoError(t, err, "CleanupLocalGroups should not have failed")
+				require.NoError(t, err, "Cleanuplocalentries should not have failed")
 			}
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
+			localentriestestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
 		})
 	}
 }
 
-func TestCleanUserFromLocalGroups(t *testing.T) {
+func TestCleanUserFromlocalentries(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
@@ -184,22 +184,22 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 				gpasswdCmd = append(gpasswdCmd, "gpasswdfail")
 			}
 
-			cleanupOptions := []localgroups.Option{
-				localgroups.WithGpasswdCmd(gpasswdCmd),
-				localgroups.WithGroupPath(groupFilePath),
+			cleanupOptions := []localentries.Option{
+				localentries.WithGpasswdCmd(gpasswdCmd),
+				localentries.WithGroupPath(groupFilePath),
 			}
-			err := localgroups.CleanUser(tc.username, cleanupOptions...)
+			err := localentries.CleanUser(tc.username, cleanupOptions...)
 			if tc.wantErr {
-				require.Error(t, err, "CleanUserFromLocalGroups should have failed")
+				require.Error(t, err, "CleanUserFromlocalentries should have failed")
 			} else {
-				require.NoError(t, err, "CleanUserFromLocalGroups should not have failed")
+				require.NoError(t, err, "CleanUserFromlocalentries should not have failed")
 			}
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
+			localentriestestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
 		})
 	}
 }
 
 func TestMockgpasswd(t *testing.T) {
-	localgroupstestutils.Mockgpasswd(t)
+	localentriestestutils.Mockgpasswd(t)
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
+	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -180,19 +181,23 @@ func (s Service) userPreCheck(ctx context.Context, username string) (pwent *auth
 		return nil, fmt.Errorf("user %q is not known by any broker", username)
 	}
 
-	var u users.UserEntry
+	var u types.UserEntry
 	if err := json.Unmarshal([]byte(userinfo), &u); err != nil {
 		return nil, fmt.Errorf("user data from broker invalid: %v", err)
 	}
-	// We need to generate the ID for the user, as its business logic is authd responsibility, not the broker's.
-	u.UID = s.userManager.GenerateUID(u.Name)
-	u.GID = s.userManager.GenerateGID(u.Name)
+
+	// Register a temporary user with a unique UID. If the user authenticates successfully, the user will be added to
+	// the database with the same UID.
+	u.UID, err = s.userManager.RegisterUserPreAuth(u.Name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add temporary record for user %q: %v", username, err)
+	}
 
 	return nssPasswdFromUsersPasswd(u), nil
 }
 
 // nssPasswdFromUsersPasswd returns a PasswdEntry from users.UserEntry.
-func nssPasswdFromUsersPasswd(u users.UserEntry) *authd.PasswdEntry {
+func nssPasswdFromUsersPasswd(u types.UserEntry) *authd.PasswdEntry {
 	return &authd.PasswdEntry{
 		Name:    u.Name,
 		Passwd:  "x",
@@ -205,17 +210,18 @@ func nssPasswdFromUsersPasswd(u users.UserEntry) *authd.PasswdEntry {
 }
 
 // nssGroupFromUsersGroup returns a GroupEntry from users.GroupEntry.
-func nssGroupFromUsersGroup(g users.GroupEntry) *authd.GroupEntry {
+func nssGroupFromUsersGroup(g types.GroupEntry) *authd.GroupEntry {
 	return &authd.GroupEntry{
-		Name:    g.Name,
-		Passwd:  "x",
+		Name: g.Name,
+		// We set the passwd field here because we use it to store the identifier of a temporary group record
+		Passwd:  g.Passwd,
 		Gid:     g.GID,
 		Members: g.Users,
 	}
 }
 
 // nssShadowFromUsersShadow returns a ShadowEntry from users.ShadowEntry.
-func nssShadowFromUsersShadow(u users.ShadowEntry) *authd.ShadowEntry {
+func nssShadowFromUsersShadow(u types.ShadowEntry) *authd.ShadowEntry {
 	return &authd.ShadowEntry{
 		Name:               u.Name,
 		Passwd:             "x",

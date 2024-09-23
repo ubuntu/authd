@@ -1,1 +1,1 @@
-user-pre-check:x:1053432963:1053432963:gecos for user-pre-check:/home/user-pre-check:/usr/bin/bash
+user-pre-check:x:{{UID}}:0:gecos for user-pre-check:/home/user-pre-check:/usr/bin/bash

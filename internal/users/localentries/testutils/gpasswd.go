@@ -11,7 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils/golden"
-	"github.com/ubuntu/authd/internal/users/localgroups"
+	"github.com/ubuntu/authd/internal/users/localentries"
 )
 
 // Mockgpasswd is the gpasswd mock.
@@ -73,12 +73,12 @@ func Mockgpasswd(_ *testing.T) {
 func SetupGPasswdMock(t *testing.T, groupsFilePath string) string {
 	t.Helper()
 
-	t.Cleanup(localgroups.Z_ForTests_RestoreDefaultOptions)
+	t.Cleanup(localentries.Z_ForTests_RestoreDefaultOptions)
 
-	localgroups.Z_ForTests_SetGroupPath(groupsFilePath)
+	localentries.Z_ForTests_SetGroupPath(groupsFilePath)
 
 	destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
-	localgroups.Z_ForTests_SetGpasswdCmd([]string{"env", "GO_WANT_HELPER_PROCESS=1",
+	localentries.Z_ForTests_SetGpasswdCmd([]string{"env", "GO_WANT_HELPER_PROCESS=1",
 		os.Args[0], "-test.run=TestMockgpasswd", "--",
 		groupsFilePath, destCmdsFile,
 	})
