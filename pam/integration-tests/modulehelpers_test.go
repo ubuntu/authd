@@ -20,7 +20,7 @@ func getPkgConfigFlags(t *testing.T, args []string) []string {
 	return strings.Split(strings.TrimSpace(string(out)), " ")
 }
 
-func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags []string, soname string) string {
+func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags []string, ldFlags []string, soname string) string {
 	t.Helper()
 
 	compiler := os.Getenv("CC")
@@ -35,7 +35,7 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, cFl
 
 	require.NoError(t, os.MkdirAll(filepath.Dir(libPath), 0700),
 		"Setup: Can't create loader build path")
-	t.Logf("Compiling PAM Wrapper library at %s", libPath)
+	t.Logf("Compiling C Module library at %s", libPath)
 	cmd.Args = append(cmd.Args, "-o", libPath)
 	cmd.Args = append(cmd.Args, sources...)
 	cmd.Args = append(cmd.Args,
@@ -69,12 +69,12 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, cFl
 		"-fPIC",
 		"-Wl,--unresolved-symbols=report-all",
 		"-Wl,-soname," + soname + "",
-		"-lpam",
 	}...)
 	if len(pkgConfigDeps) > 0 {
-		cmd.Args = append(cmd.Args,
+		ldFlags = append(ldFlags,
 			getPkgConfigFlags(t, append([]string{"--libs"}, pkgConfigDeps...))...)
 	}
+	cmd.Args = append(cmd.Args, ldFlags...)
 
 	if ldflags := os.Getenv("LDFLAGS"); ldflags != "" && os.Getenv("DEB_BUILD_ARCH") == "" {
 		cmd.Args = append(cmd.Args, strings.Split(ldflags, " ")...)
@@ -121,12 +121,17 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, cFl
 
 	t.Logf("Running compiler command: %s %s", cmd.Path, strings.Join(cmd.Args[1:], " "))
 	out, err := cmd.CombinedOutput()
-	require.NoError(t, err, "Setup: could not compile PAM module %s: %s", soname, out)
+	require.NoError(t, err, "Setup: could not compile C module %s: %s", soname, out)
 	if string(out) != "" {
 		t.Log(string(out))
 	}
 
 	return libPath
+}
+
+func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags []string, soname string) string {
+	t.Helper()
+	return buildCModule(t, sources, pkgConfigDeps, cFlags, []string{"-lpam"}, soname)
 }
 
 type actionArgsMap = map[pam_test.Action][]string
