@@ -930,12 +930,11 @@ func userInfoFromName(name string) string {
 		Groups []groupJSONInfo
 		Gecos  string
 	}{
-		Name:   name,
-		UUID:   "uuid-" + name,
-		Home:   "/home/" + name,
-		Shell:  "/usr/bin/bash",
-		Groups: []groupJSONInfo{{Name: "group-" + name, UGID: "ugid-" + name}},
-		Gecos:  "gecos for " + name,
+		Name:  name,
+		UUID:  "uuid-" + name,
+		Home:  "/home/" + name,
+		Shell: "/usr/bin/bash",
+		Gecos: "gecos for " + name,
 	}
 
 	switch name {
