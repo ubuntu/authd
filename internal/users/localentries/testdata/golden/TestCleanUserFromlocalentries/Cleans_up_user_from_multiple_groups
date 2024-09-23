@@ -1,0 +1,2 @@
+--delete myuser localgroup1
+--delete myuser localgroup2

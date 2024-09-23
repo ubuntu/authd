@@ -1,4 +1,4 @@
-package localgroups
+package localentries
 
 // WithGroupPath overrides the default /etc/group path for tests.
 func WithGroupPath(p string) Option {
@@ -15,7 +15,7 @@ func WithGpasswdCmd(cmds []string) Option {
 }
 
 // WithGetUsersFunc overrides the getusers func with a custom one for tests.
-func WithGetUsersFunc(getUsersFunc func() []string) Option {
+func WithGetUsersFunc(getUsersFunc func() ([]string, error)) Option {
 	return func(o *options) {
 		o.getUsersFunc = getUsersFunc
 	}

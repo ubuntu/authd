@@ -1,0 +1,2 @@
+--add myuser localgroup1
+--add myuser localgroup3
