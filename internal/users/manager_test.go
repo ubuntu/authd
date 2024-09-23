@@ -175,7 +175,6 @@ func TestUpdateUser(t *testing.T) {
 		"UID does not change if user already exists":     {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
 
 		"Error if user has no username":      {userCase: "nameless", wantErr: true, noOutput: true},
-		"Error if user has conflicting uid":  {userCase: "different-name-same-uid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
 		"Error if group has no name":         {groupsCase: "nameless-group", wantErr: true, noOutput: true},
 		"Error if group has conflicting gid": {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
 
@@ -210,7 +209,18 @@ func TestUpdateUser(t *testing.T) {
 			if tc.dbFile != "" {
 				cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
-			m := newManagerForTests(t, cacheDir)
+
+			gids := []uint32{user.UID}
+			for _, group := range user.Groups {
+				if group.GID != nil {
+					gids = append(gids, *group.GID)
+				}
+			}
+			managerOpts := []users.Option{
+				users.WithUIDsToGenerateInTests([]uint32{user.UID}),
+				users.WithGIDsToGenerateInTests(gids),
+			}
+			m := newManagerForTests(t, cacheDir, managerOpts...)
 
 			var oldUID uint32
 			if tc.wantSameUID {
@@ -625,10 +635,10 @@ func requireErrorAssertions(t *testing.T, gotErr, wantErrType error, wantErr boo
 	require.NoError(t, gotErr, "Error should not be returned")
 }
 
-func newManagerForTests(t *testing.T, cacheDir string) *users.Manager {
+func newManagerForTests(t *testing.T, cacheDir string, opts ...users.Option) *users.Manager {
 	t.Helper()
 
-	m, err := users.NewManager(users.DefaultConfig, cacheDir)
+	m, err := users.NewManager(users.DefaultConfig, cacheDir, opts...)
 	require.NoError(t, err, "NewManager should not return an error, but did")
 
 	return m

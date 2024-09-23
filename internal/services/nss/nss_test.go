@@ -333,7 +333,7 @@ func newUserManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 	}
 	cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", sourceDB), cacheDir)
 
-	m, err := users.NewManager(users.DefaultConfig, cacheDir)
+	m, err := users.NewManager(users.DefaultConfig, cacheDir, users.WithUIDsToGenerateInTests([]uint32{1234}))
 	require.NoError(t, err, "Setup: could not create user manager")
 
 	t.Cleanup(func() { _ = m.Stop() })
