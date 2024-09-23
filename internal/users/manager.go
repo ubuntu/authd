@@ -410,11 +410,12 @@ func getUIDsOfRunningProcesses(procDir string) (uids map[uint32]struct{}, err er
 }
 
 // GenerateID deterministically generates an ID between from the given string, ignoring case. The ID is in the range
-// 60000 (the default value of UID_MAX, i.e. the maximum UID for regular users) and MaxInt32 (the maximum for UIDs and
-// GIDs on recent Linux versions is MaxUint32, but some software might cast it to int32, so to avoid overflow issues we
-// use MaxInt32).
+// 65536 (everything below that is either reserved or used for users/groups created via adduser(8), see [1]) to MaxInt32
+// (the maximum for UIDs and GIDs on recent Linux versions is MaxUint32, but some software might cast it to int32, so to
+// avoid overflow issues we use MaxInt32).
+// [1]: https://www.debian.org/doc/debian-policy/ch-opersys.html#uid-and-gid-classes
 func GenerateID(str string) int {
-	const minID = 60000
+	const minID = 65536
 	const maxID = math.MaxInt32
 
 	str = strings.ToLower(str)
