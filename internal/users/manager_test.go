@@ -216,13 +216,10 @@ func TestUpdateUser(t *testing.T) {
 		"Successfully update user":                       {groupsCase: "cloud-group"},
 		"Successfully update user updating local groups": {groupsCase: "mixed-groups-cloud-first", localGroupsFile: "users_in_groups.group"},
 
-		"Error if user has no username":             {userCase: "nameless", wantErr: shouldError{}, noOutput: true},
-		"Error if user has conflicting uid":         {userCase: "different-name-same-uid", dbFile: "one_user_and_group", wantErr: shouldError{}, noOutput: true},
-		"Error if group has no name":                {groupsCase: "nameless-group", wantErr: shouldError{}, noOutput: true},
-		"Error if group has conflicting gid":        {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: shouldError{}, noOutput: true},
-		"Error if no groups were provided":          {groupsCase: "no-groups", wantErr: shouldError{}, noOutput: true},
-		"Error if only local group was provided":    {groupsCase: "local-group", wantErr: shouldError{}, noOutput: true},
-		"Error if local group is the default group": {groupsCase: "mixed-groups-local-first", wantErr: shouldError{}, noOutput: true},
+		"Error if user has no username":      {userCase: "nameless", wantErr: shouldError{}, noOutput: true},
+		"Error if user has conflicting uid":  {userCase: "different-name-same-uid", dbFile: "one_user_and_group", wantErr: shouldError{}, noOutput: true},
+		"Error if group has no name":         {groupsCase: "nameless-group", wantErr: shouldError{}, noOutput: true},
+		"Error if group has conflicting gid": {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: shouldError{}, noOutput: true},
 
 		"Error when updating local groups remove user from db":                              {groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: shouldError{}},
 		"Error when updating local groups remove user from db without touching other users": {dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: shouldError{}},

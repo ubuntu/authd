@@ -19,6 +19,7 @@ type UserInfo struct {
 type GroupInfo struct {
 	Name string
 	GID  *int
+	UGID string
 }
 
 // UserEntry is the user information sent to the NSS service.

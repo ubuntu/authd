@@ -1,4 +1,4 @@
 FIRST CALL:
 	access: granted
-	data: {"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","UID":241840398,"Gecos":"gecos for success","Dir":"/home/success","Shell":"/bin/sh/success","Groups":[{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":241840398},{"Name":"group-success","GID":756418817}]}
+	data: {"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","UID":0,"Gecos":"gecos for success","Dir":"/home/success","Shell":"/bin/sh/success","Groups":[{"Name":"group-success","GID":null,"UGID":"ugid-success"}]}
 	err: <nil>

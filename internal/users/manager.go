@@ -127,11 +127,21 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	if u.Name == "" {
 		return errors.New("empty username")
 	}
-	if len(u.Groups) == 0 {
-		return fmt.Errorf("no group provided for user %s (%v)", u.Name, u.UID)
+
+	// Generate the UID of the user unless a UID is already set (only the case in tests).
+	if u.UID == 0 {
+		u.UID = GenerateID(u.Name)
 	}
-	if u.Groups[0].GID == nil {
-		return fmt.Errorf("no gid provided for default group %q", u.Groups[0].Name)
+
+	// Prepend the user private group
+	u.Groups = append([]GroupInfo{{Name: u.Name, UGID: u.Name}}, u.Groups...)
+
+	// Generate the GIDs of the user groups
+	for i := range u.Groups {
+		if u.Groups[i].UGID != "" {
+			gidv := GenerateID(u.Groups[i].UGID)
+			u.Groups[i].GID = &gidv
+		}
 	}
 
 	var groupContents []cache.GroupDB

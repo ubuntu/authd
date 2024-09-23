@@ -194,12 +194,11 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 			return "", "", err
 		}
 
-		u, err := validateUserInfoAndGenerateIDs(info)
-		if err != nil {
+		if err = validateUserInfo(info); err != nil {
 			return "", "", err
 		}
 
-		d, err := json.Marshal(u)
+		d, err := json.Marshal(info.UserInfo)
 		if err != nil {
 			return "", "", fmt.Errorf("can't marshal UserInfo: %v", err)
 		}
@@ -340,12 +339,8 @@ func (b Broker) parseSessionID(sessionID string) string {
 
 type userInfo struct {
 	users.UserInfo
-	UUID   string
-	UGID   string
-	Groups []struct {
-		Name string
-		UGID string
-	}
+	UUID string
+	UGID string
 }
 
 // unmarshalUserInfo tries to unmarshal the rawMsg into a userinfo.
@@ -357,49 +352,38 @@ func unmarshalUserInfo(rawMsg json.RawMessage) (userInfo, error) {
 	return u, nil
 }
 
-// validateUserInfoAndGenerateIDs checks if the specified userinfo is valid and generates the UID and GIDs.
-func validateUserInfoAndGenerateIDs(uInfo userInfo) (user users.UserInfo, err error) {
+// validateUserInfo checks if the specified userinfo is valid.
+func validateUserInfo(uInfo userInfo) (err error) {
 	defer decorate.OnError(&err, "provided userinfo is invalid")
 
 	// Validate username. We don't want to check here if it matches the username from the request, because it's the
 	// broker's responsibility to do that and we don't know which usernames the provider considers equal, for example if
 	// they are case-sensitive or not.
 	if uInfo.Name == "" {
-		return users.UserInfo{}, fmt.Errorf("empty username")
+		return fmt.Errorf("empty username")
 	}
 
 	// Validate home and shell directories
 	if !filepath.IsAbs(filepath.Clean(uInfo.Dir)) {
-		return users.UserInfo{}, fmt.Errorf("value provided for homedir is not an absolute path: %s", uInfo.Dir)
+		return fmt.Errorf("value provided for homedir is not an absolute path: %s", uInfo.Dir)
 	}
 	if !filepath.IsAbs(filepath.Clean(uInfo.Shell)) {
-		return users.UserInfo{}, fmt.Errorf("value provided for shell is not an absolute path: %s", uInfo.Shell)
+		return fmt.Errorf("value provided for shell is not an absolute path: %s", uInfo.Shell)
 	}
 
-	// Validate UUID and generate UID
+	// Validate UUID
 	if uInfo.UUID == "" {
-		return users.UserInfo{}, fmt.Errorf("empty UUID")
+		return fmt.Errorf("empty UUID")
 	}
-	uInfo.UID = users.GenerateID(uInfo.Name)
 
-	// Validate UGIDs and generate GIDs
+	// Validate groups
 	for _, g := range uInfo.Groups {
 		if g.Name == "" {
-			return users.UserInfo{}, fmt.Errorf("group has empty name")
+			return errors.New("group has empty name")
 		}
-		var gid *int
-		if g.UGID != "" {
-			gidv := users.GenerateID(g.UGID)
-			gid = &gidv
-		}
-		uInfo.UserInfo.Groups = append(uInfo.UserInfo.Groups, users.GroupInfo{Name: g.Name, GID: gid})
 	}
 
-	// Ensure that the user groups contain its own group and that it is the main one (first on the list).
-	defaultGroup := []users.GroupInfo{{Name: uInfo.Name, GID: &uInfo.UID}}
-	uInfo.UserInfo.Groups = append(defaultGroup, uInfo.UserInfo.Groups...)
-
-	return uInfo.UserInfo, nil
+	return nil
 }
 
 // unmarshalAndGetKey tries to unmarshal the content in data and returns the value of the requested key.
