@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/pam/internal/log"
 )
 
 var supportedLevels = []log.Level{

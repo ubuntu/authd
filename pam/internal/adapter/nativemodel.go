@@ -16,7 +16,7 @@ import (
 	"github.com/skip2/go-qrcode"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/pam/internal/log"
 	"github.com/ubuntu/authd/pam/internal/proto"
 	"golang.org/x/term"
 )

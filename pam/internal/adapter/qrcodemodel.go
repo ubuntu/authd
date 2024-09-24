@@ -12,7 +12,7 @@ import (
 	"github.com/muesli/termenv"
 	"github.com/skip2/go-qrcode"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/pam/internal/log"
 )
 
 var centeredStyle = lipgloss.NewStyle().Align(lipgloss.Center, lipgloss.Top)
