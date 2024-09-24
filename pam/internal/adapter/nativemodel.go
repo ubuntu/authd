@@ -238,6 +238,9 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		if m.currentStage != proto.Stage_authModeSelection {
 			return m, nil
 		}
+		if m.selectedAuthMode != "" {
+			return m, nil
+		}
 		if len(m.authModes) < 1 {
 			return m, sendEvent(pamError{
 				status: pam.ErrSystem,
@@ -825,6 +828,9 @@ func (m nativeModel) goBackCommand() (nativeModel, tea.Cmd) {
 	if m.currentStage >= proto.Stage_challenge && m.uiLayout != nil {
 		m.uiLayout = nil
 		return m, sendEvent(isAuthenticatedCancelled{})
+	}
+	if m.currentStage >= proto.Stage_authModeSelection {
+		m.selectedAuthMode = ""
 	}
 	if m.currentStage == proto.Stage_authModeSelection {
 		m.authModes = nil
