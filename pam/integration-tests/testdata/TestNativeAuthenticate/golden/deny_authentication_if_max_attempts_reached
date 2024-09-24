@@ -283,13 +283,13 @@ invalid password 'wrongpass', should be 'goodpass'
 Insert 'r' to cancel the request and go back
 Gimme your password:
 invalid password 'wrongpass', should be 'goodpass'
-invalid password 'wrongpass', should be 'goodpass'
 PAM Authenticate() for user "user-integration-max-attempts" exited with error (PAM exit code: 7)
 : Authentication failure
 acct=incomplete
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch
 >
+
 
 
 
@@ -316,13 +316,13 @@ invalid password 'wrongpass', should be 'goodpass'
 Insert 'r' to cancel the request and go back
 Gimme your password:
 invalid password 'wrongpass', should be 'goodpass'
-invalid password 'wrongpass', should be 'goodpass'
 PAM Authenticate() for user "user-integration-max-attempts" exited with error (PAM exit code: 7)
 : Authentication failure
 acct=incomplete
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch
 >
+
 
 
 
