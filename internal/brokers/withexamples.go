@@ -3,11 +3,11 @@
 package brokers
 
 import (
-	"context"
+	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/ubuntu/authd/examplebroker"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/testutils"
 )
 
@@ -17,7 +17,7 @@ func useExampleBrokers() (string, func(), error) {
 	if err != nil {
 		return "", nil, err
 	}
-	log.Debugf(context.Background(), "Mock system bus started on %s\n", os.Getenv("DBUS_SYSTEM_BUS_ADDRESS"))
+	slog.Debug(fmt.Sprintf("Mock system bus started on %s\n", os.Getenv("DBUS_SYSTEM_BUS_ADDRESS")))
 
 	// Create the directory for the broker configuration files.
 	cfgPath, err := os.MkdirTemp(os.TempDir(), "examplebroker.d")
@@ -29,7 +29,7 @@ func useExampleBrokers() (string, func(), error) {
 	conn, err := examplebroker.StartBus(cfgPath)
 	if err != nil {
 		if err := os.RemoveAll(cfgPath); err != nil {
-			log.Warningf(context.Background(), "Failed to remove the broker configuration directory: %v", err)
+			slog.Warn(fmt.Sprintf("Failed to remove the broker configuration directory: %v", err))
 		}
 		busCleanup()
 		return "", nil, err
@@ -38,7 +38,7 @@ func useExampleBrokers() (string, func(), error) {
 	return cfgPath, func() {
 		conn.Close()
 		if err := os.RemoveAll(cfgPath); err != nil {
-			log.Warningf(context.Background(), "Failed to remove the broker configuration directory: %v", err)
+			slog.Warn(fmt.Sprintf("Failed to remove the broker configuration directory: %v", err))
 		}
 		busCleanup()
 	}, nil

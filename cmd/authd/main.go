@@ -2,14 +2,13 @@
 package main
 
 import (
-	"context"
+	"log/slog"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 
 	"github.com/ubuntu/authd/cmd/authd/daemon"
-	"github.com/ubuntu/authd/internal/log"
 )
 
 //FIXME go:generate go run ../generate_completion_documentation.go completion ../../generated
@@ -32,17 +31,8 @@ type app interface {
 func run(a app) int {
 	defer installSignalHandler(a)()
 
-	log.SetFormatter(&log.TextFormatter{
-		DisableLevelTruncation: true,
-		DisableTimestamp:       true,
-
-		// ForceColors is necessary on Windows, not only to have colors but to
-		// prevent logrus from falling back to structured logs.
-		ForceColors: true,
-	})
-
 	if err := a.Run(); err != nil {
-		log.Error(context.Background(), err)
+		slog.Error(err.Error())
 
 		if a.UsageError() {
 			return 2

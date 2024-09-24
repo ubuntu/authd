@@ -6,12 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"hash/fnv"
+	"log/slog"
 	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/godbus/dbus/v5"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
 	"golang.org/x/exp/slices"
@@ -77,7 +77,7 @@ func newBroker(ctx context.Context, configFile string, bus *dbus.Conn) (b Broker
 	var broker brokerer
 
 	if configFile != "" {
-		log.Debugf(ctx, "Loading broker from %q", configFile)
+		slog.Debug(fmt.Sprintf("Loading broker from %q", configFile))
 		broker, name, brandIcon, err = newDbusBroker(ctx, bus, configFile)
 		if err != nil {
 			return Broker{}, err
@@ -259,7 +259,7 @@ func generateValidators(ctx context.Context, sessionID string, supportedUILayout
 	validators := make(map[string]layoutValidator)
 	for _, layout := range supportedUILayouts {
 		if _, exists := layout["type"]; !exists {
-			log.Errorf(ctx, "layout %v provided with missing type for session %s, it will be ignored", layout, sessionID)
+			slog.Error(fmt.Sprintf("layout %v provided with missing type for session %s, it will be ignored", layout, sessionID))
 			continue
 		}
 

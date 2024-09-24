@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"math"
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
 	"google.golang.org/grpc/codes"
@@ -28,7 +28,7 @@ type Service struct {
 
 // NewService returns a new NSS GRPC service.
 func NewService(ctx context.Context, userManager *users.Manager, brokerManager *brokers.Manager, permissionManager *permissions.Manager) Service {
-	log.Debug(ctx, "Building new GRPC NSS service")
+	slog.Debug("Building new GRPC NSS service")
 
 	return Service{
 		userManager:       userManager,
@@ -243,7 +243,7 @@ func noDataFoundErrorToGRPCError(err error) error {
 // We print a warning if the number is negative and replaced it with max uint32.
 func safeIDtoUint32(i int) uint32 {
 	if i < 0 {
-		log.Warningf(context.Background(), "negative ID number converted to uint32: %d, replaced with maxint", i)
+		slog.Warn(fmt.Sprintf("negative ID number converted to uint32: %d, replaced with maxint", i))
 		return math.MaxUint32
 	}
 	//nolint:gosec // we did check the conversion beforehand.
@@ -255,7 +255,7 @@ func safeIDtoUint32(i int) uint32 {
 // We print a warning if the number overflows and replaced it with max int32.
 func convertToNumberOfDays(i int) int32 {
 	if i > math.MaxInt32 {
-		log.Warningf(context.Background(), "Number of days overflows an int32: %d, replaced with max of int32", i)
+		slog.Warn(fmt.Sprintf("Number of days overflows an int32: %d, replaced with max of int32", i))
 		return math.MaxInt32
 	}
 	//nolint:gosec // we did check the conversion beforehand.

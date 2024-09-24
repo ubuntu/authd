@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/godbus/dbus/v5"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/decorate"
 	"gopkg.in/ini.v1"
@@ -25,7 +25,7 @@ type dbusBroker struct {
 func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b dbusBroker, name, brandIcon string, err error) {
 	defer decorate.OnError(&err, "dbus broker from configuration file: %q", configFile)
 
-	log.Debugf(ctx, "Dbus broker configuration at %q", configFile)
+	slog.Debug(fmt.Sprintf("Dbus broker configuration at %q", configFile))
 
 	cfg, err := ini.Load(configFile)
 	if err != nil {
@@ -123,7 +123,7 @@ func (b dbusBroker) EndSession(ctx context.Context, sessionID string) (err error
 func (b dbusBroker) CancelIsAuthenticated(ctx context.Context, sessionID string) {
 	// We don’t want to cancel the context when the parent call is cancelled.
 	if _, err := b.call(context.Background(), "CancelIsAuthenticated", sessionID); err != nil {
-		log.Errorf(ctx, "could not cancel IsAuthenticated call for session %q: %v", sessionID, err)
+		slog.Error(fmt.Sprintf("could not cancel IsAuthenticated call for session %q: %v", sessionID, err))
 	}
 }
 

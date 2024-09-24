@@ -7,13 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
 	"github.com/godbus/dbus/v5"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/decorate"
 )
 
@@ -35,7 +35,7 @@ type Manager struct {
 func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers []string) (m *Manager, err error) {
 	defer decorate.OnError(&err /*i18n.G(*/, "can't create brokers detection object") //)
 
-	log.Debug(ctx, "Building broker detection")
+	slog.Debug("Building broker detection")
 
 	brokersConfPathWithExample, cleanup, err := useExampleBrokers()
 	if err != nil {
@@ -53,11 +53,11 @@ func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers [
 
 	// Select all brokers in ascii order if none is configured
 	if len(configuredBrokers) == 0 {
-		log.Debug(ctx, "Auto-detecting brokers")
+		slog.Debug("Auto-detecting brokers")
 
 		entries, err := os.ReadDir(brokersConfPath)
 		if errors.Is(err, fs.ErrNotExist) {
-			log.Warningf(ctx, "Broker configuration directory %q does not exist, only local broker will be available", brokersConfPath)
+			slog.Warn(fmt.Sprintf("Broker configuration directory %q does not exist, only local broker will be available", brokersConfPath))
 		} else if err != nil {
 			return m, fmt.Errorf("could not read brokers directory to detect brokers: %v", err)
 		}
@@ -67,7 +67,7 @@ func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers [
 				continue
 			}
 			if !strings.HasSuffix(e.Name(), ".conf") {
-				log.Infof(ctx, "Skipping file %q in brokers configuration directory, only .conf files are supported", e.Name())
+				slog.Info(fmt.Sprintf("Skipping file %q in brokers configuration directory, only .conf files are supported", e.Name()))
 				continue
 			}
 			configuredBrokers = append(configuredBrokers, e.Name())
@@ -87,7 +87,7 @@ func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers [
 		configFile := filepath.Join(brokersConfPath, cfgFileName)
 		b, err := newBroker(ctx, configFile, bus)
 		if err != nil {
-			log.Warningf(ctx, "Skipping broker %q is not correctly configured: %v", cfgFileName, err)
+			slog.Warn(fmt.Sprintf("Skipping broker %q is not correctly configured: %v", cfgFileName, err))
 			continue
 		}
 		brokersOrder = append(brokersOrder, b.ID)
@@ -163,7 +163,7 @@ func (m *Manager) NewSession(brokerID, username, lang, mode string) (sessionID s
 		return "", "", err
 	}
 
-	log.Debug(context.Background(), fmt.Sprintf("%s: New session for %q", sessionID, username))
+	slog.Debug(fmt.Sprintf("%s: New session for %q", sessionID, username))
 
 	m.transactionsToBrokerMu.Lock()
 	defer m.transactionsToBrokerMu.Unlock()

@@ -7,7 +7,6 @@ import (
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/services/pam"
@@ -29,7 +28,7 @@ type Manager struct {
 func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configuredBrokers []string) (m Manager, err error) {
 	defer decorate.OnError(&err /*i18n.G(*/, "can't create authd object") //)
 
-	log.Debug(ctx, "Building authd object")
+	slog.Debug("Building authd object")
 
 	brokerManager, err := brokers.NewManager(ctx, brokersConfPath, configuredBrokers)
 	if err != nil {
@@ -56,7 +55,7 @@ func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configure
 
 // RegisterGRPCServices returns a new grpc Server after registering both NSS and PAM services.
 func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
-	log.Debug(ctx, "Registering GRPC services")
+	slog.Debug("Registering GRPC services")
 
 	opts := []grpc.ServerOption{permissions.WithUnixPeerCreds(), grpc.ChainUnaryInterceptor(m.globalPermissions, errmessages.RedactErrorInterceptor)}
 	grpcServer := grpc.NewServer(opts...)

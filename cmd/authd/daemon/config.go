@@ -1,7 +1,6 @@
 package daemon
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -11,8 +10,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/ubuntu/authd/internal/consts"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/decorate"
 )
 
@@ -40,7 +37,7 @@ func initViperConfig(name string, cmd *cobra.Command, vip *viper.Viper) (err err
 		vip.AddConfigPath("/etc/authd/")
 		// Add the executable path to the config search path.
 		if binPath, err := os.Executable(); err != nil {
-			log.Warningf(context.Background(), "Failed to get current executable path, not adding it as a config dir: %v", err)
+			slog.Warn(fmt.Sprintf("Failed to get current executable path, not adding it as a config dir: %v", err))
 		} else {
 			vip.AddConfigPath(filepath.Dir(binPath))
 		}
@@ -49,12 +46,12 @@ func initViperConfig(name string, cmd *cobra.Command, vip *viper.Viper) (err err
 	if err := vip.ReadInConfig(); err != nil {
 		var e viper.ConfigFileNotFoundError
 		if errors.As(err, &e) {
-			log.Infof(context.Background(), "No configuration file: %v.\nWe will only use the defaults, env variables or flags.", e)
+			slog.Info(fmt.Sprintf("No configuration file: %v.\nWe will only use the defaults, env variables or flags.", e))
 		} else {
 			return fmt.Errorf("invalid configuration file: %w", err)
 		}
 	} else {
-		log.Infof(context.Background(), "Using configuration file: %v", vip.ConfigFileUsed())
+		slog.Info(fmt.Sprintf("Using configuration file: %v", vip.ConfigFileUsed()))
 	}
 
 	// Handle environment.
@@ -86,19 +83,16 @@ func installConfigFlag(cmd *cobra.Command) *string {
 }
 
 // SetVerboseMode change ErrorFormat and logs between very, middly and non verbose.
-func setVerboseMode(level int) {
-	var reportCaller bool
-	switch level {
+func setVerboseMode(verbosity int) {
+	var logLevel slog.Level
+	switch verbosity {
 	case 0:
-		log.SetLevel(consts.DefaultLogLevel)
+		logLevel = slog.LevelWarn
 	case 1:
-		log.SetLevel(log.InfoLevel)
-	case 3:
-		reportCaller = true
-		fallthrough
+		logLevel = slog.LevelInfo
 	default:
-		log.SetLevel(log.DebugLevel)
-		slog.SetLogLoggerLevel(slog.LevelDebug)
+		logLevel = slog.LevelDebug
 	}
-	log.SetReportCaller(reportCaller)
+
+	slog.SetLogLoggerLevel(logLevel)
 }
