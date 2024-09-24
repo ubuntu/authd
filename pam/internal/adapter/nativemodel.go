@@ -272,8 +272,11 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		case brokers.AuthNext:
 			m.uiLayout = nil
 			return m, maybeSendPamError(m.sendInfo(authMsg))
-		case brokers.AuthDenied, brokers.AuthRetry:
+		case brokers.AuthRetry:
 			return m, maybeSendPamError(m.sendError(authMsg))
+		case brokers.AuthDenied:
+			// This is handled by the main authentication model
+			return m, nil
 		case brokers.AuthCancelled:
 			return m, sendEvent(isAuthenticatedCancelled{})
 		default:
