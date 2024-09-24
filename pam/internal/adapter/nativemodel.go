@@ -18,6 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/internal/proto"
+	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 	"golang.org/x/term"
 )
 
@@ -44,6 +45,9 @@ const (
 // nativeChangeStage is the internal event to notify that a stage change has happened.
 type nativeChangeStage ChangeStage
 
+// nativeStageChangeRequest is the internal event to request that a stage change.
+type nativeStageChangeRequest ChangeStage
+
 // nativeUserSelection is the internal event that an user needs to be (re)set.
 type nativeUserSelection struct{}
 
@@ -68,8 +72,6 @@ var errNotAnInteger = errors.New("parsed value is not an integer")
 
 // Init initializes the main model orchestrator.
 func (m *nativeModel) Init() tea.Cmd {
-	m.currentStage = proto.Stage(-1)
-
 	var err error
 	m.serviceName, err = m.pamMTx.GetItem(pam.Service)
 	if err != nil {
@@ -125,6 +127,10 @@ func (m nativeModel) changeStage(stage proto.Stage) tea.Cmd {
 	return sendEvent(nativeChangeStage{stage})
 }
 
+func (m nativeModel) requestStageChange(stage proto.Stage) tea.Cmd {
+	return sendEvent(nativeStageChangeRequest{stage})
+}
+
 func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 	log.Debugf(context.TODO(), "Native model update: %#v", msg)
 
@@ -132,16 +138,37 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 	case nativeChangeStage:
 		m.currentStage = msg.Stage
 
+	case nativeStageChangeRequest:
+		var baseCmd tea.Cmd
+		if m.currentStage != msg.Stage {
+			m.currentStage = msg.Stage
+			baseCmd = sendEvent(ChangeStage(msg))
+		}
+
+		switch m.currentStage {
+		case proto.Stage_userSelection:
+			return m, tea.Sequence(baseCmd, sendEvent(nativeUserSelection{}))
+		case proto.Stage_brokerSelection:
+			return m, tea.Sequence(baseCmd, sendEvent(nativeBrokerSelection{}))
+		case proto.Stage_authModeSelection:
+			return m, tea.Sequence(baseCmd, sendEvent(nativeAuthSelection{}))
+		case proto.Stage_challenge:
+			return m, tea.Sequence(baseCmd, sendEvent(nativeChallengeRequested{}))
+		}
+
 	case nativeAsyncOperationCompleted:
 		m.busy = false
 
 	case nativeGoBack:
-		return m, m.goBackCommand()
+		return m.goBackCommand()
 
 	case userRequired:
-		return m, sendEvent(nativeUserSelection{})
+		return m, m.requestStageChange(pam_proto.Stage_userSelection)
 
 	case nativeUserSelection:
+		if m.currentStage != proto.Stage_userSelection {
+			return m, nil
+		}
 		if m.busy {
 			// We may receive multiple concurrent requests, but due to the sync nature
 			// of this model, we can't just accept them once we've one in progress already
@@ -179,10 +206,14 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 			return m, maybeSendPamError(err)
 		}
 		return m.startAsyncOp(func() tea.Cmd {
-			return m.maybePreCheckUser(user, sendEvent(nativeBrokerSelection{}))
+			return m.maybePreCheckUser(user,
+				m.requestStageChange(pam_proto.Stage_brokerSelection))
 		})
 
 	case nativeBrokerSelection:
+		if m.currentStage != proto.Stage_brokerSelection {
+			return m, nil
+		}
 		if m.busy {
 			// We may receive multiple concurrent requests, but due to the sync nature
 			// of this model, we can't just accept them once we've one in progress already
@@ -204,6 +235,9 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		return m.startAsyncOp(m.brokerSelection)
 
 	case nativeAuthSelection:
+		if m.currentStage != proto.Stage_authModeSelection {
+			return m, nil
+		}
 		if len(m.authModes) < 1 {
 			return m, sendEvent(pamError{
 				status: pam.ErrSystem,
@@ -245,9 +279,12 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		m.uiLayout = msg.layout
 
 	case startAuthentication:
-		return m, sendEvent(nativeChallengeRequested{})
+		return m, m.requestStageChange(pam_proto.Stage_challenge)
 
 	case nativeChallengeRequested:
+		if m.currentStage != pam_proto.Stage_challenge {
+			return m, nil
+		}
 		return m, m.startChallenge()
 
 	case newPasswordCheckResult:
@@ -284,8 +321,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		}
 
 	case isAuthenticatedCancelled:
-		m.uiLayout = nil
-		return m, sendEvent(nativeGoBack{})
+		return m.goBackCommand()
 	}
 
 	return m, nil
@@ -785,28 +821,23 @@ func (m nativeModel) newPasswordChallenge(previousChallenge *string) tea.Cmd {
 	})
 }
 
-func (m nativeModel) goBackCommand() tea.Cmd {
-	return func() tea.Cmd {
-		if m.uiLayout != nil {
-			return sendEvent(isAuthenticatedCancelled{})
-		}
+func (m nativeModel) goBackCommand() (nativeModel, tea.Cmd) {
+	if m.currentStage >= proto.Stage_challenge && m.uiLayout != nil {
+		m.uiLayout = nil
+		return m, sendEvent(isAuthenticatedCancelled{})
+	}
+	if m.currentStage == proto.Stage_authModeSelection {
+		m.authModes = nil
+	}
 
+	return m, func() tea.Cmd {
 		if m.currentStage > proto.Stage_authModeSelection && len(m.authModes) > 1 {
-			return tea.Sequence(
-				sendEvent(ChangeStage{proto.Stage_authModeSelection}),
-				sendEvent(nativeAuthSelection{}),
-			)
+			return m.requestStageChange(proto.Stage_authModeSelection)
 		}
 		if m.currentStage > proto.Stage_brokerSelection && len(m.availableBrokers) > 1 {
-			return tea.Sequence(
-				sendEvent(ChangeStage{proto.Stage_brokerSelection}),
-				sendEvent(nativeBrokerSelection{}),
-			)
+			return m.requestStageChange(proto.Stage_brokerSelection)
 		}
-		return tea.Sequence(
-			sendEvent(ChangeStage{proto.Stage_userSelection}),
-			sendEvent(nativeUserSelection{}),
-		)
+		return m.requestStageChange(proto.Stage_userSelection)
 	}()
 }
 
