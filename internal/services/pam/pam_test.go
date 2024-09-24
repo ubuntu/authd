@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"os"
 	"os/user"
@@ -821,6 +822,8 @@ func TestMain(m *testing.M) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
 		os.Exit(m.Run())
 	}
+
+	slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	// Start system bus mock.
 	busCleanup, err := testutils.StartSystemBusMock()
