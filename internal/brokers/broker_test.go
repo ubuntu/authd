@@ -74,7 +74,7 @@ func TestNewBroker(t *testing.T) {
 				tc.configFile = filepath.Join(configDir, tc.configFile)
 			}
 
-			got, err := brokers.NewBroker(context.Background(), tc.configFile, conn)
+			got, err := brokers.NewBroker(tc.configFile, conn)
 			if tc.wantErr {
 				require.Error(t, err, "NewBroker should return an error, but did not")
 				return
@@ -367,7 +367,7 @@ func newBrokerForTests(t *testing.T, cfgDir, brokerCfg string) (b brokers.Broker
 	require.NoError(t, err, "Setup: could not connect to system bus")
 	t.Cleanup(func() { require.NoError(t, conn.Close(), "Teardown: Failed to close the connection") })
 
-	b, err = brokers.NewBroker(context.Background(), cfgPath, conn)
+	b, err = brokers.NewBroker(cfgPath, conn)
 	require.NoError(t, err, "Setup: could not create broker")
 
 	return b

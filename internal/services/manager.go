@@ -30,7 +30,7 @@ func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configure
 
 	slog.Debug("Building authd object")
 
-	brokerManager, err := brokers.NewManager(ctx, brokersConfPath, configuredBrokers)
+	brokerManager, err := brokers.NewManager(brokersConfPath, configuredBrokers)
 	if err != nil {
 		return m, err
 	}

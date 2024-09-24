@@ -32,7 +32,7 @@ type Manager struct {
 }
 
 // NewManager creates a new broker manager object.
-func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers []string) (m *Manager, err error) {
+func NewManager(brokersConfPath string, configuredBrokers []string) (m *Manager, err error) {
 	defer decorate.OnError(&err /*i18n.G(*/, "can't create brokers detection object") //)
 
 	slog.Debug("Building broker detection")
@@ -78,14 +78,14 @@ func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers [
 	var brokersOrder []string
 
 	// First broker is always the local one.
-	b, err := newBroker(ctx, "", nil)
+	b, err := newBroker("", nil)
 	brokersOrder = append(brokersOrder, b.ID)
 	brokers[b.ID] = &b
 
 	// Load brokers configuration
 	for _, cfgFileName := range configuredBrokers {
 		configFile := filepath.Join(brokersConfPath, cfgFileName)
-		b, err := newBroker(ctx, configFile, bus)
+		b, err := newBroker(configFile, bus)
 		if err != nil {
 			slog.Warn(fmt.Sprintf("Skipping broker %q is not correctly configured: %v", cfgFileName, err))
 			continue

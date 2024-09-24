@@ -68,7 +68,7 @@ type fieldValidator struct {
 }
 
 // newBroker creates a new broker object based on the provided config file. No config means local broker.
-func newBroker(ctx context.Context, configFile string, bus *dbus.Conn) (b Broker, err error) {
+func newBroker(configFile string, bus *dbus.Conn) (b Broker, err error) {
 	defer decorate.OnError(&err, "can't create broker from %q", configFile)
 
 	name := LocalBrokerName
@@ -78,7 +78,7 @@ func newBroker(ctx context.Context, configFile string, bus *dbus.Conn) (b Broker
 
 	if configFile != "" {
 		slog.Debug(fmt.Sprintf("Loading broker from %q", configFile))
-		broker, name, brandIcon, err = newDbusBroker(ctx, bus, configFile)
+		broker, name, brandIcon, err = newDbusBroker(bus, configFile)
 		if err != nil {
 			return Broker{}, err
 		}
@@ -123,7 +123,7 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	sessionID = b.parseSessionID(sessionID)
 
 	b.layoutValidatorsMu.Lock()
-	b.layoutValidators[sessionID] = generateValidators(ctx, sessionID, supportedUILayouts)
+	b.layoutValidators[sessionID] = generateValidators(sessionID, supportedUILayouts)
 	b.layoutValidatorsMu.Unlock()
 
 	authenticationModes, err = b.brokerer.GetAuthenticationModes(ctx, sessionID, supportedUILayouts)
@@ -255,7 +255,7 @@ func (b Broker) UserPreCheck(ctx context.Context, username string) (userinfo str
 //	        }
 //	    }
 //	}
-func generateValidators(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) map[string]layoutValidator {
+func generateValidators(sessionID string, supportedUILayouts []map[string]string) map[string]layoutValidator {
 	validators := make(map[string]layoutValidator)
 	for _, layout := range supportedUILayouts {
 		if _, exists := layout["type"]; !exists {

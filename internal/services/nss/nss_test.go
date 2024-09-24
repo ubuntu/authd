@@ -34,7 +34,7 @@ func TestNewService(t *testing.T) {
 	require.NoError(t, err, "Setup: could not create user manager")
 	t.Cleanup(func() { _ = m.Stop() })
 
-	b, err := brokers.NewManager(context.Background(), t.TempDir(), nil)
+	b, err := brokers.NewManager(t.TempDir(), nil)
 	require.NoError(t, err, "Setup: could not create broker manager")
 
 	pm := permissions.New()
@@ -350,7 +350,7 @@ func newBrokersManagerForTests(t *testing.T) *brokers.Manager {
 	require.NoError(t, err, "Setup: could not start bus broker mock")
 	t.Cleanup(cleanup)
 
-	m, err := brokers.NewManager(context.Background(), filepath.Dir(cfg), nil)
+	m, err := brokers.NewManager(filepath.Dir(cfg), nil)
 	require.NoError(t, err, "Setup: could not create broker manager")
 	t.Cleanup(m.Stop)
 

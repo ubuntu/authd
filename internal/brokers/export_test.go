@@ -1,7 +1,6 @@
 package brokers
 
 import (
-	"context"
 	"fmt"
 	"sort"
 
@@ -9,8 +8,8 @@ import (
 )
 
 // NewBroker exports the private newBroker function for testing purposes.
-func NewBroker(ctx context.Context, configFile string, bus *dbus.Conn) (Broker, error) {
-	return newBroker(ctx, configFile, bus)
+func NewBroker(configFile string, bus *dbus.Conn) (Broker, error) {
+	return newBroker(configFile, bus)
 }
 
 // SetBrokerForSession sets the broker for a given session.
@@ -26,7 +25,7 @@ func (m *Manager) SetBrokerForSession(b *Broker, sessionID string) {
 func GenerateLayoutValidators(b *Broker, sessionID string, supportedUILayouts []map[string]string) {
 	b.layoutValidatorsMu.Lock()
 	defer b.layoutValidatorsMu.Unlock()
-	b.layoutValidators[sessionID] = generateValidators(context.Background(), sessionID, supportedUILayouts)
+	b.layoutValidators[sessionID] = generateValidators(sessionID, supportedUILayouts)
 }
 
 // LayoutValidatorsString returns a string representation of the layout validators.

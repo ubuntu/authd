@@ -163,7 +163,7 @@ func TestGetPreviousBroker(t *testing.T) {
 
 			brokerManager := globalBrokerManager
 			if tc.onlyLocalBroker {
-				brokerManager, err = brokers.NewManager(context.Background(), "", nil)
+				brokerManager, err = brokers.NewManager("", nil)
 				require.NoError(t, err, "Setup: could not create broker manager with only local broker")
 			}
 			client := newPamClient(t, m, brokerManager, &pm)
@@ -839,7 +839,7 @@ func TestMain(m *testing.M) {
 	defer cleanup()
 
 	// Get manager shared across grpc services.
-	globalBrokerManager, err = brokers.NewManager(context.Background(), brokersConfPath, nil)
+	globalBrokerManager, err = brokers.NewManager(brokersConfPath, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
