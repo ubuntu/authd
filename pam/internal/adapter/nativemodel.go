@@ -41,7 +41,7 @@ const (
 	polkitServiceName = "polkit-1"
 )
 
-// nativeBrokerSelection is the internal event to notify that a stage change is requested.
+// nativeChangeStage is the internal event to notify that a stage change has happened.
 type nativeChangeStage ChangeStage
 
 // nativeUserSelection is the internal event that an user needs to be (re)set.
