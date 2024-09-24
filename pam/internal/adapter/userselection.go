@@ -17,6 +17,7 @@ type userSelectionModel struct {
 
 	pamMTx     pam.ModuleTransaction
 	clientType PamClientType
+	enabled    bool
 }
 
 // userSelected events to report that a new username has been selected.
@@ -82,7 +83,12 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 		return m, nil
 
 	case userRequired:
+		m.enabled = true
 		return m, sendEvent(ChangeStage{Stage: proto.Stage_userSelection})
+	}
+
+	if !m.enabled {
+		return m, nil
 	}
 
 	if m.clientType != InteractiveTerminal {
@@ -106,4 +112,9 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 	var cmd tea.Cmd
 	m.Model, cmd = m.Model.Update(msg)
 	return m, cmd
+}
+
+// Enabled returns whether the interactive user selection is enabled.
+func (m userSelectionModel) Enabled() bool {
+	return m.enabled
 }
