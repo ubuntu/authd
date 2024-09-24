@@ -389,13 +389,13 @@ type choicePair struct {
 }
 
 func (m nativeModel) promptForChoice(title string, choices []choicePair, prompt string) (string, error) {
-	for {
-		msg := fmt.Sprintf("== %s (use '%s' to go back) ==\n", title, nativeCancelKey)
-		for i, choice := range choices {
-			msg += fmt.Sprintf("%d - %s\n", i+1, choice.label)
-		}
+	msg := fmt.Sprintf("== %s (use '%s' to go back) ==\n", title, nativeCancelKey)
+	for i, choice := range choices {
+		msg += fmt.Sprintf("%d - %s\n", i+1, choice.label)
+	}
+	msg += prompt
 
-		msg += prompt
+	for {
 		idx, err := m.promptForNumericInputUntilValid(pam.PromptEchoOn, msg)
 		if err != nil {
 			return "", err
