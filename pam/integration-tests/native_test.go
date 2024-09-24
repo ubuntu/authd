@@ -70,6 +70,8 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Deny authentication if user does not exist and matches cancel key":   {tape: "cancel_key_user"},
 		"Deny authentication if newpassword does not match required criteria": {tape: "bad_password"},
 
+		"Prevent preset user from switching username": {tape: "switch_preset_username", pamUser: "user-integration-pam-preset"},
+
 		"Exit authd if local broker is selected":                                    {tape: "local_broker"},
 		"Exit if user is not pre-checked on ssh service":                            {tape: "local_ssh", pamUser: "user-integration-ssh-service", pamServiceName: "sshd"},
 		"Exit if user is not pre-checked on custom ssh service with connection env": {tape: "local_ssh", pamUser: "user-integration-ssh-connection", pamEnvs: []string{"SSH_CONNECTION=foo-connection"}},
