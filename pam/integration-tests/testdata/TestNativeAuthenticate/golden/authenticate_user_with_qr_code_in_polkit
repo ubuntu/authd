@@ -1,5 +1,5 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
@@ -232,7 +232,7 @@ Select broker:
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -465,7 +465,7 @@ Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -698,7 +698,7 @@ Select authentication mode:
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -931,7 +931,7 @@ Select action:
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -1164,7 +1164,7 @@ Select action:
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -1397,7 +1397,7 @@ Select action:
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -1630,7 +1630,7 @@ Select action:
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -1863,7 +1863,7 @@ Select action:
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -2096,7 +2096,7 @@ Select action: 1
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -2329,7 +2329,7 @@ PAM AcctMgmt() exited with success
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2

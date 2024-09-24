@@ -31,9 +31,10 @@ type nativeModel struct {
 	selectedAuthMode string
 	uiLayout         *authd.UILayout
 
-	serviceName  string
-	currentStage proto.Stage
-	busy         bool
+	serviceName          string
+	currentStage         proto.Stage
+	busy                 bool
+	userSelectionAllowed bool
 }
 
 const (
@@ -163,6 +164,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		return m.goBackCommand()
 
 	case userRequired:
+		m.userSelectionAllowed = true
 		return m, m.requestStageChange(pam_proto.Stage_userSelection)
 
 	case nativeUserSelection:
@@ -315,15 +317,16 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 	return m, nil
 }
 
-func checkForPromptReplyValidity(reply string) error {
+func (m nativeModel) checkForPromptReplyValidity(reply string) error {
 	switch reply {
 	case nativeCancelKey:
-		return errGoBack
+		if m.canGoBack() {
+			return errGoBack
+		}
 	case "", "\n":
 		return errEmptyResponse
-	default:
-		return nil
 	}
+	return nil
 }
 
 func (m nativeModel) promptForInput(style pam.Style, prompt string) (string, error) {
@@ -331,7 +334,7 @@ func (m nativeModel) promptForInput(style pam.Style, prompt string) (string, err
 	if err != nil {
 		return "", err
 	}
-	return resp.Response(), checkForPromptReplyValidity(resp.Response())
+	return resp.Response(), m.checkForPromptReplyValidity(resp.Response())
 }
 
 func (m nativeModel) promptForNumericInput(style pam.Style, prompt string) (int, error) {
@@ -389,7 +392,11 @@ type choicePair struct {
 }
 
 func (m nativeModel) promptForChoice(title string, choices []choicePair, prompt string) (string, error) {
-	msg := fmt.Sprintf("== %s (use '%s' to go back) ==\n", title, nativeCancelKey)
+	if m.canGoBack() {
+		title = fmt.Sprintf("%s (use '%s' to go back)", title, nativeCancelKey)
+	}
+
+	msg := fmt.Sprintf("== %s ==\n", title)
 	for i, choice := range choices {
 		msg += fmt.Sprintf("%d - %s\n", i+1, choice.label)
 	}
@@ -429,7 +436,7 @@ func (m nativeModel) userSelection() tea.Cmd {
 	if errors.Is(err, errEmptyResponse) {
 		return sendEvent(nativeUserSelection{})
 	}
-	if err != nil && !errors.Is(err, errGoBack) {
+	if err != nil {
 		return maybeSendPamError(err)
 	}
 
@@ -846,14 +853,28 @@ func (m nativeModel) goBackCommand() (nativeModel, tea.Cmd) {
 	}
 
 	return m, func() tea.Cmd {
-		if m.currentStage > proto.Stage_authModeSelection && len(m.authModes) > 1 {
-			return m.requestStageChange(proto.Stage_authModeSelection)
+		if !m.canGoBack() {
+			return nil
 		}
-		if m.currentStage > proto.Stage_brokerSelection && len(m.availableBrokers) > 1 {
-			return m.requestStageChange(proto.Stage_brokerSelection)
-		}
-		return m.requestStageChange(proto.Stage_userSelection)
+		return m.requestStageChange(m.previousStage())
 	}()
+}
+
+func (m nativeModel) canGoBack() bool {
+	if m.userSelectionAllowed {
+		return m.currentStage > proto.Stage_userSelection
+	}
+	return m.previousStage() > proto.Stage_userSelection
+}
+
+func (m nativeModel) previousStage() pam_proto.Stage {
+	if m.currentStage > proto.Stage_authModeSelection && len(m.authModes) > 1 {
+		return proto.Stage_authModeSelection
+	}
+	if m.currentStage > proto.Stage_brokerSelection && len(m.availableBrokers) > 1 {
+		return proto.Stage_brokerSelection
+	}
+	return proto.Stage_userSelection
 }
 
 func sendAuthWaitCommand() tea.Cmd {
