@@ -238,6 +238,12 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		if m.currentStage != proto.Stage_authModeSelection {
 			return m, nil
 		}
+		if m.busy {
+			// We may receive multiple concurrent requests, but due to the sync nature
+			// of this model, we can't just accept them once we've one in progress already
+			log.Debug(context.TODO(), "Authentication selection already in progress")
+			return m, nil
+		}
 		if m.selectedAuthMode != "" {
 			return m, nil
 		}
@@ -252,28 +258,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 			return m, sendEvent(authModeSelected{id: m.authModes[0].Id})
 		}
 
-		var choices []choicePair
-		for _, am := range m.authModes {
-			choices = append(choices, choicePair{id: am.Id, label: am.Label})
-		}
-
-		id, err := m.promptForChoice("Authentication mode selection", choices,
-			"Select authentication mode")
-		if errors.Is(err, errGoBack) {
-			m.authModes = nil
-			return m, sendEvent(nativeGoBack{})
-		}
-		if errors.Is(err, errEmptyResponse) {
-			return m, sendEvent(nativeChallengeRequested{})
-		}
-		if err != nil {
-			return m, sendEvent(pamError{
-				status: pam.ErrSystem,
-				msg:    fmt.Sprintf("broker selection error: %v", err),
-			})
-		}
-
-		return m, sendEvent(authModeSelected{id: id})
+		return m.startAsyncOp(m.authModeSelection)
 
 	case authModeSelected:
 		m.selectedAuthMode = msg.id
@@ -488,6 +473,30 @@ func (m nativeModel) brokerSelection() tea.Cmd {
 		})
 	}
 	return sendEvent(brokerSelected{brokerID: id})
+}
+
+func (m nativeModel) authModeSelection() tea.Cmd {
+	var choices []choicePair
+	for _, am := range m.authModes {
+		choices = append(choices, choicePair{id: am.Id, label: am.Label})
+	}
+
+	id, err := m.promptForChoice("Authentication mode selection", choices,
+		"Select authentication mode")
+	if errors.Is(err, errGoBack) {
+		return sendEvent(nativeGoBack{})
+	}
+	if errors.Is(err, errEmptyResponse) {
+		return m.requestStageChange(pam_proto.Stage_challenge)
+	}
+	if err != nil {
+		return sendEvent(pamError{
+			status: pam.ErrSystem,
+			msg:    fmt.Sprintf("broker selection error: %v", err),
+		})
+	}
+
+	return sendEvent(authModeSelected{id: id})
 }
 
 func (m nativeModel) startChallenge() tea.Cmd {
