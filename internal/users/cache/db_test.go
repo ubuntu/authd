@@ -369,6 +369,33 @@ func TestGroupByName(t *testing.T) {
 	}
 }
 
+func TestUserGroups(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		dbFile string
+
+		wantErr     bool
+		wantErrType error
+	}{
+		"Get groups of existing user": {dbFile: "one_user_and_group"},
+
+		"Error on missing user":           {wantErrType: cache.NoDataFoundError{}},
+		"Error on invalid database entry": {dbFile: "invalid_entry_in_userToGroups", wantErr: true},
+		"Error on missing groupByID":      {dbFile: "invalid_entry_in_groupByID", wantErr: true},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			c := initCache(t, tc.dbFile)
+
+			got, err := c.UserGroups(1111)
+			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
+		})
+	}
+}
+
 func TestAllGroups(t *testing.T) {
 	t.Parallel()
 
