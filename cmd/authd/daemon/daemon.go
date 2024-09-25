@@ -4,13 +4,13 @@ package daemon
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"runtime"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/daemon"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/services"
 	"github.com/ubuntu/decorate"
 )
@@ -74,7 +74,7 @@ func New() *App {
 			}
 
 			setVerboseMode(a.config.Verbosity)
-			log.Debug(context.Background(), "Debug mode is enabled")
+			slog.Debug("Debug mode is enabled")
 
 			return nil
 		},

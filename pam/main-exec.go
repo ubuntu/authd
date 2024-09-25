@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/msteinert/pam/v2"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/internal/dbusmodule"
+	"github.com/ubuntu/authd/pam/internal/log"
 )
 
 var (

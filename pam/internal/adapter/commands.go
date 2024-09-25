@@ -10,7 +10,7 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/pam/internal/log"
 )
 
 // sendEvent sends an event msg to the main event loop.

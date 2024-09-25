@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 
 	"github.com/msteinert/pam/v2"
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/pam/internal/log"
 )
 
 var conversations atomic.Int32

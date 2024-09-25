@@ -6,11 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"os/user"
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
@@ -32,7 +32,7 @@ type Service struct {
 
 // NewService returns a new PAM GRPC service.
 func NewService(ctx context.Context, userManager *users.Manager, brokerManager *brokers.Manager, permissionManager *permissions.Manager) Service {
-	log.Debug(ctx, "Building new GRPC PAM service")
+	slog.Debug("Building new GRPC PAM service")
 
 	return Service{
 		userManager:       userManager,
@@ -72,13 +72,13 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 		// autoselection silently in authd.
 		// User not in cache, if there is only the local broker available, return this one without saving it.
 		if len(s.brokerManager.AvailableBrokers()) == 1 {
-			log.Debugf(ctx, "User %q is not handled by authd and only local broker: select it.", req.GetUsername())
+			slog.Debug(fmt.Sprintf("User %q is not handled by authd and only local broker: select it.", req.GetUsername()))
 			return &authd.GPBResponse{PreviousBroker: brokers.LocalBrokerName}, nil
 		}
 
 		// User not acccessible through NSS, first time login or no valid user. Anyway, no broker selected.
 		if _, err := user.Lookup(req.GetUsername()); err != nil {
-			log.Debugf(ctx, "User %q is unknown", req.GetUsername())
+			slog.Debug(fmt.Sprintf("User %q is unknown", req.GetUsername()))
 			return &authd.GPBResponse{}, nil
 		}
 
@@ -86,19 +86,19 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 		// service (passwd, winbind, sss…) is handling that user.
 		brokerID = brokers.LocalBrokerName
 	} else if err != nil {
-		log.Infof(ctx, "Could not get previous broker for user %q from cache: %v", req.GetUsername(), err)
+		slog.Info(fmt.Sprintf("Could not get previous broker for user %q from cache: %v", req.GetUsername(), err))
 		return &authd.GPBResponse{}, nil
 	}
 
 	// No error but the brokerID is empty (broker in cache but default broker not stored yet due no successful login)
 	if brokerID == "" {
-		log.Infof(ctx, "No assigned broker for user %q from cache", req.GetUsername())
+		slog.Info(fmt.Sprintf("No assigned broker for user %q from cache", req.GetUsername()))
 		return &authd.GPBResponse{}, nil
 	}
 
 	// Updates manager memory to stop needing to query the database for the broker.
 	if err = s.brokerManager.SetDefaultBrokerForUser(brokerID, req.GetUsername()); err != nil {
-		log.Warningf(ctx, "Last broker used by %q is not available, letting the user selecting one: %v", req.GetUsername(), err)
+		slog.Warn(fmt.Sprintf("Last broker used by %q is not available, letting the user selecting one: %v", req.GetUsername(), err))
 		return &authd.GPBResponse{}, nil
 	}
 
@@ -256,7 +256,7 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 		data = ""
 	}
 
-	log.Debug(ctx, fmt.Sprintf("%s: Authentication result: %s", sessionID, access))
+	slog.Debug(fmt.Sprintf("%s: Authentication result: %s", sessionID, access))
 
 	return &authd.IAResponse{
 		Access: access,

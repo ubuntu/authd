@@ -14,8 +14,8 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/msteinert/pam/v2"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/internal/dbusmodule"
+	"github.com/ubuntu/authd/pam/internal/log"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 

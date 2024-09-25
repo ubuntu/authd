@@ -1,7 +1,6 @@
 package brokers_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -45,7 +44,7 @@ func TestNewManager(t *testing.T) {
 				t.Setenv("DBUS_SYSTEM_BUS_ADDRESS", "/dev/null")
 			}
 
-			got, err := brokers.NewManager(context.Background(), filepath.Join(brokerConfFixtures, tc.brokerConfigDir), tc.configuredBrokers)
+			got, err := brokers.NewManager(filepath.Join(brokerConfFixtures, tc.brokerConfigDir), tc.configuredBrokers)
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should return an error, but did not")
 				return
@@ -80,7 +79,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			m, err := brokers.NewManager(context.Background(), filepath.Join(brokerConfFixtures, "mixed_brokers"), nil)
+			m, err := brokers.NewManager(filepath.Join(brokerConfFixtures, "mixed_brokers"), nil)
 			require.NoError(t, err, "Setup: could not create manager")
 
 			want := m.AvailableBrokers()[0]
@@ -104,7 +103,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 func TestBrokerForUser(t *testing.T) {
 	t.Parallel()
 
-	m, err := brokers.NewManager(context.Background(), filepath.Join(brokerConfFixtures, "valid_brokers"), nil)
+	m, err := brokers.NewManager(filepath.Join(brokerConfFixtures, "valid_brokers"), nil)
 	require.NoError(t, err, "Setup: could not create manager")
 
 	err = m.SetDefaultBrokerForUser(brokers.LocalBrokerName, "user")
@@ -139,7 +138,7 @@ func TestBrokerFromSessionID(t *testing.T) {
 
 			brokersConfPath := t.TempDir()
 			b := newBrokerForTests(t, brokersConfPath, "")
-			m, err := brokers.NewManager(context.Background(), brokersConfPath, nil)
+			m, err := brokers.NewManager(brokersConfPath, nil)
 			require.NoError(t, err, "Setup: could not create manager")
 
 			if tc.sessionID == "success" {
@@ -214,7 +213,7 @@ func TestNewSession(t *testing.T) {
 				tc.configuredBrokers = nil
 			}
 
-			m, err := brokers.NewManager(context.Background(), brokersConfPath, tc.configuredBrokers)
+			m, err := brokers.NewManager(brokersConfPath, tc.configuredBrokers)
 			require.NoError(t, err, "Setup: could not create manager")
 
 			if tc.brokerID == "" {
@@ -287,7 +286,7 @@ func TestEndSession(t *testing.T) {
 				}
 			}
 
-			m, err := brokers.NewManager(context.Background(), brokersConfPath, tc.configuredBrokers)
+			m, err := brokers.NewManager(brokersConfPath, tc.configuredBrokers)
 			require.NoError(t, err, "Setup: could not create manager")
 
 			if tc.brokerID != "does not exist" {
@@ -313,7 +312,7 @@ func TestStartAndEndSession(t *testing.T) {
 	b1 := newBrokerForTests(t, brokersConfPath, t.Name()+"_Broker1.conf")
 	b2 := newBrokerForTests(t, brokersConfPath, t.Name()+"_Broker2.conf")
 
-	m, err := brokers.NewManager(context.Background(), brokersConfPath, []string{b1.Name + ".conf", b2.Name + ".conf"})
+	m, err := brokers.NewManager(brokersConfPath, []string{b1.Name + ".conf", b2.Name + ".conf"})
 	require.NoError(t, err, "Setup: could not create manager")
 
 	// Fetches the broker IDs

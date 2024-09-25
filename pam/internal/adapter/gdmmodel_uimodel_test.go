@@ -10,9 +10,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
+	"github.com/ubuntu/authd/pam/internal/log"
 	"github.com/ubuntu/authd/pam/internal/proto"
 )
 

@@ -16,7 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/pam/internal/log"
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"
 )
