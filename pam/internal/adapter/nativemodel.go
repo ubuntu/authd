@@ -184,11 +184,6 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 
 		return m.startAsyncOp(m.userSelection)
 
-	case userSelected:
-		if err := m.pamMTx.SetItem(pam.User, msg.username); err != nil {
-			return m, maybeSendPamError(err)
-		}
-
 	case brokersListReceived:
 		m.availableBrokers = msg.brokers
 
