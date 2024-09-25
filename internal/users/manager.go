@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io/fs"
 	"log/slog"
-	"math"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -34,9 +33,26 @@ var (
 	dirtyFlagName = ".corrupted"
 )
 
+// Config is the configuration for the user manager.
+type Config struct {
+	UIDMin uint32 `mapstructure:"uid_min"`
+	UIDMax uint32 `mapstructure:"uid_max"`
+	GIDMin uint32 `mapstructure:"gid_min"`
+	GIDMax uint32 `mapstructure:"gid_max"`
+}
+
+// DefaultConfig is the default configuration for the user manager.
+var DefaultConfig = Config{
+	UIDMin: 1000000000,
+	UIDMax: 1999999999,
+	GIDMin: 1000000000,
+	GIDMax: 1999999999,
+}
+
 // Manager is the manager for any user related operation.
 type Manager struct {
 	cache         *cache.Cache
+	config        Config
 	dirtyFlagPath string
 
 	doClear        chan struct{}
@@ -62,7 +78,7 @@ func WithUserExpirationDate(date time.Time) Option {
 }
 
 // NewManager creates a new user manager.
-func NewManager(cacheDir string, args ...Option) (m *Manager, err error) {
+func NewManager(config Config, cacheDir string, args ...Option) (m *Manager, err error) {
 	opts := &options{
 		expirationDate:  time.Now().Add(-1 * defaultEntryExpiration),
 		cleanOnNew:      true,
@@ -74,6 +90,7 @@ func NewManager(cacheDir string, args ...Option) (m *Manager, err error) {
 	}
 
 	m = &Manager{
+		config:         config,
 		dirtyFlagPath:  filepath.Join(cacheDir, dirtyFlagName),
 		doClear:        make(chan struct{}),
 		quit:           make(chan struct{}),
@@ -130,7 +147,7 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 
 	// Generate the UID of the user unless a UID is already set (only the case in tests).
 	if u.UID == 0 {
-		u.UID = GenerateID(u.Name)
+		u.UID = m.GenerateUID(u.Name)
 	}
 
 	// Prepend the user private group
@@ -139,7 +156,7 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	// Generate the GIDs of the user groups
 	for i := range u.Groups {
 		if u.Groups[i].UGID != "" {
-			gidv := GenerateID(u.Groups[i].UGID)
+			gidv := m.GenerateGID(u.Groups[i].UGID)
 			u.Groups[i].GID = &gidv
 		}
 	}
@@ -419,28 +436,32 @@ func getUIDsOfRunningProcesses(procDir string) (uids map[uint32]struct{}, err er
 	return uids, nil
 }
 
-// GenerateID deterministically generates an ID between from the given string, ignoring case. The ID is in the range
-// 65536 (everything below that is either reserved or used for users/groups created via adduser(8), see [1]) to MaxInt32
-// (the maximum for UIDs and GIDs on recent Linux versions is MaxUint32, but some software might cast it to int32, so to
-// avoid overflow issues we use MaxInt32).
-// [1]: https://www.debian.org/doc/debian-policy/ch-opersys.html#uid-and-gid-classes
-func GenerateID(str string) int {
-	const minID = 65536
-	const maxID = math.MaxInt32
+// GenerateUID deterministically generates an ID between from the given string, ignoring case,
+// in the range [UIDMin, UIDMax]. The generated ID is *not* guaranteed to be unique.
+func (m *Manager) GenerateUID(str string) int {
+	return generateID(str, m.config.UIDMin, m.config.UIDMax)
+}
 
+// GenerateGID deterministically generates an ID between from the given string, ignoring case,
+// in the range [GIDMin, GIDMax]. The generated ID is *not* guaranteed to be unique.
+func (m *Manager) GenerateGID(str string) int {
+	return generateID(str, m.config.GIDMin, m.config.GIDMax)
+}
+
+func generateID(str string, minID, maxID uint32) int {
 	str = strings.ToLower(str)
 
 	// Create a SHA-256 hash of the input string
 	hash := sha256.Sum256([]byte(str))
 
 	// Convert the first 4 bytes of the hash into an integer
-	number := binary.BigEndian.Uint32(hash[:4]) % maxID
+	number := binary.BigEndian.Uint32(hash[:4]) % (maxID + 1)
 
 	// Repeat hashing until we get a number in the desired range. This ensures that the generated IDs are uniformly
 	// distributed in the range, opposed to a simple modulo operation.
 	for number < minID {
 		hash = sha256.Sum256(hash[:])
-		number = binary.BigEndian.Uint32(hash[:4]) % maxID
+		number = binary.BigEndian.Uint32(hash[:4]) % (maxID + 1)
 	}
 
 	return int(number)

@@ -1,11 +1,11 @@
 GroupByID:
-    "708944388": '{"Name":"group-IA_second_call","GID":708944388}'
+    "1369382419": '{"Name":"group-IA_second_call","GID":1369382419}'
     "1569396774": '{"Name":"TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call","GID":1569396774}'
 GroupByName:
     TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call","GID":1569396774}'
-    group-IA_second_call: '{"Name":"group-IA_second_call","GID":708944388}'
+    group-IA_second_call: '{"Name":"group-IA_second_call","GID":1369382419}'
 GroupToUsers:
-    "708944388": '{"GID":708944388,"UIDs":[1569396774]}'
+    "1369382419": '{"GID":1369382419,"UIDs":[1569396774]}'
     "1569396774": '{"GID":1569396774,"UIDs":[1569396774]}'
 UserByID:
     "1569396774": '{"Name":"TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call","UID":1569396774,"GID":1569396774,"Gecos":"gecos for IA_second_call","Dir":"/home/IA_second_call","Shell":"/bin/sh/IA_second_call","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
@@ -13,4 +13,4 @@ UserByName:
     TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call","UID":1569396774,"GID":1569396774,"Gecos":"gecos for IA_second_call","Dir":"/home/IA_second_call","Shell":"/bin/sh/IA_second_call","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserToBroker: {}
 UserToGroups:
-    "1569396774": '{"UID":1569396774,"GIDs":[1569396774,708944388]}'
+    "1569396774": '{"UID":1569396774,"GIDs":[1569396774,1369382419]}'

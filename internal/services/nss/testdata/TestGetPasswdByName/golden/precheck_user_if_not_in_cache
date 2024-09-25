@@ -1,7 +1,7 @@
 name: user-pre-check
 passwd: x
-uid: 2131634809
-gid: 2131634809
+uid: 1053432963
+gid: 1053432963
 gecos: gecos for user-pre-check
 homedir: /home/user-pre-check
 shell: /bin/sh/user-pre-check

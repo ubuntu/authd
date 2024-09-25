@@ -185,8 +185,8 @@ func (s Service) userPreCheck(ctx context.Context, username string) (pwent *auth
 		return nil, fmt.Errorf("user data from broker invalid: %v", err)
 	}
 	// We need to generate the ID for the user, as its business logic is authd responsibility, not the broker's.
-	u.UID = users.GenerateID(u.Name)
-	u.GID = u.UID
+	u.UID = s.userManager.GenerateUID(u.Name)
+	u.GID = s.userManager.GenerateGID(u.Name)
 
 	return nssPasswdFromUsersPasswd(u), nil
 }

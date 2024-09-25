@@ -94,7 +94,7 @@ func TestNewManager(t *testing.T) {
 				managerOpts = append(managerOpts, users.WithProcDir(tc.procDir))
 			}
 
-			m, err := users.NewManager(cacheDir, managerOpts...)
+			m, err := users.NewManager(users.DefaultConfig, cacheDir, managerOpts...)
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should return an error, but did not")
 				return
@@ -692,7 +692,7 @@ func newManagerForTests(t *testing.T, cacheDir string) *users.Manager {
 	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 	require.NoError(t, err, "Setup: could not calculate expiration date for tests")
 
-	m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration), users.WithoutCleaningCacheOnNew())
+	m, err := users.NewManager(users.DefaultConfig, cacheDir, users.WithUserExpirationDate(expiration), users.WithoutCleaningCacheOnNew())
 	require.NoError(t, err, "NewManager should not return an error, but did")
 
 	return m

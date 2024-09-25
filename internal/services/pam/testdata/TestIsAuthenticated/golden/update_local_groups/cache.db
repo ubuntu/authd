@@ -1,16 +1,16 @@
 GroupByID:
     "1370830640": '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","GID":1370830640}'
-    "1454567034": '{"Name":"group-success_with_local_groups","GID":1454567034}'
+    "1602050681": '{"Name":"group-success_with_local_groups","GID":1602050681}'
 GroupByName:
     TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups: '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","GID":1370830640}'
-    group-success_with_local_groups: '{"Name":"group-success_with_local_groups","GID":1454567034}'
+    group-success_with_local_groups: '{"Name":"group-success_with_local_groups","GID":1602050681}'
 GroupToUsers:
     "1370830640": '{"GID":1370830640,"UIDs":[1370830640]}'
-    "1454567034": '{"GID":1454567034,"UIDs":[1370830640]}'
+    "1602050681": '{"GID":1602050681,"UIDs":[1370830640]}'
 UserByID:
     "1370830640": '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","UID":1370830640,"GID":1370830640,"Gecos":"gecos for success_with_local_groups","Dir":"/home/success_with_local_groups","Shell":"/bin/sh/success_with_local_groups","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserByName:
     TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups: '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","UID":1370830640,"GID":1370830640,"Gecos":"gecos for success_with_local_groups","Dir":"/home/success_with_local_groups","Shell":"/bin/sh/success_with_local_groups","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserToBroker: {}
 UserToGroups:
-    "1370830640": '{"UID":1370830640,"GIDs":[1370830640,1454567034]}'
+    "1370830640": '{"UID":1370830640,"GIDs":[1370830640,1602050681]}'

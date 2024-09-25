@@ -64,7 +64,7 @@ var (
 func TestNewService(t *testing.T) {
 	t.Parallel()
 
-	m, err := users.NewManager(t.TempDir())
+	m, err := users.NewManager(users.DefaultConfig, t.TempDir())
 	require.NoError(t, err, "Setup: could not create user manager")
 
 	pm := permissions.New()
@@ -157,7 +157,7 @@ func TestGetPreviousBroker(t *testing.T) {
 			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 			require.NoError(t, err, "Setup: could not parse time for testing")
 
-			m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
+			m, err := users.NewManager(users.DefaultConfig, cacheDir, users.WithUserExpirationDate(expiration))
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, tc.currentUserNotRoot)
@@ -467,7 +467,7 @@ func TestIsAuthenticated(t *testing.T) {
 			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 			require.NoError(t, err, "Setup: could not parse time for testing")
 
-			m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
+			m, err := users.NewManager(users.DefaultConfig, cacheDir, users.WithUserExpirationDate(expiration))
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
@@ -557,7 +557,7 @@ func TestIDGeneration(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			m, err := users.NewManager(t.TempDir())
+			m, err := users.NewManager(users.DefaultConfig, t.TempDir())
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
@@ -611,7 +611,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 			require.NoError(t, err, "Setup: could not parse time for testing")
 
-			m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
+			m, err := users.NewManager(users.DefaultConfig, cacheDir, users.WithUserExpirationDate(expiration))
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, tc.currentUserNotRoot)
@@ -741,7 +741,7 @@ func newPamClient(t *testing.T, m *users.Manager, brokerManager *brokers.Manager
 	require.NoError(t, err, "Setup: could not create unix socket")
 
 	if m == nil {
-		m, err = users.NewManager(t.TempDir())
+		m, err = users.NewManager(users.DefaultConfig, t.TempDir())
 		require.NoError(t, err, "Setup: could not create user manager")
 		t.Cleanup(func() { _ = m.Stop() })
 	}

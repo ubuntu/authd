@@ -30,7 +30,7 @@ import (
 func TestNewService(t *testing.T) {
 	t.Parallel()
 
-	m, err := users.NewManager(t.TempDir())
+	m, err := users.NewManager(users.DefaultConfig, t.TempDir())
 	require.NoError(t, err, "Setup: could not create user manager")
 	t.Cleanup(func() { _ = m.Stop() })
 
@@ -335,7 +335,7 @@ func newUserManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
 	require.NoError(t, err, "Setup: could not parse time for testing")
 
-	m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
+	m, err := users.NewManager(users.DefaultConfig, cacheDir, users.WithUserExpirationDate(expiration))
 	require.NoError(t, err, "Setup: could not create user manager")
 
 	t.Cleanup(func() { _ = m.Stop() })
