@@ -148,7 +148,7 @@ func simpleConversationHandler(style pam.Style, msg string) (string, error) {
 	case pam.TextInfo:
 		fmt.Println(msg)
 	case pam.ErrorMsg:
-		fmt.Fprintf(os.Stderr, "%s\n", msg)
+		return noConversationHandler(style, msg)
 	case pam.PromptEchoOn:
 		fmt.Print(msg)
 		line, err := bufio.NewReader(os.Stdin).ReadString('\n')

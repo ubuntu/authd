@@ -260,7 +260,7 @@ Select authentication mode: r
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
-Provided input can't be parsed as integer value
+PAM Error Message: Provided input can't be parsed as integer value
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -300,12 +300,12 @@ Select authentication mode: r
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
-Provided input can't be parsed as integer value
+PAM Error Message: Provided input can't be parsed as integer value
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
 Select broker: 555
-Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid entry. Try again or input 'r'.
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -340,12 +340,12 @@ Select authentication mode: r
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
-Provided input can't be parsed as integer value
+PAM Error Message: Provided input can't be parsed as integer value
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
 Select broker: 555
-Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid entry. Try again or input 'r'.
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -380,12 +380,12 @@ Select authentication mode: r
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
-Provided input can't be parsed as integer value
+PAM Error Message: Provided input can't be parsed as integer value
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
 Select broker: 555
-Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid entry. Try again or input 'r'.
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker

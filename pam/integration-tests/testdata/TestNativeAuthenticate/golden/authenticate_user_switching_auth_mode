@@ -3108,7 +3108,7 @@ Select action: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: invalid-selection
-Provided input can't be parsed as integer value
+PAM Error Message: Provided input can't be parsed as integer value
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-switch-mode@gmail.com
@@ -3265,7 +3265,7 @@ Select action: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: invalid-selection
-Provided input can't be parsed as integer value
+PAM Error Message: Provided input can't be parsed as integer value
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-switch-mode@gmail.com
@@ -3276,7 +3276,7 @@ Provided input can't be parsed as integer value
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: -1
-Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid entry. Try again or input 'r'.
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-switch-mode@gmail.com
@@ -3422,7 +3422,7 @@ Select action: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: invalid-selection
-Provided input can't be parsed as integer value
+PAM Error Message: Provided input can't be parsed as integer value
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-switch-mode@gmail.com
@@ -3433,7 +3433,7 @@ Provided input can't be parsed as integer value
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: -1
-Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid entry. Try again or input 'r'.
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-switch-mode@gmail.com
@@ -3579,7 +3579,7 @@ Select action: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: invalid-selection
-Provided input can't be parsed as integer value
+PAM Error Message: Provided input can't be parsed as integer value
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-switch-mode@gmail.com
@@ -3590,7 +3590,7 @@ Provided input can't be parsed as integer value
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: -1
-Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid entry. Try again or input 'r'.
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-switch-mode@gmail.com
@@ -3736,7 +3736,7 @@ Select action: r
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: invalid-selection
-Provided input can't be parsed as integer value
+PAM Error Message: Provided input can't be parsed as integer value
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-switch-mode@gmail.com
@@ -3747,7 +3747,7 @@ Provided input can't be parsed as integer value
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: -1
-Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid entry. Try again or input 'r'.
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-switch-mode@gmail.com
