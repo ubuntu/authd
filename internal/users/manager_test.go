@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/cache"
@@ -638,5 +639,6 @@ func ptrUint32(v uint32) *uint32 {
 }
 
 func TestMain(m *testing.M) {
+	log.SetLevel(log.DebugLevel)
 	os.Exit(m.Run())
 }
