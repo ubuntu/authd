@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/cache"
@@ -590,4 +591,9 @@ func newManagerForTests(t *testing.T, cacheDir string) *users.Manager {
 
 func ptrUint32(v uint32) *uint32 {
 	return &v
+}
+
+func TestMain(m *testing.M) {
+	log.SetLevel(log.DebugLevel)
+	m.Run()
 }
