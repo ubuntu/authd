@@ -1,0 +1,610 @@
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+>
+────────────────────────────────────────────────────────────────────────────────
+> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Password authentication
+ ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Password authentication
+ ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Authentication method s
+election ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+>
+────────────────────────────────────────────────────────────────────────────────
+> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Password authentication
+ ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Authentication method s
+election ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+>
+────────────────────────────────────────────────────────────────────────────────
+> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Password authentication
+ ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Authentication method s
+election ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+>
+────────────────────────────────────────────────────────────────────────────────
+> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Password authentication
+ ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Authentication method s
+election ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+>
+────────────────────────────────────────────────────────────────────────────────
+> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Password authentication
+ ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Authentication method s
+election ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+>
+────────────────────────────────────────────────────────────────────────────────
+> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Password authentication
+ ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Authentication method s
+election ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.com
+       1341
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+>
+────────────────────────────────────────────────────────────────────────────────
+> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Password authentication
+ ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Authentication method s
+election ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.com
+       1341
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 1
+────────────────────────────────────────────────────────────────────────────────
+> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Password authentication
+ ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Authentication method s
+election ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.com
+       1341
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 1
+Environment:
+  USER=user-integration-pre-check-authenticate-user-with-qr-code
+  LOGNAME=user-integration-pre-check-authenticate-user-with-qr-code
+  HOME=${AUTHD_TEST_HOME}
+  PATH=${AUTHD_TEST_PATH}
+  SHELL=/bin/sh
+  TERM=xterm-256color
+  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
+  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
+  SSH_TTY=${AUTHD_TEST_SSH_TTY}
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_with_qr_code]
+Connection to localhost closed.
+>
+────────────────────────────────────────────────────────────────────────────────
+> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Password authentication
+ ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Authentication method s
+election ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) == Qr Code authentication
+==
+Enter the code in the login page
+https://ubuntu.com
+       1341
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 1
+Environment:
+  USER=user-integration-pre-check-authenticate-user-with-qr-code
+  LOGNAME=user-integration-pre-check-authenticate-user-with-qr-code
+  HOME=${AUTHD_TEST_HOME}
+  PATH=${AUTHD_TEST_PATH}
+  SHELL=/bin/sh
+  TERM=xterm-256color
+  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
+  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
+  SSH_TTY=${AUTHD_TEST_SSH_TTY}
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_with_qr_code]
+Connection to localhost closed.
+>
+────────────────────────────────────────────────────────────────────────────────
