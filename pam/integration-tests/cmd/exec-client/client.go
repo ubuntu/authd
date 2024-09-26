@@ -11,6 +11,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strings"
 
 	"github.com/godbus/dbus/v5"
 	"github.com/msteinert/pam/v2"
@@ -23,6 +24,7 @@ var (
 	pamFlags      = flag.Int64("flags", 0, "pam flags")
 	serverAddress = flag.String("server-address", "", "the dbus connection address to use to communicate with module")
 	logFile       = flag.String("client-log", "", "the file where to save logs")
+	argsFile      = flag.String("client-args-file", "", "the file where arguments are saved")
 )
 
 func main() {
@@ -76,6 +78,15 @@ func mainFunc() error {
 			return err
 		}
 		log.SetOutput(f)
+	}
+
+	if argsFile != nil && *argsFile != "" {
+		log.Debug(context.TODO(), "Reading arguments from %s", *argsFile)
+		ca, err := os.ReadFile(*argsFile)
+		if err != nil {
+			return err
+		}
+		args = append(args, strings.Split(string(ca), "\t")...)
 	}
 
 	actionFlags := pam.Flags(0)
