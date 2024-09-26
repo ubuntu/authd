@@ -22,6 +22,10 @@ func TestNewManager(t *testing.T) {
 		corruptedDbFile bool
 		dirtyFlag       bool
 		markDirty       bool
+		uidMin          uint32
+		uidMax          uint32
+		gidMin          uint32
+		gidMax          uint32
 
 		localGroupsFile string
 
@@ -36,7 +40,9 @@ func TestNewManager(t *testing.T) {
 		"Do not prevent manager creation if clearing local groups fails": {corruptedDbFile: true, localGroupsFile: "gpasswdfail_in_deleted_group.group"},
 		"Dynamically mark database as corrupted is cleared up":           {markDirty: true},
 
-		"Error if cacheDir does not exist": {dbFile: "-", wantErr: true},
+		"Error if cacheDir does not exist":     {dbFile: "-", wantErr: true},
+		"Error if UID_MIN is equal to UID_MAX": {uidMin: 1000, uidMax: 1000, wantErr: true},
+		"Error if GID_MIN is equal to GID_MAX": {gidMin: 1000, gidMax: 1000, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -64,7 +70,21 @@ func TestNewManager(t *testing.T) {
 				require.NoError(t, err, "Setup: Can't update the file with invalid db content")
 			}
 
-			m, err := users.NewManager(users.DefaultConfig, cacheDir)
+			config := users.DefaultConfig
+			if tc.uidMin != 0 {
+				config.UIDMin = tc.uidMin
+			}
+			if tc.uidMax != 0 {
+				config.UIDMax = tc.uidMax
+			}
+			if tc.gidMin != 0 {
+				config.GIDMin = tc.gidMin
+			}
+			if tc.gidMax != 0 {
+				config.GIDMax = tc.gidMax
+			}
+
+			m, err := users.NewManager(config, cacheDir)
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should return an error, but did not")
 				return

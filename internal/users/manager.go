@@ -50,6 +50,14 @@ type Manager struct {
 
 // NewManager creates a new user manager.
 func NewManager(config Config, cacheDir string) (m *Manager, err error) {
+	// Check that the ID ranges are valid.
+	if config.UIDMin >= config.UIDMax {
+		return nil, errors.New("UID_MIN must be less than UID_MAX")
+	}
+	if config.GIDMin >= config.GIDMax {
+		return nil, errors.New("GID_MIN must be less than GID_MAX")
+	}
+
 	m = &Manager{
 		config:         config,
 		dirtyFlagPath:  filepath.Join(cacheDir, dirtyFlagName),
