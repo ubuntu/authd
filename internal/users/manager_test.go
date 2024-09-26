@@ -380,6 +380,7 @@ func TestUserByName(t *testing.T) {
 	}
 }
 
+//nolint:dupl // This is not a duplicate test
 func TestUserByID(t *testing.T) {
 	tests := map[string]struct {
 		uid    uint32
@@ -485,6 +486,7 @@ func TestGroupByName(t *testing.T) {
 	}
 }
 
+//nolint:dupl // This is not a duplicate test
 func TestGroupByID(t *testing.T) {
 	tests := map[string]struct {
 		gid    uint32
