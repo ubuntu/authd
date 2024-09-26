@@ -122,7 +122,7 @@ func SendRequest(pamMTx pam.ModuleTransaction, req Request) (Response, error) {
 			gdmData.Type.String())
 	}
 	if gdmData.Response == nil {
-		return nil, fmt.Errorf("gdm replied with no response")
+		return nil, errors.New("gdm replied with no response")
 	}
 	if gdmData.Response.Type != reqType {
 		return nil, fmt.Errorf("gdm replied with invalid response type: %v for %v request",

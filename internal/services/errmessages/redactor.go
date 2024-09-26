@@ -47,7 +47,7 @@ func FormatErrorMessage(ctx context.Context, method string, req, reply any, cc *
 		err = fmt.Errorf("couldn't connect to authd daemon: %v", st.Message())
 	// timeout
 	case codes.DeadlineExceeded:
-		err = fmt.Errorf("service took too long to respond. Disconnecting client")
+		err = errors.New("service took too long to respond. Disconnecting client")
 	// regular error without annotation
 	case codes.Unknown:
 		err = errors.New(st.Message())

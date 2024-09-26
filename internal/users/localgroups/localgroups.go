@@ -189,7 +189,7 @@ func Clean(args ...Option) (err error) {
 	// If no username was returned, something probably went wrong during the getpwent call and we should stop,
 	// otherwise we would remove all users from the local groups.
 	if len(existingUsers) == 0 {
-		return fmt.Errorf("no existing users found, local groups won't be cleaned")
+		return errors.New("no existing users found, local groups won't be cleaned")
 	}
 
 	// Get the list of local groups

@@ -360,7 +360,7 @@ func validateUserInfo(uInfo userInfo) (err error) {
 	// broker's responsibility to do that and we don't know which usernames the provider considers equal, for example if
 	// they are case-sensitive or not.
 	if uInfo.Name == "" {
-		return fmt.Errorf("empty username")
+		return errors.New("empty username")
 	}
 
 	// Validate home and shell directories
@@ -373,7 +373,7 @@ func validateUserInfo(uInfo userInfo) (err error) {
 
 	// Validate UUID
 	if uInfo.UUID == "" {
-		return fmt.Errorf("empty UUID")
+		return errors.New("empty UUID")
 	}
 
 	// Validate groups
