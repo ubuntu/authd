@@ -29,31 +29,11 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Gimme your password
 >
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -115,16 +95,6 @@ Gimme your password
 
 
 
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
@@ -158,16 +128,6 @@ Scan the qrcode or enter the code in the login page
 
 
 
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
@@ -194,16 +154,6 @@ Scan the qrcode or enter the code in the login page
               1337
 
         [ Regenerate code ]
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -244,16 +194,6 @@ Scan the qrcode or enter the code in the login page
 
 
 
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
@@ -282,16 +222,6 @@ Scan the qrcode or enter the code in the login page
                 1339
 
           [ Regenerate code ]
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -330,16 +260,6 @@ Scan the qrcode or enter the code in the login page
 
 
 
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
@@ -373,16 +293,6 @@ Scan the qrcode or enter the code in the login page
 
 
 
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
@@ -416,16 +326,6 @@ PAM AcctMgmt() exited with success
 
 
 
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
@@ -454,16 +354,6 @@ Scan the qrcode or enter the code in the login page
 PAM Authenticate() for user "user-integration-qr-code" exited with success
 PAM AcctMgmt() exited with success
 >
-
-
-
-
-
-
-
-
-
-
 
 
 
