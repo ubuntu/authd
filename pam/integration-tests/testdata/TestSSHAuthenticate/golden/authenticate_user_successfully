@@ -1,0 +1,59 @@
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-successfully@localhost) == Broker selection ==
+1 - local
+2 - ExampleBroker
+Select broker:
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-successfully@localhost) == Broker selection ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+(user-integration-pre-check-authenticate-user-successfully@localhost) Insert 'r' to cancel the r
+equest and go back
+Gimme your password:
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-successfully@localhost) == Broker selection ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+(user-integration-pre-check-authenticate-user-successfully@localhost) Insert 'r' to cancel the r
+equest and go back
+Gimme your password:
+Environment:
+  USER=user-integration-pre-check-authenticate-user-successfully
+  LOGNAME=user-integration-pre-check-authenticate-user-successfully
+  HOME=${AUTHD_TEST_HOME}
+  PATH=${AUTHD_TEST_PATH}
+  SHELL=/bin/sh
+  TERM=xterm-256color
+  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
+  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
+  SSH_TTY=${AUTHD_TEST_SSH_TTY}
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_successfully]
+Connection to localhost closed.
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-successfully@localhost) == Broker selection ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+(user-integration-pre-check-authenticate-user-successfully@localhost) Insert 'r' to cancel the r
+equest and go back
+Gimme your password:
+Environment:
+  USER=user-integration-pre-check-authenticate-user-successfully
+  LOGNAME=user-integration-pre-check-authenticate-user-successfully
+  HOME=${AUTHD_TEST_HOME}
+  PATH=${AUTHD_TEST_PATH}
+  SHELL=/bin/sh
+  TERM=xterm-256color
+  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
+  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
+  SSH_TTY=${AUTHD_TEST_SSH_TTY}
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_successfully]
+Connection to localhost closed.
+>
+────────────────────────────────────────────────────────────────────────────────
