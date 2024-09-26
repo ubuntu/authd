@@ -77,7 +77,7 @@ func New() *App {
 			}
 
 			setVerboseMode(a.config.Verbosity)
-			log.Debug(context.Background(), "Debug mode is enabled")
+			log.Debugf(context.Background(), "Verbosity: %d", a.config.Verbosity)
 
 			return nil
 		},
