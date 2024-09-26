@@ -154,10 +154,7 @@ func TestGetPreviousBroker(t *testing.T) {
 			err = cachetestutils.DbfromYAML(bytes.NewBuffer(d), cacheDir)
 			require.NoError(t, err, "Setup: could not prepare cache database file")
 
-			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
-			require.NoError(t, err, "Setup: could not parse time for testing")
-
-			m, err := users.NewManager(users.DefaultConfig, cacheDir, users.WithUserExpirationDate(expiration))
+			m, err := users.NewManager(users.DefaultConfig, cacheDir)
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, tc.currentUserNotRoot)
@@ -464,10 +461,7 @@ func TestIsAuthenticated(t *testing.T) {
 				cachetestutils.CreateDBFromYAML(t, filepath.Join(testutils.TestFamilyPath(t), tc.existingDB), cacheDir)
 			}
 
-			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
-			require.NoError(t, err, "Setup: could not parse time for testing")
-
-			m, err := users.NewManager(users.DefaultConfig, cacheDir, users.WithUserExpirationDate(expiration))
+			m, err := users.NewManager(users.DefaultConfig, cacheDir)
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
@@ -608,10 +602,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			cacheDir := t.TempDir()
 			cachetestutils.CreateDBFromYAML(t, filepath.Join(testutils.TestFamilyPath(t), "set-default-broker.db"), cacheDir)
 
-			expiration, err := time.Parse(time.DateOnly, "2004-01-01")
-			require.NoError(t, err, "Setup: could not parse time for testing")
-
-			m, err := users.NewManager(users.DefaultConfig, cacheDir, users.WithUserExpirationDate(expiration))
+			m, err := users.NewManager(users.DefaultConfig, cacheDir)
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, tc.currentUserNotRoot)

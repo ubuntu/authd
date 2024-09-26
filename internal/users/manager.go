@@ -6,27 +6,15 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"io/fs"
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/ubuntu/authd/internal/users/cache"
 	"github.com/ubuntu/authd/internal/users/localgroups"
 	"github.com/ubuntu/decorate"
-)
-
-const (
-	// defaultEntryExpiration is the amount of time the user is allowed on the cache without authenticating.
-	// It's equivalent to 6 months.
-	defaultEntryExpiration = time.Hour * 24 * 30 * 6
-
-	// defaultCleanupInterval is the interval upon which the cache will be cleaned of expired users.
-	defaultCleanupInterval = time.Hour * 24
 )
 
 var (
@@ -60,35 +48,8 @@ type Manager struct {
 	cleanupStopped chan struct{}
 }
 
-type options struct {
-	expirationDate  time.Time
-	cleanOnNew      bool
-	cleanupInterval time.Duration
-	procDir         string // This is to force failure in tests.
-}
-
-// Option is a function that allows changing some of the default behaviors of the manager.
-type Option func(*options)
-
-// WithUserExpirationDate overrides the default time for when a user should be cleaned from the cache.
-func WithUserExpirationDate(date time.Time) Option {
-	return func(o *options) {
-		o.expirationDate = date
-	}
-}
-
 // NewManager creates a new user manager.
-func NewManager(config Config, cacheDir string, args ...Option) (m *Manager, err error) {
-	opts := &options{
-		expirationDate:  time.Now().Add(-1 * defaultEntryExpiration),
-		cleanOnNew:      true,
-		cleanupInterval: defaultCleanupInterval,
-		procDir:         "/proc/",
-	}
-	for _, arg := range args {
-		arg(opts)
-	}
-
+func NewManager(config Config, cacheDir string) (m *Manager, err error) {
 	m = &Manager{
 		config:         config,
 		dirtyFlagPath:  filepath.Join(cacheDir, dirtyFlagName),
@@ -120,12 +81,7 @@ func NewManager(config Config, cacheDir string, args ...Option) (m *Manager, err
 		}
 	}
 
-	if opts.cleanOnNew {
-		if err := m.cleanExpiredUserData(opts); err != nil {
-			slog.Warn(fmt.Sprintf("Could not fully clean expired user data: %v", err))
-		}
-	}
-	m.startUserCleanupRoutine(cacheDir, opts)
+	m.startUserCleanupRoutine(cacheDir)
 
 	return m, nil
 }
@@ -321,7 +277,7 @@ func (m *Manager) requestClearDatabase() {
 	}
 }
 
-func (m *Manager) startUserCleanupRoutine(cacheDir string, opts *options) {
+func (m *Manager) startUserCleanupRoutine(cacheDir string) {
 	cleanupRoutineStarted := make(chan struct{})
 	go func() {
 		defer close(m.cleanupStopped)
@@ -332,13 +288,6 @@ func (m *Manager) startUserCleanupRoutine(cacheDir string, opts *options) {
 				func() {
 					if err := m.clear(cacheDir); err != nil {
 						slog.Warn(fmt.Sprintf("Could not clear corrupted data: %v", err))
-					}
-				}()
-
-			case <-time.After(opts.cleanupInterval):
-				func() {
-					if err := m.cleanExpiredUserData(opts); err != nil {
-						slog.Warn(fmt.Sprintf("Could not clean expired user data: %v", err))
 					}
 				}()
 
@@ -378,62 +327,6 @@ func (m *Manager) clear(cacheDir string) error {
 	}
 
 	return nil
-}
-
-// cleanExpiredUserData cleans up the data belonging to expired users.
-func (m *Manager) cleanExpiredUserData(opts *options) error {
-	activeUIDs, err := getUIDsOfRunningProcesses(opts.procDir)
-	if err != nil {
-		return fmt.Errorf("could not get list of active users: %v", err)
-	}
-
-	cleanedUsers, err := m.cache.CleanExpiredUsers(activeUIDs, opts.expirationDate)
-	if err != nil {
-		return fmt.Errorf("could not clean database of expired users: %v", err)
-	}
-
-	for _, u := range cleanedUsers {
-		err = localgroups.CleanUser(u)
-		if err != nil {
-			slog.Warn(fmt.Sprintf("Could not clean user %q from local groups: %v", u, err))
-		}
-	}
-	return err
-}
-
-// getUIDsOfRunningProcesses walks through procDir and returns a map with the UIDs of the running processes.
-func getUIDsOfRunningProcesses(procDir string) (uids map[uint32]struct{}, err error) {
-	defer decorate.OnError(&err, "could not get UIDs of running processes")
-
-	uids = make(map[uint32]struct{})
-
-	dirEntries, err := os.ReadDir(procDir)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, dirEntry := range dirEntries {
-		// Checks if the dirEntry represents a process dir (i.e. /proc/<pid>/)
-		if _, err := strconv.Atoi(dirEntry.Name()); err != nil {
-			continue
-		}
-
-		info, err := dirEntry.Info()
-		if err != nil {
-			// If the file doesn't exist, it means the process is not running anymore so we can ignore it.
-			if errors.Is(err, fs.ErrNotExist) {
-				continue
-			}
-			return nil, err
-		}
-
-		stats, ok := info.Sys().(*syscall.Stat_t)
-		if !ok {
-			return nil, fmt.Errorf("could not get ownership of file %q", info.Name())
-		}
-		uids[stats.Uid] = struct{}{}
-	}
-	return uids, nil
 }
 
 // GenerateUID deterministically generates an ID between from the given string, ignoring case,

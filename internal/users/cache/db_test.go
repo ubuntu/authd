@@ -2,13 +2,11 @@ package cache_test
 
 import (
 	"errors"
-	"fmt"
 	"io/fs"
 	"os"
 	"os/user"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
@@ -497,51 +495,6 @@ func TestClear(t *testing.T) {
 
 			got, err := cachetestutils.DumpToYaml(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
-
-			want := testutils.LoadWithUpdateFromGolden(t, got)
-			require.Equal(t, want, got, "Did not get expected database content")
-		})
-	}
-}
-
-func TestCleanExpiredUsers(t *testing.T) {
-	t.Parallel()
-
-	tests := map[string]struct {
-		dbFile string
-
-		expirationDate string
-	}{
-		"Clean up all users":  {dbFile: "only_old_users", expirationDate: "2020-01-01"},
-		"Clean up some users": {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01"},
-		"Clean up as much as possible if db has invalid entries": {dbFile: "invalid_entries_but_user_and_group1", expirationDate: "2020-01-01"},
-		"Clean up also cleans last selected broker for user":     {dbFile: "multiple_users_and_groups", expirationDate: "2020-01-01"},
-		"Clean up user even if it is not listed on the group":    {dbFile: "user_not_in_groupToUsers", expirationDate: "2020-01-01"},
-
-		"Do not clean any users":                              {dbFile: "multiple_users_and_groups", expirationDate: "2004-01-01"},
-		"Do not clean active user":                            {dbFile: "active_user", expirationDate: "2020-01-01"},
-		"Do not clean user if can not get groups":             {dbFile: "invalid_entry_in_userToGroups", expirationDate: "2020-01-01"},
-		"Do not clean user if can not delete user from group": {dbFile: "invalid_entry_in_groupByID", expirationDate: "2020-01-01"},
-	}
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			c := initCache(t, tc.dbFile)
-
-			expirationDate, err := time.Parse(time.DateOnly, tc.expirationDate)
-			require.NoError(t, err, "Setup: should be able to parse expiration date")
-
-			//nolint:gosec // This conversion is safe because UIDs can't be larger than a uint32.
-			uid := uint32(os.Geteuid())
-			activeUIDs := map[uint32]struct{}{uid: {}}
-			cleanedUsers, err := c.CleanExpiredUsers(activeUIDs, expirationDate)
-			require.NoError(t, err, "CleanExpiredUsers should not return an error")
-
-			gotDump, err := cachetestutils.DumpToYaml(c)
-			require.NoError(t, err, "Created database should be valid yaml content")
-
-			got := fmt.Sprintf("Cleaned users: %s\n\nResulting Database:\n%s", cleanedUsers, gotDump)
 
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")

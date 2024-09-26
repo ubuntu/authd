@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	testutils "github.com/ubuntu/authd/internal/testutils"
@@ -24,23 +23,11 @@ func TestNewManager(t *testing.T) {
 		dirtyFlag       bool
 		markDirty       bool
 
-		expirationDate  string
-		skipCleanOnNew  bool
-		cleanupInterval int
-		procDir         string
-
 		localGroupsFile string
 
 		wantErr bool
 	}{
 		"Successfully create a new manager": {},
-
-		// Clean up routine tests
-		"Clean up on interval": {expirationDate: "2020-01-01", cleanupInterval: 1, skipCleanOnNew: true},
-		"Do not prevent manager creation if cache cleanup fails":     {procDir: "does-not-exist"},
-		"Do not stop manager if cleanup routine fails":               {procDir: "does-not-exist", skipCleanOnNew: true, cleanupInterval: 1},
-		"Do not touch local groups if no user is cleaned from cache": {expirationDate: "2004-01-01"},
-		"Do not prevent manager creation if group cleanup fails":     {expirationDate: "2020-01-01", localGroupsFile: "gpasswdfail_in_deleted_group.group"},
 
 		// Corrupted databases
 		"New recreates any missing buckets and delete unknowns":          {dbFile: "database_with_unknown_bucket"},
@@ -77,24 +64,7 @@ func TestNewManager(t *testing.T) {
 				require.NoError(t, err, "Setup: Can't update the file with invalid db content")
 			}
 
-			if tc.expirationDate == "" {
-				tc.expirationDate = "2004-01-01"
-			}
-			expiration, err := time.Parse(time.DateOnly, tc.expirationDate)
-			require.NoError(t, err, "Setup: could not calculate expiration date for tests")
-			managerOpts := []users.Option{users.WithUserExpirationDate(expiration)}
-
-			if tc.cleanupInterval > 0 {
-				managerOpts = append(managerOpts, users.WithCacheCleanupInterval(time.Second*time.Duration(tc.cleanupInterval)))
-			}
-			if tc.skipCleanOnNew {
-				managerOpts = append(managerOpts, users.WithoutCleaningCacheOnNew())
-			}
-			if tc.procDir != "" {
-				managerOpts = append(managerOpts, users.WithProcDir(tc.procDir))
-			}
-
-			m, err := users.NewManager(users.DefaultConfig, cacheDir, managerOpts...)
+			m, err := users.NewManager(users.DefaultConfig, cacheDir)
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should return an error, but did not")
 				return
@@ -105,8 +75,7 @@ func TestNewManager(t *testing.T) {
 				m.RequestClearDatabase()
 			}
 
-			// Sync on the clean up routine
-			m.WaitCleanupRoutineDone(t, users.WithCacheCleanupInterval(time.Second*time.Duration(tc.cleanupInterval)))
+			m.WaitCleanupRoutineDone(t)
 
 			got, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
@@ -689,10 +658,7 @@ UserToGroups: {}
 func newManagerForTests(t *testing.T, cacheDir string) *users.Manager {
 	t.Helper()
 
-	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
-	require.NoError(t, err, "Setup: could not calculate expiration date for tests")
-
-	m, err := users.NewManager(users.DefaultConfig, cacheDir, users.WithUserExpirationDate(expiration), users.WithoutCleaningCacheOnNew())
+	m, err := users.NewManager(users.DefaultConfig, cacheDir)
 	require.NoError(t, err, "NewManager should not return an error, but did")
 
 	return m

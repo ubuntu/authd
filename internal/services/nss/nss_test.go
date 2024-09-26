@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
@@ -332,10 +331,7 @@ func newUserManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 	}
 	cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", sourceDB), cacheDir)
 
-	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
-	require.NoError(t, err, "Setup: could not parse time for testing")
-
-	m, err := users.NewManager(users.DefaultConfig, cacheDir, users.WithUserExpirationDate(expiration))
+	m, err := users.NewManager(users.DefaultConfig, cacheDir)
 	require.NoError(t, err, "Setup: could not create user manager")
 
 	t.Cleanup(func() { _ = m.Stop() })

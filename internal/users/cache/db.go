@@ -6,13 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/ubuntu/decorate"
 	"go.etcd.io/bbolt"
@@ -152,51 +150,6 @@ func openAndInitDB(path string) (*bbolt.DB, error) {
 	}
 
 	return db, nil
-}
-
-// CleanExpiredUsers removes from the cache any user that exceeded the maximum amount of days without authentication.
-func (c *Cache) CleanExpiredUsers(activeUIDs map[uint32]struct{}, expirationDate time.Time) (cleanedUsers []string, err error) {
-	defer decorate.OnError(&err, "could not clean up database")
-
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-
-	err = c.db.Update(func(tx *bbolt.Tx) (err error) {
-		buckets, err := getAllBuckets(tx)
-		if err != nil {
-			return err
-		}
-
-		var expiredUsers []userDB
-		// The foreach closure can't error out, so we can ignore the error.
-		_ = buckets[userByIDBucketName].ForEach(func(k, v []byte) error {
-			var u userDB
-			if err := json.Unmarshal(v, &u); err != nil {
-				slog.Warn(fmt.Sprintf("Could not unmarshal user %q: %v", string(k), err))
-				return nil
-			}
-
-			//nolint:gosec // This conversion is safe because UIDs can't be larger than a uint32.
-			uid := uint32(u.UID)
-			if _, active := activeUIDs[uid]; !active && u.LastLogin.Before(expirationDate) {
-				expiredUsers = append(expiredUsers, u)
-			}
-			return nil
-		})
-
-		for _, u := range expiredUsers {
-			slog.Debug(fmt.Sprintf("Deleting expired user %q", u.Name))
-			if err := deleteUser(buckets, u.UID); err != nil {
-				slog.Warn(fmt.Sprintf("Could not delete user %q: %v", u.Name, err))
-				continue
-			}
-			cleanedUsers = append(cleanedUsers, u.Name)
-		}
-
-		return nil
-	})
-
-	return cleanedUsers, err
 }
 
 // Close closes the db and signal the monitoring goroutine to stop.
