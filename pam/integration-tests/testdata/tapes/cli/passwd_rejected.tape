@@ -1,122 +1,122 @@
 Hide
 Type "./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Escape
 Backspace
 Type "user-integration-invalid-new-password"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "2"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep 2s
+Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 
 Hide
 Type "noble2404"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
 Type "noble2404"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 2s
+Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 
 Hide
 Type "authd2404"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
 Type "authd2404"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 2s
+Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 
-Sleep 1s
+Sleep ${AUTHD_SLEEP_LONG}
 
 # Repeat again, to check that we can use still use another new password
 
 Hide
 Type "./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Escape
 Backspace
 Type "user-integration-invalid-new-password"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep 2s
+Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 
 Hide
 Type "noble2404"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
 Type "noble2404"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 2s
+Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 
 Hide
 Type "goodpass"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
 Type "goodpass"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 2s
+Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}

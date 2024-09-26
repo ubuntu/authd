@@ -2,10 +2,14 @@ package main_test
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
@@ -31,6 +35,15 @@ type tapeData struct {
 	Outputs  []string
 	Settings map[string]any
 }
+
+var (
+	defaultSleepValues = map[string]time.Duration{
+		"AUTHD_SLEEP_DEFAULT": 300 * time.Millisecond,
+		"AUTHD_SLEEP_LONG":    1 * time.Second,
+	}
+
+	vhsSleepRegex = regexp.MustCompile(`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?.*$`)
+)
 
 func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 	m := map[string]any{
@@ -108,7 +121,9 @@ func (td tapeData) PrepareTape(t *testing.T, tapesDir, outputPath string) string
 	tape, err := os.ReadFile(filepath.Join(
 		currentDir, "testdata", "tapes", tapesDir, td.Name+".tape"))
 	require.NoError(t, err, "Setup: read tape file %s", td.Name)
-	tape = []byte(fmt.Sprintf("%s\n%s", td, tape))
+
+	tapeString := evaluateTapeVariables(t, string(tape))
+	tape = []byte(fmt.Sprintf("%s\n%s", td, tapeString))
 
 	tapePath := filepath.Join(outputPath, td.Name)
 	err = os.WriteFile(tapePath, tape, 0600)
@@ -121,4 +136,36 @@ func (td tapeData) PrepareTape(t *testing.T, tapesDir, outputPath string) string
 	saveArtifactsForDebugOnCleanup(t, artifacts)
 
 	return tapePath
+}
+
+func evaluateTapeVariables(t *testing.T, tapeString string) string {
+	t.Helper()
+
+	for _, m := range vhsSleepRegex.FindAllStringSubmatch(tapeString, -1) {
+		fullMatch, sleepKind, op, arg := m[0], m[1], m[3], m[4]
+		sleep, ok := defaultSleepValues[sleepKind]
+		require.True(t, ok, "Setup: unknown sleep kind: %q", sleepKind)
+
+		// We don't need to support math that is complex enough to use proper parsers as go.ast
+		if arg != "" {
+			parsedArg, err := strconv.ParseFloat(arg, 32)
+			require.NoError(t, err, "Setup: Cannot parse expression %q: %q is not a float", fullMatch, arg)
+
+			switch op {
+			case "*":
+				sleep = time.Duration(math.Round(float64(sleep) * parsedArg))
+			case "/":
+				require.NotZero(t, parsedArg, "Setup: Division by zero")
+				sleep = time.Duration(math.Round(float64(sleep) / parsedArg))
+			default:
+				require.Empty(t, op, "Setup: Unhandled operator %q", op)
+			}
+		}
+
+		replaceRegex := regexp.MustCompile(fmt.Sprintf(`(?m)%s$`, regexp.QuoteMeta(fullMatch)))
+		tapeString = replaceRegex.ReplaceAllString(tapeString,
+			fmt.Sprintf("%dms", sleep.Milliseconds()))
+	}
+
+	return tapeString
 }

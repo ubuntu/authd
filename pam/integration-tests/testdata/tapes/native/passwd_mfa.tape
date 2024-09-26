@@ -1,99 +1,99 @@
 Hide
 Type "./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "user-mfa"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "2"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "r"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "1"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep 2s
+Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 
 Hide
 Type "r"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "1"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Sleep 5s
+Sleep ${AUTHD_SLEEP_LONG} * 5
 Show
 
 Hide
 Type "r"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "1"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Sleep 5s
+Sleep ${AUTHD_SLEEP_LONG} * 5
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "authd2404"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 2s
+Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}

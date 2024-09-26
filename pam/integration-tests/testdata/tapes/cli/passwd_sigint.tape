@@ -1,29 +1,29 @@
 Hide
 Type "./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Escape
 Backspace
 Type "user-integration-sigint"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "2"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Ctrl+C
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}

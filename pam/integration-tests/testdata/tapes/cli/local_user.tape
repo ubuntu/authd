@@ -1,19 +1,19 @@
 Hide
 Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Escape
 Backspace
 Type "root"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}

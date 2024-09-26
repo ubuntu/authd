@@ -1,57 +1,57 @@
 Hide
 Type "if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}"
 Enter
-Sleep 800ms
+Sleep ${AUTHD_SLEEP_DEFAULT} * 3
 Show
 
 Hide
 Type "2"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Escape
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "6"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Tab
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 800ms
+Sleep ${AUTHD_SLEEP_DEFAULT} * 3
 Show
 
 Hide
 Enter
-Sleep 800ms
+Sleep ${AUTHD_SLEEP_DEFAULT} * 3
 Show
 
 Hide
 Enter
-Sleep 800ms
+Sleep ${AUTHD_SLEEP_DEFAULT} * 3
 Show
 
 Hide
 Enter
-Sleep 1s
+Sleep ${AUTHD_SLEEP_LONG}
 Show
 
 Hide
-Sleep 5s
+Sleep ${AUTHD_SLEEP_LONG} * 5
 Show
 
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}

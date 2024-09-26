@@ -1,43 +1,43 @@
 Hide
 Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Escape
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "2"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Escape
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Escape
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Escape 10
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Show
 
 Hide
 Type "2"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep 2s
+Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}

@@ -1,99 +1,99 @@
 Hide
 Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Escape
 Backspace
 Type "user-mfa-with-reset"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "2"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "goodpass"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 2s
+Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 
 # Wait for MFA auth to happen
 Hide
-Sleep 5s
+Sleep ${AUTHD_SLEEP_LONG} * 5
 Show
 
 Hide
 Type "goodpass"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 1s
+Sleep ${AUTHD_SLEEP_LONG}
 Show
 
 Hide
 Type "password"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 1s
+Sleep ${AUTHD_SLEEP_LONG}
 Show
 
 Hide
 Type "goodpass"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 1s
+Sleep ${AUTHD_SLEEP_LONG}
 Show
 
 Hide
 Type "1234"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 1s
+Sleep ${AUTHD_SLEEP_LONG}
 Show
 
 Hide
 Type "authd2404"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep 500ms
+Sleep ${AUTHD_SLEEP_LONG} / 2
 Show
 
 Hide
 Type "authd2404"
-Sleep 500ms
+Sleep ${AUTHD_SLEEP_LONG} / 2
 Show
 
 Hide
 Enter
-Sleep 2s
+Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
