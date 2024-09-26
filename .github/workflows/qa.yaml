@@ -9,6 +9,7 @@ on:
 
 env:
   DEBIAN_FRONTEND: noninteractive
+  GO_TESTS_TIMEOUT: 20m
   apt_deps: >-
     libpam-dev
     libglib2.0-dev
@@ -192,7 +193,7 @@ jobs:
           # Overriding the default coverage directory is not an exported flag of go test (yet), so
           # we need to override it using the test.gocoverdir flag instead.
           #TODO: Update when https://go-review.googlesource.com/c/go/+/456595 is merged.
-          go test -cover -covermode=set ./... -coverpkg=./... -shuffle=on -args -test.gocoverdir="${raw_cov_dir}"
+          go test -timeout ${GO_TESTS_TIMEOUT} -cover -covermode=set ./... -coverpkg=./... -shuffle=on -args -test.gocoverdir="${raw_cov_dir}"
 
           # Convert the raw coverage data into textfmt so we can merge the Rust one into it
           go tool covdata textfmt -i="${raw_cov_dir}" -o="${cov_dir}/coverage.out"
@@ -208,7 +209,7 @@ jobs:
 
       - name: Run tests (with race detector)
         run: |
-          go test -race ./...
+          go test -timeout ${GO_TESTS_TIMEOUT} -race ./...
 
       - name: Run PAM tests (with Address Sanitizer)
         env:
@@ -218,10 +219,10 @@ jobs:
           G_DEBUG: "fatal-criticals"
         run: |
           # Use `-dwarflocationlists` to give ASAN a better time to unwind the stack trace
-          go test -C ./pam/internal -asan -gcflags="-dwarflocationlists=true" ./...
+          go test -C ./pam/internal -asan -gcflags="-dwarflocationlists=true" -timeout ${GO_TESTS_TIMEOUT} ./...
 
           pushd ./pam/integration-tests
-          go test -asan -gcflags="-dwarflocationlists=true" -c
+          go test -asan -gcflags="-dwarflocationlists=true" -timeout ${GO_TESTS_TIMEOUT} -c
           # FIXME: Suppression may be removed with newer libpam, as the one we ship in ubuntu as some leaks
           env LSAN_OPTIONS=suppressions=$(pwd)/lsan.supp \
             ./integration-tests.test \
