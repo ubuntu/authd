@@ -843,7 +843,7 @@ func getModuleArgs(t *testing.T, clientPath string, args []string) []string {
 	logFile := os.Stderr.Name()
 	if !testutils.IsVerbose() {
 		logFile = prepareFileLogging(t, "exec-module.log")
-		saveArtifactsForDebug(t, []string{logFile})
+		saveArtifactsForDebugOnCleanup(t, []string{logFile})
 	}
 	moduleArgs = append(moduleArgs, "--exec-log", logFile)
 
@@ -891,6 +891,7 @@ func preparePamTransactionForServiceFile(t *testing.T, serviceFile string, user 
 	} else {
 		tx, err = pam.StartConfDir(filepath.Base(serviceFile), user, nil, filepath.Dir(serviceFile))
 	}
+	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
 	require.NoError(t, err, "PAM: Error to initialize module")
 	require.NotNil(t, tx, "PAM: Transaction is not set")
 	t.Cleanup(func() { require.NoError(t, tx.End(), "PAM: can't end transaction") })

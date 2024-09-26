@@ -51,3 +51,8 @@ func requirePreviousBrokerForUser(t *testing.T, socketPath string, brokerName st
 	}
 	require.Equal(t, prevBroker.PreviousBroker, prevBrokerID)
 }
+
+func saveArtifactsForDebugOnCleanup(t *testing.T, artifacts []string) {
+	t.Helper()
+	t.Cleanup(func() { saveArtifactsForDebug(t, artifacts) })
+}
