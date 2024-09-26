@@ -154,7 +154,7 @@ func TestUpdateUser(t *testing.T) {
 	groupsCases := map[string][]users.GroupInfo{
 		"cloud-group": {{
 			Name: "group1",
-			GID:  ptrValue(11111),
+			GID:  ptrUint32(11111),
 		}},
 		"local-group": {{
 			Name: "localgroup1",
@@ -162,7 +162,7 @@ func TestUpdateUser(t *testing.T) {
 		}},
 		"mixed-groups-cloud-first": {{
 			Name: "group1",
-			GID:  ptrValue(11111),
+			GID:  ptrUint32(11111),
 		}, {
 			Name: "localgroup1",
 			GID:  nil,
@@ -172,22 +172,22 @@ func TestUpdateUser(t *testing.T) {
 			GID:  nil,
 		}, {
 			Name: "group1",
-			GID:  ptrValue(11111),
+			GID:  ptrUint32(11111),
 		}},
 		"mixed-groups-gpasswd-fail": {{
 			Name: "group1",
-			GID:  ptrValue(11111),
+			GID:  ptrUint32(11111),
 		}, {
 			Name: "gpasswdfail",
 			GID:  nil,
 		}},
 		"nameless-group": {{
 			Name: "",
-			GID:  ptrValue(11111),
+			GID:  ptrUint32(11111),
 		}},
 		"different-name-same-gid": {{
 			Name: "newgroup1",
-			GID:  ptrValue(11111),
+			GID:  ptrUint32(11111),
 		}},
 		"no-groups": {},
 	}
@@ -382,14 +382,14 @@ func TestUserByName(t *testing.T) {
 
 func TestUserByID(t *testing.T) {
 	tests := map[string]struct {
-		uid    int
+		uid    uint32
 		dbFile string
 
 		wantErr error
 	}{
 		"Successfully get user by ID": {uid: 1111, dbFile: "multiple_users_and_groups"},
 
-		"Error if user does not exist":  {uid: -1, dbFile: "multiple_users_and_groups", wantErr: cache.NoDataFoundError{}},
+		"Error if user does not exist":  {uid: 0, dbFile: "multiple_users_and_groups", wantErr: cache.NoDataFoundError{}},
 		"Error if db has invalid entry": {uid: 1111, dbFile: "invalid_entry_in_userByID", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
@@ -487,14 +487,14 @@ func TestGroupByName(t *testing.T) {
 
 func TestGroupByID(t *testing.T) {
 	tests := map[string]struct {
-		gid    int
+		gid    uint32
 		dbFile string
 
 		wantErr error
 	}{
 		"Successfully get group by ID": {gid: 11111, dbFile: "multiple_users_and_groups"},
 
-		"Error if group does not exist": {gid: -1, dbFile: "multiple_users_and_groups", wantErr: cache.NoDataFoundError{}},
+		"Error if group does not exist": {gid: 0, dbFile: "multiple_users_and_groups", wantErr: cache.NoDataFoundError{}},
 		"Error if db has invalid entry": {gid: 11111, dbFile: "invalid_entry_in_groupByID", wantErr: cache.ErrNeedsClearing},
 	}
 	for name, tc := range tests {
@@ -684,7 +684,7 @@ func newManagerForTests(t *testing.T, cacheDir string) *users.Manager {
 	return m
 }
 
-func ptrValue[T any](v T) *T {
+func ptrUint32(v uint32) *uint32 {
 	return &v
 }
 

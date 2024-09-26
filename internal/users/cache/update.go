@@ -108,8 +108,8 @@ func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) er
 
 // updateUserAndGroups updates the pivot table for user to groups and group to users. It handles any update
 // to groups uid is not part of anymore.
-func updateUsersAndGroups(buckets map[string]bucketWithName, uid int, groupContents []GroupDB, previousGIDs []int) error {
-	var currentGIDs []int
+func updateUsersAndGroups(buckets map[string]bucketWithName, uid uint32, groupContents []GroupDB, previousGIDs []uint32) error {
+	var currentGIDs []uint32
 	for _, groupContent := range groupContents {
 		currentGIDs = append(currentGIDs, groupContent.GID)
 		grpToUsers, err := getFromBucket[groupToUsersDB](buckets[groupToUsersBucketName], groupContent.GID)
@@ -140,7 +140,7 @@ func updateUsersAndGroups(buckets map[string]bucketWithName, uid int, groupConte
 }
 
 // updateBucket is a generic function to update any bucket. It panics if we call it in RO transaction.
-func updateBucket[K int | string](bucket bucketWithName, key K, value any) {
+func updateBucket[K uint32 | string](bucket bucketWithName, key K, value any) {
 	data, err := json.Marshal(value)
 	if err != nil {
 		panic(fmt.Sprintf("programming error: %v is not a valid json", err))
@@ -149,8 +149,8 @@ func updateBucket[K int | string](bucket bucketWithName, key K, value any) {
 	// TODO: switch to https://github.com/golang/go/issues/45380 if accepted.
 	var k []byte
 	switch v := any(key).(type) {
-	case int:
-		k = []byte(strconv.Itoa(v))
+	case uint32:
+		k = []byte(strconv.FormatUint(uint64(v), 10))
 	case string:
 		k = []byte(v)
 	default:

@@ -63,7 +63,7 @@ func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetPasswdByName
 
 // GetPasswdByUID returns the passwd entry for the given UID.
 func (s Service) GetPasswdByUID(ctx context.Context, req *authd.GetByIDRequest) (*authd.PasswdEntry, error) {
-	u, err := s.userManager.UserByID(int(req.GetId()))
+	u, err := s.userManager.UserByID(req.GetId())
 	if err != nil {
 		return nil, noDataFoundErrorToGRPCError(err)
 	}
@@ -101,7 +101,7 @@ func (s Service) GetGroupByName(ctx context.Context, req *authd.GetGroupByNameRe
 
 // GetGroupByGID returns the group entry for the given GID.
 func (s Service) GetGroupByGID(ctx context.Context, req *authd.GetByIDRequest) (*authd.GroupEntry, error) {
-	g, err := s.userManager.GroupByID(int(req.GetId()))
+	g, err := s.userManager.GroupByID(req.GetId())
 	if err != nil {
 		return nil, noDataFoundErrorToGRPCError(err)
 	}
@@ -196,8 +196,8 @@ func nssPasswdFromUsersPasswd(u users.UserEntry) *authd.PasswdEntry {
 	return &authd.PasswdEntry{
 		Name:    u.Name,
 		Passwd:  "x",
-		Uid:     safeIDtoUint32(u.UID),
-		Gid:     safeIDtoUint32(u.GID),
+		Uid:     u.UID,
+		Gid:     u.GID,
 		Gecos:   u.Gecos,
 		Homedir: u.Dir,
 		Shell:   u.Shell,
@@ -209,7 +209,7 @@ func nssGroupFromUsersGroup(g users.GroupEntry) *authd.GroupEntry {
 	return &authd.GroupEntry{
 		Name:    g.Name,
 		Passwd:  "x",
-		Gid:     safeIDtoUint32(g.GID),
+		Gid:     g.GID,
 		Members: g.Users,
 	}
 }
@@ -236,18 +236,6 @@ func noDataFoundErrorToGRPCError(err error) error {
 	}
 
 	return status.Error(codes.NotFound, "")
-}
-
-// safeIDtoUint32 returns an uint32 from an int. This should be only use for safe conversions where
-// we know the numbers can’t be negative like uid/gid.
-// We print a warning if the number is negative and replaced it with max uint32.
-func safeIDtoUint32(i int) uint32 {
-	if i < 0 {
-		log.Warningf(context.Background(), "negative ID number converted to uint32: %d, replaced with maxint", i)
-		return math.MaxUint32
-	}
-	//nolint:gosec // we did check the conversion beforehand.
-	return uint32(i)
 }
 
 // convertToNumberOfDays returns an int32 from an int. This should be only use for safe conversions where

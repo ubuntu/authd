@@ -10,11 +10,11 @@ import (
 
 type groupDB struct {
 	Name string
-	GID  int
+	GID  uint32
 }
 
 // NewGroupDB creates a new GroupDB.
-func NewGroupDB(name string, gid int, members []string) GroupDB {
+func NewGroupDB(name string, gid uint32, members []string) GroupDB {
 	return GroupDB{
 		Name:  name,
 		GID:   gid,
@@ -24,7 +24,7 @@ func NewGroupDB(name string, gid int, members []string) GroupDB {
 
 // GroupByID returns a group matching this gid or an error if the database is corrupted or no entry was found.
 // Upon corruption, clearing the database is requested.
-func (c *Cache) GroupByID(gid int) (GroupDB, error) {
+func (c *Cache) GroupByID(gid uint32) (GroupDB, error) {
 	return getGroup(c, groupByIDBucketName, gid)
 }
 
@@ -71,9 +71,9 @@ func (c *Cache) AllGroups() (all []GroupDB, err error) {
 
 // getGroup returns a group matching the key and its members or an error if the database is corrupted
 // or no entry was found. Upon corruption, clearing the database is requested.
-func getGroup[K int | string](c *Cache, bucketName string, key K) (GroupDB, error) {
+func getGroup[K uint32 | string](c *Cache, bucketName string, key K) (GroupDB, error) {
 	var groupName string
-	var gid int
+	var gid uint32
 	var users []string
 
 	c.mu.RLock()
@@ -114,7 +114,7 @@ func getGroup[K int | string](c *Cache, bucketName string, key K) (GroupDB, erro
 }
 
 // usersInGroup returns all user names in a given group. It returns an error if the database is corrupted.
-func getUsersInGroup(buckets map[string]bucketWithName, gid int) (users []string, err error) {
+func getUsersInGroup(buckets map[string]bucketWithName, gid uint32) (users []string, err error) {
 	usersInGroup, err := getFromBucket[groupToUsersDB](buckets[groupToUsersBucketName], gid)
 	if err != nil {
 		return nil, err

@@ -48,8 +48,8 @@ type Cache struct {
 // UserDB is the public type that is shared to external packages.
 type UserDB struct {
 	Name  string
-	UID   int
-	GID   int
+	UID   uint32
+	GID   uint32
 	Gecos string // Gecos is an optional field. It can be empty.
 	Dir   string
 	Shell string
@@ -66,20 +66,20 @@ type UserDB struct {
 // GroupDB is the struct stored in json format in the bucket.
 type GroupDB struct {
 	Name  string
-	GID   int
+	GID   uint32
 	Users []string
 }
 
 // userToGroupsDB is the struct stored in json format to match uid to gids in the bucket.
 type userToGroupsDB struct {
-	UID  int
-	GIDs []int
+	UID  uint32
+	GIDs []uint32
 }
 
 // groupToUsersDB is the struct stored in json format to match gid to uids in the bucket.
 type groupToUsersDB struct {
-	GID  int
-	UIDs []int
+	GID  uint32
+	UIDs []uint32
 }
 
 // New creates a new database cache by creating or opening the underlying db.
@@ -217,12 +217,12 @@ func getBucket(tx *bbolt.Tx, name string) (bucketWithName, error) {
 
 // getFromBucket is a generic function to get any value of given type from a bucket. It returns an error if
 // the returned value (json) could not be unmarshalled to the returned struct.
-func getFromBucket[T any, K int | string](bucket bucketWithName, key K) (T, error) {
+func getFromBucket[T any, K uint32 | string](bucket bucketWithName, key K) (T, error) {
 	// TODO: switch to https://github.com/golang/go/issues/45380 if accepted.
 	var k []byte
 	switch v := any(key).(type) {
-	case int:
-		k = []byte(strconv.Itoa(v))
+	case uint32:
+		k = []byte(strconv.FormatUint(uint64(v), 10))
 	case string:
 		k = []byte(v)
 	default:

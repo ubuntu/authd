@@ -188,7 +188,7 @@ func (m *Manager) UserByName(username string) (UserEntry, error) {
 }
 
 // UserByID returns the user information for the given user ID.
-func (m *Manager) UserByID(uid int) (UserEntry, error) {
+func (m *Manager) UserByID(uid uint32) (UserEntry, error) {
 	usr, err := m.cache.UserByID(uid)
 	if err != nil {
 		return UserEntry{}, m.shouldClearDb(err)
@@ -220,7 +220,7 @@ func (m *Manager) GroupByName(groupname string) (GroupEntry, error) {
 }
 
 // GroupByID returns the group information for the given group ID.
-func (m *Manager) GroupByID(gid int) (GroupEntry, error) {
+func (m *Manager) GroupByID(gid uint32) (GroupEntry, error) {
 	grp, err := m.cache.GroupByID(gid)
 	if err != nil {
 		return GroupEntry{}, m.shouldClearDb(err)
@@ -341,17 +341,17 @@ func (m *Manager) clear(cacheDir string) error {
 
 // GenerateUID deterministically generates an ID between from the given string, ignoring case,
 // in the range [UIDMin, UIDMax]. The generated ID is *not* guaranteed to be unique.
-func (m *Manager) GenerateUID(str string) int {
+func (m *Manager) GenerateUID(str string) uint32 {
 	return generateID(str, m.config.UIDMin, m.config.UIDMax)
 }
 
 // GenerateGID deterministically generates an ID between from the given string, ignoring case,
 // in the range [GIDMin, GIDMax]. The generated ID is *not* guaranteed to be unique.
-func (m *Manager) GenerateGID(str string) int {
+func (m *Manager) GenerateGID(str string) uint32 {
 	return generateID(str, m.config.GIDMin, m.config.GIDMax)
 }
 
-func generateID(str string, minID, maxID uint32) int {
+func generateID(str string, minID, maxID uint32) uint32 {
 	str = strings.ToLower(str)
 
 	// Create a SHA-256 hash of the input string
@@ -367,5 +367,5 @@ func generateID(str string, minID, maxID uint32) int {
 		number = binary.BigEndian.Uint32(hash[:4]) % (maxID + 1)
 	}
 
-	return int(number)
+	return number
 }

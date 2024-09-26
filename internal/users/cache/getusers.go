@@ -18,7 +18,7 @@ type userDB struct {
 }
 
 // NewUserDB creates a new UserDB.
-func NewUserDB(name string, uid, gid int, gecos, dir, shell string) UserDB {
+func NewUserDB(name string, uid, gid uint32, gecos, dir, shell string) UserDB {
 	return UserDB{
 		Name:           name,
 		UID:            uid,
@@ -37,7 +37,7 @@ func NewUserDB(name string, uid, gid int, gecos, dir, shell string) UserDB {
 
 // UserByID returns a user matching this uid or an error if the database is corrupted or no entry was found.
 // Upon corruption, clearing the database is requested.
-func (c *Cache) UserByID(uid int) (UserDB, error) {
+func (c *Cache) UserByID(uid uint32) (UserDB, error) {
 	u, err := getUser(c, userByIDBucketName, uid)
 	return u.UserDB, err
 }
@@ -79,7 +79,7 @@ func (c *Cache) AllUsers() (all []UserDB, err error) {
 
 // getUser returns an user matching the key or an error if the database is corrupted or no entry was found.
 // Upon corruption, clearing the database is requested.
-func getUser[K int | string](c *Cache, bucketName string, key K) (u userDB, err error) {
+func getUser[K uint32 | string](c *Cache, bucketName string, key K) (u userDB, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
