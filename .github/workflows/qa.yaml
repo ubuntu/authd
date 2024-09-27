@@ -233,7 +233,11 @@ jobs:
           # Use these flags to give ASAN a better time to unwind the stack trace
           GO_GC_FLAGS: -N -l
         run: |
-          go test -C ./pam/internal -asan -gcflags=all="${GO_GC_FLAGS}" -timeout ${GO_TESTS_TIMEOUT} ./...
+          go test -C ./pam/internal -asan -gcflags=all="${GO_GC_FLAGS}" -timeout ${GO_TESTS_TIMEOUT} ./... || exit_code=$?
+          if [ "${exit_code}" -ne 0 ]; then
+            cat "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log* || true
+            exit ${exit_code}
+          fi
 
           pushd ./pam/integration-tests
           go test -asan -gcflags=all="${GO_GC_FLAGS}" -c
