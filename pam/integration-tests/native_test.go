@@ -35,7 +35,7 @@ func TestNativeAuthenticate(t *testing.T) {
 	}{
 		"Authenticate user successfully":                                       {tape: "simple_auth"},
 		"Authenticate user successfully with preset user":                      {tape: "simple_auth_with_preset_user"},
-		"Authenticate user with mfa":                                           {tape: "mfa_auth", tapeSettings: []tapeSetting{{vhsHeight, 600}}},
+		"Authenticate user with mfa":                                           {tape: "mfa_auth", tapeSettings: []tapeSetting{{vhsHeight, 700}}},
 		"Authenticate user with form mode with button":                         {tape: "form_with_button"},
 		"Authenticate user with qr code":                                       {tape: "qr_code", tapeSettings: []tapeSetting{{vhsHeight, 2300}}, pamUser: "user-integration-qr-code"},
 		"Authenticate user with qr code in a TTY":                              {tape: "qr_code", tapeSettings: []tapeSetting{{vhsHeight, 3500}}, pamUser: "user-integration-qr-code-tty", termEnv: "linux"},
