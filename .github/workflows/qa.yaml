@@ -120,6 +120,10 @@ jobs:
   go-tests:
     name: "Go: Tests"
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test: ["coverage", "race", "asan"]
     steps:
       - name: Install dependencies
         run: |
@@ -159,13 +163,16 @@ jobs:
           chmod +x ttyd.x86_64
           sudo mv ttyd.x86_64 /usr/bin/ttyd
 
-      - uses: actions-rs/toolchain@v1
+      - name: Install rust
+        if: matrix.test != 'asan'
+        uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: nightly # We need nightly to enable instrumentation for coverage.
           override: true
           components: llvm-tools-preview
       - name: Install grcov
+        if: matrix.test == 'coverage'
         run: |
           set -eu
           cargo install grcov
@@ -178,6 +185,7 @@ jobs:
 
           echo ASAN_OPTIONS="log_path=${artifacts_dir}/asan.log:print_stats=true" >> $GITHUB_ENV
       - name: Run tests (with coverage collection)
+        if: matrix.test == 'coverage'
         env:
           G_DEBUG: "fatal-criticals"
         run: |
@@ -207,10 +215,12 @@ jobs:
           mv "${raw_cov_dir}"/*.gcov "${cod_cov_dir}"
 
       - name: Run tests (with race detector)
+        if: matrix.test == 'race'
         run: |
           go test -race ./...
 
       - name: Run PAM tests (with Address Sanitizer)
+        if: matrix.test == 'asan'
         env:
           # Do not optimize, keep debug symbols and frame pointer for better
           # stack trace information in case of ASAN errors.
@@ -234,6 +244,7 @@ jobs:
           exit ${exit_code}
 
       - name: Upload coverage to Codecov
+        if: matrix.test == 'coverage'
         uses: codecov/codecov-action@v4
         with:
           directory: ./coverage/codecov
@@ -243,5 +254,5 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: authd-${{ github.job }}-artifacts-${{ github.run_attempt }}
+          name: authd-${{ github.job }}-${{ matrix.test }}-artifacts-${{ github.run_attempt }}
           path: ${{ env.AUTHD_TEST_ARTIFACTS_PATH }}
