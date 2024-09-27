@@ -58,7 +58,7 @@ Show
 
 Hide
 Type "goodpass"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Show
 
 Hide
@@ -68,7 +68,7 @@ Show
 
 Hide
 Type "1234"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Show
 
 Hide
@@ -78,7 +78,7 @@ Show
 
 Hide
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Show
 
 Hide
