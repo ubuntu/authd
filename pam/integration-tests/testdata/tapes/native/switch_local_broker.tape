@@ -6,10 +6,6 @@ Show
 
 Hide
 Type "user-integration-switch-broker"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
