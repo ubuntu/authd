@@ -163,10 +163,9 @@ func (m *Manager) NewSession(brokerID, username, lang, mode string) (sessionID s
 		return "", "", err
 	}
 
-	log.Debug(context.Background(), fmt.Sprintf("%s: New session for %q", sessionID, username))
-
 	m.transactionsToBrokerMu.Lock()
 	defer m.transactionsToBrokerMu.Unlock()
+	log.Debug(context.Background(), fmt.Sprintf("%s: New session for %q", sessionID, username))
 	m.transactionsToBroker[sessionID] = broker
 	return sessionID, encryptionKey, nil
 }
@@ -184,6 +183,8 @@ func (m *Manager) EndSession(sessionID string) error {
 	}
 
 	m.transactionsToBrokerMu.Lock()
+	log.Debug(context.Background(), fmt.Sprintf("%s: End session %q",
+		sessionID, m.transactionsToBroker[sessionID].Name))
 	delete(m.transactionsToBroker, sessionID)
 	m.transactionsToBrokerMu.Unlock()
 	return nil
