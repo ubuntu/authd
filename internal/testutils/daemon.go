@@ -148,6 +148,9 @@ func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err erro
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
 	}
+	if IsAsan() {
+		cmd.Args = append(cmd.Args, "-asan")
+	}
 	if IsRace() {
 		cmd.Args = append(cmd.Args, "-race")
 	}
