@@ -47,7 +47,7 @@ Show
 Hide
 Type "1"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_DEFAULT} * 3
 Show
 
 Sleep ${AUTHD_SLEEP_DEFAULT}

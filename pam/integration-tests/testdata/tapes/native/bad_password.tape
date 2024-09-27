@@ -27,31 +27,31 @@ Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 
 Hide
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Enter
 Show
 
 Hide
 Type "1234"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Enter
 Show
 
 Hide
 Type "12345678"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Enter
 Show
 
 Hide
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Enter
 Show
 
 Hide
 Type "123456789"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Enter
 Show
 
@@ -62,7 +62,7 @@ Show
 
 Hide
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Enter
 Show
 
