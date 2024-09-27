@@ -25,12 +25,7 @@ Show
 Hide
 Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
-Show
-
-Hide
-Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Sleep ${AUTHD_SLEEP_LONG} * 1.5
 Show
 
 Sleep ${AUTHD_SLEEP_DEFAULT}
