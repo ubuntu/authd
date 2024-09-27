@@ -15,12 +15,16 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"math"
+	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/ubuntu/authd/internal/log"
 	"golang.org/x/exp/slices"
 )
 
@@ -80,6 +84,8 @@ type Broker struct {
 	isAuthenticatedCallsMu sync.Mutex
 
 	privateKey *rsa.PrivateKey
+
+	sleepMultiplier float64
 }
 
 type userInfoBroker struct {
@@ -112,6 +118,20 @@ func New(name string) (b *Broker, fullName, brandIcon string) {
 		panic(fmt.Sprintf("could not create an valid rsa key: %v", err))
 	}
 
+	sleepMultiplier := 1.0
+	if v := os.Getenv("AUTHD_EXAMPLE_BROKER_SLEEP_MULTIPLIER"); v != "" {
+		var err error
+		sleepMultiplier, err = strconv.ParseFloat(v, 64)
+		if err != nil {
+			panic(err)
+		}
+		if sleepMultiplier <= 0 {
+			panic("Negative or 0 sleep multiplier is not supported")
+		}
+	}
+
+	log.Debugf(context.TODO(), "Using sleep multiplier: %f", sleepMultiplier)
+
 	return &Broker{
 		currentSessions:        make(map[string]sessionInfo),
 		currentSessionsMu:      sync.RWMutex{},
@@ -120,6 +140,7 @@ func New(name string) (b *Broker, fullName, brandIcon string) {
 		isAuthenticatedCalls:   make(map[string]isAuthenticatedCtx),
 		isAuthenticatedCallsMu: sync.Mutex{},
 		privateKey:             privateKey,
+		sleepMultiplier:        sleepMultiplier,
 	}, strings.ReplaceAll(name, "_", " "), fmt.Sprintf("/usr/share/brokers/%s.png", name)
 }
 
@@ -549,12 +570,18 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 	return access, data, err
 }
 
+func (b *Broker) sleepDuration(in time.Duration) time.Duration {
+	return time.Duration(math.Round(float64(in) * b.sleepMultiplier))
+}
+
 func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (access, data string, err error) {
 	// Decrypt challenge if present.
 	challenge, err := decodeRawChallenge(b.privateKey, authData["challenge"])
 	if err != nil {
 		return AuthRetry, fmt.Sprintf(`{"message": "could not decode challenge: %v"}`, err), nil
 	}
+
+	sleepDuration := b.sleepDuration(2 * time.Second)
 
 	// Note that the "wait" authentication can be cancelled and switch to another mode with a challenge.
 	// Take into account the cancellation.
@@ -586,7 +613,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 		// Send notification to phone1 and wait on server signal to return if OK or not
 		select {
-		case <-time.After(2 * time.Second):
+		case <-time.After(sleepDuration):
 		case <-ctx.Done():
 			return AuthCancelled, "", nil
 		}
@@ -598,7 +625,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 
 		// This one is failing remotely as an example
 		select {
-		case <-time.After(2 * time.Second):
+		case <-time.After(sleepDuration):
 			return AuthDenied, `{"message": "Timeout reached"}`, nil
 		case <-ctx.Done():
 			return AuthCancelled, "", nil
@@ -611,7 +638,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 
 		// simulate direct exchange with the FIDO device
 		select {
-		case <-time.After(2 * time.Second):
+		case <-time.After(sleepDuration):
 		case <-ctx.Done():
 			return AuthCancelled, "", nil
 		}
@@ -622,7 +649,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 		// Simulate connexion with remote server to check that the correct code was entered
 		select {
-		case <-time.After(2 * time.Second):
+		case <-time.After(sleepDuration):
 		case <-ctx.Done():
 			return AuthCancelled, "", nil
 		}
@@ -661,7 +688,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 			// we are simulating clicking on the url signal received by the broker
 			// this can be cancelled to resend a challenge
 			select {
-			case <-time.After(10 * time.Second):
+			case <-time.After(b.sleepDuration(10 * time.Second)):
 			case <-ctx.Done():
 				return AuthCancelled, "", nil
 			}

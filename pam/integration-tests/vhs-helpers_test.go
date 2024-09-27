@@ -164,7 +164,7 @@ func evaluateTapeVariables(t *testing.T, tapeString string) string {
 
 		replaceRegex := regexp.MustCompile(fmt.Sprintf(`(?m)%s$`, regexp.QuoteMeta(fullMatch)))
 		tapeString = replaceRegex.ReplaceAllString(tapeString,
-			fmt.Sprintf("%dms", sleep.Milliseconds()))
+			fmt.Sprintf("%dms", sleepDuration(sleep).Milliseconds()))
 	}
 
 	return tapeString

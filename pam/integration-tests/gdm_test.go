@@ -735,7 +735,7 @@ func TestGdmModule(t *testing.T) {
 
 			var err error
 			select {
-			case <-time.After(30 * time.Second):
+			case <-time.After(sleepDuration(30 * time.Second)):
 				timedOut = true
 				t.Fatal("Authentication timed out!")
 			case err = <-authResult:

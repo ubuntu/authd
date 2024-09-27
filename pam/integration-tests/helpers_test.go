@@ -4,13 +4,16 @@ import (
 	"context"
 	"errors"
 	"io/fs"
+	"math"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
+	"github.com/ubuntu/authd/internal/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -56,4 +59,8 @@ func requirePreviousBrokerForUser(t *testing.T, socketPath string, brokerName st
 func saveArtifactsForDebugOnCleanup(t *testing.T, artifacts []string) {
 	t.Helper()
 	t.Cleanup(func() { saveArtifactsForDebug(t, artifacts) })
+}
+
+func sleepDuration(in time.Duration) time.Duration {
+	return time.Duration(math.Round(float64(in) * testutils.SleepMultiplier()))
 }
