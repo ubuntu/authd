@@ -13,6 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
+	"github.com/ubuntu/authd/internal/testutils"
 )
 
 const (
@@ -98,9 +99,23 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 	outPath := filepath.Join(outputDir, td.Output())
 	out, err := os.ReadFile(outPath)
 	require.NoError(t, err, "Could not read output file of tape %q (%s)", td.Name, outPath)
+	got := string(out)
+
+	if testutils.IsRace() && strings.Contains(got, "WARNING: DATA RACE") &&
+		strings.Contains(got, "bubbles/cursor.(*Model).BlinkCmd.func1") {
+		// FIXME: This is a well known race of bubble tea:
+		// https://github.com/charmbracelet/bubbletea/issues/909
+		// We can't do much here, as the workaround will likely affect the
+		// GUI behavior, but we ignore this since it's definitely not our bug.
+		t.Skip("This is a very well known bubble tea bug (#909), ignoring it")
+		if testutils.IsVerbose() {
+			t.Logf("Ignored bubbletea race:\n%s", got)
+		} else {
+			fmt.Fprintf(os.Stderr, "Ignored bubbletea race:\n%s", got)
+		}
+	}
 
 	// We need to format the output a little bit, since the txt file can have some noise at the beginning.
-	got := string(out)
 	splitTmp := strings.Split(got, "\n")
 	for i, str := range splitTmp {
 		if strings.Contains(str, " ./pam_authd ") {
