@@ -235,10 +235,11 @@ jobs:
           go test -C ./pam/internal -asan -gcflags="-dwarflocationlists=true" -timeout ${GO_TESTS_TIMEOUT} ./...
 
           pushd ./pam/integration-tests
-          go test -asan -gcflags="-dwarflocationlists=true" -timeout ${GO_TESTS_TIMEOUT} -c
+          go test -asan -gcflags="-dwarflocationlists=true" -c
           # FIXME: Suppression may be removed with newer libpam, as the one we ship in ubuntu as some leaks
           env LSAN_OPTIONS=suppressions=$(pwd)/lsan.supp \
             ./integration-tests.test \
+              -test.timeout ${GO_TESTS_TIMEOUT} \
             || exit_code=$?
           popd
 
