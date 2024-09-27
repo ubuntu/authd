@@ -673,11 +673,11 @@ func TestGdmModule(t *testing.T) {
 			moduleArgs := []string{"socket=" + socketPath}
 
 			gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
-			t.Cleanup(func() { saveArtifactsForDebug(t, []string{gdmLog}) })
+			saveArtifactsForDebugOnCleanup(t, []string{gdmLog})
 			moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
-			serviceFile := createServiceFile(t, "gdm-authd", libPath,
-				moduleArgs)
+			serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
+			saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
 
 			pamUser := "user-integration-" + strings.ReplaceAll(filepath.Base(t.Name()), "_", "-")
 			if tc.pamUser != nil {
@@ -788,10 +788,11 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
-	t.Cleanup(func() { saveArtifactsForDebug(t, []string{gdmLog}) })
+	saveArtifactsForDebugOnCleanup(t, []string{gdmLog})
 	moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
+	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
 	pamUser := "user-integration-auth-no-gdm-extension"
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
@@ -830,10 +831,11 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
-	t.Cleanup(func() { saveArtifactsForDebug(t, []string{gdmLog}) })
+	saveArtifactsForDebugOnCleanup(t, []string{gdmLog})
 	moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
+	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
 	pamUser := "user-integration-acctmgmt-no-gdm-extension"
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })

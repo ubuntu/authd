@@ -843,13 +843,24 @@ func getModuleArgs(t *testing.T, clientPath string, args []string) []string {
 	logFile := os.Stderr.Name()
 	if !testutils.IsVerbose() {
 		logFile = prepareFileLogging(t, "exec-module.log")
-		saveArtifactsForDebug(t, []string{logFile})
+		saveArtifactsForDebugOnCleanup(t, []string{logFile})
 	}
 	moduleArgs = append(moduleArgs, "--exec-log", logFile)
 
 	if clientPath != "" {
 		moduleArgs = append(moduleArgs, "--", clientPath)
 		moduleArgs = append(moduleArgs, "-client-log", logFile)
+
+		if len(strings.Join(append(moduleArgs, args...), " ")) > 768 {
+			// FIXME: If the number of arguments is too big, we may break old PAM.
+			// This is not required anymore when we can use libpam 1.6.0 in CI:
+			// https://github.com/linux-pam/linux-pam/pull/658
+			clientArgsPath := filepath.Join(t.TempDir(), "client-args-file")
+			require.NoError(t, os.WriteFile(clientArgsPath, []byte(strings.Join(args, "\t")), 0600),
+				"Setup: Creation of client args file failed")
+			saveArtifactsForDebugOnCleanup(t, []string{clientArgsPath})
+			return append(moduleArgs, "-client-args-file", clientArgsPath)
+		}
 	}
 	return append(moduleArgs, args...)
 }
@@ -891,6 +902,7 @@ func preparePamTransactionForServiceFile(t *testing.T, serviceFile string, user 
 	} else {
 		tx, err = pam.StartConfDir(filepath.Base(serviceFile), user, nil, filepath.Dir(serviceFile))
 	}
+	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
 	require.NoError(t, err, "PAM: Error to initialize module")
 	require.NotNil(t, tx, "PAM: Transaction is not set")
 	t.Cleanup(func() { require.NoError(t, tx.End(), "PAM: can't end transaction") })
