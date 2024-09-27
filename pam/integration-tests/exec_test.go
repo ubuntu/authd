@@ -843,7 +843,6 @@ func getModuleArgs(t *testing.T, clientPath string, args []string) []string {
 	logFile := os.Stderr.Name()
 	if !testutils.IsVerbose() {
 		logFile = prepareFileLogging(t, "exec-module.log")
-		saveArtifactsForDebugOnCleanup(t, []string{logFile})
 	}
 	moduleArgs = append(moduleArgs, "--exec-log", logFile)
 

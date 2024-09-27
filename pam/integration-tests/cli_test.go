@@ -79,8 +79,6 @@ func TestCLIAuthenticate(t *testing.T) {
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
 			cliLog := prepareCLILogging(t)
-			saveArtifactsForDebugOnCleanup(t, []string{cliLog})
-
 			gpasswdOutput := filepath.Join(outDir, "gpasswd.output")
 			groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 			socketPath := runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
@@ -168,8 +166,6 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			}
 
 			cliLog := prepareCLILogging(t)
-			saveArtifactsForDebugOnCleanup(t, []string{cliLog})
-
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			tapePath := td.PrepareTape(t, "cli", outDir)
 			// #nosec:G204 - we control the command arguments in tests

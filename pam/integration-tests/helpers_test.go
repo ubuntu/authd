@@ -19,6 +19,7 @@ func prepareFileLogging(t *testing.T, fileName string) string {
 	t.Helper()
 
 	cliLog := filepath.Join(t.TempDir(), fileName)
+	saveArtifactsForDebugOnCleanup(t, []string{cliLog})
 	t.Cleanup(func() {
 		out, err := os.ReadFile(cliLog)
 		if errors.Is(err, fs.ErrNotExist) {

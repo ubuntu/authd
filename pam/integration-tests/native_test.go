@@ -86,8 +86,6 @@ func TestNativeAuthenticate(t *testing.T) {
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
 			cliLog := prepareCLILogging(t)
-			saveArtifactsForDebugOnCleanup(t, []string{cliLog})
-
 			gpasswdOutput := filepath.Join(outDir, "gpasswd.output")
 			groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 			socketPath := runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
@@ -184,8 +182,6 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			}
 
 			cliLog := prepareCLILogging(t)
-			saveArtifactsForDebugOnCleanup(t, []string{cliLog})
-
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			tapePath := td.PrepareTape(t, "native", outDir)
 			// #nosec:G204 - we control the command arguments in tests

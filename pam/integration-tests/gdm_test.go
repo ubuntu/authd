@@ -673,7 +673,6 @@ func TestGdmModule(t *testing.T) {
 			moduleArgs := []string{"socket=" + socketPath}
 
 			gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
-			saveArtifactsForDebugOnCleanup(t, []string{gdmLog})
 			moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
 			serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
@@ -788,7 +787,6 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
-	saveArtifactsForDebugOnCleanup(t, []string{gdmLog})
 	moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
@@ -831,7 +829,6 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
-	saveArtifactsForDebugOnCleanup(t, []string{gdmLog})
 	moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
