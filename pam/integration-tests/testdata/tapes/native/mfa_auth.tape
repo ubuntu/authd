@@ -60,16 +60,16 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG}
+Sleep ${AUTHD_SLEEP_LONG} * 3
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_LONG} * 3
 Show
 
 Hide
-Sleep ${AUTHD_SLEEP_LONG} * 5
+Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 
 Sleep ${AUTHD_SLEEP_DEFAULT}
