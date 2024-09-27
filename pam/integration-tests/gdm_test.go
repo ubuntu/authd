@@ -877,7 +877,7 @@ func buildPAMModule(t *testing.T) string {
 	}
 	cmd.Args = append(cmd.Args, "-buildmode=c-shared", "-gcflags=-dwarflocationlists=true")
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)
-	if pam_test.IsAddressSanitizerActive() {
+	if testutils.IsAsan() {
 		cmd.Args = append(cmd.Args, "-asan")
 	}
 

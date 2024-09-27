@@ -946,7 +946,7 @@ func buildExecClient(t *testing.T) string {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
 	}
-	if pam_test.IsAddressSanitizerActive() {
+	if testutils.IsAsan() {
 		// -asan is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-asan")
 	}

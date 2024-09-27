@@ -51,7 +51,7 @@ func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, cFl
 	}
 	cmd.Args = append(cmd.Args, cFlags...)
 
-	if pam_test.IsAddressSanitizerActive() {
+	if testutils.IsAsan() {
 		cmd.Args = append(cmd.Args, "-fsanitize=address,undefined")
 	}
 	if cflags := os.Getenv("CFLAGS"); cflags != "" && os.Getenv("DEB_BUILD_ARCH") == "" {
