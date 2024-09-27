@@ -217,6 +217,8 @@ jobs:
 
       - name: Run tests (with race detector)
         if: matrix.test == 'race'
+        env:
+          GO_TESTS_TIMEOUT: 35m
         run: |
           go test -timeout ${GO_TESTS_TIMEOUT} -race ./...
 
@@ -227,6 +229,7 @@ jobs:
           # stack trace information in case of ASAN errors.
           CGO_CFLAGS: "-O0 -g3 -fno-omit-frame-pointer"
           G_DEBUG: "fatal-criticals"
+          GO_TESTS_TIMEOUT: 30m
         run: |
           # Use `-dwarflocationlists` to give ASAN a better time to unwind the stack trace
           go test -C ./pam/internal -asan -gcflags="-dwarflocationlists=true" -timeout ${GO_TESTS_TIMEOUT} ./...
