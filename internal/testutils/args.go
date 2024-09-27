@@ -11,6 +11,8 @@ import (
 var (
 	isAsan        bool
 	isAsanOnce    sync.Once
+	isRace        bool
+	isRaceOnce    sync.Once
 	isVerbose     bool
 	isVerboseOnce sync.Once
 )
@@ -54,4 +56,10 @@ func haveBuildFlag(flag string) bool {
 func IsAsan() bool {
 	isAsanOnce.Do(func() { isAsan = haveBuildFlag("asan") })
 	return isAsan
+}
+
+// IsRace returns whether the tests are running with thread sanitizer.
+func IsRace() bool {
+	isRaceOnce.Do(func() { isRace = haveBuildFlag("race") })
+	return isRace
 }
