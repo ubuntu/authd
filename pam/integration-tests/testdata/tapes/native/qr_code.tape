@@ -59,7 +59,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Sleep ${AUTHD_SLEEP_LONG} * 3
+Sleep ${AUTHD_SLEEP_LONG} * 5
 Show
 
 Sleep ${AUTHD_SLEEP_DEFAULT}

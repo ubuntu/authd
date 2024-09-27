@@ -39,12 +39,12 @@ Show
 
 Hide
 Escape
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_LONG} / 2
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_LONG}
 Show
 
 Hide
@@ -58,7 +58,7 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_LONG} / 2
 Show
 
 Hide

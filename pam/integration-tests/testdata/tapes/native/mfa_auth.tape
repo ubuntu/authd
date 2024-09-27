@@ -60,12 +60,12 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 3
+Sleep ${AUTHD_SLEEP_LONG} * 5
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 3
+Sleep ${AUTHD_SLEEP_LONG} * 5
 Show
 
 Hide

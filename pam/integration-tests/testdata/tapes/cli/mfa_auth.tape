@@ -44,7 +44,7 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Sleep ${AUTHD_SLEEP_LONG}
 Show
 
 Hide

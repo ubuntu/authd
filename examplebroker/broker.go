@@ -581,7 +581,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		return AuthRetry, fmt.Sprintf(`{"message": "could not decode challenge: %v"}`, err)
 	}
 
-	sleepDuration := b.sleepDuration(2 * time.Second)
+	sleepDuration := b.sleepDuration(4 * time.Second)
 
 	// Note that the "wait" authentication can be cancelled and switch to another mode with a challenge.
 	// Take into account the cancellation.
