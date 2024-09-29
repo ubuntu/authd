@@ -34,35 +34,35 @@ Show
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 2
 Show
 
 Hide
 Escape
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG}
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 2
 Show
 
 Hide
-Sleep ${AUTHD_SLEEP_LONG} * 5
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2
 Show
 
 Hide
 Escape
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG}
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 2
 Show
 
 Hide
-Sleep ${AUTHD_SLEEP_LONG} * 5
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2
 Show
 
 Sleep ${AUTHD_SLEEP_DEFAULT}

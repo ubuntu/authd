@@ -28,12 +28,12 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 2
 Show
 
 # Wait for MFA auth to happen
 Hide
-Sleep ${AUTHD_SLEEP_LONG} * 5
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2
 Show
 
 Hide

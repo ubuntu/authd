@@ -29,7 +29,7 @@ Show
 Hide
 Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 3
 Show
 
 Hide
@@ -41,7 +41,7 @@ Show
 Hide
 Type "3"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT} * 0.5
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 3
 Show
 
 Hide
@@ -53,7 +53,7 @@ Show
 Hide
 Type "4"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 3
 Show
 
 Hide
@@ -65,7 +65,7 @@ Show
 Hide
 Type "5"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 3
 Show
 
 Hide

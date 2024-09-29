@@ -28,7 +28,7 @@ Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 3
 Show
 
 Hide
@@ -38,7 +38,7 @@ Show
 
 Hide
 Type "3"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 3
 Show
 
 Hide

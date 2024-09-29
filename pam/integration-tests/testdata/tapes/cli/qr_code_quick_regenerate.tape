@@ -33,7 +33,7 @@ Show
 
 Hide
 Tab
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT} / 3
 Show
 
 Hide

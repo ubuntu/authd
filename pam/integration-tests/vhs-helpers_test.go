@@ -41,6 +41,9 @@ var (
 	defaultSleepValues = map[string]time.Duration{
 		"AUTHD_SLEEP_DEFAULT": 300 * time.Millisecond,
 		"AUTHD_SLEEP_LONG":    1 * time.Second,
+		// Keep these in sync with example broker default wait times
+		"AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT":    4 * time.Second,
+		"AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT": 4 * time.Second,
 	}
 
 	vhsSleepRegex = regexp.MustCompile(`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?.*$`)
