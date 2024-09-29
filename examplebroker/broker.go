@@ -582,7 +582,11 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 	}
 
 	exampleUsersMu.Lock()
-	defer exampleUsersMu.Unlock()
+	user, userExists := exampleUsers[sessionInfo.username]
+	exampleUsersMu.Unlock()
+	if !userExists {
+		return AuthDenied, `{"message": "user not found"}`
+	}
 
 	sleepDuration := b.sleepDuration(4 * time.Second)
 
@@ -590,7 +594,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 	// Take into account the cancellation.
 	switch sessionInfo.currentAuthMode {
 	case "password":
-		expectedChallenge := exampleUsers[sessionInfo.username].Password
+		expectedChallenge := user.Password
 
 		if challenge != expectedChallenge {
 			return AuthRetry, fmt.Sprintf(`{"message": "invalid password '%s', should be '%s'"}`, challenge, expectedChallenge)
@@ -664,14 +668,16 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		expectedChallenge := "authd2404"
 		// Reset the password to default if it had already been changed.
 		// As at PAM level we'd refuse a previous password to be re-used.
-		if exampleUsers[sessionInfo.username].Password == expectedChallenge {
+		if user.Password == expectedChallenge {
 			expectedChallenge = "goodpass"
 		}
 
 		if challenge != expectedChallenge {
 			return AuthRetry, fmt.Sprintf(`{"message": "new password does not match criteria: must be '%s'"}`, expectedChallenge)
 		}
+		exampleUsersMu.Lock()
 		exampleUsers[sessionInfo.username] = userInfoBroker{Password: challenge}
+		exampleUsersMu.Unlock()
 	}
 
 	// this case name was dynamically generated
@@ -695,9 +701,6 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 	}
 
-	if _, exists := exampleUsers[sessionInfo.username]; !exists {
-		return AuthDenied, `{"message": "user not found"}`
-	}
 	return AuthGranted, fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionInfo.username))
 }
 
