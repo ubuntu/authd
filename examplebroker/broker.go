@@ -581,14 +581,15 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		return AuthRetry, fmt.Sprintf(`{"message": "could not decode challenge: %v"}`, err)
 	}
 
+	exampleUsersMu.Lock()
+	defer exampleUsersMu.Unlock()
+
 	sleepDuration := b.sleepDuration(4 * time.Second)
 
 	// Note that the "wait" authentication can be cancelled and switch to another mode with a challenge.
 	// Take into account the cancellation.
 	switch sessionInfo.currentAuthMode {
 	case "password":
-		exampleUsersMu.RLock()
-		defer exampleUsersMu.RUnlock()
 		expectedChallenge := exampleUsers[sessionInfo.username].Password
 
 		if challenge != expectedChallenge {
@@ -660,9 +661,6 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 		fallthrough
 	case "mandatoryreset":
-		exampleUsersMu.Lock()
-		defer exampleUsersMu.Unlock()
-
 		expectedChallenge := "authd2404"
 		// Reset the password to default if it had already been changed.
 		// As at PAM level we'd refuse a previous password to be re-used.
