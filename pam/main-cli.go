@@ -20,14 +20,14 @@ import (
 
 // Simulating pam on the CLI for manual testing.
 func main() {
-	logDir := os.Getenv("AUTHD_PAM_CLI_LOG_DIR")
-	supportsConversation := os.Getenv("AUTHD_PAM_CLI_SUPPORTS_CONVERSATION") != ""
-	execModule := os.Getenv("AUTHD_PAM_EXEC_MODULE")
-	cliPath := os.Getenv("AUTHD_PAM_CLI_PATH")
-	testName := os.Getenv("AUTHD_PAM_CLI_TEST_NAME")
-	pamUser := os.Getenv("AUTHD_PAM_CLI_USER")
-	pamEnvs := os.Getenv("AUTHD_PAM_CLI_ENVS")
-	pamService := os.Getenv("AUTHD_PAM_CLI_SERVICE")
+	logDir := os.Getenv(pam_test.ClientEnvLogDir)
+	supportsConversation := os.Getenv(pam_test.ClientEnvSupportsConversation) != ""
+	execModule := os.Getenv(pam_test.ClientEnvExecModule)
+	cliPath := os.Getenv(pam_test.ClientEnvPath)
+	testName := os.Getenv(pam_test.ClientEnvTestName)
+	pamUser := os.Getenv(pam_test.ClientEnvUser)
+	pamEnvs := os.Getenv(pam_test.ClientEnvEnvs)
+	pamService := os.Getenv(pam_test.ClientEnvService)
 
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "pam-cli-tester-")
 	if err != nil {
@@ -100,7 +100,7 @@ func main() {
 	}
 
 	if pamEnvs != "" {
-		for _, env := range strings.Split(pamEnvs, "\n") {
+		for _, env := range strings.Split(pamEnvs, ";") {
 			err = tx.PutEnv(env)
 			if err != nil {
 				log.Fatalf("Impossible to set environment: %v", err)

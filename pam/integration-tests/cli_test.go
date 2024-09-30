@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
+	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
 var daemonPath string
@@ -20,29 +21,25 @@ var daemonPath string
 func TestCLIAuthenticate(t *testing.T) {
 	t.Parallel()
 
-	// If vhs is installed with "go install", we need to add GOPATH to PATH.
-	pathEnv := prependBinToPath(t)
-
 	clientPath := t.TempDir()
 	cliEnv := prepareClientTest(t, clientPath)
+	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 
 	tests := map[string]struct {
 		tape         string
 		tapeSettings []tapeSetting
 
+		clientOptions      clientOptions
 		currentUserNotRoot bool
-		termEnv            string
-		sessionEnv         string
-		pamUser            string
 	}{
 		"Authenticate user successfully":                                       {tape: "simple_auth"},
-		"Authenticate user successfully with preset user":                      {tape: "simple_auth_with_preset_user"},
+		"Authenticate user successfully with preset user":                      {tape: "simple_auth_with_preset_user", clientOptions: clientOptions{PamUser: "user-integration-simple-preset"}},
 		"Authenticate user with mfa":                                           {tape: "mfa_auth"},
 		"Authenticate user with form mode with button":                         {tape: "form_with_button"},
-		"Authenticate user with qr code":                                       {tape: "qr_code", pamUser: "user-integration-qr-code"},
-		"Authenticate user with qr code in a TTY":                              {tape: "qr_code", tapeSettings: []tapeSetting{{vhsHeight, 650}}, pamUser: "user-integration-qr-code-tty", termEnv: "linux"},
-		"Authenticate user with qr code in a TTY session":                      {tape: "qr_code", tapeSettings: []tapeSetting{{vhsHeight, 650}}, pamUser: "user-integration-qr-code-tty-session", termEnv: "xterm-256color", sessionEnv: "tty"},
-		"Authenticate user with qr code in screen":                             {tape: "qr_code", tapeSettings: []tapeSetting{{vhsHeight, 650}}, pamUser: "user-integration-qr-code-screen", termEnv: "screen"},
+		"Authenticate user with qr code":                                       {tape: "qr_code", clientOptions: clientOptions{PamUser: "user-integration-qr-code"}},
+		"Authenticate user with qr code in a TTY":                              {tape: "qr_code", tapeSettings: []tapeSetting{{vhsHeight, 650}}, clientOptions: clientOptions{PamUser: "user-integration-qr-code-tty", Term: "linux"}},
+		"Authenticate user with qr code in a TTY session":                      {tape: "qr_code", tapeSettings: []tapeSetting{{vhsHeight, 650}}, clientOptions: clientOptions{PamUser: "user-integration-qr-code-tty-session", Term: "xterm-256color", SessionType: "tty"}},
+		"Authenticate user with qr code in screen":                             {tape: "qr_code", tapeSettings: []tapeSetting{{vhsHeight, 650}}, clientOptions: clientOptions{PamUser: "user-integration-qr-code-screen", Term: "screen"}},
 		"Authenticate user with qr code after many regenerations":              {tape: "qr_code_quick_regenerate", tapeSettings: []tapeSetting{{vhsHeight, 650}}},
 		"Authenticate user and reset password while enforcing policy":          {tape: "mandatory_password_reset"},
 		"Authenticate user with mfa and reset password while enforcing policy": {tape: "mfa_reset_pwquality_auth"},
@@ -55,9 +52,9 @@ func TestCLIAuthenticate(t *testing.T) {
 
 		"Remember last successful broker and mode":      {tape: "remember_broker_and_mode"},
 		"Autoselect local broker for local user":        {tape: "local_user"},
-		"Autoselect local broker for local user preset": {tape: "local_user_preset"},
+		"Autoselect local broker for local user preset": {tape: "local_user_preset", clientOptions: clientOptions{PamUser: "root"}},
 
-		"Prevent user from switching username": {tape: "switch_preset_username", pamUser: "user-integration-pam-preset"},
+		"Prevent user from switching username": {tape: "switch_preset_username", clientOptions: clientOptions{PamUser: "user-integration-pam-preset"}},
 
 		"Deny authentication if current user is not considered as root": {tape: "not_root", currentUserNotRoot: true},
 
@@ -77,36 +74,14 @@ func TestCLIAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			cliLog := prepareCLILogging(t)
 			gpasswdOutput := filepath.Join(outDir, "gpasswd.output")
 			groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 			socketPath := runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
 
-			const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 			td := newTapeData(tc.tape, tc.tapeSettings...)
-			tapePath := td.PrepareTape(t, "cli", outDir)
-			// #nosec:G204 - we control the command arguments in tests
-			cmd := exec.Command("env", "vhs", tapePath)
-			cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
-			cmd.Env = append(cmd.Env,
-				pathEnv,
-				fmt.Sprintf("%s=%s", socketPathEnv, socketPath),
-				fmt.Sprintf("AUTHD_PAM_CLI_LOG_DIR=%s", filepath.Dir(cliLog)),
-				fmt.Sprintf("AUTHD_PAM_CLI_TEST_NAME=%s", t.Name()))
-			if tc.pamUser != "" {
-				cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_USER=%s", tc.pamUser))
-			}
-			if tc.termEnv != "" {
-				cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PAM_CLI_TERM=%s", tc.termEnv))
-			}
-			if tc.sessionEnv != "" {
-				cmd.Env = append(cmd.Env, fmt.Sprintf("XDG_SESSION_TYPE=%s", tc.sessionEnv))
-			}
-			cmd.Dir = outDir
-
-			out, err := cmd.CombinedOutput()
-			require.NoError(t, err, "Failed to run tape %q: %v: %s", tc.tape, err, out)
-
+			td.Env[socketPathEnv] = socketPath
+			td.AddClientOptions(t, tc.clientOptions)
+			td.RunVhs(t, "cli", outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
@@ -130,9 +105,6 @@ func TestCLIChangeAuthTok(t *testing.T) {
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
 	defaultSocketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
-
-	// If vhs is installed with "go install", we need to add GOPATH to PATH.
-	pathEnv := prependBinToPath(t)
 
 	tests := map[string]struct {
 		tape         string
@@ -164,21 +136,10 @@ func TestCLIChangeAuthTok(t *testing.T) {
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, false)
 			}
 
-			cliLog := prepareCLILogging(t)
 			td := newTapeData(tc.tape, tc.tapeSettings...)
-			tapePath := td.PrepareTape(t, "cli", outDir)
-			// #nosec:G204 - we control the command arguments in tests
-			cmd := exec.Command("env", "vhs", tapePath)
-			cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
-			cmd.Env = append(cmd.Env, pathEnv,
-				fmt.Sprintf("%s=%s", socketPathEnv, socketPath),
-				fmt.Sprintf("AUTHD_PAM_CLI_LOG_DIR=%s", filepath.Dir(cliLog)),
-				fmt.Sprintf("AUTHD_PAM_CLI_TEST_NAME=%s", t.Name()))
-			cmd.Dir = outDir
-
-			out, err := cmd.CombinedOutput()
-			require.NoError(t, err, "Failed to run tape %q: %v: %s", tc.tape, err, out)
-
+			td.Env[socketPathEnv] = socketPath
+			td.AddClientOptions(t, clientOptions{})
+			td.RunVhs(t, "cli", outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
@@ -248,8 +209,8 @@ func prepareClientTest(t *testing.T, clientPath string) []string {
 	t.Cleanup(pamCleanup)
 
 	return []string{
-		fmt.Sprintf("AUTHD_PAM_EXEC_MODULE=%s", buildExecModule(t)),
-		fmt.Sprintf("AUTHD_PAM_CLI_PATH=%s", buildPAMClient(t)),
+		fmt.Sprintf("%s=%s", pam_test.ClientEnvExecModule, buildExecModule(t)),
+		fmt.Sprintf("%s=%s", pam_test.ClientEnvPath, buildPAMClient(t)),
 	}
 }
 
