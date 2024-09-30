@@ -1,8 +1,8 @@
 package pam_test
 
 const (
-	// ClientEnvLogDir is the environment variable used by the test client to set the log directory.
-	ClientEnvLogDir = "AUTHD_PAM_CLIENT_LOG_DIR"
+	// ClientEnvLogFile is the environment variable used by the test client to set the log file.
+	ClientEnvLogFile = "AUTHD_PAM_CLIENT_LOG_FILE"
 	// ClientEnvSupportsConversation is the environment variable used by the test client to set whether it supports PAM conversations.
 	ClientEnvSupportsConversation = "AUTHD_PAM_CLIENT_SUPPORTS_CONVERSATION"
 	// ClientEnvExecModule is the environment variable used by the test client to set the exec module library path.

@@ -20,7 +20,7 @@ import (
 
 // Simulating pam on the CLI for manual testing.
 func main() {
-	logDir := os.Getenv(pam_test.ClientEnvLogDir)
+	logFile := os.Getenv(pam_test.ClientEnvLogFile)
 	supportsConversation := os.Getenv(pam_test.ClientEnvSupportsConversation) != ""
 	execModule := os.Getenv(pam_test.ClientEnvExecModule)
 	cliPath := os.Getenv(pam_test.ClientEnvPath)
@@ -50,10 +50,9 @@ func main() {
 	}
 
 	defaultArgs := []string{cliPath, "debug=true"}
-	if logDir != "" {
-		logPath := filepath.Join(logDir, "authd-pam-cli.log")
-		defaultArgs = append(defaultArgs, "logfile="+logPath)
-		defaultArgs = append(defaultArgs, "--exec-debug", "--exec-log", logPath)
+	if logFile != "" {
+		defaultArgs = append(defaultArgs, "logfile="+logFile)
+		defaultArgs = append(defaultArgs, "--exec-debug", "--exec-log", logFile)
 	}
 
 	if coverDir := os.Getenv("GOCOVERDIR"); coverDir != "" {

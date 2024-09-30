@@ -90,7 +90,8 @@ type clientOptions struct {
 func (td *tapeData) AddClientOptions(t *testing.T, opts clientOptions) {
 	t.Helper()
 
-	td.Env[pam_test.ClientEnvLogDir] = filepath.Dir(prepareCLILogging(t))
+	logFile := prepareFileLogging(t, "authd-pam-test-client.log")
+	td.Env[pam_test.ClientEnvLogFile] = logFile
 	td.Env[pam_test.ClientEnvTestName] = t.Name()
 
 	if opts.PamUser != "" {
@@ -121,9 +122,9 @@ func (td tapeData) RunVhs(t *testing.T, tapesDir, outDir string, cliEnv []string
 	cmd.Env = append(cmd.Env, prependBinToPath(t))
 
 	// Move some of the environment specific-variables from the tape to the launched process
-	if e, ok := td.Env[pam_test.ClientEnvLogDir]; ok {
-		delete(td.Env, pam_test.ClientEnvLogDir)
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", pam_test.ClientEnvLogDir, e))
+	if e, ok := td.Env[pam_test.ClientEnvLogFile]; ok {
+		delete(td.Env, pam_test.ClientEnvLogFile)
+		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", pam_test.ClientEnvLogFile, e))
 	}
 
 	cmd.Args = append(cmd.Args, td.PrepareTape(t, tapesDir, outDir))

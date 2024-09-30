@@ -214,12 +214,6 @@ func prepareClientTest(t *testing.T, clientPath string) []string {
 	}
 }
 
-func prepareCLILogging(t *testing.T) string {
-	t.Helper()
-
-	return prepareFileLogging(t, "authd-pam-cli.log")
-}
-
 // buildPAMTestClient builds the PAM module in a temporary directory and returns a cleanup function.
 func buildPAMTestClient(execPath string) (cleanup func(), err error) {
 	cmd := exec.Command("go", "build")
