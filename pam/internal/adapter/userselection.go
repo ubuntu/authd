@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -17,6 +18,7 @@ type userSelectionModel struct {
 
 	pamMTx     pam.ModuleTransaction
 	clientType PamClientType
+	enabled    bool
 }
 
 // userSelected events to report that a new username has been selected.
@@ -71,18 +73,36 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case userSelected:
 		log.Debugf(context.TODO(), "%#v", msg)
+		currentUser, err := m.pamMTx.GetItem(pam.User)
+		if err != nil {
+			return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+		}
+		if !m.enabled && currentUser != "" && msg.username != currentUser {
+			sendEvent(pamError{
+				status: pam.ErrPermDenied,
+				msg:    fmt.Sprintf("Changing username %s to %s is not allowed", m.Value(), msg.username),
+			})
+			return m, nil
+		}
+		if msg.username != "" && currentUser != msg.username {
+			if err := m.pamMTx.SetItem(pam.User, msg.username); err != nil {
+				return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+			}
+		}
 		if msg.username != "" {
 			// synchronise our internal validated field and the text one.
 			m.SetValue(msg.username)
-			if err := m.pamMTx.SetItem(pam.User, msg.username); err != nil {
-				return m, sendEvent(pamError{status: pam.ErrAbort, msg: err.Error()})
-			}
 			return m, sendEvent(UsernameOrBrokerListReceived{})
 		}
 		return m, nil
 
 	case userRequired:
+		m.enabled = true
 		return m, sendEvent(ChangeStage{Stage: proto.Stage_userSelection})
+	}
+
+	if !m.enabled {
+		return m, nil
 	}
 
 	if m.clientType != InteractiveTerminal {
@@ -106,4 +126,9 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 	var cmd tea.Cmd
 	m.Model, cmd = m.Model.Update(msg)
 	return m, cmd
+}
+
+// Enabled returns whether the interactive user selection is enabled.
+func (m userSelectionModel) Enabled() bool {
+	return m.enabled
 }

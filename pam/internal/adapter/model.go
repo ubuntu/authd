@@ -147,7 +147,9 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			var cmd tea.Cmd
 			switch m.currentStage() {
 			case pam_proto.Stage_brokerSelection:
-				cmd = m.changeStage(pam_proto.Stage_userSelection)
+				if m.userSelectionModel.Enabled() {
+					cmd = m.changeStage(pam_proto.Stage_userSelection)
+				}
 			case pam_proto.Stage_authModeSelection:
 				cmd = m.changeStage(pam_proto.Stage_brokerSelection)
 			case pam_proto.Stage_challenge:

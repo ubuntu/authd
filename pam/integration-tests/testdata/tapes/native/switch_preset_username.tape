@@ -1,10 +1,10 @@
-Output simple_auth.txt
-Output simple_auth.gif # If we don't specify a .gif output, it will create a default out.gif file.
+Output switch_preset_username.txt
+Output switch_preset_username.gif # If we don't specify a .gif output, it will create a default out.gif file.
 
 # Configuration header to standardize the output.
 # Does not work with the "Source" command.
 Set Width 800
-Set Height 500
+Set Height 700
 # TODO: Ideally, we should use Ubuntu Mono. However, the github runner is still on Jammy, which does not have it.
 # We should update this to use Ubuntu Mono once the runner is updated.
 Set FontFamily "Monospace"
@@ -20,11 +20,37 @@ Sleep 300ms
 Show
 
 Hide
-Type "user1"
+Type "r"
+Enter
 Sleep 300ms
 Show
 
 Hide
+Type "2"
+Enter
+Sleep 500ms
+Show
+
+Hide
+Type "r"
+Enter
+Sleep 300ms
+Show
+
+Hide
+Type "r"
+Enter
+Sleep 300ms
+Show
+
+Hide
+Type "r"
+Enter
+Sleep 300ms
+Show
+
+Hide
+Type "r"
 Enter
 Sleep 300ms
 Show

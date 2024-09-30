@@ -1,5 +1,5 @@
-Output simple_auth.txt
-Output simple_auth.gif # If we don't specify a .gif output, it will create a default out.gif file.
+Output switch_preset_username.txt
+Output switch_preset_username.gif # If we don't specify a .gif output, it will create a default out.gif file.
 
 # Configuration header to standardize the output.
 # Does not work with the "Source" command.
@@ -14,25 +14,39 @@ Set Margin 0
 Set Shell bash
 
 Hide
-Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true"
+Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}"
 Enter
 Sleep 300ms
 Show
 
 Hide
-Type "user1"
-Sleep 300ms
-Show
-
-Hide
-Enter
+Escape
 Sleep 300ms
 Show
 
 Hide
 Type "2"
-Enter
-Sleep 500ms
+Sleep 300ms
+Show
+
+Hide
+Escape
+Sleep 300ms
+Show
+
+Hide
+Escape
+Sleep 300ms
+Show
+
+Hide
+Escape 10
+Sleep 300ms
+Show
+
+Hide
+Type "2"
+Sleep 300ms
 Show
 
 Hide

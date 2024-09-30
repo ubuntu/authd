@@ -61,6 +61,8 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Autoselect local broker for local user":        {tape: "local_user"},
 		"Autoselect local broker for local user preset": {tape: "local_user_preset"},
 
+		"Prevent user from switching username": {tape: "switch_preset_username", pamUser: "user-integration-pam-preset"},
+
 		"Deny authentication if current user is not considered as root": {tape: "not_root", currentUserNotRoot: true},
 
 		"Deny authentication if max attempts reached":                         {tape: "max_attempts"},

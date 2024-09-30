@@ -1,6 +1,6 @@
 > env AUTHD_PAM_CLI_USER=user3 ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOC
 K} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
@@ -33,7 +33,7 @@ Select broker:
 ────────────────────────────────────────────────────────────────────────────────
 > env AUTHD_PAM_CLI_USER=user3 ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOC
 K} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -66,7 +66,7 @@ Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > env AUTHD_PAM_CLI_USER=user3 ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOC
 K} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -99,7 +99,7 @@ PAM AcctMgmt() exited with success
 ────────────────────────────────────────────────────────────────────────────────
 > env AUTHD_PAM_CLI_USER=user3 ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOC
 K} force_native_client=true
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2

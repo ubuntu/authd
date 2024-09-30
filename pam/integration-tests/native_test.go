@@ -44,7 +44,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Authenticate user with qr code in a TTY":                              {tape: "qr_code", pamUser: "user-integration-qr-code-tty", termEnv: "linux"},
 		"Authenticate user with qr code in a TTY session":                      {tape: "qr_code", pamUser: "user-integration-qr-code-tty-session", termEnv: "xterm-256color", sessionEnv: "tty"},
 		"Authenticate user with qr code in screen":                             {tape: "qr_code", pamUser: "user-integration-qr-code-screen", termEnv: "screen"},
-		"Authenticate user with qr code in polkit":                             {tape: "qr_code", pamUser: "user-integration-qr-code-screen", pamServiceName: "polkit-1"},
+		"Authenticate user with qr code in polkit":                             {tape: "qr_code", pamUser: "user-integration-qr-code-polkit", pamServiceName: "polkit-1"},
 		"Authenticate user with qr code in ssh":                                {tape: "qr_code", pamUser: "user-integration-pre-check-ssh-service-qr-code", pamServiceName: "sshd"},
 		"Authenticate user and reset password while enforcing policy":          {tape: "mandatory_password_reset"},
 		"Authenticate user with mfa and reset password while enforcing policy": {tape: "mfa_reset_pwquality_auth"},
@@ -69,6 +69,8 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Deny authentication if user does not exist":                          {tape: "unexistent_user"},
 		"Deny authentication if user does not exist and matches cancel key":   {tape: "cancel_key_user"},
 		"Deny authentication if newpassword does not match required criteria": {tape: "bad_password"},
+
+		"Prevent preset user from switching username": {tape: "switch_preset_username", pamUser: "user-integration-pam-preset"},
 
 		"Exit authd if local broker is selected":                                    {tape: "local_broker"},
 		"Exit if user is not pre-checked on ssh service":                            {tape: "local_ssh", pamUser: "user-integration-ssh-service", pamServiceName: "sshd"},
