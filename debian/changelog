@@ -1,3 +1,26 @@
+authd (0.3.5) noble; urgency=medium
+
+  * CVE-2024-9313: Do not allow to change PAM user if provided
+  * Do not report the authentication denied PAM error twice
+  * Highlight PAM error messages better in tests
+  * Do not render QR code in SSH sessions at all
+
+ -- Didier Roche-Tolomelli <didrocks@ubuntu.com>  Mon, 30 Sep 2024 15:31:48 +0200
+
+authd (0.3.4) noble; urgency=medium
+
+  * Fix an issue which could cause authd to time out during startup
+  * Generate UIDs and GIDs from a wider range
+  * Rate limit the emission of reselect auth mode events
+  * Better error messages
+  * Avoid excessive warning messages in the logs
+  * More debug messages
+  * Revert tonic-build rust dep to 0.11.0 to fix build on noble
+  * Build with Go 1.23 backported to the PPA
+  * Updated internal dependencies
+
+ -- Didier Roche-Tolomelli <didrocks@ubuntu.com>  Thu, 19 Sep 2024 15:28:07 +0200
+
 authd (0.3.3) noble; urgency=medium
 
   * Fix NSS module not being readded to nsswitch.conf on reinstall
