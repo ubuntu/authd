@@ -34,20 +34,20 @@ Show
 
 Hide
 Type "1234"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Enter
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "12345678"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Enter
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Enter
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
@@ -57,13 +57,13 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Enter
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
