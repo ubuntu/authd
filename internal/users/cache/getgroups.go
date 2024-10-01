@@ -2,7 +2,6 @@ package cache
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"go.etcd.io/bbolt"
@@ -23,26 +22,23 @@ func NewGroupDB(name string, gid uint32, members []string) GroupDB {
 }
 
 // GroupByID returns a group matching this gid or an error if the database is corrupted or no entry was found.
-// Upon corruption, clearing the database is requested.
 func (c *Cache) GroupByID(gid uint32) (GroupDB, error) {
 	return getGroup(c, groupByIDBucketName, gid)
 }
 
 // GroupByName returns a group matching a given name or an error if the database is corrupted or no entry was found.
-// Upon corruption, clearing the database is requested.
 func (c *Cache) GroupByName(name string) (GroupDB, error) {
 	return getGroup(c, groupByNameBucketName, name)
 }
 
 // AllGroups returns all groups or an error if the database is corrupted.
-// Upon corruption, clearing the database is requested.
 func (c *Cache) AllGroups() (all []GroupDB, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		return buckets[groupByIDBucketName].ForEach(func(key, value []byte) error {
@@ -63,14 +59,14 @@ func (c *Cache) AllGroups() (all []GroupDB, err error) {
 	})
 
 	if err != nil {
-		return nil, errors.Join(ErrNeedsClearing, err)
+		return nil, err
 	}
 
 	return all, nil
 }
 
 // getGroup returns a group matching the key and its members or an error if the database is corrupted
-// or no entry was found. Upon corruption, clearing the database is requested.
+// or no entry was found.
 func getGroup[K uint32 | string](c *Cache, bucketName string, key K) (GroupDB, error) {
 	var groupName string
 	var gid uint32
@@ -81,16 +77,12 @@ func getGroup[K uint32 | string](c *Cache, bucketName string, key K) (GroupDB, e
 	err := c.db.View(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		// Get id and name of the group.
 		g, err := getFromBucket[groupDB](buckets[bucketName], key)
 		if err != nil {
-			// no entry is valid, no need to clean the database but return the error.
-			if !errors.Is(err, NoDataFoundError{}) {
-				err = errors.Join(ErrNeedsClearing, err)
-			}
 			return err
 		}
 
@@ -100,7 +92,7 @@ func getGroup[K uint32 | string](c *Cache, bucketName string, key K) (GroupDB, e
 		// Get user names in the group.
 		users, err = getUsersInGroup(buckets, gid)
 		if err != nil {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		return nil

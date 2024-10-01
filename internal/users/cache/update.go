@@ -27,13 +27,13 @@ func (c *Cache) UpdateUserEntry(usr UserDB, groupContents []GroupDB) error {
 	err := c.db.Update(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		previousGroupsForCurrentUser, err := getFromBucket[userToGroupsDB](buckets[userToGroupsBucketName], userDB.UID)
 		// No data is valid and means this is the first insertion.
 		if err != nil && !errors.Is(err, NoDataFoundError{}) {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		/* 1. Handle user update */
@@ -48,7 +48,7 @@ func (c *Cache) UpdateUserEntry(usr UserDB, groupContents []GroupDB) error {
 
 		/* 3. Users and groups mapping buckets */
 		if err := updateUsersAndGroups(buckets, userDB.UID, groupContents, previousGroupsForCurrentUser.GIDs); err != nil {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		return nil
@@ -61,7 +61,7 @@ func (c *Cache) UpdateUserEntry(usr UserDB, groupContents []GroupDB) error {
 func updateUser(buckets map[string]bucketWithName, userContent userDB) error {
 	existingUser, err := getFromBucket[userDB](buckets[userByIDBucketName], userContent.UID)
 	if err != nil && !errors.Is(err, NoDataFoundError{}) {
-		return errors.Join(ErrNeedsClearing, err)
+		return err
 	}
 
 	// If a user with the same UID exists, we need to ensure that it's the same user or fail the update otherwise.
@@ -89,7 +89,7 @@ func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) er
 	for _, groupContent := range groupContents {
 		existingGroup, err := getFromBucket[groupDB](buckets[groupByIDBucketName], groupContent.GID)
 		if err != nil && !errors.Is(err, NoDataFoundError{}) {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		// If a group with the same GID exists, we need to ensure that it's the same group or fail the update otherwise.
@@ -175,7 +175,7 @@ func (c *Cache) UpdateBrokerForUser(username, brokerID string) error {
 	err = c.db.Update(func(tx *bbolt.Tx) error {
 		bucket, err := getBucket(tx, userToBrokerBucketName)
 		if err != nil {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 		updateBucket(bucket, u.UID, brokerID)
 		return nil

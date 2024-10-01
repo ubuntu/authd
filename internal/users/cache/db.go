@@ -3,9 +3,7 @@ package cache
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
@@ -97,13 +95,9 @@ func New(cacheDir string) (cache *Cache, err error) {
 }
 
 // openAndInitDB open a pre-existing database and potentially initializes its buckets.
-// It clears up any database previously marked as dirty or if it’s corrupted.
 func openAndInitDB(path string) (*bbolt.DB, error) {
 	db, err := bbolt.Open(path, 0600, nil)
 	if err != nil {
-		if errors.Is(err, bbolt.ErrInvalid) {
-			return nil, ErrNeedsClearing
-		}
 		return nil, fmt.Errorf("can't open database file: %v", err)
 	}
 	// Fail if permissions are not 0600
@@ -162,28 +156,6 @@ func (c *Cache) Close() error {
 // RemoveDb removes the database file.
 func RemoveDb(cacheDir string) error {
 	return os.Remove(filepath.Join(cacheDir, dbName))
-}
-
-// Clear closes the db and reopens it.
-func (c *Cache) Clear(cacheDir string) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if err := c.db.Close(); err != nil && !errors.Is(err, bbolt.ErrDatabaseNotOpen) {
-		return fmt.Errorf("could not close database: %v", err)
-	}
-
-	if err := RemoveDb(cacheDir); err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return fmt.Errorf("could not delete %v to clear up cache: %v", filepath.Join(cacheDir, dbName), err)
-	}
-
-	db, err := openAndInitDB(filepath.Join(cacheDir, dbName))
-	if err != nil {
-		panic(fmt.Sprintf("CRITICAL: unrecoverable state: could not recreate database: %v", err))
-	}
-	c.db = db
-
-	return nil
 }
 
 // bucketWithName is a wrapper adding the name on top of a bbolt Bucket.
@@ -256,6 +228,3 @@ func (err NoDataFoundError) Error() string {
 
 // Is makes this error insensitive to the key and bucket name.
 func (NoDataFoundError) Is(target error) bool { return target == NoDataFoundError{} }
-
-// ErrNeedsClearing is returned when the database is corrupted and needs to be cleared.
-var ErrNeedsClearing = errors.New("database needs to be cleared and rebuilt")

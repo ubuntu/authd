@@ -7,18 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
-	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/ubuntu/authd/internal/users/cache"
 	"github.com/ubuntu/authd/internal/users/localgroups"
 	"github.com/ubuntu/decorate"
-)
-
-var (
-	dirtyFlagName = ".corrupted"
 )
 
 // Config is the configuration for the user manager.
@@ -39,13 +32,8 @@ var DefaultConfig = Config{
 
 // Manager is the manager for any user related operation.
 type Manager struct {
-	cache         *cache.Cache
-	config        Config
-	dirtyFlagPath string
-
-	doClear        chan struct{}
-	quit           chan struct{}
-	cleanupStopped chan struct{}
+	cache  *cache.Cache
+	config Config
 }
 
 // NewManager creates a new user manager.
@@ -61,45 +49,20 @@ func NewManager(config Config, cacheDir string) (m *Manager, err error) {
 	}
 
 	m = &Manager{
-		config:         config,
-		dirtyFlagPath:  filepath.Join(cacheDir, dirtyFlagName),
-		doClear:        make(chan struct{}),
-		quit:           make(chan struct{}),
-		cleanupStopped: make(chan struct{}),
+		config: config,
 	}
 
-	for i := 0; i < 2; i++ {
-		c, err := cache.New(cacheDir)
-		if err != nil && errors.Is(err, cache.ErrNeedsClearing) {
-			if err := cache.RemoveDb(cacheDir); err != nil {
-				return nil, fmt.Errorf("could not clear database: %v", err)
-			}
-			if err := localgroups.Clean(); err != nil {
-				slog.Warn(fmt.Sprintf("Could not clean local groups: %v", err))
-			}
-			continue
-		} else if err != nil {
-			return nil, err
-		}
-		m.cache = c
-		break
+	c, err := cache.New(cacheDir)
+	if err != nil {
+		return nil, err
 	}
-
-	if m.isMarkedCorrupted() {
-		if err := m.clear(cacheDir); err != nil {
-			return nil, fmt.Errorf("could not clear corrupted data: %v", err)
-		}
-	}
-
-	m.startUserCleanupRoutine(cacheDir)
+	m.cache = c
 
 	return m, nil
 }
 
 // Stop closes the underlying cache.
 func (m *Manager) Stop() error {
-	close(m.quit)
-	<-m.cleanupStopped
 	return m.cache.Close()
 }
 
@@ -145,12 +108,12 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	// Update user information in the cache.
 	userDB := cache.NewUserDB(u.Name, u.UID, *u.Groups[0].GID, u.Gecos, u.Dir, u.Shell)
 	if err := m.cache.UpdateUserEntry(userDB, groupContents); err != nil {
-		return m.shouldClearDb(err)
+		return err
 	}
 
 	// Update local groups.
 	if err := localgroups.Update(u.Name, localGroups); err != nil {
-		return errors.Join(err, m.shouldClearDb(m.cache.DeleteUser(u.UID)))
+		return errors.Join(err, m.cache.DeleteUser(u.UID))
 	}
 
 	return nil
@@ -163,7 +126,7 @@ func (m *Manager) BrokerForUser(username string) (string, error) {
 	if err != nil && errors.Is(err, cache.NoDataFoundError{}) {
 		return "", ErrNoDataFound{}
 	} else if err != nil {
-		return "", m.shouldClearDb(err)
+		return "", err
 	}
 
 	return brokerID, nil
@@ -172,7 +135,7 @@ func (m *Manager) BrokerForUser(username string) (string, error) {
 // UpdateBrokerForUser updates the broker ID for the given user.
 func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 	if err := m.cache.UpdateBrokerForUser(username, brokerID); err != nil {
-		return m.shouldClearDb(err)
+		return err
 	}
 
 	return nil
@@ -182,7 +145,7 @@ func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 func (m *Manager) UserByName(username string) (UserEntry, error) {
 	usr, err := m.cache.UserByName(username)
 	if err != nil {
-		return UserEntry{}, m.shouldClearDb(err)
+		return UserEntry{}, err
 	}
 	return userEntryFromUserDB(usr), nil
 }
@@ -191,7 +154,7 @@ func (m *Manager) UserByName(username string) (UserEntry, error) {
 func (m *Manager) UserByID(uid uint32) (UserEntry, error) {
 	usr, err := m.cache.UserByID(uid)
 	if err != nil {
-		return UserEntry{}, m.shouldClearDb(err)
+		return UserEntry{}, err
 	}
 	return userEntryFromUserDB(usr), nil
 }
@@ -200,7 +163,7 @@ func (m *Manager) UserByID(uid uint32) (UserEntry, error) {
 func (m *Manager) AllUsers() ([]UserEntry, error) {
 	usrs, err := m.cache.AllUsers()
 	if err != nil {
-		return nil, m.shouldClearDb(err)
+		return nil, err
 	}
 
 	var usrEntries []UserEntry
@@ -214,7 +177,7 @@ func (m *Manager) AllUsers() ([]UserEntry, error) {
 func (m *Manager) GroupByName(groupname string) (GroupEntry, error) {
 	grp, err := m.cache.GroupByName(groupname)
 	if err != nil {
-		return GroupEntry{}, m.shouldClearDb(err)
+		return GroupEntry{}, err
 	}
 	return groupEntryFromGroupDB(grp), nil
 }
@@ -223,7 +186,7 @@ func (m *Manager) GroupByName(groupname string) (GroupEntry, error) {
 func (m *Manager) GroupByID(gid uint32) (GroupEntry, error) {
 	grp, err := m.cache.GroupByID(gid)
 	if err != nil {
-		return GroupEntry{}, m.shouldClearDb(err)
+		return GroupEntry{}, err
 	}
 	return groupEntryFromGroupDB(grp), nil
 }
@@ -232,7 +195,7 @@ func (m *Manager) GroupByID(gid uint32) (GroupEntry, error) {
 func (m *Manager) AllGroups() ([]GroupEntry, error) {
 	grps, err := m.cache.AllGroups()
 	if err != nil {
-		return nil, m.shouldClearDb(err)
+		return nil, err
 	}
 
 	var grpEntries []GroupEntry
@@ -246,7 +209,7 @@ func (m *Manager) AllGroups() ([]GroupEntry, error) {
 func (m *Manager) ShadowByName(username string) (ShadowEntry, error) {
 	usr, err := m.cache.UserByName(username)
 	if err != nil {
-		return ShadowEntry{}, m.shouldClearDb(err)
+		return ShadowEntry{}, err
 	}
 	return shadowEntryFromUserDB(usr), nil
 }
@@ -255,7 +218,7 @@ func (m *Manager) ShadowByName(username string) (ShadowEntry, error) {
 func (m *Manager) AllShadows() ([]ShadowEntry, error) {
 	usrs, err := m.cache.AllUsers()
 	if err != nil {
-		return nil, m.shouldClearDb(err)
+		return nil, err
 	}
 
 	var shadowEntries []ShadowEntry
@@ -263,80 +226,6 @@ func (m *Manager) AllShadows() ([]ShadowEntry, error) {
 		shadowEntries = append(shadowEntries, shadowEntryFromUserDB(usr))
 	}
 	return shadowEntries, err
-}
-
-// shouldClearDb checks the error and requests a database clearing if needed.
-func (m *Manager) shouldClearDb(err error) error {
-	if errors.Is(err, cache.ErrNeedsClearing) {
-		m.requestClearDatabase()
-	}
-	return err
-}
-
-// requestClearDatabase ask for the clean goroutine to clear up the database.
-// If we already have a pending request, do not block on it.
-// TODO: improve behavior when cleanup is already running
-// (either remove the dangling dirty file or queue the cleanup request).
-func (m *Manager) requestClearDatabase() {
-	if err := m.markCorrupted(); err != nil {
-		slog.Warn(fmt.Sprintf("Could not mark database as dirty: %v", err))
-	}
-	select {
-	case m.doClear <- struct{}{}:
-	case <-time.After(10 * time.Millisecond): // Let the time for the cleanup goroutine for the initial start.
-	}
-}
-
-func (m *Manager) startUserCleanupRoutine(cacheDir string) {
-	cleanupRoutineStarted := make(chan struct{})
-	go func() {
-		defer close(m.cleanupStopped)
-		close(cleanupRoutineStarted)
-		for {
-			select {
-			case <-m.doClear:
-				func() {
-					if err := m.clear(cacheDir); err != nil {
-						slog.Warn(fmt.Sprintf("Could not clear corrupted data: %v", err))
-					}
-				}()
-
-			case <-m.quit:
-				return
-			}
-		}
-	}()
-	<-cleanupRoutineStarted
-}
-
-// isMarkedCorrupted checks if the database is marked as corrupted.
-func (m *Manager) isMarkedCorrupted() bool {
-	_, err := os.Stat(m.dirtyFlagPath)
-	return err == nil
-}
-
-// markCorrupted writes a dirty flag in the cache directory to mark the database as corrupted.
-func (m *Manager) markCorrupted() error {
-	if m.isMarkedCorrupted() {
-		return nil
-	}
-	return os.WriteFile(m.dirtyFlagPath, nil, 0600)
-}
-
-// clear clears the corrupted database and rebuilds it.
-func (m *Manager) clear(cacheDir string) error {
-	if err := m.cache.Clear(cacheDir); err != nil {
-		return fmt.Errorf("could not clear corrupted data: %v", err)
-	}
-	if err := os.Remove(m.dirtyFlagPath); err != nil {
-		slog.Warn(fmt.Sprintf("Could not remove dirty flag file: %v", err))
-	}
-
-	if err := localgroups.Clean(); err != nil {
-		return fmt.Errorf("could not clean local groups: %v", err)
-	}
-
-	return nil
 }
 
 // GenerateUID deterministically generates an ID between from the given string, ignoring case,

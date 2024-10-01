@@ -18,13 +18,10 @@ func (c *Cache) DeleteUser(uid uint32) error {
 	return c.db.Update(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		if err := deleteUser(buckets, uid); err != nil {
-			if !errors.Is(err, NoDataFoundError{}) {
-				return errors.Join(ErrNeedsClearing, err)
-			}
 			return err
 		}
 		return nil
