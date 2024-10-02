@@ -1,4 +1,4 @@
-package localgroups
+package localentries
 
 import (
 	"testing"

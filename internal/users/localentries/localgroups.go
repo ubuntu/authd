@@ -1,5 +1,5 @@
-// Package localgroups handles the synchronization of local groups the users.
-package localgroups
+// Package localentries provides functions to retrieve passwd and group entries and to update the groups of a user.
+package localentries
 
 import (
 	"bufio"

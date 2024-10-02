@@ -28,7 +28,7 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

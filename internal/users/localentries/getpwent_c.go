@@ -1,4 +1,4 @@
-package localgroups
+package localentries
 
 // #include <stdlib.h>
 // #include <pwd.h>

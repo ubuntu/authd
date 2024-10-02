@@ -13,7 +13,7 @@ import (
 
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/users/cache"
-	"github.com/ubuntu/authd/internal/users/localgroups"
+	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/decorate"
 )
 
@@ -210,7 +210,7 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	}
 
 	// Update local groups.
-	if err := localgroups.Update(u.Name, localGroups, oldLocalGroups); err != nil {
+	if err := localentries.Update(u.Name, localGroups, oldLocalGroups); err != nil {
 		return errors.Join(err, m.cache.DeleteUser(u.UID))
 	}
 
@@ -470,7 +470,7 @@ func (m *Manager) registerUser(name string, preAuth bool) (uid uint32, cleanup f
 // checkIsUniqueUID checks if the given UID is unique in the system. It returns false if the UID is already assigned to
 // a user by any NSS source (except the given temporary user) and true otherwise.
 func (m *Manager) checkIsUniqueUID(uid uint32, tmpName string) (bool, error) {
-	passwdEntries, err := localgroups.GetPasswdEntries()
+	passwdEntries, err := localentries.GetPasswdEntries()
 	if err != nil {
 		return false, fmt.Errorf("could not get passwd entries: %w", err)
 	}
@@ -561,7 +561,7 @@ func (m *Manager) registerGroup(name string) (gid uint32, cleanup func() error, 
 }
 
 func (m *Manager) checkIsUniqueGID(gid uint32, tmpName string) (bool, error) {
-	groupEntries, err := localgroups.GetGroupEntries()
+	groupEntries, err := localentries.GetGroupEntries()
 	if err != nil {
 		return false, fmt.Errorf("could not get group entries: %w", err)
 	}

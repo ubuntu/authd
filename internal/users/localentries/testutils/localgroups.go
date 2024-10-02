@@ -17,7 +17,7 @@ func init() {
 }
 
 var (
-	//go:linkname defaultOptions github.com/ubuntu/authd/internal/users/localgroups.defaultOptions
+	//go:linkname defaultOptions github.com/ubuntu/authd/internal/users/localentries.defaultOptions
 	defaultOptions struct {
 		groupPath    string
 		gpasswdCmd   []string
