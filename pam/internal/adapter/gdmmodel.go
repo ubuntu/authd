@@ -40,7 +40,7 @@ type gdmPollDone struct{}
 type gdmIsAuthenticatedResultReceived isAuthenticatedResultReceived
 
 // Init initializes the main model orchestrator.
-func (m *gdmModel) Init() tea.Cmd {
+func (m gdmModel) Init() tea.Cmd {
 	return tea.Sequence(m.protoHello(),
 		requestUICapabilities(m.pamMTx),
 		m.pollGdm())
@@ -186,7 +186,7 @@ func (m *gdmModel) emitEventSync(event gdm.Event) tea.Msg {
 	return nil
 }
 
-func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
+func (m gdmModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.conversationsStopped {
 		return m, nil
 	}
@@ -310,7 +310,7 @@ func (m gdmModel) changeStage(s proto.Stage) tea.Cmd {
 	}
 }
 
-func (m gdmModel) stopConversations() gdmModel {
+func (m gdmModel) stopConversations() gdmModeler {
 	// We're about to exit: let's ensure that all the messages have been processed.
 
 	wait := make(chan struct{})
@@ -332,4 +332,12 @@ func (m gdmModel) stopConversations() gdmModel {
 
 	m.conversationsStopped = true
 	return m
+}
+
+func (m gdmModel) View() string {
+	return ""
+}
+
+func (m gdmModel) conversationsActive() bool {
+	return !m.conversationsStopped
 }

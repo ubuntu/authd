@@ -57,7 +57,7 @@ type UIModel struct {
 	brokerSelectionModel   brokerSelectionModel
 	authModeSelectionModel authModeSelectionModel
 	authenticationModel    authenticationModel
-	gdmModel               gdmModel
+	gdmModel               gdmModeler
 	nativeModel            nativeModel
 
 	exitStatus PamReturnStatus
@@ -264,7 +264,9 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var modelCmd tea.Cmd
 		switch m.ClientType {
 		case Gdm:
-			m.gdmModel, modelCmd = m.gdmModel.Update(msg)
+			var gdmModel tea.Model
+			gdmModel, modelCmd = m.gdmModel.Update(msg)
+			m.gdmModel, _ = gdmModel.(gdmModeler)
 		case Native:
 			m.nativeModel, modelCmd = m.nativeModel.Update(msg)
 		}
@@ -299,7 +301,8 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch m.ClientType {
 	case Gdm:
-		m.gdmModel, cmd = m.gdmModel.Update(msg)
+		gdmModel, cmd := m.gdmModel.Update(msg)
+		m.gdmModel, _ = gdmModel.(gdmModeler)
 		cmds = append(cmds, cmd)
 	case Native:
 		m.nativeModel, cmd = m.nativeModel.Update(msg)
