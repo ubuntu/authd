@@ -218,6 +218,7 @@ func buildExecChild(path string) (string, error) {
 	cliPath := filepath.Join(path, "exec-child")
 	cmd := exec.Command("go", "build", "-C", "pam", "-o", cliPath)
 	cmd.Dir = projectRoot()
+	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("can't compile child %s: %v\n%s", cliPath, err, out)

@@ -879,7 +879,8 @@ func buildPAMModule(t *testing.T) string {
 	// if testutils.IsRace() {
 	// 	cmd.Args = append(cmd.Args, "-race")
 	// }
-	cmd.Args = append(cmd.Args, "-buildmode=c-shared", "-gcflags=-dwarflocationlists=true")
+	cmd.Args = append(cmd.Args, "-buildmode=c-shared")
+	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)
 	if testutils.IsAsan() {
 		cmd.Args = append(cmd.Args, "-asan")
