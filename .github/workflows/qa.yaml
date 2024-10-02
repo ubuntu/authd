@@ -47,7 +47,7 @@ jobs:
       - name: Run PAM client for interactive testing purposes
         run: |
           set -eu
-          go run -tags pam_binary_cli ./pam login --exec-debug
+          go run -tags withpamclient ./pam/tools/pam-client login --exec-debug
       - name: Generate PAM module
         run: |
           set -eu

@@ -61,6 +61,7 @@ func prepareClientTest(t *testing.T, clientPath string) []string {
 // buildPAMTestClient builds the PAM module in a temporary directory and returns a cleanup function.
 func buildPAMTestClient(execPath string) (cleanup func(), err error) {
 	cmd := exec.Command("go", "build")
+	cmd.Dir = testutils.ProjectRoot()
 	if testutils.CoverDirForTests() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
@@ -72,7 +73,8 @@ func buildPAMTestClient(execPath string) (cleanup func(), err error) {
 	if testutils.IsRace() {
 		cmd.Args = append(cmd.Args, "-race")
 	}
-	cmd.Args = append(cmd.Args, "-tags=pam_binary_cli", "-o", filepath.Join(execPath, "pam_authd"), "../.")
+	cmd.Args = append(cmd.Args, "-tags=withpamclient", "-o", filepath.Join(execPath, "pam_authd"),
+		"./pam/tools/pam-client")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return func() {}, fmt.Errorf("%v: %s", err, out)
 	}

@@ -163,7 +163,9 @@ func TestPamCLIRunStandalone(t *testing.T) {
 	}
 
 	cmd.Dir = testutils.ProjectRoot()
-	cmd.Args = append(cmd.Args, "-tags", "pam_binary_cli", "./pam", "login", "--exec-debug")
+	cmd.Args = append(cmd.Args, "-tags", "withpamclient",
+		"./pam/tools/pam-client",
+		"login", "--exec-debug")
 	cmd.Args = append(cmd.Args, "logfile="+os.Stdout.Name())
 
 	out, err := cmd.CombinedOutput()

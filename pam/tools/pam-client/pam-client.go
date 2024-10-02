@@ -1,4 +1,4 @@
-//go:build pam_binary_cli
+//go:build withpamclient
 
 package main
 
@@ -233,8 +233,8 @@ func projectRoot() string {
 	// Walk up the tree to get the path of the project root
 	l := strings.Split(p, "/")
 
-	// Ignores the last 2 elements -> /pam/main-cli.go
-	l = l[:len(l)-2]
+	// Ignores the last 4 elements -> ./pam/tools/pam-client/pam-client.go
+	l = l[:len(l)-4]
 
 	// strings.Split removes the first "/" that indicated an AbsPath, so we append it back in the final string.
 	return "/" + filepath.Join(l...)
