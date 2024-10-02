@@ -319,7 +319,6 @@ func (b Broker) parseSessionID(sessionID string) string {
 
 type userInfo struct {
 	users.UserInfo
-	UUID string
 }
 
 // unmarshalUserInfo tries to unmarshal the rawMsg into a userinfo.
@@ -348,11 +347,6 @@ func validateUserInfo(uInfo userInfo) (err error) {
 	}
 	if !filepath.IsAbs(filepath.Clean(uInfo.Shell)) {
 		return fmt.Errorf("value provided for shell is not an absolute path: %s", uInfo.Shell)
-	}
-
-	// Validate UUID
-	if uInfo.UUID == "" {
-		return errors.New("empty UUID")
 	}
 
 	// Validate groups
