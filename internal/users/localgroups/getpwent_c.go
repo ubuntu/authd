@@ -3,16 +3,31 @@ package localgroups
 // #include <stdlib.h>
 // #include <pwd.h>
 // #include <grp.h>
+// #include <errno.h>
+// #include <string.h>
+//
+// void unset_errno(void) {
+//   errno = 0;
+// }
+//
+// int get_errno(void) {
+//   return errno;
+// }
 import "C"
+import "fmt"
 
 // getPasswdUsernames gets the list of users using `getpwent` and returns their usernames.
-func getPasswdUsernames() []string {
+func getPasswdUsernames() ([]string, error) {
 	C.setpwent()
 	defer C.endpwent()
 
 	var entries []string
 	for {
+		C.unset_errno()
 		cPasswd := C.getpwent()
+		if cPasswd == nil && C.get_errno() != 0 {
+			return nil, fmt.Errorf("getpwent failed: %v", C.GoString(C.strerror(C.get_errno())))
+		}
 		if cPasswd == nil {
 			break
 		}
@@ -20,7 +35,7 @@ func getPasswdUsernames() []string {
 		entries = append(entries, C.GoString(cPasswd.pw_name))
 	}
 
-	return entries
+	return entries, nil
 }
 
 // Passwd represents a passwd entry.
@@ -30,13 +45,17 @@ type Passwd struct {
 }
 
 // GetPasswdEntries returns all passwd entries.
-func GetPasswdEntries() []Passwd {
+func GetPasswdEntries() ([]Passwd, error) {
 	C.setpwent()
 	defer C.endpwent()
 
 	var entries []Passwd
 	for {
+		C.unset_errno()
 		cPasswd := C.getpwent()
+		if cPasswd == nil && C.get_errno() != 0 {
+			return nil, fmt.Errorf("getpwent failed: %v", C.GoString(C.strerror(C.get_errno())))
+		}
 		if cPasswd == nil {
 			break
 		}
@@ -47,7 +66,7 @@ func GetPasswdEntries() []Passwd {
 		})
 	}
 
-	return entries
+	return entries, nil
 }
 
 // Group represents a group entry.
@@ -57,13 +76,18 @@ type Group struct {
 }
 
 // GetGroupEntries returns all group entries.
-func GetGroupEntries() []Group {
+func GetGroupEntries() ([]Group, error) {
 	C.setgrent()
 	defer C.endgrent()
 
 	var entries []Group
 	for {
+		C.unset_errno()
 		cGroup := C.getgrent()
+		if cGroup == nil && C.get_errno() != 0 {
+			return nil, fmt.Errorf("getgrent failed: %v", C.GoString(C.strerror(C.get_errno())))
+		}
+
 		if cGroup == nil {
 			break
 		}
@@ -74,5 +98,5 @@ func GetGroupEntries() []Group {
 		})
 	}
 
-	return entries
+	return entries, nil
 }

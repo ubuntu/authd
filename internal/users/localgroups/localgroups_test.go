@@ -130,7 +130,7 @@ func TestCleanLocalGroups(t *testing.T) {
 			cleanupOptions := []localgroups.Option{
 				localgroups.WithGpasswdCmd(gpasswdCmd),
 				localgroups.WithGroupPath(groupFilePath),
-				localgroups.WithGetUsersFunc(func() []string { return tc.getUsersReturn }),
+				localgroups.WithGetUsersFunc(func() ([]string, error) { return tc.getUsersReturn, nil }),
 			}
 			err := localgroups.Clean(cleanupOptions...)
 			if tc.wantErr {
