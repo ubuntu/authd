@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"sync/atomic"
 
 	"github.com/msteinert/pam/v2"
@@ -13,6 +14,7 @@ import (
 )
 
 var conversations atomic.Int32
+var challengeRegex = regexp.MustCompile(`"challenge"\s*:\s*"(?:[^"\\]|\\.)*"`)
 
 // ConversationInProgress checks if conversations are currently active.
 func ConversationInProgress() bool {
@@ -63,9 +65,16 @@ func SendData(pamMTx pam.ModuleTransaction, d *Data) (*Data, error) {
 	}
 
 	gdmData, err := NewDataFromJSON(jsonValue)
-	// Log unless it's a poll, which are so frequently that it would be
+	// Log unless it's an empty poll, which are so frequently that it would be
 	// too verbose to log them.
-	if d.Type != DataType_poll {
+	if gdmData.Type == DataType_pollResponse && len(gdmData.GetPollResponse()) == 0 {
+		jsonValue = nil
+	}
+	if log.IsLevelEnabled(log.DebugLevel) && jsonValue != nil &&
+		gdmData != nil && gdmData.Type == DataType_pollResponse {
+		jsonValue = challengeRegex.ReplaceAll(jsonValue, []byte(`"challenge":"**************"`))
+	}
+	if jsonValue != nil {
 		log.Debugf(context.TODO(), "Got from GDM: %s", jsonValue)
 	}
 	if err != nil {
