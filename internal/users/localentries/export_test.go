@@ -15,7 +15,7 @@ func WithGpasswdCmd(cmds []string) Option {
 }
 
 // WithGetUsersFunc overrides the getusers func with a custom one for tests.
-func WithGetUsersFunc(getUsersFunc func() ([]string, error)) Option {
+func WithGetUsersFunc(getUsersFunc func() []string) Option {
 	return func(o *options) {
 		o.getUsersFunc = getUsersFunc
 	}

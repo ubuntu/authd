@@ -130,7 +130,7 @@ func TestCleanlocalentries(t *testing.T) {
 			cleanupOptions := []localentries.Option{
 				localentries.WithGpasswdCmd(gpasswdCmd),
 				localentries.WithGroupPath(groupFilePath),
-				localentries.WithGetUsersFunc(func() ([]string, error) { return tc.getUsersReturn, nil }),
+				localentries.WithGetUsersFunc(func() []string { return tc.getUsersReturn }),
 			}
 			err := localentries.Clean(cleanupOptions...)
 			if tc.wantErr {

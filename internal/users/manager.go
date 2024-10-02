@@ -446,11 +446,7 @@ func (m *Manager) registerUser(name string, preAuth bool) (uid uint32, cleanup f
 			return 0, nil, fmt.Errorf("could not register temporary user: %w", err)
 		}
 
-		unique, err := m.checkIsUniqueUID(uid, tmpName)
-		if err != nil {
-			return 0, nil, err
-		}
-		if unique {
+		if unique := m.checkIsUniqueUID(uid, tmpName); unique {
 			if preAuth {
 				// Rename the temporary user so that we can recognize it later.
 				tmpName = name + "-preauth"
@@ -469,19 +465,15 @@ func (m *Manager) registerUser(name string, preAuth bool) (uid uint32, cleanup f
 
 // checkIsUniqueUID checks if the given UID is unique in the system. It returns false if the UID is already assigned to
 // a user by any NSS source (except the given temporary user) and true otherwise.
-func (m *Manager) checkIsUniqueUID(uid uint32, tmpName string) (bool, error) {
-	passwdEntries, err := localentries.GetPasswdEntries()
-	if err != nil {
-		return false, fmt.Errorf("could not get passwd entries: %w", err)
-	}
-	for _, entry := range passwdEntries {
+func (m *Manager) checkIsUniqueUID(uid uint32, tmpName string) bool {
+	for _, entry := range localentries.GetPasswdEntries() {
 		if entry.UID == uid && entry.Name != tmpName {
 			log.Debugf(context.Background(), "UID %d already in use by user %q, generating a new one", uid, entry.Name)
-			return false, nil
+			return false
 		}
 	}
 
-	return true, nil
+	return true
 }
 
 var errUserAlreadyExists = errors.New("user already exists")
@@ -541,11 +533,7 @@ func (m *Manager) registerGroup(name string) (gid uint32, cleanup func() error, 
 			return 0, nil, fmt.Errorf("could not register temporary group: %w", err)
 		}
 
-		unique, err := m.checkIsUniqueGID(gid, tmpName)
-		if err != nil {
-			return 0, nil, err
-		}
-		if unique {
+		if unique := m.checkIsUniqueGID(gid, tmpName); unique {
 			break
 		}
 
@@ -560,19 +548,15 @@ func (m *Manager) registerGroup(name string) (gid uint32, cleanup func() error, 
 	return gid, cleanup, nil
 }
 
-func (m *Manager) checkIsUniqueGID(gid uint32, tmpName string) (bool, error) {
-	groupEntries, err := localentries.GetGroupEntries()
-	if err != nil {
-		return false, fmt.Errorf("could not get group entries: %w", err)
-	}
-	for _, entry := range groupEntries {
+func (m *Manager) checkIsUniqueGID(gid uint32, tmpName string) bool {
+	for _, entry := range localentries.GetGroupEntries() {
 		if entry.GID == gid && entry.Name != tmpName {
 			log.Debugf(context.Background(), "GID %d already in use by group %q, generating a new one", gid, entry.Name)
-			return false, nil
+			return false
 		}
 	}
 
-	return true, nil
+	return true
 }
 
 var errGroupAlreadyExists = errors.New("group already exists")

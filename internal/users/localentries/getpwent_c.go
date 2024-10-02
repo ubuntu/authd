@@ -3,18 +3,7 @@ package localentries
 // #include <stdlib.h>
 // #include <pwd.h>
 // #include <grp.h>
-// #include <errno.h>
-// #include <string.h>
-//
-// void unset_errno(void) {
-//   errno = 0;
-// }
-//
-// int get_errno(void) {
-//   return errno;
-// }
 import "C"
-import "fmt"
 
 // Passwd represents a passwd entry.
 type Passwd struct {
@@ -23,17 +12,13 @@ type Passwd struct {
 }
 
 // GetPasswdEntries returns all passwd entries.
-func GetPasswdEntries() ([]Passwd, error) {
+func GetPasswdEntries() []Passwd {
 	C.setpwent()
 	defer C.endpwent()
 
 	var entries []Passwd
 	for {
-		C.unset_errno()
 		cPasswd := C.getpwent()
-		if cPasswd == nil && C.get_errno() != 0 {
-			return nil, fmt.Errorf("getpwent failed: %v", C.GoString(C.strerror(C.get_errno())))
-		}
 		if cPasswd == nil {
 			break
 		}
@@ -44,7 +29,7 @@ func GetPasswdEntries() ([]Passwd, error) {
 		})
 	}
 
-	return entries, nil
+	return entries
 }
 
 // Group represents a group entry.
@@ -54,18 +39,13 @@ type Group struct {
 }
 
 // GetGroupEntries returns all group entries.
-func GetGroupEntries() ([]Group, error) {
+func GetGroupEntries() []Group {
 	C.setgrent()
 	defer C.endgrent()
 
 	var entries []Group
 	for {
-		C.unset_errno()
 		cGroup := C.getgrent()
-		if cGroup == nil && C.get_errno() != 0 {
-			return nil, fmt.Errorf("getgrent failed: %v", C.GoString(C.strerror(C.get_errno())))
-		}
-
 		if cGroup == nil {
 			break
 		}
@@ -76,5 +56,5 @@ func GetGroupEntries() ([]Group, error) {
 		})
 	}
 
-	return entries, nil
+	return entries
 }
