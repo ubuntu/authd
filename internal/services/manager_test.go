@@ -1,11 +1,13 @@
 package services_test
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"net"
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -59,6 +61,12 @@ func TestRegisterGRPCServices(t *testing.T) {
 	defer require.NoError(t, m.Stop(), "Teardown: Stop should not have returned an error, but did")
 
 	got := m.RegisterGRPCServices(context.Background()).GetServiceInfo()
+	// Make the content of the golden file deterministic by sorting the methods by name.
+	for _, info := range got {
+		slices.SortFunc(info.Methods, func(a, b grpc.MethodInfo) int {
+			return cmp.Compare(a.Name, b.Name)
+		})
+	}
 	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
 	requireEqualServices(t, want, got)
 }
