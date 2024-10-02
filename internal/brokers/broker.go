@@ -184,7 +184,7 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 			return "", "", err
 		}
 
-		d, err := json.Marshal(info.UserInfo)
+		d, err := json.Marshal(info)
 		if err != nil {
 			return "", "", fmt.Errorf("can't marshal UserInfo: %v", err)
 		}
@@ -317,21 +317,17 @@ func (b Broker) parseSessionID(sessionID string) string {
 	return strings.TrimPrefix(sessionID, fmt.Sprintf("%s-", b.ID))
 }
 
-type userInfo struct {
-	users.UserInfo
-}
-
 // unmarshalUserInfo tries to unmarshal the rawMsg into a userinfo.
-func unmarshalUserInfo(rawMsg json.RawMessage) (userInfo, error) {
-	var u userInfo
+func unmarshalUserInfo(rawMsg json.RawMessage) (users.UserInfo, error) {
+	var u users.UserInfo
 	if err := json.Unmarshal(rawMsg, &u); err != nil {
-		return userInfo{}, fmt.Errorf("message is not JSON formatted: %v", err)
+		return users.UserInfo{}, fmt.Errorf("message is not JSON formatted: %v", err)
 	}
 	return u, nil
 }
 
 // validateUserInfo checks if the specified userinfo is valid.
-func validateUserInfo(uInfo userInfo) (err error) {
+func validateUserInfo(uInfo users.UserInfo) (err error) {
 	defer decorate.OnError(&err, "provided userinfo is invalid")
 
 	// Validate username. We don't want to check here if it matches the username from the request, because it's the
