@@ -28,38 +28,112 @@ func TestCLIAuthenticate(t *testing.T) {
 		clientOptions      clientOptions
 		currentUserNotRoot bool
 	}{
-		"Authenticate user successfully":                                       {tape: "simple_auth"},
-		"Authenticate user successfully with preset user":                      {tape: "simple_auth_with_preset_user", clientOptions: clientOptions{PamUser: "user-integration-simple-preset"}},
-		"Authenticate user with mfa":                                           {tape: "mfa_auth"},
-		"Authenticate user with form mode with button":                         {tape: "form_with_button"},
-		"Authenticate user with qr code":                                       {tape: "qr_code", clientOptions: clientOptions{PamUser: "user-integration-qr-code"}},
-		"Authenticate user with qr code in a TTY":                              {tape: "qr_code", tapeSettings: []tapeSetting{{vhsHeight, 650}}, clientOptions: clientOptions{PamUser: "user-integration-qr-code-tty", Term: "linux"}},
-		"Authenticate user with qr code in a TTY session":                      {tape: "qr_code", tapeSettings: []tapeSetting{{vhsHeight, 650}}, clientOptions: clientOptions{PamUser: "user-integration-qr-code-tty-session", Term: "xterm-256color", SessionType: "tty"}},
-		"Authenticate user with qr code in screen":                             {tape: "qr_code", tapeSettings: []tapeSetting{{vhsHeight, 650}}, clientOptions: clientOptions{PamUser: "user-integration-qr-code-screen", Term: "screen"}},
-		"Authenticate user with qr code after many regenerations":              {tape: "qr_code_quick_regenerate", tapeSettings: []tapeSetting{{vhsHeight, 650}}},
-		"Authenticate user and reset password while enforcing policy":          {tape: "mandatory_password_reset"},
-		"Authenticate user with mfa and reset password while enforcing policy": {tape: "mfa_reset_pwquality_auth"},
-		"Authenticate user and offer password reset":                           {tape: "optional_password_reset_skip"},
-		"Authenticate user switching auth mode":                                {tape: "switch_auth_mode"},
-		"Authenticate user switching username":                                 {tape: "switch_username"},
-		"Authenticate user switching to local broker":                          {tape: "switch_local_broker"},
-		"Authenticate user and add it to local group":                          {tape: "local_group"},
-		"Authenticate with warnings on unsupported arguments":                  {tape: "simple_auth_with_unsupported_args"},
+		"Authenticate user successfully": {
+			tape: "simple_auth",
+		},
+		"Authenticate user successfully with preset user": {
+			tape:          "simple_auth_with_preset_user",
+			clientOptions: clientOptions{PamUser: "user-integration-simple-preset"},
+		},
+		"Authenticate user with mfa": {
+			tape: "mfa_auth",
+		},
+		"Authenticate user with form mode with button": {
+			tape: "form_with_button",
+		},
+		"Authenticate user with qr code": {
+			tape:          "qr_code",
+			clientOptions: clientOptions{PamUser: "user-integration-qr-code"},
+		},
+		"Authenticate user with qr code in a TTY": {
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 650}},
+			clientOptions: clientOptions{
+				PamUser: "user-integration-qr-code-tty",
+				Term:    "linux",
+			},
+		},
+		"Authenticate user with qr code in a TTY session": {
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 650}},
+			clientOptions: clientOptions{
+				PamUser: "user-integration-qr-code-tty-session",
+				Term:    "xterm-256color", SessionType: "tty",
+			},
+		},
+		"Authenticate user with qr code in screen": {
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 650}},
+			clientOptions: clientOptions{
+				PamUser: "user-integration-qr-code-screen",
+				Term:    "screen",
+			},
+		},
+		"Authenticate user with qr code after many regenerations": {
+			tape:         "qr_code_quick_regenerate",
+			tapeSettings: []tapeSetting{{vhsHeight, 650}},
+		},
+		"Authenticate user and reset password while enforcing policy": {
+			tape: "mandatory_password_reset",
+		},
+		"Authenticate user with mfa and reset password while enforcing policy": {
+			tape: "mfa_reset_pwquality_auth",
+		},
+		"Authenticate user and offer password reset": {
+			tape: "optional_password_reset_skip",
+		},
+		"Authenticate user switching auth mode": {
+			tape: "switch_auth_mode",
+		},
+		"Authenticate user switching username": {
+			tape: "switch_username",
+		},
+		"Authenticate user switching to local broker": {
+			tape: "switch_local_broker",
+		},
+		"Authenticate user and add it to local group": {
+			tape: "local_group",
+		},
+		"Authenticate with warnings on unsupported arguments": {
+			tape: "simple_auth_with_unsupported_args",
+		},
 
-		"Remember last successful broker and mode":      {tape: "remember_broker_and_mode"},
-		"Autoselect local broker for local user":        {tape: "local_user"},
-		"Autoselect local broker for local user preset": {tape: "local_user_preset", clientOptions: clientOptions{PamUser: "root"}},
+		"Remember last successful broker and mode": {
+			tape: "remember_broker_and_mode",
+		},
+		"Autoselect local broker for local user": {
+			tape: "local_user",
+		},
+		"Autoselect local broker for local user preset": {
+			tape:          "local_user_preset",
+			clientOptions: clientOptions{PamUser: "root"},
+		},
 
-		"Prevent user from switching username": {tape: "switch_preset_username", clientOptions: clientOptions{PamUser: "user-integration-pam-preset"}},
+		"Prevent user from switching username": {
+			tape:          "switch_preset_username",
+			clientOptions: clientOptions{PamUser: "user-integration-pam-preset"},
+		},
 
-		"Deny authentication if current user is not considered as root": {tape: "not_root", currentUserNotRoot: true},
+		"Deny authentication if current user is not considered as root": {
+			tape: "not_root", currentUserNotRoot: true,
+		},
 
-		"Deny authentication if max attempts reached":                         {tape: "max_attempts"},
-		"Deny authentication if user does not exist":                          {tape: "unexistent_user"},
-		"Deny authentication if newpassword does not match required criteria": {tape: "bad_password"},
+		"Deny authentication if max attempts reached": {
+			tape: "max_attempts",
+		},
+		"Deny authentication if user does not exist": {
+			tape: "unexistent_user",
+		},
+		"Deny authentication if newpassword does not match required criteria": {
+			tape: "bad_password",
+		},
 
-		"Exit authd if local broker is selected": {tape: "local_broker"},
-		"Exit authd if user sigints":             {tape: "sigint"},
+		"Exit authd if local broker is selected": {
+			tape: "local_broker",
+		},
+		"Exit authd if user sigints": {
+			tape: "sigint",
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -108,20 +182,43 @@ func TestCLIChangeAuthTok(t *testing.T) {
 
 		currentUserNotRoot bool
 	}{
-		"Change password successfully and authenticate with new one": {tape: "passwd_simple"},
-		"Change passwd after MFA auth":                               {tape: "passwd_mfa"},
+		"Change password successfully and authenticate with new one": {
+			tape: "passwd_simple",
+		},
+		"Change passwd after MFA auth": {
+			tape: "passwd_mfa",
+		},
 
-		"Retry if new password is rejected by broker":           {tape: "passwd_rejected"},
-		"Retry if new password is same of previous":             {tape: "passwd_not_changed"},
-		"Retry if password confirmation is not the same":        {tape: "passwd_not_confirmed"},
-		"Retry if new password does not match quality criteria": {tape: "passwd_bad_password"},
+		"Retry if new password is rejected by broker": {
+			tape: "passwd_rejected",
+		},
+		"Retry if new password is same of previous": {
+			tape: "passwd_not_changed",
+		},
+		"Retry if password confirmation is not the same": {
+			tape: "passwd_not_confirmed",
+		},
+		"Retry if new password does not match quality criteria": {
+			tape: "passwd_bad_password",
+		},
 
-		"Prevent change password if auth fails":                                     {tape: "passwd_auth_fail"},
-		"Prevent change password if user does not exist":                            {tape: "passwd_unexistent_user"},
-		"Prevent change password if current user is not root as can't authenticate": {tape: "passwd_not_root", currentUserNotRoot: true},
+		"Prevent change password if auth fails": {
+			tape: "passwd_auth_fail",
+		},
+		"Prevent change password if user does not exist": {
+			tape: "passwd_unexistent_user",
+		},
+		"Prevent change password if current user is not root as can't authenticate": {
+			tape:               "passwd_not_root",
+			currentUserNotRoot: true,
+		},
 
-		"Exit authd if local broker is selected": {tape: "passwd_local_broker"},
-		"Exit authd if user sigints":             {tape: "passwd_sigint"},
+		"Exit authd if local broker is selected": {
+			tape: "passwd_local_broker",
+		},
+		"Exit authd if user sigints": {
+			tape: "passwd_sigint",
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
