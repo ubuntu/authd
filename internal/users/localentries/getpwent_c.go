@@ -16,28 +16,6 @@ package localentries
 import "C"
 import "fmt"
 
-// getPasswdUsernames gets the list of users using `getpwent` and returns their usernames.
-func getPasswdUsernames() ([]string, error) {
-	C.setpwent()
-	defer C.endpwent()
-
-	var entries []string
-	for {
-		C.unset_errno()
-		cPasswd := C.getpwent()
-		if cPasswd == nil && C.get_errno() != 0 {
-			return nil, fmt.Errorf("getpwent failed: %v", C.GoString(C.strerror(C.get_errno())))
-		}
-		if cPasswd == nil {
-			break
-		}
-
-		entries = append(entries, C.GoString(cPasswd.pw_name))
-	}
-
-	return entries, nil
-}
-
 // Passwd represents a passwd entry.
 type Passwd struct {
 	Name string

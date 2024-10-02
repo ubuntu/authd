@@ -76,6 +76,21 @@ func Update(username string, newGroups []string, oldGroups []string, args ...Opt
 	return nil
 }
 
+// getPasswdUsernames gets the passwd entries and returns their usernames.
+func getPasswdUsernames() ([]string, error) {
+	entries, err := GetPasswdEntries()
+	if err != nil {
+		return nil, err
+	}
+
+	var usernames []string
+	for _, e := range entries {
+		usernames = append(usernames, e.Name)
+	}
+
+	return usernames, nil
+}
+
 // existingLocalGroups returns which groups from groupPath the user is part of.
 func existingLocalGroups(user, groupPath string) (groups []string, err error) {
 	defer decorate.OnError(&err, "could not fetch existing local group")
