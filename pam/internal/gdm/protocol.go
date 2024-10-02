@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"slices"
 
+	"github.com/ubuntu/authd"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -166,4 +167,40 @@ func (d *Data) JSON() ([]byte, error) {
 	}
 
 	return bytes, err
+}
+
+var stringifyEventDataFunc = stringifyEventDataFiltered
+
+func stringifyEventDataDebug(ed *EventData) string {
+	return ed.String()
+}
+
+func stringifyEventDataFiltered(ed *EventData) string {
+	authReq, ok := ed.GetData().(*EventData_IsAuthenticatedRequested)
+	if !ok {
+		return ed.String()
+	}
+
+	item := authReq.IsAuthenticatedRequested.GetAuthenticationData().Item
+	if _, ok = item.(*authd.IARequest_AuthenticationData_Challenge); !ok {
+		return ed.String()
+	}
+
+	return (&EventData{
+		Type: ed.Type,
+		Data: &EventData_IsAuthenticatedRequested{
+			IsAuthenticatedRequested: &Events_IsAuthenticatedRequested{
+				AuthenticationData: &authd.IARequest_AuthenticationData{
+					Item: &authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "**************",
+					},
+				},
+			},
+		},
+	}).String()
+}
+
+// SafeString creates a string of EventData with confidential content removed.
+func (ed *EventData) SafeString() string {
+	return stringifyEventDataFunc(ed)
 }

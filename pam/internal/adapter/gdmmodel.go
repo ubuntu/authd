@@ -98,13 +98,7 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 
 	if log.IsLevelEnabled(log.DebugLevel) {
 		for _, result := range gdmPollResults {
-			// Don't log EventData_IsAuthenticatedRequested because it contains
-			// the user password
-			if result.GetIsAuthenticatedRequested() != nil {
-				log.Debugf(context.TODO(), "GDM poll returned: IsAuthenticatedRequested")
-			} else {
-				log.Debugf(context.TODO(), "GDM poll returned: %s", result.Data)
-			}
+			log.Debugf(context.TODO(), "GDM poll response: %v", result.SafeString())
 		}
 	}
 
