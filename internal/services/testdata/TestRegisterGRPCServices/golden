@@ -1,18 +1,21 @@
 authd.NSS:
     methods:
-        - name: GetPasswdByUID
-          isclientstream: false
-          isserverstream: false
-        - name: GetPasswdEntries
+        - name: GetGroupByGID
           isclientstream: false
           isserverstream: false
         - name: GetGroupByName
           isclientstream: false
           isserverstream: false
-        - name: GetGroupByGID
+        - name: GetGroupEntries
           isclientstream: false
           isserverstream: false
-        - name: GetGroupEntries
+        - name: GetPasswdByName
+          isclientstream: false
+          isserverstream: false
+        - name: GetPasswdByUID
+          isclientstream: false
+          isserverstream: false
+        - name: GetPasswdEntries
           isclientstream: false
           isserverstream: false
         - name: GetShadowByName
@@ -21,34 +24,31 @@ authd.NSS:
         - name: GetShadowEntries
           isclientstream: false
           isserverstream: false
-        - name: GetPasswdByName
-          isclientstream: false
-          isserverstream: false
     metadata: authd.proto
 authd.PAM:
     methods:
-        - name: SelectAuthenticationMode
-          isclientstream: false
-          isserverstream: false
-        - name: IsAuthenticated
+        - name: AvailableBrokers
           isclientstream: false
           isserverstream: false
         - name: EndSession
           isclientstream: false
           isserverstream: false
-        - name: SetDefaultBrokerForUser
-          isclientstream: false
-          isserverstream: false
-        - name: AvailableBrokers
+        - name: GetAuthenticationModes
           isclientstream: false
           isserverstream: false
         - name: GetPreviousBroker
           isclientstream: false
           isserverstream: false
+        - name: IsAuthenticated
+          isclientstream: false
+          isserverstream: false
+        - name: SelectAuthenticationMode
+          isclientstream: false
+          isserverstream: false
         - name: SelectBroker
           isclientstream: false
           isserverstream: false
-        - name: GetAuthenticationModes
+        - name: SetDefaultBrokerForUser
           isclientstream: false
           isserverstream: false
     metadata: authd.proto
