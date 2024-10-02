@@ -100,6 +100,7 @@ func buildPAMExecChild(t *testing.T) string {
 		cmd.Args = append(cmd.Args, "-race")
 	}
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
+	cmd.Args = append(cmd.Args, "-tags=pam_debug")
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)
 
 	authdPam := filepath.Join(t.TempDir(), "authd-pam")
