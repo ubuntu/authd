@@ -11,7 +11,7 @@ import (
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/cache"
 	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"go.etcd.io/bbolt"
 )
