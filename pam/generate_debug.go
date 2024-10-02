@@ -2,6 +2,6 @@
 
 //go:generate go generate -C internal/proto
 
-//go:generate env CFLAGS=-g3 CGO_CFLAGS=-g3 ./generate.sh -tags pam_debug -build-tags pam_gdm_debug -build-flags "\"-gcflags=all=-N -l\"" -output pam_module_debug.go
+//go:generate env CFLAGS=-g3 CGO_CFLAGS=-g3 ./generate.sh -tags pam_debug -build-tags "pam_gdm_debug,withgdmmodel" -build-flags "\"-gcflags=all=-N -l\"" -output pam_module_debug.go
 
 package main

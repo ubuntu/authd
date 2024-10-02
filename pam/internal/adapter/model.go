@@ -107,7 +107,7 @@ func (m *UIModel) Init() tea.Cmd {
 
 	switch m.ClientType {
 	case Gdm:
-		m.gdmModel = gdmModel{pamMTx: m.PamMTx}
+		m.gdmModel = getGdmModel(m.PamMTx)
 		cmds = append(cmds, m.gdmModel.Init())
 	case Native:
 		m.nativeModel = nativeModel{pamMTx: m.PamMTx, nssClient: m.NssClient}

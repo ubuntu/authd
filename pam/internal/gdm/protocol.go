@@ -1,4 +1,4 @@
-//go:generate ../../../tools/generate-proto.sh -I../../.. -I../proto gdm.proto
+//go:build withgdmmodel
 
 // Package gdm is the package for the GDM pam module handing.
 package gdm

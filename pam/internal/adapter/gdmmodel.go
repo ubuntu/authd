@@ -1,3 +1,5 @@
+//go:build withgdmmodel
+
 package adapter
 
 import (
@@ -282,7 +284,6 @@ func (m gdmModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, sendEvent(m.emitEventSync(&gdm.EventData_AuthEvent{
 			AuthEvent: &gdm.Events_AuthEvent{Response: &authd.IAResponse{
 				Access: brokers.AuthCancelled,
-				Msg:    msg.msg,
 			}},
 		}))
 	}

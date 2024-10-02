@@ -2,6 +2,6 @@
 
 //go:generate go generate -C internal/proto
 
-//go:generate ./generate.sh -tags !pam_debug
+//go:generate ./generate.sh -tags !pam_debug -build-tags withgdmmodel
 
 package main
