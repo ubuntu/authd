@@ -18,7 +18,7 @@ func TestCLIAuthenticate(t *testing.T) {
 	t.Parallel()
 
 	clientPath := t.TempDir()
-	cliEnv := prepareClientTest(t, clientPath)
+	cliEnv := preparePamRunnerTest(t, clientPath)
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 
 	tests := map[string]struct {
@@ -91,7 +91,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	t.Parallel()
 
 	outDir := t.TempDir()
-	cliEnv := prepareClientTest(t, outDir)
+	cliEnv := preparePamRunnerTest(t, outDir)
 
 	// we don't care about the output of gpasswd for this test, but we still need to mock it.
 	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
@@ -147,7 +147,7 @@ func TestPamCLIRunStandalone(t *testing.T) {
 	t.Parallel()
 
 	clientPath := t.TempDir()
-	pamCleanup, err := buildPAMTestClient(clientPath)
+	pamCleanup, err := buildPAMRunner(clientPath)
 	require.NoError(t, err, "Setup: Failed to build PAM executable")
 	t.Cleanup(pamCleanup)
 
@@ -163,8 +163,8 @@ func TestPamCLIRunStandalone(t *testing.T) {
 	}
 
 	cmd.Dir = testutils.ProjectRoot()
-	cmd.Args = append(cmd.Args, "-tags", "withpamclient",
-		"./pam/tools/pam-client",
+	cmd.Args = append(cmd.Args, "-tags", "withpamrunner",
+		"./pam/tools/pam-runner",
 		"login", "--exec-debug")
 	cmd.Args = append(cmd.Args, "logfile="+os.Stdout.Name())
 

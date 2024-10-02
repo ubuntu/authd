@@ -15,7 +15,7 @@ func TestNativeAuthenticate(t *testing.T) {
 	t.Parallel()
 
 	clientPath := t.TempDir()
-	cliEnv := prepareClientTest(t, clientPath)
+	cliEnv := preparePamRunnerTest(t, clientPath)
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 
 	tests := map[string]struct {
@@ -83,7 +83,7 @@ func TestNativeAuthenticate(t *testing.T) {
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Env[socketPathEnv] = socketPath
-			td.Env[pam_test.ClientEnvSupportsConversation] = "1"
+			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, "native", outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
@@ -99,7 +99,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 	t.Parallel()
 
 	outDir := t.TempDir()
-	cliEnv := prepareClientTest(t, outDir)
+	cliEnv := preparePamRunnerTest(t, outDir)
 
 	// we don't care about the output of gpasswd for this test, but we still need to mock it.
 	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
@@ -143,7 +143,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Env[socketPathEnv] = socketPath
-			td.Env[pam_test.ClientEnvSupportsConversation] = "1"
+			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.AddClientOptions(t, clientOptions{})
 			td.RunVhs(t, "native", outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)

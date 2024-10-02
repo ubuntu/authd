@@ -39,7 +39,7 @@ func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot 
 	return socketPath
 }
 
-func prepareClientTest(t *testing.T, clientPath string) []string {
+func preparePamRunnerTest(t *testing.T, clientPath string) []string {
 	t.Helper()
 
 	// Due to external dependencies such as `vhs`, we can't run the tests in some environments (like LP builders), as we
@@ -48,18 +48,18 @@ func prepareClientTest(t *testing.T, clientPath string) []string {
 		t.Skip("Skipping tests with external dependencies as requested")
 	}
 
-	pamCleanup, err := buildPAMTestClient(clientPath)
+	pamCleanup, err := buildPAMRunner(clientPath)
 	require.NoError(t, err, "Setup: Failed to build PAM executable")
 	t.Cleanup(pamCleanup)
 
 	return []string{
-		fmt.Sprintf("%s=%s", pam_test.ClientEnvExecModule, buildExecModule(t)),
-		fmt.Sprintf("%s=%s", pam_test.ClientEnvPath, buildPAMClient(t)),
+		fmt.Sprintf("%s=%s", pam_test.RunnerEnvExecModule, buildExecModule(t)),
+		fmt.Sprintf("%s=%s", pam_test.RunnerEnvExecChildPath, buildPAMExecChild(t)),
 	}
 }
 
-// buildPAMTestClient builds the PAM module in a temporary directory and returns a cleanup function.
-func buildPAMTestClient(execPath string) (cleanup func(), err error) {
+// buildPAMRunner builds the PAM module in a temporary directory and returns a cleanup function.
+func buildPAMRunner(execPath string) (cleanup func(), err error) {
 	cmd := exec.Command("go", "build")
 	cmd.Dir = testutils.ProjectRoot()
 	if testutils.CoverDirForTests() != "" {
@@ -73,8 +73,8 @@ func buildPAMTestClient(execPath string) (cleanup func(), err error) {
 	if testutils.IsRace() {
 		cmd.Args = append(cmd.Args, "-race")
 	}
-	cmd.Args = append(cmd.Args, "-tags=withpamclient", "-o", filepath.Join(execPath, "pam_authd"),
-		"./pam/tools/pam-client")
+	cmd.Args = append(cmd.Args, "-tags=withpamrunner", "-o", filepath.Join(execPath, "pam_authd"),
+		"./pam/tools/pam-runner")
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return func() {}, fmt.Errorf("%v: %s", err, out)
 	}
@@ -82,7 +82,7 @@ func buildPAMTestClient(execPath string) (cleanup func(), err error) {
 	return func() { _ = os.Remove(filepath.Join(execPath, "pam_authd")) }, nil
 }
 
-func buildPAMClient(t *testing.T) string {
+func buildPAMExecChild(t *testing.T) string {
 	t.Helper()
 
 	cmd := exec.Command("go", "build", "-C", "pam")
@@ -102,12 +102,12 @@ func buildPAMClient(t *testing.T) string {
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)
 
 	authdPam := filepath.Join(t.TempDir(), "authd-pam")
-	t.Logf("Compiling Exec client at %s", authdPam)
+	t.Logf("Compiling Exec child at %s", authdPam)
 	t.Log(strings.Join(cmd.Args, " "))
 
 	cmd.Args = append(cmd.Args, "-o", authdPam)
 	out, err := cmd.CombinedOutput()
-	require.NoError(t, err, "Setup: could not compile PAM client: %s", out)
+	require.NoError(t, err, "Setup: could not compile PAM exec child: %s", out)
 
 	return authdPam
 }

@@ -91,17 +91,17 @@ func (td *tapeData) AddClientOptions(t *testing.T, opts clientOptions) {
 	t.Helper()
 
 	logFile := prepareFileLogging(t, "authd-pam-test-client.log")
-	td.Env[pam_test.ClientEnvLogFile] = logFile
-	td.Env[pam_test.ClientEnvTestName] = t.Name()
+	td.Env[pam_test.RunnerEnvLogFile] = logFile
+	td.Env[pam_test.RunnerEnvTestName] = t.Name()
 
 	if opts.PamUser != "" {
-		td.Env[pam_test.ClientEnvUser] = opts.PamUser
+		td.Env[pam_test.RunnerEnvUser] = opts.PamUser
 	}
 	if opts.PamEnv != nil {
-		td.Env[pam_test.ClientEnvEnvs] = strings.Join(opts.PamEnv, ";")
+		td.Env[pam_test.RunnerEnvEnvs] = strings.Join(opts.PamEnv, ";")
 	}
 	if opts.PamServiceName != "" {
-		td.Env[pam_test.ClientEnvService] = opts.PamServiceName
+		td.Env[pam_test.RunnerEnvService] = opts.PamServiceName
 	}
 	if opts.Term != "" {
 		td.Env["AUTHD_PAM_CLI_TERM"] = opts.Term
@@ -122,9 +122,9 @@ func (td tapeData) RunVhs(t *testing.T, tapesDir, outDir string, cliEnv []string
 	cmd.Env = append(cmd.Env, prependBinToPath(t))
 
 	// Move some of the environment specific-variables from the tape to the launched process
-	if e, ok := td.Env[pam_test.ClientEnvLogFile]; ok {
-		delete(td.Env, pam_test.ClientEnvLogFile)
-		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", pam_test.ClientEnvLogFile, e))
+	if e, ok := td.Env[pam_test.RunnerEnvLogFile]; ok {
+		delete(td.Env, pam_test.RunnerEnvLogFile)
+		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", pam_test.RunnerEnvLogFile, e))
 	}
 
 	cmd.Args = append(cmd.Args, td.PrepareTape(t, tapesDir, outDir))
