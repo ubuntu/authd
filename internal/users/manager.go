@@ -128,6 +128,7 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 		return errors.New("empty username")
 	}
 
+	var uid uint32
 	var oldGroups []cache.GroupDB
 
 	// Check if the user already exists in the database
@@ -137,17 +138,17 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	}
 	if errors.Is(err, cache.NoDataFoundError{}) {
 		// The user does not exist, so we register it with a unique UID.
-		uid, cleanup, err := m.registerUser(u.Name, false)
+		var cleanup func()
+		uid, cleanup, err = m.registerUser(u.Name, false)
 		if err != nil {
 			return fmt.Errorf("could not register user %q: %w", u.Name, err)
 		}
 
 		defer cleanup()
 
-		u.UID = uid
 		oldGroups = []cache.GroupDB{}
 	} else {
-		u.UID = oldUser.UID
+		uid = oldUser.UID
 		oldGroups, err = m.cache.UserGroups(oldUser.UID)
 		if err != nil {
 			return fmt.Errorf("could not get groups of user %q: %v", u.Name, err)
@@ -198,23 +199,23 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 		authdGroups = append(authdGroups, cache.NewGroupDB(g.Name, *g.GID, nil))
 	}
 
-	oldLocalGroups, err := m.cache.UserLocalGroups(u.UID)
+	oldLocalGroups, err := m.cache.UserLocalGroups(uid)
 	if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
 		return err
 	}
 
 	// Update user information in the cache.
-	userDB := cache.NewUserDB(u.Name, u.UID, authdGroups[0].GID, u.Gecos, u.Dir, u.Shell)
+	userDB := cache.NewUserDB(u.Name, uid, authdGroups[0].GID, u.Gecos, u.Dir, u.Shell)
 	if err := m.cache.UpdateUserEntry(userDB, authdGroups, localGroups); err != nil {
 		return err
 	}
 
 	// Update local groups.
 	if err := localentries.Update(u.Name, localGroups, oldLocalGroups); err != nil {
-		return errors.Join(err, m.cache.DeleteUser(u.UID))
+		return errors.Join(err, m.cache.DeleteUser(uid))
 	}
 
-	if err = checkHomeDirOwnership(u); err != nil {
+	if err = checkHomeDirOwnership(userDB.Dir, userDB.UID, userDB.GID); err != nil {
 		return fmt.Errorf("failed to check home directory owner and group: %w", err)
 	}
 
@@ -223,8 +224,8 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 
 // checkHomeDirOwnership checks if the home directory of the user is owned by the user and the user's group.
 // If not, it logs a warning.
-func checkHomeDirOwnership(u UserInfo) error {
-	fileInfo, err := os.Stat(u.Dir)
+func checkHomeDirOwnership(home string, uid, gid uint32) error {
+	fileInfo, err := os.Stat(home)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
@@ -238,14 +239,13 @@ func checkHomeDirOwnership(u UserInfo) error {
 		return errors.New("failed to get file info")
 	}
 	oldUID, oldGID := sys.Uid, sys.Gid
-	newUID, newGID := u.UID, *u.Groups[0].GID
 
 	// Check if the home directory is owned by the user.
-	if oldUID != newUID {
-		log.Warningf(context.Background(), "Home directory %q is not owned by UID %d. To fix this, run `sudo chown -R --from=%d %d %s`.", u.Dir, oldUID, oldUID, newUID, u.Dir)
+	if oldUID != uid {
+		log.Warningf(context.Background(), "Home directory %q is not owned by UID %d. To fix this, run `sudo chown -R --from=%d %d %s`.", home, oldUID, oldUID, uid, home)
 	}
-	if oldGID != newGID {
-		log.Warningf(context.Background(), "Home directory %q is not owned by GID %d. To fix this, run `sudo chown -R --from=:%d :%d %s`.", u.Dir, oldGID, oldGID, newGID, u.Dir)
+	if oldGID != gid {
+		log.Warningf(context.Background(), "Home directory %q is not owned by GID %d. To fix this, run `sudo chown -R --from=:%d :%d %s`.", home, oldGID, oldGID, gid, home)
 	}
 
 	return nil
