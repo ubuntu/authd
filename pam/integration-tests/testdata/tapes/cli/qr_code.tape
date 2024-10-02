@@ -1,72 +1,57 @@
-Output qr_code.txt
-Output qr_code.gif # If we don't specify a .gif output, it will create a default out.gif file.
-
-# Configuration header to standardize the output.
-# Does not work with the "Source" command.
-Set Width 800
-Set Height 650
-# TODO: Ideally, we should use Ubuntu Mono. However, the github runner is still on Jammy, which does not have it.
-# We should update this to use Ubuntu Mono once the runner is updated.
-Set FontFamily "Monospace"
-Set FontSize 13
-Set Padding 0
-Set Margin 0
-Set Shell bash
-
 Hide
 Type "if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi"
 Enter
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}"
 Enter
-Sleep 800ms
+Sleep ${AUTHD_SLEEP_DEFAULT} * 3
 Show
 
 Hide
 Type "2"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Escape
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "6"
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Tab
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT} / 3
 Show
 
 Hide
 Enter
-Sleep 800ms
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT} / 3
 Show
 
 Hide
 Enter
-Sleep 800ms
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT} / 3
 Show
 
 Hide
 Enter
-Sleep 800ms
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT} / 3
 Show
 
 Hide
 Enter
-Sleep 1s
+Sleep ${AUTHD_SLEEP_LONG}
 Show
 
 Hide
-Sleep 5s
+Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT} * 1.2
 Show
 
-Sleep 300ms
+Sleep ${AUTHD_SLEEP_DEFAULT}

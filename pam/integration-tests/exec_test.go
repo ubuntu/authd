@@ -843,7 +843,6 @@ func getModuleArgs(t *testing.T, clientPath string, args []string) []string {
 	logFile := os.Stderr.Name()
 	if !testutils.IsVerbose() {
 		logFile = prepareFileLogging(t, "exec-module.log")
-		saveArtifactsForDebugOnCleanup(t, []string{logFile})
 	}
 	moduleArgs = append(moduleArgs, "--exec-log", logFile)
 
@@ -947,9 +946,12 @@ func buildExecClient(t *testing.T) string {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
 	}
-	if pam_test.IsAddressSanitizerActive() {
+	if testutils.IsAsan() {
 		// -asan is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-asan")
+	}
+	if testutils.IsRace() {
+		cmd.Args = append(cmd.Args, "-race")
 	}
 	cmd.Args = append(cmd.Args, "-gcflags=-dwarflocationlists=true")
 	cmd.Args = append(cmd.Args, "-tags=pam_tests_exec_client")

@@ -97,6 +97,7 @@ paths:
 	// #nosec:G204 - we control the command arguments in tests
 	cmd := exec.CommandContext(ctx, execPath, "-c", configPath)
 	opts.env = append(opts.env, os.Environ()...)
+	opts.env = append(opts.env, fmt.Sprintf("AUTHD_EXAMPLE_BROKER_SLEEP_MULTIPLIER=%f", SleepMultiplier()))
 	cmd.Env = AppendCovEnv(opts.env)
 
 	// This is the function that is called by CommandContext when the context is cancelled.
@@ -146,6 +147,12 @@ func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err erro
 	if CoverDirForTests() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
+	}
+	if IsAsan() {
+		cmd.Args = append(cmd.Args, "-asan")
+	}
+	if IsRace() {
+		cmd.Args = append(cmd.Args, "-race")
 	}
 	cmd.Args = append(cmd.Args, extraArgs...)
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")

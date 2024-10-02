@@ -673,7 +673,6 @@ func TestGdmModule(t *testing.T) {
 			moduleArgs := []string{"socket=" + socketPath}
 
 			gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
-			saveArtifactsForDebugOnCleanup(t, []string{gdmLog})
 			moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
 			serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
@@ -736,7 +735,7 @@ func TestGdmModule(t *testing.T) {
 
 			var err error
 			select {
-			case <-time.After(30 * time.Second):
+			case <-time.After(sleepDuration(30 * time.Second)):
 				timedOut = true
 				t.Fatal("Authentication timed out!")
 			case err = <-authResult:
@@ -788,7 +787,6 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
-	saveArtifactsForDebugOnCleanup(t, []string{gdmLog})
 	moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
@@ -831,7 +829,6 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
-	saveArtifactsForDebugOnCleanup(t, []string{gdmLog})
 	moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
@@ -878,9 +875,13 @@ func buildPAMModule(t *testing.T) string {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
 	}
+	// FIXME: This leads to an EOM error when loading the compiled module:
+	// if testutils.IsRace() {
+	// 	cmd.Args = append(cmd.Args, "-race")
+	// }
 	cmd.Args = append(cmd.Args, "-buildmode=c-shared", "-gcflags=-dwarflocationlists=true")
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)
-	if pam_test.IsAddressSanitizerActive() {
+	if testutils.IsAsan() {
 		cmd.Args = append(cmd.Args, "-asan")
 	}
 

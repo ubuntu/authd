@@ -217,6 +217,8 @@ jobs:
 
       - name: Run tests (with race detector)
         if: matrix.test == 'race'
+        env:
+          GO_TESTS_TIMEOUT: 35m
         run: |
           go test -timeout ${GO_TESTS_TIMEOUT} -race ./...
 
@@ -227,15 +229,22 @@ jobs:
           # stack trace information in case of ASAN errors.
           CGO_CFLAGS: "-O0 -g3 -fno-omit-frame-pointer"
           G_DEBUG: "fatal-criticals"
+          GO_TESTS_TIMEOUT: 30m
+          # Use these flags to give ASAN a better time to unwind the stack trace
+          GO_GC_FLAGS: -N -l
         run: |
-          # Use `-dwarflocationlists` to give ASAN a better time to unwind the stack trace
-          go test -C ./pam/internal -asan -gcflags="-dwarflocationlists=true" -timeout ${GO_TESTS_TIMEOUT} ./...
+          go test -C ./pam/internal -asan -gcflags=all="${GO_GC_FLAGS}" -timeout ${GO_TESTS_TIMEOUT} ./... || exit_code=$?
+          if [ "${exit_code}" -ne 0 ]; then
+            cat "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log* || true
+            exit ${exit_code}
+          fi
 
           pushd ./pam/integration-tests
-          go test -asan -gcflags="-dwarflocationlists=true" -timeout ${GO_TESTS_TIMEOUT} -c
+          go test -asan -gcflags=all="${GO_GC_FLAGS}" -c
           # FIXME: Suppression may be removed with newer libpam, as the one we ship in ubuntu as some leaks
           env LSAN_OPTIONS=suppressions=$(pwd)/lsan.supp \
             ./integration-tests.test \
+              -test.timeout ${GO_TESTS_TIMEOUT} \
             || exit_code=$?
           popd
 

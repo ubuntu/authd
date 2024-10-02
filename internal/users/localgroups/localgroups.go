@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/ubuntu/decorate"
 )
@@ -29,6 +30,8 @@ type options struct {
 // Option represents an optional function to override UpdateLocalGroups default values.
 type Option func(*options)
 
+var localGroupsMu = &sync.RWMutex{}
+
 // Update synchronizes for the given user the local group list with the current group list from UserInfo.
 func Update(username string, groups []string, args ...Option) (err error) {
 	defer decorate.OnError(&err, "could not update local groups for user %q", username)
@@ -43,6 +46,8 @@ func Update(username string, groups []string, args ...Option) (err error) {
 		return err
 	}
 
+	localGroupsMu.Lock()
+	defer localGroupsMu.Unlock()
 	groupsToAdd, groupsToRemove := computeGroupOperation(groups, currentLocalGroups)
 
 	for _, g := range groupsToRemove {
@@ -67,6 +72,8 @@ func Update(username string, groups []string, args ...Option) (err error) {
 func existingLocalGroups(user, groupPath string) (groups []string, err error) {
 	defer decorate.OnError(&err, "could not fetch existing local group")
 
+	localGroupsMu.RLock()
+	defer localGroupsMu.RUnlock()
 	f, err := os.Open(groupPath)
 	if err != nil {
 		return nil, err
@@ -149,6 +156,8 @@ func CleanUser(user string, args ...Option) (err error) {
 		return err
 	}
 
+	localGroupsMu.Lock()
+	defer localGroupsMu.Unlock()
 	for _, group := range groups {
 		args := opts.gpasswdCmd[1:]
 		args = append(args, "--delete", user, group)
@@ -168,6 +177,9 @@ func Clean(args ...Option) (err error) {
 	for _, arg := range args {
 		arg(&opts)
 	}
+
+	localGroupsMu.Lock()
+	defer localGroupsMu.Unlock()
 
 	// Add the existingUsers to a map to speed up search
 	existingUsers := make(map[string]struct{})
