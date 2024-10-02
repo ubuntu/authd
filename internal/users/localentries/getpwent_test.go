@@ -9,8 +9,7 @@ import (
 func TestGetPasswdEntries(t *testing.T) {
 	t.Parallel()
 
-	got, err := GetPasswdEntries()
-	require.NoError(t, err, "GetPasswdEntries should not return an error")
+	got := GetPasswdEntries()
 	require.NotEmpty(t, got, "GetPasswdEntries should never return an empty list")
 
 	// Check if the root user is present in the list
@@ -27,7 +26,6 @@ func TestGetPasswdEntries(t *testing.T) {
 func TestGetGroupEntries(t *testing.T) {
 	t.Parallel()
 
-	got, err := GetGroupEntries()
-	require.NoError(t, err, "GetGroupEntries should not return an error")
+	got := GetGroupEntries()
 	require.NotEmpty(t, got, "GetGroupEntries should never return an empty list")
 }

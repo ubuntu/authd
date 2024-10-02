@@ -26,7 +26,7 @@ var defaultOptions = options{
 type options struct {
 	groupPath    string
 	gpasswdCmd   []string
-	getUsersFunc func() ([]string, error)
+	getUsersFunc func() []string
 }
 
 // Option represents an optional function to override UpdateLocalGroups default values.
@@ -77,18 +77,13 @@ func Update(username string, newGroups []string, oldGroups []string, args ...Opt
 }
 
 // getPasswdUsernames gets the passwd entries and returns their usernames.
-func getPasswdUsernames() ([]string, error) {
-	entries, err := GetPasswdEntries()
-	if err != nil {
-		return nil, err
-	}
-
+func getPasswdUsernames() []string {
 	var usernames []string
-	for _, e := range entries {
+	for _, e := range GetPasswdEntries() {
 		usernames = append(usernames, e.Name)
 	}
 
-	return usernames, nil
+	return usernames
 }
 
 // existingLocalGroups returns which groups from groupPath the user is part of.
@@ -174,12 +169,7 @@ func Clean(args ...Option) (err error) {
 
 	// Add the existingUsers to a map to speed up search
 	existingUsers := make(map[string]struct{})
-	userNames, err := opts.getUsersFunc()
-	if err != nil {
-		return err
-	}
-
-	for _, username := range userNames {
+	for _, username := range opts.getUsersFunc() {
 		existingUsers[username] = struct{}{}
 	}
 	// If no username was returned, something probably went wrong during the getpwent call and we should stop,
