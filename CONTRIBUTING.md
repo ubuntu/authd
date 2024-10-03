@@ -40,7 +40,6 @@ Contributions are made to this project via Issues and Pull Requests (PRs). These
 * If you've never contributed before, see [this post on ubuntu.com](https://ubuntu.com/community/contribute) for resources and tips on how to get started.
 * Existing Issues and PRs should be searched for on the [project's repository](https://github.com/ubuntu/authd) before creating your own.
 * While we work hard to ensure that issues are handled in a timely manner, it can take time to investigate the root cause. A friendly ping in the comment thread to the submitter or a contributor can help draw attention if your issue is blocking.
-* If you've never contributed before, read [this post on ubuntu.com](https://ubuntu.com/community/contribute) for resources and tips on how to get started.
 
 ### Issues
 
