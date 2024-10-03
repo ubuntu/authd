@@ -1,5 +1,5 @@
 Hide
-Type "env AUTHD_PAM_CLI_USER=user3 ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}"
+Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}"
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show

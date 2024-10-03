@@ -1,4 +1,4 @@
-//go:build pam_binary_cli
+//go:build withpamrunner
 
 package main
 
@@ -20,14 +20,14 @@ import (
 
 // Simulating pam on the CLI for manual testing.
 func main() {
-	logDir := os.Getenv("AUTHD_PAM_CLI_LOG_DIR")
-	supportsConversation := os.Getenv("AUTHD_PAM_CLI_SUPPORTS_CONVERSATION") != ""
-	execModule := os.Getenv("AUTHD_PAM_EXEC_MODULE")
-	cliPath := os.Getenv("AUTHD_PAM_CLI_PATH")
-	testName := os.Getenv("AUTHD_PAM_CLI_TEST_NAME")
-	pamUser := os.Getenv("AUTHD_PAM_CLI_USER")
-	pamEnvs := os.Getenv("AUTHD_PAM_CLI_ENVS")
-	pamService := os.Getenv("AUTHD_PAM_CLI_SERVICE")
+	logFile := os.Getenv(pam_test.RunnerEnvLogFile)
+	supportsConversation := os.Getenv(pam_test.RunnerEnvSupportsConversation) != ""
+	execModule := os.Getenv(pam_test.RunnerEnvExecModule)
+	execChildPath := os.Getenv(pam_test.RunnerEnvExecChildPath)
+	testName := os.Getenv(pam_test.RunnerEnvTestName)
+	pamUser := os.Getenv(pam_test.RunnerEnvUser)
+	pamEnvs := os.Getenv(pam_test.RunnerEnvEnvs)
+	pamService := os.Getenv(pam_test.RunnerEnvService)
 
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "pam-cli-tester-")
 	if err != nil {
@@ -42,18 +42,17 @@ func main() {
 		}
 	}
 
-	if _, err := os.Stat(cliPath); err != nil {
-		cliPath, err = buildClient(tmpDir)
+	if _, err := os.Stat(execChildPath); err != nil {
+		execChildPath, err = buildExecChild(tmpDir)
 		if err != nil {
 			log.Fatalf("Client build failed: %v", err)
 		}
 	}
 
-	defaultArgs := []string{cliPath, "debug=true"}
-	if logDir != "" {
-		logPath := filepath.Join(logDir, "authd-pam-cli.log")
-		defaultArgs = append(defaultArgs, "logfile="+logPath)
-		defaultArgs = append(defaultArgs, "--exec-debug", "--exec-log", logPath)
+	defaultArgs := []string{execChildPath, "debug=true"}
+	if logFile != "" {
+		defaultArgs = append(defaultArgs, "logfile="+logFile)
+		defaultArgs = append(defaultArgs, "--exec-debug", "--exec-log", logFile)
 	}
 
 	if coverDir := os.Getenv("GOCOVERDIR"); coverDir != "" {
@@ -90,7 +89,7 @@ func main() {
 	tx, err := pam.StartConfDir(filepath.Base(serviceFile), pamUser,
 		conversationHandler, filepath.Dir(serviceFile))
 	if err != nil {
-		log.Fatalf("Impossible to start transaction %v: %v", cliPath, err)
+		log.Fatalf("Impossible to start transaction %v: %v", execChildPath, err)
 	}
 	defer tx.End()
 
@@ -100,7 +99,7 @@ func main() {
 	}
 
 	if pamEnvs != "" {
-		for _, env := range strings.Split(pamEnvs, "\n") {
+		for _, env := range strings.Split(pamEnvs, ";") {
 			err = tx.PutEnv(env)
 			if err != nil {
 				log.Fatalf("Impossible to set environment: %v", err)
@@ -215,13 +214,14 @@ func buildExecModule(path string) (string, error) {
 	return execModule, nil
 }
 
-func buildClient(path string) (string, error) {
-	cliPath := filepath.Join(path, "exec-client")
+func buildExecChild(path string) (string, error) {
+	cliPath := filepath.Join(path, "exec-child")
 	cmd := exec.Command("go", "build", "-C", "pam", "-o", cliPath)
 	cmd.Dir = projectRoot()
+	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return "", fmt.Errorf("can't compile client %s: %v\n%s", cliPath, err, out)
+		return "", fmt.Errorf("can't compile child %s: %v\n%s", cliPath, err, out)
 	}
 	return cliPath, nil
 }
@@ -234,8 +234,8 @@ func projectRoot() string {
 	// Walk up the tree to get the path of the project root
 	l := strings.Split(p, "/")
 
-	// Ignores the last 2 elements -> /pam/main-cli.go
-	l = l[:len(l)-2]
+	// Ignores the last 4 elements -> ./pam/tools/pam-runner/pam-runner.go
+	l = l[:len(l)-4]
 
 	// strings.Split removes the first "/" that indicated an AbsPath, so we append it back in the final string.
 	return "/" + filepath.Join(l...)

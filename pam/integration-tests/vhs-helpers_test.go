@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
 const (
@@ -35,6 +37,7 @@ type tapeData struct {
 	Name     string
 	Outputs  []string
 	Settings map[string]any
+	Env      map[string]string
 }
 
 var (
@@ -72,7 +75,61 @@ func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 			tapeName + ".gif",
 		},
 		Settings: m,
+		Env:      make(map[string]string),
 	}
+}
+
+type clientOptions struct {
+	PamUser        string
+	PamEnv         []string
+	PamServiceName string
+	Term           string
+	SessionType    string
+}
+
+func (td *tapeData) AddClientOptions(t *testing.T, opts clientOptions) {
+	t.Helper()
+
+	logFile := prepareFileLogging(t, "authd-pam-test-client.log")
+	td.Env[pam_test.RunnerEnvLogFile] = logFile
+	td.Env[pam_test.RunnerEnvTestName] = t.Name()
+
+	if opts.PamUser != "" {
+		td.Env[pam_test.RunnerEnvUser] = opts.PamUser
+	}
+	if opts.PamEnv != nil {
+		td.Env[pam_test.RunnerEnvEnvs] = strings.Join(opts.PamEnv, ";")
+	}
+	if opts.PamServiceName != "" {
+		td.Env[pam_test.RunnerEnvService] = opts.PamServiceName
+	}
+	if opts.Term != "" {
+		td.Env["AUTHD_PAM_CLI_TERM"] = opts.Term
+	}
+	if opts.SessionType != "" {
+		td.Env["XDG_SESSION_TYPE"] = opts.SessionType
+	}
+}
+
+func (td tapeData) RunVhs(t *testing.T, tapesDir, outDir string, cliEnv []string) {
+	t.Helper()
+
+	cmd := exec.Command("env", "vhs")
+	cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
+	cmd.Dir = outDir
+
+	// If vhs is installed with "go install", we need to add GOPATH to PATH.
+	cmd.Env = append(cmd.Env, prependBinToPath(t))
+
+	// Move some of the environment specific-variables from the tape to the launched process
+	if e, ok := td.Env[pam_test.RunnerEnvLogFile]; ok {
+		delete(td.Env, pam_test.RunnerEnvLogFile)
+		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", pam_test.RunnerEnvLogFile, e))
+	}
+
+	cmd.Args = append(cmd.Args, td.PrepareTape(t, tapesDir, outDir))
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, "Failed to run tape %q: %v: %s", td.Name, err, out)
 }
 
 func (td tapeData) String() string {
@@ -82,6 +139,9 @@ func (td tapeData) String() string {
 	}
 	for s, v := range td.Settings {
 		str += fmt.Sprintf(`Set %s "%v"`+"\n", s, v)
+	}
+	for s, v := range td.Env {
+		str += fmt.Sprintf(`Env %s %q`+"\n", s, v)
 	}
 	return str
 }

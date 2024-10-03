@@ -953,7 +953,7 @@ func buildExecClient(t *testing.T) string {
 	if testutils.IsRace() {
 		cmd.Args = append(cmd.Args, "-race")
 	}
-	cmd.Args = append(cmd.Args, "-gcflags=-dwarflocationlists=true")
+	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
 	cmd.Args = append(cmd.Args, "-tags=pam_tests_exec_client")
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)
 

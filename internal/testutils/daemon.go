@@ -154,6 +154,7 @@ func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err erro
 	if IsRace() {
 		cmd.Args = append(cmd.Args, "-race")
 	}
+	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
 	cmd.Args = append(cmd.Args, extraArgs...)
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")
 

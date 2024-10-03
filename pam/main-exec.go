@@ -1,5 +1,3 @@
-//go:build !pam_binary_cli
-
 package main
 
 import (
