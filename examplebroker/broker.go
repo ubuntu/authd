@@ -729,9 +729,11 @@ func (b *Broker) EndSession(ctx context.Context, sessionID string) error {
 		return err
 	}
 
+	b.isAuthenticatedCallsMu.Lock()
+	defer b.isAuthenticatedCallsMu.Unlock()
 	// Checks if there is a isAuthenticated call running for this session and cancels it before ending the session.
 	if _, exists := b.isAuthenticatedCalls[sessionID]; exists {
-		b.CancelIsAuthenticated(ctx, sessionID)
+		b.cancelIsAuthenticatedUnlocked(ctx, sessionID)
 	}
 
 	b.currentSessionsMu.Lock()
@@ -748,6 +750,10 @@ func (b *Broker) CancelIsAuthenticated(ctx context.Context, sessionID string) {
 	if _, exists := b.isAuthenticatedCalls[sessionID]; !exists {
 		return
 	}
+	b.cancelIsAuthenticatedUnlocked(ctx, sessionID)
+}
+
+func (b *Broker) cancelIsAuthenticatedUnlocked(_ context.Context, sessionID string) {
 	b.isAuthenticatedCalls[sessionID].cancelFunc()
 	delete(b.isAuthenticatedCalls, sessionID)
 }
