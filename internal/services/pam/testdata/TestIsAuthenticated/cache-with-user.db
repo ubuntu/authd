@@ -1,5 +1,5 @@
 GroupByID:
-    "88888": '{"Name":"othergroup","GID":88888}'
+    "88888": '{"Name":"group-success","GID":88888}'
 GroupByName:
     group-success: '{"Name":"group-success","GID":88888}'
 GroupToUsers:
