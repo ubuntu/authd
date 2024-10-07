@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
 	"strings"
+	"syscall"
 
 	"github.com/ubuntu/authd/internal/users/cache"
 	"github.com/ubuntu/authd/internal/users/localgroups"
@@ -141,6 +143,40 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	// Update local groups.
 	if err := localgroups.Update(u.Name, localGroups); err != nil {
 		return errors.Join(err, m.cache.DeleteUser(u.UID))
+	}
+
+	if err = checkHomeDirOwnership(u); err != nil {
+		return fmt.Errorf("failed to check home directory owner and group: %w", err)
+	}
+
+	return nil
+}
+
+// checkHomeDirOwnership checks if the home directory of the user is owned by the user and the user's group.
+// If not, it logs a warning.
+func checkHomeDirOwnership(u UserInfo) error {
+	fileInfo, err := os.Stat(u.Dir)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		// The home directory does not exist, so we don't need to check the owner.
+		return nil
+	}
+
+	sys, ok := fileInfo.Sys().(*syscall.Stat_t)
+	if !ok {
+		return errors.New("failed to get file info")
+	}
+	oldUID, oldGID := sys.Uid, sys.Gid
+	newUID, newGID := u.UID, *u.Groups[0].GID
+
+	// Check if the home directory is owned by the user.
+	if oldUID != newUID {
+		slog.Warn(fmt.Sprintf("Home directory %q is not owned by UID %d. To fix this, run `sudo chown -R --from=%d %d %s`.", u.Dir, oldUID, oldUID, newUID, u.Dir))
+	}
+	if oldGID != newGID {
+		slog.Warn(fmt.Sprintf("Home directory %q is not owned by GID %d. To fix this, run `sudo chown -R --from=:%d :%d %s`.", u.Dir, oldGID, oldGID, newGID, u.Dir))
 	}
 
 	return nil
