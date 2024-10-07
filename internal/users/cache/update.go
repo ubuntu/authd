@@ -94,7 +94,7 @@ func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) er
 
 		// If a group with the same GID exists, we need to ensure that it's the same group or fail the update otherwise.
 		if existingGroup.Name != "" && existingGroup.Name != groupContent.Name {
-			slog.Error(fmt.Sprintf("GID for group %q already in use by group %q", groupContent.Name, existingGroup.Name))
+			slog.Error(fmt.Sprintf("GID %d for group %q already in use by group %q", groupContent.GID, groupContent.Name, existingGroup.Name))
 			return fmt.Errorf("GID for group %q already in use by a different group", groupContent.Name)
 		}
 
