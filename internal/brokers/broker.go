@@ -340,7 +340,6 @@ func (b Broker) parseSessionID(sessionID string) string {
 type userInfo struct {
 	users.UserInfo
 	UUID string
-	UGID string
 }
 
 // unmarshalUserInfo tries to unmarshal the rawMsg into a userinfo.
