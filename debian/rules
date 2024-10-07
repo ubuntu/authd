@@ -91,6 +91,9 @@ override_dh_auto_build:
 	# Build the daemon
 	dh_auto_build -- $(AUTHD_GO_PACKAGE)/cmd/authd
 
+override_dh_auto_test:
+	dh_auto_test -- -tags withgdmmodel
+
 override_dh_auto_install:
 	dh_auto_install --destdir=debian/tmp -- --no-source
 

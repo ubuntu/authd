@@ -19,6 +19,8 @@ import (
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
+const authdCurrentUserRootEnvVariableContent = "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1"
+
 func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool) string {
 	t.Helper()
 
