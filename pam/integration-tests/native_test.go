@@ -1,8 +1,10 @@
 package main_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -17,10 +19,13 @@ func TestNativeAuthenticate(t *testing.T) {
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
+	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s} force_native_client=true",
+		socketPathEnv)
 
 	tests := map[string]struct {
 		tape         string
 		tapeSettings []tapeSetting
+		tapeCommand  string
 
 		clientOptions      clientOptions
 		currentUserNotRoot bool
@@ -133,6 +138,8 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate with warnings on unsupported arguments": {
 			tape: "simple_auth_with_unsupported_args",
+			tapeCommand: strings.ReplaceAll(tapeCommand, "force_native_client=true",
+				"invalid_flag=foo force_native_client=true bar"),
 		},
 
 		"Remember last successful broker and mode": {
@@ -213,7 +220,11 @@ func TestNativeAuthenticate(t *testing.T) {
 			groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 			socketPath := runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
 
+			if tc.tapeCommand == "" {
+				tc.tapeCommand = tapeCommand
+			}
 			td := newTapeData(tc.tape, tc.tapeSettings...)
+			td.Command = tc.tapeCommand
 			td.Env[socketPathEnv] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.AddClientOptions(t, tc.clientOptions)
@@ -240,16 +251,22 @@ func TestNativeChangeAuthTok(t *testing.T) {
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
+	const tapeBaseCommand = "./pam_authd %s socket=${%s} force_native_client=true"
+	tapeCommand := fmt.Sprintf(tapeBaseCommand, "passwd", socketPathEnv)
 	defaultSocketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
 
 	tests := map[string]struct {
-		tape         string
-		tapeSettings []tapeSetting
+		tape          string
+		tapeSettings  []tapeSetting
+		tapeVariables map[string]string
 
 		currentUserNotRoot bool
 	}{
 		"Change password successfully and authenticate with new one": {
 			tape: "passwd_simple",
+			tapeVariables: map[string]string{
+				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(tapeBaseCommand, "login", socketPathEnv),
+			},
 		},
 		"Change passwd after MFA auth": {
 			tape:         "passwd_mfa",
@@ -299,6 +316,8 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
+			td.Command = tapeCommand
+			td.Variables = tc.tapeVariables
 			td.Env[socketPathEnv] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.AddClientOptions(t, clientOptions{})

@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,6 +21,7 @@ func TestCLIAuthenticate(t *testing.T) {
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
+	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s}", socketPathEnv)
 
 	tests := map[string]struct {
 		tape         string
@@ -149,6 +151,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			socketPath := runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
+			td.Command = tapeCommand
 			td.Env[socketPathEnv] = socketPath
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, "cli", outDir, cliEnv)
@@ -174,16 +177,22 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
+	const tapeBaseCommand = "./pam_authd %s socket=${%s}"
+	tapeCommand := fmt.Sprintf(tapeBaseCommand, "passwd", socketPathEnv)
 	defaultSocketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
 
 	tests := map[string]struct {
-		tape         string
-		tapeSettings []tapeSetting
+		tape          string
+		tapeSettings  []tapeSetting
+		tapeVariables map[string]string
 
 		currentUserNotRoot bool
 	}{
 		"Change password successfully and authenticate with new one": {
 			tape: "passwd_simple",
+			tapeVariables: map[string]string{
+				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(tapeBaseCommand, "login", socketPathEnv),
+			},
 		},
 		"Change passwd after MFA auth": {
 			tape: "passwd_mfa",
@@ -230,6 +239,8 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
+			td.Command = tapeCommand
+			td.Variables = tc.tapeVariables
 			td.Env[socketPathEnv] = socketPath
 			td.AddClientOptions(t, clientOptions{})
 			td.RunVhs(t, "cli", outDir, cliEnv)
