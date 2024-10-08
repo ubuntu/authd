@@ -18,12 +18,16 @@ func TestNativeAuthenticate(t *testing.T) {
 	cliEnv := preparePamRunnerTest(t, clientPath)
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 
+	defaultGPasswdOutput, groupsFile := prepareGPasswdFiles(t)
+	defaultSocketPath := runAuthd(t, defaultGPasswdOutput, groupsFile, true)
+
 	tests := map[string]struct {
 		tape         string
 		tapeSettings []tapeSetting
 
 		clientOptions      clientOptions
 		currentUserNotRoot bool
+		wantLocalGroups    bool
 	}{
 		"Authenticate user successfully": {
 			tape: "simple_auth",
@@ -108,7 +112,8 @@ func TestNativeAuthenticate(t *testing.T) {
 			tapeSettings: []tapeSetting{{vhsHeight, 600}},
 		},
 		"Authenticate user and add it to local group": {
-			tape: "local_group",
+			tape:            "local_group",
+			wantLocalGroups: true,
 		},
 		"Authenticate user on ssh service": {
 			tape: "simple_ssh_auth",
@@ -209,8 +214,13 @@ func TestNativeAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			gpasswdOutput, groupsFile := prepareGPasswdFiles(t)
-			socketPath := runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			socketPath := defaultSocketPath
+			gpasswdOutput := defaultGPasswdOutput
+			if tc.wantLocalGroups || tc.currentUserNotRoot {
+				var groupsFile string
+				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
+				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Env[socketPathEnv] = socketPath
