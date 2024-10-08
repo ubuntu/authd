@@ -1,7 +1,7 @@
 Hide
-Type "./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}"
+Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
+Sleep ${AUTHD_SLEEP_COMMAND} * 2
 Show
 
 Sleep ${AUTHD_SLEEP_DEFAULT}
