@@ -26,9 +26,10 @@ func TestNew(t *testing.T) {
 
 		wantErr bool
 	}{
-		"New without any initialized database":                  {},
-		"New with already existing database":                    {dbFile: "multiple_users_and_groups"},
-		"New recreates any missing buckets and delete unknowns": {dbFile: "database_with_unknown_bucket"},
+		"New without any initialized database":                   {},
+		"New with already existing database":                     {dbFile: "multiple_users_and_groups"},
+		"New recreates any missing buckets and delete unknowns":  {dbFile: "database_with_unknown_bucket"},
+		"New removes orphaned user records from UserByID bucket": {dbFile: "orphaned_user_record"},
 
 		"Error on cacheDir non existent cacheDir":      {dbFile: "-", wantErr: true},
 		"Error on corrupted db file":                   {corruptedDbFile: true, wantErr: true},

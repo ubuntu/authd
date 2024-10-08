@@ -1,8 +1,10 @@
 package cache
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log/slog"
 	"slices"
 	"strconv"
 
@@ -100,5 +102,71 @@ func deleteUser(buckets map[string]bucketWithName, uid uint32) (err error) {
 	if err = buckets[userToBrokerBucketName].Delete(uidKey); err != nil {
 		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
 	}
+	return nil
+}
+
+// deleteOrphanedUsers removes users from the UserByID bucket that are not in the UserByName bucket.
+func deleteOrphanedUsers(db *bbolt.DB) error {
+	slog.Debug("Cleaning up orphaned user records")
+
+	err := db.Update(func(tx *bbolt.Tx) error {
+		buckets, err := getAllBuckets(tx)
+		if err != nil {
+			return err
+		}
+
+		return buckets[userByIDBucketName].ForEach(func(k, v []byte) error {
+			var user UserDB
+			if err := json.Unmarshal(v, &user); err != nil {
+				slog.Warn(fmt.Sprintf("Error loading user record {%s: %s}: %v", string(k), string(v), err))
+				return nil
+			}
+
+			user2, err := getFromBucket[userDB](buckets[userByNameBucketName], user.Name)
+			if err != nil && !errors.Is(err, NoDataFoundError{}) {
+				slog.Warn(fmt.Sprintf("Error loading user record %q: %v", user.Name, err))
+				return nil
+			}
+			if errors.Is(err, NoDataFoundError{}) || user2.UID != user.UID {
+				slog.Warn(fmt.Sprintf("Removing orphaned user record %q with UID %d", user.Name, user.UID))
+				return deleteOrphanedUser(buckets, user.UID)
+			}
+
+			return nil
+		})
+	})
+	if err != nil {
+		return err
+	}
+
+	slog.Debug("Done cleaning up orphaned user records")
+	return nil
+}
+
+// deleteOrphanedUser removes all user records with the given UID from the buckets, except the UserByName bucket.
+func deleteOrphanedUser(buckets map[string]bucketWithName, uid uint32) (err error) {
+	uidKey := []byte(strconv.FormatUint(uint64(uid), 10))
+
+	if err := buckets[userByIDBucketName].Delete(uidKey); err != nil {
+		return fmt.Errorf("can't delete user with UID %d from userByID bucket: %v", uid, err)
+	}
+
+	groups, err := getFromBucket[userToGroupsDB](buckets[userToGroupsBucketName], uid)
+	if err != nil && !errors.Is(err, NoDataFoundError{}) {
+		return err
+	}
+	for _, gid := range groups.GIDs {
+		if err := deleteUserFromGroup(buckets, uid, gid); err != nil {
+			return err
+		}
+	}
+
+	if err := buckets[userToGroupsBucketName].Delete(uidKey); err != nil {
+		return fmt.Errorf("can't delete user with UID %d from userToGroups bucket: %v", uid, err)
+	}
+	if err := buckets[userToBrokerBucketName].Delete(uidKey); err != nil {
+		return fmt.Errorf("can't delete user with UID %d from userToBroker bucket: %v", uid, err)
+	}
+
 	return nil
 }

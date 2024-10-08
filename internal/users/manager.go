@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"os"
 	"strings"
+	"syscall"
 
 	"github.com/ubuntu/authd/internal/users/cache"
 	"github.com/ubuntu/authd/internal/users/localgroups"
@@ -74,7 +76,18 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 		return errors.New("empty username")
 	}
 
-	// Generate the UID of the user unless a UID is already set (only the case in tests).
+	// Check if the user already exists in the database
+	oldUser, err := m.cache.UserByName(u.Name)
+	if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
+		return err
+	}
+	// Keep the old UID if the user already exists in the database, to avoid permission issues with the user's home
+	// directory and other files.
+	if !errors.Is(err, cache.NoDataFoundError{}) {
+		u.UID = oldUser.UID
+	}
+
+	// Generate the UID of the user unless a UID is already set.
 	if u.UID == 0 {
 		u.UID = m.GenerateUID(u.Name)
 	}
@@ -83,8 +96,28 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	u.Groups = append([]GroupInfo{{Name: u.Name, UGID: u.Name}}, u.Groups...)
 
 	// Generate the GIDs of the user groups
-	for i := range u.Groups {
-		if u.Groups[i].UGID != "" {
+	for i, g := range u.Groups {
+		if g.Name == "" {
+			return fmt.Errorf("empty group name for user %q", u.Name)
+		}
+
+		if g.UGID == "" {
+			// An empty UGID means that the group is a local group, so we don't need to store a GID for it.
+			continue
+		}
+
+		// Check if the group already exists in the database
+		oldGroup, err := m.cache.GroupByName(g.Name)
+		if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
+			return err
+		}
+		// Keep the old GID if the group already exists in the database, to avoid permission issues
+		if !errors.Is(err, cache.NoDataFoundError{}) {
+			u.Groups[i].GID = &oldGroup.GID
+		}
+
+		// Generate the GID of the group unless a GID is already set.
+		if u.Groups[i].GID == nil || *u.Groups[i].GID == 0 {
 			gidv := m.GenerateGID(u.Groups[i].UGID)
 			u.Groups[i].GID = &gidv
 		}
@@ -93,10 +126,6 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	var groupContents []cache.GroupDB
 	var localGroups []string
 	for _, g := range u.Groups {
-		if g.Name == "" {
-			return fmt.Errorf("empty group name for user %q", u.Name)
-		}
-
 		// Empty GID assume local group
 		if g.GID == nil {
 			localGroups = append(localGroups, g.Name)
@@ -114,6 +143,40 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	// Update local groups.
 	if err := localgroups.Update(u.Name, localGroups); err != nil {
 		return errors.Join(err, m.cache.DeleteUser(u.UID))
+	}
+
+	if err = checkHomeDirOwnership(u); err != nil {
+		return fmt.Errorf("failed to check home directory owner and group: %w", err)
+	}
+
+	return nil
+}
+
+// checkHomeDirOwnership checks if the home directory of the user is owned by the user and the user's group.
+// If not, it logs a warning.
+func checkHomeDirOwnership(u UserInfo) error {
+	fileInfo, err := os.Stat(u.Dir)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		// The home directory does not exist, so we don't need to check the owner.
+		return nil
+	}
+
+	sys, ok := fileInfo.Sys().(*syscall.Stat_t)
+	if !ok {
+		return errors.New("failed to get file info")
+	}
+	oldUID, oldGID := sys.Uid, sys.Gid
+	newUID, newGID := u.UID, *u.Groups[0].GID
+
+	// Check if the home directory is owned by the user.
+	if oldUID != newUID {
+		slog.Warn(fmt.Sprintf("Home directory %q is not owned by UID %d. To fix this, run `sudo chown -R --from=%d %d %s`.", u.Dir, oldUID, oldUID, newUID, u.Dir))
+	}
+	if oldGID != newGID {
+		slog.Warn(fmt.Sprintf("Home directory %q is not owned by GID %d. To fix this, run `sudo chown -R --from=:%d :%d %s`.", u.Dir, oldGID, oldGID, newGID, u.Dir))
 	}
 
 	return nil

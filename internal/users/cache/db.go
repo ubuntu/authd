@@ -85,9 +85,16 @@ func New(cacheDir string) (cache *Cache, err error) {
 	dbPath := filepath.Join(cacheDir, dbName)
 	defer decorate.OnError(&err, "could not create new database object at %q", dbPath)
 
-	var db *bbolt.DB
-	db, err = openAndInitDB(dbPath)
+	db, err := openAndInitDB(dbPath)
 	if err != nil {
+		return nil, err
+	}
+
+	// Commit dfc4191ae73cd1f27483798e21093934f23d5059 released in 0.3.5 potentially messed up the database by adding a
+	// user with the same name but different UID to the UserByID bucket, and overwriting the existing user with the same
+	// name in the UserByName bucket. To clean this up, we remove users from the UserByID bucket that are not in the
+	// UserByName bucket.
+	if err = deleteOrphanedUsers(db); err != nil {
 		return nil, err
 	}
 
@@ -209,7 +216,7 @@ func getFromBucket[T any, K uint32 | string](bucket bucketWithName, key K) (T, e
 	}
 
 	if err := json.Unmarshal(data, &r); err != nil {
-		return r, fmt.Errorf("can't unmarshal bucket %q for key %v: %v", bucket.name, key, err)
+		return r, fmt.Errorf("can't unmarshal {%s: %s} in bucket %q: %v", string(k), string(data), bucket.name, err)
 	}
 
 	return r, nil
