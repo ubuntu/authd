@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -21,6 +22,12 @@ import (
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+)
+
+var (
+	authdTestSessionTime  = time.Now()
+	authdArtifactsDir     string
+	authdArtifactsDirSync sync.Once
 )
 
 func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool) string {
@@ -152,6 +159,34 @@ func requirePreviousBrokerForUser(t *testing.T, socketPath string, brokerName st
 	require.Equal(t, prevBroker.PreviousBroker, prevBrokerID)
 }
 
+func artifactsPath(t *testing.T) string {
+	t.Helper()
+
+	authdArtifactsDirSync.Do(func() {
+		defer func() { t.Logf("Saving test artifacts at %s", authdArtifactsDir) }()
+
+		// We need to copy the artifacts to another directory, since the test directory will be cleaned up.
+		authdArtifactsDir = os.Getenv("AUTHD_TEST_ARTIFACTS_PATH")
+		if authdArtifactsDir != "" {
+			if err := os.MkdirAll(authdArtifactsDir, 0750); err != nil && !os.IsExist(err) {
+				require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
+			}
+			return
+		}
+
+		st := authdTestSessionTime
+		folderName := fmt.Sprintf("authd-test-artifacts-%d-%02d-%02dT%02d:%02d:%02d.%d-",
+			st.Year(), st.Month(), st.Day(), st.Hour(), st.Minute(), st.Second(),
+			st.UnixMilli())
+
+		var err error
+		authdArtifactsDir, err = os.MkdirTemp(os.TempDir(), folderName)
+		require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
+	})
+
+	return authdArtifactsDir
+}
+
 // saveArtifactsForDebug saves the specified artifacts to a temporary directory if the test failed.
 func saveArtifactsForDebug(t *testing.T, artifacts []string) {
 	t.Helper()
@@ -159,16 +194,9 @@ func saveArtifactsForDebug(t *testing.T, artifacts []string) {
 		return
 	}
 
-	// We need to copy the artifacts to another directory, since the test directory will be cleaned up.
-	artifactPath := os.Getenv("AUTHD_TEST_ARTIFACTS_PATH")
-	if artifactPath == "" {
-		artifactPath = filepath.Join(os.TempDir(), "authd-test-artifacts")
-	}
-	tmpDir := filepath.Join(artifactPath, testutils.GoldenPath(t))
-	if err := os.MkdirAll(tmpDir, 0750); err != nil && !os.IsExist(err) {
-		require.NoError(t, err, "Could not create temporary directory for artifacts")
-		return
-	}
+	tmpDir := filepath.Join(artifactsPath(t), testutils.GoldenPath(t))
+	err := os.MkdirAll(tmpDir, 0750)
+	require.NoError(t, err, "TearDown: could not create temporary directory %q for artifacts", tmpDir)
 
 	// Copy the artifacts to the temporary directory.
 	for _, artifact := range artifacts {
