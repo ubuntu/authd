@@ -1,11 +1,9 @@
 package users_test
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	testutils "github.com/ubuntu/authd/internal/testutils"
@@ -21,42 +19,26 @@ func TestNewManager(t *testing.T) {
 	tests := map[string]struct {
 		dbFile          string
 		corruptedDbFile bool
-		dirtyFlag       bool
-		markDirty       bool
-
-		expirationDate  string
-		skipCleanOnNew  bool
-		cleanupInterval int
-		procDir         string
-
-		localGroupsFile string
+		uidMin          uint32
+		uidMax          uint32
+		gidMin          uint32
+		gidMax          uint32
 
 		wantErr bool
 	}{
 		"Successfully create a new manager": {},
 
-		// Clean up routine tests
-		"Clean up on interval": {expirationDate: "2020-01-01", cleanupInterval: 1, skipCleanOnNew: true},
-		"Do not prevent manager creation if cache cleanup fails":     {procDir: "does-not-exist"},
-		"Do not stop manager if cleanup routine fails":               {procDir: "does-not-exist", skipCleanOnNew: true, cleanupInterval: 1},
-		"Do not touch local groups if no user is cleaned from cache": {expirationDate: "2004-01-01"},
-		"Do not prevent manager creation if group cleanup fails":     {expirationDate: "2020-01-01", localGroupsFile: "gpasswdfail_in_deleted_group.group"},
-
 		// Corrupted databases
-		"New recreates any missing buckets and delete unknowns":          {dbFile: "database_with_unknown_bucket"},
-		"Database flagged as dirty is cleared up":                        {dirtyFlag: true},
-		"Corrupted database when opening is cleared up":                  {corruptedDbFile: true},
-		"Do not prevent manager creation if clearing local groups fails": {corruptedDbFile: true, localGroupsFile: "gpasswdfail_in_deleted_group.group"},
-		"Dynamically mark database as corrupted is cleared up":           {markDirty: true},
+		"New recreates any missing buckets and delete unknowns": {dbFile: "database_with_unknown_bucket"},
 
-		"Error if cacheDir does not exist": {dbFile: "-", wantErr: true},
+		"Error when database is corrupted":     {corruptedDbFile: true, wantErr: true},
+		"Error if cacheDir does not exist":     {dbFile: "-", wantErr: true},
+		"Error if UID_MIN is equal to UID_MAX": {uidMin: 1000, uidMax: 1000, wantErr: true},
+		"Error if GID_MIN is equal to GID_MAX": {gidMin: 1000, gidMax: 1000, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			if tc.localGroupsFile == "" {
-				tc.localGroupsFile = "users_in_groups.group"
-			}
-			destCmdsFile := localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "groups", tc.localGroupsFile))
+			destCmdsFile := localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "groups", "users_in_groups.group"))
 
 			cacheDir := t.TempDir()
 			if tc.dbFile == "" {
@@ -68,45 +50,31 @@ func TestNewManager(t *testing.T) {
 			} else if tc.dbFile != "" {
 				cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
-			if tc.dirtyFlag {
-				err := os.WriteFile(filepath.Join(cacheDir, userstestutils.DirtyFlagName), nil, 0600)
-				require.NoError(t, err, "Setup: could not create dirty flag file")
-			}
 			if tc.corruptedDbFile {
 				err := os.WriteFile(filepath.Join(cacheDir, cachetestutils.DbName), []byte("Corrupted db"), 0600)
 				require.NoError(t, err, "Setup: Can't update the file with invalid db content")
 			}
 
-			if tc.expirationDate == "" {
-				tc.expirationDate = "2004-01-01"
+			config := users.DefaultConfig
+			if tc.uidMin != 0 {
+				config.UIDMin = tc.uidMin
 			}
-			expiration, err := time.Parse(time.DateOnly, tc.expirationDate)
-			require.NoError(t, err, "Setup: could not calculate expiration date for tests")
-			managerOpts := []users.Option{users.WithUserExpirationDate(expiration)}
-
-			if tc.cleanupInterval > 0 {
-				managerOpts = append(managerOpts, users.WithCacheCleanupInterval(time.Second*time.Duration(tc.cleanupInterval)))
+			if tc.uidMax != 0 {
+				config.UIDMax = tc.uidMax
 			}
-			if tc.skipCleanOnNew {
-				managerOpts = append(managerOpts, users.WithoutCleaningCacheOnNew())
+			if tc.gidMin != 0 {
+				config.GIDMin = tc.gidMin
 			}
-			if tc.procDir != "" {
-				managerOpts = append(managerOpts, users.WithProcDir(tc.procDir))
+			if tc.gidMax != 0 {
+				config.GIDMax = tc.gidMax
 			}
 
-			m, err := users.NewManager(cacheDir, managerOpts...)
+			m, err := users.NewManager(config, cacheDir)
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should return an error, but did not")
 				return
 			}
 			require.NoError(t, err, "NewManager should not return an error, but did")
-
-			if tc.markDirty {
-				m.RequestClearDatabase()
-			}
-
-			// Sync on the clean up routine
-			m.WaitCleanupRoutineDone(t, users.WithCacheCleanupInterval(time.Second*time.Duration(tc.cleanupInterval)))
 
 			got, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
@@ -114,32 +82,19 @@ func TestNewManager(t *testing.T) {
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
 
-			requireNoDirtyFileInDir(t, cacheDir)
-			if tc.corruptedDbFile {
-				requireClearedDatabase(t, userstestutils.GetManagerCache(m))
-			}
-
 			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t)+".gpasswd.output")
 		})
 	}
 }
 
 func TestStop(t *testing.T) {
-	destCmdsFile := localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "groups", "users_in_groups.group"))
-
 	cacheDir := t.TempDir()
-	err := os.WriteFile(filepath.Join(cacheDir, cachetestutils.DbName), []byte("Corrupted db"), 0600)
-	require.NoError(t, err, "Setup: Can't update the file with invalid db content")
-
 	m := newManagerForTests(t, cacheDir)
 	require.NoError(t, m.Stop(), "Stop should not return an error, but did")
 
 	// Should fail, because the cache is closed
-	_, err = userstestutils.GetManagerCache(m).AllUsers()
+	_, err := userstestutils.GetManagerCache(m).AllUsers()
 	require.ErrorIs(t, err, bbolt.ErrDatabaseNotOpen, "AllUsers should return an error, but did not")
-
-	// Ensure that the manager only stopped after the routine was done.
-	localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t)+".gpasswd.output")
 }
 
 func TestUpdateUser(t *testing.T) {
@@ -165,7 +120,7 @@ func TestUpdateUser(t *testing.T) {
 	groupsCases := map[string][]users.GroupInfo{
 		"cloud-group": {{
 			Name: "group1",
-			GID:  ptrValue(11111),
+			GID:  ptrUint32(11111),
 		}},
 		"local-group": {{
 			Name: "localgroup1",
@@ -173,7 +128,7 @@ func TestUpdateUser(t *testing.T) {
 		}},
 		"mixed-groups-cloud-first": {{
 			Name: "group1",
-			GID:  ptrValue(11111),
+			GID:  ptrUint32(11111),
 		}, {
 			Name: "localgroup1",
 			GID:  nil,
@@ -183,22 +138,22 @@ func TestUpdateUser(t *testing.T) {
 			GID:  nil,
 		}, {
 			Name: "group1",
-			GID:  ptrValue(11111),
+			GID:  ptrUint32(11111),
 		}},
 		"mixed-groups-gpasswd-fail": {{
 			Name: "group1",
-			GID:  ptrValue(11111),
+			GID:  ptrUint32(11111),
 		}, {
 			Name: "gpasswdfail",
 			GID:  nil,
 		}},
 		"nameless-group": {{
 			Name: "",
-			GID:  ptrValue(11111),
+			GID:  ptrUint32(11111),
 		}},
 		"different-name-same-gid": {{
 			Name: "newgroup1",
-			GID:  ptrValue(11111),
+			GID:  ptrUint32(11111),
 		}},
 		"no-groups": {},
 	}
@@ -210,25 +165,22 @@ func TestUpdateUser(t *testing.T) {
 		dbFile          string
 		localGroupsFile string
 
-		wantErr  error
+		wantErr  bool
 		noOutput bool
 	}{
 		"Successfully update user":                       {groupsCase: "cloud-group"},
 		"Successfully update user updating local groups": {groupsCase: "mixed-groups-cloud-first", localGroupsFile: "users_in_groups.group"},
 
-		"Error if user has no username":             {userCase: "nameless", wantErr: shouldError{}, noOutput: true},
-		"Error if user has conflicting uid":         {userCase: "different-name-same-uid", dbFile: "one_user_and_group", wantErr: shouldError{}, noOutput: true},
-		"Error if group has no name":                {groupsCase: "nameless-group", wantErr: shouldError{}, noOutput: true},
-		"Error if group has conflicting gid":        {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: shouldError{}, noOutput: true},
-		"Error if no groups were provided":          {groupsCase: "no-groups", wantErr: shouldError{}, noOutput: true},
-		"Error if only local group was provided":    {groupsCase: "local-group", wantErr: shouldError{}, noOutput: true},
-		"Error if local group is the default group": {groupsCase: "mixed-groups-local-first", wantErr: shouldError{}, noOutput: true},
+		"Error if user has no username":      {userCase: "nameless", wantErr: true, noOutput: true},
+		"Error if user has conflicting uid":  {userCase: "different-name-same-uid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
+		"Error if group has no name":         {groupsCase: "nameless-group", wantErr: true, noOutput: true},
+		"Error if group has conflicting gid": {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
 
-		"Error when updating local groups remove user from db":                              {groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: shouldError{}},
-		"Error when updating local groups remove user from db without touching other users": {dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: shouldError{}},
-		"Error when updating local groups remove user from db even if already existed":      {userCase: "user2", dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: shouldError{}},
+		"Error when updating local groups remove user from db":                              {groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
+		"Error when updating local groups remove user from db without touching other users": {dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
+		"Error when updating local groups remove user from db even if already existed":      {userCase: "user2", dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
 
-		"Invalid entry clears the database": {groupsCase: "cloud-group", dbFile: "invalid_entry_in_userToGroups", localGroupsFile: "users_in_groups.group", wantErr: cache.ErrNeedsClearing},
+		"Error on invalid entry": {groupsCase: "cloud-group", dbFile: "invalid_entry_in_userToGroups", localGroupsFile: "users_in_groups.group", wantErr: true, noOutput: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -258,10 +210,9 @@ func TestUpdateUser(t *testing.T) {
 			m := newManagerForTests(t, cacheDir)
 
 			err := m.UpdateUser(user)
-			m.WaitCleanupRoutineDone(t)
 
-			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
-			if tc.wantErr != nil && tc.noOutput {
+			requireErrorAssertions(t, err, nil, tc.wantErr)
+			if tc.wantErr && tc.noOutput {
 				return
 			}
 
@@ -282,13 +233,14 @@ func TestBrokerForUser(t *testing.T) {
 		dbFile   string
 
 		wantBrokerID string
-		wantErr      error
+		wantErr      bool
+		wantErrType  error
 	}{
 		"Successfully get broker for user":                        {username: "user1", dbFile: "multiple_users_and_groups", wantBrokerID: "broker-id"},
 		"Return no broker but in cache if user has no broker yet": {username: "userwithoutbroker", dbFile: "multiple_users_and_groups", wantBrokerID: ""},
 
-		"Error if user does not exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErr: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: cache.ErrNeedsClearing},
+		"Error if user does not exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if db has invalid entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -300,10 +252,9 @@ func TestBrokerForUser(t *testing.T) {
 			m := newManagerForTests(t, cacheDir)
 
 			brokerID, err := m.BrokerForUser(tc.username)
-			m.WaitCleanupRoutineDone(t)
 
-			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
-			if tc.wantErr != nil {
+			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
+			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
@@ -318,12 +269,13 @@ func TestUpdateBrokerForUser(t *testing.T) {
 
 		dbFile string
 
-		wantErr error
+		wantErr     bool
+		wantErrType error
 	}{
 		"Successfully update broker for user": {},
 
-		"Error if user does not exist":  {username: "doesnotexist", wantErr: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {dbFile: "invalid_entry_in_userByName", wantErr: cache.ErrNeedsClearing},
+		"Error if user does not exist":  {username: "doesnotexist", wantErrType: cache.NoDataFoundError{}},
+		"Error if db has invalid entry": {dbFile: "invalid_entry_in_userByName", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -342,10 +294,9 @@ func TestUpdateBrokerForUser(t *testing.T) {
 			m := newManagerForTests(t, cacheDir)
 
 			err := m.UpdateBrokerForUser(tc.username, "ExampleBrokerID")
-			m.WaitCleanupRoutineDone(t)
 
-			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
-			if tc.wantErr != nil {
+			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
+			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
@@ -364,12 +315,13 @@ func TestUserByName(t *testing.T) {
 		username string
 		dbFile   string
 
-		wantErr error
+		wantErr     bool
+		wantErrType error
 	}{
 		"Successfully get user by name": {username: "user1", dbFile: "multiple_users_and_groups"},
 
-		"Error if user does not exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErr: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: cache.ErrNeedsClearing},
+		"Error if user does not exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if db has invalid entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -381,10 +333,9 @@ func TestUserByName(t *testing.T) {
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.UserByName(tc.username)
-			m.WaitCleanupRoutineDone(t)
 
-			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
-			if tc.wantErr != nil {
+			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
+			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
@@ -394,17 +345,19 @@ func TestUserByName(t *testing.T) {
 	}
 }
 
+//nolint:dupl // This is not a duplicate test
 func TestUserByID(t *testing.T) {
 	tests := map[string]struct {
-		uid    int
+		uid    uint32
 		dbFile string
 
-		wantErr error
+		wantErr     bool
+		wantErrType error
 	}{
 		"Successfully get user by ID": {uid: 1111, dbFile: "multiple_users_and_groups"},
 
-		"Error if user does not exist":  {uid: -1, dbFile: "multiple_users_and_groups", wantErr: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {uid: 1111, dbFile: "invalid_entry_in_userByID", wantErr: cache.ErrNeedsClearing},
+		"Error if user does not exist":  {uid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if db has invalid entry": {uid: 1111, dbFile: "invalid_entry_in_userByID", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -417,10 +370,9 @@ func TestUserByID(t *testing.T) {
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.UserByID(tc.uid)
-			m.WaitCleanupRoutineDone(t)
 
-			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
-			if tc.wantErr != nil {
+			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
+			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
@@ -434,11 +386,12 @@ func TestAllUsers(t *testing.T) {
 	tests := map[string]struct {
 		dbFile string
 
-		wantErr error
+		wantErr     bool
+		wantErrType error
 	}{
 		"Successfully get all users": {dbFile: "multiple_users_and_groups"},
 
-		"Error if db has invalid entry": {dbFile: "invalid_entry_in_userByID", wantErr: cache.ErrNeedsClearing},
+		"Error if db has invalid entry": {dbFile: "invalid_entry_in_userByID", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -450,10 +403,9 @@ func TestAllUsers(t *testing.T) {
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.AllUsers()
-			m.WaitCleanupRoutineDone(t)
 
-			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
-			if tc.wantErr != nil {
+			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
+			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
@@ -469,12 +421,13 @@ func TestGroupByName(t *testing.T) {
 		groupname string
 		dbFile    string
 
-		wantErr error
+		wantErr     bool
+		wantErrType error
 	}{
 		"Successfully get group by name": {groupname: "group1", dbFile: "multiple_users_and_groups"},
 
-		"Error if group does not exist": {groupname: "doesnotexist", dbFile: "multiple_users_and_groups", wantErr: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {groupname: "group1", dbFile: "invalid_entry_in_groupByName", wantErr: cache.ErrNeedsClearing},
+		"Error if group does not exist": {groupname: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if db has invalid entry": {groupname: "group1", dbFile: "invalid_entry_in_groupByName", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -486,10 +439,9 @@ func TestGroupByName(t *testing.T) {
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.GroupByName(tc.groupname)
-			m.WaitCleanupRoutineDone(t)
 
-			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
-			if tc.wantErr != nil {
+			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
+			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
@@ -499,17 +451,19 @@ func TestGroupByName(t *testing.T) {
 	}
 }
 
+//nolint:dupl // This is not a duplicate test
 func TestGroupByID(t *testing.T) {
 	tests := map[string]struct {
-		gid    int
+		gid    uint32
 		dbFile string
 
-		wantErr error
+		wantErr     bool
+		wantErrType error
 	}{
 		"Successfully get group by ID": {gid: 11111, dbFile: "multiple_users_and_groups"},
 
-		"Error if group does not exist": {gid: -1, dbFile: "multiple_users_and_groups", wantErr: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {gid: 11111, dbFile: "invalid_entry_in_groupByID", wantErr: cache.ErrNeedsClearing},
+		"Error if group does not exist": {gid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if db has invalid entry": {gid: 11111, dbFile: "invalid_entry_in_groupByID", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -521,10 +475,9 @@ func TestGroupByID(t *testing.T) {
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.GroupByID(tc.gid)
-			m.WaitCleanupRoutineDone(t)
 
-			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
-			if tc.wantErr != nil {
+			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
+			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
@@ -538,11 +491,12 @@ func TestAllGroups(t *testing.T) {
 	tests := map[string]struct {
 		dbFile string
 
-		wantErr error
+		wantErr     bool
+		wantErrType error
 	}{
 		"Successfully get all groups": {dbFile: "multiple_users_and_groups"},
 
-		"Error if db has invalid entry": {dbFile: "invalid_entry_in_groupByID", wantErr: cache.ErrNeedsClearing},
+		"Error if db has invalid entry": {dbFile: "invalid_entry_in_groupByID", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -555,10 +509,9 @@ func TestAllGroups(t *testing.T) {
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.AllGroups()
-			m.WaitCleanupRoutineDone(t)
 
-			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
-			if tc.wantErr != nil {
+			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
+			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
@@ -574,12 +527,13 @@ func TestShadowByName(t *testing.T) {
 		username string
 		dbFile   string
 
-		wantErr error
+		wantErr     bool
+		wantErrType error
 	}{
 		"Successfully get shadow by name": {username: "user1", dbFile: "multiple_users_and_groups"},
 
-		"Error if shadow does not exist": {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErr: cache.NoDataFoundError{}},
-		"Error if db has invalid entry":  {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: cache.ErrNeedsClearing},
+		"Error if shadow does not exist": {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if db has invalid entry":  {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -592,10 +546,9 @@ func TestShadowByName(t *testing.T) {
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.ShadowByName(tc.username)
-			m.WaitCleanupRoutineDone(t)
 
-			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
-			if tc.wantErr != nil {
+			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
+			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
@@ -609,11 +562,11 @@ func TestAllShadows(t *testing.T) {
 	tests := map[string]struct {
 		dbFile string
 
-		wantErr error
+		wantErr bool
 	}{
 		"Successfully get all users": {dbFile: "multiple_users_and_groups"},
 
-		"Error if db has invalid entry": {dbFile: "invalid_entry_in_userByID", wantErr: cache.ErrNeedsClearing},
+		"Error if db has invalid entry": {dbFile: "invalid_entry_in_userByID", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -626,10 +579,9 @@ func TestAllShadows(t *testing.T) {
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.AllShadows()
-			m.WaitCleanupRoutineDone(t)
 
-			requireErrorAssertions(t, err, tc.wantErr, cacheDir)
-			if tc.wantErr != nil {
+			requireErrorAssertions(t, err, nil, tc.wantErr)
+			if tc.wantErr {
 				return
 			}
 
@@ -643,65 +595,30 @@ func TestMockgpasswd(t *testing.T) {
 	localgroupstestutils.Mockgpasswd(t)
 }
 
-type shouldError struct{}
-
-func (shouldError) Error() string { return "" }
-
-func requireErrorAssertions(t *testing.T, gotErr, wantErr error, cacheDir string) {
+func requireErrorAssertions(t *testing.T, gotErr, wantErrType error, wantErr bool) {
 	t.Helper()
 
-	if wantErr != nil {
-		if errors.Is(wantErr, cache.NoDataFoundError{}) {
-			require.ErrorIs(t, gotErr, cache.NoDataFoundError{}, "Error should be of the expected type")
-			return
-		}
-		if errors.Is(wantErr, cache.ErrNeedsClearing) {
-			require.ErrorIs(t, gotErr, cache.ErrNeedsClearing, "Error should be of the expected type")
-			requireNoDirtyFileInDir(t, cacheDir)
-			return
-		}
+	if wantErrType != nil {
+		require.ErrorIs(t, gotErr, wantErrType, "Should return expected error")
+		return
+	}
+	if wantErr {
 		require.Error(t, gotErr, "Error should be returned")
 		return
 	}
 	require.NoError(t, gotErr, "Error should not be returned")
 }
 
-func requireNoDirtyFileInDir(t *testing.T, cacheDir string) {
-	t.Helper()
-
-	require.NoFileExists(t, filepath.Join(cacheDir, userstestutils.DirtyFlagName), "Dirty flag should have been removed")
-}
-
-func requireClearedDatabase(t *testing.T, c *cache.Cache) {
-	t.Helper()
-
-	want := `GroupByID: {}
-GroupByName: {}
-GroupToUsers: {}
-UserByID: {}
-UserByName: {}
-UserToBroker: {}
-UserToGroups: {}
-`
-
-	got, err := cachetestutils.DumpToYaml(c)
-	require.NoError(t, err, "Created database should be valid yaml content")
-	require.Equal(t, want, got, "Database should only have empty buckets")
-}
-
 func newManagerForTests(t *testing.T, cacheDir string) *users.Manager {
 	t.Helper()
 
-	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
-	require.NoError(t, err, "Setup: could not calculate expiration date for tests")
-
-	m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration), users.WithoutCleaningCacheOnNew())
+	m, err := users.NewManager(users.DefaultConfig, cacheDir)
 	require.NoError(t, err, "NewManager should not return an error, but did")
 
 	return m
 }
 
-func ptrValue[T any](v T) *T {
+func ptrUint32(v uint32) *uint32 {
 	return &v
 }
 

@@ -3,6 +3,9 @@
 # Install daemon
 usr/bin/authd ${env:AUTHD_DAEMONS_PATH}
 
+# Install authd config file
+debian/authd-config/authd.yaml /etc/authd/
+
 # Install pam wrapper
 usr/bin/pam => ${env:AUTHD_DAEMONS_PATH}/authd-pam
 

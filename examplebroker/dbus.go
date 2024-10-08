@@ -2,6 +2,7 @@ package examplebroker
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -57,7 +58,7 @@ func StartBus(cfgPath string) (conn *dbus.Conn, err error) {
 		return nil, err
 	}
 	if reply != dbus.RequestNameReplyPrimaryOwner {
-		return nil, fmt.Errorf("D-Bus name already taken")
+		return nil, errors.New("D-Bus name already taken")
 	}
 
 	if err = os.WriteFile(filepath.Join(cfgPath, "examplebroker.conf"),

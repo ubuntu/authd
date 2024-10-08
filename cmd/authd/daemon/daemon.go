@@ -12,6 +12,7 @@ import (
 	"github.com/ubuntu/authd/internal/daemon"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/services"
+	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
 )
 
@@ -38,9 +39,10 @@ type systemPaths struct {
 
 // daemonConfig defines configuration parameters of the daemon.
 type daemonConfig struct {
-	Brokers   []string
-	Verbosity int
-	Paths     systemPaths
+	Brokers     []string
+	Verbosity   int
+	Paths       systemPaths
+	UsersConfig users.Config `mapstructure:",squash"`
 }
 
 // New registers commands and return a new App.
@@ -63,6 +65,7 @@ func New() *App {
 					Cache:       consts.DefaultCacheDir,
 					Socket:      "",
 				},
+				UsersConfig: users.DefaultConfig,
 			}
 
 			// Install and unmarshall configuration
@@ -74,7 +77,7 @@ func New() *App {
 			}
 
 			setVerboseMode(a.config.Verbosity)
-			log.Debug(context.Background(), "Debug mode is enabled")
+			log.Debugf(context.Background(), "Verbosity: %d", a.config.Verbosity)
 
 			return nil
 		},
@@ -107,7 +110,7 @@ func (a *App) serve(config daemonConfig) error {
 		return fmt.Errorf("error initializing cache directory at %q: %v", cacheDir, err)
 	}
 
-	m, err := services.NewManager(ctx, cacheDir, config.Paths.BrokersConf, config.Brokers)
+	m, err := services.NewManager(ctx, cacheDir, config.Paths.BrokersConf, config.Brokers, config.UsersConfig)
 	if err != nil {
 		close(a.ready)
 		return err

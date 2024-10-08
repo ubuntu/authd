@@ -27,13 +27,13 @@ func (c *Cache) UpdateUserEntry(usr UserDB, groupContents []GroupDB) error {
 	err := c.db.Update(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		previousGroupsForCurrentUser, err := getFromBucket[userToGroupsDB](buckets[userToGroupsBucketName], userDB.UID)
 		// No data is valid and means this is the first insertion.
 		if err != nil && !errors.Is(err, NoDataFoundError{}) {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		/* 1. Handle user update */
@@ -48,7 +48,7 @@ func (c *Cache) UpdateUserEntry(usr UserDB, groupContents []GroupDB) error {
 
 		/* 3. Users and groups mapping buckets */
 		if err := updateUsersAndGroups(buckets, userDB.UID, groupContents, previousGroupsForCurrentUser.GIDs); err != nil {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		return nil
@@ -61,7 +61,7 @@ func (c *Cache) UpdateUserEntry(usr UserDB, groupContents []GroupDB) error {
 func updateUser(buckets map[string]bucketWithName, userContent userDB) error {
 	existingUser, err := getFromBucket[userDB](buckets[userByIDBucketName], userContent.UID)
 	if err != nil && !errors.Is(err, NoDataFoundError{}) {
-		return errors.Join(ErrNeedsClearing, err)
+		return err
 	}
 
 	// If a user with the same UID exists, we need to ensure that it's the same user or fail the update otherwise.
@@ -89,12 +89,12 @@ func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) er
 	for _, groupContent := range groupContents {
 		existingGroup, err := getFromBucket[groupDB](buckets[groupByIDBucketName], groupContent.GID)
 		if err != nil && !errors.Is(err, NoDataFoundError{}) {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		// If a group with the same GID exists, we need to ensure that it's the same group or fail the update otherwise.
 		if existingGroup.Name != "" && existingGroup.Name != groupContent.Name {
-			slog.Error(fmt.Sprintf("GID for group %q already in use by group %q", groupContent.Name, existingGroup.Name))
+			slog.Error(fmt.Sprintf("GID %d for group %q already in use by group %q", groupContent.GID, groupContent.Name, existingGroup.Name))
 			return fmt.Errorf("GID for group %q already in use by a different group", groupContent.Name)
 		}
 
@@ -108,8 +108,8 @@ func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) er
 
 // updateUserAndGroups updates the pivot table for user to groups and group to users. It handles any update
 // to groups uid is not part of anymore.
-func updateUsersAndGroups(buckets map[string]bucketWithName, uid int, groupContents []GroupDB, previousGIDs []int) error {
-	var currentGIDs []int
+func updateUsersAndGroups(buckets map[string]bucketWithName, uid uint32, groupContents []GroupDB, previousGIDs []uint32) error {
+	var currentGIDs []uint32
 	for _, groupContent := range groupContents {
 		currentGIDs = append(currentGIDs, groupContent.GID)
 		grpToUsers, err := getFromBucket[groupToUsersDB](buckets[groupToUsersBucketName], groupContent.GID)
@@ -140,7 +140,7 @@ func updateUsersAndGroups(buckets map[string]bucketWithName, uid int, groupConte
 }
 
 // updateBucket is a generic function to update any bucket. It panics if we call it in RO transaction.
-func updateBucket[K int | string](bucket bucketWithName, key K, value any) {
+func updateBucket[K uint32 | string](bucket bucketWithName, key K, value any) {
 	data, err := json.Marshal(value)
 	if err != nil {
 		panic(fmt.Sprintf("programming error: %v is not a valid json", err))
@@ -149,8 +149,8 @@ func updateBucket[K int | string](bucket bucketWithName, key K, value any) {
 	// TODO: switch to https://github.com/golang/go/issues/45380 if accepted.
 	var k []byte
 	switch v := any(key).(type) {
-	case int:
-		k = []byte(strconv.Itoa(v))
+	case uint32:
+		k = []byte(strconv.FormatUint(uint64(v), 10))
 	case string:
 		k = []byte(v)
 	default:
@@ -175,7 +175,7 @@ func (c *Cache) UpdateBrokerForUser(username, brokerID string) error {
 	err = c.db.Update(func(tx *bbolt.Tx) error {
 		bucket, err := getBucket(tx, userToBrokerBucketName)
 		if err != nil {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 		updateBucket(bucket, u.UID, brokerID)
 		return nil

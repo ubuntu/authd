@@ -11,20 +11,17 @@ import (
 )
 
 // DeleteUser removes the user from the database.
-func (c *Cache) DeleteUser(uid int) error {
+func (c *Cache) DeleteUser(uid uint32) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
 	return c.db.Update(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		if err := deleteUser(buckets, uid); err != nil {
-			if !errors.Is(err, NoDataFoundError{}) {
-				return errors.Join(ErrNeedsClearing, err)
-			}
 			return err
 		}
 		return nil
@@ -33,13 +30,13 @@ func (c *Cache) DeleteUser(uid int) error {
 
 // deleteUserFromGroup removes the uid from the group.
 // If the group is empty after the uid gets removed, the group is deleted from the database.
-func deleteUserFromGroup(buckets map[string]bucketWithName, uid, gid int) error {
+func deleteUserFromGroup(buckets map[string]bucketWithName, uid, gid uint32) error {
 	groupToUsers, err := getFromBucket[groupToUsersDB](buckets[groupToUsersBucketName], gid)
 	if err != nil && !errors.Is(err, NoDataFoundError{}) {
 		return err
 	}
 
-	groupToUsers.UIDs = slices.DeleteFunc(groupToUsers.UIDs, func(id int) bool { return id == uid })
+	groupToUsers.UIDs = slices.DeleteFunc(groupToUsers.UIDs, func(id uint32) bool { return id == uid })
 	if len(groupToUsers.UIDs) > 0 {
 		// Update the group entry with the new list of UIDs
 		updateBucket(buckets[groupToUsersBucketName], gid, groupToUsers)
@@ -53,12 +50,13 @@ func deleteUserFromGroup(buckets map[string]bucketWithName, uid, gid int) error 
 		return err
 	}
 
+	gidKey := []byte(strconv.FormatUint(uint64(gid), 10))
 	// Delete group
 	// Delete calls fail if the transaction is read only, so we should panic if this function is called in that context.
-	if err = buckets[groupToUsersBucketName].Delete([]byte(strconv.Itoa(group.GID))); err != nil {
+	if err = buckets[groupToUsersBucketName].Delete(gidKey); err != nil {
 		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
 	}
-	if err = buckets[groupByIDBucketName].Delete([]byte(strconv.Itoa(group.GID))); err != nil {
+	if err = buckets[groupByIDBucketName].Delete(gidKey); err != nil {
 		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
 	}
 	if err = buckets[groupByNameBucketName].Delete([]byte(group.Name)); err != nil {
@@ -68,7 +66,7 @@ func deleteUserFromGroup(buckets map[string]bucketWithName, uid, gid int) error 
 }
 
 // deleteUser removes the user from the database.
-func deleteUser(buckets map[string]bucketWithName, uid int) (err error) {
+func deleteUser(buckets map[string]bucketWithName, uid uint32) (err error) {
 	defer decorate.OnError(&err, "could not remove user %d from db", uid)
 
 	u, err := getFromBucket[UserDB](buckets[userByIDBucketName], uid)
@@ -86,18 +84,20 @@ func deleteUser(buckets map[string]bucketWithName, uid int) (err error) {
 		}
 	}
 
+	uidKey := []byte(strconv.FormatUint(uint64(u.UID), 10))
+
 	// Delete user
 	// Delete calls fail if the transaction is read only, so we should panic if this function is called in that context.
-	if err = buckets[userToGroupsBucketName].Delete([]byte(strconv.Itoa(u.UID))); err != nil {
+	if err = buckets[userToGroupsBucketName].Delete(uidKey); err != nil {
 		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
 	}
-	if err = buckets[userByIDBucketName].Delete([]byte(strconv.Itoa(u.UID))); err != nil {
+	if err = buckets[userByIDBucketName].Delete(uidKey); err != nil {
 		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
 	}
 	if err = buckets[userByNameBucketName].Delete([]byte(u.Name)); err != nil {
 		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
 	}
-	if err = buckets[userToBrokerBucketName].Delete([]byte(strconv.Itoa(u.UID))); err != nil {
+	if err = buckets[userToBrokerBucketName].Delete(uidKey); err != nil {
 		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
 	}
 	return nil

@@ -241,26 +241,28 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 		return nil, err
 	}
 
-	// Update database and local groups on granted auth.
-	if access == brokers.AuthGranted {
-		var user users.UserInfo
-		if err := json.Unmarshal([]byte(data), &user); err != nil {
-			return nil, fmt.Errorf("user data from broker invalid: %v", err)
-		}
+	log.Debugf(ctx, "%s: Authentication result: %s", sessionID, access)
 
-		if err := s.userManager.UpdateUser(user); err != nil {
-			return nil, err
-		}
-
-		// The data is not the message for the user then.
-		data = ""
+	if access != brokers.AuthGranted {
+		return &authd.IAResponse{
+			Access: access,
+			Msg:    data,
+		}, nil
 	}
 
-	log.Debug(ctx, fmt.Sprintf("%s: Authentication result: %s", sessionID, access))
+	var uInfo users.UserInfo
+	if err := json.Unmarshal([]byte(data), &uInfo); err != nil {
+		return nil, fmt.Errorf("user data from broker invalid: %v", err)
+	}
+
+	// Update database and local groups on granted auth.
+	if err := s.userManager.UpdateUser(uInfo); err != nil {
+		return nil, err
+	}
 
 	return &authd.IAResponse{
 		Access: access,
-		Msg:    data,
+		Msg:    "",
 	}, nil
 }
 

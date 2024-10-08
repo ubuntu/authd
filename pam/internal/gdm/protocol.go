@@ -84,7 +84,7 @@ func (d *Data) Check() error {
 
 	case DataType_event:
 		if d.Event == nil {
-			return fmt.Errorf("missing event data")
+			return errors.New("missing event data")
 		}
 		if d.Event.Type == EventType_unknownEvent {
 			return errors.New("missing event type")
@@ -93,7 +93,7 @@ func (d *Data) Check() error {
 			return fmt.Errorf("unexpected event type %v", d.Event.Type)
 		}
 		if d.Event.Data == nil {
-			return fmt.Errorf("missing event data")
+			return errors.New("missing event data")
 		}
 		if err := checkMembersFunc(d, []string{"Event"}); err != nil {
 			return err

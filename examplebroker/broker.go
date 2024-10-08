@@ -231,7 +231,7 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	// If the user needs or can reset the password, we only show those authentication modes.
 	if sessionInfo.currentAuthStep == sessionInfo.neededAuthSteps && sessionInfo.pwdChange != noReset {
 		if sessionInfo.currentAuthStep < 2 {
-			return nil, fmt.Errorf("password reset is not allowed before authentication")
+			return nil, errors.New("password reset is not allowed before authentication")
 		}
 
 		allModes = getPasswdResetModes(sessionInfo, supportedUILayouts)

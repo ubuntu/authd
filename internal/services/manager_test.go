@@ -15,6 +15,7 @@ import (
 	"github.com/ubuntu/authd/internal/services"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/users"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -41,7 +42,7 @@ func TestNewManager(t *testing.T) {
 				t.Setenv("DBUS_SYSTEM_BUS_ADDRESS", tc.systemBusSocket)
 			}
 
-			m, err := services.NewManager(context.Background(), tc.cacheDir, t.TempDir(), nil)
+			m, err := services.NewManager(context.Background(), tc.cacheDir, t.TempDir(), nil, users.DefaultConfig)
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should have returned an error, but did not")
 				return
@@ -56,7 +57,7 @@ func TestNewManager(t *testing.T) {
 func TestRegisterGRPCServices(t *testing.T) {
 	t.Parallel()
 
-	m, err := services.NewManager(context.Background(), t.TempDir(), t.TempDir(), nil)
+	m, err := services.NewManager(context.Background(), t.TempDir(), t.TempDir(), nil, users.DefaultConfig)
 	require.NoError(t, err, "Setup: could not create manager for the test")
 	defer require.NoError(t, m.Stop(), "Teardown: Stop should not have returned an error, but did")
 
@@ -74,7 +75,7 @@ func TestRegisterGRPCServices(t *testing.T) {
 func TestAccessAuthorization(t *testing.T) {
 	t.Parallel()
 
-	m, err := services.NewManager(context.Background(), t.TempDir(), t.TempDir(), nil)
+	m, err := services.NewManager(context.Background(), t.TempDir(), t.TempDir(), nil, users.DefaultConfig)
 	require.NoError(t, err, "Setup: could not create manager for the test")
 	defer require.NoError(t, m.Stop(), "Teardown: Stop should not have returned an error, but did")
 

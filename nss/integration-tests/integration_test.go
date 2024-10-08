@@ -73,12 +73,12 @@ func TestIntegration(t *testing.T) {
 		"Returns empty when getting all entries from group and daemon is not available":  {db: "group", noDaemon: true},
 		"Returns empty when getting all entries from shadow and daemon is not available": {db: "shadow", noDaemon: true},
 
-		"Returns empty when getting all entries from passwd after cleaning corrupted database": {db: "passwd", cacheDB: "invalid_entry_in_userByID", wantSecondCall: true},
-		"Returns empty when getting all entries from group after cleaning corrupted database":  {db: "group", cacheDB: "invalid_entry_in_groupByID", wantSecondCall: true},
-		"Returns empty when getting all entries from shadow after cleaning corrupted database": {db: "shadow", cacheDB: "invalid_entry_in_userByID", wantSecondCall: true},
-
 		/* Error cases */
 		// We can't assert on the returned error type since the error returned by getent will always be 2 (i.e. Not Found), even though the library returns other types.
+		"Error when getting all entries from passwd and database is corrupted": {db: "passwd", cacheDB: "invalid_entry_in_userByID", wantSecondCall: true},
+		"Error when getting all entries from group and database is corrupted":  {db: "group", cacheDB: "invalid_entry_in_groupByID", wantSecondCall: true},
+		"Error when getting all entries from shadow and database is corrupted": {db: "shadow", cacheDB: "invalid_entry_in_userByID", wantSecondCall: true},
+
 		"Error when getting shadow by name if regular user": {db: "shadow", key: "user1", currentUserNotRoot: true, wantStatus: codeNotFound},
 
 		"Error when getting passwd by name and entry does not exist":                        {db: "passwd", key: "doesnotexit", wantStatus: codeNotFound},

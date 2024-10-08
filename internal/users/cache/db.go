@@ -3,16 +3,12 @@ package cache
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/fs"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/ubuntu/decorate"
 	"go.etcd.io/bbolt"
@@ -50,8 +46,8 @@ type Cache struct {
 // UserDB is the public type that is shared to external packages.
 type UserDB struct {
 	Name  string
-	UID   int
-	GID   int
+	UID   uint32
+	GID   uint32
 	Gecos string // Gecos is an optional field. It can be empty.
 	Dir   string
 	Shell string
@@ -68,20 +64,20 @@ type UserDB struct {
 // GroupDB is the struct stored in json format in the bucket.
 type GroupDB struct {
 	Name  string
-	GID   int
+	GID   uint32
 	Users []string
 }
 
 // userToGroupsDB is the struct stored in json format to match uid to gids in the bucket.
 type userToGroupsDB struct {
-	UID  int
-	GIDs []int
+	UID  uint32
+	GIDs []uint32
 }
 
 // groupToUsersDB is the struct stored in json format to match gid to uids in the bucket.
 type groupToUsersDB struct {
-	GID  int
-	UIDs []int
+	GID  uint32
+	UIDs []uint32
 }
 
 // New creates a new database cache by creating or opening the underlying db.
@@ -99,13 +95,9 @@ func New(cacheDir string) (cache *Cache, err error) {
 }
 
 // openAndInitDB open a pre-existing database and potentially initializes its buckets.
-// It clears up any database previously marked as dirty or if it’s corrupted.
 func openAndInitDB(path string) (*bbolt.DB, error) {
 	db, err := bbolt.Open(path, 0600, nil)
 	if err != nil {
-		if errors.Is(err, bbolt.ErrInvalid) {
-			return nil, ErrNeedsClearing
-		}
 		return nil, fmt.Errorf("can't open database file: %v", err)
 	}
 	// Fail if permissions are not 0600
@@ -154,51 +146,6 @@ func openAndInitDB(path string) (*bbolt.DB, error) {
 	return db, nil
 }
 
-// CleanExpiredUsers removes from the cache any user that exceeded the maximum amount of days without authentication.
-func (c *Cache) CleanExpiredUsers(activeUIDs map[uint32]struct{}, expirationDate time.Time) (cleanedUsers []string, err error) {
-	defer decorate.OnError(&err, "could not clean up database")
-
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-
-	err = c.db.Update(func(tx *bbolt.Tx) (err error) {
-		buckets, err := getAllBuckets(tx)
-		if err != nil {
-			return err
-		}
-
-		var expiredUsers []userDB
-		// The foreach closure can't error out, so we can ignore the error.
-		_ = buckets[userByIDBucketName].ForEach(func(k, v []byte) error {
-			var u userDB
-			if err := json.Unmarshal(v, &u); err != nil {
-				slog.Warn(fmt.Sprintf("Could not unmarshal user %q: %v", string(k), err))
-				return nil
-			}
-
-			//nolint:gosec // This conversion is safe because UIDs can't be larger than a uint32.
-			uid := uint32(u.UID)
-			if _, active := activeUIDs[uid]; !active && u.LastLogin.Before(expirationDate) {
-				expiredUsers = append(expiredUsers, u)
-			}
-			return nil
-		})
-
-		for _, u := range expiredUsers {
-			slog.Debug(fmt.Sprintf("Deleting expired user %q", u.Name))
-			if err := deleteUser(buckets, u.UID); err != nil {
-				slog.Warn(fmt.Sprintf("Could not delete user %q: %v", u.Name, err))
-				continue
-			}
-			cleanedUsers = append(cleanedUsers, u.Name)
-		}
-
-		return nil
-	})
-
-	return cleanedUsers, err
-}
-
 // Close closes the db and signal the monitoring goroutine to stop.
 func (c *Cache) Close() error {
 	c.mu.Lock()
@@ -209,28 +156,6 @@ func (c *Cache) Close() error {
 // RemoveDb removes the database file.
 func RemoveDb(cacheDir string) error {
 	return os.Remove(filepath.Join(cacheDir, dbName))
-}
-
-// Clear closes the db and reopens it.
-func (c *Cache) Clear(cacheDir string) error {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
-	if err := c.db.Close(); err != nil && !errors.Is(err, bbolt.ErrDatabaseNotOpen) {
-		return fmt.Errorf("could not close database: %v", err)
-	}
-
-	if err := RemoveDb(cacheDir); err != nil && !errors.Is(err, fs.ErrNotExist) {
-		return fmt.Errorf("could not delete %v to clear up cache: %v", filepath.Join(cacheDir, dbName), err)
-	}
-
-	db, err := openAndInitDB(filepath.Join(cacheDir, dbName))
-	if err != nil {
-		panic(fmt.Sprintf("CRITICAL: unrecoverable state: could not recreate database: %v", err))
-	}
-	c.db = db
-
-	return nil
 }
 
 // bucketWithName is a wrapper adding the name on top of a bbolt Bucket.
@@ -264,12 +189,12 @@ func getBucket(tx *bbolt.Tx, name string) (bucketWithName, error) {
 
 // getFromBucket is a generic function to get any value of given type from a bucket. It returns an error if
 // the returned value (json) could not be unmarshalled to the returned struct.
-func getFromBucket[T any, K int | string](bucket bucketWithName, key K) (T, error) {
+func getFromBucket[T any, K uint32 | string](bucket bucketWithName, key K) (T, error) {
 	// TODO: switch to https://github.com/golang/go/issues/45380 if accepted.
 	var k []byte
 	switch v := any(key).(type) {
-	case int:
-		k = []byte(strconv.Itoa(v))
+	case uint32:
+		k = []byte(strconv.FormatUint(uint64(v), 10))
 	case string:
 		k = []byte(v)
 	default:
@@ -303,6 +228,3 @@ func (err NoDataFoundError) Error() string {
 
 // Is makes this error insensitive to the key and bucket name.
 func (NoDataFoundError) Is(target error) bool { return target == NoDataFoundError{} }
-
-// ErrNeedsClearing is returned when the database is corrupted and needs to be cleared.
-var ErrNeedsClearing = errors.New("database needs to be cleared and rebuilt")

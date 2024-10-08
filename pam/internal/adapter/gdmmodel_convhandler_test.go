@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"sync"
@@ -202,7 +203,7 @@ func (h *gdmConvHandler) handleAuthDRequest(gdmData *gdm.Data) (ret *gdm.Data, e
 		}, nil
 
 	default:
-		return nil, fmt.Errorf("unknown request type")
+		return nil, errors.New("unknown request type")
 	}
 }
 

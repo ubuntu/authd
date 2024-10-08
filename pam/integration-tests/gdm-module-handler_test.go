@@ -196,7 +196,7 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 
 	case *gdm.RequestData_ChangeStage:
 		if gdmData.Request.Data == nil {
-			return nil, fmt.Errorf("missing stage data")
+			return nil, errors.New("missing stage data")
 		}
 		gh.currentStage = req.ChangeStage.Stage
 		log.Debugf(context.TODO(), "Switching to stage %d", gh.currentStage)
@@ -218,7 +218,7 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 		}, nil
 
 	default:
-		return nil, fmt.Errorf("unknown request type")
+		return nil, errors.New("unknown request type")
 	}
 }
 

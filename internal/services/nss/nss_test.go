@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
@@ -30,7 +29,7 @@ import (
 func TestNewService(t *testing.T) {
 	t.Parallel()
 
-	m, err := users.NewManager(t.TempDir())
+	m, err := users.NewManager(users.DefaultConfig, t.TempDir())
 	require.NoError(t, err, "Setup: could not create user manager")
 	t.Cleanup(func() { _ = m.Stop() })
 
@@ -81,7 +80,7 @@ func TestGetPasswdByName(t *testing.T) {
 
 func TestGetPasswdByUID(t *testing.T) {
 	tests := map[string]struct {
-		uid int
+		uid uint32
 
 		sourceDB string
 
@@ -101,7 +100,7 @@ func TestGetPasswdByUID(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
-			got, err := client.GetPasswdByUID(context.Background(), &authd.GetByIDRequest{Id: nss.SafeIDtoUint32(tc.uid)})
+			got, err := client.GetPasswdByUID(context.Background(), &authd.GetByIDRequest{Id: tc.uid})
 			requireExpectedResult(t, "GetPasswdByUID", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
@@ -161,7 +160,7 @@ func TestGetGroupByName(t *testing.T) {
 
 func TestGetGroupByGID(t *testing.T) {
 	tests := map[string]struct {
-		gid int
+		gid uint32
 
 		sourceDB string
 
@@ -181,7 +180,7 @@ func TestGetGroupByGID(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
-			got, err := client.GetGroupByGID(context.Background(), &authd.GetByIDRequest{Id: nss.SafeIDtoUint32(tc.gid)})
+			got, err := client.GetGroupByGID(context.Background(), &authd.GetByIDRequest{Id: tc.gid})
 			requireExpectedResult(t, "GetGroupByGID", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
@@ -332,10 +331,7 @@ func newUserManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 	}
 	cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", sourceDB), cacheDir)
 
-	expiration, err := time.Parse(time.DateOnly, "2004-01-01")
-	require.NoError(t, err, "Setup: could not parse time for testing")
-
-	m, err := users.NewManager(cacheDir, users.WithUserExpirationDate(expiration))
+	m, err := users.NewManager(users.DefaultConfig, cacheDir)
 	require.NoError(t, err, "Setup: could not create user manager")
 
 	t.Cleanup(func() { _ = m.Stop() })

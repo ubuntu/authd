@@ -2,7 +2,6 @@ package cache
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -18,7 +17,7 @@ type userDB struct {
 }
 
 // NewUserDB creates a new UserDB.
-func NewUserDB(name string, uid, gid int, gecos, dir, shell string) UserDB {
+func NewUserDB(name string, uid, gid uint32, gecos, dir, shell string) UserDB {
 	return UserDB{
 		Name:           name,
 		UID:            uid,
@@ -36,21 +35,18 @@ func NewUserDB(name string, uid, gid int, gecos, dir, shell string) UserDB {
 }
 
 // UserByID returns a user matching this uid or an error if the database is corrupted or no entry was found.
-// Upon corruption, clearing the database is requested.
-func (c *Cache) UserByID(uid int) (UserDB, error) {
+func (c *Cache) UserByID(uid uint32) (UserDB, error) {
 	u, err := getUser(c, userByIDBucketName, uid)
 	return u.UserDB, err
 }
 
 // UserByName returns a user matching this name or an error if the database is corrupted or no entry was found.
-// Upon corruption, clearing the database is requested.
 func (c *Cache) UserByName(name string) (UserDB, error) {
 	u, err := getUser(c, userByNameBucketName, name)
 	return u.UserDB, err
 }
 
 // AllUsers returns all users or an error if the database is corrupted.
-// Upon corruption, clearing the database is requested.
 func (c *Cache) AllUsers() (all []UserDB, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -71,28 +67,24 @@ func (c *Cache) AllUsers() (all []UserDB, err error) {
 	})
 
 	if err != nil {
-		return nil, errors.Join(ErrNeedsClearing, err)
+		return nil, err
 	}
 
 	return all, nil
 }
 
 // getUser returns an user matching the key or an error if the database is corrupted or no entry was found.
-// Upon corruption, clearing the database is requested.
-func getUser[K int | string](c *Cache, bucketName string, key K) (u userDB, err error) {
+func getUser[K uint32 | string](c *Cache, bucketName string, key K) (u userDB, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
 		bucket, err := getBucket(tx, bucketName)
 		if err != nil {
-			return errors.Join(ErrNeedsClearing, err)
+			return err
 		}
 
 		u, err = getFromBucket[userDB](bucket, key)
 		if err != nil {
-			if !errors.Is(err, NoDataFoundError{}) {
-				err = errors.Join(ErrNeedsClearing, err)
-			}
 			return err
 		}
 
