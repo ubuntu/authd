@@ -150,8 +150,7 @@ func TestCLIAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			gpasswdOutput := filepath.Join(outDir, "gpasswd.output")
-			groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+			gpasswdOutput, groupsFile := prepareGPasswdFiles(t)
 			socketPath := runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)

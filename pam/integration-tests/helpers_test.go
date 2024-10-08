@@ -231,3 +231,14 @@ func prependBinToPath(t *testing.T) string {
 	env := os.Getenv("PATH")
 	return "PATH=" + strings.Join([]string{filepath.Join(strings.TrimSpace(string(out)), "bin"), env}, ":")
 }
+
+func prepareGPasswdFiles(t *testing.T) (string, string) {
+	t.Helper()
+
+	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
+	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+
+	saveArtifactsForDebugOnCleanup(t, []string{gpasswdOutput, groupsFile})
+
+	return gpasswdOutput, groupsFile
+}
