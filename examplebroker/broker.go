@@ -101,6 +101,7 @@ var (
 		"user-mfa":              {Password: "goodpass"},
 		"user-mfa-with-reset":   {Password: "goodpass"},
 		"user-needs-reset":      {Password: "goodpass"},
+		"user-needs-reset2":     {Password: "goodpass"},
 		"user-can-reset":        {Password: "goodpass"},
 		"user-can-reset2":       {Password: "goodpass"},
 		"user-local-groups":     {Password: "goodpass"},
@@ -161,6 +162,8 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 	case "user-mfa":
 		info.neededAuthSteps = 3
 	case "user-needs-reset":
+		fallthrough
+	case "user-needs-reset2":
 		info.neededAuthSteps = 2
 		info.pwdChange = mustReset
 	case "user-can-reset":
