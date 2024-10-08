@@ -1,3 +1,33 @@
+authd (0.3.6) noble; urgency=medium
+
+  * CVE-2024-9312: Avoid UID collisions with other users on the system
+    - Make UID/GID ranges configurable. This package now ships a config file,
+      /etc/authd/authd.yaml, which allows to configure the minimum and maximum
+      UID and GID values that are assigned to users and groups.
+      While the default range (1000000000-1999999999) should usually not be
+      used by anything else by default, it's the admin's responsibility to
+      ensure that the configured UID/GID ranges don't overlap with the ranges
+      used by other system components.
+    - Don't remove expired users. Removing users from the database allows other
+      users for which the same UID is generated to log in and gain access to
+      the deleted user’s files.
+    - Don't clear the database on corruption. Same as above, that would allow
+      unauthorized access to users with colliding UIDs.
+  * Keep UID and GIDs if the user already exists in the authd database. This
+    fixes an issue affecting authd 0.3.5 which caused users who already logged
+    in with a previous version of authd to be assigned a new UID, causing file
+    permission errors because the home directory (and other files owned by the
+    user) is owned by the old UID.
+  * Clean up orphaned user records. On systems which are affected by the above
+    issue, two users with the same name but different UIDs exist in the authd
+    database. With this release, authd automatically removes the old UIDs from
+    the database. Users who didn't change the owner of their home directory
+    (and other files owned by the user) yet need to do so. To facilitate this,
+    authd checks the owner of the home directory when a user logs in and
+    prints a warning to the journal which explains how to fix the ownership.
+
+ --  <adrian.dombeck@canonical.com>  Tue, 08 Oct 2024 17:22:30 +0200
+
 authd (0.3.5) noble; urgency=medium
 
   * CVE-2024-9313: Do not allow to change PAM user if provided
