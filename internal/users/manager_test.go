@@ -103,13 +103,13 @@ func TestUpdateUser(t *testing.T) {
 			Name: "user1",
 			UID:  1111,
 		},
-		"nameless": {
-			Name: "",
-			UID:  1111,
-		},
 		"user2": {
 			Name: "user2",
 			UID:  2222,
+		},
+		"same-name-different-uid": {
+			Name: "user1",
+			UID:  3333,
 		},
 		"different-name-same-uid": {
 			Name: "newuser1",
@@ -165,11 +165,13 @@ func TestUpdateUser(t *testing.T) {
 		dbFile          string
 		localGroupsFile string
 
-		wantErr  bool
-		noOutput bool
+		wantErr     bool
+		noOutput    bool
+		wantSameUID bool
 	}{
 		"Successfully update user":                       {groupsCase: "cloud-group"},
 		"Successfully update user updating local groups": {groupsCase: "mixed-groups-cloud-first", localGroupsFile: "users_in_groups.group"},
+		"UID does not change if user already exists":     {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
 
 		"Error if user has no username":      {userCase: "nameless", wantErr: true, noOutput: true},
 		"Error if user has conflicting uid":  {userCase: "different-name-same-uid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
@@ -209,11 +211,24 @@ func TestUpdateUser(t *testing.T) {
 			}
 			m := newManagerForTests(t, cacheDir)
 
+			var oldUID uint32
+			if tc.wantSameUID {
+				oldUser, err := m.UserByName(user.Name)
+				require.NoError(t, err, "UserByName should not return an error, but did")
+				oldUID = oldUser.UID
+			}
+
 			err := m.UpdateUser(user)
 
 			requireErrorAssertions(t, err, nil, tc.wantErr)
 			if tc.wantErr && tc.noOutput {
 				return
+			}
+
+			if tc.wantSameUID {
+				newUser, err := m.UserByName(user.Name)
+				require.NoError(t, err, "UserByName should not return an error, but did")
+				require.Equal(t, oldUID, newUser.UID, "UID should not have changed")
 			}
 
 			got, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
