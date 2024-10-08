@@ -216,7 +216,7 @@ func getFromBucket[T any, K uint32 | string](bucket bucketWithName, key K) (T, e
 	}
 
 	if err := json.Unmarshal(data, &r); err != nil {
-		return r, fmt.Errorf("can't unmarshal bucket %q for key %v: %v", bucket.name, key, err)
+		return r, fmt.Errorf("can't unmarshal {%s: %s} in bucket %q: %v", string(k), string(data), bucket.name, err)
 	}
 
 	return r, nil
