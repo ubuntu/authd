@@ -26,6 +26,11 @@ const (
 	vhsPadding    = "Padding"
 	vhsMargin     = "Margin"
 	vhsShell      = "Shell"
+
+	authdSleepDefault                 = "AUTHD_SLEEP_DEFAULT"
+	authdSleepLong                    = "AUTHD_SLEEP_LONG"
+	authdSleepExampleBrokerMfaWait    = "AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT"
+	authdSleepExampleBrokerQrcodeWait = "AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT"
 )
 
 type tapeSetting struct {
@@ -43,11 +48,11 @@ type tapeData struct {
 
 var (
 	defaultSleepValues = map[string]time.Duration{
-		"AUTHD_SLEEP_DEFAULT": 300 * time.Millisecond,
-		"AUTHD_SLEEP_LONG":    1 * time.Second,
+		authdSleepDefault: 300 * time.Millisecond,
+		authdSleepLong:    1 * time.Second,
 		// Keep these in sync with example broker default wait times
-		"AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT":    4 * time.Second,
-		"AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT": 4 * time.Second,
+		authdSleepExampleBrokerMfaWait:    4 * time.Second,
+		authdSleepExampleBrokerQrcodeWait: 4 * time.Second,
 	}
 
 	vhsSleepRegex = regexp.MustCompile(
