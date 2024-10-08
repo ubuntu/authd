@@ -7,7 +7,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user-needs-reset"
+Type "user-needs-reset-integration-mandatory"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_COMMAND}
 Show
 
 Hide
-Type "user-needs-reset"
+Type "user-needs-reset-integration-mandatory"
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
