@@ -23,12 +23,16 @@ func TestCLIAuthenticate(t *testing.T) {
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s}", socketPathEnv)
 
+	defaultGPasswdOutput, groupsFile := prepareGPasswdFiles(t)
+	defaultSocketPath := runAuthd(t, defaultGPasswdOutput, groupsFile, true)
+
 	tests := map[string]struct {
 		tape         string
 		tapeSettings []tapeSetting
 
 		clientOptions      clientOptions
 		currentUserNotRoot bool
+		wantLocalGroups    bool
 	}{
 		"Authenticate user successfully": {
 			tape: "simple_auth",
@@ -94,7 +98,8 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape: "switch_local_broker",
 		},
 		"Authenticate user and add it to local group": {
-			tape: "local_group",
+			tape:            "local_group",
+			wantLocalGroups: true,
 		},
 		"Authenticate with warnings on unsupported arguments": {
 			tape: "simple_auth_with_unsupported_args",
@@ -146,8 +151,13 @@ func TestCLIAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			gpasswdOutput, groupsFile := prepareGPasswdFiles(t)
-			socketPath := runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			socketPath := defaultSocketPath
+			gpasswdOutput := defaultGPasswdOutput
+			if tc.wantLocalGroups || tc.currentUserNotRoot {
+				var groupsFile string
+				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
+				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Command = tapeCommand
