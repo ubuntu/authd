@@ -2,8 +2,10 @@ package main_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -11,8 +13,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 	"time"
 
@@ -34,7 +38,7 @@ func TestSSHAuthenticate(t *testing.T) {
 	currentDir, err := os.Getwd()
 	require.NoError(t, err, "Setup: Could not get current directory for the tests")
 
-	execModule := buildExecModuleWithCFlags(t, nil, true)
+	execModule := buildExecModuleWithCFlags(t, []string{"-std=c11"}, true)
 	execChild := buildPAMExecChild(t)
 	sshdPreloadLibrary := buildCModule(t, []string{
 		filepath.Join(currentDir, "/sshd_preloader/sshd_preloader.c"),
@@ -63,6 +67,7 @@ func TestSSHAuthenticate(t *testing.T) {
 
 		user             string
 		pamServiceName   string
+		daemonizeSSHd    bool
 		interactiveShell bool
 
 		wantNotLoggedInUser bool
@@ -188,6 +193,11 @@ func TestSSHAuthenticate(t *testing.T) {
 			sshdConnectCommand := fmt.Sprintf(
 				"/usr/bin/echo ' SSHD: Connected to ssh via authd module! [%s]'",
 				t.Name())
+			if tc.daemonizeSSHd {
+				// When in daemon mode SSH doesn't show debug infos, so let's
+				// mange this manually.
+				sshdConnectCommand += "&& env | sort | sed 's/^/  /'"
+			}
 			if tc.interactiveShell {
 				sshdConnectCommand = "/bin/sh"
 			}
@@ -200,7 +210,7 @@ func TestSSHAuthenticate(t *testing.T) {
 				fmt.Sprintf("AUTHD_TEST_SSH_USER=%s", user),
 				fmt.Sprintf("AUTHD_TEST_SSH_HOME=%s", userHome),
 				fmt.Sprintf("AUTHD_TEST_SSH_PAM_SERVICE=%s", serviceFile),
-			})
+			}, tc.daemonizeSSHd)
 
 			knownHost := filepath.Join(t.TempDir(), "known_hosts")
 			err := os.WriteFile(knownHost, []byte(
@@ -248,7 +258,7 @@ func sanitizeGoldenFile(t *testing.T, td tapeData, outDir string) string {
 	golden := td.ExpectedOutput(t, outDir)
 
 	// When sshd is in debug mode, it shows the environment variables, so let's sanitize them
-	golden = regexp.MustCompile(`(?m)  (PATH|HOME|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`).ReplaceAllString(
+	golden = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`).ReplaceAllString(
 		golden, "  $1=$${AUTHD_TEST_$1}")
 	return golden
 }
@@ -293,8 +303,24 @@ func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) s
 	return serviceFile
 }
 
-func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string) *exec.Cmd {
+func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string, daemonize bool) (*exec.Cmd, string, string) {
 	t.Helper()
+
+	logFile := ""
+	pidFile := ""
+	runModeArgs := []string{"-ddd"}
+
+	if daemonize {
+		pidFile = filepath.Join(t.TempDir(), "sshd.pid")
+		logFile = filepath.Join(t.TempDir(), "sshd-daemon.log")
+		saveArtifactsForDebugOnCleanup(t, []string{logFile})
+
+		runModeArgs = []string{
+			"-E", logFile,
+			"-o", "PidFile=" + pidFile,
+			"-o", "LogLevel=DEBUG3",
+		}
+	}
 
 	// #nosec:G204 - we control the command arguments in tests
 	sshd := exec.Command("/usr/sbin/sshd",
@@ -313,10 +339,11 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 		"-o", "ClientAliveCountMax=3",
 		"-o", "ForceCommand="+forcedCommand,
 	)
+	sshd.Args = append(sshd.Args, runModeArgs...)
 	sshd.Env = append(sshd.Env, env...)
 	sshd.Env = testutils.AppendCovEnv(sshd.Env)
 
-	return sshd
+	return sshd, pidFile, logFile
 }
 
 // safeBuffer is used to buffer the sshd output, since we may read this from
@@ -350,7 +377,7 @@ func (sb *safeBuffer) String() string {
 	return sb.Buffer.String()
 }
 
-func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string) string {
+func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemonize bool) string {
 	t.Helper()
 
 	// We use this to easily find a free port we can use, without going random
@@ -360,7 +387,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string) string
 	sshdPort := url.Port()
 	server.Close()
 
-	sshd := sshdCommand(t, sshdPort, hostKey, forcedCommand, env)
+	sshd, sshdPidFile, sshdLogFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env, daemonize)
 	sshdStderr := safeBuffer{}
 	sshd.Stderr = &sshdStderr
 	if testing.Verbose() {
@@ -408,13 +435,88 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string) string
 				t.Logf("SSHd stopped (%s)\n ##### STDERR #####\n %s \n ##### END #####",
 					state, sshdStderr.String())
 			}
-			require.Equal(t, 255, state.ExitCode(), "TearDown: SSHd exited with %s", state)
+			expectedExitCode := 255
+			if daemonize {
+				expectedExitCode = 0
+			}
+			require.Equal(t, expectedExitCode, state.ExitCode(), "TearDown: SSHd exited with %s", state)
 		}
 	})
 
-	// Sadly we can't wait for SSHd to be ready using net.Dial, since that will make sshd
-	// (when in debug mode) not to accept further connections from the actual test, but we
-	// can assume we're good.
-	t.Logf("SSHd started with pid %d and listening on port %s", sshd.Process.Pid, sshdPort)
+	if !daemonize {
+		// Sadly we can't wait for SSHd to be ready using net.Dial, since that will make sshd
+		// (when in debug mode) not to accept further connections from the actual test, but we
+		// can assume we're good.
+		t.Logf("SSHd started with pid %d and listening on port %s", sshd.Process.Pid, sshdPort)
+		return sshdPort
+	}
+
+	t.Cleanup(func() {
+		if !t.Failed() && !testutils.IsVerbose() {
+			return
+		}
+		contents, err := os.ReadFile(sshdLogFile)
+		require.NoError(t, err, "TearDown: Reading SSHd log failed")
+		t.Logf(" ##### LOG FILE #####\n %s \n ##### END #####", contents)
+	})
+
+	t.Cleanup(func() {
+		pidFileContent, err := os.ReadFile(sshdPidFile)
+		require.NoError(t, err, "TearDown: Reading SSHd pid file failed")
+		p := strings.TrimSpace(string(pidFileContent))
+		pid, err := strconv.Atoi(p)
+		require.NoError(t, err, "TearDown: Parsing SSHd pid file content: %q", p)
+		process, err := os.FindProcess(pid)
+		require.NoError(t, err, "TearDown: Finding SSHd process")
+		err = process.Kill()
+		require.NoError(t, err, "TearDown: Killing SSHd process")
+		t.Logf("SSHd pid %d killed", pid)
+	})
+
+	sshdStarted := make(chan error)
+	go func() {
+		for {
+			conn, err := net.DialTimeout("tcp", ":"+sshdPort, sleepDuration(1*time.Second))
+			if errors.Is(err, syscall.ECONNREFUSED) {
+				continue
+			}
+			if err != nil {
+				sshdStarted <- err
+				return
+			}
+			conn.Close()
+			break
+		}
+
+		for {
+			_, err := os.Stat(sshdPidFile)
+			if !errors.Is(err, os.ErrNotExist) {
+				sshdStarted <- err
+				return
+			}
+			time.Sleep(100 * time.Millisecond)
+		}
+	}()
+
+	select {
+	case <-time.After(sleepDuration(5 * time.Second)):
+		_ = sshd.Process.Kill()
+		if !testing.Verbose() {
+			t.Logf("SSHd stopped (killed)\n ##### STDERR #####\n %s \n ##### END #####",
+				sshdStderr.String())
+		}
+		t.Fatal("SSHd didn't start in time!")
+	case err := <-sshdStarted:
+		require.NoError(t, err, "Setup: SSHd startup checking failed %s",
+			sshdStderr.String())
+	}
+	require.NoError(t, err, "Setup: Waiting SSHd failed")
+
+	pidFileContent, err := os.ReadFile(sshdPidFile)
+	require.NoError(t, err, "Setup: Reading SSHd pid file failed")
+
+	t.Logf("SSHd started with pid %d (%s) and listening on port %s",
+		sshd.Process.Pid, strings.TrimSpace(string(pidFileContent)), sshdPort)
+
 	return sshdPort
 }
