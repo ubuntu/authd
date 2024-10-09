@@ -324,8 +324,17 @@ func (m nativeModel) checkForPromptReplyValidity(reply string) error {
 	return nil
 }
 
+func (m nativeModel) startStringConv(style pam.Style, format string, args ...any) (pam.StringConvResponse, error) {
+	if (style == pam.PromptEchoOn || style == pam.TextInfo) && len(format) > 0 && IsSSHSession(m.pamMTx) {
+		// SSH shows the prompt message just after the user name, making our
+		// UI not to look as expected, so move it to the next line.
+		format = "\n" + format
+	}
+	return m.pamMTx.StartStringConvf(style, format, args...)
+}
+
 func (m nativeModel) promptForInput(style pam.Style, prompt string) (string, error) {
-	resp, err := m.pamMTx.StartStringConvf(style, "%s: ", prompt)
+	resp, err := m.startStringConv(style, "%s: ", prompt)
 	if err != nil {
 		return "", err
 	}
@@ -369,7 +378,7 @@ func (m nativeModel) sendError(errorMsg string, args ...any) error {
 	if errorMsg == "" {
 		return nil
 	}
-	_, err := m.pamMTx.StartStringConvf(pam.ErrorMsg, errorMsg, args...)
+	_, err := m.startStringConv(pam.ErrorMsg, errorMsg, args...)
 	return err
 }
 
@@ -377,7 +386,7 @@ func (m nativeModel) sendInfo(infoMsg string, args ...any) error {
 	if infoMsg == "" {
 		return nil
 	}
-	_, err := m.pamMTx.StartStringConvf(pam.TextInfo, infoMsg, args...)
+	_, err := m.startStringConv(pam.TextInfo, infoMsg, args...)
 	return err
 }
 

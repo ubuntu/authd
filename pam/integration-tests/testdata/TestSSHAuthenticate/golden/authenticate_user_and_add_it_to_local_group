@@ -1,5 +1,6 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-local-groups@localhost) == Broker selection ==
+(user-local-groups@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
@@ -43,14 +44,15 @@ Select broker:
 
 
 
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-local-groups@localhost) == Broker selection ==
+(user-local-groups@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-local-groups@localhost) Insert 'r' to cancel the request and go back
+(user-local-groups@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
 
 
@@ -89,62 +91,15 @@ Gimme your password:
 
 
 
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-local-groups@localhost) == Broker selection ==
+(user-local-groups@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-local-groups@localhost) Insert 'r' to cancel the request and go back
-Gimme your password:
-Environment:
-  USER=user-local-groups
-  LOGNAME=user-local-groups
-  HOME=${AUTHD_TEST_HOME}
-  PATH=${AUTHD_TEST_PATH}
-  SHELL=/bin/sh
-  TERM=xterm-256color
-  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
-  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
-  SSH_TTY=${AUTHD_TEST_SSH_TTY}
- SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_and_add_it_to_l
-ocal_group]
-Connection to localhost closed.
->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-local-groups@localhost) == Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-(user-local-groups@localhost) Insert 'r' to cancel the request and go back
+(user-local-groups@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
 Environment:
   USER=user-local-groups
@@ -162,6 +117,51 @@ Connection to localhost closed.
 >
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-local-groups@localhost)
+== Broker selection ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+(user-local-groups@localhost)
+Insert 'r' to cancel the request and go back
+Gimme your password:
+Environment:
+  USER=user-local-groups
+  LOGNAME=user-local-groups
+  HOME=${AUTHD_TEST_HOME}
+  PATH=${AUTHD_TEST_PATH}
+  SHELL=/bin/sh
+  TERM=xterm-256color
+  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
+  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
+  SSH_TTY=${AUTHD_TEST_SSH_TTY}
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_and_add_it_to_l
+ocal_group]
+Connection to localhost closed.
+>
 
 
 
