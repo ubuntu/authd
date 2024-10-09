@@ -121,6 +121,11 @@ func TestSSHAuthenticate(t *testing.T) {
 			wantLocalGroups: true,
 		},
 
+		"Remember last successful broker and mode": {
+			tape:          "remember_broker_and_mode",
+			tapeSettings:  []tapeSetting{{vhsHeight, 980}},
+			daemonizeSSHd: true,
+		},
 		"Autoselect local broker for local user": {
 			tape:            "local_user_preset",
 			user:            "root",
@@ -318,7 +323,6 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 
 	// #nosec:G204 - we control the command arguments in tests
 	sshd := exec.Command("/usr/sbin/sshd",
-		"-ddd",
 		"-f", os.DevNull,
 		"-p", port,
 		"-h", hostKey,
