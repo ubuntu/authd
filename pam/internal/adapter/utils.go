@@ -3,9 +3,15 @@ package adapter
 import (
 	"errors"
 	"os"
+	"sync"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/msteinert/pam/v2"
+)
+
+var (
+	isSSHSession     bool
+	isSSHSessionOnce sync.Once
 )
 
 // convertTo converts an interface I value to T. It will panic (progamming error) if this is not the case.
@@ -34,8 +40,7 @@ func TeaHeadlessOptions() ([]tea.ProgramOption, error) {
 	}, nil
 }
 
-// IsSSHSession checks if the module transaction is currently handling a SSH session.
-func IsSSHSession(mTx pam.ModuleTransaction) bool {
+func isSSHSessionFunc(mTx pam.ModuleTransaction) bool {
 	service, _ := mTx.GetItem(pam.Service)
 	if service == "sshd" {
 		return true
@@ -52,6 +57,12 @@ func IsSSHSession(mTx pam.ModuleTransaction) bool {
 		return true
 	}
 	return false
+}
+
+// IsSSHSession checks if the module transaction is currently handling a SSH session.
+func IsSSHSession(mTx pam.ModuleTransaction) bool {
+	isSSHSessionOnce.Do(func() { isSSHSession = isSSHSessionFunc(mTx) })
+	return isSSHSession
 }
 
 func maybeSendPamError(err error) tea.Cmd {
