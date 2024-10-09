@@ -1,0 +1,449 @@
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
+ction ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
+ction ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
+entication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
+ction ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
+entication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
+ction ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
+entication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
+ction ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
+entication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 1
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your one time credential:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
+ction ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
+entication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 1
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your one time credential:
+> temporary pass0
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
+nd_mode]
+  HOME=${AUTHD_TEST_HOME}
+  LOGNAME=user-integration-pre-check-remember-last-successful-broker-and-mode
+  PATH=${AUTHD_TEST_PATH}
+  PWD=${AUTHD_TEST_PWD}
+  SHELL=/bin/sh
+  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
+  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
+  SSH_TTY=${AUTHD_TEST_SSH_TTY}
+  TERM=xterm-256color
+  USER=user-integration-pre-check-remember-last-successful-broker-and-mode
+Connection to localhost closed.
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
+ction ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
+entication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 1
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your one time credential:
+> temporary pass0
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
+nd_mode]
+  HOME=${AUTHD_TEST_HOME}
+  LOGNAME=user-integration-pre-check-remember-last-successful-broker-and-mode
+  PATH=${AUTHD_TEST_PATH}
+  PWD=${AUTHD_TEST_PWD}
+  SHELL=/bin/sh
+  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
+  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
+  SSH_TTY=${AUTHD_TEST_SSH_TTY}
+  TERM=xterm-256color
+  USER=user-integration-pre-check-remember-last-successful-broker-and-mode
+Connection to localhost closed.
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
+ction ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
+entication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 1
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your one time credential:
+> temporary pass0
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
+nd_mode]
+  HOME=${AUTHD_TEST_HOME}
+  LOGNAME=user-integration-pre-check-remember-last-successful-broker-and-mode
+  PATH=${AUTHD_TEST_PATH}
+  PWD=${AUTHD_TEST_PWD}
+  SHELL=/bin/sh
+  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
+  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
+  SSH_TTY=${AUTHD_TEST_SSH_TTY}
+  TERM=xterm-256color
+  USER=user-integration-pre-check-remember-last-successful-broker-and-mode
+Connection to localhost closed.
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 1
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your one time credential:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
+ction ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
+entication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 1
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your one time credential:
+> temporary pass0
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
+nd_mode]
+  HOME=${AUTHD_TEST_HOME}
+  LOGNAME=user-integration-pre-check-remember-last-successful-broker-and-mode
+  PATH=${AUTHD_TEST_PATH}
+  PWD=${AUTHD_TEST_PWD}
+  SHELL=/bin/sh
+  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
+  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
+  SSH_TTY=${AUTHD_TEST_SSH_TTY}
+  TERM=xterm-256color
+  USER=user-integration-pre-check-remember-last-successful-broker-and-mode
+Connection to localhost closed.
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 1
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your one time credential:
+> temporary pass0
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
+nd_mode]
+  HOME=${AUTHD_TEST_HOME}
+  LOGNAME=user-integration-pre-check-remember-last-successful-broker-and-mode
+  PATH=${AUTHD_TEST_PATH}
+  PWD=${AUTHD_TEST_PWD}
+  SHELL=/bin/sh
+  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
+  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
+  SSH_TTY=${AUTHD_TEST_SSH_TTY}
+  TERM=xterm-256color
+  USER=user-integration-pre-check-remember-last-successful-broker-and-mode
+Connection to localhost closed.
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
+ction ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
+entication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33\342\200\246
+  6. Use your phone +1\342\200\246
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 1
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your one time credential:
+> temporary pass0
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
+nd_mode]
+  HOME=${AUTHD_TEST_HOME}
+  LOGNAME=user-integration-pre-check-remember-last-successful-broker-and-mode
+  PATH=${AUTHD_TEST_PATH}
+  PWD=${AUTHD_TEST_PWD}
+  SHELL=/bin/sh
+  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
+  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
+  SSH_TTY=${AUTHD_TEST_SSH_TTY}
+  TERM=xterm-256color
+  USER=user-integration-pre-check-remember-last-successful-broker-and-mode
+Connection to localhost closed.
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 1
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
+n code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your one time credential:
+> temporary pass0
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
+nd_mode]
+  HOME=${AUTHD_TEST_HOME}
+  LOGNAME=user-integration-pre-check-remember-last-successful-broker-and-mode
+  PATH=${AUTHD_TEST_PATH}
+  PWD=${AUTHD_TEST_PWD}
+  SHELL=/bin/sh
+  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
+  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
+  SSH_TTY=${AUTHD_TEST_SSH_TTY}
+  TERM=xterm-256color
+  USER=user-integration-pre-check-remember-last-successful-broker-and-mode
+Connection to localhost closed.
+>
+────────────────────────────────────────────────────────────────────────────────
