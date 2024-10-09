@@ -1,5 +1,6 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-exit-authd-if-user-sigints@localhost) == Broker selection ==
+(user-integration-pre-check-exit-authd-if-user-sigints@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
@@ -43,15 +44,15 @@ Select broker:
 
 
 
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-exit-authd-if-user-sigints@localhost) == Broker selection ==
+(user-integration-pre-check-exit-authd-if-user-sigints@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-exit-authd-if-user-sigints@localhost) Insert 'r' to cancel the reque
-st and go back
+(user-integration-pre-check-exit-authd-if-user-sigints@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
 
 
@@ -90,15 +91,15 @@ Gimme your password:
 
 
 
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-exit-authd-if-user-sigints@localhost) == Broker selection ==
+(user-integration-pre-check-exit-authd-if-user-sigints@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-exit-authd-if-user-sigints@localhost) Insert 'r' to cancel the reque
-st and go back
+(user-integration-pre-check-exit-authd-if-user-sigints@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
 
 >
@@ -137,15 +138,15 @@ Gimme your password:
 
 
 
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-exit-authd-if-user-sigints@localhost) == Broker selection ==
+(user-integration-pre-check-exit-authd-if-user-sigints@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-exit-authd-if-user-sigints@localhost) Insert 'r' to cancel the reque
-st and go back
+(user-integration-pre-check-exit-authd-if-user-sigints@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
 
 > echo $TERM
@@ -184,21 +185,20 @@ xterm-256color
 
 
 
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-exit-authd-if-user-sigints@localhost) == Broker selection ==
+(user-integration-pre-check-exit-authd-if-user-sigints@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-exit-authd-if-user-sigints@localhost) Insert 'r' to cancel the reque
-st and go back
+(user-integration-pre-check-exit-authd-if-user-sigints@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
 
 > echo $TERM
 xterm-256color
 >
-
 
 
 

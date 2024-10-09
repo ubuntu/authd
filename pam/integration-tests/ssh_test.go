@@ -80,11 +80,12 @@ func TestSSHAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with mfa": {
 			tape:         "mfa_auth",
-			tapeSettings: []tapeSetting{{vhsHeight, 820}},
+			tapeSettings: []tapeSetting{{vhsHeight, 1000}},
 			user:         "user-mfa",
 		},
 		"Authenticate user with form mode with button": {
-			tape: "form_with_button",
+			tape:         "form_with_button",
+			tapeSettings: []tapeSetting{{vhsHeight, 750}},
 		},
 		"Authenticate user with qr code": {
 			tape:         "qr_code",
@@ -95,8 +96,9 @@ func TestSSHAuthenticate(t *testing.T) {
 			user: "user-needs-reset",
 		},
 		"Authenticate user with mfa and reset password while enforcing policy": {
-			tape: "mfa_reset_pwquality_auth",
-			user: "user-mfa-with-reset",
+			tape:         "mfa_reset_pwquality_auth",
+			user:         "user-mfa-with-reset",
+			tapeSettings: []tapeSetting{{vhsHeight, 900}},
 		},
 		"Authenticate user and offer password reset": {
 			tape: "optional_password_reset_skip",
@@ -108,7 +110,7 @@ func TestSSHAuthenticate(t *testing.T) {
 		},
 		"Authenticate user switching auth mode": {
 			tape:         "switch_auth_mode",
-			tapeSettings: []tapeSetting{{vhsHeight, 2650}},
+			tapeSettings: []tapeSetting{{vhsHeight, 2800}},
 		},
 		"Authenticate user switching to local broker": {
 			tape:            "switch_local_broker",
@@ -123,7 +125,7 @@ func TestSSHAuthenticate(t *testing.T) {
 
 		"Remember last successful broker and mode": {
 			tape:          "remember_broker_and_mode",
-			tapeSettings:  []tapeSetting{{vhsHeight, 980}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 1000}},
 			daemonizeSSHd: true,
 		},
 		"Autoselect local broker for local user": {
@@ -148,13 +150,14 @@ func TestSSHAuthenticate(t *testing.T) {
 			ignoreUserCheck: true,
 		},
 		"Deny authentication if newpassword does not match required criteria": {
-			tape: "bad_password",
-			user: "user-needs-reset2",
+			tape:         "bad_password",
+			user:         "user-needs-reset2",
+			tapeSettings: []tapeSetting{{vhsHeight, 900}},
 		},
 
 		"Prevent user from switching username": {
 			tape:         "switch_preset_username",
-			tapeSettings: []tapeSetting{{vhsHeight, 900}},
+			tapeSettings: []tapeSetting{{vhsHeight, 950}},
 		},
 
 		"Exit authd if local broker is selected": {
