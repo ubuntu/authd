@@ -1,31 +1,31 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Broker se
-lection ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Broker se
-lection ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Insert 'r' t
-o cancel the request and go back
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Broker se
-lection ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Insert 'r' t
-o cancel the request and go back
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation mode selection (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.co
 m
@@ -38,16 +38,16 @@ m
 Select authentication mode:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Broker se
-lection ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Insert 'r' t
-o cancel the request and go back
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation mode selection (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.co
 m
@@ -58,23 +58,23 @@ m
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Broker se
-lection ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Insert 'r' t
-o cancel the request and go back
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation mode selection (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.co
 m
@@ -85,28 +85,28 @@ m
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Broker se
-lection ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Insert 'r' t
-o cancel the request and go back
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation mode selection (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.co
 m
@@ -117,31 +117,32 @@ m
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 1
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Insert 'r' t
-o cancel the request and go back
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+Insert 'r' to cancel the request and go back
+
 Enter your one time credential:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Broker se
-lection ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Insert 'r' t
-o cancel the request and go back
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation mode selection (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.co
 m
@@ -152,18 +153,19 @@ m
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 1
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Insert 'r' t
-o cancel the request and go back
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+Insert 'r' to cancel the request and go back
+
 Enter your one time credential: temporary pass00
 Environment:
   USER=user-integration-pre-check-authenticate-user-with-form-mode-with-button
@@ -177,18 +179,20 @@ Environment:
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_with_form_mode_
 with_button]
+Connection to localhost closed.
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Broker se
-lection ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Insert 'r' t
-o cancel the request and go back
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation mode selection (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.co
 m
@@ -199,18 +203,19 @@ m
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code (use 'r' to go back) ==
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+== Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 1
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Insert 'r' t
-o cancel the request and go back
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+Insert 'r' to cancel the request and go back
+
 Enter your one time credential: temporary pass00
 Environment:
   USER=user-integration-pre-check-authenticate-user-with-form-mode-with-button
@@ -224,4 +229,6 @@ Environment:
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_with_form_mode_
 with_button]
+Connection to localhost closed.
+>
 ────────────────────────────────────────────────────────────────────────────────

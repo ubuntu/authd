@@ -1,25 +1,31 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-mfa@localhost) == Broker selection ==
+(user-mfa@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-mfa@localhost) == Broker selection ==
+(user-mfa@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-mfa@localhost) == Broker selection ==
+(user-mfa@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
@@ -31,13 +37,16 @@ Gimme your password:
 Select authentication mode:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-mfa@localhost) == Broker selection ==
+(user-mfa@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
@@ -47,17 +56,21 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-mfa@localhost) == Broker selection ==
+(user-mfa@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
@@ -67,20 +80,25 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-mfa@localhost) == Broker selection ==
+(user-mfa@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
@@ -90,25 +108,31 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-mfa@localhost) == Broker selection ==
+(user-mfa@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
@@ -118,28 +142,35 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-mfa@localhost) == Broker selection ==
+(user-mfa@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
@@ -149,33 +180,41 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-mfa@localhost) == Broker selection ==
+(user-mfa@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
@@ -185,36 +224,45 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode: 2
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Unlock your phone +33\342\200\246 or accept request on web interface:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-mfa@localhost) == Broker selection ==
+(user-mfa@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
@@ -224,39 +272,49 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode: 2
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Unlock your phone +33\342\200\246 or accept request on web interface:
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-mfa@localhost) == Broker selection ==
+(user-mfa@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
@@ -266,29 +324,36 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode: 2
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Unlock your phone +33\342\200\246 or accept request on web interface:
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb:
 Environment:
   USER=user-mfa
@@ -305,13 +370,16 @@ Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-mfa@localhost) == Broker selection ==
+(user-mfa@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
@@ -321,29 +389,36 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode: 2
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Unlock your phone +33\342\200\246 or accept request on web interface:
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb:
 Environment:
   USER=user-mfa
@@ -360,13 +435,16 @@ Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-mfa@localhost) == Broker selection ==
+(user-mfa@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
@@ -376,29 +454,36 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Insert 'r' to cancel the request and go back
+(user-mfa@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode: 1
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb: r
-(user-mfa@localhost) == Authentication mode selection (use 'r' to go back) ==
+(user-mfa@localhost)
+== Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
 2 - Use your phone +33\342\200\246
 3 - Authentication code
 Select authentication mode: 2
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Unlock your phone +33\342\200\246 or accept request on web interface:
-(user-mfa@localhost) Leave the input field empty to wait for the authentication method or insert
- 'r' to go back
+(user-mfa@localhost)
+Leave the input field empty to wait for the authentication method or insert 'r' to go back
+
 Plug your fido device and press with your thumb:
 Environment:
   USER=user-mfa

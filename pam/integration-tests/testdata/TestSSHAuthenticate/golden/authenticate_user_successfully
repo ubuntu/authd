@@ -1,25 +1,28 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully@localhost) == Broker selection ==
+(user-integration-pre-check-authenticate-user-successfully@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully@localhost) == Broker selection ==
+(user-integration-pre-check-authenticate-user-successfully@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-successfully@localhost) Insert 'r' to cancel the r
-equest and go back
+(user-integration-pre-check-authenticate-user-successfully@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully@localhost) == Broker selection ==
+(user-integration-pre-check-authenticate-user-successfully@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-successfully@localhost) Insert 'r' to cancel the r
-equest and go back
+(user-integration-pre-check-authenticate-user-successfully@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully
@@ -36,12 +39,13 @@ Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully@localhost) == Broker selection ==
+(user-integration-pre-check-authenticate-user-successfully@localhost)
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-successfully@localhost) Insert 'r' to cancel the r
-equest and go back
+(user-integration-pre-check-authenticate-user-successfully@localhost)
+Insert 'r' to cancel the request and go back
 Gimme your password:
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully
