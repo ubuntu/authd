@@ -58,6 +58,12 @@ func main() {
 	if coverDir := os.Getenv("GOCOVERDIR"); coverDir != "" {
 		defaultArgs = append(defaultArgs, "--exec-env", fmt.Sprintf("GOCOVERDIR=%s", coverDir))
 	}
+	if asanOptions := os.Getenv("ASAN_OPTIONS"); asanOptions != "" {
+		defaultArgs = append(defaultArgs, "--exec-env", fmt.Sprintf("ASAN_OPTIONS=%s", asanOptions))
+	}
+	if lsanOptions := os.Getenv("LSAN_OPTIONS"); lsanOptions != "" {
+		defaultArgs = append(defaultArgs, "--exec-env", fmt.Sprintf("LSAN_OPTIONS=%s", lsanOptions))
+	}
 
 	if len(os.Args) < 2 {
 		log.Fatalf("Not enough arguments")
