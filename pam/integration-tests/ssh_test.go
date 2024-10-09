@@ -31,18 +31,14 @@ func TestSSHAuthenticate(t *testing.T) {
 		t.Skip("Skipping tests with external dependencies as requested")
 	}
 
-	if testutils.IsAsan() {
-		t.Skip("Skipping tests in ASAN mode, since sshd crashes even using proper preloading")
-	}
-
 	currentDir, err := os.Getwd()
 	require.NoError(t, err, "Setup: Could not get current directory for the tests")
 
-	execModule := buildExecModule(t)
+	execModule := buildExecModuleWithCFlags(t, nil, true)
 	execChild := buildPAMExecChild(t)
 	sshdPreloadLibrary := buildCModule(t, []string{
 		filepath.Join(currentDir, "/sshd_preloader/sshd_preloader.c"),
-	}, nil, nil, nil, "sshd_preloader")
+	}, nil, nil, nil, "sshd_preloader", true)
 
 	sshdHostKey := filepath.Join(t.TempDir(), "ssh_host_ed25519_key")
 	//#nosec:G204 - we control the command arguments in tests

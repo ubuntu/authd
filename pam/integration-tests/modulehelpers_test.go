@@ -20,7 +20,7 @@ func getPkgConfigFlags(t *testing.T, args []string) []string {
 	return strings.Split(strings.TrimSpace(string(out)), " ")
 }
 
-func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags []string, ldFlags []string, soname string) string {
+func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags []string, ldFlags []string, soname string, forPreload bool) string {
 	t.Helper()
 
 	compiler := os.Getenv("CC")
@@ -51,7 +51,7 @@ func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags
 	}
 	cmd.Args = append(cmd.Args, cFlags...)
 
-	if testutils.IsAsan() {
+	if !forPreload && testutils.IsAsan() {
 		cmd.Args = append(cmd.Args, "-fsanitize=address,undefined")
 	}
 	// FIXME: This leads to an EOM error when loading the compiled module:
@@ -80,7 +80,7 @@ func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags
 		cmd.Args = append(cmd.Args, strings.Split(ldflags, " ")...)
 	}
 
-	if testutils.CoverDirForTests() != "" {
+	if !forPreload && testutils.CoverDirForTests() != "" {
 		cmd.Args = append(cmd.Args, "--coverage")
 		cmd.Args = append(cmd.Args, "-fprofile-abs-path")
 
@@ -129,9 +129,9 @@ func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags
 	return libPath
 }
 
-func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags []string, soname string) string {
+func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags []string, soname string, forPreload bool) string {
 	t.Helper()
-	return buildCModule(t, sources, pkgConfigDeps, cFlags, []string{"-lpam"}, soname)
+	return buildCModule(t, sources, pkgConfigDeps, cFlags, []string{"-lpam"}, soname, forPreload)
 }
 
 type actionArgsMap = map[pam_test.Action][]string
