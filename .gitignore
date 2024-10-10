@@ -29,3 +29,6 @@ vendor_rust/
 
 # Go workspace file
 go.work
+
+# vscode loca files
+!.vscode/*.json.default
