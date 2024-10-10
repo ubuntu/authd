@@ -1,16 +1,11 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username:
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -18,8 +13,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -37,8 +31,7 @@ Gimme your password:
 Select authentication mode:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -54,14 +47,13 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -77,19 +69,18 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -105,24 +96,23 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 555
 PAM Error Message: Invalid entry. Try again or input 'r'.
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -138,17 +128,17 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 555
 PAM Error Message: Invalid entry. Try again or input 'r'.
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 1
@@ -159,8 +149,7 @@ PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -176,17 +165,17 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 555
 PAM Error Message: Invalid entry. Try again or input 'r'.
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 1
