@@ -1,5 +1,6 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
@@ -53,15 +54,16 @@ Select broker:
 
 
 
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 Insert 'r' to cancel the request and go back
 Gimme your password:
 
@@ -109,23 +111,24 @@ Gimme your password:
 
 
 
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.co
-m
+2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-share
+d-sshd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33\342\200\246
 5 - Use your phone +1\342\200\246
@@ -165,24 +168,24 @@ Select authentication mode:
 
 
 
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.co
-m
+2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-share
+d-sshd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33\342\200\246
 5 - Use your phone +1\342\200\246
@@ -190,7 +193,8 @@ m
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
@@ -221,25 +225,24 @@ Select action:
 
 
 
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.co
-m
+2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-share
+d-sshd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33\342\200\246
 5 - Use your phone +1\342\200\246
@@ -247,12 +250,14 @@ m
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
@@ -277,26 +282,24 @@ Select action:
 
 
 
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.co
-m
+2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-share
+d-sshd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33\342\200\246
 5 - Use your phone +1\342\200\246
@@ -304,17 +307,20 @@ m
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 1
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 Insert 'r' to cancel the request and go back
 
 Enter your one time credential:
@@ -333,27 +339,24 @@ Enter your one time credential:
 
 
 
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.co
-m
+2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-share
+d-sshd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33\342\200\246
 5 - Use your phone +1\342\200\246
@@ -361,56 +364,56 @@ m
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 1
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 Insert 'r' to cancel the request and go back
 
 Enter your one time credential: temporary pass00
-Environment:
-  USER=user-integration-pre-check-authenticate-user-with-form-mode-with-button
-  LOGNAME=user-integration-pre-check-authenticate-user-with-form-mode-with-button
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
+  LOGNAME=user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd
   PATH=${AUTHD_TEST_PATH}
+  PWD=${AUTHD_TEST_PWD}
   SHELL=/bin/sh
-  TERM=xterm-256color
   SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
- SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_with_form_mode_
-with_button]
+  TERM=xterm-256color
+  USER=user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd
 Connection to localhost closed.
 >
 
 
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.co
-m
+2 - Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-share
+d-sshd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33\342\200\246
 5 - Use your phone +1\342\200\246
@@ -418,39 +421,36 @@ m
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 == Authentication code (use 'r' to go back) ==
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action: 1
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost)
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t)
 Insert 'r' to cancel the request and go back
 
 Enter your one time credential: temporary pass00
-Environment:
-  USER=user-integration-pre-check-authenticate-user-with-form-mode-with-button
-  LOGNAME=user-integration-pre-check-authenticate-user-with-form-mode-with-button
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
+  LOGNAME=user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd
   PATH=${AUTHD_TEST_PATH}
+  PWD=${AUTHD_TEST_PWD}
   SHELL=/bin/sh
-  TERM=xterm-256color
   SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
- SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_with_form_mode_
-with_button]
+  TERM=xterm-256color
+  USER=user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd
 Connection to localhost closed.
 >
-
-
-
-
-
 
 
 ────────────────────────────────────────────────────────────────────────────────
