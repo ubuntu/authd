@@ -903,9 +903,6 @@ func userInfoFromName(name string) string {
 
 	case "user-sudo":
 		user.Groups = append(user.Groups, groupJSONInfo{Name: "sudo", UGID: ""}, groupJSONInfo{Name: "admin", UGID: ""})
-
-	case "user-mismatching-name":
-		user.Name = "mismatching-username"
 	}
 
 	// only used for tests, we can ignore the template execution error as the returned data will be failing.
