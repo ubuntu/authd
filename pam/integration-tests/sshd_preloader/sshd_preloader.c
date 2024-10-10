@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdatomic.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -13,6 +14,7 @@
 #define AUTHD_TEST_SHELL "/bin/sh"
 #define AUTHD_TEST_GECOS ""
 #define AUTHD_DEFAULT_SSH_PAM_SERVICE_NAME "sshd"
+#define AUTHD_SPECIAL_USER_ACCEPT_ALL "authd-test-user-sshd-accept-all"
 
 static struct passwd passwd_entities[512];
 
@@ -41,6 +43,30 @@ get_home_path (void)
   return home_path;
 }
 
+static bool
+test_user_is_accepted (const char *test_user,
+                       const char *name)
+{
+  if (test_user == NULL || *test_user == '\0')
+    return false;
+
+  if (strcmp (test_user, name) == 0)
+    return true;
+
+  if (strcmp (test_user, AUTHD_SPECIAL_USER_ACCEPT_ALL) != 0)
+    return false;
+
+  /* Here we accept all the users supported by the example broker */
+  if (strncmp (name, "user", 4) == 0)
+    return true;
+
+  /* Further special case for the 'r' user */
+  if (strcmp (name, "r") == 0)
+    return true;
+
+  return false;
+}
+
 struct passwd *
 getpwnam (const char *name)
 {
@@ -52,7 +78,7 @@ getpwnam (const char *name)
   if (!test_user)
     test_user = getenv ("AUTHD_TEST_SSH_USER");
 
-  if (test_user == NULL || strcmp (test_user, name) != 0)
+  if (!test_user_is_accepted (test_user, name))
     {
       struct passwd * (*orig_getpwnam) (const char *name);
 

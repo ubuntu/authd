@@ -1,5 +1,6 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
@@ -56,15 +57,16 @@ Select broker:
 
 
 
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Insert 'r' to cancel the request and go back
 Gimme your password:
 
@@ -115,22 +117,24 @@ Gimme your password:
 
 
 
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-authenticate-user-switching-to-local-broker@gmail.com
+2 - Send URL to user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared
+-sshd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33\342\200\246
 5 - Use your phone +1\342\200\246
@@ -173,24 +177,24 @@ Select authentication mode:
 
 
 
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-authenticate-user-switching-to-local-broker@gmail.com
+2 - Send URL to user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared
+-sshd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33\342\200\246
 5 - Use your phone +1\342\200\246
@@ -198,7 +202,8 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
@@ -232,25 +237,24 @@ Select broker:
 
 
 
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-authenticate-user-switching-to-local-broker@gmail.com
+2 - Send URL to user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared
+-sshd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33\342\200\246
 5 - Use your phone +1\342\200\246
@@ -258,12 +262,14 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Provided input can't be parsed as integer value
 
 == Broker selection ==
@@ -291,26 +297,24 @@ Select broker:
 
 
 
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-authenticate-user-switching-to-local-broker@gmail.com
+2 - Send URL to user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared
+-sshd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33\342\200\246
 5 - Use your phone +1\342\200\246
@@ -318,19 +322,22 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Provided input can't be parsed as integer value
 
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 555
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Invalid entry. Try again or input 'r'.
 
 == Broker selection ==
@@ -350,27 +357,24 @@ Select broker:
 
 
 
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-authenticate-user-switching-to-local-broker@gmail.com
+2 - Send URL to user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared
+-sshd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33\342\200\246
 5 - Use your phone +1\342\200\246
@@ -378,27 +382,31 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Provided input can't be parsed as integer value
 
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 555
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Invalid entry. Try again or input 'r'.
 
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 1
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost) SSH PAM user
-'user-integration-pre-check-authenticate-user-switching-to-local-broker' using local broker
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+) SSH PAM user 'user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared
+-sshd' using local broker
 Password:
 
 
@@ -409,28 +417,24 @@ Password:
 
 
 
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Insert 'r' to cancel the request and go back
 Gimme your password:
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-authenticate-user-switching-to-local-broker@gmail.com
+2 - Send URL to user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared
+-sshd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33\342\200\246
 5 - Use your phone +1\342\200\246
@@ -438,36 +442,32 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Provided input can't be parsed as integer value
 
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 555
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost)
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+)
 Invalid entry. Try again or input 'r'.
 
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 1
-(user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost) SSH PAM user
-'user-integration-pre-check-authenticate-user-switching-to-local-broker' using local broker
+(user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared-sshd@localhost
+) SSH PAM user 'user-integration-pre-check-authenticate-user-switching-to-local-broker-on-shared
+-sshd' using local broker
 Password:
-
-
-
-
-
-
-
-
 
 
 
