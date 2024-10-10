@@ -29,6 +29,19 @@ import (
 func TestSSHAuthenticate(t *testing.T) {
 	t.Parallel()
 
+	runSharedDaemonTests := testutils.IsRace() || os.Getenv("AUTHD_TESTS_SSHD_SHARED") != ""
+
+	// We only test the single-sshd instance when in race mode.
+	testSSHAuthenticate(t, runSharedDaemonTests)
+
+	// When updating the golden files we need to perform all kind of tests.
+	if os.Getenv(testutils.UpdateGoldenFilesEnv) != "" {
+		testSSHAuthenticate(t, !runSharedDaemonTests)
+	}
+}
+
+//nolint:thelper // This is actually a test function!
+func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	// Due to external dependencies such as `vhs`, we can't run the tests in some environments (like LP builders), as we
 	// can't install the dependencies there. So we need to be able to skip these tests on-demand.
 	if os.Getenv("AUTHD_SKIP_EXTERNAL_DEPENDENT_TESTS") != "" {
@@ -60,6 +73,14 @@ func TestSSHAuthenticate(t *testing.T) {
 	const tapeCommand = "ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}"
 	defaultTapeSettings := []tapeSetting{{vhsHeight, 1000}, {vhsWidth, 800}}
 
+	defaultSSHDPort := ""
+	defaultUserHome := ""
+	if sharedSSHd {
+		serviceFile := createSshdServiceFile(t, execModule, execChild, defaultSocketPath)
+		defaultSSHDPort, defaultUserHome = startSSHdForTest(t, serviceFile, sshdHostKey,
+			"authd-test-user-sshd-accept-all", sshdPreloadLibrary, true, false)
+	}
+
 	tests := map[string]struct {
 		tape          string
 		tapeSettings  []tapeSetting
@@ -86,7 +107,8 @@ func TestSSHAuthenticate(t *testing.T) {
 			user:         "user-mfa",
 		},
 		"Authenticate user with form mode with button": {
-			tape: "form_with_button",
+			tape:         "form_with_button",
+			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
 		},
 		"Authenticate user with qr code": {
 			tape:          "qr_code",
@@ -112,7 +134,7 @@ func TestSSHAuthenticate(t *testing.T) {
 		},
 		"Authenticate user switching auth mode": {
 			tape:         "switch_auth_mode",
-			tapeSettings: []tapeSetting{{vhsHeight, 3000}},
+			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
 		},
 		"Authenticate user switching to local broker": {
 			tape:                "switch_local_broker",
@@ -175,6 +197,9 @@ func TestSSHAuthenticate(t *testing.T) {
 		},
 	}
 	for name, tc := range tests {
+		if sharedSSHd {
+			name = fmt.Sprintf("%s on shared SSHd", name)
+		}
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -195,9 +220,13 @@ func TestSSHAuthenticate(t *testing.T) {
 					strings.ToLower(filepath.Base(t.Name())), "_", "-")
 			}
 
-			serviceFile := createSshdServiceFile(t, execModule, execChild, socketPath)
-			sshdPort, userHome := startSSHdForTest(t, serviceFile, sshdHostKey, user,
-				sshdPreloadLibrary, tc.daemonizeSSHd, tc.interactiveShell)
+			sshdPort := defaultSSHDPort
+			userHome := defaultUserHome
+			if !sharedSSHd || tc.wantLocalGroups || tc.interactiveShell {
+				serviceFile := createSshdServiceFile(t, execModule, execChild, socketPath)
+				sshdPort, userHome = startSSHdForTest(t, serviceFile, sshdHostKey, user,
+					sshdPreloadLibrary, tc.daemonizeSSHd, tc.interactiveShell)
+			}
 
 			knownHost := filepath.Join(t.TempDir(), "known_hosts")
 			err := os.WriteFile(knownHost, []byte(
