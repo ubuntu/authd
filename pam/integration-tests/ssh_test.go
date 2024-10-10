@@ -195,27 +195,9 @@ func TestSSHAuthenticate(t *testing.T) {
 					strings.ToLower(filepath.Base(t.Name())), "_", "-")
 			}
 
-			sshdConnectCommand := fmt.Sprintf(
-				"/usr/bin/echo ' SSHD: Connected to ssh via authd module! [%s]'",
-				t.Name())
-			if tc.daemonizeSSHd {
-				// When in daemon mode SSH doesn't show debug infos, so let's
-				// mange this manually.
-				sshdConnectCommand += "&& env | sort | sed 's/^/  /'"
-			}
-			if tc.interactiveShell {
-				sshdConnectCommand = "/bin/sh"
-			}
-
 			serviceFile := createSshdServiceFile(t, execModule, execChild, socketPath)
-			userHome := t.TempDir()
-			sshdPort := startSSHd(t, sshdHostKey, sshdConnectCommand, []string{
-				fmt.Sprintf("HOME=%s", userHome),
-				fmt.Sprintf("LD_PRELOAD=%s", sshdPreloadLibrary),
-				fmt.Sprintf("AUTHD_TEST_SSH_USER=%s", user),
-				fmt.Sprintf("AUTHD_TEST_SSH_HOME=%s", userHome),
-				fmt.Sprintf("AUTHD_TEST_SSH_PAM_SERVICE=%s", serviceFile),
-			}, tc.daemonizeSSHd)
+			sshdPort, userHome := startSSHdForTest(t, serviceFile, sshdHostKey, user,
+				sshdPreloadLibrary, tc.daemonizeSSHd, tc.interactiveShell)
 
 			knownHost := filepath.Join(t.TempDir(), "known_hosts")
 			err := os.WriteFile(knownHost, []byte(
@@ -306,6 +288,33 @@ func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) s
 	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
 
 	return serviceFile
+}
+
+func startSSHdForTest(t *testing.T, serviceFile, hostKey, user, preloadLibrary string, daemonize bool, interactiveShell bool) (string, string) {
+	t.Helper()
+
+	sshdConnectCommand := fmt.Sprintf(
+		"/usr/bin/echo ' SSHD: Connected to ssh via authd module! [%s]'",
+		t.Name())
+	if daemonize {
+		// When in daemon mode SSH doesn't show debug infos, so let's
+		// handle this manually.
+		sshdConnectCommand += "&& env | sort | sed 's/^/  /'"
+	}
+	if interactiveShell {
+		sshdConnectCommand = "/bin/sh"
+	}
+
+	userHome := t.TempDir()
+	sshdPort := startSSHd(t, hostKey, sshdConnectCommand, []string{
+		fmt.Sprintf("HOME=%s", userHome),
+		fmt.Sprintf("LD_PRELOAD=%s", preloadLibrary),
+		fmt.Sprintf("AUTHD_TEST_SSH_USER=%s", user),
+		fmt.Sprintf("AUTHD_TEST_SSH_HOME=%s", userHome),
+		fmt.Sprintf("AUTHD_TEST_SSH_PAM_SERVICE=%s", serviceFile),
+	}, daemonize)
+
+	return sshdPort, userHome
 }
 
 func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string, daemonize bool) (*exec.Cmd, string, string) {
