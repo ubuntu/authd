@@ -5,12 +5,6 @@ Sleep ${AUTHD_SLEEP_COMMAND}
 Show
 
 Hide
-Type "user-integration-form-w-button"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
 Type "2"
 Enter
 Sleep ${AUTHD_SLEEP_LONG} / 2

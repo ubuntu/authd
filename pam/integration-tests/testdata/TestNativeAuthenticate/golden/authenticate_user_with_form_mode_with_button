@@ -1,21 +1,14 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username:
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-form-w-button
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-form-w-button
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -24,11 +17,9 @@ Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-form-w-button
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -49,11 +40,9 @@ Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-form-w-button
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -80,11 +69,9 @@ Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-form-w-button
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -117,11 +104,9 @@ Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-form-w-button
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -155,13 +140,12 @@ Choose action:
 == Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Enter your one time credential:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-form-w-button
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -195,13 +179,13 @@ Choose action:
 == Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Enter your one time credential:
+> temporary pass00
+PAM Authenticate() for user "user-integration-form-w-button" exited with success
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-form-w-button
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -235,4 +219,6 @@ Choose action:
 == Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Enter your one time credential:
+> temporary pass00
+PAM Authenticate() for user "user-integration-form-w-button" exited with success
 ────────────────────────────────────────────────────────────────────────────────

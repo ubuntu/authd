@@ -36,19 +36,21 @@ func TestNativeAuthenticate(t *testing.T) {
 		wantLocalGroups    bool
 	}{
 		"Authenticate user successfully": {
-			tape: "simple_auth",
+			tape:          "simple_auth",
+			clientOptions: clientOptions{PamUser: "user-integration-simple-auth"},
 		},
-		"Authenticate user successfully with preset user": {
-			tape:          "simple_auth_with_preset_user",
-			clientOptions: clientOptions{PamUser: "user-integration-simple-preset"},
+		"Authenticate user successfully with user selection": {
+			tape: "simple_auth_with_user_selection",
 		},
 		"Authenticate user with mfa": {
-			tape:         "mfa_auth",
-			tapeSettings: []tapeSetting{{vhsHeight, 800}},
+			tape:          "mfa_auth",
+			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
+			clientOptions: clientOptions{PamUser: "user-mfa-integration-auth"},
 		},
 		"Authenticate user with form mode with button": {
-			tape:         "form_with_button",
-			tapeSettings: []tapeSetting{{vhsHeight, 600}},
+			tape:          "form_with_button",
+			tapeSettings:  []tapeSetting{{vhsHeight, 600}},
+			clientOptions: clientOptions{PamUser: "user-integration-form-w-button"},
 		},
 		"Authenticate user with qr code": {
 			tape:          "qr_code",
@@ -102,32 +104,39 @@ func TestNativeAuthenticate(t *testing.T) {
 			},
 		},
 		"Authenticate user and reset password while enforcing policy": {
-			tape: "mandatory_password_reset",
+			tape:          "mandatory_password_reset",
+			clientOptions: clientOptions{PamUser: "user-needs-reset-integration-mandatory"},
 		},
 		"Authenticate user with mfa and reset password while enforcing policy": {
-			tape:         "mfa_reset_pwquality_auth",
-			tapeSettings: []tapeSetting{{vhsHeight, 1000}},
+			tape:          "mfa_reset_pwquality_auth",
+			tapeSettings:  []tapeSetting{{vhsHeight, 1000}},
+			clientOptions: clientOptions{PamUser: "user-mfa-with-reset-integration-pwquality"},
 		},
 		"Authenticate user and offer password reset": {
-			tape: "optional_password_reset_skip",
+			tape:          "optional_password_reset_skip",
+			clientOptions: clientOptions{PamUser: "user-can-reset-integration-skip"},
 		},
 		"Authenticate user and accept password reset": {
-			tape: "optional_password_reset_accept",
+			tape:          "optional_password_reset_accept",
+			clientOptions: clientOptions{PamUser: "user-can-reset-integration-accept"},
 		},
 		"Authenticate user switching auth mode": {
-			tape:         "switch_auth_mode",
-			tapeSettings: []tapeSetting{{vhsHeight, 3000}},
+			tape:          "switch_auth_mode",
+			tapeSettings:  []tapeSetting{{vhsHeight, 3000}},
+			clientOptions: clientOptions{PamUser: "user-integration-switch-mode"},
 		},
 		"Authenticate user switching username": {
 			tape: "switch_username",
 		},
 		"Authenticate user switching to local broker": {
-			tape:         "switch_local_broker",
-			tapeSettings: []tapeSetting{{vhsHeight, 700}},
+			tape:          "switch_local_broker",
+			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
+			clientOptions: clientOptions{PamUser: "user-integration-switch-broker"},
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
 			wantLocalGroups: true,
+			clientOptions:   clientOptions{PamUser: "user-local-groups"},
 		},
 		"Authenticate user on ssh service": {
 			tape: "simple_ssh_auth",
@@ -154,11 +163,13 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape: "simple_auth_with_unsupported_args",
 			tapeCommand: strings.ReplaceAll(tapeCommand, "force_native_client=true",
 				"invalid_flag=foo force_native_client=true bar"),
+			clientOptions: clientOptions{PamUser: "user-integration-with-unsupported-args"},
 		},
 
 		"Remember last successful broker and mode": {
-			tape:         "remember_broker_and_mode",
-			tapeSettings: []tapeSetting{{vhsHeight, 800}},
+			tape:          "remember_broker_and_mode",
+			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
+			clientOptions: clientOptions{PamUser: "user-integration-remember-mode"},
 		},
 		"Autoselect local broker for local user": {
 			tape: "local_user",
@@ -170,21 +181,25 @@ func TestNativeAuthenticate(t *testing.T) {
 
 		"Deny authentication if current user is not considered as root": {
 			tape: "not_root", currentUserNotRoot: true,
+			clientOptions: clientOptions{PamUser: "user-integration-not-root"},
 		},
 
 		"Deny authentication if max attempts reached": {
-			tape:         "max_attempts",
-			tapeSettings: []tapeSetting{{vhsHeight, 700}},
+			tape:          "max_attempts",
+			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
+			clientOptions: clientOptions{PamUser: "user-integration-max-attempts"},
 		},
 		"Deny authentication if user does not exist": {
-			tape: "unexistent_user",
+			tape:          "unexistent_user",
+			clientOptions: clientOptions{PamUser: "user-unexistent"},
 		},
 		"Deny authentication if user does not exist and matches cancel key": {
 			tape: "cancel_key_user",
 		},
 		"Deny authentication if newpassword does not match required criteria": {
-			tape:         "bad_password",
-			tapeSettings: []tapeSetting{{vhsHeight, 800}},
+			tape:          "bad_password",
+			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
+			clientOptions: clientOptions{PamUser: "user-needs-reset-integration-bad-password"},
 		},
 
 		"Prevent preset user from switching username": {
@@ -194,7 +209,8 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 
 		"Exit authd if local broker is selected": {
-			tape: "local_broker",
+			tape:          "local_broker",
+			clientOptions: clientOptions{PamUser: "user-local-broker"},
 		},
 		"Exit if user is not pre-checked on ssh service": {
 			tape: "local_ssh",
@@ -219,7 +235,8 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		// FIXME: While this works now, it requires proper handling via signal_fd
 		"Exit authd if user sigints": {
-			tape: "sigint",
+			tape:          "sigint",
+			clientOptions: clientOptions{PamUser: "user-integration-sigint"},
 		},
 	}
 	for name, tc := range tests {
@@ -248,6 +265,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			}
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Command = tc.tapeCommand
+			td.CommandSleep = defaultSleepValues[authdSleepCommand] * 2
 			td.Env[socketPathEnv] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.Variables = tc.tapeVariables
