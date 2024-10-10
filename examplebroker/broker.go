@@ -95,19 +95,18 @@ type userInfoBroker struct {
 var (
 	exampleUsersMu = sync.RWMutex{}
 	exampleUsers   = map[string]userInfoBroker{
-		"user1":                 {Password: "goodpass"},
-		"user2":                 {Password: "goodpass"},
-		"user3":                 {Password: "goodpass"},
-		"user-mfa":              {Password: "goodpass"},
-		"user-mfa-with-reset":   {Password: "goodpass"},
-		"user-needs-reset":      {Password: "goodpass"},
-		"user-needs-reset2":     {Password: "goodpass"},
-		"user-can-reset":        {Password: "goodpass"},
-		"user-can-reset2":       {Password: "goodpass"},
-		"user-local-groups":     {Password: "goodpass"},
-		"user-pre-check":        {Password: "goodpass"},
-		"user-sudo":             {Password: "goodpass"},
-		"user-mismatching-name": {Password: "goodpass"},
+		"user1":               {Password: "goodpass"},
+		"user2":               {Password: "goodpass"},
+		"user3":               {Password: "goodpass"},
+		"user-mfa":            {Password: "goodpass"},
+		"user-mfa-with-reset": {Password: "goodpass"},
+		"user-needs-reset":    {Password: "goodpass"},
+		"user-needs-reset2":   {Password: "goodpass"},
+		"user-can-reset":      {Password: "goodpass"},
+		"user-can-reset2":     {Password: "goodpass"},
+		"user-local-groups":   {Password: "goodpass"},
+		"user-pre-check":      {Password: "goodpass"},
+		"user-sudo":           {Password: "goodpass"},
 	}
 )
 
@@ -896,9 +895,6 @@ func userInfoFromName(name string) string {
 
 	case "user-sudo":
 		user.Groups = append(user.Groups, groupJSONInfo{Name: "sudo", UGID: ""}, groupJSONInfo{Name: "admin", UGID: ""})
-
-	case "user-mismatching-name":
-		user.Name = "mismatching-username"
 	}
 
 	// only used for tests, we can ignore the template execution error as the returned data will be failing.
