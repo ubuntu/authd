@@ -8,11 +8,17 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"unsafe"
 )
 
+var challengeQualityMu sync.Mutex
+
 // checkChallengeQuality checks the quality of the new password using the pwquality library.
 func checkChallengeQuality(old, new string) error {
+	challengeQualityMu.Lock()
+	defer challengeQualityMu.Unlock()
+
 	pwq := C.pwquality_default_settings()
 	if pwq == nil {
 		return errors.New("could not allocate pw quality default settings")
