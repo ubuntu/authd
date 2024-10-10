@@ -42,8 +42,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -67,8 +67,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -96,8 +96,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -130,8 +130,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -149,7 +149,7 @@ Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Use your fido device foo
-  2. Use your phone +33…
+  2. Use your phone +33...
   3. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
@@ -171,8 +171,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -190,53 +190,7 @@ Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Use your fido device foo
-  2. Use your phone +33…
-  3. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 1
-== Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-Plug your fido device and press with your thumb:
->
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-Or enter 'r' to go back to user selection
-Choose your provider:
-> 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
-== Authentication method selection ==
-  1. Password authentication
-  2. Send URL to user-mfa@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
-  6. Pin code
-  7. Use a QR code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 1
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
-== Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-Plug your fido device and press with your thumb:
-> r
-== Authentication method selection ==
-  1. Use your fido device foo
-  2. Use your phone +33…
+  2. Use your phone +33...
   3. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
@@ -263,8 +217,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -282,7 +236,7 @@ Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Use your fido device foo
-  2. Use your phone +33…
+  2. Use your phone +33...
   3. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
@@ -291,11 +245,6 @@ Choose your authentication method:
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
->
-== Use your phone +33… ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-Unlock your phone +33… or accept request on web interface:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
@@ -314,8 +263,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -333,7 +282,7 @@ Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Use your fido device foo
-  2. Use your phone +33…
+  2. Use your phone +33...
   3. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
@@ -343,13 +292,64 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 od
 Plug your fido device and press with your thumb:
 >
-== Use your phone +33… ==
+== Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
+Username: user-mfa
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-mfa@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 1
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
-  1. Use your phone +33…
+  1. Use your fido device foo
+  2. Use your phone +33...
+  3. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 1
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+>
+== Use your phone +33... ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33... or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Use your phone +33...
   2. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
@@ -371,8 +371,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -390,7 +390,7 @@ Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Use your fido device foo
-  2. Use your phone +33…
+  2. Use your phone +33...
   3. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
@@ -400,21 +400,21 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 od
 Plug your fido device and press with your thumb:
 >
-== Use your phone +33… ==
+== Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
-  1. Use your phone +33…
+  1. Use your phone +33...
   2. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
-== Use your phone +33… ==
+== Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
@@ -433,8 +433,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -452,7 +452,7 @@ Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Use your fido device foo
-  2. Use your phone +33…
+  2. Use your phone +33...
   3. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
@@ -462,21 +462,21 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 od
 Plug your fido device and press with your thumb:
 >
-== Use your phone +33… ==
+== Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
-  1. Use your phone +33…
+  1. Use your phone +33...
   2. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
-== Use your phone +33… ==
+== Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
@@ -495,8 +495,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -514,7 +514,7 @@ Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Use your fido device foo
-  2. Use your phone +33…
+  2. Use your phone +33...
   3. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
@@ -524,21 +524,21 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 od
 Plug your fido device and press with your thumb:
 >
-== Use your phone +33… ==
+== Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
-  1. Use your phone +33…
+  1. Use your phone +33...
   2. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
-== Use your phone +33… ==
+== Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 >
 == Password reset ==
 Enter 'r' to cancel the request and go back to choose the provider
@@ -561,8 +561,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -580,7 +580,7 @@ Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Use your fido device foo
-  2. Use your phone +33…
+  2. Use your phone +33...
   3. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
@@ -590,89 +590,21 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 od
 Plug your fido device and press with your thumb:
 >
-== Use your phone +33… ==
+== Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
-  1. Use your phone +33…
+  1. Use your phone +33...
   2. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
-== Use your phone +33… ==
+== Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33… or accept request on web interface:
->
-== Password reset ==
-Enter 'r' to cancel the request and go back to choose the provider
-Enter your new password:
->
-Confirm Password:
->
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-Or enter 'r' to go back to user selection
-Choose your provider:
-> 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
-== Authentication method selection ==
-  1. Password authentication
-  2. Send URL to user-mfa@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
-  6. Pin code
-  7. Use a QR code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 1
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
-== Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-Plug your fido device and press with your thumb:
-> r
-== Authentication method selection ==
-  1. Use your fido device foo
-  2. Use your phone +33…
-  3. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 1
-== Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-Plug your fido device and press with your thumb:
->
-== Use your phone +33… ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-Unlock your phone +33… or accept request on web interface:
-> r
-== Authentication method selection ==
-  1. Use your phone +33…
-  2. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 1
-== Use your phone +33… ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 >
 == Password reset ==
 Enter 'r' to cancel the request and go back to choose the provider
@@ -697,8 +629,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -716,7 +648,7 @@ Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Use your fido device foo
-  2. Use your phone +33…
+  2. Use your phone +33...
   3. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
@@ -726,21 +658,89 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 od
 Plug your fido device and press with your thumb:
 >
-== Use your phone +33… ==
+== Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
-  1. Use your phone +33…
+  1. Use your phone +33...
   2. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
-== Use your phone +33… ==
+== Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
+>
+== Password reset ==
+Enter 'r' to cancel the request and go back to choose the provider
+Enter your new password:
+>
+Confirm Password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
+Username: user-mfa
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-mfa@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 1
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Use your fido device foo
+  2. Use your phone +33...
+  3. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 1
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+>
+== Use your phone +33... ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33... or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Use your phone +33...
+  2. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 1
+== Use your phone +33... ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33... or accept request on web interface:
 >
 == Password reset ==
 Enter 'r' to cancel the request and go back to choose the provider
@@ -768,8 +768,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -787,7 +787,7 @@ Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Use your fido device foo
-  2. Use your phone +33…
+  2. Use your phone +33...
   3. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
@@ -797,21 +797,21 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 od
 Plug your fido device and press with your thumb:
 >
-== Use your phone +33… ==
+== Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
-  1. Use your phone +33…
+  1. Use your phone +33...
   2. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
-== Use your phone +33… ==
+== Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 >
 == Password reset ==
 Enter 'r' to cancel the request and go back to choose the provider

@@ -37,8 +37,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -63,8 +63,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -100,58 +100,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 2
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Qr Code authenti
-cation ==
-Enter the code in the login page
-https://ubuntu.com
-       1337
-
-  1. Wait for the QR code scan result
-  2. Regenerate code
-Or enter 'r' to go back to select the authentication method
-Choose action:
-> r
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
-ethod selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
->
-────────────────────────────────────────────────────────────────────────────────
-> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Provider selecti
-on ==
-  1. local
-  2. ExampleBroker
-Choose your provider:
-> 2
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Password authent
-ication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
-ethod selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -174,8 +124,58 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Provider selecti
+on ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Password authent
+ication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
+ethod selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Qr Code authenti
+cation ==
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
+ethod selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -207,8 +207,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -231,8 +231,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -251,8 +251,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -277,8 +277,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -301,8 +301,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -321,8 +321,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -353,8 +353,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -377,8 +377,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -397,8 +397,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -416,8 +416,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -442,8 +442,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -466,8 +466,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -486,8 +486,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -505,18 +505,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 5
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-33\342\200\246 ==
+33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
@@ -537,8 +537,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -561,8 +561,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -581,8 +581,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -600,18 +600,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 5
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-33\342\200\246 ==
+33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -619,8 +619,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -645,8 +645,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -669,8 +669,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -689,8 +689,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -708,18 +708,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 5
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-33\342\200\246 ==
+33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -727,18 +727,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 6
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-1\342\200\246 ==
+1... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +1\342\200\246 or accept request on web interface:
+Unlock your phone +1... or accept request on web interface:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
@@ -759,8 +759,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -783,8 +783,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -803,8 +803,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -822,18 +822,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 5
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-33\342\200\246 ==
+33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -841,18 +841,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 6
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-1\342\200\246 ==
+1... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +1\342\200\246 or accept request on web interface:
+Unlock your phone +1... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -860,8 +860,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -886,8 +886,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -910,8 +910,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -930,8 +930,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -949,18 +949,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 5
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-33\342\200\246 ==
+33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -968,18 +968,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 6
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-1\342\200\246 ==
+1... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +1\342\200\246 or accept request on web interface:
+Unlock your phone +1... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -987,8 +987,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1017,8 +1017,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1041,8 +1041,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1061,8 +1061,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1080,18 +1080,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 5
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-33\342\200\246 ==
+33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -1099,18 +1099,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 6
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-1\342\200\246 ==
+1... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +1\342\200\246 or accept request on web interface:
+Unlock your phone +1... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -1118,8 +1118,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1135,8 +1135,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1161,8 +1161,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1185,8 +1185,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1205,8 +1205,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1224,18 +1224,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 5
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-33\342\200\246 ==
+33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -1243,18 +1243,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 6
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-1\342\200\246 ==
+1... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +1\342\200\246 or accept request on web interface:
+Unlock your phone +1... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -1262,8 +1262,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1279,8 +1279,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1312,8 +1312,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1336,8 +1336,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1356,8 +1356,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1375,18 +1375,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 5
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-33\342\200\246 ==
+33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -1394,18 +1394,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 6
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-1\342\200\246 ==
+1... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +1\342\200\246 or accept request on web interface:
+Unlock your phone +1... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -1413,8 +1413,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1430,8 +1430,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1450,8 +1450,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1476,8 +1476,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1500,8 +1500,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1520,8 +1520,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1539,18 +1539,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 5
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-33\342\200\246 ==
+33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -1558,18 +1558,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 6
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-1\342\200\246 ==
+1... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +1\342\200\246 or accept request on web interface:
+Unlock your phone +1... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -1577,8 +1577,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1594,8 +1594,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1614,8 +1614,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1643,8 +1643,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1667,8 +1667,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1687,8 +1687,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1706,18 +1706,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 5
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-33\342\200\246 ==
+33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -1725,18 +1725,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 6
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-1\342\200\246 ==
+1... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +1\342\200\246 or accept request on web interface:
+Unlock your phone +1... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -1744,8 +1744,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1761,8 +1761,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1781,188 +1781,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> invalid-selection
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unsupported input
-Choose your authentication method:
-> -1
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Invalid selection
-== Authentication method selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
->
-────────────────────────────────────────────────────────────────────────────────
-> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Provider selecti
-on ==
-  1. local
-  2. ExampleBroker
-Choose your provider:
-> 2
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Password authent
-ication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
-ethod selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 2
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Qr Code authenti
-cation ==
-Enter the code in the login page
-https://ubuntu.com
-       1337
-
-  1. Wait for the QR code scan result
-  2. Regenerate code
-Or enter 'r' to go back to select the authentication method
-Choose action:
-> r
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
-ethod selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 3
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Send URL to user
--integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@g
-mail.com or enter the code:
-> r
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
-ethod selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 4
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your fido de
-vice foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-Plug your fido device and press with your thumb:
-> r
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
-ethod selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 5
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-33\342\200\246 ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-Unlock your phone +33\342\200\246 or accept request on web interface:
-> r
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
-ethod selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 6
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-1\342\200\246 ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-Unlock your phone +1\342\200\246 or accept request on web interface:
-> r
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
-ethod selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 7
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Pin code ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Enter your pin code:
-> r
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
-ethod selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 8
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication c
-ode ==
-  1. Proceed with Authentication code
-  2. Resend sms
-Or enter 'r' to go back to select the authentication method
-Choose action:
-> r
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
-ethod selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -1977,8 +1797,188 @@ Choose your authentication method:
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Provider selecti
+on ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Password authent
+ication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
+ethod selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Qr Code authenti
+cation ==
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
+ethod selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Send URL to user
+-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@g
+mail.com or enter the code:
+> r
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
+ethod selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your fido de
+vice foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
+ethod selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
+33... ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33... or accept request on web interface:
+> r
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
+ethod selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
+1... ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1... or accept request on web interface:
+> r
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
+ethod selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 7
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+> r
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
+ethod selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication c
+ode ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
+ethod selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> invalid-selection
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unsupported input
+Choose your authentication method:
+> -1
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Invalid selection
+== Authentication method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2007,8 +2007,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2031,8 +2031,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2051,8 +2051,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2070,18 +2070,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 5
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-33\342\200\246 ==
+33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -2089,18 +2089,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 6
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-1\342\200\246 ==
+1... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +1\342\200\246 or accept request on web interface:
+Unlock your phone +1... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -2108,8 +2108,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2125,8 +2125,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2145,8 +2145,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2161,8 +2161,8 @@ Choose your authentication method:
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2205,8 +2205,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2229,8 +2229,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2249,8 +2249,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2268,18 +2268,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 5
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-33\342\200\246 ==
+33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -2287,18 +2287,18 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 6
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Use your phone +
-1\342\200\246 ==
+1... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
-Unlock your phone +1\342\200\246 or accept request on web interface:
+Unlock your phone +1... or accept request on web interface:
 > r
 (user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) == Authentication m
 ethod selection ==
@@ -2306,8 +2306,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2323,8 +2323,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2343,8 +2343,8 @@ ethod selection ==
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -2359,8 +2359,8 @@ Choose your authentication method:
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider

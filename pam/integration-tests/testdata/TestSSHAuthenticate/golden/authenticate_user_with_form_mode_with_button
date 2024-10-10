@@ -38,8 +38,8 @@ ation method selection ==
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.c
 om
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -65,42 +65,8 @@ ation method selection ==
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.c
 om
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
-> 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code ==
-  1. Proceed with Authentication code
-  2. Resend sms
-Or enter 'r' to go back to select the authentication method
-Choose action:
->
-────────────────────────────────────────────────────────────────────────────────
-> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Provider
-selection ==
-  1. local
-  2. ExampleBroker
-Choose your provider:
-> 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Password
-authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation method selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.c
-om
-  4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -112,6 +78,40 @@ ation code ==
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
 Choose action:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Provider
+selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Password
+authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
+ation method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.c
+om
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
+ation code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
 > 2
 (user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
 ation code ==
@@ -140,8 +140,8 @@ ation method selection ==
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.c
 om
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -186,8 +186,8 @@ ation method selection ==
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.c
 om
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
@@ -246,8 +246,8 @@ ation method selection ==
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.c
 om
   4. Use your fido device foo
-  5. Use your phone +33\342\200\246
-  6. Use your phone +1\342\200\246
+  5. Use your phone +33...
+  6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
