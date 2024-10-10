@@ -25,4 +25,10 @@ Ctrl+C
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
+Hide
+Type "echo $TERM"
+Enter
+Sleep ${AUTHD_SLEEP_DEFAULT}
+Show
+
 Sleep ${AUTHD_SLEEP_DEFAULT}
