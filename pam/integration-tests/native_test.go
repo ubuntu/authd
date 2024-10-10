@@ -124,6 +124,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape:          "switch_auth_mode",
 			tapeSettings:  []tapeSetting{{vhsHeight, 3000}},
 			clientOptions: clientOptions{PamUser: "user-integration-switch-mode"},
+			tapeVariables: map[string]string{"AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM": "6"},
 		},
 		"Authenticate user switching username": {
 			tape: "switch_username",

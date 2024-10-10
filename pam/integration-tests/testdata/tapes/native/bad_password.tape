@@ -29,7 +29,7 @@ Show
 
 Hide
 Type "12345678"
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
+Sleep ${AUTHD_SLEEP_DEFAULT} * 3
 Enter
 Show
 

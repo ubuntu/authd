@@ -133,8 +133,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			user: "user-can-reset2",
 		},
 		"Authenticate user switching auth mode": {
-			tape:         "switch_auth_mode",
-			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
+			tape:          "switch_auth_mode",
+			tapeSettings:  []tapeSetting{{vhsHeight, 3500}},
+			tapeVariables: map[string]string{"AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM": "7"},
 		},
 		"Authenticate user switching to local broker": {
 			tape:                "switch_local_broker",
