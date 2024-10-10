@@ -58,8 +58,8 @@ Gimme your password:
 2 - Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@g
 mail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -87,8 +87,8 @@ Gimme your password:
 2 - Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@g
 mail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -121,61 +121,13 @@ Gimme your password:
 2 - Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@g
 mail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
 (user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
-Provided input can't be parsed as integer value
-
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker:
-────────────────────────────────────────────────────────────────────────────────
-> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
-Provided input can't be parsed as integer value
-
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
-Insert 'r' to cancel the request and go back
-Gimme your password:
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@g
-mail.com
-3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
-Provided input can't be parsed as integer value
-
 == Broker selection ==
 1 - local
 2 - ExampleBroker
@@ -210,8 +162,56 @@ Gimme your password:
 2 - Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@g
 mail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
+6 - Pin code
+7 - Use a QR code
+8 - Authentication code
+Select authentication mode: r
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
+== Broker selection ==
+1 - local
+2 - ExampleBroker
+Select broker: r
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
+Provided input can't be parsed as integer value
+
+== Broker selection ==
+1 - local
+2 - ExampleBroker
+Select broker: r
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
+Provided input can't be parsed as integer value
+
+== Broker selection ==
+1 - local
+2 - ExampleBroker
+Select broker:
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
+== Broker selection ==
+1 - local
+2 - ExampleBroker
+Select broker: r
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
+Provided input can't be parsed as integer value
+
+== Broker selection ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
+Insert 'r' to cancel the request and go back
+Gimme your password:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost)
+== Authentication mode selection (use 'r' to go back) ==
+1 - Password authentication
+2 - Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@g
+mail.com
+3 - Use your fido device foo
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -261,8 +261,8 @@ Gimme your password:
 2 - Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@g
 mail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -324,8 +324,8 @@ Gimme your password:
 2 - Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@g
 mail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code

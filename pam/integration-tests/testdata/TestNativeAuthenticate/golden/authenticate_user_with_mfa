@@ -23,8 +23,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa-integration-auth@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -41,8 +41,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa-integration-auth@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -61,8 +61,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa-integration-auth@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -83,8 +83,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa-integration-auth@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -95,7 +95,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode:
 ────────────────────────────────────────────────────────────────────────────────
@@ -110,8 +110,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa-integration-auth@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -122,7 +122,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
@@ -139,8 +139,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa-integration-auth@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -151,14 +151,14 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode:
 ────────────────────────────────────────────────────────────────────────────────
@@ -173,8 +173,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa-integration-auth@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -185,18 +185,18 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Broker selection ==
@@ -209,8 +209,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa-integration-auth@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -221,18 +221,18 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb:
 ────────────────────────────────────────────────────────────────────────────────
@@ -247,8 +247,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa-integration-auth@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -259,18 +259,18 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb:
 PAM Authenticate() for user "user-mfa-integration-auth" exited with success
@@ -288,8 +288,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa-integration-auth@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -300,18 +300,18 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb:
 PAM Authenticate() for user "user-mfa-integration-auth" exited with success
@@ -329,8 +329,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa-integration-auth@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -341,18 +341,18 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33…
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb:
 PAM Authenticate() for user "user-mfa-integration-auth" exited with success
