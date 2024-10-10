@@ -6,7 +6,7 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Sleep ${AUTHD_SLEEP_LONG} * 3
 Show
 
 Sleep ${AUTHD_SLEEP_DEFAULT}
