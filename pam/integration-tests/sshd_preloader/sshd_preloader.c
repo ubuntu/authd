@@ -1,6 +1,9 @@
 #define _GNU_SOURCE 1
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdatomic.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -12,6 +15,9 @@
 #define AUTHD_TEST_SHELL "/bin/sh"
 #define AUTHD_TEST_GECOS ""
 #define AUTHD_DEFAULT_SSH_PAM_SERVICE_NAME "sshd"
+#define AUTHD_SPECIAL_USER_ACCEPT_ALL "authd-test-user-sshd-accept-all"
+
+static struct passwd passwd_entities[512];
 
 __attribute__((constructor))
 void constructor (void)
@@ -27,11 +33,6 @@ void destructor (void)
            getpid ());
 }
 
-/*
- * Note: none of this code is meant to be thread-safe, but we don't need it for
- * the way we're using it in our tests.
- */
-
 static const char *
 get_home_path (void)
 {
@@ -41,6 +42,34 @@ get_home_path (void)
     return "/not-existing-home";
 
   return home_path;
+}
+
+static bool
+is_valid_test_user (const char *name)
+{
+  static const char *test_user = NULL;
+
+  if (!test_user)
+    test_user = getenv ("AUTHD_TEST_SSH_USER");
+
+  if (test_user == NULL || *test_user == '\0')
+    return false;
+
+  if (strcmp (test_user, name) == 0)
+    return true;
+
+  if (strcmp (test_user, AUTHD_SPECIAL_USER_ACCEPT_ALL) != 0)
+    return false;
+
+  /* Here we accept all the users supported by the example broker */
+  if (strncmp (name, "user", 4) == 0)
+    return true;
+
+  /* Further special case for the 'r' user */
+  if (strcmp (name, "r") == 0)
+    return true;
+
+  return false;
 }
 
 /*
@@ -54,12 +83,11 @@ get_home_path (void)
 struct passwd *
 getpwnam (const char *name)
 {
-  static const char *test_user = NULL;
+  static atomic_int last_entity_idx;
+  struct passwd *passwd_entity;
+  int entity_idx;
 
-  if (!test_user)
-    test_user = getenv ("AUTHD_TEST_SSH_USER");
-
-  if (test_user == NULL || strcmp (test_user, name) != 0)
+  if (!is_valid_test_user (name))
     {
       struct passwd * (*orig_getpwnam) (const char *name);
 
@@ -69,21 +97,23 @@ getpwnam (const char *name)
 
   fprintf (stderr, "sshd_preloader: Simulating to be user %s\n", name);
 
-  static struct passwd passwd_entity = {
-    .pw_shell = AUTHD_TEST_SHELL,
-    .pw_gecos = AUTHD_TEST_GECOS,
-  };
+  entity_idx = atomic_fetch_add_explicit (&last_entity_idx, 1,
+                                          memory_order_relaxed);
+  assert (entity_idx < sizeof (passwd_entities) / sizeof (*passwd_entities));
+  passwd_entity = &passwd_entities[entity_idx];
+  passwd_entity->pw_shell = AUTHD_TEST_SHELL;
+  passwd_entity->pw_gecos = AUTHD_TEST_GECOS;
 
   /* We're simulating to be the same user running the test but with another
    * name and HOME directory, so that we won't touch the user settings, but
    * it's still enough to trick sshd.
    */
-  passwd_entity.pw_uid = getuid ();
-  passwd_entity.pw_gid = getgid ();
-  passwd_entity.pw_name = (char *) name;
-  passwd_entity.pw_dir = (char *) get_home_path ();
+  passwd_entity->pw_uid = getuid ();
+  passwd_entity->pw_gid = getgid ();
+  passwd_entity->pw_name = (char *) name;
+  passwd_entity->pw_dir = (char *) get_home_path ();
 
-  return &passwd_entity;
+  return passwd_entity;
 }
 
 FILE *
@@ -110,4 +140,3 @@ fopen (const char *pathname, const char *mode)
 
   return orig_fopen (pathname, mode);
 }
-
