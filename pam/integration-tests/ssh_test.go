@@ -61,8 +61,9 @@ func TestSSHAuthenticate(t *testing.T) {
 	defaultTapeSettings := []tapeSetting{{vhsHeight, 1000}, {vhsWidth, 800}}
 
 	tests := map[string]struct {
-		tape         string
-		tapeSettings []tapeSetting
+		tape          string
+		tapeSettings  []tapeSetting
+		tapeVariables map[string]string
 
 		user             string
 		pamServiceName   string
@@ -87,8 +88,9 @@ func TestSSHAuthenticate(t *testing.T) {
 			tape: "form_with_button",
 		},
 		"Authenticate user with qr code": {
-			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
+			tape:          "qr_code",
+			tapeSettings:  []tapeSetting{{vhsHeight, 1500}},
+			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "2"},
 		},
 		"Authenticate user and reset password while enforcing policy": {
 			tape: "mandatory_password_reset",
@@ -226,6 +228,7 @@ func TestSSHAuthenticate(t *testing.T) {
 				"-o", "PubkeyAuthentication=no",
 				"-o", "UserKnownHostsFile=" + knownHost,
 			}, " ")
+			td.Variables = tc.tapeVariables
 			td.RunVhs(t, "ssh", outDir, nil)
 			got := sanitizeGoldenFile(t, td, outDir)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
