@@ -20,6 +20,8 @@ const (
 	Password
 	// Session is the session.
 	Session
+	// Include allows to include system services.
+	Include
 )
 
 // String is the method to stringify an to their PAM config file representation.
@@ -33,6 +35,8 @@ func (a Action) String() string {
 		return "password"
 	case Session:
 		return "session"
+	case Include:
+		return "@include"
 	default:
 		return ""
 	}
@@ -44,6 +48,7 @@ var Actions = map[string]Action{
 	Auth.String():     Auth,
 	Password.String(): Password,
 	Session.String():  Session,
+	Include.String():  Include,
 }
 
 // Control represents how a PAM module should controlled in PAM service file.

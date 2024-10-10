@@ -23,6 +23,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+var authdTestSessionTime = time.Now()
+
 func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool) string {
 	t.Helper()
 
@@ -162,7 +164,11 @@ func saveArtifactsForDebug(t *testing.T, artifacts []string) {
 	// We need to copy the artifacts to another directory, since the test directory will be cleaned up.
 	artifactPath := os.Getenv("AUTHD_TEST_ARTIFACTS_PATH")
 	if artifactPath == "" {
-		artifactPath = filepath.Join(os.TempDir(), "authd-test-artifacts")
+		artifactsFolder := fmt.Sprintf("authd-test-artifacts-%d-%02d-%02dT%02d:%02d:%02d.%d",
+			authdTestSessionTime.Year(), authdTestSessionTime.Month(), authdTestSessionTime.Day(),
+			authdTestSessionTime.Hour(), authdTestSessionTime.Minute(), authdTestSessionTime.Second(),
+			authdTestSessionTime.UnixMilli())
+		artifactPath = filepath.Join(os.TempDir(), artifactsFolder)
 	}
 	tmpDir := filepath.Join(artifactPath, testutils.GoldenPath(t))
 	if err := os.MkdirAll(tmpDir, 0750); err != nil && !os.IsExist(err) {
@@ -202,4 +208,15 @@ func prependBinToPath(t *testing.T) string {
 
 	env := os.Getenv("PATH")
 	return "PATH=" + strings.Join([]string{filepath.Join(strings.TrimSpace(string(out)), "bin"), env}, ":")
+}
+
+func prepareGPasswdFiles(t *testing.T) (string, string) {
+	t.Helper()
+
+	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
+	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+
+	saveArtifactsForDebugOnCleanup(t, []string{gpasswdOutput, groupsFile})
+
+	return gpasswdOutput, groupsFile
 }

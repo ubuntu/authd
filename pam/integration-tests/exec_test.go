@@ -29,7 +29,7 @@ func TestExecModule(t *testing.T) {
 		t.Fatal("can't test with this libpam version!")
 	}
 
-	libPath := buildExecModuleWithCFlags(t, []string{"-DAUTHD_TEST_EXEC_MODULE"})
+	libPath := buildExecModuleWithCFlags(t, []string{"-DAUTHD_TEST_EXEC_MODULE"}, false)
 	execClient := buildExecClient(t)
 
 	// We do multiple tests inside this test function not to have to re-compile
@@ -823,7 +823,7 @@ func TestExecModuleUnimplementedActions(t *testing.T) {
 		t.Fatal("can't test with this libpam version!")
 	}
 
-	libPath := buildExecModuleWithCFlags(t, nil)
+	libPath := buildExecModule(t)
 	execClient := buildExecClient(t)
 
 	tx := preparePamTransaction(t, libPath, execClient, nil, "an-user")
@@ -837,7 +837,7 @@ func getModuleArgs(t *testing.T, clientPath string, args []string) []string {
 
 	moduleArgs := []string{"--exec-debug"}
 	if env := testutils.CoverDirEnv(); env != "" {
-		moduleArgs = append(moduleArgs, "--exec-env", testutils.CoverDirEnv())
+		moduleArgs = append(moduleArgs, "--exec-env", env)
 	}
 
 	logFile := os.Stderr.Name()
@@ -925,16 +925,17 @@ func performAllPAMActions(t *testing.T, tx *pam.Transaction, flags pam.Flags, wa
 func buildExecModule(t *testing.T) string {
 	t.Helper()
 
-	return buildExecModuleWithCFlags(t, nil)
+	return buildExecModuleWithCFlags(t, nil, false)
 }
 
-func buildExecModuleWithCFlags(t *testing.T, cFlags []string) string {
+func buildExecModuleWithCFlags(t *testing.T, cFlags []string, forPreload bool) string {
 	t.Helper()
 
 	pkgConfigDeps := []string{"gio-2.0", "gio-unix-2.0"}
 	// t.Name() can be a subtest, so replace the directory slash to get a valid filename.
 	return buildCPAMModule(t, execModuleSources, pkgConfigDeps, cFlags,
-		"pam_authd_exec"+strings.ToLower(strings.ReplaceAll(t.Name(), "/", "_")))
+		"pam_authd_exec"+strings.ToLower(strings.ReplaceAll(t.Name(), "/", "_")),
+		forPreload)
 }
 
 func buildExecClient(t *testing.T) string {

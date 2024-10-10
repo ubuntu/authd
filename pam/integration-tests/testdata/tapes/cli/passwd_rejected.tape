@@ -1,7 +1,7 @@
 Hide
-Type "./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}"
+Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_COMMAND}
 Show
 
 Hide
@@ -64,9 +64,9 @@ Sleep ${AUTHD_SLEEP_LONG}
 # Repeat again, to check that we can use still use another new password
 
 Hide
-Type "./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}"
+Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_COMMAND}
 Show
 
 Hide
