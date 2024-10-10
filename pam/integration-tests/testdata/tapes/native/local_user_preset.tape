@@ -1,12 +1,7 @@
 Hide
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND} * 2
-Show
-
-Hide
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT} * 3
+Sleep ${AUTHD_SLEEP_COMMAND} * 3
 Show
 
 Sleep ${AUTHD_SLEEP_DEFAULT}
