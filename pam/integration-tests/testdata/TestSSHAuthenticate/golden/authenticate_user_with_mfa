@@ -146,8 +146,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -213,8 +213,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -280,8 +280,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -347,8 +347,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -363,7 +363,7 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode:
 
@@ -414,8 +414,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -430,7 +430,7 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 (user-mfa@localhost)
@@ -481,8 +481,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -497,7 +497,7 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 (user-mfa@localhost)
@@ -507,7 +507,7 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode:
 
@@ -548,8 +548,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -564,7 +564,7 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 (user-mfa@localhost)
@@ -574,13 +574,13 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 2
 (user-mfa@localhost)
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 
 
 
@@ -615,8 +615,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -631,7 +631,7 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 (user-mfa@localhost)
@@ -641,13 +641,13 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 2
 (user-mfa@localhost)
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 (user-mfa@localhost)
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 
@@ -682,8 +682,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -698,7 +698,7 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 (user-mfa@localhost)
@@ -708,13 +708,13 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 2
 (user-mfa@localhost)
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 (user-mfa@localhost)
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 
@@ -749,8 +749,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -765,7 +765,7 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 (user-mfa@localhost)
@@ -775,13 +775,13 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 2
 (user-mfa@localhost)
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 (user-mfa@localhost)
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 
@@ -816,8 +816,8 @@ Gimme your password:
 1 - Password authentication
 2 - Send URL to user-mfa@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33\342\200\246
-5 - Use your phone +1\342\200\246
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -832,7 +832,7 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 1
 (user-mfa@localhost)
@@ -842,13 +842,13 @@ Plug your fido device and press with your thumb: r
 (user-mfa@localhost)
 == Authentication mode selection (use 'r' to go back) ==
 1 - Use your fido device foo
-2 - Use your phone +33\342\200\246
+2 - Use your phone +33...
 3 - Authentication code
 Select authentication mode: 2
 (user-mfa@localhost)
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 
-Unlock your phone +33\342\200\246 or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 (user-mfa@localhost)
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 

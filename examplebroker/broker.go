@@ -340,7 +340,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				if layout["button"] == "optional" {
 					allModes["totp_with_button"] = map[string]string{
 						"selection_label": "Authentication code",
-						"phone":           "+33…",
+						"phone":           "+33...",
 						"wantedCode":      "temporary pass",
 						"ui": mapToJSON(map[string]string{
 							"type":   "form",
@@ -352,7 +352,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				} else {
 					allModes["totp"] = map[string]string{
 						"selection_label": "Authentication code",
-						"phone":           "+33…",
+						"phone":           "+33...",
 						"wantedCode":      "temporary pass",
 						"ui": mapToJSON(map[string]string{
 							"type":  "form",
@@ -363,21 +363,21 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				}
 
 				allModes["phoneack1"] = map[string]string{
-					"selection_label": "Use your phone +33…",
-					"phone":           "+33…",
+					"selection_label": "Use your phone +33...",
+					"phone":           "+33...",
 					"ui": mapToJSON(map[string]string{
 						"type":  "form",
-						"label": "Unlock your phone +33… or accept request on web interface:",
+						"label": "Unlock your phone +33... or accept request on web interface:",
 						"wait":  "true",
 					}),
 				}
 
 				allModes["phoneack2"] = map[string]string{
-					"selection_label": "Use your phone +1…",
-					"phone":           "+1…",
+					"selection_label": "Use your phone +1...",
+					"phone":           "+1...",
 					"ui": mapToJSON(map[string]string{
 						"type":  "form",
-						"label": "Unlock your phone +1… or accept request on web interface",
+						"label": "Unlock your phone +1... or accept request on web interface",
 						"wait":  "true",
 					}),
 				}
