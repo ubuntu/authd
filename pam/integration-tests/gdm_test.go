@@ -760,7 +760,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
 	libPath := buildPAMModule(t)
-	moduleArgs := []string{libPath}
+	moduleArgs := []string{}
 
 	socketPath := runAuthd(t, os.DevNull, os.DevNull, true)
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
@@ -794,7 +794,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
 	libPath := buildPAMModule(t)
-	moduleArgs := []string{libPath}
+	moduleArgs := []string{}
 
 	socketPath := runAuthd(t, os.DevNull, os.DevNull, true)
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
