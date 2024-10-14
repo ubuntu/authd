@@ -2516,6 +2516,10 @@ func TestGdmModel(t *testing.T) {
 					if r != gdmTestEarlyStopExitStatus {
 						return
 					}
+					if slices.Contains(tc.messages, tea.Quit()) {
+						// Test required to quit, so we can't be reliable on what the status is.
+						return
+					}
 				}
 			}
 
