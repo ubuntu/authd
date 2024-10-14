@@ -773,7 +773,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
 	libPath := buildPAMModule(t)
-	moduleArgs := []string{libPath}
+	moduleArgs := []string{}
 
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
@@ -815,7 +815,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
 	libPath := buildPAMModule(t)
-	moduleArgs := []string{libPath}
+	moduleArgs := []string{}
 
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
