@@ -1546,8 +1546,8 @@ func TestGdmModel(t *testing.T) {
 			),
 			supportedLayouts: []*authd.UILayout{},
 			wantGdmRequests:  []gdm.RequestType{gdm.RequestType_uiLayoutCapabilities},
-			wantGdmEvents:    []gdm.EventType{gdm.EventType_brokersReceived},
 			wantNoGdmEvents: []gdm.EventType{
+				gdm.EventType_brokersReceived,
 				gdm.EventType_userSelected,
 			},
 			wantExitStatus: pamError{
@@ -2281,6 +2281,7 @@ func TestGdmModel(t *testing.T) {
 					},
 				}): errors.New("this is an UI capabilities request error"),
 			},
+			wantNoBrokers: true,
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
 				msg:    "Sending GDM UI capabilities Request failed: Conversation error: this is an UI capabilities request error",

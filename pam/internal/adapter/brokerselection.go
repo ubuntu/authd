@@ -69,12 +69,15 @@ func newBrokerSelectionModel(client authd.PAMClient, clientType PamClientType) b
 
 // Init initializes brokerSelectionModel by requesting the available brokers.
 func (m brokerSelectionModel) Init() tea.Cmd {
-	return getAvailableBrokers(m.client)
+	return nil
 }
 
 // Update handles events and actions.
 func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
+	case supportedUILayoutsSet:
+		return m, getAvailableBrokers(m.client)
+
 	case brokersListReceived:
 		log.Debugf(context.TODO(), "%#v", msg)
 		if len(msg.brokers) == 0 {
