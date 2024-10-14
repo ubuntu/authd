@@ -39,10 +39,7 @@ func TestGdmModel(t *testing.T) {
 	// However we do return a PAM error in such case because that's what we're
 	// going to return to the PAM stack in case authentication process has not
 	// been completed fully.
-	gdmTestEarlyStopExitStatus := pamError{
-		status: pam.ErrSystem,
-		msg:    "model did not return anything",
-	}
+	gdmTestEarlyStopExitStatus := errNoExitStatus
 
 	gdmTestIgnoreStage := pam_proto.Stage(-1)
 
@@ -2515,9 +2512,10 @@ func TestGdmModel(t *testing.T) {
 				// is matching what we expect.
 				switch r.Status() {
 				case pam.ErrIgnore, pam.ErrAuth:
-				case gdmTestEarlyStopExitStatus.Status():
 				default:
-					return
+					if r != gdmTestEarlyStopExitStatus {
+						return
+					}
 				}
 			}
 
