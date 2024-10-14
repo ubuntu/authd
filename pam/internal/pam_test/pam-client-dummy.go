@@ -582,17 +582,25 @@ func WithQrCodeCode(code string) func(l *authd.UILayout) {
 	return func(l *authd.UILayout) { l.Code = &code }
 }
 
+// WithQrCodeRenders is an option for [QrCodeUILayout] to set the rendering parameter in QrCode UI.
+func WithQrCodeRenders(renders *bool) func(l *authd.UILayout) {
+	return func(l *authd.UILayout) { l.RendersQrcode = renders }
+}
+
 // QrCodeUILayout returns an [authd.UILayout] for qr code.
 func QrCodeUILayout(opts ...QrCodeOptions) *authd.UILayout {
 	required, optional := "required", "optional"
 	requiredWithBooleans := "required:true,false"
+	rendersQrCode := true
+
 	uiLayout := &authd.UILayout{
-		Type:    "qrcode",
-		Content: &required,
-		Code:    &required,
-		Wait:    &requiredWithBooleans,
-		Label:   &optional,
-		Button:  &optional,
+		Type:          "qrcode",
+		Content:       &required,
+		Code:          &required,
+		Wait:          &requiredWithBooleans,
+		Label:         &optional,
+		Button:        &optional,
+		RendersQrcode: &rendersQrCode,
 	}
 
 	for _, f := range opts {

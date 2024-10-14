@@ -79,6 +79,8 @@ func (m *nativeModel) Init() tea.Cmd {
 		log.Errorf(context.TODO(), "failed to get the PAM service: %v", err)
 	}
 
+	rendersQrCode := m.isQrcodeRenderingSupported()
+
 	return func() tea.Msg {
 		required, optional := "required", "optional"
 		supportedEntries := "optional:chars,chars_password,digits,digits_password"
@@ -95,12 +97,13 @@ func (m *nativeModel) Init() tea.Cmd {
 					Button: &optional,
 				},
 				{
-					Type:    "qrcode",
-					Content: &required,
-					Code:    &optional,
-					Wait:    &requiredWithBooleans,
-					Label:   &optional,
-					Button:  &optional,
+					Type:          "qrcode",
+					Content:       &required,
+					Code:          &optional,
+					Wait:          &requiredWithBooleans,
+					Label:         &optional,
+					Button:        &optional,
+					RendersQrcode: &rendersQrCode,
 				},
 				{
 					Type:   "newpassword",
