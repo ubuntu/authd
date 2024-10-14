@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
+	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
 var daemonPath string
@@ -247,6 +248,7 @@ func TestPamCLIRunStandalone(t *testing.T) {
 
 	// #nosec:G204 - we control the command arguments in tests
 	cmd := exec.Command("go", "run")
+	cmd.Env = os.Environ()
 	if testutils.CoverDirForTests() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
 		cmd.Args = append(cmd.Args, "-cover")
@@ -261,6 +263,7 @@ func TestPamCLIRunStandalone(t *testing.T) {
 		"./pam/tools/pam-runner",
 		"login", "--exec-debug")
 	cmd.Args = append(cmd.Args, "logfile="+os.Stdout.Name())
+	cmd.Env = append(cmd.Env, pam_test.RunnerEnvUser+"=user")
 
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, "Could not run PAM client: %s", out)
