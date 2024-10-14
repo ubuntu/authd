@@ -574,17 +574,32 @@ func FormUILayout() *authd.UILayout {
 	}
 }
 
+// QrCodeOptions is the function signature used to tweak the qrcode.
+type QrCodeOptions func(*authd.UILayout)
+
+// WithQrCodeCode is an option for [QrCodeUILayout] to set the code parameter in QrCode UI.
+func WithQrCodeCode(code string) func(l *authd.UILayout) {
+	return func(l *authd.UILayout) { l.Code = &code }
+}
+
 // QrCodeUILayout returns an [authd.UILayout] for qr code.
-func QrCodeUILayout() *authd.UILayout {
+func QrCodeUILayout(opts ...QrCodeOptions) *authd.UILayout {
 	required, optional := "required", "optional"
 	requiredWithBooleans := "required:true,false"
-	return &authd.UILayout{
+	uiLayout := &authd.UILayout{
 		Type:    "qrcode",
 		Content: &required,
+		Code:    &required,
 		Wait:    &requiredWithBooleans,
 		Label:   &optional,
 		Button:  &optional,
 	}
+
+	for _, f := range opts {
+		f(uiLayout)
+	}
+
+	return uiLayout
 }
 
 // NewPasswordUILayout returns an [authd.UILayout] for new password forms.
