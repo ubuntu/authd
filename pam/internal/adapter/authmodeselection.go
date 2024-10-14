@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"sync"
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,7 +20,6 @@ type authModeSelectionModel struct {
 
 	clientType                PamClientType
 	supportedUILayouts        []*authd.UILayout
-	supportedUILayoutsMu      *sync.Mutex
 	availableAuthModes        []*authd.GAMResponse_AuthenticationMode
 	currentAuthModeSelectedID string
 }
@@ -30,6 +28,9 @@ type authModeSelectionModel struct {
 type supportedUILayoutsReceived struct {
 	layouts []*authd.UILayout
 }
+
+// supportedUILayoutsSet is the event signalling that the current supported ui layout in the context have been set.
+type supportedUILayoutsSet struct{}
 
 // authModesReceived is the internal event signalling that the supported authentication modes have been received.
 type authModesReceived struct {
@@ -55,9 +56,8 @@ func newAuthModeSelectionModel(clientType PamClientType) authModeSelectionModel 
 	// FIXME: decouple UI from data model.
 	if clientType != InteractiveTerminal {
 		return authModeSelectionModel{
-			Model:                list.New(nil, itemLayout{}, 0, 0),
-			clientType:           clientType,
-			supportedUILayoutsMu: &sync.Mutex{},
+			Model:      list.New(nil, itemLayout{}, 0, 0),
+			clientType: clientType,
 		}
 	}
 
@@ -72,9 +72,8 @@ func newAuthModeSelectionModel(clientType PamClientType) authModeSelectionModel 
 	l.Styles.HelpStyle = helpStyle*/
 
 	return authModeSelectionModel{
-		Model:                l,
-		clientType:           clientType,
-		supportedUILayoutsMu: &sync.Mutex{},
+		Model:      l,
+		clientType: clientType,
 	}
 }
 
@@ -129,10 +128,8 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 				msg:    "UI does not support any layouts",
 			})
 		}
-		m.supportedUILayoutsMu.Lock()
 		m.supportedUILayouts = msg.layouts
-		m.supportedUILayoutsMu.Unlock()
-		return m, sendEvent(GetAuthenticationModesRequested{})
+		return m, sendEvent(supportedUILayoutsSet{})
 
 	case authModesReceived:
 		log.Debugf(context.TODO(), "%#v", msg)
@@ -297,16 +294,7 @@ func (m *authModeSelectionModel) Reset() {
 	m.currentAuthModeSelectedID = ""
 }
 
-// IsReady returns if the model is initialized and can perform requests.
-func (m *authModeSelectionModel) IsReady() bool {
-	m.supportedUILayoutsMu.Lock()
-	defer m.supportedUILayoutsMu.Unlock()
-	return m.supportedUILayouts != nil
-}
-
 // SupportedUILayouts returns safely currently loaded supported ui layouts.
-func (m *authModeSelectionModel) SupportedUILayouts() []*authd.UILayout {
-	m.supportedUILayoutsMu.Lock()
-	defer m.supportedUILayoutsMu.Unlock()
+func (m authModeSelectionModel) SupportedUILayouts() []*authd.UILayout {
 	return m.supportedUILayouts
 }

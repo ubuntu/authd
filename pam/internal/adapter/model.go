@@ -229,7 +229,7 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case GetAuthenticationModesRequested:
 		log.Debugf(context.TODO(), "%#v", msg)
-		if m.currentSession == nil || !m.authModeSelectionModel.IsReady() {
+		if m.currentSession == nil {
 			return m, nil
 		}
 
