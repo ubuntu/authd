@@ -23,7 +23,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "7"
+Type "${AUTHD_QRCODE_TAPE_ITEM}"
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show

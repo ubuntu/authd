@@ -30,12 +30,12 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-qr-code-polkit@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
-  6. Pin code
-  7. Use a QR code
+  2. Use a Login code
+  3. Send URL to user-integration-qr-code-polkit@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33…
+  6. Use your phone +1…
+  7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
@@ -54,18 +54,18 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-qr-code-polkit@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
-  6. Pin code
-  7. Use a QR code
+  2. Use a Login code
+  3. Send URL to user-integration-qr-code-polkit@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33…
+  6. Use your phone +1…
+  7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 7
+> 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -88,18 +88,18 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-qr-code-polkit@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
-  6. Pin code
-  7. Use a QR code
+  2. Use a Login code
+  3. Send URL to user-integration-qr-code-polkit@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33…
+  6. Use your phone +1…
+  7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 7
+> 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -109,7 +109,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -132,18 +132,18 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-qr-code-polkit@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
-  6. Pin code
-  7. Use a QR code
+  2. Use a Login code
+  3. Send URL to user-integration-qr-code-polkit@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33…
+  6. Use your phone +1…
+  7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 7
+> 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -153,7 +153,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -163,7 +163,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
@@ -186,18 +186,18 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-qr-code-polkit@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
-  6. Pin code
-  7. Use a QR code
+  2. Use a Login code
+  3. Send URL to user-integration-qr-code-polkit@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33…
+  6. Use your phone +1…
+  7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 7
+> 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -207,7 +207,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -217,7 +217,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
@@ -227,7 +227,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
@@ -250,18 +250,18 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-qr-code-polkit@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
-  6. Pin code
-  7. Use a QR code
+  2. Use a Login code
+  3. Send URL to user-integration-qr-code-polkit@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33…
+  6. Use your phone +1…
+  7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 7
+> 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -271,7 +271,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -281,7 +281,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
@@ -291,7 +291,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
@@ -301,7 +301,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1341
 
@@ -324,18 +324,18 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-qr-code-polkit@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
-  6. Pin code
-  7. Use a QR code
+  2. Use a Login code
+  3. Send URL to user-integration-qr-code-polkit@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33…
+  6. Use your phone +1…
+  7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 7
+> 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -345,7 +345,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -355,7 +355,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
@@ -365,7 +365,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
@@ -375,7 +375,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1341
 
@@ -398,18 +398,18 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-qr-code-polkit@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
-  6. Pin code
-  7. Use a QR code
+  2. Use a Login code
+  3. Send URL to user-integration-qr-code-polkit@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33…
+  6. Use your phone +1…
+  7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 7
+> 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -419,7 +419,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -429,7 +429,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
@@ -439,7 +439,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
@@ -449,7 +449,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1341
 
@@ -475,18 +475,18 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-qr-code-polkit@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
-  6. Pin code
-  7. Use a QR code
+  2. Use a Login code
+  3. Send URL to user-integration-qr-code-polkit@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33…
+  6. Use your phone +1…
+  7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 7
+> 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -496,7 +496,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -506,7 +506,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
@@ -516,7 +516,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
@@ -526,7 +526,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
 == Qr Code authentication ==
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1341
 

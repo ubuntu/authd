@@ -32,12 +32,13 @@ const (
 	exampleBrokerName = "ExampleBroker"
 	ignoredBrokerName = "<ignored-broker>"
 
-	passwordAuthID      = "password"
-	newPasswordAuthID   = "mandatoryreset"
-	fido1AuthID         = "fidodevice1"
-	phoneAck1ID         = "phoneack1"
-	qrcodeID            = "qrcodeandcodewithtypo"
-	qrcodeWithoutCodeID = "qrcodewithtypo"
+	passwordAuthID           = "password"
+	newPasswordAuthID        = "mandatoryreset"
+	fido1AuthID              = "fidodevice1"
+	phoneAck1ID              = "phoneack1"
+	qrcodeID                 = "qrcodeandcodewithtypo"
+	qrcodeWithoutCodeID      = "qrcodewithtypo"
+	qrcodeWithoutRenderingID = "codewithtypo"
 )
 
 var testPasswordUILayout = authd.UILayout{
@@ -77,6 +78,16 @@ var testQrcodeUIWithoutCodeLayout = authd.UILayout{
 	Wait:    ptrValue("true"),
 	Button:  ptrValue("Regenerate code"),
 	Code:    ptrValue(""),
+	Entry:   ptrValue(""),
+}
+
+var testQrcodeUIWithoutRendering = authd.UILayout{
+	Type:    "qrcode",
+	Label:   ptrValue("Enter the code in the login page"),
+	Content: ptrValue("https://ubuntu.com"),
+	Wait:    ptrValue("true"),
+	Button:  ptrValue("Regenerate code"),
+	Code:    ptrValue("1337"),
 	Entry:   ptrValue(""),
 }
 
@@ -428,6 +439,35 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 			wantUILayouts: []*authd.UILayout{&testQrcodeUIWithoutCodeLayout},
+		},
+		"Authenticates user with qrcode without rendering support": {
+			wantAuthModeIDs: []string{qrcodeWithoutRenderingID},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.QrCodeUILayout(pam_test.WithQrCodeRenders(ptrValue(false))),
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{&testQrcodeUIWithoutRendering},
+		},
+		"Authenticates user with qrcode without explicit rendering support": {
+			// This checks that we're backward compatible
+			wantAuthModeIDs: []string{qrcodeID},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.QrCodeUILayout(pam_test.WithQrCodeRenders(nil)),
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{&testQrcodeUILayout},
 		},
 		"Authenticates user after switching to qrcode": {
 			wantAuthModeIDs: []string{passwordAuthID, qrcodeID},
