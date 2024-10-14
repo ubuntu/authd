@@ -132,7 +132,7 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 		m.supportedUILayoutsMu.Lock()
 		m.supportedUILayouts = msg.layouts
 		m.supportedUILayoutsMu.Unlock()
-		return m, sendEvent(GetAuthenticationModesRequested{})
+		return m, nil
 
 	case authModesReceived:
 		log.Debugf(context.TODO(), "%#v", msg)
