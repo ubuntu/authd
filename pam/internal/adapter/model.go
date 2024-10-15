@@ -418,10 +418,12 @@ func (m *UIModel) MsgFilter(model tea.Model, msg tea.Msg) tea.Msg {
 	return msg
 }
 
+var errNoExitStatus = pamError{status: pam.ErrSystem, msg: "model did not return anything"}
+
 // ExitStatus exposes the [PamReturnStatus] externally.
 func (m *UIModel) ExitStatus() PamReturnStatus {
 	if m.exitStatus == nil {
-		return pamError{status: pam.ErrSystem, msg: "model did not return anything"}
+		return errNoExitStatus
 	}
 	return m.exitStatus
 }
