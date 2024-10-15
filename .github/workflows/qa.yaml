@@ -163,7 +163,7 @@ jobs:
       - name: Install VHS and ttyd for integration tests
         run: |
           set -eu
-          go install github.com/charmbracelet/vhs@latest
+          go install github.com/charmbracelet/vhs@2b75966
 
           # VHS requires ttyd >= 1.7.2 to work properly.
           wget https://github.com/tsl0922/ttyd/releases/download/1.7.4/ttyd.x86_64
