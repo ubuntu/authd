@@ -163,7 +163,10 @@ jobs:
       - name: Install VHS and ttyd for integration tests
         run: |
           set -eu
-          go install github.com/charmbracelet/vhs@latest
+          # We pin this to the last commit in the upstream branch that contains
+          # the Wait feature (https://github.com/charmbracelet/vhs/pull/257), but
+          # we can safely go back to latest once a new version will be released.
+          go install github.com/charmbracelet/vhs@28be2de
 
           # VHS requires ttyd >= 1.7.2 to work properly.
           wget https://github.com/tsl0922/ttyd/releases/download/1.7.4/ttyd.x86_64

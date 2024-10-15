@@ -1,29 +1,32 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Screen /(Username:[\n]+){1}/
 Show
 
 Hide
 Type ""
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /(Username:[\n]+){2}/
 Show
 
 Hide
 Type "user-integration-user-selection"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
 Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Screen /Gimme your password:\n>/
+Wait
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait
 Show

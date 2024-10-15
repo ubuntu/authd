@@ -1,7 +1,9 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
@@ -10,71 +12,81 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Gimme your password:\n>/
+Wait
 Show
 
 Hide
 Type "goodpass"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb:\n>/
+Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2
 Show
 
 # Wait for MFA auth to happen
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2
+Wait+Screen /Choose action:\n>/
+Wait
 Show
 
 Hide
 Type "1"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Enter your new password \(3 days until mandatory\):\n>/
+Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG}
+Wait+Screen /(The password is the same as the old one(.|\n)+){1}/
+Wait+Screen /Enter your new password \(3 days until mandatory\):\n>/
+Wait
 Show
 
 Hide
 Type "password"
 Enter
-Sleep ${AUTHD_SLEEP_LONG}
+Wait+Screen /(The password fails the dictionary check(.|\n)+){1}/
+Wait+Screen /Enter your new password \(3 days until mandatory\):\n>/
+Wait
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG}
+Wait+Screen /(The password is the same as the old one(.|\n)+){2}/
+Wait+Screen /Enter your new password \(3 days until mandatory\):\n>/
+Wait
 Show
 
 Hide
 Type "1234"
 Enter
-Sleep ${AUTHD_SLEEP_LONG}
+Wait+Screen /(The password is shorter than \d+ characters(.|\n)+){1}/
+Wait+Screen /Enter your new password \(3 days until mandatory\):\n>/
+Wait
 Show
 
 Hide
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Screen /Confirm Password:\n>/
+Wait
 Show
 
 Hide
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_LONG} / 2
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait
 Show

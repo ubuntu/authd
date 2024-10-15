@@ -24,13 +24,15 @@ import (
 )
 
 const (
-	vhsWidth      = "Width"
-	vhsHeight     = "Height"
-	vhsFontFamily = "FontFamily"
-	vhsFontSize   = "FontSize"
-	vhsPadding    = "Padding"
-	vhsMargin     = "Margin"
-	vhsShell      = "Shell"
+	vhsWidth       = "Width"
+	vhsHeight      = "Height"
+	vhsFontFamily  = "FontFamily"
+	vhsFontSize    = "FontSize"
+	vhsPadding     = "Padding"
+	vhsMargin      = "Margin"
+	vhsShell       = "Shell"
+	vhsWaitTimeout = "WaitTimeout"
+	vhsWaitPattern = "WaitPattern"
 
 	vhsCommandVariable = "AUTHD_TEST_TAPE_COMMAND"
 
@@ -101,11 +103,12 @@ func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 		vhsHeight: 500,
 		// TODO: Ideally, we should use Ubuntu Mono. However, the github runner is still on Jammy, which does not have it.
 		// We should update this to use Ubuntu Mono once the runner is updated.
-		vhsFontFamily: "Monospace",
-		vhsFontSize:   13,
-		vhsPadding:    0,
-		vhsMargin:     0,
-		vhsShell:      "bash",
+		vhsFontFamily:  "Monospace",
+		vhsFontSize:    13,
+		vhsPadding:     0,
+		vhsMargin:      0,
+		vhsShell:       "bash",
+		vhsWaitTimeout: 10 * time.Second,
 	}
 	for _, s := range settings {
 		m[s.Key] = s.Value
@@ -206,7 +209,17 @@ func (td tapeData) String() string {
 		str += fmt.Sprintf("Output %q\n", o)
 	}
 	for s, v := range td.Settings {
-		str += fmt.Sprintf(`Set %s "%v"`+"\n", s, v)
+		switch vv := v.(type) {
+		case time.Duration:
+			v = fmt.Sprintf("%dms", sleepDuration(vv).Milliseconds())
+		case string:
+			if s == vhsWaitPattern {
+				// VHS wait pattern can be a regex, so don't quote it by default.
+				break
+			}
+			v = fmt.Sprintf("%q", vv)
+		}
+		str += fmt.Sprintf(`Set %s %v`+"\n", s, v)
 	}
 	for s, v := range td.Env {
 		str += fmt.Sprintf(`Env %s %q`+"\n", s, v)

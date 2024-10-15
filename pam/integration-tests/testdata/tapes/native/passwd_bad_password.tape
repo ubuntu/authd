@@ -1,73 +1,88 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username:$/
 Show
 
 Hide
 Type "user-integration-bad-password"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
 Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Gimme your password:\n>/
+Wait
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Screen /Enter your new password:\n>/
+Wait
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /(No password supplied(.|\n)+){1}/
+Wait+Screen /Enter your new password:\n>/
+Wait
 Show
 
 Hide
 Type "1234"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /(The password is shorter than \d+ characters(.|\n)+){1}/
+Wait+Screen /Enter your new password:\n>/
+Wait
 Show
 
 Hide
 Type "12345678"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /(The password fails the dictionary check(.|\n)+){1}/
+Wait+Screen /Enter your new password:\n>/
+Wait
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Confirm Password:\n>/
+Wait
 Show
 
 Hide
 Type "123456789"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /(Password entries don't match(.|\n)+){1}/
+Wait+Screen /Enter your new password:\n>/
+Wait
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Screen /(No password supplied(.|\n)+){2}/
+Wait+Screen /Enter your new password:\n>/
+Wait
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Confirm Password:\n>/
+Wait
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait
 Show

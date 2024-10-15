@@ -1,41 +1,50 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
 Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Screen /Gimme your password:\n>/
+Wait
 Show
 
 Hide
 Type "r"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Choose your authentication method:\n>/
+Wait
 Show
 
 Hide
 Type "r"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
 Type "invalid-ID"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Unsupported input/
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
 Type "555"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Invalid selection/
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
 Type "1"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT} * 3
+Wait ${AUTHD_TAPE_FINAL_WAIT_PATTERN}
 Show

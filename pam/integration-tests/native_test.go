@@ -55,51 +55,69 @@ func TestNativeAuthenticate(t *testing.T) {
 			clientOptions: clientOptions{PamUser: "user-integration-form-w-button"},
 		},
 		"Authenticate user with qr code": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3000}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 3000}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "7",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
+			},
 			clientOptions: clientOptions{PamUser: "user-integration-qr-code"},
 		},
 		"Authenticate user with qr code in a TTY": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 4000}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 4000}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "7",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
+			},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty",
 				Term:    "linux",
 			},
 		},
 		"Authenticate user with qr code in a TTY session": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 4000}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 4000}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "7",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
+			},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty-session",
 				Term:    "xterm-256color", SessionType: "tty",
 			},
 		},
 		"Authenticate user with qr code in screen": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 4000}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 4000}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "7",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
+			},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-screen",
 				Term:    "screen",
 			},
 		},
 		"Authenticate user with qr code in polkit": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3500}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "2"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "2",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "Login code",
+			},
 			clientOptions: clientOptions{
 				PamUser:        "user-integration-qr-code-polkit",
 				PamServiceName: "polkit-1",
 			},
 		},
 		"Authenticate user with qr code in ssh": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3500}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "2"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "2",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "Login code",
+			},
 			clientOptions: clientOptions{
 				PamUser:        "user-integration-pre-check-ssh-service-qr-code",
 				PamServiceName: "sshd",
@@ -134,6 +152,8 @@ func TestNativeAuthenticate(t *testing.T) {
 				"AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM":            "6",
 				"AUTHD_SWITCH_AUTH_MODE_TAPE_QR_OR_LOGIN_CODE_ITEM":    "7",
 				"AUTHD_SWITCH_AUTH_MODE_TAPE_AUTHENTICATION_CODE_ITEM": "8",
+
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_QR_OR_LOGIN_CODE_ITEM_NAME": "QR code",
 			},
 		},
 		"Authenticate user switching username": {
@@ -143,6 +163,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape:          "switch_local_broker",
 			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
 			clientOptions: clientOptions{PamUser: "user-integration-switch-broker"},
+			tapeVariables: map[string]string{"AUTHD_TAPE_FINAL_WAIT_PATTERN": ""},
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
