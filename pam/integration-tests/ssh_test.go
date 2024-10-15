@@ -118,9 +118,12 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
 		},
 		"Authenticate user with qr code": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 1500}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "2"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "2",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "Login code",
+			},
 		},
 		"Authenticate user and reset password while enforcing policy": {
 			tape: "mandatory_password_reset",
@@ -150,11 +153,17 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 				"AUTHD_SWITCH_AUTH_MODE_TAPE_PHONE_1_ITEM":             "6",
 				"AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM":            "7",
 				"AUTHD_SWITCH_AUTH_MODE_TAPE_AUTHENTICATION_CODE_ITEM": "8",
+
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_QR_OR_LOGIN_CODE_ITEM_NAME": "Login code",
 			},
 		},
 		"Authenticate user switching to local broker": {
 			tape:                "switch_local_broker",
 			wantNotLoggedInUser: true,
+			tapeSettings:        []tapeSetting{{vhsHeight, 900}},
+			tapeVariables: map[string]string{
+				"AUTHD_TAPE_FINAL_WAIT_PATTERN": `/Password:/`,
+			},
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
@@ -171,7 +180,10 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tape:                "local_user_preset",
 			user:                "root",
 			wantNotLoggedInUser: true,
-			tapeSettings:        []tapeSetting{{vhsHeight, 200}},
+			tapeSettings: []tapeSetting{
+				{vhsHeight, 200},
+				{vhsWaitPattern, "/Password:/"},
+			},
 		},
 
 		"Deny authentication if max attempts reached": {
@@ -200,12 +212,14 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		"Exit authd if local broker is selected": {
 			tape:                "local_broker",
 			wantNotLoggedInUser: true,
+			tapeSettings:        []tapeSetting{{vhsWaitPattern, "/Password:/"}},
 		},
 		"Exit if user is not pre-checked on ssh service": {
 			tape:                "local_ssh",
 			user:                "user-integration-ssh-service",
 			pamServiceName:      "sshd",
 			wantNotLoggedInUser: true,
+			tapeSettings:        []tapeSetting{{vhsWaitPattern, "/Password:/"}},
 		},
 		"Exit authd if user sigints": {
 			tape:                "sigint",

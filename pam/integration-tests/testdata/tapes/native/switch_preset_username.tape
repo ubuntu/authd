@@ -1,53 +1,62 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
 Type "r"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
 Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Screen /Gimme your password:\n>/
+Wait
 Show
 
 Hide
 Type "r"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Choose your authentication method:\n>/
+Wait
 Show
 
 Hide
 Type "r"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
 Type "r"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
 Type "r"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
 Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Screen /Gimme your password:\n>/
+Wait
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait
 Show

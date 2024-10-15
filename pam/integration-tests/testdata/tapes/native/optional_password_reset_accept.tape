@@ -1,40 +1,46 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
 Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Screen /Gimme your password:\n>/
+Wait
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Screen /Choose action:\n>/
+Wait
 Show
 
 Hide
 Type "1"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Enter your new password \(3 days until mandatory\):\n>/
+Wait
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Screen /Confirm Password:\n>/
+Wait
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait
 Show

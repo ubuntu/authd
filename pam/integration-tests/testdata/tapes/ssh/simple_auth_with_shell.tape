@@ -1,19 +1,22 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Screen /Choose your provider:\n>/
+Wait
 Show
 
 Hide
 Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Screen /Gimme your password:\n>/
+Wait
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait /^\$/
 Show
 
 Sleep ${AUTHD_SLEEP_LONG}
@@ -21,22 +24,22 @@ Sleep ${AUTHD_SLEEP_LONG}
 Hide
 Type "echo $USER"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait /^\$/
 Show
 
 Hide
 Type '[ -n "${SSH_CONNECTION}" ] && echo "Inside SSH"'
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait /^\$/
 Show
 
 Hide
 Ctrl+D
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait
 Show
 
 Hide
 Type "echo ${SSH_CONNECTION:-Outside SSH}"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait
 Show
