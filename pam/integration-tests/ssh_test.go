@@ -276,7 +276,6 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			outDir := t.TempDir()
 			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
 			td.Command = tapeCommand
-			td.CommandSleep = defaultSleepValues[authdSleepLong]
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.Env["HOME"] = userHome
 			td.Env["AUTHD_PAM_SSH_USER"] = user
