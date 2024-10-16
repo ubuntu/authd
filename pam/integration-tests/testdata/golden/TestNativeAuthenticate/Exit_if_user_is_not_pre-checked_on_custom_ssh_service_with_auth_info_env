@@ -1,11 +1,11 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 auth=incomplete
 PAM Authenticate()
-  User: "user-integration-ssh-auth-info"
+  User: "user-integration-native-exit-if-user-is-not-pre-checked-on-custom-ssh-service-with-auth-info-env"
   Result: error: PAM exit code: 25
     The return value should be ignored by PAM dispatch
 PAM AcctMgmt()
-  User: "user-integration-ssh-auth-info"
+  User: "user-integration-native-exit-if-user-is-not-pre-checked-on-custom-ssh-service-with-auth-info-env"
   Result: error: PAM exit code: 26
     Critical error - immediate abort
 >
@@ -13,11 +13,11 @@ PAM AcctMgmt()
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 auth=incomplete
 PAM Authenticate()
-  User: "user-integration-ssh-auth-info"
+  User: "user-integration-native-exit-if-user-is-not-pre-checked-on-custom-ssh-service-with-auth-info-env"
   Result: error: PAM exit code: 25
     The return value should be ignored by PAM dispatch
 PAM AcctMgmt()
-  User: "user-integration-ssh-auth-info"
+  User: "user-integration-native-exit-if-user-is-not-pre-checked-on-custom-ssh-service-with-auth-info-env"
   Result: error: PAM exit code: 26
     Critical error - immediate abort
 >

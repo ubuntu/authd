@@ -38,7 +38,8 @@ const (
 	vhsWaitPattern = "WaitPattern"
 	vhsTypingSpeed = "TypingSpeed"
 
-	vhsCommandVariable = "AUTHD_TEST_TAPE_COMMAND"
+	vhsCommandVariable  = "AUTHD_TEST_TAPE_COMMAND"
+	vhsTapeUserVariable = "AUTHD_TEST_TAPE_USERNAME"
 
 	vhsCommandFinalAuthWaitVariable         = "AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT"
 	vhsCommandFinalChangeAuthokWaitVariable = "AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT"

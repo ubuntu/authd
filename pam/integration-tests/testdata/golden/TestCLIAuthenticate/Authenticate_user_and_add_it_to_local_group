@@ -2,7 +2,7 @@
 Username: user name
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Username: user-local-groups
+Username: user-local-groups-integration-auth-native
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
@@ -20,10 +20,10 @@ Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 PAM Authenticate()
-  User: "user-local-groups"
+  User: "user-local-groups-integration-auth-native"
   Result: success
 PAM AcctMgmt()
-  User: "user-local-groups"
+  User: "user-local-groups-integration-auth-native"
   Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────

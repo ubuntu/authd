@@ -6,7 +6,7 @@ Wait /Username:\n/
 Show
 
 Hide
-TypeUsername "user-integration-switch-username"
+TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
 Show
 
 Hide
@@ -24,7 +24,7 @@ Wait /Username:\n/
 Show
 
 Hide
-TypeUsername "user-integration-username-switched"
+TypeUsername "${AUTHD_TEST_TAPE_USERNAME_SWITCHED}"
 Show
 
 Hide
