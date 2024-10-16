@@ -197,7 +197,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 	}
 	for name, tc := range tests {
-		if defaultSSHDPort != "" {
+		if sharedSSHd {
 			name = fmt.Sprintf("%s on shared SSHd", name)
 		}
 		t.Run(name, func(t *testing.T) {
@@ -219,7 +219,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 
 			sshdPort := defaultSSHDPort
 			userHome := defaultUserHome
-			if defaultSSHDPort == "" || tc.wantLocalGroups || tc.interactiveShell {
+			if !sharedSSHd || tc.wantLocalGroups || tc.interactiveShell {
 				serviceFile := createSshdServiceFile(t, execModule, execChild, socketPath)
 				sshdPort, userHome = startSSHdForTest(t, serviceFile, sshdHostKey, user,
 					sshdPreloadLibrary, tc.daemonizeSSHd, tc.interactiveShell)
