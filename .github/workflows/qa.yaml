@@ -201,7 +201,7 @@ jobs:
           # Overriding the default coverage directory is not an exported flag of go test (yet), so
           # we need to override it using the test.gocoverdir flag instead.
           #TODO: Update when https://go-review.googlesource.com/c/go/+/456595 is merged.
-          go test -timeout ${GO_TESTS_TIMEOUT} -cover -covermode=set ./... -coverpkg=./... -shuffle=on -args -test.gocoverdir="${raw_cov_dir}"
+          go test -tags withgdmmodel -timeout ${GO_TESTS_TIMEOUT} -cover -covermode=set ./... -coverpkg=./... -shuffle=on -args -test.gocoverdir="${raw_cov_dir}"
 
           # Convert the raw coverage data into textfmt so we can merge the Rust one into it
           go tool covdata textfmt -i="${raw_cov_dir}" -o="${cov_dir}/coverage.out"
@@ -220,7 +220,7 @@ jobs:
         env:
           GO_TESTS_TIMEOUT: 35m
         run: |
-          go test -timeout ${GO_TESTS_TIMEOUT} -race ./...
+          go test -tags withgdmmodel -timeout ${GO_TESTS_TIMEOUT} -race ./...
 
       - name: Run PAM tests (with Address Sanitizer)
         if: matrix.test == 'asan'
@@ -233,14 +233,14 @@ jobs:
           # Use these flags to give ASAN a better time to unwind the stack trace
           GO_GC_FLAGS: -N -l
         run: |
-          go test -C ./pam/internal -asan -gcflags=all="${GO_GC_FLAGS}" -timeout ${GO_TESTS_TIMEOUT} ./... || exit_code=$?
+          go test -C ./pam/internal -tags withgdmmodel -asan -gcflags=all="${GO_GC_FLAGS}" -timeout ${GO_TESTS_TIMEOUT} ./... || exit_code=$?
           if [ "${exit_code}" -ne 0 ]; then
             cat "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log* || true
             exit ${exit_code}
           fi
 
           pushd ./pam/integration-tests
-          go test -asan -gcflags=all="${GO_GC_FLAGS}" -c
+          go test -tags withgdmmodel -asan -gcflags=all="${GO_GC_FLAGS}" -c
           # FIXME: Suppression may be removed with newer libpam, as the one we ship in ubuntu as some leaks
           env LSAN_OPTIONS=suppressions=$(pwd)/lsan.supp \
             ./integration-tests.test \

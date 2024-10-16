@@ -20,6 +20,8 @@ args=(
     --experimental_allow_proto3_optional
 )
 
+tags=()
+
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --with-grpc)
@@ -28,6 +30,10 @@ while [ "$#" -gt 0 ]; do
                 --go-grpc_opt=paths=source_relative
             )
             shift
+        ;;
+        --with-build-tag)
+            tags+=("$2")
+            shift 2
         ;;
         --)
             shift
@@ -52,4 +58,16 @@ fi
 PATH="$(go env GOPATH)/bin:$PATH"
 export PATH
 
-exec protoc "${args[@]}" "$proto_file" "${@}"
+if ! protoc "${args[@]}" "$proto_file" "${@}"; then
+    exit $?
+fi
+
+base_file=$(basename "$proto_file" .proto)
+
+for tag in "${tags[@]}"; do
+    sed -i -e "1i //go:build $tag\n" "${base_file}.pb.go"
+
+    if [ -e "${base_file}_grpc.pb.go" ]; then
+        sed -i -e "1i //go:build $tag\n" "${base_file}_grpc.pb.go"
+    fi
+done
