@@ -38,10 +38,10 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 PAM Authenticate()
-  User: "user-integration-with-unsupported-args"
+  User: "user-integration-native-authenticate-with-warnings-on-unsupported-arguments"
   Result: success
 PAM AcctMgmt()
-  User: "user-integration-with-unsupported-args"
+  User: "user-integration-native-authenticate-with-warnings-on-unsupported-arguments"
   Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────

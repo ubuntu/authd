@@ -6,7 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-TypeUsername "user-local-groups"
+TypeUsername "user-local-groups-integration-auth-native"
 Show
 
 Hide

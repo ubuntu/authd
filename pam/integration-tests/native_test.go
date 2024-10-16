@@ -36,6 +36,7 @@ func TestNativeAuthenticate(t *testing.T) {
 
 		clientOptions      clientOptions
 		currentUserNotRoot bool
+		userSelection      bool
 		wantLocalGroups    bool
 		stopDaemonAfter    time.Duration
 		skipRunnerCheck    bool
@@ -43,12 +44,13 @@ func TestNativeAuthenticate(t *testing.T) {
 	}{
 		"Authenticate user successfully": {
 			tape: "simple_auth",
-			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "simple-auth",
-			},
 		},
 		"Authenticate user successfully with user selection": {
-			tape: "simple_auth_with_user_selection",
+			tape:          "simple_auth_with_user_selection",
+			userSelection: true,
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: examplebroker.UserIntegrationPrefix + "native-user-selection",
+			},
 		},
 		"Authenticate user successfully with invalid connection timeout": {
 			tape: "simple_auth",
@@ -67,9 +69,6 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Authenticate user with form mode with button": {
 			tape:         "form_with_button",
 			tapeSettings: []tapeSetting{{vhsHeight, 700}},
-			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "form-w-button",
-			},
 		},
 		"Authenticate user with qr code": {
 			tape:         "qr_code",
@@ -77,9 +76,6 @@ func TestNativeAuthenticate(t *testing.T) {
 			tapeVariables: map[string]string{
 				"AUTHD_QRCODE_TAPE_ITEM":      "7",
 				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
-			},
-			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "qr-code",
 			},
 		},
 		"Authenticate user with qr code in a TTY": {
@@ -90,8 +86,7 @@ func TestNativeAuthenticate(t *testing.T) {
 				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
 			},
 			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "qr-code-tty",
-				Term:    "linux",
+				Term: "linux",
 			},
 		},
 		"Authenticate user with qr code in a TTY session": {
@@ -102,8 +97,7 @@ func TestNativeAuthenticate(t *testing.T) {
 				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
 			},
 			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "qr-code-tty-session",
-				Term:    "xterm-256color", SessionType: "tty",
+				Term: "xterm-256color", SessionType: "tty",
 			},
 		},
 		"Authenticate user with qr code in screen": {
@@ -114,8 +108,7 @@ func TestNativeAuthenticate(t *testing.T) {
 				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
 			},
 			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "qr-code-screen",
-				Term:    "screen",
+				Term: "screen",
 			},
 		},
 		"Authenticate user with qr code in polkit": {
@@ -126,7 +119,6 @@ func TestNativeAuthenticate(t *testing.T) {
 				"AUTHD_QRCODE_TAPE_ITEM_NAME": "Login code",
 			},
 			clientOptions: clientOptions{
-				PamUser:        examplebroker.UserIntegrationPrefix + "qr-code-polkit",
 				PamServiceName: "polkit-1",
 			},
 		},
@@ -143,7 +135,8 @@ func TestNativeAuthenticate(t *testing.T) {
 			},
 		},
 		"Authenticate user and reset password while enforcing policy": {
-			tape: "mandatory_password_reset",
+			tape:         "mandatory_password_reset",
+			tapeSettings: []tapeSetting{{vhsHeight, 550}},
 			clientOptions: clientOptions{
 				PamUser: examplebroker.UserIntegrationNeedsResetPrefix + "mandatory",
 			},
@@ -184,14 +177,16 @@ func TestNativeAuthenticate(t *testing.T) {
 			},
 		},
 		"Authenticate user switching username": {
-			tape: "switch_username",
+			tape:          "switch_username",
+			userSelection: true,
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable:               examplebroker.UserIntegrationPrefix + "native-username",
+				vhsTapeUserVariable + "_SWITCHED": examplebroker.UserIntegrationPrefix + "native-username-switched",
+			},
 		},
 		"Authenticate user switching to local broker": {
 			tape:         "switch_local_broker",
 			tapeSettings: []tapeSetting{{vhsHeight, 700}},
-			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "switch-broker",
-			},
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
@@ -226,20 +221,15 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape: "simple_auth_with_unsupported_args",
 			tapeCommand: strings.ReplaceAll(tapeCommand, "force_native_client=true",
 				"invalid_flag=foo force_native_client=true bar"),
-			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "with-unsupported-args",
-			},
 		},
 
 		"Remember last successful broker and mode": {
 			tape:         "remember_broker_and_mode",
 			tapeSettings: []tapeSetting{{vhsHeight, 800}},
-			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "remember-mode",
-			},
 		},
 		"Autoselect local broker for local user": {
-			tape: "local_user",
+			tape:          "local_user",
+			userSelection: true,
 		},
 		"Autoselect local broker for local user preset": {
 			tape: "local_user_preset",
@@ -250,17 +240,11 @@ func TestNativeAuthenticate(t *testing.T) {
 
 		"Deny authentication if current user is not considered as root": {
 			tape: "not_root", currentUserNotRoot: true,
-			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "not-root",
-			},
 		},
 
 		"Deny authentication if max attempts reached": {
 			tape:         "max_attempts",
 			tapeSettings: []tapeSetting{{vhsHeight, 700}},
-			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "max-attempts",
-			},
 		},
 		"Deny authentication if user does not exist": {
 			tape: "unexistent_user",
@@ -269,7 +253,8 @@ func TestNativeAuthenticate(t *testing.T) {
 			},
 		},
 		"Deny authentication if user does not exist and matches cancel key": {
-			tape: "cancel_key_user",
+			tape:          "cancel_key_user",
+			userSelection: true,
 		},
 		"Deny authentication if newpassword does not match required criteria": {
 			tape:         "bad_password",
@@ -282,51 +267,36 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Prevent preset user from switching username": {
 			tape:         "switch_preset_username",
 			tapeSettings: []tapeSetting{{vhsHeight, 800}},
-			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "pam-preset",
-			},
 		},
 
 		"Exit authd if local broker is selected": {
 			tape: "local_broker",
-			clientOptions: clientOptions{
-				PamUser: "user-local-broker",
-			},
 		},
 		"Exit if user is not pre-checked on ssh service": {
 			tape: "local_ssh",
 			clientOptions: clientOptions{
-				PamUser:        examplebroker.UserIntegrationPrefix + "ssh-service",
 				PamServiceName: "sshd",
 			},
 		},
 		"Exit if user is not pre-checked on custom ssh service with connection env": {
 			tape: "local_ssh",
 			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "ssh-connection",
-				PamEnv:  []string{"SSH_CONNECTION=foo-connection"},
+				PamEnv: []string{"SSH_CONNECTION=foo-connection"},
 			},
 		},
 		"Exit if user is not pre-checked on custom ssh service with auth info env": {
 			tape: "local_ssh",
 			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "ssh-auth-info",
-				PamEnv:  []string{"SSH_AUTH_INFO_0=foo-authinfo"},
+				PamEnv: []string{"SSH_AUTH_INFO_0=foo-authinfo"},
 			},
 		},
 		// FIXME: While this works now, it requires proper handling via signal_fd
 		"Exit authd if user sigints": {
-			tape: "sigint",
-			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "sigint",
-			},
+			tape:            "sigint",
 			skipRunnerCheck: true,
 		},
 		"Exit if authd is stopped": {
-			tape: "authd_stopped",
-			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "authd-stopped",
-			},
+			tape:            "authd_stopped",
 			stopDaemonAfter: sleepDuration(defaultSleepValues[authdSleepLong] * 5),
 		},
 
@@ -371,6 +341,14 @@ func TestNativeAuthenticate(t *testing.T) {
 			if tc.tapeCommand == "" {
 				tc.tapeCommand = tapeCommand
 			}
+
+			if u := tc.clientOptions.PamUser; strings.Contains(u, "integration") && !strings.Contains(u, "native") {
+				tc.clientOptions.PamUser += "-native"
+			}
+			if tc.clientOptions.PamUser == "" && !tc.userSelection {
+				tc.clientOptions.PamUser = vhsTestUserName(t, "native")
+			}
+
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Command = tc.tapeCommand
 			td.Env[socketPathEnv] = socketPath
