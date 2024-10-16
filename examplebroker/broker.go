@@ -215,6 +215,10 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 		info.pwdChange = canReset
 	}
 
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-local-groups-integration") {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+	}
+
 	pubASN1, err := x509.MarshalPKIXPublicKey(&b.privateKey.PublicKey)
 	if err != nil {
 		return "", "", err
@@ -896,6 +900,10 @@ func userInfoFromName(name string) string {
 
 	case "user-mismatching-name":
 		user.Name = "mismatching-username"
+	}
+
+	if strings.HasPrefix(name, "user-local-groups-integration") {
+		user.Groups = append(user.Groups, groupJSONInfo{Name: "localgroup", UGID: ""})
 	}
 
 	// only used for tests, we can ignore the template execution error as the returned data will be failing.

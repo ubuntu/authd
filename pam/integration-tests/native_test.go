@@ -1,8 +1,10 @@
 package main_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -27,34 +29,33 @@ func TestNativeAuthenticate(t *testing.T) {
 
 		clientOptions      clientOptions
 		currentUserNotRoot bool
+		userSelection      bool
 		wantLocalGroups    bool
 	}{
 		"Authenticate user successfully": {
-			tape:          "simple_auth",
-			clientOptions: clientOptions{PamUser: "user-integration-simple-auth"},
+			tape: "simple_auth",
 		},
 		"Authenticate user successfully with user selection": {
-			tape: "simple_auth_with_user_selection",
+			tape:          "simple_auth_with_user_selection",
+			userSelection: true,
 		},
 		"Authenticate user with mfa": {
 			tape:          "mfa_auth",
 			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
-			clientOptions: clientOptions{PamUser: "user-mfa-integration-auth"},
+			clientOptions: clientOptions{PamUser: "user-mfa-integration-native-auth"},
 		},
 		"Authenticate user with form mode with button": {
-			tape:          "form_with_button",
-			clientOptions: clientOptions{PamUser: "user-integration-form-w-button"},
+			tape: "form_with_button",
 		},
 		"Authenticate user with qr code": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 2300}},
-			clientOptions: clientOptions{PamUser: "user-integration-qr-code"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 2300}},
 		},
 		"Authenticate user with qr code in a TTY": {
 			tape:         "qr_code",
 			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-tty",
+				PamUser: "user-integration-native-qr-code-tty",
 				Term:    "linux",
 			},
 		},
@@ -62,7 +63,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape:         "qr_code",
 			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-tty-session",
+				PamUser: "user-integration-native-qr-code-tty-session",
 				Term:    "xterm-256color", SessionType: "tty",
 			},
 		},
@@ -70,7 +71,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape:         "qr_code",
 			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-screen",
+				PamUser: "user-integration-native-qr-code-screen",
 				Term:    "screen",
 			},
 		},
@@ -78,7 +79,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape:         "qr_code",
 			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
 			clientOptions: clientOptions{
-				PamUser:        "user-integration-qr-code-polkit",
+				PamUser:        "user-integration-native-qr-code-polkit",
 				PamServiceName: "polkit-1",
 			},
 		},
@@ -92,42 +93,42 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user and reset password while enforcing policy": {
 			tape:          "mandatory_password_reset",
-			clientOptions: clientOptions{PamUser: "user-needs-reset-integration-mandatory"},
+			tapeSettings:  []tapeSetting{{vhsHeight, 550}},
+			clientOptions: clientOptions{PamUser: "user-needs-reset-integration-native-mandatory"},
 		},
 		"Authenticate user with mfa and reset password while enforcing policy": {
 			tape:          "mfa_reset_pwquality_auth",
-			clientOptions: clientOptions{PamUser: "user-mfa-with-reset-integration-pwquality"},
+			clientOptions: clientOptions{PamUser: "user-mfa-with-reset-integration-native-pwquality"},
 		},
 		"Authenticate user and offer password reset": {
 			tape:          "optional_password_reset_skip",
-			clientOptions: clientOptions{PamUser: "user-can-reset-integration-skip"},
+			clientOptions: clientOptions{PamUser: "user-can-reset-integration-native-skip"},
 		},
 		"Authenticate user and accept password reset": {
 			tape:          "optional_password_reset_accept",
-			clientOptions: clientOptions{PamUser: "user-can-reset-integration-accept"},
+			clientOptions: clientOptions{PamUser: "user-can-reset-integration-native-accept"},
 		},
 		"Authenticate user switching auth mode": {
-			tape:          "switch_auth_mode",
-			tapeSettings:  []tapeSetting{{vhsHeight, 2350}},
-			clientOptions: clientOptions{PamUser: "user-integration-switch-mode"},
+			tape:         "switch_auth_mode",
+			tapeSettings: []tapeSetting{{vhsHeight, 2350}},
 		},
 		"Authenticate user switching username": {
-			tape: "switch_username",
+			tape:          "switch_username",
+			userSelection: true,
 		},
 		"Authenticate user switching to local broker": {
-			tape:          "switch_local_broker",
-			tapeSettings:  []tapeSetting{{vhsHeight, 600}},
-			clientOptions: clientOptions{PamUser: "user-integration-switch-broker"},
+			tape:         "switch_local_broker",
+			tapeSettings: []tapeSetting{{vhsHeight, 600}},
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
 			wantLocalGroups: true,
-			clientOptions:   clientOptions{PamUser: "user-local-groups"},
+			clientOptions:   clientOptions{PamUser: "user-local-groups-integration-native"},
 		},
 		"Authenticate user on ssh service": {
 			tape: "simple_ssh_auth",
 			clientOptions: clientOptions{
-				PamUser:        "user-integration-pre-check-ssh-service",
+				PamUser:        "user-integration-pre-check-native-ssh-service",
 				PamServiceName: "sshd",
 			},
 		},
@@ -146,17 +147,16 @@ func TestNativeAuthenticate(t *testing.T) {
 			},
 		},
 		"Authenticate with warnings on unsupported arguments": {
-			tape:          "simple_auth_with_unsupported_args",
-			clientOptions: clientOptions{PamUser: "user-integration-with-unsupported-args"},
+			tape: "simple_auth_with_unsupported_args",
 		},
 
 		"Remember last successful broker and mode": {
-			tape:          "remember_broker_and_mode",
-			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
-			clientOptions: clientOptions{PamUser: "user-integration-remember-mode"},
+			tape:         "remember_broker_and_mode",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Autoselect local broker for local user": {
-			tape: "local_user",
+			tape:          "local_user",
+			userSelection: true,
 		},
 		"Autoselect local broker for local user preset": {
 			tape:          "local_user_preset",
@@ -165,19 +165,18 @@ func TestNativeAuthenticate(t *testing.T) {
 
 		"Deny authentication if current user is not considered as root": {
 			tape: "not_root", currentUserNotRoot: true,
-			clientOptions: clientOptions{PamUser: "user-integration-not-root"},
 		},
 
 		"Deny authentication if max attempts reached": {
-			tape:          "max_attempts",
-			clientOptions: clientOptions{PamUser: "user-integration-max-attempts"},
+			tape: "max_attempts",
 		},
 		"Deny authentication if user does not exist": {
 			tape:          "unexistent_user",
 			clientOptions: clientOptions{PamUser: "user-unexistent"},
 		},
 		"Deny authentication if user does not exist and matches cancel key": {
-			tape: "cancel_key_user",
+			tape:          "cancel_key_user",
+			userSelection: true,
 		},
 		"Deny authentication if newpassword does not match required criteria": {
 			tape:          "bad_password",
@@ -186,33 +185,31 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 
 		"Prevent preset user from switching username": {
-			tape:          "switch_preset_username",
-			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
-			clientOptions: clientOptions{PamUser: "user-integration-pam-preset"},
+			tape:         "switch_preset_username",
+			tapeSettings: []tapeSetting{{vhsHeight, 700}},
 		},
 
 		"Exit authd if local broker is selected": {
-			tape:          "local_broker",
-			clientOptions: clientOptions{PamUser: "user-local-broker"},
+			tape: "local_broker",
 		},
 		"Exit if user is not pre-checked on ssh service": {
 			tape: "local_ssh",
 			clientOptions: clientOptions{
-				PamUser:        "user-integration-ssh-service",
+				PamUser:        "user-integration-native-ssh-service",
 				PamServiceName: "sshd",
 			},
 		},
 		"Exit if user is not pre-checked on custom ssh service with connection env": {
 			tape: "local_ssh",
 			clientOptions: clientOptions{
-				PamUser: "user-integration-ssh-connection",
+				PamUser: "user-integration-native-ssh-connection",
 				PamEnv:  []string{"SSH_CONNECTION=foo-connection"},
 			},
 		},
 		"Exit if user is not pre-checked on custom ssh service with auth info env": {
 			tape: "local_ssh",
 			clientOptions: clientOptions{
-				PamUser: "user-integration-ssh-auth-info",
+				PamUser: "user-integration-native-ssh-auth-info",
 				PamEnv:  []string{"SSH_AUTH_INFO_0=foo-authinfo"},
 			},
 		},
@@ -237,6 +234,11 @@ func TestNativeAuthenticate(t *testing.T) {
 				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			}
+
+			if tc.clientOptions.PamUser == "" && !tc.userSelection {
+				tc.clientOptions.PamUser = fmt.Sprintf("user-integration-native-%s",
+					strings.ReplaceAll(tc.tape, "_", "-"))
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)

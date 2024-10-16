@@ -73,7 +73,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-form-w-button@gmail.com
+2 - Send URL to user-integration-native-form-with-button@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -106,7 +106,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-form-w-button@gmail.com
+2 - Send URL to user-integration-native-form-with-button@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -139,7 +139,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-form-w-button@gmail.com
+2 - Send URL to user-integration-native-form-with-button@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -172,7 +172,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-form-w-button@gmail.com
+2 - Send URL to user-integration-native-form-with-button@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -205,7 +205,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-form-w-button@gmail.com
+2 - Send URL to user-integration-native-form-with-button@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -223,7 +223,7 @@ Select action: 2
 Select action: 1
 Insert 'r' to cancel the request and go back
 Enter your one time credential: temporary pass00
-PAM Authenticate() for user "user-integration-form-w-button" exited with success
+PAM Authenticate() for user "user-integration-native-form-with-button" exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -238,7 +238,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-form-w-button@gmail.com
+2 - Send URL to user-integration-native-form-with-button@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -256,7 +256,7 @@ Select action: 2
 Select action: 1
 Insert 'r' to cancel the request and go back
 Enter your one time credential: temporary pass00
-PAM Authenticate() for user "user-integration-form-w-button" exited with success
+PAM Authenticate() for user "user-integration-native-form-with-button" exited with success
 PAM AcctMgmt() exited with success
 >
 

@@ -101,7 +101,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa-integration-auth@gmail.com
+2 - Send URL to user-mfa-integration-native-auth@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -148,7 +148,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa-integration-auth@gmail.com
+2 - Send URL to user-mfa-integration-native-auth@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -195,7 +195,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa-integration-auth@gmail.com
+2 - Send URL to user-mfa-integration-native-auth@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -242,7 +242,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa-integration-auth@gmail.com
+2 - Send URL to user-mfa-integration-native-auth@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -289,7 +289,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa-integration-auth@gmail.com
+2 - Send URL to user-mfa-integration-native-auth@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -336,7 +336,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa-integration-auth@gmail.com
+2 - Send URL to user-mfa-integration-native-auth@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -383,7 +383,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa-integration-auth@gmail.com
+2 - Send URL to user-mfa-integration-native-auth@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -430,7 +430,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa-integration-auth@gmail.com
+2 - Send URL to user-mfa-integration-native-auth@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -477,7 +477,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa-integration-auth@gmail.com
+2 - Send URL to user-mfa-integration-native-auth@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -505,7 +505,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface:
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb:
-PAM Authenticate() for user "user-mfa-integration-auth" exited with success
+PAM Authenticate() for user "user-mfa-integration-native-auth" exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -524,7 +524,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa-integration-auth@gmail.com
+2 - Send URL to user-mfa-integration-native-auth@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -552,7 +552,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface:
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb:
-PAM Authenticate() for user "user-mfa-integration-auth" exited with success
+PAM Authenticate() for user "user-mfa-integration-native-auth" exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -571,7 +571,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa-integration-auth@gmail.com
+2 - Send URL to user-mfa-integration-native-auth@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -599,7 +599,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface:
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb:
-PAM Authenticate() for user "user-mfa-integration-auth" exited with success
+PAM Authenticate() for user "user-mfa-integration-native-auth" exited with success
 PAM AcctMgmt() exited with success
 >
 

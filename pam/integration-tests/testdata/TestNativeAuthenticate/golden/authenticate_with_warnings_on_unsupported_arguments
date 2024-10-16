@@ -72,10 +72,10 @@ ive_client=true bar
 Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-PAM Authenticate() for user "user-integration-with-unsupported-args" exited with success
+PAM Authenticate() for user "user-integration-native-simple-auth-with-unsupported-args" exited w
+ith success
 PAM AcctMgmt() exited with success
 >
-
 
 
 
@@ -105,10 +105,10 @@ ive_client=true bar
 Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-PAM Authenticate() for user "user-integration-with-unsupported-args" exited with success
+PAM Authenticate() for user "user-integration-native-simple-auth-with-unsupported-args" exited w
+ith success
 PAM AcctMgmt() exited with success
 >
-
 
 
 

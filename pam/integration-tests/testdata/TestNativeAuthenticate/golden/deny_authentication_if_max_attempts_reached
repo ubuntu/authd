@@ -216,8 +216,8 @@ PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
 Insert 'r' to cancel the request and go back
 Gimme your password:
 PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
-PAM Authenticate() for user "user-integration-max-attempts" exited with error (PAM exit code: 7)
-: Authentication failure
+PAM Authenticate() for user "user-integration-native-max-attempts" exited with error (PAM exit c
+ode: 7): Authentication failure
 acct=incomplete
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch
@@ -249,8 +249,8 @@ PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
 Insert 'r' to cancel the request and go back
 Gimme your password:
 PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
-PAM Authenticate() for user "user-integration-max-attempts" exited with error (PAM exit code: 7)
-: Authentication failure
+PAM Authenticate() for user "user-integration-native-max-attempts" exited with error (PAM exit c
+ode: 7): Authentication failure
 acct=incomplete
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch

@@ -153,7 +153,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
+2 - Send URL to user-integration-native-switch-preset-username@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -200,7 +200,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
+2 - Send URL to user-integration-native-switch-preset-username@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -247,7 +247,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
+2 - Send URL to user-integration-native-switch-preset-username@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -294,7 +294,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
+2 - Send URL to user-integration-native-switch-preset-username@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -341,7 +341,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
+2 - Send URL to user-integration-native-switch-preset-username@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -388,7 +388,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
+2 - Send URL to user-integration-native-switch-preset-username@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -412,7 +412,7 @@ PAM Error Message: Provided input can't be parsed as integer value
 Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-PAM Authenticate() for user "user-integration-pam-preset" exited with success
+PAM Authenticate() for user "user-integration-native-switch-preset-username" exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -435,7 +435,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
+2 - Send URL to user-integration-native-switch-preset-username@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -459,7 +459,7 @@ PAM Error Message: Provided input can't be parsed as integer value
 Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-PAM Authenticate() for user "user-integration-pam-preset" exited with success
+PAM Authenticate() for user "user-integration-native-switch-preset-username" exited with success
 PAM AcctMgmt() exited with success
 >
 
