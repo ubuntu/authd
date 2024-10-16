@@ -103,6 +103,7 @@ func TestGdmModule(t *testing.T) {
 	libPath := buildPAMModule(t)
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+	socketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
 
 	testCases := map[string]struct {
 		supportedLayouts   []*authd.UILayout
@@ -155,8 +156,8 @@ func TestGdmModule(t *testing.T) {
 				{Access: brokers.AuthGranted},
 			},
 		},
-		"Authenticates user-mfa": {
-			pamUser:         ptrValue("user-mfa"),
+		"Authenticates with MFA": {
+			pamUser:         ptrValue("user-mfa-integration-basic"),
 			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -182,7 +183,7 @@ func TestGdmModule(t *testing.T) {
 				{Access: brokers.AuthGranted},
 			},
 		},
-		"Authenticates user-mfa after retry": {
+		"Authenticates user with MFA after retry": {
 			pamUser:         ptrValue("user-mfa-integration-retry"),
 			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
@@ -658,10 +659,6 @@ func TestGdmModule(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
 
-			// We run a daemon for each test, because here we don't want to
-			// make assumptions whether the state of the broker and each test
-			// should run in parallel and work the same way in any order is ran.
-			socketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
 			moduleArgs := []string{"socket=" + socketPath}
 
 			gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
