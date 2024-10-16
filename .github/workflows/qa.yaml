@@ -142,11 +142,11 @@ jobs:
           sudo tee -a /etc/apt/sources.list.d/ddebs.list
           # Sometimes ddebs archive is stuck, so in case of failure we need to go manual
           sudo apt update -y || true
-          if ! sudo apt install -y libpam-modules-dbgsym libpam0*-dbgsym libglib2.0-0-dbgsym; then
+          if ! sudo apt install -y libpam-modules-dbgsym libpam0*-dbgsym libglib2.0-0*-dbgsym; then
             sudo apt install -y ubuntu-dev-tools
             pull-lp-ddebs pam $(lsb_release -cs)
-            pull-lp-ddebs libglib2.0-0 $(lsb_release -cs)
-            sudo apt install -y ./libpam0*.ddeb ./libpam-modules*.ddeb ./libglib2.0-0-dbgsym*.ddeb
+            pull-lp-ddebs glib2.0 $(lsb_release -cs)
+            sudo apt install -y ./libpam0*.ddeb ./libpam-modules*.ddeb ./libglib2.0-0*-dbgsym*.ddeb
             sudo apt remove -y ubuntu-dev-tools
             sudo apt autoremove -y
           fi
