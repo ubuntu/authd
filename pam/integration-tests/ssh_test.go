@@ -388,8 +388,8 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 	return sshd, pidFile, logFile
 }
 
-// safeBuffer use locked read/writes on bytes.Buffer to avoid races, we only
-// override the methods we require in the tests.
+// safeBuffer use locked read/writes on bytes.Buffer to avoid read/write races,
+// we only override the methods we require in the tests.
 type safeBuffer struct {
 	bytes.Buffer
 	mu sync.RWMutex
