@@ -41,7 +41,6 @@ const (
 
 	authdSleepDefault                 = "AUTHD_SLEEP_DEFAULT"
 	authdSleepLong                    = "AUTHD_SLEEP_LONG"
-	authdSleepCommand                 = "AUTHD_SLEEP_COMMAND"
 	authdSleepExampleBrokerMfaWait    = "AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT"
 	authdSleepExampleBrokerQrcodeWait = "AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT"
 	authdSleepQrCodeReselection       = "AUTHD_SLEEP_QRCODE_RESELECTION_WAIT"
@@ -53,13 +52,12 @@ type tapeSetting struct {
 }
 
 type tapeData struct {
-	Name         string
-	Command      string
-	CommandSleep time.Duration
-	Outputs      []string
-	Settings     map[string]any
-	Env          map[string]string
-	Variables    map[string]string
+	Name      string
+	Command   string
+	Outputs   []string
+	Settings  map[string]any
+	Env       map[string]string
+	Variables map[string]string
 }
 
 type vhsTestType int
@@ -89,7 +87,6 @@ func (tt vhsTestType) tapesPath(t *testing.T) string {
 var (
 	defaultSleepValues = map[string]time.Duration{
 		authdSleepDefault: 300 * time.Millisecond,
-		authdSleepCommand: 400 * time.Millisecond,
 		authdSleepLong:    1 * time.Second,
 		// Keep these in sync with example broker default wait times
 		authdSleepExampleBrokerMfaWait:    4 * time.Second,
@@ -134,8 +131,7 @@ func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 		m[s.Key] = s.Value
 	}
 	return tapeData{
-		Name:         tapeName,
-		CommandSleep: defaultSleepValues[authdSleepDefault],
+		Name: tapeName,
 		Outputs: []string{
 			tapeName + ".txt",
 			// If we don't specify a .gif output, it will still create a default out.gif file.
@@ -373,19 +369,9 @@ func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath st
 func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testType vhsTestType) string {
 	t.Helper()
 
-	require.Greater(t, td.CommandSleep.Milliseconds(), int64(0),
-		"Setup: Command sleep can't be unset or minor than 0")
-
-	sleepValues := &defaultSleepValues
-	if td.CommandSleep != defaultSleepValues[authdSleepCommand] {
-		sv := maps.Clone(*sleepValues)
-		sv[authdSleepCommand] = td.CommandSleep
-		sleepValues = &sv
-	}
-
 	for _, m := range vhsSleepRegex.FindAllStringSubmatch(tapeString, -1) {
 		fullMatch, sleepKind, op, arg, rest := m[0], m[1], m[3], m[4], m[5]
-		sleep, ok := (*sleepValues)[sleepKind]
+		sleep, ok := defaultSleepValues[sleepKind]
 		require.True(t, ok, "Setup: unknown sleep kind: %q", sleepKind)
 
 		// We don't need to support math that is complex enough to use proper parsers as go.ast
