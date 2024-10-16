@@ -101,9 +101,7 @@ func TestGdmModule(t *testing.T) {
 		"PAM does not support binary protocol")
 
 	libPath := buildPAMModule(t)
-	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-	socketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
+	socketPath := runAuthd(t, os.DevNull, os.DevNull, true)
 
 	testCases := map[string]struct {
 		supportedLayouts   []*authd.UILayout
@@ -764,9 +762,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	libPath := buildPAMModule(t)
 	moduleArgs := []string{libPath}
 
-	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-	socketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
+	socketPath := runAuthd(t, os.DevNull, os.DevNull, true)
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
@@ -800,9 +796,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	libPath := buildPAMModule(t)
 	moduleArgs := []string{libPath}
 
-	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-	socketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
+	socketPath := runAuthd(t, os.DevNull, os.DevNull, true)
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
