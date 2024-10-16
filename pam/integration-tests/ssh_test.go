@@ -462,7 +462,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 
 		t.Log("Waiting for sshd to be terminated")
 		select {
-		case <-time.After(sleepDuration(30 * time.Second)):
+		case <-time.After(sleepDuration(5 * time.Second)):
 			require.NoError(t, sshd.Process.Kill(), "TearDown: Killing SSHd failed")
 			if !testing.Verbose() {
 				t.Logf("SSHd stopped (killed)\n ##### STDERR #####\n %s \n ##### END #####",
