@@ -11,7 +11,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user-integration-user-selection"
+Type "${AUTHD_TEST_TAPE_USERNAME}"
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show

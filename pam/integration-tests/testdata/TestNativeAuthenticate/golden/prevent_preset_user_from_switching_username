@@ -44,7 +44,7 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-pam-preset@gmail.com
+  2. Send URL to user-integration-native-prevent-preset-user-from-switching-username@gmail.com
   3. Use your fido device foo
   4. Use your phone +33...
   5. Use your phone +1...
@@ -70,7 +70,7 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-pam-preset@gmail.com
+  2. Send URL to user-integration-native-prevent-preset-user-from-switching-username@gmail.com
   3. Use your fido device foo
   4. Use your phone +33...
   5. Use your phone +1...
@@ -101,7 +101,7 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-pam-preset@gmail.com
+  2. Send URL to user-integration-native-prevent-preset-user-from-switching-username@gmail.com
   3. Use your fido device foo
   4. Use your phone +33...
   5. Use your phone +1...
@@ -135,7 +135,7 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-pam-preset@gmail.com
+  2. Send URL to user-integration-native-prevent-preset-user-from-switching-username@gmail.com
   3. Use your fido device foo
   4. Use your phone +33...
   5. Use your phone +1...
@@ -172,7 +172,7 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-pam-preset@gmail.com
+  2. Send URL to user-integration-native-prevent-preset-user-from-switching-username@gmail.com
   3. Use your fido device foo
   4. Use your phone +33...
   5. Use your phone +1...
@@ -213,7 +213,7 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-pam-preset@gmail.com
+  2. Send URL to user-integration-native-prevent-preset-user-from-switching-username@gmail.com
   3. Use your fido device foo
   4. Use your phone +33...
   5. Use your phone +1...
@@ -238,7 +238,8 @@ Choose your provider:
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-PAM Authenticate() for user "user-integration-pam-preset" exited with success
+PAM Authenticate() for user "user-integration-native-prevent-preset-user-from-switching-username
+" exited with success
 PAM AcctMgmt() exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────
@@ -257,7 +258,7 @@ Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
-  2. Send URL to user-integration-pam-preset@gmail.com
+  2. Send URL to user-integration-native-prevent-preset-user-from-switching-username@gmail.com
   3. Use your fido device foo
   4. Use your phone +33...
   5. Use your phone +1...
@@ -282,7 +283,8 @@ Choose your provider:
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-PAM Authenticate() for user "user-integration-pam-preset" exited with success
+PAM Authenticate() for user "user-integration-native-prevent-preset-user-from-switching-username
+" exited with success
 PAM AcctMgmt() exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────

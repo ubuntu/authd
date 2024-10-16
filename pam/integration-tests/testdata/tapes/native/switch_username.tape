@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_COMMAND}
 Show
 
 Hide
-Type "user-integration-switch-username"
+Type "${AUTHD_TEST_TAPE_USERNAME}"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
@@ -21,7 +21,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user-integration-username-switched"
+Type "${AUTHD_TEST_TAPE_USERNAME_SWITCHED}"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

@@ -141,8 +141,8 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
-PAM Authenticate() for user "user-integration-max-attempts" exited with error (PAM exit code: 7)
-: Authentication failure
+PAM Authenticate() for user "user-integration-native-deny-authentication-if-max-attempts-reached
+" exited with error (PAM exit code: 7): Authentication failure
 acct=incomplete
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch
@@ -179,8 +179,8 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
-PAM Authenticate() for user "user-integration-max-attempts" exited with error (PAM exit code: 7)
-: Authentication failure
+PAM Authenticate() for user "user-integration-native-deny-authentication-if-max-attempts-reached
+" exited with error (PAM exit code: 7): Authentication failure
 acct=incomplete
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch

@@ -30,7 +30,8 @@ const (
 	vhsMargin     = "Margin"
 	vhsShell      = "Shell"
 
-	vhsCommandVariable = "AUTHD_TEST_TAPE_COMMAND"
+	vhsCommandVariable  = "AUTHD_TEST_TAPE_COMMAND"
+	vhsTapeUserVariable = "AUTHD_TEST_TAPE_USERNAME"
 
 	authdSleepDefault                 = "AUTHD_SLEEP_DEFAULT"
 	authdSleepLong                    = "AUTHD_SLEEP_LONG"
