@@ -1,4 +1,5 @@
 #define _GNU_SOURCE 1
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdatomic.h>
@@ -90,6 +91,7 @@ getpwnam (const char *name)
 
   entity_idx = atomic_fetch_add_explicit (&last_entity_idx, 1,
                                           memory_order_relaxed);
+  assert (entity_idx < sizeof (passwd_entities) / sizeof (*passwd_entities));
   passwd_entity = &passwd_entities[entity_idx];
   passwd_entity->pw_shell = AUTHD_TEST_SHELL;
   passwd_entity->pw_gecos = AUTHD_TEST_GECOS;
