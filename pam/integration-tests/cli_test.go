@@ -154,6 +154,10 @@ func TestCLIAuthenticate(t *testing.T) {
 			socketPath := defaultSocketPath
 			gpasswdOutput := defaultGPasswdOutput
 			if tc.wantLocalGroups || tc.currentUserNotRoot {
+				// For the local groups tests we need to run authd again so that it has
+				// special environment that generates a fake gpasswd output for us to test.
+				// Similarly for the not-root tests authd has to run in a more restricted way.
+				// In the other cases this is not needed, so we can just use a shared authd.
 				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
@@ -244,6 +248,8 @@ func TestCLIChangeAuthTok(t *testing.T) {
 
 			socketPath := defaultSocketPath
 			if tc.currentUserNotRoot {
+				// For the not-root tests authd has to run in a more restricted way.
+				// In the other cases this is not needed, so we can just use a shared authd.
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, false)
 			}
 
