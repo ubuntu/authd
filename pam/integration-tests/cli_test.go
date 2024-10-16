@@ -167,14 +167,8 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	outDir := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, outDir)
 
-	// we don't care about the output of gpasswd for this test, but we still need to mock it.
-	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
-	require.NoError(t, err, "Setup: Could not create gpasswd output directory")
-	gpasswdOutput := filepath.Join(outDir, "gpasswd", "chauthtok.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
-	defaultSocketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
+	defaultSocketPath := runAuthd(t, os.DevNull, os.DevNull, true)
 
 	tests := map[string]struct {
 		tape         string
@@ -226,7 +220,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 
 			socketPath := defaultSocketPath
 			if tc.currentUserNotRoot {
-				socketPath = runAuthd(t, gpasswdOutput, groupsFile, false)
+				socketPath = runAuthd(t, os.DevNull, os.DevNull, false)
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
