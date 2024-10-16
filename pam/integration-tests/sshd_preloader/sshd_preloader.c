@@ -28,7 +28,7 @@ void constructor (void)
 __attribute__((destructor))
 void destructor (void)
 {
-  fprintf (stderr, "sshd_preloader: Library unloaded  (parent pid :%d)!\n",
+  fprintf (stderr, "sshd_preloader: Library unloaded (parent pid :%d)!\n",
            getpid ());
 }
 
