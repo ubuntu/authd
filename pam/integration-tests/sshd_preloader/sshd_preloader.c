@@ -68,6 +68,14 @@ test_user_is_accepted (const char *test_user,
   return false;
 }
 
+/*
+ * This overrides allows us to manually handle the getpwnam() ensuring that
+ * we reply a fake user only when an expected fake user is requested.
+ * To handle this we could even have used __nss_configure_lookup()
+ * with a fake module or our own, but this preloader is meant to be for
+ * testing the behavior of the PAM module only and we want it to be fully
+ * predictable for each test.
+ */
 struct passwd *
 getpwnam (const char *name)
 {
