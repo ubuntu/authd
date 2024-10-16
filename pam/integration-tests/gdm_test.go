@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -15,7 +14,6 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/testutils"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -663,13 +661,7 @@ func TestGdmModule(t *testing.T) {
 			// We run a daemon for each test, because here we don't want to
 			// make assumptions whether the state of the broker and each test
 			// should run in parallel and work the same way in any order is ran.
-			ctx, cancel := context.WithCancel(context.Background())
-			env := append(localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
-			socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
-			t.Cleanup(func() {
-				cancel()
-				<-stopped
-			})
+			socketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
 			moduleArgs := []string{"socket=" + socketPath}
 
 			gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
@@ -777,13 +769,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-	ctx, cancel := context.WithCancel(context.Background())
-	env := append(localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
-	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
-	t.Cleanup(func() {
-		cancel()
-		<-stopped
-	})
+	socketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
@@ -819,13 +805,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-	ctx, cancel := context.WithCancel(context.Background())
-	env := append(localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
-	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
-	t.Cleanup(func() {
-		cancel()
-		<-stopped
-	})
+	socketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
