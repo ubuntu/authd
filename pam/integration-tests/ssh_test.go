@@ -508,7 +508,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 		process, err := os.FindProcess(pid)
 		require.NoError(t, err, "TearDown: Finding SSHd process")
 		err = process.Kill()
-		require.NoError(t, err, "TearDown: Waiting SSHd process")
+		require.NoError(t, err, "TearDown: Killing SSHd process")
 		t.Logf("SSHd pid %d killed", pid)
 	})
 
