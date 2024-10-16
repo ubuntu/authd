@@ -7,7 +7,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user-integration-max-attempts"
+Type "user-integration-cli-passwd-max-attempts"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

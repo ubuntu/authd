@@ -177,7 +177,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	cliEnv := preparePamRunnerTest(t, outDir)
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
-	defaultSocketPath := runAuthd(t, os.DevNull, os.DevNull, true)
+	defaultSocketPath, _ := sharedAuthd(t)
 
 	tests := map[string]struct {
 		tape         string
