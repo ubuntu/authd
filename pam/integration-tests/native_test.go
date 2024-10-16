@@ -298,7 +298,6 @@ func TestNativeAuthenticate(t *testing.T) {
 			}
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Command = tc.tapeCommand
-			td.CommandSleep = defaultSleepValues[authdSleepCommand] * 2
 			td.Env[socketPathEnv] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.Variables = tc.tapeVariables
