@@ -327,7 +327,7 @@ func startSSHdForTest(t *testing.T, serviceFile, hostKey, user, preloadLibrary s
 		t.Name())
 	if daemonize {
 		// When in daemon mode SSH doesn't show debug infos, so let's
-		// mange this manually.
+		// handle this manually.
 		sshdConnectCommand += "&& env | sort | sed 's/^/  /'"
 	}
 	if interactiveShell {
