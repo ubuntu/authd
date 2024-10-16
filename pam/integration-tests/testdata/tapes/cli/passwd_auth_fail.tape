@@ -7,7 +7,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user-integration-max-attempts"
+Type "${AUTHD_TEST_TAPE_USERNAME}"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

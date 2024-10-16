@@ -7,7 +7,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user1"
+Type "${AUTHD_TEST_TAPE_USERNAME}"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
@@ -55,7 +55,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user1"
+Type "${AUTHD_TEST_TAPE_USERNAME}"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
