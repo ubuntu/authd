@@ -25,6 +25,7 @@ import (
 )
 
 var (
+	authdTestSessionTime     = time.Now()
 	authdArtifactsFolder     string
 	authdArtifactsFolderSync sync.Once
 )
@@ -173,11 +174,10 @@ func artifactsPath(t *testing.T) string {
 			return
 		}
 
-		sessionTime := time.Now()
+		st := authdTestSessionTime
 		folderName := fmt.Sprintf("authd-test-artifacts-%d-%02d-%02dT%02d:%02d:%02d.%d-",
-			sessionTime.Year(), sessionTime.Month(), sessionTime.Day(),
-			sessionTime.Hour(), sessionTime.Minute(), sessionTime.Second(),
-			sessionTime.UnixMilli())
+			st.Year(), st.Month(), st.Day(), st.Hour(), st.Minute(), st.Second(),
+			st.UnixMilli())
 
 		var err error
 		authdArtifactsFolder, err = os.MkdirTemp(os.TempDir(), folderName)
