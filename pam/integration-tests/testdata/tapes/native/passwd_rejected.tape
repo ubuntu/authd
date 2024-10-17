@@ -5,7 +5,7 @@ Wait /Username:\n/
 Show
 
 Hide
-TypeUsername "user-integration-invalid-new-password"
+TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
 Enter
 Wait+Prompt /Choose your provider/
 Show
@@ -63,7 +63,7 @@ Wait /Username:\n/
 Show
 
 Hide
-TypeUsername "user-integration-invalid-new-password"
+TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
 Enter
 Wait+Prompt /Gimme your password/
 Show
