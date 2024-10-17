@@ -97,6 +97,7 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 		return m, nil
 
 	case userRequired:
+		log.Debugf(context.TODO(), "%#v", msg)
 		m.enabled = true
 		return m, sendEvent(ChangeStage{Stage: proto.Stage_userSelection})
 	}
