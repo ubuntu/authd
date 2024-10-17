@@ -72,6 +72,14 @@ func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot 
 func sharedAuthd(t *testing.T) (string, string) {
 	t.Helper()
 
+	if os.Getenv("AUTHD_TESTS_USE_INDIVIDUAL_AUTHD_INSTANCES") != "" {
+		gPasswd := filepath.Join(t.TempDir(), "gpasswd.output")
+		groups := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+		socket, cleanup := runAuthdForTesting(t, gPasswd, groups, true)
+		t.Cleanup(cleanup)
+		return socket, gPasswd
+	}
+
 	sa := &sharedAuthdInstance
 	t.Cleanup(func() {
 		sharedAuthdInstance.mu.Lock()
