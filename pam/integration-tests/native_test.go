@@ -388,7 +388,8 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		skipRunnerCheck    bool
 	}{
 		"Change_password_successfully_and_authenticate_with_new_one": {
-			tape: "passwd_simple",
+			tape:         "passwd_simple",
+			tapeSettings: []tapeSetting{{vhsHeight, 600}},
 			tapeVariables: map[string]string{
 				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(
 					tapeBaseCommand, pam_test.RunnerActionLogin, socketPathEnv),
@@ -397,6 +398,9 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		"Change_passwd_after_MFA_auth": {
 			tape:         "passwd_mfa",
 			tapeSettings: []tapeSetting{{vhsHeight, 1300}},
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: examplebroker.UserIntegrationMfaPrefix + "native-passwd",
+			},
 		},
 
 		"Retry_if_new_password_is_rejected_by_broker": {
@@ -420,6 +424,9 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		},
 		"Prevent_change_password_if_user_does_not_exist": {
 			tape: "passwd_unexistent_user",
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: examplebroker.UserIntegrationUnexistent,
+			},
 		},
 		"Prevent_change_password_if_current_user_is_not_root_as_can_not_authenticate": {
 			tape: "passwd_not_root", currentUserNotRoot: true,
@@ -443,6 +450,13 @@ func TestNativeChangeAuthTok(t *testing.T) {
 				// For the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				socketPath = runAuthd(t, os.DevNull, os.DevNull, false)
+			}
+
+			if _, ok := tc.tapeVariables[vhsTapeUserVariable]; !ok && !tc.currentUserNotRoot {
+				if tc.tapeVariables == nil {
+					tc.tapeVariables = make(map[string]string)
+				}
+				tc.tapeVariables[vhsTapeUserVariable] = vhsTestUserName(t, "native-passwd")
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
