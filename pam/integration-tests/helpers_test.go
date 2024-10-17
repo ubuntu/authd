@@ -25,9 +25,9 @@ import (
 )
 
 var (
-	authdTestSessionTime     = time.Now()
-	authdArtifactsFolder     string
-	authdArtifactsFolderSync sync.Once
+	authdTestSessionTime  = time.Now()
+	authdArtifactsDir     string
+	authdArtifactsDirSync sync.Once
 )
 
 func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool) string {
@@ -162,14 +162,14 @@ func requirePreviousBrokerForUser(t *testing.T, socketPath string, brokerName st
 func artifactsPath(t *testing.T) string {
 	t.Helper()
 
-	authdArtifactsFolderSync.Do(func() {
-		defer func() { t.Logf("Saving test artifacts at %s", authdArtifactsFolder) }()
+	authdArtifactsDirSync.Do(func() {
+		defer func() { t.Logf("Saving test artifacts at %s", authdArtifactsDir) }()
 
 		// We need to copy the artifacts to another directory, since the test directory will be cleaned up.
-		authdArtifactsFolder = os.Getenv("AUTHD_TEST_ARTIFACTS_PATH")
-		if authdArtifactsFolder != "" {
-			if err := os.MkdirAll(authdArtifactsFolder, 0750); err != nil && !os.IsExist(err) {
-				require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsFolder)
+		authdArtifactsDir = os.Getenv("AUTHD_TEST_ARTIFACTS_PATH")
+		if authdArtifactsDir != "" {
+			if err := os.MkdirAll(authdArtifactsDir, 0750); err != nil && !os.IsExist(err) {
+				require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
 			}
 			return
 		}
@@ -180,11 +180,11 @@ func artifactsPath(t *testing.T) string {
 			st.UnixMilli())
 
 		var err error
-		authdArtifactsFolder, err = os.MkdirTemp(os.TempDir(), folderName)
-		require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsFolder)
+		authdArtifactsDir, err = os.MkdirTemp(os.TempDir(), folderName)
+		require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
 	})
 
-	return authdArtifactsFolder
+	return authdArtifactsDir
 }
 
 // saveArtifactsForDebug saves the specified artifacts to a temporary directory if the test failed.
