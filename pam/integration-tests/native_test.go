@@ -25,8 +25,7 @@ func TestNativeAuthenticate(t *testing.T) {
 	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s} force_native_client=true",
 		socketPathEnv)
 
-	defaultGPasswdOutput, groupsFile := prepareGPasswdFiles(t)
-	defaultSocketPath := runAuthd(t, defaultGPasswdOutput, groupsFile, true)
+	defaultSocketPath, defaultGPasswdOutput := sharedAuthd(t)
 
 	tests := map[string]struct {
 		tape          string
@@ -377,7 +376,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
 	const tapeBaseCommand = "./pam_authd %s socket=${%s} force_native_client=true"
 	tapeCommand := fmt.Sprintf(tapeBaseCommand, pam_test.RunnerActionPasswd, socketPathEnv)
-	defaultSocketPath := runAuthd(t, os.DevNull, os.DevNull, true)
+	defaultSocketPath, _ := sharedAuthd(t)
 
 	tests := map[string]struct {
 		tape          string
