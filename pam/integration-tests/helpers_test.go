@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -23,7 +24,20 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool) string {
+type authdInstance struct {
+	mu        sync.Mutex
+	instances uint64
+	socket    string
+	gPasswd   string
+	groups    string
+	cleanup   func()
+}
+
+var (
+	sharedAuthdInstance = authdInstance{}
+)
+
+func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool) (string, func()) {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -32,11 +46,60 @@ func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot 
 		env = append(env, authdCurrentUserRootEnvVariableContent)
 	}
 	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
-	t.Cleanup(func() {
+
+	return socketPath, func() {
 		cancel()
 		<-stopped
-	})
+	}
+}
+
+func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool) string {
+	t.Helper()
+
+	socketPath, cleanup := runAuthdForTesting(t, gpasswdOutput, groupsFile, currentUserAsRoot)
+	t.Cleanup(cleanup)
 	return socketPath
+}
+
+func sharedAuthd(t *testing.T) (string, string) {
+	t.Helper()
+
+	sa := &sharedAuthdInstance
+	t.Cleanup(func() {
+		sharedAuthdInstance.mu.Lock()
+		defer sharedAuthdInstance.mu.Unlock()
+
+		sa.instances--
+		if testutils.IsVerbose() {
+			t.Logf("Authd shared instances decreased: %v", sa.instances)
+		}
+		if sa.instances != 0 {
+			return
+		}
+		require.NotNil(t, sa.cleanup)
+		cleanup := sa.cleanup
+		sa.socket = ""
+		sa.gPasswd = ""
+		sa.groups = ""
+		sa.cleanup = nil
+		cleanup()
+	})
+
+	sharedAuthdInstance.mu.Lock()
+	defer sharedAuthdInstance.mu.Unlock()
+
+	sa.instances++
+	if testutils.IsVerbose() {
+		t.Logf("Authd shared instances increased: %v", sa.instances)
+	}
+	if sa.instances != 1 {
+		return sa.socket, sa.gPasswd
+	}
+
+	sa.gPasswd = filepath.Join(t.TempDir(), "gpasswd.output")
+	sa.groups = filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+	sa.socket, sa.cleanup = runAuthdForTesting(t, sa.gPasswd, sa.groups, true)
+	return sa.socket, sa.gPasswd
 }
 
 func preparePamRunnerTest(t *testing.T, clientPath string) []string {
