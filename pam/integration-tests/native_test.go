@@ -23,8 +23,6 @@ func TestNativeAuthenticate(t *testing.T) {
 	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s} force_native_client=true",
 		socketPathEnv)
 
-	defaultSocketPath, defaultGPasswdOutput := sharedAuthd(t)
-
 	tests := map[string]struct {
 		tape          string
 		tapeSettings  []tapeSetting
@@ -261,8 +259,7 @@ func TestNativeAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			socketPath := defaultSocketPath
-			gpasswdOutput := defaultGPasswdOutput
+			var socketPath, gpasswdOutput string
 			if tc.wantLocalGroups || tc.currentUserNotRoot {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
@@ -271,6 +268,8 @@ func TestNativeAuthenticate(t *testing.T) {
 				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			} else {
+				socketPath, gpasswdOutput = sharedAuthd(t)
 			}
 
 			if tc.tapeCommand == "" {
@@ -310,7 +309,6 @@ func TestNativeChangeAuthTok(t *testing.T) {
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
 	const tapeBaseCommand = "./pam_authd %s socket=${%s} force_native_client=true"
 	tapeCommand := fmt.Sprintf(tapeBaseCommand, "passwd", socketPathEnv)
-	defaultSocketPath, _ := sharedAuthd(t)
 
 	tests := map[string]struct {
 		tape          string
@@ -375,11 +373,13 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			socketPath := defaultSocketPath
+			var socketPath string
 			if tc.currentUserNotRoot {
 				// For the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				socketPath = runAuthd(t, os.DevNull, os.DevNull, false)
+			} else {
+				socketPath, _ = sharedAuthd(t)
 			}
 
 			if _, ok := tc.tapeVariables[vhsTapeUserVariable]; !ok && !tc.currentUserNotRoot {

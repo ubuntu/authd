@@ -74,14 +74,12 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	require.NoError(t, err, "Setup: Can't read sshd host public key")
 	saveArtifactsForDebugOnCleanup(t, []string{sshdHostKey + ".pub"})
 
-	defaultSocketPath, defaultGPasswdOutput := sharedAuthd(t)
-
 	const tapeCommand = "ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}"
 	defaultTapeSettings := []tapeSetting{{vhsHeight, 1000}, {vhsWidth, 800}}
 
-	defaultSSHDPort := ""
-	defaultUserHome := ""
+	var defaultSSHDPort, defaultUserHome, defaultSocketPath, defaultGPasswdOutput string
 	if sharedSSHd {
+		defaultSocketPath, defaultGPasswdOutput = sharedAuthd(t)
 		serviceFile := createSshdServiceFile(t, execModule, execChild, defaultSocketPath)
 		defaultSSHDPort, defaultUserHome = startSSHdForTest(t, serviceFile, sshdHostKey,
 			"authd-test-user-sshd-accept-all", sshdPreloadLibrary, true, false)
@@ -221,6 +219,8 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, true)
+			} else if !sharedSSHd {
+				socketPath, gpasswdOutput = sharedAuthd(t)
 			}
 
 			user := tc.user
