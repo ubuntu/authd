@@ -83,3 +83,8 @@ func (b *buttonModel) Focus() tea.Cmd {
 func (b *buttonModel) Blur() {
 	b.focused = false
 }
+
+// Focused returns whether this model is focused.
+func (b buttonModel) Focused() bool {
+	return b.focused
+}
