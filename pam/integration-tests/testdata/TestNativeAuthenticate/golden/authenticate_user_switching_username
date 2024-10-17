@@ -32,7 +32,7 @@ Username:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-switch-username
 
 
 
@@ -65,7 +65,7 @@ Username: user-integration-switch-username
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-switch-username
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -98,7 +98,7 @@ Select broker:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-switch-username
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -131,12 +131,12 @@ Username:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-switch-username
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
 Select broker: r
-Username: user-integration-username-switched
+Username: user-integration-native-username-switched
 
 
 
@@ -164,12 +164,12 @@ Username: user-integration-username-switched
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-switch-username
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
 Select broker: r
-Username: user-integration-username-switched
+Username: user-integration-native-username-switched
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -197,12 +197,12 @@ Select broker:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-switch-username
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
 Select broker: r
-Username: user-integration-username-switched
+Username: user-integration-native-username-switched
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -230,19 +230,19 @@ Gimme your password:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-switch-username
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
 Select broker: r
-Username: user-integration-username-switched
+Username: user-integration-native-username-switched
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-PAM Authenticate() for user "user-integration-username-switched" exited with success
+PAM Authenticate() for user "user-integration-native-username-switched" exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -263,19 +263,19 @@ PAM AcctMgmt() exited with success
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-switch-username
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
 Select broker: r
-Username: user-integration-username-switched
+Username: user-integration-native-username-switched
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-PAM Authenticate() for user "user-integration-username-switched" exited with success
+PAM Authenticate() for user "user-integration-native-username-switched" exited with success
 PAM AcctMgmt() exited with success
 >
 
