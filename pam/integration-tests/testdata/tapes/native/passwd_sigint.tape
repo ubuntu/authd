@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user-integration-sigint"
+Type "user-integration-native-passwd-sigint"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

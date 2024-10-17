@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user-integration-max-attempts"
+Type "user-integration-native-passwd-max-attempts"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

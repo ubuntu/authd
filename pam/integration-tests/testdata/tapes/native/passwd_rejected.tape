@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Show
 
 Hide
-Type "user-integration-invalid-new-password"
+Type "user-integration-native-passwd-invalid-new-password"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
@@ -63,7 +63,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Show
 
 Hide
-Type "user-integration-invalid-new-password"
+Type "user-integration-native-passwd-invalid-new-password"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

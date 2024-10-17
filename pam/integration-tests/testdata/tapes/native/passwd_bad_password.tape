@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user-integration-bad-password"
+Type "user-integration-native-passwd-bad-password"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
