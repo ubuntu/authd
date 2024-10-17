@@ -69,7 +69,6 @@ func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...Daemo
 	// Socket name has a maximum size, so we can't use t.TempDir() directly.
 	tempDir, err := os.MkdirTemp("", "authd-daemon4tests")
 	require.NoError(t, err, "Setup: failed to create temp dir for tests")
-	t.Cleanup(func() { os.RemoveAll(tempDir) })
 
 	if opts.cachePath == "" {
 		opts.cachePath = filepath.Join(tempDir, "cache")
@@ -102,6 +101,7 @@ paths:
 
 	// This is the function that is called by CommandContext when the context is cancelled.
 	cmd.Cancel = func() error {
+		defer os.RemoveAll(tempDir)
 		return cmd.Process.Signal(os.Signal(syscall.SIGTERM))
 	}
 
