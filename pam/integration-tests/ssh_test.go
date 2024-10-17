@@ -90,8 +90,8 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		daemonizeSSHd    bool
 		interactiveShell bool
 
-		wantLoggedInUser bool
-		wantLocalGroups  bool
+		wantNotLoggedInUser bool
+		wantLocalGroups     bool
 	}{
 		"Authenticate user successfully": {
 			tape: "simple_auth",
@@ -135,9 +135,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tapeSettings: []tapeSetting{{vhsHeight, 3000}},
 		},
 		"Authenticate user switching to local broker": {
-			tape:             "switch_local_broker",
-			wantLoggedInUser: true,
-			tapeSettings:     []tapeSetting{{vhsHeight, 900}},
+			tape:                "switch_local_broker",
+			wantNotLoggedInUser: true,
+			tapeSettings:        []tapeSetting{{vhsHeight, 900}},
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
@@ -151,25 +151,25 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			daemonizeSSHd: true,
 		},
 		"Autoselect local broker for local user": {
-			tape:             "local_user_preset",
-			user:             "root",
-			wantLoggedInUser: true,
-			tapeSettings:     []tapeSetting{{vhsHeight, 200}},
+			tape:                "local_user_preset",
+			user:                "root",
+			wantNotLoggedInUser: true,
+			tapeSettings:        []tapeSetting{{vhsHeight, 200}},
 		},
 
 		"Deny authentication if max attempts reached": {
-			tape:             "max_attempts",
-			wantLoggedInUser: true,
+			tape:                "max_attempts",
+			wantNotLoggedInUser: true,
 		},
 		"Deny authentication if user does not exist": {
-			tape:             "unexistent_user",
-			user:             "user-unexistent",
-			wantLoggedInUser: true,
+			tape:                "unexistent_user",
+			user:                "user-unexistent",
+			wantNotLoggedInUser: true,
 		},
 		"Deny authentication if user does not exist and matches cancel key": {
-			tape:             "cancel_key_user",
-			user:             "r",
-			wantLoggedInUser: true,
+			tape:                "cancel_key_user",
+			user:                "r",
+			wantNotLoggedInUser: true,
 		},
 		"Deny authentication if newpassword does not match required criteria": {
 			tape:         "bad_password",
@@ -183,18 +183,18 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 
 		"Exit authd if local broker is selected": {
-			tape:             "local_broker",
-			wantLoggedInUser: true,
+			tape:                "local_broker",
+			wantNotLoggedInUser: true,
 		},
 		"Exit if user is not pre-checked on ssh service": {
-			tape:             "local_ssh",
-			user:             "user-integration-ssh-service",
-			pamServiceName:   "sshd",
-			wantLoggedInUser: true,
+			tape:                "local_ssh",
+			user:                "user-integration-ssh-service",
+			pamServiceName:      "sshd",
+			wantNotLoggedInUser: true,
 		},
 		"Exit authd if user sigints": {
-			tape:             "sigint",
-			wantLoggedInUser: true,
+			tape:                "sigint",
+			wantNotLoggedInUser: true,
 		},
 	}
 	for name, tc := range tests {
@@ -257,10 +257,10 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 			userEnv := fmt.Sprintf("USER=%s", user)
-			if !tc.wantLoggedInUser {
-				require.Contains(t, got, userEnv, "Logged in user does not matches")
-			} else {
+			if tc.wantNotLoggedInUser {
 				require.NotContains(t, got, userEnv, "Should not have a logged in user")
+			} else {
+				require.Contains(t, got, userEnv, "Logged in user does not matches")
 			}
 
 			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, testutils.GoldenPath(t)+".gpasswd_out")
