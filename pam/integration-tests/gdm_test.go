@@ -126,7 +126,6 @@ func TestGdmModule(t *testing.T) {
 		"PAM does not support binary protocol")
 
 	libPath := buildPAMModule(t)
-	socketPath, _ := sharedAuthd(t)
 
 	testCases := map[string]struct {
 		supportedLayouts   []*authd.UILayout
@@ -652,9 +651,9 @@ func TestGdmModule(t *testing.T) {
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error_on_connection_failure": {
-			moduleArgs: []string{fmt.Sprintf("socket=%s_invalid", socketPath)},
+			moduleArgs: []string{"socket=/some-path/not-existent-socket"},
 			wantPamErrorMessages: []string{
-				fmt.Sprintf("could not connect to unix://%s_invalid: service took too long to respond. Disconnecting client", socketPath),
+				"could not connect to unix:///some-path/not-existent-socket: service took too long to respond. Disconnecting client",
 			},
 			wantError:       pam.ErrAuthinfoUnavail,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
@@ -810,6 +809,7 @@ func TestGdmModule(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
 
+			socketPath, _ := sharedAuthd(t)
 			moduleArgs := []string{"socket=" + socketPath}
 
 			gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
