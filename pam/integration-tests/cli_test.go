@@ -20,9 +20,7 @@ func TestCLIAuthenticate(t *testing.T) {
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
-
-	defaultGPasswdOutput, groupsFile := prepareGPasswdFiles(t)
-	defaultSocketPath := runAuthd(t, defaultGPasswdOutput, groupsFile, true)
+	defaultSocketPath, defaultGPasswdOutput := sharedAuthd(t)
 
 	tests := map[string]struct {
 		tape         string
