@@ -1,6 +1,8 @@
 package adapter
 
 import (
+	"slices"
+
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -188,6 +190,13 @@ func (m newPasswordModel) Blur() {
 		return
 	}
 	m.focusableModels[m.focusIndex].Blur()
+}
+
+// Focused returns whether this model is focused.
+func (m newPasswordModel) Focused() bool {
+	return slices.ContainsFunc(m.focusableModels, func(ac authenticationComponent) bool {
+		return ac.Focused()
+	})
 }
 
 func (m *newPasswordModel) focusField(increment int) tea.Cmd {

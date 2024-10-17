@@ -222,6 +222,15 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 	return m, cmd
 }
 
+// View renders a text view of the authentication UI.
+func (m authModeSelectionModel) View() string {
+	if !m.Focused() {
+		return ""
+	}
+
+	return m.Model.View()
+}
+
 // Focus focuses this model.
 func (m *authModeSelectionModel) Focus() tea.Cmd {
 	m.focused = true
