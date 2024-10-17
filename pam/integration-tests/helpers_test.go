@@ -34,14 +34,21 @@ var (
 	authdArtifactsDirSync sync.Once
 )
 
-func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool) string {
-	t.Helper()
-
-	socketPath, _ := runAuthdWithCancel(t, gpasswdOutput, groupsFile, currentUserAsRoot)
-	return socketPath
+type authdInstance struct {
+	mu                sync.Mutex
+	refCount          uint64
+	socketPath        string
+	gPasswdOutputPath string
+	groupsFile        string
+	cleanup           func()
 }
 
-func runAuthdWithCancel(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) (string, func()) {
+var (
+	sharedAuthdInstance = authdInstance{}
+)
+
+func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) (
+	socketPath string, waitFunc func(), cancelFunc func()) {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -51,11 +58,67 @@ func runAuthdWithCancel(t *testing.T, gpasswdOutput, groupsFile string, currentU
 	}
 	args = append(args, testutils.WithEnvironment(env...))
 	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, args...)
-	t.Cleanup(func() {
+	return socketPath, func() {
 		cancel()
 		<-stopped
-	})
+	}, cancel
+}
+
+func runAuthdWithCancel(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) (
+	socketPath string, cancel func()) {
+	t.Helper()
+
+	socketPath, cancelAndWait, cancel := runAuthdForTesting(t, gpasswdOutput, groupsFile, currentUserAsRoot, args...)
+	t.Cleanup(cancelAndWait)
 	return socketPath, cancel
+}
+
+func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool) string {
+	t.Helper()
+
+	socketPath, _ := runAuthdWithCancel(t, gpasswdOutput, groupsFile, currentUserAsRoot)
+	return socketPath
+}
+
+func sharedAuthd(t *testing.T) (socketPath string, gpasswdFile string) {
+	t.Helper()
+
+	sa := &sharedAuthdInstance
+	t.Cleanup(func() {
+		sharedAuthdInstance.mu.Lock()
+		defer sharedAuthdInstance.mu.Unlock()
+
+		sa.refCount--
+		if testutils.IsVerbose() {
+			t.Logf("Authd shared instances decreased: %v", sa.refCount)
+		}
+		if sa.refCount != 0 {
+			return
+		}
+		require.NotNil(t, sa.cleanup)
+		cleanup := sa.cleanup
+		sa.socketPath = ""
+		sa.gPasswdOutputPath = ""
+		sa.groupsFile = ""
+		sa.cleanup = nil
+		cleanup()
+	})
+
+	sharedAuthdInstance.mu.Lock()
+	defer sharedAuthdInstance.mu.Unlock()
+
+	sa.refCount++
+	if testutils.IsVerbose() {
+		t.Logf("Authd shared instances increased: %v", sa.refCount)
+	}
+	if sa.refCount != 1 {
+		return sa.socketPath, sa.gPasswdOutputPath
+	}
+
+	sa.gPasswdOutputPath = filepath.Join(t.TempDir(), "gpasswd.output")
+	sa.groupsFile = filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+	sa.socketPath, sa.cleanup, _ = runAuthdForTesting(t, sa.gPasswdOutputPath, sa.groupsFile, true)
+	return sa.socketPath, sa.gPasswdOutputPath
 }
 
 func preparePamRunnerTest(t *testing.T, clientPath string) []string {
