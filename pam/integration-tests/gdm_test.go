@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -129,6 +128,7 @@ func TestGdmModule(t *testing.T) {
 	testCases := map[string]struct {
 		supportedLayouts   []*authd.UILayout
 		pamUser            *string
+		pamUserPrefix      string
 		protoVersion       uint32
 		brokerName         string
 		eventPollResponses map[gdm.EventType][]*gdm.EventData
@@ -178,7 +178,7 @@ func TestGdmModule(t *testing.T) {
 			},
 		},
 		"Authenticates with MFA": {
-			pamUser:         ptrValue(examplebroker.UserIntegrationMfaPrefix + "basic"),
+			pamUserPrefix:   examplebroker.UserIntegrationMfaPrefix,
 			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -205,7 +205,7 @@ func TestGdmModule(t *testing.T) {
 			},
 		},
 		"Authenticates user with MFA after retry": {
-			pamUser:         ptrValue(examplebroker.UserIntegrationMfaPrefix + "retry"),
+			pamUserPrefix:   examplebroker.UserIntegrationMfaPrefix,
 			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -263,7 +263,7 @@ func TestGdmModule(t *testing.T) {
 			},
 		},
 		"Authenticates after password change": {
-			pamUser:         ptrValue(examplebroker.UserIntegrationNeedsResetPrefix + "gdm-pass"),
+			pamUserPrefix:   examplebroker.UserIntegrationNeedsResetPrefix,
 			wantAuthModeIDs: []string{passwordAuthID, newPasswordAuthID},
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(),
@@ -286,7 +286,7 @@ func TestGdmModule(t *testing.T) {
 			},
 		},
 		"Authenticates after mfa authentication with wait and password change checking quality": {
-			pamUser: ptrValue(examplebroker.UserIntegrationMfaNeedsResetPrefix + "gdm-wait-and-new-password"),
+			pamUserPrefix: examplebroker.UserIntegrationMfaNeedsResetPrefix,
 			wantAuthModeIDs: []string{
 				passwordAuthID,
 				fido1AuthID,
@@ -354,7 +354,7 @@ func TestGdmModule(t *testing.T) {
 			},
 		},
 		"Authenticates after various invalid password changes": {
-			pamUser: ptrValue(examplebroker.UserIntegrationNeedsResetPrefix + "gdm-retries"),
+			pamUserPrefix: examplebroker.UserIntegrationNeedsResetPrefix,
 			wantAuthModeIDs: []string{
 				passwordAuthID,
 				newPasswordAuthID,
@@ -757,7 +757,7 @@ func TestGdmModule(t *testing.T) {
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on invalid fido ack": {
-			pamUser:         ptrValue(examplebroker.UserIntegrationMfaPrefix + "error-fido-ack"),
+			pamUserPrefix:   examplebroker.UserIntegrationMfaPrefix,
 			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -798,8 +798,10 @@ func TestGdmModule(t *testing.T) {
 			serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
 			saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
 
-			pamUser := examplebroker.UserIntegrationPrefix + "" +
-				strings.ReplaceAll(filepath.Base(t.Name()), "_", "-")
+			pamUser := vhsTestUserName(t, "gdm")
+			if tc.pamUserPrefix != "" {
+				pamUser = vhsTestUserNameFull(t, tc.pamUserPrefix, "gdm")
+			}
 			if tc.pamUser != nil {
 				pamUser = *tc.pamUser
 			}
@@ -904,7 +906,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
 	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
-	pamUser := examplebroker.UserIntegrationPrefix + "auth-no-gdm-extension"
+	pamUser := vhsTestUserName(t, "gdm")
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
 
@@ -938,7 +940,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
 	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
-	pamUser := examplebroker.UserIntegrationPrefix + "acctmgmt-no-gdm-extension"
+	pamUser := vhsTestUserName(t, "gdm")
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
 
