@@ -19,7 +19,6 @@ func TestNativeAuthenticate(t *testing.T) {
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
-	defaultSocketPath, defaultGPasswdOutput := sharedAuthd(t)
 
 	tests := map[string]struct {
 		tape         string
@@ -226,12 +225,13 @@ func TestNativeAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			socketPath := defaultSocketPath
-			gpasswdOutput := defaultGPasswdOutput
+			var socketPath, gpasswdOutput string
 			if tc.wantLocalGroups || tc.currentUserNotRoot {
 				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			} else {
+				socketPath, gpasswdOutput = sharedAuthd(t)
 			}
 
 			if tc.clientOptions.PamUser == "" && !tc.userSelection {
@@ -260,7 +260,6 @@ func TestNativeChangeAuthTok(t *testing.T) {
 	cliEnv := preparePamRunnerTest(t, outDir)
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
-	defaultSocketPath, _ := sharedAuthd(t)
 
 	tests := map[string]struct {
 		tape         string
@@ -313,9 +312,11 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			socketPath := defaultSocketPath
+			var socketPath string
 			if tc.currentUserNotRoot {
 				socketPath = runAuthd(t, os.DevNull, os.DevNull, false)
+			} else {
+				socketPath, _ = sharedAuthd(t)
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)

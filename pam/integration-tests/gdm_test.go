@@ -101,7 +101,6 @@ func TestGdmModule(t *testing.T) {
 		"PAM does not support binary protocol")
 
 	libPath := buildPAMModule(t)
-	socketPath, _ := sharedAuthd(t)
 
 	testCases := map[string]struct {
 		supportedLayouts   []*authd.UILayout
@@ -657,6 +656,7 @@ func TestGdmModule(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
 
+			socketPath, _ := sharedAuthd(t)
 			moduleArgs := []string{"socket=" + socketPath}
 
 			gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
