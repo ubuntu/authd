@@ -1,4 +1,5 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
 == Broker selection ==
 1 - local
 2 - ExampleBroker
@@ -228,14 +229,15 @@ Select broker:
 
 
 
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
+
 Insert 'r' to cancel the request and go back
 Gimme your password:
 
@@ -460,23 +462,24 @@ Gimme your password:
 
 
 
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
+
 Insert 'r' to cancel the request and go back
 Gimme your password:
+
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
@@ -692,31 +695,33 @@ Select authentication mode:
 
 
 
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
+
 Insert 'r' to cancel the request and go back
 Gimme your password:
+
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 7
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
+
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
@@ -923,41 +928,43 @@ Select action:
 
 
 
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
+
 Insert 'r' to cancel the request and go back
 Gimme your password:
+
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 7
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
+
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.fr/
        1338
+
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
@@ -1154,52 +1161,54 @@ Select action:
 
 
 
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
+
 Insert 'r' to cancel the request and go back
 Gimme your password:
+
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 7
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: 2
-Scan the qrcode or enter the code in the login page
-https://ubuntu.fr/
-       1338
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
+Scan the qrcode or enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+
+== Qr Code authentication (use 'r' to go back) ==
+1 - Wait for the QR code scan result
+2 - Regenerate code
+Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
+
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
@@ -1385,62 +1394,64 @@ Select action:
 
 
 
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
+
 Insert 'r' to cancel the request and go back
 Gimme your password:
+
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 7
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
 
+
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.fr/
        1338
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: 2
-Scan the qrcode or enter the code in the login page
-https://ubuntuforum-br.org/
-           1339
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
+Scan the qrcode or enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+
+== Qr Code authentication (use 'r' to go back) ==
+1 - Wait for the QR code scan result
+2 - Regenerate code
+Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
+
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
@@ -1616,72 +1627,74 @@ Select action:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
+
 Insert 'r' to cancel the request and go back
 Gimme your password:
+
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 7
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
 
+
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.fr/
        1338
 
+
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: 2
-Scan the qrcode or enter the code in the login page
-https://www.ubuntu-it.org/
-           1340
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
+Scan the qrcode or enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+
+== Qr Code authentication (use 'r' to go back) ==
+1 - Wait for the QR code scan result
+2 - Regenerate code
+Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1341
 
+
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
@@ -1847,73 +1860,73 @@ Select action:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
+
 Insert 'r' to cancel the request and go back
 Gimme your password:
+
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 7
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
 
+
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.fr/
        1338
 
+
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: 2
-Scan the qrcode or enter the code in the login page
-https://www.ubuntu-it.org/
-           1340
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
+Scan the qrcode or enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+
+== Qr Code authentication (use 'r' to go back) ==
+1 - Wait for the QR code scan result
+2 - Regenerate code
+Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1341
+
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
@@ -2080,306 +2093,73 @@ Select action: 1
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
+
 Insert 'r' to cancel the request and go back
 Gimme your password:
+
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
 2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
 3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
+4 - Use your phone +33...
+5 - Use your phone +1...
 6 - Pin code
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: 7
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1337
 
+
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.fr/
        1338
 
+
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
+
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
+
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
+
 Scan the qrcode or enter the code in the login page
 https://ubuntu.com
        1341
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: 1
-PAM Authenticate() for user "user-integration-pre-check-ssh-service-qr-code" exited with success
-PAM AcctMgmt() exited with success
->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
-Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
-https://ubuntu.com
-       1337
-
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: 2
-Scan the qrcode or enter the code in the login page
-https://ubuntu.fr/
-       1338
-
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: 2
-Scan the qrcode or enter the code in the login page
-https://ubuntuforum-br.org/
-           1339
-
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: 2
-Scan the qrcode or enter the code in the login page
-https://www.ubuntu-it.org/
-           1340
-
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: 2
-Scan the qrcode or enter the code in the login page
-https://ubuntu.com
-       1341
 
 == Qr Code authentication (use 'r' to go back) ==
 1 - Wait for the QR code scan result
@@ -2401,6 +2181,226 @@ PAM AcctMgmt() exited with success
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
+== Broker selection ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+
+Insert 'r' to cancel the request and go back
+Gimme your password:
+
+== Authentication mode selection (use 'r' to go back) ==
+1 - Password authentication
+2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
+3 - Use your fido device foo
+4 - Use your phone +33...
+5 - Use your phone +1...
+6 - Pin code
+7 - Use a QR code
+8 - Authentication code
+Select authentication mode: 7
+
+Scan the qrcode or enter the code in the login page
+https://ubuntu.com
+       1337
+
+
+== Qr Code authentication (use 'r' to go back) ==
+1 - Wait for the QR code scan result
+2 - Regenerate code
+Select action: 2
+
+Scan the qrcode or enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+
+== Qr Code authentication (use 'r' to go back) ==
+1 - Wait for the QR code scan result
+2 - Regenerate code
+Select action: 2
+
+Scan the qrcode or enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+
+== Qr Code authentication (use 'r' to go back) ==
+1 - Wait for the QR code scan result
+2 - Regenerate code
+Select action: 2
+
+Scan the qrcode or enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+
+== Qr Code authentication (use 'r' to go back) ==
+1 - Wait for the QR code scan result
+2 - Regenerate code
+Select action: 2
+
+Scan the qrcode or enter the code in the login page
+https://ubuntu.com
+       1341
+
+
+== Qr Code authentication (use 'r' to go back) ==
+1 - Wait for the QR code scan result
+2 - Regenerate code
+Select action: 1
+PAM Authenticate() for user "user-integration-pre-check-ssh-service-qr-code" exited with success
+PAM AcctMgmt() exited with success
+>
 
 
 

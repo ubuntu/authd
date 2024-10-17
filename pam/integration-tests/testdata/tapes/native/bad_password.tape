@@ -1,17 +1,7 @@
 Hide
-Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true"
+Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Type "user-needs-reset"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_COMMAND}
 Show
 
 Hide
@@ -39,7 +29,7 @@ Show
 
 Hide
 Type "12345678"
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
+Sleep ${AUTHD_SLEEP_DEFAULT} * 3
 Enter
 Show
 

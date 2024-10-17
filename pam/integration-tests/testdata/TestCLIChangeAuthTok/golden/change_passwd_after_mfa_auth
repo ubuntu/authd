@@ -136,8 +136,8 @@ Gimme your password
 > 1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Use a QR code
   7. Authentication code
 
@@ -233,7 +233,7 @@ Plug your fido device and press with your thumb
   Select your authentication method
 
 > 1. Use your fido device foo
-  2. Use your phone +33…
+  2. Use your phone +33...
   3. Authentication code
 
 
@@ -296,7 +296,7 @@ Plug your fido device and press with your thumb
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 
 
 
@@ -331,7 +331,7 @@ Unlock your phone +33… or accept request on web interface:
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
   Select your authentication method
 
-> 1. Use your phone +33…
+> 1. Use your phone +33...
   2. Authentication code
 
 
@@ -362,7 +362,7 @@ Unlock your phone +33… or accept request on web interface:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-Unlock your phone +33… or accept request on web interface:
+Unlock your phone +33... or accept request on web interface:
 
 
 

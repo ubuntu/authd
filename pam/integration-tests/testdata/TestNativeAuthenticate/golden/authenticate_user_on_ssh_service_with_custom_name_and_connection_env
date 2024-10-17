@@ -1,4 +1,5 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
 == Broker selection ==
 1 - local
 2 - ExampleBroker
@@ -29,13 +30,14 @@ Select broker:
 
 
 
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
+
 Insert 'r' to cancel the request and go back
 Gimme your password:
 
@@ -61,47 +63,14 @@ Gimme your password:
 
 
 
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
 == Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
-Insert 'r' to cancel the request and go back
-Gimme your password:
-PAM Authenticate() for user "user-integration-pre-check-ssh-connection" exited with success
-PAM AcctMgmt() exited with success
->
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
 PAM Authenticate() for user "user-integration-pre-check-ssh-connection" exited with success
@@ -109,6 +78,37 @@ PAM AcctMgmt() exited with success
 >
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+
+== Broker selection ==
+1 - local
+2 - ExampleBroker
+Select broker: 2
+
+Insert 'r' to cancel the request and go back
+Gimme your password:
+PAM Authenticate() for user "user-integration-pre-check-ssh-connection" exited with success
+PAM AcctMgmt() exited with success
+>
 
 
 

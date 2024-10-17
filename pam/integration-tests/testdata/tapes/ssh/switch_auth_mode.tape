@@ -1,0 +1,1 @@
+../native/switch_auth_mode.tape

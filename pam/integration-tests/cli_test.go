@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,6 +21,10 @@ func TestCLIAuthenticate(t *testing.T) {
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
+	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s}", socketPathEnv)
+
+	defaultGPasswdOutput, groupsFile := prepareGPasswdFiles(t)
+	defaultSocketPath := runAuthd(t, defaultGPasswdOutput, groupsFile, true)
 
 	tests := map[string]struct {
 		tape         string
@@ -27,6 +32,7 @@ func TestCLIAuthenticate(t *testing.T) {
 
 		clientOptions      clientOptions
 		currentUserNotRoot bool
+		wantLocalGroups    bool
 	}{
 		"Authenticate user successfully": {
 			tape: "simple_auth",
@@ -92,7 +98,8 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape: "switch_local_broker",
 		},
 		"Authenticate user and add it to local group": {
-			tape: "local_group",
+			tape:            "local_group",
+			wantLocalGroups: true,
 		},
 		"Authenticate with warnings on unsupported arguments": {
 			tape: "simple_auth_with_unsupported_args",
@@ -144,11 +151,20 @@ func TestCLIAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			gpasswdOutput := filepath.Join(outDir, "gpasswd.output")
-			groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-			socketPath := runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			socketPath := defaultSocketPath
+			gpasswdOutput := defaultGPasswdOutput
+			if tc.wantLocalGroups || tc.currentUserNotRoot {
+				// For the local groups tests we need to run authd again so that it has
+				// special environment that generates a fake gpasswd output for us to test.
+				// Similarly for the not-root tests authd has to run in a more restricted way.
+				// In the other cases this is not needed, so we can just use a shared authd.
+				var groupsFile string
+				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
+				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
+			td.Command = tapeCommand
 			td.Env[socketPathEnv] = socketPath
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, "cli", outDir, cliEnv)
@@ -174,16 +190,22 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
+	const tapeBaseCommand = "./pam_authd %s socket=${%s}"
+	tapeCommand := fmt.Sprintf(tapeBaseCommand, "passwd", socketPathEnv)
 	defaultSocketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
 
 	tests := map[string]struct {
-		tape         string
-		tapeSettings []tapeSetting
+		tape          string
+		tapeSettings  []tapeSetting
+		tapeVariables map[string]string
 
 		currentUserNotRoot bool
 	}{
 		"Change password successfully and authenticate with new one": {
 			tape: "passwd_simple",
+			tapeVariables: map[string]string{
+				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(tapeBaseCommand, "login", socketPathEnv),
+			},
 		},
 		"Change passwd after MFA auth": {
 			tape: "passwd_mfa",
@@ -226,10 +248,14 @@ func TestCLIChangeAuthTok(t *testing.T) {
 
 			socketPath := defaultSocketPath
 			if tc.currentUserNotRoot {
+				// For the not-root tests authd has to run in a more restricted way.
+				// In the other cases this is not needed, so we can just use a shared authd.
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, false)
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
+			td.Command = tapeCommand
+			td.Variables = tc.tapeVariables
 			td.Env[socketPathEnv] = socketPath
 			td.AddClientOptions(t, clientOptions{})
 			td.RunVhs(t, "cli", outDir, cliEnv)
