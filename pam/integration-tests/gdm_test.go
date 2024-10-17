@@ -123,7 +123,7 @@ func TestGdmModule(t *testing.T) {
 		"PAM does not support binary protocol")
 
 	libPath := buildPAMModule(t)
-	socketPath := runAuthd(t, os.DevNull, os.DevNull, true)
+	socketPath, _ := sharedAuthd(t)
 
 	testCases := map[string]struct {
 		supportedLayouts   []*authd.UILayout
@@ -898,7 +898,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	libPath := buildPAMModule(t)
 	moduleArgs := []string{}
 
-	socketPath := runAuthd(t, os.DevNull, os.DevNull, true)
+	socketPath, _ := sharedAuthd(t)
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
@@ -932,7 +932,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	libPath := buildPAMModule(t)
 	moduleArgs := []string{}
 
-	socketPath := runAuthd(t, os.DevNull, os.DevNull, true)
+	socketPath, _ := sharedAuthd(t)
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
