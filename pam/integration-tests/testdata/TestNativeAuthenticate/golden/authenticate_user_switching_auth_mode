@@ -1,320 +1,5 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
@@ -468,10 +153,10 @@ Select broker:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -625,10 +310,10 @@ Gimme your password:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -636,7 +321,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -782,10 +467,10 @@ Select authentication mode:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -793,7 +478,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -802,7 +487,8 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de:
 
 
 
@@ -941,8 +627,7 @@ Click on the link received at user-integration-switch-mode@gmail.com or enter th
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -950,7 +635,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -959,10 +644,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1098,8 +784,7 @@ Select authentication mode:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -1107,7 +792,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1116,10 +801,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1255,8 +941,7 @@ Plug your fido device and press with your thumb:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -1264,7 +949,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1273,10 +958,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1288,7 +974,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1412,8 +1098,7 @@ Select authentication mode:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -1421,7 +1106,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1430,10 +1115,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1445,7 +1131,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1569,8 +1255,7 @@ Unlock your phone +33… or accept request on web interface:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -1578,7 +1263,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1587,10 +1272,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1602,7 +1288,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1614,7 +1300,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1726,8 +1412,7 @@ Select authentication mode:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -1735,7 +1420,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1744,10 +1429,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1759,7 +1445,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1771,7 +1457,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1883,8 +1569,7 @@ Unlock your phone +1… or accept request on web interface:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -1892,7 +1577,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1901,10 +1586,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1916,7 +1602,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1928,7 +1614,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1940,7 +1626,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2040,8 +1726,7 @@ Select authentication mode:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -2049,7 +1734,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2058,10 +1743,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2073,7 +1759,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2085,7 +1771,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2097,7 +1783,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2197,8 +1883,7 @@ Enter your pin code:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -2206,7 +1891,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2215,10 +1900,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2230,7 +1916,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2242,7 +1928,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2254,7 +1940,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2266,7 +1952,7 @@ Insert 'r' to cancel the request and go back
 Enter your pin code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2354,8 +2040,7 @@ Select authentication mode:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -2363,7 +2048,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2372,10 +2057,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2387,7 +2073,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2399,7 +2085,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2411,7 +2097,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2423,7 +2109,7 @@ Insert 'r' to cancel the request and go back
 Enter your pin code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2511,8 +2197,7 @@ Select action:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -2520,7 +2205,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2529,10 +2214,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2544,7 +2230,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2556,7 +2242,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2568,7 +2254,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2580,7 +2266,7 @@ Insert 'r' to cancel the request and go back
 Enter your pin code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2615,7 +2301,7 @@ Scan the qrcode or enter the code in the login page
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2668,8 +2354,7 @@ Select authentication mode:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -2677,7 +2362,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2686,10 +2371,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2701,7 +2387,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2713,7 +2399,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2725,7 +2411,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2737,7 +2423,7 @@ Insert 'r' to cancel the request and go back
 Enter your pin code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2772,7 +2458,7 @@ Scan the qrcode or enter the code in the login page
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2825,8 +2511,7 @@ Select action:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -2834,7 +2519,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2843,10 +2528,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2858,7 +2544,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2870,7 +2556,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2882,7 +2568,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2894,7 +2580,7 @@ Insert 'r' to cancel the request and go back
 Enter your pin code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2929,7 +2615,7 @@ Scan the qrcode or enter the code in the login page
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2943,7 +2629,7 @@ Select authentication mode: 8
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -2982,8 +2668,7 @@ Select authentication mode:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -2991,7 +2676,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3000,10 +2685,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3015,7 +2701,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3027,7 +2713,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3039,7 +2725,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3051,7 +2737,7 @@ Insert 'r' to cancel the request and go back
 Enter your pin code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3086,7 +2772,7 @@ Scan the qrcode or enter the code in the login page
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3100,7 +2786,7 @@ Select authentication mode: 8
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3111,7 +2797,7 @@ Select authentication mode: invalid-selection
 PAM Error Message: Provided input can't be parsed as integer value
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3139,8 +2825,7 @@ Select authentication mode:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -3148,7 +2833,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3157,10 +2842,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3172,7 +2858,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3184,7 +2870,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3196,7 +2882,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3208,7 +2894,7 @@ Insert 'r' to cancel the request and go back
 Enter your pin code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3243,7 +2929,7 @@ Scan the qrcode or enter the code in the login page
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3257,7 +2943,7 @@ Select authentication mode: 8
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3268,7 +2954,7 @@ Select authentication mode: invalid-selection
 PAM Error Message: Provided input can't be parsed as integer value
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3279,7 +2965,7 @@ Select authentication mode: -1
 PAM Error Message: Invalid entry. Try again or input 'r'.
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3296,8 +2982,7 @@ Select authentication mode:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -3305,7 +2990,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3314,10 +2999,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3329,7 +3015,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3341,7 +3027,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3353,7 +3039,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3365,7 +3051,7 @@ Insert 'r' to cancel the request and go back
 Enter your pin code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3400,7 +3086,7 @@ Scan the qrcode or enter the code in the login page
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3414,7 +3100,7 @@ Select authentication mode: 8
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3425,7 +3111,7 @@ Select authentication mode: invalid-selection
 PAM Error Message: Provided input can't be parsed as integer value
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3436,7 +3122,7 @@ Select authentication mode: -1
 PAM Error Message: Invalid entry. Try again or input 'r'.
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3453,8 +3139,7 @@ Enter your pin code:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -3462,7 +3147,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3471,10 +3156,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3486,7 +3172,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3498,7 +3184,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3510,7 +3196,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3522,7 +3208,7 @@ Insert 'r' to cancel the request and go back
 Enter your pin code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3557,7 +3243,7 @@ Scan the qrcode or enter the code in the login page
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3571,7 +3257,7 @@ Select authentication mode: 8
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3582,7 +3268,7 @@ Select authentication mode: invalid-selection
 PAM Error Message: Provided input can't be parsed as integer value
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3593,7 +3279,7 @@ Select authentication mode: -1
 PAM Error Message: Invalid entry. Try again or input 'r'.
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3603,15 +3289,14 @@ PAM Error Message: Invalid entry. Try again or input 'r'.
 Select authentication mode: 6
 Insert 'r' to cancel the request and go back
 Enter your pin code: 4242
-PAM Authenticate() for user "user-integration-switch-mode" exited with success
+PAM Authenticate() for user "user-integration-native-switch-auth-mode" exited with success
 PAM AcctMgmt() exited with success
 >
 
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -3619,7 +3304,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3628,10 +3313,11 @@ Gimme your password:
 8 - Authentication code
 Select authentication mode: 2
 Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
+Click on the link received at user-integration-native-switch-auth-mode@gmail.com or enter the co
+de: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3643,7 +3329,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3655,7 +3341,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3667,7 +3353,7 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +1… or accept request on web interface: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3679,7 +3365,7 @@ Insert 'r' to cancel the request and go back
 Enter your pin code: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3714,7 +3400,7 @@ Scan the qrcode or enter the code in the login page
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3728,7 +3414,7 @@ Select authentication mode: 8
 Select action: r
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3739,7 +3425,7 @@ Select authentication mode: invalid-selection
 PAM Error Message: Provided input can't be parsed as integer value
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3750,7 +3436,7 @@ Select authentication mode: -1
 PAM Error Message: Invalid entry. Try again or input 'r'.
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
+2 - Send URL to user-integration-native-switch-auth-mode@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -3760,7 +3446,7 @@ PAM Error Message: Invalid entry. Try again or input 'r'.
 Select authentication mode: 6
 Insert 'r' to cancel the request and go back
 Enter your pin code: 4242
-PAM Authenticate() for user "user-integration-switch-mode" exited with success
+PAM Authenticate() for user "user-integration-native-switch-auth-mode" exited with success
 PAM AcctMgmt() exited with success
 >
 

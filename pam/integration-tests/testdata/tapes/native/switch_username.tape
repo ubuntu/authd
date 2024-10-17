@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user-integration-switch-username"
+Type "user-integration-native-switch-username"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
@@ -21,7 +21,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user-integration-username-switched"
+Type "user-integration-native-username-switched"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

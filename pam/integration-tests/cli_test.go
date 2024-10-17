@@ -27,6 +27,7 @@ func TestCLIAuthenticate(t *testing.T) {
 
 		clientOptions      clientOptions
 		currentUserNotRoot bool
+		wantLocalGroups    bool
 	}{
 		"Authenticate user successfully": {
 			tape: "simple_auth",
@@ -92,7 +93,8 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape: "switch_local_broker",
 		},
 		"Authenticate user and add it to local group": {
-			tape: "local_group",
+			tape:            "local_group",
+			wantLocalGroups: true,
 		},
 		"Authenticate with warnings on unsupported arguments": {
 			tape: "simple_auth_with_unsupported_args",
@@ -144,9 +146,14 @@ func TestCLIAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			gpasswdOutput := filepath.Join(outDir, "gpasswd.output")
-			groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-			socketPath := runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			var socketPath, gpasswdOutput string
+			if tc.wantLocalGroups || tc.currentUserNotRoot {
+				var groupsFile string
+				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
+				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			} else {
+				socketPath, gpasswdOutput = sharedAuthd(t)
+			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Env[socketPathEnv] = socketPath
@@ -167,14 +174,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	outDir := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, outDir)
 
-	// we don't care about the output of gpasswd for this test, but we still need to mock it.
-	err := os.MkdirAll(filepath.Join(outDir, "gpasswd"), 0700)
-	require.NoError(t, err, "Setup: Could not create gpasswd output directory")
-	gpasswdOutput := filepath.Join(outDir, "gpasswd", "chauthtok.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
-	defaultSocketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
 
 	tests := map[string]struct {
 		tape         string
@@ -224,9 +224,11 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			socketPath := defaultSocketPath
+			var socketPath string
 			if tc.currentUserNotRoot {
-				socketPath = runAuthd(t, gpasswdOutput, groupsFile, false)
+				socketPath = runAuthd(t, os.DevNull, os.DevNull, false)
+			} else {
+				socketPath, _ = sharedAuthd(t)
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)

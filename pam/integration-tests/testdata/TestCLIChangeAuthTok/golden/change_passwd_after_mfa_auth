@@ -32,7 +32,7 @@ Username: user name
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-Username: user-mfa
+Username: user-mfa-integration-cli-passwd
 
 
 
@@ -134,7 +134,7 @@ Gimme your password
   Select your authentication method
 
 > 1. Password authentication
-  2. Send URL to user-mfa@gmail.com
+  2. Send URL to user-mfa-integration-cli-passwd@gmail.com
   3. Use your fido device foo
   4. Use your phone +33…
   5. Use your phone +1…
@@ -499,7 +499,7 @@ Enter your new password
 New password:
 > *********
 Confirm password:
-PAM ChangeAuthTok() for user "user-mfa" exited with success
+PAM ChangeAuthTok() for user "user-mfa-integration-cli-passwd" exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -532,7 +532,7 @@ Enter your new password
 New password:
 > *********
 Confirm password:
-PAM ChangeAuthTok() for user "user-mfa" exited with success
+PAM ChangeAuthTok() for user "user-mfa-integration-cli-passwd" exited with success
 PAM AcctMgmt() exited with success
 >
 

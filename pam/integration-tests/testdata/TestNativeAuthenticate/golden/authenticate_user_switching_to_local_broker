@@ -1,46 +1,5 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
@@ -77,10 +36,10 @@ Select broker:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -117,10 +76,10 @@ Gimme your password:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -128,7 +87,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-broker@gmail.com
+2 - Send URL to user-integration-native-switch-local-broker@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -157,10 +116,10 @@ Select authentication mode:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -168,7 +127,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-broker@gmail.com
+2 - Send URL to user-integration-native-switch-local-broker@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -176,7 +135,7 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
@@ -197,10 +156,10 @@ Select broker:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -208,7 +167,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-broker@gmail.com
+2 - Send URL to user-integration-native-switch-local-broker@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -216,12 +175,12 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
@@ -237,10 +196,10 @@ Select broker:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -248,7 +207,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-broker@gmail.com
+2 - Send URL to user-integration-native-switch-local-broker@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -256,17 +215,17 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 555
 PAM Error Message: Invalid entry. Try again or input 'r'.
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker:
@@ -277,10 +236,10 @@ Select broker:
 
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -288,7 +247,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-broker@gmail.com
+2 - Send URL to user-integration-native-switch-local-broker@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -296,31 +255,31 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 555
 PAM Error Message: Invalid entry. Try again or input 'r'.
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 1
 auth=incomplete
-PAM Authenticate() for user "user-integration-switch-broker" exited with error (PAM exit code: 2
-5): The return value should be ignored by PAM dispatch
+PAM Authenticate() for user "user-integration-native-switch-local-broker" exited with error (PAM
+ exit code: 25): The return value should be ignored by PAM dispatch
 PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
 
 
+
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 2
@@ -328,7 +287,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-switch-broker@gmail.com
+2 - Send URL to user-integration-native-switch-local-broker@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -336,25 +295,26 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode: r
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: invalid-ID
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 555
 PAM Error Message: Invalid entry. Try again or input 'r'.
-== Broker selection (use 'r' to go back) ==
+== Broker selection ==
 1 - local
 2 - ExampleBroker
 Select broker: 1
 auth=incomplete
-PAM Authenticate() for user "user-integration-switch-broker" exited with error (PAM exit code: 2
-5): The return value should be ignored by PAM dispatch
+PAM Authenticate() for user "user-integration-native-switch-local-broker" exited with error (PAM
+ exit code: 25): The return value should be ignored by PAM dispatch
 PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
+
 
 
 ────────────────────────────────────────────────────────────────────────────────

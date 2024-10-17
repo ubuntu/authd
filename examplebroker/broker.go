@@ -175,11 +175,6 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 		return "", "", fmt.Errorf("user %q does not exist", username)
 	}
 
-	if info.sessionMode == "passwd" {
-		info.neededAuthSteps++
-		info.pwdChange = mustReset
-	}
-
 	exampleUsersMu.Lock()
 	defer exampleUsersMu.Unlock()
 	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-integration") {
@@ -197,9 +192,30 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 		info.pwdChange = mustReset
 	}
 
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-mfa-with-reset-integration") {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+		info.neededAuthSteps = 3
+		info.pwdChange = canReset
+	}
+
 	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-needs-reset-integration") {
 		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
 		info.neededAuthSteps = 2
+		info.pwdChange = mustReset
+	}
+
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-can-reset-integration") {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+		info.neededAuthSteps = 2
+		info.pwdChange = canReset
+	}
+
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-local-groups-integration") {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+	}
+
+	if info.sessionMode == "passwd" {
+		info.neededAuthSteps++
 		info.pwdChange = mustReset
 	}
 
@@ -884,6 +900,10 @@ func userInfoFromName(name string) string {
 
 	case "user-mismatching-name":
 		user.Name = "mismatching-username"
+	}
+
+	if strings.HasPrefix(name, "user-local-groups-integration") {
+		user.Groups = append(user.Groups, groupJSONInfo{Name: "localgroup", UGID: ""})
 	}
 
 	// only used for tests, we can ignore the template execution error as the returned data will be failing.

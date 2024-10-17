@@ -5,12 +5,6 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user-needs-reset"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
 Type "2"
 Enter
 Sleep ${AUTHD_SLEEP_LONG} / 2

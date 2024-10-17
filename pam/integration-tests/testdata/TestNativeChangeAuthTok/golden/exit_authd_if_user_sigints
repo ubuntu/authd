@@ -32,7 +32,7 @@ Username:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-integration-sigint
+Username: user-integration-native-passwd-sigint
 
 
 
@@ -65,7 +65,7 @@ Username: user-integration-sigint
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-integration-sigint
+Username: user-integration-native-passwd-sigint
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -98,7 +98,7 @@ Select broker:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-integration-sigint
+Username: user-integration-native-passwd-sigint
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -131,7 +131,7 @@ Gimme your password:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-integration-sigint
+Username: user-integration-native-passwd-sigint
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -164,7 +164,7 @@ Gimme your password:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-integration-sigint
+Username: user-integration-native-passwd-sigint
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker

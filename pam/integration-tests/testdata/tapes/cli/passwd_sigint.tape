@@ -7,7 +7,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user-integration-sigint"
+Type "user-integration-cli-passwd-sigint"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user1"
+Type "user-integration-native-passwd"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
@@ -49,7 +49,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user1"
+Type "user-integration-native-passwd"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user-local-broker"
+Type "user-integration-native-passwd-local-broker"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
