@@ -40,9 +40,16 @@ func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers [
 	brokersConfPathWithExample, cleanup, err := useExampleBrokers()
 	if err != nil {
 		return nil, err
-	} else if brokersConfPathWithExample != "" {
+	}
+	if brokersConfPathWithExample != "" {
 		brokersConfPath = brokersConfPathWithExample
 	}
+
+	defer func() {
+		if err != nil && cleanup != nil {
+			cleanup()
+		}
+	}()
 
 	// Connect to the system bus
 	// Don't call dbus.SystemBus which caches globally system dbus (issues in tests)
