@@ -45,9 +45,13 @@ get_home_path (void)
 }
 
 static bool
-test_user_is_accepted (const char *test_user,
-                       const char *name)
+is_valid_test_user (const char *name)
 {
+  static const char *test_user = NULL;
+
+  if (!test_user)
+    test_user = getenv ("AUTHD_TEST_SSH_USER");
+
   if (test_user == NULL || *test_user == '\0')
     return false;
 
@@ -79,15 +83,11 @@ test_user_is_accepted (const char *test_user,
 struct passwd *
 getpwnam (const char *name)
 {
-  static const char *test_user = NULL;
   static atomic_int last_entity_idx;
   struct passwd *passwd_entity;
   int entity_idx;
 
-  if (!test_user)
-    test_user = getenv ("AUTHD_TEST_SSH_USER");
-
-  if (!test_user_is_accepted (test_user, name))
+  if (!is_valid_test_user (name))
     {
       struct passwd * (*orig_getpwnam) (const char *name);
 
