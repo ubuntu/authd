@@ -34,11 +34,13 @@ const (
 	exampleBrokerName = "ExampleBroker"
 	ignoredBrokerName = "<ignored-broker>"
 
-	passwordAuthID    = "password"
-	newPasswordAuthID = "mandatoryreset"
-	fido1AuthID       = "fidodevice1"
-	phoneAck1ID       = "phoneack1"
-	qrcodeID          = "qrcodewithtypo"
+	passwordAuthID           = "password"
+	newPasswordAuthID        = "mandatoryreset"
+	fido1AuthID              = "fidodevice1"
+	phoneAck1ID              = "phoneack1"
+	qrcodeID                 = "qrcodeandcodewithtypo"
+	qrcodeWithoutCodeID      = "qrcodewithtypo"
+	qrcodeWithoutRenderingID = "codewithtypo"
 )
 
 var testPasswordUILayout = authd.UILayout{
@@ -63,11 +65,31 @@ var testNewPasswordUILayout = authd.UILayout{
 
 var testQrcodeUILayout = authd.UILayout{
 	Type:    "qrcode",
+	Label:   ptrValue("Scan the qrcode or enter the code in the login page"),
+	Content: ptrValue("https://ubuntu.com"),
+	Wait:    ptrValue("true"),
+	Button:  ptrValue("Regenerate code"),
+	Code:    ptrValue("1337"),
+	Entry:   ptrValue(""),
+}
+
+var testQrcodeUIWithoutCodeLayout = authd.UILayout{
+	Type:    "qrcode",
 	Label:   ptrValue("Enter the following code after flashing the address: 1337"),
 	Content: ptrValue("https://ubuntu.com"),
 	Wait:    ptrValue("true"),
 	Button:  ptrValue("Regenerate code"),
 	Code:    ptrValue(""),
+	Entry:   ptrValue(""),
+}
+
+var testQrcodeUIWithoutRendering = authd.UILayout{
+	Type:    "qrcode",
+	Label:   ptrValue("Enter the code in the login page"),
+	Content: ptrValue("https://ubuntu.com"),
+	Wait:    ptrValue("true"),
+	Button:  ptrValue("Regenerate code"),
+	Code:    ptrValue("1337"),
 	Entry:   ptrValue(""),
 }
 
@@ -407,6 +429,49 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantUILayouts: []*authd.UILayout{&testQrcodeUILayout},
 		},
+		"Authenticates user with qrcode without code field": {
+			wantAuthModeIDs: []string{qrcodeWithoutCodeID},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.QrCodeUILayout(pam_test.WithQrCodeCode("")),
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{&testQrcodeUIWithoutCodeLayout},
+		},
+		"Authenticates user with qrcode without rendering support": {
+			wantAuthModeIDs: []string{qrcodeWithoutRenderingID},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.QrCodeUILayout(pam_test.WithQrCodeRenders(ptrValue(false))),
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{&testQrcodeUIWithoutRendering},
+		},
+		"Authenticates user with qrcode without explicit rendering support": {
+			// This checks that we're backward compatible
+			wantAuthModeIDs: []string{qrcodeID},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.QrCodeUILayout(pam_test.WithQrCodeRenders(nil)),
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{&testQrcodeUILayout},
+		},
 		"Authenticates user after switching to qrcode": {
 			wantAuthModeIDs: []string{passwordAuthID, qrcodeID},
 			supportedLayouts: []*authd.UILayout{
@@ -434,7 +499,8 @@ func TestGdmModule(t *testing.T) {
 				{Access: brokers.AuthGranted},
 			},
 		},
-		"Authenticates user after regenerating the qrcode": {
+		//nolint:dupl // This is not a duplicate test, parameters are different!
+		"Authenticates user after regenerating the qrcode with optional code field": {
 			wantAuthModeIDs: []string{
 				passwordAuthID,
 				qrcodeID,
@@ -446,7 +512,7 @@ func TestGdmModule(t *testing.T) {
 			},
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(),
-				pam_test.QrCodeUILayout(),
+				pam_test.QrCodeUILayout(pam_test.WithQrCodeCode("optional")),
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -491,6 +557,72 @@ func TestGdmModule(t *testing.T) {
 				testQrcodeUILayoutData(3),
 				testQrcodeUILayoutData(4),
 				testQrcodeUILayoutData(5),
+			},
+			wantAuthResponses: []*authd.IAResponse{
+				{Access: brokers.AuthCancelled},
+				{Access: brokers.AuthCancelled},
+				{Access: brokers.AuthCancelled},
+				{Access: brokers.AuthGranted},
+			},
+		},
+		//nolint:dupl // This is not a duplicate test, parameters are different!
+		"Authenticates user after regenerating the qrcode without code field": {
+			wantAuthModeIDs: []string{
+				passwordAuthID,
+				qrcodeWithoutCodeID,
+				qrcodeWithoutCodeID,
+				qrcodeWithoutCodeID,
+				qrcodeWithoutCodeID,
+				qrcodeWithoutCodeID,
+				qrcodeWithoutCodeID,
+			},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.FormUILayout(),
+				pam_test.QrCodeUILayout(pam_test.WithQrCodeCode("")),
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.EventsGroupBegin(),
+					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
+					gdm_test.AuthModeSelectedEvent(qrcodeWithoutCodeID),
+					gdm_test.EventsGroupEnd(),
+
+					// Start authentication and regenerate the qrcode (1)
+					gdm_test.EventsGroupBegin(),
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+					gdm_test.ReselectAuthMode(),
+					gdm_test.EventsGroupEnd(),
+
+					// Only regenerate the qr code (2)
+					gdm_test.ReselectAuthMode(),
+
+					// Start authentication and regenerate the qrcode (3)
+					gdm_test.EventsGroupBegin(),
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+					gdm_test.ReselectAuthMode(),
+					gdm_test.EventsGroupEnd(),
+
+					// Only regenerate the qr code (4)
+					gdm_test.ReselectAuthMode(),
+
+					// Start the final authentication (5)
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: "true",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{
+				&testPasswordUILayout,
+				testQrcodeWithoutCodeUILayoutData(0),
+				testQrcodeWithoutCodeUILayoutData(1),
+				testQrcodeWithoutCodeUILayoutData(2),
+				testQrcodeWithoutCodeUILayoutData(3),
+				testQrcodeWithoutCodeUILayoutData(4),
+				testQrcodeWithoutCodeUILayoutData(5),
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{Access: brokers.AuthCancelled},
@@ -773,7 +905,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
 	libPath := buildPAMModule(t)
-	moduleArgs := []string{libPath}
+	moduleArgs := []string{}
 
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
@@ -815,7 +947,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
 	libPath := buildPAMModule(t)
-	moduleArgs := []string{libPath}
+	moduleArgs := []string{}
 
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
@@ -915,6 +1047,20 @@ func exampleBrokerQrcodeData(reqN int) (string, string) {
 func testQrcodeUILayoutData(reqN int) *authd.UILayout {
 	content, code := exampleBrokerQrcodeData(reqN)
 	base := &testQrcodeUILayout
+	return &authd.UILayout{
+		Type:    base.Type,
+		Label:   base.Label,
+		Content: &content,
+		Wait:    base.Wait,
+		Button:  base.Button,
+		Code:    &code,
+		Entry:   base.Entry,
+	}
+}
+
+func testQrcodeWithoutCodeUILayoutData(reqN int) *authd.UILayout {
+	content, code := exampleBrokerQrcodeData(reqN)
+	base := &testQrcodeUIWithoutCodeLayout
 	return &authd.UILayout{
 		Type:    base.Type,
 		Label:   ptrValue("Enter the following code after flashing the address: " + code),

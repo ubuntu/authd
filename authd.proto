@@ -78,6 +78,7 @@ message UILayout {
   // qr code only.
   optional string content = 6;
   optional string code = 7;
+  optional bool renders_qrcode = 8;
 }
 
 message GAMResponse {

@@ -221,7 +221,7 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 		return nil, err
 	}
 
-	//var candidatesAuthenticationModes []map[string]string
+	log.Debugf(ctx, "Supported UI layouts by %s, %#v", sessionID, supportedUILayouts)
 	allModes := getSupportedModes(sessionInfo, supportedUILayouts)
 
 	// If the user needs mfa, we remove the last used mode from the list of available modes.
@@ -271,6 +271,7 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 			"label": authMode["selection_label"],
 		})
 	}
+	log.Debugf(ctx, "Supported authentication modes for %s: %#v", sessionID, allModes)
 	sessionInfo.allModes = allModes
 
 	if err := b.updateSession(sessionID, sessionInfo); err != nil {
@@ -380,13 +381,19 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 
 		case "qrcode":
 			modeName := "qrcodewithtypo"
+			modeSelectionLabel := "Use a QR code"
 			modeLabel := "Enter the following code after flashing the address: "
 			if layout["code"] != "" {
 				modeName = "qrcodeandcodewithtypo"
 				modeLabel = "Scan the qrcode or enter the code in the login page"
 			}
+			if layout["renders_qrcode"] != "true" {
+				modeName = "codewithtypo"
+				modeSelectionLabel = "Use a Login code"
+				modeLabel = "Enter the code in the login page"
+			}
 			allModes[modeName] = map[string]string{
-				"selection_label": "Use a QR code",
+				"selection_label": modeSelectionLabel,
 				"ui": mapToJSON(map[string]string{
 					"type":   "qrcode",
 					"label":  modeLabel,
@@ -489,7 +496,7 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 		// send request to sessionInfo.allModes[authenticationModeName]["phone"]
 	case "fidodevice1":
 		// start transaction with fido device
-	case "qrcodeandcodewithtypo":
+	case "qrcodeandcodewithtypo", "codewithtypo":
 		uiLayoutInfo["content"], uiLayoutInfo["code"] = qrcodeData(&sessionInfo)
 	case "qrcodewithtypo":
 		// generate the url and finish the prompt on the fly.
@@ -648,7 +655,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 			return AuthCancelled, ""
 		}
 
-	case "qrcodewithtypo", "qrcodeandcodewithtypo":
+	case "qrcodewithtypo", "qrcodeandcodewithtypo", "codewithtypo":
 		if authData["wait"] != "true" {
 			return AuthDenied, fmt.Sprintf(`{"message": "%s should have wait set to true"}`, sessionInfo.currentAuthMode)
 		}
