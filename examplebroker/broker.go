@@ -286,11 +286,6 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 		return "", "", fmt.Errorf("user %q does not exist", username)
 	}
 
-	if info.sessionMode == auth.SessionModePasswd {
-		info.neededAuthSteps++
-		info.pwdChange = mustReset
-	}
-
 	exampleUsersMu.Lock()
 	defer exampleUsersMu.Unlock()
 	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationPrefix) {
@@ -328,6 +323,11 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 
 	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationLocalGroupsPrefix) {
 		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+	}
+
+	if info.sessionMode == auth.SessionModePasswd {
+		info.neededAuthSteps++
+		info.pwdChange = mustReset
 	}
 
 	pubASN1, err := x509.MarshalPKIXPublicKey(&b.privateKey.PublicKey)
