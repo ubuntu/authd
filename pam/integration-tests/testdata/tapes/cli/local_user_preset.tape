@@ -4,7 +4,3 @@ Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
 ${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show
-
-Hide
-Enter
-Show
