@@ -101,7 +101,7 @@ func TestGdmModule(t *testing.T) {
 		"PAM does not support binary protocol")
 
 	libPath := buildPAMModule(t)
-	socketPath := runAuthd(t, os.DevNull, os.DevNull, true)
+	socketPath, _ := sharedAuthd(t)
 
 	testCases := map[string]struct {
 		supportedLayouts   []*authd.UILayout
@@ -155,7 +155,7 @@ func TestGdmModule(t *testing.T) {
 			},
 		},
 		"Authenticates with MFA": {
-			pamUser:         ptrValue("user-mfa-integration-basic"),
+			pamUser:         ptrValue("user-mfa-integration-gdm-basic"),
 			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -182,7 +182,7 @@ func TestGdmModule(t *testing.T) {
 			},
 		},
 		"Authenticates user with MFA after retry": {
-			pamUser:         ptrValue("user-mfa-integration-retry"),
+			pamUser:         ptrValue("user-mfa-integration-gdm-retry"),
 			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -624,7 +624,7 @@ func TestGdmModule(t *testing.T) {
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on invalid fido ack": {
-			pamUser:         ptrValue("user-mfa-integration-error-fido-ack"),
+			pamUser:         ptrValue("user-mfa-integration-gdm-error-fido-ack"),
 			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -665,7 +665,7 @@ func TestGdmModule(t *testing.T) {
 			serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
 			saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
 
-			pamUser := "user-integration-" + strings.ReplaceAll(filepath.Base(t.Name()), "_", "-")
+			pamUser := "user-integration-gdm-" + strings.ReplaceAll(filepath.Base(t.Name()), "_", "-")
 			if tc.pamUser != nil {
 				pamUser = *tc.pamUser
 			}
@@ -762,7 +762,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	libPath := buildPAMModule(t)
 	moduleArgs := []string{libPath}
 
-	socketPath := runAuthd(t, os.DevNull, os.DevNull, true)
+	socketPath, _ := sharedAuthd(t)
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
@@ -770,7 +770,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
 	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
-	pamUser := "user-integration-auth-no-gdm-extension"
+	pamUser := "user-integration-gdm-auth-no-gdm-extension"
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
 
@@ -796,7 +796,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	libPath := buildPAMModule(t)
 	moduleArgs := []string{libPath}
 
-	socketPath := runAuthd(t, os.DevNull, os.DevNull, true)
+	socketPath, _ := sharedAuthd(t)
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
@@ -804,7 +804,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
 	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
-	pamUser := "user-integration-acctmgmt-no-gdm-extension"
+	pamUser := "user-integration-gdm-acctmgmt-no-gdm-extension"
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
 
