@@ -49,7 +49,9 @@ var (
 		"AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT": 4 * time.Second,
 	}
 
-	vhsSleepRegex = regexp.MustCompile(`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?.*$`)
+	vhsSleepRegex = regexp.MustCompile(
+		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?.*$`)
+	vhsEmptyLinesRegex = regexp.MustCompile(`(?m)((^\n^\n)+(^\n)?|^\n)(^─+$)`)
 )
 
 func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
@@ -188,6 +190,9 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 	}
 
 	got = permissionstestutils.IdempotentPermissionError(got)
+
+	// Drop all the empty lines before each page separator, to remove the clutter.
+	got = vhsEmptyLinesRegex.ReplaceAllString(got, "$4")
 
 	// Save the sanitized result on cleanup
 	t.Cleanup(func() {
