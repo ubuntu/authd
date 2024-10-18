@@ -187,7 +187,21 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 		}
 	}
 
-	return permissionstestutils.IdempotentPermissionError(got)
+	got = permissionstestutils.IdempotentPermissionError(got)
+
+	// Save the sanitized result on cleanup
+	t.Cleanup(func() {
+		if !t.Failed() {
+			return
+		}
+		baseName, _ := strings.CutSuffix(td.Output(), ".txt")
+		tempOutput := filepath.Join(t.TempDir(), fmt.Sprintf("%s_sanitized.txt", baseName))
+		require.NoError(t, os.WriteFile(tempOutput, []byte(got), 0600),
+			"TearDown: Saving sanitized output file %q", tempOutput)
+		saveArtifactsForDebug(t, []string{tempOutput})
+	})
+
+	return got
 }
 
 func (td tapeData) PrepareTape(t *testing.T, tapesDir, outputPath string) string {
