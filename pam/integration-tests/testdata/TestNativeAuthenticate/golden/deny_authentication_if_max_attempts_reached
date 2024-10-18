@@ -66,10 +66,10 @@ Username: user-integration-max-attempts
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-max-attempts
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker:
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
 
 
 
@@ -99,10 +99,10 @@ Select broker:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-max-attempts
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
 
@@ -132,10 +132,10 @@ Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-max-attempts
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
 PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
@@ -165,10 +165,10 @@ Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-max-attempts
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
 PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
@@ -198,10 +198,10 @@ Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-max-attempts
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
 PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
@@ -231,10 +231,10 @@ Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-max-attempts
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
 PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
@@ -264,10 +264,10 @@ Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-max-attempts
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
 PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
@@ -297,10 +297,10 @@ dispatch
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-max-attempts
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
 PAM Error Message: invalid password 'wrongpass', should be 'goodpass'

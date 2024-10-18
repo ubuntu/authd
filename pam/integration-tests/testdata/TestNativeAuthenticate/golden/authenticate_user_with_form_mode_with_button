@@ -33,10 +33,10 @@ Username:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker:
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
 
 
 
@@ -66,10 +66,10 @@ Select broker:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
 
@@ -99,22 +99,22 @@ Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-form-w-button@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode:
+== Authentication method selection (use 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-form-w-button@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method:
 
 
 
@@ -132,26 +132,26 @@ Select authentication mode:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-form-w-button@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
+== Authentication method selection (use 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-form-w-button@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
 == Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action:
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action:
 
 
 
@@ -165,30 +165,30 @@ Select action:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-form-w-button@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
+== Authentication method selection (use 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-form-w-button@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
 == Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 2
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 2
 == Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action:
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action:
 
 
 
@@ -198,30 +198,30 @@ Select action:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-form-w-button@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
+== Authentication method selection (use 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-form-w-button@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
 == Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 2
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 2
 == Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
 Insert 'r' to cancel the request and go back
 Enter your one time credential:
 
@@ -231,30 +231,30 @@ Enter your one time credential:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-form-w-button@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
+== Authentication method selection (use 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-form-w-button@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
 == Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 2
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 2
 == Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
 Insert 'r' to cancel the request and go back
 Enter your one time credential: temporary pass00
 PAM Authenticate() for user "user-integration-form-w-button" exited with success
@@ -264,30 +264,30 @@ PAM AcctMgmt() exited with success
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
+== Provider selection (use 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-form-w-button@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
+== Authentication method selection (use 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-form-w-button@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
 == Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 2
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 2
 == Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
 Insert 'r' to cancel the request and go back
 Enter your one time credential: temporary pass00
 PAM Authenticate() for user "user-integration-form-w-button" exited with success
