@@ -89,6 +89,8 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 		requiredWithBooleans := "required:true,false"
 		optionalWithBooleans := "optional:true,false"
 
+		rendersQrCode := true
+
 		return supportedUILayoutsReceived{
 			layouts: []*authd.UILayout{
 				{
@@ -99,12 +101,13 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 					Button: &optional,
 				},
 				{
-					Type:    "qrcode",
-					Content: &required,
-					Code:    &optional,
-					Wait:    &requiredWithBooleans,
-					Label:   &optional,
-					Button:  &optional,
+					Type:          "qrcode",
+					Content:       &required,
+					Code:          &optional,
+					Wait:          &requiredWithBooleans,
+					Label:         &optional,
+					Button:        &optional,
+					RendersQrcode: &rendersQrCode,
 				},
 				{
 					Type:   "newpassword",

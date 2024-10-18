@@ -42,14 +42,17 @@ var (
 	optionalEntries = "optional:entry_type,other_entry_type"
 	optional        = "optional"
 
+	rendersQrCode = true
+
 	requiredEntry = &authd.UILayout{
-		Type:    "required-entry",
-		Label:   &optional,
-		Button:  &optional,
-		Wait:    &optional,
-		Entry:   &requiredEntries,
-		Content: &optional,
-		Code:    &optional,
+		Type:          "required-entry",
+		Label:         &optional,
+		Button:        &optional,
+		Wait:          &optional,
+		Entry:         &requiredEntries,
+		Content:       &optional,
+		Code:          &optional,
+		RendersQrcode: &rendersQrCode,
 	}
 	optionalEntry = &authd.UILayout{
 		Type:  "optional-entry",
