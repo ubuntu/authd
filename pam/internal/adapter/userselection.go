@@ -78,25 +78,26 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 		if err != nil {
 			return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
 		}
-		if !m.enabled && currentUser != "" && msg.username != currentUser {
+		differentUser := msg.username != currentUser
+		if !m.enabled && currentUser != "" && differentUser {
 			return m, sendEvent(pamError{
 				status: pam.ErrPermDenied,
 				msg: fmt.Sprintf("Changing username %q to %q is not allowed",
 					currentUser, msg.username),
 			})
 		}
-		if msg.username != "" && currentUser != msg.username {
+		if differentUser {
 			if err := m.pamMTx.SetItem(pam.User, msg.username); err != nil {
 				return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
 			}
 		}
-		if msg.username != "" {
-			// synchronise our internal validated field and the text one.
-			m.selected = true
-			m.SetValue(msg.username)
-			return m, sendEvent(UsernameOrBrokerListReceived{})
+		m.selected = msg.username != ""
+		// synchronise our internal validated field and the text one.
+		m.SetValue(msg.username)
+		if !m.selected {
+			return m, nil
 		}
-		return m, nil
+		return m, sendEvent(UsernameOrBrokerListReceived{})
 
 	case userRequired:
 		log.Debugf(context.TODO(), "%#v", msg)
