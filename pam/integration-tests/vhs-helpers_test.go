@@ -49,7 +49,9 @@ var (
 		"AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT": 4 * time.Second,
 	}
 
-	vhsSleepRegex = regexp.MustCompile(`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?.*$`)
+	vhsSleepRegex = regexp.MustCompile(
+		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?.*$`)
+	vhsEmptyLinesRegex = regexp.MustCompile(`(?m)((^\n^\n)+(^\n)?|^\n)(^─+$)`)
 )
 
 func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
@@ -187,7 +189,24 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 		}
 	}
 
-	return permissionstestutils.IdempotentPermissionError(got)
+	got = permissionstestutils.IdempotentPermissionError(got)
+
+	// Drop all the empty lines before each page separator, to remove the clutter.
+	got = vhsEmptyLinesRegex.ReplaceAllString(got, "$4")
+
+	// Save the sanitized result on cleanup
+	t.Cleanup(func() {
+		if !t.Failed() {
+			return
+		}
+		baseName, _ := strings.CutSuffix(td.Output(), ".txt")
+		tempOutput := filepath.Join(t.TempDir(), fmt.Sprintf("%s_sanitized.txt", baseName))
+		require.NoError(t, os.WriteFile(tempOutput, []byte(got), 0600),
+			"TearDown: Saving sanitized output file %q", tempOutput)
+		saveArtifactsForDebug(t, []string{tempOutput})
+	})
+
+	return got
 }
 
 func (td tapeData) PrepareTape(t *testing.T, tapesDir, outputPath string) string {

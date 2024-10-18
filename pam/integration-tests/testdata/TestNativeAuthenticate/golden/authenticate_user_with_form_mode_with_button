@@ -1,35 +1,5 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
@@ -37,32 +7,6 @@ Username: user-integration-form-w-button
 1 - local
 2 - ExampleBroker
 Select broker:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
@@ -72,30 +16,6 @@ Username: user-integration-form-w-button
 Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
@@ -115,20 +35,6 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
@@ -152,16 +58,6 @@ Select authentication mode: 8
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action:
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
@@ -189,12 +85,6 @@ Select action: 2
 1 - Proceed with Authentication code
 2 - Resend sms
 Select action:
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
@@ -224,10 +114,6 @@ Select action: 2
 Select action: 1
 Insert 'r' to cancel the request and go back
 Enter your one time credential:
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
@@ -260,7 +146,6 @@ Enter your one time credential: temporary pass00
 PAM Authenticate() for user "user-integration-form-w-button" exited with success
 PAM AcctMgmt() exited with success
 >
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-form-w-button
@@ -293,5 +178,4 @@ Enter your one time credential: temporary pass00
 PAM Authenticate() for user "user-integration-form-w-button" exited with success
 PAM AcctMgmt() exited with success
 >
-
 ────────────────────────────────────────────────────────────────────────────────

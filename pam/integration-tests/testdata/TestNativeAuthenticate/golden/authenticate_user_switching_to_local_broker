@@ -1,42 +1,5 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
@@ -44,39 +7,6 @@ Username: user-integration-switch-broker
 1 - local
 2 - ExampleBroker
 Select broker:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
@@ -86,37 +16,6 @@ Username: user-integration-switch-broker
 Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
@@ -136,27 +35,6 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
@@ -180,23 +58,6 @@ Select authentication mode: r
 1 - local
 2 - ExampleBroker
 Select broker:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
@@ -225,18 +86,6 @@ PAM Error Message: Provided input can't be parsed as integer value
 1 - local
 2 - ExampleBroker
 Select broker:
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
@@ -270,13 +119,6 @@ PAM Error Message: Invalid entry. Try again or input 'r'.
 1 - local
 2 - ExampleBroker
 Select broker:
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
@@ -315,8 +157,6 @@ PAM Authenticate() for user "user-integration-switch-broker" exited with error (
 5): The return value should be ignored by PAM dispatch
 PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
@@ -355,6 +195,4 @@ PAM Authenticate() for user "user-integration-switch-broker" exited with error (
 5): The return value should be ignored by PAM dispatch
 PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
-
-
 ────────────────────────────────────────────────────────────────────────────────

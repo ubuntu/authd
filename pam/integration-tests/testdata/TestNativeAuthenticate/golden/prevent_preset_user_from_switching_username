@@ -3,47 +3,6 @@
 1 - local
 2 - ExampleBroker
 Select broker:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Broker selection ==
@@ -55,42 +14,6 @@ PAM Error Message: Provided input can't be parsed as integer value
 1 - local
 2 - ExampleBroker
 Select broker:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Broker selection ==
@@ -104,40 +27,6 @@ PAM Error Message: Provided input can't be parsed as integer value
 Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Broker selection ==
@@ -161,30 +50,6 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Broker selection ==
@@ -212,26 +77,6 @@ Select authentication mode: r
 1 - local
 2 - ExampleBroker
 Select broker:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Broker selection ==
@@ -264,21 +109,6 @@ PAM Error Message: Provided input can't be parsed as integer value
 1 - local
 2 - ExampleBroker
 Select broker:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Broker selection ==
@@ -316,16 +146,6 @@ PAM Error Message: Provided input can't be parsed as integer value
 1 - local
 2 - ExampleBroker
 Select broker:
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Broker selection ==
@@ -365,14 +185,6 @@ PAM Error Message: Provided input can't be parsed as integer value
 Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Broker selection ==
@@ -415,11 +227,6 @@ Gimme your password:
 PAM Authenticate() for user "user-integration-pam-preset" exited with success
 PAM AcctMgmt() exited with success
 >
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Broker selection ==
@@ -462,9 +269,4 @@ Gimme your password:
 PAM Authenticate() for user "user-integration-pam-preset" exited with success
 PAM AcctMgmt() exited with success
 >
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────

@@ -1,68 +1,8 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Username: user name
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Username: root
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 PAM Info Message: auth=incomplete
@@ -70,32 +10,6 @@ PAM Authenticate() for user "root" exited with error (PAM exit code: 25): The re
 d be ignored by PAM dispatch
 PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 PAM Info Message: auth=incomplete
@@ -103,30 +17,4 @@ PAM Authenticate() for user "root" exited with error (PAM exit code: 25): The re
 d be ignored by PAM dispatch
 PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────

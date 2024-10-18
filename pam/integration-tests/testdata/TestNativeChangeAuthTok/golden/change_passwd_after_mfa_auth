@@ -1,122 +1,8 @@
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -124,59 +10,6 @@ Username: user-mfa
 1 - local
 2 - ExampleBroker
 Select broker:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -186,57 +19,6 @@ Username: user-mfa
 Select broker: 2
 Insert 'r' to cancel the request and go back
 Gimme your password:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -256,47 +38,6 @@ Gimme your password:
 7 - Use a QR code
 8 - Authentication code
 Select authentication mode:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -318,45 +59,6 @@ Gimme your password:
 Select authentication mode: 1
 Insert 'r' to cancel the request and go back
 Gimme your password:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -380,43 +82,6 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -445,38 +110,6 @@ Plug your fido device and press with your thumb: r
 2 - Use your phone +33…
 3 - Authentication code
 Select authentication mode:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -507,36 +140,6 @@ Plug your fido device and press with your thumb: r
 Select authentication mode: 1
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -567,36 +170,6 @@ Plug your fido device and press with your thumb: r
 Select authentication mode: 1
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Plug your fido device and press with your thumb:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -629,34 +202,6 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Plug your fido device and press with your thumb:
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -693,30 +238,6 @@ Unlock your phone +33… or accept request on web interface: r
 1 - Use your phone +33…
 2 - Authentication code
 Select authentication mode:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -755,28 +276,6 @@ Unlock your phone +33… or accept request on web interface: r
 Select authentication mode: 1
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -815,28 +314,6 @@ Unlock your phone +33… or accept request on web interface: r
 Select authentication mode: 1
 Leave the input field empty to wait for the authentication method or insert 'r' to go back
 Unlock your phone +33… or accept request on web interface:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -877,26 +354,6 @@ Leave the input field empty to wait for the authentication method or insert 'r' 
 Unlock your phone +33… or accept request on web interface:
 Insert 'r' to cancel the request and go back
 Enter your new password:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -939,24 +396,6 @@ Insert 'r' to cancel the request and go back
 Enter your new password:
 Repeat the previously inserted password or insert 'r' to cancel the request and go back
 Enter your new password:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -999,24 +438,6 @@ Insert 'r' to cancel the request and go back
 Enter your new password:
 Repeat the previously inserted password or insert 'r' to cancel the request and go back
 Enter your new password:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -1062,21 +483,6 @@ Enter your new password:
 PAM ChangeAuthTok() for user "user-mfa" exited with success
 PAM AcctMgmt() exited with success
 >
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -1122,19 +528,4 @@ Enter your new password:
 PAM ChangeAuthTok() for user "user-mfa" exited with success
 PAM AcctMgmt() exited with success
 >
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
