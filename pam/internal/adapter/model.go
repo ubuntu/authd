@@ -431,7 +431,7 @@ func (m *UIModel) ExitStatus() PamReturnStatus {
 
 // username returns currently selected user name.
 func (m UIModel) username() string {
-	return m.userSelectionModel.Value()
+	return m.userSelectionModel.Username()
 }
 
 // availableBrokers returns currently available brokers.

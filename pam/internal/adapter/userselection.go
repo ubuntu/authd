@@ -19,6 +19,7 @@ type userSelectionModel struct {
 	pamMTx     pam.ModuleTransaction
 	clientType PamClientType
 	enabled    bool
+	selected   bool
 }
 
 // userSelected events to report that a new username has been selected.
@@ -91,6 +92,7 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 		}
 		if msg.username != "" {
 			// synchronise our internal validated field and the text one.
+			m.selected = true
 			m.SetValue(msg.username)
 			return m, sendEvent(UsernameOrBrokerListReceived{})
 		}
@@ -132,4 +134,20 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 // Enabled returns whether the interactive user selection is enabled.
 func (m userSelectionModel) Enabled() bool {
 	return m.enabled
+}
+
+// Username returns the approved value of the text input.
+func (m userSelectionModel) Username() string {
+	if m.clientType == InteractiveTerminal && !m.selected {
+		return ""
+	}
+	return m.Model.Value()
+}
+
+// Focus sets the focus state on the model. We also mark as the user is not
+// selected so that the returned value won't be valid until the user did an
+// explicit ack.
+func (m *userSelectionModel) Focus() tea.Cmd {
+	m.selected = false
+	return m.Model.Focus()
 }
