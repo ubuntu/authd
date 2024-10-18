@@ -1,7 +1,6 @@
 package adapter
 
 import (
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ubuntu/authd"
@@ -23,13 +22,9 @@ func newFormModel(label, entryType, buttonLabel string, wait bool) formModel {
 
 	// TODO: add digits and force validation.
 	switch entryType {
-	case "chars":
-		entry := &textinputModel{Model: textinput.New()}
-		focusableModels = append(focusableModels, entry)
-	case "chars_password":
-		entry := &textinputModel{Model: textinput.New()}
-		entry.EchoMode = textinput.EchoNone
-		focusableModels = append(focusableModels, entry)
+	case "chars", "chars_password":
+		entry := newTextInputModel(entryType)
+		focusableModels = append(focusableModels, &entry)
 	}
 	if buttonLabel != "" {
 		button := &buttonModel{label: buttonLabel}

@@ -10,6 +10,17 @@ type textinputModel struct {
 	textinput.Model
 }
 
+func newTextInputModel(entryType string) textinputModel {
+	inputModel := textinputModel{Model: textinput.New()}
+
+	switch entryType {
+	case "chars_password", "digits_password":
+		inputModel.EchoMode = textinput.EchoPassword
+	}
+
+	return inputModel
+}
+
 // Init initializes textinputModel.
 func (m *textinputModel) Init() tea.Cmd {
 	return nil
