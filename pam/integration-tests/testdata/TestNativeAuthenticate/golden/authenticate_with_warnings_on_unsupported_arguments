@@ -9,29 +9,29 @@ Username: user2
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo force_nat
 ive_client=true bar
 Username: user2
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker:
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo force_nat
 ive_client=true bar
 Username: user2
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo force_nat
 ive_client=true bar
 Username: user2
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
 PAM Authenticate() for user "user2" exited with success
 PAM AcctMgmt() exited with success
@@ -40,11 +40,11 @@ PAM AcctMgmt() exited with success
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo force_nat
 ive_client=true bar
 Username: user2
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
 PAM Authenticate() for user "user2" exited with success
 PAM AcctMgmt() exited with success
