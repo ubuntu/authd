@@ -7,7 +7,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user-local-broker"
+Type "user-integration-cli-passwd-local-broker"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

@@ -59,7 +59,7 @@ Username:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 
 
 
@@ -119,7 +119,7 @@ Username: user-mfa
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -179,7 +179,7 @@ Select broker:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -239,7 +239,7 @@ Gimme your password:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -248,7 +248,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -299,7 +299,7 @@ Select authentication mode:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -308,7 +308,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -359,7 +359,7 @@ Gimme your password:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -368,7 +368,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -419,7 +419,7 @@ Plug your fido device and press with your thumb:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -428,7 +428,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -479,7 +479,7 @@ Select authentication mode:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -488,7 +488,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -539,7 +539,7 @@ Plug your fido device and press with your thumb:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -548,7 +548,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -599,7 +599,7 @@ Plug your fido device and press with your thumb:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -608,7 +608,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -659,7 +659,7 @@ Unlock your phone +33… or accept request on web interface:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -668,7 +668,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -719,7 +719,7 @@ Select authentication mode:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -728,7 +728,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -779,7 +779,7 @@ Unlock your phone +33… or accept request on web interface:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -788,7 +788,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -839,7 +839,7 @@ Unlock your phone +33… or accept request on web interface:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -848,7 +848,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -899,7 +899,7 @@ Enter your new password:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -908,7 +908,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -959,7 +959,7 @@ Enter your new password:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -968,7 +968,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1019,7 +1019,7 @@ Enter your new password:
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -1028,7 +1028,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1059,7 +1059,7 @@ Insert 'r' to cancel the request and go back
 Enter your new password:
 Repeat the previously inserted password or insert 'r' to cancel the request and go back
 Enter your new password:
-PAM ChangeAuthTok() for user "user-mfa" exited with success
+PAM ChangeAuthTok() for user "user-mfa-integration-native-passwd" exited with success
 PAM AcctMgmt() exited with success
 >
 
@@ -1079,7 +1079,7 @@ PAM AcctMgmt() exited with success
 
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-mfa
+Username: user-mfa-integration-native-passwd
 == Broker selection (use 'r' to go back) ==
 1 - local
 2 - ExampleBroker
@@ -1088,7 +1088,7 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-mfa@gmail.com
+2 - Send URL to user-mfa-integration-native-passwd@gmail.com
 3 - Use your fido device foo
 4 - Use your phone +33…
 5 - Use your phone +1…
@@ -1119,7 +1119,7 @@ Insert 'r' to cancel the request and go back
 Enter your new password:
 Repeat the previously inserted password or insert 'r' to cancel the request and go back
 Enter your new password:
-PAM ChangeAuthTok() for user "user-mfa" exited with success
+PAM ChangeAuthTok() for user "user-mfa-integration-native-passwd" exited with success
 PAM AcctMgmt() exited with success
 >
 

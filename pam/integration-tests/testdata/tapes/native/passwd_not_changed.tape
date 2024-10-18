@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user-integration-same-new-password"
+Type "user-integration-native-passwd-same-new-password"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

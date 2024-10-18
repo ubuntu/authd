@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user-integration-wrong-confirmation"
+Type "user-integration-native-passwd-wrong-confirmation"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

@@ -7,7 +7,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user-mfa"
+Type "user-mfa-integration-cli-passwd"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

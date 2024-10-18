@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -15,7 +14,6 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/testutils"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -103,8 +101,6 @@ func TestGdmModule(t *testing.T) {
 		"PAM does not support binary protocol")
 
 	libPath := buildPAMModule(t)
-	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
 	testCases := map[string]struct {
 		supportedLayouts   []*authd.UILayout
@@ -157,8 +153,8 @@ func TestGdmModule(t *testing.T) {
 				{Access: brokers.AuthGranted},
 			},
 		},
-		"Authenticates user-mfa": {
-			pamUser:         ptrValue("user-mfa"),
+		"Authenticates with MFA": {
+			pamUser:         ptrValue("user-mfa-integration-gdm-basic"),
 			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -184,8 +180,8 @@ func TestGdmModule(t *testing.T) {
 				{Access: brokers.AuthGranted},
 			},
 		},
-		"Authenticates user-mfa after retry": {
-			pamUser:         ptrValue("user-mfa-integration-retry"),
+		"Authenticates user with MFA after retry": {
+			pamUser:         ptrValue("user-mfa-integration-gdm-retry"),
 			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -627,7 +623,7 @@ func TestGdmModule(t *testing.T) {
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
 		"Error on invalid fido ack": {
-			pamUser:         ptrValue("user-mfa-integration-error-fido-ack"),
+			pamUser:         ptrValue("user-mfa-integration-gdm-error-fido-ack"),
 			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -660,16 +656,7 @@ func TestGdmModule(t *testing.T) {
 			t.Parallel()
 			t.Cleanup(pam_test.MaybeDoLeakCheck)
 
-			// We run a daemon for each test, because here we don't want to
-			// make assumptions whether the state of the broker and each test
-			// should run in parallel and work the same way in any order is ran.
-			ctx, cancel := context.WithCancel(context.Background())
-			env := append(localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
-			socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
-			t.Cleanup(func() {
-				cancel()
-				<-stopped
-			})
+			socketPath, _ := sharedAuthd(t)
 			moduleArgs := []string{"socket=" + socketPath}
 
 			gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
@@ -678,7 +665,7 @@ func TestGdmModule(t *testing.T) {
 			serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
 			saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
 
-			pamUser := "user-integration-" + strings.ReplaceAll(filepath.Base(t.Name()), "_", "-")
+			pamUser := "user-integration-gdm-" + strings.ReplaceAll(filepath.Base(t.Name()), "_", "-")
 			if tc.pamUser != nil {
 				pamUser = *tc.pamUser
 			}
@@ -775,15 +762,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	libPath := buildPAMModule(t)
 	moduleArgs := []string{libPath}
 
-	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-	ctx, cancel := context.WithCancel(context.Background())
-	env := append(localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
-	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
-	t.Cleanup(func() {
-		cancel()
-		<-stopped
-	})
+	socketPath, _ := sharedAuthd(t)
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
@@ -791,7 +770,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
 	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
-	pamUser := "user-integration-auth-no-gdm-extension"
+	pamUser := "user-integration-gdm-auth-no-gdm-extension"
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
 
@@ -817,15 +796,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	libPath := buildPAMModule(t)
 	moduleArgs := []string{libPath}
 
-	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-	ctx, cancel := context.WithCancel(context.Background())
-	env := append(localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile), authdCurrentUserRootEnvVariableContent)
-	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
-	t.Cleanup(func() {
-		cancel()
-		<-stopped
-	})
+	socketPath, _ := sharedAuthd(t)
 	moduleArgs = append(moduleArgs, "socket="+socketPath)
 
 	gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
@@ -833,7 +804,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
 	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
-	pamUser := "user-integration-acctmgmt-no-gdm-extension"
+	pamUser := "user-integration-gdm-acctmgmt-no-gdm-extension"
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
 

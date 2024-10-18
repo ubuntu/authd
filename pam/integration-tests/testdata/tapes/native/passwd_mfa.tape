@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user-mfa"
+Type "user-mfa-integration-native-passwd"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

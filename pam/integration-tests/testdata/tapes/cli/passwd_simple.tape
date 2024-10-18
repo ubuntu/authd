@@ -7,7 +7,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user1"
+Type "user-integration-cli-passwd"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
@@ -52,7 +52,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user1"
+Type "user-integration-cli-passwd"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
