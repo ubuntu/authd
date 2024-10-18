@@ -53,3 +53,15 @@ func IsSSHSession(mTx pam.ModuleTransaction) bool {
 	}
 	return false
 }
+
+func maybeSendPamError(err error) tea.Cmd {
+	if err == nil {
+		return nil
+	}
+
+	var errPam pam.Error
+	if errors.As(err, &errPam) {
+		return sendEvent(pamError{status: errPam, msg: err.Error()})
+	}
+	return sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+}
