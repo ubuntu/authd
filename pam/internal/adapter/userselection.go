@@ -60,8 +60,8 @@ func newUserSelectionModel(pamMTx pam.ModuleTransaction, clientType PamClientTyp
 // Init initializes userSelectionModel, by getting it from PAM if prefilled.
 func (m *userSelectionModel) Init() tea.Cmd {
 	pamUser, err := m.pamMTx.GetItem(pam.User)
-	if err != nil {
-		return sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+	if cmd := maybeSendPamError(err); cmd != nil {
+		return cmd
 	}
 	if pamUser != "" {
 		return sendUserSelected(pamUser)
@@ -75,8 +75,8 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 	case userSelected:
 		log.Debugf(context.TODO(), "%#v", msg)
 		currentUser, err := m.pamMTx.GetItem(pam.User)
-		if err != nil {
-			return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+		if cmd := maybeSendPamError(err); cmd != nil {
+			return m, cmd
 		}
 		differentUser := msg.username != currentUser
 		if !m.enabled && currentUser != "" && differentUser {
@@ -87,8 +87,9 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 			})
 		}
 		if differentUser {
-			if err := m.pamMTx.SetItem(pam.User, msg.username); err != nil {
-				return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+			err := m.pamMTx.SetItem(pam.User, msg.username)
+			if cmd := maybeSendPamError(err); cmd != nil {
+				return m, cmd
 			}
 		}
 		m.selected = msg.username != ""
