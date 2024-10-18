@@ -6,110 +6,110 @@ Username: user-integration-remember-mode
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker:
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-remember-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode:
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-remember-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-remember-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action:
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-remember-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
+== Authentication code (enter 'r' to go back) ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-remember-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
-Insert 'r' to cancel the request and go back
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-remember-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
+== Authentication code (enter 'r' to go back) ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
+Enter 'r' to cancel the request and go back
 Enter your one time credential:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-remember-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
-Insert 'r' to cancel the request and go back
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-remember-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
+== Authentication code (enter 'r' to go back) ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
+Enter 'r' to cancel the request and go back
 Enter your one time credential: temporary pass0
 PAM Authenticate() for user "user-integration-remember-mode" exited with success
 PAM AcctMgmt() exited with success
@@ -117,27 +117,27 @@ PAM AcctMgmt() exited with success
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-remember-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
-Insert 'r' to cancel the request and go back
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-remember-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
+== Authentication code (enter 'r' to go back) ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
+Enter 'r' to cancel the request and go back
 Enter your one time credential: temporary pass0
 PAM Authenticate() for user "user-integration-remember-mode" exited with success
 PAM AcctMgmt() exited with success
@@ -146,27 +146,27 @@ Username:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-remember-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
-Insert 'r' to cancel the request and go back
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-remember-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
+== Authentication code (enter 'r' to go back) ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
+Enter 'r' to cancel the request and go back
 Enter your one time credential: temporary pass0
 PAM Authenticate() for user "user-integration-remember-mode" exited with success
 PAM AcctMgmt() exited with success
@@ -175,105 +175,105 @@ Username: user-integration-remember-mode
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-remember-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
-Insert 'r' to cancel the request and go back
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-remember-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
+== Authentication code (enter 'r' to go back) ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
+Enter 'r' to cancel the request and go back
 Enter your one time credential: temporary pass0
 PAM Authenticate() for user "user-integration-remember-mode" exited with success
 PAM AcctMgmt() exited with success
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action:
+== Authentication code (enter 'r' to go back) ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-remember-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
-Insert 'r' to cancel the request and go back
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-remember-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
+== Authentication code (enter 'r' to go back) ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
+Enter 'r' to cancel the request and go back
 Enter your one time credential: temporary pass0
 PAM Authenticate() for user "user-integration-remember-mode" exited with success
 PAM AcctMgmt() exited with success
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
-Insert 'r' to cancel the request and go back
+== Authentication code (enter 'r' to go back) ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
+Enter 'r' to cancel the request and go back
 Enter your one time credential:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-remember-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
-Insert 'r' to cancel the request and go back
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-remember-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
+== Authentication code (enter 'r' to go back) ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
+Enter 'r' to cancel the request and go back
 Enter your one time credential: temporary pass0
 PAM Authenticate() for user "user-integration-remember-mode" exited with success
 PAM AcctMgmt() exited with success
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
-Insert 'r' to cancel the request and go back
+== Authentication code (enter 'r' to go back) ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
+Enter 'r' to cancel the request and go back
 Enter your one time credential: temporary pass0
 PAM Authenticate() for user "user-integration-remember-mode" exited with success
 PAM AcctMgmt() exited with success
@@ -281,37 +281,37 @@ PAM AcctMgmt() exited with success
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection (enter 'r' to go back) ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-remember-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
-Insert 'r' to cancel the request and go back
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-remember-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: 8
+== Authentication code (enter 'r' to go back) ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
+Enter 'r' to cancel the request and go back
 Enter your one time credential: temporary pass0
 PAM Authenticate() for user "user-integration-remember-mode" exited with success
 PAM AcctMgmt() exited with success
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-remember-mode
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: 1
-Insert 'r' to cancel the request and go back
+== Authentication code (enter 'r' to go back) ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Choose action: 1
+Enter 'r' to cancel the request and go back
 Enter your one time credential: temporary pass0
 PAM Authenticate() for user "user-integration-remember-mode" exited with success
 PAM AcctMgmt() exited with success

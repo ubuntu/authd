@@ -1,270 +1,270 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker:
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker:
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode:
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-pam-preset@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: r
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker:
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-pam-preset@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: r
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-pam-preset@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker:
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: r
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-pam-preset@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker:
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: r
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-pam-preset@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: r
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-pam-preset@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
 PAM Authenticate() for user "user-integration-pam-preset" exited with success
 PAM AcctMgmt() exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-pam-preset@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: r
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Authentication method selection (enter 'r' to go back) ==
+  1. Password authentication
+  2. Send URL to user-integration-pam-preset@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Choose your authentication method: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: r
 PAM Error Message: Provided input can't be parsed as integer value
-== Broker selection ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider: 2
+Enter 'r' to cancel the request and go back
 Gimme your password:
 PAM Authenticate() for user "user-integration-pam-preset" exited with success
 PAM AcctMgmt() exited with success

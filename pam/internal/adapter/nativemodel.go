@@ -377,12 +377,12 @@ type choicePair struct {
 
 func (m nativeModel) promptForChoice(title string, choices []choicePair, prompt string) (string, error) {
 	if m.canGoBack() {
-		title = fmt.Sprintf("%s (use '%s' to go back)", title, nativeCancelKey)
+		title = fmt.Sprintf("%s (enter '%s' to go back)", title, nativeCancelKey)
 	}
 
 	msg := fmt.Sprintf("== %s ==\n", title)
 	for i, choice := range choices {
-		msg += fmt.Sprintf("%d - %s\n", i+1, choice.label)
+		msg += fmt.Sprintf("  %d. %s\n", i+1, choice.label)
 	}
 	msg += prompt
 
@@ -453,14 +453,14 @@ func (m nativeModel) brokerSelection() tea.Cmd {
 		choices = append(choices, choicePair{id: b.Id, label: b.Name})
 	}
 
-	id, err := m.promptForChoice("Broker selection", choices, "Select broker")
+	id, err := m.promptForChoice("Provider selection", choices, "Choose your provider")
 	if errors.Is(err, errGoBack) {
 		return sendEvent(nativeGoBack{})
 	}
 	if err != nil {
 		return sendEvent(pamError{
 			status: pam.ErrSystem,
-			msg:    fmt.Sprintf("broker selection error: %v", err),
+			msg:    fmt.Sprintf("Provider selection error: %v", err),
 		})
 	}
 	return sendEvent(brokerSelected{brokerID: id})
@@ -472,8 +472,8 @@ func (m nativeModel) authModeSelection() tea.Cmd {
 		choices = append(choices, choicePair{id: am.Id, label: am.Label})
 	}
 
-	id, err := m.promptForChoice("Authentication mode selection", choices,
-		"Select authentication mode")
+	id, err := m.promptForChoice("Authentication method selection", choices,
+		"Choose your authentication method")
 	if errors.Is(err, errGoBack) {
 		return sendEvent(nativeGoBack{})
 	}
@@ -483,7 +483,7 @@ func (m nativeModel) authModeSelection() tea.Cmd {
 	if err != nil {
 		return sendEvent(pamError{
 			status: pam.ErrSystem,
-			msg:    fmt.Sprintf("broker selection error: %v", err),
+			msg:    fmt.Sprintf("Authentication method selection error: %v", err),
 		})
 	}
 
@@ -526,7 +526,7 @@ func (m nativeModel) startChallenge() tea.Cmd {
 
 func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 	if buttonLabel := m.uiLayout.GetButton(); buttonLabel != "" {
-		authMode := "selected authentication mode"
+		authMode := "chosen authentication method"
 		authModeIdx := slices.IndexFunc(m.authModes, func(mode *authd.GAMResponse_AuthenticationMode) bool {
 			return mode.Id == m.selectedAuthMode
 		})
@@ -540,7 +540,7 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 			choices = append(choices, choicePair{id: "button", label: buttonLabel})
 		}
 
-		id, err := m.promptForChoice(authMode, choices, "Select action")
+		id, err := m.promptForChoice(authMode, choices, "Choose action")
 		if errors.Is(err, errGoBack) {
 			return sendEvent(nativeGoBack{})
 		}
@@ -573,14 +573,14 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 		}
 	}
 
-	instructions := "Insert '%[1]s' to cancel the request and go back"
+	instructions := "Enter '%[1]s' to cancel the request and go back"
 	if hasWait {
 		// Duplicating some contents here, as it will be better for translators once we've them
-		instructions = "Leave the input field empty to wait for other authentication method " +
-			"or insert '%[1]s' to go back"
+		instructions = "Leave the input field empty to wait for the alternative authentication method " +
+			"or enter '%[1]s' to go back"
 		if m.uiLayout.GetEntry() == "" {
-			instructions = "Leave the input field empty to wait for the authentication method " +
-				"or insert '%[1]s' to go back"
+			instructions = "Press Enter to wait for authentication " +
+				"or enter '%[1]s' to go back"
 		}
 	}
 
@@ -715,7 +715,7 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 		choices = append(choices, choicePair{id: "button", label: buttonLabel})
 	}
 
-	id, err := m.promptForChoice("Qr Code authentication", choices, "Select action")
+	id, err := m.promptForChoice("Qr Code authentication", choices, "Choose action")
 	if errors.Is(err, errGoBack) {
 		return sendEvent(nativeGoBack{})
 	}
@@ -768,7 +768,7 @@ func (m nativeModel) handleNewPassword() tea.Cmd {
 			choices = append(choices, choicePair{id: "button", label: buttonLabel})
 		}
 
-		id, err := m.promptForChoice("Password Update", choices, "Select action")
+		id, err := m.promptForChoice("Password Update", choices, "Choose action")
 		if errors.Is(err, errGoBack) {
 			return sendEvent(nativeGoBack{})
 		}
@@ -789,19 +789,14 @@ func (m nativeModel) handleNewPassword() tea.Cmd {
 }
 
 func (m nativeModel) newPasswordChallenge(previousChallenge *string) tea.Cmd {
-	if previousChallenge == nil {
-		if cmd := maybeSendPamError(m.sendInfo("Insert '%[1]s' to cancel the request and go back",
-			nativeCancelKey)); cmd != nil {
-			return cmd
-		}
-	} else {
-		if cmd := maybeSendPamError(m.sendInfo("Repeat the previously inserted password or insert '%[1]s' to cancel the request and go back",
-			nativeCancelKey)); cmd != nil {
-			return cmd
-		}
+	challengeLabel := fmt.Sprintf("%[1]s (or enter '%[2]s' to go back)",
+		m.uiLayout.GetLabel(), nativeCancelKey)
+	if previousChallenge != nil {
+		challengeLabel = fmt.Sprintf("Confirm password (or enter '%[1]s' to go back)",
+			nativeCancelKey)
 	}
 
-	challenge, err := m.promptForChallenge(m.uiLayout.GetLabel())
+	challenge, err := m.promptForChallenge(challengeLabel)
 	if errors.Is(err, errGoBack) {
 		return sendEvent(nativeGoBack{})
 	}
