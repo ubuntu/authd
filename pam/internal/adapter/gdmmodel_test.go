@@ -2284,6 +2284,39 @@ func TestGdmModel(t *testing.T) {
 				msg:    "Sending GDM UI capabilities Request failed: Conversation error: this is an UI capabilities request error",
 			},
 		},
+		"Error on selecting user name after PAM provided already one": {
+			pamUser: "gdm-pam-selected-user",
+			messages: []tea.Msg{
+				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
+					return userSelected{username: "another-selected-user"}
+				}))(),
+			},
+			wantGdmRequests: []gdm.RequestType{
+				gdm.RequestType_uiLayoutCapabilities,
+				gdm.RequestType_changeStage, // -> broker Selection
+			},
+			wantGdmEvents: []gdm.EventType{
+				gdm.EventType_userSelected, // First selection, done from PAM.
+				gdm.EventType_userSelected, // Second injected (and refused) selection.
+			},
+			wantMessages: []tea.Msg{
+				userSelected{"gdm-pam-selected-user"},
+				userSelected{"another-selected-user"},
+			},
+			wantNoGdmEvents: []gdm.EventType{
+				gdm.EventType_brokerSelected,
+				gdm.EventType_authModesReceived,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent,
+			},
+			wantStage:    pam_proto.Stage_brokerSelection,
+			wantUsername: "gdm-pam-selected-user",
+			wantExitStatus: pamError{
+				status: pam.ErrPermDenied,
+				msg:    `Changing username "gdm-pam-selected-user" to "another-selected-user" is not allowed`,
+			},
+		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {

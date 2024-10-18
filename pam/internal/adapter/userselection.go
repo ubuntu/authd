@@ -79,11 +79,11 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 			return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
 		}
 		if !m.enabled && currentUser != "" && msg.username != currentUser {
-			sendEvent(pamError{
+			return m, sendEvent(pamError{
 				status: pam.ErrPermDenied,
-				msg:    fmt.Sprintf("Changing username %s to %s is not allowed", m.Value(), msg.username),
+				msg: fmt.Sprintf("Changing username %q to %q is not allowed",
+					currentUser, msg.username),
 			})
-			return m, nil
 		}
 		if msg.username != "" && currentUser != msg.username {
 			if err := m.pamMTx.SetItem(pam.User, msg.username); err != nil {
