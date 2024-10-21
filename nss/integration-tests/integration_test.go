@@ -27,6 +27,7 @@ func TestIntegration(t *testing.T) {
 	defaultDbState := "multiple_users_and_groups"
 	defaultOutputPath := filepath.Join(filepath.Dir(daemonPath), "gpasswd.output")
 	defaultGroupsFilePath := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+	goldenTracker := testutils.NewGoldenTracker(t)
 
 	env := append(localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, defaultOutputPath, defaultGroupsFilePath), "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
 	ctx, cancel := context.WithCancel(context.Background())
@@ -154,7 +155,8 @@ func TestIntegration(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := testutils.LoadWithUpdateFromGolden(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "Outputs must match")
 
 			// This is to check that some cache tasks, such as cleaning a corrupted database, work as expected.

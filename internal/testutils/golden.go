@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"context"
 	"io/fs"
 	"maps"
 	"os"
@@ -11,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -183,14 +185,20 @@ func NewGoldenTracker(t *testing.T) GoldenTracker {
 
 		var entries []string
 		err := filepath.WalkDir(goldenPath, func(path string, entry fs.DirEntry, err error) error {
-			require.NoError(t, err, "TearDown: Reading test golden files %s", path)
+			if err != nil {
+				log.Errorf(context.TODO(), "TearDown: Reading test golden files %s: %v", path, err)
+				t.FailNow()
+			}
 			if path == goldenPath {
 				return nil
 			}
 			entries = append(entries, path)
 			return nil
 		})
-		require.NoError(t, err, "TearDown: Walking test golden files %s", goldenPath)
+		if err != nil {
+			log.Errorf(context.TODO(), "TearDown: Walking test golden files %s: %v", goldenPath, err)
+			t.FailNow()
+		}
 
 		gt.mu.Lock()
 		defer gt.mu.Unlock()
@@ -203,8 +211,11 @@ func NewGoldenTracker(t *testing.T) GoldenTracker {
 			}
 			unused = append(unused, e)
 		}
-		require.Empty(t, unused, "TearDown: Unused golden files have been found, known are %#v",
-			slices.Collect(maps.Keys(gt.used)))
+		if len(unused) > 0 {
+			log.Errorf(context.TODO(), "TearDown: Unused golden files have been found:\n  %#v\n  known are %#v",
+				unused, slices.Collect(maps.Keys(gt.used)))
+			t.FailNow()
+		}
 	})
 
 	return gt

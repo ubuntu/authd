@@ -43,6 +43,7 @@ func TestNewService(t *testing.T) {
 }
 
 func TestGetPasswdByName(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		username string
 
@@ -73,12 +74,14 @@ func TestGetPasswdByName(t *testing.T) {
 			client := newNSSClient(t, tc.sourceDB, false)
 
 			got, err := client.GetPasswdByName(context.Background(), &authd.GetPasswdByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
-			requireExpectedResult(t, "GetPasswdByName", got, err, tc.wantErr, tc.wantErrNotExists)
+			requireExpectedResult(t, &goldenTracker, "GetPasswdByName", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
 }
 
+//nolint:dupl // This is not a duplicate test
 func TestGetPasswdByUID(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		uid uint32
 
@@ -101,12 +104,13 @@ func TestGetPasswdByUID(t *testing.T) {
 			client := newNSSClient(t, tc.sourceDB, false)
 
 			got, err := client.GetPasswdByUID(context.Background(), &authd.GetByIDRequest{Id: tc.uid})
-			requireExpectedResult(t, "GetPasswdByUID", got, err, tc.wantErr, tc.wantErrNotExists)
+			requireExpectedResult(t, &goldenTracker, "GetPasswdByUID", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
 }
 
 func TestGetPasswdEntries(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		sourceDB string
 
@@ -125,12 +129,14 @@ func TestGetPasswdEntries(t *testing.T) {
 			client := newNSSClient(t, tc.sourceDB, false)
 
 			got, err := client.GetPasswdEntries(context.Background(), &authd.Empty{})
-			requireExpectedEntriesResult(t, "GetPasswdEntries", got.GetEntries(), err, tc.wantErr)
+			requireExpectedEntriesResult(t, &goldenTracker, "GetPasswdEntries", got.GetEntries(), err, tc.wantErr)
 		})
 	}
 }
 
+//nolint:dupl // This is not a duplicate test
 func TestGetGroupByName(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		groupname string
 
@@ -153,12 +159,14 @@ func TestGetGroupByName(t *testing.T) {
 			client := newNSSClient(t, tc.sourceDB, false)
 
 			got, err := client.GetGroupByName(context.Background(), &authd.GetGroupByNameRequest{Name: tc.groupname})
-			requireExpectedResult(t, "GetGroupByName", got, err, tc.wantErr, tc.wantErrNotExists)
+			requireExpectedResult(t, &goldenTracker, "GetGroupByName", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
 }
 
+//nolint:dupl // This is not a duplicate test
 func TestGetGroupByGID(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		gid uint32
 
@@ -181,12 +189,13 @@ func TestGetGroupByGID(t *testing.T) {
 			client := newNSSClient(t, tc.sourceDB, false)
 
 			got, err := client.GetGroupByGID(context.Background(), &authd.GetByIDRequest{Id: tc.gid})
-			requireExpectedResult(t, "GetGroupByGID", got, err, tc.wantErr, tc.wantErrNotExists)
+			requireExpectedResult(t, &goldenTracker, "GetGroupByGID", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
 }
 
 func TestGetGroupEntries(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		sourceDB string
 
@@ -205,12 +214,13 @@ func TestGetGroupEntries(t *testing.T) {
 			client := newNSSClient(t, tc.sourceDB, false)
 
 			got, err := client.GetGroupEntries(context.Background(), &authd.Empty{})
-			requireExpectedEntriesResult(t, "GetGroupEntries", got.GetEntries(), err, tc.wantErr)
+			requireExpectedEntriesResult(t, &goldenTracker, "GetGroupEntries", got.GetEntries(), err, tc.wantErr)
 		})
 	}
 }
 
 func TestGetShadowByName(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		username string
 
@@ -235,12 +245,13 @@ func TestGetShadowByName(t *testing.T) {
 			client := newNSSClient(t, tc.sourceDB, tc.currentUserNotRoot)
 
 			got, err := client.GetShadowByName(context.Background(), &authd.GetShadowByNameRequest{Name: tc.username})
-			requireExpectedResult(t, "GetShadowByName", got, err, tc.wantErr, tc.wantErrNotExists)
+			requireExpectedResult(t, &goldenTracker, "GetShadowByName", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
 }
 
 func TestGetShadowEntries(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		sourceDB           string
 		currentUserNotRoot bool
@@ -261,7 +272,7 @@ func TestGetShadowEntries(t *testing.T) {
 			client := newNSSClient(t, tc.sourceDB, tc.currentUserNotRoot)
 
 			got, err := client.GetShadowEntries(context.Background(), &authd.Empty{})
-			requireExpectedEntriesResult(t, "GetShadowEntries", got.GetEntries(), err, tc.wantErr)
+			requireExpectedEntriesResult(t, &goldenTracker, "GetShadowEntries", got.GetEntries(), err, tc.wantErr)
 		})
 	}
 }
@@ -354,7 +365,7 @@ func newBrokersManagerForTests(t *testing.T) *brokers.Manager {
 }
 
 // requireExpectedResult asserts expected behaviour from any get* NSS requests and can update them from golden content.
-func requireExpectedResult[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](t *testing.T, funcName string, got *T, err error, wantErr, wantErrNotExists bool) {
+func requireExpectedResult[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](t *testing.T, goldenTracker *testutils.GoldenTracker, funcName string, got *T, err error, wantErr, wantErrNotExists bool) {
 	t.Helper()
 
 	if wantErr {
@@ -368,12 +379,13 @@ func requireExpectedResult[T authd.PasswdEntry | authd.GroupEntry | authd.Shadow
 	}
 	require.NoError(t, err, fmt.Sprintf("%s should not return an error, but did", funcName))
 
-	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+	want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+		testutils.WithGoldenTracker(goldenTracker))
 	requireExportedEquals(t, want, got, fmt.Sprintf("%s should return the expected entry, but did not", funcName))
 }
 
 // requireExpectedEntriesResult asserts expected behaviour from any get* NSS request returning a list and can update them from golden content.
-func requireExpectedEntriesResult[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](t *testing.T, funcName string, got []*T, err error, wantErr bool) {
+func requireExpectedEntriesResult[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](t *testing.T, goldenTracker *testutils.GoldenTracker, funcName string, got []*T, err error, wantErr bool) {
 	t.Helper()
 
 	if wantErr {
@@ -385,7 +397,8 @@ func requireExpectedEntriesResult[T authd.PasswdEntry | authd.GroupEntry | authd
 	}
 	require.NoError(t, err, fmt.Sprintf("%s should not return an error, but did", funcName))
 
-	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+	want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+		testutils.WithGoldenTracker(goldenTracker))
 	if len(want) != len(got) {
 		require.Equal(t, len(want), len(got), "Not the expected number of elements in the list. Wanted: %v\nGot: %v", want, got)
 	}
