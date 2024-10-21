@@ -23,30 +23,45 @@ Show
 
 Hide
 Type "wrongpass"
+Show
+
+Hide
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "wrongpass"
+Show
+
+Hide
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "wrongpass"
+Show
+
+Hide
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "wrongpass"
+Show
+
+Hide
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "wrongpass"
+Show
+
+Hide
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show

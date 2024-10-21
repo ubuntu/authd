@@ -43,6 +43,10 @@ Gimme your password
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Gimme your password
+> ********
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+Gimme your password
 PAM Authenticate() for user "user-integration-pam-preset" exited with success
 PAM AcctMgmt() exited with success
 >
