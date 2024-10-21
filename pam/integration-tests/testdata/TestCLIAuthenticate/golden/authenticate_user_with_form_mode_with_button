@@ -44,17 +44,11 @@ Enter your one time credential
   [ Resend sms ]
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Enter your one time credential
-> temporary pass00
-
 PAM Authenticate() for user "user-integration-form-w-button" exited with success
 PAM AcctMgmt() exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Enter your one time credential
-> temporary pass00
-
 PAM Authenticate() for user "user-integration-form-w-button" exited with success
 PAM AcctMgmt() exited with success
 >

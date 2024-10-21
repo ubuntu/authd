@@ -283,6 +283,9 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 				m.currentChallenge = *msg.challenge
 			}
 
+			if msg.access != brokers.AuthNext && msg.access != brokers.AuthRetry {
+				m.currentModel = nil
+			}
 			m.authTracker.reset()
 		}()
 
