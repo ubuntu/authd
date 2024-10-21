@@ -1,101 +1,14 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Username: user name
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Username: user-unexistent
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
 
 > 1. local
   2. ExampleBroker
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
@@ -127,8 +40,6 @@ PAM Info Message: acct=incomplete
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch
 >
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
@@ -160,6 +71,4 @@ PAM Info Message: acct=incomplete
 PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
 dispatch
 >
-
-
 ────────────────────────────────────────────────────────────────────────────────

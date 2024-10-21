@@ -1,68 +1,8 @@
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-local-broker
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-local-broker
@@ -70,32 +10,6 @@ Username: user-local-broker
 1 - local
 2 - ExampleBroker
 Select broker:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-local-broker
@@ -108,27 +22,6 @@ PAM ChangeAuthTok() for user "user-local-broker" exited with error (PAM exit cod
 rn value should be ignored by PAM dispatch
 PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-local-broker
@@ -141,25 +34,4 @@ PAM ChangeAuthTok() for user "user-local-broker" exited with error (PAM exit cod
 rn value should be ignored by PAM dispatch
 PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
 >
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ────────────────────────────────────────────────────────────────────────────────
