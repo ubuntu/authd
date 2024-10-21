@@ -118,7 +118,11 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders a text view of the form.
 func (m formModel) View() string {
-	fields := []string{m.label}
+	var fields []string
+
+	if m.label != "" {
+		fields = append(fields, m.label)
+	}
 
 	for _, fm := range m.focusableModels {
 		fields = append(fields, fm.View())
