@@ -30,6 +30,10 @@ Gimme your password
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
+Gimme your password
+> ********
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Plug your fido device and press with your thumb
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
@@ -75,21 +79,11 @@ Confirm password:
 > *********
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-Enter your new password
-
-New password:
-> *********
-Confirm password:
 PAM ChangeAuthTok() for user "user-mfa" exited with success
 PAM AcctMgmt() exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-Enter your new password
-
-New password:
-> *********
-Confirm password:
 PAM ChangeAuthTok() for user "user-mfa" exited with success
 PAM AcctMgmt() exited with success
 >

@@ -33,6 +33,9 @@ Show
 
 Hide
 Type "goodpass"
+Show
+
+Hide
 Enter
 Sleep ${AUTHD_SLEEP_LONG} * 2
 Show

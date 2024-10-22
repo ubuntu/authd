@@ -33,6 +33,9 @@ Show
 
 Hide
 Type "goodpass"
+Show
+
+Hide
 Enter
 Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 2
 Show

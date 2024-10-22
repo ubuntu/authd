@@ -23,8 +23,15 @@ Show
 
 Hide
 Type "goodpass"
+Show
+
+Hide
 Enter
 Sleep ${AUTHD_SLEEP_LONG} * 2
+Show
+
+Hide
+Type ""
 Show
 
 Hide
@@ -34,20 +41,29 @@ Show
 
 Hide
 Type "1234"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Show
+
+Hide
 Enter
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "12345678"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Show
+
+Hide
 Enter
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Show
+
+Hide
 Enter
+Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
@@ -62,6 +78,9 @@ Show
 
 Hide
 Type "authd2404"
+Show
+
+Hide
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Enter
 Show
