@@ -6,7 +6,7 @@ require (
 	github.com/golangci/golangci-lint v1.61.0
 	github.com/msteinert/pam/v2 v2.0.0-00010101000000-000000000000
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1
-	google.golang.org/protobuf v1.34.2
+	google.golang.org/protobuf v1.35.1
 )
 
 require (
