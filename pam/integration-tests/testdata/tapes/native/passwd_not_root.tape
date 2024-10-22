@@ -1,12 +1,12 @@
 Hide
-Type "./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true"
+Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Sleep ${AUTHD_SLEEP_COMMAND}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Sleep ${AUTHD_SLEEP_LONG} * 3
 Show
 
 Sleep ${AUTHD_SLEEP_DEFAULT}
