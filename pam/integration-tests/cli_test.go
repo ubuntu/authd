@@ -35,6 +35,9 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape:          "simple_auth_with_preset_user",
 			clientOptions: clientOptions{PamUser: "user-integration-simple-preset"},
 		},
+		"Authenticate user successfully after trying empty user": {
+			tape: "simple_auth_empty_user",
+		},
 		"Authenticate user with mfa": {
 			tape: "mfa_auth",
 		},

@@ -113,17 +113,6 @@ func (m *nativeModel) Init() tea.Cmd {
 	}
 }
 
-func maybeSendPamError(err error) tea.Cmd {
-	if err == nil {
-		return nil
-	}
-	var pe pam.Error
-	if errors.As(err, &pe) {
-		return sendEvent(pamError{status: pe, msg: err.Error()})
-	}
-	return sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
-}
-
 func (m nativeModel) changeStage(stage proto.Stage) tea.Cmd {
 	return sendEvent(nativeChangeStage{stage})
 }

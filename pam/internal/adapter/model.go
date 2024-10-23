@@ -144,6 +144,7 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.brokerSelectionModel.WillCaptureEscape() || m.authModeSelectionModel.WillCaptureEscape() {
 				break
 			}
+			log.Debugf(context.TODO(), "%#v from %v", msg, m.currentStage())
 			var cmd tea.Cmd
 			switch m.currentStage() {
 			case pam_proto.Stage_brokerSelection:
@@ -170,7 +171,7 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Events
 	case UsernameOrBrokerListReceived:
-		log.Debugf(context.TODO(), "%#v", msg)
+		log.Debugf(context.TODO(), "%#v, user: %q, brokers: %#v", msg, m.username(), m.availableBrokers())
 		if m.username() == "" {
 			return m, nil
 		}
@@ -430,7 +431,7 @@ func (m *UIModel) ExitStatus() PamReturnStatus {
 
 // username returns currently selected user name.
 func (m UIModel) username() string {
-	return m.userSelectionModel.Value()
+	return m.userSelectionModel.Username()
 }
 
 // availableBrokers returns currently available brokers.

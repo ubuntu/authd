@@ -19,6 +19,7 @@ type userSelectionModel struct {
 	pamMTx     pam.ModuleTransaction
 	clientType PamClientType
 	enabled    bool
+	selected   bool
 }
 
 // userSelected events to report that a new username has been selected.
@@ -59,8 +60,8 @@ func newUserSelectionModel(pamMTx pam.ModuleTransaction, clientType PamClientTyp
 // Init initializes userSelectionModel, by getting it from PAM if prefilled.
 func (m *userSelectionModel) Init() tea.Cmd {
 	pamUser, err := m.pamMTx.GetItem(pam.User)
-	if err != nil {
-		return sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+	if cmd := maybeSendPamError(err); cmd != nil {
+		return cmd
 	}
 	if pamUser != "" {
 		return sendUserSelected(pamUser)
@@ -74,29 +75,33 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 	case userSelected:
 		log.Debugf(context.TODO(), "%#v", msg)
 		currentUser, err := m.pamMTx.GetItem(pam.User)
-		if err != nil {
-			return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+		if cmd := maybeSendPamError(err); cmd != nil {
+			return m, cmd
 		}
-		if !m.enabled && currentUser != "" && msg.username != currentUser {
-			sendEvent(pamError{
+		differentUser := msg.username != currentUser
+		if !m.enabled && currentUser != "" && differentUser {
+			return m, sendEvent(pamError{
 				status: pam.ErrPermDenied,
-				msg:    fmt.Sprintf("Changing username %s to %s is not allowed", m.Value(), msg.username),
+				msg: fmt.Sprintf("Changing username %q to %q is not allowed",
+					currentUser, msg.username),
 			})
-			return m, nil
 		}
-		if msg.username != "" && currentUser != msg.username {
-			if err := m.pamMTx.SetItem(pam.User, msg.username); err != nil {
-				return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+		if differentUser {
+			err := m.pamMTx.SetItem(pam.User, msg.username)
+			if cmd := maybeSendPamError(err); cmd != nil {
+				return m, cmd
 			}
 		}
-		if msg.username != "" {
-			// synchronise our internal validated field and the text one.
-			m.SetValue(msg.username)
-			return m, sendEvent(UsernameOrBrokerListReceived{})
+		m.selected = msg.username != ""
+		// synchronise our internal validated field and the text one.
+		m.SetValue(msg.username)
+		if !m.selected {
+			return m, nil
 		}
-		return m, nil
+		return m, sendEvent(UsernameOrBrokerListReceived{})
 
 	case userRequired:
+		log.Debugf(context.TODO(), "%#v", msg)
 		m.enabled = true
 		return m, sendEvent(ChangeStage{Stage: proto.Stage_userSelection})
 	}
@@ -131,4 +136,20 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 // Enabled returns whether the interactive user selection is enabled.
 func (m userSelectionModel) Enabled() bool {
 	return m.enabled
+}
+
+// Username returns the approved value of the text input.
+func (m userSelectionModel) Username() string {
+	if m.clientType == InteractiveTerminal && !m.selected {
+		return ""
+	}
+	return m.Model.Value()
+}
+
+// Focus sets the focus state on the model. We also mark as the user is not
+// selected so that the returned value won't be valid until the user did an
+// explicit ack.
+func (m *userSelectionModel) Focus() tea.Cmd {
+	m.selected = false
+	return m.Model.Focus()
 }

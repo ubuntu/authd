@@ -102,6 +102,7 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 		return m, tea.Batch(cmds...)
 
 	case brokerSelectionRequired:
+		log.Debugf(context.TODO(), "%#v", msg)
 		return m, sendEvent(ChangeStage{Stage: proto.Stage_brokerSelection})
 
 	case brokerSelected:
