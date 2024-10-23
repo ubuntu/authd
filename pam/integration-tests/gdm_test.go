@@ -640,6 +640,11 @@ func TestGdmModule(t *testing.T) {
 		},
 		"Error on missing user": {
 			pamUser: ptrValue(""),
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_brokersReceived: {
+					gdm_test.SelectBrokerEvent(exampleBrokerName),
+				},
+			},
 			wantPamErrorMessages: []string{
 				"can't select broker: error InvalidArgument from server: can't start authentication transaction: rpc error: code = InvalidArgument desc = no user name provided",
 			},
@@ -656,13 +661,8 @@ func TestGdmModule(t *testing.T) {
 		},
 		"Error on unknown broker": {
 			brokerName: "Not a valid broker!",
-			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
-				gdm.EventType_brokersReceived: {
-					gdm_test.SelectBrokerEvent("some-unknown-broker"),
-				},
-			},
 			wantPamErrorMessages: []string{
-				"Sending GDM event failed: Conversation error",
+				"Changing GDM stage failed: Conversation error",
 			},
 			wantError:       pam.ErrSystem,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
