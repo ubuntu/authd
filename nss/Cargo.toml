@@ -17,20 +17,20 @@ integration_tests = []
 
 [dependencies]
 libnss = "0.8.0"
-libc = "0.2.159"
+libc = "0.2.161"
 tonic = "0.12.3"
 prost = "0.13.3"
 rustix = { version = "0.38.37", features = ["use-libc"] }
-tokio = { version = "1.40.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.41.0", features = ["macros", "rt-multi-thread"] }
 tower = "0.4.13"
 log = "0.4.22"
 simple_logger = {version = "5.0.0", features = ["stderr"]}
 syslog = "7.0.0"
 ctor = "0.2.8"
-procfs = "0.16.0"
+procfs = "0.17.0"
 hyper-util = "0.1.9"
 
 [build-dependencies]
 # We need to pin tonic-build to 0.11.* for now until https://github.com/hyperium/tonic/issues/1909 is fixed.
 tonic-build = "0.11.*"
-cc = "1.1.24"
+cc = "1.1.31"
