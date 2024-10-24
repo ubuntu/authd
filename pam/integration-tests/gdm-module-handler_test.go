@@ -103,19 +103,6 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 		}
 		gh.brokersInfos = ev.BrokersReceived.BrokersInfos
 
-		if gh.selectedBrokerName == ignoredBrokerName {
-			return nil
-		}
-
-		idx := slices.IndexFunc(gh.brokersInfos, func(bi *authd.ABResponse_BrokerInfo) bool {
-			return bi.Name == gh.selectedBrokerName
-		})
-		if idx < 0 {
-			return fmt.Errorf("broker '%s' is not known", gh.selectedBrokerName)
-		}
-
-		gh.pollResponses = append(gh.pollResponses, gdm_test.SelectBrokerEvent(gh.brokersInfos[idx].Id))
-
 	case *gdm.EventData_BrokerSelected:
 		idx := slices.IndexFunc(gh.brokersInfos, func(broker *authd.ABResponse_BrokerInfo) bool {
 			return broker.Id == ev.BrokerSelected.BrokerId
@@ -150,7 +137,7 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 			return mode.Id == gh.authModeID
 		})
 		if idx < 0 {
-			return fmt.Errorf("unknown auth mode type: %s", gh.authModeID)
+			return fmt.Errorf("unknown auth mode type: %q", gh.authModeID)
 		}
 		if len(gh.selectedAuthModeIDs) < 1 {
 			return fmt.Errorf("unexpected authentication started with mode '%s', we've nothing to reply",
@@ -205,6 +192,20 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 		case proto.Stage_brokerSelection:
 			gh.authModes = nil
 			gh.brokerID = ""
+
+			if gh.selectedBrokerName == ignoredBrokerName {
+				break
+			}
+
+			idx := slices.IndexFunc(gh.brokersInfos, func(bi *authd.ABResponse_BrokerInfo) bool {
+				return bi.Name == gh.selectedBrokerName
+			})
+			if idx < 0 {
+				return nil, fmt.Errorf("broker '%s' is not known", gh.selectedBrokerName)
+			}
+
+			gh.pollResponses = append(gh.pollResponses, gdm_test.SelectBrokerEvent(gh.brokersInfos[idx].Id))
+
 		case proto.Stage_authModeSelection:
 			gh.currentUILayout = nil
 		}

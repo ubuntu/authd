@@ -67,12 +67,22 @@ type fieldValidator struct {
 	required        bool
 }
 
+// BrokerID computes the broker ID from its name.
+func BrokerID(brokerName string) string {
+	if brokerName == LocalBrokerName {
+		return brokerName
+	}
+
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(brokerName))
+	return fmt.Sprint(h.Sum32())
+}
+
 // newBroker creates a new broker object based on the provided config file. No config means local broker.
 func newBroker(ctx context.Context, configFile string, bus *dbus.Conn) (b Broker, err error) {
 	defer decorate.OnError(&err, "can't create broker from %q", configFile)
 
 	name := LocalBrokerName
-	id := LocalBrokerName
 	var brandIcon string
 	var broker brokerer
 
@@ -82,14 +92,10 @@ func newBroker(ctx context.Context, configFile string, bus *dbus.Conn) (b Broker
 		if err != nil {
 			return Broker{}, err
 		}
-		h := fnv.New32a()
-		// This can’t error out in Hash32 implementation.
-		_, _ = h.Write([]byte(name))
-		id = fmt.Sprint(h.Sum32())
 	}
 
 	return Broker{
-		ID:                    id,
+		ID:                    BrokerID(name),
 		Name:                  name,
 		BrandIconPath:         brandIcon,
 		brokerer:              broker,
