@@ -496,12 +496,12 @@ func TestGdmStructsUnMarshal(t *testing.T) {
 		"Error packet with invalid type": {
 			JSON: `{"type":"invalidType"}`,
 
-			wantErrMsg: "invalid value for enum type",
+			wantErrMsg: "invalid value for enum field type",
 		},
 		"Error packet with invalid value type": {
 			JSON: `{"type":[]}`,
 
-			wantErrMsg: "invalid value for enum type",
+			wantErrMsg: "invalid value for enum field type",
 		},
 		"Error hello packet with unexpected data": {
 			JSON: `{"type":"hello","request":{}}`,
@@ -520,12 +520,12 @@ func TestGdmStructsUnMarshal(t *testing.T) {
 		"Error event packet with unknown type": {
 			JSON: `{"type":"event","event":{"type":"someType"}`,
 
-			wantErrMsg: "invalid value for enum type",
+			wantErrMsg: "invalid value for enum field type",
 		},
 		"Error event packet with invalid value type": {
 			JSON: `{"type":"event","event":{"brokerSelected":{},"type":{}}}`,
 
-			wantErrMsg: "invalid value for enum type",
+			wantErrMsg: "invalid value for enum field type",
 		},
 		"Error event packet with missing data": {
 			JSON: `{"type":"event","event":{"type":"brokerSelected"}}`,
@@ -551,13 +551,13 @@ func TestGdmStructsUnMarshal(t *testing.T) {
 		"Error request packet with unknown type": {
 			JSON: `{"type":"request","request":{"type":true,"uiLayoutCapabilities":{}}}`,
 
-			wantErrMsg: "invalid value for enum type",
+			wantErrMsg: "invalid value for enum field type",
 		},
 		"Error request packet with unknown value type": {
 			JSON: `{"type":"request","request":{"type":"someUnknownRequest",` +
 				`"uiLayoutCapabilities":{}}}`,
 
-			wantErrMsg: "invalid value for enum type",
+			wantErrMsg: "invalid value for enum field type",
 		},
 		"Error request packet with unexpected data": {
 			JSON: `{"type":"request","request":{"type": "uiLayoutCapabilities",` +
@@ -592,7 +592,7 @@ func TestGdmStructsUnMarshal(t *testing.T) {
 				`[{"type":"brokerSelected","brokerSelected":{"brokerId":"a broker"}},` +
 				`{"type":"invalidEvent"}]}`,
 
-			wantErrMsg: "invalid value for enum type",
+			wantErrMsg: "invalid value for enum field type",
 		},
 		"Error pollResponse packet with unexpected data": {
 			JSON: `{"type":"pollResponse","pollResponse":` +
