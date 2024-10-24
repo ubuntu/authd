@@ -78,6 +78,7 @@ func TestNewService(t *testing.T) {
 func TestAvailableBrokers(t *testing.T) {
 	t.Parallel()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		currentUserNotRoot bool
 
@@ -106,7 +107,8 @@ func TestAvailableBrokers(t *testing.T) {
 			for _, broker := range got {
 				broker.Id = broker.Name + "_ID"
 			}
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "AvailableBrokers returned unexpected brokers")
 		})
 	}
@@ -183,6 +185,7 @@ func TestGetPreviousBroker(t *testing.T) {
 func TestSelectBroker(t *testing.T) {
 	t.Parallel()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		brokerID    string
 		username    string
@@ -247,7 +250,8 @@ func TestSelectBroker(t *testing.T) {
 			got := fmt.Sprintf("ID: %s\nEncryption Key: %s\n",
 				strings.ReplaceAll(sbResp.GetSessionId(), tc.brokerID, "BROKER_ID"),
 				sbResp.GetEncryptionKey())
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := testutils.LoadWithUpdateFromGolden(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "SelectBroker returned an unexpected response")
 		})
 	}
@@ -256,6 +260,7 @@ func TestSelectBroker(t *testing.T) {
 func TestGetAuthenticationModes(t *testing.T) {
 	t.Parallel()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		sessionID          string
 		supportedUILayouts []*authd.UILayout
@@ -312,7 +317,8 @@ func TestGetAuthenticationModes(t *testing.T) {
 			require.NoError(t, err, "GetAuthenticationModes should not return an error, but did")
 
 			got := gamResp.GetAuthenticationModes()
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "GetAuthenticationModes returned an unexpected response")
 		})
 	}
@@ -321,6 +327,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 func TestSelectAuthenticationMode(t *testing.T) {
 	t.Parallel()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		sessionID string
 		authMode  string
@@ -402,13 +409,15 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			require.NoError(t, err, "SelectAuthenticationMode should not return an error, but did")
 
 			got := samResp.GetUiLayoutInfo()
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "SelectAuthenticationMode should have returned the expected UI layout")
 		})
 	}
 }
 
 func TestIsAuthenticated(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		sessionID  string
 		existingDB string
@@ -523,16 +532,22 @@ func TestIsAuthenticated(t *testing.T) {
 
 			got := firstCall + secondCall
 			got = permissionstestutils.IdempotentPermissionError(got)
-			want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "IsAuthenticated")))
+			want := testutils.LoadWithUpdateFromGolden(t, got,
+				testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "IsAuthenticated")),
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
 
 			// Check that cache has been updated too.
 			gotDB, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
-			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
+			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB,
+				testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")),
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, filepath.Join(testutils.GoldenPath(t), "gpasswd.output"))
+			gpasswdGolden := filepath.Join(testutils.GoldenPath(t), "gpasswd.output")
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, gpasswdGolden)
+			goldenTracker.MarkUsed(t, testutils.WithGoldenPath(gpasswdGolden))
 		})
 	}
 }
@@ -541,6 +556,7 @@ func TestIDGeneration(t *testing.T) {
 	t.Parallel()
 	usernamePrefix := t.Name()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		username string
 	}{
@@ -570,7 +586,8 @@ func TestIDGeneration(t *testing.T) {
 
 			gotDB, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
-			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
+			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")),
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
 		})
 	}
@@ -579,6 +596,7 @@ func TestIDGeneration(t *testing.T) {
 func TestSetDefaultBrokerForUser(t *testing.T) {
 	t.Parallel()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		username           string
 		brokerID           string
@@ -630,7 +648,8 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			// Check that cache has been updated too.
 			gotDB, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
-			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
+			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")),
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, wantDB, gotDB, "SetDefaultBrokerForUser should update the cache database as expected")
 		})
 	}

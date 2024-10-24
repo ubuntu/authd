@@ -63,6 +63,8 @@ var (
 func TestUnmarshalUserInfo(t *testing.T) {
 	t.Parallel()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
+
 	tests := map[string]struct {
 		jsonInput string
 
@@ -89,7 +91,8 @@ func TestUnmarshalUserInfo(t *testing.T) {
 			gotJSON, err := json.Marshal(got)
 			require.NoError(t, err, "Marshaling the result should not return an error, but did")
 
-			want := testutils.LoadWithUpdateFromGolden(t, string(gotJSON))
+			want := testutils.LoadWithUpdateFromGolden(t, string(gotJSON),
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, string(gotJSON), "unmarshalUserInfo should return the expected format, but did not")
 		})
 	}

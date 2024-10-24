@@ -17,6 +17,8 @@ var (
 	isVerboseOnce       sync.Once
 	sleepMultiplier     float64
 	sleepMultiplierOnce sync.Once
+	runningTests        []string
+	runningTestsOnce    sync.Once
 )
 
 // IsVerbose returns whether the tests are running in verbose mode.
@@ -31,6 +33,20 @@ func IsVerbose() bool {
 		}
 	})
 	return isVerbose
+}
+
+// RunningTests returns whether the tests are selected to run.
+func RunningTests() []string {
+	runningTestsOnce.Do(func() {
+		for _, arg := range os.Args {
+			value, ok := strings.CutPrefix(arg, "-test.run=")
+			if !ok {
+				continue
+			}
+			runningTests = append(runningTests, value)
+		}
+	})
+	return runningTests
 }
 
 func haveBuildFlag(flag string) bool {

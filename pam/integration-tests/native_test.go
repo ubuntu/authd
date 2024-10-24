@@ -17,6 +17,7 @@ func TestNativeAuthenticate(t *testing.T) {
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
+	goldenTracker := testutils.NewGoldenTracker(t)
 
 	tests := map[string]struct {
 		tape         string
@@ -219,10 +220,13 @@ func TestNativeAuthenticate(t *testing.T) {
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, "native", outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := testutils.LoadWithUpdateFromGolden(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
-			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, testutils.GoldenPath(t)+".gpasswd_out")
+			gpasswdOutputGolden := testutils.GoldenPath(t) + ".gpasswd_out"
+			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, gpasswdOutputGolden)
+			goldenTracker.MarkUsed(t, testutils.WithGoldenPath(gpasswdOutputGolden))
 		})
 	}
 }
@@ -238,6 +242,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 	require.NoError(t, err, "Setup: Could not create gpasswd output directory")
 	gpasswdOutput := filepath.Join(outDir, "gpasswd", "chauthtok.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+	goldenTracker := testutils.NewGoldenTracker(t)
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
 	defaultSocketPath := runAuthd(t, gpasswdOutput, groupsFile, true)
@@ -304,7 +309,8 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			td.AddClientOptions(t, clientOptions{})
 			td.RunVhs(t, "native", outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := testutils.LoadWithUpdateFromGolden(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 		})
 	}

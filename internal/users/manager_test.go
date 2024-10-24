@@ -16,6 +16,7 @@ import (
 )
 
 func TestNewManager(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		dbFile          string
 		corruptedDbFile bool
@@ -79,7 +80,8 @@ func TestNewManager(t *testing.T) {
 			got, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := testutils.LoadWithUpdateFromGolden(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "Did not get expected database content")
 
 			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t)+".gpasswd.output")
@@ -158,6 +160,8 @@ func TestUpdateUser(t *testing.T) {
 		"no-groups": {},
 	}
 
+	goldenTracker := testutils.NewGoldenTracker(t)
+
 	tests := map[string]struct {
 		userCase   string
 		groupsCase string
@@ -234,10 +238,13 @@ func TestUpdateUser(t *testing.T) {
 			got, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "Did not get expected database content")
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t)+".gpasswd.output")
+			gpasswdGolden := testutils.GoldenPath(t) + ".gpasswd.output"
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, gpasswdGolden)
+			goldenTracker.MarkUsed(t, testutils.WithGoldenPath(gpasswdGolden))
 		})
 	}
 }
@@ -279,6 +286,7 @@ func TestBrokerForUser(t *testing.T) {
 }
 
 func TestUpdateBrokerForUser(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		username string
 
@@ -318,7 +326,8 @@ func TestUpdateBrokerForUser(t *testing.T) {
 			got, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "Did not get expected database content")
 		})
 	}
@@ -326,6 +335,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 
 //nolint:dupl // This is not a duplicate test
 func TestUserByName(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		username string
 		dbFile   string
@@ -354,7 +364,8 @@ func TestUserByName(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "UserByName should return the expected user, but did not")
 		})
 	}
@@ -362,6 +373,7 @@ func TestUserByName(t *testing.T) {
 
 //nolint:dupl // This is not a duplicate test
 func TestUserByID(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		uid    uint32
 		dbFile string
@@ -391,13 +403,15 @@ func TestUserByID(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "UserByID should return the expected user, but did not")
 		})
 	}
 }
 
 func TestAllUsers(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		dbFile string
 
@@ -424,7 +438,8 @@ func TestAllUsers(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "AllUsers should return the expected users, but did not")
 		})
 	}
@@ -432,6 +447,7 @@ func TestAllUsers(t *testing.T) {
 
 //nolint:dupl // This is not a duplicate test
 func TestGroupByName(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		groupname string
 		dbFile    string
@@ -460,7 +476,8 @@ func TestGroupByName(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "GroupByName should return the expected group, but did not")
 		})
 	}
@@ -468,6 +485,7 @@ func TestGroupByName(t *testing.T) {
 
 //nolint:dupl // This is not a duplicate test
 func TestGroupByID(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		gid    uint32
 		dbFile string
@@ -496,13 +514,15 @@ func TestGroupByID(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "GroupByID should return the expected group, but did not")
 		})
 	}
 }
 
 func TestAllGroups(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		dbFile string
 
@@ -530,7 +550,8 @@ func TestAllGroups(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "AllGroups should return the expected groups, but did not")
 		})
 	}
@@ -538,6 +559,7 @@ func TestAllGroups(t *testing.T) {
 
 //nolint:dupl // This is not a duplicate test
 func TestShadowByName(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		username string
 		dbFile   string
@@ -567,13 +589,15 @@ func TestShadowByName(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "ShadowByName should return the expected user, but did not")
 		})
 	}
 }
 
 func TestAllShadows(t *testing.T) {
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		dbFile string
 
@@ -600,7 +624,8 @@ func TestAllShadows(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "AllShadows should return the expected users, but did not")
 		})
 	}

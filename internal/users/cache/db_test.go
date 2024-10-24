@@ -18,6 +18,7 @@ func TestNew(t *testing.T) {
 
 	perm0644 := os.FileMode(0644)
 	perm0000 := os.FileMode(0000)
+	goldenTracker := testutils.NewGoldenTracker(t)
 
 	tests := map[string]struct {
 		dbFile          string
@@ -78,7 +79,8 @@ func TestNew(t *testing.T) {
 			got, err := cachetestutils.DumpToYaml(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := testutils.LoadWithUpdateFromGolden(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "Did not get expected database content")
 
 			// check database permission
@@ -155,6 +157,8 @@ func TestUpdateUserEntry(t *testing.T) {
 		"group3":    cache.NewGroupDB("group3", 33333, nil),
 	}
 
+	goldenTracker := testutils.NewGoldenTracker(t)
+
 	tests := map[string]struct {
 		userCase   string
 		groupCases []string
@@ -229,7 +233,8 @@ func TestUpdateUserEntry(t *testing.T) {
 			got, err := cachetestutils.DumpToYaml(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := testutils.LoadWithUpdateFromGolden(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "Did not get expected database content")
 		})
 	}
@@ -238,6 +243,7 @@ func TestUpdateUserEntry(t *testing.T) {
 func TestUserByID(t *testing.T) {
 	t.Parallel()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		dbFile string
 
@@ -256,7 +262,7 @@ func TestUserByID(t *testing.T) {
 			c := initCache(t, tc.dbFile)
 
 			got, err := c.UserByID(1111)
-			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
+			requireGetAssertions(t, &goldenTracker, got, tc.wantErr, tc.wantErrType, err)
 		})
 	}
 }
@@ -264,6 +270,7 @@ func TestUserByID(t *testing.T) {
 func TestUserByName(t *testing.T) {
 	t.Parallel()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		dbFile string
 
@@ -282,7 +289,7 @@ func TestUserByName(t *testing.T) {
 			c := initCache(t, tc.dbFile)
 
 			got, err := c.UserByName("user1")
-			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
+			requireGetAssertions(t, &goldenTracker, got, tc.wantErr, tc.wantErrType, err)
 		})
 	}
 }
@@ -290,6 +297,7 @@ func TestUserByName(t *testing.T) {
 func TestAllUsers(t *testing.T) {
 	t.Parallel()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		dbFile string
 
@@ -309,7 +317,7 @@ func TestAllUsers(t *testing.T) {
 			c := initCache(t, tc.dbFile)
 
 			got, err := c.AllUsers()
-			requireGetAssertions(t, got, tc.wantErr, nil, err)
+			requireGetAssertions(t, &goldenTracker, got, tc.wantErr, nil, err)
 		})
 	}
 }
@@ -317,6 +325,7 @@ func TestAllUsers(t *testing.T) {
 func TestGroupByID(t *testing.T) {
 	t.Parallel()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		dbFile string
 
@@ -336,7 +345,7 @@ func TestGroupByID(t *testing.T) {
 			c := initCache(t, tc.dbFile)
 
 			got, err := c.GroupByID(11111)
-			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
+			requireGetAssertions(t, &goldenTracker, got, tc.wantErr, tc.wantErrType, err)
 		})
 	}
 }
@@ -344,6 +353,7 @@ func TestGroupByID(t *testing.T) {
 func TestGroupByName(t *testing.T) {
 	t.Parallel()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		dbFile string
 
@@ -363,7 +373,7 @@ func TestGroupByName(t *testing.T) {
 			c := initCache(t, tc.dbFile)
 
 			got, err := c.GroupByName("group1")
-			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
+			requireGetAssertions(t, &goldenTracker, got, tc.wantErr, tc.wantErrType, err)
 		})
 	}
 }
@@ -371,6 +381,7 @@ func TestGroupByName(t *testing.T) {
 func TestAllGroups(t *testing.T) {
 	t.Parallel()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
 	tests := map[string]struct {
 		dbFile string
 
@@ -393,7 +404,7 @@ func TestAllGroups(t *testing.T) {
 			c := initCache(t, tc.dbFile)
 
 			got, err := c.AllGroups()
-			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
+			requireGetAssertions(t, &goldenTracker, got, tc.wantErr, tc.wantErrType, err)
 		})
 	}
 }
@@ -451,6 +462,8 @@ func TestRemoveDb(t *testing.T) {
 func TestDeleteUser(t *testing.T) {
 	t.Parallel()
 
+	goldenTracker := testutils.NewGoldenTracker(t)
+
 	tests := map[string]struct {
 		dbFile string
 
@@ -482,7 +495,8 @@ func TestDeleteUser(t *testing.T) {
 
 			got, err := cachetestutils.DumpToYaml(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := testutils.LoadWithUpdateFromGolden(t, got,
+				testutils.WithGoldenTracker(&goldenTracker))
 			require.Equal(t, want, got, "Did not get expected database content")
 		})
 	}
@@ -504,7 +518,7 @@ func initCache(t *testing.T, dbFile string) (c *cache.Cache) {
 	return c
 }
 
-func requireGetAssertions[E any](t *testing.T, got E, wantErr bool, wantErrType, err error) {
+func requireGetAssertions[E any](t *testing.T, goldenTracker *testutils.GoldenTracker, got E, wantErr bool, wantErrType, err error) {
 	t.Helper()
 
 	if wantErrType != nil {
@@ -517,6 +531,7 @@ func requireGetAssertions[E any](t *testing.T, got E, wantErr bool, wantErrType,
 	}
 	require.NoError(t, err)
 
-	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+	want := testutils.LoadWithUpdateFromGoldenYAML(t, got,
+		testutils.WithGoldenTracker(goldenTracker))
 	require.Equal(t, want, got, "Did not get expected database entry")
 }

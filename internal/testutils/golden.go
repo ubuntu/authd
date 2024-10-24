@@ -1,12 +1,18 @@
 package testutils
 
 import (
+	"context"
+	"io/fs"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -25,7 +31,8 @@ func init() {
 }
 
 type goldenOptions struct {
-	goldenPath string
+	goldenPath    string
+	goldenTracker *GoldenTracker
 }
 
 // GoldenOption is a supported option reference to change the golden files comparison.
@@ -40,9 +47,16 @@ func WithGoldenPath(path string) GoldenOption {
 	}
 }
 
-// LoadWithUpdateFromGolden loads the element from a plaintext golden file.
-// It will update the file if the update flag is used prior to loading it.
-func LoadWithUpdateFromGolden(t *testing.T, data string, opts ...GoldenOption) string {
+// WithGoldenTracker sets the golden tracker to mark the golden as used.
+func WithGoldenTracker(gt *GoldenTracker) GoldenOption {
+	return func(o *goldenOptions) {
+		if gt != nil {
+			o.goldenTracker = gt
+		}
+	}
+}
+
+func parseOptions(t *testing.T, opts ...GoldenOption) goldenOptions {
 	t.Helper()
 
 	o := goldenOptions{
@@ -52,6 +66,16 @@ func LoadWithUpdateFromGolden(t *testing.T, data string, opts ...GoldenOption) s
 	for _, opt := range opts {
 		opt(&o)
 	}
+
+	return o
+}
+
+// LoadWithUpdateFromGolden loads the element from a plaintext golden file.
+// It will update the file if the update flag is used prior to loading it.
+func LoadWithUpdateFromGolden(t *testing.T, data string, opts ...GoldenOption) string {
+	t.Helper()
+
+	o := parseOptions(t, opts...)
 
 	if update {
 		t.Logf("updating golden file %s", o.goldenPath)
@@ -63,6 +87,10 @@ func LoadWithUpdateFromGolden(t *testing.T, data string, opts ...GoldenOption) s
 
 	want, err := os.ReadFile(o.goldenPath)
 	require.NoError(t, err, "Cannot load golden file")
+
+	if o.goldenTracker != nil {
+		o.goldenTracker.MarkUsed(t, WithGoldenPath(o.goldenPath))
+	}
 
 	return string(want)
 }
@@ -120,4 +148,92 @@ func GoldenPath(t *testing.T) string {
 // UpdateEnabled returns true if updating the golden files is requested.
 func UpdateEnabled() bool {
 	return update
+}
+
+// GoldenTracker is a structure to track used golden files in tests.
+type GoldenTracker struct {
+	mu   *sync.Mutex
+	used map[string]struct{}
+}
+
+// NewGoldenTracker create a new [GoldenTracker] that checks if golden files are used.
+func NewGoldenTracker(t *testing.T) GoldenTracker {
+	t.Helper()
+
+	gt := GoldenTracker{
+		mu:   &sync.Mutex{},
+		used: make(map[string]struct{}),
+	}
+
+	require.False(t, strings.Contains(t.Name(), "/"),
+		"Setup: %T should be used from a parent test, %s is not", gt, t.Name())
+
+	if slices.ContainsFunc(RunningTests(), func(r string) bool {
+		prefix := t.Name() + "/"
+		return strings.HasPrefix(r, prefix) && len(r) > len(prefix)
+	}) {
+		t.Logf("%T disabled, can't work on partial tests", gt)
+		return gt
+	}
+
+	t.Cleanup(func() {
+		if t.Failed() {
+			return
+		}
+
+		goldenPath := GoldenPath(t)
+
+		var entries []string
+		err := filepath.WalkDir(goldenPath, func(path string, entry fs.DirEntry, err error) error {
+			if err != nil {
+				log.Errorf(context.TODO(), "TearDown: Reading test golden files %s: %v", path, err)
+				t.FailNow()
+			}
+			if path == goldenPath {
+				return nil
+			}
+			entries = append(entries, path)
+			return nil
+		})
+		if err != nil {
+			log.Errorf(context.TODO(), "TearDown: Walking test golden files %s: %v", goldenPath, err)
+			t.FailNow()
+		}
+
+		gt.mu.Lock()
+		defer gt.mu.Unlock()
+
+		t.Log("Checking golden files in", goldenPath)
+		var unused []string
+		for _, e := range entries {
+			if _, ok := gt.used[e]; ok {
+				continue
+			}
+			unused = append(unused, e)
+		}
+		if len(unused) > 0 {
+			log.Errorf(context.TODO(), "TearDown: Unused golden files have been found:\n  %#v\n  known are %#v",
+				unused, slices.Collect(maps.Keys(gt.used)))
+			t.FailNow()
+		}
+	})
+
+	return gt
+}
+
+// MarkUsed marks a golden file as being used.
+func (gt *GoldenTracker) MarkUsed(t *testing.T, opts ...GoldenOption) {
+	t.Helper()
+
+	gt.mu.Lock()
+	defer gt.mu.Unlock()
+
+	o := parseOptions(t, opts...)
+	require.Nil(t, o.goldenTracker, "Setup: GoldenTracker option is not supported")
+	gt.used[o.goldenPath] = struct{}{}
+
+	basePath := filepath.Dir(o.goldenPath)
+	if basePath == GoldenPath(t) {
+		gt.used[basePath] = struct{}{}
+	}
 }
