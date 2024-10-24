@@ -324,6 +324,15 @@ func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err err
 	if c := layout.GetCode(); c != "" {
 		r["code"] = c
 	}
+
+	if layout.GetType() != "qrcode" {
+		return r, nil
+	}
+	if rc := layout.RendersQrcode; rc == nil || *rc {
+		// If the field is not set, we keep retro-compatibility with what we were
+		// dong before of the addition of the field.
+		r["renders_qrcode"] = "true"
+	}
 	return r, nil
 }
 
@@ -336,6 +345,9 @@ func mapToUILayout(layout map[string]string) (r *authd.UILayout) {
 	wait := layout["wait"]
 	content := layout["content"]
 	code := layout["code"]
+
+	// We don't return whether the qrcode rendering is enabled back to the
+	// client on purpose, since it's something it mandates.
 
 	return &authd.UILayout{
 		Type:    typ,

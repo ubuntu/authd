@@ -23,12 +23,12 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
+2 - Use a Login code
+3 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
 8 - Authentication code
 Select authentication mode:
 ────────────────────────────────────────────────────────────────────────────────
@@ -42,15 +42,15 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
+2 - Use a Login code
+3 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
 8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
+Select authentication mode: 2
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -69,15 +69,15 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
+2 - Use a Login code
+3 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
 8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
+Select authentication mode: 2
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -85,7 +85,7 @@ https://ubuntu.com
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -104,15 +104,15 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
+2 - Use a Login code
+3 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
 8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
+Select authentication mode: 2
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -120,7 +120,7 @@ https://ubuntu.com
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -128,7 +128,7 @@ https://ubuntu.fr/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
@@ -147,15 +147,15 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
+2 - Use a Login code
+3 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
 8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
+Select authentication mode: 2
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -163,7 +163,7 @@ https://ubuntu.com
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -171,7 +171,7 @@ https://ubuntu.fr/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
@@ -179,7 +179,7 @@ https://ubuntuforum-br.org/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
@@ -198,15 +198,15 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
+2 - Use a Login code
+3 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
 8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
+Select authentication mode: 2
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -214,7 +214,7 @@ https://ubuntu.com
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -222,7 +222,7 @@ https://ubuntu.fr/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
@@ -230,7 +230,7 @@ https://ubuntuforum-br.org/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
@@ -238,7 +238,7 @@ https://www.ubuntu-it.org/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1341
 
@@ -257,15 +257,15 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
+2 - Use a Login code
+3 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
 8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
+Select authentication mode: 2
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -273,7 +273,7 @@ https://ubuntu.com
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -281,7 +281,7 @@ https://ubuntu.fr/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
@@ -289,7 +289,7 @@ https://ubuntuforum-br.org/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
@@ -297,7 +297,7 @@ https://www.ubuntu-it.org/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1341
 
@@ -316,15 +316,15 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
+2 - Use a Login code
+3 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
 8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
+Select authentication mode: 2
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -332,7 +332,7 @@ https://ubuntu.com
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -340,7 +340,7 @@ https://ubuntu.fr/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
@@ -348,7 +348,7 @@ https://ubuntuforum-br.org/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
@@ -356,7 +356,7 @@ https://www.ubuntu-it.org/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1341
 
@@ -378,15 +378,15 @@ Insert 'r' to cancel the request and go back
 Gimme your password:
 == Authentication mode selection (use 'r' to go back) ==
 1 - Password authentication
-2 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
+2 - Use a Login code
+3 - Send URL to user-integration-pre-check-ssh-service-qr-code@gmail.com
+4 - Use your fido device foo
+5 - Use your phone +33…
+6 - Use your phone +1…
+7 - Pin code
 8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
+Select authentication mode: 2
+Enter the code in the login page
 https://ubuntu.com
        1337
 
@@ -394,7 +394,7 @@ https://ubuntu.com
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.fr/
        1338
 
@@ -402,7 +402,7 @@ https://ubuntu.fr/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
@@ -410,7 +410,7 @@ https://ubuntuforum-br.org/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
@@ -418,7 +418,7 @@ https://www.ubuntu-it.org/
 1 - Wait for the QR code scan result
 2 - Regenerate code
 Select action: 2
-Scan the qrcode or enter the code in the login page
+Enter the code in the login page
 https://ubuntu.com
        1341
 

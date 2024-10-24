@@ -34,10 +34,11 @@ type tapeSetting struct {
 }
 
 type tapeData struct {
-	Name     string
-	Outputs  []string
-	Settings map[string]any
-	Env      map[string]string
+	Name      string
+	Outputs   []string
+	Settings  map[string]any
+	Env       map[string]string
+	Variables map[string]string
 }
 
 var (
@@ -219,7 +220,7 @@ func (td tapeData) PrepareTape(t *testing.T, tapesDir, outputPath string) string
 		currentDir, "testdata", "tapes", tapesDir, td.Name+".tape"))
 	require.NoError(t, err, "Setup: read tape file %s", td.Name)
 
-	tapeString := evaluateTapeVariables(t, string(tape))
+	tapeString := evaluateTapeVariables(t, string(tape), td)
 	tape = []byte(fmt.Sprintf("%s\n%s", td, tapeString))
 
 	tapePath := filepath.Join(outputPath, td.Name)
@@ -235,7 +236,7 @@ func (td tapeData) PrepareTape(t *testing.T, tapesDir, outputPath string) string
 	return tapePath
 }
 
-func evaluateTapeVariables(t *testing.T, tapeString string) string {
+func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData) string {
 	t.Helper()
 
 	for _, m := range vhsSleepRegex.FindAllStringSubmatch(tapeString, -1) {
@@ -262,6 +263,13 @@ func evaluateTapeVariables(t *testing.T, tapeString string) string {
 		replaceRegex := regexp.MustCompile(fmt.Sprintf(`(?m)%s$`, regexp.QuoteMeta(fullMatch)))
 		tapeString = replaceRegex.ReplaceAllString(tapeString,
 			fmt.Sprintf("%dms", sleepDuration(sleep).Milliseconds()))
+	}
+
+	for k, v := range td.Variables {
+		variable := fmt.Sprintf("${%s}", k)
+		require.Contains(t, tapeString, variable,
+			"Setup: Tape does not contain %q", variable)
+		tapeString = strings.ReplaceAll(tapeString, variable, v)
 	}
 
 	return tapeString
