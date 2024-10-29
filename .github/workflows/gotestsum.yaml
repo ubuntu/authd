@@ -1,0 +1,27 @@
+name: Run Go tests with human-readable output
+
+# Run this workflow on pushes to the main branch, on tags, and on pull requests.
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+  pull_request:
+
+env:
+  GO_TESTS_TIMEOUT: 20m
+
+jobs:
+  go-tests:
+    name: "Go: Tests"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install gotestsum
+        run: go install go install gotest.tools/gotestsum@latest
+      - name: Run tests with gotestsum
+        run: gotestsum --junitfile unit-tests.xml --format github-actions
