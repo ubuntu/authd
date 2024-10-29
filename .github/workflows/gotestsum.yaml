@@ -24,4 +24,4 @@ jobs:
       - name: Install gotestsum
         run: go install gotest.tools/gotestsum@latest
       - name: Run tests with gotestsum
-        run: gotestsum --junitfile unit-tests.xml --format github-actions
+        run: gotestsum --junitfile unit-tests.xml --format github-actions --hide-summary=output
