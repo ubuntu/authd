@@ -1,4 +1,4 @@
-name: Run Go tests with human-readable output
+name: Run Go tests with gotestsum
 
 # Run this workflow on pushes to the main branch, on tags, and on pull requests.
 on:
