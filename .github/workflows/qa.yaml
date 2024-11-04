@@ -241,7 +241,7 @@ jobs:
         run: |
           go test -C ./pam/internal -json -asan -gcflags=all="${GO_GC_FLAGS}" -timeout ${GO_TESTS_TIMEOUT} ./... | \
             ./tools/gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.pam-internal-asan.log" || exit_code=$?
-          if [ "${exit_code}" -ne 0 ]; then
+          if [ -n "${exit_code:-}" ]; then
             cat "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log* || true
             exit ${exit_code}
           fi
