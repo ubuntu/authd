@@ -174,9 +174,9 @@ jobs:
           components: llvm-tools-preview
       - name: Install grcov
         if: matrix.test == 'coverage'
-        run: |
-          set -eu
-          cargo install grcov
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: grcov
       - name: Prepare tests artifacts path
         run: |
           set -eu
