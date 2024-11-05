@@ -559,18 +559,11 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 	if m.uiLayout.Label != nil {
 		prompt, _ = strings.CutSuffix(*m.uiLayout.Label, ":")
 	}
-
 	if prompt == "" {
-		switch m.uiLayout.GetEntry() {
-		case "digits":
-			fallthrough
-		case "digits_password":
-			prompt = "PIN"
-		case "chars":
-			prompt = "Value"
-		case "chars_password":
-			prompt = "Password"
-		}
+		return sendEvent(pamError{
+			status: pam.ErrSystem,
+			msg:    fmt.Sprintf("No label provided for entry %q", m.uiLayout.GetEntry()),
+		})
 	}
 
 	instructions := "Enter '%[1]s' to cancel the request and go back"
