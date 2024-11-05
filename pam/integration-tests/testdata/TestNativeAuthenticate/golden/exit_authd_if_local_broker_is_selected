@@ -10,13 +10,15 @@ Username: user-local-broker
   1. local
   2. ExampleBroker
 Choose your provider:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-local-broker
 == Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
-Choose your provider: 1
+Choose your provider:
+> 1
 auth=incomplete
 PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
 n value should be ignored by PAM dispatch
@@ -28,7 +30,8 @@ Username: user-local-broker
 == Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
-Choose your provider: 1
+Choose your provider:
+> 1
 auth=incomplete
 PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
 n value should be ignored by PAM dispatch

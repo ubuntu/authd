@@ -10,24 +10,29 @@ Username: r
   1. local
   2. ExampleBroker
 Choose your provider:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: r
 == Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
-Choose your provider: 2
+Choose your provider:
+> 2
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: r
 == Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
-Choose your provider: 2
+Choose your provider:
+> 2
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
+>
 PAM Error Message: user not found
 PAM Authenticate() for user "r" exited with error (PAM exit code: 7): Authentication failure
 acct=incomplete
@@ -40,9 +45,11 @@ Username: r
 == Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
-Choose your provider: 2
+Choose your provider:
+> 2
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
+>
 PAM Error Message: user not found
 PAM Authenticate() for user "r" exited with error (PAM exit code: 7): Authentication failure
 acct=incomplete

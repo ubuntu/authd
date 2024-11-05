@@ -10,13 +10,15 @@ Username: user-unexistent
   1. local
   2. ExampleBroker
 Choose your provider:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-unexistent
 == Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
-Choose your provider: 2
+Choose your provider:
+> 2
 PAM Error Message: can't select broker: user "user-unexistent" does not exist
 PAM Authenticate() for user "user-unexistent" exited with error (PAM exit code: 4): System error
 acct=incomplete
@@ -29,7 +31,8 @@ Username: user-unexistent
 == Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
-Choose your provider: 2
+Choose your provider:
+> 2
 PAM Error Message: can't select broker: user "user-unexistent" does not exist
 PAM Authenticate() for user "user-unexistent" exited with error (PAM exit code: 4): System error
 acct=incomplete

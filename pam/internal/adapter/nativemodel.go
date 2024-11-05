@@ -43,6 +43,13 @@ const (
 	polkitServiceName = "polkit-1"
 )
 
+type inputPromptStyle int
+
+const (
+	inputPromptStyleInline inputPromptStyle = iota
+	inputPromptStyleMultiLine
+)
+
 // nativeChangeStage is the internal event to notify that a stage change has happened.
 type nativeChangeStage ChangeStage
 
@@ -313,8 +320,18 @@ func (m nativeModel) checkForPromptReplyValidity(reply string) error {
 	return nil
 }
 
-func (m nativeModel) promptForInput(style pam.Style, prompt string) (string, error) {
-	resp, err := m.pamMTx.StartStringConvf(style, "%s: ", prompt)
+func (m nativeModel) promptForInput(style pam.Style, inputStyle inputPromptStyle, prompt string) (string, error) {
+	format := "%s"
+	if IsSSHSession(m.pamMTx) || m.isTerminalTty() {
+		switch inputStyle {
+		case inputPromptStyleInline:
+			format = "%s: "
+		case inputPromptStyleMultiLine:
+			format = "%s:\n> "
+		}
+	}
+
+	resp, err := m.pamMTx.StartStringConvf(style, format, prompt)
 	if err != nil {
 		return "", err
 	}
@@ -322,7 +339,7 @@ func (m nativeModel) promptForInput(style pam.Style, prompt string) (string, err
 }
 
 func (m nativeModel) promptForNumericInput(style pam.Style, prompt string) (int, error) {
-	out, err := m.promptForInput(style, prompt)
+	out, err := m.promptForInput(style, inputPromptStyleMultiLine, prompt)
 	if err != nil {
 		return -1, err
 	}
@@ -417,7 +434,7 @@ func (m nativeModel) startAsyncOp(cmd func() tea.Cmd) (nativeModel, tea.Cmd) {
 }
 
 func (m nativeModel) userSelection() tea.Cmd {
-	user, err := m.promptForInput(pam.PromptEchoOn, "Username")
+	user, err := m.promptForInput(pam.PromptEchoOn, inputPromptStyleInline, "Username")
 	if errors.Is(err, errEmptyResponse) {
 		return sendEvent(nativeUserSelection{})
 	}
@@ -604,9 +621,9 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 func (m nativeModel) promptForChallenge(prompt string) (string, error) {
 	switch m.uiLayout.GetEntry() {
 	case "chars", "":
-		return m.promptForInput(pam.PromptEchoOn, prompt)
+		return m.promptForInput(pam.PromptEchoOn, inputPromptStyleMultiLine, prompt)
 	case "chars_password":
-		return m.promptForInput(pam.PromptEchoOff, prompt)
+		return m.promptForInput(pam.PromptEchoOff, inputPromptStyleMultiLine, prompt)
 	case "digits":
 		return m.promptForNumericInputAsString(pam.PromptEchoOn, prompt)
 	case "digits_password":
