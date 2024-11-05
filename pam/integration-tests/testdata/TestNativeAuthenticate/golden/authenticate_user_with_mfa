@@ -3,34 +3,39 @@ Username:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-== Provider selection (enter 'r' to go back to user selection) ==
+== Provider selection ==
   1. local
   2. ExampleBroker
+Or enter 'r' to go back to user selection
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-== Provider selection (enter 'r' to go back to user selection) ==
+== Provider selection ==
   1. local
   2. ExampleBroker
+Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-== Provider selection (enter 'r' to go back to user selection) ==
+== Provider selection ==
   1. local
   2. ExampleBroker
+Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
@@ -39,20 +44,23 @@ Gimme your password:
   6. Pin code
   7. Use a QR code
   8. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-== Provider selection (enter 'r' to go back to user selection) ==
+== Provider selection ==
   1. local
   2. ExampleBroker
+Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
@@ -61,23 +69,27 @@ Gimme your password:
   6. Pin code
   7. Use a QR code
   8. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-== Provider selection (enter 'r' to go back to user selection) ==
+== Provider selection ==
   1. local
   2. ExampleBroker
+Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
@@ -86,11 +98,14 @@ Gimme your password:
   6. Pin code
   7. Use a QR code
   8. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
@@ -98,15 +113,17 @@ Plug your fido device and press with your thumb:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-== Provider selection (enter 'r' to go back to user selection) ==
+== Provider selection ==
   1. local
   2. ExampleBroker
+Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
@@ -115,33 +132,39 @@ Gimme your password:
   6. Pin code
   7. Use a QR code
   8. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-== Provider selection (enter 'r' to go back to user selection) ==
+== Provider selection ==
   1. local
   2. ExampleBroker
+Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
@@ -150,21 +173,26 @@ Gimme your password:
   6. Pin code
   7. Use a QR code
   8. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
@@ -172,15 +200,17 @@ Plug your fido device and press with your thumb:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-== Provider selection (enter 'r' to go back to user selection) ==
+== Provider selection ==
   1. local
   2. ExampleBroker
+Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
@@ -189,43 +219,51 @@ Gimme your password:
   6. Pin code
   7. Use a QR code
   8. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-== Provider selection (enter 'r' to go back to user selection) ==
+== Provider selection ==
   1. local
   2. ExampleBroker
+Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
@@ -234,45 +272,51 @@ Gimme your password:
   6. Pin code
   7. Use a QR code
   8. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 2
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-== Provider selection (enter 'r' to go back to user selection) ==
+== Provider selection ==
   1. local
   2. ExampleBroker
+Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
@@ -281,45 +325,51 @@ Gimme your password:
   6. Pin code
   7. Use a QR code
   8. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 2
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-== Provider selection (enter 'r' to go back to user selection) ==
+== Provider selection ==
   1. local
   2. ExampleBroker
+Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
@@ -328,45 +378,51 @@ Gimme your password:
   6. Pin code
   7. Use a QR code
   8. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 2
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-== Provider selection (enter 'r' to go back to user selection) ==
+== Provider selection ==
   1. local
   2. ExampleBroker
+Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
@@ -375,45 +431,51 @@ Gimme your password:
   6. Pin code
   7. Use a QR code
   8. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 2
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-mfa
-== Provider selection (enter 'r' to go back to user selection) ==
+== Provider selection ==
   1. local
   2. ExampleBroker
+Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Password authentication
   2. Send URL to user-mfa@gmail.com
   3. Use your fido device foo
@@ -422,31 +484,35 @@ Gimme your password:
   6. Pin code
   7. Use a QR code
   8. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 1
+== Use your fido device foo ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection (enter 'r' to go back to choose the provider) ==
+== Authentication method selection ==
   1. Use your fido device foo
   2. Use your phone +33…
   3. Authentication code
+Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 2
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
 ────────────────────────────────────────────────────────────────────────────────

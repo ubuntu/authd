@@ -32,6 +32,7 @@ type nativeModel struct {
 	uiLayout         *authd.UILayout
 
 	serviceName          string
+	interactive          bool
 	currentStage         proto.Stage
 	busy                 bool
 	userSelectionAllowed bool
@@ -85,6 +86,8 @@ func (m *nativeModel) Init() tea.Cmd {
 	if err != nil {
 		log.Errorf(context.TODO(), "failed to get the PAM service: %v", err)
 	}
+
+	m.interactive = IsSSHSession(m.pamMTx) || m.isTerminalTty()
 
 	return func() tea.Msg {
 		required, optional := "required", "optional"
@@ -322,7 +325,7 @@ func (m nativeModel) checkForPromptReplyValidity(reply string) error {
 
 func (m nativeModel) promptForInput(style pam.Style, inputStyle inputPromptStyle, prompt string) (string, error) {
 	format := "%s"
-	if IsSSHSession(m.pamMTx) || m.isTerminalTty() {
+	if m.interactive {
 		switch inputStyle {
 		case inputPromptStyleInline:
 			format = "%s: "
@@ -392,20 +395,29 @@ type choicePair struct {
 	label string
 }
 
-func (m nativeModel) promptForChoice(title string, choices []choicePair, prompt string) (string, error) {
+func (m nativeModel) promptForChoiceWithMessage(title string, message string, choices []choicePair, prompt string) (string, error) {
+	msg := fmt.Sprintf("== %s ==\n", title)
+	if message != "" {
+		msg += message + "\n"
+	}
+
+	for i, choice := range choices {
+		msg += fmt.Sprintf("  %d. %s", i+1, choice.label)
+		if i < len(choices)-1 {
+			msg += "\n"
+		}
+	}
+
 	if m.canGoBack() {
-		title = fmt.Sprintf("%s (enter '%s' to %s)", title, nativeCancelKey,
+		msg += fmt.Sprintf("\nOr enter '%s' to %s", nativeCancelKey,
 			m.goBackActionLabel())
 	}
 
-	msg := fmt.Sprintf("== %s ==\n", title)
-	for i, choice := range choices {
-		msg += fmt.Sprintf("  %d. %s\n", i+1, choice.label)
-	}
-	msg += prompt
-
 	for {
-		idx, err := m.promptForNumericInputUntilValid(pam.PromptEchoOn, msg)
+		if err := m.sendInfo(msg); err != nil {
+			return "", err
+		}
+		idx, err := m.promptForNumericInputUntilValid(pam.PromptEchoOn, prompt)
 		if err != nil {
 			return "", err
 		}
@@ -420,6 +432,10 @@ func (m nativeModel) promptForChoice(title string, choices []choicePair, prompt 
 
 		return choices[idx-1].id, nil
 	}
+}
+
+func (m nativeModel) promptForChoice(title string, choices []choicePair, prompt string) (string, error) {
+	return m.promptForChoiceWithMessage(title, "", choices, prompt)
 }
 
 func (m nativeModel) startAsyncOp(cmd func() tea.Cmd) (nativeModel, tea.Cmd) {
@@ -543,14 +559,15 @@ func (m nativeModel) startChallenge() tea.Cmd {
 }
 
 func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
+	authMode := "Chosen authentication method"
+	authModeIdx := slices.IndexFunc(m.authModes, func(mode *authd.GAMResponse_AuthenticationMode) bool {
+		return mode.Id == m.selectedAuthMode
+	})
+	if authModeIdx > -1 {
+		authMode = m.authModes[authModeIdx].Label
+	}
+
 	if buttonLabel := m.uiLayout.GetButton(); buttonLabel != "" {
-		authMode := "chosen authentication method"
-		authModeIdx := slices.IndexFunc(m.authModes, func(mode *authd.GAMResponse_AuthenticationMode) bool {
-			return mode.Id == m.selectedAuthMode
-		})
-		if authModeIdx > -1 {
-			authMode = m.authModes[authModeIdx].Label
-		}
 		choices := []choicePair{
 			{id: "continue", label: fmt.Sprintf("Proceed with %s", authMode)},
 		}
@@ -595,7 +612,8 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 		}
 	}
 
-	if cmd := maybeSendPamError(m.sendInfo(instructions, nativeCancelKey, m.goBackActionLabel())); cmd != nil {
+	instructions = fmt.Sprintf(instructions, nativeCancelKey, m.goBackActionLabel())
+	if cmd := maybeSendPamError(m.sendInfo("== %s ==\n%s", authMode, instructions)); cmd != nil {
 		return cmd
 	}
 
@@ -715,10 +733,6 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 	// Ass some extra vertical space to improve readability
 	qrcodeView = append(qrcodeView, " ")
 
-	if cmd := maybeSendPamError(m.sendInfo(strings.Join(qrcodeView, "\n"))); cmd != nil {
-		return cmd
-	}
-
 	choices := []choicePair{
 		{id: "wait", label: "Wait for the QR code scan result"},
 	}
@@ -726,7 +740,8 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 		choices = append(choices, choicePair{id: "button", label: buttonLabel})
 	}
 
-	id, err := m.promptForChoice("Qr Code authentication", choices, "Choose action")
+	id, err := m.promptForChoiceWithMessage("Qr Code authentication",
+		strings.Join(qrcodeView, "\n"), choices, "Choose action")
 	if errors.Is(err, errGoBack) {
 		return sendEvent(nativeGoBack{})
 	}

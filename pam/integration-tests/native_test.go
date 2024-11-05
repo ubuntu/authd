@@ -34,10 +34,11 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with mfa": {
 			tape:         "mfa_auth",
-			tapeSettings: []tapeSetting{{vhsHeight, 700}},
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Authenticate user with form mode with button": {
-			tape: "form_with_button",
+			tape:         "form_with_button",
+			tapeSettings: []tapeSetting{{vhsHeight, 600}},
 		},
 		"Authenticate user with qr code": {
 			tape:          "qr_code",
@@ -46,7 +47,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in a TTY": {
 			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
+			tapeSettings: []tapeSetting{{vhsHeight, 3700}},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty",
 				Term:    "linux",
@@ -54,7 +55,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in a TTY session": {
 			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
+			tapeSettings: []tapeSetting{{vhsHeight, 3700}},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty-session",
 				Term:    "xterm-256color", SessionType: "tty",
@@ -62,7 +63,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in screen": {
 			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
+			tapeSettings: []tapeSetting{{vhsHeight, 3700}},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-screen",
 				Term:    "screen",
@@ -98,14 +99,14 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user switching auth mode": {
 			tape:         "switch_auth_mode",
-			tapeSettings: []tapeSetting{{vhsHeight, 2350}},
+			tapeSettings: []tapeSetting{{vhsHeight, 3000}},
 		},
 		"Authenticate user switching username": {
 			tape: "switch_username",
 		},
 		"Authenticate user switching to local broker": {
 			tape:         "switch_local_broker",
-			tapeSettings: []tapeSetting{{vhsHeight, 600}},
+			tapeSettings: []tapeSetting{{vhsHeight, 700}},
 		},
 		"Authenticate user and add it to local group": {
 			tape: "local_group",
@@ -152,7 +153,8 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 
 		"Deny authentication if max attempts reached": {
-			tape: "max_attempts",
+			tape:         "max_attempts",
+			tapeSettings: []tapeSetting{{vhsHeight, 700}},
 		},
 		"Deny authentication if user does not exist": {
 			tape: "unexistent_user",
@@ -167,7 +169,7 @@ func TestNativeAuthenticate(t *testing.T) {
 
 		"Prevent preset user from switching username": {
 			tape:          "switch_preset_username",
-			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
 			clientOptions: clientOptions{PamUser: "user-integration-pam-preset"},
 		},
 
@@ -247,7 +249,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		},
 		"Change passwd after MFA auth": {
 			tape:         "passwd_mfa",
-			tapeSettings: []tapeSetting{{vhsHeight, 900}},
+			tapeSettings: []tapeSetting{{vhsHeight, 1100}},
 		},
 
 		"Retry if new password is rejected by broker": {
@@ -266,7 +268,8 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		},
 
 		"Prevent change password if auth fails": {
-			tape: "passwd_auth_fail",
+			tape:         "passwd_auth_fail",
+			tapeSettings: []tapeSetting{{vhsHeight, 700}},
 		},
 		"Prevent change password if user does not exist": {
 			tape: "passwd_unexistent_user",

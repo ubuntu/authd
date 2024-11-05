@@ -11,6 +11,7 @@ Choose your provider:
   2. ExampleBroker
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
@@ -21,6 +22,7 @@ Gimme your password:
   2. ExampleBroker
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
@@ -34,6 +36,7 @@ PAM AcctMgmt() exited with success
   2. ExampleBroker
 Choose your provider:
 > 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
