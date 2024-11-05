@@ -268,7 +268,18 @@ jobs:
           set +x
 
           # We're logging to a file, and this is useful for having artifacts, but we still may want to see it in logs:
-          cat "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log* || true
+          for f in "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log*; do
+            if ! [ -e "${f}" ]; then
+              continue
+            fi
+            if [ -s "${f}" ]; then
+              echo "::group::${f} ($(wc -l < "${f}") lines)"
+              cat "${f}"
+              echo "::endgroup::"
+            else
+              echo "${f}: empty"
+            fi
+          done
 
           exit ${exit_code}
 
