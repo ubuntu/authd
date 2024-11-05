@@ -3,29 +3,29 @@ Username:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-switch-broker@gmail.com
   3. Use your fido device foo
@@ -38,13 +38,13 @@ Choose your authentication method:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-switch-broker@gmail.com
   3. Use your fido device foo
@@ -54,20 +54,20 @@ Gimme your password:
   7. Use a QR code
   8. Authentication code
 Choose your authentication method: r
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-switch-broker@gmail.com
   3. Use your fido device foo
@@ -77,25 +77,25 @@ Gimme your password:
   7. Use a QR code
   8. Authentication code
 Choose your authentication method: r
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: invalid-ID
 PAM Error Message: Provided input can't be parsed as integer value
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-switch-broker@gmail.com
   3. Use your fido device foo
@@ -105,30 +105,30 @@ Gimme your password:
   7. Use a QR code
   8. Authentication code
 Choose your authentication method: r
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: invalid-ID
 PAM Error Message: Provided input can't be parsed as integer value
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 555
 PAM Error Message: Invalid entry. Try again or input 'r'.
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-switch-broker@gmail.com
   3. Use your fido device foo
@@ -138,17 +138,17 @@ Gimme your password:
   7. Use a QR code
   8. Authentication code
 Choose your authentication method: r
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: invalid-ID
 PAM Error Message: Provided input can't be parsed as integer value
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 555
 PAM Error Message: Invalid entry. Try again or input 'r'.
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 1
@@ -160,13 +160,13 @@ PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-broker
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-switch-broker@gmail.com
   3. Use your fido device foo
@@ -176,17 +176,17 @@ Gimme your password:
   7. Use a QR code
   8. Authentication code
 Choose your authentication method: r
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: invalid-ID
 PAM Error Message: Provided input can't be parsed as integer value
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 555
 PAM Error Message: Invalid entry. Try again or input 'r'.
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 1

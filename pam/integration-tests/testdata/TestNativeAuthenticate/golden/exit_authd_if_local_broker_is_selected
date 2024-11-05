@@ -6,14 +6,14 @@ Username: user-local-broker
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-local-broker
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-local-broker
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 1
@@ -25,7 +25,7 @@ PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-local-broker
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 1

@@ -6,14 +6,14 @@ Username: user-unexistent
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-unexistent
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-unexistent
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 2
@@ -26,7 +26,7 @@ dispatch
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-unexistent
-== Provider selection (enter 'r' to go back) ==
+== Provider selection (enter 'r' to go back to user selection) ==
   1. local
   2. ExampleBroker
 Choose your provider: 2

@@ -25,7 +25,7 @@ PAM Error Message: Provided input can't be parsed as integer value
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
@@ -38,9 +38,9 @@ PAM Error Message: Provided input can't be parsed as integer value
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-pam-preset@gmail.com
   3. Use your fido device foo
@@ -61,9 +61,9 @@ PAM Error Message: Provided input can't be parsed as integer value
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-pam-preset@gmail.com
   3. Use your fido device foo
@@ -88,9 +88,9 @@ PAM Error Message: Provided input can't be parsed as integer value
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-pam-preset@gmail.com
   3. Use your fido device foo
@@ -120,9 +120,9 @@ PAM Error Message: Provided input can't be parsed as integer value
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-pam-preset@gmail.com
   3. Use your fido device foo
@@ -157,9 +157,9 @@ PAM Error Message: Provided input can't be parsed as integer value
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-pam-preset@gmail.com
   3. Use your fido device foo
@@ -183,7 +183,7 @@ PAM Error Message: Provided input can't be parsed as integer value
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
@@ -196,9 +196,9 @@ PAM Error Message: Provided input can't be parsed as integer value
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-pam-preset@gmail.com
   3. Use your fido device foo
@@ -222,7 +222,7 @@ PAM Error Message: Provided input can't be parsed as integer value
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 PAM Authenticate() for user "user-integration-pam-preset" exited with success
 PAM AcctMgmt() exited with success
@@ -238,9 +238,9 @@ PAM Error Message: Provided input can't be parsed as integer value
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-pam-preset@gmail.com
   3. Use your fido device foo
@@ -264,7 +264,7 @@ PAM Error Message: Provided input can't be parsed as integer value
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 PAM Authenticate() for user "user-integration-pam-preset" exited with success
 PAM AcctMgmt() exited with success

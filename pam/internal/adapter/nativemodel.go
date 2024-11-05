@@ -377,7 +377,8 @@ type choicePair struct {
 
 func (m nativeModel) promptForChoice(title string, choices []choicePair, prompt string) (string, error) {
 	if m.canGoBack() {
-		title = fmt.Sprintf("%s (enter '%s' to go back)", title, nativeCancelKey)
+		title = fmt.Sprintf("%s (enter '%s' to %s)", title, nativeCancelKey,
+			m.goBackActionLabel())
 	}
 
 	msg := fmt.Sprintf("== %s ==\n", title)
@@ -566,18 +567,18 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 		})
 	}
 
-	instructions := "Enter '%[1]s' to cancel the request and go back"
+	instructions := "Enter '%[1]s' to cancel the request and %[2]s"
 	if hasWait {
 		// Duplicating some contents here, as it will be better for translators once we've them
 		instructions = "Leave the input field empty to wait for the alternative authentication method " +
-			"or enter '%[1]s' to go back"
+			"or enter '%[1]s' to %[2]s"
 		if m.uiLayout.GetEntry() == "" {
 			instructions = "Press Enter to wait for authentication " +
-				"or enter '%[1]s' to go back"
+				"or enter '%[1]s' to %[2]s"
 		}
 	}
 
-	if cmd := maybeSendPamError(m.sendInfo(instructions, nativeCancelKey)); cmd != nil {
+	if cmd := maybeSendPamError(m.sendInfo(instructions, nativeCancelKey, m.goBackActionLabel())); cmd != nil {
 		return cmd
 	}
 
@@ -782,11 +783,11 @@ func (m nativeModel) handleNewPassword() tea.Cmd {
 }
 
 func (m nativeModel) newPasswordChallenge(previousChallenge *string) tea.Cmd {
-	challengeLabel := fmt.Sprintf("%[1]s (or enter '%[2]s' to go back)",
-		m.uiLayout.GetLabel(), nativeCancelKey)
+	challengeLabel := fmt.Sprintf("%[1]s (or enter '%[2]s' to %[3]s)",
+		m.uiLayout.GetLabel(), nativeCancelKey, m.goBackActionLabel())
 	if previousChallenge != nil {
-		challengeLabel = fmt.Sprintf("Confirm password (or enter '%[1]s' to go back)",
-			nativeCancelKey)
+		challengeLabel = fmt.Sprintf("Confirm password (or enter '%[1]s' to %[2]s)",
+			nativeCancelKey, m.goBackActionLabel())
 	}
 
 	challenge, err := m.promptForChallenge(challengeLabel)
@@ -847,6 +848,20 @@ func (m nativeModel) previousStage() pam_proto.Stage {
 		return proto.Stage_brokerSelection
 	}
 	return proto.Stage_userSelection
+}
+
+func (m nativeModel) goBackActionLabel() string {
+	switch m.previousStage() {
+	case proto.Stage_authModeSelection:
+		return "go back to select the authentication method"
+	case proto.Stage_brokerSelection:
+		return "go back to choose the provider"
+	case proto.Stage_challenge:
+		return "go back to authentication"
+	case proto.Stage_userSelection:
+		return "go back to user selection"
+	}
+	return "go back"
 }
 
 func sendAuthWaitCommand() tea.Cmd {

@@ -10,7 +10,7 @@ Choose your provider:
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -19,9 +19,9 @@ Gimme your password:
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-qr-code@gmail.com
   3. Use your fido device foo
@@ -38,9 +38,9 @@ Choose your authentication method:
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-qr-code@gmail.com
   3. Use your fido device foo
@@ -71,7 +71,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action:
@@ -82,9 +82,9 @@ Choose action:
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-qr-code@gmail.com
   3. Use your fido device foo
@@ -115,7 +115,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -140,7 +140,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action:
@@ -151,9 +151,9 @@ Choose action:
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-qr-code@gmail.com
   3. Use your fido device foo
@@ -184,7 +184,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -209,7 +209,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -236,7 +236,7 @@ Scan the qrcode or enter the code in the login page
      https://ubuntuforum-br.org/
                 1339
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action:
@@ -247,9 +247,9 @@ Choose action:
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-qr-code@gmail.com
   3. Use your fido device foo
@@ -280,7 +280,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -305,7 +305,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -332,7 +332,7 @@ Scan the qrcode or enter the code in the login page
      https://ubuntuforum-br.org/
                 1339
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -357,7 +357,7 @@ Scan the qrcode or enter the code in the login page
    https://www.ubuntu-it.org/
               1340
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action:
@@ -368,9 +368,9 @@ Choose action:
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-qr-code@gmail.com
   3. Use your fido device foo
@@ -401,7 +401,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -426,7 +426,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -453,7 +453,7 @@ Scan the qrcode or enter the code in the login page
      https://ubuntuforum-br.org/
                 1339
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -478,7 +478,7 @@ Scan the qrcode or enter the code in the login page
    https://www.ubuntu-it.org/
               1340
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -503,7 +503,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1341
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action:
@@ -514,9 +514,9 @@ Choose action:
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-qr-code@gmail.com
   3. Use your fido device foo
@@ -547,7 +547,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -572,7 +572,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -599,7 +599,7 @@ Scan the qrcode or enter the code in the login page
      https://ubuntuforum-br.org/
                 1339
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -624,7 +624,7 @@ Scan the qrcode or enter the code in the login page
    https://www.ubuntu-it.org/
               1340
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -649,7 +649,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1341
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 1
@@ -660,9 +660,9 @@ Choose action: 1
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-qr-code@gmail.com
   3. Use your fido device foo
@@ -693,7 +693,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -718,7 +718,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -745,7 +745,7 @@ Scan the qrcode or enter the code in the login page
      https://ubuntuforum-br.org/
                 1339
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -770,7 +770,7 @@ Scan the qrcode or enter the code in the login page
    https://www.ubuntu-it.org/
               1340
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -795,7 +795,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1341
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 1
@@ -809,9 +809,9 @@ PAM AcctMgmt() exited with success
   1. local
   2. ExampleBroker
 Choose your provider: 2
-Enter 'r' to cancel the request and go back
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication method selection (enter 'r' to go back) ==
+== Authentication method selection (enter 'r' to go back to choose the provider) ==
   1. Password authentication
   2. Send URL to user-integration-qr-code@gmail.com
   3. Use your fido device foo
@@ -842,7 +842,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -867,7 +867,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -894,7 +894,7 @@ Scan the qrcode or enter the code in the login page
      https://ubuntuforum-br.org/
                 1339
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -919,7 +919,7 @@ Scan the qrcode or enter the code in the login page
    https://www.ubuntu-it.org/
               1340
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 2
@@ -944,7 +944,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1341
 
-== Qr Code authentication (enter 'r' to go back) ==
+== Qr Code authentication (enter 'r' to go back to select the authentication method) ==
   1. Wait for the QR code scan result
   2. Regenerate code
 Choose action: 1
