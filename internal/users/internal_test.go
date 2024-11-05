@@ -34,7 +34,8 @@ func TestGenerateID(t *testing.T) {
 				tc.idMax = DefaultConfig.UIDMax
 			}
 
-			require.Equal(t, tc.wantID, fmt.Sprint(generateID(tc.input, tc.idMin, tc.idMax)), "GenerateID did not return expected value")
+			require.Equal(t, tc.wantID, fmt.Sprint(generateID(tc.input, tc.idMin, tc.idMax)),
+				"GenerateID did not return expected value")
 		})
 	}
 }

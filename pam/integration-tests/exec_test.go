@@ -864,20 +864,24 @@ func getModuleArgs(t *testing.T, clientPath string, args []string) []string {
 	return append(moduleArgs, args...)
 }
 
-func preparePamTransaction(t *testing.T, libPath string, clientPath string, args []string, user string) *pam.Transaction {
+func preparePamTransaction(
+	t *testing.T, libPath string, clientPath string, args []string, user string) *pam.Transaction {
 	t.Helper()
 
 	return preparePamTransactionWithConv(t, libPath, clientPath, args, user, nil)
 }
 
-func preparePamTransactionWithConv(t *testing.T, libPath string, clientPath string, args []string, user string, conv pam.ConversationHandler) *pam.Transaction {
+func preparePamTransactionWithConv(
+	t *testing.T, libPath string, clientPath string, args []string, user string,
+	conv pam.ConversationHandler) *pam.Transaction {
 	t.Helper()
 
 	serviceFile := createServiceFile(t, execServiceName, libPath, getModuleArgs(t, clientPath, args))
 	return preparePamTransactionForServiceFile(t, serviceFile, user, conv)
 }
 
-func preparePamTransactionWithActionArgs(t *testing.T, libPath string, clientPath string, actionArgs actionArgsMap, user string) *pam.Transaction {
+func preparePamTransactionWithActionArgs(
+	t *testing.T, libPath string, clientPath string, actionArgs actionArgsMap, user string) *pam.Transaction {
 	t.Helper()
 
 	actionArgs = maps.Clone(actionArgs)
@@ -889,7 +893,8 @@ func preparePamTransactionWithActionArgs(t *testing.T, libPath string, clientPat
 	return preparePamTransactionForServiceFile(t, serviceFile, user, nil)
 }
 
-func preparePamTransactionForServiceFile(t *testing.T, serviceFile string, user string, conv pam.ConversationHandler) *pam.Transaction {
+func preparePamTransactionForServiceFile(
+	t *testing.T, serviceFile string, user string, conv pam.ConversationHandler) *pam.Transaction {
 	t.Helper()
 
 	var tx *pam.Transaction

@@ -54,16 +54,33 @@ func TestGetPasswdByName(t *testing.T) {
 	}{
 		"Return existing user": {username: "user1"},
 
-		"Precheck user if not in cache":                                          {username: "user-pre-check", shouldPreCheck: true},
-		"Prechecked user with upper cases in username has same id as lower case": {username: "User-Pre-Check", shouldPreCheck: true},
+		"Precheck user if not in cache": {
+			username: "user-pre-check", shouldPreCheck: true,
+		},
+		"Prechecked user with upper cases in username has same id as lower case": {
+			username: "User-Pre-Check", shouldPreCheck: true,
+		},
 
-		"Error in database fetched content":                      {username: "user1", sourceDB: "invalid.db.yaml", wantErr: true},
-		"Error with typed GRPC notfound code on unexisting user": {username: "does-not-exists", wantErr: true, wantErrNotExists: true},
-		"Error on missing name":                                  {wantErr: true},
+		"Error in database fetched content": {
+			username: "user1", sourceDB: "invalid.db.yaml", wantErr: true,
+		},
+		"Error with typed GRPC notfound code on unexisting user": {
+			username: "does-not-exists", wantErr: true, wantErrNotExists: true,
+		},
+		"Error on missing name": {
+			wantErr: true,
+		},
 
-		"Error in database fetched content does not trigger precheck": {username: "user1", sourceDB: "invalid.db.yaml", shouldPreCheck: true, wantErr: true},
-		"Error if user not in cache and precheck is disabled":         {username: "user-pre-check", wantErr: true, wantErrNotExists: true},
-		"Error if user not in cache and precheck fails":               {username: "does-not-exist", sourceDB: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
+		"Error in database fetched content does not trigger precheck": {
+			username: "user1", sourceDB: "invalid.db.yaml", shouldPreCheck: true, wantErr: true,
+		},
+		"Error if user not in cache and precheck is disabled": {
+			username: "user-pre-check", wantErr: true, wantErrNotExists: true,
+		},
+		"Error if user not in cache and precheck fails": {
+			username: "does-not-exist", sourceDB: "empty.db.yaml", shouldPreCheck: true,
+			wantErr: true, wantErrNotExists: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -72,7 +89,8 @@ func TestGetPasswdByName(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
-			got, err := client.GetPasswdByName(context.Background(), &authd.GetPasswdByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
+			got, err := client.GetPasswdByName(context.Background(),
+				&authd.GetPasswdByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
 			requireExpectedResult(t, "GetPasswdByName", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
@@ -89,9 +107,15 @@ func TestGetPasswdByUID(t *testing.T) {
 	}{
 		"Return existing user": {uid: 1111},
 
-		"Error in database fetched content":                      {uid: 1111, sourceDB: "invalid.db.yaml", wantErr: true},
-		"Error with typed GRPC notfound code on unexisting user": {uid: 4242, wantErr: true, wantErrNotExists: true},
-		"Error on missing uid":                                   {wantErr: true},
+		"Error in database fetched content": {
+			uid: 1111, sourceDB: "invalid.db.yaml", wantErr: true,
+		},
+		"Error with typed GRPC notfound code on unexisting user": {
+			uid: 4242, wantErr: true, wantErrNotExists: true,
+		},
+		"Error on missing uid": {
+			wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -141,9 +165,15 @@ func TestGetGroupByName(t *testing.T) {
 	}{
 		"Return existing group": {groupname: "group1"},
 
-		"Error in database fetched content":                      {groupname: "group1", sourceDB: "invalid.db.yaml", wantErr: true},
-		"Error with typed GRPC notfound code on unexisting user": {groupname: "does-not-exists", wantErr: true, wantErrNotExists: true},
-		"Error on missing name":                                  {wantErr: true},
+		"Error in database fetched content": {
+			groupname: "group1", sourceDB: "invalid.db.yaml", wantErr: true,
+		},
+		"Error with typed GRPC notfound code on unexisting user": {
+			groupname: "does-not-exists", wantErr: true, wantErrNotExists: true,
+		},
+		"Error on missing name": {
+			wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -169,9 +199,15 @@ func TestGetGroupByGID(t *testing.T) {
 	}{
 		"Return existing group": {gid: 11111},
 
-		"Error in database fetched content":                      {gid: 1111, sourceDB: "invalid.db.yaml", wantErr: true},
-		"Error with typed GRPC notfound code on unexisting user": {gid: 4242, wantErr: true, wantErrNotExists: true},
-		"Error on missing uid":                                   {wantErr: true},
+		"Error in database fetched content": {
+			gid: 1111, sourceDB: "invalid.db.yaml", wantErr: true,
+		},
+		"Error with typed GRPC notfound code on unexisting user": {
+			gid: 4242, wantErr: true, wantErrNotExists: true,
+		},
+		"Error on missing uid": {
+			wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -222,10 +258,18 @@ func TestGetShadowByName(t *testing.T) {
 	}{
 		"Return existing user": {username: "user1"},
 
-		"Error when not root":                                    {currentUserNotRoot: true, username: "user1", wantErr: true},
-		"Error in database fetched content":                      {username: "user1", sourceDB: "invalid.db.yaml", wantErr: true},
-		"Error with typed GRPC notfound code on unexisting user": {username: "does-not-exists", wantErr: true, wantErrNotExists: true},
-		"Error on missing name":                                  {wantErr: true},
+		"Error when not root": {
+			currentUserNotRoot: true, username: "user1", wantErr: true,
+		},
+		"Error in database fetched content": {
+			username: "user1", sourceDB: "invalid.db.yaml", wantErr: true,
+		},
+		"Error with typed GRPC notfound code on unexisting user": {
+			username: "does-not-exists", wantErr: true, wantErrNotExists: true,
+		},
+		"Error on missing name": {
+			wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -289,9 +333,14 @@ func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (clien
 	}
 	pm := permissions.New(opts...)
 
-	service := nss.NewService(context.Background(), newUserManagerForTests(t, sourceDB), newBrokersManagerForTests(t), &pm)
+	service := nss.NewService(context.Background(),
+		newUserManagerForTests(t, sourceDB),
+		newBrokersManagerForTests(t),
+		&pm)
 
-	grpcServer := grpc.NewServer(permissions.WithUnixPeerCreds(), grpc.ChainUnaryInterceptor(enableCheckGlobalAccess(service), errmessages.RedactErrorInterceptor))
+	grpcServer := grpc.NewServer(permissions.WithUnixPeerCreds(),
+		grpc.ChainUnaryInterceptor(enableCheckGlobalAccess(service),
+			errmessages.RedactErrorInterceptor))
 	authd.RegisterNSSServer(grpcServer, service)
 	done := make(chan struct{})
 	go func() {
@@ -312,7 +361,7 @@ func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (clien
 }
 
 func enableCheckGlobalAccess(s nss.Service) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		if err := s.CheckGlobalAccess(ctx, info.FullMethod); err != nil {
 			return nil, err
 		}
@@ -354,50 +403,58 @@ func newBrokersManagerForTests(t *testing.T) *brokers.Manager {
 }
 
 // requireExpectedResult asserts expected behaviour from any get* NSS requests and can update them from golden content.
-func requireExpectedResult[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](t *testing.T, funcName string, got *T, err error, wantErr, wantErrNotExists bool) {
+func requireExpectedResult[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](
+	t *testing.T, funcName string, got *T, err error, wantErr, wantErrNotExists bool) {
 	t.Helper()
 
 	if wantErr {
-		require.Error(t, err, fmt.Sprintf("%s should return an error but did not", funcName))
+		require.Error(t, err, "%s should return an error but did not", funcName)
 		s, ok := status.FromError(err)
 		require.True(t, ok, "The error is always a GRPC error")
 		if wantErrNotExists {
-			require.Equal(t, codes.NotFound, s.Code(), fmt.Sprintf("%s should return NotFound error", funcName))
+			require.Equal(t, codes.NotFound, s.Code(), "%s should return NotFound error", funcName)
 		}
 		return
 	}
-	require.NoError(t, err, fmt.Sprintf("%s should not return an error, but did", funcName))
+	require.NoError(t, err, "%s should not return an error, but did", funcName)
 
 	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
-	requireExportedEquals(t, want, got, fmt.Sprintf("%s should return the expected entry, but did not", funcName))
+	requireExportedEquals(t, want, got, fmt.Sprintf(
+		"%s should return the expected entry, but did not", funcName))
 }
 
-// requireExpectedEntriesResult asserts expected behaviour from any get* NSS request returning a list and can update them from golden content.
-func requireExpectedEntriesResult[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](t *testing.T, funcName string, got []*T, err error, wantErr bool) {
+// requireExpectedEntriesResult asserts expected behaviour from any get* NSS request returning a list
+// and can update them from golden content.
+func requireExpectedEntriesResult[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](
+	t *testing.T, funcName string, got []*T, err error, wantErr bool) {
 	t.Helper()
 
 	if wantErr {
-		require.Error(t, err, fmt.Sprintf("%s should return an error but did not", funcName))
+		require.Error(t, err, "%s should return an error but did not", funcName)
 		s, ok := status.FromError(err)
 		require.True(t, ok, "The error is always a GRPC error")
-		require.NotEqual(t, codes.NotFound, s.Code(), fmt.Sprintf("%s should never return NotFound error even with empty list", funcName))
+		require.NotEqual(t, codes.NotFound, s.Code(),
+			"%s should never return NotFound error even with empty list", funcName)
 		return
 	}
-	require.NoError(t, err, fmt.Sprintf("%s should not return an error, but did", funcName))
+	require.NoError(t, err, "%s should not return an error, but did", funcName)
 
 	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
 	if len(want) != len(got) {
-		require.Equal(t, len(want), len(got), "Not the expected number of elements in the list. Wanted: %v\nGot: %v", want, got)
+		require.Equal(t, len(want), len(got),
+			"Not the expected number of elements in the list. Wanted: %v\nGot: %v", want, got)
 	}
 	for i, e := range got {
-		requireExportedEquals(t, want[i], e, fmt.Sprintf("%s should return the expected entry in the list, but did not", funcName))
+		requireExportedEquals(t, want[i], e, fmt.Sprintf(
+			"%s should return the expected entry in the list, but did not", funcName))
 	}
 }
 
 // requireExportedEquals compare *want to *got, only using the exported fields.
 // It helps ensuring that we don’t end up in a lockcopy vetting warning when we directly
 // compare the exported fields with require.EqualExportedValues.
-func requireExportedEquals[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](t *testing.T, want *T, got *T, msg string) {
+func requireExportedEquals[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](
+	t *testing.T, want *T, got *T, msg string) {
 	t.Helper()
 
 	data, err := yaml.Marshal(got)

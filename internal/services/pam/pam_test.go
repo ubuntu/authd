@@ -132,15 +132,29 @@ func TestGetPreviousBroker(t *testing.T) {
 		wantBroker string
 		wantErr    bool
 	}{
-		"Success getting previous broker":                          {user: "userwithbroker", wantBroker: mockBrokerGeneratedID},
-		"For local user, get local broker":                         {user: currentUsername, wantBroker: brokers.LocalBrokerName},
-		"For unmanaged user and only one broker, get local broker": {user: "nonexistent", onlyLocalBroker: true, wantBroker: brokers.LocalBrokerName},
+		"Success getting previous broker": {
+			user: "userwithbroker", wantBroker: mockBrokerGeneratedID,
+		},
+		"For local user, get local broker": {
+			user: currentUsername, wantBroker: brokers.LocalBrokerName,
+		},
+		"For unmanaged user and only one broker, get local broker": {
+			user: "nonexistent", onlyLocalBroker: true, wantBroker: brokers.LocalBrokerName,
+		},
 
-		"Returns empty when user does not exist":         {user: "nonexistent", wantBroker: ""},
-		"Returns empty when user does not have a broker": {user: "userwithoutbroker", wantBroker: ""},
-		"Returns empty when broker is not available":     {user: "userwithinactivebroker", wantBroker: ""},
+		"Returns empty when user does not exist": {
+			user: "nonexistent", wantBroker: "",
+		},
+		"Returns empty when user does not have a broker": {
+			user: "userwithoutbroker", wantBroker: "",
+		},
+		"Returns empty when broker is not available": {
+			user: "userwithinactivebroker", wantBroker: "",
+		},
 
-		"Error when not root": {user: "userwithbroker", currentUserNotRoot: true, wantErr: true},
+		"Error when not root": {
+			user: "userwithbroker", currentUserNotRoot: true, wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -178,7 +192,8 @@ func TestGetPreviousBroker(t *testing.T) {
 			}
 			require.NoError(t, err, "GetPreviousBroker should not return an error, but did")
 
-			require.Equal(t, tc.wantBroker, gotResp.GetPreviousBroker(), "GetPreviousBroker should return expected broker")
+			require.Equal(t, tc.wantBroker, gotResp.GetPreviousBroker(),
+				"GetPreviousBroker should return expected broker")
 		})
 	}
 }
@@ -198,14 +213,30 @@ func TestSelectBroker(t *testing.T) {
 		"Successfully select a broker and creates auth session":   {username: "success"},
 		"Successfully select a broker and creates passwd session": {username: "success", sessionMode: "passwd"},
 
-		"Error when not root":                             {username: "success", currentUserNotRoot: true, wantErr: true},
-		"Error when username is empty":                    {wantErr: true},
-		"Error when mode is empty":                        {sessionMode: "-", wantErr: true},
-		"Error when mode does not exist":                  {sessionMode: "does not exist", wantErr: true},
-		"Error when brokerID is empty":                    {username: "empty broker", brokerID: "-", wantErr: true},
-		"Error when broker does not exist":                {username: "no broker", brokerID: "does not exist", wantErr: true},
-		"Error when broker does not provide a session ID": {username: "NS_no_id", wantErr: true},
-		"Error when starting the session":                 {username: "NS_error", wantErr: true},
+		"Error when not root": {
+			username: "success", currentUserNotRoot: true, wantErr: true,
+		},
+		"Error when username is empty": {
+			wantErr: true,
+		},
+		"Error when mode is empty": {
+			sessionMode: "-", wantErr: true,
+		},
+		"Error when mode does not exist": {
+			sessionMode: "does not exist", wantErr: true,
+		},
+		"Error when brokerID is empty": {
+			username: "empty broker", brokerID: "-", wantErr: true,
+		},
+		"Error when broker does not exist": {
+			username: "no broker", brokerID: "does not exist", wantErr: true,
+		},
+		"Error when broker does not provide a session ID": {
+			username: "NS_no_id", wantErr: true,
+		},
+		"Error when starting the session": {
+			username: "NS_error", wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -335,24 +366,48 @@ func TestSelectAuthenticationMode(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully select mode with required value":         {username: "SAM_success_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}},
-		"Successfully select mode with missing optional value": {username: "SAM_missing_optional_entry", supportedUILayouts: []*authd.UILayout{optionalEntry}},
+		"Successfully select mode with required value": {
+			username: "SAM_success_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry},
+		},
+		"Successfully select mode with missing optional value": {
+			username: "SAM_missing_optional_entry", supportedUILayouts: []*authd.UILayout{optionalEntry},
+		},
 
 		// service errors
-		"Error when not root":                {username: "SAM_success_required_entry", currentUserNotRoot: true, wantErr: true},
-		"Error when sessionID is empty":      {sessionID: "-", wantErr: true},
-		"Error when session ID is invalid":   {sessionID: "invalid-session", wantErr: true},
-		"Error when no authmode is selected": {sessionID: "no auth mode", authMode: "-", wantErr: true},
+		"Error when not root": {
+			username: "SAM_success_required_entry", currentUserNotRoot: true, wantErr: true,
+		},
+		"Error when sessionID is empty": {
+			sessionID: "-", wantErr: true,
+		},
+		"Error when session ID is invalid": {
+			sessionID: "invalid-session", wantErr: true,
+		},
+		"Error when no authmode is selected": {
+			sessionID: "no auth mode", authMode: "-", wantErr: true,
+		},
 
 		// broker errors
-		"Error when selecting invalid auth mode":                     {username: "SAM_error", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error when broker does not have validators for the session": {username: "does not matter", noValidators: true, wantErr: true},
+		"Error when selecting invalid auth mode": {
+			username: "SAM_error", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true,
+		},
+		"Error when broker does not have validators for the session": {
+			username: "does not matter", noValidators: true, wantErr: true,
+		},
 
 		/* Layout errors */
-		"Error when returns no layout":                     {username: "SAM_no_layout", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error when returns layout with no type":           {username: "SAM_no_layout_type", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error when returns layout without required value": {username: "SAM_missing_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error when returns layout with unknown field":     {username: "SAM_unknown_field", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error when returns no layout": {
+			username: "SAM_no_layout", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true,
+		},
+		"Error when returns layout with no type": {
+			username: "SAM_no_layout_type", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true,
+		},
+		"Error when returns layout without required value": {
+			username: "SAM_missing_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true,
+		},
+		"Error when returns layout with unknown field": {
+			username: "SAM_unknown_field", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -379,7 +434,8 @@ func TestSelectAuthenticationMode(t *testing.T) {
 				tc.authMode = ""
 			}
 
-			// If the username does not have a SAM_something, it means we don't care about the broker answer and we don't need the validators.
+			// If the username does not have a SAM_something, it means we don't care about the broker answer
+			// and we don't need the validators.
 			if !tc.noValidators && strings.HasPrefix(tc.username, "SAM_") {
 				// We need to call GetAuthenticationModes to generate the layout validators on the broker.
 				gamReq := &authd.GAMRequest{
@@ -424,18 +480,28 @@ func TestIsAuthenticated(t *testing.T) {
 
 		// There is no wantErr as it's stored in the golden file.
 	}{
-		"Successfully authenticate":                           {username: "success"},
-		"Successfully authenticate if first call is canceled": {username: "IA_second_call", secondCall: true, cancelFirstCall: true},
-		"Denies authentication when broker times out":         {username: "IA_timeout"},
-		"Update existing DB on success":                       {username: "success", existingDB: "cache-with-user.db"},
-		"Update local groups":                                 {username: "success_with_local_groups", localGroupsFile: "valid.group"},
+		"Successfully authenticate": {username: "success"},
+		"Successfully authenticate if first call is canceled": {
+			username: "IA_second_call", secondCall: true, cancelFirstCall: true,
+		},
+		"Denies authentication when broker times out": {username: "IA_timeout"},
+		"Update existing DB on success": {
+			username: "success", existingDB: "cache-with-user.db",
+		},
+		"Update local groups": {
+			username: "success_with_local_groups", localGroupsFile: "valid.group",
+		},
 
 		// service errors
 		"Error when not root": {username: "success", currentUserNotRoot: true},
-		"Error when UID conflicts with existing different user":  {username: "conflicting-uid", existingDB: "cache-with-conflicting-uid.db"},
-		"Error when GID conflicts with existing different group": {username: "conflicting-gid", existingDB: "cache-with-conflicting-gid.db"},
-		"Error when sessionID is empty":                          {sessionID: "-"},
-		"Error when there is no broker":                          {sessionID: "invalid-session"},
+		"Error when UID conflicts with existing different user": {
+			username: "conflicting-uid", existingDB: "cache-with-conflicting-uid.db",
+		},
+		"Error when GID conflicts with existing different group": {
+			username: "conflicting-gid", existingDB: "cache-with-conflicting-gid.db",
+		},
+		"Error when sessionID is empty": {sessionID: "-"},
+		"Error when there is no broker": {sessionID: "invalid-session"},
 
 		// broker errors
 		"Error when authenticating":                         {username: "IA_error"},
@@ -446,7 +512,9 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error when calling second time without cancelling": {username: "IA_second_call", secondCall: true},
 
 		// local group error
-		"Error on updating local groups with unexisting file": {username: "success_with_local_groups", localGroupsFile: "does_not_exists.group"},
+		"Error on updating local groups with unexisting file": {
+			username: "success_with_local_groups", localGroupsFile: "does_not_exists.group",
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -456,7 +524,8 @@ func TestIsAuthenticated(t *testing.T) {
 
 			var destCmdsFile string
 			if tc.localGroupsFile != "" {
-				destCmdsFile = localgroupstestutils.SetupGPasswdMock(t, filepath.Join(testutils.TestFamilyPath(t), tc.localGroupsFile))
+				destCmdsFile = localgroupstestutils.SetupGPasswdMock(t,
+					filepath.Join(testutils.TestFamilyPath(t), tc.localGroupsFile))
 			}
 
 			cacheDir := t.TempDir()
@@ -526,16 +595,19 @@ func TestIsAuthenticated(t *testing.T) {
 
 			got := firstCall + secondCall
 			got = permissionstestutils.IdempotentPermissionError(got)
-			want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "IsAuthenticated")))
+			want := testutils.LoadWithUpdateFromGolden(t, got,
+				testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "IsAuthenticated")))
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
 
 			// Check that cache has been updated too.
 			gotDB, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
-			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
+			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB,
+				testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, filepath.Join(testutils.GoldenPath(t), "gpasswd.output"))
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile,
+				filepath.Join(testutils.GoldenPath(t), "gpasswd.output"))
 		})
 	}
 }
@@ -567,13 +639,15 @@ func TestIDGeneration(t *testing.T) {
 			})
 			require.NoError(t, err, "Setup: failed to create session for tests")
 
-			resp, err := client.IsAuthenticated(context.Background(), &authd.IARequest{SessionId: sbResp.GetSessionId()})
+			resp, err := client.IsAuthenticated(context.Background(),
+				&authd.IARequest{SessionId: sbResp.GetSessionId()})
 			require.NoError(t, err, "Setup: could not authenticate user")
 			require.Equal(t, "granted", resp.GetAccess(), "Setup: authentication should be granted")
 
 			gotDB, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
-			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
+			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB,
+				testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
 		})
 	}
@@ -591,7 +665,9 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 	}{
 		"Set default broker for existing user with no broker":   {username: "usersetbroker"},
 		"Update default broker for existing user with a broker": {username: "userupdatebroker"},
-		"Setting local broker as default should not save on DB": {username: "userlocalbroker", brokerID: brokers.LocalBrokerName},
+		"Setting local broker as default should not save on DB": {
+			username: "userlocalbroker", brokerID: brokers.LocalBrokerName,
+		},
 
 		"Error when not root":              {username: "usersetbroker", currentUserNotRoot: true, wantErr: true},
 		"Error when username is empty":     {wantErr: true},
@@ -603,7 +679,8 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			t.Parallel()
 
 			cacheDir := t.TempDir()
-			cachetestutils.CreateDBFromYAML(t, filepath.Join(testutils.TestFamilyPath(t), "set-default-broker.db"), cacheDir)
+			cachetestutils.CreateDBFromYAML(t,
+				filepath.Join(testutils.TestFamilyPath(t), "set-default-broker.db"), cacheDir)
 
 			m, err := users.NewManager(users.DefaultConfig, cacheDir)
 			require.NoError(t, err, "Setup: could not create user manager")
@@ -628,12 +705,14 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 
 			gpbResp, err := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: tc.username})
 			require.NoError(t, err, "GetPreviousBroker should not return an error")
-			require.Equal(t, tc.brokerID, gpbResp.GetPreviousBroker(), "SetDefaultBrokerForUser should set the default broker as expected")
+			require.Equal(t, tc.brokerID, gpbResp.GetPreviousBroker(),
+				"SetDefaultBrokerForUser should set the default broker as expected")
 
 			// Check that cache has been updated too.
 			gotDB, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
-			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
+			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB,
+				testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "SetDefaultBrokerForUser should update the cache database as expected")
 		})
 	}
@@ -722,7 +801,8 @@ func initBrokers() (brokerConfigPath string, cleanup func(), err error) {
 // newPAMClient returns a new GRPC PAM client for tests connected to brokerManager with the given cache and
 // permissionmanager.
 // If the one passed is nil, this function will create the cache and close it upon test teardown.
-func newPamClient(t *testing.T, m *users.Manager, brokerManager *brokers.Manager, pm *permissions.Manager) (client authd.PAMClient) {
+func newPamClient(
+	t *testing.T, m *users.Manager, brokerManager *brokers.Manager, pm *permissions.Manager) (client authd.PAMClient) {
 	t.Helper()
 
 	// socket path is limited in length.
@@ -742,7 +822,9 @@ func newPamClient(t *testing.T, m *users.Manager, brokerManager *brokers.Manager
 
 	service := pam.NewService(context.Background(), m, brokerManager, pm)
 
-	grpcServer := grpc.NewServer(permissions.WithUnixPeerCreds(), grpc.ChainUnaryInterceptor(enableCheckGlobalAccess(service), errmessages.RedactErrorInterceptor))
+	grpcServer := grpc.NewServer(permissions.WithUnixPeerCreds(),
+		grpc.ChainUnaryInterceptor(enableCheckGlobalAccess(service),
+			errmessages.RedactErrorInterceptor))
 	authd.RegisterPAMServer(grpcServer, service)
 	done := make(chan struct{})
 	go func() {
@@ -754,7 +836,9 @@ func newPamClient(t *testing.T, m *users.Manager, brokerManager *brokers.Manager
 		<-done
 	})
 
-	conn, err := grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
+	conn, err := grpc.NewClient("unix://"+socketPath,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
 	require.NoError(t, err, "Setup: Could not connect to GRPC server")
 
 	t.Cleanup(func() { _ = conn.Close() }) // We don't care about the error on cleanup
@@ -776,7 +860,7 @@ func newPermissionManager(t *testing.T, currentUserNotRoot bool) permissions.Man
 
 // enableCheckGlobalAccess returns the middleware hooking up in CheckGlobalAccess for the given service.
 func enableCheckGlobalAccess(s pam.Service) grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		if err := s.CheckGlobalAccess(ctx, info.FullMethod); err != nil {
 			return nil, err
 		}

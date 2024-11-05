@@ -146,13 +146,17 @@ func createServiceFileWithActionArgs(t *testing.T, name string, libPath string, 
 	t.Helper()
 
 	serviceFile, err := pam_test.CreateService(t.TempDir(), name, []pam_test.ServiceLine{
-		{Action: pam_test.Auth, Control: pam_test.SufficientRequisite, Module: libPath, Args: actionArgs[pam_test.Auth]},
+		{Action: pam_test.Auth, Control: pam_test.SufficientRequisite,
+			Module: libPath, Args: actionArgs[pam_test.Auth]},
 		{Action: pam_test.Auth, Control: pam_test.Requisite, Module: pam_test.Ignore.String()},
-		{Action: pam_test.Account, Control: pam_test.SufficientRequisite, Module: libPath, Args: actionArgs[pam_test.Account]},
+		{Action: pam_test.Account, Control: pam_test.SufficientRequisite,
+			Module: libPath, Args: actionArgs[pam_test.Account]},
 		{Action: pam_test.Account, Control: pam_test.Requisite, Module: pam_test.Ignore.String()},
-		{Action: pam_test.Password, Control: pam_test.SufficientRequisite, Module: libPath, Args: actionArgs[pam_test.Password]},
+		{Action: pam_test.Password, Control: pam_test.SufficientRequisite,
+			Module: libPath, Args: actionArgs[pam_test.Password]},
 		{Action: pam_test.Password, Control: pam_test.Requisite, Module: pam_test.Ignore.String()},
-		{Action: pam_test.Session, Control: pam_test.SufficientRequisite, Module: libPath, Args: actionArgs[pam_test.Session]},
+		{Action: pam_test.Session, Control: pam_test.SufficientRequisite,
+			Module: libPath, Args: actionArgs[pam_test.Session]},
 		{Action: pam_test.Session, Control: pam_test.Requisite, Module: pam_test.Ignore.String()},
 	})
 	require.NoError(t, err, "Setup: Can't create service file %s", serviceFile)

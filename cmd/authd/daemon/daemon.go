@@ -49,7 +49,8 @@ type daemonConfig struct {
 func New() *App {
 	a := App{ready: make(chan struct{})}
 	a.rootCmd = cobra.Command{
-		Use:                                                                                 fmt.Sprintf("%s COMMAND", cmdName),
+		Use: fmt.Sprintf("%s COMMAND", cmdName),
+
 		Short:/*i18n.G(*/ "Authentication daemon",                                           /*)*/
 		Long:/*i18n.G(*/ "Authentication daemon bridging the system with external brokers.", /*)*/
 		Args:                                                                                cobra.NoArgs,
@@ -138,7 +139,8 @@ func (a *App) serve(config daemonConfig) error {
 
 // installVerbosityFlag adds the -v and -vv options and returns the reference to it.
 func installVerbosityFlag(cmd *cobra.Command, viper *viper.Viper) *int {
-	r := cmd.PersistentFlags().CountP("verbosity", "v" /*i18n.G(*/, "issue INFO (-v), DEBUG (-vv) or DEBUG with caller (-vvv) output") //)
+	r := cmd.PersistentFlags().CountP("verbosity", "v", /*i18n.G(*/
+		"issue INFO (-v), DEBUG (-vv) or DEBUG with caller (-vvv) output") //)
 	decorate.LogOnError(viper.BindPFlag("verbosity", cmd.PersistentFlags().Lookup("verbosity")))
 	return r
 }
@@ -171,12 +173,14 @@ func (a *App) Quit() {
 }
 
 // WaitReady signals when the daemon is ready
-// Note: we need to use a pointer to not copy the App object before the daemon is ready, and thus, creates a data race.
+// Note: we need to use a pointer to not copy the App object before the daemon is ready,
+// and thus, creates a data race.
 func (a *App) WaitReady() {
 	<-a.ready
 }
 
-// RootCmd returns a copy of the root command for the app. Shouldn't be in general necessary apart when running generators.
+// RootCmd returns a copy of the root command for the app.
+// Shouldn't be in general necessary apart when running generators.
 func (a App) RootCmd() cobra.Command {
 	return a.rootCmd
 }

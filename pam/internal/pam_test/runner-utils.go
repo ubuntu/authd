@@ -3,11 +3,13 @@ package pam_test
 const (
 	// RunnerEnvLogFile is the environment variable used by the test client to set the log file.
 	RunnerEnvLogFile = "AUTHD_PAM_RUNNER_LOG_FILE"
-	// RunnerEnvSupportsConversation is the environment variable used by the test client to set whether it supports PAM conversations.
+	// RunnerEnvSupportsConversation is the environment variable used by the test client to set whether
+	// it supports PAM conversations.
 	RunnerEnvSupportsConversation = "AUTHD_PAM_RUNNER_SUPPORTS_CONVERSATION"
 	// RunnerEnvExecModule is the environment variable used by the test client to set the exec module library path.
 	RunnerEnvExecModule = "AUTHD_PAM_RUNNER_EXEC_MODULE"
-	// RunnerEnvExecChildPath is the environment variable used by the test client to get the PAM exec child client application.
+	// RunnerEnvExecChildPath is the environment variable used by the test client to get the
+	// PAM exec child client application.
 	RunnerEnvExecChildPath = "AUTHD_PAM_RUNNER_EXEC_CHILD_PATH"
 	// RunnerEnvTestName is the environment variable used by the test client to set the test name.
 	RunnerEnvTestName = "AUTHD_PAM_RUNNER_TEST_NAME"

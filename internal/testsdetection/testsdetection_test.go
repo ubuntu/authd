@@ -29,9 +29,15 @@ func TestMustBeTestingInProcess(t *testing.T) {
 
 		wantPanic bool
 	}{
-		"Pass when called in an integration tests build": {integrationtestsTag: true, wantPanic: false},
+		"Pass when called in an integration tests build": {
+			integrationtestsTag: true,
+			wantPanic:           false,
+		},
 
-		"Error (panics) when called in non tests and no integration tests": {integrationtestsTag: false, wantPanic: true},
+		"Error (panics) when called in non tests and no integration tests": {
+			integrationtestsTag: false,
+			wantPanic:           true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -58,7 +64,8 @@ func TestMustBeTestingInProcess(t *testing.T) {
 				require.Errorf(t, err, "MustBeTesting should have panicked the subprocess: %s", out)
 				return
 			}
-			require.NoErrorf(t, err, "MustBeTesting should have returned without panicking the subprocess: %s", out)
+			require.NoErrorf(t, err, "MustBeTesting should have returned without panicking the subprocess: %s",
+				out)
 		})
 	}
 }

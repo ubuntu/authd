@@ -11,8 +11,9 @@ func (a *App) installVersion() {
 	cmd := &cobra.Command{
 		Use:                                                     "version",
 		Short:/*i18n.G(*/ "Returns version of daemon and exits", /*)*/
-		Args:                                                    cobra.NoArgs,
-		RunE:                                                    func(cmd *cobra.Command, args []string) error { return getVersion() },
+
+		Args: cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error { return getVersion() },
 	}
 	a.rootCmd.AddCommand(cmd)
 }

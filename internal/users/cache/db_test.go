@@ -31,10 +31,14 @@ func TestNew(t *testing.T) {
 		"New recreates any missing buckets and delete unknowns":  {dbFile: "database_with_unknown_bucket"},
 		"New removes orphaned user records from UserByID bucket": {dbFile: "orphaned_user_record"},
 
-		"Error on cacheDir non existent cacheDir":      {dbFile: "-", wantErr: true},
-		"Error on corrupted db file":                   {corruptedDbFile: true, wantErr: true},
-		"Error on invalid permission on database file": {dbFile: "multiple_users_and_groups", perm: &perm0644, wantErr: true},
-		"Error on unreadable database file":            {dbFile: "multiple_users_and_groups", perm: &perm0000, wantErr: true},
+		"Error on cacheDir non existent cacheDir": {dbFile: "-", wantErr: true},
+		"Error on corrupted db file":              {corruptedDbFile: true, wantErr: true},
+		"Error on invalid permission on database file": {
+			dbFile: "multiple_users_and_groups", perm: &perm0644, wantErr: true,
+		},
+		"Error on unreadable database file": {
+			dbFile: "multiple_users_and_groups", perm: &perm0000, wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -100,7 +104,8 @@ func TestUpdateUserEntry(t *testing.T) {
 			Gecos: "User1 gecos\nOn multiple lines",
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
-			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+			// These values don't matter:
+			// we just want to make sure they are the same as the ones provided by the manager.
 			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user1-new-attributes": {
@@ -109,7 +114,8 @@ func TestUpdateUserEntry(t *testing.T) {
 			Gecos: "New user1 gecos",
 			Dir:   "/home/user1",
 			Shell: "/bin/dash",
-			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+			// These values don't matter:
+			// we just want to make sure they are the same as the ones provided by the manager.
 			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user1-new-name": {
@@ -118,7 +124,8 @@ func TestUpdateUserEntry(t *testing.T) {
 			Gecos: "User1 gecos\nOn multiple lines",
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
-			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+			// These values don't matter:
+			// we just want to make sure they are the same as the ones provided by the manager.
 			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user1-new-homedir": {
@@ -127,7 +134,8 @@ func TestUpdateUserEntry(t *testing.T) {
 			Gecos: "User1 gecos\nOn multiple lines",
 			Dir:   "/new/home/user1",
 			Shell: "/bin/bash",
-			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+			// These values don't matter:
+			// we just want to make sure they are the same as the ones provided by the manager.
 			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user1-without-gecos": {
@@ -135,7 +143,8 @@ func TestUpdateUserEntry(t *testing.T) {
 			UID:   1111,
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
-			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+			// These values don't matter:
+			// we just want to make sure they are the same as the ones provided by the manager.
 			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user3": {
@@ -144,7 +153,8 @@ func TestUpdateUserEntry(t *testing.T) {
 			Gecos: "User3 gecos",
 			Dir:   "/home/user3",
 			Shell: "/bin/zsh",
-			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+			// These values don't matter:
+			// we just want to make sure they are the same as the ones provided by the manager.
 			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 	}
@@ -163,41 +173,83 @@ func TestUpdateUserEntry(t *testing.T) {
 		wantErr bool
 	}{
 		// New user
-		"Insert new user":                              {},
-		"Update last login time for user":              {dbFile: "one_user_and_group"},
-		"Insert new user without optional gecos field": {userCase: "user1-without-gecos"},
+		"Insert new user":                 {},
+		"Update last login time for user": {dbFile: "one_user_and_group"},
+		"Insert new user without optional gecos field": {
+			userCase: "user1-without-gecos",
+		},
 
 		// User and Group updates
-		"Update user by changing attributes":                      {userCase: "user1-new-attributes", dbFile: "one_user_and_group"},
-		"Update user does not change homedir if it exists":        {userCase: "user1-new-homedir", dbFile: "one_user_and_group"},
-		"Update user by removing optional gecos field if not set": {userCase: "user1-without-gecos", dbFile: "one_user_and_group"},
+		"Update user by changing attributes": {
+			userCase: "user1-new-attributes", dbFile: "one_user_and_group",
+		},
+		"Update user does not change homedir if it exists": {
+			userCase: "user1-new-homedir", dbFile: "one_user_and_group",
+		},
+		"Update user by removing optional gecos field if not set": {
+			userCase: "user1-without-gecos", dbFile: "one_user_and_group",
+		},
 
 		// Group updates
-		"Update user by adding a new group":         {groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group"},
-		"Update user by adding a new default group": {groupCases: []string{"group2", "group1"}, dbFile: "one_user_and_group"},
-		"Remove group from user":                    {groupCases: []string{"group2"}, dbFile: "one_user_and_group"},
+		"Update user by adding a new group": {
+			groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group",
+		},
+		"Update user by adding a new default group": {
+			groupCases: []string{"group2", "group1"}, dbFile: "one_user_and_group",
+		},
+		"Remove group from user": {
+			groupCases: []string{"group2"}, dbFile: "one_user_and_group",
+		},
 
 		// Multi users handling
-		"Update only user even if we have multiple of them":     {dbFile: "multiple_users_and_groups"},
-		"Add user to group from another user":                   {groupCases: []string{"group1", "group2"}, dbFile: "multiple_users_and_groups"},
-		"Remove user from a group still part from another user": {userCase: "user3", groupCases: []string{"group3"}, dbFile: "multiple_users_and_groups"},
+		"Update only user even if we have multiple of them": {
+			dbFile: "multiple_users_and_groups",
+		},
+		"Add user to group from another user": {
+			groupCases: []string{"group1", "group2"}, dbFile: "multiple_users_and_groups",
+		},
+		"Remove user from a group still part from another user": {
+			userCase: "user3", groupCases: []string{"group3"}, dbFile: "multiple_users_and_groups",
+		},
 
 		// Allowed inconsistent cases
-		"Invalid value entry in groupByName recreates entries":                        {dbFile: "invalid_entry_in_groupByName"},
-		"Invalid value entry in userByName recreates entries":                         {dbFile: "invalid_entry_in_userByName"},
-		"Invalid value entries in other user and groups don't impact current request": {dbFile: "invalid_entries_but_user_and_group1"},
+		"Invalid value entry in groupByName recreates entries": {
+			dbFile: "invalid_entry_in_groupByName",
+		},
+		"Invalid value entry in userByName recreates entries": {
+			dbFile: "invalid_entry_in_userByName",
+		},
+		"Invalid value entries in other user and groups don't impact current request": {
+			dbFile: "invalid_entries_but_user_and_group1",
+		},
 
 		// Renaming errors
-		"Error when user has conflicting uid":  {userCase: "user1-new-name", dbFile: "one_user_and_group", wantErr: true},
-		"Error when group has conflicting gid": {groupCases: []string{"newgroup1"}, dbFile: "one_user_and_group", wantErr: true},
+		"Error when user has conflicting uid": {
+			userCase: "user1-new-name", dbFile: "one_user_and_group", wantErr: true,
+		},
+		"Error when group has conflicting gid": {
+			groupCases: []string{"newgroup1"}, dbFile: "one_user_and_group", wantErr: true,
+		},
 
 		// Error cases
-		"Error on invalid value entry in groupByID":                                 {dbFile: "invalid_entry_in_groupByID", wantErr: true},
-		"Error on invalid value entry in userByID":                                  {dbFile: "invalid_entry_in_userByID", wantErr: true},
-		"Error on invalid value entry in userToGroups":                              {dbFile: "invalid_entry_in_userToGroups", wantErr: true},
-		"Error on invalid value entry in groupToUsers":                              {dbFile: "invalid_entry_in_groupToUsers", wantErr: true},
-		"Error on invalid value entry in groupToUsers for user dropping from group": {dbFile: "invalid_entry_in_groupToUsers_secondary_group", wantErr: true},
-		"Error on invalid value entry in groupByID for user dropping from group":    {dbFile: "invalid_entry_in_groupByID_secondary_group", wantErr: true},
+		"Error on invalid value entry in groupByID": {
+			dbFile: "invalid_entry_in_groupByID", wantErr: true,
+		},
+		"Error on invalid value entry in userByID": {
+			dbFile: "invalid_entry_in_userByID", wantErr: true,
+		},
+		"Error on invalid value entry in userToGroups": {
+			dbFile: "invalid_entry_in_userToGroups", wantErr: true,
+		},
+		"Error on invalid value entry in groupToUsers": {
+			dbFile: "invalid_entry_in_groupToUsers", wantErr: true,
+		},
+		"Error on invalid value entry in groupToUsers for user dropping from group": {
+			dbFile: "invalid_entry_in_groupToUsers_secondary_group", wantErr: true,
+		},
+		"Error on invalid value entry in groupByID for user dropping from group": {
+			dbFile: "invalid_entry_in_groupByID_secondary_group", wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -327,7 +379,10 @@ func TestGroupByID(t *testing.T) {
 
 		"Error on missing group":          {wantErrType: cache.NoDataFoundError{}},
 		"Error on invalid database entry": {dbFile: "invalid_entry_in_groupByID", wantErr: true},
-		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
+		"Error as missing userByID": {
+			dbFile:  "partially_valid_multiple_users_and_groups_groupByID_groupToUsers",
+			wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -354,7 +409,10 @@ func TestGroupByName(t *testing.T) {
 
 		"Error on missing group":          {wantErrType: cache.NoDataFoundError{}},
 		"Error on invalid database entry": {dbFile: "invalid_entry_in_groupByName", wantErr: true},
-		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
+		"Error as missing userByID": {
+			dbFile:  "partially_valid_multiple_users_and_groups_groupByID_groupToUsers",
+			wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -380,11 +438,19 @@ func TestAllGroups(t *testing.T) {
 		"Get one group":       {dbFile: "one_user_and_group"},
 		"Get multiple groups": {dbFile: "multiple_users_and_groups"},
 
-		"Get groups rely on groupByID, groupToUsers, UserByID": {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers_UserByID"},
+		"Get groups rely on groupByID, groupToUsers, UserByID": {
+			dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers_UserByID",
+		},
 
-		"Error on some invalid groups entry":     {dbFile: "invalid_entries_but_user_and_group1", wantErr: true},
-		"Error as not only relying on groupByID": {dbFile: "partially_valid_multiple_users_and_groups_only_groupByID", wantErr: true},
-		"Error as missing userByID":              {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
+		"Error on some invalid groups entry": {
+			dbFile: "invalid_entries_but_user_and_group1", wantErr: true,
+		},
+		"Error as not only relying on groupByID": {
+			dbFile: "partially_valid_multiple_users_and_groups_only_groupByID", wantErr: true,
+		},
+		"Error as missing userByID": {
+			dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -445,7 +511,8 @@ func TestRemoveDb(t *testing.T) {
 	require.NoFileExists(t, cacheDir, "RemoveDb should remove the database file")
 
 	// Second call should return ErrNotExist as the database file was already removed.
-	require.ErrorIs(t, cache.RemoveDb(cacheDir), fs.ErrNotExist, "RemoveDb should return os.ErrNotExist on the second call")
+	require.ErrorIs(t, cache.RemoveDb(cacheDir), fs.ErrNotExist,
+		"RemoveDb should return os.ErrNotExist on the second call")
 }
 
 func TestDeleteUser(t *testing.T) {

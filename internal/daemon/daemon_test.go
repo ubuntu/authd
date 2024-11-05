@@ -39,14 +39,28 @@ func TestNew(t *testing.T) {
 		wantSelectedSocket string
 		wantErr            bool
 	}{
-		"With socket activation":                               {wantSelectedSocket: "systemd.sock1"},
-		"Socket provided manually is created":                  {socketType: manualSocket, wantSelectedSocket: "manual.sock"},
-		"Socket provided manually wins over socket activation": {socketType: systemdActivationListenerAndManualSocket, wantSelectedSocket: "manual.sock"},
+		"With socket activation": {
+			wantSelectedSocket: "systemd.sock1",
+		},
+		"Socket provided manually is created": {
+			socketType: manualSocket, wantSelectedSocket: "manual.sock",
+		},
+		"Socket provided manually wins over socket activation": {
+			socketType: systemdActivationListenerAndManualSocket, wantSelectedSocket: "manual.sock",
+		},
 
-		"Error when systemd provides multiple sockets":             {socketType: systemdActivationListenerMultipleSockets, wantErr: true},
-		"Error when systemd activation fails":                      {socketType: systemdActivationListenerFails, wantErr: true},
-		"Error when systemd activated socket does not exists":      {socketType: systemdActivationListenerSocketDoesNotExists, wantErr: true},
-		"Error when manually provided socket path does not exists": {socketType: manualSocketParentDirectoryDoesNotExists, wantErr: true},
+		"Error when systemd provides multiple sockets": {
+			socketType: systemdActivationListenerMultipleSockets, wantErr: true,
+		},
+		"Error when systemd activation fails": {
+			socketType: systemdActivationListenerFails, wantErr: true,
+		},
+		"Error when systemd activated socket does not exists": {
+			socketType: systemdActivationListenerSocketDoesNotExists, wantErr: true,
+		},
+		"Error when manually provided socket path does not exists": {
+			socketType: manualSocketParentDirectoryDoesNotExists, wantErr: true,
+		},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
@@ -271,17 +285,20 @@ func TestQuit(t *testing.T) {
 			}
 
 			if !tc.activeConnection || tc.force {
-				require.Eventually(t, serverHasQuit, 100*time.Millisecond, 10*time.Millisecond, "Server should quit with no active connection or force")
+				require.Eventually(t, serverHasQuit, 100*time.Millisecond, 10*time.Millisecond,
+					"Server should quit with no active connection or force")
 				return
 			}
 
 			time.Sleep(100 * time.Millisecond)
-			require.False(t, serverHasQuit(), "Server should still be running because of active connection and not forced")
+			require.False(t, serverHasQuit(),
+				"Server should still be running because of active connection and not forced")
 
 			// drop connection
 			disconnectClient()
 
-			require.Eventually(t, serverHasQuit, 100*time.Millisecond, 10*time.Millisecond, "Server should quit with no more active connection")
+			require.Eventually(t, serverHasQuit, 100*time.Millisecond, 10*time.Millisecond,
+				"Server should quit with no more active connection")
 		})
 	}
 }
@@ -296,7 +313,9 @@ func createClientConnection(t *testing.T, socketPath string) (success bool, disc
 	go func() {
 		defer close(connected)
 		var err error
-		conn, err = grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
+		conn, err = grpc.NewClient(
+			"unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
 		require.NoError(t, err, "Could not connect to grpc server")
 
 		// The daemon tests require an active connection, so we need to block here until the connection is ready.

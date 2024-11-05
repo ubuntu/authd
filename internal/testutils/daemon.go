@@ -56,9 +56,10 @@ func WithEnvironment(env ...string) DaemonOption {
 	}
 }
 
-// RunDaemon runs the daemon in a separate process and returns the socket path and a channel that will be closed when
-// the daemon stops.
-func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
+// RunDaemon runs the daemon in a separate process and returns the socket path and a channel
+// that will be closed when the daemon stops.
+func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (
+	socketPath string, stopped chan struct{}) {
 	t.Helper()
 
 	opts := &daemonOptions{}
@@ -92,7 +93,8 @@ paths:
 `, opts.cachePath, opts.socketPath)
 
 	configPath := filepath.Join(tempDir, "testconfig.yaml")
-	require.NoError(t, os.WriteFile(configPath, []byte(config), 0600), "Setup: failed to create config file for tests")
+	require.NoError(t, os.WriteFile(configPath, []byte(config), 0600),
+		"Setup: failed to create config file %q for tests", configPath)
 
 	// #nosec:G204 - we control the command arguments in tests
 	cmd := exec.CommandContext(ctx, execPath, "-c", configPath)
@@ -114,7 +116,9 @@ paths:
 		t.Logf("Daemon stopped (%v)\n ##### STDOUT #####\n %s \n ##### END #####", err, out)
 	}()
 
-	conn, err := grpc.NewClient("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
+	conn, err := grpc.NewClient("unix://"+opts.socketPath,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
 	require.NoError(t, err, "Setup: could not connect to the daemon on %s", opts.socketPath)
 	defer conn.Close()
 

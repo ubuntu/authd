@@ -54,7 +54,7 @@ var supportedArgs = []string{
 	"disable_journal",     // Disable logging on systemd journal (this is implicit when `logfile` is set).
 	"socket",              // The authd socket to connect to.
 	"force_native_client", // Use native PAM client instead of custom UIs.
-	"force_reauth",        // Whether the authentication should be performed again even if it has been already completed.
+	"force_reauth",        // Whether the authentication should be performed again when it's been already completed.
 }
 
 // parseArgs parses the PAM arguments and returns a map of them and a function that logs the parsing issues.
@@ -220,7 +220,8 @@ func (h *pamModule) ChangeAuthTok(mTx pam.ModuleTransaction, flags pam.Flags, ar
 	return err
 }
 
-func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTransaction, flags pam.Flags, parsedArgs map[string]string, logArgsIssues func()) (err error) {
+func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTransaction, flags pam.Flags,
+	parsedArgs map[string]string, logArgsIssues func()) (err error) {
 	// Initialize localization
 	// TODO
 

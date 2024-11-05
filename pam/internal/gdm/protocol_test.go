@@ -224,14 +224,20 @@ func TestGdmStructsMarshal(t *testing.T) {
 			wantErrMsg: "missing event type",
 		},
 		"Error event packet with missing type": {
-			gdmData: &gdm.Data{Type: gdm.DataType_event, Event: &gdm.EventData{Data: &gdm.EventData_AuthModeSelected{}}},
+			gdmData: &gdm.Data{
+				Type:  gdm.DataType_event,
+				Event: &gdm.EventData{Data: &gdm.EventData_AuthModeSelected{}},
+			},
 
 			wantErrMsg: "missing event type",
 		},
 		"Error event packet with unexpected data": {
 			gdmData: &gdm.Data{
-				Type:  gdm.DataType_event,
-				Event: &gdm.EventData{Type: gdm.EventType_authEvent, Data: &gdm.EventData_AuthModeSelected{}},
+				Type: gdm.DataType_event,
+				Event: &gdm.EventData{
+					Type: gdm.EventType_authEvent,
+					Data: &gdm.EventData_AuthModeSelected{},
+				},
 				Hello: &gdm.HelloData{},
 			},
 
@@ -243,12 +249,18 @@ func TestGdmStructsMarshal(t *testing.T) {
 			wantErrMsg: "field Event should not be defined",
 		},
 		"Error request packet with unknown type": {
-			gdmData: &gdm.Data{Type: gdm.DataType_request, Request: &gdm.RequestData{Data: &gdm.RequestData_ChangeStage{}}},
+			gdmData: &gdm.Data{
+				Type:    gdm.DataType_request,
+				Request: &gdm.RequestData{Data: &gdm.RequestData_ChangeStage{}},
+			},
 
 			wantErrMsg: "missing request type",
 		},
 		"Error request packet with invalid type": {
-			gdmData: &gdm.Data{Type: gdm.DataType_request, Request: &gdm.RequestData{Type: gdm.RequestType(-1)}},
+			gdmData: &gdm.Data{
+				Type:    gdm.DataType_request,
+				Request: &gdm.RequestData{Type: gdm.RequestType(-1)},
+			},
 
 			wantErrMsg: "unexpected request type",
 		},

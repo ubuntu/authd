@@ -244,7 +244,8 @@ func (d itemLayout) Render(w io.Writer, m list.Model, index int, item list.Item)
 	line := fmt.Sprintf("%d. %s", index+1, label)
 
 	if index == m.Index() {
-		line = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.AdaptiveColor{Light: "#000000", Dark: "#FFFFFF"}).Render("> " + line)
+		line = lipgloss.NewStyle().Bold(true).Foreground(
+			lipgloss.AdaptiveColor{Light: "#000000", Dark: "#FFFFFF"}).Render("> " + line)
 	} else {
 		line = lipgloss.NewStyle().PaddingLeft(2).Render(line)
 	}

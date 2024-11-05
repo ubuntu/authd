@@ -27,7 +27,8 @@ type Service struct {
 }
 
 // NewService returns a new NSS GRPC service.
-func NewService(ctx context.Context, userManager *users.Manager, brokerManager *brokers.Manager, permissionManager *permissions.Manager) Service {
+func NewService(ctx context.Context, userManager *users.Manager,
+	brokerManager *brokers.Manager, permissionManager *permissions.Manager) Service {
 	log.Debug(ctx, "Building new GRPC NSS service")
 
 	return Service{

@@ -262,10 +262,14 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		// no challenge value, pass it as is
 		plainTextChallenge, err := msg.encryptChallengeIfPresent(m.encryptionKey)
 		if err != nil {
-			return *m, sendEvent(pamError{status: pam.ErrSystem, msg: fmt.Sprintf("could not encrypt challenge payload: %v", err)})
+			return *m, sendEvent(pamError{
+				status: pam.ErrSystem,
+				msg:    fmt.Sprintf("could not encrypt challenge payload: %v", err)},
+			)
 		}
 
-		return *m, sendIsAuthenticated(msg.ctx, m.client, m.currentSessionID, &authd.IARequest_AuthenticationData{Item: msg.item}, plainTextChallenge)
+		return *m, sendIsAuthenticated(msg.ctx, m.client, m.currentSessionID,
+			&authd.IARequest_AuthenticationData{Item: msg.item}, plainTextChallenge)
 
 	case isAuthenticatedCancelled:
 		log.Debugf(context.TODO(), "%#v", msg)
@@ -373,7 +377,8 @@ func (m *authenticationModel) Blur() {
 
 // Compose initialize the authentication model to be used.
 // It creates and attaches the sub layout models based on UILayout.
-func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey *rsa.PublicKey, layout *authd.UILayout) tea.Cmd {
+func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey *rsa.PublicKey,
+	layout *authd.UILayout) tea.Cmd {
 	m.currentBrokerID = brokerID
 	m.currentSessionID = sessionID
 	m.encryptionKey = encryptionKey

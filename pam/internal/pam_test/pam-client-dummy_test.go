@@ -596,7 +596,8 @@ func TestSelectAuthenticationModes(t *testing.T) {
 			client:              NewDummyClient(nil),
 			args:                &authd.SAMRequest{SessionId: "session-id"},
 			skipBrokerSelection: true,
-			wantError:           errors.New(`impossible to select authentication mode, session ID "session-id" not found`),
+			wantError: errors.New("impossible to select authentication mode, " +
+				`session ID "session-id" not found`),
 		},
 		"Error with no authentication mode ID": {
 			client: NewDummyClient(nil,

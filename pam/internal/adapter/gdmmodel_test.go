@@ -464,7 +464,8 @@ func TestGdmModel(t *testing.T) {
 				msg:      "Hi GDM, it's a pleasure to change your password!",
 			},
 		},
-		"New password can't change because not respecting rules after server-side user, broker and authMode selection": {
+		"New password can't change because not respecting rules after server-side " +
+			"user, broker and authMode selection": {
 			clientOptions: append(slices.Clone(singleBrokerNewPasswordClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
@@ -564,9 +565,11 @@ func TestGdmModel(t *testing.T) {
 										gdm_test.AuthModeSelectedEvent(newPasswordUILayoutID),
 									},
 									commands: []tea.Cmd{
-										sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-											Challenge: "gdm-repeated-password",
-										}}),
+										sendEvent(gdmTestSendAuthDataWhenReady{
+											&authd.IARequest_AuthenticationData_Challenge{
+												Challenge: "gdm-repeated-password",
+											},
+										}),
 									},
 								}),
 							},
@@ -910,7 +913,8 @@ func TestGdmModel(t *testing.T) {
 			wantStage:      pam_proto.Stage_challenge,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
-		"AuthMode selection stage from client after server-side broker and auth mode selection if there is only one auth mode": {
+		"AuthMode selection stage from client after server-side broker and auth mode selection " +
+			"if there is only one auth mode": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 			),
@@ -954,7 +958,8 @@ func TestGdmModel(t *testing.T) {
 			wantStage:      pam_proto.Stage_authModeSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
-		"AuthMode selection stage from client after server-side broker and auth mode selection with multiple auth modes": {
+		"AuthMode selection stage from client after server-side broker and auth mode selection " +
+			"with multiple auth modes": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithUILayout("pincode", "Pin Code", pam_test.FormUILayout()),
@@ -994,7 +999,8 @@ func TestGdmModel(t *testing.T) {
 			wantStage:      pam_proto.Stage_authModeSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
-		"AuthMode selection stage from client after client-side broker and auth mode selection if there is only one auth mode": {
+		"AuthMode selection stage from client after client-side broker and auth mode selection " +
+			"if there is only one auth mode": {
 			gdmEvents: []*gdm.EventData{
 				gdm_test.SelectUserEvent("gdm-selected-user-broker-and-auth-mode"),
 			},
@@ -1041,7 +1047,8 @@ func TestGdmModel(t *testing.T) {
 			wantStage:      pam_proto.Stage_authModeSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
-		"Authenticated after auth selection stage from client after client-side broker and auth mode selection if there is only one auth mode": {
+		"Authenticated after auth selection stage from client after client-side broker " +
+			"and auth mode selection if there is only one auth mode": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
 			),
@@ -1108,7 +1115,8 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
-		"Authenticated after auth selection stage from client after client-side broker and auth mode selection with multiple auth modes": {
+		"Authenticated after auth selection stage from client after client-side broker " +
+			"and auth mode selection with multiple auth modes": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithUILayout("pincode", "Write the pin Code", pam_test.FormUILayout()),
 				pam_test.WithIsAuthenticatedWantChallenge("1234"),
@@ -1177,7 +1185,8 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
-		"Authenticated with qrcode after auth selection stage from client after client-side broker and auth mode selection": {
+		"Authenticated with qrcode after auth selection stage from client after client-side broker" +
+			" and auth mode selection": {
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(),
 				pam_test.QrCodeUILayout(),
@@ -1250,7 +1259,8 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
-		"Authenticated with qrcode regenerated after auth selection stage from client after client-side broker and auth mode selection": {
+		"Authenticated with qrcode regenerated after auth selection stage from client " +
+			"after client-side broker and auth mode selection": {
 			timeout: 10 * time.Second,
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(),
@@ -1332,7 +1342,8 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
-		"Authenticated with qrcode regenerated after wait started at auth selection stage from client after client-side broker and auth mode selection": {
+		"Authenticated with qrcode regenerated after wait started at auth selection stage from client" +
+			"after client-side broker and auth mode selection": {
 			timeout: 10 * time.Second,
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(),
@@ -1419,7 +1430,8 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
-		"Broker selection stage from client after client-side broker and auth mode selection if there is only one auth mode": {
+		"Broker selection stage from client after client-side broker and auth mode selection " +
+			"if there is only one auth mode": {
 			gdmEvents: []*gdm.EventData{
 				gdm_test.SelectUserEvent("gdm-selected-user-broker-and-auth-mode"),
 			},
@@ -1471,7 +1483,8 @@ func TestGdmModel(t *testing.T) {
 			wantStage:      pam_proto.Stage_brokerSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
-		"User selection stage from client after client-side broker and auth mode selection if there is only one auth mode": {
+		"User selection stage from client after client-side broker and auth mode selection " +
+			"if there is only one auth mode": {
 			gdmEvents: []*gdm.EventData{
 				gdm_test.SelectUserEvent("gdm-selected-user-broker-and-auth-mode"),
 			},
@@ -1593,7 +1606,8 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
-				msg:    "Sending GDM poll failed: Conversation error: poll response data member 0 invalid: missing event data",
+				msg: "Sending GDM poll failed: Conversation error: " +
+					"poll response data member 0 invalid: missing event data",
 			},
 		},
 		"Error on invalid poll data response for missing data": {
@@ -1609,7 +1623,8 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
-				msg:    "Sending GDM poll failed: Conversation error: poll response data member 0 invalid: missing event type",
+				msg: "Sending GDM poll failed: Conversation error: " +
+					"poll response data member 0 invalid: missing event type",
 			},
 		},
 		"Error on no brokers": {
@@ -1719,7 +1734,8 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
-				msg:    "encryption key sent by broker is not a valid base64 encoded string: illegal base64 data at input byte 2",
+				msg: "encryption key sent by broker is not a valid base64 encoded string: " +
+					"illegal base64 data at input byte 2",
 			},
 		},
 		"Error during broker selection if encryption key is not valid key": {
@@ -2281,7 +2297,8 @@ func TestGdmModel(t *testing.T) {
 			wantNoBrokers: true,
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
-				msg:    "Sending GDM UI capabilities Request failed: Conversation error: this is an UI capabilities request error",
+				msg: "Sending GDM UI capabilities Request failed: " +
+					"Conversation error: this is an UI capabilities request error",
 			},
 		},
 		"Error on selecting user name after PAM provided already one": {

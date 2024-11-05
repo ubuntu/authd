@@ -42,7 +42,8 @@ func TestNewManager(t *testing.T) {
 				t.Setenv("DBUS_SYSTEM_BUS_ADDRESS", tc.systemBusSocket)
 			}
 
-			m, err := services.NewManager(context.Background(), tc.cacheDir, t.TempDir(), nil, users.DefaultConfig)
+			m, err := services.NewManager(context.Background(),
+				tc.cacheDir, t.TempDir(), nil, users.DefaultConfig)
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should have returned an error, but did not")
 				return
@@ -97,7 +98,9 @@ func TestAccessAuthorization(t *testing.T) {
 		require.NoError(t, <-serverDone, "gRPC server should not return an error from serving")
 	}()
 
-	conn, err := grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
+	conn, err := grpc.NewClient("unix://"+socketPath,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
 	require.NoError(t, err, "Setup: could not dial the server")
 
 	// Global authorization for PAM is always denied for non root user.

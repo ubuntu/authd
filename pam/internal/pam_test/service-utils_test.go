@@ -47,6 +47,7 @@ func TestCreateService(t *testing.T) {
 				{Session, Optional, "pam_session_module.so", []string{""}},
 				{Session, Optional, Ignore.String(), []string{}},
 			},
+			//nolint:lll
 			wantContent: `account	required	pam_account_module.so	a b c [d e] [f [g h\]]
 account	required	pam_deny.so
 auth	requisite	pam_auth_module.so

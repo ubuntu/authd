@@ -25,7 +25,8 @@ type Manager struct {
 }
 
 // NewManager returns a new manager after creating all necessary items for our business logic.
-func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configuredBrokers []string, usersConfig users.Config) (m Manager, err error) {
+func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configuredBrokers []string,
+	usersConfig users.Config) (m Manager, err error) {
 	defer decorate.OnError(&err /*i18n.G(*/, "can't create authd object") //)
 
 	log.Debug(ctx, "Building authd object")
@@ -57,7 +58,10 @@ func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configure
 func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 	log.Debug(ctx, "Registering GRPC services")
 
-	opts := []grpc.ServerOption{permissions.WithUnixPeerCreds(), grpc.ChainUnaryInterceptor(m.globalPermissions, errmessages.RedactErrorInterceptor)}
+	opts := []grpc.ServerOption{
+		permissions.WithUnixPeerCreds(),
+		grpc.ChainUnaryInterceptor(m.globalPermissions, errmessages.RedactErrorInterceptor),
+	}
 	grpcServer := grpc.NewServer(opts...)
 
 	authd.RegisterNSSServer(grpcServer, m.nssService)

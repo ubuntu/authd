@@ -174,10 +174,14 @@ func checkHomeDirOwnership(u UserInfo) error {
 
 	// Check if the home directory is owned by the user.
 	if oldUID != newUID {
-		log.Warningf(context.TODO(), "Home directory %q is not owned by UID %d. To fix this, run `sudo chown -R --from=%d %d %s`.", u.Dir, oldUID, oldUID, newUID, u.Dir)
+		log.Warningf(context.TODO(), "Home directory %q is not owned by UID %d. "+
+			"To fix this, run `sudo chown -R --from=%d %d %s`.",
+			u.Dir, oldUID, oldUID, newUID, u.Dir)
 	}
 	if oldGID != newGID {
-		log.Warningf(context.TODO(), "Home directory %q is not owned by GID %d. To fix this, run `sudo chown -R --from=:%d :%d %s`.", u.Dir, oldGID, oldGID, newGID, u.Dir)
+		log.Warningf(context.TODO(), "Home directory %q is not owned by GID %d. "+
+			"To fix this, run `sudo chown -R --from=:%d :%d %s`.",
+			u.Dir, oldGID, oldGID, newGID, u.Dir)
 	}
 
 	return nil
@@ -313,8 +317,9 @@ func generateID(str string, minID, maxID uint32) uint32 {
 	// Convert the first 4 bytes of the hash into an integer
 	number := binary.BigEndian.Uint32(hash[:4]) % (maxID + 1)
 
-	// Repeat hashing until we get a number in the desired range. This ensures that the generated IDs are uniformly
-	// distributed in the range, opposed to a simple modulo operation.
+	// Repeat hashing until we get a number in the desired range.
+	// This ensures that the generated IDs are uniformly distributed in the range,
+	// opposed to a simple modulo operation.
 	for number < minID {
 		hash = sha256.Sum256(hash[:])
 		number = binary.BigEndian.Uint32(hash[:4]) % (maxID + 1)

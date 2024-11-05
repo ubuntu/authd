@@ -1,4 +1,5 @@
-// Package localgrouptestutils export users test functionalities used by other packages to change cmdline and group file.
+// Package localgrouptestutils export users test functionalities used by other packages
+// to change cmdline and group file.
 package localgrouptestutils
 
 //nolint:gci // We import unsafe as it is needed for go:linkname, but the nolint comment confuses gofmt and it adds

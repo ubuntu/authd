@@ -46,7 +46,8 @@ func (c *Cache) UpdateUserEntry(usr UserDB, groupContents []GroupDB) error {
 		}
 
 		/* 3. Users and groups mapping buckets */
-		if err := updateUsersAndGroups(buckets, userDB.UID, groupContents, previousGroupsForCurrentUser.GIDs); err != nil {
+		if err := updateUsersAndGroups(buckets, userDB.UID, groupContents,
+			previousGroupsForCurrentUser.GIDs); err != nil {
 			return err
 		}
 
@@ -71,12 +72,15 @@ func updateUser(buckets map[string]bucketWithName, userContent userDB) error {
 
 	// Ensure that we use the same homedir as the one we have in cache.
 	if existingUser.Dir != "" && existingUser.Dir != userContent.Dir {
-		log.Warningf(context.TODO(), "User %q already has a homedir. The existing %q one will be kept instead of %q", userContent.Name, existingUser.Dir, userContent.Dir)
+		log.Warningf(context.TODO(),
+			"User %q already has a homedir. The existing %q one will be kept instead of %q",
+			userContent.Name, existingUser.Dir, userContent.Dir)
 		userContent.Dir = existingUser.Dir
 	}
 
 	// Update user buckets
-	log.Debug(context.Background(), fmt.Sprintf("Updating entry of user %q (UID: %d)", userContent.Name, userContent.UID))
+	log.Debug(context.Background(), fmt.Sprintf("Updating entry of user %q (UID: %d)",
+		userContent.Name, userContent.UID))
 	updateBucket(buckets[userByIDBucketName], userContent.UID, userContent)
 	updateBucket(buckets[userByNameBucketName], userContent.Name, userContent)
 
@@ -93,21 +97,28 @@ func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) er
 
 		// If a group with the same GID exists, we need to ensure that it's the same group or fail the update otherwise.
 		if existingGroup.Name != "" && existingGroup.Name != groupContent.Name {
-			log.Errorf(context.TODO(), "GID %d for group %q already in use by group %q", groupContent.GID, groupContent.Name, existingGroup.Name)
-			return fmt.Errorf("GID for group %q already in use by a different group", groupContent.Name)
+			log.Errorf(context.TODO(), "GID %d for group %q already in use by group %q",
+				groupContent.GID, groupContent.Name, existingGroup.Name)
+			return fmt.Errorf("GID for group %q already in use by a different group",
+				groupContent.Name)
 		}
 
 		// Update group buckets
-		updateBucket(buckets[groupByIDBucketName], groupContent.GID, groupDB{Name: groupContent.Name, GID: groupContent.GID})
-		updateBucket(buckets[groupByNameBucketName], groupContent.Name, groupDB{Name: groupContent.Name, GID: groupContent.GID})
+		updateBucket(buckets[groupByIDBucketName], groupContent.GID, groupDB{
+			Name: groupContent.Name, GID: groupContent.GID,
+		})
+		updateBucket(buckets[groupByNameBucketName], groupContent.Name, groupDB{
+			Name: groupContent.Name, GID: groupContent.GID,
+		})
 	}
 
 	return nil
 }
 
-// updateUserAndGroups updates the pivot table for user to groups and group to users. It handles any update
-// to groups uid is not part of anymore.
-func updateUsersAndGroups(buckets map[string]bucketWithName, uid uint32, groupContents []GroupDB, previousGIDs []uint32) error {
+// updateUserAndGroups updates the pivot table for user to groups and group to users.
+// It handles any update to groups uid is not part of anymore.
+func updateUsersAndGroups(buckets map[string]bucketWithName, uid uint32,
+	groupContents []GroupDB, previousGIDs []uint32) error {
 	var currentGIDs []uint32
 	for _, groupContent := range groupContents {
 		currentGIDs = append(currentGIDs, groupContent.GID)

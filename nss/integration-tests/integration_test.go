@@ -28,7 +28,10 @@ func TestIntegration(t *testing.T) {
 	defaultOutputPath := filepath.Join(filepath.Dir(daemonPath), "gpasswd.output")
 	defaultGroupsFilePath := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
-	env := append(localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, defaultOutputPath, defaultGroupsFilePath), "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
+	env := append(
+		localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, defaultOutputPath, defaultGroupsFilePath),
+		"AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1",
+	)
 	ctx, cancel := context.WithCancel(context.Background())
 	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
 		testutils.WithSocketPath(defaultSocket),
@@ -69,35 +72,72 @@ func TestIntegration(t *testing.T) {
 		// Even though those are "error" cases, the getent command won't fail when trying to list content of a service.
 		"Returns empty when getting all entries from shadow if regular user": {db: "shadow", currentUserNotRoot: true},
 
-		"Returns empty when getting all entries from passwd and daemon is not available": {db: "passwd", noDaemon: true},
-		"Returns empty when getting all entries from group and daemon is not available":  {db: "group", noDaemon: true},
-		"Returns empty when getting all entries from shadow and daemon is not available": {db: "shadow", noDaemon: true},
+		"Returns empty when getting all entries from passwd and daemon is not available": {
+			db: "passwd", noDaemon: true,
+		},
+		"Returns empty when getting all entries from group and daemon is not available": {db: "group", noDaemon: true},
+		"Returns empty when getting all entries from shadow and daemon is not available": {
+			db: "shadow", noDaemon: true,
+		},
 
 		/* Error cases */
-		// We can't assert on the returned error type since the error returned by getent will always be 2 (i.e. Not Found), even though the library returns other types.
-		"Error when getting all entries from passwd and database is corrupted": {db: "passwd", cacheDB: "invalid_entry_in_userByID", wantSecondCall: true},
-		"Error when getting all entries from group and database is corrupted":  {db: "group", cacheDB: "invalid_entry_in_groupByID", wantSecondCall: true},
-		"Error when getting all entries from shadow and database is corrupted": {db: "shadow", cacheDB: "invalid_entry_in_userByID", wantSecondCall: true},
+		// We can't assert on the returned error type since the error returned by getent will always be 2
+		// (i.e. Not Found), even though the library returns other types.
+		"Error when getting all entries from passwd and database is corrupted": {
+			db: "passwd", cacheDB: "invalid_entry_in_userByID", wantSecondCall: true,
+		},
+		"Error when getting all entries from group and database is corrupted": {
+			db: "group", cacheDB: "invalid_entry_in_groupByID", wantSecondCall: true,
+		},
+		"Error when getting all entries from shadow and database is corrupted": {
+			db: "shadow", cacheDB: "invalid_entry_in_userByID", wantSecondCall: true,
+		},
 
-		"Error when getting shadow by name if regular user": {db: "shadow", key: "user1", currentUserNotRoot: true, wantStatus: codeNotFound},
+		"Error when getting shadow by name if regular user": {
+			db: "shadow", key: "user1", currentUserNotRoot: true, wantStatus: codeNotFound,
+		},
 
-		"Error when getting passwd by name and entry does not exist":                        {db: "passwd", key: "doesnotexit", wantStatus: codeNotFound},
-		"Error when getting passwd by name entry exists in broker but precheck is disabled": {db: "passwd", key: "user-pre-check", wantStatus: codeNotFound},
-		"Error when getting group by name and entry does not exist":                         {db: "group", key: "doesnotexit", wantStatus: codeNotFound},
-		"Error when getting shadow by name and entry does not exist":                        {db: "shadow", key: "doesnotexit", wantStatus: codeNotFound},
+		"Error when getting passwd by name and entry does not exist": {
+			db: "passwd", key: "doesnotexit", wantStatus: codeNotFound,
+		},
+		"Error when getting passwd by name entry exists in broker but precheck is disabled": {
+			db: "passwd", key: "user-pre-check", wantStatus: codeNotFound,
+		},
+		"Error when getting group by name and entry does not exist": {
+			db: "group", key: "doesnotexit", wantStatus: codeNotFound,
+		},
+		"Error when getting shadow by name and entry does not exist": {
+			db: "shadow", key: "doesnotexit", wantStatus: codeNotFound,
+		},
 
-		"Error when getting passwd by id and entry does not exist": {db: "passwd", key: "404", wantStatus: codeNotFound},
-		"Error when getting group by id and entry does not exist":  {db: "group", key: "404", wantStatus: codeNotFound},
+		"Error when getting passwd by id and entry does not exist": {
+			db: "passwd", key: "404", wantStatus: codeNotFound,
+		},
+		"Error when getting group by id and entry does not exist": {
+			db: "group", key: "404", wantStatus: codeNotFound,
+		},
 
-		"Error when getting passwd by name and daemon is not available": {db: "passwd", key: "user1", noDaemon: true, wantStatus: codeNotFound},
-		"Error when getting group by name and daemon is not available":  {db: "group", key: "group1", noDaemon: true, wantStatus: codeNotFound},
-		"Error when getting shadow by name and daemon is not available": {db: "shadow", key: "user1", noDaemon: true, wantStatus: codeNotFound},
+		"Error when getting passwd by name and daemon is not available": {
+			db: "passwd", key: "user1", noDaemon: true, wantStatus: codeNotFound,
+		},
+		"Error when getting group by name and daemon is not available": {
+			db: "group", key: "group1", noDaemon: true, wantStatus: codeNotFound,
+		},
+		"Error when getting shadow by name and daemon is not available": {
+			db: "shadow", key: "user1", noDaemon: true, wantStatus: codeNotFound,
+		},
 
-		"Error when getting passwd by id and daemon is not available": {db: "passwd", key: "1111", noDaemon: true, wantStatus: codeNotFound},
-		"Error when getting group by id and daemon is not available":  {db: "group", key: "11111", noDaemon: true, wantStatus: codeNotFound},
+		"Error when getting passwd by id and daemon is not available": {
+			db: "passwd", key: "1111", noDaemon: true, wantStatus: codeNotFound,
+		},
+		"Error when getting group by id and daemon is not available": {
+			db: "group", key: "11111", noDaemon: true, wantStatus: codeNotFound,
+		},
 
 		/* Special cases */
-		"Do not query the cache when user is pam_unix_non_existent": {db: "passwd", key: "pam_unix_non_existent:", cacheDB: "pam_unix_non_existent", wantStatus: codeNotFound},
+		"Do not query the cache when user is pam_unix_non_existent": {
+			db: "passwd", key: "pam_unix_non_existent:", cacheDB: "pam_unix_non_existent", wantStatus: codeNotFound,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

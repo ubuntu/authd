@@ -22,7 +22,8 @@ type dbusBroker struct {
 }
 
 // newDbusBroker returns a dbus broker and broker attributes from its configuration file.
-func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b dbusBroker, name, brandIcon string, err error) {
+func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (
+	b dbusBroker, name, brandIcon string, err error) {
 	defer decorate.OnError(&err, "dbus broker from configuration file: %q", configFile)
 
 	log.Debugf(ctx, "Dbus broker configuration at %q", configFile)
@@ -58,8 +59,10 @@ func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b db
 	}, nameVal.String(), brandIconVal.String(), nil
 }
 
-// NewSession calls the corresponding method on the broker bus and returns the session ID and encryption key.
-func (b dbusBroker) NewSession(ctx context.Context, username, lang, mode string) (sessionID, encryptionKey string, err error) {
+// NewSession calls the corresponding method on the broker bus and
+// returns the session ID and encryption key.
+func (b dbusBroker) NewSession(ctx context.Context, username, lang, mode string) (
+	sessionID, encryptionKey string, err error) {
 	call, err := b.call(ctx, "NewSession", username, lang, mode)
 	if err != nil {
 		return "", "", err
@@ -71,8 +74,10 @@ func (b dbusBroker) NewSession(ctx context.Context, username, lang, mode string)
 	return sessionID, encryptionKey, nil
 }
 
-// GetAuthenticationModes calls the corresponding method on the broker bus and returns the authentication modes supported by it.
-func (b dbusBroker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
+// GetAuthenticationModes calls the corresponding method on the broker bus and
+// returns the authentication modes supported by it.
+func (b dbusBroker) GetAuthenticationModes(ctx context.Context, sessionID string,
+	supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
 	call, err := b.call(ctx, "GetAuthenticationModes", sessionID, supportedUILayouts)
 	if err != nil {
 		return nil, err
@@ -84,8 +89,10 @@ func (b dbusBroker) GetAuthenticationModes(ctx context.Context, sessionID string
 	return authenticationModes, nil
 }
 
-// SelectAuthenticationMode calls the corresponding method on the broker bus and returns the UI layout for the selected mode.
-func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
+// SelectAuthenticationMode calls the corresponding method on the broker bus and
+// returns the UI layout for the selected mode.
+func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (
+	uiLayoutInfo map[string]string, err error) {
 	call, err := b.call(ctx, "SelectAuthenticationMode", sessionID, authenticationModeName)
 	if err != nil {
 		return nil, err
@@ -97,8 +104,10 @@ func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, aut
 	return uiLayoutInfo, nil
 }
 
-// IsAuthenticated calls the corresponding method on the broker bus and returns the user information and access.
-func (b dbusBroker) IsAuthenticated(_ context.Context, sessionID, authenticationData string) (access, data string, err error) {
+// IsAuthenticated calls the corresponding method on the broker bus and
+// returns the user information and access.
+func (b dbusBroker) IsAuthenticated(_ context.Context, sessionID, authenticationData string) (
+	access, data string, err error) {
 	// We don’t want to cancel the context when the parent call is cancelled.
 	call, err := b.call(context.Background(), "IsAuthenticated", sessionID, authenticationData)
 	if err != nil {
