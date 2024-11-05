@@ -202,6 +202,9 @@ jobs:
           raw_cov_dir="${cov_dir}/raw"
           mkdir -p "${raw_cov_dir}" "${cod_cov_dir}"
 
+          # Print executed commands to ease debugging
+          set -x
+
           # Overriding the default coverage directory is not an exported flag of go test (yet), so
           # we need to override it using the test.gocoverdir flag instead.
           #TODO: Update when https://go-review.googlesource.com/c/go/+/456595 is merged.
@@ -239,6 +242,9 @@ jobs:
           # Use these flags to give ASAN a better time to unwind the stack trace
           GO_GC_FLAGS: -N -l
         run: |
+          # Print executed commands to ease debugging
+          set -x
+
           go test -C ./pam/internal -json -asan -gcflags=all="${GO_GC_FLAGS}" -timeout ${GO_TESTS_TIMEOUT} ./... | \
             ./tools/gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.pam-internal-asan.log" || exit_code=$?
           if [ -n "${exit_code:-}" ]; then
@@ -257,6 +263,9 @@ jobs:
             ../../tools/gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.pam-integration-tests-asan.log" || \
             exit_code=$?
           popd
+
+          # We don't need the xtrace output after this point
+          set +x
 
           # We're logging to a file, and this is useful for having artifacts, but we still may want to see it in logs:
           cat "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log* || true
