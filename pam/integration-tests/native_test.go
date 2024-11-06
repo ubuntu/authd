@@ -19,8 +19,9 @@ func TestNativeAuthenticate(t *testing.T) {
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 
 	tests := map[string]struct {
-		tape         string
-		tapeSettings []tapeSetting
+		tape          string
+		tapeSettings  []tapeSetting
+		tapeVariables map[string]string
 
 		clientOptions      clientOptions
 		currentUserNotRoot bool
@@ -43,43 +44,49 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Authenticate user with qr code": {
 			tape:          "qr_code",
 			tapeSettings:  []tapeSetting{{vhsHeight, 2300}},
+			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{PamUser: "user-integration-qr-code"},
 		},
 		"Authenticate user with qr code in a TTY": {
-			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 3700}},
+			tape:          "qr_code",
+			tapeSettings:  []tapeSetting{{vhsHeight, 3700}},
+			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty",
 				Term:    "linux",
 			},
 		},
 		"Authenticate user with qr code in a TTY session": {
-			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 3700}},
+			tape:          "qr_code",
+			tapeSettings:  []tapeSetting{{vhsHeight, 3700}},
+			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty-session",
 				Term:    "xterm-256color", SessionType: "tty",
 			},
 		},
 		"Authenticate user with qr code in screen": {
-			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 3700}},
+			tape:          "qr_code",
+			tapeSettings:  []tapeSetting{{vhsHeight, 3700}},
+			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-screen",
 				Term:    "screen",
 			},
 		},
 		"Authenticate user with qr code in polkit": {
-			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
+			tape:          "qr_code",
+			tapeSettings:  []tapeSetting{{vhsHeight, 3500}},
+			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "2"},
 			clientOptions: clientOptions{
 				PamUser:        "user-integration-qr-code-polkit",
 				PamServiceName: "polkit-1",
 			},
 		},
 		"Authenticate user with qr code in ssh": {
-			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
+			tape:          "qr_code",
+			tapeSettings:  []tapeSetting{{vhsHeight, 3500}},
+			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "2"},
 			clientOptions: clientOptions{
 				PamUser:        "user-integration-pre-check-ssh-service-qr-code",
 				PamServiceName: "sshd",
@@ -218,6 +225,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Env[socketPathEnv] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
+			td.Variables = tc.tapeVariables
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, "native", outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)

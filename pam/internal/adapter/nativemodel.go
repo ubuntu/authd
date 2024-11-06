@@ -88,6 +88,7 @@ func (m *nativeModel) Init() tea.Cmd {
 	}
 
 	m.interactive = IsSSHSession(m.pamMTx) || m.isTerminalTty()
+	rendersQrCode := m.isQrcodeRenderingSupported()
 
 	return func() tea.Msg {
 		required, optional := "required", "optional"
@@ -105,12 +106,13 @@ func (m *nativeModel) Init() tea.Cmd {
 					Button: &optional,
 				},
 				{
-					Type:    "qrcode",
-					Content: &required,
-					Code:    &optional,
-					Wait:    &requiredWithBooleans,
-					Label:   &optional,
-					Button:  &optional,
+					Type:          "qrcode",
+					Content:       &required,
+					Code:          &optional,
+					Wait:          &requiredWithBooleans,
+					Label:         &optional,
+					Button:        &optional,
+					RendersQrcode: &rendersQrCode,
 				},
 				{
 					Type:   "newpassword",
