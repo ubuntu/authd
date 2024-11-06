@@ -1,13 +1,14 @@
 package cache
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
 	"slices"
 	"strconv"
 
+	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/decorate"
 	"go.etcd.io/bbolt"
 )
@@ -107,7 +108,7 @@ func deleteUser(buckets map[string]bucketWithName, uid uint32) (err error) {
 
 // deleteOrphanedUsers removes users from the UserByID bucket that are not in the UserByName bucket.
 func deleteOrphanedUsers(db *bbolt.DB) error {
-	slog.Debug("Cleaning up orphaned user records")
+	log.Debug(context.TODO(), "Cleaning up orphaned user records")
 
 	err := db.Update(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
@@ -118,17 +119,17 @@ func deleteOrphanedUsers(db *bbolt.DB) error {
 		return buckets[userByIDBucketName].ForEach(func(k, v []byte) error {
 			var user UserDB
 			if err := json.Unmarshal(v, &user); err != nil {
-				slog.Warn(fmt.Sprintf("Error loading user record {%s: %s}: %v", string(k), string(v), err))
+				log.Warningf(context.TODO(), "Error loading user record {%s: %s}: %v", string(k), string(v), err)
 				return nil
 			}
 
 			user2, err := getFromBucket[userDB](buckets[userByNameBucketName], user.Name)
 			if err != nil && !errors.Is(err, NoDataFoundError{}) {
-				slog.Warn(fmt.Sprintf("Error loading user record %q: %v", user.Name, err))
+				log.Warningf(context.TODO(), "Error loading user record %q: %v", user.Name, err)
 				return nil
 			}
 			if errors.Is(err, NoDataFoundError{}) || user2.UID != user.UID {
-				slog.Warn(fmt.Sprintf("Removing orphaned user record %q with UID %d", user.Name, user.UID))
+				log.Warningf(context.TODO(), "Removing orphaned user record %q with UID %d", user.Name, user.UID)
 				return deleteOrphanedUser(buckets, user.UID)
 			}
 
@@ -139,7 +140,7 @@ func deleteOrphanedUsers(db *bbolt.DB) error {
 		return err
 	}
 
-	slog.Debug("Done cleaning up orphaned user records")
+	log.Debug(context.TODO(), "Done cleaning up orphaned user records")
 	return nil
 }
 

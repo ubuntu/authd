@@ -5,8 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 
+	"github.com/ubuntu/authd/internal/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -18,7 +18,7 @@ import (
 func RedactErrorInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 	m, err := handler(ctx, req)
 	if err != nil {
-		slog.Warn(err.Error())
+		log.Warning(context.TODO(), err.Error())
 		var redactedError ErrToDisplay
 		if !errors.As(err, &redactedError) {
 			return m, err

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
 	"slices"
 	"strconv"
 	"time"
@@ -66,13 +65,13 @@ func updateUser(buckets map[string]bucketWithName, userContent userDB) error {
 
 	// If a user with the same UID exists, we need to ensure that it's the same user or fail the update otherwise.
 	if existingUser.Name != "" && existingUser.Name != userContent.Name {
-		slog.Error(fmt.Sprintf("UID for user %q already in use by user %q", userContent.Name, existingUser.Name))
+		log.Errorf(context.TODO(), "UID for user %q already in use by user %q", userContent.Name, existingUser.Name)
 		return errors.New("UID already in use by a different user")
 	}
 
 	// Ensure that we use the same homedir as the one we have in cache.
 	if existingUser.Dir != "" && existingUser.Dir != userContent.Dir {
-		slog.Warn(fmt.Sprintf("User %q already has a homedir. The existing %q one will be kept instead of %q", userContent.Name, existingUser.Dir, userContent.Dir))
+		log.Warningf(context.TODO(), "User %q already has a homedir. The existing %q one will be kept instead of %q", userContent.Name, existingUser.Dir, userContent.Dir)
 		userContent.Dir = existingUser.Dir
 	}
 
@@ -94,7 +93,7 @@ func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) er
 
 		// If a group with the same GID exists, we need to ensure that it's the same group or fail the update otherwise.
 		if existingGroup.Name != "" && existingGroup.Name != groupContent.Name {
-			slog.Error(fmt.Sprintf("GID %d for group %q already in use by group %q", groupContent.GID, groupContent.Name, existingGroup.Name))
+			log.Errorf(context.TODO(), "GID %d for group %q already in use by group %q", groupContent.GID, groupContent.Name, existingGroup.Name)
 			return fmt.Errorf("GID for group %q already in use by a different group", groupContent.Name)
 		}
 

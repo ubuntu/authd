@@ -3,7 +3,6 @@ package services
 
 import (
 	"context"
-	"log/slog"
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
@@ -69,7 +68,7 @@ func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 
 // stop stops the underlying cache.
 func (m *Manager) stop() error {
-	slog.Debug("Closing grpc manager and cache")
+	log.Debug(context.TODO(), "Closing grpc manager and cache")
 
 	return m.userManager.Stop()
 }
