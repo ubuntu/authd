@@ -15,7 +15,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/log"
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"
@@ -432,12 +432,12 @@ func (dc *DummyClient) IsAuthenticated(ctx context.Context, in *authd.IARequest,
 		case <-time.After(dc.isAuthenticatedWantWait):
 		case <-ctx.Done():
 			return &authd.IAResponse{
-				Access: brokers.AuthCancelled,
+				Access: auth.Cancelled,
 				Msg:    fmt.Sprintf(`{"message": "Cancelled: %s"}`, dc.isAuthenticatedMessage),
 			}, nil
 		}
 		return &authd.IAResponse{
-			Access: brokers.AuthGranted,
+			Access: auth.Granted,
 			Msg:    msg,
 		}, nil
 	case *authd.IARequest_AuthenticationData_Skip:
@@ -468,7 +468,7 @@ func (dc *DummyClient) handleChallenge(challenge string, msg string) (*authd.IAR
 
 	if string(plaintext) == dc.isAuthenticatedWantChallenge {
 		return &authd.IAResponse{
-			Access: brokers.AuthGranted,
+			Access: auth.Granted,
 			Msg:    msg,
 		}, nil
 	}
@@ -476,13 +476,13 @@ func (dc *DummyClient) handleChallenge(challenge string, msg string) (*authd.IAR
 	dc.isAuthenticatedMaxRetries--
 	if dc.isAuthenticatedMaxRetries < 0 {
 		return &authd.IAResponse{
-			Access: brokers.AuthDenied,
+			Access: auth.Denied,
 			Msg:    msg,
 		}, nil
 	}
 
 	return &authd.IAResponse{
-		Access: brokers.AuthRetry,
+		Access: auth.Retry,
 		Msg:    msg,
 	}, nil
 }

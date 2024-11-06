@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/log"
 	"golang.org/x/exp/slices"
 )
@@ -36,19 +37,6 @@ const (
 	noReset passwdReset = iota
 	canReset
 	mustReset
-)
-
-const (
-	// AuthGranted is the response when the authentication is granted.
-	AuthGranted = "granted"
-	// AuthDenied is the response when the authentication is denied.
-	AuthDenied = "denied"
-	// AuthCancelled is the response when the authentication is cancelled.
-	AuthCancelled = "cancelled"
-	// AuthRetry is the response when the authentication needs to be retried (another chance).
-	AuthRetry = "retry"
-	// AuthNext is the response when another MFA (including changing password) authentication is necessary.
-	AuthNext = "next"
 )
 
 type sessionInfo struct {
@@ -566,26 +554,26 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 	}()
 
 	access, data = b.handleIsAuthenticated(ctx, sessionInfo, authData)
-	if access == AuthGranted && sessionInfo.currentAuthStep < sessionInfo.neededAuthSteps {
+	if access == auth.Granted && sessionInfo.currentAuthStep < sessionInfo.neededAuthSteps {
 		sessionInfo.currentAuthStep++
-		access = AuthNext
+		access = auth.Next
 		data = ""
-	} else if access == AuthRetry {
+	} else if access == auth.Retry {
 		sessionInfo.attemptsPerMode[sessionInfo.currentAuthMode]++
 		if sessionInfo.attemptsPerMode[sessionInfo.currentAuthMode] >= maxAttempts {
-			access = AuthDenied
+			access = auth.Denied
 		}
 	}
 
 	// Store last successful authentication mode for this user in the broker.
-	if access == AuthGranted {
+	if access == auth.Granted {
 		b.userLastSelectedModeMu.Lock()
 		b.userLastSelectedMode[sessionInfo.username] = sessionInfo.firstSelectedMode
 		b.userLastSelectedModeMu.Unlock()
 	}
 
 	if err = b.updateSession(sessionID, sessionInfo); err != nil {
-		return AuthDenied, "", err
+		return auth.Denied, "", err
 	}
 
 	return access, data, err
@@ -599,14 +587,14 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 	// Decrypt challenge if present.
 	challenge, err := decodeRawChallenge(b.privateKey, authData["challenge"])
 	if err != nil {
-		return AuthRetry, fmt.Sprintf(`{"message": "could not decode challenge: %v"}`, err)
+		return auth.Retry, fmt.Sprintf(`{"message": "could not decode challenge: %v"}`, err)
 	}
 
 	exampleUsersMu.Lock()
 	user, userExists := exampleUsers[sessionInfo.username]
 	exampleUsersMu.Unlock()
 	if !userExists {
-		return AuthDenied, `{"message": "user not found"}`
+		return auth.Denied, `{"message": "user not found"}`
 	}
 
 	sleepDuration := b.sleepDuration(4 * time.Second)
@@ -618,66 +606,66 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		expectedChallenge := user.Password
 
 		if challenge != expectedChallenge {
-			return AuthRetry, fmt.Sprintf(`{"message": "invalid password '%s', should be '%s'"}`, challenge, expectedChallenge)
+			return auth.Retry, fmt.Sprintf(`{"message": "invalid password '%s', should be '%s'"}`, challenge, expectedChallenge)
 		}
 
 	case "pincode":
 		if challenge != "4242" {
-			return AuthRetry, `{"message": "invalid pincode, should be 4242"}`
+			return auth.Retry, `{"message": "invalid pincode, should be 4242"}`
 		}
 
 	case "totp_with_button", "totp":
 		wantedCode := sessionInfo.allModes[sessionInfo.currentAuthMode]["wantedCode"]
 		if challenge != wantedCode {
-			return AuthRetry, `{"message": "invalid totp code"}`
+			return auth.Retry, `{"message": "invalid totp code"}`
 		}
 
 	case "phoneack1":
 		// TODO: should this be an error rather (not expected data from the PAM module?
 		if authData["wait"] != "true" {
-			return AuthDenied, `{"message": "phoneack1 should have wait set to true"}`
+			return auth.Denied, `{"message": "phoneack1 should have wait set to true"}`
 		}
 		// Send notification to phone1 and wait on server signal to return if OK or not
 		select {
 		case <-time.After(sleepDuration):
 		case <-ctx.Done():
-			return AuthCancelled, ""
+			return auth.Cancelled, ""
 		}
 
 	case "phoneack2":
 		if authData["wait"] != "true" {
-			return AuthDenied, `{"message": "phoneack2 should have wait set to true"}`
+			return auth.Denied, `{"message": "phoneack2 should have wait set to true"}`
 		}
 
 		// This one is failing remotely as an example
 		select {
 		case <-time.After(sleepDuration):
-			return AuthDenied, `{"message": "Timeout reached"}`
+			return auth.Denied, `{"message": "Timeout reached"}`
 		case <-ctx.Done():
-			return AuthCancelled, ""
+			return auth.Cancelled, ""
 		}
 
 	case "fidodevice1":
 		if authData["wait"] != "true" {
-			return AuthDenied, `{"message": "fidodevice1 should have wait set to true"}`
+			return auth.Denied, `{"message": "fidodevice1 should have wait set to true"}`
 		}
 
 		// simulate direct exchange with the FIDO device
 		select {
 		case <-time.After(sleepDuration):
 		case <-ctx.Done():
-			return AuthCancelled, ""
+			return auth.Cancelled, ""
 		}
 
 	case "qrcodewithtypo", "qrcodeandcodewithtypo", "codewithtypo":
 		if authData["wait"] != "true" {
-			return AuthDenied, fmt.Sprintf(`{"message": "%s should have wait set to true"}`, sessionInfo.currentAuthMode)
+			return auth.Denied, fmt.Sprintf(`{"message": "%s should have wait set to true"}`, sessionInfo.currentAuthMode)
 		}
 		// Simulate connexion with remote server to check that the correct code was entered
 		select {
 		case <-time.After(sleepDuration):
 		case <-ctx.Done():
-			return AuthCancelled, ""
+			return auth.Cancelled, ""
 		}
 
 	case "optionalreset":
@@ -694,7 +682,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 
 		if challenge != expectedChallenge {
-			return AuthRetry, fmt.Sprintf(`{"message": "new password does not match criteria: must be '%s'"}`, expectedChallenge)
+			return auth.Retry, fmt.Sprintf(`{"message": "new password does not match criteria: must be '%s'"}`, expectedChallenge)
 		}
 		exampleUsersMu.Lock()
 		exampleUsers[sessionInfo.username] = userInfoBroker{Password: challenge}
@@ -707,7 +695,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		if challenge != "" {
 			// validate challenge given manually by the user
 			if challenge != "aaaaa" {
-				return AuthDenied, `{"message": "invalid challenge, should be aaaaa"}`
+				return auth.Denied, `{"message": "invalid challenge, should be aaaaa"}`
 			}
 		} else if authData["wait"] == "true" {
 			// we are simulating clicking on the url signal received by the broker
@@ -715,14 +703,14 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 			select {
 			case <-time.After(b.sleepDuration(10 * time.Second)):
 			case <-ctx.Done():
-				return AuthCancelled, ""
+				return auth.Cancelled, ""
 			}
 		} else {
-			return AuthDenied, `{"message": "challenge timeout "}`
+			return auth.Denied, `{"message": "challenge timeout "}`
 		}
 	}
 
-	return AuthGranted, fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionInfo.username))
+	return auth.Granted, fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionInfo.username))
 }
 
 // decodeRawChallenge extract the base64 challenge and try to decrypt it with the private key.

@@ -16,6 +16,7 @@ import (
 	"github.com/skip2/go-qrcode"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/internal/proto"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
@@ -290,17 +291,17 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		}
 
 		switch access {
-		case brokers.AuthGranted:
+		case auth.Granted:
 			return m, maybeSendPamError(m.sendInfo(authMsg))
-		case brokers.AuthNext:
+		case auth.Next:
 			m.uiLayout = nil
 			return m, maybeSendPamError(m.sendInfo(authMsg))
-		case brokers.AuthRetry:
+		case auth.Retry:
 			return m, maybeSendPamError(m.sendError(authMsg))
-		case brokers.AuthDenied:
+		case auth.Denied:
 			// This is handled by the main authentication model
 			return m, nil
-		case brokers.AuthCancelled:
+		case auth.Cancelled:
 			return m, sendEvent(isAuthenticatedCancelled{})
 		default:
 			return m, maybeSendPamError(m.sendError("Access %q is not valid", access))
