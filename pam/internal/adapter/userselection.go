@@ -57,8 +57,13 @@ func newUserSelectionModel(pamMTx pam.ModuleTransaction, clientType PamClientTyp
 	}
 }
 
-// Init initializes userSelectionModel, by getting it from PAM if prefilled.
+// Init initializes userSelectionModel.
 func (m *userSelectionModel) Init() tea.Cmd {
+	return nil
+}
+
+// SelectUser selects the user name to be used, by getting it from PAM if prefilled.
+func (m userSelectionModel) SelectUser() tea.Cmd {
 	pamUser, err := m.pamMTx.GetItem(pam.User)
 	if cmd := maybeSendPamError(err); cmd != nil {
 		return cmd
@@ -98,7 +103,7 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 		if !m.selected {
 			return m, nil
 		}
-		return m, sendEvent(UsernameOrBrokerListReceived{})
+		return m, sendEvent(UsernameAndBrokerListReceived{})
 
 	case userRequired:
 		log.Debugf(context.TODO(), "%#v", msg)

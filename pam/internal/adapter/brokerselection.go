@@ -97,7 +97,7 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 		}
 		var cmds []tea.Cmd
 		cmds = append(cmds, m.SetItems(allBrokers))
-		cmds = append(cmds, sendEvent(UsernameOrBrokerListReceived{}))
+		cmds = append(cmds, sendEvent(BrokerListReceived{}))
 
 		return m, tea.Batch(cmds...)
 

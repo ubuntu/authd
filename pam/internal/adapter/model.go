@@ -65,8 +65,11 @@ type UIModel struct {
 
 /* global events */
 
-// UsernameOrBrokerListReceived is received either when the user name is filled (pam or manually) and we got the broker list.
-type UsernameOrBrokerListReceived struct{}
+// BrokerListReceived is received when we got the broker list.
+type BrokerListReceived struct{}
+
+// UsernameAndBrokerListReceived is received either when the user name is filled (pam or manually) and we got the broker list.
+type UsernameAndBrokerListReceived struct{}
 
 // BrokerSelected signifies that the broker has been chosen.
 type BrokerSelected struct {
@@ -170,7 +173,14 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, m.quit()
 
 	// Events
-	case UsernameOrBrokerListReceived:
+	case BrokerListReceived:
+		log.Debugf(context.TODO(), "%#v, brokers: %#v", msg, m.availableBrokers())
+		if m.availableBrokers() == nil {
+			return m, nil
+		}
+		return m, m.userSelectionModel.SelectUser()
+
+	case UsernameAndBrokerListReceived:
 		log.Debugf(context.TODO(), "%#v, user: %q, brokers: %#v", msg, m.username(), m.availableBrokers())
 		if m.username() == "" {
 			return m, nil
