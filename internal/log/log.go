@@ -4,64 +4,96 @@ package log
 import (
 	"context"
 	"fmt"
+	"io"
+	"log/slog"
 	"maps"
 	"sync"
-
-	"github.com/sirupsen/logrus"
+	"sync/atomic"
 )
 
 type (
-	// TextFormatter is the text formatter for the logs.
-	TextFormatter = logrus.TextFormatter
-
 	// Level is the log level for the logs.
-	Level = logrus.Level
+	Level = slog.Level
 
 	// Handler is the log handler function.
 	Handler = func(_ context.Context, _ Level, format string, args ...interface{})
 )
 
-var (
-	// GetLevel gets the standard logger level.
-	GetLevel = logrus.GetLevel
-	// IsLevelEnabled checks if the log level is greater than the level param.
-	IsLevelEnabled = logrus.IsLevelEnabled
-	// SetFormatter sets the standard logger formatter.
-	SetFormatter = logrus.SetFormatter
-	// SetLevel sets the standard logger level.
-	SetLevel = logrus.SetLevel
-	// SetOutput sets the log output.
-	SetOutput = logrus.SetOutput
-	// SetReportCaller sets whether the standard logger will include the calling method as a field.
-	SetReportCaller = logrus.SetReportCaller
-)
+var logLevelMu = sync.RWMutex{}
+var logLevel slog.Level
+
+var hasCustomOutput atomic.Pointer[io.Writer]
 
 const (
 	// ErrorLevel level. Logs. Used for errors that should definitely be noted.
 	// Commonly used for hooks to send errors to an error tracking service.
-	ErrorLevel = logrus.ErrorLevel
+	ErrorLevel = slog.LevelError
 	// WarnLevel level. Non-critical entries that deserve eyes.
-	WarnLevel = logrus.WarnLevel
+	WarnLevel = slog.LevelWarn
 	// InfoLevel level. General operational entries about what's going on inside the application.
-	InfoLevel = logrus.InfoLevel
+	InfoLevel = slog.LevelInfo
 	// DebugLevel level. Usually only enabled when debugging. Very verbose logging.
-	DebugLevel = logrus.DebugLevel
+	DebugLevel = slog.LevelDebug
 )
 
-func logFuncAdapter(logrusFunc func(args ...interface{})) Handler {
-	return func(_ context.Context, _ Level, format string, args ...interface{}) {
-		logrusFunc(fmt.Sprintf(format, args...))
+func logFuncAdapter(slogFunc func(ctx context.Context, msg string, args ...interface{})) Handler {
+	return func(ctx context.Context, _ Level, format string, args ...interface{}) {
+		slogFunc(ctx, fmt.Sprintf(format, args...))
 	}
 }
 
+var allLevels = []slog.Level{
+	slog.LevelDebug,
+	slog.LevelInfo,
+	slog.LevelWarn,
+	slog.LevelError,
+}
+
 var defaultHandlers = map[Level]Handler{
-	DebugLevel: logFuncAdapter(logrus.Debug),
-	InfoLevel:  logFuncAdapter(logrus.Info),
-	WarnLevel:  logFuncAdapter(logrus.Warn),
-	ErrorLevel: logFuncAdapter(logrus.Error),
+	DebugLevel: logFuncAdapter(slog.DebugContext),
+	InfoLevel:  logFuncAdapter(slog.InfoContext),
+	WarnLevel:  logFuncAdapter(slog.WarnContext),
+	ErrorLevel: logFuncAdapter(slog.ErrorContext),
 }
 var handlers = maps.Clone(defaultHandlers)
 var handlersMu = sync.RWMutex{}
+
+// GetLevel gets the standard logger level.
+func GetLevel() Level {
+	logLevelMu.RLock()
+	defer logLevelMu.RUnlock()
+	return logLevel
+}
+
+// IsLevelEnabled checks if the log level is greater than the level param.
+func IsLevelEnabled(level Level) bool {
+	return isLevelEnabled(context.Background(), level)
+}
+
+func isLevelEnabled(context context.Context, level Level) bool {
+	return slog.Default().Enabled(context, level)
+}
+
+// SetLevel sets the standard logger level.
+func SetLevel(level Level) (oldLevel Level) {
+	logLevelMu.Lock()
+	defer func() {
+		logLevelMu.Unlock()
+		if outPtr := hasCustomOutput.Load(); outPtr != nil {
+			SetOutput(*outPtr)
+		}
+	}()
+	logLevel = level
+	return slog.SetLogLoggerLevel(level)
+}
+
+// SetOutput sets the log output.
+func SetOutput(out io.Writer) {
+	hasCustomOutput.Store(&out)
+	slog.SetDefault(slog.New(slog.NewTextHandler(out, &slog.HandlerOptions{
+		Level: GetLevel(),
+	})))
+}
 
 // SetLevelHandler allows to define the default handler function for a given level.
 func SetLevelHandler(level Level, handler Handler) {
@@ -85,13 +117,13 @@ func SetHandler(handler Handler) {
 		handlers = maps.Clone(defaultHandlers)
 		return
 	}
-	for _, level := range logrus.AllLevels {
+	for _, level := range allLevels {
 		handlers[level] = handler
 	}
 }
 
 func log(context context.Context, level Level, args ...interface{}) {
-	if !IsLevelEnabled(level) {
+	if !isLevelEnabled(context, level) {
 		return
 	}
 
@@ -99,7 +131,7 @@ func log(context context.Context, level Level, args ...interface{}) {
 }
 
 func logf(context context.Context, level Level, format string, args ...interface{}) {
-	if !IsLevelEnabled(level) {
+	if !isLevelEnabled(context, level) {
 		return
 	}
 

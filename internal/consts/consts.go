@@ -1,7 +1,7 @@
 // Package consts defines the constants used by the project
 package consts
 
-import log "github.com/sirupsen/logrus"
+import log "github.com/ubuntu/authd/internal/log"
 
 var (
 	// Version is the version of the executable.
