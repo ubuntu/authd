@@ -11,7 +11,7 @@ Choose your provider:
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
@@ -21,7 +21,7 @@ Choose your provider:
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 2
 == Password authentication ==
@@ -35,7 +35,7 @@ Gimme your password:
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 2
 == Password authentication ==
@@ -61,7 +61,7 @@ Choose your authentication method:
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 2
 == Password authentication ==
@@ -92,7 +92,7 @@ Choose your provider:
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 2
 == Password authentication ==
@@ -116,7 +116,7 @@ Choose your authentication method:
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
@@ -126,7 +126,7 @@ Choose your provider:
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 2
 == Password authentication ==
@@ -150,10 +150,10 @@ Choose your authentication method:
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
@@ -163,7 +163,7 @@ Choose your provider:
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 2
 == Password authentication ==
@@ -187,10 +187,10 @@ Choose your authentication method:
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 2
 == Password authentication ==
@@ -204,7 +204,7 @@ Gimme your password:
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 2
 == Password authentication ==
@@ -228,10 +228,10 @@ Choose your authentication method:
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 2
 == Password authentication ==
@@ -248,7 +248,7 @@ PAM AcctMgmt() exited with success
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 2
 == Password authentication ==
@@ -272,10 +272,10 @@ Choose your authentication method:
   2. ExampleBroker
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > r
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 2
 == Password authentication ==

@@ -109,7 +109,7 @@ Choose your authentication method:
 Or enter 'r' to go back to user selection
 Choose your provider:
 > invalid-ID
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
@@ -143,10 +143,10 @@ Choose your authentication method:
 Or enter 'r' to go back to user selection
 Choose your provider:
 > invalid-ID
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 555
-PAM Error Message: Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid selection
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -184,10 +184,10 @@ Choose your authentication method:
 Or enter 'r' to go back to user selection
 Choose your provider:
 > invalid-ID
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 555
-PAM Error Message: Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid selection
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -230,10 +230,10 @@ Choose your authentication method:
 Or enter 'r' to go back to user selection
 Choose your provider:
 > invalid-ID
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your provider:
 > 555
-PAM Error Message: Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid selection
 == Provider selection ==
   1. local
   2. ExampleBroker

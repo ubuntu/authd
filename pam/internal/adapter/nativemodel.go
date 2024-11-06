@@ -361,7 +361,7 @@ func (m nativeModel) promptForNumericInputUntilValid(style pam.Style, prompt str
 		return value, err
 	}
 
-	err = m.sendError("Provided input can't be parsed as integer value")
+	err = m.sendError("Unsupported input")
 	if err != nil {
 		return -1, err
 	}
@@ -424,7 +424,7 @@ func (m nativeModel) promptForChoiceWithMessage(title string, message string, ch
 		// TODO: Maybe add support for default selection...
 
 		if idx < 1 || idx > len(choices) {
-			if err := m.sendError("Invalid entry. Try again or input '%s'.", nativeCancelKey); err != nil {
+			if err := m.sendError("Invalid selection"); err != nil {
 				return "", err
 			}
 			continue

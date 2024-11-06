@@ -1518,7 +1518,7 @@ Choose action:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > invalid-selection
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
@@ -1687,10 +1687,10 @@ Choose action:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > invalid-selection
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your authentication method:
 > -1
-PAM Error Message: Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid selection
 == Authentication method selection ==
   1. Password authentication
   2. Send URL to user-integration-switch-mode@gmail.com
@@ -1869,10 +1869,10 @@ Choose action:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > invalid-selection
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your authentication method:
 > -1
-PAM Error Message: Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid selection
 == Authentication method selection ==
   1. Password authentication
   2. Send URL to user-integration-switch-mode@gmail.com
@@ -2055,10 +2055,10 @@ Choose action:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > invalid-selection
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your authentication method:
 > -1
-PAM Error Message: Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid selection
 == Authentication method selection ==
   1. Password authentication
   2. Send URL to user-integration-switch-mode@gmail.com
@@ -2244,10 +2244,10 @@ Choose action:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > invalid-selection
-PAM Error Message: Provided input can't be parsed as integer value
+PAM Error Message: Unsupported input
 Choose your authentication method:
 > -1
-PAM Error Message: Invalid entry. Try again or input 'r'.
+PAM Error Message: Invalid selection
 == Authentication method selection ==
   1. Password authentication
   2. Send URL to user-integration-switch-mode@gmail.com
