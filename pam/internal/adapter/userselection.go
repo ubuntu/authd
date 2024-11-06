@@ -103,7 +103,7 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 		if !m.selected {
 			return m, nil
 		}
-		return m, sendEvent(UsernameAndBrokerListReceived{})
+		return m, sendEvent(UsernameSelected{})
 
 	case userRequired:
 		log.Debugf(context.TODO(), "%#v", msg)
