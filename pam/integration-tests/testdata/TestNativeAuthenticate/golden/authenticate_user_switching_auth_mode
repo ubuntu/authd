@@ -6,1522 +6,858 @@ Username: user-integration-switch-mode
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker:
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
 Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
 Plug your fido device and press with your thumb:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
 Unlock your phone +33… or accept request on web interface:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 5
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
 Unlock your phone +1… or accept request on web interface:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 5
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +1… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 5
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +1… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Enter your pin code:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 5
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +1… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
-Enter your pin code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode:
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
-Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 5
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +1… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
-Enter your pin code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
-█████████████████████████████████
-█████████████████████████████████
-████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
-████ █   █ █▀▄██ ▄▄▄██ █   █ ████
-████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
-████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
-█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
-████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
-████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
-███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
-████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
-████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
-████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
-████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
-█████████████████████████████████
-▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-       https://ubuntu.com
-              1337
-
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action:
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
-Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 5
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +1… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
-Enter your pin code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
-█████████████████████████████████
-█████████████████████████████████
-████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
-████ █   █ █▀▄██ ▄▄▄██ █   █ ████
-████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
-████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
-█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
-████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
-████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
-███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
-████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
-████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
-████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
-████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
-█████████████████████████████████
-▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-       https://ubuntu.com
-              1337
-
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode:
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
-Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 5
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +1… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
-Enter your pin code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
-█████████████████████████████████
-█████████████████████████████████
-████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
-████ █   █ █▀▄██ ▄▄▄██ █   █ ████
-████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
-████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
-█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
-████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
-████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
-███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
-████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
-████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
-████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
-████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
-█████████████████████████████████
-▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-       https://ubuntu.com
-              1337
-
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action:
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
-Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 5
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +1… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
-Enter your pin code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
-█████████████████████████████████
-█████████████████████████████████
-████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
-████ █   █ █▀▄██ ▄▄▄██ █   █ ████
-████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
-████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
-█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
-████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
-████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
-███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
-████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
-████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
-████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
-████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
-█████████████████████████████████
-▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-       https://ubuntu.com
-              1337
-
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode:
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
-Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 5
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +1… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
-Enter your pin code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
-█████████████████████████████████
-█████████████████████████████████
-████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
-████ █   █ █▀▄██ ▄▄▄██ █   █ ████
-████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
-████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
-█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
-████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
-████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
-███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
-████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
-████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
-████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
-████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
-█████████████████████████████████
-▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-       https://ubuntu.com
-              1337
-
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: invalid-selection
-PAM Error Message: Provided input can't be parsed as integer value
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode:
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
-Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 5
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +1… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
-Enter your pin code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
-█████████████████████████████████
-█████████████████████████████████
-████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
-████ █   █ █▀▄██ ▄▄▄██ █   █ ████
-████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
-████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
-█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
-████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
-████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
-███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
-████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
-████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
-████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
-████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
-█████████████████████████████████
-▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-       https://ubuntu.com
-              1337
-
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: invalid-selection
-PAM Error Message: Provided input can't be parsed as integer value
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: -1
-PAM Error Message: Invalid entry. Try again or input 'r'.
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode:
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
-Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 5
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +1… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
-Enter your pin code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 7
-Scan the qrcode or enter the code in the login page
-█████████████████████████████████
-█████████████████████████████████
-████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
-████ █   █ █▀▄██ ▄▄▄██ █   █ ████
-████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
-████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
-█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
-████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
-████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
-███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
-████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
-████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
-████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
-████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
-█████████████████████████████████
-▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-       https://ubuntu.com
-              1337
-
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: invalid-selection
-PAM Error Message: Provided input can't be parsed as integer value
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: -1
-PAM Error Message: Invalid entry. Try again or input 'r'.
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Enter your pin code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 5
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +1… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
-Enter your pin code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 7
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 7
+== Qr Code authentication ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -1543,140 +879,1315 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: invalid-selection
-PAM Error Message: Provided input can't be parsed as integer value
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: -1
-PAM Error Message: Invalid entry. Try again or input 'r'.
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
-Enter your pin code: 4242
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-switch-mode
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 7
+== Qr Code authentication ==
+Scan the qrcode or enter the code in the login page
+█████████████████████████████████
+█████████████████████████████████
+████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
+████ █   █ █▀▄██ ▄▄▄██ █   █ ████
+████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
+████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
+█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
+████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
+████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
+███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
+████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
+████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
+████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
+████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
+█████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+       https://ubuntu.com
+              1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-switch-mode
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 7
+== Qr Code authentication ==
+Scan the qrcode or enter the code in the login page
+█████████████████████████████████
+█████████████████████████████████
+████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
+████ █   █ █▀▄██ ▄▄▄██ █   █ ████
+████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
+████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
+█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
+████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
+████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
+███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
+████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
+████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
+████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
+████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
+█████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+       https://ubuntu.com
+              1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+== Authentication code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-switch-mode
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 7
+== Qr Code authentication ==
+Scan the qrcode or enter the code in the login page
+█████████████████████████████████
+█████████████████████████████████
+████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
+████ █   █ █▀▄██ ▄▄▄██ █   █ ████
+████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
+████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
+█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
+████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
+████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
+███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
+████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
+████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
+████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
+████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
+█████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+       https://ubuntu.com
+              1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+== Authentication code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-switch-mode
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 7
+== Qr Code authentication ==
+Scan the qrcode or enter the code in the login page
+█████████████████████████████████
+█████████████████████████████████
+████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
+████ █   █ █▀▄██ ▄▄▄██ █   █ ████
+████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
+████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
+█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
+████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
+████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
+███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
+████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
+████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
+████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
+████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
+█████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+       https://ubuntu.com
+              1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+== Authentication code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> invalid-selection
+PAM Error Message: Unsupported input
+Choose your authentication method:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-switch-mode
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 7
+== Qr Code authentication ==
+Scan the qrcode or enter the code in the login page
+█████████████████████████████████
+█████████████████████████████████
+████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
+████ █   █ █▀▄██ ▄▄▄██ █   █ ████
+████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
+████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
+█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
+████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
+████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
+███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
+████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
+████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
+████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
+████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
+█████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+       https://ubuntu.com
+              1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+== Authentication code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> invalid-selection
+PAM Error Message: Unsupported input
+Choose your authentication method:
+> -1
+PAM Error Message: Invalid selection
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-switch-mode
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 7
+== Qr Code authentication ==
+Scan the qrcode or enter the code in the login page
+█████████████████████████████████
+█████████████████████████████████
+████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
+████ █   █ █▀▄██ ▄▄▄██ █   █ ████
+████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
+████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
+█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
+████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
+████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
+███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
+████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
+████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
+████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
+████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
+█████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+       https://ubuntu.com
+              1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+== Authentication code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> invalid-selection
+PAM Error Message: Unsupported input
+Choose your authentication method:
+> -1
+PAM Error Message: Invalid selection
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-switch-mode
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 7
+== Qr Code authentication ==
+Scan the qrcode or enter the code in the login page
+█████████████████████████████████
+█████████████████████████████████
+████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
+████ █   █ █▀▄██ ▄▄▄██ █   █ ████
+████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
+████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
+█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
+████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
+████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
+███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
+████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
+████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
+████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
+████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
+█████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+       https://ubuntu.com
+              1337
+
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+== Authentication code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> invalid-selection
+PAM Error Message: Unsupported input
+Choose your authentication method:
+> -1
+PAM Error Message: Invalid selection
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+> 4242
 PAM Authenticate() for user "user-integration-switch-mode" exited with success
 PAM AcctMgmt() exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-mode
-== Broker selection (use 'r' to go back) ==
-1 - local
-2 - ExampleBroker
-Select broker: 2
-Insert 'r' to cancel the request and go back
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 2
-Leave the input field empty to wait for other authentication method or insert 'r' to go back
-Click on the link received at user-integration-switch-mode@gmail.com or enter the code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 3
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Plug your fido device and press with your thumb: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 4
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +33… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 5
-Leave the input field empty to wait for the authentication method or insert 'r' to go back
-Unlock your phone +1… or accept request on web interface: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
-Enter your pin code: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 7
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1… ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1… or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 7
+== Qr Code authentication ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -1698,58 +2209,61 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-== Qr Code authentication (use 'r' to go back) ==
-1 - Wait for the QR code scan result
-2 - Regenerate code
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 8
-== Authentication code (use 'r' to go back) ==
-1 - Proceed with Authentication code
-2 - Resend sms
-Select action: r
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: invalid-selection
-PAM Error Message: Provided input can't be parsed as integer value
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: -1
-PAM Error Message: Invalid entry. Try again or input 'r'.
-== Authentication mode selection (use 'r' to go back) ==
-1 - Password authentication
-2 - Send URL to user-integration-switch-mode@gmail.com
-3 - Use your fido device foo
-4 - Use your phone +33…
-5 - Use your phone +1…
-6 - Pin code
-7 - Use a QR code
-8 - Authentication code
-Select authentication mode: 6
-Insert 'r' to cancel the request and go back
-Enter your pin code: 4242
+  1. Wait for the QR code scan result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+== Authentication code ==
+  1. Proceed with Authentication code
+  2. Resend sms
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> invalid-selection
+PAM Error Message: Unsupported input
+Choose your authentication method:
+> -1
+PAM Error Message: Invalid selection
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33…
+  5. Use your phone +1…
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+> 4242
 PAM Authenticate() for user "user-integration-switch-mode" exited with success
 PAM AcctMgmt() exited with success
 >
