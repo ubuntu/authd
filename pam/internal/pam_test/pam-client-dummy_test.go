@@ -16,7 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/auth"
 )
 
 var errTest = errors.New("an error")
@@ -677,13 +677,13 @@ func TestIsAuthenticated(t *testing.T) {
 				}}, nil),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedReturn(&authd.IAResponse{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "Try again",
 				}, nil),
 			),
 			args: &authd.IARequest{SessionId: "started-session-id"},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthRetry,
+				Access: auth.Retry,
 				Msg:    "Try again",
 			},
 		},
@@ -705,7 +705,7 @@ func TestIsAuthenticated(t *testing.T) {
 				},
 			},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthDenied,
+				Access: auth.Denied,
 			},
 		},
 		"Invalid challenge with message": {
@@ -727,7 +727,7 @@ func TestIsAuthenticated(t *testing.T) {
 				},
 			},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthDenied,
+				Access: auth.Denied,
 				Msg:    `{"message": "You're out!"}`,
 			},
 		},
@@ -751,7 +751,7 @@ func TestIsAuthenticated(t *testing.T) {
 				},
 			},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthRetry,
+				Access: auth.Retry,
 				Msg:    `{"message": "try again!"}`,
 			},
 		},
@@ -773,7 +773,7 @@ func TestIsAuthenticated(t *testing.T) {
 				},
 			},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthGranted,
+				Access: auth.Granted,
 			},
 		},
 		"Valid challenge with message": {
@@ -795,7 +795,7 @@ func TestIsAuthenticated(t *testing.T) {
 				},
 			},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthGranted,
+				Access: auth.Granted,
 				Msg:    `{"message": "try again!"}`,
 			},
 		},
@@ -816,7 +816,7 @@ func TestIsAuthenticated(t *testing.T) {
 				},
 			},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthGranted,
+				Access: auth.Granted,
 				Msg:    `{"message": "Wait done!"}`,
 			},
 		},

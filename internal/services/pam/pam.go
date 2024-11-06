@@ -10,6 +10,7 @@ import (
 
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
@@ -243,7 +244,7 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 
 	log.Debugf(ctx, "%s: Authentication result: %s", sessionID, access)
 
-	if access != brokers.AuthGranted {
+	if access != auth.Granted {
 		return &authd.IAResponse{
 			Access: access,
 			Msg:    data,

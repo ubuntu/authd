@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
@@ -166,14 +167,14 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "invalid password 'not goodpass', should be 'goodpass'",
 				},
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "invalid password 'goodpasssss', should be 'goodpass'",
 				},
-				{Access: brokers.AuthGranted},
+				{Access: auth.Granted},
 			},
 		},
 		"Authenticates with MFA": {
@@ -198,9 +199,9 @@ func TestGdmModule(t *testing.T) {
 				&testPhoneAckUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
-				{Access: brokers.AuthNext},
-				{Access: brokers.AuthNext},
-				{Access: brokers.AuthGranted},
+				{Access: auth.Next},
+				{Access: auth.Next},
+				{Access: auth.Granted},
 			},
 		},
 		"Authenticates user with MFA after retry": {
@@ -230,12 +231,12 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "invalid password 'not goodpass', should be 'goodpass'",
 				},
-				{Access: brokers.AuthNext},
-				{Access: brokers.AuthNext},
-				{Access: brokers.AuthGranted},
+				{Access: auth.Next},
+				{Access: auth.Next},
+				{Access: auth.Granted},
 			},
 		},
 		"Authenticates user switching to phone ack": {
@@ -257,8 +258,8 @@ func TestGdmModule(t *testing.T) {
 				&testPhoneAckUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
-				{Access: brokers.AuthCancelled},
-				{Access: brokers.AuthGranted},
+				{Access: auth.Cancelled},
+				{Access: auth.Granted},
 			},
 		},
 		"Authenticates after password change": {
@@ -280,8 +281,8 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantUILayouts: []*authd.UILayout{&testPasswordUILayout, &testNewPasswordUILayout},
 			wantAuthResponses: []*authd.IAResponse{
-				{Access: brokers.AuthNext},
-				{Access: brokers.AuthGranted},
+				{Access: auth.Next},
+				{Access: auth.Granted},
 			},
 		},
 		"Authenticates after mfa authentication with wait and password change checking quality": {
@@ -335,21 +336,21 @@ func TestGdmModule(t *testing.T) {
 				&testNewPasswordUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
-				{Access: brokers.AuthNext},
-				{Access: brokers.AuthNext},
+				{Access: auth.Next},
+				{Access: auth.Next},
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "The password fails the dictionary check - it is based on a dictionary word",
 				},
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "new password does not match criteria: must be 'authd2404'",
 				},
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "The password is the same as the old one",
 				},
-				{Access: brokers.AuthGranted},
+				{Access: auth.Granted},
 			},
 		},
 		"Authenticates after various invalid password changes": {
@@ -391,26 +392,26 @@ func TestGdmModule(t *testing.T) {
 			wantUILayouts: []*authd.UILayout{&testPasswordUILayout, &testNewPasswordUILayout},
 			wantAuthResponses: []*authd.IAResponse{
 				{
-					Access: brokers.AuthNext,
+					Access: auth.Next,
 				},
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "The password is shorter than 8 characters",
 				},
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "The password is the same as the old one",
 				},
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "The password fails the dictionary check - it is based on a dictionary word",
 				},
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "The password is shorter than 8 characters",
 				},
 				{
-					Access: brokers.AuthGranted,
+					Access: auth.Granted,
 				},
 			},
 		},
@@ -492,8 +493,8 @@ func TestGdmModule(t *testing.T) {
 				&testQrcodeUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
-				{Access: brokers.AuthCancelled},
-				{Access: brokers.AuthGranted},
+				{Access: auth.Cancelled},
+				{Access: auth.Granted},
 			},
 		},
 		//nolint:dupl // This is not a duplicate test, parameters are different!
@@ -556,10 +557,10 @@ func TestGdmModule(t *testing.T) {
 				testQrcodeUILayoutData(5),
 			},
 			wantAuthResponses: []*authd.IAResponse{
-				{Access: brokers.AuthCancelled},
-				{Access: brokers.AuthCancelled},
-				{Access: brokers.AuthCancelled},
-				{Access: brokers.AuthGranted},
+				{Access: auth.Cancelled},
+				{Access: auth.Cancelled},
+				{Access: auth.Cancelled},
+				{Access: auth.Granted},
 			},
 		},
 		//nolint:dupl // This is not a duplicate test, parameters are different!
@@ -622,10 +623,10 @@ func TestGdmModule(t *testing.T) {
 				testQrcodeWithoutCodeUILayoutData(5),
 			},
 			wantAuthResponses: []*authd.IAResponse{
-				{Access: brokers.AuthCancelled},
-				{Access: brokers.AuthCancelled},
-				{Access: brokers.AuthCancelled},
-				{Access: brokers.AuthGranted},
+				{Access: auth.Cancelled},
+				{Access: auth.Cancelled},
+				{Access: auth.Cancelled},
+				{Access: auth.Granted},
 			},
 		},
 
@@ -708,23 +709,23 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "invalid password 'not goodpass', should be 'goodpass'",
 				},
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "invalid password 'another not goodpass', should be 'goodpass'",
 				},
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "invalid password 'even more not goodpass', should be 'goodpass'",
 				},
 				{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "invalid password 'not yet goodpass', should be 'goodpass'",
 				},
 				{
-					Access: brokers.AuthDenied,
+					Access: auth.Denied,
 					Msg:    "invalid password 'really, it's not a goodpass!', should be 'goodpass'",
 				},
 			},
@@ -748,7 +749,7 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{
-					Access: brokers.AuthDenied,
+					Access: auth.Denied,
 					Msg:    "user not found",
 				},
 			},
@@ -774,9 +775,9 @@ func TestGdmModule(t *testing.T) {
 				&testFidoDeviceUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
-				{Access: brokers.AuthNext},
+				{Access: auth.Next},
 				{
-					Access: brokers.AuthDenied,
+					Access: auth.Denied,
 					Msg:    fido1AuthID + " should have wait set to true",
 				},
 			},
@@ -839,7 +840,7 @@ func TestGdmModule(t *testing.T) {
 			}
 
 			if tc.wantError == nil && tc.wantAuthResponses == nil && len(gh.selectedAuthModeIDs) == 1 {
-				tc.wantAuthResponses = []*authd.IAResponse{{Access: brokers.AuthGranted}}
+				tc.wantAuthResponses = []*authd.IAResponse{{Access: auth.Granted}}
 			}
 
 			var pamFlags pam.Flags

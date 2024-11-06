@@ -15,7 +15,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/log"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 	"google.golang.org/grpc/codes"
@@ -53,7 +53,7 @@ func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID 
 				<-time.After(cancellationWait * 3)
 
 				return isAuthenticatedResultReceived{
-					access:    brokers.AuthCancelled,
+					access:    auth.Cancelled,
 					challenge: challenge,
 				}
 			}
@@ -220,7 +220,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		}
 
 		return *m, sendEvent(isAuthenticatedResultReceived{
-			access: brokers.AuthRetry,
+			access: auth.Retry,
 			msg:    fmt.Sprintf(`{"message": %s}`, errMsg),
 		})
 
@@ -279,25 +279,25 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 			// the returned authModel is a copy of function-level's `m` at this point!
 			m := &authModel
 			if msg.challenge != nil &&
-				(msg.access == brokers.AuthGranted || msg.access == brokers.AuthNext) {
+				(msg.access == auth.Granted || msg.access == auth.Next) {
 				m.currentChallenge = *msg.challenge
 			}
 
-			if msg.access != brokers.AuthNext && msg.access != brokers.AuthRetry {
+			if msg.access != auth.Next && msg.access != auth.Retry {
 				m.currentModel = nil
 			}
 			m.authTracker.reset()
 		}()
 
 		switch msg.access {
-		case brokers.AuthGranted:
+		case auth.Granted:
 			infoMsg, err := dataToMsg(msg.msg)
 			if err != nil {
 				return *m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
 			}
 			return *m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID, msg: infoMsg})
 
-		case brokers.AuthRetry:
+		case auth.Retry:
 			errorMsg, err := dataToMsg(msg.msg)
 			if err != nil {
 				return *m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
@@ -305,7 +305,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 			m.errorMsg = errorMsg
 			return *m, sendEvent(startAuthentication{})
 
-		case brokers.AuthDenied:
+		case auth.Denied:
 			errMsg, err := dataToMsg(msg.msg)
 			if err != nil {
 				return *m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
@@ -315,10 +315,10 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 			}
 			return *m, sendEvent(pamError{status: pam.ErrAuth, msg: errMsg})
 
-		case brokers.AuthNext:
+		case auth.Next:
 			return *m, sendEvent(GetAuthenticationModesRequested{})
 
-		case brokers.AuthCancelled:
+		case auth.Cancelled:
 			// nothing to do
 			return *m, nil
 		}
