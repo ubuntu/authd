@@ -119,7 +119,7 @@ func deleteOrphanedUsers(db *bbolt.DB) error {
 		return buckets[userByIDBucketName].ForEach(func(k, v []byte) error {
 			var user UserDB
 			if err := json.Unmarshal(v, &user); err != nil {
-				log.Warningf(context.TODO(), "Error loading user record {%s: %s}: %v", string(k), string(v), err)
+				log.Warningf(context.TODO(), "Error loading user record {%s: %s}: %v", k, v, err)
 				return nil
 			}
 
