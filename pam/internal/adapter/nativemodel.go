@@ -17,6 +17,7 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/internal/proto"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
@@ -100,14 +101,14 @@ func (m *nativeModel) Init() tea.Cmd {
 		return supportedUILayoutsReceived{
 			layouts: []*authd.UILayout{
 				{
-					Type:   "form",
+					Type:   layouts.Form,
 					Label:  &required,
 					Entry:  &supportedEntries,
 					Wait:   &optionalWithBooleans,
 					Button: &optional,
 				},
 				{
-					Type:          "qrcode",
+					Type:          layouts.QrCode,
 					Content:       &required,
 					Code:          &optional,
 					Wait:          &requiredWithBooleans,
@@ -116,7 +117,7 @@ func (m *nativeModel) Init() tea.Cmd {
 					RendersQrcode: &rendersQrCode,
 				},
 				{
-					Type:   "newpassword",
+					Type:   layouts.NewPassword,
 					Label:  &required,
 					Entry:  &supportedEntries,
 					Button: &optional,
@@ -538,10 +539,10 @@ func (m nativeModel) startChallenge() tea.Cmd {
 	hasWait := m.uiLayout.GetWait() == "true"
 
 	switch m.uiLayout.Type {
-	case "form":
+	case layouts.Form:
 		return m.handleFormChallenge(hasWait)
 
-	case "qrcode":
+	case layouts.QrCode:
 		if !hasWait {
 			return sendEvent(pamError{
 				status: pam.ErrSystem,
@@ -550,7 +551,7 @@ func (m nativeModel) startChallenge() tea.Cmd {
 		}
 		return m.handleQrCode()
 
-	case "newpassword":
+	case layouts.NewPassword:
 		return m.handleNewPassword()
 
 	default:

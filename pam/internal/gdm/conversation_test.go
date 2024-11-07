@@ -10,6 +10,7 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
 	authd "github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
@@ -647,7 +648,7 @@ func TestDataSendRequestTyped(t *testing.T) {
 						UiLayoutCapabilities: &Responses_UiLayoutCapabilities{
 							SupportedUiLayouts: []*authd.UILayout{
 								{
-									Type: "form",
+									Type: layouts.Form,
 								},
 							},
 						},

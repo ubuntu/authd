@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -63,7 +64,7 @@ func TestGdmModel(t *testing.T) {
 		}, nil),
 		pam_test.WithUILayout(passwordUILayoutID, "Password authentication", pam_test.FormUILayout()),
 	}
-	newPasswordUILayoutID := "NewPassword"
+	newPasswordUILayoutID := layouts.NewPassword
 	singleBrokerNewPasswordClientOptions := []pam_test.DummyClientOptions{
 		pam_test.WithIgnoreSessionIDChecks(),
 		pam_test.WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
@@ -1102,7 +1103,7 @@ func TestGdmModel(t *testing.T) {
 				pam_test.QrCodeUILayout(),
 			},
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithUILayout("qrcode", "Hello QR!", pam_test.QrCodeUILayout()),
+				pam_test.WithUILayout(layouts.QrCode, "Hello QR!", pam_test.QrCodeUILayout()),
 				pam_test.WithIsAuthenticatedWantWait(time.Millisecond*500),
 			),
 			gdmEvents: []*gdm.EventData{
@@ -1124,7 +1125,7 @@ func TestGdmModel(t *testing.T) {
 						sendEvent(gdmTestWaitForStage{
 							stage: pam_proto.Stage_authModeSelection,
 							events: []*gdm.EventData{
-								gdm_test.AuthModeSelectedEvent("qrcode"),
+								gdm_test.AuthModeSelectedEvent(layouts.QrCode),
 							},
 							commands: []tea.Cmd{
 								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Wait{
@@ -1176,7 +1177,7 @@ func TestGdmModel(t *testing.T) {
 				pam_test.QrCodeUILayout(),
 			},
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithUILayout("qrcode", "Hello QR!", pam_test.QrCodeUILayout()),
+				pam_test.WithUILayout(layouts.QrCode, "Hello QR!", pam_test.QrCodeUILayout()),
 				pam_test.WithIsAuthenticatedWantWait(time.Millisecond*500),
 			),
 			gdmEvents: []*gdm.EventData{
@@ -1198,7 +1199,7 @@ func TestGdmModel(t *testing.T) {
 						sendEvent(gdmTestWaitForStage{
 							stage: pam_proto.Stage_authModeSelection,
 							events: []*gdm.EventData{
-								gdm_test.AuthModeSelectedEvent("qrcode"),
+								gdm_test.AuthModeSelectedEvent(layouts.QrCode),
 							},
 							commands: []tea.Cmd{
 								sendEvent(gdmTestSendAuthDataWhenReady{}),
@@ -1258,7 +1259,7 @@ func TestGdmModel(t *testing.T) {
 				pam_test.QrCodeUILayout(),
 			},
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithUILayout("qrcode", "Hello QR!", pam_test.QrCodeUILayout()),
+				pam_test.WithUILayout(layouts.QrCode, "Hello QR!", pam_test.QrCodeUILayout()),
 				// It's long because we want to cancel this!
 				pam_test.WithIsAuthenticatedWantWait(time.Millisecond*1500),
 			),
@@ -1281,7 +1282,7 @@ func TestGdmModel(t *testing.T) {
 						sendEvent(gdmTestWaitForStage{
 							stage: pam_proto.Stage_authModeSelection,
 							events: []*gdm.EventData{
-								gdm_test.AuthModeSelectedEvent("qrcode"),
+								gdm_test.AuthModeSelectedEvent(layouts.QrCode),
 							},
 							commands: []tea.Cmd{
 								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Wait{

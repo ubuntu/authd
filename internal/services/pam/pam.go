@@ -11,6 +11,7 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
@@ -326,7 +327,7 @@ func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err err
 		r["code"] = c
 	}
 
-	if layout.GetType() != "qrcode" {
+	if layout.GetType() != layouts.QrCode {
 		return r, nil
 	}
 	if rc := layout.RendersQrcode; rc == nil || *rc {

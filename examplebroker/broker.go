@@ -25,6 +25,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/log"
 	"golang.org/x/exp/slices"
 )
@@ -287,14 +288,14 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 	allModes := make(map[string]map[string]string)
 	for _, layout := range supportedUILayouts {
 		switch layout["type"] {
-		case "form":
+		case layouts.Form:
 			if layout["entry"] != "" {
 				supportedEntries := strings.Split(strings.TrimPrefix(layout["entry"], "optional:"), ",")
 				if slices.Contains(supportedEntries, "chars_password") {
 					allModes["password"] = map[string]string{
 						"selection_label": "Password authentication",
 						"ui": mapToJSON(map[string]string{
-							"type":  "form",
+							"type":  layouts.Form,
 							"label": "Gimme your password",
 							"entry": "chars_password",
 						}),
@@ -304,7 +305,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 					allModes["pincode"] = map[string]string{
 						"selection_label": "Pin code",
 						"ui": mapToJSON(map[string]string{
-							"type":  "form",
+							"type":  layouts.Form,
 							"label": "Enter your pin code",
 							"entry": "digits",
 						}),
@@ -315,7 +316,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 						"selection_label": fmt.Sprintf("Send URL to %s@gmail.com", sessionInfo.username),
 						"email":           fmt.Sprintf("%s@gmail.com", sessionInfo.username),
 						"ui": mapToJSON(map[string]string{
-							"type":  "form",
+							"type":  layouts.Form,
 							"label": fmt.Sprintf("Click on the link received at %s@gmail.com or enter the code:", sessionInfo.username),
 							"entry": "chars",
 							"wait":  "true",
@@ -332,7 +333,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 						"phone":           "+33...",
 						"wantedCode":      "temporary pass",
 						"ui": mapToJSON(map[string]string{
-							"type":   "form",
+							"type":   layouts.Form,
 							"label":  "Enter your one time credential",
 							"entry":  "chars",
 							"button": "Resend sms",
@@ -344,7 +345,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 						"phone":           "+33...",
 						"wantedCode":      "temporary pass",
 						"ui": mapToJSON(map[string]string{
-							"type":  "form",
+							"type":  layouts.Form,
 							"label": "Enter your one time credential",
 							"entry": "chars",
 						}),
@@ -355,7 +356,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 					"selection_label": "Use your phone +33...",
 					"phone":           "+33...",
 					"ui": mapToJSON(map[string]string{
-						"type":  "form",
+						"type":  layouts.Form,
 						"label": "Unlock your phone +33... or accept request on web interface:",
 						"wait":  "true",
 					}),
@@ -365,7 +366,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 					"selection_label": "Use your phone +1...",
 					"phone":           "+1...",
 					"ui": mapToJSON(map[string]string{
-						"type":  "form",
+						"type":  layouts.Form,
 						"label": "Unlock your phone +1... or accept request on web interface",
 						"wait":  "true",
 					}),
@@ -374,14 +375,14 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				allModes["fidodevice1"] = map[string]string{
 					"selection_label": "Use your fido device foo",
 					"ui": mapToJSON(map[string]string{
-						"type":  "form",
+						"type":  layouts.Form,
 						"label": "Plug your fido device and press with your thumb",
 						"wait":  "true",
 					}),
 				}
 			}
 
-		case "qrcode":
+		case layouts.QrCode:
 			modeName := "qrcodewithtypo"
 			modeSelectionLabel := "Use a QR code"
 			modeLabel := "Enter the following code after flashing the address: "
@@ -397,7 +398,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 			allModes[modeName] = map[string]string{
 				"selection_label": modeSelectionLabel,
 				"ui": mapToJSON(map[string]string{
-					"type":   "qrcode",
+					"type":   layouts.QrCode,
 					"label":  modeLabel,
 					"wait":   "true",
 					"button": "Regenerate code",
@@ -425,7 +426,7 @@ func getMfaModes(info sessionInfo, supportedModes map[string]map[string]string) 
 func getPasswdResetModes(info sessionInfo, supportedUILayouts []map[string]string) map[string]map[string]string {
 	passwdResetModes := make(map[string]map[string]string)
 	for _, layout := range supportedUILayouts {
-		if layout["type"] != "newpassword" {
+		if layout["type"] != layouts.NewPassword {
 			continue
 		}
 		if layout["entry"] == "" {
@@ -433,7 +434,7 @@ func getPasswdResetModes(info sessionInfo, supportedUILayouts []map[string]strin
 		}
 
 		ui := map[string]string{
-			"type":  "newpassword",
+			"type":  layouts.NewPassword,
 			"label": "Enter your new password",
 			"entry": "chars_password",
 		}

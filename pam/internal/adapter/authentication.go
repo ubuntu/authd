@@ -16,6 +16,7 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/log"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 	"google.golang.org/grpc/codes"
@@ -250,7 +251,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 			authTracker.waitAndStart(cancelFunc)
 
 			challenge, hasChallenge := msg.item.(*authd.IARequest_AuthenticationData_Challenge)
-			if hasChallenge && clientType == Gdm && currentLayout == "newpassword" {
+			if hasChallenge && clientType == Gdm && currentLayout == layouts.NewPassword {
 				return newPasswordCheck{ctx: ctx, challenge: challenge.Challenge}
 			}
 
@@ -387,11 +388,11 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 	}
 
 	switch layout.Type {
-	case "form":
+	case layouts.Form:
 		form := newFormModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton(), layout.GetWait() == "true")
 		m.currentModel = form
 
-	case "qrcode":
+	case layouts.QrCode:
 		qrcodeModel, err := newQRCodeModel(layout.GetContent(), layout.GetCode(),
 			layout.GetLabel(), layout.GetButton(), layout.GetWait() == "true")
 		if err != nil {
@@ -399,7 +400,7 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 		}
 		m.currentModel = qrcodeModel
 
-	case "newpassword":
+	case layouts.NewPassword:
 		newPasswordModel := newNewPasswordModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton())
 		m.currentModel = newPasswordModel
 

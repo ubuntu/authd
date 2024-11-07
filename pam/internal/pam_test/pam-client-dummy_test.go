@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 )
 
 var errTest = errors.New("an error")
@@ -572,12 +573,12 @@ func TestSelectAuthenticationModes(t *testing.T) {
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
 				WithUILayout("password", "Write the password", FormUILayout()),
 				WithUILayout("pin", "Write the PIN number", FormUILayout()),
-				WithUILayout("qrcode", "Scan the QR code", QrCodeUILayout()),
+				WithUILayout(layouts.QrCode, "Scan the QR code", QrCodeUILayout()),
 				WithUILayout("new-pass", "Update your password", NewPasswordUILayout()),
 			),
 			args: &authd.SAMRequest{
 				SessionId:            "started-session-id",
-				AuthenticationModeId: "qrcode",
+				AuthenticationModeId: layouts.QrCode,
 			},
 			wantRet: &authd.SAMResponse{UiLayoutInfo: QrCodeUILayout()},
 		},
