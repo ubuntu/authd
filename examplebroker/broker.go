@@ -292,7 +292,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 		switch layout["type"] {
 		case layouts.Form:
 			if layout["entry"] != "" {
-				supportedEntries := strings.Split(strings.TrimPrefix(layout["entry"], "optional:"), ",")
+				supportedEntries := strings.Split(strings.TrimPrefix(layout["entry"], layouts.Optional+":"), ",")
 				if slices.Contains(supportedEntries, entries.CharsPassword) {
 					allModes["password"] = map[string]string{
 						"selection_label": "Password authentication",
@@ -329,7 +329,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 
 			// The broker could parse the values, that are either true/false
 			if layout["wait"] != "" {
-				if layout["button"] == "optional" {
+				if layout["button"] == layouts.Optional {
 					allModes["totp_with_button"] = map[string]string{
 						"selection_label": "Authentication code",
 						"phone":           "+33...",

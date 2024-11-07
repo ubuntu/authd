@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/services/permissions"
@@ -39,9 +40,9 @@ var (
 
 // Used for TestGetAuthenticationModes and TestSelectAuthenticationMode.
 var (
-	requiredEntries = "required:entry_type,other_entry_type"
-	optionalEntries = "optional:entry_type,other_entry_type"
-	optional        = "optional"
+	requiredEntries = layouts.RequiredItems("entry_type", "other_entry_type")
+	optionalEntries = layouts.OptionalItems("entry_type", "other_entry_type")
+	optional        = layouts.Optional
 
 	rendersQrCode = true
 

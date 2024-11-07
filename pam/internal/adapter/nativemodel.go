@@ -94,10 +94,13 @@ func (m *nativeModel) Init() tea.Cmd {
 	rendersQrCode := m.isQrcodeRenderingSupported()
 
 	return func() tea.Msg {
-		required, optional := "required", "optional"
-		supportedEntries := "optional:chars,chars_password,digits,digits_password"
-		requiredWithBooleans := "required:true,false"
-		optionalWithBooleans := "optional:true,false"
+		required, optional := layouts.Required, layouts.Optional
+		supportedEntries := layouts.OptionalItems(
+			entries.Chars,
+			entries.CharsPassword,
+			entries.Digits,
+			entries.DigitsPassword,
+		)
 
 		return supportedUILayoutsReceived{
 			layouts: []*authd.UILayout{
@@ -105,14 +108,14 @@ func (m *nativeModel) Init() tea.Cmd {
 					Type:   layouts.Form,
 					Label:  &required,
 					Entry:  &supportedEntries,
-					Wait:   &optionalWithBooleans,
+					Wait:   &layouts.OptionalWithBooleans,
 					Button: &optional,
 				},
 				{
 					Type:          layouts.QrCode,
 					Content:       &required,
 					Code:          &optional,
-					Wait:          &requiredWithBooleans,
+					Wait:          &layouts.RequiredWithBooleans,
 					Label:         &optional,
 					Button:        &optional,
 					RendersQrcode: &rendersQrCode,

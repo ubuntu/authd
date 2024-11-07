@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 )
@@ -19,14 +20,14 @@ import (
 var supportedLayouts = map[string]map[string]string{
 	"required-entry": {
 		"type":  "required-entry",
-		"entry": "required:entry_type,other_entry_type",
+		"entry": layouts.RequiredItems("entry_type", "other_entry_type"),
 	},
 	"optional-entry": {
 		"type":  "optional-entry",
-		"entry": "optional:entry_type,other_entry_type",
+		"entry": layouts.OptionalItems("entry_type", "other_entry_type"),
 	},
 	"missing-type": {
-		"entry": "required:missing_type",
+		"entry": layouts.RequiredItems("missing_type"),
 	},
 	"misconfigured-layout": {
 		"type":  "misconfigured-layout",
@@ -34,7 +35,7 @@ var supportedLayouts = map[string]map[string]string{
 	},
 	"layout-with-spaces": {
 		"type":  "layout-with-spaces",
-		"entry": "required: entry_type, other_entry_type",
+		"entry": layouts.RequiredItems(" entry_type ", "other_entry_type"),
 	},
 }
 
