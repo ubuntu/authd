@@ -87,18 +87,13 @@ func installConfigFlag(cmd *cobra.Command) *string {
 
 // SetVerboseMode change ErrorFormat and logs between very, middly and non verbose.
 func setVerboseMode(level int) {
-	var reportCaller bool
 	switch level {
 	case 0:
 		log.SetLevel(consts.DefaultLogLevel)
 	case 1:
 		log.SetLevel(log.InfoLevel)
-	case 3:
-		reportCaller = true
-		fallthrough
 	default:
 		log.SetLevel(log.DebugLevel)
 		slog.SetLogLoggerLevel(slog.LevelDebug)
 	}
-	log.SetReportCaller(reportCaller)
 }

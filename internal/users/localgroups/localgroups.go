@@ -3,15 +3,16 @@ package localgroups
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"os"
 	"os/exec"
 	"slices"
 	"strings"
 	"sync"
 
+	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/decorate"
 )
 
@@ -248,7 +249,7 @@ func runGPasswd(cmdName string, args ...string) error {
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		if cmd.ProcessState.ExitCode() == 3 {
-			slog.Info(fmt.Sprintf("ignoring gpasswd error: %s", out))
+			log.Infof(context.TODO(), "ignoring gpasswd error: %s", out)
 			return nil
 		}
 		return fmt.Errorf("%q returned: %v\nOutput: %s", strings.Join(cmd.Args, " "), err, out)

@@ -10,10 +10,10 @@ import (
 )
 
 var supportedLevels = []log.Level{
-	log.ErrorLevel,
-	log.WarnLevel,
-	log.InfoLevel,
 	log.DebugLevel,
+	log.InfoLevel,
+	log.WarnLevel,
+	log.ErrorLevel,
 }
 
 func TestLevelEnabled(t *testing.T) {
@@ -146,17 +146,22 @@ func TestSetHandler(t *testing.T) {
 		require.Equal(t, wantLevel, l, "Log level should match %v", l)
 		require.Equal(t, fmt.Sprint(wantArgs...), format, "Format should match")
 	})
-	for _, level := range supportedLevels {
+	for idx, level := range supportedLevels {
 		t.Run(fmt.Sprintf("Set log handler, testing level %s", level), func(t *testing.T) {})
 
 		wantLevel = level
 		handlerCalled = false
 		log.SetLevel(level)
+		fmt.Println("Logging at level", level)
 		callLogHandler(wantCtx, level, wantArgs...)
 		require.True(t, handlerCalled, "Handler should have been called")
 
 		handlerCalled = false
-		log.SetLevel(level - 1)
+		nextLevel := level + 1
+		if idx < len(supportedLevels)-1 {
+			nextLevel = supportedLevels[idx+1]
+		}
+		log.SetLevel(nextLevel)
 		callLogHandler(wantCtx, level, wantArgs...)
 		require.False(t, handlerCalled, "Handler should not have been called")
 	}
@@ -180,7 +185,7 @@ func TestSetHandler(t *testing.T) {
 		require.Equal(t, wantFormat, format, "Format should match")
 		require.Equal(t, wantArgs, args, "Arguments should match")
 	})
-	for _, level := range supportedLevels {
+	for idx, level := range supportedLevels {
 		t.Run(fmt.Sprintf("Set log handler, testing level %s", level), func(t *testing.T) {})
 
 		wantLevel = level
@@ -190,7 +195,11 @@ func TestSetHandler(t *testing.T) {
 		require.True(t, handlerCalled, "Handler should have been called")
 
 		handlerCalled = false
-		log.SetLevel(level - 1)
+		nextLevel := level + 1
+		if idx < len(supportedLevels)-1 {
+			nextLevel = supportedLevels[idx+1]
+		}
+		log.SetLevel(nextLevel)
 		callLogHandlerf(wantCtx, level, wantFormat, wantArgs...)
 		require.False(t, handlerCalled, "Handler should not have been called")
 	}

@@ -2,15 +2,16 @@
 package users
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"log/slog"
 	"os"
 	"strings"
 	"syscall"
 
+	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/users/cache"
 	"github.com/ubuntu/authd/internal/users/localgroups"
 	"github.com/ubuntu/decorate"
@@ -40,7 +41,7 @@ type Manager struct {
 
 // NewManager creates a new user manager.
 func NewManager(config Config, cacheDir string) (m *Manager, err error) {
-	slog.Debug(fmt.Sprintf("Creating user manager with config: %+v", config))
+	log.Debugf(context.TODO(), "Creating user manager with config: %+v", config)
 
 	// Check that the ID ranges are valid.
 	if config.UIDMin >= config.UIDMax {
@@ -173,10 +174,10 @@ func checkHomeDirOwnership(u UserInfo) error {
 
 	// Check if the home directory is owned by the user.
 	if oldUID != newUID {
-		slog.Warn(fmt.Sprintf("Home directory %q is not owned by UID %d. To fix this, run `sudo chown -R --from=%d %d %s`.", u.Dir, oldUID, oldUID, newUID, u.Dir))
+		log.Warningf(context.TODO(), "Home directory %q is not owned by UID %d. To fix this, run `sudo chown -R --from=%d %d %s`.", u.Dir, oldUID, oldUID, newUID, u.Dir)
 	}
 	if oldGID != newGID {
-		slog.Warn(fmt.Sprintf("Home directory %q is not owned by GID %d. To fix this, run `sudo chown -R --from=:%d :%d %s`.", u.Dir, oldGID, oldGID, newGID, u.Dir))
+		log.Warningf(context.TODO(), "Home directory %q is not owned by GID %d. To fix this, run `sudo chown -R --from=:%d :%d %s`.", u.Dir, oldGID, oldGID, newGID, u.Dir)
 	}
 
 	return nil
