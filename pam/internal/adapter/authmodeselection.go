@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/log"
 )
 
@@ -94,14 +95,14 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 		return supportedUILayoutsReceived{
 			layouts: []*authd.UILayout{
 				{
-					Type:   "form",
+					Type:   layouts.Form,
 					Label:  &required,
 					Entry:  &supportedEntries,
 					Wait:   &optionalWithBooleans,
 					Button: &optional,
 				},
 				{
-					Type:          "qrcode",
+					Type:          layouts.QrCode,
 					Content:       &required,
 					Code:          &optional,
 					Wait:          &requiredWithBooleans,
@@ -110,7 +111,7 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 					RendersQrcode: &rendersQrCode,
 				},
 				{
-					Type:   "newpassword",
+					Type:   layouts.NewPassword,
 					Label:  &required,
 					Entry:  &supportedEntries,
 					Button: &optional,

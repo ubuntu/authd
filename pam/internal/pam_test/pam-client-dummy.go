@@ -16,6 +16,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/log"
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"
@@ -566,7 +567,7 @@ func FormUILayout() *authd.UILayout {
 	supportedEntries := "optional:chars,chars_password"
 	optionalWithBooleans := "optional:true,false"
 	return &authd.UILayout{
-		Type:   "form",
+		Type:   layouts.Form,
 		Label:  &required,
 		Entry:  &supportedEntries,
 		Wait:   &optionalWithBooleans,
@@ -594,7 +595,7 @@ func QrCodeUILayout(opts ...QrCodeOptions) *authd.UILayout {
 	rendersQrCode := true
 
 	uiLayout := &authd.UILayout{
-		Type:          "qrcode",
+		Type:          layouts.QrCode,
 		Content:       &required,
 		Code:          &required,
 		Wait:          &requiredWithBooleans,
@@ -616,7 +617,7 @@ func NewPasswordUILayout() *authd.UILayout {
 	optionalWithBooleans := "optional:true,false"
 	supportedEntries := "optional:chars,chars_password"
 	return &authd.UILayout{
-		Type:   "newpassword",
+		Type:   layouts.NewPassword,
 		Label:  &required,
 		Entry:  &supportedEntries,
 		Wait:   &optionalWithBooleans,

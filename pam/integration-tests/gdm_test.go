@@ -14,6 +14,7 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
@@ -43,7 +44,7 @@ const (
 )
 
 var testPasswordUILayout = authd.UILayout{
-	Type:    "form",
+	Type:    layouts.Form,
 	Label:   ptrValue("Gimme your password"),
 	Entry:   ptrValue("chars_password"),
 	Button:  ptrValue(""),
@@ -53,7 +54,7 @@ var testPasswordUILayout = authd.UILayout{
 }
 
 var testNewPasswordUILayout = authd.UILayout{
-	Type:    "newpassword",
+	Type:    layouts.NewPassword,
 	Label:   ptrValue("Enter your new password"),
 	Entry:   ptrValue("chars_password"),
 	Button:  ptrValue(""),
@@ -63,7 +64,7 @@ var testNewPasswordUILayout = authd.UILayout{
 }
 
 var testQrcodeUILayout = authd.UILayout{
-	Type:    "qrcode",
+	Type:    layouts.QrCode,
 	Label:   ptrValue("Scan the qrcode or enter the code in the login page"),
 	Content: ptrValue("https://ubuntu.com"),
 	Wait:    ptrValue("true"),
@@ -73,7 +74,7 @@ var testQrcodeUILayout = authd.UILayout{
 }
 
 var testQrcodeUIWithoutCodeLayout = authd.UILayout{
-	Type:    "qrcode",
+	Type:    layouts.QrCode,
 	Label:   ptrValue("Enter the following code after flashing the address: 1337"),
 	Content: ptrValue("https://ubuntu.com"),
 	Wait:    ptrValue("true"),
@@ -83,7 +84,7 @@ var testQrcodeUIWithoutCodeLayout = authd.UILayout{
 }
 
 var testQrcodeUIWithoutRendering = authd.UILayout{
-	Type:    "qrcode",
+	Type:    layouts.QrCode,
 	Label:   ptrValue("Enter the code in the login page"),
 	Content: ptrValue("https://ubuntu.com"),
 	Wait:    ptrValue("true"),
@@ -93,7 +94,7 @@ var testQrcodeUIWithoutRendering = authd.UILayout{
 }
 
 var testFidoDeviceUILayout = authd.UILayout{
-	Type:    "form",
+	Type:    layouts.Form,
 	Label:   ptrValue("Plug your fido device and press with your thumb"),
 	Content: ptrValue(""),
 	Wait:    ptrValue("true"),
@@ -103,7 +104,7 @@ var testFidoDeviceUILayout = authd.UILayout{
 }
 
 var testPhoneAckUILayout = authd.UILayout{
-	Type:    "form",
+	Type:    layouts.Form,
 	Label:   ptrValue("Unlock your phone +33... or accept request on web interface:"),
 	Content: ptrValue(""),
 	Wait:    ptrValue("true"),
