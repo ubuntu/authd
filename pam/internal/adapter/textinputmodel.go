@@ -3,6 +3,7 @@ package adapter
 import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
 )
 
 // textinputModel is a base block for handling textinput.Model, delegating to a tea.Model approach.
@@ -14,7 +15,7 @@ func newTextInputModel(entryType string) textinputModel {
 	inputModel := textinputModel{Model: textinput.New()}
 
 	switch entryType {
-	case "chars_password", "digits_password":
+	case entries.CharsPassword, entries.DigitsPassword:
 		inputModel.EchoMode = textinput.EchoPassword
 	}
 

@@ -4,6 +4,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
 )
 
 // formModel is the form layout type to allow authentication and return a challenge.
@@ -22,7 +23,7 @@ func newFormModel(label, entryType, buttonLabel string, wait bool) formModel {
 
 	// TODO: add digits and force validation.
 	switch entryType {
-	case "chars", "chars_password":
+	case entries.Chars, entries.CharsPassword:
 		entry := newTextInputModel(entryType)
 		focusableModels = append(focusableModels, &entry)
 	}

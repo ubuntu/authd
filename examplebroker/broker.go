@@ -26,6 +26,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/log"
 	"golang.org/x/exp/slices"
 )
@@ -291,34 +292,34 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 		case layouts.Form:
 			if layout["entry"] != "" {
 				supportedEntries := strings.Split(strings.TrimPrefix(layout["entry"], "optional:"), ",")
-				if slices.Contains(supportedEntries, "chars_password") {
+				if slices.Contains(supportedEntries, entries.CharsPassword) {
 					allModes["password"] = map[string]string{
 						"selection_label": "Password authentication",
 						"ui": mapToJSON(map[string]string{
 							"type":  layouts.Form,
 							"label": "Gimme your password",
-							"entry": "chars_password",
+							"entry": entries.CharsPassword,
 						}),
 					}
 				}
-				if slices.Contains(supportedEntries, "digits") {
+				if slices.Contains(supportedEntries, entries.Digits) {
 					allModes["pincode"] = map[string]string{
 						"selection_label": "Pin code",
 						"ui": mapToJSON(map[string]string{
 							"type":  layouts.Form,
 							"label": "Enter your pin code",
-							"entry": "digits",
+							"entry": entries.Digits,
 						}),
 					}
 				}
-				if slices.Contains(supportedEntries, "chars") && layout["wait"] != "" {
+				if slices.Contains(supportedEntries, entries.Chars) && layout["wait"] != "" {
 					allModes[fmt.Sprintf("entry_or_wait_for_%s_gmail.com", sessionInfo.username)] = map[string]string{
 						"selection_label": fmt.Sprintf("Send URL to %s@gmail.com", sessionInfo.username),
 						"email":           fmt.Sprintf("%s@gmail.com", sessionInfo.username),
 						"ui": mapToJSON(map[string]string{
 							"type":  layouts.Form,
 							"label": fmt.Sprintf("Click on the link received at %s@gmail.com or enter the code:", sessionInfo.username),
-							"entry": "chars",
+							"entry": entries.Chars,
 							"wait":  "true",
 						}),
 					}
@@ -335,7 +336,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 						"ui": mapToJSON(map[string]string{
 							"type":   layouts.Form,
 							"label":  "Enter your one time credential",
-							"entry":  "chars",
+							"entry":  entries.Chars,
 							"button": "Resend sms",
 						}),
 					}
@@ -347,7 +348,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 						"ui": mapToJSON(map[string]string{
 							"type":  layouts.Form,
 							"label": "Enter your one time credential",
-							"entry": "chars",
+							"entry": entries.Chars,
 						}),
 					}
 				}
@@ -436,7 +437,7 @@ func getPasswdResetModes(info sessionInfo, supportedUILayouts []map[string]strin
 		ui := map[string]string{
 			"type":  layouts.NewPassword,
 			"label": "Enter your new password",
-			"entry": "chars_password",
+			"entry": entries.CharsPassword,
 		}
 
 		mode := "mandatoryreset"
