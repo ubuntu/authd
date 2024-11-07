@@ -11,6 +11,7 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/log"
 )
 
@@ -85,11 +86,11 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 		return nil
 	}
 	return func() tea.Msg {
-		required, optional := "required", "optional"
-		supportedEntries := "optional:chars,chars_password"
-		requiredWithBooleans := "required:true,false"
-		optionalWithBooleans := "optional:true,false"
-
+		required, optional := layouts.Required, layouts.Optional
+		supportedEntries := layouts.OptionalItems(
+			entries.Chars,
+			entries.CharsPassword,
+		)
 		rendersQrCode := true
 
 		return supportedUILayoutsReceived{
@@ -98,14 +99,14 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 					Type:   layouts.Form,
 					Label:  &required,
 					Entry:  &supportedEntries,
-					Wait:   &optionalWithBooleans,
+					Wait:   &layouts.OptionalWithBooleans,
 					Button: &optional,
 				},
 				{
 					Type:          layouts.QrCode,
 					Content:       &required,
 					Code:          &optional,
-					Wait:          &requiredWithBooleans,
+					Wait:          &layouts.RequiredWithBooleans,
 					Label:         &optional,
 					Button:        &optional,
 					RendersQrcode: &rendersQrCode,

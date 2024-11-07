@@ -499,7 +499,6 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
-		//nolint:dupl // This is not a duplicate test, parameters are different!
 		"Authenticates user after regenerating the qrcode with optional code field": {
 			wantAuthModeIDs: []string{
 				passwordAuthID,
@@ -512,7 +511,7 @@ func TestGdmModule(t *testing.T) {
 			},
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(),
-				pam_test.QrCodeUILayout(pam_test.WithQrCodeCode("optional")),
+				pam_test.QrCodeUILayout(pam_test.WithQrCodeCode(layouts.Optional)),
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -565,7 +564,6 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
-		//nolint:dupl // This is not a duplicate test, parameters are different!
 		"Authenticates user after regenerating the qrcode without code field": {
 			wantAuthModeIDs: []string{
 				passwordAuthID,

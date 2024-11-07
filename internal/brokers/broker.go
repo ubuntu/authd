@@ -12,6 +12,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
@@ -256,7 +257,7 @@ func generateValidators(ctx context.Context, sessionID string, supportedUILayout
 			required, supportedValues, _ := strings.Cut(value, ":")
 			validator := fieldValidator{
 				supportedValues: nil,
-				required:        (required == "required"),
+				required:        (required == layouts.Required),
 			}
 			if supportedValues != "" {
 				values := strings.Split(supportedValues, ",")
