@@ -15,6 +15,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
@@ -46,7 +47,7 @@ const (
 var testPasswordUILayout = authd.UILayout{
 	Type:    layouts.Form,
 	Label:   ptrValue("Gimme your password"),
-	Entry:   ptrValue("chars_password"),
+	Entry:   ptrValue(entries.CharsPassword),
 	Button:  ptrValue(""),
 	Code:    ptrValue(""),
 	Content: ptrValue(""),
@@ -56,7 +57,7 @@ var testPasswordUILayout = authd.UILayout{
 var testNewPasswordUILayout = authd.UILayout{
 	Type:    layouts.NewPassword,
 	Label:   ptrValue("Enter your new password"),
-	Entry:   ptrValue("chars_password"),
+	Entry:   ptrValue(entries.CharsPassword),
 	Button:  ptrValue(""),
 	Code:    ptrValue(""),
 	Content: ptrValue(""),

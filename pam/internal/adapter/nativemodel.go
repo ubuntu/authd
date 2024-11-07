@@ -18,6 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/pam/internal/proto"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
@@ -646,13 +647,13 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 
 func (m nativeModel) promptForChallenge(prompt string) (string, error) {
 	switch m.uiLayout.GetEntry() {
-	case "chars", "":
+	case entries.Chars, "":
 		return m.promptForInput(pam.PromptEchoOn, inputPromptStyleMultiLine, prompt)
-	case "chars_password":
+	case entries.CharsPassword:
 		return m.promptForInput(pam.PromptEchoOff, inputPromptStyleMultiLine, prompt)
-	case "digits":
+	case entries.Digits:
 		return m.promptForNumericInputAsString(pam.PromptEchoOn, prompt)
-	case "digits_password":
+	case entries.DigitsPassword:
 		return m.promptForNumericInputAsString(pam.PromptEchoOff, prompt)
 	default:
 		return "", fmt.Errorf("Unhandled entry %q", m.uiLayout.GetEntry())
