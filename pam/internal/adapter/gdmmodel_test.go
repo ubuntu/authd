@@ -1129,7 +1129,7 @@ func TestGdmModel(t *testing.T) {
 							},
 							commands: []tea.Cmd{
 								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Wait{
-									Wait: "true",
+									Wait: layouts.True,
 								}}),
 							},
 						}),
@@ -1210,7 +1210,7 @@ func TestGdmModel(t *testing.T) {
 									},
 								}),
 								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Wait{
-									Wait: "true",
+									Wait: layouts.True,
 								}}),
 							},
 						}),
@@ -1286,7 +1286,7 @@ func TestGdmModel(t *testing.T) {
 							},
 							commands: []tea.Cmd{
 								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Wait{
-									Wait: "true",
+									Wait: layouts.True,
 								}}),
 								sendEvent(gdmTestWaitForStage{
 									stage: pam_proto.Stage_challenge,
@@ -1295,7 +1295,7 @@ func TestGdmModel(t *testing.T) {
 									},
 								}),
 								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Wait{
-									Wait: "true",
+									Wait: layouts.True,
 								}}),
 							},
 						}),

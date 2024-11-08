@@ -540,7 +540,7 @@ func (m nativeModel) startChallenge() tea.Cmd {
 		})
 	}
 
-	hasWait := m.uiLayout.GetWait() == "true"
+	hasWait := m.uiLayout.GetWait() == layouts.True
 
 	switch m.uiLayout.Type {
 	case layouts.Form:
@@ -819,7 +819,7 @@ func (m nativeModel) handleNewPassword() tea.Cmd {
 		}
 		if id == "button" {
 			return sendEvent(isAuthenticatedRequested{
-				item: &authd.IARequest_AuthenticationData_Skip{Skip: "true"},
+				item: &authd.IARequest_AuthenticationData_Skip{Skip: layouts.True},
 			})
 		}
 	}
@@ -918,6 +918,6 @@ func (m nativeModel) goBackActionLabel() string {
 
 func sendAuthWaitCommand() tea.Cmd {
 	return sendEvent(isAuthenticatedRequested{
-		item: &authd.IARequest_AuthenticationData_Wait{Wait: "true"},
+		item: &authd.IARequest_AuthenticationData_Wait{Wait: layouts.True},
 	})
 }

@@ -389,12 +389,12 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 
 	switch layout.Type {
 	case layouts.Form:
-		form := newFormModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton(), layout.GetWait() == "true")
+		form := newFormModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton(), layout.GetWait() == layouts.True)
 		m.currentModel = form
 
 	case layouts.QrCode:
 		qrcodeModel, err := newQRCodeModel(layout.GetContent(), layout.GetCode(),
-			layout.GetLabel(), layout.GetButton(), layout.GetWait() == "true")
+			layout.GetLabel(), layout.GetButton(), layout.GetWait() == layouts.True)
 		if err != nil {
 			return sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
 		}
