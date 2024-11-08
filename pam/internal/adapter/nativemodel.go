@@ -584,7 +584,7 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 			{id: "continue", label: fmt.Sprintf("Proceed with %s", authMode)},
 		}
 		if buttonLabel := m.uiLayout.GetButton(); buttonLabel != "" {
-			choices = append(choices, choicePair{id: "button", label: buttonLabel})
+			choices = append(choices, choicePair{id: layouts.Button, label: buttonLabel})
 		}
 
 		id, err := m.promptForChoice(authMode, choices, "Choose action")
@@ -597,7 +597,7 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 		if err != nil {
 			return maybeSendPamError(err)
 		}
-		if id == "button" {
+		if id == layouts.Button {
 			return sendEvent(reselectAuthMode{})
 		}
 	}
@@ -746,10 +746,10 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 	qrcodeView = append(qrcodeView, " ")
 
 	choices := []choicePair{
-		{id: "wait", label: "Wait for the QR code scan result"},
+		{id: layouts.Wait, label: "Wait for the QR code scan result"},
 	}
 	if buttonLabel := m.uiLayout.GetButton(); buttonLabel != "" {
-		choices = append(choices, choicePair{id: "button", label: buttonLabel})
+		choices = append(choices, choicePair{id: layouts.Button, label: buttonLabel})
 	}
 
 	id, err := m.promptForChoiceWithMessage("Qr Code authentication",
@@ -765,9 +765,9 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 	}
 
 	switch id {
-	case "button":
+	case layouts.Button:
 		return sendEvent(reselectAuthMode{})
-	case "wait":
+	case layouts.Wait:
 		return sendAuthWaitCommand()
 	default:
 		return nil
@@ -803,7 +803,7 @@ func (m nativeModel) handleNewPassword() tea.Cmd {
 			{id: "continue", label: "Proceed with password update"},
 		}
 		if buttonLabel := m.uiLayout.GetButton(); buttonLabel != "" {
-			choices = append(choices, choicePair{id: "button", label: buttonLabel})
+			choices = append(choices, choicePair{id: layouts.Button, label: buttonLabel})
 		}
 
 		label := m.selectedAuthModeLabel("Password Update")
@@ -817,7 +817,7 @@ func (m nativeModel) handleNewPassword() tea.Cmd {
 		if err != nil {
 			return maybeSendPamError(err)
 		}
-		if id == "button" {
+		if id == layouts.Button {
 			return sendEvent(isAuthenticatedRequested{
 				item: &authd.IARequest_AuthenticationData_Skip{Skip: layouts.True},
 			})

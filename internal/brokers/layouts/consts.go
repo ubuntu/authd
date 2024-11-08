@@ -24,6 +24,27 @@ const (
 	False = "false"
 )
 
+const (
+	// ID is the key for the layout id.
+	ID = "id"
+	// Type is the key for the layout type.
+	Type = "type"
+	// Label is the key for the layout label.
+	Label = "label"
+	// Entry is the key for the layout entry.
+	Entry = "entry"
+	// Button is the key for the layout button.
+	Button = "button"
+	// Wait is the key for the layout wait.
+	Wait = "wait"
+	// Content is the key for the layout content.
+	Content = "content"
+	// Code is the key for the layout code.
+	Code = "code"
+	// RendersQrCode is the key for the layout renders qrcode.
+	RendersQrCode = "renders_qrcode"
+)
+
 var (
 	// RequiredWithBooleans indicates that a layout item is required with boolean values.
 	RequiredWithBooleans = RequiredItems(True, False)
