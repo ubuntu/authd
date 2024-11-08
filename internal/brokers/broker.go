@@ -254,16 +254,10 @@ func generateValidators(ctx context.Context, sessionID string, supportedUILayout
 				continue
 			}
 
-			required, supportedValues, _ := strings.Cut(value, ":")
+			kind, supportedValues := layouts.ParseItems(value)
 			validator := fieldValidator{
-				supportedValues: nil,
-				required:        (required == layouts.Required),
-			}
-			if supportedValues != "" {
-				values := strings.Split(supportedValues, ",")
-				for _, value := range values {
-					validator.supportedValues = append(validator.supportedValues, strings.TrimSpace(value))
-				}
+				supportedValues: supportedValues,
+				required:        (kind == layouts.Required),
 			}
 			layoutValidator[key] = validator
 		}
