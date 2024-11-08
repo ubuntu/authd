@@ -105,7 +105,8 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape: "mandatory_password_reset",
 		},
 		"Authenticate user with mfa and reset password while enforcing policy": {
-			tape: "mfa_reset_pwquality_auth",
+			tape:         "mfa_reset_pwquality_auth",
+			tapeSettings: []tapeSetting{{vhsHeight, 1000}},
 		},
 		"Authenticate user and offer password reset": {
 			tape: "optional_password_reset_skip",
@@ -183,7 +184,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Deny authentication if newpassword does not match required criteria": {
 			tape:         "bad_password",
-			tapeSettings: []tapeSetting{{vhsHeight, 550}},
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 
 		"Prevent preset user from switching username": {
@@ -302,7 +303,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		},
 		"Retry if new password does not match quality criteria": {
 			tape:         "passwd_bad_password",
-			tapeSettings: []tapeSetting{{vhsHeight, 550}},
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 
 		"Prevent change password if auth fails": {

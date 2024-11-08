@@ -560,14 +560,18 @@ func (m nativeModel) startChallenge() tea.Cmd {
 	}
 }
 
-func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
-	authMode := "Chosen authentication method"
+func (m nativeModel) selectedAuthModeLabel(fallback string) string {
 	authModeIdx := slices.IndexFunc(m.authModes, func(mode *authd.GAMResponse_AuthenticationMode) bool {
 		return mode.Id == m.selectedAuthMode
 	})
-	if authModeIdx > -1 {
-		authMode = m.authModes[authModeIdx].Label
+	if authModeIdx < 0 {
+		return fallback
 	}
+	return m.authModes[authModeIdx].Label
+}
+
+func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
+	authMode := m.selectedAuthModeLabel("Authentication")
 
 	if buttonLabel := m.uiLayout.GetButton(); buttonLabel != "" {
 		choices := []choicePair{
@@ -796,7 +800,8 @@ func (m nativeModel) handleNewPassword() tea.Cmd {
 			choices = append(choices, choicePair{id: "button", label: buttonLabel})
 		}
 
-		id, err := m.promptForChoice("Password Update", choices, "Choose action")
+		label := m.selectedAuthModeLabel("Password Update")
+		id, err := m.promptForChoice(label, choices, "Choose action")
 		if errors.Is(err, errGoBack) {
 			return sendEvent(nativeGoBack{})
 		}
@@ -817,14 +822,21 @@ func (m nativeModel) handleNewPassword() tea.Cmd {
 }
 
 func (m nativeModel) newPasswordChallenge(previousChallenge *string) tea.Cmd {
-	challengeLabel := fmt.Sprintf("%[1]s (or enter '%[2]s' to %[3]s)",
-		m.uiLayout.GetLabel(), nativeCancelKey, m.goBackActionLabel())
-	if previousChallenge != nil {
-		challengeLabel = fmt.Sprintf("Confirm password (or enter '%[1]s' to %[2]s)",
+	if previousChallenge == nil {
+		instructions := fmt.Sprintf("Enter '%[1]s' to cancel the request and %[2]s",
 			nativeCancelKey, m.goBackActionLabel())
+		title := m.selectedAuthModeLabel("Password Update")
+		if cmd := maybeSendPamError(m.sendInfo("== %s ==\n%s", title, instructions)); cmd != nil {
+			return cmd
+		}
 	}
 
-	challenge, err := m.promptForChallenge(challengeLabel)
+	prompt := m.uiLayout.GetLabel()
+	if previousChallenge != nil {
+		prompt = "Confirm Password"
+	}
+
+	challenge, err := m.promptForChallenge(prompt)
 	if errors.Is(err, errGoBack) {
 		return sendEvent(nativeGoBack{})
 	}
