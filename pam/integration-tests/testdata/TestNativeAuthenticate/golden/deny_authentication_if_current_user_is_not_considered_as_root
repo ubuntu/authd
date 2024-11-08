@@ -1,8 +1,4 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username:
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username:
 PAM Error Message: could not get current available brokers: permission denied: this action is on
 ly allowed for root users. Current user is XXXX
 PAM Authenticate() for user "" exited with error (PAM exit code: 4): System error
@@ -12,7 +8,6 @@ dispatch
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username:
 PAM Error Message: could not get current available brokers: permission denied: this action is on
 ly allowed for root users. Current user is XXXX
 PAM Authenticate() for user "" exited with error (PAM exit code: 4): System error
