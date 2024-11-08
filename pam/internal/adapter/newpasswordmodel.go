@@ -5,6 +5,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
 )
 
@@ -83,7 +84,7 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.focusIndex < len(m.focusableModels) &&
 			msg.model == m.focusableModels[m.focusIndex] {
 			return m, sendEvent(isAuthenticatedRequested{
-				item: &authd.IARequest_AuthenticationData_Skip{Skip: "true"},
+				item: &authd.IARequest_AuthenticationData_Skip{Skip: layouts.True},
 			})
 		}
 

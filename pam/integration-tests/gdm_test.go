@@ -68,7 +68,7 @@ var testQrcodeUILayout = authd.UILayout{
 	Type:    layouts.QrCode,
 	Label:   ptrValue("Scan the qrcode or enter the code in the login page"),
 	Content: ptrValue("https://ubuntu.com"),
-	Wait:    ptrValue("true"),
+	Wait:    ptrValue(layouts.True),
 	Button:  ptrValue("Regenerate code"),
 	Code:    ptrValue("1337"),
 	Entry:   ptrValue(""),
@@ -78,7 +78,7 @@ var testQrcodeUIWithoutCodeLayout = authd.UILayout{
 	Type:    layouts.QrCode,
 	Label:   ptrValue("Enter the following code after flashing the address: 1337"),
 	Content: ptrValue("https://ubuntu.com"),
-	Wait:    ptrValue("true"),
+	Wait:    ptrValue(layouts.True),
 	Button:  ptrValue("Regenerate code"),
 	Code:    ptrValue(""),
 	Entry:   ptrValue(""),
@@ -88,7 +88,7 @@ var testQrcodeUIWithoutRendering = authd.UILayout{
 	Type:    layouts.QrCode,
 	Label:   ptrValue("Enter the code in the login page"),
 	Content: ptrValue("https://ubuntu.com"),
-	Wait:    ptrValue("true"),
+	Wait:    ptrValue(layouts.True),
 	Button:  ptrValue("Regenerate code"),
 	Code:    ptrValue("1337"),
 	Entry:   ptrValue(""),
@@ -98,7 +98,7 @@ var testFidoDeviceUILayout = authd.UILayout{
 	Type:    layouts.Form,
 	Label:   ptrValue("Plug your fido device and press with your thumb"),
 	Content: ptrValue(""),
-	Wait:    ptrValue("true"),
+	Wait:    ptrValue(layouts.True),
 	Button:  ptrValue(""),
 	Code:    ptrValue(""),
 	Entry:   ptrValue(""),
@@ -108,7 +108,7 @@ var testPhoneAckUILayout = authd.UILayout{
 	Type:    layouts.Form,
 	Label:   ptrValue("Unlock your phone +33... or accept request on web interface:"),
 	Content: ptrValue(""),
-	Wait:    ptrValue("true"),
+	Wait:    ptrValue(layouts.True),
 	Button:  ptrValue(""),
 	Code:    ptrValue(""),
 	Entry:   ptrValue(""),
@@ -188,10 +188,10 @@ func TestGdmModule(t *testing.T) {
 						Challenge: "goodpass",
 					}),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 				},
 			},
@@ -218,10 +218,10 @@ func TestGdmModule(t *testing.T) {
 						Challenge: "goodpass",
 					}),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 				},
 			},
@@ -251,7 +251,7 @@ func TestGdmModule(t *testing.T) {
 					gdm_test.EventsGroupEnd(),
 
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 				},
 			},
@@ -309,7 +309,7 @@ func TestGdmModule(t *testing.T) {
 					}),
 					// Authenticate with fido device
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 					// Use bad dictionary password
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
@@ -423,7 +423,7 @@ func TestGdmModule(t *testing.T) {
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 				},
 			},
@@ -437,7 +437,7 @@ func TestGdmModule(t *testing.T) {
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 				},
 			},
@@ -451,7 +451,7 @@ func TestGdmModule(t *testing.T) {
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 				},
 			},
@@ -466,7 +466,7 @@ func TestGdmModule(t *testing.T) {
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 				},
 			},
@@ -486,7 +486,7 @@ func TestGdmModule(t *testing.T) {
 					gdm_test.EventsGroupEnd(),
 
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 				},
 			},
@@ -523,7 +523,7 @@ func TestGdmModule(t *testing.T) {
 					// Start authentication and regenerate the qrcode (1)
 					gdm_test.EventsGroupBegin(),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 					gdm_test.ReselectAuthMode(),
 					gdm_test.EventsGroupEnd(),
@@ -534,7 +534,7 @@ func TestGdmModule(t *testing.T) {
 					// Start authentication and regenerate the qrcode (3)
 					gdm_test.EventsGroupBegin(),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 					gdm_test.ReselectAuthMode(),
 					gdm_test.EventsGroupEnd(),
@@ -544,7 +544,7 @@ func TestGdmModule(t *testing.T) {
 
 					// Start the final authentication (5)
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 				},
 			},
@@ -588,7 +588,7 @@ func TestGdmModule(t *testing.T) {
 					// Start authentication and regenerate the qrcode (1)
 					gdm_test.EventsGroupBegin(),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 					gdm_test.ReselectAuthMode(),
 					gdm_test.EventsGroupEnd(),
@@ -599,7 +599,7 @@ func TestGdmModule(t *testing.T) {
 					// Start authentication and regenerate the qrcode (3)
 					gdm_test.EventsGroupBegin(),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 					gdm_test.ReselectAuthMode(),
 					gdm_test.EventsGroupEnd(),
@@ -609,7 +609,7 @@ func TestGdmModule(t *testing.T) {
 
 					// Start the final authentication (5)
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
-						Wait: "true",
+						Wait: layouts.True,
 					}),
 				},
 			},

@@ -10,6 +10,7 @@ import (
 	"github.com/muesli/termenv"
 	"github.com/skip2/go-qrcode"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 )
 
 var centeredStyle = lipgloss.NewStyle().Align(lipgloss.Center, lipgloss.Top)
@@ -61,7 +62,7 @@ func (m qrcodeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		return m, sendEvent(isAuthenticatedRequested{
-			item: &authd.IARequest_AuthenticationData_Wait{Wait: "true"},
+			item: &authd.IARequest_AuthenticationData_Wait{Wait: layouts.True},
 		})
 	}
 

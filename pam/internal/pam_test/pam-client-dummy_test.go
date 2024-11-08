@@ -813,7 +813,7 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Wait{Wait: "true"},
+					Item: &authd.IARequest_AuthenticationData_Wait{Wait: layouts.True},
 				},
 			},
 			wantRet: &authd.IAResponse{
@@ -834,7 +834,7 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Skip{Skip: "true"},
+					Item: &authd.IARequest_AuthenticationData_Skip{Skip: layouts.True},
 				},
 			},
 			wantRet: &authd.IAResponse{

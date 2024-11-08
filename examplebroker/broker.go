@@ -321,7 +321,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 							"type":  layouts.Form,
 							"label": fmt.Sprintf("Click on the link received at %s@gmail.com or enter the code:", sessionInfo.username),
 							"entry": entries.Chars,
-							"wait":  "true",
+							"wait":  layouts.True,
 						}),
 					}
 				}
@@ -360,7 +360,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 					"ui": mapToJSON(map[string]string{
 						"type":  layouts.Form,
 						"label": "Unlock your phone +33... or accept request on web interface:",
-						"wait":  "true",
+						"wait":  layouts.True,
 					}),
 				}
 
@@ -370,7 +370,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 					"ui": mapToJSON(map[string]string{
 						"type":  layouts.Form,
 						"label": "Unlock your phone +1... or accept request on web interface",
-						"wait":  "true",
+						"wait":  layouts.True,
 					}),
 				}
 
@@ -379,7 +379,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 					"ui": mapToJSON(map[string]string{
 						"type":  layouts.Form,
 						"label": "Plug your fido device and press with your thumb",
-						"wait":  "true",
+						"wait":  layouts.True,
 					}),
 				}
 			}
@@ -392,7 +392,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				modeName = "qrcodeandcodewithtypo"
 				modeLabel = "Scan the qrcode or enter the code in the login page"
 			}
-			if layout["renders_qrcode"] != "true" {
+			if layout["renders_qrcode"] != layouts.True {
 				modeName = "codewithtypo"
 				modeSelectionLabel = "Use a Login code"
 				modeLabel = "Enter the code in the login page"
@@ -402,7 +402,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				"ui": mapToJSON(map[string]string{
 					"type":   layouts.QrCode,
 					"label":  modeLabel,
-					"wait":   "true",
+					"wait":   layouts.True,
 					"button": "Regenerate code",
 				}),
 			}
@@ -628,7 +628,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 
 	case "phoneack1":
 		// TODO: should this be an error rather (not expected data from the PAM module?
-		if authData["wait"] != "true" {
+		if authData["wait"] != layouts.True {
 			return auth.Denied, `{"message": "phoneack1 should have wait set to true"}`
 		}
 		// Send notification to phone1 and wait on server signal to return if OK or not
@@ -639,7 +639,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 
 	case "phoneack2":
-		if authData["wait"] != "true" {
+		if authData["wait"] != layouts.True {
 			return auth.Denied, `{"message": "phoneack2 should have wait set to true"}`
 		}
 
@@ -652,7 +652,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 
 	case "fidodevice1":
-		if authData["wait"] != "true" {
+		if authData["wait"] != layouts.True {
 			return auth.Denied, `{"message": "fidodevice1 should have wait set to true"}`
 		}
 
@@ -664,7 +664,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 
 	case "qrcodewithtypo", "qrcodeandcodewithtypo", "codewithtypo":
-		if authData["wait"] != "true" {
+		if authData["wait"] != layouts.True {
 			return auth.Denied, fmt.Sprintf(`{"message": "%s should have wait set to true"}`, sessionInfo.currentAuthMode)
 		}
 		// Simulate connexion with remote server to check that the correct code was entered
@@ -675,7 +675,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 
 	case "optionalreset":
-		if authData["skip"] == "true" {
+		if authData["skip"] == layouts.True {
 			break
 		}
 		fallthrough
@@ -703,7 +703,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 			if challenge != "aaaaa" {
 				return auth.Denied, `{"message": "invalid challenge, should be aaaaa"}`
 			}
-		} else if authData["wait"] == "true" {
+		} else if authData["wait"] == layouts.True {
 			// we are simulating clicking on the url signal received by the broker
 			// this can be cancelled to resend a challenge
 			select {
