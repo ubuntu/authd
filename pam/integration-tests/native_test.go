@@ -22,6 +22,9 @@ func TestNativeAuthenticate(t *testing.T) {
 	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s} force_native_client=true",
 		socketPathEnv)
 
+	defaultGPasswdOutput, groupsFile := prepareGPasswdFiles(t)
+	defaultSocketPath := runAuthd(t, defaultGPasswdOutput, groupsFile, true)
+
 	tests := map[string]struct {
 		tape          string
 		tapeSettings  []tapeSetting
@@ -30,6 +33,7 @@ func TestNativeAuthenticate(t *testing.T) {
 
 		clientOptions      clientOptions
 		currentUserNotRoot bool
+		wantLocalGroups    bool
 	}{
 		"Authenticate user successfully": {
 			tape: "simple_auth",
@@ -121,7 +125,8 @@ func TestNativeAuthenticate(t *testing.T) {
 			tapeSettings: []tapeSetting{{vhsHeight, 700}},
 		},
 		"Authenticate user and add it to local group": {
-			tape: "local_group",
+			tape:            "local_group",
+			wantLocalGroups: true,
 		},
 		"Authenticate user on ssh service": {
 			tape: "simple_ssh_auth",
@@ -225,8 +230,17 @@ func TestNativeAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			gpasswdOutput, groupsFile := prepareGPasswdFiles(t)
-			socketPath := runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			socketPath := defaultSocketPath
+			gpasswdOutput := defaultGPasswdOutput
+			if tc.wantLocalGroups || tc.currentUserNotRoot {
+				// For the local groups tests we need to run authd again so that it has
+				// special environment that generates a fake gpasswd output for us to test.
+				// Similarly for the not-root tests authd has to run in a more restricted way.
+				// In the other cases this is not needed, so we can just use a shared authd.
+				var groupsFile string
+				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
+				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			}
 
 			if tc.tapeCommand == "" {
 				tc.tapeCommand = tapeCommand
@@ -316,6 +330,8 @@ func TestNativeChangeAuthTok(t *testing.T) {
 
 			socketPath := defaultSocketPath
 			if tc.currentUserNotRoot {
+				// For the not-root tests authd has to run in a more restricted way.
+				// In the other cases this is not needed, so we can just use a shared authd.
 				socketPath = runAuthd(t, os.DevNull, os.DevNull, false)
 			}
 
