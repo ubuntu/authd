@@ -163,16 +163,16 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMReque
 		return nil, err
 	}
 
-	var layouts []map[string]string
+	var supportedLayouts []map[string]string
 	for _, l := range req.GetSupportedUiLayouts() {
 		layout, err := uiLayoutToMap(l)
 		if err != nil {
 			return nil, err
 		}
-		layouts = append(layouts, layout)
+		supportedLayouts = append(supportedLayouts, layout)
 	}
 
-	authenticationModes, err := broker.GetAuthenticationModes(ctx, sessionID, layouts)
+	authenticationModes, err := broker.GetAuthenticationModes(ctx, sessionID, supportedLayouts)
 	if err != nil {
 		return nil, err
 	}
@@ -180,8 +180,8 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMReque
 	var authModes []*authd.GAMResponse_AuthenticationMode
 	for _, a := range authenticationModes {
 		authModes = append(authModes, &authd.GAMResponse_AuthenticationMode{
-			Id:    a["id"],
-			Label: a["label"],
+			Id:    a[layouts.ID],
+			Label: a[layouts.Label],
 		})
 	}
 
@@ -307,24 +307,24 @@ func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err err
 	if layout.GetType() == "" {
 		return nil, fmt.Errorf("invalid layout option: type is required, got: %v", layout)
 	}
-	r := map[string]string{"type": layout.GetType()}
+	r := map[string]string{layouts.Type: layout.GetType()}
 	if l := layout.GetLabel(); l != "" {
-		r["label"] = l
+		r[layouts.Label] = l
 	}
 	if b := layout.GetButton(); b != "" {
-		r["button"] = b
+		r[layouts.Button] = b
 	}
 	if w := layout.GetWait(); w != "" {
-		r["wait"] = w
+		r[layouts.Wait] = w
 	}
 	if e := layout.GetEntry(); e != "" {
-		r["entry"] = e
+		r[layouts.Entry] = e
 	}
 	if c := layout.GetContent(); c != "" {
-		r["content"] = c
+		r[layouts.Content] = c
 	}
 	if c := layout.GetCode(); c != "" {
-		r["code"] = c
+		r[layouts.Code] = c
 	}
 
 	if layout.GetType() != layouts.QrCode {
@@ -333,20 +333,20 @@ func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err err
 	if rc := layout.RendersQrcode; rc == nil || *rc {
 		// If the field is not set, we keep retro-compatibility with what we were
 		// dong before of the addition of the field.
-		r["renders_qrcode"] = layouts.True
+		r[layouts.RendersQrCode] = layouts.True
 	}
 	return r, nil
 }
 
 // mapToUILayout generates an UILayout from the input map.
 func mapToUILayout(layout map[string]string) (r *authd.UILayout) {
-	typ := layout["type"]
-	label := layout["label"]
-	entry := layout["entry"]
-	button := layout["button"]
-	wait := layout["wait"]
-	content := layout["content"]
-	code := layout["code"]
+	typ := layout[layouts.Type]
+	label := layout[layouts.Label]
+	entry := layout[layouts.Entry]
+	button := layout[layouts.Button]
+	wait := layout[layouts.Wait]
+	content := layout[layouts.Content]
+	code := layout[layouts.Code]
 
 	// We don't return whether the qrcode rendering is enabled back to the
 	// client on purpose, since it's something it mandates.

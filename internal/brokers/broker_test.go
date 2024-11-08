@@ -18,23 +18,23 @@ import (
 
 var supportedLayouts = map[string]map[string]string{
 	"required-entry": {
-		"type":  "required-entry",
-		"entry": layouts.RequiredItems("entry_type", "other_entry_type"),
+		layouts.Type:  "required-entry",
+		layouts.Entry: layouts.RequiredItems("entry_type", "other_entry_type"),
 	},
 	"optional-entry": {
-		"type":  "optional-entry",
-		"entry": layouts.OptionalItems("entry_type", "other_entry_type"),
+		layouts.Type:  "optional-entry",
+		layouts.Entry: layouts.OptionalItems("entry_type", "other_entry_type"),
 	},
 	"missing-type": {
-		"entry": layouts.RequiredItems("missing_type"),
+		layouts.Entry: layouts.RequiredItems("missing_type"),
 	},
 	"misconfigured-layout": {
-		"type":  "misconfigured-layout",
-		"entry": "required-but-misformatted",
+		layouts.Type:  "misconfigured-layout",
+		layouts.Entry: "required-but-misformatted",
 	},
 	"layout-with-spaces": {
-		"type":  "layout-with-spaces",
-		"entry": layouts.RequiredItems(" entry_type ", "other_entry_type"),
+		layouts.Type:  "layout-with-spaces",
+		layouts.Entry: layouts.RequiredItems(" entry_type ", "other_entry_type"),
 	},
 }
 

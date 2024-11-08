@@ -118,7 +118,7 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	}
 
 	for _, a := range authenticationModes {
-		for _, key := range []string{"id", "label"} {
+		for _, key := range []string{layouts.ID, layouts.Label} {
 			if _, exists := a[key]; !exists {
 				return nil, fmt.Errorf("invalid authentication mode, missing %q key: %v", key, a)
 			}
@@ -243,14 +243,14 @@ func (b Broker) UserPreCheck(ctx context.Context, username string) (userinfo str
 func generateValidators(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) map[string]layoutValidator {
 	validators := make(map[string]layoutValidator)
 	for _, layout := range supportedUILayouts {
-		if _, exists := layout["type"]; !exists {
+		if _, exists := layout[layouts.Type]; !exists {
 			log.Errorf(ctx, "layout %v provided with missing type for session %s, it will be ignored", layout, sessionID)
 			continue
 		}
 
 		layoutValidator := make(layoutValidator)
 		for key, value := range layout {
-			if key == "type" {
+			if key == layouts.Type {
 				continue
 			}
 
@@ -261,7 +261,7 @@ func generateValidators(ctx context.Context, sessionID string, supportedUILayout
 			}
 			layoutValidator[key] = validator
 		}
-		validators[layout["type"]] = layoutValidator
+		validators[layout[layouts.Type]] = layoutValidator
 	}
 	return validators
 }
@@ -282,18 +282,18 @@ func (b Broker) validateUILayout(sessionID string, layout map[string]string) (r 
 	}
 
 	// layoutValidator is UI Layout validator generated based on the supported layouts.
-	layoutValidator, exists := layoutValidators[layout["type"]]
+	layoutValidator, exists := layoutValidators[layout[layouts.Type]]
 	if !exists {
-		return nil, fmt.Errorf("no validator for UI layout type %q", layout["type"])
+		return nil, fmt.Errorf("no validator for UI layout type %q", layout[layouts.Type])
 	}
 
 	// Ensure that all fields provided in the layout returned by the broker are valid.
 	for key := range layout {
-		if key == "type" {
+		if key == layouts.Type {
 			continue
 		}
 		if _, exists := layoutValidator[key]; !exists {
-			return nil, fmt.Errorf("unrecognized field %q provided for layout %q", key, layout["type"])
+			return nil, fmt.Errorf("unrecognized field %q provided for layout %q", key, layout[layouts.Type])
 		}
 	}
 	// Ensure that all required fields were provided and that the values are valid.
