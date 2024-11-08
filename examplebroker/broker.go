@@ -292,7 +292,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 		switch layout["type"] {
 		case layouts.Form:
 			if layout["entry"] != "" {
-				supportedEntries := strings.Split(strings.TrimPrefix(layout["entry"], layouts.Optional+":"), ",")
+				_, supportedEntries := layouts.ParseItems(layout["entry"])
 				if slices.Contains(supportedEntries, entries.CharsPassword) {
 					allModes["password"] = map[string]string{
 						"selection_label": "Password authentication",
