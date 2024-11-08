@@ -167,7 +167,7 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 		return "", "", fmt.Errorf("user %q does not exist", username)
 	}
 
-	if info.sessionMode == "passwd" {
+	if info.sessionMode == auth.SessionModePasswd {
 		info.neededAuthSteps++
 		info.pwdChange = mustReset
 	}

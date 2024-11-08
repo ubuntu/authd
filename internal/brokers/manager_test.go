@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/testutils"
 )
 
@@ -180,7 +181,7 @@ func TestNewSession(t *testing.T) {
 		wantErr bool
 	}{
 		"Successfully start a new auth session":                    {username: "success"},
-		"Successfully start a new passwd session":                  {username: "success", sessionMode: "passwd"},
+		"Successfully start a new passwd session":                  {username: "success", sessionMode: auth.SessionModePasswd},
 		"Successfully start a new session with the correct broker": {username: "success", configuredBrokers: []string{t.Name() + "_Broker1.conf", t.Name() + "_Broker2.conf"}},
 
 		"Error when broker does not exist":           {brokerID: "does_not_exist", wantErr: true},
