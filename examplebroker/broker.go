@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
+	"maps"
 	"math"
 	"os"
 	"sort"
@@ -55,12 +56,13 @@ const (
 	webViewMode        = "webview"
 )
 
-const (
-	ui             = "ui"
-	selectionLabel = "selection_label"
-	phone          = "phone"
-	wantedCode     = "wantedCode"
-)
+type authMode struct {
+	selectionLabel string
+	ui             map[string]string
+	email          string
+	phone          string
+	wantedCode     string
+}
 
 type sessionInfo struct {
 	username    string
@@ -68,7 +70,7 @@ type sessionInfo struct {
 	sessionMode string
 
 	currentAuthMode string
-	allModes        map[string]map[string]string
+	allModes        map[string]authMode
 	attemptsPerMode map[string]int
 
 	pwdChange passwdReset
@@ -293,7 +295,7 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 		authMode := allModes[id]
 		authenticationModes = append(authenticationModes, map[string]string{
 			layouts.ID:    id,
-			layouts.Label: authMode[selectionLabel],
+			layouts.Label: authMode.selectionLabel,
 		})
 	}
 	log.Debugf(ctx, "Supported authentication modes for %s: %#v", sessionID, allModes)
@@ -306,43 +308,43 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	return authenticationModes, nil
 }
 
-func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]string) map[string]map[string]string {
-	allModes := make(map[string]map[string]string)
+func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]string) map[string]authMode {
+	allModes := make(map[string]authMode)
 	for _, layout := range supportedUILayouts {
 		switch layout[layouts.Type] {
 		case layouts.Form:
 			if layout[layouts.Entry] != "" {
 				_, supportedEntries := layouts.ParseItems(layout[layouts.Entry])
 				if slices.Contains(supportedEntries, entries.CharsPassword) {
-					allModes[passwordMode] = map[string]string{
+					allModes[passwordMode] = authMode{
 						selectionLabel: "Password authentication",
-						ui: mapToJSON(map[string]string{
+						ui: map[string]string{
 							layouts.Type:  layouts.Form,
 							layouts.Label: "Gimme your password",
 							layouts.Entry: entries.CharsPassword,
-						}),
+						},
 					}
 				}
 				if slices.Contains(supportedEntries, entries.Digits) {
-					allModes[pinCodeMode] = map[string]string{
+					allModes[pinCodeMode] = authMode{
 						selectionLabel: "Pin code",
-						ui: mapToJSON(map[string]string{
+						ui: map[string]string{
 							layouts.Type:  layouts.Form,
 							layouts.Label: "Enter your pin code",
 							layouts.Entry: entries.Digits,
-						}),
+						},
 					}
 				}
 				if slices.Contains(supportedEntries, entries.Chars) && layout[layouts.Wait] != "" {
-					allModes[fmt.Sprintf("entry_or_wait_for_%s_gmail.com", sessionInfo.username)] = map[string]string{
+					allModes[fmt.Sprintf("entry_or_wait_for_%s_gmail.com", sessionInfo.username)] = authMode{
 						selectionLabel: fmt.Sprintf("Send URL to %s@gmail.com", sessionInfo.username),
-						"email":        fmt.Sprintf("%s@gmail.com", sessionInfo.username),
-						ui: mapToJSON(map[string]string{
+						email:          fmt.Sprintf("%s@gmail.com", sessionInfo.username),
+						ui: map[string]string{
 							layouts.Type:  layouts.Form,
 							layouts.Label: fmt.Sprintf("Click on the link received at %s@gmail.com or enter the code:", sessionInfo.username),
 							layouts.Entry: entries.Chars,
 							layouts.Wait:  layouts.True,
-						}),
+						},
 					}
 				}
 			}
@@ -350,57 +352,57 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 			// The broker could parse the values, that are either true/false
 			if layout[layouts.Wait] != "" {
 				if layout[layouts.Button] == layouts.Optional {
-					allModes[totpWithButtonMode] = map[string]string{
+					allModes[totpWithButtonMode] = authMode{
 						selectionLabel: "Authentication code",
 						phone:          "+33...",
 						wantedCode:     "temporary pass",
-						ui: mapToJSON(map[string]string{
+						ui: map[string]string{
 							layouts.Type:   layouts.Form,
 							layouts.Label:  "Enter your one time credential",
 							layouts.Entry:  entries.Chars,
 							layouts.Button: "Resend sms",
-						}),
+						},
 					}
 				} else {
-					allModes[totpMode] = map[string]string{
+					allModes[totpMode] = authMode{
 						selectionLabel: "Authentication code",
 						phone:          "+33...",
 						wantedCode:     "temporary pass",
-						ui: mapToJSON(map[string]string{
+						ui: map[string]string{
 							layouts.Type:  layouts.Form,
 							layouts.Label: "Enter your one time credential",
 							layouts.Entry: entries.Chars,
-						}),
+						},
 					}
 				}
 
-				allModes[phoneAck1Mode] = map[string]string{
+				allModes[phoneAck1Mode] = authMode{
 					selectionLabel: "Use your phone +33...",
 					phone:          "+33...",
-					ui: mapToJSON(map[string]string{
+					ui: map[string]string{
 						layouts.Type:  layouts.Form,
 						layouts.Label: "Unlock your phone +33... or accept request on web interface:",
 						layouts.Wait:  layouts.True,
-					}),
+					},
 				}
 
-				allModes[phoneAck2Mode] = map[string]string{
+				allModes[phoneAck2Mode] = authMode{
 					selectionLabel: "Use your phone +1...",
 					phone:          "+1...",
-					ui: mapToJSON(map[string]string{
+					ui: map[string]string{
 						layouts.Type:  layouts.Form,
 						layouts.Label: "Unlock your phone +1... or accept request on web interface",
 						layouts.Wait:  layouts.True,
-					}),
+					},
 				}
 
-				allModes[fidoDevice1Mode] = map[string]string{
+				allModes[fidoDevice1Mode] = authMode{
 					selectionLabel: "Use your fido device foo",
-					ui: mapToJSON(map[string]string{
+					ui: map[string]string{
 						layouts.Type:  layouts.Form,
 						layouts.Label: "Plug your fido device and press with your thumb",
 						layouts.Wait:  layouts.True,
-					}),
+					},
 				}
 			}
 
@@ -417,14 +419,14 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				modeSelectionLabel = "Use a Login code"
 				modeLabel = "Enter the code in the login page"
 			}
-			allModes[modeName] = map[string]string{
+			allModes[modeName] = authMode{
 				selectionLabel: modeSelectionLabel,
-				ui: mapToJSON(map[string]string{
+				ui: map[string]string{
 					layouts.Type:   layouts.QrCode,
 					layouts.Label:  modeLabel,
 					layouts.Wait:   layouts.True,
 					layouts.Button: "Regenerate code",
-				}),
+				},
 			}
 
 		case webViewMode:
@@ -435,8 +437,8 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 	return allModes
 }
 
-func getMfaModes(info sessionInfo, supportedModes map[string]map[string]string) map[string]map[string]string {
-	mfaModes := make(map[string]map[string]string)
+func getMfaModes(info sessionInfo, supportedModes map[string]authMode) map[string]authMode {
+	mfaModes := make(map[string]authMode)
 	for _, mode := range []string{phoneAck1Mode, totpWithButtonMode, fidoDevice1Mode} {
 		if _, exists := supportedModes[mode]; exists && info.currentAuthMode != mode {
 			mfaModes[mode] = supportedModes[mode]
@@ -445,8 +447,8 @@ func getMfaModes(info sessionInfo, supportedModes map[string]map[string]string) 
 	return mfaModes
 }
 
-func getPasswdResetModes(info sessionInfo, supportedUILayouts []map[string]string) map[string]map[string]string {
-	passwdResetModes := make(map[string]map[string]string)
+func getPasswdResetModes(info sessionInfo, supportedUILayouts []map[string]string) map[string]authMode {
+	passwdResetModes := make(map[string]authMode)
 	for _, layout := range supportedUILayouts {
 		if layout[layouts.Type] != layouts.NewPassword {
 			continue
@@ -468,9 +470,9 @@ func getPasswdResetModes(info sessionInfo, supportedUILayouts []map[string]strin
 			uiMap[layouts.Button] = "Skip"
 		}
 
-		passwdResetModes[mode] = map[string]string{
+		passwdResetModes[mode] = authMode{
 			selectionLabel: "Password reset",
-			ui:             mapToJSON(uiMap),
+			ui:             uiMap,
 		}
 	}
 	return passwdResetModes
@@ -508,17 +510,17 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 	}
 
 	// populate UI options based on selected authentication mode
-	uiLayoutInfo = jsonToMap(authenticationMode[ui])
+	uiLayoutInfo = maps.Clone(authenticationMode.ui)
 
 	// The broker does extra "out of bound" connections when needed
 	switch authenticationModeName {
 	case totpWithButtonMode, totpMode:
-		// send sms to sessionInfo.allModes[authenticationModeName][phone]
+		// send sms to sessionInfo.allModes[authenticationModeName].phone
 		// add a 0 to simulate new code generation.
-		authenticationMode[wantedCode] = authenticationMode[wantedCode] + "0"
+		authenticationMode.wantedCode += "0"
 		sessionInfo.allModes[authenticationModeName] = authenticationMode
 	case phoneAck1Mode, phoneAck2Mode:
-		// send request to sessionInfo.allModes[authenticationModeName][phone]
+		// send request to sessionInfo.allModes[authenticationModeName].phone
 	case fidoDevice1Mode:
 		// start transaction with fido device
 	case qrCodeAndCodeMode, codeMode:
@@ -638,7 +640,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 
 	case totpWithButtonMode, totpMode:
-		wantedCode := sessionInfo.allModes[sessionInfo.currentAuthMode][wantedCode]
+		wantedCode := sessionInfo.allModes[sessionInfo.currentAuthMode].wantedCode
 		if challenge != wantedCode {
 			return auth.Retry, `{"message": "invalid totp code"}`
 		}
@@ -799,22 +801,6 @@ func (b *Broker) UserPreCheck(ctx context.Context, username string) (string, err
 		return "", fmt.Errorf("user %q does not exist", username)
 	}
 	return userInfoFromName(username), nil
-}
-
-func mapToJSON(input map[string]string) string {
-	data, err := json.Marshal(input)
-	if err != nil {
-		panic(fmt.Sprintf("Invalid map data: %v", err))
-	}
-	return string(data)
-}
-
-func jsonToMap(data string) map[string]string {
-	r := make(map[string]string)
-	if err := json.Unmarshal([]byte(data), &r); err != nil {
-		panic(fmt.Sprintf("Invalid map data: %v", err))
-	}
-	return r
 }
 
 // decryptAES is just here to illustrate the encryption and decryption
