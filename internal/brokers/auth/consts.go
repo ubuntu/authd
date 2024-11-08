@@ -16,3 +16,10 @@ const (
 
 // Replies is the list of all possible authentication replies.
 var Replies = []string{Granted, Denied, Cancelled, Retry, Next}
+
+const (
+	// SessionModeAuth is the name of the authentication session.
+	SessionModeAuth = "auth"
+	// SessionModePasswd is the name of the passwd session.
+	SessionModePasswd = "passwd"
+)

@@ -130,9 +130,9 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 	var mode string
 	switch req.GetMode() {
 	case authd.SessionMode_AUTH:
-		mode = "auth"
+		mode = auth.SessionModeAuth
 	case authd.SessionMode_PASSWD:
-		mode = "passwd"
+		mode = auth.SessionModePasswd
 	default:
 		return nil, status.Error(codes.InvalidArgument, "invalid session mode")
 	}
