@@ -54,6 +54,7 @@ type authMode struct {
 	email          string
 	phone          string
 	wantedCode     string
+	isMFA          bool
 }
 
 type sessionInfo struct {
@@ -154,6 +155,7 @@ var (
 		selectionLabel: "Authentication code",
 		phone:          "+33...",
 		wantedCode:     "temporary pass",
+		isMFA:          true,
 		ui: map[string]string{
 			layouts.Type:   layouts.Form,
 			layouts.Label:  "Enter your one time credential",
@@ -166,6 +168,7 @@ var (
 		id:             "phoneack1",
 		selectionLabel: "Use your phone +33...",
 		phone:          "+33...",
+		isMFA:          true,
 		ui: map[string]string{
 			layouts.Type:  layouts.Form,
 			layouts.Label: "Unlock your phone +33... or accept request on web interface:",
@@ -187,6 +190,7 @@ var (
 	fidoDeviceMode = authMode{
 		id:             "fidodevice1",
 		selectionLabel: "Use your fido device foo",
+		isMFA:          true,
 		ui: map[string]string{
 			layouts.Type:  layouts.Form,
 			layouts.Label: "Plug your fido device and press with your thumb",
@@ -474,10 +478,14 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 
 func getMfaModes(info sessionInfo, supportedModes map[string]authMode) map[string]authMode {
 	mfaModes := make(map[string]authMode)
-	for _, mode := range []string{phoneAck1Mode.id, totpWithButtonMode.id, fidoDeviceMode.id} {
-		if _, exists := supportedModes[mode]; exists && info.currentAuthMode != mode {
-			mfaModes[mode] = supportedModes[mode]
+	for _, mode := range supportedModes {
+		if !mode.isMFA {
+			continue
 		}
+		if info.currentAuthMode == mode.id {
+			continue
+		}
+		mfaModes[mode.id] = mode
 	}
 	return mfaModes
 }
