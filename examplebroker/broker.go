@@ -54,6 +54,9 @@ const (
 	qrCodeAndCodeMode  = "qrcodeandcodewithtypo"
 	codeMode           = "codewithtypo"
 	webViewMode        = "webview"
+
+	optionalResetMode  = "optionalreset"
+	mandatoryResetMode = "mandatoryreset"
 )
 
 type authMode struct {
@@ -463,9 +466,9 @@ func getPasswdResetModes(info sessionInfo, supportedUILayouts []map[string]strin
 			layouts.Entry: entries.CharsPassword,
 		}
 
-		mode := "mandatoryreset"
+		mode := mandatoryResetMode
 		if info.pwdChange == canReset && layout[layouts.Button] != "" {
-			mode = "optionalreset"
+			mode = optionalResetMode
 			uiMap[layouts.Label] = "Enter your new password (3 days until mandatory)"
 			uiMap[layouts.Button] = "Skip"
 		}
@@ -693,12 +696,12 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 			return auth.Cancelled, ""
 		}
 
-	case "optionalreset":
+	case optionalResetMode:
 		if authData["skip"] == layouts.True {
 			break
 		}
 		fallthrough
-	case "mandatoryreset":
+	case mandatoryResetMode:
 		expectedChallenge := "authd2404"
 		// Reset the password to default if it had already been changed.
 		// As at PAM level we'd refuse a previous password to be re-used.
