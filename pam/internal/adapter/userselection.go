@@ -158,3 +158,11 @@ func (m *userSelectionModel) Focus() tea.Cmd {
 	m.selected = false
 	return m.Model.Focus()
 }
+
+// View renders a text view of the user selection UI.
+func (m userSelectionModel) View() string {
+	if !m.enabled {
+		return ""
+	}
+	return m.Model.View()
+}
