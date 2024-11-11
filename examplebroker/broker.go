@@ -43,23 +43,12 @@ const (
 )
 
 const (
-	passwordMode       = "password"
-	pinCodeMode        = "pincode"
-	totpWithButtonMode = "totp_with_button"
-	totpMode           = "totp"
-	phoneAck1Mode      = "phoneack1"
-	phoneAck2Mode      = "phoneack2"
-	fidoDevice1Mode    = "fidodevice1"
-	qrCodeMode         = "qrcodewithtypo"
-	qrCodeAndCodeMode  = "qrcodeandcodewithtypo"
-	codeMode           = "codewithtypo"
-	webViewMode        = "webview"
-
 	optionalResetMode  = "optionalreset"
 	mandatoryResetMode = "mandatoryreset"
 )
 
 type authMode struct {
+	id             string
 	selectionLabel string
 	ui             map[string]string
 	email          string
@@ -123,6 +112,127 @@ var (
 		"user-local-groups":   {Password: "goodpass"},
 		"user-pre-check":      {Password: "goodpass"},
 		"user-sudo":           {Password: "goodpass"},
+	}
+)
+
+var (
+	passwordMode = authMode{
+		id:             "password",
+		selectionLabel: "Password authentication",
+		ui: map[string]string{
+			layouts.Type:  layouts.Form,
+			layouts.Label: "Gimme your password",
+			layouts.Entry: entries.CharsPassword,
+		},
+	}
+
+	pinCodeMode = authMode{
+		id:             "pincode",
+		selectionLabel: "Pin code",
+		ui: map[string]string{
+			layouts.Type:  layouts.Form,
+			layouts.Label: "Enter your pin code",
+			layouts.Entry: entries.Digits,
+		},
+	}
+
+	totpMode = authMode{
+		id:             "totp",
+		selectionLabel: "Authentication code",
+		phone:          "+33...",
+		wantedCode:     "temporary pass",
+		ui: map[string]string{
+			layouts.Type:  layouts.Form,
+			layouts.Label: "Enter your one time credential",
+			layouts.Entry: entries.Chars,
+		},
+	}
+
+	totpWithButtonMode = authMode{
+		id:             "totp_with_button",
+		selectionLabel: "Authentication code",
+		phone:          "+33...",
+		wantedCode:     "temporary pass",
+		ui: map[string]string{
+			layouts.Type:   layouts.Form,
+			layouts.Label:  "Enter your one time credential",
+			layouts.Entry:  entries.Chars,
+			layouts.Button: "Resend sms",
+		},
+	}
+
+	phoneAck1Mode = authMode{
+		id:             "phoneack1",
+		selectionLabel: "Use your phone +33...",
+		phone:          "+33...",
+		ui: map[string]string{
+			layouts.Type:  layouts.Form,
+			layouts.Label: "Unlock your phone +33... or accept request on web interface:",
+			layouts.Wait:  layouts.True,
+		},
+	}
+
+	phoneAck2Mode = authMode{
+		id:             "phoneack2",
+		selectionLabel: "Use your phone +1...",
+		phone:          "+1...",
+		ui: map[string]string{
+			layouts.Type:  layouts.Form,
+			layouts.Label: "Unlock your phone +1... or accept request on web interface",
+			layouts.Wait:  layouts.True,
+		},
+	}
+
+	fidoDeviceMode = authMode{
+		id:             "fidodevice1",
+		selectionLabel: "Use your fido device foo",
+		ui: map[string]string{
+			layouts.Type:  layouts.Form,
+			layouts.Label: "Plug your fido device and press with your thumb",
+			layouts.Wait:  layouts.True,
+		},
+	}
+
+	emailMode = func(userName string) authMode {
+		return authMode{
+			id:             fmt.Sprintf("entry_or_wait_for_%s_gmail.com", userName),
+			selectionLabel: fmt.Sprintf("Send URL to %s@gmail.com", userName),
+			email:          fmt.Sprintf("%s@gmail.com", userName),
+			ui: map[string]string{
+				layouts.Type: layouts.Form,
+				layouts.Label: fmt.Sprintf("Click on the link received at %s@gmail.com or enter the code:",
+					userName),
+				layouts.Entry: entries.Chars,
+				layouts.Wait:  layouts.True,
+			},
+		}
+	}
+
+	qrCodeModeBase = func(id, selectionLabel, label string) authMode {
+		return authMode{
+			id:             id,
+			selectionLabel: selectionLabel,
+			ui: map[string]string{
+				layouts.Type:   layouts.QrCode,
+				layouts.Label:  label,
+				layouts.Wait:   layouts.True,
+				layouts.Button: "Regenerate code",
+			},
+		}
+	}
+
+	qrCodeMode = qrCodeModeBase("qrcodewithtypo", "Use a QR code",
+		"Enter the following code after flashing the address: ")
+
+	qrCodeAndCodeMode = qrCodeModeBase("qrcodeandcodewithtypo", "Use a QR code",
+		"Scan the qrcode or enter the code in the login page")
+
+	codeMode = qrCodeModeBase("codewithtypo", "Use a Login code",
+		"Enter the code in the login page")
+
+	// Not implemented yet.
+	webViewMode = authMode{
+		id: "webview",
 	}
 )
 
@@ -280,17 +390,17 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 
 	var allModeIDs []string
 	for n := range allModes {
-		if n == passwordMode || n == lastSelection {
+		if n == passwordMode.id || n == lastSelection {
 			continue
 		}
 		allModeIDs = append(allModeIDs, n)
 	}
 	sort.Strings(allModeIDs)
 
-	if _, exists := allModes[passwordMode]; exists {
-		allModeIDs = append([]string{passwordMode}, allModeIDs...)
+	if _, exists := allModes[passwordMode.id]; exists {
+		allModeIDs = append([]string{passwordMode.id}, allModeIDs...)
 	}
-	if lastSelection != "" && lastSelection != passwordMode {
+	if lastSelection != "" && lastSelection != passwordMode.id {
 		allModeIDs = append([]string{lastSelection}, allModeIDs...)
 	}
 
@@ -319,120 +429,41 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 			if layout[layouts.Entry] != "" {
 				_, supportedEntries := layouts.ParseItems(layout[layouts.Entry])
 				if slices.Contains(supportedEntries, entries.CharsPassword) {
-					allModes[passwordMode] = authMode{
-						selectionLabel: "Password authentication",
-						ui: map[string]string{
-							layouts.Type:  layouts.Form,
-							layouts.Label: "Gimme your password",
-							layouts.Entry: entries.CharsPassword,
-						},
-					}
+					allModes[passwordMode.id] = passwordMode
 				}
 				if slices.Contains(supportedEntries, entries.Digits) {
-					allModes[pinCodeMode] = authMode{
-						selectionLabel: "Pin code",
-						ui: map[string]string{
-							layouts.Type:  layouts.Form,
-							layouts.Label: "Enter your pin code",
-							layouts.Entry: entries.Digits,
-						},
-					}
+					allModes[pinCodeMode.id] = pinCodeMode
 				}
 				if slices.Contains(supportedEntries, entries.Chars) && layout[layouts.Wait] != "" {
-					allModes[fmt.Sprintf("entry_or_wait_for_%s_gmail.com", sessionInfo.username)] = authMode{
-						selectionLabel: fmt.Sprintf("Send URL to %s@gmail.com", sessionInfo.username),
-						email:          fmt.Sprintf("%s@gmail.com", sessionInfo.username),
-						ui: map[string]string{
-							layouts.Type:  layouts.Form,
-							layouts.Label: fmt.Sprintf("Click on the link received at %s@gmail.com or enter the code:", sessionInfo.username),
-							layouts.Entry: entries.Chars,
-							layouts.Wait:  layouts.True,
-						},
-					}
+					mode := emailMode(sessionInfo.username)
+					allModes[mode.id] = mode
 				}
 			}
 
 			// The broker could parse the values, that are either true/false
 			if layout[layouts.Wait] != "" {
 				if layout[layouts.Button] == layouts.Optional {
-					allModes[totpWithButtonMode] = authMode{
-						selectionLabel: "Authentication code",
-						phone:          "+33...",
-						wantedCode:     "temporary pass",
-						ui: map[string]string{
-							layouts.Type:   layouts.Form,
-							layouts.Label:  "Enter your one time credential",
-							layouts.Entry:  entries.Chars,
-							layouts.Button: "Resend sms",
-						},
-					}
+					allModes[totpWithButtonMode.id] = totpWithButtonMode
 				} else {
-					allModes[totpMode] = authMode{
-						selectionLabel: "Authentication code",
-						phone:          "+33...",
-						wantedCode:     "temporary pass",
-						ui: map[string]string{
-							layouts.Type:  layouts.Form,
-							layouts.Label: "Enter your one time credential",
-							layouts.Entry: entries.Chars,
-						},
-					}
+					allModes[totpMode.id] = totpMode
 				}
 
-				allModes[phoneAck1Mode] = authMode{
-					selectionLabel: "Use your phone +33...",
-					phone:          "+33...",
-					ui: map[string]string{
-						layouts.Type:  layouts.Form,
-						layouts.Label: "Unlock your phone +33... or accept request on web interface:",
-						layouts.Wait:  layouts.True,
-					},
-				}
-
-				allModes[phoneAck2Mode] = authMode{
-					selectionLabel: "Use your phone +1...",
-					phone:          "+1...",
-					ui: map[string]string{
-						layouts.Type:  layouts.Form,
-						layouts.Label: "Unlock your phone +1... or accept request on web interface",
-						layouts.Wait:  layouts.True,
-					},
-				}
-
-				allModes[fidoDevice1Mode] = authMode{
-					selectionLabel: "Use your fido device foo",
-					ui: map[string]string{
-						layouts.Type:  layouts.Form,
-						layouts.Label: "Plug your fido device and press with your thumb",
-						layouts.Wait:  layouts.True,
-					},
-				}
+				allModes[phoneAck1Mode.id] = phoneAck1Mode
+				allModes[phoneAck2Mode.id] = phoneAck2Mode
+				allModes[fidoDeviceMode.id] = fidoDeviceMode
 			}
 
 		case layouts.QrCode:
-			modeName := qrCodeMode
-			modeSelectionLabel := "Use a QR code"
-			modeLabel := "Enter the following code after flashing the address: "
+			mode := qrCodeMode
 			if layout[layouts.Code] != "" {
-				modeName = qrCodeAndCodeMode
-				modeLabel = "Scan the qrcode or enter the code in the login page"
+				mode = qrCodeAndCodeMode
 			}
 			if layout[layouts.RendersQrCode] != layouts.True {
-				modeName = codeMode
-				modeSelectionLabel = "Use a Login code"
-				modeLabel = "Enter the code in the login page"
+				mode = codeMode
 			}
-			allModes[modeName] = authMode{
-				selectionLabel: modeSelectionLabel,
-				ui: map[string]string{
-					layouts.Type:   layouts.QrCode,
-					layouts.Label:  modeLabel,
-					layouts.Wait:   layouts.True,
-					layouts.Button: "Regenerate code",
-				},
-			}
+			allModes[mode.id] = mode
 
-		case webViewMode:
+		case webViewMode.id:
 			// This broker does not support webview
 		}
 	}
@@ -442,7 +473,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 
 func getMfaModes(info sessionInfo, supportedModes map[string]authMode) map[string]authMode {
 	mfaModes := make(map[string]authMode)
-	for _, mode := range []string{phoneAck1Mode, totpWithButtonMode, fidoDevice1Mode} {
+	for _, mode := range []string{phoneAck1Mode.id, totpWithButtonMode.id, fidoDeviceMode.id} {
 		if _, exists := supportedModes[mode]; exists && info.currentAuthMode != mode {
 			mfaModes[mode] = supportedModes[mode]
 		}
@@ -517,18 +548,18 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 
 	// The broker does extra "out of bound" connections when needed
 	switch authenticationModeName {
-	case totpWithButtonMode, totpMode:
+	case totpWithButtonMode.id, totpMode.id:
 		// send sms to sessionInfo.allModes[authenticationModeName].phone
 		// add a 0 to simulate new code generation.
 		authenticationMode.wantedCode += "0"
 		sessionInfo.allModes[authenticationModeName] = authenticationMode
-	case phoneAck1Mode, phoneAck2Mode:
+	case phoneAck1Mode.id, phoneAck2Mode.id:
 		// send request to sessionInfo.allModes[authenticationModeName].phone
-	case fidoDevice1Mode:
+	case fidoDeviceMode.id:
 		// start transaction with fido device
-	case qrCodeAndCodeMode, codeMode:
+	case qrCodeAndCodeMode.id, codeMode.id:
 		uiLayoutInfo[layouts.Content], uiLayoutInfo[layouts.Code] = qrcodeData(&sessionInfo)
-	case qrCodeMode:
+	case qrCodeMode.id:
 		// generate the url and finish the prompt on the fly.
 		content, code := qrcodeData(&sessionInfo)
 		uiLayoutInfo[layouts.Label] += code
@@ -630,25 +661,25 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 	// Note that the layouts.Wait authentication can be cancelled and switch to another mode with a challenge.
 	// Take into account the cancellation.
 	switch sessionInfo.currentAuthMode {
-	case passwordMode:
+	case passwordMode.id:
 		expectedChallenge := user.Password
 
 		if challenge != expectedChallenge {
 			return auth.Retry, fmt.Sprintf(`{"message": "invalid password '%s', should be '%s'"}`, challenge, expectedChallenge)
 		}
 
-	case pinCodeMode:
+	case pinCodeMode.id:
 		if challenge != "4242" {
 			return auth.Retry, `{"message": "invalid pincode, should be 4242"}`
 		}
 
-	case totpWithButtonMode, totpMode:
+	case totpWithButtonMode.id, totpMode.id:
 		wantedCode := sessionInfo.allModes[sessionInfo.currentAuthMode].wantedCode
 		if challenge != wantedCode {
 			return auth.Retry, `{"message": "invalid totp code"}`
 		}
 
-	case phoneAck1Mode:
+	case phoneAck1Mode.id:
 		// TODO: should this be an error rather (not expected data from the PAM module?
 		if authData[layouts.Wait] != layouts.True {
 			return auth.Denied, `{"message": "phoneack1 should have wait set to true"}`
@@ -660,7 +691,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 			return auth.Cancelled, ""
 		}
 
-	case phoneAck2Mode:
+	case phoneAck2Mode.id:
 		if authData[layouts.Wait] != layouts.True {
 			return auth.Denied, `{"message": "phoneack2 should have wait set to true"}`
 		}
@@ -673,7 +704,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 			return auth.Cancelled, ""
 		}
 
-	case fidoDevice1Mode:
+	case fidoDeviceMode.id:
 		if authData[layouts.Wait] != layouts.True {
 			return auth.Denied, `{"message": "fidodevice1 should have wait set to true"}`
 		}
@@ -685,7 +716,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 			return auth.Cancelled, ""
 		}
 
-	case qrCodeMode, qrCodeAndCodeMode, codeMode:
+	case qrCodeMode.id, qrCodeAndCodeMode.id, codeMode.id:
 		if authData[layouts.Wait] != layouts.True {
 			return auth.Denied, fmt.Sprintf(`{"message": "%s should have wait set to true"}`, sessionInfo.currentAuthMode)
 		}
@@ -715,10 +746,9 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		exampleUsersMu.Lock()
 		exampleUsers[sessionInfo.username] = userInfoBroker{Password: challenge}
 		exampleUsersMu.Unlock()
-	}
 
 	// this case name was dynamically generated
-	if strings.HasPrefix(sessionInfo.currentAuthMode, "entry_or_wait_for_") {
+	case emailMode(sessionInfo.username).id:
 		// do we have a challenge sent or should we just wait?
 		if challenge != "" {
 			// validate challenge given manually by the user
