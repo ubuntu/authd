@@ -78,23 +78,42 @@ func (gh *gdmTestModuleHandler) exampleHandleGdmData(gdmData *gdm.Data) (*gdm.Da
 		gdmData.Type.String())
 }
 
-func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
-	events, ok := gh.eventPollResponses[event.Type]
-	if ok && len(events) > 0 {
-		numEvents := 1
-		if events[0].Type == gdm_test.EventsGroupBegin().Type {
-			numEvents = slices.IndexFunc(events, func(ev *gdm.EventData) bool {
-				return ev.Type == gdm_test.EventsGroupEnd().Type
+func (gh gdmTestModuleHandler) tunePollEvents(events []*gdm.EventData) []*gdm.EventData {
+	var sanitized []*gdm.EventData
+	for _, e := range events {
+		switch ev := e.Data.(type) {
+		case *gdm.EventData_BrokerSelected:
+			idx := slices.IndexFunc(gh.brokersInfos, func(broker *authd.ABResponse_BrokerInfo) bool {
+				return broker.Id == ev.BrokerSelected.BrokerId || broker.Name == ev.BrokerSelected.BrokerId
 			})
-			require.Greater(gh.t, numEvents, 1, "No valid events group found")
-			events = slices.Delete(events, numEvents, numEvents+1)
-			events = slices.Delete(events, 0, 1)
-			numEvents--
+			require.GreaterOrEqual(gh.t, idx, 0, "Unknown broker: %s", ev.BrokerSelected.BrokerId)
+			sanitized = append(sanitized, gdm_test.SelectBrokerEvent(gh.brokersInfos[idx].Id))
+			continue
 		}
-		pollEvents := slices.Clone(events[0:numEvents])
-		gh.eventPollResponses[event.Type] = slices.Delete(events, 0, numEvents)
-		gh.pollResponses = append(gh.pollResponses, pollEvents...)
+		sanitized = append(sanitized, e)
 	}
+	return sanitized
+}
+
+func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
+	defer func() {
+		events, ok := gh.eventPollResponses[event.Type]
+		if ok && len(events) > 0 {
+			numEvents := 1
+			if events[0].Type == gdm_test.EventsGroupBegin().Type {
+				numEvents = slices.IndexFunc(events, func(ev *gdm.EventData) bool {
+					return ev.Type == gdm_test.EventsGroupEnd().Type
+				})
+				require.Greater(gh.t, numEvents, 1, "No valid events group found")
+				events = slices.Delete(events, numEvents, numEvents+1)
+				events = slices.Delete(events, 0, 1)
+				numEvents--
+			}
+			pollEvents := gh.tunePollEvents(events[0:numEvents])
+			gh.eventPollResponses[event.Type] = slices.Delete(events, 0, numEvents)
+			gh.pollResponses = append(gh.pollResponses, pollEvents...)
+		}
+	}()
 
 	switch ev := event.Data.(type) {
 	case *gdm.EventData_BrokersReceived:
@@ -102,19 +121,6 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 			return errors.New("no brokers available")
 		}
 		gh.brokersInfos = ev.BrokersReceived.BrokersInfos
-
-		if gh.selectedBrokerName == ignoredBrokerName {
-			return nil
-		}
-
-		idx := slices.IndexFunc(gh.brokersInfos, func(bi *authd.ABResponse_BrokerInfo) bool {
-			return bi.Name == gh.selectedBrokerName
-		})
-		if idx < 0 {
-			return fmt.Errorf("broker '%s' is not known", gh.selectedBrokerName)
-		}
-
-		gh.pollResponses = append(gh.pollResponses, gdm_test.SelectBrokerEvent(gh.brokersInfos[idx].Id))
 
 	case *gdm.EventData_BrokerSelected:
 		idx := slices.IndexFunc(gh.brokersInfos, func(broker *authd.ABResponse_BrokerInfo) bool {
@@ -150,7 +156,7 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 			return mode.Id == gh.authModeID
 		})
 		if idx < 0 {
-			return fmt.Errorf("unknown auth mode type: %s", gh.authModeID)
+			return fmt.Errorf("unknown auth mode type: %q", gh.authModeID)
 		}
 		if len(gh.selectedAuthModeIDs) < 1 {
 			return fmt.Errorf("unexpected authentication started with mode '%s', we've nothing to reply",
@@ -205,6 +211,20 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 		case proto.Stage_brokerSelection:
 			gh.authModes = nil
 			gh.brokerID = ""
+
+			if gh.selectedBrokerName == ignoredBrokerName {
+				break
+			}
+
+			idx := slices.IndexFunc(gh.brokersInfos, func(bi *authd.ABResponse_BrokerInfo) bool {
+				return bi.Name == gh.selectedBrokerName
+			})
+			if idx < 0 {
+				return nil, fmt.Errorf("broker '%s' is not known", gh.selectedBrokerName)
+			}
+
+			gh.pollResponses = append(gh.pollResponses, gdm_test.SelectBrokerEvent(gh.brokersInfos[idx].Id))
+
 		case proto.Stage_authModeSelection:
 			gh.currentUILayout = nil
 		}
