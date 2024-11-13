@@ -107,9 +107,7 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 	for _, result := range gdmPollResults {
 		switch res := result.Data.(type) {
 		case *gdm.EventData_UserSelected:
-			commands = append(commands, sendEvent(userSelected{
-				username: res.UserSelected.UserId,
-			}))
+			commands = append(commands, sendUserSelected(res.UserSelected.UserId))
 
 		case *gdm.EventData_BrokerSelected:
 			if res.BrokerSelected == nil {
