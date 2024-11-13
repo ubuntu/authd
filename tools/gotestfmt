@@ -1,0 +1,63 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# This script is a wrapper around gotestfmt. It expects the output of `go test -json`
+# on stdin. The output of failed tests is written to stdout, while the full output
+# (including successful tests) is written to a logfile.
+
+usage(){
+    echo "Usage: $0 [--logfile <logfile>] [-h|--help]"
+}
+
+# Parse options
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --logfile)
+            LOGFILE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+LOGFILE="${LOGFILE:-$(mktemp -t gotestfmt.XXXXXX.log)}"
+echo >&2 "Logging to $LOGFILE"
+STDERR_FILE=${LOGFILE%.log}.stderr
+STDOUT_FILE=${LOGFILE%.log}.stdout
+
+strip_empty_coverage_lines() {
+    # This strips empty coverage lines from the output of `go test -cover -json`,
+    # which would otherwise be printed as error messages by gotestfmt.
+    jq -c 'select(.Output != null and (.Output | contains("coverage: 0.0%") | not))'
+}
+
+copy_to_logfile() {
+    # This copies the output of `go test -json` to the logfile. It also uses
+    # gotestfmt to format the output (but without GitHub Action workflow commands
+    # like `::group::` and `::endgroup::`) and removes ANSI color codes, to make
+    # the logfile more readable.
+    tee >(GITHUB_WORKFLOW='' gotestfmt -showteststatus | sed 's/\x1b\[[0-9;]*m//g' > "$LOGFILE")
+}
+
+copy_output() {
+    # Copy all output of `go test -json` unformatted to a file, for debugging purposes.
+    # This is useful if a jq format error occurs, to see the output that caused it.
+    tee "$STDOUT_FILE"
+}
+
+# Write stderr to a file which can be uploaded as an artifact
+copy_output | strip_empty_coverage_lines | copy_to_logfile | gotestfmt --hide all <&0 2> "$STDERR_FILE" || exitcode=$?
+
+# Print the stderr file to stderr
+cat >&2 "$STDERR_FILE"
+
+exit "${exitcode:-0}"

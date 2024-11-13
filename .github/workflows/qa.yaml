@@ -154,6 +154,10 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+
+      - name: Install gotestfmt
+        run: go install github.com/gotesttools/gotestfmt/v2/cmd/gotestfmt@latest
+
       - name: Install VHS and ttyd for integration tests
         run: |
           set -eu
@@ -198,10 +202,14 @@ jobs:
           raw_cov_dir="${cov_dir}/raw"
           mkdir -p "${raw_cov_dir}" "${cod_cov_dir}"
 
+          # Print executed commands to ease debugging
+          set -x
+
           # Overriding the default coverage directory is not an exported flag of go test (yet), so
           # we need to override it using the test.gocoverdir flag instead.
           #TODO: Update when https://go-review.googlesource.com/c/go/+/456595 is merged.
-          go test -timeout ${GO_TESTS_TIMEOUT} -cover -covermode=set ./... -coverpkg=./... -shuffle=on -args -test.gocoverdir="${raw_cov_dir}"
+          go test -json -timeout ${GO_TESTS_TIMEOUT} -cover -covermode=set ./... -coverpkg=./... -shuffle=on -args -test.gocoverdir="${raw_cov_dir}" | \
+            ./tools/gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.cover.log"
 
           # Convert the raw coverage data into textfmt so we can merge the Rust one into it
           go tool covdata textfmt -i="${raw_cov_dir}" -o="${cov_dir}/coverage.out"
@@ -220,7 +228,8 @@ jobs:
         env:
           GO_TESTS_TIMEOUT: 35m
         run: |
-          go test -timeout ${GO_TESTS_TIMEOUT} -race ./...
+          go test -json -timeout ${GO_TESTS_TIMEOUT} -race ./... | \
+            ./tools/gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.race.log"
 
       - name: Run PAM tests (with Address Sanitizer)
         if: matrix.test == 'asan'
@@ -233,23 +242,44 @@ jobs:
           # Use these flags to give ASAN a better time to unwind the stack trace
           GO_GC_FLAGS: -N -l
         run: |
-          go test -C ./pam/internal -asan -gcflags=all="${GO_GC_FLAGS}" -timeout ${GO_TESTS_TIMEOUT} ./... || exit_code=$?
-          if [ "${exit_code}" -ne 0 ]; then
+          # Print executed commands to ease debugging
+          set -x
+
+          go test -C ./pam/internal -json -asan -gcflags=all="${GO_GC_FLAGS}" -timeout ${GO_TESTS_TIMEOUT} ./... | \
+            ./tools/gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.pam-internal-asan.log" || exit_code=$?
+          if [ -n "${exit_code:-}" ]; then
             cat "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log* || true
             exit ${exit_code}
           fi
 
+          echo "Running PAM integration tests"
           pushd ./pam/integration-tests
           go test -asan -gcflags=all="${GO_GC_FLAGS}" -c
           # FIXME: Suppression may be removed with newer libpam, as the one we ship in ubuntu as some leaks
-          env LSAN_OPTIONS=suppressions=$(pwd)/lsan.supp \
-            ./integration-tests.test \
-              -test.timeout ${GO_TESTS_TIMEOUT} \
-            || exit_code=$?
+          LSAN_OPTIONS=suppressions=$(pwd)/lsan.supp \
+            go tool test2json -p pam/integrations-test ./integration-tests.test \
+              -test.v=test2json \
+              -test.timeout ${GO_TESTS_TIMEOUT} | \
+            ../../tools/gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.pam-integration-tests-asan.log" || \
+            exit_code=$?
           popd
 
+          # We don't need the xtrace output after this point
+          set +x
+
           # We're logging to a file, and this is useful for having artifacts, but we still may want to see it in logs:
-          cat "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log* || true
+          for f in "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log*; do
+            if ! [ -e "${f}" ]; then
+              continue
+            fi
+            if [ -s "${f}" ]; then
+              echo "::group::${f} ($(wc -l < "${f}") lines)"
+              cat "${f}"
+              echo "::endgroup::"
+            else
+              echo "${f}: empty"
+            fi
+          done
 
           exit ${exit_code}
 
@@ -260,7 +290,7 @@ jobs:
           directory: ./coverage/codecov
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Upload test failures artifacts
+      - name: Upload test artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
