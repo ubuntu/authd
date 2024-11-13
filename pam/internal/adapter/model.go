@@ -261,20 +261,15 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				msg:    "reselection of current auth mode without current ID",
 			})
 		}
-		return m, getLayout(m.Client, m.currentSession.sessionID, msg.ID)
+		return m, tea.Sequence(
+			m.updateClientModel(msg),
+			getLayout(m.Client, m.currentSession.sessionID, msg.ID),
+		)
 
 	case UILayoutReceived:
 		log.Debugf(context.TODO(), "%#v", msg)
 		if m.currentSession == nil {
 			return m, nil
-		}
-
-		var modelCmd tea.Cmd
-		switch m.ClientType {
-		case Gdm:
-			m.gdmModel, modelCmd = m.gdmModel.Update(msg)
-		case Native:
-			m.nativeModel, modelCmd = m.nativeModel.Update(msg)
 		}
 
 		return m, tea.Sequence(
@@ -284,7 +279,7 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentSession.encryptionKey,
 				msg.layout,
 			),
-			modelCmd,
+			m.updateClientModel(msg),
 		)
 
 	case SessionEnded:
@@ -305,16 +300,20 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.authenticationModel, cmd = m.authenticationModel.Update(msg)
 	cmds = append(cmds, cmd)
 
+	cmds = append(cmds, m.updateClientModel(msg))
+
+	return m, tea.Batch(cmds...)
+}
+
+func (m *UIModel) updateClientModel(msg tea.Msg) tea.Cmd {
+	var cmd tea.Cmd
 	switch m.ClientType {
 	case Gdm:
 		m.gdmModel, cmd = m.gdmModel.Update(msg)
-		cmds = append(cmds, cmd)
 	case Native:
 		m.nativeModel, cmd = m.nativeModel.Update(msg)
-		cmds = append(cmds, cmd)
 	}
-
-	return m, tea.Batch(cmds...)
+	return cmd
 }
 
 // View renders a text view of the whole UI.

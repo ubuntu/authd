@@ -107,9 +107,7 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 	for _, result := range gdmPollResults {
 		switch res := result.Data.(type) {
 		case *gdm.EventData_UserSelected:
-			commands = append(commands, sendEvent(userSelected{
-				username: res.UserSelected.UserId,
-			}))
+			commands = append(commands, sendUserSelected(res.UserSelected.UserId))
 
 		case *gdm.EventData_BrokerSelected:
 			if res.BrokerSelected == nil {
@@ -217,9 +215,9 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 			AuthModesReceived: &gdm.Events_AuthModesReceived{AuthModes: msg.authModes},
 		})
 
-	case authModeSelected:
+	case AuthModeSelected:
 		return m, m.emitEvent(&gdm.EventData_AuthModeSelected{
-			AuthModeSelected: &gdm.Events_AuthModeSelected{AuthModeId: msg.id},
+			AuthModeSelected: &gdm.Events_AuthModeSelected{AuthModeId: msg.ID},
 		})
 
 	case UILayoutReceived:

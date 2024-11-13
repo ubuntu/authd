@@ -121,40 +121,8 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
-		"Broker selection stage caused by server-side user selection": {
-			messages:     []tea.Msg{userSelected{username: "daemon-selected-user"}},
-			wantUsername: "daemon-selected-user",
-			wantGdmRequests: []gdm.RequestType{
-				gdm.RequestType_uiLayoutCapabilities,
-				gdm.RequestType_changeStage, // -> broker Selection
-			},
-			wantGdmEvents: []gdm.EventType{
-				gdm.EventType_userSelected,
-				gdm.EventType_brokersReceived,
-			},
-			wantNoGdmEvents: []gdm.EventType{
-				gdm.EventType_brokerSelected,
-				gdm.EventType_authModesReceived,
-				gdm.EventType_authModeSelected,
-				gdm.EventType_startAuthentication,
-				gdm.EventType_authEvent,
-			},
-			wantStage:      pam_proto.Stage_brokerSelection,
-			wantExitStatus: gdmTestEarlyStopExitStatus,
-		},
-		"Broker selection stage caused by server-side user selection after broker": {
-			messages: []tea.Msg{
-				gdmTestWaitForStage{
-					stage: pam_proto.Stage_userSelection,
-					commands: []tea.Cmd{
-						tea.Tick(50*time.Millisecond, func(t time.Time) tea.Msg {
-							return userSelected{username: "daemon-selected-user"}
-						}),
-						sendEvent(gdmTestWaitForStage{stage: pam_proto.Stage_brokerSelection}),
-					},
-				},
-			},
-			wantUsername: "daemon-selected-user",
+		"Broker selection stage caused by PAM user selection": {
+			pamUser: "pam-preset-user",
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
@@ -196,36 +164,13 @@ func TestGdmModel(t *testing.T) {
 			wantStage:      pam_proto.Stage_brokerSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
-		"Broker selection stage caused by module user selection": {
-			pamUser:      "gdm-pam-selected-user",
-			wantUsername: "gdm-pam-selected-user",
-			wantGdmRequests: []gdm.RequestType{
-				gdm.RequestType_uiLayoutCapabilities,
-				gdm.RequestType_changeStage, // -> broker Selection
-			},
-			wantGdmEvents: []gdm.EventType{
-				gdm.EventType_userSelected,
-				gdm.EventType_brokersReceived,
-			},
-			wantNoGdmEvents: []gdm.EventType{
-				gdm.EventType_authModesReceived,
-				gdm.EventType_authModeSelected,
-				gdm.EventType_startAuthentication,
-				gdm.EventType_authEvent,
-			},
-			wantStage:      pam_proto.Stage_brokerSelection,
-			wantExitStatus: gdmTestEarlyStopExitStatus,
-		},
 		"Challenge stage caused by server-side broker and authMode selection": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil)),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker"}
-				}))(),
 				gdmTestWaitForStage{stage: pam_proto.Stage_challenge},
 			},
-			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -283,14 +228,12 @@ func TestGdmModel(t *testing.T) {
 			wantStage:      pam_proto.Stage_challenge,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
-		"Authenticated after server-side user, broker and authMode selection": {
+		"Authenticated with preset PAM user and server-side broker and authMode selection": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password")),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker"}
-				}))(),
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
@@ -300,7 +243,6 @@ func TestGdmModel(t *testing.T) {
 					},
 				},
 			},
-			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -321,7 +263,7 @@ func TestGdmModel(t *testing.T) {
 			wantStage:      pam_proto.Stage_challenge,
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
-		"Authenticated with message after server-side user, broker and authMode selection": {
+		"Authenticated with message with preset PAM user and server-side broker and authMode selection": {
 			clientOptions: append(slices.Clone(multiBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
@@ -329,10 +271,8 @@ func TestGdmModel(t *testing.T) {
 					Msg:    `{"message": "Hi GDM, it's a pleasure to get you in!"}`,
 				}, nil),
 			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker"}
-				}))(),
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
@@ -342,7 +282,6 @@ func TestGdmModel(t *testing.T) {
 					},
 				},
 			},
-			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -369,17 +308,15 @@ func TestGdmModel(t *testing.T) {
 				msg:      "Hi GDM, it's a pleasure to get you in!",
 			},
 		},
-		"New password changed after server-side user, broker and authMode selection": {
+		"New password changed after server-side broker and authMode selection": {
 			clientOptions: append(slices.Clone(singleBrokerNewPasswordClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
 					Access: brokers.AuthGranted,
 				}, nil),
 			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker"}
-				}))(),
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
@@ -390,7 +327,6 @@ func TestGdmModel(t *testing.T) {
 				},
 			},
 			supportedLayouts:   []*authd.UILayout{pam_test.NewPasswordUILayout()},
-			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -415,7 +351,7 @@ func TestGdmModel(t *testing.T) {
 				BrokerID: firstBrokerInfo.Id,
 			},
 		},
-		"New password changed with message after server-side user, broker and authMode selection": {
+		"New password changed with message with preset PAM user and server-side broker and authMode selection": {
 			clientOptions: append(slices.Clone(singleBrokerNewPasswordClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
@@ -423,10 +359,8 @@ func TestGdmModel(t *testing.T) {
 					Msg:    `{"message": "Hi GDM, it's a pleasure to change your password!"}`,
 				}, nil),
 			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker"}
-				}))(),
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
@@ -437,7 +371,6 @@ func TestGdmModel(t *testing.T) {
 				},
 			},
 			supportedLayouts:   []*authd.UILayout{pam_test.NewPasswordUILayout()},
-			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -464,7 +397,7 @@ func TestGdmModel(t *testing.T) {
 				msg:      "Hi GDM, it's a pleasure to change your password!",
 			},
 		},
-		"New password can't change because not respecting rules after server-side user, broker and authMode selection": {
+		"New password can't change because not respecting rules with preset PAM user and server-side broker and authMode selection": {
 			clientOptions: append(slices.Clone(singleBrokerNewPasswordClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
@@ -472,10 +405,8 @@ func TestGdmModel(t *testing.T) {
 					Msg:    `{"message": "Hi GDM, it's a pleasure to change your password!"}`,
 				}, nil),
 			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker"}
-				}))(),
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
@@ -492,7 +423,6 @@ func TestGdmModel(t *testing.T) {
 				},
 			},
 			supportedLayouts:   []*authd.UILayout{pam_test.NewPasswordUILayout()},
-			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -533,7 +463,7 @@ func TestGdmModel(t *testing.T) {
 				msg:      "Hi GDM, it's a pleasure to change your password!",
 			},
 		},
-		"New password can't change because matches previous after server-side user, broker and authMode selection": {
+		"New password can't change because matches previous with preset PAM user and server-side broker and authMode selection": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithUILayout(newPasswordUILayoutID, "New Password", pam_test.NewPasswordUILayout()),
@@ -644,22 +574,19 @@ func TestGdmModel(t *testing.T) {
 			wantStage:      pam_proto.Stage_userSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
-		"Cancelled after server-side user, broker and authMode selection": {
+		"Cancelled with preset PAM user and server-side broker and authMode selection": {
 			clientOptions: append(slices.Clone(multiBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
 					Access: brokers.AuthCancelled,
 				}, nil),
 			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker"}
-				}))(),
 				gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
 					Challenge: "gdm-any-password",
 				}},
 			},
-			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -680,14 +607,12 @@ func TestGdmModel(t *testing.T) {
 			wantGdmAuthRes: []*authd.IAResponse{{Access: brokers.AuthCancelled}},
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
-		"Explicitly cancelled after server-side user, broker and authMode selection": {
+		"Explicitly cancelled with preset PAM user and server-side broker and authMode selection": {
 			clientOptions: append(slices.Clone(multiBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker"}
-				}))(),
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					events: []*gdm.EventData{
@@ -695,7 +620,6 @@ func TestGdmModel(t *testing.T) {
 					},
 				},
 			},
-			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -716,16 +640,14 @@ func TestGdmModel(t *testing.T) {
 			wantGdmAuthRes: []*authd.IAResponse{{Access: brokers.AuthCancelled}},
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
-		"Authenticated after server-side user, broker and authMode selection and after various retries": {
+		"Authenticated with preset PAM user and server-side broker and authMode selection and after various retries": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
 				pam_test.WithIsAuthenticatedMaxRetries(1),
 			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker"}
-				}))(),
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
@@ -738,7 +660,6 @@ func TestGdmModel(t *testing.T) {
 					},
 				},
 			},
-			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -914,10 +835,8 @@ func TestGdmModel(t *testing.T) {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker"}
-				}))(),
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					events: []*gdm.EventData{
@@ -928,7 +847,6 @@ func TestGdmModel(t *testing.T) {
 					},
 				},
 			},
-			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -959,8 +877,8 @@ func TestGdmModel(t *testing.T) {
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithUILayout("pincode", "Pin Code", pam_test.FormUILayout()),
 			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-and-broker"},
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					events: []*gdm.EventData{
@@ -971,7 +889,6 @@ func TestGdmModel(t *testing.T) {
 					},
 				},
 			},
-			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -1633,10 +1550,7 @@ func TestGdmModel(t *testing.T) {
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithSelectBrokerReturn(nil, errors.New("error during broker selection")),
 			),
-			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-and-broker"},
-			},
-			wantUsername:       "daemon-selected-user-and-broker",
+			pamUser:            "pam-preset-user-and-daemon-selected-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -1656,10 +1570,7 @@ func TestGdmModel(t *testing.T) {
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithSelectBrokerReturn(&authd.SBResponse{}, nil),
 			),
-			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-and-broker"},
-			},
-			wantUsername:       "daemon-selected-user-and-broker",
+			pamUser:            "pam-preset-user-and-daemon-selected-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -1679,10 +1590,7 @@ func TestGdmModel(t *testing.T) {
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithSelectBrokerReturn(&authd.SBResponse{SessionId: "session-id"}, nil),
 			)...),
-			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-and-broker"},
-			},
-			wantUsername:       "daemon-selected-user-and-broker",
+			pamUser:            "pam-preset-user-and-daemon-selected-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -1705,10 +1613,7 @@ func TestGdmModel(t *testing.T) {
 					EncryptionKey: "no encryption key returned by broker",
 				}, nil),
 			),
-			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-and-broker"},
-			},
-			wantUsername:       "daemon-selected-user-and-broker",
+			pamUser:            "pam-preset-user-and-daemon-selected-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -1731,10 +1636,7 @@ func TestGdmModel(t *testing.T) {
 						[]byte("not a valid encryption key!")),
 				}, nil),
 			),
-			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-and-broker"},
-			},
-			wantUsername:       "daemon-selected-user-and-broker",
+			pamUser:            "pam-preset-user-and-daemon-selected-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -1752,8 +1654,8 @@ func TestGdmModel(t *testing.T) {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithUILayout(passwordUILayoutID, "", nil),
 			),
+			pamUser: "pam-preset-user-for-client-selected-broker",
 			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-for-client-selected-broker"},
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
@@ -1762,7 +1664,6 @@ func TestGdmModel(t *testing.T) {
 				},
 				gdmTestWaitForStage{stage: proto.Stage_authModeSelection},
 			},
-			wantUsername:       "daemon-selected-user-for-client-selected-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -1784,8 +1685,8 @@ func TestGdmModel(t *testing.T) {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetAuthenticationModesReturn([]*authd.GAMResponse_AuthenticationMode{}, nil),
 			),
+			pamUser: "pam-preset-user-for-client-selected-broker",
 			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-for-client-selected-broker"},
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
@@ -1794,7 +1695,6 @@ func TestGdmModel(t *testing.T) {
 				},
 				gdmTestWaitForStage{stage: proto.Stage_authModeSelection},
 			},
-			wantUsername:       "daemon-selected-user-for-client-selected-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -1816,8 +1716,8 @@ func TestGdmModel(t *testing.T) {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithSelectAuthenticationModeReturn(nil, errors.New("error selecting auth mode")),
 			),
+			pamUser: "pam-preset-user-for-client-selected-broker",
 			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-for-client-selected-broker"},
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
@@ -1826,7 +1726,6 @@ func TestGdmModel(t *testing.T) {
 				},
 				gdmTestWaitForStage{stage: proto.Stage_authModeSelection},
 			},
-			wantUsername:       "daemon-selected-user-for-client-selected-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -1849,8 +1748,8 @@ func TestGdmModel(t *testing.T) {
 					Type: "invalid layout",
 				}, nil),
 			),
+			pamUser: "pam-preset-user-with-client-selected-broker",
 			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-with-client-selected-broker"},
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
@@ -1859,7 +1758,6 @@ func TestGdmModel(t *testing.T) {
 				},
 				gdmTestWaitForStage{stage: proto.Stage_challenge},
 			},
-			wantUsername:       "daemon-selected-user-with-client-selected-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -1885,8 +1783,8 @@ func TestGdmModel(t *testing.T) {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithIsAuthenticatedReturn(nil, errors.New("some authentication error")),
 			),
+			pamUser: "pam-preset-user-for-client-selected-broker",
 			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-for-client-selected-broker"},
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
@@ -1897,7 +1795,6 @@ func TestGdmModel(t *testing.T) {
 					Challenge: "gdm-password",
 				}},
 			},
-			wantUsername:       "daemon-selected-user-for-client-selected-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -1927,13 +1824,12 @@ func TestGdmModel(t *testing.T) {
 					Msg:    "invalid JSON",
 				}, nil),
 			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-and-broker"},
 				gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
 					Challenge: "gdm-good-password",
 				}},
 			},
-			wantUsername:       "daemon-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -1960,8 +1856,8 @@ func TestGdmModel(t *testing.T) {
 				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
 				pam_test.WithIsAuthenticatedMessage("you're not allowed!"),
 			),
+			pamUser: "pam-preset-user-for-client-selected-brokers-with-wrong-pass",
 			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-for-client-selected-brokers-with-wrong-pass"},
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
@@ -1977,7 +1873,6 @@ func TestGdmModel(t *testing.T) {
 					},
 				},
 			},
-			wantUsername:       "daemon-selected-user-for-client-selected-brokers-with-wrong-pass",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -2008,8 +1903,8 @@ func TestGdmModel(t *testing.T) {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
 			),
+			pamUser: "pam-preset-user-and-client-selected-broker-with-wrong-pass",
 			messages: []tea.Msg{
-				userSelected{username: "daemon-selected-user-and-client-selected-broker-with-wrong-pass"},
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
@@ -2025,7 +1920,6 @@ func TestGdmModel(t *testing.T) {
 					},
 				},
 			},
-			wantUsername:       "daemon-selected-user-and-client-selected-broker-with-wrong-pass",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -2055,10 +1949,8 @@ func TestGdmModel(t *testing.T) {
 				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
 				pam_test.WithIsAuthenticatedMaxRetries(1),
 			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker-with-wrong-pass",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker-with-wrong-pass"}
-				}))(),
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
@@ -2071,7 +1963,6 @@ func TestGdmModel(t *testing.T) {
 					},
 				},
 			},
-			wantUsername:       "daemon-selected-user-and-broker-with-wrong-pass",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -2104,10 +1995,8 @@ func TestGdmModel(t *testing.T) {
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{}, nil),
 			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker-with-wrong-pass",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker-with-wrong-pass"}
-				}))(),
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
@@ -2117,7 +2006,6 @@ func TestGdmModel(t *testing.T) {
 					},
 				},
 			},
-			wantUsername:       "daemon-selected-user-and-broker-with-wrong-pass",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -2152,10 +2040,8 @@ func TestGdmModel(t *testing.T) {
 					Msg:    `{"message": "This is not a valid access"}`,
 				}, nil),
 			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker-with-wrong-pass",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
-					return userSelected{username: "daemon-selected-user-and-broker-with-wrong-pass"}
-				}))(),
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
@@ -2165,7 +2051,6 @@ func TestGdmModel(t *testing.T) {
 					},
 				},
 			},
-			wantUsername:       "daemon-selected-user-and-broker-with-wrong-pass",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -2285,7 +2170,7 @@ func TestGdmModel(t *testing.T) {
 			},
 		},
 		"Error on selecting user name after PAM provided already one": {
-			pamUser: "gdm-pam-selected-user",
+			pamUser: "gdm-pam-preset-user",
 			messages: []tea.Msg{
 				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
 					return userSelected{username: "another-selected-user"}
@@ -2300,7 +2185,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_userSelected, // Second injected (and refused) selection.
 			},
 			wantMessages: []tea.Msg{
-				userSelected{"gdm-pam-selected-user"},
+				userSelected{"gdm-pam-preset-user"},
 				userSelected{"another-selected-user"},
 			},
 			wantNoGdmEvents: []gdm.EventType{
@@ -2310,11 +2195,10 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantStage:    pam_proto.Stage_brokerSelection,
-			wantUsername: "gdm-pam-selected-user",
+			wantStage: pam_proto.Stage_brokerSelection,
 			wantExitStatus: pamError{
 				status: pam.ErrPermDenied,
-				msg:    `Changing username "gdm-pam-selected-user" to "another-selected-user" is not allowed`,
+				msg:    `Changing username "gdm-pam-preset-user" to "another-selected-user" is not allowed`,
 			},
 		},
 	}
@@ -2374,6 +2258,9 @@ func TestGdmModel(t *testing.T) {
 
 			if tc.pamUser != "" {
 				require.NoError(t, uiModel.PamMTx.SetItem(pam.User, tc.pamUser))
+			}
+			if tc.pamUser != "" && tc.wantUsername == "" {
+				tc.wantUsername = tc.pamUser
 			}
 
 			teaOpts, err := TeaHeadlessOptions()
