@@ -217,9 +217,9 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 			AuthModesReceived: &gdm.Events_AuthModesReceived{AuthModes: msg.authModes},
 		})
 
-	case authModeSelected:
+	case AuthModeSelected:
 		return m, m.emitEvent(&gdm.EventData_AuthModeSelected{
-			AuthModeSelected: &gdm.Events_AuthModeSelected{AuthModeId: msg.id},
+			AuthModeSelected: &gdm.Events_AuthModeSelected{AuthModeId: msg.ID},
 		})
 
 	case UILayoutReceived:

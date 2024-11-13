@@ -261,7 +261,10 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				msg:    "reselection of current auth mode without current ID",
 			})
 		}
-		return m, getLayout(m.Client, m.currentSession.sessionID, msg.ID)
+		return m, tea.Sequence(
+			m.updateClientModel(msg),
+			getLayout(m.Client, m.currentSession.sessionID, msg.ID),
+		)
 
 	case UILayoutReceived:
 		log.Debugf(context.TODO(), "%#v", msg)
