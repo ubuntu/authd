@@ -41,7 +41,8 @@ const variantNothing = "<@mv nothing>"
 // NewTransaction creates a new [dbusmodule.Transaction] with the provided connection.
 // A [pam.ModuleTransaction] implementation is returned together with a cleanup function that
 // should be called to release the connection.
-func NewTransaction(ctx context.Context, address string, o ...TransactionOptions) (tx pam.ModuleTransaction, cleanup func(), err error) {
+func NewTransaction(ctx context.Context, address string, o ...TransactionOptions) (
+	tx pam.ModuleTransaction, cleanup func(), err error) {
 	opts := options{}
 	for _, f := range o {
 		f(&opts)

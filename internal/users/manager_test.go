@@ -38,7 +38,8 @@ func TestNewManager(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			destCmdsFile := localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "groups", "users_in_groups.group"))
+			destCmdsFile := localgroupstestutils.SetupGPasswdMock(t,
+				filepath.Join("testdata", "groups", "users_in_groups.group"))
 
 			cacheDir := t.TempDir()
 			if tc.dbFile == "" {
@@ -169,20 +170,55 @@ func TestUpdateUser(t *testing.T) {
 		noOutput    bool
 		wantSameUID bool
 	}{
-		"Successfully update user":                       {groupsCase: "cloud-group"},
-		"Successfully update user updating local groups": {groupsCase: "mixed-groups-cloud-first", localGroupsFile: "users_in_groups.group"},
-		"UID does not change if user already exists":     {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
+		"Successfully update user": {
+			groupsCase: "cloud-group",
+		},
+		"Successfully update user updating local groups": {
+			groupsCase: "mixed-groups-cloud-first", localGroupsFile: "users_in_groups.group",
+		},
+		"UID does not change if user already exists": {
+			userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true,
+		},
 
-		"Error if user has no username":      {userCase: "nameless", wantErr: true, noOutput: true},
-		"Error if user has conflicting uid":  {userCase: "different-name-same-uid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
-		"Error if group has no name":         {groupsCase: "nameless-group", wantErr: true, noOutput: true},
-		"Error if group has conflicting gid": {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
+		"Error if user has no username": {
+			userCase: "nameless", wantErr: true, noOutput: true,
+		},
+		"Error if user has conflicting uid": {
+			userCase: "different-name-same-uid", dbFile: "one_user_and_group", wantErr: true, noOutput: true,
+		},
+		"Error if group has no name": {
+			groupsCase: "nameless-group", wantErr: true, noOutput: true,
+		},
+		"Error if group has conflicting gid": {
+			groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: true, noOutput: true,
+		},
 
-		"Error when updating local groups remove user from db":                              {groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
-		"Error when updating local groups remove user from db without touching other users": {dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
-		"Error when updating local groups remove user from db even if already existed":      {userCase: "user2", dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
+		"Error when updating local groups remove user from db": {
+			groupsCase:      "mixed-groups-gpasswd-fail",
+			localGroupsFile: "gpasswdfail_in_deleted_group.group",
+			wantErr:         true,
+		},
+		"Error when updating local groups remove user from db without touching other users": {
+			dbFile:          "multiple_users_and_groups",
+			groupsCase:      "mixed-groups-gpasswd-fail",
+			localGroupsFile: "gpasswdfail_in_deleted_group.group",
+			wantErr:         true,
+		},
+		"Error when updating local groups remove user from db even if already existed": {
+			userCase:        "user2",
+			dbFile:          "multiple_users_and_groups",
+			groupsCase:      "mixed-groups-gpasswd-fail",
+			localGroupsFile: "gpasswdfail_in_deleted_group.group",
+			wantErr:         true,
+		},
 
-		"Error on invalid entry": {groupsCase: "cloud-group", dbFile: "invalid_entry_in_userToGroups", localGroupsFile: "users_in_groups.group", wantErr: true, noOutput: true},
+		"Error on invalid entry": {
+			groupsCase:      "cloud-group",
+			dbFile:          "invalid_entry_in_userToGroups",
+			localGroupsFile: "users_in_groups.group",
+			wantErr:         true,
+			noOutput:        true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -192,7 +228,8 @@ func TestUpdateUser(t *testing.T) {
 
 			var destCmdsFile string
 			if tc.localGroupsFile != "" {
-				destCmdsFile = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "groups", tc.localGroupsFile))
+				destCmdsFile = localgroupstestutils.SetupGPasswdMock(t,
+					filepath.Join("testdata", "groups", tc.localGroupsFile))
 			}
 
 			if tc.userCase == "" {
@@ -207,7 +244,8 @@ func TestUpdateUser(t *testing.T) {
 
 			cacheDir := t.TempDir()
 			if tc.dbFile != "" {
-				cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+				cachetestutils.CreateDBFromYAML(t,
+					filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
 			m := newManagerForTests(t, cacheDir)
 
@@ -237,7 +275,8 @@ func TestUpdateUser(t *testing.T) {
 			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t)+".gpasswd.output")
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile,
+				testutils.GoldenPath(t)+".gpasswd.output")
 		})
 	}
 }
@@ -251,11 +290,19 @@ func TestBrokerForUser(t *testing.T) {
 		wantErr      bool
 		wantErrType  error
 	}{
-		"Successfully get broker for user":                        {username: "user1", dbFile: "multiple_users_and_groups", wantBrokerID: "broker-id"},
-		"Return no broker but in cache if user has no broker yet": {username: "userwithoutbroker", dbFile: "multiple_users_and_groups", wantBrokerID: ""},
+		"Successfully get broker for user": {
+			username: "user1", dbFile: "multiple_users_and_groups", wantBrokerID: "broker-id",
+		},
+		"Return no broker but in cache if user has no broker yet": {
+			username: "userwithoutbroker", dbFile: "multiple_users_and_groups", wantBrokerID: "",
+		},
 
-		"Error if user does not exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
+		"Error if user does not exist": {
+			username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{},
+		},
+		"Error if db has invalid entry": {
+			username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -273,7 +320,8 @@ func TestBrokerForUser(t *testing.T) {
 				return
 			}
 
-			require.Equal(t, tc.wantBrokerID, brokerID, "BrokerForUser should return the expected brokerID, but did not")
+			require.Equal(t, tc.wantBrokerID, brokerID,
+				"BrokerForUser should return the expected brokerID, but did not")
 		})
 	}
 }
@@ -333,10 +381,21 @@ func TestUserByName(t *testing.T) {
 		wantErr     bool
 		wantErrType error
 	}{
-		"Successfully get user by name": {username: "user1", dbFile: "multiple_users_and_groups"},
+		"Successfully get user by name": {
+			username: "user1",
+			dbFile:   "multiple_users_and_groups",
+		},
 
-		"Error if user does not exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
+		"Error if user does not exist": {
+			username:    "doesnotexist",
+			dbFile:      "multiple_users_and_groups",
+			wantErrType: cache.NoDataFoundError{},
+		},
+		"Error if db has invalid entry": {
+			username: "user1",
+			dbFile:   "invalid_entry_in_userByName",
+			wantErr:  true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -371,8 +430,15 @@ func TestUserByID(t *testing.T) {
 	}{
 		"Successfully get user by ID": {uid: 1111, dbFile: "multiple_users_and_groups"},
 
-		"Error if user does not exist":  {uid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {uid: 1111, dbFile: "invalid_entry_in_userByID", wantErr: true},
+		"Error if user does not exist": {
+			uid:         0,
+			dbFile:      "multiple_users_and_groups",
+			wantErrType: cache.NoDataFoundError{},
+		},
+		"Error if db has invalid entry": {uid: 1111,
+			dbFile:  "invalid_entry_in_userByID",
+			wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -439,10 +505,17 @@ func TestGroupByName(t *testing.T) {
 		wantErr     bool
 		wantErrType error
 	}{
-		"Successfully get group by name": {groupname: "group1", dbFile: "multiple_users_and_groups"},
+		"Successfully get group by name": {
+			groupname: "group1", dbFile: "multiple_users_and_groups"},
 
-		"Error if group does not exist": {groupname: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {groupname: "group1", dbFile: "invalid_entry_in_groupByName", wantErr: true},
+		"Error if group does not exist": {
+			groupname: "doesnotexist", dbFile: "multiple_users_and_groups",
+			wantErrType: cache.NoDataFoundError{},
+		},
+		"Error if db has invalid entry": {
+			groupname: "group1", dbFile: "invalid_entry_in_groupByName",
+			wantErr: true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -477,7 +550,11 @@ func TestGroupByID(t *testing.T) {
 	}{
 		"Successfully get group by ID": {gid: 11111, dbFile: "multiple_users_and_groups"},
 
-		"Error if group does not exist": {gid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if group does not exist": {
+			gid:         0,
+			dbFile:      "multiple_users_and_groups",
+			wantErrType: cache.NoDataFoundError{},
+		},
 		"Error if db has invalid entry": {gid: 11111, dbFile: "invalid_entry_in_groupByID", wantErr: true},
 	}
 	for name, tc := range tests {
@@ -547,8 +624,16 @@ func TestShadowByName(t *testing.T) {
 	}{
 		"Successfully get shadow by name": {username: "user1", dbFile: "multiple_users_and_groups"},
 
-		"Error if shadow does not exist": {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error if db has invalid entry":  {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
+		"Error if shadow does not exist": {
+			username:    "doesnotexist",
+			dbFile:      "multiple_users_and_groups",
+			wantErrType: cache.NoDataFoundError{},
+		},
+		"Error if db has invalid entry": {
+			username: "user1",
+			dbFile:   "invalid_entry_in_userByName",
+			wantErr:  true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

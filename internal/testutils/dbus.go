@@ -134,12 +134,13 @@ func StartSystemBusMock() (func(), error) {
 	}, nil
 }
 
-// GetSystemBusConnection returns a connection to the system bus with a safety check to avoid mistakenly connecting to the
-// actual system bus.
+// GetSystemBusConnection returns a connection to the system bus with a safety check
+// to avoid mistakenly connecting to the actual system bus.
 func GetSystemBusConnection(t *testing.T) (*dbus.Conn, error) {
 	t.Helper()
 	if !isRunning() {
-		return nil, errors.New("system bus mock is not running. If that's intended, manually connect to the system bus instead of using this function")
+		return nil, errors.New("system bus mock is not running. " +
+			"If that's intended, manually connect to the system bus instead of using this function")
 	}
 	conn, err := dbus.ConnectSystemBus()
 	if err != nil {

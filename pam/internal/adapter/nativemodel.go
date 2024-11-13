@@ -397,7 +397,8 @@ type choicePair struct {
 	label string
 }
 
-func (m nativeModel) promptForChoiceWithMessage(title string, message string, choices []choicePair, prompt string) (string, error) {
+func (m nativeModel) promptForChoiceWithMessage(title string, message string,
+	choices []choicePair, prompt string) (string, error) {
 	msg := fmt.Sprintf("== %s ==\n", title)
 	if message != "" {
 		msg += message + "\n"

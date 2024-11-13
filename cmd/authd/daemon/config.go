@@ -40,7 +40,8 @@ func initViperConfig(name string, cmd *cobra.Command, vip *viper.Viper) (err err
 		vip.AddConfigPath("/etc/authd/")
 		// Add the executable path to the config search path.
 		if binPath, err := os.Executable(); err != nil {
-			log.Warningf(context.Background(), "Failed to get current executable path, not adding it as a config dir: %v", err)
+			log.Warningf(context.Background(),
+				"Failed to get current executable path, not adding it as a config dir: %v", err)
 		} else {
 			vip.AddConfigPath(filepath.Dir(binPath))
 		}
@@ -49,7 +50,8 @@ func initViperConfig(name string, cmd *cobra.Command, vip *viper.Viper) (err err
 	if err := vip.ReadInConfig(); err != nil {
 		var e viper.ConfigFileNotFoundError
 		if errors.As(err, &e) {
-			log.Infof(context.Background(), "No configuration file: %v.\nWe will only use the defaults, env variables or flags.", e)
+			log.Infof(context.Background(),
+				"No configuration file: %v.\nWe will only use the defaults, env variables or flags.", e)
 		} else {
 			return fmt.Errorf("invalid configuration file: %w", err)
 		}

@@ -55,7 +55,8 @@ func (b *Broker) LayoutValidatorsString(sessionID string) string {
 		sort.Strings(vKeys)
 
 		for _, v := range vKeys {
-			layoutStr += fmt.Sprintf("\t\t%s: { required: %v, supportedValues: %v }\n", v, validator[v].required, validator[v].supportedValues)
+			layoutStr += fmt.Sprintf("\t\t%s: { required: %v, supportedValues: %v }\n",
+				v, validator[v].required, validator[v].supportedValues)
 		}
 
 		s += layoutStr

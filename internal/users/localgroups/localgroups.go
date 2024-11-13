@@ -112,7 +112,8 @@ func existingLocalGroups(user, groupPath string) (groups []string, err error) {
 
 // computeGroupOperation returns which local groups to add and which to remove comparing with the existing group state.
 // Only local groups (with no GID) are considered from GroupInfo.
-func computeGroupOperation(newGroupsInfo []string, currentLocalGroups []string) (groupsToAdd []string, groupsToRemove []string) {
+func computeGroupOperation(newGroupsInfo []string, currentLocalGroups []string) (
+	groupsToAdd []string, groupsToRemove []string) {
 	newGroups := make(map[string]struct{})
 	for _, grp := range newGroupsInfo {
 		newGroups[grp] = struct{}{}

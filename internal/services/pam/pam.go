@@ -31,7 +31,8 @@ type Service struct {
 }
 
 // NewService returns a new PAM GRPC service.
-func NewService(ctx context.Context, userManager *users.Manager, brokerManager *brokers.Manager, permissionManager *permissions.Manager) Service {
+func NewService(ctx context.Context, userManager *users.Manager,
+	brokerManager *brokers.Manager, permissionManager *permissions.Manager) Service {
 	log.Debug(ctx, "Building new GRPC PAM service")
 
 	return Service{
@@ -72,7 +73,8 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 		// autoselection silently in authd.
 		// User not in cache, if there is only the local broker available, return this one without saving it.
 		if len(s.brokerManager.AvailableBrokers()) == 1 {
-			log.Debugf(ctx, "User %q is not handled by authd and only local broker: select it.", req.GetUsername())
+			log.Debugf(ctx, "User %q is not handled by authd and only local broker: select it.",
+				req.GetUsername())
 			return &authd.GPBResponse{PreviousBroker: brokers.LocalBrokerName}, nil
 		}
 
@@ -98,7 +100,8 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 
 	// Updates manager memory to stop needing to query the database for the broker.
 	if err = s.brokerManager.SetDefaultBrokerForUser(brokerID, req.GetUsername()); err != nil {
-		log.Warningf(ctx, "Last broker used by %q is not available, letting the user selecting one: %v", req.GetUsername(), err)
+		log.Warningf(ctx, "Last broker used by %q is not available, letting the user selecting one: %v",
+			req.GetUsername(), err)
 		return &authd.GPBResponse{}, nil
 	}
 
@@ -147,8 +150,10 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 	}, err
 }
 
-// GetAuthenticationModes fetches a list of authentication modes supported by the broker depending on the session information.
-func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMRequest) (resp *authd.GAMResponse, err error) {
+// GetAuthenticationModes fetches a list of authentication modes supported by the broker
+// depending on the session information.
+func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMRequest) (
+	resp *authd.GAMResponse, err error) {
 	defer decorate.OnError(&err, "could not get authentication modes")
 
 	sessionID := req.GetSessionId()
@@ -189,7 +194,8 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMReque
 }
 
 // SelectAuthenticationMode set given authentication mode as selected for this sessionID to the broker.
-func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMRequest) (resp *authd.SAMResponse, err error) {
+func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMRequest) (
+	resp *authd.SAMResponse, err error) {
 	defer decorate.OnError(&err, "can't select authentication mode")
 
 	sessionID := req.GetSessionId()

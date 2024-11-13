@@ -57,7 +57,8 @@ func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers [
 
 		entries, err := os.ReadDir(brokersConfPath)
 		if errors.Is(err, fs.ErrNotExist) {
-			log.Warningf(ctx, "Broker configuration directory %q does not exist, only local broker will be available", brokersConfPath)
+			log.Warningf(ctx, "Broker configuration directory %q does not exist, only local broker will be available",
+				brokersConfPath)
 		} else if err != nil {
 			return m, fmt.Errorf("could not read brokers directory to detect brokers: %v", err)
 		}
@@ -67,7 +68,8 @@ func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers [
 				continue
 			}
 			if !strings.HasSuffix(e.Name(), ".conf") {
-				log.Infof(ctx, "Skipping file %q in brokers configuration directory, only .conf files are supported", e.Name())
+				log.Infof(ctx, "Skipping file %q in brokers configuration directory, only .conf files are supported",
+					e.Name())
 				continue
 			}
 			configuredBrokers = append(configuredBrokers, e.Name())
@@ -152,7 +154,8 @@ func (m *Manager) BrokerFromSessionID(id string) (broker *Broker, err error) {
 }
 
 // NewSession create a new session for the broker and store the sesssionID on the manager.
-func (m *Manager) NewSession(brokerID, username, lang, mode string) (sessionID string, encryptionKey string, err error) {
+func (m *Manager) NewSession(brokerID, username, lang, mode string) (
+	sessionID string, encryptionKey string, err error) {
 	broker, err := m.brokerFromID(brokerID)
 	if err != nil {
 		return "", "", fmt.Errorf("invalid broker: %v", err)

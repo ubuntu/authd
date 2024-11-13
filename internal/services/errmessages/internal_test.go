@@ -35,7 +35,8 @@ func TestRedactErrorInterceptor(t *testing.T) {
 
 			_, err := RedactErrorInterceptor(context.TODO(), testRequest{tc.inputError}, nil, testHandler)
 			require.Error(t, err, "RedactErrorInterceptor should return an error")
-			require.Equal(t, tc.wantMessage, err.Error(), "RedactErrorInterceptor returned unexpected error message")
+			require.Equal(t, tc.wantMessage, err.Error(),
+				"RedactErrorInterceptor returned unexpected error message")
 		})
 	}
 }
@@ -80,7 +81,8 @@ func TestFormatErrorMessage(t *testing.T) {
 
 			err := FormatErrorMessage(context.TODO(), "", testRequest{tc.inputError}, nil, nil, testInvoker)
 			require.Error(t, err, "FormatErrorMessage should return an error")
-			require.Equal(t, tc.wantMessage, err.Error(), "FormatErrorMessage returned unexpected error message")
+			require.Equal(t, tc.wantMessage, err.Error(),
+				"FormatErrorMessage returned unexpected error message")
 		})
 	}
 }
@@ -94,7 +96,8 @@ func testHandler(ctx context.Context, req any) (any, error) {
 	return nil, req.(testRequest).err
 }
 
-func testInvoker(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, opts ...grpc.CallOption) error {
+func testInvoker(ctx context.Context, method string, req, reply any,
+	cc *grpc.ClientConn, opts ...grpc.CallOption) error {
 	//nolint:forcetypeassert // This is only used in the tests and we know the type.
 	return req.(testRequest).err
 }

@@ -91,7 +91,8 @@ func New(ctx context.Context, registerGRPCService GRPCServiceRegisterer, args ..
 		}
 
 		if len(listeners) != 1 {
-			return nil, fmt.Errorf( /*i18n.G(*/ "unexpected number of systemd socket activation (%d != 1)" /*)*/, len(listeners))
+			return nil, fmt.Errorf( /*i18n.G(*/
+				"unexpected number of systemd socket activation (%d != 1)" /*)*/, len(listeners))
 		}
 		lis = listeners[0]
 	}

@@ -75,7 +75,8 @@ dbus_object = %s
 	return conn, nil
 }
 
-// NewSession is the method through which the broker and the daemon will communicate once dbusInterface.NewSession is called.
+// NewSession is the method through which the broker and the daemon will communicate once
+// dbusInterface.NewSession is called.
 func (b *Bus) NewSession(username, lang, mode string) (sessionID, encryptionKey string, dbusErr *dbus.Error) {
 	sessionID, encryptionKey, err := b.broker.NewSession(context.Background(), username, lang, mode)
 	if err != nil {
@@ -84,8 +85,10 @@ func (b *Bus) NewSession(username, lang, mode string) (sessionID, encryptionKey 
 	return sessionID, encryptionKey, nil
 }
 
-// GetAuthenticationModes is the method through which the broker and the daemon will communicate once dbusInterface.GetAuthenticationModes is called.
-func (b *Bus) GetAuthenticationModes(sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, dbusErr *dbus.Error) {
+// GetAuthenticationModes is the method through which the broker and the daemon will communicate once
+// dbusInterface.GetAuthenticationModes is called.
+func (b *Bus) GetAuthenticationModes(sessionID string, supportedUILayouts []map[string]string) (
+	authenticationModes []map[string]string, dbusErr *dbus.Error) {
 	authenticationModes, err := b.broker.GetAuthenticationModes(context.Background(), sessionID, supportedUILayouts)
 	if err != nil {
 		return nil, dbus.MakeFailedError(err)
@@ -93,8 +96,10 @@ func (b *Bus) GetAuthenticationModes(sessionID string, supportedUILayouts []map[
 	return authenticationModes, nil
 }
 
-// SelectAuthenticationMode is the method through which the broker and the daemon will communicate once dbusInterface.SelectAuthenticationMode is called.
-func (b *Bus) SelectAuthenticationMode(sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, dbusErr *dbus.Error) {
+// SelectAuthenticationMode is the method through which the broker and the daemon will communicate once
+// dbusInterface.SelectAuthenticationMode is called.
+func (b *Bus) SelectAuthenticationMode(sessionID, authenticationModeName string) (
+	uiLayoutInfo map[string]string, dbusErr *dbus.Error) {
 	uiLayoutInfo, err := b.broker.SelectAuthenticationMode(context.Background(), sessionID, authenticationModeName)
 	if err != nil {
 		return nil, dbus.MakeFailedError(err)
@@ -102,7 +107,8 @@ func (b *Bus) SelectAuthenticationMode(sessionID, authenticationModeName string)
 	return uiLayoutInfo, nil
 }
 
-// IsAuthenticated is the method through which the broker and the daemon will communicate once dbusInterface.IsAuthenticated is called.
+// IsAuthenticated is the method through which the broker and the daemon will communicate once
+// dbusInterface.IsAuthenticated is called.
 func (b *Bus) IsAuthenticated(sessionID, authenticationData string) (access, data string, dbusErr *dbus.Error) {
 	access, data, err := b.broker.IsAuthenticated(context.Background(), sessionID, authenticationData)
 	if err != nil {
@@ -111,7 +117,8 @@ func (b *Bus) IsAuthenticated(sessionID, authenticationData string) (access, dat
 	return access, data, nil
 }
 
-// EndSession is the method through which the broker and the daemon will communicate once dbusInterface.EndSession is called.
+// EndSession is the method through which the broker and the daemon will communicate once
+// dbusInterface.EndSession is called.
 func (b *Bus) EndSession(sessionID string) (dbusErr *dbus.Error) {
 	err := b.broker.EndSession(context.Background(), sessionID)
 	if err != nil {
@@ -120,13 +127,15 @@ func (b *Bus) EndSession(sessionID string) (dbusErr *dbus.Error) {
 	return nil
 }
 
-// CancelIsAuthenticated is the method through which the broker and the daemon will communicate once dbusInterface.CancelIsAuthenticated is called.
+// CancelIsAuthenticated is the method through which the broker and the daemon will communicate once
+// dbusInterface.CancelIsAuthenticated is called.
 func (b *Bus) CancelIsAuthenticated(sessionID string) (dbusErr *dbus.Error) {
 	b.broker.CancelIsAuthenticated(context.Background(), sessionID)
 	return nil
 }
 
-// UserPreCheck is the method through which the broker and the daemon will communicate once dbusInterface.UserPreCheck is called.
+// UserPreCheck is the method through which the broker and the daemon will communicate once
+// dbusInterface.UserPreCheck is called.
 func (b *Bus) UserPreCheck(username string) (userinfo string, dbusErr *dbus.Error) {
 	userinfo, err := b.broker.UserPreCheck(context.Background(), username)
 	if err != nil {

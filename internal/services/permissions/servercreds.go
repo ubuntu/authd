@@ -18,7 +18,8 @@ func WithUnixPeerCreds() grpc.ServerOption {
 	return grpc.Creds(serverPeerCreds{})
 }
 
-// serverPeerCreds encapsulates a TransportCredentials which extracts uid and pid of caller via Unix Socket SO_PEERCRED.
+// serverPeerCreds encapsulates a TransportCredentials which extracts the
+// uid and the pid of caller via Unix Socket SO_PEERCRED.
 type serverPeerCreds struct{}
 
 func (serverPeerCreds) ServerHandshake(conn net.Conn) (n net.Conn, c credentials.AuthInfo, err error) {
@@ -59,7 +60,8 @@ func (serverPeerCreds) ServerHandshake(conn net.Conn) (n net.Conn, c credentials
 
 	return conn, peerCredsInfo{uid: cred.Uid, pid: cred.Pid}, nil
 }
-func (serverPeerCreds) ClientHandshake(_ context.Context, _ string, conn net.Conn) (net.Conn, credentials.AuthInfo, error) {
+func (serverPeerCreds) ClientHandshake(_ context.Context, _ string, conn net.Conn) (
+	net.Conn, credentials.AuthInfo, error) {
 	return conn, nil, nil
 }
 func (serverPeerCreds) Info() credentials.ProtocolInfo          { return credentials.ProtocolInfo{} }

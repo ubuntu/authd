@@ -59,7 +59,8 @@ func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 	m := map[string]any{
 		vhsWidth:  800,
 		vhsHeight: 500,
-		// TODO: Ideally, we should use Ubuntu Mono. However, the github runner is still on Jammy, which does not have it.
+		// TODO: Ideally, we should use Ubuntu Mono. However, the github runner is still on Jammy,
+		// which does not have it.
 		// We should update this to use Ubuntu Mono once the runner is updated.
 		vhsFontFamily: "Monospace",
 		vhsFontSize:   13,

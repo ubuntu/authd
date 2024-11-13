@@ -232,7 +232,8 @@ func NewDummyClient(privateKey *rsa.PrivateKey, args ...DummyClientOptions) *Dum
 }
 
 // AvailableBrokers simulates AvailableBrokers using the provided parameters.
-func (dc *DummyClient) AvailableBrokers(ctx context.Context, in *authd.Empty, opts ...grpc.CallOption) (*authd.ABResponse, error) {
+func (dc *DummyClient) AvailableBrokers(ctx context.Context, in *authd.Empty, opts ...grpc.CallOption) (
+	*authd.ABResponse, error) {
 	log.Debugf(ctx, "AvailableBrokers Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -247,7 +248,8 @@ func (dc *DummyClient) availableBrokers() (*authd.ABResponse, error) {
 }
 
 // GetPreviousBroker simulates GetPreviousBroker using the provided parameters.
-func (dc *DummyClient) GetPreviousBroker(ctx context.Context, in *authd.GPBRequest, opts ...grpc.CallOption) (*authd.GPBResponse, error) {
+func (dc *DummyClient) GetPreviousBroker(ctx context.Context, in *authd.GPBRequest, opts ...grpc.CallOption) (
+	*authd.GPBResponse, error) {
 	log.Debugf(ctx, "GetPreviousBroker Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -268,7 +270,8 @@ func (dc *DummyClient) GetPreviousBroker(ctx context.Context, in *authd.GPBReque
 }
 
 // SelectBroker simulates SelectBroker using the provided parameters.
-func (dc *DummyClient) SelectBroker(ctx context.Context, in *authd.SBRequest, opts ...grpc.CallOption) (*authd.SBResponse, error) {
+func (dc *DummyClient) SelectBroker(ctx context.Context, in *authd.SBRequest, opts ...grpc.CallOption) (
+	*authd.SBResponse, error) {
 	log.Debugf(ctx, "SelectBroker Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -326,7 +329,8 @@ func (dc *DummyClient) SelectBroker(ctx context.Context, in *authd.SBRequest, op
 }
 
 // GetAuthenticationModes simulates GetAuthenticationModes using the provided parameters.
-func (dc *DummyClient) GetAuthenticationModes(ctx context.Context, in *authd.GAMRequest, opts ...grpc.CallOption) (*authd.GAMResponse, error) {
+func (dc *DummyClient) GetAuthenticationModes(ctx context.Context, in *authd.GAMRequest, opts ...grpc.CallOption) (
+	*authd.GAMResponse, error) {
 	log.Debugf(ctx, "GetAuthenticationModes Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -358,7 +362,8 @@ func (dc *DummyClient) GetAuthenticationModes(ctx context.Context, in *authd.GAM
 }
 
 // SelectAuthenticationMode simulates SelectAuthenticationMode using the provided parameters.
-func (dc *DummyClient) SelectAuthenticationMode(ctx context.Context, in *authd.SAMRequest, opts ...grpc.CallOption) (*authd.SAMResponse, error) {
+func (dc *DummyClient) SelectAuthenticationMode(ctx context.Context, in *authd.SAMRequest, opts ...grpc.CallOption) (
+	*authd.SAMResponse, error) {
 	log.Debugf(ctx, "SelectAuthenticationMode Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -390,7 +395,8 @@ func (dc *DummyClient) SelectAuthenticationMode(ctx context.Context, in *authd.S
 }
 
 // IsAuthenticated simulates IsAuthenticated using the provided parameters.
-func (dc *DummyClient) IsAuthenticated(ctx context.Context, in *authd.IARequest, opts ...grpc.CallOption) (*authd.IAResponse, error) {
+func (dc *DummyClient) IsAuthenticated(ctx context.Context, in *authd.IARequest, opts ...grpc.CallOption) (
+	*authd.IAResponse, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	log.Debugf(ctx, "IsAuthenticated Called: %#v", in)
@@ -488,7 +494,8 @@ func (dc *DummyClient) handleChallenge(challenge string, msg string) (*authd.IAR
 }
 
 // EndSession simulates EndSession using the provided parameters.
-func (dc *DummyClient) EndSession(ctx context.Context, in *authd.ESRequest, opts ...grpc.CallOption) (*authd.Empty, error) {
+func (dc *DummyClient) EndSession(ctx context.Context, in *authd.ESRequest, opts ...grpc.CallOption) (
+	*authd.Empty, error) {
 	log.Debugf(ctx, "EndSession Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -510,7 +517,8 @@ func (dc *DummyClient) EndSession(ctx context.Context, in *authd.ESRequest, opts
 }
 
 // SetDefaultBrokerForUser simulates SetDefaultBrokerForUser using the provided parameters.
-func (dc *DummyClient) SetDefaultBrokerForUser(ctx context.Context, in *authd.SDBFURequest, opts ...grpc.CallOption) (*authd.Empty, error) {
+func (dc *DummyClient) SetDefaultBrokerForUser(ctx context.Context, in *authd.SDBFURequest, opts ...grpc.CallOption) (
+	*authd.Empty, error) {
 	log.Debugf(ctx, "SetDefaultBrokerForUser Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()

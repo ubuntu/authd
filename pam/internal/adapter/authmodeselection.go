@@ -24,20 +24,24 @@ type authModeSelectionModel struct {
 	currentAuthModeSelectedID string
 }
 
-// supportedUILayoutsReceived is the internal event signalling that the current supported ui layout in the context have been received.
+// supportedUILayoutsReceived is the internal event signalling that the current supported
+// UI layout in the context have been received.
 type supportedUILayoutsReceived struct {
 	layouts []*authd.UILayout
 }
 
-// supportedUILayoutsSet is the event signalling that the current supported ui layout in the context have been set.
+// supportedUILayoutsSet is the event signalling that the current supported ui layout in the
+// context have been set.
 type supportedUILayoutsSet struct{}
 
-// authModesReceived is the internal event signalling that the supported authentication modes have been received.
+// authModesReceived is the internal event signalling that the supported authentication modes
+// have been received.
 type authModesReceived struct {
 	authModes []*authd.GAMResponse_AuthenticationMode
 }
 
-// authModeSelected is the internal event signalling that the an authentication mode has been selected.
+// authModeSelected is the internal event signalling that the an authentication mode
+// has been selected.
 type authModeSelected struct {
 	id string
 }
@@ -162,7 +166,9 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 		log.Debugf(context.TODO(), "%#v", msg)
 		// Ensure auth mode id is valid
 		if !validAuthModeID(msg.id, m.availableAuthModes) {
-			log.Infof(context.TODO(), "authentication mode %q is not part of currently available authentication mode", msg.id)
+			log.Infof(context.TODO(),
+				"authentication mode %q is not part of currently available authentication mode",
+				msg.id)
 			return m, nil
 		}
 		m.currentAuthModeSelectedID = msg.id

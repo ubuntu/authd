@@ -23,32 +23,74 @@ func TestUpdateLocalGroups(t *testing.T) {
 		wantErr bool
 	}{
 		// First insertion cases
-		"Insert new user in existing files with no users in our group":             {groupFilePath: "no_users_in_our_groups.group"},
-		"Insert new user when no users in any group":                               {groupFilePath: "no_users.group"},
-		"Insert new user in existing files with other users in our group":          {groupFilePath: "users_in_our_groups.group"},
-		"Insert new user in existing files with multiple other users in our group": {groupFilePath: "multiple_users_in_our_groups.group"},
+		"Insert new user in existing files with no users in our group": {
+			groupFilePath: "no_users_in_our_groups.group",
+		},
+		"Insert new user when no users in any group": {
+			groupFilePath: "no_users.group",
+		},
+		"Insert new user in existing files with other users in our group": {
+			groupFilePath: "users_in_our_groups.group",
+		},
+		"Insert new user in existing files with multiple other users in our group": {
+			groupFilePath: "multiple_users_in_our_groups.group",
+		},
 
 		// Users in existing groups
-		"No-Op for user is already present in both local groups":                  {groupFilePath: "user_in_both_groups.group"},
-		"Insert user in the only local group when not present":                    {groupFilePath: "user_in_one_group.group"},
-		"Insert user in the only local group when not present even with multiple": {groupFilePath: "user_and_others_in_one_groups.group"},
-		"Remove user from an additional group, being alone":                       {groupFilePath: "user_in_second_local_group.group"},
-		"Remove user from an additional group, multiple users in group":           {groupFilePath: "user_in_second_local_group_with_others.group"},
-		"Add and remove user from multiple groups, one remaining":                 {groupFilePath: "user_in_many_groups.group"},
+		"No-Op for user is already present in both local groups": {
+			groupFilePath: "user_in_both_groups.group",
+		},
+		"Insert user in the only local group when not present": {
+			groupFilePath: "user_in_one_group.group",
+		},
+		"Insert user in the only local group when not present even with multiple": {
+			groupFilePath: "user_and_others_in_one_groups.group",
+		},
+		"Remove user from an additional group, being alone": {
+			groupFilePath: "user_in_second_local_group.group",
+		},
+		"Remove user from an additional group, multiple users in group": {
+			groupFilePath: "user_in_second_local_group_with_others.group",
+		},
+		"Add and remove user from multiple groups, one remaining": {
+			groupFilePath: "user_in_many_groups.group",
+		},
 
 		// Flexible accepted cases
-		"Missing group is ignored":              {groupFilePath: "missing_group.group"},
-		"Group file with empty line is ignored": {groupFilePath: "empty_line.group"},
+		"Missing group is ignored": {
+			groupFilePath: "missing_group.group",
+		},
+		"Group file with empty line is ignored": {
+			groupFilePath: "empty_line.group",
+		},
 
 		// No group
-		"No-Op for user with no groups and was in none": {groups: []string{}, groupFilePath: "no_users_in_our_groups.group"},
-		"Remove user with no groups from existing ones": {groups: []string{}, groupFilePath: "user_in_both_groups.group"},
+		"No-Op for user with no groups and was in none": {
+			groups: []string{}, groupFilePath: "no_users_in_our_groups.group",
+		},
+		"Remove user with no groups from existing ones": {
+			groups: []string{}, groupFilePath: "user_in_both_groups.group",
+		},
 
 		// Error cases
-		"Error on missing groups file":                {groupFilePath: "does_not_exists.group", wantErr: true},
-		"Error when groups file is malformed":         {groupFilePath: "malformed_file.group", wantErr: true},
-		"Error on any unignored add gpasswd error":    {username: "gpasswdfail", groupFilePath: "no_users.group", wantErr: true},
-		"Error on any unignored delete gpasswd error": {username: "gpasswdfail", groupFilePath: "gpasswdfail_in_deleted_group.group", wantErr: true},
+		"Error on missing groups file": {
+			groupFilePath: "does_not_exists.group",
+			wantErr:       true,
+		},
+		"Error when groups file is malformed": {
+			groupFilePath: "malformed_file.group",
+			wantErr:       true,
+		},
+		"Error on any unignored add gpasswd error": {
+			username:      "gpasswdfail",
+			groupFilePath: "no_users.group",
+			wantErr:       true,
+		},
+		"Error on any unignored delete gpasswd error": {
+			username:      "gpasswdfail",
+			groupFilePath: "gpasswdfail_in_deleted_group.group",
+			wantErr:       true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -73,7 +115,9 @@ func TestUpdateLocalGroups(t *testing.T) {
 				groupFilePath, destCmdsFile,
 			}
 
-			err := localgroups.Update(tc.username, tc.groups, localgroups.WithGroupPath(groupFilePath), localgroups.WithGpasswdCmd(cmdArgs))
+			err := localgroups.Update(tc.username, tc.groups,
+				localgroups.WithGroupPath(groupFilePath),
+				localgroups.WithGpasswdCmd(cmdArgs))
 			if tc.wantErr {
 				require.Error(t, err, "UpdateLocalGroups should have failed")
 			} else {
@@ -101,10 +145,23 @@ func TestCleanLocalGroups(t *testing.T) {
 		"Cleans up multiple users from group":           {groupFilePath: "inactive_users_in_one_group.group"},
 		"Cleans up multiple users from multiple groups": {groupFilePath: "inactive_users_in_many_groups.group"},
 
-		"Error if there's no active user":             {groupFilePath: "user_in_many_groups.group", getUsersReturn: []string{}, wantErr: true},
-		"Error on missing groups file":                {groupFilePath: "does_not_exists.group", wantErr: true},
-		"Error when groups file is malformed":         {groupFilePath: "malformed_file.group", wantErr: true},
-		"Error on any unignored delete gpasswd error": {groupFilePath: "gpasswdfail_in_deleted_group.group", wantErr: true},
+		"Error if there's no active user": {
+			groupFilePath:  "user_in_many_groups.group",
+			getUsersReturn: []string{},
+			wantErr:        true,
+		},
+		"Error on missing groups file": {
+			groupFilePath: "does_not_exists.group",
+			wantErr:       true,
+		},
+		"Error when groups file is malformed": {
+			groupFilePath: "malformed_file.group",
+			wantErr:       true,
+		},
+		"Error on any unignored delete gpasswd error": {
+			groupFilePath: "gpasswdfail_in_deleted_group.group",
+			wantErr:       true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

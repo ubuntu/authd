@@ -133,7 +133,8 @@ func (b *BrokerBusMock) NewSession(username, lang, mode string) (sessionID, encr
 }
 
 // GetAuthenticationModes returns default values to be used in tests or an error if requested.
-func (b *BrokerBusMock) GetAuthenticationModes(sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, dbusErr *dbus.Error) {
+func (b *BrokerBusMock) GetAuthenticationModes(sessionID string, supportedUILayouts []map[string]string) (
+	authenticationModes []map[string]string, dbusErr *dbus.Error) {
 	sessionID = parseSessionID(sessionID)
 	switch sessionID {
 	case "GAM_invalid":
@@ -157,7 +158,8 @@ func (b *BrokerBusMock) GetAuthenticationModes(sessionID string, supportedUILayo
 }
 
 // SelectAuthenticationMode returns default values to be used in tests or an error if requested.
-func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, dbusErr *dbus.Error) {
+func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeName string) (
+	uiLayoutInfo map[string]string, dbusErr *dbus.Error) {
 	sessionID = parseSessionID(sessionID)
 	switch sessionID {
 	case "SAM_success_required_entry":
@@ -210,20 +212,24 @@ func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeNa
 }
 
 // IsAuthenticated returns default values to be used in tests or an error if requested.
-func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (access, data string, dbusErr *dbus.Error) {
+func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (
+	access, data string, dbusErr *dbus.Error) {
 	// The IsAuthenticated needs to function a bit differently to still allow tests to be executed in parallel.
 	// We have to use both the prefixed sessionID and the parsed one in order to differentiate between test cases.
 	parsedID := parseSessionID(sessionID)
 
 	if parsedID == "IA_error" {
-		return "", "", dbus.MakeFailedError(fmt.Errorf("broker %q: IsAuthenticated errored out", b.name))
+		return "", "", dbus.MakeFailedError(
+			fmt.Errorf("broker %q: IsAuthenticated errored out", b.name))
 	}
 
 	// Handles the context that will be assigned for the IsAuthenticated handler
 	b.isAuthenticatedCallsMu.RLock()
 	if _, exists := b.isAuthenticatedCalls[sessionID]; exists {
 		b.isAuthenticatedCallsMu.RUnlock()
-		return "", "", dbus.MakeFailedError(fmt.Errorf("broker %q: IsAuthenticated already running for session %q", b.name, sessionID))
+		return "", "", dbus.MakeFailedError(
+			fmt.Errorf("broker %q: IsAuthenticated already running for session %q",
+				b.name, sessionID))
 	}
 	b.isAuthenticatedCallsMu.RUnlock()
 
@@ -334,8 +340,9 @@ func (b *BrokerBusMock) UserPreCheck(username string) (userinfo string, dbusErr 
 
 // parseSessionID is wrapper around the sessionID to remove some values appended during the tests.
 //
-// The sessionID can have multiple values appended to differentiate between subtests and avoid concurrency conflicts,
-// and only the last value (i.e. "..._separator_ID-session_id") will be considered.
+// The sessionID can have multiple values appended to differentiate between subtests and
+// avoid concurrency conflicts, and only the last value (i.e. "..._separator_ID-session_id")
+// will be considered.
 func parseSessionID(sessionID string) string {
 	cut := strings.Split(sessionID, IDSeparator)
 	if len(cut) == 0 {

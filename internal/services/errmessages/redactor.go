@@ -14,8 +14,10 @@ import (
 
 // RedactErrorInterceptor redacts some of the attached errors before sending it to the client.
 //
-// It unwraps the error up to the first ErrToDisplay and sends it to the client. If none is found, it sends the original error.
-func RedactErrorInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+// It unwraps the error up to the first ErrToDisplay and sends it to the client.
+// If none is found, it sends the original error.
+func RedactErrorInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (
+	any, error) {
 	m, err := handler(ctx, req)
 	if err != nil {
 		log.Warning(context.TODO(), err.Error())
@@ -31,7 +33,8 @@ func RedactErrorInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInf
 // FormatErrorMessage formats the error message received by the client to avoid printing useless information.
 //
 // It converts the gRPC error to a more human-readable error with a better message.
-func FormatErrorMessage(ctx context.Context, method string, req, reply any, cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
+func FormatErrorMessage(ctx context.Context, method string, req, reply any,
+	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 	err := invoker(ctx, method, req, reply, cc, opts...)
 	if err == nil {
 		return nil

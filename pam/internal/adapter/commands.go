@@ -115,7 +115,8 @@ func endSession(client authd.PAMClient, currentSession *sessionInfo) tea.Cmd {
 			SessionId: currentSession.sessionID,
 		})
 		if err != nil {
-			log.Infof(context.Background(), "Could not end session %q. Considering already done", currentSession.sessionID)
+			log.Infof(context.Background(), "Could not end session %q. Considering already done",
+				currentSession.sessionID)
 			return nil
 		}
 		return SessionEnded{}

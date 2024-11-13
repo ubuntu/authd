@@ -37,10 +37,14 @@ const (
 var AuthReplies = []string{AuthGranted, AuthDenied, AuthCancelled, AuthRetry, AuthNext}
 
 type brokerer interface {
-	NewSession(ctx context.Context, username, lang, mode string) (sessionID, encryptionKey string, err error)
-	GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error)
-	SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error)
-	IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (access, data string, err error)
+	NewSession(ctx context.Context, username, lang, mode string) (
+		sessionID, encryptionKey string, err error)
+	GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (
+		authenticationModes []map[string]string, err error)
+	SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (
+		uiLayoutInfo map[string]string, err error)
+	IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (
+		access, data string, err error)
 	EndSession(ctx context.Context, sessionID string) (err error)
 	CancelIsAuthenticated(ctx context.Context, sessionID string)
 
@@ -101,7 +105,8 @@ func newBroker(ctx context.Context, configFile string, bus *dbus.Conn) (b Broker
 }
 
 // newSession calls the broker corresponding method, expanding sessionID with the broker ID prefix.
-func (b Broker) newSession(ctx context.Context, username, lang, mode string) (sessionID, encryptionKey string, err error) {
+func (b Broker) newSession(ctx context.Context, username, lang, mode string) (
+	sessionID, encryptionKey string, err error) {
 	sessionID, encryptionKey, err = b.brokerer.NewSession(ctx, username, lang, mode)
 	if err != nil {
 		return "", "", err
@@ -119,7 +124,8 @@ func (b Broker) newSession(ctx context.Context, username, lang, mode string) (se
 }
 
 // GetAuthenticationModes calls the broker corresponding method, stripping broker ID prefix from sessionID.
-func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
+func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string,
+	supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
 	sessionID = b.parseSessionID(sessionID)
 
 	b.layoutValidatorsMu.Lock()
@@ -143,7 +149,8 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 }
 
 // SelectAuthenticationMode calls the broker corresponding method, stripping broker ID prefix from sessionID.
-func (b Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
+func (b Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (
+	uiLayoutInfo map[string]string, err error) {
 	sessionID = b.parseSessionID(sessionID)
 	uiLayoutInfo, err = b.brokerer.SelectAuthenticationMode(ctx, sessionID, authenticationModeName)
 	if err != nil {
@@ -153,7 +160,8 @@ func (b Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authent
 }
 
 // IsAuthenticated calls the broker corresponding method, stripping broker ID prefix from sessionID.
-func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (access string, data string, err error) {
+func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (
+	access string, data string, err error) {
 	sessionID = b.parseSessionID(sessionID)
 
 	// monitor ctx in goroutine to call cancel
@@ -254,11 +262,13 @@ func (b Broker) UserPreCheck(ctx context.Context, username string) (userinfo str
 //	        }
 //	    }
 //	}
-func generateValidators(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) map[string]layoutValidator {
+func generateValidators(ctx context.Context, sessionID string,
+	supportedUILayouts []map[string]string) map[string]layoutValidator {
 	validators := make(map[string]layoutValidator)
 	for _, layout := range supportedUILayouts {
 		if _, exists := layout["type"]; !exists {
-			log.Errorf(ctx, "layout %v provided with missing type for session %s, it will be ignored", layout, sessionID)
+			log.Errorf(ctx, "layout %v provided with missing type for session %s, it will be ignored",
+				layout, sessionID)
 			continue
 		}
 
@@ -326,7 +336,8 @@ func (b Broker) validateUILayout(sessionID string, layout map[string]string) (r 
 			continue
 		}
 		if validator.supportedValues != nil && !slices.Contains(validator.supportedValues, value) {
-			return nil, fmt.Errorf("field %q has invalid value %q, expected one of %s", key, value, strings.Join(validator.supportedValues, ","))
+			return nil, fmt.Errorf("field %q has invalid value %q, expected one of %s",
+				key, value, strings.Join(validator.supportedValues, ","))
 		}
 	}
 	return layout, nil
@@ -389,7 +400,8 @@ func validateUserInfo(uInfo userInfo) (err error) {
 func unmarshalAndGetKey(data, key string) (json.RawMessage, error) {
 	var returnedData map[string]json.RawMessage
 	if err := json.Unmarshal([]byte(data), &returnedData); err != nil {
-		return nil, fmt.Errorf("response returned by the broker is not a valid json: %v\nBroker returned: %v", err, data)
+		return nil, fmt.Errorf("response returned by the broker is not a valid json: %v\nBroker returned: %v",
+			err, data)
 	}
 
 	rawMsg, ok := returnedData[key]

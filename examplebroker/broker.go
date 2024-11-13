@@ -145,7 +145,8 @@ func New(name string) (b *Broker, fullName, brandIcon string) {
 }
 
 // NewSession creates a new session for the specified user.
-func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (sessionID, encryptionKey string, err error) {
+func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (
+	sessionID, encryptionKey string, err error) {
 	sessionID = uuid.New().String()
 	info := sessionInfo{
 		username:        username,
@@ -214,8 +215,10 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 	return sessionID, base64.StdEncoding.EncodeToString(pubASN1), nil
 }
 
-// GetAuthenticationModes returns the list of supported authentication modes for the selected broker depending on session info.
-func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
+// GetAuthenticationModes returns the list of supported authentication modes
+// for the selected broker depending on session info.
+func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (
+	authenticationModes []map[string]string, err error) {
 	sessionInfo, err := b.sessionInfo(sessionID)
 	if err != nil {
 		return nil, err
@@ -313,8 +316,9 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 						"selection_label": fmt.Sprintf("Send URL to %s@gmail.com", sessionInfo.username),
 						"email":           fmt.Sprintf("%s@gmail.com", sessionInfo.username),
 						"ui": mapToJSON(map[string]string{
-							"type":  "form",
-							"label": fmt.Sprintf("Click on the link received at %s@gmail.com or enter the code:", sessionInfo.username),
+							"type": "form",
+							"label": fmt.Sprintf("Click on the link received at %s@gmail.com or enter the code:",
+								sessionInfo.username),
 							"entry": "chars",
 							"wait":  "true",
 						}),
@@ -470,7 +474,8 @@ func qrcodeData(sessionInfo *sessionInfo) (content string, code string) {
 }
 
 // SelectAuthenticationMode returns the UI layout information for the selected authentication mode.
-func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
+func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (
+	uiLayoutInfo map[string]string, err error) {
 	// Ensure session ID is an active one.
 	sessionInfo, err := b.sessionInfo(sessionID)
 	if err != nil {
@@ -520,7 +525,8 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 }
 
 // IsAuthenticated evaluates the provided authenticationData and returns the authentication status for the user.
-func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (access, data string, err error) {
+func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (
+	access, data string, err error) {
 	sessionInfo, err := b.sessionInfo(sessionID)
 	if err != nil {
 		return "", "", err
@@ -581,7 +587,8 @@ func (b *Broker) sleepDuration(in time.Duration) time.Duration {
 	return time.Duration(math.Round(float64(in) * b.sleepMultiplier))
 }
 
-func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (access, data string) {
+func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (
+	access, data string) {
 	// Decrypt challenge if present.
 	challenge, err := decodeRawChallenge(b.privateKey, authData["challenge"])
 	if err != nil {
@@ -604,7 +611,8 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		expectedChallenge := user.Password
 
 		if challenge != expectedChallenge {
-			return AuthRetry, fmt.Sprintf(`{"message": "invalid password '%s', should be '%s'"}`, challenge, expectedChallenge)
+			return AuthRetry, fmt.Sprintf(`{"message": "invalid password '%s', should be '%s'"}`,
+				challenge, expectedChallenge)
 		}
 
 	case "pincode":
@@ -657,7 +665,8 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 
 	case "qrcodewithtypo", "qrcodeandcodewithtypo", "codewithtypo":
 		if authData["wait"] != "true" {
-			return AuthDenied, fmt.Sprintf(`{"message": "%s should have wait set to true"}`, sessionInfo.currentAuthMode)
+			return AuthDenied, fmt.Sprintf(`{"message": "%s should have wait set to true"}`,
+				sessionInfo.currentAuthMode)
 		}
 		// Simulate connexion with remote server to check that the correct code was entered
 		select {
@@ -680,7 +689,8 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 
 		if challenge != expectedChallenge {
-			return AuthRetry, fmt.Sprintf(`{"message": "new password does not match criteria: must be '%s'"}`, expectedChallenge)
+			return AuthRetry, fmt.Sprintf(`{"message": "new password does not match criteria: must be '%s'"}`,
+				expectedChallenge)
 		}
 		exampleUsersMu.Lock()
 		exampleUsers[sessionInfo.username] = userInfoBroker{Password: challenge}
