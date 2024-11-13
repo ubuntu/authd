@@ -1,3 +1,5 @@
+//go:build withgdmmodel
+
 package main_test
 
 import (

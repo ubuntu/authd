@@ -144,7 +144,7 @@ Then build the PAM module:
 
 ```shell
 go generate ./pam/
-go build -tags pam_binary_exec -o ./pam/authd-pam ./pam
+go build -o ./pam/authd-pam ./pam
 ```
 
 This last command will produce two libraries (`./pam/pam_authd.so` and `./pam/go-exec/pam_authd_exec.so`) and an executable (`./pam/authd-pam`).
@@ -170,7 +170,7 @@ The library resulting from the build is located in `./target/debug/libnss_authd.
 
 The project includes a comprehensive test suite made of unit and integration tests. All the tests must pass before the review is considered. If you have troubles with the test suite, feel free to mention it in your PR description.
 
-You can run all tests with: `go test ./...` (add the `-race` flag for race detection).
+You can run all tests with: `go test -tags withgdmmodel ./...` (add the `-race` flag for race detection).
 
 Every package has a suite of at least package-level tests. They may integrate more granular unit tests for complex functionalities. Integration tests are located in `./pam/integration-tests` for the PAM module and `./nss/integration-tests` for the NSS module.
 

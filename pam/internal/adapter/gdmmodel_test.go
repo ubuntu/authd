@@ -1,3 +1,5 @@
+//go:build withgdmmodel
+
 package adapter
 
 import (
@@ -2508,7 +2510,7 @@ func TestGdmModel(t *testing.T) {
 				require.Equal(t, tc.wantExitStatus, appState.ExitStatus())
 			}
 
-			require.True(t, appState.gdmModel.conversationsStopped)
+			require.False(t, appState.gdmModel.conversationsActive())
 
 			for _, req := range tc.wantNoGdmRequests {
 				require.NotContains(t, gdmHandler.handledRequests, req)

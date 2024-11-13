@@ -1,3 +1,5 @@
+//go:build withgdmmodel
+
 package main_test
 
 import (
@@ -13,11 +15,14 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 	"github.com/ubuntu/authd/pam/internal/proto"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 func enableGdmExtension() {
@@ -992,7 +997,7 @@ func buildPAMModule(t *testing.T) string {
 	libPath := filepath.Join(t.TempDir(), "libpam_authd.so")
 	t.Logf("Compiling PAM library at %s", libPath)
 
-	cmd.Args = append(cmd.Args, "-tags=pam_debug,pam_gdm_debug", "-o", libPath)
+	cmd.Args = append(cmd.Args, "-tags=withgdmmodel,pam_debug,pam_gdm_debug", "-o", libPath)
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, "Setup: could not compile PAM module: %s", out)
 	if string(out) != "" {
@@ -1041,4 +1046,25 @@ func testQrcodeWithoutCodeUILayoutData(reqN int) *authd.UILayout {
 		Code:    base.Code,
 		Entry:   base.Entry,
 	}
+}
+
+func requirePreviousBrokerForUser(t *testing.T, socketPath string, brokerName string, user string) {
+	t.Helper()
+
+	conn, err := grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
+	require.NoError(t, err, "Can't connect to authd socket")
+
+	t.Cleanup(func() { conn.Close() })
+	pamClient := authd.NewPAMClient(conn)
+	brokers, err := pamClient.AvailableBrokers(context.TODO(), nil)
+	require.NoError(t, err, "Can't get available brokers")
+	prevBroker, err := pamClient.GetPreviousBroker(context.TODO(), &authd.GPBRequest{Username: user})
+	require.NoError(t, err, "Can't get previous broker")
+	var prevBrokerID string
+	for _, b := range brokers.BrokersInfos {
+		if b.Name == brokerName {
+			prevBrokerID = b.Id
+		}
+	}
+	require.Equal(t, prevBroker.PreviousBroker, prevBrokerID)
 }
