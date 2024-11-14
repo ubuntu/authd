@@ -16,6 +16,8 @@ import (
 	"github.com/ubuntu/authd/pam/internal/proto"
 )
 
+var gdmTestSequentialMessages atomic.Int64
+
 // gdmTestUIModel is an override of [UIModel] used for testing the module with gdm.
 type gdmTestUIModel struct {
 	UIModel

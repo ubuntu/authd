@@ -10,7 +10,6 @@ import (
 	"os"
 	"slices"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -27,7 +26,6 @@ import (
 )
 
 var gdmTestPrivateKey *rsa.PrivateKey
-var gdmTestSequentialMessages atomic.Int64
 
 const gdmTestIgnoredMessage string = "<ignored>"
 
