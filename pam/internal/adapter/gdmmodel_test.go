@@ -492,9 +492,16 @@ func TestGdmModel(t *testing.T) {
 										gdm_test.AuthModeSelectedEvent(newPasswordUILayoutID),
 									},
 									commands: []tea.Cmd{
-										sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-											Challenge: "gdm-repeated-password",
-										}}),
+										sendEvent(gdmTestWaitForStage{
+											stage: pam_proto.Stage_challenge,
+											commands: []tea.Cmd{
+												sendEvent(gdmTestSendAuthDataWhenReady{
+													&authd.IARequest_AuthenticationData_Challenge{
+														Challenge: "gdm-repeated-password",
+													},
+												}),
+											},
+										}),
 									},
 								}),
 							},
