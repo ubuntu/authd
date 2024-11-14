@@ -19,7 +19,7 @@ func RedactErrorInterceptor(ctx context.Context, req any, _ *grpc.UnaryServerInf
 	m, err := handler(ctx, req)
 	if err != nil {
 		log.Warning(context.TODO(), err.Error())
-		var redactedError ErrToDisplay
+		var redactedError ToDisplayError
 		if !errors.As(err, &redactedError) {
 			return m, err
 		}

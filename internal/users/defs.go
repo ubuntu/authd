@@ -84,5 +84,5 @@ func groupEntryFromGroupDB(g cache.GroupDB) GroupEntry {
 	}
 }
 
-// ErrNoDataFound is the error returned when no entry is found in the cache.
-type ErrNoDataFound = cache.NoDataFoundError
+// NoDataFoundError is the error returned when no entry is found in the cache.
+type NoDataFoundError = cache.NoDataFoundError

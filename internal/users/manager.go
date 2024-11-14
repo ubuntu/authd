@@ -188,7 +188,7 @@ func (m *Manager) BrokerForUser(username string) (string, error) {
 	brokerID, err := m.cache.BrokerForUser(username)
 	// User not in cache.
 	if err != nil && errors.Is(err, cache.NoDataFoundError{}) {
-		return "", ErrNoDataFound{}
+		return "", NoDataFoundError{}
 	} else if err != nil {
 		return "", err
 	}

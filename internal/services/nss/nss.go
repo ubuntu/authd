@@ -48,7 +48,7 @@ func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetPasswdByName
 		return nssPasswdFromUsersPasswd(u), nil
 	}
 
-	if !errors.Is(err, users.ErrNoDataFound{}) || !req.GetShouldPreCheck() {
+	if !errors.Is(err, users.NoDataFoundError{}) || !req.GetShouldPreCheck() {
 		return nil, noDataFoundErrorToGRPCError(err)
 	}
 
@@ -231,7 +231,7 @@ func nssShadowFromUsersShadow(u users.ShadowEntry) *authd.ShadowEntry {
 // noDataFoundErrorToGRPCError converts a data not found to proper GRPC status code.
 // This code is picked up by the NSS module to return corresponding NSS status.
 func noDataFoundErrorToGRPCError(err error) error {
-	if !errors.Is(err, users.ErrNoDataFound{}) {
+	if !errors.Is(err, users.NoDataFoundError{}) {
 		return err
 	}
 

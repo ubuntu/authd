@@ -1,11 +1,11 @@
 package errmessages
 
-// ErrToDisplay defines an error that needs to be sent unaltered to the client.
-type ErrToDisplay struct {
+// ToDisplayError defines an error that needs to be sent unaltered to the client.
+type ToDisplayError struct {
 	error
 }
 
-// NewErrorToDisplay returns a new ErrorToDisplay.
-func NewErrorToDisplay(err error) error {
-	return ErrToDisplay{err}
+// NewToDisplayError returns a new ErrorToDisplay.
+func NewToDisplayError(err error) error {
+	return ToDisplayError{err}
 }
