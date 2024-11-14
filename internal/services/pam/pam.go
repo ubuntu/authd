@@ -67,7 +67,7 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 	// Load from database cache.
 	brokerID, err := s.userManager.BrokerForUser(req.GetUsername())
 	// User is not in our cache.
-	if err != nil && errors.Is(err, users.ErrNoDataFound{}) {
+	if err != nil && errors.Is(err, users.NoDataFoundError{}) {
 		// FIXME: this part will not be here in the v2 API version, as we won’t have GetPreviousBroker and handle
 		// autoselection silently in authd.
 		// User not in cache, if there is only the local broker available, return this one without saving it.

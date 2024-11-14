@@ -21,7 +21,7 @@ func TestRedactErrorInterceptor(t *testing.T) {
 		wantMessage string
 	}{
 		"Trim input down to ErrToDisplay": {
-			inputError:  fmt.Errorf("Error to be redacted: %w", ErrToDisplay{errors.New("Error to be shown")}),
+			inputError:  fmt.Errorf("Error to be redacted: %w", ToDisplayError{errors.New("Error to be shown")}),
 			wantMessage: "Error to be shown",
 		},
 		"Return original error": {

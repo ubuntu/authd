@@ -152,7 +152,7 @@ func (b dbusBroker) call(ctx context.Context, method string, args ...interface{}
 		if errors.As(err, &dbusError) && dbusError.Name == "org.freedesktop.DBus.Error.ServiceUnknown" {
 			err = fmt.Errorf("couldn't connect to broker %q. Is it running?", b.name)
 		}
-		return nil, errmessages.NewErrorToDisplay(err)
+		return nil, errmessages.NewToDisplayError(err)
 	}
 
 	return call, nil
