@@ -472,9 +472,7 @@ func TestGdmModel(t *testing.T) {
 					Msg:    `{"message": "Hi GDM, it's a pleasure to let you change your password!"}`,
 				}, nil),
 			),
-			gdmEvents: []*gdm.EventData{
-				gdm_test.SelectUserEvent("gdm-selected-user-broker-and-auth-mode"),
-			},
+			pamUser: "pam-preset-user-with-daemon-selected-broker-and-auth-mode",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_authModeSelection,
@@ -508,7 +506,6 @@ func TestGdmModel(t *testing.T) {
 				pam_test.FormUILayout(),
 				pam_test.NewPasswordUILayout(),
 			},
-			wantUsername:       "gdm-selected-user-broker-and-auth-mode",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
