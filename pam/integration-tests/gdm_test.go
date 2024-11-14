@@ -103,7 +103,7 @@ var testFidoDeviceUILayout = authd.UILayout{
 
 var testPhoneAckUILayout = authd.UILayout{
 	Type:    "form",
-	Label:   ptrValue("Unlock your phone +33… or accept request on web interface:"),
+	Label:   ptrValue("Unlock your phone +33... or accept request on web interface:"),
 	Content: ptrValue(""),
 	Wait:    ptrValue("true"),
 	Button:  ptrValue(""),

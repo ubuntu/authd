@@ -95,18 +95,18 @@ type userInfoBroker struct {
 var (
 	exampleUsersMu = sync.RWMutex{}
 	exampleUsers   = map[string]userInfoBroker{
-		"user1":                 {Password: "goodpass"},
-		"user2":                 {Password: "goodpass"},
-		"user3":                 {Password: "goodpass"},
-		"user-mfa":              {Password: "goodpass"},
-		"user-mfa-with-reset":   {Password: "goodpass"},
-		"user-needs-reset":      {Password: "goodpass"},
-		"user-can-reset":        {Password: "goodpass"},
-		"user-can-reset2":       {Password: "goodpass"},
-		"user-local-groups":     {Password: "goodpass"},
-		"user-pre-check":        {Password: "goodpass"},
-		"user-sudo":             {Password: "goodpass"},
-		"user-mismatching-name": {Password: "goodpass"},
+		"user1":               {Password: "goodpass"},
+		"user2":               {Password: "goodpass"},
+		"user3":               {Password: "goodpass"},
+		"user-mfa":            {Password: "goodpass"},
+		"user-mfa-with-reset": {Password: "goodpass"},
+		"user-needs-reset":    {Password: "goodpass"},
+		"user-needs-reset2":   {Password: "goodpass"},
+		"user-can-reset":      {Password: "goodpass"},
+		"user-can-reset2":     {Password: "goodpass"},
+		"user-local-groups":   {Password: "goodpass"},
+		"user-pre-check":      {Password: "goodpass"},
+		"user-sudo":           {Password: "goodpass"},
 	}
 )
 
@@ -161,6 +161,8 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 	case "user-mfa":
 		info.neededAuthSteps = 3
 	case "user-needs-reset":
+		fallthrough
+	case "user-needs-reset2":
 		info.neededAuthSteps = 2
 		info.pwdChange = mustReset
 	case "user-can-reset":
@@ -197,10 +199,22 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 		info.pwdChange = mustReset
 	}
 
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-mfa-with-reset-integration") {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+		info.neededAuthSteps = 3
+		info.pwdChange = canReset
+	}
+
 	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-needs-reset-integration") {
 		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
 		info.neededAuthSteps = 2
 		info.pwdChange = mustReset
+	}
+
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-can-reset-integration") {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+		info.neededAuthSteps = 2
+		info.pwdChange = canReset
 	}
 
 	pubASN1, err := x509.MarshalPKIXPublicKey(&b.privateKey.PublicKey)
@@ -327,7 +341,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				if layout["button"] == "optional" {
 					allModes["totp_with_button"] = map[string]string{
 						"selection_label": "Authentication code",
-						"phone":           "+33…",
+						"phone":           "+33...",
 						"wantedCode":      "temporary pass",
 						"ui": mapToJSON(map[string]string{
 							"type":   "form",
@@ -339,7 +353,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				} else {
 					allModes["totp"] = map[string]string{
 						"selection_label": "Authentication code",
-						"phone":           "+33…",
+						"phone":           "+33...",
 						"wantedCode":      "temporary pass",
 						"ui": mapToJSON(map[string]string{
 							"type":  "form",
@@ -350,21 +364,21 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 				}
 
 				allModes["phoneack1"] = map[string]string{
-					"selection_label": "Use your phone +33…",
-					"phone":           "+33…",
+					"selection_label": "Use your phone +33...",
+					"phone":           "+33...",
 					"ui": mapToJSON(map[string]string{
 						"type":  "form",
-						"label": "Unlock your phone +33… or accept request on web interface:",
+						"label": "Unlock your phone +33... or accept request on web interface:",
 						"wait":  "true",
 					}),
 				}
 
 				allModes["phoneack2"] = map[string]string{
-					"selection_label": "Use your phone +1…",
-					"phone":           "+1…",
+					"selection_label": "Use your phone +1...",
+					"phone":           "+1...",
 					"ui": mapToJSON(map[string]string{
 						"type":  "form",
-						"label": "Unlock your phone +1… or accept request on web interface",
+						"label": "Unlock your phone +1... or accept request on web interface",
 						"wait":  "true",
 					}),
 				}
@@ -888,9 +902,6 @@ func userInfoFromName(name string) string {
 
 	case "user-sudo":
 		user.Groups = append(user.Groups, groupJSONInfo{Name: "sudo", UGID: ""}, groupJSONInfo{Name: "admin", UGID: ""})
-
-	case "user-mismatching-name":
-		user.Name = "mismatching-username"
 	}
 
 	// only used for tests, we can ignore the template execution error as the returned data will be failing.

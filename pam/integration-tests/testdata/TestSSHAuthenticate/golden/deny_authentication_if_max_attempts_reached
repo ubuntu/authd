@@ -1,0 +1,223 @@
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Provider s
+election ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Provider s
+election ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Password a
+uthentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Provider s
+election ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Password a
+uthentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Provider s
+election ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Password a
+uthentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Provider s
+election ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Password a
+uthentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Provider s
+election ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Password a
+uthentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Provider s
+election ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Password a
+uthentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+invalid password 'wrongpass', should be 'goodpass'
+
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Provider s
+election ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Provider s
+election ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Password a
+uthentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) invalid passw
+ord 'wrongpass', should be 'goodpass'
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+invalid password 'wrongpass', should be 'goodpass'
+
+(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) == Provider s
+election ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+>
+────────────────────────────────────────────────────────────────────────────────

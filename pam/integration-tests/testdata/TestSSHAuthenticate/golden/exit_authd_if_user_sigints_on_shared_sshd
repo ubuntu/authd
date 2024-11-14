@@ -1,0 +1,70 @@
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) == Provider sel
+ection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) == Provider sel
+ection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) == Password aut
+hentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) == Provider sel
+ection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) == Password aut
+hentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) == Provider sel
+ection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) == Password aut
+hentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+
+> echo $TERM
+xterm-256color
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) == Provider sel
+ection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) == Password aut
+hentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+
+> echo $TERM
+xterm-256color
+>
+────────────────────────────────────────────────────────────────────────────────

@@ -1,17 +1,7 @@
 Hide
-Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true"
+Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Type "user-integration-switch-mode"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Enter
-Sleep ${AUTHD_SLEEP_LONG}
+Sleep ${AUTHD_SLEEP_COMMAND}
 Show
 
 Hide
@@ -123,7 +113,7 @@ Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "6"
+Type "${AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM}"
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show

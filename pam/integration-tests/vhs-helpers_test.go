@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"fmt"
+	"maps"
 	"math"
 	"os"
 	"os/exec"
@@ -11,6 +12,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/stretchr/testify/require"
 	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
@@ -26,6 +28,14 @@ const (
 	vhsPadding    = "Padding"
 	vhsMargin     = "Margin"
 	vhsShell      = "Shell"
+
+	vhsCommandVariable = "AUTHD_TEST_TAPE_COMMAND"
+
+	authdSleepDefault                 = "AUTHD_SLEEP_DEFAULT"
+	authdSleepLong                    = "AUTHD_SLEEP_LONG"
+	authdSleepCommand                 = "AUTHD_SLEEP_COMMAND"
+	authdSleepExampleBrokerMfaWait    = "AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT"
+	authdSleepExampleBrokerQrcodeWait = "AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT"
 )
 
 type tapeSetting struct {
@@ -34,20 +44,23 @@ type tapeSetting struct {
 }
 
 type tapeData struct {
-	Name      string
-	Outputs   []string
-	Settings  map[string]any
-	Env       map[string]string
-	Variables map[string]string
+	Name         string
+	Command      string
+	CommandSleep time.Duration
+	Outputs      []string
+	Settings     map[string]any
+	Env          map[string]string
+	Variables    map[string]string
 }
 
 var (
 	defaultSleepValues = map[string]time.Duration{
-		"AUTHD_SLEEP_DEFAULT": 300 * time.Millisecond,
-		"AUTHD_SLEEP_LONG":    1 * time.Second,
+		authdSleepDefault: 300 * time.Millisecond,
+		authdSleepCommand: 400 * time.Millisecond,
+		authdSleepLong:    1 * time.Second,
 		// Keep these in sync with example broker default wait times
-		"AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT":    4 * time.Second,
-		"AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT": 4 * time.Second,
+		authdSleepExampleBrokerMfaWait:    4 * time.Second,
+		authdSleepExampleBrokerQrcodeWait: 4 * time.Second,
 	}
 
 	vhsSleepRegex = regexp.MustCompile(
@@ -71,7 +84,8 @@ func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 		m[s.Key] = s.Value
 	}
 	return tapeData{
-		Name: tapeName,
+		Name:         tapeName,
+		CommandSleep: defaultSleepValues[authdSleepDefault],
 		Outputs: []string{
 			tapeName + ".txt",
 			// If we don't specify a .gif output, it will still create a default out.gif file.
@@ -182,9 +196,17 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 	}
 
 	// We need to format the output a little bit, since the txt file can have some noise at the beginning.
+	command := "> " + td.Command
+	maxCommandLen := 0
 	splitTmp := strings.Split(got, "\n")
+	for _, str := range splitTmp {
+		maxCommandLen = max(maxCommandLen, utf8.RuneCountInString(str))
+	}
+	if len(command) > maxCommandLen {
+		command = command[:maxCommandLen]
+	}
 	for i, str := range splitTmp {
-		if strings.Contains(str, " ./pam_authd ") {
+		if strings.Contains(str, command) {
 			got = strings.Join(splitTmp[i:], "\n")
 			break
 		}
@@ -239,9 +261,19 @@ func (td tapeData) PrepareTape(t *testing.T, tapesDir, outputPath string) string
 func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData) string {
 	t.Helper()
 
+	require.Greater(t, td.CommandSleep.Milliseconds(), int64(0),
+		"Setup: Command sleep can't be unset or minor than 0")
+
+	sleepValues := &defaultSleepValues
+	if td.CommandSleep != defaultSleepValues[authdSleepCommand] {
+		sv := maps.Clone(*sleepValues)
+		sv[authdSleepCommand] = td.CommandSleep
+		sleepValues = &sv
+	}
+
 	for _, m := range vhsSleepRegex.FindAllStringSubmatch(tapeString, -1) {
 		fullMatch, sleepKind, op, arg := m[0], m[1], m[3], m[4]
-		sleep, ok := defaultSleepValues[sleepKind]
+		sleep, ok := (*sleepValues)[sleepKind]
 		require.True(t, ok, "Setup: unknown sleep kind: %q", sleepKind)
 
 		// We don't need to support math that is complex enough to use proper parsers as go.ast
@@ -265,7 +297,23 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData) string 
 			fmt.Sprintf("%dms", sleepDuration(sleep).Milliseconds()))
 	}
 
-	for k, v := range td.Variables {
+	if td.Command == "" {
+		require.NotContains(t, tapeString, fmt.Sprintf("${%s}", vhsCommandVariable),
+			"Setup: Tape contains %q but it's not defined", vhsCommandVariable)
+	}
+
+	variables := td.Variables
+	if td.Command != "" {
+		if variables != nil {
+			variables = maps.Clone(variables)
+		}
+		if variables == nil {
+			variables = make(map[string]string)
+		}
+		variables[vhsCommandVariable] = td.Command
+	}
+
+	for k, v := range variables {
 		variable := fmt.Sprintf("${%s}", k)
 		require.Contains(t, tapeString, variable,
 			"Setup: Tape does not contain %q", variable)

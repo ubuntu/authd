@@ -1,28 +1,16 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo force_nat
 ive_client=true bar
-Username:
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo force_nat
-ive_client=true bar
-Username: user2
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo force_nat
-ive_client=true bar
-Username: user2
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo force_nat
 ive_client=true bar
-Username: user2
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -32,35 +20,31 @@ Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo force_nat
 ive_client=true bar
-Username: user2
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-PAM Authenticate() for user "user2" exited with success
+PAM Authenticate() for user "user-integration-with-unsupported-args" exited with success
 PAM AcctMgmt() exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo force_nat
 ive_client=true bar
-Username: user2
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-PAM Authenticate() for user "user2" exited with success
+PAM Authenticate() for user "user-integration-with-unsupported-args" exited with success
 PAM AcctMgmt() exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────

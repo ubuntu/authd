@@ -1,21 +1,14 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username:
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -24,11 +17,9 @@ Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -39,8 +30,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-integration-switch-broker@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -49,11 +40,9 @@ Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -64,8 +53,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-integration-switch-broker@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -75,16 +64,13 @@ Choose your authentication method:
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -95,8 +81,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-integration-switch-broker@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -106,7 +92,6 @@ Choose your authentication method:
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > invalid-ID
 PAM Error Message: Unsupported input
@@ -114,11 +99,9 @@ Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -129,8 +112,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-integration-switch-broker@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -140,7 +123,6 @@ Choose your authentication method:
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > invalid-ID
 PAM Error Message: Unsupported input
@@ -150,16 +132,13 @@ PAM Error Message: Invalid selection
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -170,8 +149,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-integration-switch-broker@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -181,7 +160,6 @@ Choose your authentication method:
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > invalid-ID
 PAM Error Message: Unsupported input
@@ -191,7 +169,6 @@ PAM Error Message: Invalid selection
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 1
 auth=incomplete
@@ -201,11 +178,9 @@ PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-broker
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 == Password authentication ==
@@ -216,8 +191,8 @@ Gimme your password:
   1. Password authentication
   2. Send URL to user-integration-switch-broker@gmail.com
   3. Use your fido device foo
-  4. Use your phone +33…
-  5. Use your phone +1…
+  4. Use your phone +33...
+  5. Use your phone +1...
   6. Pin code
   7. Use a QR code
   8. Authentication code
@@ -227,7 +202,6 @@ Choose your authentication method:
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > invalid-ID
 PAM Error Message: Unsupported input
@@ -237,7 +211,6 @@ PAM Error Message: Invalid selection
 == Provider selection ==
   1. local
   2. ExampleBroker
-Or enter 'r' to go back to user selection
 Choose your provider:
 > 1
 auth=incomplete

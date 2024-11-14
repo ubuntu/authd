@@ -18,6 +18,8 @@ env:
   test_apt_deps: >-
     cracklib-runtime
     ffmpeg
+    openssh-client
+    openssh-server
 
   # In Rust the grpc stubs are generated at build time
   # so we always need to install the protobuf compilers

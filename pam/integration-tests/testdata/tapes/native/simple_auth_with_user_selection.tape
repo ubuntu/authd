@@ -1,15 +1,17 @@
 Hide
-Type "./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true"
+Type "${AUTHD_TEST_TAPE_COMMAND}"
+Enter
+Sleep ${AUTHD_SLEEP_COMMAND}
+Show
+
+Hide
+Type ""
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "user-mismatching-name"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
+Type "user-integration-user-selection"
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
