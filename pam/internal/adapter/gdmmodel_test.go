@@ -10,7 +10,6 @@ import (
 	"os"
 	"slices"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -27,7 +26,6 @@ import (
 )
 
 var gdmTestPrivateKey *rsa.PrivateKey
-var gdmTestSequentialMessages atomic.Int64
 
 const gdmTestIgnoredMessage string = "<ignored>"
 
@@ -472,9 +470,7 @@ func TestGdmModel(t *testing.T) {
 					Msg:    `{"message": "Hi GDM, it's a pleasure to let you change your password!"}`,
 				}, nil),
 			),
-			gdmEvents: []*gdm.EventData{
-				gdm_test.SelectUserEvent("gdm-selected-user-broker-and-auth-mode"),
-			},
+			pamUser: "pam-preset-user-with-daemon-selected-broker-and-auth-mode",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_authModeSelection,
@@ -494,9 +490,16 @@ func TestGdmModel(t *testing.T) {
 										gdm_test.AuthModeSelectedEvent(newPasswordUILayoutID),
 									},
 									commands: []tea.Cmd{
-										sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-											Challenge: "gdm-repeated-password",
-										}}),
+										sendEvent(gdmTestWaitForStage{
+											stage: pam_proto.Stage_challenge,
+											commands: []tea.Cmd{
+												sendEvent(gdmTestSendAuthDataWhenReady{
+													&authd.IARequest_AuthenticationData_Challenge{
+														Challenge: "gdm-repeated-password",
+													},
+												}),
+											},
+										}),
 									},
 								}),
 							},
@@ -508,7 +511,6 @@ func TestGdmModel(t *testing.T) {
 				pam_test.FormUILayout(),
 				pam_test.NewPasswordUILayout(),
 			},
-			wantUsername:       "gdm-selected-user-broker-and-auth-mode",
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
