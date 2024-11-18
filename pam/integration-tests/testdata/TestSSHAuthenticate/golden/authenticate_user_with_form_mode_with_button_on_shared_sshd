@@ -1,38 +1,37 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Provider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Provider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
-> 2
 (user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Password authentication ==
+t) Choose your provider:
+> 2
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Provider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Password authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
 (user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication method selection ==
+t) Gimme your password:
+>
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shar
@@ -43,23 +42,23 @@ ed-sshd@gmail.com
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Provider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Password authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
 (user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication method selection ==
+t) Gimme your password:
+>
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shar
@@ -70,30 +69,30 @@ ed-sshd@gmail.com
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose your authentication method:
 > 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Provider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Password authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
 (user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication method selection ==
+t) Gimme your password:
+>
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shar
@@ -104,37 +103,37 @@ ed-sshd@gmail.com
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose your authentication method:
 > 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose action:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Provider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Password authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
 (user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication method selection ==
+t) Gimme your password:
+>
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shar
@@ -145,42 +144,42 @@ ed-sshd@gmail.com
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose your authentication method:
 > 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose action:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose action:
 > 1
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication code ==
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Enter your one time credential:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Provider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Password authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
 (user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication method selection ==
+t) Gimme your password:
+>
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shar
@@ -191,26 +190,27 @@ ed-sshd@gmail.com
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose your authentication method:
 > 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose action:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
-> 1
 (user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication code ==
+t) Choose action:
+> 1
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Enter your one time credential:
 > temporary pass00
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
@@ -227,19 +227,18 @@ Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Provider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Password authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
 (user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication method selection ==
+t) Gimme your password:
+>
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shar
@@ -250,26 +249,27 @@ ed-sshd@gmail.com
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose your authentication method:
 > 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Choose action:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
-> 1
 (user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
-t) == Authentication code ==
+t) Choose action:
+> 1
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button-on-shared-sshd@localhos
+t) Enter your one time credential:
 > temporary pass00
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}

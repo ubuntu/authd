@@ -1,58 +1,57 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > 2
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pa
-ssword authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Gimme
+ your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > 2
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pa
-ssword authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Gimme
+ your password:
 >
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Au
-thentication method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@
@@ -63,27 +62,27 @@ gmail.com
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > 2
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pa
-ssword authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Gimme
+ your password:
 >
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Au
-thentication method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@
@@ -94,33 +93,33 @@ gmail.com
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your authentication method:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > 2
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pa
-ssword authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Gimme
+ your password:
 >
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Au
-thentication method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@
@@ -131,37 +130,37 @@ gmail.com
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your authentication method:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > 2
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pa
-ssword authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Gimme
+ your password:
 >
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Au
-thentication method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@
@@ -172,41 +171,41 @@ gmail.com
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your authentication method:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > 2
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pa
-ssword authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Gimme
+ your password:
 >
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Au
-thentication method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@
@@ -217,46 +216,46 @@ gmail.com
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your authentication method:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > 2
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pa
-ssword authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Gimme
+ your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > 2
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pa
-ssword authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Gimme
+ your password:
 >
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Au
-thentication method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@
@@ -267,26 +266,27 @@ gmail.com
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your authentication method:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > 2
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pa
-ssword authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Gimme
+ your password:
 >
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
@@ -303,23 +303,22 @@ Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > 2
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pa
-ssword authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Gimme
+ your password:
 >
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Au
-thentication method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@
@@ -330,26 +329,27 @@ gmail.com
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your authentication method:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pr
-ovider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > r
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Unsup
-ported input
-Choose your provider:
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Choos
+e your provider:
 > 2
-(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) == Pa
-ssword authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-prevent-user-from-switching-username-on-shared-sshd@localhost) Gimme
+ your password:
 >
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}

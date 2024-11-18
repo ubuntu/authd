@@ -1,38 +1,37 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
-ction ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your prov
+ider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
-ction ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your prov
+ider:
 > 2
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
-entication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Gimme your passw
+ord:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
-ction ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your prov
+ider:
 > 2
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
-entication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Gimme your passw
+ord:
 >
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
@@ -42,23 +41,23 @@ n method selection ==
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your auth
+entication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
-ction ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your prov
+ider:
 > 2
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
-entication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Gimme your passw
+ord:
 >
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
@@ -68,30 +67,29 @@ n method selection ==
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your auth
+entication method:
 > 8
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
-ction ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your prov
+ider:
 > 2
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
-entication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Gimme your passw
+ord:
 >
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
@@ -101,35 +99,34 @@ n method selection ==
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your auth
+entication method:
 > 8
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Enter your one t
+ime credential:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
-ction ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your prov
+ider:
 > 2
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
-entication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Gimme your passw
+ord:
 >
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
@@ -139,19 +136,19 @@ n method selection ==
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your auth
+entication method:
 > 8
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Enter your one t
+ime credential:
 > temporary pass0
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
 nd_mode]
@@ -169,19 +166,18 @@ Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
-ction ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your prov
+ider:
 > 2
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
-entication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Gimme your passw
+ord:
 >
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
@@ -191,19 +187,19 @@ n method selection ==
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your auth
+entication method:
 > 8
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Enter your one t
+ime credential:
 > temporary pass0
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
 nd_mode]
@@ -219,28 +215,26 @@ nd_mode]
   USER=user-integration-pre-check-remember-last-successful-broker-and-mode
 Connection to localhost closed.
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
-ction ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your prov
+ider:
 > 2
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
-entication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Gimme your passw
+ord:
 >
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
@@ -250,19 +244,19 @@ n method selection ==
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your auth
+entication method:
 > 8
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Enter your one t
+ime credential:
 > temporary pass0
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
 nd_mode]
@@ -278,33 +272,31 @@ nd_mode]
   USER=user-integration-pre-check-remember-last-successful-broker-and-mode
 Connection to localhost closed.
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Enter your one t
+ime credential:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
-ction ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your prov
+ider:
 > 2
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
-entication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Gimme your passw
+ord:
 >
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
@@ -314,19 +306,19 @@ n method selection ==
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your auth
+entication method:
 > 8
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Enter your one t
+ime credential:
 > temporary pass0
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
 nd_mode]
@@ -342,17 +334,16 @@ nd_mode]
   USER=user-integration-pre-check-remember-last-successful-broker-and-mode
 Connection to localhost closed.
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Enter your one t
+ime credential:
 > temporary pass0
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
 nd_mode]
@@ -370,19 +361,18 @@ Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Provider sele
-ction ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your prov
+ider:
 > 2
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Password auth
-entication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Gimme your passw
+ord:
 >
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-remember-last-successful-broker-and-mode@gmail.com
@@ -392,19 +382,19 @@ n method selection ==
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose your auth
+entication method:
 > 8
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Enter your one t
+ime credential:
 > temporary pass0
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
 nd_mode]
@@ -420,17 +410,16 @@ nd_mode]
   USER=user-integration-pre-check-remember-last-successful-broker-and-mode
 Connection to localhost closed.
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
-(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) == Authenticatio
-n code ==
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Enter your one t
+ime credential:
 > temporary pass0
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Remember_last_successful_broker_a
 nd_mode]

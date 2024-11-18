@@ -1,10 +1,8 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-ssh-service@localhost) SSH PAM user 'user-integration-ssh-service' using local
- broker
-Password:
+SSH PAM user 'user-integration-ssh-service' using local broker
+(user-integration-ssh-service@localhost) Password:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-ssh-service@localhost) SSH PAM user 'user-integration-ssh-service' using local
- broker
-Password:
+SSH PAM user 'user-integration-ssh-service' using local broker
+(user-integration-ssh-service@localhost) Password:
 ────────────────────────────────────────────────────────────────────────────────
