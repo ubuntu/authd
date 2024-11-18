@@ -594,12 +594,12 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 	}{
 		"Set default broker for existing user with no broker":   {username: "usersetbroker"},
 		"Update default broker for existing user with a broker": {username: "userupdatebroker"},
-		"Setting local broker as default should not save on DB": {username: "userlocalbroker", brokerID: brokers.LocalBrokerName},
 
-		"Error when not root":              {username: "usersetbroker", currentUserNotRoot: true, wantErr: true},
-		"Error when username is empty":     {wantErr: true},
-		"Error when user does not exist ":  {username: "doesnotexist", wantErr: true},
-		"Error when broker does not exist": {username: "userwithbroker", brokerID: "does not exist", wantErr: true},
+		"Error when setting default broker to local broker": {username: "userlocalbroker", brokerID: brokers.LocalBrokerName, wantErr: true},
+		"Error when not root":                               {username: "usersetbroker", currentUserNotRoot: true, wantErr: true},
+		"Error when username is empty":                      {wantErr: true},
+		"Error when user does not exist ":                   {username: "doesnotexist", wantErr: true},
+		"Error when broker does not exist":                  {username: "userwithbroker", brokerID: "does not exist", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

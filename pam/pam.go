@@ -427,6 +427,11 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 	}
 	defer closeConn()
 
+	if brokerIDUsedToAuthenticate == brokers.LocalBrokerName {
+		// Don't set the default broker to the local broker.
+		return pam.ErrIgnore
+	}
+
 	req := authd.SDBFURequest{
 		BrokerId: brokerIDUsedToAuthenticate,
 		Username: user,

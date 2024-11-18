@@ -98,9 +98,19 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 		return &authd.GPBResponse{}, nil
 	}
 
-	// Updates manager memory to stop needing to query the database for the broker.
+	if !s.brokerManager.BrokerExists(brokerID) {
+		log.Warningf(ctx, "Last used broker %q is not available for user %q, letting the user select a new one", brokerID, req.GetUsername())
+		return &authd.GPBResponse{}, nil
+	}
+
+	// Cache the broker which should be used for the user, so that we don't have to query the database again next time -
+	// except if the broker is the local broker, because then the decision to use the local broker should be made each
+	// time the user tries to log in, based on whether the user is provided by any other NSS service.
+	if brokerID == brokers.LocalBrokerName {
+		return &authd.GPBResponse{PreviousBroker: brokerID}, nil
+	}
 	if err = s.brokerManager.SetDefaultBrokerForUser(brokerID, req.GetUsername()); err != nil {
-		log.Warningf(ctx, "Last broker used by %q is not available, letting the user selecting one: %v", req.GetUsername(), err)
+		log.Warningf(ctx, "Could not set default broker %q for user %q: %v", brokerID, req.GetUsername(), err)
 		return &authd.GPBResponse{}, nil
 	}
 
@@ -276,12 +286,14 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURe
 		return nil, status.Error(codes.InvalidArgument, "no user name given")
 	}
 
-	if err = s.brokerManager.SetDefaultBrokerForUser(req.GetBrokerId(), req.GetUsername()); err != nil {
-		return &authd.Empty{}, err
+	// Don't allow setting the default broker to the local broker, because the decision to use the local broker should
+	// be made each time the user tries to log in, based on whether the user is provided by any other NSS service.
+	if req.GetBrokerId() == brokers.LocalBrokerName {
+		return nil, status.Error(codes.InvalidArgument, "can't set local broker as default")
 	}
 
-	if req.GetBrokerId() == brokers.LocalBrokerName {
-		return &authd.Empty{}, nil
+	if err = s.brokerManager.SetDefaultBrokerForUser(req.GetBrokerId(), req.GetUsername()); err != nil {
+		return &authd.Empty{}, err
 	}
 
 	if err = s.userManager.UpdateBrokerForUser(req.GetUsername(), req.GetBrokerId()); err != nil {
