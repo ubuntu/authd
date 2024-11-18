@@ -30,7 +30,7 @@ env:
 jobs:
   go-sanity:
     name: "Go: Code sanity"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
       - name: Install dependencies
         run: |
@@ -67,7 +67,7 @@ jobs:
 
   rust-sanity:
     name: "Rust: Code sanity"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
       - name: Install dependencies
         run: |
@@ -81,7 +81,7 @@ jobs:
 
   c-sanity:
     name: "C Code sanity"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # ubuntu-latest-runner
     env:
       CFLAGS: "-Werror"
     steps:
@@ -122,7 +122,7 @@ jobs:
 
   go-tests:
     name: "Go: Tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # ubuntu-latest-runner
     strategy:
       fail-fast: false
       matrix:
