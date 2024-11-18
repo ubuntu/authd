@@ -113,15 +113,13 @@ func main() {
 		}
 	}
 
-	var resultFormat string
 	var pamFunc func(pam.Flags) error
-	switch action {
-	case "login":
+	runnerAction := pam_test.RunnerActionFromString(action)
+	switch runnerAction {
+	case pam_test.RunnerActionLogin:
 		pamFunc = tx.Authenticate
-		resultFormat = pam_test.RunnerResultActionAuthenticateFormat
-	case "passwd":
+	case pam_test.RunnerActionPasswd:
 		pamFunc = tx.ChangeAuthTok
-		resultFormat = pam_test.RunnerResultActionChangeAuthTokFormat
 	default:
 		panic("Unknown PAM operation: " + action)
 	}
@@ -130,10 +128,10 @@ func main() {
 	pamRes := pamFunc(pamFlags)
 	user, _ := tx.GetItem(pam.User)
 
-	printPamResult(fmt.Sprintf(resultFormat, user), pamRes)
+	printPamResult(runnerAction.Result(), user, pamRes)
 
 	// Simulate setting auth broker as default.
-	printPamResult(pam_test.RunnerResultActionAcctMgmt, tx.AcctMgmt(pamFlags))
+	printPamResult(pam_test.RunnerResultActionAcctMgmt, user, tx.AcctMgmt(pamFlags))
 }
 
 func noConversationHandler(style pam.Style, msg string) (string, error) {
@@ -177,7 +175,11 @@ func simpleConversationHandler(style pam.Style, msg string) (string, error) {
 	return "", nil
 }
 
-func printPamResult(action string, result error) {
+func printPamResult(resultAction pam_test.RunnerResultAction, user string, result error) {
+	if user == "" {
+		user = "<unset>"
+	}
+	action := resultAction.Message(user)
 	var pamErr pam.Error
 	if errors.As(result, &pamErr) {
 		// If we got a test ignore error, then let's set it back to its actual meaning.

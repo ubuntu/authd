@@ -15,6 +15,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd"
 	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -321,4 +322,26 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData) string 
 	}
 
 	return tapeString
+}
+
+func requireRunnerResultForUser(t *testing.T, sessionMode authd.SessionMode, user, goldenContent string) {
+	t.Helper()
+
+	// Only check the last 50 lines of the golden file, because that's where
+	// the result is printed, while printing the full output on failure is too much.
+	goldenLines := strings.Split(goldenContent, "\n")
+	goldenContent = strings.Join(goldenLines[max(0, len(goldenLines)-50):], "\n")
+
+	require.Contains(t, goldenContent, pam_test.RunnerAction(sessionMode).Result().Message(user),
+		"Golden file does not include required value, consider increasing the terminal size:\n%s",
+		goldenContent)
+	require.Contains(t, goldenContent, pam_test.RunnerResultActionAcctMgmt.String(),
+		"Golden file does not include required value, consider increasing the terminal size:\n%s",
+		goldenContent)
+}
+
+func requireRunnerResult(t *testing.T, sessionMode authd.SessionMode, goldenContent string) {
+	t.Helper()
+
+	requireRunnerResultForUser(t, sessionMode, "", goldenContent)
 }

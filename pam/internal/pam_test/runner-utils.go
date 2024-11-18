@@ -1,5 +1,11 @@
 package pam_test
 
+import (
+	"fmt"
+
+	"github.com/ubuntu/authd"
+)
+
 const (
 	// RunnerEnvLogFile is the environment variable used by the test client to set the log file.
 	RunnerEnvLogFile = "AUTHD_PAM_RUNNER_LOG_FILE"
@@ -19,11 +25,80 @@ const (
 	RunnerEnvService = "AUTHD_PAM_RUNNER_SERVICE"
 )
 
+// RunnerAction is the type for Pam Runner actions.
+type RunnerAction authd.SessionMode
+
 const (
-	// RunnerResultActionAuthenticateFormat is the format string for Authentication action.
-	RunnerResultActionAuthenticateFormat = "PAM Authenticate() for user %q"
-	// RunnerResultActionChangeAuthTokFormat is the format string for ChangeAuthTok action.
-	RunnerResultActionChangeAuthTokFormat = "PAM ChangeAuthTok() for user %q"
-	// RunnerResultActionAcctMgmt is the string for the AcctMgmt action.
-	RunnerResultActionAcctMgmt = "PAM AcctMgmt()"
+	// RunnerActionLogin is the runner action for login operation.
+	RunnerActionLogin = RunnerAction(authd.SessionMode_AUTH)
+	// RunnerActionPasswd is the runner action for passwd operation.
+	RunnerActionPasswd = RunnerAction(authd.SessionMode_PASSWD)
 )
+
+// RunnerActionFromString gets the [RunnerAction] from its string representation.
+func RunnerActionFromString(action string) RunnerAction {
+	switch action {
+	case RunnerActionLogin.String():
+		return RunnerActionLogin
+	case RunnerActionPasswd.String():
+		return RunnerActionPasswd
+	default:
+		panic("Unknown PAM operation: " + action)
+	}
+}
+
+func (action RunnerAction) String() string {
+	switch action {
+	case RunnerActionLogin:
+		return "login"
+	case RunnerActionPasswd:
+		return "passwd"
+	default:
+		panic(fmt.Sprintf("Invalid PAM operation %d", action))
+	}
+}
+
+// Result returns the [RunnerResultAction] for the provided [RunnerAction].
+func (action RunnerAction) Result() RunnerResultAction {
+	switch action {
+	case RunnerActionLogin:
+		return RunnerResultActionAuthenticate
+	case RunnerActionPasswd:
+		return RunnerResultActionChangeAuthTok
+	default:
+		panic(fmt.Sprintf("Invalid PAM operation %d", action))
+	}
+}
+
+// RunnerResultAction is the type for Pam Runner actions results.
+type RunnerResultAction int
+
+const (
+	// RunnerResultActionAuthenticate is the string for Authentication action.
+	RunnerResultActionAuthenticate RunnerResultAction = iota
+	// RunnerResultActionChangeAuthTok is the string for ChangeAuthTok action.
+	RunnerResultActionChangeAuthTok
+	// RunnerResultActionAcctMgmt is the string for the AcctMgmt action.
+	RunnerResultActionAcctMgmt
+)
+
+func (result RunnerResultAction) String() string {
+	switch result {
+	case RunnerResultActionAuthenticate:
+		return "PAM Authenticate()"
+	case RunnerResultActionChangeAuthTok:
+		return "PAM ChangeAuthTok()"
+	case RunnerResultActionAcctMgmt:
+		return "PAM AcctMgmt()"
+	default:
+		panic(fmt.Sprintf("Invalid PAM result %d", result))
+	}
+}
+
+// Message returns the result message for the [PamResultMessage] that the runner writes.
+func (result RunnerResultAction) Message(user string) string {
+	if user == "" || result == RunnerResultActionAcctMgmt {
+		return result.String()
+	}
+	return fmt.Sprintf("%s for user %q", result, user)
+}

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -34,6 +35,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		clientOptions      clientOptions
 		currentUserNotRoot bool
 		wantLocalGroups    bool
+		skipRunnerCheck    bool
 	}{
 		"Authenticate user successfully": {
 			tape:          "simple_auth",
@@ -236,8 +238,9 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		// FIXME: While this works now, it requires proper handling via signal_fd
 		"Exit authd if user sigints": {
-			tape:          "sigint",
-			clientOptions: clientOptions{PamUser: "user-integration-sigint"},
+			tape:            "sigint",
+			clientOptions:   clientOptions{PamUser: "user-integration-sigint"},
+			skipRunnerCheck: true,
 		},
 	}
 	for name, tc := range tests {
@@ -277,6 +280,10 @@ func TestNativeAuthenticate(t *testing.T) {
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
 			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, testutils.GoldenPath(t)+".gpasswd_out")
+
+			if !tc.skipRunnerCheck {
+				requireRunnerResultForUser(t, authd.SessionMode_AUTH, tc.clientOptions.PamUser, got)
+			}
 		})
 	}
 }
@@ -298,6 +305,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		tapeVariables map[string]string
 
 		currentUserNotRoot bool
+		skipRunnerCheck    bool
 	}{
 		"Change password successfully and authenticate with new one": {
 			tape: "passwd_simple",
@@ -341,7 +349,8 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		},
 		// FIXME: While this works now, it requires proper handling via signal_fd
 		"Exit authd if user sigints": {
-			tape: "passwd_sigint",
+			tape:            "passwd_sigint",
+			skipRunnerCheck: true,
 		},
 	}
 	for name, tc := range tests {
@@ -365,6 +374,10 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			got := td.ExpectedOutput(t, outDir)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
+
+			if !tc.skipRunnerCheck {
+				requireRunnerResult(t, authd.SessionMode_PASSWD, got)
+			}
 		})
 	}
 }
