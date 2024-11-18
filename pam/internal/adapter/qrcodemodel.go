@@ -10,7 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/termenv"
 	"github.com/skip2/go-qrcode"
-	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/brokers/layouts"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/log"
 )
