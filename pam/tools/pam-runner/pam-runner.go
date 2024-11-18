@@ -113,15 +113,15 @@ func main() {
 		}
 	}
 
-	var resultMsg string
+	var resultFormat string
 	var pamFunc func(pam.Flags) error
 	switch action {
 	case "login":
 		pamFunc = tx.Authenticate
-		resultMsg = "PAM Authenticate() for user %q"
+		resultFormat = pam_test.RunnerResultActionAuthenticateFormat
 	case "passwd":
 		pamFunc = tx.ChangeAuthTok
-		resultMsg = "PAM ChangeAuthTok() for user %q"
+		resultFormat = pam_test.RunnerResultActionChangeAuthTokFormat
 	default:
 		panic("Unknown PAM operation: " + action)
 	}
@@ -130,10 +130,10 @@ func main() {
 	pamRes := pamFunc(pamFlags)
 	user, _ := tx.GetItem(pam.User)
 
-	printPamResult(fmt.Sprintf(resultMsg, user), pamRes)
+	printPamResult(fmt.Sprintf(resultFormat, user), pamRes)
 
 	// Simulate setting auth broker as default.
-	printPamResult("PAM AcctMgmt()", tx.AcctMgmt(pamFlags))
+	printPamResult(pam_test.RunnerResultActionAcctMgmt, tx.AcctMgmt(pamFlags))
 }
 
 func noConversationHandler(style pam.Style, msg string) (string, error) {

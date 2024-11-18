@@ -18,3 +18,12 @@ const (
 	// RunnerEnvService is the environment variable used by the test client to set the PAM service name.
 	RunnerEnvService = "AUTHD_PAM_RUNNER_SERVICE"
 )
+
+const (
+	// RunnerResultActionAuthenticateFormat is the format string for Authentication action.
+	RunnerResultActionAuthenticateFormat = "PAM Authenticate() for user %q"
+	// RunnerResultActionChangeAuthTokFormat is the format string for ChangeAuthTok action.
+	RunnerResultActionChangeAuthTokFormat = "PAM ChangeAuthTok() for user %q"
+	// RunnerResultActionAcctMgmt is the string for the AcctMgmt action.
+	RunnerResultActionAcctMgmt = "PAM AcctMgmt()"
+)
