@@ -63,6 +63,8 @@ PAM Authenticate()
 PAM AcctMgmt()
   User: "user-integration-switch-broker"
   Result: error: PAM exit code: 26
+    Critical error - immediate abort
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
@@ -96,4 +98,6 @@ PAM Authenticate()
 PAM AcctMgmt()
   User: "user-integration-switch-broker"
   Result: error: PAM exit code: 26
+    Critical error - immediate abort
+>
 ────────────────────────────────────────────────────────────────────────────────

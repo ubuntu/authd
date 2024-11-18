@@ -42,6 +42,8 @@ PAM ChangeAuthTok()
 PAM AcctMgmt()
   User: "user-local-broker"
   Result: error: PAM exit code: 26
+    Critical error - immediate abort
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
   Select your provider
@@ -75,4 +77,6 @@ PAM ChangeAuthTok()
 PAM AcctMgmt()
   User: "user-local-broker"
   Result: error: PAM exit code: 26
+    Critical error - immediate abort
+>
 ────────────────────────────────────────────────────────────────────────────────

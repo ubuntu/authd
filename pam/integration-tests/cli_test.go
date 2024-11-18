@@ -101,7 +101,8 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape: "switch_username",
 		},
 		"Authenticate user switching to local broker": {
-			tape: "switch_local_broker",
+			tape:         "switch_local_broker",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
@@ -135,14 +136,16 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape: "max_attempts",
 		},
 		"Deny authentication if user does not exist": {
-			tape: "unexistent_user",
+			tape:         "unexistent_user",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Deny authentication if newpassword does not match required criteria": {
 			tape: "bad_password",
 		},
 
 		"Exit authd if local broker is selected": {
-			tape: "local_broker",
+			tape:         "local_broker",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Exit authd if user sigints": {
 			tape: "sigint",
@@ -231,7 +234,8 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			tape: "passwd_auth_fail",
 		},
 		"Prevent change password if user does not exist": {
-			tape: "passwd_unexistent_user",
+			tape:         "passwd_unexistent_user",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Prevent change password if current user is not root as can not authenticate": {
 			tape:               "passwd_not_root",
@@ -239,7 +243,8 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		},
 
 		"Exit authd if local broker is selected": {
-			tape: "passwd_local_broker",
+			tape:         "passwd_local_broker",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Exit authd if user sigints": {
 			tape: "passwd_sigint",
