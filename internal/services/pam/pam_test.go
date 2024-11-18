@@ -17,9 +17,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/brokers/auth"
+	"github.com/ubuntu/authd/brokers/layouts"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/brokers/auth"
-	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/services/permissions"

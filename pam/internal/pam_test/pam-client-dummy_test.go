@@ -16,8 +16,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/brokers/auth"
-	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/brokers/auth"
+	"github.com/ubuntu/authd/brokers/layouts"
 )
 
 var errTest = errors.New("an error")

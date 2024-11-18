@@ -10,8 +10,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/brokers/layouts"
-	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
+	"github.com/ubuntu/authd/brokers/layouts"
+	"github.com/ubuntu/authd/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/log"
 )
 

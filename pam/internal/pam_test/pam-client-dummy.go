@@ -15,9 +15,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/brokers/auth"
-	"github.com/ubuntu/authd/internal/brokers/layouts"
-	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
+	"github.com/ubuntu/authd/brokers/auth"
+	"github.com/ubuntu/authd/brokers/layouts"
+	"github.com/ubuntu/authd/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/log"
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"

@@ -12,7 +12,7 @@ import (
 	"github.com/muesli/termenv"
 	"github.com/skip2/go-qrcode"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/brokers/layouts"
 	"github.com/ubuntu/authd/internal/log"
 )
 
