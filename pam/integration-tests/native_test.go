@@ -46,7 +46,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with mfa": {
 			tape:          "mfa_auth",
-			tapeSettings:  []tapeSetting{{vhsHeight, 1000}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 1200}},
 			clientOptions: clientOptions{PamUser: "user-mfa-integration-auth"},
 		},
 		"Authenticate user with form mode with button": {
@@ -111,7 +111,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with mfa and reset password while enforcing policy": {
 			tape:          "mfa_reset_pwquality_auth",
-			tapeSettings:  []tapeSetting{{vhsHeight, 1000}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 3000}},
 			clientOptions: clientOptions{PamUser: "user-mfa-with-reset-integration-pwquality"},
 		},
 		"Authenticate user and offer password reset": {
@@ -138,6 +138,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
+			tapeSettings:    []tapeSetting{{vhsHeight, 700}},
 			wantLocalGroups: true,
 			clientOptions:   clientOptions{PamUser: "user-local-groups"},
 		},
@@ -316,7 +317,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		},
 		"Change passwd after MFA auth": {
 			tape:         "passwd_mfa",
-			tapeSettings: []tapeSetting{{vhsHeight, 1100}},
+			tapeSettings: []tapeSetting{{vhsHeight, 1300}},
 		},
 
 		"Retry if new password is rejected by broker": {

@@ -753,6 +753,8 @@ PAM ChangeAuthTok()
   Result: success
 PAM AcctMgmt()
   User: "user-mfa"
+  Result: success
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
 Username: user-mfa
@@ -826,4 +828,6 @@ PAM ChangeAuthTok()
   Result: success
 PAM AcctMgmt()
   User: "user-mfa"
+  Result: success
+>
 ────────────────────────────────────────────────────────────────────────────────

@@ -415,6 +415,7 @@ PAM Authenticate()
 PAM AcctMgmt()
   User: "user-mfa-integration-auth"
   Result: success
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Provider selection ==
@@ -482,6 +483,7 @@ PAM Authenticate()
 PAM AcctMgmt()
   User: "user-mfa-integration-auth"
   Result: success
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Provider selection ==
@@ -549,4 +551,5 @@ PAM Authenticate()
 PAM AcctMgmt()
   User: "user-mfa-integration-auth"
   Result: success
+>
 ────────────────────────────────────────────────────────────────────────────────
