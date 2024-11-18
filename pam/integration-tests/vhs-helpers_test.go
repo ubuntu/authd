@@ -6,6 +6,7 @@ import (
 	"math"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -138,6 +139,12 @@ func (td tapeData) RunVhs(t *testing.T, tapesDir, outDir string, cliEnv []string
 
 	// If vhs is installed with "go install", we need to add GOPATH to PATH.
 	cmd.Env = append(cmd.Env, prependBinToPath(t))
+
+	u, err := user.Current()
+	require.NoError(t, err, "Setup: getting current user")
+	if u.Name == "root" || os.Getenv("SCHROOT_CHROOT_NAME") != "" {
+		cmd.Env = append(cmd.Env, "VHS_NO_SANDBOX=1")
+	}
 
 	// Move some of the environment specific-variables from the tape to the launched process
 	if e, ok := td.Env[pam_test.RunnerEnvLogFile]; ok {
