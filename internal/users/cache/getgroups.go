@@ -31,6 +31,74 @@ func (c *Cache) GroupByName(name string) (GroupDB, error) {
 	return getGroup(c, groupByNameBucketName, name)
 }
 
+// UserGroups returns all groups for a given user or an error if the database is corrupted or no entry was found.
+func (c *Cache) UserGroups(uid uint32) ([]GroupDB, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	var groups []GroupDB
+	err := c.db.View(func(tx *bbolt.Tx) error {
+		buckets, err := getAllBuckets(tx)
+		if err != nil {
+			return err
+		}
+
+		// Get group ids for the user.
+		groupsForUser, err := getFromBucket[userToGroupsDB](buckets[userToGroupsBucketName], uid)
+		if err != nil {
+			return err
+		}
+
+		for _, gid := range groupsForUser.GIDs {
+			// we should always get an entry
+			g, err := getFromBucket[groupDB](buckets[groupByIDBucketName], gid)
+			if err != nil {
+				return err
+			}
+
+			// Get user names in the group.
+			users, err := getUsersInGroup(buckets, gid)
+			if err != nil {
+				return err
+			}
+
+			groups = append(groups, NewGroupDB(g.Name, g.GID, users))
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return groups, nil
+}
+
+// UserLocalGroups returns all local groups for a given user or an error if the database is corrupted or no entry was found.
+func (c *Cache) UserLocalGroups(uid uint32) ([]string, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	var localGroups []string
+	err := c.db.View(func(tx *bbolt.Tx) error {
+		buckets, err := getAllBuckets(tx)
+		if err != nil {
+			return err
+		}
+
+		localGroups, err = getFromBucket[[]string](buckets[userToLocalGroupsBucketName], uid)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return localGroups, nil
+}
+
 // AllGroups returns all groups or an error if the database is corrupted.
 func (c *Cache) AllGroups() (all []GroupDB, err error) {
 	c.mu.RLock()

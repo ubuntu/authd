@@ -19,13 +19,14 @@ var (
 )
 
 const (
-	userByNameBucketName   = "UserByName"
-	userByIDBucketName     = "UserByID"
-	groupByNameBucketName  = "GroupByName"
-	groupByIDBucketName    = "GroupByID"
-	userToGroupsBucketName = "UserToGroups"
-	groupToUsersBucketName = "GroupToUsers"
-	userToBrokerBucketName = "UserToBroker"
+	userByNameBucketName        = "UserByName"
+	userByIDBucketName          = "UserByID"
+	groupByNameBucketName       = "GroupByName"
+	groupByIDBucketName         = "GroupByID"
+	userToGroupsBucketName      = "UserToGroups"
+	groupToUsersBucketName      = "GroupToUsers"
+	userToBrokerBucketName      = "UserToBroker"
+	userToLocalGroupsBucketName = "UserToLocalGroups"
 )
 
 var (
@@ -33,7 +34,7 @@ var (
 		[]byte(userByNameBucketName), []byte(userByIDBucketName),
 		[]byte(groupByNameBucketName), []byte(groupByIDBucketName),
 		[]byte(userToGroupsBucketName), []byte(groupToUsersBucketName),
-		[]byte(userToBrokerBucketName),
+		[]byte(userToBrokerBucketName), []byte(userToLocalGroupsBucketName),
 	}
 )
 

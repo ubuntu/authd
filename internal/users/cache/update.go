@@ -14,7 +14,7 @@ import (
 )
 
 // UpdateUserEntry inserts or updates user and group buckets from the user information.
-func (c *Cache) UpdateUserEntry(usr UserDB, groupContents []GroupDB) error {
+func (c *Cache) UpdateUserEntry(usr UserDB, authdGroups []GroupDB, localGroups []string) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -41,14 +41,17 @@ func (c *Cache) UpdateUserEntry(usr UserDB, groupContents []GroupDB) error {
 		}
 
 		/* 2. Handle groups update */
-		if err := updateGroups(buckets, groupContents); err != nil {
+		if err := updateGroups(buckets, authdGroups); err != nil {
 			return err
 		}
 
 		/* 3. Users and groups mapping buckets */
-		if err := updateUsersAndGroups(buckets, userDB.UID, groupContents, previousGroupsForCurrentUser.GIDs); err != nil {
+		if err := updateUsersAndGroups(buckets, userDB.UID, authdGroups, previousGroupsForCurrentUser.GIDs); err != nil {
 			return err
 		}
+
+		/* 4. Update user to local groups bucket */
+		updateBucket(buckets[userToLocalGroupsBucketName], userDB.UID, localGroups)
 
 		return nil
 	})

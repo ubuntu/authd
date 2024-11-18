@@ -18,3 +18,5 @@ UserToBroker:
 UserToGroups:
     "77777": '{"UID":77777,"GIDs":[88888]}'
     "1714308795": '{"UID":1714308795,"GIDs":[1714308795,88888]}'
+UserToLocalGroups:
+    "1714308795": "null"

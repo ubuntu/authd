@@ -14,3 +14,5 @@ UserByName:
 UserToBroker: {}
 UserToGroups:
     "1569396774": '{"UID":1569396774,"GIDs":[1569396774,1369382419]}'
+UserToLocalGroups:
+    "1569396774": "null"

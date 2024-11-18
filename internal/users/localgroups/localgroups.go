@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/sliceutils"
 	"github.com/ubuntu/decorate"
 )
 
@@ -34,7 +35,8 @@ type Option func(*options)
 var localGroupsMu = &sync.RWMutex{}
 
 // Update synchronizes for the given user the local group list with the current group list from UserInfo.
-func Update(username string, groups []string, args ...Option) (err error) {
+func Update(username string, newGroups []string, oldGroups []string, args ...Option) (err error) {
+	log.Debugf(context.TODO(), "Updating local groups for user %q, new groups: %v, old groups: %v", username, newGroups, oldGroups)
 	defer decorate.OnError(&err, "could not update local groups for user %q", username)
 
 	opts := defaultOptions
@@ -42,14 +44,17 @@ func Update(username string, groups []string, args ...Option) (err error) {
 		arg(&opts)
 	}
 
-	currentLocalGroups, err := existingLocalGroups(username, opts.groupPath)
+	currentGroups, err := existingLocalGroups(username, opts.groupPath)
 	if err != nil {
 		return err
 	}
 
 	localGroupsMu.Lock()
 	defer localGroupsMu.Unlock()
-	groupsToAdd, groupsToRemove := computeGroupOperation(groups, currentLocalGroups)
+	groupsToAdd := sliceutils.Difference(newGroups, currentGroups)
+	log.Debugf(context.TODO(), "Adding to groups: %v", groupsToAdd)
+	groupsToRemove := sliceutils.Difference(oldGroups, newGroups)
+	log.Debugf(context.TODO(), "Removing from groups: %v", groupsToRemove)
 
 	for _, g := range groupsToRemove {
 		args := opts.gpasswdCmd[1:]
@@ -108,38 +113,6 @@ func existingLocalGroups(user, groupPath string) (groups []string, err error) {
 	}
 
 	return groups, nil
-}
-
-// computeGroupOperation returns which local groups to add and which to remove comparing with the existing group state.
-// Only local groups (with no GID) are considered from GroupInfo.
-func computeGroupOperation(newGroupsInfo []string, currentLocalGroups []string) (groupsToAdd []string, groupsToRemove []string) {
-	newGroups := make(map[string]struct{})
-	for _, grp := range newGroupsInfo {
-		newGroups[grp] = struct{}{}
-	}
-
-	currGroups := make(map[string]struct{})
-	for _, g := range currentLocalGroups {
-		currGroups[g] = struct{}{}
-	}
-
-	for g := range newGroups {
-		// already in current group file
-		if _, ok := currGroups[g]; ok {
-			continue
-		}
-		groupsToAdd = append(groupsToAdd, g)
-	}
-
-	for g := range currGroups {
-		// was in that group but not anymore
-		if _, ok := newGroups[g]; ok {
-			continue
-		}
-		groupsToRemove = append(groupsToRemove, g)
-	}
-
-	return groupsToAdd, groupsToRemove
 }
 
 // CleanUser removes the user from all local groups.

@@ -156,9 +156,10 @@ func TestUpdateUserEntry(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		userCase   string
-		groupCases []string
-		dbFile     string
+		userCase    string
+		groupCases  []string
+		localGroups []string
+		dbFile      string
 
 		wantErr bool
 	}{
@@ -219,7 +220,7 @@ func TestUpdateUserEntry(t *testing.T) {
 			}
 			user.GID = groups[0].GID
 
-			err := c.UpdateUserEntry(user, groups)
+			err := c.UpdateUserEntry(user, groups, tc.localGroups)
 			if tc.wantErr {
 				require.Error(t, err, "UpdateFromUserInfo should return an error but didn't")
 				return

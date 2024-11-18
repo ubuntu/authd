@@ -13,3 +13,5 @@
         "1111": '"broker-id"'
     UserToGroups:
         "1111": '{"UID":1111,"GIDs":[1526760316]}'
+    UserToLocalGroups:
+        "1111": "null"

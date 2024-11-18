@@ -34,6 +34,7 @@ func (c *Cache) DeleteUser(uid uint32) error {
 // deleteUserFromGroup removes the uid from the group.
 // If the group is empty after the uid gets removed, the group is deleted from the database.
 func deleteUserFromGroup(buckets map[string]bucketWithName, uid, gid uint32) error {
+	log.Debugf(context.TODO(), "Removing user %d from group %d", uid, gid)
 	groupToUsers, err := getFromBucket[groupToUsersDB](buckets[groupToUsersBucketName], gid)
 	if err != nil && !errors.Is(err, NoDataFoundError{}) {
 		return err
