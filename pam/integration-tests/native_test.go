@@ -44,17 +44,17 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with mfa": {
 			tape:          "mfa_auth",
-			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 1000}},
 			clientOptions: clientOptions{PamUser: "user-mfa-integration-auth"},
 		},
 		"Authenticate user with form mode with button": {
 			tape:          "form_with_button",
-			tapeSettings:  []tapeSetting{{vhsHeight, 600}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
 			clientOptions: clientOptions{PamUser: "user-integration-form-w-button"},
 		},
 		"Authenticate user with qr code": {
 			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 2300}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 3000}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{PamUser: "user-integration-qr-code"},
 		},

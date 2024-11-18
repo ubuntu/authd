@@ -57,7 +57,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in a TTY": {
 			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 650}},
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty",
 				Term:    "linux",
@@ -65,7 +65,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in a TTY session": {
 			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 650}},
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty-session",
 				Term:    "xterm-256color", SessionType: "tty",
@@ -73,7 +73,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in screen": {
 			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 650}},
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-screen",
 				Term:    "screen",
@@ -81,7 +81,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code after many regenerations": {
 			tape:         "qr_code_quick_regenerate",
-			tapeSettings: []tapeSetting{{vhsHeight, 650}},
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Authenticate user and reset password while enforcing policy": {
 			tape: "mandatory_password_reset",

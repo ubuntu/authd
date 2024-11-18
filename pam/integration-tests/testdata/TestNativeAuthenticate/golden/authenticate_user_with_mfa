@@ -284,6 +284,9 @@ Choose your authentication method:
 > 2
 == Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33... or accept request on web interface:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Provider selection ==
@@ -337,6 +340,14 @@ Choose your authentication method:
 > 2
 == Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33... or accept request on web interface:
+>
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Provider selection ==
@@ -390,6 +401,17 @@ Choose your authentication method:
 > 2
 == Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33... or accept request on web interface:
+>
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+>
+PAM Authenticate() for user "user-mfa-integration-auth" exited with success
+PAM AcctMgmt() exited with success
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Provider selection ==
@@ -443,6 +465,17 @@ Choose your authentication method:
 > 2
 == Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33... or accept request on web interface:
+>
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+>
+PAM Authenticate() for user "user-mfa-integration-auth" exited with success
+PAM AcctMgmt() exited with success
+>
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Provider selection ==
@@ -496,4 +529,15 @@ Choose your authentication method:
 > 2
 == Use your phone +33... ==
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33... or accept request on web interface:
+>
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+>
+PAM Authenticate() for user "user-mfa-integration-auth" exited with success
+PAM AcctMgmt() exited with success
+>
 ────────────────────────────────────────────────────────────────────────────────
