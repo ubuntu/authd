@@ -9,6 +9,7 @@ import (
 
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/golden"
 	"github.com/ubuntu/authd/internal/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
@@ -231,7 +232,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		"Prevent change password if user does not exist": {
 			tape: "passwd_unexistent_user",
 		},
-		"Prevent change password if current user is not root as can't authenticate": {
+		"Prevent change password if current user is not root as can not authenticate": {
 			tape:               "passwd_not_root",
 			currentUserNotRoot: true,
 		},

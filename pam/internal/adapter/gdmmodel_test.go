@@ -691,7 +691,7 @@ func TestGdmModel(t *testing.T) {
 			wantStage:      pam_proto.Stage_challenge,
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
-		"Authenticated after client-side user, broker and authMode selection": {
+		"Authenticated after client-side user and broker and authMode selection": {
 			clientOptions: append(slices.Clone(multiBrokerClientOptions),
 				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
 			),
@@ -732,7 +732,7 @@ func TestGdmModel(t *testing.T) {
 			wantGdmAuthRes: []*authd.IAResponse{{Access: brokers.AuthGranted}},
 			wantExitStatus: PamSuccess{BrokerID: secondBrokerInfo.Id},
 		},
-		"Authenticated after client-side user, broker and authMode selection and after various retries": {
+		"Authenticated after client-side user and broker and authMode selection and after various retries": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
 				pam_test.WithIsAuthenticatedMaxRetries(1),
@@ -789,7 +789,7 @@ func TestGdmModel(t *testing.T) {
 			wantStage:      pam_proto.Stage_challenge,
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
-		"Cancelled auth after client-side user, broker and authMode selection": {
+		"Cancelled auth after client-side user and broker and authMode selection": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithIsAuthenticatedReturn(&authd.IAResponse{
 					Access: brokers.AuthCancelled,
@@ -1853,7 +1853,7 @@ func TestGdmModel(t *testing.T) {
 				msg:    "invalid json data from provider: invalid character 'i' looking for beginning of value",
 			},
 		},
-		"Error on authentication client denied because of wrong password, with error message": {
+		"Error on authentication client denied because of wrong password - with error message": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
 				pam_test.WithIsAuthenticatedMessage("you're not allowed!"),
