@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/golden"
 	"github.com/ubuntu/authd/internal/testutils"
 )
 
@@ -83,7 +84,7 @@ func TestNewBroker(t *testing.T) {
 
 			gotString := fmt.Sprintf("ID: %s\nName: %s\nBrand Icon: %s\n", got.ID, got.Name, got.BrandIconPath)
 
-			wantString := testutils.LoadWithUpdateFromGolden(t, gotString)
+			wantString := golden.LoadWithUpdate(t, gotString)
 			require.Equal(t, wantString, gotString, "NewBroker should return the expected broker, but did not")
 		})
 	}
@@ -135,7 +136,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 			require.NoError(t, err, "Post: error when marshaling result")
 
 			got := "MODES:\n" + string(modesStr) + "\n\nVALIDATORS:\n" + b.LayoutValidatorsString(prefixID(t, tc.sessionID))
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "GetAuthenticationModes should return the expected modes, but did not")
 		})
 	}
@@ -195,7 +196,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			}
 			require.NoError(t, err, "SelectAuthenticationMode should not return an error, but did")
 
-			wantUI := testutils.LoadWithUpdateFromGoldenYAML(t, gotUI)
+			wantUI := golden.LoadWithUpdateYAML(t, gotUI)
 			require.Equal(t, wantUI, gotUI, "SelectAuthenticationMode should return the expected mode UI, but did not")
 		})
 	}
@@ -274,7 +275,7 @@ func TestIsAuthenticated(t *testing.T) {
 
 			<-done
 			gotStr := firstCallReturn + secondCallReturn
-			want := testutils.LoadWithUpdateFromGolden(t, gotStr)
+			want := golden.LoadWithUpdate(t, gotStr)
 			require.Equal(t, want, gotStr, "IsAuthenticated should return the expected combined data, but did not")
 		})
 	}
@@ -342,7 +343,7 @@ func TestUserPreCheck(t *testing.T) {
 			}
 			require.NoError(t, err, "UserPreCheck should not return an error, but did")
 
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "UserPreCheck should return the expected data, but did not")
 		})
 	}

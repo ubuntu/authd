@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testutils "github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/cache"
 	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
@@ -79,10 +79,10 @@ func TestNewManager(t *testing.T) {
 			got, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t)+".gpasswd.output")
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t)+".gpasswd.output")
 		})
 	}
 }
@@ -234,10 +234,10 @@ func TestUpdateUser(t *testing.T) {
 			got, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := golden.LoadWithUpdateYAML(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t)+".gpasswd.output")
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t)+".gpasswd.output")
 		})
 	}
 }
@@ -318,7 +318,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 			got, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := golden.LoadWithUpdateYAML(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
 		})
 	}
@@ -354,7 +354,7 @@ func TestUserByName(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := golden.LoadWithUpdateYAML(t, got)
 			require.Equal(t, want, got, "UserByName should return the expected user, but did not")
 		})
 	}
@@ -391,7 +391,7 @@ func TestUserByID(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := golden.LoadWithUpdateYAML(t, got)
 			require.Equal(t, want, got, "UserByID should return the expected user, but did not")
 		})
 	}
@@ -424,7 +424,7 @@ func TestAllUsers(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := golden.LoadWithUpdateYAML(t, got)
 			require.Equal(t, want, got, "AllUsers should return the expected users, but did not")
 		})
 	}
@@ -460,7 +460,7 @@ func TestGroupByName(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := golden.LoadWithUpdateYAML(t, got)
 			require.Equal(t, want, got, "GroupByName should return the expected group, but did not")
 		})
 	}
@@ -496,7 +496,7 @@ func TestGroupByID(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := golden.LoadWithUpdateYAML(t, got)
 			require.Equal(t, want, got, "GroupByID should return the expected group, but did not")
 		})
 	}
@@ -530,7 +530,7 @@ func TestAllGroups(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := golden.LoadWithUpdateYAML(t, got)
 			require.Equal(t, want, got, "AllGroups should return the expected groups, but did not")
 		})
 	}
@@ -567,7 +567,7 @@ func TestShadowByName(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := golden.LoadWithUpdateYAML(t, got)
 			require.Equal(t, want, got, "ShadowByName should return the expected user, but did not")
 		})
 	}
@@ -600,7 +600,7 @@ func TestAllShadows(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := golden.LoadWithUpdateYAML(t, got)
 			require.Equal(t, want, got, "AllShadows should return the expected users, but did not")
 		})
 	}

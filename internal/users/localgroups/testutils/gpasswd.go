@@ -14,7 +14,7 @@ import (
 	_ "unsafe"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/golden"
 )
 
 // Mockgpasswd is the gpasswd mock.
@@ -116,7 +116,7 @@ func RequireGPasswdOutput(t *testing.T, destCmdsFile, goldenGpasswdPath string) 
 
 	// TODO: this should be extracted in testutils, but still allow post-treatement of file like sorting.
 	referenceFilePath := goldenGpasswdPath
-	if testutils.UpdateEnabled() {
+	if golden.UpdateEnabled() {
 		// The file may already not exists.
 		_ = os.Remove(goldenGpasswdPath)
 		referenceFilePath = destCmdsFile
@@ -132,7 +132,7 @@ func RequireGPasswdOutput(t *testing.T, destCmdsFile, goldenGpasswdPath string) 
 	}
 
 	gotGPasswd := idempotentGPasswdOutput(t, destCmdsFile)
-	wantGPasswd := testutils.LoadWithUpdateFromGolden(t, gotGPasswd, testutils.WithGoldenPath(goldenGpasswdPath))
+	wantGPasswd := golden.LoadWithUpdate(t, gotGPasswd, golden.WithPath(goldenGpasswdPath))
 	require.Equal(t, wantGPasswd, gotGPasswd, "IsAuthenticated should return the expected combined data, but did not")
 }
 

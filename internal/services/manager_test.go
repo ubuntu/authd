@@ -12,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/golden"
 	"github.com/ubuntu/authd/internal/services"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
@@ -68,7 +69,7 @@ func TestRegisterGRPCServices(t *testing.T) {
 			return cmp.Compare(a.Name, b.Name)
 		})
 	}
-	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+	want := golden.LoadWithUpdateYAML(t, got)
 	requireEqualServices(t, want, got)
 }
 

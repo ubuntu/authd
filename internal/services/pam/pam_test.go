@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/golden"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/services/permissions"
@@ -109,7 +110,7 @@ func TestAvailableBrokers(t *testing.T) {
 			for _, broker := range got {
 				broker.Id = broker.Name + "_ID"
 			}
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := golden.LoadWithUpdateYAML(t, got)
 			require.Equal(t, want, got, "AvailableBrokers returned unexpected brokers")
 		})
 	}
@@ -250,7 +251,7 @@ func TestSelectBroker(t *testing.T) {
 			got := fmt.Sprintf("ID: %s\nEncryption Key: %s\n",
 				strings.ReplaceAll(sbResp.GetSessionId(), tc.brokerID, "BROKER_ID"),
 				sbResp.GetEncryptionKey())
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "SelectBroker returned an unexpected response")
 		})
 	}
@@ -315,7 +316,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 			require.NoError(t, err, "GetAuthenticationModes should not return an error, but did")
 
 			got := gamResp.GetAuthenticationModes()
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := golden.LoadWithUpdateYAML(t, got)
 			require.Equal(t, want, got, "GetAuthenticationModes returned an unexpected response")
 		})
 	}
@@ -405,7 +406,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			require.NoError(t, err, "SelectAuthenticationMode should not return an error, but did")
 
 			got := samResp.GetUiLayoutInfo()
-			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+			want := golden.LoadWithUpdateYAML(t, got)
 			require.Equal(t, want, got, "SelectAuthenticationMode should have returned the expected UI layout")
 		})
 	}
@@ -526,16 +527,16 @@ func TestIsAuthenticated(t *testing.T) {
 
 			got := firstCall + secondCall
 			got = permissionstestutils.IdempotentPermissionError(got)
-			want := testutils.LoadWithUpdateFromGolden(t, got, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "IsAuthenticated")))
+			want := golden.LoadWithUpdate(t, got, golden.WithPath("IsAuthenticated"))
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
 
 			// Check that cache has been updated too.
 			gotDB, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
-			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
+			wantDB := golden.LoadWithUpdate(t, gotDB, golden.WithPath("cache.db"))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, filepath.Join(testutils.GoldenPath(t), "gpasswd.output"))
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, filepath.Join(golden.Path(t), "gpasswd.output"))
 		})
 	}
 }
@@ -573,7 +574,7 @@ func TestIDGeneration(t *testing.T) {
 
 			gotDB, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
-			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
+			wantDB := golden.LoadWithUpdate(t, gotDB, golden.WithPath("cache.db"))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
 		})
 	}
@@ -633,7 +634,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			// Check that cache has been updated too.
 			gotDB, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
-			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
+			wantDB := golden.LoadWithUpdate(t, gotDB, golden.WithPath("cache.db"))
 			require.Equal(t, wantDB, gotDB, "SetDefaultBrokerForUser should update the cache database as expected")
 		})
 	}

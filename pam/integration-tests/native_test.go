@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
@@ -276,10 +276,10 @@ func TestNativeAuthenticate(t *testing.T) {
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, "native", outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
-			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, testutils.GoldenPath(t)+".gpasswd_out")
+			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, golden.Path(t)+".gpasswd_out")
 
 			if !tc.skipRunnerCheck {
 				requireRunnerResultForUser(t, authd.SessionMode_AUTH, tc.clientOptions.PamUser, got)
@@ -372,7 +372,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			td.AddClientOptions(t, clientOptions{})
 			td.RunVhs(t, "native", outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
 			if !tc.skipRunnerCheck {

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/golden"
 	"github.com/ubuntu/authd/internal/users/localgroups"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 )
@@ -80,7 +80,7 @@ func TestUpdateLocalGroups(t *testing.T) {
 				require.NoError(t, err, "UpdateLocalGroups should not have failed")
 			}
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t))
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
 		})
 	}
 }
@@ -133,7 +133,7 @@ func TestCleanLocalGroups(t *testing.T) {
 				require.NoError(t, err, "CleanupLocalGroups should not have failed")
 			}
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t))
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
 		})
 	}
 }
@@ -189,7 +189,7 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 				require.NoError(t, err, "CleanUserFromLocalGroups should not have failed")
 			}
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t))
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
 		})
 	}
 }

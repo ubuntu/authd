@@ -17,6 +17,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/golden"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
@@ -196,7 +197,7 @@ func saveArtifactsForDebug(t *testing.T, artifacts []string) {
 		return
 	}
 
-	tmpDir := filepath.Join(artifactsPath(t), testutils.GoldenPath(t))
+	tmpDir := filepath.Join(artifactsPath(t), golden.Path(t))
 	err := os.MkdirAll(tmpDir, 0750)
 	require.NoError(t, err, "TearDown: could not create temporary directory %q for artifacts", tmpDir)
 

@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/golden"
 	"github.com/ubuntu/authd/internal/users/cache"
 	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
 )
@@ -78,7 +78,7 @@ func TestNew(t *testing.T) {
 			got, err := cachetestutils.DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
 
 			// check database permission
@@ -229,7 +229,7 @@ func TestUpdateUserEntry(t *testing.T) {
 			got, err := cachetestutils.DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
 		})
 	}
@@ -420,7 +420,7 @@ func TestBrokerForUser(t *testing.T) {
 	// Get existing BrokerForUser entry
 	gotID, err := c.BrokerForUser("user1")
 	require.NoError(t, err, "BrokerForUser for an existent user should not return an error")
-	wantID := testutils.LoadWithUpdateFromGolden(t, gotID)
+	wantID := golden.LoadWithUpdate(t, gotID)
 	require.Equal(t, wantID, gotID, "BrokerForUser should return expected broker ID")
 
 	// Get unassigned broker to existent user
@@ -482,7 +482,7 @@ func TestDeleteUser(t *testing.T) {
 
 			got, err := cachetestutils.DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
 		})
 	}
@@ -517,6 +517,6 @@ func requireGetAssertions[E any](t *testing.T, got E, wantErr bool, wantErrType,
 	}
 	require.NoError(t, err)
 
-	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+	want := golden.LoadWithUpdateYAML(t, got)
 	require.Equal(t, want, got, "Did not get expected database entry")
 }
