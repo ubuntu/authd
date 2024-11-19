@@ -10,23 +10,23 @@ Type your MS Entra ID user name. The format is ```user@domain.name```
 
 Select the broker `Microsoft Entra ID`
 
-![image](https://github.com/ubuntu/authd/assets/1928546/153f2d85-b5ed-4fb2-802c-ad0a10f0e598)
+![image](../assets/gdm-select-broker.png)
 
 If MFA is enabled, a QR code and a login code are displayed.
 
-![image](https://github.com/ubuntu/authd/assets/1928546/94daf869-2fcb-47e8-aeb9-2f71ff0c3ff9)
+![image](../assets/gdm-qr.png)
 
 From a second device, flash the QR code or type the URL in a web browser, then follow the authentication process from your provider.
 
 Upon successful authentication, the user is prompted to enter a local password. This password can be used for offline authentication.
 
-![image](https://github.com/ubuntu/authd/assets/1928546/c69862c1-9adf-4a07-8f9a-5dada3826a6c)
+![image](../assets/gdm-pass.png)
 
 ## Groups management
 
 In our example the user `authd test` is a member of the following Azure groups:
 
-![image](https://github.com/ubuntu/authd/assets/1928546/5f994ae6-7473-4af3-8d1f-64c9dd2e10f8)
+![image](../assets/gdm-groups.png)
 
 This translates to the following unix groups on the local machine:
 

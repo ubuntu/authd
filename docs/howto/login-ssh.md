@@ -57,4 +57,4 @@ For instance:
 ssh user@domain.tld@remote.host
 ```
 
-![image](https://github.com/user-attachments/assets/d5d64f4e-6b97-46e7-b33b-737e73f7d70d)
+![image](../assets/ssh-qr.png)

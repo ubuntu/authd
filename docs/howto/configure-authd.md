@@ -17,19 +17,19 @@ Register a new application in the Microsoft Azure portal. Once the application i
 
 To register a new application, in Entra, select the menu `Identity > Applications > App registration`
 
-![image](https://github.com/user-attachments/assets/974e2e99-d0ea-4f91-965f-1a6637bf1135)
+![image](../assets/app-registration.png)
 
 Then `New registration`
 
-![image](https://github.com/user-attachments/assets/b51127ab-4af2-4b69-8ab6-bf2418d1eb5f)
+![image](../assets/new-registration.png)
 
 And configure it as follows:
 
-![image](https://github.com/user-attachments/assets/3b58acf2-17a5-4356-ab9e-a5a5dfefd482)
+![image](../assets/configure-registration.png)
 
 Under `Manage`, in the `API permissions` menu, set the following Microsoft Graph permissions:
 
-![image](https://github.com/ubuntu/authd/assets/1928546/c99ab5d2-3a8a-4554-88b1-da56854e489a)
+![image](../assets/graph-permissions.png)
 
 Ensure the API permission type is set to **Delegated** for each permission.
 
