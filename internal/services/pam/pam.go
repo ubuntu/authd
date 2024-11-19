@@ -330,6 +330,8 @@ func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err err
 	if layout.GetType() != layouts.QrCode {
 		return r, nil
 	}
+
+	r[layouts.RendersQrCode] = layouts.False
 	if rc := layout.RendersQrcode; rc == nil || *rc {
 		// If the field is not set, we keep retro-compatibility with what we were
 		// dong before of the addition of the field.
