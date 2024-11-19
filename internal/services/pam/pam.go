@@ -225,9 +225,12 @@ func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMReq
 		return nil, err
 	}
 
-	return &authd.SAMResponse{
-		UiLayoutInfo: mapToUILayout(uiLayoutInfo),
-	}, nil
+	uiLayout, err := layouts.NewUIFromMap(uiLayoutInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return &authd.SAMResponse{UiLayoutInfo: authd.NewFromUILayout(uiLayout)}, nil
 }
 
 // IsAuthenticated returns broker answer to authentication request.
@@ -317,62 +320,15 @@ func (s Service) EndSession(ctx context.Context, req *authd.ESRequest) (empty *a
 }
 
 func uiLayoutToMap(layout *authd.UILayout) (mapLayout map[string]string, err error) {
-	if layout.GetType() == "" {
-		return nil, fmt.Errorf("invalid layout option: type is required, got: %v", layout)
-	}
-	r := map[string]string{layouts.Type: layout.GetType()}
-	if l := layout.GetLabel(); l != "" {
-		r[layouts.Label] = l
-	}
-	if b := layout.GetButton(); b != "" {
-		r[layouts.Button] = b
-	}
-	if w := layout.GetWait(); w != "" {
-		r[layouts.Wait] = w
-	}
-	if e := layout.GetEntry(); e != "" {
-		r[layouts.Entry] = e
-	}
-	if c := layout.GetContent(); c != "" {
-		r[layouts.Content] = c
-	}
-	if c := layout.GetCode(); c != "" {
-		r[layouts.Code] = c
+	m, err := layout.ToUILayout().ToMap()
+	if err != nil {
+		return nil, err
 	}
 
-	if layout.GetType() != layouts.QrCode {
-		return r, nil
+	if layout.RendersQrcode == nil {
+		// If the field is not set, we keep retro-compatibility with what
+		// we were doing before of the addition of the field.
+		m[layouts.RendersQrCode] = layouts.True
 	}
-
-	r[layouts.RendersQrCode] = layouts.False
-	if rc := layout.RendersQrcode; rc == nil || *rc {
-		// If the field is not set, we keep retro-compatibility with what we were
-		// dong before of the addition of the field.
-		r[layouts.RendersQrCode] = layouts.True
-	}
-	return r, nil
-}
-
-// mapToUILayout generates an UILayout from the input map.
-func mapToUILayout(layout map[string]string) (r *authd.UILayout) {
-	typ := layout[layouts.Type]
-	label := layout[layouts.Label]
-	entry := layout[layouts.Entry]
-	button := layout[layouts.Button]
-	wait := layout[layouts.Wait]
-	content := layout[layouts.Content]
-	code := layout[layouts.Code]
-
-	// We don't return whether the qrcode rendering is enabled back to the
-	// client on purpose, since it's something it mandates.
-
-	return &authd.UILayout{
-		Type:    typ,
-		Label:   &label,
-		Entry:   &entry,
-		Button:  &button,
-		Wait:    &wait,
-		Content: &content,
-		Code:    &code,
-	}
+	return m, nil
 }
