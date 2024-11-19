@@ -52,7 +52,7 @@ Thinking about using Authd for your next project? Get in touch!
 :hidden:
 :maxdepth: 2
 
-authd <self>
+Authd <self>
 How-to guides </howto/index>
 Reference </reference/index>
 Explanation </explanation/index>

@@ -1,5 +1,5 @@
 <!-- Include start contributing intro -->
-# Contributing to authd
+# Contributing to Authd
 
 A big welcome and thank you for considering making a contribution to authd and Ubuntu! It’s people like you that help make these products a reality for users in our community.
 
