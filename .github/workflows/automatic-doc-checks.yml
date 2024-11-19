@@ -15,4 +15,4 @@ jobs:
   documentation-checks:
     uses: canonical/documentation-workflows/.github/workflows/documentation-checks.yaml@main
     with:
-      working-directory: "."
+      working-directory: "./docs"
