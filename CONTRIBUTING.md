@@ -7,7 +7,7 @@ By agreeing to follow these guidelines the contribution process should be easy a
 
 These are mostly guidelines, not rules. Use your best judgment and feel free to propose changes to this document in a pull request.
 
-<!-- Include start contributing intro -->
+<!-- Include end contributing intro -->
 ## Quicklinks
 
 - [Contributing to authd](#contributing-to-authd)
@@ -32,7 +32,7 @@ These are mostly guidelines, not rules. Use your best judgment and feel free to 
 <!-- Include start contributing main -->
 ## Code of conduct
 
-We take our community seriously, holding ourselves and other contributors to high standards of communication. By contributing to this project you agree to uphold the Ubuntu community [Code of Conduct](https://ubuntu.com/community/code-of-conduct).
+We take our community seriously, holding ourselves and other contributors to high standards of communication. By contributing to this project you agree to uphold the Ubuntu community [Code of Conduct](https://ubuntu.com/community/ethos/code-of-conduct).
 
 ## Getting Started
 
