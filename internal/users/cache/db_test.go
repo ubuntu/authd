@@ -177,6 +177,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Update user by adding a new group":         {groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group"},
 		"Update user by adding a new default group": {groupCases: []string{"group2", "group1"}, dbFile: "one_user_and_group"},
 		"Remove group from user":                    {groupCases: []string{"group2"}, dbFile: "one_user_and_group"},
+		"Update user by adding a new local group":   {localGroups: []string{"localgroup1"}, dbFile: "one_user_and_group"},
 
 		// Multi users handling
 		"Update only user even if we have multiple of them":     {dbFile: "multiple_users_and_groups"},

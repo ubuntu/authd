@@ -45,6 +45,11 @@ func TestUpdateLocalGroups(t *testing.T) {
 		"No-Op for user with no groups and was in none": {newGroups: []string{}, groupFilePath: "no_users_in_our_groups.group"},
 		"Remove user with no groups from existing ones": {newGroups: []string{}, groupFilePath: "user_in_both_groups.group"},
 
+		// User removed from groups
+		"User is added to group they were added to before":          {newGroups: []string{"localgroup1"}, oldGroups: []string{"localgroup1"}, groupFilePath: "no_users.group"},
+		"User is removed from old groups but not from other groups": {newGroups: []string{}, oldGroups: []string{"localgroup3"}, groupFilePath: "user_in_both_groups.group"},
+		"User is not removed from groups they are not part of":      {newGroups: []string{}, oldGroups: []string{"localgroup2"}, groupFilePath: "user_in_one_group.group"},
+
 		// Error cases
 		"Error on missing groups file":                {groupFilePath: "does_not_exists.group", wantErr: true},
 		"Error when groups file is malformed":         {groupFilePath: "malformed_file.group", wantErr: true},

@@ -1,0 +1,16 @@
+GroupByID:
+    "11111": '{"Name":"group1","GID":11111}'
+GroupByName:
+    group1: '{"Name":"group1","GID":11111}'
+GroupToUsers:
+    "11111": '{"GID":11111,"UIDs":[1111]}'
+UserByID:
+    "1111": '{"Name":"user1","UID":1111,"GID":11111,"Gecos":"User1 gecos\nOn multiple lines","Dir":"/home/user1","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+UserByName:
+    user1: '{"Name":"user1","UID":1111,"GID":11111,"Gecos":"User1 gecos\nOn multiple lines","Dir":"/home/user1","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+UserToBroker:
+    "1111": '"broker-id"'
+UserToGroups:
+    "1111": '{"UID":1111,"GIDs":[11111]}'
+UserToLocalGroups:
+    "1111": '["localgroup1"]'

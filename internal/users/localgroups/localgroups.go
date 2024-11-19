@@ -54,6 +54,8 @@ func Update(username string, newGroups []string, oldGroups []string, args ...Opt
 	groupsToAdd := sliceutils.Difference(newGroups, currentGroups)
 	log.Debugf(context.TODO(), "Adding to groups: %v", groupsToAdd)
 	groupsToRemove := sliceutils.Difference(oldGroups, newGroups)
+	// Only remove user from groups which they are part of
+	groupsToRemove = sliceutils.Intersection(groupsToRemove, currentGroups)
 	log.Debugf(context.TODO(), "Removing from groups: %v", groupsToRemove)
 
 	for _, g := range groupsToRemove {
