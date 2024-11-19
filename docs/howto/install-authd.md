@@ -7,6 +7,11 @@ This project consists of two components:
 ## authd
 
 authd is delivered as a Debian package.
+## System requirements
+
+* Distribution: Ubuntu Desktop 24.04 LTS or Ubuntu Server 24.04 LTS
+* Architectures: amd64, arm64
+
 
 ```{note}
 While this project is in active development, a version for Ubuntu 24.04 is available from the [authd testing PPA](https://launchpad.net/~ubuntu-enterprise-desktop/+archive/ubuntu/authd). <br />

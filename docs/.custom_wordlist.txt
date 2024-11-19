@@ -1,3 +1,4 @@
+amd
 auth
 authd
 biometric
