@@ -2,8 +2,6 @@
 
 # How-to guides
 
-These how-to guides cover key operations and processes in authd.
-
 ```{toctree}
 :titlesonly:
 

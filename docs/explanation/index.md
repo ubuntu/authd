@@ -2,8 +2,6 @@
 
 # Explanation
 
-These explanations...
-
 ```{toctree}
 :titlesonly:
 

@@ -1,5 +1,3 @@
-# Contributing
-
 % Include content from [../CONTRIBUTING.md](../CONTRIBUTING.md)
 ```{include} ../../CONTRIBUTING.md
     :start-after: <!-- Include start contributing intro -->
