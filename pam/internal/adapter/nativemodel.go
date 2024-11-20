@@ -93,7 +93,6 @@ func (m *nativeModel) Init() tea.Cmd {
 	supportsQrCode := m.serviceName != polkitServiceName
 
 	return func() tea.Msg {
-		required, optional := layouts.Required, layouts.Optional
 		supportedEntries := layouts.OptionalItems(
 			entries.Chars,
 			entries.CharsPassword,
@@ -103,32 +102,29 @@ func (m *nativeModel) Init() tea.Cmd {
 
 		supportedLayouts := supportedUILayoutsReceived{
 			layouts: []*authd.UILayout{
-				{
-					Type:   layouts.Form,
-					Label:  &required,
-					Entry:  &supportedEntries,
-					Wait:   &layouts.OptionalWithBooleans,
-					Button: &optional,
-				},
-				{
-					Type:   layouts.NewPassword,
-					Label:  &required,
-					Entry:  &supportedEntries,
-					Button: &optional,
-				},
+				authd.NewFromUILayout(layouts.NewUI(layouts.UIForm,
+					layouts.WithLabel(layouts.Required),
+					layouts.WithEntry(supportedEntries),
+					layouts.WithWait(layouts.OptionalWithBooleans),
+					layouts.WithButton(layouts.Optional),
+				)),
+				authd.NewFromUILayout(layouts.NewUI(layouts.UINewPassword,
+					layouts.WithLabel(layouts.Required),
+					layouts.WithEntry(supportedEntries),
+					layouts.WithButton(layouts.Optional),
+				)),
 			},
 		}
 
 		if supportsQrCode {
-			supportedLayouts.layouts = append(supportedLayouts.layouts, &authd.UILayout{
-				Type:          layouts.QrCode,
-				Content:       &required,
-				Code:          &optional,
-				Wait:          &layouts.RequiredWithBooleans,
-				Label:         &optional,
-				Button:        &optional,
-				RendersQrcode: &rendersQrCode,
-			})
+			supportedLayouts.layouts = append(supportedLayouts.layouts, authd.NewFromUILayout(layouts.NewUI(layouts.UIQrCode,
+				layouts.WithContent(layouts.Required),
+				layouts.WithCode(layouts.Optional),
+				layouts.WithWait(layouts.RequiredWithBooleans),
+				layouts.WithLabel(layouts.Optional),
+				layouts.WithButton(layouts.Optional),
+				layouts.WithRendersQrCode(rendersQrCode),
+			)))
 		}
 
 		return supportedLayouts
