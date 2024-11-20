@@ -183,9 +183,9 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Remove user from a group still part from another user": {userCase: "user3", groupCases: []string{"group3"}, dbFile: "multiple_users_and_groups"},
 
 		// Allowed inconsistent cases
-		"Invalid value entry in groupByName recreates entries":                        {dbFile: "invalid_entry_in_groupByName"},
-		"Invalid value entry in userByName recreates entries":                         {dbFile: "invalid_entry_in_userByName"},
-		"Invalid value entries in other user and groups don't impact current request": {dbFile: "invalid_entries_but_user_and_group1"},
+		"Invalid value entry in groupByName recreates entries":                         {dbFile: "invalid_entry_in_groupByName"},
+		"Invalid value entry in userByName recreates entries":                          {dbFile: "invalid_entry_in_userByName"},
+		"Invalid value entries in other user and groups do not impact current request": {dbFile: "invalid_entries_but_user_and_group1"},
 
 		// Renaming errors
 		"Error when user has conflicting uid":  {userCase: "user1-new-name", dbFile: "one_user_and_group", wantErr: true},

@@ -332,7 +332,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		"Prevent change password if user does not exist": {
 			tape: "passwd_unexistent_user",
 		},
-		"Prevent change password if current user is not root as can't authenticate": {
+		"Prevent change password if current user is not root as cannot authenticate": {
 			tape: "passwd_not_root", currentUserNotRoot: true,
 		},
 
