@@ -412,12 +412,10 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 		allModeIDs = append([]string{lastSelection}, allModeIDs...)
 	}
 
+	var authModes []*auth.Mode
 	for _, id := range allModeIDs {
 		authMode := allModes[id]
-		authenticationModes = append(authenticationModes, map[string]string{
-			layouts.ID:    id,
-			layouts.Label: authMode.selectionLabel,
-		})
+		authModes = append(authModes, auth.NewMode(id, authMode.selectionLabel))
 	}
 	log.Debugf(ctx, "Supported authentication modes for %s: %#v", sessionID, allModes)
 	sessionInfo.allModes = allModes
@@ -426,7 +424,7 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 		return nil, err
 	}
 
-	return authenticationModes, nil
+	return auth.NewModeMaps(authModes)
 }
 
 func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []*layouts.UILayout) map[string]authMode {
