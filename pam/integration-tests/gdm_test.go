@@ -433,7 +433,7 @@ func TestGdmModule(t *testing.T) {
 		"Authenticates_user_with_qrcode_without_code_field": {
 			wantAuthModeIDs: []string{qrcodeWithoutCodeID},
 			supportedLayouts: []*authd.UILayout{
-				pam_test.QrCodeUILayout(pam_test.WithQrCodeCode("")),
+				pam_test.QrCodeUILayout(layouts.WithCode("")),
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -512,7 +512,7 @@ func TestGdmModule(t *testing.T) {
 			},
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(),
-				pam_test.QrCodeUILayout(pam_test.WithQrCodeCode(layouts.Optional)),
+				pam_test.QrCodeUILayout(layouts.WithCode(layouts.Optional)),
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -577,7 +577,7 @@ func TestGdmModule(t *testing.T) {
 			},
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(),
-				pam_test.QrCodeUILayout(pam_test.WithQrCodeCode("")),
+				pam_test.QrCodeUILayout(layouts.WithCode("")),
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {

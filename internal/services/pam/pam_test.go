@@ -43,28 +43,32 @@ var (
 var (
 	requiredEntries = layouts.RequiredItems("entry_type", "other_entry_type")
 	optionalEntries = layouts.OptionalItems("entry_type", "other_entry_type")
-	optional        = layouts.Optional
 
-	rendersQrCode = true
+	withCustomUIType = func(t string) func(l *layouts.UILayout) {
+		return func(l *layouts.UILayout) { l.Type = t }
+	}
 
-	requiredEntry = &authd.UILayout{
-		Type:          "required-entry",
-		Label:         &optional,
-		Button:        &optional,
-		Wait:          &optional,
-		Entry:         &requiredEntries,
-		Content:       &optional,
-		Code:          &optional,
-		RendersQrcode: &rendersQrCode,
-	}
-	optionalEntry = &authd.UILayout{
-		Type:  "optional-entry",
-		Entry: &optionalEntries,
-	}
-	emptyType = &authd.UILayout{
-		Type:  "",
-		Entry: &requiredEntries,
-	}
+	requiredEntry = authd.NewFromUILayout(layouts.NewUI(
+		layouts.UIType(-1),
+		withCustomUIType("required-entry"),
+		layouts.WithLabel(layouts.Optional),
+		layouts.WithButton(layouts.Optional),
+		layouts.WithWait(layouts.Optional),
+		layouts.WithEntry(requiredEntries),
+		layouts.WithContent(layouts.Optional),
+		layouts.WithCode(layouts.Optional),
+		layouts.WithRendersQrCode(true),
+	))
+	optionalEntry = authd.NewFromUILayout(layouts.NewUI(
+		layouts.UIType(-1),
+		withCustomUIType("optional-entry"),
+		layouts.WithEntry(optionalEntries),
+	))
+	emptyType = authd.NewFromUILayout(layouts.NewUI(
+		layouts.UIType(-1),
+		withCustomUIType(""),
+		layouts.WithEntry(requiredEntries),
+	))
 )
 
 func TestNewService(t *testing.T) {
