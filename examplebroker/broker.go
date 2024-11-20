@@ -354,13 +354,18 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 }
 
 // GetAuthenticationModes returns the list of supported authentication modes for the selected broker depending on session info.
-func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
+func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayoutsMap []map[string]string) (authenticationModes []map[string]string, err error) {
 	sessionInfo, err := b.sessionInfo(sessionID)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Debugf(ctx, "Supported UI layouts by %s, %#v", sessionID, supportedUILayouts)
+	log.Debugf(ctx, "Supported UI layouts by %s, %#v", sessionID, supportedUILayoutsMap)
+	supportedUILayouts, err := layouts.UIsFromList(supportedUILayoutsMap)
+	if err != nil {
+		return nil, err
+	}
+
 	allModes := getSupportedModes(sessionInfo, supportedUILayouts)
 
 	// If the user needs mfa, we remove the last used mode from the list of available modes.
@@ -426,28 +431,27 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	return authenticationModes, nil
 }
 
-func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]string) map[string]authMode {
+func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []layouts.UILayout) map[string]authMode {
 	allModes := make(map[string]authMode)
 	for _, layout := range supportedUILayouts {
-		switch layout[layouts.Type] {
+		switch layout.Type {
 		case layouts.Form:
-			if layout[layouts.Entry] != "" {
-				_, supportedEntries := layouts.ParseItems(layout[layouts.Entry])
+			if layout.GetEntry() != "" {
+				_, supportedEntries := layouts.ParseItems(layout.GetEntry())
 				if slices.Contains(supportedEntries, entries.CharsPassword) {
 					allModes[passwordMode.id] = passwordMode
 				}
 				if slices.Contains(supportedEntries, entries.Digits) {
 					allModes[pinCodeMode.id] = pinCodeMode
 				}
-				if slices.Contains(supportedEntries, entries.Chars) && layout[layouts.Wait] != "" {
+				if slices.Contains(supportedEntries, entries.Chars) && layout.Wait != nil {
 					mode := emailMode(sessionInfo.username)
 					allModes[mode.id] = mode
 				}
 			}
 
-			// The broker could parse the values, that are either true/false
-			if layout[layouts.Wait] != "" {
-				if layout[layouts.Button] == layouts.Optional {
+			if _, entries := layouts.ParseItems(layout.GetWait()); slices.Contains(entries, layouts.True) {
+				if layout.GetButton() == layouts.Optional {
 					allModes[totpWithButtonMode.id] = totpWithButtonMode
 				} else {
 					allModes[totpMode.id] = totpMode
@@ -460,10 +464,10 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 
 		case layouts.QrCode:
 			mode := qrCodeMode
-			if layout[layouts.Code] != "" {
+			if layout.GetCode() != "" {
 				mode = qrCodeAndCodeMode
 			}
-			if layout[layouts.RendersQrCode] != layouts.True {
+			if !layout.GetRendersQrcode() {
 				mode = codeMode
 			}
 			allModes[mode.id] = mode
@@ -490,13 +494,13 @@ func getMfaModes(info sessionInfo, supportedModes map[string]authMode) map[strin
 	return mfaModes
 }
 
-func getPasswdResetModes(info sessionInfo, supportedUILayouts []map[string]string) map[string]authMode {
+func getPasswdResetModes(info sessionInfo, supportedUILayouts []layouts.UILayout) map[string]authMode {
 	passwdResetModes := make(map[string]authMode)
 	for _, layout := range supportedUILayouts {
-		if layout[layouts.Type] != layouts.NewPassword {
+		if layout.GetType() != layouts.NewPassword {
 			continue
 		}
-		if layout[layouts.Entry] == "" {
+		if layout.GetEntry() == "" {
 			break
 		}
 
@@ -506,7 +510,7 @@ func getPasswdResetModes(info sessionInfo, supportedUILayouts []map[string]strin
 		}
 
 		mode := mandatoryResetMode
-		if info.pwdChange == canReset && layout[layouts.Button] != "" {
+		if info.pwdChange == canReset && layout.GetButton() != "" {
 			mode = optionalResetMode
 			layoutOpts = append(layoutOpts,
 				layouts.WithLabel("Enter your new password (3 days until mandatory)"),
