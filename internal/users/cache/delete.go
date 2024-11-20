@@ -66,6 +66,9 @@ func deleteUserFromGroup(buckets map[string]bucketWithName, uid, gid uint32) err
 	if err = buckets[groupByNameBucketName].Delete([]byte(group.Name)); err != nil {
 		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
 	}
+	if err = buckets[groupByUGIDBucketName].Delete([]byte(group.UGID)); err != nil {
+		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
+	}
 	return nil
 }
 
@@ -170,5 +173,14 @@ func deleteOrphanedUser(buckets map[string]bucketWithName, uid uint32) (err erro
 		return fmt.Errorf("can't delete user with UID %d from userToBroker bucket: %v", uid, err)
 	}
 
+	return nil
+}
+
+// deleteRenamedGroup removes a group record with the given Name from groupByName bucket.
+func deleteRenamedGroup(buckets map[string]bucketWithName, groupName string) (err error) {
+	// Delete calls fail if the transaction is read only, so we should panic if this function is called in that context.
+	if err = buckets[groupByNameBucketName].Delete([]byte(groupName)); err != nil {
+		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
+	}
 	return nil
 }
