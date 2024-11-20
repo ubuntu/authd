@@ -1,11 +1,13 @@
-# Contributing to authd
+<!-- Include start contributing intro -->
+# Contributing to Authd
 
 A big welcome and thank you for considering making a contribution to authd and Ubuntu! It’s people like you that help make these products a reality for users in our community.
 
 By agreeing to follow these guidelines the contribution process should be easy and effective for everyone involved. This also communicates that you agree to respect the time of the developers working on this project. In return, we will reciprocate that respect by addressing your issues, assessing proposed changes and helping you finalise your pull requests.
 
-These are mostly guidelines, not rules. Use your best judgment and feel free to propose changes to this document in a pull request.
+These are mostly guidelines, not rules. Use your best judgement and feel free to propose changes to this document in a pull request.
 
+<!-- Include end contributing intro -->
 ## Quicklinks
 
 - [Contributing to authd](#contributing-to-authd)
@@ -27,9 +29,10 @@ These are mostly guidelines, not rules. Use your best judgment and feel free to 
   - [Contributor License Agreement](#contributor-license-agreement)
   - [Getting help](#getting-help)
 
+<!-- Include start contributing main -->
 ## Code of conduct
 
-We take our community seriously, holding ourselves and other contributors to high standards of communication. By contributing to this project you agree to uphold the Ubuntu community [Code of Conduct](https://ubuntu.com/community/code-of-conduct).
+We take our community seriously, holding ourselves and other contributors to high standards of communication. By contributing to this project you agree to uphold the Ubuntu community [Code of Conduct](https://ubuntu.com/community/ethos/code-of-conduct).
 
 ## Getting Started
 
@@ -54,7 +57,7 @@ PRs to our project are always welcome and can be a quick way to get your fix or 
 * Only fix/add the functionality in question **OR** address wide-spread whitespace/style issues, not both.
 * Add unit or integration tests for fixed or changed functionality.
 * Address a single concern in the least possible number of changed lines.
-* Include documentation in the repo or on our [docs site](https://github.com/canonical/authd/wiki).
+* Include documentation in the repo or on our [docs site](https://github.com/ubuntu/authd/wiki).
 * Be accompanied by a complete Pull Request template (loaded automatically when a PR is created).
 
 For changes that address core functionality or that would require breaking changes (e.g. a major release), it's best to open an Issue to discuss your proposal first. This is not required but can save time when creating and reviewing changes.
@@ -115,7 +118,7 @@ Then build the Debian package:
 debuild --prepend-path=${HOME}/.cargo/bin
 ```
 
-The debian packages are available in the parent directory.
+The Debian packages are available in the parent directory.
 
 #### Building authd only
 
@@ -152,7 +155,7 @@ This last command will produce two libraries (`./pam/pam_authd.so` and `./pam/go
 These modules must be copied to `/usr/lib/$(gcc -dumpmachine)/security/` while the executable must be copied to `/usr/libexec/authd-pam`.
 
 For further information about the PAM module architecture and testing see the
-[PAM Hacking](./pam/Hacking.md) page.
+[PAM Hacking](https://github.com/ubuntu/authd/blob/main/pam/Hacking.md) page.
 
 #### Building the NSS module only
 
@@ -196,8 +199,10 @@ You only need to sign this once and if you have previously signed the agreement 
 
 An automated test is executed on PRs to check if this agreement has been accepted.
 
-This project is covered by [THIS LICENSE](LICENSE).
+<!-- TODO: add license. -->
+<!-- This project is covered by [THIS LICENSE](LICENSE). -->
 
 ## Getting help
 
 Join us in the [Ubuntu Community](https://discourse.ubuntu.com/c/desktop/8) and post your question there with a descriptive tag.
+<!-- Include end contributing main -->
