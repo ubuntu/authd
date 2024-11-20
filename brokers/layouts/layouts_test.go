@@ -346,26 +346,6 @@ func TestLayoutMap(t *testing.T) {
 				return
 			}
 
-			emptyValue := ""
-			if layout.Label == nil {
-				layout.Label = &emptyValue
-			}
-			if layout.Entry == nil {
-				layout.Entry = &emptyValue
-			}
-			if layout.Button == nil {
-				layout.Button = &emptyValue
-			}
-			if layout.Wait == nil {
-				layout.Wait = &emptyValue
-			}
-			if layout.Content == nil {
-				layout.Content = &emptyValue
-			}
-			if layout.Code == nil {
-				layout.Code = &emptyValue
-			}
-
 			newLayout, err := layouts.NewUIFromMap(m)
 			require.NoError(t, err)
 			require.Equal(t, layout, newLayout)
