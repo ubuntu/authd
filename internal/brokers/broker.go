@@ -118,10 +118,9 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	}
 
 	for _, a := range authenticationModes {
-		for _, key := range []string{layouts.ID, layouts.Label} {
-			if _, exists := a[key]; !exists {
-				return nil, fmt.Errorf("invalid authentication mode, missing %q key: %v", key, a)
-			}
+		_, err := auth.NewModeFromMap(a)
+		if err != nil {
+			return nil, err
 		}
 	}
 

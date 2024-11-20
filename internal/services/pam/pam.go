@@ -190,10 +190,11 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMReque
 
 	var authModes []*authd.GAMResponse_AuthenticationMode
 	for _, a := range authenticationModes {
-		authModes = append(authModes, &authd.GAMResponse_AuthenticationMode{
-			Id:    a[layouts.ID],
-			Label: a[layouts.Label],
-		})
+		mode, err := auth.NewModeFromMap(a)
+		if err != nil {
+			return nil, err
+		}
+		authModes = append(authModes, authd.NewFromMode(mode))
 	}
 
 	return &authd.GAMResponse{
