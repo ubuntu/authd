@@ -166,6 +166,20 @@ func NewUIFromMap(layout map[string]string) (UILayout, error) {
 	return NewUI(uiType, opts...), nil
 }
 
+// UIsFromList allows to create a new [UILayout] list from a list of map of strings
+// with the format that is used in the DBus protocol.
+func UIsFromList(layouts []map[string]string) ([]UILayout, error) {
+	var uiLayouts []UILayout
+	for _, l := range layouts {
+		ul, err := NewUIFromMap(l)
+		if err != nil {
+			return nil, err
+		}
+		uiLayouts = append(uiLayouts, ul)
+	}
+	return uiLayouts, nil
+}
+
 // ToMap creates a string map from the [UILayout] that is used by DBus protocol.
 func (layout UILayout) ToMap() (map[string]string, error) {
 	uiType, err := uiTypeFromString(layout.Type)
