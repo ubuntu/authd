@@ -352,3 +352,102 @@ func TestLayoutMap(t *testing.T) {
 		})
 	}
 }
+
+func TestLayoutsList(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		list []map[string]string
+
+		want      []*layouts.UILayout
+		wantError error
+	}{
+		"Empty": {},
+		"Password": {
+			list: []map[string]string{
+				{
+					layouts.Type:  layouts.Form,
+					layouts.Label: "Gimme your password",
+					layouts.Entry: entries.CharsPassword,
+				},
+				{
+					layouts.Type:  layouts.Form,
+					layouts.Label: "Gimme your password, no wait here!",
+					layouts.Entry: entries.CharsPassword,
+				},
+				{
+					layouts.Type:  layouts.Form,
+					layouts.Label: "Plug your fido device and press with your thumb",
+					layouts.Wait:  layouts.True,
+				},
+				{
+					layouts.Type:   layouts.NewPassword,
+					layouts.Label:  "Enter your new password (3 days until mandatory)",
+					layouts.Entry:  entries.CharsPassword,
+					layouts.Button: "Skip",
+				},
+				{
+					layouts.Type:          layouts.QrCode,
+					layouts.Label:         "Scan the qrcode or enter the code in the login page",
+					layouts.Code:          "12345",
+					layouts.RendersQrCode: layouts.True,
+				},
+			},
+			want: []*layouts.UILayout{
+				layouts.NewUI(layouts.UIForm,
+					layouts.WithLabel("Gimme your password"),
+					layouts.WithEntry(entries.CharsPassword),
+				),
+				layouts.NewUI(layouts.UIForm,
+					layouts.WithLabel("Gimme your password, no wait here!"),
+					layouts.WithEntry(entries.CharsPassword),
+					layouts.WithWaitBool(false),
+				),
+				layouts.NewUI(layouts.UIForm,
+					layouts.WithLabel("Plug your fido device and press with your thumb"),
+					layouts.WithWaitBool(true),
+				),
+				layouts.NewUI(layouts.UINewPassword,
+					layouts.WithLabel("Enter your new password (3 days until mandatory)"),
+					layouts.WithEntry(entries.CharsPassword),
+					layouts.WithButton("Skip"),
+				),
+				layouts.NewUI(layouts.UIQrCode,
+					layouts.WithLabel("Scan the qrcode or enter the code in the login page"),
+					layouts.WithCode("12345"),
+					layouts.WithRendersQrCode(true),
+				),
+			},
+		},
+
+		// Error cases
+		"Error for invalid type": {
+			list: []map[string]string{
+				{
+					layouts.Type:  layouts.Form,
+					layouts.Label: "Plug your fido device and press with your thumb",
+					layouts.Wait:  layouts.True,
+				},
+				{
+					layouts.Type: "invalid!",
+				},
+				{
+					layouts.Type:   layouts.NewPassword,
+					layouts.Label:  "Enter your new password (3 days until mandatory)",
+					layouts.Entry:  entries.CharsPassword,
+					layouts.Button: "Skip",
+				},
+			},
+			wantError: layouts.UITypeError{},
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			layout, err := layouts.UIsFromList(tc.list)
+			require.ErrorIs(t, err, tc.wantError)
+			require.Equal(t, tc.want, layout)
+		})
+	}
+}
