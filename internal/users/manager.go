@@ -108,7 +108,9 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 		}
 
 		// Check if the group already exists in the database
-		oldGroup, err := m.cache.GroupByName(g.Name)
+		// We search by UGID because this is a non-local group
+		// and it should have a unique UGID
+		oldGroup, err := m.cache.GroupByUGID(g.UGID)
 		if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
 			return err
 		}
@@ -132,7 +134,7 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 			localGroups = append(localGroups, g.Name)
 			continue
 		}
-		authdGroups = append(authdGroups, cache.NewGroupDB(g.Name, *g.GID, nil))
+		authdGroups = append(authdGroups, cache.NewGroupDB(g.Name, *g.GID, g.UGID, nil))
 	}
 
 	oldLocalGroups, err := m.cache.UserLocalGroups(u.UID)
