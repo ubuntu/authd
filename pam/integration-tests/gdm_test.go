@@ -45,23 +45,15 @@ const (
 )
 
 var testPasswordUILayout = authd.UILayout{
-	Type:    layouts.Form,
-	Label:   ptrValue("Gimme your password"),
-	Entry:   ptrValue(entries.CharsPassword),
-	Button:  ptrValue(""),
-	Code:    ptrValue(""),
-	Content: ptrValue(""),
-	Wait:    ptrValue(""),
+	Type:  layouts.Form,
+	Label: ptrValue("Gimme your password"),
+	Entry: ptrValue(entries.CharsPassword),
 }
 
 var testNewPasswordUILayout = authd.UILayout{
-	Type:    layouts.NewPassword,
-	Label:   ptrValue("Enter your new password"),
-	Entry:   ptrValue(entries.CharsPassword),
-	Button:  ptrValue(""),
-	Code:    ptrValue(""),
-	Content: ptrValue(""),
-	Wait:    ptrValue(""),
+	Type:  layouts.NewPassword,
+	Label: ptrValue("Enter your new password"),
+	Entry: ptrValue(entries.CharsPassword),
 }
 
 var testQrcodeUILayout = authd.UILayout{
@@ -71,7 +63,6 @@ var testQrcodeUILayout = authd.UILayout{
 	Wait:    ptrValue(layouts.True),
 	Button:  ptrValue("Regenerate code"),
 	Code:    ptrValue("1337"),
-	Entry:   ptrValue(""),
 }
 
 var testQrcodeUIWithoutCodeLayout = authd.UILayout{
@@ -80,8 +71,6 @@ var testQrcodeUIWithoutCodeLayout = authd.UILayout{
 	Content: ptrValue("https://ubuntu.com"),
 	Wait:    ptrValue(layouts.True),
 	Button:  ptrValue("Regenerate code"),
-	Code:    ptrValue(""),
-	Entry:   ptrValue(""),
 }
 
 var testQrcodeUIWithoutRendering = authd.UILayout{
@@ -91,27 +80,18 @@ var testQrcodeUIWithoutRendering = authd.UILayout{
 	Wait:    ptrValue(layouts.True),
 	Button:  ptrValue("Regenerate code"),
 	Code:    ptrValue("1337"),
-	Entry:   ptrValue(""),
 }
 
 var testFidoDeviceUILayout = authd.UILayout{
-	Type:    layouts.Form,
-	Label:   ptrValue("Plug your fido device and press with your thumb"),
-	Content: ptrValue(""),
-	Wait:    ptrValue(layouts.True),
-	Button:  ptrValue(""),
-	Code:    ptrValue(""),
-	Entry:   ptrValue(""),
+	Type:  layouts.Form,
+	Label: ptrValue("Plug your fido device and press with your thumb"),
+	Wait:  ptrValue(layouts.True),
 }
 
 var testPhoneAckUILayout = authd.UILayout{
-	Type:    layouts.Form,
-	Label:   ptrValue("Unlock your phone +33... or accept request on web interface"),
-	Content: ptrValue(""),
-	Wait:    ptrValue(layouts.True),
-	Button:  ptrValue(""),
-	Code:    ptrValue(""),
-	Entry:   ptrValue(""),
+	Type:  layouts.Form,
+	Label: ptrValue("Unlock your phone +33... or accept request on web interface"),
+	Wait:  ptrValue(layouts.True),
 }
 
 func TestGdmModule(t *testing.T) {

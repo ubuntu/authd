@@ -92,10 +92,10 @@ func WithWait(wait string) func(l *UILayout) {
 
 // WithWaitBool is an [UIOptions] for [NewUI] to set the wait parameter in [UILayout] as boolean.
 func WithWaitBool(wait bool) func(l *UILayout) {
-	if wait {
-		return WithWait(True)
+	if !wait {
+		return func(l *UILayout) { l.Wait = nil }
 	}
-	return WithWait("")
+	return WithWait(True)
 }
 
 // WithEntry is an [UIOptions] for [NewUI] to set the entry parameter in [UILayout].
@@ -135,13 +135,24 @@ func NewUIFromMap(layout map[string]string) (UILayout, error) {
 		return UILayout{}, err
 	}
 
-	opts := []UIOptions{
-		WithLabel(layout[Label]),
-		WithEntry(layout[Entry]),
-		WithButton(layout[Button]),
-		WithContent(layout[Content]),
-		WithCode(layout[Code]),
-		WithWait(layout[Wait]),
+	var opts []UIOptions
+	if v, ok := layout[Label]; ok {
+		opts = append(opts, WithLabel(v))
+	}
+	if v, ok := layout[Entry]; ok {
+		opts = append(opts, WithEntry(v))
+	}
+	if v, ok := layout[Button]; ok {
+		opts = append(opts, WithButton(v))
+	}
+	if v, ok := layout[Wait]; ok {
+		opts = append(opts, WithWait(v))
+	}
+	if v, ok := layout[Content]; ok {
+		opts = append(opts, WithContent(v))
+	}
+	if v, ok := layout[Code]; ok {
+		opts = append(opts, WithCode(v))
 	}
 
 	if uiType != UIQrCode {
