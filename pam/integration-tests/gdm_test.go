@@ -44,55 +44,55 @@ const (
 	qrcodeWithoutRenderingID = "codewithtypo"
 )
 
-var testPasswordUILayout = authd.UILayout{
-	Type:  layouts.Form,
-	Label: ptrValue("Gimme your password"),
-	Entry: ptrValue(entries.CharsPassword),
-}
+var testPasswordUILayout = layouts.NewUI(
+	layouts.UIForm,
+	layouts.WithLabel("Gimme your password"),
+	layouts.WithEntry(entries.CharsPassword),
+).UILayout
 
-var testNewPasswordUILayout = authd.UILayout{
-	Type:  layouts.NewPassword,
-	Label: ptrValue("Enter your new password"),
-	Entry: ptrValue(entries.CharsPassword),
-}
+var testNewPasswordUILayout = layouts.NewUI(
+	layouts.UINewPassword,
+	layouts.WithLabel("Enter your new password"),
+	layouts.WithEntry(entries.CharsPassword),
+).UILayout
 
-var testQrcodeUILayout = authd.UILayout{
-	Type:    layouts.QrCode,
-	Label:   ptrValue("Scan the qrcode or enter the code in the login page"),
-	Content: ptrValue("https://ubuntu.com"),
-	Wait:    ptrValue(layouts.True),
-	Button:  ptrValue("Regenerate code"),
-	Code:    ptrValue("1337"),
-}
+var testQrcodeUILayout = layouts.NewUI(
+	layouts.UIQrCode,
+	layouts.WithLabel("Scan the qrcode or enter the code in the login page"),
+	layouts.WithContent("https://ubuntu.com"),
+	layouts.WithWaitBool(true),
+	layouts.WithButton("Regenerate code"),
+	layouts.WithCode("1337"),
+).UILayout
 
-var testQrcodeUIWithoutCodeLayout = authd.UILayout{
-	Type:    layouts.QrCode,
-	Label:   ptrValue("Enter the following code after flashing the address: 1337"),
-	Content: ptrValue("https://ubuntu.com"),
-	Wait:    ptrValue(layouts.True),
-	Button:  ptrValue("Regenerate code"),
-}
+var testQrcodeUIWithoutCodeLayout = layouts.NewUI(
+	layouts.UIQrCode,
+	layouts.WithLabel("Enter the following code after flashing the address: 1337"),
+	layouts.WithContent("https://ubuntu.com"),
+	layouts.WithWaitBool(true),
+	layouts.WithButton("Regenerate code"),
+).UILayout
 
-var testQrcodeUIWithoutRendering = authd.UILayout{
-	Type:    layouts.QrCode,
-	Label:   ptrValue("Enter the code in the login page"),
-	Content: ptrValue("https://ubuntu.com"),
-	Wait:    ptrValue(layouts.True),
-	Button:  ptrValue("Regenerate code"),
-	Code:    ptrValue("1337"),
-}
+var testQrcodeUIWithoutRendering = layouts.NewUI(
+	layouts.UIQrCode,
+	layouts.WithLabel("Enter the code in the login page"),
+	layouts.WithContent("https://ubuntu.com"),
+	layouts.WithWaitBool(true),
+	layouts.WithButton("Regenerate code"),
+	layouts.WithCode("1337"),
+).UILayout
 
-var testFidoDeviceUILayout = authd.UILayout{
-	Type:  layouts.Form,
-	Label: ptrValue("Plug your fido device and press with your thumb"),
-	Wait:  ptrValue(layouts.True),
-}
+var testFidoDeviceUILayout = layouts.NewUI(
+	layouts.UIForm,
+	layouts.WithLabel("Plug your fido device and press with your thumb"),
+	layouts.WithWaitBool(true),
+).UILayout
 
-var testPhoneAckUILayout = authd.UILayout{
-	Type:  layouts.Form,
-	Label: ptrValue("Unlock your phone +33... or accept request on web interface:"),
-	Wait:  ptrValue(layouts.True),
-}
+var testPhoneAckUILayout = layouts.NewUI(
+	layouts.UIForm,
+	layouts.WithLabel("Unlock your phone +33... or accept request on web interface:"),
+	layouts.WithWaitBool(true),
+).UILayout
 
 func TestGdmModule(t *testing.T) {
 	t.Parallel()
@@ -176,9 +176,9 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 			wantUILayouts: []*authd.UILayout{
-				&testPasswordUILayout,
-				&testFidoDeviceUILayout,
-				&testPhoneAckUILayout,
+				testPasswordUILayout,
+				testFidoDeviceUILayout,
+				testPhoneAckUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{Access: auth.Next},
@@ -206,10 +206,10 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 			wantUILayouts: []*authd.UILayout{
-				&testPasswordUILayout,
-				&testPasswordUILayout,
-				&testFidoDeviceUILayout,
-				&testPhoneAckUILayout,
+				testPasswordUILayout,
+				testPasswordUILayout,
+				testFidoDeviceUILayout,
+				testPhoneAckUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{
@@ -236,8 +236,8 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 			wantUILayouts: []*authd.UILayout{
-				&testPasswordUILayout,
-				&testPhoneAckUILayout,
+				testPasswordUILayout,
+				testPhoneAckUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{Access: auth.Cancelled},
@@ -261,7 +261,7 @@ func TestGdmModule(t *testing.T) {
 					}),
 				},
 			},
-			wantUILayouts: []*authd.UILayout{&testPasswordUILayout, &testNewPasswordUILayout},
+			wantUILayouts: []*authd.UILayout{testPasswordUILayout, testNewPasswordUILayout},
 			wantAuthResponses: []*authd.IAResponse{
 				{Access: auth.Next},
 				{Access: auth.Granted},
@@ -310,12 +310,12 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 			wantUILayouts: []*authd.UILayout{
-				&testPasswordUILayout,
-				&testFidoDeviceUILayout,
-				&testNewPasswordUILayout,
-				&testNewPasswordUILayout,
-				&testNewPasswordUILayout,
-				&testNewPasswordUILayout,
+				testPasswordUILayout,
+				testFidoDeviceUILayout,
+				testNewPasswordUILayout,
+				testNewPasswordUILayout,
+				testNewPasswordUILayout,
+				testNewPasswordUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{Access: auth.Next},
@@ -371,7 +371,7 @@ func TestGdmModule(t *testing.T) {
 					}),
 				},
 			},
-			wantUILayouts: []*authd.UILayout{&testPasswordUILayout, &testNewPasswordUILayout},
+			wantUILayouts: []*authd.UILayout{testPasswordUILayout, testNewPasswordUILayout},
 			wantAuthResponses: []*authd.IAResponse{
 				{
 					Access: auth.Next,
@@ -407,7 +407,7 @@ func TestGdmModule(t *testing.T) {
 					}),
 				},
 			},
-			wantUILayouts: []*authd.UILayout{&testQrcodeUILayout},
+			wantUILayouts: []*authd.UILayout{testQrcodeUILayout},
 		},
 		"Authenticates user with qrcode without code field": {
 			wantAuthModeIDs: []string{qrcodeWithoutCodeID},
@@ -421,7 +421,7 @@ func TestGdmModule(t *testing.T) {
 					}),
 				},
 			},
-			wantUILayouts: []*authd.UILayout{&testQrcodeUIWithoutCodeLayout},
+			wantUILayouts: []*authd.UILayout{testQrcodeUIWithoutCodeLayout},
 		},
 		"Authenticates user with qrcode without rendering support": {
 			wantAuthModeIDs: []string{qrcodeWithoutRenderingID},
@@ -435,7 +435,7 @@ func TestGdmModule(t *testing.T) {
 					}),
 				},
 			},
-			wantUILayouts: []*authd.UILayout{&testQrcodeUIWithoutRendering},
+			wantUILayouts: []*authd.UILayout{testQrcodeUIWithoutRendering},
 		},
 		"Authenticates user with qrcode without explicit rendering support": {
 			// This checks that we're backward compatible
@@ -450,7 +450,7 @@ func TestGdmModule(t *testing.T) {
 					}),
 				},
 			},
-			wantUILayouts: []*authd.UILayout{&testQrcodeUILayout},
+			wantUILayouts: []*authd.UILayout{testQrcodeUILayout},
 		},
 		"Authenticates user after switching to qrcode": {
 			wantAuthModeIDs: []string{passwordAuthID, qrcodeID},
@@ -471,8 +471,8 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 			wantUILayouts: []*authd.UILayout{
-				&testPasswordUILayout,
-				&testQrcodeUILayout,
+				testPasswordUILayout,
+				testQrcodeUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{Access: auth.Cancelled},
@@ -529,13 +529,13 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 			wantUILayouts: []*authd.UILayout{
-				&testPasswordUILayout,
-				testQrcodeUILayoutData(0),
-				testQrcodeUILayoutData(1),
-				testQrcodeUILayoutData(2),
-				testQrcodeUILayoutData(3),
-				testQrcodeUILayoutData(4),
-				testQrcodeUILayoutData(5),
+				testPasswordUILayout,
+				testQrcodeUILayoutData(t, 0),
+				testQrcodeUILayoutData(t, 1),
+				testQrcodeUILayoutData(t, 2),
+				testQrcodeUILayoutData(t, 3),
+				testQrcodeUILayoutData(t, 4),
+				testQrcodeUILayoutData(t, 5),
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{Access: auth.Cancelled},
@@ -594,13 +594,13 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 			wantUILayouts: []*authd.UILayout{
-				&testPasswordUILayout,
-				testQrcodeWithoutCodeUILayoutData(0),
-				testQrcodeWithoutCodeUILayoutData(1),
-				testQrcodeWithoutCodeUILayoutData(2),
-				testQrcodeWithoutCodeUILayoutData(3),
-				testQrcodeWithoutCodeUILayoutData(4),
-				testQrcodeWithoutCodeUILayoutData(5),
+				testPasswordUILayout,
+				testQrcodeWithoutCodeUILayoutData(t, 0),
+				testQrcodeWithoutCodeUILayoutData(t, 1),
+				testQrcodeWithoutCodeUILayoutData(t, 2),
+				testQrcodeWithoutCodeUILayoutData(t, 3),
+				testQrcodeWithoutCodeUILayoutData(t, 4),
+				testQrcodeWithoutCodeUILayoutData(t, 5),
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{Access: auth.Cancelled},
@@ -751,8 +751,8 @@ func TestGdmModule(t *testing.T) {
 				fido1AuthID + " should have wait set to true",
 			},
 			wantUILayouts: []*authd.UILayout{
-				&testPasswordUILayout,
-				&testFidoDeviceUILayout,
+				testPasswordUILayout,
+				testFidoDeviceUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{Access: auth.Next},
@@ -816,7 +816,7 @@ func TestGdmModule(t *testing.T) {
 			if gh.selectedAuthModeIDs == nil &&
 				len(gh.selectedAuthModeIDs) == 1 &&
 				gh.selectedAuthModeIDs[0] == passwordAuthID {
-				gh.selectedUILayouts = []*authd.UILayout{&testPasswordUILayout}
+				gh.selectedUILayouts = []*authd.UILayout{testPasswordUILayout}
 			}
 
 			if tc.wantError == nil && tc.wantAuthResponses == nil && len(gh.selectedAuthModeIDs) == 1 {
@@ -996,30 +996,37 @@ func exampleBrokerQrcodeData(reqN int) (string, string) {
 	return qrcodeURIs[reqN%len(qrcodeURIs)], fmt.Sprint(baseCode + reqN)
 }
 
-func testQrcodeUILayoutData(reqN int) *authd.UILayout {
-	content, code := exampleBrokerQrcodeData(reqN)
-	base := &testQrcodeUILayout
-	return &authd.UILayout{
-		Type:    base.Type,
-		Label:   base.Label,
-		Content: &content,
-		Wait:    base.Wait,
-		Button:  base.Button,
-		Code:    &code,
-		Entry:   base.Entry,
+func cloneLayout(t *testing.T, l *authd.UILayout, opts ...layouts.UIOptions) *authd.UILayout {
+	t.Helper()
+
+	asMap, err := layouts.UILayout{UILayout: l}.ToMap()
+	require.NoError(t, err, "Setup: Saving UI layout as map")
+	cloned, err := layouts.NewUIFromMap(asMap)
+	require.NoError(t, err, "Setup: UI layout from map")
+
+	for _, opt := range opts {
+		opt(cloned)
 	}
+
+	return cloned.UILayout
 }
 
-func testQrcodeWithoutCodeUILayoutData(reqN int) *authd.UILayout {
+func testQrcodeUILayoutData(t *testing.T, reqN int) *authd.UILayout {
+	t.Helper()
+
 	content, code := exampleBrokerQrcodeData(reqN)
-	base := &testQrcodeUIWithoutCodeLayout
-	return &authd.UILayout{
-		Type:    base.Type,
-		Label:   ptrValue("Enter the following code after flashing the address: " + code),
-		Content: &content,
-		Wait:    base.Wait,
-		Button:  base.Button,
-		Code:    base.Code,
-		Entry:   base.Entry,
-	}
+	return cloneLayout(t, testQrcodeUILayout,
+		layouts.WithContent(content),
+		layouts.WithCode(code),
+	)
+}
+
+func testQrcodeWithoutCodeUILayoutData(t *testing.T, reqN int) *authd.UILayout {
+	t.Helper()
+
+	content, code := exampleBrokerQrcodeData(reqN)
+	return cloneLayout(t, testQrcodeUIWithoutCodeLayout,
+		layouts.WithLabel("Enter the following code after flashing the address: "+code),
+		layouts.WithContent(content),
+	)
 }
