@@ -12,22 +12,18 @@ permissions:
   contents: write
 
 # Jobs in this action must not run concurrently, as they modify the repository.
-# When adding more jobs, make sure to use the "needs:" atribute to make sure they run sequentially.
+# When adding more jobs, make sure to use the "needs:" attribute to make sure they run sequentially.
 jobs:
   update-rust-packaging:
     name: Update packaging related Rust files
-    runs-on: ubuntu-latest
-    # Right now, ubuntu 22.04 does not have the dh-cargo-vendored-sources script that is needed to
-    # run this job, so we need to run it inside a rolling container to get the latest version possible.
-    # This should be updated as soon as the dh-cargo version with the mentioned script gets ported to
-    # 22.04 or ubuntu-latest changes to a more recent version.
-    container:
-      image: ubuntu:rolling
+    runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
       - name: Install dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
-          DEBIAN_FRONTEND=noninteractive apt update
-          DEBIAN_FRONTEND=noninteractive apt install -y cargo dh-cargo git jq
+          sudo apt update
+          sudo apt install cargo dh-cargo git jq
       - uses: actions/checkout@v4
         with:
           ref: main
@@ -35,6 +31,7 @@ jobs:
         run: |
           cargo vendor vendor_rust/
       - name: Update XS-Vendored-Sources-Rust
+        shell: bash
         run: |
           set -eu
 
@@ -48,12 +45,6 @@ jobs:
           sed -i "s/^XS-Vendored-Sources-Rust:.*/$OUTPUT/" debian/control
 
           echo "modified=true" >> $GITHUB_ENV
-        shell: bash
-      # Since we run this job in a container, we need to manually add the safe directory due to some
-      # issues between actions/checkout and actions/runner, which seem to be triggered by multiple
-      # causes (e.g. https://github.com/actions/runner-images/issues/6775, https://github.com/actions/checkout/issues/1048#issuecomment-1356485556).
-      - name: work around permission issue with git vulnerability (we are local here). TO REMOVE
-        run: git config --global --add safe.directory "$PWD"
       - name: Create Pull Request
         if: ${{ env.modified == 'true' }}
         uses: peter-evans/create-pull-request@v7
