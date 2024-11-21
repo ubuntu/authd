@@ -274,8 +274,7 @@ Wait`,
 
 			user := tc.user
 			if user == "" {
-				user = examplebroker.UserIntegrationPreCheckPrefix + strings.ReplaceAll(
-					strings.ToLower(filepath.Base(t.Name())), "_", "-")
+				user = vhsTestUserNameFull(t, examplebroker.UserIntegrationPreCheckPrefix, "")
 			}
 
 			sshdPort := defaultSSHDPort

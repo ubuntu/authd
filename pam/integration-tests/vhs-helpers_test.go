@@ -19,6 +19,7 @@ import (
 
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/testutils"
@@ -612,4 +613,25 @@ func requireRunnerResult(t *testing.T, sessionMode authd.SessionMode, goldenCont
 	t.Helper()
 
 	requireRunnerResultForUser(t, sessionMode, "", goldenContent)
+}
+
+func vhsTestUserNameFull(t *testing.T, userPrefix string, namePrefix string) string {
+	t.Helper()
+
+	require.NotEmpty(t, userPrefix, "Setup: user prefix needs to be set", t.Name())
+	if userPrefix[len(userPrefix)-1] != '-' {
+		userPrefix += "-"
+	}
+	if namePrefix != "" && namePrefix[len(namePrefix)-1] != '-' {
+		namePrefix += "-"
+	}
+	return userPrefix + namePrefix + strings.ReplaceAll(
+		strings.ToLower(filepath.Base(t.Name())), "_", "-")
+}
+
+func vhsTestUserName(t *testing.T, prefix string) string {
+	t.Helper()
+
+	require.NotEmpty(t, prefix, "Setup: user prefix needs to be set", t.Name())
+	return vhsTestUserNameFull(t, examplebroker.UserIntegrationPrefix, prefix)
 }
