@@ -4,7 +4,7 @@ This project consists of two components:
 * authd: The authentication daemon responsible for managing access to the authentication mechanism.
 * an identity broker: The services that handle the interface with an identity provider. There can be several identity brokers installed and enabled on the system.
 
-Authd is delivered as a Debian package.
+authd is delivered as a Debian package.
 
 ## System requirements
 

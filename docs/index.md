@@ -1,10 +1,10 @@
-# Authd
+# authd
 
-Authd is a versatile authentication service for Ubuntu, designed to seamlessly integrate with cloud identity providers like OpenID Connect and Entra ID. It offers a secure interface for system authentication, enabling cloud-based identity management. It can be used to support logins through both GDM and SSH.
+authd is a versatile authentication service for Ubuntu, designed to seamlessly integrate with cloud identity providers like OpenID Connect and Entra ID. It offers a secure interface for system authentication, enabling cloud-based identity management. It can be used to support logins through both GDM and SSH.
 
-Authd features a modular structure, facilitating straightforward integration with different cloud services. This design aids in maintaining strong security and effective user authentication. It's well-suited for handling access to cloud identities, offering a balance of security and ease of use.
+authd features a modular structure, facilitating straightforward integration with different cloud services. This design aids in maintaining strong security and effective user authentication. It's well-suited for handling access to cloud identities, offering a balance of security and ease of use.
 
-Authd uses brokers to interface with cloud identity providers through a [DBus API](https://github.com/ubuntu/authd/blob/HEAD/examplebroker/com.ubuntu.auth.ExampleBroker.xml). Currently only [MS Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) is supported. For development purposes, Authd also provides an example broker to help you develop your own.
+authd uses brokers to interface with cloud identity providers through a [DBus API](https://github.com/ubuntu/authd/blob/HEAD/examplebroker/com.ubuntu.auth.ExampleBroker.xml). Currently only [MS Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) is supported. For development purposes, authd also provides an example broker to help you develop your own.
 
 The [MS Entra ID broker](https://github.com/ubuntu/oidc-broker) allows you to authenticate against MS Entra ID using MFA and the device authentication flow.
 
@@ -41,18 +41,18 @@ The [MS Entra ID broker](https://github.com/ubuntu/oidc-broker) allows you to au
 
 ## Project and community
 
-Authd is a member of the Ubuntu family. It’s an open source project that warmly welcomes community projects, contributions, suggestions, fixes and constructive feedback.
+authd is a member of the Ubuntu family. It’s an open source project that warmly welcomes community projects, contributions, suggestions, fixes and constructive feedback.
 
 * [Code of conduct](https://ubuntu.com/community/ethos/code-of-conduct)
 * [Contribute](/howto/contributing)
 
-Thinking about using Authd for your next project? Get in touch!
+Thinking about using authd for your next project? Get in touch!
 
 ```{toctree}
 :hidden:
 :maxdepth: 2
 
-Authd <self>
+authd <self>
 How-to guides </howto/index>
 Reference </reference/index>
 Explanation </explanation/index>

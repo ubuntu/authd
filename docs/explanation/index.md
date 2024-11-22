@@ -5,5 +5,5 @@
 ```{toctree}
 :titlesonly:
 
-Authd architecture <authd-architecture>
+authd architecture <authd-architecture>
 ```
