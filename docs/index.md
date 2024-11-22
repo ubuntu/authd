@@ -4,7 +4,7 @@ authd is a versatile authentication service for Ubuntu, designed to seamlessly i
 
 authd features a modular structure, facilitating straightforward integration with different cloud services. This design aids in maintaining strong security and effective user authentication. It's well-suited for handling access to cloud identities, offering a balance of security and ease of use.
 
-authd uses brokers to interface with cloud identity providers through a [DBus API](https://github.com/ubuntu/authd/blob/HEAD/examplebroker/com.ubuntu.auth.ExampleBroker.xml). Currently only [MS Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) is supported. For development purposes, authd also provides an example broker to help you develop your own.
+authd uses brokers to interface with cloud identity providers through a [DBus API](https://github.com/ubuntu/authd/blob/HEAD/internal/examplebroker/com.ubuntu.auth.ExampleBroker.xml). Currently only [MS Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) is supported. For development purposes, authd also provides an example broker to help you develop your own.
 
 The [MS Entra ID broker](https://github.com/ubuntu/oidc-broker) allows you to authenticate against MS Entra ID using MFA and the device authentication flow.
 

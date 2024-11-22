@@ -39,7 +39,7 @@ A reference for [troubleshooting](https://github.com/ubuntu/authd/wiki/06--Troub
 
 ## Brokers
 
-Authd uses brokers to interface with cloud identity providers through a [DBus API](https://github.com/ubuntu/authd/blob/HEAD/examplebroker/com.ubuntu.auth.ExampleBroker.xml).
+Authd uses brokers to interface with cloud identity providers through a [DBus API](https://github.com/ubuntu/authd/blob/HEAD/internal/examplebroker/com.ubuntu.auth.ExampleBroker.xml).
 
 Currently [MS Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) is supported as an identity provider. 
 The [MS Entra ID broker](https://github.com/ubuntu/oidc-broker) allows you to authenticate against MS Entra ID using MFA and the device authentication flow.
