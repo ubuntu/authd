@@ -134,6 +134,9 @@ html_context = {
     # NOTE: If set, links for viewing the documentation source files
     #       and creating GitHub issues are added at the bottom of each page.
     "github_url": "https://github.com/ubuntu/authd",
+    # 
+    # Add a feedback button
+    'github_issues': 'enabled',
     # Docs branch in the repo; used in links for viewing the source files
     #
     # TODO: To customise the branch, uncomment and update as needed.
