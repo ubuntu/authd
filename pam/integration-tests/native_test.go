@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -36,34 +37,42 @@ func TestNativeAuthenticate(t *testing.T) {
 		wantLocalGroups    bool
 	}{
 		"Authenticate user successfully": {
-			tape:          "simple_auth",
-			clientOptions: clientOptions{PamUser: "user-integration-simple-auth"},
+			tape: "simple_auth",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "simple-auth",
+			},
 		},
 		"Authenticate user successfully with user selection": {
 			tape: "simple_auth_with_user_selection",
 		},
 		"Authenticate user with mfa": {
-			tape:          "mfa_auth",
-			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
-			clientOptions: clientOptions{PamUser: "user-mfa-integration-auth"},
+			tape:         "mfa_auth",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationMfaPrefix + "auth",
+			},
 		},
 		"Authenticate user with form mode with button": {
-			tape:          "form_with_button",
-			tapeSettings:  []tapeSetting{{vhsHeight, 600}},
-			clientOptions: clientOptions{PamUser: "user-integration-form-w-button"},
+			tape:         "form_with_button",
+			tapeSettings: []tapeSetting{{vhsHeight, 600}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "form-w-button",
+			},
 		},
 		"Authenticate user with qr code": {
 			tape:          "qr_code",
 			tapeSettings:  []tapeSetting{{vhsHeight, 2300}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
-			clientOptions: clientOptions{PamUser: "user-integration-qr-code"},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "qr-code",
+			},
 		},
 		"Authenticate user with qr code in a TTY": {
 			tape:          "qr_code",
 			tapeSettings:  []tapeSetting{{vhsHeight, 3700}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-tty",
+				PamUser: examplebroker.UserIntegrationPrefix + "qr-code-tty",
 				Term:    "linux",
 			},
 		},
@@ -72,7 +81,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			tapeSettings:  []tapeSetting{{vhsHeight, 3700}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-tty-session",
+				PamUser: examplebroker.UserIntegrationPrefix + "qr-code-tty-session",
 				Term:    "xterm-256color", SessionType: "tty",
 			},
 		},
@@ -81,7 +90,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			tapeSettings:  []tapeSetting{{vhsHeight, 3700}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-screen",
+				PamUser: examplebroker.UserIntegrationPrefix + "qr-code-screen",
 				Term:    "screen",
 			},
 		},
@@ -90,7 +99,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			tapeSettings:  []tapeSetting{{vhsHeight, 3500}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "2"},
 			clientOptions: clientOptions{
-				PamUser:        "user-integration-qr-code-polkit",
+				PamUser:        examplebroker.UserIntegrationPrefix + "qr-code-polkit",
 				PamServiceName: "polkit-1",
 			},
 		},
@@ -99,64 +108,78 @@ func TestNativeAuthenticate(t *testing.T) {
 			tapeSettings:  []tapeSetting{{vhsHeight, 3500}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "2"},
 			clientOptions: clientOptions{
-				PamUser:        "user-integration-pre-check-ssh-service-qr-code",
+				PamUser:        examplebroker.UserIntegrationPreCheckPrefix + "ssh-service-qr-code",
 				PamServiceName: "sshd",
 			},
 		},
 		"Authenticate user and reset password while enforcing policy": {
-			tape:          "mandatory_password_reset",
-			clientOptions: clientOptions{PamUser: "user-needs-reset-integration-mandatory"},
+			tape: "mandatory_password_reset",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationNeedsResetPrefix + "mandatory",
+			},
 		},
 		"Authenticate user with mfa and reset password while enforcing policy": {
-			tape:          "mfa_reset_pwquality_auth",
-			tapeSettings:  []tapeSetting{{vhsHeight, 1000}},
-			clientOptions: clientOptions{PamUser: "user-mfa-with-reset-integration-pwquality"},
+			tape:         "mfa_reset_pwquality_auth",
+			tapeSettings: []tapeSetting{{vhsHeight, 1000}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationMfaWithResetPrefix + "pwquality",
+			},
 		},
 		"Authenticate user and offer password reset": {
-			tape:          "optional_password_reset_skip",
-			clientOptions: clientOptions{PamUser: "user-can-reset-integration-skip"},
+			tape: "optional_password_reset_skip",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationCanResetPrefix + "skip",
+			},
 		},
 		"Authenticate user and accept password reset": {
-			tape:          "optional_password_reset_accept",
-			clientOptions: clientOptions{PamUser: "user-can-reset-integration-accept"},
+			tape: "optional_password_reset_accept",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationCanResetPrefix + "accept",
+			},
 		},
 		"Authenticate user switching auth mode": {
-			tape:          "switch_auth_mode",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3000}},
-			clientOptions: clientOptions{PamUser: "user-integration-switch-mode"},
+			tape:         "switch_auth_mode",
+			tapeSettings: []tapeSetting{{vhsHeight, 3000}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "switch-mode",
+			},
 			tapeVariables: map[string]string{"AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM": "6"},
 		},
 		"Authenticate user switching username": {
 			tape: "switch_username",
 		},
 		"Authenticate user switching to local broker": {
-			tape:          "switch_local_broker",
-			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
-			clientOptions: clientOptions{PamUser: "user-integration-switch-broker"},
+			tape:         "switch_local_broker",
+			tapeSettings: []tapeSetting{{vhsHeight, 700}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "switch-broker",
+			},
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
 			wantLocalGroups: true,
-			clientOptions:   clientOptions{PamUser: "user-local-groups"},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationLocalGroupsPrefix + "auth",
+			},
 		},
 		"Authenticate user on ssh service": {
 			tape: "simple_ssh_auth",
 			clientOptions: clientOptions{
-				PamUser:        "user-integration-pre-check-ssh-service",
+				PamUser:        examplebroker.UserIntegrationPreCheckPrefix + "ssh-service",
 				PamServiceName: "sshd",
 			},
 		},
 		"Authenticate user on ssh service with custom name and connection env": {
 			tape: "simple_ssh_auth",
 			clientOptions: clientOptions{
-				PamUser: "user-integration-pre-check-ssh-connection",
+				PamUser: examplebroker.UserIntegrationPreCheckPrefix + "ssh-connection",
 				PamEnv:  []string{"SSH_CONNECTION=foo-connection"},
 			},
 		},
 		"Authenticate user on ssh service with custom name and auth info env": {
 			tape: "simple_ssh_auth",
 			clientOptions: clientOptions{
-				PamUser: "user-integration-pre-check-ssh-auth-info",
+				PamUser: examplebroker.UserIntegrationPreCheckPrefix + "ssh-auth-info",
 				PamEnv:  []string{"SSH_AUTH_INFO_0=foo-authinfo"},
 			},
 		},
@@ -164,80 +187,100 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape: "simple_auth_with_unsupported_args",
 			tapeCommand: strings.ReplaceAll(tapeCommand, "force_native_client=true",
 				"invalid_flag=foo force_native_client=true bar"),
-			clientOptions: clientOptions{PamUser: "user-integration-with-unsupported-args"},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "with-unsupported-args",
+			},
 		},
 
 		"Remember last successful broker and mode": {
-			tape:          "remember_broker_and_mode",
-			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
-			clientOptions: clientOptions{PamUser: "user-integration-remember-mode"},
+			tape:         "remember_broker_and_mode",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "remember-mode",
+			},
 		},
 		"Autoselect local broker for local user": {
 			tape: "local_user",
 		},
 		"Autoselect local broker for local user preset": {
-			tape:          "local_user_preset",
-			clientOptions: clientOptions{PamUser: "root"},
+			tape: "local_user_preset",
+			clientOptions: clientOptions{
+				PamUser: "root",
+			},
 		},
 
 		"Deny authentication if current user is not considered as root": {
 			tape: "not_root", currentUserNotRoot: true,
-			clientOptions: clientOptions{PamUser: "user-integration-not-root"},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "not-root",
+			},
 		},
 
 		"Deny authentication if max attempts reached": {
-			tape:          "max_attempts",
-			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
-			clientOptions: clientOptions{PamUser: "user-integration-max-attempts"},
+			tape:         "max_attempts",
+			tapeSettings: []tapeSetting{{vhsHeight, 700}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "max-attempts",
+			},
 		},
 		"Deny authentication if user does not exist": {
-			tape:          "unexistent_user",
-			clientOptions: clientOptions{PamUser: "user-unexistent"},
+			tape: "unexistent_user",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationUnexistent,
+			},
 		},
 		"Deny authentication if user does not exist and matches cancel key": {
 			tape: "cancel_key_user",
 		},
 		"Deny authentication if newpassword does not match required criteria": {
-			tape:          "bad_password",
-			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
-			clientOptions: clientOptions{PamUser: "user-needs-reset-integration-bad-password"},
+			tape:         "bad_password",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationNeedsResetPrefix + "bad-password",
+			},
 		},
 
 		"Prevent preset user from switching username": {
-			tape:          "switch_preset_username",
-			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
-			clientOptions: clientOptions{PamUser: "user-integration-pam-preset"},
+			tape:         "switch_preset_username",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "pam-preset",
+			},
 		},
 
 		"Exit authd if local broker is selected": {
-			tape:          "local_broker",
-			clientOptions: clientOptions{PamUser: "user-local-broker"},
+			tape: "local_broker",
+			clientOptions: clientOptions{
+				PamUser: "user-local-broker",
+			},
 		},
 		"Exit if user is not pre-checked on ssh service": {
 			tape: "local_ssh",
 			clientOptions: clientOptions{
-				PamUser:        "user-integration-ssh-service",
+				PamUser:        examplebroker.UserIntegrationPrefix + "ssh-service",
 				PamServiceName: "sshd",
 			},
 		},
 		"Exit if user is not pre-checked on custom ssh service with connection env": {
 			tape: "local_ssh",
 			clientOptions: clientOptions{
-				PamUser: "user-integration-ssh-connection",
+				PamUser: examplebroker.UserIntegrationPrefix + "ssh-connection",
 				PamEnv:  []string{"SSH_CONNECTION=foo-connection"},
 			},
 		},
 		"Exit if user is not pre-checked on custom ssh service with auth info env": {
 			tape: "local_ssh",
 			clientOptions: clientOptions{
-				PamUser: "user-integration-ssh-auth-info",
+				PamUser: examplebroker.UserIntegrationPrefix + "ssh-auth-info",
 				PamEnv:  []string{"SSH_AUTH_INFO_0=foo-authinfo"},
 			},
 		},
 		// FIXME: While this works now, it requires proper handling via signal_fd
 		"Exit authd if user sigints": {
-			tape:          "sigint",
-			clientOptions: clientOptions{PamUser: "user-integration-sigint"},
+			tape: "sigint",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "sigint",
+			},
 		},
 	}
 	for name, tc := range tests {

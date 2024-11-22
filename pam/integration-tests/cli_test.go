@@ -9,6 +9,7 @@ import (
 
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -39,8 +40,10 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape: "simple_auth",
 		},
 		"Authenticate user successfully with preset user": {
-			tape:          "simple_auth_with_preset_user",
-			clientOptions: clientOptions{PamUser: "user-integration-simple-preset"},
+			tape: "simple_auth_with_preset_user",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "simple-preset",
+			},
 		},
 		"Authenticate user successfully after trying empty user": {
 			tape: "simple_auth_empty_user",
@@ -52,14 +55,16 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape: "form_with_button",
 		},
 		"Authenticate user with qr code": {
-			tape:          "qr_code",
-			clientOptions: clientOptions{PamUser: "user-integration-qr-code"},
+			tape: "qr_code",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "qr-code",
+			},
 		},
 		"Authenticate user with qr code in a TTY": {
 			tape:         "qr_code",
 			tapeSettings: []tapeSetting{{vhsHeight, 650}},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-tty",
+				PamUser: examplebroker.UserIntegrationPrefix + "qr-code-tty",
 				Term:    "linux",
 			},
 		},
@@ -67,7 +72,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape:         "qr_code",
 			tapeSettings: []tapeSetting{{vhsHeight, 650}},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-tty-session",
+				PamUser: examplebroker.UserIntegrationPrefix + "qr-code-tty-session",
 				Term:    "xterm-256color", SessionType: "tty",
 			},
 		},
@@ -75,7 +80,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape:         "qr_code",
 			tapeSettings: []tapeSetting{{vhsHeight, 650}},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-screen",
+				PamUser: examplebroker.UserIntegrationPrefix + "qr-code-screen",
 				Term:    "screen",
 			},
 		},
@@ -121,8 +126,10 @@ func TestCLIAuthenticate(t *testing.T) {
 		},
 
 		"Prevent user from switching username": {
-			tape:          "switch_preset_username",
-			clientOptions: clientOptions{PamUser: "user-integration-pam-preset"},
+			tape: "switch_preset_username",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "pam-preset",
+			},
 		},
 
 		"Deny authentication if current user is not considered as root": {

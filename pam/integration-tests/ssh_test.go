@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -171,7 +172,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 		"Deny authentication if user does not exist": {
 			tape:                "unexistent_user",
-			user:                "user-unexistent",
+			user:                examplebroker.UserIntegrationUnexistent,
 			wantNotLoggedInUser: true,
 		},
 		"Deny authentication if user does not exist and matches cancel key": {
@@ -194,7 +195,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 		"Exit if user is not pre-checked on ssh service": {
 			tape:                "local_ssh",
-			user:                "user-integration-ssh-service",
+			user:                examplebroker.UserIntegrationPrefix + "ssh-service",
 			pamServiceName:      "sshd",
 			wantNotLoggedInUser: true,
 		},
@@ -223,7 +224,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 
 			user := tc.user
 			if user == "" {
-				user = "user-integration-pre-check-" + strings.ReplaceAll(
+				user = examplebroker.UserIntegrationPreCheckPrefix + strings.ReplaceAll(
 					strings.ToLower(filepath.Base(t.Name())), "_", "-")
 			}
 
