@@ -225,6 +225,7 @@ func (b Broker) cancelIsAuthenticated(ctx context.Context, sessionID string) {
 
 // UserPreCheck calls the broker corresponding method.
 func (b Broker) UserPreCheck(ctx context.Context, username string) (userinfo string, err error) {
+	log.Debugf(context.TODO(), "Pre-checking user %q", username)
 	return b.brokerer.UserPreCheck(ctx, username)
 }
 

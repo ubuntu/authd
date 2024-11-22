@@ -41,8 +41,10 @@ const (
 	UserIntegrationLocalGroupsPrefix = "user-local-groups-integration-"
 	// UserIntegrationQRcodeStaticPrefix is the prefix for a static qrcode user for integration tests.
 	UserIntegrationQRcodeStaticPrefix = "user-integration-qrcode-static-"
+	// UserIntegrationPreCheckValue is the value for a pre-check user for integration tests.
+	UserIntegrationPreCheckValue = "pre-check"
 	// UserIntegrationPreCheckPrefix is the prefix for a pre-check user for integration tests.
-	UserIntegrationPreCheckPrefix = "user-integration-pre-check-"
+	UserIntegrationPreCheckPrefix = UserIntegrationPrefix + UserIntegrationPreCheckValue + "-"
 	// UserIntegrationUnexistent is an unexistent user leading to a non-existent user error.
 	UserIntegrationUnexistent = "user-unexistent"
 )

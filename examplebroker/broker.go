@@ -821,7 +821,8 @@ func (b *Broker) cancelIsAuthenticatedUnlocked(_ context.Context, sessionID stri
 
 // UserPreCheck checks if the user is known to the broker.
 func (b *Broker) UserPreCheck(ctx context.Context, username string) (string, error) {
-	if strings.HasPrefix(username, UserIntegrationPreCheckPrefix) {
+	if strings.HasPrefix(username, "user-") && strings.Contains(username, "integration") &&
+		strings.Contains(username, fmt.Sprintf("-%s-", UserIntegrationPreCheckValue)) {
 		return userInfoFromName(username), nil
 	}
 	if _, exists := exampleUsers[username]; !exists {
