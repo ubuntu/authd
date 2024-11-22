@@ -282,7 +282,7 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 	case "user-mfa-with-reset":
 		info.neededAuthSteps = 3
 		info.pwdChange = canReset
-	case "user-unexistent":
+	case UserIntegrationUnexistent:
 		return "", "", fmt.Errorf("user %q does not exist", username)
 	}
 
@@ -293,40 +293,40 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 
 	exampleUsersMu.Lock()
 	defer exampleUsersMu.Unlock()
-	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-integration") {
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationPrefix) {
 		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
 	}
 
-	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-mfa-integration") {
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationMfaPrefix) {
 		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
 		info.neededAuthSteps = 3
 	}
 
-	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-mfa-needs-reset-integration") {
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationMfaNeedsResetPrefix) {
 		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
 		info.neededAuthSteps = 3
 		info.pwdChange = mustReset
 	}
 
-	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-mfa-with-reset-integration") {
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationMfaWithResetPrefix) {
 		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
 		info.neededAuthSteps = 3
 		info.pwdChange = canReset
 	}
 
-	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-needs-reset-integration") {
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationNeedsResetPrefix) {
 		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
 		info.neededAuthSteps = 2
 		info.pwdChange = mustReset
 	}
 
-	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-can-reset-integration") {
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationCanResetPrefix) {
 		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
 		info.neededAuthSteps = 2
 		info.pwdChange = canReset
 	}
 
-	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-local-groups-integration") {
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationLocalGroupsPrefix) {
 		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
 	}
 
@@ -512,7 +512,7 @@ func qrcodeData(sessionInfo *sessionInfo) (content string, code string) {
 		"https://www.ubuntu-it.org/",
 	}
 
-	if strings.HasPrefix(sessionInfo.username, "user-integration-qrcode-static") {
+	if strings.HasPrefix(sessionInfo.username, UserIntegrationQRcodeStaticPrefix) {
 		return qrcodeURIs[0], fmt.Sprint(baseCode)
 	}
 
@@ -821,7 +821,7 @@ func (b *Broker) cancelIsAuthenticatedUnlocked(_ context.Context, sessionID stri
 
 // UserPreCheck checks if the user is known to the broker.
 func (b *Broker) UserPreCheck(ctx context.Context, username string) (string, error) {
-	if strings.HasPrefix(username, "user-integration-pre-check") {
+	if strings.HasPrefix(username, UserIntegrationPreCheckPrefix) {
 		return userInfoFromName(username), nil
 	}
 	if _, exists := exampleUsers[username]; !exists {
