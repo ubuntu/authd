@@ -16,6 +16,8 @@ The [MS Entra ID broker](https://github.com/ubuntu/oidc-broker) allows you to au
 ````{grid} 1 1 1 1
 
 ```{grid-item-card} [How-to guides](howto/index)
+:link: howto/index
+:link-type: doc
 
 **Step-by-step guides** covering key operations and common tasks
 ```
@@ -26,11 +28,15 @@ The [MS Entra ID broker](https://github.com/ubuntu/oidc-broker) allows you to au
 :reverse:
 
 ```{grid-item-card} [Reference](reference/index)
+:link: reference/index
+:link-type: doc
 
 **Technical information** on troubleshooting authd
 ```
 
 ```{grid-item-card} [Explanation](explanation/index)
+:link: explanation/index
+:link-type: doc
 
 **Discussion** of product architecture
 ```
