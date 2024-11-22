@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
@@ -206,7 +207,7 @@ Wait`,
 		},
 		"Deny authentication if user does not exist": {
 			tape:                "unexistent_user",
-			user:                "user-unexistent",
+			user:                examplebroker.UserIntegrationUnexistent,
 			wantNotLoggedInUser: true,
 		},
 		"Deny authentication if user does not exist and matches cancel key": {
@@ -232,7 +233,7 @@ Wait`,
 		},
 		"Exit if user is not pre-checked on ssh service": {
 			tape:                "local_ssh",
-			user:                "user-integration-ssh-service-not-allowed",
+			user:                examplebroker.UserIntegrationPrefix + "ssh-service-not-allowed",
 			pamServiceName:      "sshd",
 			wantNotLoggedInUser: true,
 			tapeVariables: map[string]string{
@@ -273,7 +274,7 @@ Wait`,
 
 			user := tc.user
 			if user == "" {
-				user = "user-integration-pre-check-" + strings.ReplaceAll(
+				user = examplebroker.UserIntegrationPreCheckPrefix + strings.ReplaceAll(
 					strings.ToLower(filepath.Base(t.Name())), "_", "-")
 			}
 
