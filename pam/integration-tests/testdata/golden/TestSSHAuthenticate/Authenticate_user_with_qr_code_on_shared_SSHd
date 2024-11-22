@@ -2,7 +2,7 @@
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -10,7 +10,7 @@
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -18,11 +18,11 @@
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -30,23 +30,23 @@ Enter 'r' to cancel the request and go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -54,23 +54,23 @@ Or enter 'r' to go back to choose the provider
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -78,23 +78,23 @@ Or enter 'r' to go back to choose the provider
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -104,7 +104,7 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -112,23 +112,23 @@ Or enter 'r' to go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -138,7 +138,7 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -146,23 +146,23 @@ Or enter 'r' to go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -172,7 +172,7 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -182,7 +182,7 @@ https://ubuntu.fr/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -190,23 +190,23 @@ Or enter 'r' to go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -216,7 +216,7 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -226,7 +226,7 @@ https://ubuntu.fr/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -234,23 +234,23 @@ Or enter 'r' to go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -260,7 +260,7 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -270,7 +270,7 @@ https://ubuntu.fr/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -280,7 +280,7 @@ https://ubuntuforum-br.org/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -288,23 +288,23 @@ Or enter 'r' to go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -314,7 +314,7 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -324,7 +324,7 @@ https://ubuntu.fr/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -334,7 +334,7 @@ https://ubuntuforum-br.org/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -342,23 +342,23 @@ Or enter 'r' to go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -368,7 +368,7 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -378,7 +378,7 @@ https://ubuntu.fr/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -388,7 +388,7 @@ https://ubuntuforum-br.org/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -398,7 +398,7 @@ https://www.ubuntu-it.org/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -406,23 +406,23 @@ Or enter 'r' to go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -432,7 +432,7 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -442,7 +442,7 @@ https://ubuntu.fr/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -452,7 +452,7 @@ https://ubuntuforum-br.org/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -462,7 +462,7 @@ https://www.ubuntu-it.org/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -470,23 +470,23 @@ Or enter 'r' to go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -496,7 +496,7 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -506,7 +506,7 @@ https://ubuntu.fr/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -516,7 +516,7 @@ https://ubuntuforum-br.org/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -526,7 +526,7 @@ https://www.ubuntu-it.org/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -536,7 +536,7 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -544,23 +544,23 @@ Or enter 'r' to go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -570,7 +570,7 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -580,7 +580,7 @@ https://ubuntu.fr/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -590,7 +590,7 @@ https://ubuntuforum-br.org/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -600,7 +600,7 @@ https://www.ubuntu-it.org/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -610,7 +610,7 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 1
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -618,23 +618,23 @@ Or enter 'r' to go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -644,7 +644,7 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -654,7 +654,7 @@ https://ubuntu.fr/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -664,7 +664,7 @@ https://ubuntuforum-br.org/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -674,7 +674,7 @@ https://www.ubuntu-it.org/
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Use a Login code ==
 Enter the code in the login page
@@ -684,12 +684,12 @@ https://ubuntu.com
   1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 1
-PAM Authenticate() finished for user 'user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd'
+PAM Authenticate() finished for user 'user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd'
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
-  LOGNAME=user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd
+  LOGNAME=user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd
   PATH=${AUTHD_TEST_PATH}
   PWD=${AUTHD_TEST_PWD}
   SHELL=/bin/sh
@@ -697,7 +697,7 @@ PAM Authenticate() finished for user 'user-integration-pre-check-authenticate-us
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
   TERM=xterm-256color
-  USER=user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd
+  USER=user-integration-pre-check-ssh-authenticate-user-with-qr-code-on-shared-sshd
 Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
