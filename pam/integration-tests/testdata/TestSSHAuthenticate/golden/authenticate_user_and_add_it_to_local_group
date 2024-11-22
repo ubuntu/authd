@@ -1,34 +1,39 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-local-groups@localhost) == Provider selection ==
+(user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group@localho
+st) == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-local-groups@localhost) == Provider selection ==
+(user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group@localho
+st) == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-local-groups@localhost) == Password authentication ==
+(user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group@localho
+st) == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-local-groups@localhost) == Provider selection ==
+(user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group@localho
+st) == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-local-groups@localhost) == Password authentication ==
+(user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group@localho
+st) == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 Environment:
-  USER=user-local-groups
-  LOGNAME=user-local-groups
+  USER=user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group
+  LOGNAME=user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group
   HOME=${AUTHD_TEST_HOME}
   PATH=${AUTHD_TEST_PATH}
   SHELL=/bin/sh
@@ -42,18 +47,20 @@ Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-local-groups@localhost) == Provider selection ==
+(user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group@localho
+st) == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-local-groups@localhost) == Password authentication ==
+(user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group@localho
+st) == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 Environment:
-  USER=user-local-groups
-  LOGNAME=user-local-groups
+  USER=user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group
+  LOGNAME=user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group
   HOME=${AUTHD_TEST_HOME}
   PATH=${AUTHD_TEST_PATH}
   SHELL=/bin/sh

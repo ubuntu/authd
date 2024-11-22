@@ -94,6 +94,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		tapeVariables map[string]string
 
 		user             string
+		userPrefix       string
 		pamServiceName   string
 		daemonizeSSHd    bool
 		interactiveShell bool
@@ -110,8 +111,8 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 		"Authenticate user with mfa": {
 			tape:         "mfa_auth",
-			tapeSettings: []tapeSetting{{vhsHeight, 1200}},
-			user:         "user-mfa",
+			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
+			userPrefix:   examplebroker.UserIntegrationMfaPrefix,
 		},
 		"Authenticate user with form mode with button": {
 			tape:         "form_with_button",
@@ -123,21 +124,21 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "2"},
 		},
 		"Authenticate user and reset password while enforcing policy": {
-			tape: "mandatory_password_reset",
-			user: "user-needs-reset",
+			tape:       "mandatory_password_reset",
+			userPrefix: examplebroker.UserIntegrationNeedsResetPrefix,
 		},
 		"Authenticate user with mfa and reset password while enforcing policy": {
 			tape:         "mfa_reset_pwquality_auth",
-			user:         "user-mfa-with-reset",
 			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
+			userPrefix:   examplebroker.UserIntegrationMfaWithResetPrefix,
 		},
 		"Authenticate user and offer password reset": {
-			tape: "optional_password_reset_skip",
-			user: "user-can-reset",
+			tape:       "optional_password_reset_skip",
+			userPrefix: examplebroker.UserIntegrationCanResetPrefix,
 		},
 		"Authenticate user and accept password reset": {
-			tape: "optional_password_reset_accept",
-			user: "user-can-reset2",
+			tape:       "optional_password_reset_accept",
+			userPrefix: examplebroker.UserIntegrationCanResetPrefix,
 		},
 		"Authenticate user switching auth mode": {
 			tape:          "switch_auth_mode",
@@ -150,7 +151,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
-			user:            "user-local-groups",
+			userPrefix:      examplebroker.UserIntegrationLocalGroupsPrefix,
 			wantLocalGroups: true,
 		},
 
@@ -181,8 +182,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			wantNotLoggedInUser: true,
 		},
 		"Deny authentication if newpassword does not match required criteria": {
-			tape: "bad_password",
-			user: "user-needs-reset2",
+			tape:         "bad_password",
+			userPrefix:   examplebroker.UserIntegrationNeedsResetPrefix,
+			tapeSettings: []tapeSetting{{vhsHeight, 1200}},
 		},
 
 		"Prevent user from switching username": {
@@ -223,8 +225,14 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			}
 
 			user := tc.user
+			if tc.userPrefix != "" {
+				tc.userPrefix = tc.userPrefix + examplebroker.UserIntegrationPreCheckValue
+			}
+			if tc.userPrefix == "" {
+				tc.userPrefix = examplebroker.UserIntegrationPreCheckPrefix
+			}
 			if user == "" {
-				user = vhsTestUserNameFull(t, examplebroker.UserIntegrationPreCheckPrefix, "")
+				user = vhsTestUserNameFull(t, tc.userPrefix, "ssh")
 			}
 
 			sshdPort := defaultSSHDPort
@@ -283,7 +291,12 @@ func sanitizeGoldenFile(t *testing.T, td tapeData, outDir string) string {
 	// When sshd is in debug mode, it shows the environment variables, so let's sanitize them
 	golden = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`).ReplaceAllString(
 		golden, "  $1=$${AUTHD_TEST_$1}")
-	return golden
+
+	// Username may be split in multiple lines, so fix this not to break further checks.
+	return regexp.MustCompile(`(?m)  (USER|LOGNAME)=.*$\n*[a-z0-9-]+$`).ReplaceAllStringFunc(
+		golden, func(s string) string {
+			return strings.ReplaceAll(s, "\n", "")
+		})
 }
 
 func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) string {

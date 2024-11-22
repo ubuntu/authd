@@ -1,39 +1,39 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully-on-shared-sshd@localhost) == Provider
- selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd@localhost) == Prov
+ider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully-on-shared-sshd@localhost) == Provider
- selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd@localhost) == Prov
+ider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully-on-shared-sshd@localhost) == Password
- authentication ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd@localhost) == Pass
+word authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully-on-shared-sshd@localhost) == Provider
- selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd@localhost) == Prov
+ider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully-on-shared-sshd@localhost) == Password
- authentication ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd@localhost) == Pass
+word authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
-  LOGNAME=user-integration-pre-check-authenticate-user-successfully-on-shared-sshd
+  LOGNAME=user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd
   PATH=${AUTHD_TEST_PATH}
   PWD=${AUTHD_TEST_PWD}
   SHELL=/bin/sh
@@ -41,25 +41,25 @@ Gimme your password:
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
   TERM=xterm-256color
-  USER=user-integration-pre-check-authenticate-user-successfully-on-shared-sshd
+  USER=user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd
 Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully-on-shared-sshd@localhost) == Provider
- selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd@localhost) == Prov
+ider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully-on-shared-sshd@localhost) == Password
- authentication ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd@localhost) == Pass
+word authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
-  LOGNAME=user-integration-pre-check-authenticate-user-successfully-on-shared-sshd
+  LOGNAME=user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd
   PATH=${AUTHD_TEST_PATH}
   PWD=${AUTHD_TEST_PWD}
   SHELL=/bin/sh
@@ -67,7 +67,7 @@ Gimme your password:
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
   TERM=xterm-256color
-  USER=user-integration-pre-check-authenticate-user-successfully-on-shared-sshd
+  USER=user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd
 Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────

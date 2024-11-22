@@ -1,40 +1,39 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Provider selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Provider selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Password authentication ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Provider selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Password authentication ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 Environment:
-  USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd
-  LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-s
-shd
+  USER=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
+  LOGNAME=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
   HOME=${AUTHD_TEST_HOME}
   PATH=${AUTHD_TEST_PATH}
   SHELL=/bin/sh
@@ -44,21 +43,20 @@ shd
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Provider selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Password authentication ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 Environment:
-  USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd
-  LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-s
-shd
+  USER=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
+  LOGNAME=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
   HOME=${AUTHD_TEST_HOME}
   PATH=${AUTHD_TEST_PATH}
   SHELL=/bin/sh
@@ -68,21 +66,20 @@ shd
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Provider selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Password authentication ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 Environment:
-  USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd
-  LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-s
-shd
+  USER=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
+  LOGNAME=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
   HOME=${AUTHD_TEST_HOME}
   PATH=${AUTHD_TEST_PATH}
   SHELL=/bin/sh
@@ -90,25 +87,24 @@ shd
   SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
-user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd
+user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
 $
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Provider selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Password authentication ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 Environment:
-  USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd
-  LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-s
-shd
+  USER=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
+  LOGNAME=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
   HOME=${AUTHD_TEST_HOME}
   PATH=${AUTHD_TEST_PATH}
   SHELL=/bin/sh
@@ -116,27 +112,26 @@ shd
   SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
-user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd
+user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
 $ [ -n "${SSH_CONNECTION}" ] && echo "Inside SSH"
 Inside SSH
 $
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Provider selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Password authentication ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 Environment:
-  USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd
-  LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-s
-shd
+  USER=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
+  LOGNAME=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
   HOME=${AUTHD_TEST_HOME}
   PATH=${AUTHD_TEST_PATH}
   SHELL=/bin/sh
@@ -144,7 +139,7 @@ shd
   SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
-user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd
+user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
 $ [ -n "${SSH_CONNECTION}" ] && echo "Inside SSH"
 Inside SSH
 $
@@ -152,21 +147,20 @@ Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Provider selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Password authentication ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 Environment:
-  USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd
-  LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-s
-shd
+  USER=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
+  LOGNAME=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
   HOME=${AUTHD_TEST_HOME}
   PATH=${AUTHD_TEST_PATH}
   SHELL=/bin/sh
@@ -174,7 +168,7 @@ shd
   SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
-user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd
+user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
 $ [ -n "${SSH_CONNECTION}" ] && echo "Inside SSH"
 Inside SSH
 $
@@ -184,21 +178,20 @@ Outside SSH
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Provider selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd@local
-host) == Password authentication ==
+(user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd@l
+ocalhost) == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 Environment:
-  USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd
-  LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-s
-shd
+  USER=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
+  LOGNAME=user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
   HOME=${AUTHD_TEST_HOME}
   PATH=${AUTHD_TEST_PATH}
   SHELL=/bin/sh
@@ -206,7 +199,7 @@ shd
   SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
-user-integration-pre-check-authenticate-user-successfully-and-enters-shell-on-shared-sshd
+user-integration-pre-check-ssh-authenticate-user-successfully-and-enters-shell-on-shared-sshd
 $ [ -n "${SSH_CONNECTION}" ] && echo "Inside SSH"
 Inside SSH
 $

@@ -1,36 +1,39 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully@localhost) == Provider selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully@localhost) == Provider selection
+==
   1. local
   2. ExampleBroker
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully@localhost) == Provider selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully@localhost) == Provider selection
+==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully@localhost) == Password authentication
- ==
+(user-integration-pre-check-ssh-authenticate-user-successfully@localhost) == Password authentica
+tion ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully@localhost) == Provider selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully@localhost) == Provider selection
+==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully@localhost) == Password authentication
- ==
+(user-integration-pre-check-ssh-authenticate-user-successfully@localhost) == Password authentica
+tion ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 Environment:
-  USER=user-integration-pre-check-authenticate-user-successfully
-  LOGNAME=user-integration-pre-check-authenticate-user-successfully
+  USER=user-integration-pre-check-ssh-authenticate-user-successfully
+  LOGNAME=user-integration-pre-check-ssh-authenticate-user-successfully
   HOME=${AUTHD_TEST_HOME}
   PATH=${AUTHD_TEST_PATH}
   SHELL=/bin/sh
@@ -43,19 +46,20 @@ Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-successfully@localhost) == Provider selection ==
+(user-integration-pre-check-ssh-authenticate-user-successfully@localhost) == Provider selection
+==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
-(user-integration-pre-check-authenticate-user-successfully@localhost) == Password authentication
- ==
+(user-integration-pre-check-ssh-authenticate-user-successfully@localhost) == Password authentica
+tion ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 Environment:
-  USER=user-integration-pre-check-authenticate-user-successfully
-  LOGNAME=user-integration-pre-check-authenticate-user-successfully
+  USER=user-integration-pre-check-ssh-authenticate-user-successfully
+  LOGNAME=user-integration-pre-check-ssh-authenticate-user-successfully
   HOME=${AUTHD_TEST_HOME}
   PATH=${AUTHD_TEST_PATH}
   SHELL=/bin/sh
