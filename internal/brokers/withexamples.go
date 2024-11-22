@@ -6,7 +6,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/ubuntu/authd/examplebroker"
+	"github.com/ubuntu/authd/internal/examplebroker"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/log"
 )

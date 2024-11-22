@@ -47,7 +47,7 @@ in addition to information about authd architecture and troubleshooting.
 ## Brokers
 
 authd uses brokers to interface with cloud identity providers through a
-[DBus API](https://github.com/ubuntu/authd/blob/HEAD/examplebroker/com.ubuntu.auth.ExampleBroker.xml).
+[DBus API](https://github.com/ubuntu/authd/blob/HEAD/internal/examplebroker/com.ubuntu.auth.ExampleBroker.xml).
 
 Currently [MS Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis)
 and [Google IAM](https://cloud.google.com/iam/docs/overview)
