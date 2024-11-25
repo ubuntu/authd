@@ -148,10 +148,11 @@ func TestUpdateUserEntry(t *testing.T) {
 		},
 	}
 	groupCases := map[string]cache.GroupDB{
-		"group1":    cache.NewGroupDB("group1", 11111, nil),
-		"newgroup1": cache.NewGroupDB("newgroup1", 11111, nil),
-		"group2":    cache.NewGroupDB("group2", 22222, nil),
-		"group3":    cache.NewGroupDB("group3", 33333, nil),
+		"group1":              cache.NewGroupDB("group1", 11111, "12345678", nil),
+		"newgroup1-same-ugid": cache.NewGroupDB("newgroup1-same-ugid", 11111, "12345678", nil),
+		"newgroup1-diff-ugid": cache.NewGroupDB("newgroup1-diff-ugid", 11111, "99999999", nil),
+		"group2":              cache.NewGroupDB("group2", 22222, "56781234", nil),
+		"group3":              cache.NewGroupDB("group3", 33333, "34567812", nil),
 	}
 
 	tests := map[string]struct {
@@ -175,6 +176,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		// Group updates
 		"Update user by adding a new group":         {groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group"},
 		"Update user by adding a new default group": {groupCases: []string{"group2", "group1"}, dbFile: "one_user_and_group"},
+		"Update user by renaming a group":           {groupCases: []string{"newgroup1-same-ugid"}, dbFile: "one_user_and_group"},
 		"Remove group from user":                    {groupCases: []string{"group2"}, dbFile: "one_user_and_group"},
 		"Update user by adding a new local group":   {localGroups: []string{"localgroup1"}, dbFile: "one_user_and_group"},
 
@@ -189,8 +191,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Invalid value entries in other user and groups do not impact current request": {dbFile: "invalid_entries_but_user_and_group1"},
 
 		// Renaming errors
-		"Error when user has conflicting uid":  {userCase: "user1-new-name", dbFile: "one_user_and_group", wantErr: true},
-		"Error when group has conflicting gid": {groupCases: []string{"newgroup1"}, dbFile: "one_user_and_group", wantErr: true},
+		"Error when user has conflicting uid": {userCase: "user1-new-name", dbFile: "one_user_and_group", wantErr: true},
 
 		// Error cases
 		"Error on invalid value entry in groupByID":                                 {dbFile: "invalid_entry_in_groupByID", wantErr: true},
@@ -199,6 +200,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Error on invalid value entry in groupToUsers":                              {dbFile: "invalid_entry_in_groupToUsers", wantErr: true},
 		"Error on invalid value entry in groupToUsers for user dropping from group": {dbFile: "invalid_entry_in_groupToUsers_secondary_group", wantErr: true},
 		"Error on invalid value entry in groupByID for user dropping from group":    {dbFile: "invalid_entry_in_groupByID_secondary_group", wantErr: true},
+		"Error when group has conflicting gid":                                      {groupCases: []string{"newgroup1-diff-ugid"}, dbFile: "one_user_and_group", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
