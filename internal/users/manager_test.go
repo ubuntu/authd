@@ -76,7 +76,7 @@ func TestNewManager(t *testing.T) {
 			}
 			require.NoError(t, err, "NewManager should not return an error, but did")
 
-			got, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
+			got, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := testutils.LoadWithUpdateFromGolden(t, got)
@@ -231,7 +231,7 @@ func TestUpdateUser(t *testing.T) {
 				require.Equal(t, oldUID, newUser.UID, "UID should not have changed")
 			}
 
-			got, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
+			got, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
@@ -315,7 +315,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 				return
 			}
 
-			got, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
+			got, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
