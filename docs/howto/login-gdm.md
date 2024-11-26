@@ -10,23 +10,23 @@ Type your MS Entra ID user name. The format is ```user@domain.name```
 
 Select the broker `Microsoft Entra ID`
 
-![image](../assets/gdm-select-broker.png)
+![Login screen showing selection of broker.](../assets/gdm-select-broker.png)
 
 If MFA is enabled, a QR code and a login code are displayed.
 
-![image](../assets/gdm-qr.png)
+![Display of QR code, login code and button to Request new login code.](../assets/gdm-qr.png)
 
 From a second device, flash the QR code or type the URL in a web browser, then follow the authentication process from your provider.
 
 Upon successful authentication, the user is prompted to enter a local password. This password can be used for offline authentication.
 
-![image](../assets/gdm-pass.png)
+![Prompt to create local password on successful authentication.](../assets/gdm-pass.png)
 
 ## Groups management
 
-In our example the user `authd test` is a member of the following Azure groups:
+In our example the user `authd test` is a member of the Azure groups `Azure_OIDC_Test` and `linux-sudo`:
 
-![image](../assets/gdm-groups.png)
+![Azure portal interface showing the Azure groups.](../assets/gdm-groups.png)
 
 This translates to the following unix groups on the local machine:
 

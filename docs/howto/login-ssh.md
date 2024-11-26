@@ -57,4 +57,4 @@ For instance:
 ssh user@domain.tld@remote.host
 ```
 
-![image](../assets/ssh-qr.png)
+![Terminal interface showing option to authentice by login code or QR scan when user tries to ssh into server](../assets/ssh-qr.png)

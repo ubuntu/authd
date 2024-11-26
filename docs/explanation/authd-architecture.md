@@ -1,17 +1,17 @@
-# Authd architecture
+# authd architecture
 
-Authd can help organisations ensure secure identity and access management by enabling seamless cloud-based authentication of Ubuntu machines.
+authd can help organisations ensure secure identity and access management by enabling seamless cloud-based authentication of Ubuntu machines.
 Here we explain the architecture of authd and some of its design decisions.
 Links are provided at the end to support further reading.
 
 ## Architecture components
 
-Authd acts as an interface between the host system and external identity providers. 
+authd acts as an interface between the host system and external identity providers. 
 Remote information is cached when authenticating with authd, which improves performance while also facilitating offline access.
 
 The diagram below illustrates the components of authd and their communication methods:
 
-![isoflow-export-2024-08-30T13_44_31 725Z](../assets/authd-architecture.png)
+![Isometric architecture diagram of authd.](../assets/authd-architecture.png)
 
 The architecture of authd consists of the following components:
 
