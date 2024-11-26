@@ -293,6 +293,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload test artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: authd-${{ github.job }}-${{ matrix.test }}-artifacts-${{ github.run_attempt }}
