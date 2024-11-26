@@ -78,7 +78,7 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 			return &authd.GPBResponse{PreviousBroker: brokers.LocalBrokerName}, nil
 		}
 
-		// User not acccessible through NSS, first time login or no valid user. Anyway, no broker selected.
+		// User not accessible through NSS, first time login or no valid user. Anyway, no broker selected.
 		if _, err := user.Lookup(req.GetUsername()); err != nil {
 			log.Debugf(ctx, "User %q is unknown", req.GetUsername())
 			return &authd.GPBResponse{}, nil
