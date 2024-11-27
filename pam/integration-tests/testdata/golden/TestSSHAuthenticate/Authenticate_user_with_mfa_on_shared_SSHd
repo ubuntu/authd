@@ -93,8 +93,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 (user-mfa@localhost) Gimme your password:
 >
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 >
 ────────────────────────────────────────────────────────────────────────────────
@@ -125,103 +124,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 (user-mfa@localhost) Gimme your password:
 >
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-mfa@localhost) Plug your fido device and press with your thumb:
-> r
-== Authentication method selection ==
-  1. Use your fido device foo
-  2. Use your phone +33...
-  3. Authentication code
-Or enter 'r' to go back to choose the provider
-(user-mfa@localhost) Choose your authentication method:
->
-────────────────────────────────────────────────────────────────────────────────
-> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-(user-mfa@localhost) Choose your provider:
-> 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-(user-mfa@localhost) Gimme your password:
->
-== Authentication method selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-mfa@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33...
-  6. Use your phone +1...
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-(user-mfa@localhost) Choose your authentication method:
-> 1
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-(user-mfa@localhost) Gimme your password:
->
-== Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-mfa@localhost) Plug your fido device and press with your thumb:
-> r
-== Authentication method selection ==
-  1. Use your fido device foo
-  2. Use your phone +33...
-  3. Authentication code
-Or enter 'r' to go back to choose the provider
-(user-mfa@localhost) Choose your authentication method:
-> 1
-== Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-mfa@localhost) Plug your fido device and press with your thumb:
->
-────────────────────────────────────────────────────────────────────────────────
-> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-(user-mfa@localhost) Choose your provider:
-> 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-(user-mfa@localhost) Gimme your password:
->
-== Authentication method selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-mfa@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33...
-  6. Use your phone +1...
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-(user-mfa@localhost) Choose your authentication method:
-> 1
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-(user-mfa@localhost) Gimme your password:
->
-== Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-mfa@localhost) Plug your fido device and press with your thumb:
-> r
-== Authentication method selection ==
-  1. Use your fido device foo
-  2. Use your phone +33...
-  3. Authentication code
-Or enter 'r' to go back to choose the provider
-(user-mfa@localhost) Choose your authentication method:
-> 1
-== Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
@@ -259,8 +162,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 (user-mfa@localhost) Gimme your password:
 >
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
@@ -271,8 +173,98 @@ Or enter 'r' to go back to choose the provider
 (user-mfa@localhost) Choose your authentication method:
 > 1
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-mfa@localhost) Plug your fido device and press with your thumb:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-mfa@localhost) Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-mfa@localhost) Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-mfa@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+(user-mfa@localhost) Choose your authentication method:
+> 1
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-mfa@localhost) Gimme your password:
+>
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-mfa@localhost) Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Use your fido device foo
+  2. Use your phone +33...
+  3. Authentication code
+Or enter 'r' to go back to choose the provider
+(user-mfa@localhost) Choose your authentication method:
+> 1
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-mfa@localhost) Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Use your fido device foo
+  2. Use your phone +33...
+  3. Authentication code
+Or enter 'r' to go back to choose the provider
+(user-mfa@localhost) Choose your authentication method:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-mfa@localhost) Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-mfa@localhost) Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-mfa@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+(user-mfa@localhost) Choose your authentication method:
+> 1
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-mfa@localhost) Gimme your password:
+>
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-mfa@localhost) Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Use your fido device foo
+  2. Use your phone +33...
+  3. Authentication code
+Or enter 'r' to go back to choose the provider
+(user-mfa@localhost) Choose your authentication method:
+> 1
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
@@ -283,8 +275,7 @@ Or enter 'r' to go back to choose the provider
 (user-mfa@localhost) Choose your authentication method:
 > 2
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Unlock your phone +33... or accept request on web interface:
 >
 ────────────────────────────────────────────────────────────────────────────────
@@ -315,8 +306,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 (user-mfa@localhost) Gimme your password:
 >
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
@@ -327,8 +317,7 @@ Or enter 'r' to go back to choose the provider
 (user-mfa@localhost) Choose your authentication method:
 > 1
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
@@ -339,13 +328,11 @@ Or enter 'r' to go back to choose the provider
 (user-mfa@localhost) Choose your authentication method:
 > 2
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Unlock your phone +33... or accept request on web interface:
 >
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 >
 ────────────────────────────────────────────────────────────────────────────────
@@ -376,8 +363,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 (user-mfa@localhost) Gimme your password:
 >
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
@@ -388,8 +374,7 @@ Or enter 'r' to go back to choose the provider
 (user-mfa@localhost) Choose your authentication method:
 > 1
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
@@ -400,13 +385,11 @@ Or enter 'r' to go back to choose the provider
 (user-mfa@localhost) Choose your authentication method:
 > 2
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Unlock your phone +33... or accept request on web interface:
 >
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 >
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
@@ -450,8 +433,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 (user-mfa@localhost) Gimme your password:
 >
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
@@ -462,8 +444,7 @@ Or enter 'r' to go back to choose the provider
 (user-mfa@localhost) Choose your authentication method:
 > 1
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
@@ -474,13 +455,11 @@ Or enter 'r' to go back to choose the provider
 (user-mfa@localhost) Choose your authentication method:
 > 2
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Unlock your phone +33... or accept request on web interface:
 >
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 >
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
@@ -524,8 +503,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 (user-mfa@localhost) Gimme your password:
 >
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
@@ -536,8 +514,7 @@ Or enter 'r' to go back to choose the provider
 (user-mfa@localhost) Choose your authentication method:
 > 1
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
@@ -548,13 +525,11 @@ Or enter 'r' to go back to choose the provider
 (user-mfa@localhost) Choose your authentication method:
 > 2
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Unlock your phone +33... or accept request on web interface:
 >
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 >
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]

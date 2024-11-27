@@ -2,34 +2,29 @@
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -41,21 +36,18 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -67,8 +59,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -85,13 +76,11 @@ Or enter 'r' to go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -103,8 +92,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -126,21 +114,18 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -152,8 +137,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -175,28 +159,23 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -208,8 +187,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -231,15 +209,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -251,21 +226,18 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -277,8 +249,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -300,15 +271,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -320,27 +288,22 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -352,8 +315,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -375,15 +337,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -395,14 +354,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -414,21 +370,18 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -440,8 +393,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -463,15 +415,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -483,14 +432,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -502,27 +448,22 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 5
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-33... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +33... or accept request on web interface:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -534,8 +475,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -557,15 +497,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -577,14 +514,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -596,14 +530,11 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 5
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-33... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -615,21 +546,18 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -641,8 +569,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -664,15 +591,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -684,14 +608,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -703,14 +624,11 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 5
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-33... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -722,27 +640,22 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 6
 == Use your phone +1... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-1... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +1... or accept request on web interface:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -754,8 +667,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -777,15 +689,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -797,14 +706,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -816,14 +722,11 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 5
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-33... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -835,14 +738,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 6
 == Use your phone +1... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-1... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +1... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -854,21 +754,18 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -880,8 +777,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -903,15 +799,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -923,14 +816,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -942,14 +832,11 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 5
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-33... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -961,14 +848,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 6
 == Use your phone +1... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-1... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +1... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -980,26 +864,22 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 7
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -1011,8 +891,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -1034,15 +913,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1054,14 +930,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1073,14 +946,11 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 5
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-33... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1092,14 +962,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 6
 == Use your phone +1... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-1... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +1... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1111,13 +978,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 7
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1129,21 +994,18 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -1155,8 +1017,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -1178,15 +1039,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1198,14 +1056,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1217,14 +1072,11 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 5
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-33... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1236,14 +1088,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 6
 == Use your phone +1... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-1... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +1... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1255,13 +1104,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 7
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1273,8 +1120,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
@@ -1287,13 +1133,11 @@ Or enter 'r' to go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -1305,8 +1149,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -1328,15 +1171,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1348,14 +1188,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1367,14 +1204,11 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 5
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-33... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1386,14 +1220,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 6
 == Use your phone +1... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-1... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +1... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1405,13 +1236,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 7
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1423,8 +1252,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
@@ -1442,21 +1270,18 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -1468,8 +1293,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -1491,15 +1315,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1511,14 +1332,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1530,14 +1348,11 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 5
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-33... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1549,14 +1364,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 6
 == Use your phone +1... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-1... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +1... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1568,13 +1380,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 7
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1586,8 +1396,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
@@ -1605,25 +1414,21 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > invalid-selection
 Unsupported input
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -1635,8 +1440,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -1658,15 +1462,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1678,14 +1479,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1697,14 +1495,11 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 5
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-33... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1716,14 +1511,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 6
 == Use your phone +1... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-1... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +1... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1735,13 +1527,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 7
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1753,8 +1543,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
@@ -1772,12 +1561,10 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > invalid-selection
 Unsupported input
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > -1
 Invalid selection
 == Authentication method selection ==
@@ -1790,21 +1577,18 @@ Invalid selection
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -1816,8 +1600,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -1839,15 +1622,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1859,14 +1639,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1878,14 +1655,11 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 5
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-33... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1897,14 +1671,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 6
 == Use your phone +1... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-1... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +1... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1916,13 +1687,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 7
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -1934,8 +1703,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
@@ -1953,12 +1721,10 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > invalid-selection
 Unsupported input
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > -1
 Invalid selection
 == Authentication method selection ==
@@ -1971,26 +1737,22 @@ Invalid selection
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 7
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -2002,8 +1764,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -2025,15 +1786,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -2045,14 +1803,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -2064,14 +1819,11 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 5
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-33... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -2083,14 +1835,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 6
 == Use your phone +1... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-1... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +1... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -2102,13 +1851,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 7
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -2120,8 +1867,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
@@ -2139,12 +1885,10 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > invalid-selection
 Unsupported input
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > -1
 Invalid selection
 == Authentication method selection ==
@@ -2157,13 +1901,11 @@ Invalid selection
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 7
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code:
 > 4242
 Environment:
   USER=user-integration-pre-check-authenticate-user-switching-auth-mode
@@ -2175,8 +1917,7 @@ Environment:
   SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
- SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_switching_auth_
-mode]
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_switching_auth_mode]
 Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
@@ -2184,13 +1925,11 @@ Connection to localhost closed.
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provide
-r:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
@@ -2202,8 +1941,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -2225,15 +1963,12 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 3
 == Send URL to user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link r
-eceived at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or enter t
-he code:
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Click on the link received at user-integration-pre-check-authenticate-user-switching-auth-mode@gmail.com or
+ enter the code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -2245,14 +1980,11 @@ he code:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 4
 == Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido devi
-ce and press with your thumb:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Plug your fido device and press with your thumb:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -2264,14 +1996,11 @@ ce and press with your thumb:
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 5
 == Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-33... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +33... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -2283,14 +2012,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 6
 == Use your phone +1... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +
-1... or accept request on web interface:
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Unlock your phone +1... or accept request on web interface:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -2302,13 +2028,11 @@ od
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 7
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code:
 > r
 == Authentication method selection ==
   1. Password authentication
@@ -2320,8 +2044,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
@@ -2339,12 +2062,10 @@ Or enter 'r' to go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > invalid-selection
 Unsupported input
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > -1
 Invalid selection
 == Authentication method selection ==
@@ -2357,13 +2078,11 @@ Invalid selection
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authent
-ication method:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Choose your authentication method:
 > 7
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code
-:
+(user-integration-pre-check-authenticate-user-switching-auth-mode@localhost) Enter your pin code:
 > 4242
 Environment:
   USER=user-integration-pre-check-authenticate-user-switching-auth-mode
@@ -2375,8 +2094,7 @@ Environment:
   SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
- SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_switching_auth_
-mode]
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_switching_auth_mode]
 Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
