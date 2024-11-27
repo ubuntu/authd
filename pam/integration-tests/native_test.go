@@ -126,7 +126,15 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape:          "switch_auth_mode",
 			tapeSettings:  []tapeSetting{{vhsHeight, 3000}},
 			clientOptions: clientOptions{PamUser: "user-integration-switch-mode"},
-			tapeVariables: map[string]string{"AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM": "6"},
+			tapeVariables: map[string]string{
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_SEND_URL_TO_EMAIL_ITEM":   "2",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_FIDO_DEVICE_FOO_ITEM":     "3",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_PHONE_33_ITEM":            "4",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_PHONE_1_ITEM":             "5",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM":            "6",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_QR_OR_LOGIN_CODE_ITEM":    "7",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_AUTHENTICATION_CODE_ITEM": "8",
+			},
 		},
 		"Authenticate user switching username": {
 			tape: "switch_username",
