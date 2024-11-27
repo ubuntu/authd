@@ -2,34 +2,29 @@
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose yo
-ur provider:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose yo
-ur provider:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme you
-r password:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose yo
-ur provider:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme you
-r password:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
@@ -46,13 +41,11 @@ Environment:
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose yo
-ur provider:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme you
-r password:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
@@ -69,13 +62,11 @@ Environment:
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose yo
-ur provider:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme you
-r password:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
@@ -94,13 +85,11 @@ $
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose yo
-ur provider:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme you
-r password:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
@@ -121,13 +110,11 @@ $
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose yo
-ur provider:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme you
-r password:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
@@ -150,13 +137,11 @@ Connection to localhost closed.
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose yo
-ur provider:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme you
-r password:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
@@ -181,13 +166,11 @@ Outside SSH
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose yo
-ur provider:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme you
-r password:
+(user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell

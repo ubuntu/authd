@@ -38,8 +38,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication
- method:
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -63,8 +62,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication
- method:
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -98,8 +96,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication
- method:
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -143,8 +140,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication
- method:
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -198,8 +194,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication
- method:
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -263,8 +258,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication
- method:
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -338,8 +332,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication
- method:
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -413,8 +406,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication
- method:
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -501,8 +493,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication
- method:
+(user-integration-pre-check-authenticate-user-with-qr-code@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page

@@ -36,8 +36,7 @@ Environment:
   SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
- SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_and_add_it_to_l
-ocal_group]
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_and_add_it_to_local_group]
 Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
@@ -61,8 +60,7 @@ Environment:
   SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
- SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_and_add_it_to_l
-ocal_group]
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_and_add_it_to_local_group]
 Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
