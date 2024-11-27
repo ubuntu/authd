@@ -2,8 +2,7 @@
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- provider:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -11,13 +10,11 @@
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- provider:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your
-password:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -25,27 +22,23 @@ password:
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- provider:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your
-password:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.
-com
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- authentication method:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -53,27 +46,23 @@ Or enter 'r' to go back to choose the provider
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- provider:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your
-password:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.
-com
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- authentication method:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -83,8 +72,7 @@ https://ubuntu.com
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -92,27 +80,23 @@ on:
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- provider:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your
-password:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.
-com
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- authentication method:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -122,8 +106,7 @@ https://ubuntu.com
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -133,8 +116,7 @@ https://ubuntu.fr/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -142,27 +124,23 @@ on:
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- provider:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your
-password:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.
-com
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- authentication method:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -172,8 +150,7 @@ https://ubuntu.com
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -183,8 +160,7 @@ https://ubuntu.fr/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -194,8 +170,7 @@ https://ubuntuforum-br.org/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -203,27 +178,23 @@ on:
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- provider:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your
-password:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.
-com
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- authentication method:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -233,8 +204,7 @@ https://ubuntu.com
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -244,8 +214,7 @@ https://ubuntu.fr/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -255,8 +224,7 @@ https://ubuntuforum-br.org/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -266,8 +234,7 @@ https://www.ubuntu-it.org/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -275,27 +242,23 @@ on:
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- provider:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your
-password:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.
-com
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- authentication method:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -305,8 +268,7 @@ https://ubuntu.com
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -316,8 +278,7 @@ https://ubuntu.fr/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -327,8 +288,7 @@ https://ubuntuforum-br.org/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -338,8 +298,7 @@ https://www.ubuntu-it.org/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -349,8 +308,7 @@ https://ubuntu.com
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -358,27 +316,23 @@ on:
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- provider:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your
-password:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.
-com
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- authentication method:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -388,8 +342,7 @@ https://ubuntu.com
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -399,8 +352,7 @@ https://ubuntu.fr/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -410,8 +362,7 @@ https://ubuntuforum-br.org/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -421,8 +372,7 @@ https://www.ubuntu-it.org/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -432,8 +382,7 @@ https://ubuntu.com
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 1
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -441,27 +390,23 @@ on:
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- provider:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your
-password:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.
-com
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- authentication method:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -471,8 +416,7 @@ https://ubuntu.com
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -482,8 +426,7 @@ https://ubuntu.fr/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -493,8 +436,7 @@ https://ubuntuforum-br.org/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -504,8 +446,7 @@ https://www.ubuntu-it.org/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -515,8 +456,7 @@ https://ubuntu.com
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 1
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
@@ -537,27 +477,23 @@ Connection to localhost closed.
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- provider:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your
-password:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Gimme your password:
 >
 == Authentication method selection ==
   1. Password authentication
   2. Use a Login code
-  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.
-com
+  3. Send URL to user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@gmail.com
   4. Use your fido device foo
   5. Use your phone +33...
   6. Use your phone +1...
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your
- authentication method:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -567,8 +503,7 @@ https://ubuntu.com
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -578,8 +513,7 @@ https://ubuntu.fr/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -589,8 +523,7 @@ https://ubuntuforum-br.org/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -600,8 +533,7 @@ https://www.ubuntu-it.org/
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
 == Qr Code authentication ==
 Enter the code in the login page
@@ -611,8 +543,7 @@ https://ubuntu.com
   1. Wait for the QR code scan result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose acti
-on:
+(user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 1
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}

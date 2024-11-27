@@ -2,29 +2,24 @@
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) Choose your provid
-er:
+(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) Choose your provid
-er:
+(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) Choose your provider:
 > 1
-SSH PAM user 'user-integration-pre-check-exit-authd-if-local-broker-is-selected' using local bro
-ker
+SSH PAM user 'user-integration-pre-check-exit-authd-if-local-broker-is-selected' using local broker
 (user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) Password:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) Choose your provid
-er:
+(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) Choose your provider:
 > 1
-SSH PAM user 'user-integration-pre-check-exit-authd-if-local-broker-is-selected' using local bro
-ker
+SSH PAM user 'user-integration-pre-check-exit-authd-if-local-broker-is-selected' using local broker
 (user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) Password:
 ────────────────────────────────────────────────────────────────────────────────

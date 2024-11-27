@@ -2,34 +2,29 @@
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Choose your pro
-vider:
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Choose your pro
-vider:
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Gimme your pass
-word:
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Choose your pro
-vider:
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Gimme your pass
-word:
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Gimme your password:
 >
 
 >
@@ -38,13 +33,11 @@ word:
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Choose your pro
-vider:
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Gimme your pass
-word:
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Gimme your password:
 >
 
 > echo $TERM
@@ -55,13 +48,11 @@ xterm-256color
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Choose your pro
-vider:
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Gimme your pass
-word:
+(user-integration-pre-check-exit-authd-if-user-sigints-on-shared-sshd@localhost) Gimme your password:
 >
 
 > echo $TERM

@@ -78,7 +78,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	defaultSocketPath := runAuthd(t, defaultGPasswdOutput, groupsFile, true)
 
 	const tapeCommand = "ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}"
-	defaultTapeSettings := []tapeSetting{{vhsHeight, 1000}, {vhsWidth, 800}}
+	defaultTapeSettings := []tapeSetting{{vhsHeight, 1000}, {vhsWidth, 1500}}
 
 	defaultSSHDPort := ""
 	defaultUserHome := ""
