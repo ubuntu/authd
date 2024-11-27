@@ -8,12 +8,15 @@ import (
 	"math"
 	"os/user"
 	"strconv"
+	"strings"
 
 	"github.com/ubuntu/authd/internal/testsdetection"
 )
 
-// withCurrentUserAsRoot returns an Option that sets the rootUID to the current user's UID.
-func withCurrentUserAsRoot() Option {
+// Z_ForTests_WithCurrentUserAsRoot returns an Option that sets the rootUID to the current user's UID.
+//
+// nolint:revive,nolintlint // We want to use underscores in the function name here.
+func Z_ForTests_WithCurrentUserAsRoot() Option {
 	testsdetection.MustBeTesting()
 
 	uid := currentUserUID()
@@ -38,10 +41,10 @@ func currentUserUID() uint32 {
 	return uint32(uid)
 }
 
-// setCurrentUserAsRoot mutates a default permission to the current user's UID if currentUserAsRoot is true.
+// Z_ForTests_SetCurrentUserAsRoot mutates a default permission to the current user's UID if currentUserAsRoot is true.
 //
-//nolint:unused // false positive as used in permissionstests with linkname.
-func (m *Manager) setCurrentUserAsRoot(currentUserAsRoot bool) {
+// nolint:revive,nolintlint // We want to use underscores in the function name here.
+func Z_ForTests_SetCurrentUserAsRoot(m *Manager, currentUserAsRoot bool) {
 	testsdetection.MustBeTesting()
 
 	if !currentUserAsRoot {
@@ -50,4 +53,22 @@ func (m *Manager) setCurrentUserAsRoot(currentUserAsRoot bool) {
 	}
 
 	m.rootUID = currentUserUID()
+}
+
+// Z_ForTests_IdempotentPermissionError strips the UID from the permission error message.
+//
+// nolint:revive,nolintlint // We want to use underscores in the function name here.
+func Z_ForTests_IdempotentPermissionError(msg string) string {
+	testsdetection.MustBeTesting()
+
+	return strings.ReplaceAll(msg, fmt.Sprint(currentUserUID()), "XXXX")
+}
+
+// Z_ForTests_DefaultCurrentUserAsRoot mocks the current user as root for the permission manager.
+//
+// nolint:revive,nolintlint // We want to use underscores in the function name here.
+func Z_ForTests_DefaultCurrentUserAsRoot() {
+	testsdetection.MustBeTesting()
+
+	defaultOptions.rootUID = currentUserUID()
 }
