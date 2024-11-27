@@ -6,14 +6,14 @@ import (
 	"os"
 	"strings"
 
-	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
+	"github.com/ubuntu/authd/internal/services/permissions"
+	"github.com/ubuntu/authd/internal/users/localgroups"
 )
 
 // load any behaviour modifiers from env variable.
 func init() {
 	if os.Getenv("AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT") != "" {
-		permissionstestutils.DefaultCurrentUserAsRoot()
+		permissions.Z_ForTests_DefaultCurrentUserAsRoot()
 	}
 
 	gpasswdArgs := os.Getenv("AUTHD_INTEGRATIONTESTS_GPASSWD_ARGS")
@@ -21,6 +21,6 @@ func init() {
 	if gpasswdArgs == "" || grpFilePath == "" {
 		panic("AUTHD_INTEGRATIONTESTS_GPASSWD_ARGS and AUTHD_INTEGRATIONTESTS_GPASSWD_GRP_FILE_PATH must be set")
 	}
-	localgroupstestutils.SetGpasswdCmd(strings.Split(gpasswdArgs, " "))
-	localgroupstestutils.SetGroupPath(grpFilePath)
+	localgroups.Z_ForTests_SetGpasswdCmd(strings.Split(gpasswdArgs, " "))
+	localgroups.Z_ForTests_SetGroupPath(grpFilePath)
 }
