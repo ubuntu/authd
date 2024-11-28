@@ -11,25 +11,25 @@ Show
 
 Hide
 Enter
-Wait+Screen /Choose your provider:\n>[\n]*$/
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Gimme your password:\n>[\n]*$/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "goodpass"
 Enter
-Wait+Screen /Enter your new password:\n>[\n]*$/
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "authd2404"
 Enter
-Wait+Screen /Confirm Password:\n>[\n]*$/
+Wait+Prompt /Confirm Password/
 Show
 
 Hide
@@ -53,7 +53,7 @@ Show
 
 Hide
 Enter
-Wait+Screen /Gimme your password:\n>[\n]*$/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide

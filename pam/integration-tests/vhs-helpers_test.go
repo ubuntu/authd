@@ -95,6 +95,14 @@ var (
 	vhsSleepRegex = regexp.MustCompile(
 		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?(.*)$`)
 	vhsEmptyLinesRegex = regexp.MustCompile(`(?m)((^\n^\n)+(^\n)?|^\n)(^─+$)`)
+
+	// vhsWaitSuffix adds support for Wait+Suffix /Pattern/ command.
+	vhsWaitSuffix = regexp.MustCompile(`\bWait\+Suffix(@\S+)?[\t ]+(/(.*)/|(.*))`)
+	// vhsWaitPromptRegex adds support for Wait+Prompt /Pattern/ command.
+	vhsWaitPromptRegex = regexp.MustCompile(`\bWait\+Prompt(@\S+)?[\t ]+(/(.*)/|(.*))`)
+	// vhsWaitNth adds support for Wait+Nth(X) /Pattern/ command, where X is the
+	// number of values of the same content we want to match.
+	vhsWaitNth = regexp.MustCompile(`\bWait\+Nth\((\d+)\)(@\S+)?[\t ]+(/(.*)/|(.*))`)
 )
 
 func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
@@ -416,6 +424,13 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData) string 
 			"Setup: Tape does not contain %q", variable)
 		tapeString = strings.ReplaceAll(tapeString, variable, v)
 	}
+
+	tapeString = vhsWaitPromptRegex.ReplaceAllString(tapeString,
+		`Wait+Suffix$1 /$3$4:\n>/`)
+	tapeString = vhsWaitSuffix.ReplaceAllString(tapeString,
+		`Wait+Screen$1 /$3$4[\n]*\z/`)
+	tapeString = vhsWaitNth.ReplaceAllString(tapeString,
+		`Wait+Screen$2 /($4$5(.|\n)+){$1}/`)
 
 	return tapeString
 }

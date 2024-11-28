@@ -2,25 +2,25 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait+Screen /(Username:[\n]+){1}/
+Wait+Nth(1) /Username:/
 Show
 
 Hide
 Type ""
 Enter
-Wait+Screen /(Username:[\n]+){2}/
+Wait+Nth(2) /Username:/
 Show
 
 Hide
 Type "user-integration-user-selection"
 Enter
-Wait+Screen /Choose your provider:\n>[\n]*$/
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Gimme your password:\n>[\n]*$/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
