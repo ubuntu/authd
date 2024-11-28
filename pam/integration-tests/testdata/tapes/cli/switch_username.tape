@@ -33,7 +33,7 @@ Show
 
 Hide
 Type "2"
-Wait+Screen /Gimme your password/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide

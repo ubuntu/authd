@@ -446,7 +446,7 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 	}
 
 	tapeString = vhsWaitPromptRegex.ReplaceAllString(tapeString,
-		`Wait+Suffix$1 /$3$4:\n>/`)
+		`Wait+Suffix$1 /$3$4:?\n>/`)
 	tapeString = vhsWaitSuffixRegex.ReplaceAllString(tapeString,
 		`Wait+Screen$1 /$3$4[\n]*\z/`)
 	tapeString = vhsWaitNthRegex.ReplaceAllString(tapeString,

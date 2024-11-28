@@ -18,7 +18,7 @@ Show
 
 Hide
 Type "2"
-Wait+Screen /Gimme your password/
+Wait+Prompt /Gimme your password/
 Escape
 Wait+Screen /Select your authentication method/
 Wait+Screen /7\. Authentication code/
