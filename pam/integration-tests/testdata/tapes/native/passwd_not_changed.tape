@@ -7,9 +7,6 @@ Show
 
 Hide
 Type "user-integration-same-new-password"
-Show
-
-Hide
 Enter
 Wait+Prompt /Choose your provider/
 Show
@@ -28,9 +25,6 @@ Show
 
 Hide
 Type "goodpass"
-Show
-
-Hide
 Enter
 Wait+Screen /The password is the same as the old one/
 Wait+Prompt /Enter your new password/
@@ -44,9 +38,6 @@ Show
 
 Hide
 Type "authd2404"
-Show
-
-Hide
 Enter
 Wait
 Show

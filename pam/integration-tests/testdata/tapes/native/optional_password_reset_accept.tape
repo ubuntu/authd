@@ -34,8 +34,3 @@ Type "authd2404"
 Enter
 Wait
 Show
-
-Hide
-Enter
-Wait
-Show

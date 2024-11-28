@@ -16,9 +16,6 @@ Show
 
 Hide
 Type "goodpass"
-Show
-
-Hide
 Enter
 Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
 Show
@@ -65,18 +62,12 @@ Show
 
 Hide
 Type "authd2404"
-Show
-
-Hide
 Enter
 Wait+Prompt /Confirm Password/
 Show
 
 Hide
 Type "authd2404"
-Show
-
-Hide
 Enter
 Wait
 Show

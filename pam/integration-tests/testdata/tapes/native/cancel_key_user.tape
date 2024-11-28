@@ -7,9 +7,6 @@ Show
 
 Hide
 Type "r"
-Show
-
-Hide
 Enter
 Wait+Prompt /Choose your provider/
 Show
