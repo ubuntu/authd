@@ -1,10 +1,12 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND} * 3
+Wait+Screen /\nPAM Authenticate\(\)/
+Wait+Screen /\nPAM AcctMgmt\(\)/
+Wait
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT} * 3
 Show

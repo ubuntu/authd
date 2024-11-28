@@ -1,48 +1,53 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name$/
 Show
 
 Hide
-Escape
-Backspace
 Type "user-integration-form-w-button"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait /Username: user-integration-form-w-button$/
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Gimme your password/
+Wait
 Show
 
 Hide
 Escape
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your authentication method/
+Wait+Screen /7\. Authentication code/
 Show
 
 Hide
 Type "7"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Enter your one time credential\n>\n/
+Wait /\[ Resend SMS \(1 sent\) \]/
 Show
 
 Hide
 Tab
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Enter your one time credential\n>\n/
+Wait /\[ Resend SMS \(2 sent\) \]/
 Show
 
 Hide
 Type "temporary pass00"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Screen /\nPAM Authenticate\(\)/
+Wait+Screen /\nPAM AcctMgmt\(\)/
+Wait
 Show

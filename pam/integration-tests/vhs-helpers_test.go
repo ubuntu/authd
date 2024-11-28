@@ -41,6 +41,7 @@ const (
 	authdSleepCommand                 = "AUTHD_SLEEP_COMMAND"
 	authdSleepExampleBrokerMfaWait    = "AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT"
 	authdSleepExampleBrokerQrcodeWait = "AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT"
+	authdSleepQrCodeReselection       = "AUTHD_SLEEP_QRCODE_RESELECTION_WAIT"
 )
 
 type tapeSetting struct {
@@ -90,6 +91,8 @@ var (
 		// Keep these in sync with example broker default wait times
 		authdSleepExampleBrokerMfaWait:    4 * time.Second,
 		authdSleepExampleBrokerQrcodeWait: 4 * time.Second,
+		// Keep this bigger or equal of qrcodemodel's reselectionWaitTime
+		authdSleepQrCodeReselection: 400 * time.Millisecond,
 	}
 
 	vhsSleepRegex = regexp.MustCompile(

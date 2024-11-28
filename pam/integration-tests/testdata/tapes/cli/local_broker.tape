@@ -1,22 +1,24 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name$/
 Show
 
 Hide
-Escape
-Backspace
 Type "user-local-broker"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait /Username: user-local-broker$/
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /1. local/
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /\nPAM Authenticate\(\)/
+Wait+Screen /\nPAM AcctMgmt\(\)/
+Wait
 Show

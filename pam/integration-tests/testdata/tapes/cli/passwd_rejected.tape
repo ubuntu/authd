@@ -1,24 +1,25 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name$/
 Show
 
 Hide
-Escape
-Backspace
 Type "user-integration-invalid-new-password"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait /Username: user-integration-invalid-new-password$/
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Gimme your password/
+Wait
 Show
 
 Hide
@@ -27,39 +28,40 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /New password/
 Show
 
 Hide
 Type "noble2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
+Wait+Prompt /Confirm password/
 Type "noble2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Screen /New password:\n>\n/
+Wait /new password does not match criteria/
 Show
 
 Hide
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
+Wait+Prompt /Confirm password/
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Screen /\nPAM ChangeAuthTok\(\)/
+Wait+Screen /\nPAM AcctMgmt\(\)/
+Wait
 Show
 
 Sleep ${AUTHD_SLEEP_LONG}
@@ -69,55 +71,55 @@ Sleep ${AUTHD_SLEEP_LONG}
 Hide
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name$/
 Show
 
 Hide
-Escape
-Backspace
 Type "user-integration-invalid-new-password"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait /Username: user-integration-invalid-new-password$/
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Gimme your password/
+Wait
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /New password/
 Show
 
 Hide
 Type "noble2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
+Wait+Prompt /Confirm password/
 Type "noble2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Screen /New password:\n>\n/
+Wait /new password does not match criteria/
 Show
 
 Hide
 Type "goodpass"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
+Wait+Prompt /Confirm password/
 Type "goodpass"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Screen /\nPAM ChangeAuthTok\(\)/
+Wait+Screen /\nPAM AcctMgmt\(\)/
+Wait
 Show

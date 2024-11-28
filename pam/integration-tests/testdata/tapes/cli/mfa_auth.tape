@@ -1,34 +1,37 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name$/
 Show
 
 Hide
-Escape
-Backspace
 Type "user-mfa"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait /Username: user-mfa$/
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Gimme your password/
+Wait
 Show
 
 Hide
 Escape
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your authentication method/
+Wait+Screen /1\. Password authentication/
 Show
 
 Hide
 Type "1"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Gimme your password/
+Wait
 Show
 
 Hide
@@ -37,33 +40,37 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 2
+Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
 Show
 
 Hide
 Escape
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your authentication method/
+Wait+Screen /1\. Use your fido device foo/
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 2
+Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
 Show
 
 Hide
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2
+Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Unlock your phone \+33... or accept request on web interface:/
 Show
 
 Hide
 Escape
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your authentication method/
+Wait+Screen /1\. Use your phone \+33\.\.\./
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 2
+Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Unlock your phone \+33... or accept request on web interface:/
 Show
 
 Hide
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2
+Wait+Screen /\nPAM Authenticate\(\)/
+Wait+Screen /\nPAM AcctMgmt\(\)/
+Wait
 Show

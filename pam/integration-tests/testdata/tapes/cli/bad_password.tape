@@ -1,24 +1,25 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name$/
 Show
 
 Hide
-Escape
-Backspace
 Type "user-needs-reset"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait /Username: user-needs-reset$/
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Gimme your password/
+Wait
 Show
 
 Hide
@@ -27,7 +28,7 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /New password/
 Show
 
 Hide
@@ -35,8 +36,9 @@ Type ""
 Show
 
 Hide
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Enter
+Wait /No password supplied/
+Wait+Screen /New password:\n>\n/
 Show
 
 Hide
@@ -45,7 +47,8 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /New password:\n>\n/
+Wait /The password is shorter than \d+ characters/
 Show
 
 Hide
@@ -54,7 +57,8 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait /The password fails the dictionary check/
+Wait+Screen /New password:\n>\n/
 Show
 
 Hide
@@ -63,17 +67,17 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Confirm password/
 Show
 
 Hide
 Type "123456789"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait /Password entries don't match/
+Wait+Screen /New password:\n>\n/
 Show
 
 Hide
@@ -81,16 +85,17 @@ Type "authd2404"
 Show
 
 Hide
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Enter
+Wait+Prompt /Confirm password/
 Show
 
 Hide
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Screen /\nPAM Authenticate\(\)/
+Wait+Screen /\nPAM AcctMgmt\(\)/
+Wait
 Show
