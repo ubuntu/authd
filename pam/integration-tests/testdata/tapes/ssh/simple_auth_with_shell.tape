@@ -17,8 +17,6 @@ Enter
 Wait /^\$/
 Show
 
-Sleep ${AUTHD_SLEEP_LONG}
-
 Hide
 Type "echo $USER"
 Enter
