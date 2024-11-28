@@ -11,7 +11,7 @@ Show
 
 Hide
 Enter
-Wait+Screen /Choose your provider:\n>[\n]*$/
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
@@ -26,13 +26,13 @@ Show
 
 Hide
 Enter
-Wait+Screen /Choose your provider:\n>[\n]*$/
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Gimme your password:\n>[\n]*$/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide

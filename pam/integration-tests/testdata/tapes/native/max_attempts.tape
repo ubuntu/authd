@@ -2,46 +2,46 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait+Screen /Choose your provider:\n>[\n]*$/
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Gimme your password:\n>[\n]*$/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "wrongpass"
 Enter
-Wait+Screen /(invalid password 'wrongpass', should be(.|\n)+){1}/
-Wait+Screen /Gimme your password:\n>[\n]*$/
+Wait+Nth(1)  /invalid password 'wrongpass', should be/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "wrongpass"
 Enter
-Wait+Screen /(invalid password 'wrongpass', should be(.|\n)+){2}/
-Wait+Screen /Gimme your password:\n>[\n]*$/
+Wait+Nth(2)  /invalid password 'wrongpass', should be/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "wrongpass"
 Enter
-Wait+Screen /(invalid password 'wrongpass', should be(.|\n)+){3}/
-Wait+Screen /Gimme your password:\n>[\n]*$/
+Wait+Nth(3)  /invalid password 'wrongpass', should be/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "wrongpass"
 Enter
-Wait+Screen /(invalid password 'wrongpass', should be(.|\n)+){4}/
-Wait+Screen /Gimme your password:\n>[\n]*$/
+Wait+Nth(4)  /invalid password 'wrongpass', should be/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "wrongpass"
 Enter
-Wait+Screen /(invalid password 'wrongpass', should be(.|\n)+){5}/
+Wait+Nth(5)  /invalid password 'wrongpass', should be/
 Wait
 Show

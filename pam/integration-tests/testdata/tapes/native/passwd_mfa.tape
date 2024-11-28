@@ -11,45 +11,45 @@ Show
 
 Hide
 Enter
-Wait+Screen /Choose your provider:\n>[\n]*$/
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Gimme your password:\n>[\n]*$/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "r"
 Enter
-Wait+Screen /Choose your authentication method:\n>[\n]*$/
+Wait+Prompt /Choose your authentication method/
 Wait+Screen /1\. Password authentication/
 Show
 
 Hide
 Type "1"
 Enter
-Wait+Screen /Gimme your password:\n>[\n]*$/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "goodpass"
 Enter
-Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb:\n>[\n]*$/
+Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
 Show
 
 Hide
 Type "r"
 Enter
-Wait+Screen /Choose your authentication method:\n>[\n]*$/
+Wait+Prompt /Choose your authentication method/
 Wait+Screen /1\. Use your fido device foo/
 Show
 
 Hide
 Type "1"
 Enter
-Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb:\n>[\n]*$/
+Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
 Show
 
 Hide
@@ -57,14 +57,13 @@ Enter
 Show
 
 Hide
-Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Unlock your phone \+33\.\.\. or accept request on web interface:\n>[\n]*$/
-Wait
+Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Unlock your phone \+33\.\.\. or accept request on web interface/
 Show
 
 Hide
 Type "r"
 Enter
-Wait+Screen /Choose your authentication method:\n>[\n]*$/
+Wait+Prompt /Choose your authentication method/
 Wait+Screen /1\. Use your phone \+33\.\.\./
 Show
 
@@ -74,18 +73,18 @@ Enter
 Show
 
 Hide
-Wait+Screen /Unlock your phone \+33\.\.\. or accept request on web interface:\n>[\n]*$/
+Wait+Prompt /Unlock your phone \+33\.\.\. or accept request on web interface/
 Show
 
 Hide
 Enter
-Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Enter your new password:\n>[\n]*$/
+Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Enter your new password/
 Show
 
 Hide
 Type "authd2404"
 Enter
-Wait+Screen /Confirm Password:\n>[\n]*$/
+Wait+Prompt /Confirm Password/
 Show
 
 Hide
