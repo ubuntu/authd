@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/godbus/dbus/v5"
+	"github.com/ubuntu/authd/api/types"
 	"github.com/ubuntu/authd/brokers/auth"
 	"github.com/ubuntu/authd/brokers/layouts"
 	"github.com/ubuntu/authd/internal/log"
@@ -105,6 +106,7 @@ func (b Broker) newSession(ctx context.Context, username, lang, mode string) (se
 }
 
 // GetAuthenticationModes calls the broker corresponding method, stripping broker ID prefix from sessionID.
+// FIXME: Struct Broker has methods on both value and pointer receivers.
 func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, err error) {
 	sessionID = b.parseSessionID(sessionID)
 
@@ -117,8 +119,14 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 		return nil, err
 	}
 
+	// TODO: Consider returning a slice of types.AuthMode instead of map[string]string.
 	for _, a := range authenticationModes {
-		_, err := auth.NewModeFromMap(a)
+		jsonMode, err := json.Marshal(a)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = types.AuthModeFromJSON(jsonMode)
 		if err != nil {
 			return nil, err
 		}

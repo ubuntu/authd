@@ -12,7 +12,7 @@ import (
 	"github.com/ubuntu/authd/brokers/layouts"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto"
+	"github.com/ubuntu/authd/internal/proto/grpc"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
@@ -21,7 +21,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-var _ proto.PAMServer = Service{}
+var _ grpc.PAMServer = Service{}
 
 // Service is the implementation of the PAM module service.
 type Service struct {
@@ -29,7 +29,7 @@ type Service struct {
 	brokerManager     *brokers.Manager
 	permissionManager *permissions.Manager
 
-	proto.UnimplementedPAMServer
+	grpc.UnimplementedPAMServer
 }
 
 // NewService returns a new PAM GRPC service.
@@ -44,11 +44,11 @@ func NewService(ctx context.Context, userManager *users.Manager, brokerManager *
 }
 
 // AvailableBrokers returns the list of all brokers with their details.
-func (s Service) AvailableBrokers(ctx context.Context, _ *proto.Empty) (*proto.ABResponse, error) {
-	var r proto.ABResponse
+func (s Service) AvailableBrokers(ctx context.Context, _ *grpc.Empty) (*grpc.ABResponse, error) {
+	var r grpc.ABResponse
 
 	for _, b := range s.brokerManager.AvailableBrokers() {
-		r.BrokersInfos = append(r.BrokersInfos, &proto.ABResponse_BrokerInfo{
+		r.BrokersInfos = append(r.BrokersInfos, &grpc.ABResponse_BrokerInfo{
 			Id:        b.ID,
 			Name:      b.Name,
 			BrandIcon: &b.BrandIconPath,
@@ -60,10 +60,10 @@ func (s Service) AvailableBrokers(ctx context.Context, _ *proto.Empty) (*proto.A
 
 // GetPreviousBroker returns the previous broker set for a given user, if any.
 // If the user is not in our cache, it will try to check if it’s on the system, and return then "local".
-func (s Service) GetPreviousBroker(ctx context.Context, req *proto.GPBRequest) (*proto.GPBResponse, error) {
+func (s Service) GetPreviousBroker(ctx context.Context, req *grpc.GPBRequest) (*grpc.GPBResponse, error) {
 	// Use in memory cache first
 	if b := s.brokerManager.BrokerForUser(req.GetUsername()); b != nil {
-		return &proto.GPBResponse{PreviousBroker: b.ID}, nil
+		return &grpc.GPBResponse{PreviousBroker: b.ID}, nil
 	}
 
 	// Load from database cache.
@@ -75,13 +75,13 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *proto.GPBRequest) (
 		// User not in cache, if there is only the local broker available, return this one without saving it.
 		if len(s.brokerManager.AvailableBrokers()) == 1 {
 			log.Debugf(ctx, "User %q is not handled by authd and only local broker: select it.", req.GetUsername())
-			return &proto.GPBResponse{PreviousBroker: brokers.LocalBrokerName}, nil
+			return &grpc.GPBResponse{PreviousBroker: brokers.LocalBrokerName}, nil
 		}
 
 		// User not acccessible through NSS, first time login or no valid user. Anyway, no broker selected.
 		if _, err := user.Lookup(req.GetUsername()); err != nil {
 			log.Debugf(ctx, "User %q is unknown", req.GetUsername())
-			return &proto.GPBResponse{}, nil
+			return &grpc.GPBResponse{}, nil
 		}
 
 		// We could resolve the user through NSS, which means then that another non authd service
@@ -89,28 +89,28 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *proto.GPBRequest) (
 		brokerID = brokers.LocalBrokerName
 	} else if err != nil {
 		log.Infof(ctx, "Could not get previous broker for user %q from cache: %v", req.GetUsername(), err)
-		return &proto.GPBResponse{}, nil
+		return &grpc.GPBResponse{}, nil
 	}
 
 	// No error but the brokerID is empty (broker in cache but default broker not stored yet due no successful login)
 	if brokerID == "" {
 		log.Infof(ctx, "No assigned broker for user %q from cache", req.GetUsername())
-		return &proto.GPBResponse{}, nil
+		return &grpc.GPBResponse{}, nil
 	}
 
 	// Updates manager memory to stop needing to query the database for the broker.
 	if err = s.brokerManager.SetDefaultBrokerForUser(brokerID, req.GetUsername()); err != nil {
 		log.Warningf(ctx, "Last broker used by %q is not available, letting the user selecting one: %v", req.GetUsername(), err)
-		return &proto.GPBResponse{}, nil
+		return &grpc.GPBResponse{}, nil
 	}
 
-	return &proto.GPBResponse{
+	return &grpc.GPBResponse{
 		PreviousBroker: brokerID,
 	}, nil
 }
 
 // SelectBroker starts a new session and selects the requested broker for the user.
-func (s Service) SelectBroker(ctx context.Context, req *proto.SBRequest) (resp *proto.SBResponse, err error) {
+func (s Service) SelectBroker(ctx context.Context, req *grpc.SBRequest) (resp *grpc.SBResponse, err error) {
 	defer decorate.OnError(&err, "can't start authentication transaction")
 
 	username := req.GetUsername()
@@ -129,9 +129,9 @@ func (s Service) SelectBroker(ctx context.Context, req *proto.SBRequest) (resp *
 
 	var mode string
 	switch req.GetMode() {
-	case proto.SessionMode_AUTH:
+	case grpc.SessionMode_AUTH:
 		mode = auth.SessionModeAuth
-	case proto.SessionMode_PASSWD:
+	case grpc.SessionMode_PASSWD:
 		mode = auth.SessionModePasswd
 	default:
 		return nil, status.Error(codes.InvalidArgument, "invalid session mode")
@@ -143,14 +143,14 @@ func (s Service) SelectBroker(ctx context.Context, req *proto.SBRequest) (resp *
 		return nil, err
 	}
 
-	return &proto.SBResponse{
+	return &grpc.SBResponse{
 		SessionId:     sessionID,
 		EncryptionKey: encryptionKey,
 	}, err
 }
 
 // GetAuthenticationModes fetches a list of authentication modes supported by the broker depending on the session information.
-func (s Service) GetAuthenticationModes(ctx context.Context, req *proto.GAMRequest) (resp *proto.GAMResponse, err error) {
+func (s Service) GetAuthenticationModes(ctx context.Context, req *grpc.GAMRequest) (resp *grpc.GAMResponse, err error) {
 	defer decorate.OnError(&err, "could not get authentication modes")
 
 	sessionID := req.GetSessionId()
@@ -164,12 +164,18 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *proto.GAMReque
 	}
 
 	var supportedLayouts []map[string]string
-	for _, l := range req.GetSupportedUiLayouts() {
-		layout, err := uiLayoutToMap(l)
+	for _, layoutGRPC := range req.GetSupportedUiLayouts() {
+		layout, err := layoutGRPC.ToLayout()
 		if err != nil {
 			return nil, err
 		}
-		supportedLayouts = append(supportedLayouts, layout)
+
+		layoutMap, err := layout.ToMap()
+		if err != nil {
+			return nil, err
+		}
+
+		supportedLayouts = append(supportedLayouts, layoutMap)
 	}
 
 	authenticationModes, err := broker.GetAuthenticationModes(ctx, sessionID, supportedLayouts)
@@ -177,22 +183,30 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *proto.GAMReque
 		return nil, err
 	}
 
-	var authModes []*proto.GAMResponse_AuthenticationMode
-	for _, a := range authenticationModes {
-		mode, err := auth.NewModeFromMap(a)
+	var authModesGRPC []*grpc.GAMResponse_AuthenticationMode
+	for _, authModeMap := range authenticationModes {
+		authModeJSON, err := json.Marshal(authModeMap)
 		if err != nil {
 			return nil, err
 		}
-		authModes = append(authModes, mode.AuthMode)
+
+		authMode, err := types.AuthModeFromJSON(authModeJSON)
+		if err != nil {
+			return nil, err
+		}
+
+		authModeGRPC, err := authMode.ToGRPC()
+
+		authModesGRPC = append(authModesGRPC, mode.AuthMode)
 	}
 
-	return &proto.GAMResponse{
-		AuthenticationModes: authModes,
+	return &grpc.GAMResponse{
+		AuthenticationModes: authModesGRPC,
 	}, nil
 }
 
 // SelectAuthenticationMode set given authentication mode as selected for this sessionID to the broker.
-func (s Service) SelectAuthenticationMode(ctx context.Context, req *proto.SAMRequest) (resp *proto.SAMResponse, err error) {
+func (s Service) SelectAuthenticationMode(ctx context.Context, req *grpc.SAMRequest) (resp *grpc.SAMResponse, err error) {
 	defer decorate.OnError(&err, "can't select authentication mode")
 
 	sessionID := req.GetSessionId()
@@ -220,11 +234,11 @@ func (s Service) SelectAuthenticationMode(ctx context.Context, req *proto.SAMReq
 		return nil, err
 	}
 
-	return &proto.SAMResponse{UiLayoutInfo: uiLayout.UILayout}, nil
+	return &grpc.SAMResponse{UiLayoutInfo: uiLayout.UILayout}, nil
 }
 
 // IsAuthenticated returns broker answer to authentication request.
-func (s Service) IsAuthenticated(ctx context.Context, req *proto.IARequest) (resp *proto.IAResponse, err error) {
+func (s Service) IsAuthenticated(ctx context.Context, req *grpc.IARequest) (resp *grpc.IAResponse, err error) {
 	defer decorate.OnError(&err, "can't check authentication")
 
 	sessionID := req.GetSessionId()
@@ -250,7 +264,7 @@ func (s Service) IsAuthenticated(ctx context.Context, req *proto.IARequest) (res
 	log.Debugf(ctx, "%s: Authentication result: %s", sessionID, access)
 
 	if access != auth.Granted {
-		return &proto.IAResponse{
+		return &grpc.IAResponse{
 			Access: access,
 			Msg:    data,
 		}, nil
@@ -266,14 +280,14 @@ func (s Service) IsAuthenticated(ctx context.Context, req *proto.IARequest) (res
 		return nil, err
 	}
 
-	return &proto.IAResponse{
+	return &grpc.IAResponse{
 		Access: access,
 		Msg:    "",
 	}, nil
 }
 
 // SetDefaultBrokerForUser sets the default broker for the given user.
-func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *proto.SDBFURequest) (empty *proto.Empty, err error) {
+func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *grpc.SDBFURequest) (empty *grpc.Empty, err error) {
 	defer decorate.OnError(&err, "can't set default broker %q for user %q", req.GetBrokerId(), req.GetUsername())
 
 	if req.GetUsername() == "" {
@@ -281,22 +295,22 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *proto.SDBFURe
 	}
 
 	if err = s.brokerManager.SetDefaultBrokerForUser(req.GetBrokerId(), req.GetUsername()); err != nil {
-		return &proto.Empty{}, err
+		return &grpc.Empty{}, err
 	}
 
 	if req.GetBrokerId() == brokers.LocalBrokerName {
-		return &proto.Empty{}, nil
+		return &grpc.Empty{}, nil
 	}
 
 	if err = s.userManager.UpdateBrokerForUser(req.GetUsername(), req.GetBrokerId()); err != nil {
-		return &proto.Empty{}, err
+		return &grpc.Empty{}, err
 	}
 
-	return &proto.Empty{}, nil
+	return &grpc.Empty{}, nil
 }
 
 // EndSession asks the broker associated with the sessionID to end the session.
-func (s Service) EndSession(ctx context.Context, req *proto.ESRequest) (empty *proto.Empty, err error) {
+func (s Service) EndSession(ctx context.Context, req *grpc.ESRequest) (empty *grpc.Empty, err error) {
 	defer decorate.OnError(&err, "could not abort session")
 
 	sessionID := req.GetSessionId()
@@ -304,10 +318,10 @@ func (s Service) EndSession(ctx context.Context, req *proto.ESRequest) (empty *p
 		return nil, status.Error(codes.InvalidArgument, "no session id given")
 	}
 
-	return &proto.Empty{}, s.brokerManager.EndSession(sessionID)
+	return &grpc.Empty{}, s.brokerManager.EndSession(sessionID)
 }
 
-func uiLayoutToMap(layout *proto.UILayout) (mapLayout map[string]string, err error) {
+func uiLayoutToMap(layout *grpc.UILayout) (mapLayout map[string]string, err error) {
 	m, err := layouts.UILayout{UILayout: layout}.ToMap()
 	if err != nil {
 		return nil, err
