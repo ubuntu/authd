@@ -1,37 +1,44 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Escape
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Gimme your password/
+Wait
+Show
+
+Hide
+Escape
+Wait+Screen /Select your authentication method/
 Show
 
 Hide
 Escape
 Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Escape
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Escape 10
 Sleep ${AUTHD_SLEEP_DEFAULT} * 2
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Gimme your password/
+Wait
 Show
 
 Hide
@@ -40,5 +47,7 @@ Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Screen /\nPAM Authenticate\(\)/
+Wait+Screen /\nPAM AcctMgmt\(\)/
+Wait
 Show
