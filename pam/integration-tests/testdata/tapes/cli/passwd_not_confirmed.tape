@@ -2,12 +2,12 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait /Username: user name$/
+Wait /Username: user name\n/
 Show
 
 Hide
 Type "user-integration-wrong-confirmation"
-Wait /Username: user-integration-wrong-confirmation$/
+Wait /Username: user-integration-wrong-confirmation\n/
 Show
 
 Hide

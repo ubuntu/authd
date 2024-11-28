@@ -14,7 +14,7 @@ Show
 Hide
 Type "goodpass"
 Enter
-Wait /^\$/
+Wait /\$\n/
 Show
 
 Hide
@@ -25,7 +25,7 @@ Show
 Hide
 Type '[ -n "${SSH_CONNECTION}" ] && echo "Inside SSH"'
 Enter
-Wait /^\$/
+Wait /\$\n/
 Show
 
 Hide

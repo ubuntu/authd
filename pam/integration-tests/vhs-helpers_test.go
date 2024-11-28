@@ -105,6 +105,8 @@ var (
 		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?(.*)$`)
 	vhsEmptyLinesRegex = regexp.MustCompile(`(?m)((^\n^\n)+(^\n)?|^\n)(^─+$)`)
 
+	// vhsWaitRegex ensures proper debug on Wait /Pattern/ command.
+	vhsWaitRegex = regexp.MustCompile(`\bWait(\+Line)?(@\S+)?[\t ]+(/(.+)/|(.+))`)
 	// vhsWaitSuffix adds support for Wait+Suffix /Pattern/ command.
 	vhsWaitSuffix = regexp.MustCompile(`\bWait\+Suffix(@\S+)?[\t ]+(/(.*)/|(.*))`)
 	// vhsWaitPromptRegex adds support for Wait+Prompt /Pattern/ command.
@@ -429,6 +431,8 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 		fmt.Sprintf("${%s}", vhsCommandFinalChangeAuthokWaitVariable),
 		finalWaitCommands(testType, authd.SessionMode_PASSWD))
 
+	tapeString = vhsWaitRegex.ReplaceAllString(tapeString,
+		`Wait+Suffix$2 /(^|[\n]+)[^\n]*$4$5[^\n]*/`)
 	tapeString = vhsWaitPromptRegex.ReplaceAllString(tapeString,
 		`Wait+Suffix$1 /$3$4:\n>/`)
 	tapeString = vhsWaitSuffix.ReplaceAllString(tapeString,

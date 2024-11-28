@@ -2,13 +2,13 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait /Username:$/
+Wait /Username:/
 Show
 
 Hide
 Type ""
 Enter
-Wait /Username:$/
+Wait /Username:/
 Show
 
 Hide

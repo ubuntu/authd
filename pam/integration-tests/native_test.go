@@ -163,7 +163,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape:          "switch_local_broker",
 			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
 			clientOptions: clientOptions{PamUser: "user-integration-switch-broker"},
-			tapeVariables: map[string]string{"AUTHD_TAPE_FINAL_WAIT_PATTERN": ""},
+			tapeVariables: map[string]string{"AUTHD_TAPE_FINAL_WAIT_PATTERN": `/>[\n]*/`},
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",

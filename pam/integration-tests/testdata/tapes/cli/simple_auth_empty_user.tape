@@ -2,29 +2,29 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait /Username: user name$/
+Wait /Username: user name\n/
 Show
 
 Hide
 Type "user-integration-not-empty"
-Wait+Screen /Username: user-integration-not-empty\n/
+Wait /Username: user-integration-not-empty\n/
 Show
 
 Hide
 Backspace 26
-Wait /Username: user name$/
+Wait /Username: user name\n/
 Show
 
 Hide
 Enter
-Wait /Username: user name$/
+Wait /Username: user name\n/
 Show
 
 Hide
 Escape
 Backspace
 Type "user-integration-was-empty"
-Wait+Screen /Username: user-integration-was-empty\n/
+Wait /Username: user-integration-was-empty\n/
 Show
 
 Hide

@@ -2,12 +2,12 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait /Username: user name$/
+Wait /Username: user name\n/
 Show
 
 Hide
 Type "user-integration-remember-mode"
-Wait /Username: user-integration-remember-mode$/
+Wait /Username: user-integration-remember-mode\n/
 Show
 
 Hide
@@ -41,12 +41,12 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait /Username: user name$/
+Wait /Username: user name\n/
 Show
 
 Hide
 Type "user-integration-remember-mode"
-Wait /Username: user-integration-remember-mode$/
+Wait /Username: user-integration-remember-mode\n/
 Show
 
 Hide
