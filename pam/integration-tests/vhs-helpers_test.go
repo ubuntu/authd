@@ -9,6 +9,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -178,6 +179,24 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 
 	cmd.Args = append(cmd.Args, td.PrepareTape(t, testType, outDir))
 	out, err := cmd.CombinedOutput()
+
+	isSSHError := func(processOut []byte) bool {
+		const sshConnectionResetByPeer = "Connection reset by peer"
+		const sshConnectionClosed = "Connection closed by"
+		output := string(processOut)
+		return strings.Contains(output, sshConnectionResetByPeer) ||
+			strings.Contains(output, sshConnectionClosed)
+	}
+	if err != nil && testType == vhsTestTypeSSH && isSSHError(out) {
+		t.Logf("SSH Connection failed on tape %q: %v: %s", td.Name, err, out)
+		// We've sometimes (but rarely) seen SSH connection errors which were resolved on retry, so we retry once.
+		// If it fails again, something might actually be broken.
+		//nolint:gosec // G204 it's a test and we explicitly set the parameters before.
+		newCmd := exec.Command(cmd.Args[0], cmd.Args[1:]...)
+		newCmd.Dir = cmd.Dir
+		newCmd.Env = slices.Clone(cmd.Env)
+		out, err = newCmd.CombinedOutput()
+	}
 	require.NoError(t, err, "Failed to run tape %q: %v: %s", td.Name, err, out)
 }
 
