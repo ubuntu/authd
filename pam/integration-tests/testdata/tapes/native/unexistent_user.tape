@@ -2,7 +2,7 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait+Screen /Choose your provider:\n>[\n]*$/
+Wait+Prompt /Choose your provider/
 Show
 
 Hide

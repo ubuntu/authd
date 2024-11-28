@@ -8,50 +8,50 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait+Screen /Choose your provider:\n>[\n]*$/
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Gimme your password:\n>[\n]*$/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "r"
 Enter
 Wait+Screen /${AUTHD_QRCODE_TAPE_ITEM}\. Use a ${AUTHD_QRCODE_TAPE_ITEM_NAME}/
-Wait+Screen /Choose your authentication method:\n>[\n]*$/
+Wait+Prompt /Choose your authentication method/
 Show
 
 Hide
 Type "${AUTHD_QRCODE_TAPE_ITEM}"
 Enter
-Wait+Screen /Choose action:\n>[\n]*$/
+Wait+Prompt /Choose action/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Choose action:\n>[\n]*$/
+Wait+Prompt /Choose action/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Choose action:\n>[\n]*$/
+Wait+Prompt /Choose action/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Choose action:\n>[\n]*$/
+Wait+Prompt /Choose action/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Choose action:\n>[\n]*$/
+Wait+Prompt /Choose action/
 Show
 
 Hide
