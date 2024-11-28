@@ -7,9 +7,6 @@ Show
 
 Hide
 Type "user-integration-max-attempts"
-Show
-
-Hide
 Enter
 Wait+Prompt /Choose your provider/
 Show

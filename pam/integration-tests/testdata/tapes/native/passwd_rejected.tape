@@ -6,9 +6,6 @@ Show
 
 Hide
 Type "user-integration-invalid-new-password"
-Show
-
-Hide
 Enter
 Wait+Prompt /Choose your provider/
 Show
@@ -62,9 +59,6 @@ Show
 
 Hide
 Type "user-integration-invalid-new-password"
-Show
-
-Hide
 Enter
 Wait+Prompt /Gimme your password/
 Show

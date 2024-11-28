@@ -7,9 +7,6 @@ Show
 
 Hide
 Type "user-mfa"
-Show
-
-Hide
 Enter
 Wait+Prompt /Choose your provider/
 Show
@@ -54,9 +51,6 @@ Show
 
 Hide
 Enter
-Show
-
-Hide
 Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Unlock your phone \+33\.\.\. or accept request on web interface/
 Show
 
@@ -70,9 +64,6 @@ Show
 Hide
 Type "1"
 Enter
-Show
-
-Hide
 Wait+Prompt /Unlock your phone \+33\.\.\. or accept request on web interface/
 Show
 
@@ -89,9 +80,6 @@ Show
 
 Hide
 Type "authd2404"
-Show
-
-Hide
 Enter
 Wait
 Show
