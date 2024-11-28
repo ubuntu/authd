@@ -11,8 +11,7 @@ Show
 
 Hide
 Enter
-Wait+Screen /Choose your provider:\n>/
-Wait
+Wait+Screen /Choose your provider:\n>[\n]*$/
 Show
 
 Hide

@@ -2,45 +2,39 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait+Screen /Choose your provider:\n>/
-Wait
+Wait+Screen /Choose your provider:\n>[\n]*$/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Gimme your password:\n>/
-Wait
+Wait+Screen /Gimme your password:\n>[\n]*$/
 Show
 
 Hide
 Type "r"
 Enter
-Wait+Screen /Choose your authentication method:\n>/
-Wait
+Wait+Screen /Choose your authentication method:\n>[\n]*$/
 Show
 
 Hide
 Type "r"
 Enter
-Wait+Screen /Choose your provider:\n>/
-Wait
+Wait+Screen /Choose your provider:\n>[\n]*$/
 Show
 
 Hide
 Type "invalid-ID"
 Enter
 Wait+Screen /Unsupported input/
-Wait+Screen /Choose your provider:\n>/
-Wait
+Wait+Screen /Choose your provider:\n>[\n]*$/
 Show
 
 Hide
 Type "555"
 Enter
 Wait+Screen /Invalid selection/
-Wait+Screen /Choose your provider:\n>/
-Wait
+Wait+Screen /Choose your provider:\n>[\n]*$/
 Show
 
 Hide

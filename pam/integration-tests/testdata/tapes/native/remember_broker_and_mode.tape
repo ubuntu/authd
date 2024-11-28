@@ -2,37 +2,32 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait+Screen /Choose your provider:\n>/
-Wait
+Wait+Screen /Choose your provider:\n>[\n]*$/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Gimme your password:\n>/
-Wait
+Wait+Screen /Gimme your password:\n>[\n]*$/
 Show
 
 Hide
 Type "r"
 Enter
-Wait+Screen /Choose your authentication method:\n>/
-Wait
+Wait+Screen /Choose your authentication method:\n>[\n]*$/
 Wait+Screen /8\. Authentication code/
 Show
 
 Hide
 Type "8"
 Enter
-Wait+Screen /Choose action:\n>/
-Wait
+Wait+Screen /Choose action:\n>[\n]*$/
 Show
 
 Hide
 Type "1"
 Enter
-Wait+Screen /Enter your one time credential:\n>/
-Wait
+Wait+Screen /Enter your one time credential:\n>[\n]*$/
 Show
 
 Hide
@@ -45,15 +40,13 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait+Screen /Choose action:\n>/
-Wait
+Wait+Screen /Choose action:\n>[\n]*$/
 Show
 
 Hide
 Type "1"
 Enter
-Wait+Screen /Enter your one time credential:\n>/
-Wait
+Wait+Screen /Enter your one time credential:\n>[\n]*$/
 Show
 
 Hide

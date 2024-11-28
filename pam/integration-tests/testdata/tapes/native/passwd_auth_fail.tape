@@ -11,22 +11,20 @@ Show
 
 Hide
 Enter
-Wait+Screen /Choose your provider:\n>/
-Wait
+Wait+Screen /Choose your provider:\n>[\n]*$/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Gimme your password:\n>/
-Wait
+Wait+Screen /Gimme your password:\n>[\n]*$/
 Show
 
 Hide
 Type "wrongpass"
 Enter
 Wait+Screen /(invalid password 'wrongpass', should be(.|\n)+){1}/
-Wait+Screen /Gimme your password:\n>/
+Wait+Screen /Gimme your password:\n>[\n]*$/
 Wait
 Show
 
@@ -34,7 +32,7 @@ Hide
 Type "wrongpass"
 Enter
 Wait+Screen /(invalid password 'wrongpass', should be(.|\n)+){2}/
-Wait+Screen /Gimme your password:\n>/
+Wait+Screen /Gimme your password:\n>[\n]*$/
 Wait
 Show
 
@@ -42,7 +40,7 @@ Hide
 Type "wrongpass"
 Enter
 Wait+Screen /(invalid password 'wrongpass', should be(.|\n)+){3}/
-Wait+Screen /Gimme your password:\n>/
+Wait+Screen /Gimme your password:\n>[\n]*$/
 Wait
 Show
 
@@ -50,7 +48,7 @@ Hide
 Type "wrongpass"
 Enter
 Wait+Screen /(invalid password 'wrongpass', should be(.|\n)+){4}/
-Wait+Screen /Gimme your password:\n>/
+Wait+Screen /Gimme your password:\n>[\n]*$/
 Wait
 Show
 

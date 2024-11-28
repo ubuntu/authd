@@ -11,15 +11,13 @@ Show
 
 Hide
 Enter
-Wait+Screen /Choose your provider:\n>/
-Wait
+Wait+Screen /Choose your provider:\n>[\n]*$/
 Show
 
 Hide
 Type "2"
 Enter
-Wait+Screen /Gimme your password:\n>/
-Wait
+Wait+Screen /Gimme your password:\n>[\n]*$/
 Show
 
 Hide
