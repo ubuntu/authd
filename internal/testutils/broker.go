@@ -13,7 +13,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
-	"github.com/ubuntu/authd/brokers/auth"
+	"github.com/ubuntu/authd/api/types"
 	"github.com/ubuntu/authd/brokers/layouts"
 )
 
@@ -147,22 +147,26 @@ func (b *BrokerBusMock) GetAuthenticationModes(sessionID string, supportedUILayo
 	case "GAM_error":
 		return nil, dbus.MakeFailedError(fmt.Errorf("broker %q: GetAuthenticationModes errored out", b.name))
 	case "GAM_multiple_modes":
-		modes, err := auth.NewModeMaps([]*auth.Mode{
-			auth.NewMode("mode1", "Mode 1"),
-			auth.NewMode("mode2", "Mode 2"),
-		})
-		if err != nil {
-			return nil, dbus.MakeFailedError(fmt.Errorf("broker %q: GetAuthenticationModes errored out: %w", b.name, err))
+		authModes := []types.AuthMode{
+			{ID: "mode1", Label: "Mode 1"},
+			{ID: "mode2", Label: "Mode 2"},
 		}
-		return modes, nil
+		var authModeMaps []map[string]string
+		for _, mode := range authModes {
+			m, err := mode.ToMap()
+			if err != nil {
+				return nil, dbus.MakeFailedError(fmt.Errorf("broker %q: GetAuthenticationModes errored out: %w", b.name, err))
+			}
+			authModeMaps = append(authModeMaps, m)
+		}
+		return authModeMaps, nil
 	default:
-		modes, err := auth.NewModeMaps([]*auth.Mode{
-			auth.NewMode("mode1", "Mode 1"),
-		})
+		mode := types.AuthMode{ID: "mode1", Label: "Mode 1"}
+		m, err := mode.ToMap()
 		if err != nil {
 			return nil, dbus.MakeFailedError(fmt.Errorf("broker %q: GetAuthenticationModes errored out: %w", b.name, err))
 		}
-		return modes, nil
+		return []map[string]string{m}, nil
 	}
 }
 

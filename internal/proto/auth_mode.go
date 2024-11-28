@@ -9,6 +9,7 @@ import (
 // AuthMode represent an authentication mode in authd protocol.
 type AuthMode = GAMResponse_AuthenticationMode
 
+// AuthModeFromMap creates an AuthMode from a map of strings.
 func AuthModeFromMap(m map[string]string) (*AuthMode, error) {
 	authModeJSON, err := json.Marshal(m)
 	if err != nil {

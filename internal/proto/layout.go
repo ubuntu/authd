@@ -6,6 +6,7 @@ import (
 	"github.com/ubuntu/authd/api/types"
 )
 
+// ToMap converts a Layout to a map of strings.
 func (l *UILayout) ToMap() (map[string]string, error) {
 	data, err := json.Marshal(l)
 	if err != nil {
