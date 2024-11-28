@@ -216,7 +216,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 		"Exit if user is not pre-checked on ssh service": {
 			tape:                "local_ssh",
-			user:                "user-integration-ssh-service",
+			user:                "user-integration-ssh-service-not-allowed",
 			pamServiceName:      "sshd",
 			wantNotLoggedInUser: true,
 			tapeSettings:        []tapeSetting{{vhsWaitPattern, "/Password:/"}},
