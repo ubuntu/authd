@@ -65,7 +65,3 @@ Hide
 Enter
 Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2
 Show
-
-Hide
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show

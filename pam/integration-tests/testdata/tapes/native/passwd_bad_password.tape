@@ -7,9 +7,6 @@ Show
 
 Hide
 Type "user-integration-bad-password"
-Show
-
-Hide
 Enter
 Wait+Prompt /Choose your provider/
 Show

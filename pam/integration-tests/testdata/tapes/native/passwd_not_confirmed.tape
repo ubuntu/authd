@@ -7,9 +7,6 @@ Show
 
 Hide
 Type "user-integration-wrong-confirmation"
-Show
-
-Hide
 Enter
 Wait+Prompt /Choose your provider/
 Show
@@ -34,9 +31,6 @@ Show
 
 Hide
 Type "badpass"
-Show
-
-Hide
 Enter
 Wait+Prompt /Enter your new password/
 Show
@@ -49,9 +43,6 @@ Show
 
 Hide
 Type "authd2404"
-Show
-
-Hide
 Enter
 Wait
 Show
