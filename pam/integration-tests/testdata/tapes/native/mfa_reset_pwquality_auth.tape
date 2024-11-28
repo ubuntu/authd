@@ -2,7 +2,7 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait+Screen /Choose your provider:\n>[\n]*$/
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
@@ -11,7 +11,7 @@ Show
 
 Hide
 Enter
-Wait+Screen /Gimme your password:\n>[\n]*$/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
@@ -20,47 +20,47 @@ Show
 
 Hide
 Enter
-Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb:\n>[\n]*$/
+Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
 Show
 
 # Wait for MFA auth to happen
 Hide
 Enter
-Wait+Screen /Choose action:\n>[\n]*$/
+Wait+Prompt /Choose action/
 Show
 
 Hide
 Type "1"
 Enter
-Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Enter your new password \(3 days until mandatory\):\n>[\n]*$/
+Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Enter your new password \(3 days until mandatory\)/
 Show
 
 Hide
 Type "goodpass"
 Enter
-Wait+Screen /(The password is the same as the old one(.|\n)+){1}/
-Wait+Screen /Enter your new password \(3 days until mandatory\):\n>[\n]*$/
+Wait+Nth(1)  /The password is the same as the old one/
+Wait+Prompt /Enter your new password \(3 days until mandatory\)/
 Show
 
 Hide
 Type "password"
 Enter
-Wait+Screen /(The password fails the dictionary check(.|\n)+){1}/
-Wait+Screen /Enter your new password \(3 days until mandatory\):\n>[\n]*$/
+Wait+Nth(1) /The password fails the dictionary check/
+Wait+Prompt /Enter your new password \(3 days until mandatory\)/
 Show
 
 Hide
 Type "goodpass"
 Enter
-Wait+Screen /(The password is the same as the old one(.|\n)+){2}/
-Wait+Screen /Enter your new password \(3 days until mandatory\):\n>[\n]*$/
+Wait+Nth(2)  /The password is the same as the old one/
+Wait+Prompt /Enter your new password \(3 days until mandatory\)/
 Show
 
 Hide
 Type "1234"
 Enter
-Wait+Screen /(The password is shorter than \d+ characters(.|\n)+){1}/
-Wait+Screen /Enter your new password \(3 days until mandatory\):\n>[\n]*$/
+Wait+Nth(1) /The password is shorter than \d+ characters/
+Wait+Prompt /Enter your new password \(3 days until mandatory\)/
 Show
 
 Hide
@@ -69,7 +69,7 @@ Show
 
 Hide
 Enter
-Wait+Screen /Confirm Password:\n>[\n]*$/
+Wait+Prompt /Confirm Password/
 Show
 
 Hide
