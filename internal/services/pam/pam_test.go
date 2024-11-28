@@ -19,7 +19,7 @@ import (
 	"github.com/ubuntu/authd/brokers/auth"
 	"github.com/ubuntu/authd/brokers/layouts"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/services/permissions"
@@ -79,7 +79,7 @@ func TestNewService(t *testing.T) {
 	pm := permissions.New()
 	service := pam.NewService(context.Background(), m, globalBrokerManager, &pm)
 
-	brokers, err := service.AvailableBrokers(context.Background(), &authd.Empty{})
+	brokers, err := service.AvailableBrokers(context.Background(), &proto.Empty{})
 	require.NoError(t, err, "can’t create the service directly")
 	require.NotEmpty(t, brokers.BrokersInfos, "Service is created and can query the broker manager")
 }
@@ -103,7 +103,7 @@ func TestAvailableBrokers(t *testing.T) {
 			pm := newPermissionManager(t, tc.currentUserNotRoot)
 			client := newPamClient(t, nil, globalBrokerManager, &pm)
 
-			abResp, err := client.AvailableBrokers(context.Background(), &authd.Empty{})
+			abResp, err := client.AvailableBrokers(context.Background(), &proto.Empty{})
 
 			if tc.wantErr {
 				require.Error(t, err, "AvailableBrokers should return an error, but did not")
@@ -176,7 +176,7 @@ func TestGetPreviousBroker(t *testing.T) {
 			client := newPamClient(t, m, brokerManager, &pm)
 
 			// Get existing entry
-			gotResp, err := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: tc.user})
+			gotResp, err := client.GetPreviousBroker(context.Background(), &proto.GPBRequest{Username: tc.user})
 
 			if tc.wantErr {
 				require.Error(t, err, "GetPreviousBroker should return an error, but did not")
@@ -231,17 +231,17 @@ func TestSelectBroker(t *testing.T) {
 				tc.username = t.Name() + testutils.IDSeparator + tc.username
 			}
 
-			var sessionMode authd.SessionMode
+			var sessionMode proto.SessionMode
 			switch tc.sessionMode {
 			case auth.SessionModeAuth, "":
-				sessionMode = authd.SessionMode_AUTH
+				sessionMode = proto.SessionMode_AUTH
 			case auth.SessionModePasswd:
-				sessionMode = authd.SessionMode_PASSWD
+				sessionMode = proto.SessionMode_PASSWD
 			case "-":
-				sessionMode = authd.SessionMode_UNDEFINED
+				sessionMode = proto.SessionMode_UNDEFINED
 			}
 
-			sbRequest := &authd.SBRequest{
+			sbRequest := &proto.SBRequest{
 				BrokerId: tc.brokerID,
 				Username: tc.username,
 				Mode:     sessionMode,
@@ -267,7 +267,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 
 	tests := map[string]struct {
 		sessionID          string
-		supportedUILayouts []*authd.UILayout
+		supportedUILayouts []*proto.UILayout
 
 		username           string
 		currentUserNotRoot bool
@@ -279,7 +279,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 
 		"Error when not root":                     {currentUserNotRoot: true, wantErr: true},
 		"Error when sessionID is empty":           {sessionID: "-", wantErr: true},
-		"Error when passing invalid layout":       {supportedUILayouts: []*authd.UILayout{emptyType}, wantErr: true},
+		"Error when passing invalid layout":       {supportedUILayouts: []*proto.UILayout{emptyType}, wantErr: true},
 		"Error when sessionID is invalid":         {sessionID: "invalid-session", wantErr: true},
 		"Error when getting authentication modes": {username: "GAM_error", wantErr: true},
 		"Error when broker returns invalid modes": {username: "GAM_invalid", wantErr: true},
@@ -306,10 +306,10 @@ func TestGetAuthenticationModes(t *testing.T) {
 			permissionstestutils.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			if tc.supportedUILayouts == nil {
-				tc.supportedUILayouts = []*authd.UILayout{requiredEntry}
+				tc.supportedUILayouts = []*proto.UILayout{requiredEntry}
 			}
 
-			gamReq := &authd.GAMRequest{
+			gamReq := &proto.GAMRequest{
 				SessionId:          tc.sessionID,
 				SupportedUiLayouts: tc.supportedUILayouts,
 			}
@@ -335,14 +335,14 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		authMode  string
 
 		username           string
-		supportedUILayouts []*authd.UILayout
+		supportedUILayouts []*proto.UILayout
 		noValidators       bool
 		currentUserNotRoot bool
 
 		wantErr bool
 	}{
-		"Successfully select mode with required value":         {username: "SAM_success_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}},
-		"Successfully select mode with missing optional value": {username: "SAM_missing_optional_entry", supportedUILayouts: []*authd.UILayout{optionalEntry}},
+		"Successfully select mode with required value":         {username: "SAM_success_required_entry", supportedUILayouts: []*proto.UILayout{requiredEntry}},
+		"Successfully select mode with missing optional value": {username: "SAM_missing_optional_entry", supportedUILayouts: []*proto.UILayout{optionalEntry}},
 
 		// service errors
 		"Error when not root":                {username: "SAM_success_required_entry", currentUserNotRoot: true, wantErr: true},
@@ -351,14 +351,14 @@ func TestSelectAuthenticationMode(t *testing.T) {
 		"Error when no authmode is selected": {sessionID: "no auth mode", authMode: "-", wantErr: true},
 
 		// broker errors
-		"Error when selecting invalid auth mode":                     {username: "SAM_error", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error when selecting invalid auth mode":                     {username: "SAM_error", supportedUILayouts: []*proto.UILayout{requiredEntry}, wantErr: true},
 		"Error when broker does not have validators for the session": {username: "does not matter", noValidators: true, wantErr: true},
 
 		/* Layout errors */
-		"Error when returns no layout":                     {username: "SAM_no_layout", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error when returns layout with no type":           {username: "SAM_no_layout_type", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error when returns layout without required value": {username: "SAM_missing_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error when returns layout with unknown field":     {username: "SAM_unknown_field", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error when returns no layout":                     {username: "SAM_no_layout", supportedUILayouts: []*proto.UILayout{requiredEntry}, wantErr: true},
+		"Error when returns layout with no type":           {username: "SAM_no_layout_type", supportedUILayouts: []*proto.UILayout{requiredEntry}, wantErr: true},
+		"Error when returns layout without required value": {username: "SAM_missing_required_entry", supportedUILayouts: []*proto.UILayout{requiredEntry}, wantErr: true},
+		"Error when returns layout with unknown field":     {username: "SAM_unknown_field", supportedUILayouts: []*proto.UILayout{requiredEntry}, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -388,7 +388,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			// If the username does not have a SAM_something, it means we don't care about the broker answer and we don't need the validators.
 			if !tc.noValidators && strings.HasPrefix(tc.username, "SAM_") {
 				// We need to call GetAuthenticationModes to generate the layout validators on the broker.
-				gamReq := &authd.GAMRequest{
+				gamReq := &proto.GAMRequest{
 					SessionId:          tc.sessionID,
 					SupportedUiLayouts: tc.supportedUILayouts,
 				}
@@ -399,7 +399,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			// Now, set tests permissions for this use case
 			permissionstestutils.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
-			samReq := &authd.SAMRequest{
+			samReq := &proto.SAMRequest{
 				SessionId:            tc.sessionID,
 				AuthenticationModeId: tc.authMode,
 			}
@@ -497,9 +497,9 @@ func TestIsAuthenticated(t *testing.T) {
 			done := make(chan struct{})
 			go func() {
 				defer close(done)
-				iaReq := &authd.IARequest{
+				iaReq := &proto.IARequest{
 					SessionId:          tc.sessionID,
-					AuthenticationData: &authd.IARequest_AuthenticationData{},
+					AuthenticationData: &proto.IARequest_AuthenticationData{},
 				}
 				iaResp, err := client.IsAuthenticated(ctx, iaReq)
 				firstCall = fmt.Sprintf("FIRST CALL:\n\taccess: %s\n\tmsg: %s\n\terr: %v\n",
@@ -517,9 +517,9 @@ func TestIsAuthenticated(t *testing.T) {
 			}
 
 			if tc.secondCall {
-				iaReq := &authd.IARequest{
+				iaReq := &proto.IARequest{
 					SessionId:          tc.sessionID,
-					AuthenticationData: &authd.IARequest_AuthenticationData{},
+					AuthenticationData: &proto.IARequest_AuthenticationData{},
 				}
 				iaResp, err := client.IsAuthenticated(context.Background(), iaReq)
 				secondCall = fmt.Sprintf("SECOND CALL:\n\taccess: %s\n\tmsg: %s\n\terr: %v\n",
@@ -566,14 +566,14 @@ func TestIDGeneration(t *testing.T) {
 			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
 			client := newPamClient(t, m, globalBrokerManager, &pm)
 
-			sbResp, err := client.SelectBroker(context.Background(), &authd.SBRequest{
+			sbResp, err := client.SelectBroker(context.Background(), &proto.SBRequest{
 				BrokerId: mockBrokerGeneratedID,
 				Username: usernamePrefix + testutils.IDSeparator + tc.username,
-				Mode:     authd.SessionMode_AUTH,
+				Mode:     proto.SessionMode_AUTH,
 			})
 			require.NoError(t, err, "Setup: failed to create session for tests")
 
-			resp, err := client.IsAuthenticated(context.Background(), &authd.IARequest{SessionId: sbResp.GetSessionId()})
+			resp, err := client.IsAuthenticated(context.Background(), &proto.IARequest{SessionId: sbResp.GetSessionId()})
 			require.NoError(t, err, "Setup: could not authenticate user")
 			require.Equal(t, "granted", resp.GetAccess(), "Setup: authentication should be granted")
 
@@ -621,7 +621,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 				tc.brokerID = mockBrokerGeneratedID
 			}
 
-			sdbfuReq := &authd.SDBFURequest{
+			sdbfuReq := &proto.SDBFURequest{
 				BrokerId: tc.brokerID,
 				Username: tc.username,
 			}
@@ -632,7 +632,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			}
 			require.NoError(t, err, "SetDefaultBrokerForUser should not return an error, but did")
 
-			gpbResp, err := client.GetPreviousBroker(context.Background(), &authd.GPBRequest{Username: tc.username})
+			gpbResp, err := client.GetPreviousBroker(context.Background(), &proto.GPBRequest{Username: tc.username})
 			require.NoError(t, err, "GetPreviousBroker should not return an error")
 			require.Equal(t, tc.brokerID, gpbResp.GetPreviousBroker(), "SetDefaultBrokerForUser should set the default broker as expected")
 
@@ -684,7 +684,7 @@ func TestEndSession(t *testing.T) {
 			// Now, set tests permissions for this use case
 			permissionstestutils.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
-			esReq := &authd.ESRequest{
+			esReq := &proto.ESRequest{
 				SessionId: tc.sessionID,
 			}
 			_, err := client.EndSession(context.Background(), esReq)
@@ -728,7 +728,7 @@ func initBrokers() (brokerConfigPath string, cleanup func(), err error) {
 // newPAMClient returns a new GRPC PAM client for tests connected to brokerManager with the given cache and
 // permissionmanager.
 // If the one passed is nil, this function will create the cache and close it upon test teardown.
-func newPamClient(t *testing.T, m *users.Manager, brokerManager *brokers.Manager, pm *permissions.Manager) (client authd.PAMClient) {
+func newPamClient(t *testing.T, m *users.Manager, brokerManager *brokers.Manager, pm *permissions.Manager) (client proto.PAMClient) {
 	t.Helper()
 
 	// socket path is limited in length.
@@ -749,7 +749,7 @@ func newPamClient(t *testing.T, m *users.Manager, brokerManager *brokers.Manager
 	service := pam.NewService(context.Background(), m, brokerManager, pm)
 
 	grpcServer := grpc.NewServer(permissions.WithUnixPeerCreds(), grpc.ChainUnaryInterceptor(enableCheckGlobalAccess(service), errmessages.RedactErrorInterceptor))
-	authd.RegisterPAMServer(grpcServer, service)
+	proto.RegisterPAMServer(grpcServer, service)
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
@@ -765,7 +765,7 @@ func newPamClient(t *testing.T, m *users.Manager, brokerManager *brokers.Manager
 
 	t.Cleanup(func() { _ = conn.Close() }) // We don't care about the error on cleanup
 
-	return authd.NewPAMClient(conn)
+	return proto.NewPAMClient(conn)
 }
 
 // newPermissionManager factors out permission manager creation for tests.
@@ -803,16 +803,16 @@ func getMockBrokerGeneratedID(brokerManager *brokers.Manager) (string, error) {
 }
 
 // startSession is a helper that starts a session on the mock broker.
-func startSession(t *testing.T, client authd.PAMClient, username string) string {
+func startSession(t *testing.T, client proto.PAMClient, username string) string {
 	t.Helper()
 
 	// Prefixes the username to avoid concurrency issues.
 	username = t.Name() + testutils.IDSeparator + username
 
-	sbResp, err := client.SelectBroker(context.Background(), &authd.SBRequest{
+	sbResp, err := client.SelectBroker(context.Background(), &proto.SBRequest{
 		BrokerId: mockBrokerGeneratedID,
 		Username: username,
-		Mode:     authd.SessionMode_AUTH,
+		Mode:     proto.SessionMode_AUTH,
 	})
 	require.NoError(t, err, "Setup: failed to create session for tests")
 	return sbResp.GetSessionId()

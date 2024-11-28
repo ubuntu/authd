@@ -11,9 +11,8 @@ import (
 
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"github.com/ubuntu/authd/pam/internal/gdm"
-	"github.com/ubuntu/authd/pam/internal/proto"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 )
 
@@ -34,8 +33,8 @@ type gdmConvHandler struct {
 	pendingEvents        []*gdm.EventData
 	pendingEventsFlushed chan struct{}
 
-	supportedLayouts []*authd.UILayout
-	receivedBrokers  []*authd.ABResponse_BrokerInfo
+	supportedLayouts []*proto.UILayout
+	receivedBrokers  []*proto.ABResponse_BrokerInfo
 	selectedBrokerID string
 
 	currentStageChanged sync.Cond
@@ -44,7 +43,7 @@ type gdmConvHandler struct {
 	lastNotifiedStage   *pam_proto.Stage
 
 	startAuthRequested chan struct{}
-	authEvents         []*authd.IAResponse
+	authEvents         []*proto.IAResponse
 }
 
 func (h *gdmConvHandler) checkAllEventsHaveBeenEmitted() bool {
@@ -236,7 +235,7 @@ func (h *gdmConvHandler) handleEvent(event *gdm.EventData) error {
 		// TODO: Check the auth modes are matching.
 
 	case *gdm.EventData_UiLayoutReceived:
-		if !slices.ContainsFunc(h.supportedLayouts, func(layout *authd.UILayout) bool {
+		if !slices.ContainsFunc(h.supportedLayouts, func(layout *proto.UILayout) bool {
 			return layout.Type == ev.UiLayoutReceived.UiLayout.Type
 		}) {
 			return fmt.Errorf(`unknown layout type: "%s"`, ev.UiLayoutReceived.UiLayout.Type)
@@ -255,7 +254,7 @@ func (h *gdmConvHandler) handleEvent(event *gdm.EventData) error {
 	return nil
 }
 
-func (h *gdmConvHandler) waitForStageChange(stage proto.Stage) func() {
+func (h *gdmConvHandler) waitForStageChange(stage pam_proto.Stage) func() {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 

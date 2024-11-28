@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"github.com/ubuntu/authd/internal/testsdetection"
 )
 
@@ -26,7 +26,7 @@ const (
 
 // UILayout is the type to define an authd UI layout for brokers usage.
 type UILayout struct {
-	*authd.UILayout
+	*proto.UILayout
 }
 
 // UITypeError defines an error for [UIType] errors.
@@ -121,7 +121,7 @@ func WithRendersQrCode(renders bool) func(l *UILayout) {
 
 // NewUI allows to create a new [UILayout] with [UIOptions].
 func NewUI(t UIType, opts ...UIOptions) *UILayout {
-	uiLayout := &UILayout{UILayout: &authd.UILayout{Type: t.String()}}
+	uiLayout := &UILayout{UILayout: &proto.UILayout{Type: t.String()}}
 	for _, f := range opts {
 		f(uiLayout)
 	}

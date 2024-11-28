@@ -10,10 +10,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
-	"github.com/ubuntu/authd/pam/internal/proto"
+	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 )
 
 var gdmTestSequentialMessages atomic.Int64
@@ -44,7 +44,7 @@ type gdmTestWaitForCommandsDone struct {
 }
 
 type gdmTestWaitForStage struct {
-	stage    proto.Stage
+	stage    pam_proto.Stage
 	events   []*gdm.EventData
 	commands []tea.Cmd
 }
@@ -52,7 +52,7 @@ type gdmTestWaitForStage struct {
 type gdmTestWaitForStageDone gdmTestWaitForStage
 
 type gdmTestSendAuthDataWhenReady struct {
-	item authd.IARequestAuthenticationDataItem
+	item proto.IARequestAuthenticationDataItem
 }
 
 func (m *gdmTestUIModel) maybeHandleWantMessageUnlocked(msg tea.Msg) {

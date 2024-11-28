@@ -10,7 +10,7 @@ import (
 
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
 	"google.golang.org/grpc/codes"
@@ -23,7 +23,7 @@ type Service struct {
 	brokerManager     *brokers.Manager
 	permissionManager *permissions.Manager
 
-	authd.UnimplementedNSSServer
+	proto.UnimplementedNSSServer
 }
 
 // NewService returns a new NSS GRPC service.
@@ -38,7 +38,7 @@ func NewService(ctx context.Context, userManager *users.Manager, brokerManager *
 }
 
 // GetPasswdByName returns the passwd entry for the given username.
-func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetPasswdByNameRequest) (*authd.PasswdEntry, error) {
+func (s Service) GetPasswdByName(ctx context.Context, req *proto.GetPasswdByNameRequest) (*proto.PasswdEntry, error) {
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
@@ -62,7 +62,7 @@ func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetPasswdByName
 }
 
 // GetPasswdByUID returns the passwd entry for the given UID.
-func (s Service) GetPasswdByUID(ctx context.Context, req *authd.GetByIDRequest) (*authd.PasswdEntry, error) {
+func (s Service) GetPasswdByUID(ctx context.Context, req *proto.GetByIDRequest) (*proto.PasswdEntry, error) {
 	u, err := s.userManager.UserByID(req.GetId())
 	if err != nil {
 		return nil, noDataFoundErrorToGRPCError(err)
@@ -72,13 +72,13 @@ func (s Service) GetPasswdByUID(ctx context.Context, req *authd.GetByIDRequest) 
 }
 
 // GetPasswdEntries returns all passwd entries.
-func (s Service) GetPasswdEntries(ctx context.Context, req *authd.Empty) (*authd.PasswdEntries, error) {
+func (s Service) GetPasswdEntries(ctx context.Context, req *proto.Empty) (*proto.PasswdEntries, error) {
 	allUsers, err := s.userManager.AllUsers()
 	if err != nil {
 		return nil, err
 	}
 
-	var r authd.PasswdEntries
+	var r proto.PasswdEntries
 	for _, u := range allUsers {
 		r.Entries = append(r.Entries, nssPasswdFromUsersPasswd(u))
 	}
@@ -87,7 +87,7 @@ func (s Service) GetPasswdEntries(ctx context.Context, req *authd.Empty) (*authd
 }
 
 // GetGroupByName returns the group entry for the given group name.
-func (s Service) GetGroupByName(ctx context.Context, req *authd.GetGroupByNameRequest) (*authd.GroupEntry, error) {
+func (s Service) GetGroupByName(ctx context.Context, req *proto.GetGroupByNameRequest) (*proto.GroupEntry, error) {
 	if req.GetName() == "" {
 		return nil, status.Error(codes.InvalidArgument, "no group name provided")
 	}
@@ -100,7 +100,7 @@ func (s Service) GetGroupByName(ctx context.Context, req *authd.GetGroupByNameRe
 }
 
 // GetGroupByGID returns the group entry for the given GID.
-func (s Service) GetGroupByGID(ctx context.Context, req *authd.GetByIDRequest) (*authd.GroupEntry, error) {
+func (s Service) GetGroupByGID(ctx context.Context, req *proto.GetByIDRequest) (*proto.GroupEntry, error) {
 	g, err := s.userManager.GroupByID(req.GetId())
 	if err != nil {
 		return nil, noDataFoundErrorToGRPCError(err)
@@ -110,13 +110,13 @@ func (s Service) GetGroupByGID(ctx context.Context, req *authd.GetByIDRequest) (
 }
 
 // GetGroupEntries returns all group entries.
-func (s Service) GetGroupEntries(ctx context.Context, req *authd.Empty) (*authd.GroupEntries, error) {
+func (s Service) GetGroupEntries(ctx context.Context, req *proto.Empty) (*proto.GroupEntries, error) {
 	allGroups, err := s.userManager.AllGroups()
 	if err != nil {
 		return nil, err
 	}
 
-	var r authd.GroupEntries
+	var r proto.GroupEntries
 	for _, g := range allGroups {
 		r.Entries = append(r.Entries, nssGroupFromUsersGroup(g))
 	}
@@ -125,7 +125,7 @@ func (s Service) GetGroupEntries(ctx context.Context, req *authd.Empty) (*authd.
 }
 
 // GetShadowByName returns the shadow entry for the given username.
-func (s Service) GetShadowByName(ctx context.Context, req *authd.GetShadowByNameRequest) (*authd.ShadowEntry, error) {
+func (s Service) GetShadowByName(ctx context.Context, req *proto.GetShadowByNameRequest) (*proto.ShadowEntry, error) {
 	if err := s.permissionManager.IsRequestFromRoot(ctx); err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (s Service) GetShadowByName(ctx context.Context, req *authd.GetShadowByName
 }
 
 // GetShadowEntries returns all shadow entries.
-func (s Service) GetShadowEntries(ctx context.Context, req *authd.Empty) (*authd.ShadowEntries, error) {
+func (s Service) GetShadowEntries(ctx context.Context, req *proto.Empty) (*proto.ShadowEntries, error) {
 	if err := s.permissionManager.IsRequestFromRoot(ctx); err != nil {
 		return nil, err
 	}
@@ -152,7 +152,7 @@ func (s Service) GetShadowEntries(ctx context.Context, req *authd.Empty) (*authd
 		return nil, err
 	}
 
-	var r authd.ShadowEntries
+	var r proto.ShadowEntries
 	for _, u := range allUsers {
 		r.Entries = append(r.Entries, nssShadowFromUsersShadow(u))
 	}
@@ -161,7 +161,7 @@ func (s Service) GetShadowEntries(ctx context.Context, req *authd.Empty) (*authd
 }
 
 // userPreCheck checks if the user exists in at least one broker.
-func (s Service) userPreCheck(ctx context.Context, username string) (pwent *authd.PasswdEntry, err error) {
+func (s Service) userPreCheck(ctx context.Context, username string) (pwent *proto.PasswdEntry, err error) {
 	// Check if the user exists in at least one broker.
 	var userinfo string
 	for _, b := range s.brokerManager.AvailableBrokers() {
@@ -192,8 +192,8 @@ func (s Service) userPreCheck(ctx context.Context, username string) (pwent *auth
 }
 
 // nssPasswdFromUsersPasswd returns a PasswdEntry from users.UserEntry.
-func nssPasswdFromUsersPasswd(u users.UserEntry) *authd.PasswdEntry {
-	return &authd.PasswdEntry{
+func nssPasswdFromUsersPasswd(u users.UserEntry) *proto.PasswdEntry {
+	return &proto.PasswdEntry{
 		Name:    u.Name,
 		Passwd:  "x",
 		Uid:     u.UID,
@@ -205,8 +205,8 @@ func nssPasswdFromUsersPasswd(u users.UserEntry) *authd.PasswdEntry {
 }
 
 // nssGroupFromUsersGroup returns a GroupEntry from users.GroupEntry.
-func nssGroupFromUsersGroup(g users.GroupEntry) *authd.GroupEntry {
-	return &authd.GroupEntry{
+func nssGroupFromUsersGroup(g users.GroupEntry) *proto.GroupEntry {
+	return &proto.GroupEntry{
 		Name:    g.Name,
 		Passwd:  "x",
 		Gid:     g.GID,
@@ -215,8 +215,8 @@ func nssGroupFromUsersGroup(g users.GroupEntry) *authd.GroupEntry {
 }
 
 // nssShadowFromUsersShadow returns a ShadowEntry from users.ShadowEntry.
-func nssShadowFromUsersShadow(u users.ShadowEntry) *authd.ShadowEntry {
-	return &authd.ShadowEntry{
+func nssShadowFromUsersShadow(u users.ShadowEntry) *proto.ShadowEntry {
+	return &proto.ShadowEntry{
 		Name:               u.Name,
 		Passwd:             "x",
 		LastChange:         convertToNumberOfDays(u.LastPwdChange),

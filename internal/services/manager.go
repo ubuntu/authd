@@ -6,7 +6,7 @@ import (
 
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/services/pam"
@@ -60,8 +60,8 @@ func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 	opts := []grpc.ServerOption{permissions.WithUnixPeerCreds(), grpc.ChainUnaryInterceptor(m.globalPermissions, errmessages.RedactErrorInterceptor)}
 	grpcServer := grpc.NewServer(opts...)
 
-	authd.RegisterNSSServer(grpcServer, m.nssService)
-	authd.RegisterPAMServer(grpcServer, m.pamService)
+	proto.RegisterNSSServer(grpcServer, m.nssService)
+	proto.RegisterPAMServer(grpcServer, m.pamService)
 
 	return grpcServer
 }

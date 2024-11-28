@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/brokers/auth"
 	"github.com/ubuntu/authd/brokers/layouts"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 )
 
 var errTest = errors.New("an error")
@@ -27,29 +27,29 @@ func TestAvailableBrokers(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		client authd.PAMClient
+		client proto.PAMClient
 
-		wantRet   *authd.ABResponse
+		wantRet   *proto.ABResponse
 		wantError error
 	}{
 		"With empty options": {
 			client:  NewDummyClient(nil),
-			wantRet: &authd.ABResponse{},
+			wantRet: &proto.ABResponse{},
 		},
 		"With Error return value": {
 			client:    NewDummyClient(nil, WithAvailableBrokers(nil, errTest)),
 			wantError: errTest,
 		},
 		"With defined return value": {
-			client: NewDummyClient(nil, WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
+			client: NewDummyClient(nil, WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{
 				{
 					Id:        "testBroker",
 					Name:      "A test broker",
 					BrandIcon: ptrValue("/usr/share/icons/broker-icon.png"),
 				},
 			}, nil)),
-			wantRet: &authd.ABResponse{
-				BrokersInfos: []*authd.ABResponse_BrokerInfo{
+			wantRet: &proto.ABResponse{
+				BrokersInfos: []*proto.ABResponse_BrokerInfo{
 					{
 						Id:        "testBroker",
 						Name:      "A test broker",
@@ -74,15 +74,15 @@ func TestGetPreviousBroker(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		client authd.PAMClient
-		args   *authd.GPBRequest
+		client proto.PAMClient
+		args   *proto.GPBRequest
 
-		wantRet   *authd.GPBResponse
+		wantRet   *proto.GPBResponse
 		wantError error
 	}{
 		"With empty options": {
 			client:  NewDummyClient(nil),
-			wantRet: &authd.GPBResponse{},
+			wantRet: &proto.GPBResponse{},
 		},
 		"With Error return value": {
 			client:    NewDummyClient(nil, WithGetPreviousBrokerReturn("", errTest)),
@@ -90,27 +90,27 @@ func TestGetPreviousBroker(t *testing.T) {
 		},
 		"With defined return value": {
 			client: NewDummyClient(nil, WithGetPreviousBrokerReturn("my-previous-broker", nil)),
-			wantRet: &authd.GPBResponse{
+			wantRet: &proto.GPBResponse{
 				PreviousBroker: "my-previous-broker",
 			},
 		},
 		"With defined empty return value": {
 			client:  NewDummyClient(nil, WithGetPreviousBrokerReturn("", nil)),
-			wantRet: &authd.GPBResponse{},
+			wantRet: &proto.GPBResponse{},
 		},
 		"With predefined default for user empty return value": {
 			client: NewDummyClient(nil,
 				WithPreviousBrokerForUser("user0", "broker0"),
 				WithPreviousBrokerForUser("user1", "broker1"),
 			),
-			args:    &authd.GPBRequest{Username: "user1"},
-			wantRet: &authd.GPBResponse{PreviousBroker: "broker1"},
+			args:    &proto.GPBRequest{Username: "user1"},
+			wantRet: &proto.GPBResponse{PreviousBroker: "broker1"},
 		},
 
 		// Error cases
 		"Error with missing user": {
 			client:    NewDummyClient(nil, WithGetPreviousBrokerReturn("", nil)),
-			args:      &authd.GPBRequest{},
+			args:      &proto.GPBRequest{},
 			wantError: errors.New("no username provided"),
 		},
 	}
@@ -133,12 +133,12 @@ func TestSelectBroker(t *testing.T) {
 	wantEncryptionKey := base64.StdEncoding.EncodeToString(pubASN1)
 
 	testCases := map[string]struct {
-		client            authd.PAMClient
-		args              *authd.SBRequest
+		client            proto.PAMClient
+		args              *proto.SBRequest
 		reselectAgainUser string
 
 		wantGeneratedSessionID bool
-		wantRet                *authd.SBResponse
+		wantRet                *proto.SBResponse
 		wantError              error
 	}{
 		"With Error return value": {
@@ -148,70 +148,70 @@ func TestSelectBroker(t *testing.T) {
 		"With valid args and generated return value": {
 			client: NewDummyClient(nil,
 				WithSelectBrokerReturn(nil, nil),
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{
 					{
 						Id:   "test-broker",
 						Name: "A test broker",
 					},
 				}, nil)),
-			args:                   &authd.SBRequest{BrokerId: "test-broker"},
+			args:                   &proto.SBRequest{BrokerId: "test-broker"},
 			wantGeneratedSessionID: true,
 		},
 		"With valid args and empty return value": {
 			client: NewDummyClient(nil,
-				WithSelectBrokerReturn(&authd.SBResponse{}, nil),
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
+				WithSelectBrokerReturn(&proto.SBResponse{}, nil),
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{
 					{
 						Id:   "test-broker",
 						Name: "A test broker",
 					},
 				}, nil)),
-			args:                   &authd.SBRequest{BrokerId: "test-broker"},
-			wantRet:                &authd.SBResponse{},
+			args:                   &proto.SBRequest{BrokerId: "test-broker"},
+			wantRet:                &proto.SBResponse{},
 			wantGeneratedSessionID: true,
 		},
 		"With valid args and empty return value with ignored ID generation": {
 			client: NewDummyClient(nil,
 				WithIgnoreSessionIDGeneration(),
-				WithSelectBrokerReturn(&authd.SBResponse{}, nil),
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
+				WithSelectBrokerReturn(&proto.SBResponse{}, nil),
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{
 					{
 						Id:   "test-broker",
 						Name: "A test broker",
 					},
 				}, nil)),
-			args:    &authd.SBRequest{BrokerId: "test-broker"},
-			wantRet: &authd.SBResponse{},
+			args:    &proto.SBRequest{BrokerId: "test-broker"},
+			wantRet: &proto.SBResponse{},
 		},
 		"With valid args and defined return value": {
 			client: NewDummyClient(nil,
-				WithSelectBrokerReturn(&authd.SBResponse{
+				WithSelectBrokerReturn(&proto.SBResponse{
 					SessionId:     "session-id",
 					EncryptionKey: "super-secret-encryption-key",
 				}, nil),
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{
 					{
 						Id:   "test-broker",
 						Name: "A test broker",
 					},
 				}, nil)),
-			args: &authd.SBRequest{BrokerId: "test-broker"},
-			wantRet: &authd.SBResponse{
+			args: &proto.SBRequest{BrokerId: "test-broker"},
+			wantRet: &proto.SBResponse{
 				SessionId:     "session-id",
 				EncryptionKey: "super-secret-encryption-key",
 			},
 		},
 		"With private key and valid args and empty return value": {
 			client: NewDummyClient(privateKey,
-				WithSelectBrokerReturn(&authd.SBResponse{}, nil),
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
+				WithSelectBrokerReturn(&proto.SBResponse{}, nil),
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{
 					{
 						Id:   "test-broker",
 						Name: "A test broker",
 					},
 				}, nil)),
-			args: &authd.SBRequest{BrokerId: "test-broker"},
-			wantRet: &authd.SBResponse{
+			args: &proto.SBRequest{BrokerId: "test-broker"},
+			wantRet: &proto.SBResponse{
 				EncryptionKey: wantEncryptionKey,
 			},
 			wantGeneratedSessionID: true,
@@ -219,25 +219,25 @@ func TestSelectBroker(t *testing.T) {
 		"With private key and valid args, empty return value ignoring session ID generation": {
 			client: NewDummyClient(privateKey,
 				WithIgnoreSessionIDGeneration(),
-				WithSelectBrokerReturn(&authd.SBResponse{}, nil),
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
+				WithSelectBrokerReturn(&proto.SBResponse{}, nil),
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{
 					{
 						Id:   "test-broker",
 						Name: "A test broker",
 					},
 				}, nil)),
-			args: &authd.SBRequest{BrokerId: "test-broker"},
-			wantRet: &authd.SBResponse{
+			args: &proto.SBRequest{BrokerId: "test-broker"},
+			wantRet: &proto.SBResponse{
 				EncryptionKey: wantEncryptionKey,
 			},
 		},
 		"With private key and valid args and defined return value": {
 			client: NewDummyClient(privateKey,
-				WithSelectBrokerReturn(&authd.SBResponse{
+				WithSelectBrokerReturn(&proto.SBResponse{
 					SessionId:     "session-id",
 					EncryptionKey: "super-secret-encryption-key",
 				}, nil),
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{
 					{
 						Id:   "dummy-broker",
 						Name: "A Dummy broker",
@@ -247,18 +247,18 @@ func TestSelectBroker(t *testing.T) {
 						Name: "A test broker",
 					},
 				}, nil)),
-			args: &authd.SBRequest{BrokerId: "test-broker"},
-			wantRet: &authd.SBResponse{
+			args: &proto.SBRequest{BrokerId: "test-broker"},
+			wantRet: &proto.SBResponse{
 				SessionId:     "session-id",
 				EncryptionKey: "super-secret-encryption-key",
 			},
 		},
 		"With private key and valid args and defined return value without encryption key": {
 			client: NewDummyClient(privateKey,
-				WithSelectBrokerReturn(&authd.SBResponse{
+				WithSelectBrokerReturn(&proto.SBResponse{
 					SessionId: "session-id",
 				}, nil),
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{
 					{
 						Id:   "dummy-broker",
 						Name: "A Dummy broker",
@@ -268,8 +268,8 @@ func TestSelectBroker(t *testing.T) {
 						Name: "A test broker",
 					},
 				}, nil)),
-			args: &authd.SBRequest{BrokerId: "test-broker"},
-			wantRet: &authd.SBResponse{
+			args: &proto.SBRequest{BrokerId: "test-broker"},
+			wantRet: &proto.SBResponse{
 				SessionId:     "session-id",
 				EncryptionKey: wantEncryptionKey,
 			},
@@ -277,37 +277,37 @@ func TestSelectBroker(t *testing.T) {
 		"Starting a session for same user is fine": {
 			client: NewDummyClient(nil,
 				WithSelectBrokerReturn(nil, nil),
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{
 					{
 						Id:   "test-broker",
 						Name: "A test broker",
 					},
 				}, nil)),
-			args: &authd.SBRequest{
+			args: &proto.SBRequest{
 				BrokerId: "test-broker",
 				Username: "an-user",
 			},
 			reselectAgainUser:      "an-user",
 			wantGeneratedSessionID: true,
-			wantRet:                &authd.SBResponse{},
+			wantRet:                &proto.SBResponse{},
 		},
 		"Starting a session for another user is fine when ignoring ID checks": {
 			client: NewDummyClient(nil,
 				WithIgnoreSessionIDChecks(),
 				WithIgnoreSessionIDGeneration(),
 				WithSelectBrokerReturn(nil, nil),
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{
 					{
 						Id:   "test-broker",
 						Name: "A test broker",
 					},
 				}, nil)),
-			args: &authd.SBRequest{
+			args: &proto.SBRequest{
 				BrokerId: "test-broker",
 				Username: "an-user",
 			},
 			reselectAgainUser: "another-user",
-			wantRet:           &authd.SBResponse{},
+			wantRet:           &proto.SBResponse{},
 		},
 
 		// Error cases
@@ -317,24 +317,24 @@ func TestSelectBroker(t *testing.T) {
 		},
 		"Error with empty args empty options": {
 			client:    NewDummyClient(nil),
-			args:      &authd.SBRequest{},
+			args:      &proto.SBRequest{},
 			wantError: errors.New("no broker ID provided"),
 		},
 		"Error on unknown broker id": {
 			client:    NewDummyClient(nil, WithSelectBrokerReturn(nil, nil)),
-			args:      &authd.SBRequest{BrokerId: "some-broker"},
+			args:      &proto.SBRequest{BrokerId: "some-broker"},
 			wantError: fmt.Errorf(`broker "some-broker" not found`),
 		},
 		"Error on starting a session again": {
 			client: NewDummyClient(nil,
 				WithSelectBrokerReturn(nil, nil),
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{
 					{
 						Id:   "test-broker",
 						Name: "A test broker",
 					},
 				}, nil)),
-			args: &authd.SBRequest{
+			args: &proto.SBRequest{
 				BrokerId: "test-broker",
 				Username: "an-user",
 			},
@@ -345,7 +345,7 @@ func TestSelectBroker(t *testing.T) {
 			client: NewDummyClient(nil,
 				WithSelectBrokerReturn(nil, nil),
 				WithAvailableBrokers(nil, errTest)),
-			args:      &authd.SBRequest{BrokerId: "test-broker"},
+			args:      &proto.SBRequest{BrokerId: "test-broker"},
 			wantError: errTest,
 		},
 	}
@@ -396,13 +396,13 @@ func TestSelectBroker(t *testing.T) {
 	}
 }
 
-func startBrokerSession(t *testing.T, client authd.PAMClient, brokerIdx int) string {
+func startBrokerSession(t *testing.T, client proto.PAMClient, brokerIdx int) string {
 	t.Helper()
 
 	brokers, err := client.AvailableBrokers(context.TODO(), nil)
 	require.NoError(t, err)
 	require.GreaterOrEqual(t, len(brokers.BrokersInfos), brokerIdx)
-	ret, err := client.SelectBroker(context.TODO(), &authd.SBRequest{
+	ret, err := client.SelectBroker(context.TODO(), &proto.SBRequest{
 		BrokerId: brokers.BrokersInfos[brokerIdx].Id,
 	})
 	require.NoError(t, err)
@@ -414,11 +414,11 @@ func TestGetAuthenticationModes(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		client              authd.PAMClient
-		args                *authd.GAMRequest
+		client              proto.PAMClient
+		args                *proto.GAMRequest
 		skipBrokerSelection bool
 
-		wantRet   *authd.GAMResponse
+		wantRet   *proto.GAMResponse
 		wantError error
 	}{
 		"With Error return value": {
@@ -427,24 +427,24 @@ func TestGetAuthenticationModes(t *testing.T) {
 		},
 		"With empty return value": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithGetAuthenticationModesReturn(nil, nil),
 			),
-			args:    &authd.GAMRequest{SessionId: "started-session-id"},
-			wantRet: &authd.GAMResponse{AuthenticationModes: []*authd.GAMResponse_AuthenticationMode{}},
+			args:    &proto.GAMRequest{SessionId: "started-session-id"},
+			wantRet: &proto.GAMResponse{AuthenticationModes: []*proto.GAMResponse_AuthenticationMode{}},
 		},
 		"With all modes return value": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithGetAuthenticationModesReturn([]*authd.GAMResponse_AuthenticationMode{
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
+				WithGetAuthenticationModesReturn([]*proto.GAMResponse_AuthenticationMode{
 					{
 						Id:    "foo",
 						Label: "Bar",
@@ -455,9 +455,9 @@ func TestGetAuthenticationModes(t *testing.T) {
 					},
 				}, nil),
 			),
-			args: &authd.GAMRequest{SessionId: "started-session-id"},
-			wantRet: &authd.GAMResponse{
-				AuthenticationModes: []*authd.GAMResponse_AuthenticationMode{
+			args: &proto.GAMRequest{SessionId: "started-session-id"},
+			wantRet: &proto.GAMResponse{
+				AuthenticationModes: []*proto.GAMResponse_AuthenticationMode{
 					{
 						Id:    "foo",
 						Label: "Bar",
@@ -471,17 +471,17 @@ func TestGetAuthenticationModes(t *testing.T) {
 		},
 		"With modes returned from values": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithUILayout("foobar", "Baz", &authd.UILayout{}),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
+				WithUILayout("foobar", "Baz", &proto.UILayout{}),
 				WithUILayout("password", "Insert your password", FormUILayout()),
 			),
-			args: &authd.GAMRequest{SessionId: "started-session-id"},
-			wantRet: &authd.GAMResponse{
-				AuthenticationModes: []*authd.GAMResponse_AuthenticationMode{
+			args: &proto.GAMRequest{SessionId: "started-session-id"},
+			wantRet: &proto.GAMResponse{
+				AuthenticationModes: []*proto.GAMResponse_AuthenticationMode{
 					{
 						Id:    "foobar",
 						Label: "Baz",
@@ -495,8 +495,8 @@ func TestGetAuthenticationModes(t *testing.T) {
 		},
 		"With no session ID arg when enabled": {
 			client:  NewDummyClient(nil, WithIgnoreSessionIDChecks()),
-			args:    &authd.GAMRequest{},
-			wantRet: &authd.GAMResponse{AuthenticationModes: []*authd.GAMResponse_AuthenticationMode{}},
+			args:    &proto.GAMRequest{},
+			wantRet: &proto.GAMResponse{AuthenticationModes: []*proto.GAMResponse_AuthenticationMode{}},
 		},
 
 		// Error cases
@@ -506,12 +506,12 @@ func TestGetAuthenticationModes(t *testing.T) {
 		},
 		"Error with no session ID arg": {
 			client:    NewDummyClient(nil),
-			args:      &authd.GAMRequest{},
+			args:      &proto.GAMRequest{},
 			wantError: errors.New("no session ID provided"),
 		},
 		"Error with not-matching session ID": {
 			client:              NewDummyClient(nil),
-			args:                &authd.GAMRequest{SessionId: "session-id"},
+			args:                &proto.GAMRequest{SessionId: "session-id"},
 			skipBrokerSelection: true,
 			wantError:           errors.New(`impossible to get authentication mode, session ID "session-id" not found`),
 		},
@@ -541,11 +541,11 @@ func TestSelectAuthenticationModes(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		client              authd.PAMClient
-		args                *authd.SAMRequest
+		client              proto.PAMClient
+		args                *proto.SAMRequest
 		skipBrokerSelection bool
 
-		wantRet   *authd.SAMResponse
+		wantRet   *proto.SAMResponse
 		wantError error
 	}{
 		"With Error return value": {
@@ -554,33 +554,33 @@ func TestSelectAuthenticationModes(t *testing.T) {
 		},
 		"With empty return value": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithSelectAuthenticationModeReturn(&authd.UILayout{}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectAuthenticationModeReturn(&proto.UILayout{}, nil),
 			),
-			args:    &authd.SAMRequest{SessionId: "started-session-id"},
-			wantRet: &authd.SAMResponse{UiLayoutInfo: &authd.UILayout{}},
+			args:    &proto.SAMRequest{SessionId: "started-session-id"},
+			wantRet: &proto.SAMResponse{UiLayoutInfo: &proto.UILayout{}},
 		},
 		"With all modes return value": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithUILayout("password", "Write the password", FormUILayout()),
 				WithUILayout("pin", "Write the PIN number", FormUILayout()),
 				WithUILayout(layouts.QrCode, "Scan the QR code", QrCodeUILayout()),
 				WithUILayout("new-pass", "Update your password", NewPasswordUILayout()),
 			),
-			args: &authd.SAMRequest{
+			args: &proto.SAMRequest{
 				SessionId:            "started-session-id",
 				AuthenticationModeId: layouts.QrCode,
 			},
-			wantRet: &authd.SAMResponse{UiLayoutInfo: QrCodeUILayout()},
+			wantRet: &proto.SAMResponse{UiLayoutInfo: QrCodeUILayout()},
 		},
 
 		// Error cases
@@ -590,37 +590,37 @@ func TestSelectAuthenticationModes(t *testing.T) {
 		},
 		"Error with no session ID arg": {
 			client:    NewDummyClient(nil),
-			args:      &authd.SAMRequest{},
+			args:      &proto.SAMRequest{},
 			wantError: errors.New("no session ID provided"),
 		},
 		"Error with not-matching session ID": {
 			client:              NewDummyClient(nil),
-			args:                &authd.SAMRequest{SessionId: "session-id"},
+			args:                &proto.SAMRequest{SessionId: "session-id"},
 			skipBrokerSelection: true,
 			wantError:           errors.New(`impossible to select authentication mode, session ID "session-id" not found`),
 		},
 		"Error with no authentication mode ID": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithSelectAuthenticationModeReturn(nil, nil),
 			),
-			args:      &authd.SAMRequest{SessionId: "started-session-id"},
+			args:      &proto.SAMRequest{SessionId: "started-session-id"},
 			wantError: errors.New("no authentication mode ID provided"),
 		},
 		"Error unknown authentication mode ID": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithSelectAuthenticationModeReturn(nil, nil),
 			),
-			args: &authd.SAMRequest{
+			args: &proto.SAMRequest{
 				SessionId:            "started-session-id",
 				AuthenticationModeId: "auth-mode-id",
 			},
@@ -647,11 +647,11 @@ func TestIsAuthenticated(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		client              authd.PAMClient
-		args                *authd.IARequest
+		client              proto.PAMClient
+		args                *proto.IARequest
 		skipBrokerSelection bool
 
-		wantRet   *authd.IAResponse
+		wantRet   *proto.IAResponse
 		wantError error
 	}{
 		"With Error return value": {
@@ -660,184 +660,184 @@ func TestIsAuthenticated(t *testing.T) {
 		},
 		"With empty return value": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithIsAuthenticatedReturn(&authd.IAResponse{}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
+				WithIsAuthenticatedReturn(&proto.IAResponse{}, nil),
 			),
-			args:    &authd.IARequest{SessionId: "started-session-id"},
-			wantRet: &authd.IAResponse{},
+			args:    &proto.IARequest{SessionId: "started-session-id"},
+			wantRet: &proto.IAResponse{},
 		},
 		"With retry return value": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithIsAuthenticatedReturn(&authd.IAResponse{
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
+				WithIsAuthenticatedReturn(&proto.IAResponse{
 					Access: auth.Retry,
 					Msg:    "Try again",
 				}, nil),
 			),
-			args: &authd.IARequest{SessionId: "started-session-id"},
-			wantRet: &authd.IAResponse{
+			args: &proto.IARequest{SessionId: "started-session-id"},
+			wantRet: &proto.IAResponse{
 				Access: auth.Retry,
 				Msg:    "Try again",
 			},
 		},
 		"Invalid challenge": {
 			client: NewDummyClient(privateKey,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedWantChallenge("super-secret-password"),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Challenge{
 						Challenge: encryptAndEncodeChallenge(t, &privateKey.PublicKey, "invalid-password"),
 					},
 				},
 			},
-			wantRet: &authd.IAResponse{
+			wantRet: &proto.IAResponse{
 				Access: auth.Denied,
 			},
 		},
 		"Invalid challenge with message": {
 			client: NewDummyClient(privateKey,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedWantChallenge("super-secret-password"),
 				WithIsAuthenticatedMessage("You're out!"),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Challenge{
 						Challenge: encryptAndEncodeChallenge(t, &privateKey.PublicKey, "invalid-password"),
 					},
 				},
 			},
-			wantRet: &authd.IAResponse{
+			wantRet: &proto.IAResponse{
 				Access: auth.Denied,
 				Msg:    `{"message": "You're out!"}`,
 			},
 		},
 		"Retry challenge with message": {
 			client: NewDummyClient(privateKey,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedWantChallenge("super-secret-password"),
 				WithIsAuthenticatedMaxRetries(1),
 				WithIsAuthenticatedMessage("try again!"),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Challenge{
 						Challenge: encryptAndEncodeChallenge(t, &privateKey.PublicKey, "invalid-password"),
 					},
 				},
 			},
-			wantRet: &authd.IAResponse{
+			wantRet: &proto.IAResponse{
 				Access: auth.Retry,
 				Msg:    `{"message": "try again!"}`,
 			},
 		},
 		"Valid challenge": {
 			client: NewDummyClient(privateKey,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedWantChallenge("super-secret-password"),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Challenge{
 						Challenge: encryptAndEncodeChallenge(t, &privateKey.PublicKey, "super-secret-password"),
 					},
 				},
 			},
-			wantRet: &authd.IAResponse{
+			wantRet: &proto.IAResponse{
 				Access: auth.Granted,
 			},
 		},
 		"Valid challenge with message": {
 			client: NewDummyClient(privateKey,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedWantChallenge("super-secret-password"),
 				WithIsAuthenticatedMessage("try again!"),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Challenge{
 						Challenge: encryptAndEncodeChallenge(t, &privateKey.PublicKey, "super-secret-password"),
 					},
 				},
 			},
-			wantRet: &authd.IAResponse{
+			wantRet: &proto.IAResponse{
 				Access: auth.Granted,
 				Msg:    `{"message": "try again!"}`,
 			},
 		},
 		"Wait with message": {
 			client: NewDummyClient(privateKey,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedWantWait(time.Microsecond*5),
 				WithIsAuthenticatedMessage("Wait done!"),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Wait{Wait: layouts.True},
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Wait{Wait: layouts.True},
 				},
 			},
-			wantRet: &authd.IAResponse{
+			wantRet: &proto.IAResponse{
 				Access: auth.Granted,
 				Msg:    `{"message": "Wait done!"}`,
 			},
 		},
 		"Skip with message": {
 			client: NewDummyClient(privateKey,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedWantSkip(),
 				WithIsAuthenticatedMessage("Skip done!"),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Skip{Skip: layouts.True},
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Skip{Skip: layouts.True},
 				},
 			},
-			wantRet: &authd.IAResponse{
+			wantRet: &proto.IAResponse{
 				Msg: `{"message": "Skip done!"}`,
 			},
 		},
@@ -849,119 +849,119 @@ func TestIsAuthenticated(t *testing.T) {
 		},
 		"Error with no session ID arg": {
 			client:    NewDummyClient(nil),
-			args:      &authd.IARequest{},
+			args:      &proto.IARequest{},
 			wantError: errors.New("no session ID provided"),
 		},
 		"Error with not-matching session ID": {
 			client:              NewDummyClient(nil),
-			args:                &authd.IARequest{SessionId: "session-id"},
+			args:                &proto.IARequest{SessionId: "session-id"},
 			skipBrokerSelection: true,
 			wantError:           errors.New(`impossible to authenticate, session ID "session-id" not found`),
 		},
 		"Error with no authentication data": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 			),
-			args:      &authd.IARequest{SessionId: "started-session-id"},
+			args:      &proto.IARequest{SessionId: "started-session-id"},
 			wantError: errors.New("no authentication data provided"),
 		},
 		"Error with invalid authentication data": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedWantChallenge("super-secret-password"),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId:          "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{},
+				AuthenticationData: &proto.IARequest_AuthenticationData{},
 			},
 			wantError: errors.New("no authentication data provided"),
 		},
 		"Error missing wanted challenge": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{},
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Challenge{},
 				},
 			},
 			wantError: errors.New("no wanted challenge provided"),
 		},
 		"Error missing wanted wait": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Wait{},
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Wait{},
 				},
 			},
 			wantError: errors.New("no wanted wait provided"),
 		},
 		"Error missing wanted skip": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Skip{},
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Skip{},
 				},
 			},
 			wantError: errors.New("no wanted skip requested"),
 		},
 		"Error empty challenge": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedWantChallenge("challenge"),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{},
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Challenge{},
 				},
 			},
 			wantError: errors.New("no challenge provided"),
 		},
 		"Error decoding challenge": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedWantChallenge("challenge"),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Challenge{
 						Challenge: "Invalid base64",
 					},
 				},
@@ -970,17 +970,17 @@ func TestIsAuthenticated(t *testing.T) {
 		},
 		"Error decrypting challenge per missing private key": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedWantChallenge("challenge"),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Challenge{
 						Challenge: base64.StdEncoding.EncodeToString([]byte("Invalid encrypted key")),
 					},
 				},
@@ -989,17 +989,17 @@ func TestIsAuthenticated(t *testing.T) {
 		},
 		"Error decrypting invalid challenge": {
 			client: NewDummyClient(privateKey,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedWantChallenge("challenge"),
 			),
-			args: &authd.IARequest{
+			args: &proto.IARequest{
 				SessionId: "started-session-id",
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Challenge{
 						Challenge: base64.StdEncoding.EncodeToString([]byte("Invalid encrypted key")),
 					},
 				},
@@ -1038,8 +1038,8 @@ func TestEndSession(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		client           authd.PAMClient
-		args             *authd.ESRequest
+		client           proto.PAMClient
+		args             *proto.ESRequest
 		selectedBrokerID string
 
 		wantError error
@@ -1050,15 +1050,15 @@ func TestEndSession(t *testing.T) {
 		},
 		"With valid return value": {
 			client: NewDummyClient(nil,
-				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+				WithAvailableBrokers([]*proto.ABResponse_BrokerInfo{{
 					Id:        "test-broker",
 					Name:      "A test broker",
 					BrandIcon: ptrValue("/usr/share/icons/broker-icon.png"),
 				}}, nil),
-				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithSelectBrokerReturn(&proto.SBResponse{SessionId: "started-session-id"}, nil),
 				WithEndSessionReturn(nil),
 			),
-			args:             &authd.ESRequest{SessionId: "started-session-id"},
+			args:             &proto.ESRequest{SessionId: "started-session-id"},
 			selectedBrokerID: "test-broker",
 		},
 
@@ -1069,12 +1069,12 @@ func TestEndSession(t *testing.T) {
 		},
 		"Error with empty args empty options": {
 			client:    NewDummyClient(nil),
-			args:      &authd.ESRequest{},
+			args:      &proto.ESRequest{},
 			wantError: errors.New("no session ID provided"),
 		},
 		"Error with not-matching session ID": {
 			client:    NewDummyClient(nil),
-			args:      &authd.ESRequest{SessionId: "a-session-id"},
+			args:      &proto.ESRequest{SessionId: "a-session-id"},
 			wantError: errors.New(`impossible to end session "a-session-id", not found`),
 		},
 	}
@@ -1086,7 +1086,7 @@ func TestEndSession(t *testing.T) {
 			require.True(t, ok, "Provided client is not a Dummy client")
 
 			if tc.args != nil && tc.args.SessionId != "" && tc.selectedBrokerID != "" {
-				ret, err := tc.client.SelectBroker(context.TODO(), &authd.SBRequest{
+				ret, err := tc.client.SelectBroker(context.TODO(), &proto.SBRequest{
 					BrokerId: tc.selectedBrokerID,
 				})
 				require.NoError(t, err)
@@ -1102,7 +1102,7 @@ func TestEndSession(t *testing.T) {
 				return
 			}
 
-			require.Equal(t, &authd.Empty{}, ret)
+			require.Equal(t, &proto.Empty{}, ret)
 			require.Empty(t, dc.CurrentSessionID())
 			require.Empty(t, dc.SelectedUsername())
 		})
@@ -1113,8 +1113,8 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		client authd.PAMClient
-		args   *authd.SDBFURequest
+		client proto.PAMClient
+		args   *proto.SDBFURequest
 
 		wantError error
 	}{
@@ -1128,7 +1128,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		},
 		"With valid arguments": {
 			client: NewDummyClient(nil, WithSetDefaultBrokerReturn(nil)),
-			args: &authd.SDBFURequest{
+			args: &proto.SDBFURequest{
 				BrokerId: "broker-id",
 				Username: "username",
 			},
@@ -1137,12 +1137,12 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		// Error cases
 		"Error if no user name is provided": {
 			client:    NewDummyClient(nil),
-			args:      &authd.SDBFURequest{BrokerId: "broker-id"},
+			args:      &proto.SDBFURequest{BrokerId: "broker-id"},
 			wantError: errors.New("no valid username provided"),
 		},
 		"Error if no broker ID is provided": {
 			client:    NewDummyClient(nil),
-			args:      &authd.SDBFURequest{Username: "username"},
+			args:      &proto.SDBFURequest{Username: "username"},
 			wantError: errors.New("no valid broker ID provided"),
 		},
 	}
@@ -1157,13 +1157,13 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 				return
 			}
 
-			require.Equal(t, &authd.Empty{}, ret)
+			require.Equal(t, &proto.Empty{}, ret)
 
 			if tc.args == nil {
 				return
 			}
 			retBroker, err := tc.client.GetPreviousBroker(context.TODO(),
-				&authd.GPBRequest{Username: tc.args.Username})
+				&proto.GPBRequest{Username: tc.args.Username})
 			require.NoError(t, err)
 			require.Equal(t, tc.args.BrokerId, retBroker.PreviousBroker)
 		})

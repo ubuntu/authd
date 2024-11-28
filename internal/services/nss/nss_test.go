@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/services/permissions"
@@ -72,7 +72,7 @@ func TestGetPasswdByName(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
-			got, err := client.GetPasswdByName(context.Background(), &authd.GetPasswdByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
+			got, err := client.GetPasswdByName(context.Background(), &proto.GetPasswdByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
 			requireExpectedResult(t, "GetPasswdByName", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
@@ -100,7 +100,7 @@ func TestGetPasswdByUID(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
-			got, err := client.GetPasswdByUID(context.Background(), &authd.GetByIDRequest{Id: tc.uid})
+			got, err := client.GetPasswdByUID(context.Background(), &proto.GetByIDRequest{Id: tc.uid})
 			requireExpectedResult(t, "GetPasswdByUID", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
@@ -124,7 +124,7 @@ func TestGetPasswdEntries(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
-			got, err := client.GetPasswdEntries(context.Background(), &authd.Empty{})
+			got, err := client.GetPasswdEntries(context.Background(), &proto.Empty{})
 			requireExpectedEntriesResult(t, "GetPasswdEntries", got.GetEntries(), err, tc.wantErr)
 		})
 	}
@@ -152,7 +152,7 @@ func TestGetGroupByName(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
-			got, err := client.GetGroupByName(context.Background(), &authd.GetGroupByNameRequest{Name: tc.groupname})
+			got, err := client.GetGroupByName(context.Background(), &proto.GetGroupByNameRequest{Name: tc.groupname})
 			requireExpectedResult(t, "GetGroupByName", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
@@ -180,7 +180,7 @@ func TestGetGroupByGID(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
-			got, err := client.GetGroupByGID(context.Background(), &authd.GetByIDRequest{Id: tc.gid})
+			got, err := client.GetGroupByGID(context.Background(), &proto.GetByIDRequest{Id: tc.gid})
 			requireExpectedResult(t, "GetGroupByGID", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
@@ -204,7 +204,7 @@ func TestGetGroupEntries(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB, false)
 
-			got, err := client.GetGroupEntries(context.Background(), &authd.Empty{})
+			got, err := client.GetGroupEntries(context.Background(), &proto.Empty{})
 			requireExpectedEntriesResult(t, "GetGroupEntries", got.GetEntries(), err, tc.wantErr)
 		})
 	}
@@ -234,7 +234,7 @@ func TestGetShadowByName(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB, tc.currentUserNotRoot)
 
-			got, err := client.GetShadowByName(context.Background(), &authd.GetShadowByNameRequest{Name: tc.username})
+			got, err := client.GetShadowByName(context.Background(), &proto.GetShadowByNameRequest{Name: tc.username})
 			requireExpectedResult(t, "GetShadowByName", got, err, tc.wantErr, tc.wantErrNotExists)
 		})
 	}
@@ -260,7 +260,7 @@ func TestGetShadowEntries(t *testing.T) {
 
 			client := newNSSClient(t, tc.sourceDB, tc.currentUserNotRoot)
 
-			got, err := client.GetShadowEntries(context.Background(), &authd.Empty{})
+			got, err := client.GetShadowEntries(context.Background(), &proto.Empty{})
 			requireExpectedEntriesResult(t, "GetShadowEntries", got.GetEntries(), err, tc.wantErr)
 		})
 	}
@@ -271,7 +271,7 @@ func TestMockgpasswd(t *testing.T) {
 }
 
 // newNSSClient returns a new GRPC PAM client for tests with the provided sourceDB as its initial cache.
-func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (client authd.NSSClient) {
+func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (client proto.NSSClient) {
 	t.Helper()
 
 	// socket path is limited in length.
@@ -292,7 +292,7 @@ func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (clien
 	service := nss.NewService(context.Background(), newUserManagerForTests(t, sourceDB), newBrokersManagerForTests(t), &pm)
 
 	grpcServer := grpc.NewServer(permissions.WithUnixPeerCreds(), grpc.ChainUnaryInterceptor(enableCheckGlobalAccess(service), errmessages.RedactErrorInterceptor))
-	authd.RegisterNSSServer(grpcServer, service)
+	proto.RegisterNSSServer(grpcServer, service)
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
@@ -308,7 +308,7 @@ func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (clien
 
 	t.Cleanup(func() { _ = conn.Close() }) // We don't care about the error on cleanup
 
-	return authd.NewNSSClient(conn)
+	return proto.NewNSSClient(conn)
 }
 
 func enableCheckGlobalAccess(s nss.Service) grpc.UnaryServerInterceptor {
@@ -354,7 +354,7 @@ func newBrokersManagerForTests(t *testing.T) *brokers.Manager {
 }
 
 // requireExpectedResult asserts expected behaviour from any get* NSS requests and can update them from golden content.
-func requireExpectedResult[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](t *testing.T, funcName string, got *T, err error, wantErr, wantErrNotExists bool) {
+func requireExpectedResult[T proto.PasswdEntry | proto.GroupEntry | proto.ShadowEntry](t *testing.T, funcName string, got *T, err error, wantErr, wantErrNotExists bool) {
 	t.Helper()
 
 	if wantErr {
@@ -373,7 +373,7 @@ func requireExpectedResult[T authd.PasswdEntry | authd.GroupEntry | authd.Shadow
 }
 
 // requireExpectedEntriesResult asserts expected behaviour from any get* NSS request returning a list and can update them from golden content.
-func requireExpectedEntriesResult[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](t *testing.T, funcName string, got []*T, err error, wantErr bool) {
+func requireExpectedEntriesResult[T proto.PasswdEntry | proto.GroupEntry | proto.ShadowEntry](t *testing.T, funcName string, got []*T, err error, wantErr bool) {
 	t.Helper()
 
 	if wantErr {
@@ -397,7 +397,7 @@ func requireExpectedEntriesResult[T authd.PasswdEntry | authd.GroupEntry | authd
 // requireExportedEquals compare *want to *got, only using the exported fields.
 // It helps ensuring that we don’t end up in a lockcopy vetting warning when we directly
 // compare the exported fields with require.EqualExportedValues.
-func requireExportedEquals[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](t *testing.T, want *T, got *T, msg string) {
+func requireExportedEquals[T proto.PasswdEntry | proto.GroupEntry | proto.ShadowEntry](t *testing.T, want *T, got *T, msg string) {
 	t.Helper()
 
 	data, err := yaml.Marshal(got)

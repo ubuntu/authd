@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"github.com/ubuntu/authd/internal/services"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
@@ -101,13 +101,13 @@ func TestAccessAuthorization(t *testing.T) {
 	require.NoError(t, err, "Setup: could not dial the server")
 
 	// Global authorization for PAM is always denied for non root user.
-	pamClient := authd.NewPAMClient(conn)
-	_, err = pamClient.AvailableBrokers(context.Background(), &authd.Empty{})
+	pamClient := proto.NewPAMClient(conn)
+	_, err = pamClient.AvailableBrokers(context.Background(), &proto.Empty{})
 	require.Error(t, err, "PAM calls are not allowed to any random user")
 
 	// Global authorization for NSS is always granted for non root user.
-	nssClient := authd.NewNSSClient(conn)
-	_, err = nssClient.GetPasswdByName(context.Background(), &authd.GetPasswdByNameRequest{Name: ""})
+	nssClient := proto.NewNSSClient(conn)
+	_, err = nssClient.GetPasswdByName(context.Background(), &proto.GetPasswdByNameRequest{Name: ""})
 	require.Error(t, err, "Expected a GRPC error from the server")
 
 	err = conn.Close()

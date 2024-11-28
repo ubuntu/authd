@@ -12,7 +12,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 )
 
@@ -41,14 +41,14 @@ type sessionInfo struct {
 type UIModel struct {
 	// PamMTx is the [pam.ModuleTransaction] used to communicate with PAM.
 	PamMTx pam.ModuleTransaction
-	// Client is the [authd.PAMClient] handle used to communicate with authd.
-	Client authd.PAMClient
-	// NssClient is the [authd.NSSClient] handle used to communicate with authd.
-	NssClient authd.NSSClient
+	// Client is the [proto.PAMClient] handle used to communicate with authd.
+	Client proto.PAMClient
+	// NssClient is the [proto.NSSClient] handle used to communicate with authd.
+	NssClient proto.NSSClient
 	// PamClientType is the kind of the PAM client we're handling.
 	ClientType PamClientType
 	// SessionMode is the mode of the session invoked by the module.
-	SessionMode authd.SessionMode
+	SessionMode proto.SessionMode
 
 	sessionStartingForBroker string
 	currentSession           *sessionInfo
@@ -93,7 +93,7 @@ type AuthModeSelected struct {
 
 // UILayoutReceived means that we got the ui layout to display by the broker.
 type UILayoutReceived struct {
-	layout *authd.UILayout
+	layout *proto.UILayout
 }
 
 // SessionEnded signals that the session is done and closed from the broker.
@@ -441,6 +441,6 @@ func (m UIModel) username() string {
 }
 
 // availableBrokers returns currently available brokers.
-func (m UIModel) availableBrokers() []*authd.ABResponse_BrokerInfo {
+func (m UIModel) availableBrokers() []*proto.ABResponse_BrokerInfo {
 	return m.brokerSelectionModel.availableBrokers
 }

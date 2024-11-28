@@ -11,8 +11,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
-	"github.com/ubuntu/authd/pam/internal/proto"
+	"github.com/ubuntu/authd/internal/proto"
+	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 )
 
 // brokerSelectionModel is the model list selection layout to allow authenticating and return a challenge.
@@ -20,15 +20,15 @@ type brokerSelectionModel struct {
 	list.Model
 	focused bool
 
-	client     authd.PAMClient
+	client     proto.PAMClient
 	clientType PamClientType
 
-	availableBrokers []*authd.ABResponse_BrokerInfo
+	availableBrokers []*proto.ABResponse_BrokerInfo
 }
 
 // brokersListReceived signals that the broker list from authd has been received.
 type brokersListReceived struct {
-	brokers []*authd.ABResponse_BrokerInfo
+	brokers []*proto.ABResponse_BrokerInfo
 }
 
 // brokerSelected is the internal event that a broker has been selected.
@@ -49,7 +49,7 @@ func selectBroker(brokerID string) tea.Cmd {
 }
 
 // newBrokerSelectionModel initializes an empty list with default options of brokerSelectionModel.
-func newBrokerSelectionModel(client authd.PAMClient, clientType PamClientType) brokerSelectionModel {
+func newBrokerSelectionModel(client proto.PAMClient, clientType PamClientType) brokerSelectionModel {
 	l := list.New(nil, itemLayout{}, 80, 24)
 	l.Title = "Select your provider"
 	l.SetShowStatusBar(false)
@@ -103,7 +103,7 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 
 	case brokerSelectionRequired:
 		log.Debugf(context.TODO(), "%#v", msg)
-		return m, sendEvent(ChangeStage{Stage: proto.Stage_brokerSelection})
+		return m, sendEvent(ChangeStage{Stage: pam_proto.Stage_brokerSelection})
 
 	case brokerSelected:
 		log.Debugf(context.TODO(), "%#v", msg)
@@ -182,10 +182,10 @@ func (m *brokerSelectionModel) Blur() {
 }
 
 // AutoSelectForUser requests if any previous broker was used by this user to automatically selects it.
-func AutoSelectForUser(client authd.PAMClient, username string) tea.Cmd {
+func AutoSelectForUser(client proto.PAMClient, username string) tea.Cmd {
 	return func() tea.Msg {
 		r, err := client.GetPreviousBroker(context.TODO(),
-			&authd.GPBRequest{
+			&proto.GPBRequest{
 				Username: username,
 			})
 		// We keep a chance to manually select the broker, not a blocker issue.
@@ -252,9 +252,9 @@ func (d itemLayout) Render(w io.Writer, m list.Model, index int, item list.Item)
 }
 
 // getAvailableBrokers returns available broker list from authd.
-func getAvailableBrokers(client authd.PAMClient) tea.Cmd {
+func getAvailableBrokers(client proto.PAMClient) tea.Cmd {
 	return func() tea.Msg {
-		brokersInfo, err := client.AvailableBrokers(context.TODO(), &authd.Empty{})
+		brokersInfo, err := client.AvailableBrokers(context.TODO(), &proto.Empty{})
 		if err != nil {
 			return pamError{
 				status: pam.ErrSystem,
@@ -269,7 +269,7 @@ func getAvailableBrokers(client authd.PAMClient) tea.Cmd {
 }
 
 // brokerFromID return a broker matching brokerID if available, nil otherwise.
-func brokerFromID(brokerID string, brokers []*authd.ABResponse_BrokerInfo) *authd.ABResponse_BrokerInfo {
+func brokerFromID(brokerID string, brokers []*proto.ABResponse_BrokerInfo) *proto.ABResponse_BrokerInfo {
 	if brokerID == "" {
 		return nil
 	}

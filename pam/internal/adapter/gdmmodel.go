@@ -10,9 +10,9 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/brokers/auth"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"github.com/ubuntu/authd/pam/internal/gdm"
-	"github.com/ubuntu/authd/pam/internal/proto"
+	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 )
 
 const (
@@ -156,7 +156,7 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 			}
 			log.Infof(context.TODO(), "GDM Stage changed to %s", res.StageChanged.Stage)
 
-			if m.waitingAuth && res.StageChanged.Stage != proto.Stage_challenge {
+			if m.waitingAuth && res.StageChanged.Stage != pam_proto.Stage_challenge {
 				// Maybe this can be sent only if we ever hit the challenge phase.
 				commands = append(commands, sendEvent(isAuthenticatedCancelled{}))
 			}
@@ -268,7 +268,7 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 		}
 
 		return m, sendEvent(m.emitEventSync(&gdm.EventData_AuthEvent{
-			AuthEvent: &gdm.Events_AuthEvent{Response: &authd.IAResponse{
+			AuthEvent: &gdm.Events_AuthEvent{Response: &proto.IAResponse{
 				Access: access,
 				Msg:    authMsg,
 			}},
@@ -278,7 +278,7 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 		m.waitingAuth = false
 
 		return m, sendEvent(m.emitEventSync(&gdm.EventData_AuthEvent{
-			AuthEvent: &gdm.Events_AuthEvent{Response: &authd.IAResponse{
+			AuthEvent: &gdm.Events_AuthEvent{Response: &proto.IAResponse{
 				Access: auth.Cancelled,
 				Msg:    msg.msg,
 			}},
@@ -288,7 +288,7 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 	return m, nil
 }
 
-func (m gdmModel) changeStage(s proto.Stage) tea.Cmd {
+func (m gdmModel) changeStage(s pam_proto.Stage) tea.Cmd {
 	if m.conversationsStopped {
 		return nil
 	}

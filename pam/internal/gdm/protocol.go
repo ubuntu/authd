@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -182,7 +182,7 @@ func stringifyEventDataFiltered(ed *EventData) string {
 	}
 
 	item := authReq.IsAuthenticatedRequested.GetAuthenticationData().Item
-	if _, ok = item.(*authd.IARequest_AuthenticationData_Challenge); !ok {
+	if _, ok = item.(*proto.IARequest_AuthenticationData_Challenge); !ok {
 		return ed.String()
 	}
 
@@ -190,8 +190,8 @@ func stringifyEventDataFiltered(ed *EventData) string {
 		Type: ed.Type,
 		Data: &EventData_IsAuthenticatedRequested{
 			IsAuthenticatedRequested: &Events_IsAuthenticatedRequested{
-				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
+				AuthenticationData: &proto.IARequest_AuthenticationData{
+					Item: &proto.IARequest_AuthenticationData_Challenge{
 						Challenge: "**************",
 					},
 				},

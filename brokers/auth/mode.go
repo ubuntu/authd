@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"github.com/ubuntu/authd/brokers/layouts"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 )
 
 // Mode is the type to define an authd authentication Mode for brokers usage.
 type Mode struct {
-	*authd.AuthMode
+	*proto.AuthMode
 }
 
 // InvalidModeError defines an error for invalid [Mode] errors.
@@ -26,7 +26,7 @@ type ModeOptions func(*Mode)
 
 // NewMode allows to create a new [Mode] with [ModeOptions].
 func NewMode(id, label string, opts ...ModeOptions) *Mode {
-	mode := &Mode{&authd.GAMResponse_AuthenticationMode{Id: id, Label: label}}
+	mode := &Mode{&proto.GAMResponse_AuthenticationMode{Id: id, Label: label}}
 	for _, opt := range opts {
 		opt(mode)
 	}

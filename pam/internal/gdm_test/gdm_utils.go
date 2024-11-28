@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"github.com/ubuntu/authd/pam/internal/gdm"
-	"github.com/ubuntu/authd/pam/internal/proto"
+	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 )
 
 // RequireEqualData ensures that data is equal by checking the marshalled values.
@@ -70,7 +70,7 @@ func SelectBrokerEvent(brokerID string) *gdm.EventData {
 }
 
 // ChangeStageEvent generates a ChangeStage event.
-func ChangeStageEvent(stage proto.Stage) *gdm.EventData {
+func ChangeStageEvent(stage pam_proto.Stage) *gdm.EventData {
 	return &gdm.EventData{
 		Type: gdm.EventType_stageChanged,
 		Data: &gdm.EventData_StageChanged{
@@ -102,12 +102,12 @@ func ReselectAuthMode() *gdm.EventData {
 }
 
 // IsAuthenticatedEvent generates a IsAuthenticated event.
-func IsAuthenticatedEvent(item authd.IARequestAuthenticationDataItem) *gdm.EventData {
+func IsAuthenticatedEvent(item proto.IARequestAuthenticationDataItem) *gdm.EventData {
 	return &gdm.EventData{
 		Type: gdm.EventType_isAuthenticatedRequested,
 		Data: &gdm.EventData_IsAuthenticatedRequested{
 			IsAuthenticatedRequested: &gdm.Events_IsAuthenticatedRequested{
-				AuthenticationData: &authd.IARequest_AuthenticationData{Item: item},
+				AuthenticationData: &proto.IARequest_AuthenticationData{Item: item},
 			},
 		},
 	}

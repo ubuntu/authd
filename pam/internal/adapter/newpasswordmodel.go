@@ -6,7 +6,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ubuntu/authd/brokers/layouts"
 	"github.com/ubuntu/authd/brokers/layouts/entries"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 )
 
 // newPasswordModel is the form layout type to allow authentication and return a challenge.
@@ -117,12 +117,12 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				return m, sendEvent(isAuthenticatedRequested{
-					item: &authd.IARequest_AuthenticationData_Challenge{Challenge: entry.Value()},
+					item: &proto.IARequest_AuthenticationData_Challenge{Challenge: entry.Value()},
 				})
 
 			case *buttonModel:
 				return m, sendEvent(isAuthenticatedRequested{
-					item: &authd.IARequest_AuthenticationData_Skip{Skip: layouts.True},
+					item: &proto.IARequest_AuthenticationData_Skip{Skip: layouts.True},
 				})
 			}
 

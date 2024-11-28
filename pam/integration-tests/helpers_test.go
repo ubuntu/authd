@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
@@ -147,10 +147,10 @@ func requirePreviousBrokerForUser(t *testing.T, socketPath string, brokerName st
 	require.NoError(t, err, "Can't connect to authd socket")
 
 	t.Cleanup(func() { conn.Close() })
-	pamClient := authd.NewPAMClient(conn)
+	pamClient := proto.NewPAMClient(conn)
 	brokers, err := pamClient.AvailableBrokers(context.TODO(), nil)
 	require.NoError(t, err, "Can't get available brokers")
-	prevBroker, err := pamClient.GetPreviousBroker(context.TODO(), &authd.GPBRequest{Username: user})
+	prevBroker, err := pamClient.GetPreviousBroker(context.TODO(), &proto.GPBRequest{Username: user})
 	require.NoError(t, err, "Can't get previous broker")
 	var prevBrokerID string
 	for _, b := range brokers.BrokersInfos {

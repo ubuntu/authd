@@ -5,7 +5,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ubuntu/authd/brokers/layouts"
 	"github.com/ubuntu/authd/brokers/layouts/entries"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 )
 
 // formModel is the form layout type to allow authentication and return a challenge.
@@ -62,7 +62,7 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		return m, sendEvent(isAuthenticatedRequested{
-			item: &authd.IARequest_AuthenticationData_Wait{Wait: layouts.True},
+			item: &proto.IARequest_AuthenticationData_Wait{Wait: layouts.True},
 		})
 	}
 
@@ -78,7 +78,7 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch entry := entry.(type) {
 			case *textinputModel:
 				return m, sendEvent(isAuthenticatedRequested{
-					item: &authd.IARequest_AuthenticationData_Challenge{
+					item: &proto.IARequest_AuthenticationData_Challenge{
 						Challenge: entry.Value(),
 					},
 				})

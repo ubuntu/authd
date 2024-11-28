@@ -17,7 +17,7 @@ import (
 	"github.com/ubuntu/authd/brokers/auth"
 	"github.com/ubuntu/authd/brokers/layouts"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -36,10 +36,10 @@ var (
 
 // sendIsAuthenticated sends the authentication challenges or wait request to the brokers.
 // The event will contain the returned value from the broker.
-func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID string,
-	authData *authd.IARequest_AuthenticationData, challenge *string) tea.Cmd {
+func sendIsAuthenticated(ctx context.Context, client proto.PAMClient, sessionID string,
+	authData *proto.IARequest_AuthenticationData, challenge *string) tea.Cmd {
 	return func() tea.Msg {
-		res, err := client.IsAuthenticated(ctx, &authd.IARequest{
+		res, err := client.IsAuthenticated(ctx, &proto.IARequest{
 			SessionId:          sessionID,
 			AuthenticationData: authData,
 		})
@@ -75,7 +75,7 @@ func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID 
 // isAuthenticatedRequested is the internal events signalling that authentication
 // with the given challenge or wait has been requested.
 type isAuthenticatedRequested struct {
-	item authd.IARequestAuthenticationDataItem
+	item proto.IARequestAuthenticationDataItem
 }
 
 // isAuthenticatedRequestedSend is the internal event signaling that the authentication
@@ -115,7 +115,7 @@ type authenticationComponent interface {
 type authenticationModel struct {
 	focused bool
 
-	client     authd.PAMClient
+	client     proto.PAMClient
 	clientType PamClientType
 
 	currentModel     authenticationComponent
@@ -159,7 +159,7 @@ type newPasswordCheckResult struct {
 }
 
 // newAuthenticationModel initializes a authenticationModel which needs to be Compose then.
-func newAuthenticationModel(client authd.PAMClient, clientType PamClientType) authenticationModel {
+func newAuthenticationModel(client proto.PAMClient, clientType PamClientType) authenticationModel {
 	return authenticationModel{
 		client:      client,
 		clientType:  clientType,
@@ -207,7 +207,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 			return *m, sendEvent(isAuthenticatedRequestedSend{
 				ctx: msg.ctx,
 				isAuthenticatedRequested: isAuthenticatedRequested{
-					item: &authd.IARequest_AuthenticationData_Challenge{Challenge: msg.challenge},
+					item: &proto.IARequest_AuthenticationData_Challenge{Challenge: msg.challenge},
 				},
 			})
 		}
@@ -250,7 +250,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		return *m, func() tea.Msg {
 			authTracker.waitAndStart(cancelFunc)
 
-			challenge, hasChallenge := msg.item.(*authd.IARequest_AuthenticationData_Challenge)
+			challenge, hasChallenge := msg.item.(*proto.IARequest_AuthenticationData_Challenge)
 			if hasChallenge && clientType == Gdm && currentLayout == layouts.NewPassword {
 				return newPasswordCheck{ctx: ctx, challenge: challenge.Challenge}
 			}
@@ -266,7 +266,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 			return *m, sendEvent(pamError{status: pam.ErrSystem, msg: fmt.Sprintf("could not encrypt challenge payload: %v", err)})
 		}
 
-		return *m, sendIsAuthenticated(msg.ctx, m.client, m.currentSessionID, &authd.IARequest_AuthenticationData{Item: msg.item}, plainTextChallenge)
+		return *m, sendIsAuthenticated(msg.ctx, m.client, m.currentSessionID, &proto.IARequest_AuthenticationData{Item: msg.item}, plainTextChallenge)
 
 	case isAuthenticatedCancelled:
 		log.Debugf(context.TODO(), "%#v", msg)
@@ -374,7 +374,7 @@ func (m *authenticationModel) Blur() {
 
 // Compose initialize the authentication model to be used.
 // It creates and attaches the sub layout models based on UILayout.
-func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey *rsa.PublicKey, layout *authd.UILayout) tea.Cmd {
+func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey *rsa.PublicKey, layout *proto.UILayout) tea.Cmd {
 	m.currentBrokerID = brokerID
 	m.currentSessionID = sessionID
 	m.encryptionKey = encryptionKey
@@ -464,7 +464,7 @@ func dataToMsg(data string) (string, error) {
 
 func (authData *isAuthenticatedRequestedSend) encryptChallengeIfPresent(publicKey *rsa.PublicKey) (*string, error) {
 	// no challenge value, pass it as is
-	challenge, ok := authData.item.(*authd.IARequest_AuthenticationData_Challenge)
+	challenge, ok := authData.item.(*proto.IARequest_AuthenticationData_Challenge)
 	if !ok {
 		return nil, nil
 	}
@@ -476,7 +476,7 @@ func (authData *isAuthenticatedRequestedSend) encryptChallengeIfPresent(publicKe
 
 	// encrypt it to base64 and replace the challenge with it
 	base64Encoded := base64.StdEncoding.EncodeToString(ciphertext)
-	authData.item = &authd.IARequest_AuthenticationData_Challenge{Challenge: base64Encoded}
+	authData.item = &proto.IARequest_AuthenticationData_Challenge{Challenge: base64Encoded}
 	return &challenge.Challenge, nil
 }
 

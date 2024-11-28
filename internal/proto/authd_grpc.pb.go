@@ -4,7 +4,7 @@
 // - protoc             v5.29.0
 // source: authd.proto
 
-package authd
+package proto
 
 import (
 	context "context"
@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	PAM_AvailableBrokers_FullMethodName         = "/authd.PAM/AvailableBrokers"
-	PAM_GetPreviousBroker_FullMethodName        = "/authd.PAM/GetPreviousBroker"
-	PAM_SelectBroker_FullMethodName             = "/authd.PAM/SelectBroker"
-	PAM_GetAuthenticationModes_FullMethodName   = "/authd.PAM/GetAuthenticationModes"
-	PAM_SelectAuthenticationMode_FullMethodName = "/authd.PAM/SelectAuthenticationMode"
-	PAM_IsAuthenticated_FullMethodName          = "/authd.PAM/IsAuthenticated"
-	PAM_EndSession_FullMethodName               = "/authd.PAM/EndSession"
-	PAM_SetDefaultBrokerForUser_FullMethodName  = "/authd.PAM/SetDefaultBrokerForUser"
+	PAM_AvailableBrokers_FullMethodName         = "/proto.PAM/AvailableBrokers"
+	PAM_GetPreviousBroker_FullMethodName        = "/proto.PAM/GetPreviousBroker"
+	PAM_SelectBroker_FullMethodName             = "/proto.PAM/SelectBroker"
+	PAM_GetAuthenticationModes_FullMethodName   = "/proto.PAM/GetAuthenticationModes"
+	PAM_SelectAuthenticationMode_FullMethodName = "/proto.PAM/SelectAuthenticationMode"
+	PAM_IsAuthenticated_FullMethodName          = "/proto.PAM/IsAuthenticated"
+	PAM_EndSession_FullMethodName               = "/proto.PAM/EndSession"
+	PAM_SetDefaultBrokerForUser_FullMethodName  = "/proto.PAM/SetDefaultBrokerForUser"
 )
 
 // PAMClient is the client API for PAM service.
@@ -346,7 +346,7 @@ func _PAM_SetDefaultBrokerForUser_Handler(srv interface{}, ctx context.Context, 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var PAM_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "authd.PAM",
+	ServiceName: "proto.PAM",
 	HandlerType: (*PAMServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -387,14 +387,14 @@ var PAM_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	NSS_GetPasswdByName_FullMethodName  = "/authd.NSS/GetPasswdByName"
-	NSS_GetPasswdByUID_FullMethodName   = "/authd.NSS/GetPasswdByUID"
-	NSS_GetPasswdEntries_FullMethodName = "/authd.NSS/GetPasswdEntries"
-	NSS_GetGroupByName_FullMethodName   = "/authd.NSS/GetGroupByName"
-	NSS_GetGroupByGID_FullMethodName    = "/authd.NSS/GetGroupByGID"
-	NSS_GetGroupEntries_FullMethodName  = "/authd.NSS/GetGroupEntries"
-	NSS_GetShadowByName_FullMethodName  = "/authd.NSS/GetShadowByName"
-	NSS_GetShadowEntries_FullMethodName = "/authd.NSS/GetShadowEntries"
+	NSS_GetPasswdByName_FullMethodName  = "/proto.NSS/GetPasswdByName"
+	NSS_GetPasswdByUID_FullMethodName   = "/proto.NSS/GetPasswdByUID"
+	NSS_GetPasswdEntries_FullMethodName = "/proto.NSS/GetPasswdEntries"
+	NSS_GetGroupByName_FullMethodName   = "/proto.NSS/GetGroupByName"
+	NSS_GetGroupByGID_FullMethodName    = "/proto.NSS/GetGroupByGID"
+	NSS_GetGroupEntries_FullMethodName  = "/proto.NSS/GetGroupEntries"
+	NSS_GetShadowByName_FullMethodName  = "/proto.NSS/GetShadowByName"
+	NSS_GetShadowEntries_FullMethodName = "/proto.NSS/GetShadowEntries"
 )
 
 // NSSClient is the client API for NSS service.
@@ -714,7 +714,7 @@ func _NSS_GetShadowEntries_Handler(srv interface{}, ctx context.Context, dec fun
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var NSS_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "authd.NSS",
+	ServiceName: "proto.NSS",
 	HandlerType: (*NSSServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

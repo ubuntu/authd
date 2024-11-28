@@ -19,24 +19,23 @@ import (
 	"github.com/ubuntu/authd/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
-	"github.com/ubuntu/authd/pam/internal/proto"
+	"github.com/ubuntu/authd/internal/proto"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 	"golang.org/x/term"
 )
 
 type nativeModel struct {
 	pamMTx    pam.ModuleTransaction
-	nssClient authd.NSSClient
+	nssClient proto.NSSClient
 
-	availableBrokers []*authd.ABResponse_BrokerInfo
-	authModes        []*authd.GAMResponse_AuthenticationMode
+	availableBrokers []*proto.ABResponse_BrokerInfo
+	authModes        []*proto.GAMResponse_AuthenticationMode
 	selectedAuthMode string
-	uiLayout         *authd.UILayout
+	uiLayout         *proto.UILayout
 
 	serviceName          string
 	interactive          bool
-	currentStage         proto.Stage
+	currentStage         pam_proto.Stage
 	busy                 bool
 	userSelectionAllowed bool
 }
@@ -102,7 +101,7 @@ func (m *nativeModel) Init() tea.Cmd {
 		)
 
 		return supportedUILayoutsReceived{
-			layouts: []*authd.UILayout{
+			layouts: []*proto.UILayout{
 				layouts.NewUI(layouts.UIForm,
 					layouts.WithLabel(layouts.Required),
 					layouts.WithEntry(supportedEntries),
@@ -127,11 +126,11 @@ func (m *nativeModel) Init() tea.Cmd {
 	}
 }
 
-func (m nativeModel) changeStage(stage proto.Stage) tea.Cmd {
+func (m nativeModel) changeStage(stage pam_proto.Stage) tea.Cmd {
 	return sendEvent(nativeChangeStage{stage})
 }
 
-func (m nativeModel) requestStageChange(stage proto.Stage) tea.Cmd {
+func (m nativeModel) requestStageChange(stage pam_proto.Stage) tea.Cmd {
 	return sendEvent(nativeStageChangeRequest{stage})
 }
 
@@ -150,13 +149,13 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		}
 
 		switch m.currentStage {
-		case proto.Stage_userSelection:
+		case pam_proto.Stage_userSelection:
 			return m, tea.Sequence(baseCmd, sendEvent(nativeUserSelection{}))
-		case proto.Stage_brokerSelection:
+		case pam_proto.Stage_brokerSelection:
 			return m, tea.Sequence(baseCmd, sendEvent(nativeBrokerSelection{}))
-		case proto.Stage_authModeSelection:
+		case pam_proto.Stage_authModeSelection:
 			return m, tea.Sequence(baseCmd, sendEvent(nativeAuthSelection{}))
-		case proto.Stage_challenge:
+		case pam_proto.Stage_challenge:
 			return m, tea.Sequence(baseCmd, sendEvent(nativeChallengeRequested{}))
 		}
 
@@ -171,7 +170,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		return m, m.requestStageChange(pam_proto.Stage_userSelection)
 
 	case nativeUserSelection:
-		if m.currentStage != proto.Stage_userSelection {
+		if m.currentStage != pam_proto.Stage_userSelection {
 			return m, nil
 		}
 		if m.busy {
@@ -211,7 +210,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		})
 
 	case nativeBrokerSelection:
-		if m.currentStage != proto.Stage_brokerSelection {
+		if m.currentStage != pam_proto.Stage_brokerSelection {
 			return m, nil
 		}
 		if m.busy {
@@ -235,7 +234,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		return m.startAsyncOp(m.brokerSelection)
 
 	case nativeAuthSelection:
-		if m.currentStage != proto.Stage_authModeSelection {
+		if m.currentStage != pam_proto.Stage_authModeSelection {
 			return m, nil
 		}
 		if m.busy {
@@ -474,7 +473,7 @@ func (m nativeModel) maybePreCheckUser(user string, nextCmd tea.Cmd) tea.Cmd {
 	// repeat the user pre-check, to ensure that the user is handled by at least
 	// one broker, or we may end up leaking such infos.
 	// We don't care about the content, we only care if the user is known by some broker.
-	_, err := m.nssClient.GetPasswdByName(context.TODO(), &authd.GetPasswdByNameRequest{
+	_, err := m.nssClient.GetPasswdByName(context.TODO(), &proto.GetPasswdByNameRequest{
 		Name:           user,
 		ShouldPreCheck: true,
 	})
@@ -563,7 +562,7 @@ func (m nativeModel) startChallenge() tea.Cmd {
 }
 
 func (m nativeModel) selectedAuthModeLabel(fallback string) string {
-	authModeIdx := slices.IndexFunc(m.authModes, func(mode *authd.GAMResponse_AuthenticationMode) bool {
+	authModeIdx := slices.IndexFunc(m.authModes, func(mode *proto.GAMResponse_AuthenticationMode) bool {
 		return mode.Id == m.selectedAuthMode
 	})
 	if authModeIdx < 0 {
@@ -640,7 +639,7 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 	}
 
 	return sendEvent(isAuthenticatedRequested{
-		item: &authd.IARequest_AuthenticationData_Challenge{Challenge: challenge},
+		item: &proto.IARequest_AuthenticationData_Challenge{Challenge: challenge},
 	})
 }
 
@@ -815,7 +814,7 @@ func (m nativeModel) handleNewPassword() tea.Cmd {
 		}
 		if id == layouts.Button {
 			return sendEvent(isAuthenticatedRequested{
-				item: &authd.IARequest_AuthenticationData_Skip{Skip: layouts.True},
+				item: &proto.IARequest_AuthenticationData_Skip{Skip: layouts.True},
 			})
 		}
 	}
@@ -857,19 +856,19 @@ func (m nativeModel) newPasswordChallenge(previousChallenge *string) tea.Cmd {
 		return m.newPasswordChallenge(nil)
 	}
 	return sendEvent(isAuthenticatedRequested{
-		item: &authd.IARequest_AuthenticationData_Challenge{Challenge: challenge},
+		item: &proto.IARequest_AuthenticationData_Challenge{Challenge: challenge},
 	})
 }
 
 func (m nativeModel) goBackCommand() (nativeModel, tea.Cmd) {
-	if m.currentStage >= proto.Stage_challenge && m.uiLayout != nil {
+	if m.currentStage >= pam_proto.Stage_challenge && m.uiLayout != nil {
 		m.uiLayout = nil
 		return m, sendEvent(isAuthenticatedCancelled{})
 	}
-	if m.currentStage >= proto.Stage_authModeSelection {
+	if m.currentStage >= pam_proto.Stage_authModeSelection {
 		m.selectedAuthMode = ""
 	}
-	if m.currentStage == proto.Stage_authModeSelection {
+	if m.currentStage == pam_proto.Stage_authModeSelection {
 		m.authModes = nil
 	}
 
@@ -883,30 +882,30 @@ func (m nativeModel) goBackCommand() (nativeModel, tea.Cmd) {
 
 func (m nativeModel) canGoBack() bool {
 	if m.userSelectionAllowed {
-		return m.currentStage > proto.Stage_userSelection
+		return m.currentStage > pam_proto.Stage_userSelection
 	}
-	return m.previousStage() > proto.Stage_userSelection
+	return m.previousStage() > pam_proto.Stage_userSelection
 }
 
 func (m nativeModel) previousStage() pam_proto.Stage {
-	if m.currentStage > proto.Stage_authModeSelection && len(m.authModes) > 1 {
-		return proto.Stage_authModeSelection
+	if m.currentStage > pam_proto.Stage_authModeSelection && len(m.authModes) > 1 {
+		return pam_proto.Stage_authModeSelection
 	}
-	if m.currentStage > proto.Stage_brokerSelection && len(m.availableBrokers) > 1 {
-		return proto.Stage_brokerSelection
+	if m.currentStage > pam_proto.Stage_brokerSelection && len(m.availableBrokers) > 1 {
+		return pam_proto.Stage_brokerSelection
 	}
-	return proto.Stage_userSelection
+	return pam_proto.Stage_userSelection
 }
 
 func (m nativeModel) goBackActionLabel() string {
 	switch m.previousStage() {
-	case proto.Stage_authModeSelection:
+	case pam_proto.Stage_authModeSelection:
 		return "go back to select the authentication method"
-	case proto.Stage_brokerSelection:
+	case pam_proto.Stage_brokerSelection:
 		return "go back to choose the provider"
-	case proto.Stage_challenge:
+	case pam_proto.Stage_challenge:
 		return "go back to authentication"
-	case proto.Stage_userSelection:
+	case pam_proto.Stage_userSelection:
 		return "go back to user selection"
 	}
 	return "go back"
@@ -914,6 +913,6 @@ func (m nativeModel) goBackActionLabel() string {
 
 func sendAuthWaitCommand() tea.Cmd {
 	return sendEvent(isAuthenticatedRequested{
-		item: &authd.IARequest_AuthenticationData_Wait{Wait: layouts.True},
+		item: &proto.IARequest_AuthenticationData_Wait{Wait: layouts.True},
 	})
 }

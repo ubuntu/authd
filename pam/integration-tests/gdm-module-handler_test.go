@@ -11,10 +11,10 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
-	"github.com/ubuntu/authd/pam/internal/proto"
+	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 )
 
 type gdmTestModuleHandler struct {
@@ -23,19 +23,19 @@ type gdmTestModuleHandler struct {
 
 	protoVersion uint32
 
-	supportedLayouts  []*authd.UILayout
-	currentUILayout   *authd.UILayout
-	selectedUILayouts []*authd.UILayout
-	authResponses     []*authd.IAResponse
+	supportedLayouts  []*proto.UILayout
+	currentUILayout   *proto.UILayout
+	selectedUILayouts []*proto.UILayout
+	authResponses     []*proto.IAResponse
 
-	currentStage  proto.Stage
+	currentStage  pam_proto.Stage
 	pollResponses []*gdm.EventData
 
-	authModes           []*authd.GAMResponse_AuthenticationMode
+	authModes           []*proto.GAMResponse_AuthenticationMode
 	authModeID          string
 	selectedAuthModeIDs []string
 
-	brokersInfos       []*authd.ABResponse_BrokerInfo
+	brokersInfos       []*proto.ABResponse_BrokerInfo
 	brokerID           string
 	selectedBrokerName string
 
@@ -83,7 +83,7 @@ func (gh gdmTestModuleHandler) tunePollEvents(events []*gdm.EventData) []*gdm.Ev
 	for _, e := range events {
 		switch ev := e.Data.(type) {
 		case *gdm.EventData_BrokerSelected:
-			idx := slices.IndexFunc(gh.brokersInfos, func(broker *authd.ABResponse_BrokerInfo) bool {
+			idx := slices.IndexFunc(gh.brokersInfos, func(broker *proto.ABResponse_BrokerInfo) bool {
 				return broker.Id == ev.BrokerSelected.BrokerId || broker.Name == ev.BrokerSelected.BrokerId
 			})
 			require.GreaterOrEqual(gh.t, idx, 0, "Unknown broker: %s", ev.BrokerSelected.BrokerId)
@@ -123,7 +123,7 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 		gh.brokersInfos = ev.BrokersReceived.BrokersInfos
 
 	case *gdm.EventData_BrokerSelected:
-		idx := slices.IndexFunc(gh.brokersInfos, func(broker *authd.ABResponse_BrokerInfo) bool {
+		idx := slices.IndexFunc(gh.brokersInfos, func(broker *proto.ABResponse_BrokerInfo) bool {
 			return broker.Id == ev.BrokerSelected.BrokerId
 		})
 		if idx < 0 {
@@ -152,7 +152,7 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 		gh.currentUILayout = layout
 
 	case *gdm.EventData_StartAuthentication:
-		idx := slices.IndexFunc(gh.authModes, func(mode *authd.GAMResponse_AuthenticationMode) bool {
+		idx := slices.IndexFunc(gh.authModes, func(mode *proto.GAMResponse_AuthenticationMode) bool {
 			return mode.Id == gh.authModeID
 		})
 		if idx < 0 {
@@ -208,7 +208,7 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 		log.Debugf(context.TODO(), "Switching to stage %d", gh.currentStage)
 
 		switch req.ChangeStage.Stage {
-		case proto.Stage_brokerSelection:
+		case pam_proto.Stage_brokerSelection:
 			gh.authModes = nil
 			gh.brokerID = ""
 
@@ -216,7 +216,7 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 				break
 			}
 
-			idx := slices.IndexFunc(gh.brokersInfos, func(bi *authd.ABResponse_BrokerInfo) bool {
+			idx := slices.IndexFunc(gh.brokersInfos, func(bi *proto.ABResponse_BrokerInfo) bool {
 				return bi.Name == gh.selectedBrokerName
 			})
 			if idx < 0 {
@@ -225,7 +225,7 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 
 			gh.pollResponses = append(gh.pollResponses, gdm_test.SelectBrokerEvent(gh.brokersInfos[idx].Id))
 
-		case proto.Stage_authModeSelection:
+		case pam_proto.Stage_authModeSelection:
 			gh.currentUILayout = nil
 		}
 

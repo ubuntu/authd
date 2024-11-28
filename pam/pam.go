@@ -18,7 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/pam/internal/adapter"
 	"github.com/ubuntu/authd/pam/internal/gdm"
@@ -199,7 +199,7 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 		return err
 	}
 
-	err = h.handleAuthRequest(authd.SessionMode_AUTH, mTx, flags, parsedArgs, logArgsIssues)
+	err = h.handleAuthRequest(proto.SessionMode_AUTH, mTx, flags, parsedArgs, logArgsIssues)
 	if err != nil && !errors.Is(err, pam.ErrIgnore) {
 		return err
 	}
@@ -213,14 +213,14 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 func (h *pamModule) ChangeAuthTok(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
 	parsedArgs, logArgsIssues := parseArgs(args)
 
-	err := h.handleAuthRequest(authd.SessionMode_PASSWD, mTx, flags, parsedArgs, logArgsIssues)
+	err := h.handleAuthRequest(proto.SessionMode_PASSWD, mTx, flags, parsedArgs, logArgsIssues)
 	if errors.Is(err, pam.ErrPermDenied) {
 		return pam.ErrAuthtokRecovery
 	}
 	return err
 }
 
-func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTransaction, flags pam.Flags, parsedArgs map[string]string, logArgsIssues func()) (err error) {
+func (h *pamModule) handleAuthRequest(mode proto.SessionMode, mTx pam.ModuleTransaction, flags pam.Flags, parsedArgs map[string]string, logArgsIssues func()) (err error) {
 	// Initialize localization
 	// TODO
 
@@ -241,7 +241,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 	}
 	logArgsIssues()
 
-	if mode == authd.SessionMode_PASSWD && flags&pam.PrelimCheck != 0 {
+	if mode == proto.SessionMode_PASSWD && flags&pam.PrelimCheck != 0 {
 		log.Debug(context.TODO(), "ChangeAuthTok, preliminary check")
 		c, closeConn, err := newClient(parsedArgs)
 		if err != nil {
@@ -255,7 +255,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 			return err
 		}
 
-		response, err := c.GetPreviousBroker(context.TODO(), &authd.GPBRequest{Username: username})
+		response, err := c.GetPreviousBroker(context.TODO(), &proto.GPBRequest{Username: username})
 		if err != nil {
 			err = fmt.Errorf("could not get current available brokers: %w", err)
 			if msgErr := showPamMessage(mTx, pam.ErrorMsg, err.Error()); msgErr != nil {
@@ -270,7 +270,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		return nil
 	}
 
-	if mode == authd.SessionMode_PASSWD {
+	if mode == proto.SessionMode_PASSWD {
 		log.Debugf(context.TODO(), "ChangeAuthTok, password update phase: %d",
 			flags&pam.UpdateAuthtok)
 	}
@@ -315,13 +315,13 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 
 	appState := adapter.UIModel{
 		PamMTx:      mTx,
-		Client:      authd.NewPAMClient(conn),
+		Client:      proto.NewPAMClient(conn),
 		ClientType:  pamClientType,
 		SessionMode: mode,
 	}
 
 	if pamClientType == adapter.Native && adapter.IsSSHSession(mTx) {
-		appState.NssClient = authd.NewNSSClient(conn)
+		appState.NssClient = proto.NewNSSClient(conn)
 	}
 
 	if err := mTx.SetData(authenticationBrokerIDKey, nil); err != nil {
@@ -427,7 +427,7 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 	}
 	defer closeConn()
 
-	req := authd.SDBFURequest{
+	req := proto.SDBFURequest{
 		BrokerId: brokerIDUsedToAuthenticate,
 		Username: user,
 	}
@@ -454,12 +454,12 @@ func newClientConnection(args map[string]string) (conn *grpc.ClientConn, closeCo
 }
 
 // newClient returns a new GRPC client ready to emit requests.
-func newClient(args map[string]string) (client authd.PAMClient, closeConn func(), err error) {
+func newClient(args map[string]string) (client proto.PAMClient, closeConn func(), err error) {
 	conn, closeConn, err := newClientConnection(args)
 	if err != nil {
 		return nil, nil, err
 	}
-	return authd.NewPAMClient(conn), closeConn, nil
+	return proto.NewPAMClient(conn), closeConn, nil
 }
 
 // getSocketPath returns the socket path to connect to which can be overridden manually.

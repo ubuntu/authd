@@ -13,7 +13,7 @@ import (
 	"github.com/skip2/go-qrcode"
 	"github.com/ubuntu/authd/brokers/layouts"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 )
 
 var centeredStyle = lipgloss.NewStyle().Align(lipgloss.Center, lipgloss.Top)
@@ -70,7 +70,7 @@ func (m qrcodeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		return m, sendEvent(isAuthenticatedRequested{
-			item: &authd.IARequest_AuthenticationData_Wait{Wait: layouts.True},
+			item: &proto.IARequest_AuthenticationData_Wait{Wait: layouts.True},
 		})
 	}
 

@@ -18,28 +18,28 @@ import (
 	"github.com/ubuntu/authd/brokers/layouts"
 	"github.com/ubuntu/authd/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"
 )
 
 type options struct {
-	availableBrokersRet []*authd.ABResponse_BrokerInfo
+	availableBrokersRet []*proto.ABResponse_BrokerInfo
 	availableBrokersErr error
 
 	getPreviousBrokerRet string
 	getPreviousBrokerErr error
 
-	selectBrokerRet *authd.SBResponse
+	selectBrokerRet *proto.SBResponse
 	selectBrokerErr error
 
-	getAuthenticationModesRet []*authd.GAMResponse_AuthenticationMode
+	getAuthenticationModesRet []*proto.GAMResponse_AuthenticationMode
 	getAuthenticationModesErr error
 
-	selectAuthenticationModeRet *authd.UILayout
+	selectAuthenticationModeRet *proto.UILayout
 	selectAuthenticationModeErr error
 
-	isAuthenticatedRet           *authd.IAResponse
+	isAuthenticatedRet           *proto.IAResponse
 	isAuthenticatedErr           error
 	isAuthenticatedWantChallenge string
 	isAuthenticatedWantSkip      bool
@@ -52,14 +52,14 @@ type options struct {
 	defaultBrokerForUser       map[string]string
 	setDefaultBrokerForUserErr error
 
-	uiLayouts map[string]*authd.UILayout
-	authModes map[string]*authd.GAMResponse_AuthenticationMode
+	uiLayouts map[string]*proto.UILayout
+	authModes map[string]*proto.GAMResponse_AuthenticationMode
 
 	ignoreSessionIDChecks     bool
 	ignoreSessionIDGeneration bool
 }
 
-// DummyClient is a dummy implementation of [authd.PAMClient].
+// DummyClient is a dummy implementation of [proto.PAMClient].
 type DummyClient struct {
 	options
 	mu sync.Mutex
@@ -77,7 +77,7 @@ type DummyClient struct {
 type DummyClientOptions func(*options)
 
 // WithAvailableBrokers is the option to define the AvailableBrokers return values.
-func WithAvailableBrokers(ret []*authd.ABResponse_BrokerInfo, err error) func(o *options) {
+func WithAvailableBrokers(ret []*proto.ABResponse_BrokerInfo, err error) func(o *options) {
 	return func(o *options) {
 		o.availableBrokersRet = ret
 		o.availableBrokersErr = err
@@ -100,7 +100,7 @@ func WithGetPreviousBrokerReturn(ret string, err error) func(o *options) {
 }
 
 // WithSelectBrokerReturn is the option to define the SelectBroker return values.
-func WithSelectBrokerReturn(ret *authd.SBResponse, err error) func(o *options) {
+func WithSelectBrokerReturn(ret *proto.SBResponse, err error) func(o *options) {
 	return func(o *options) {
 		o.selectBrokerRet = ret
 		o.selectBrokerErr = err
@@ -108,7 +108,7 @@ func WithSelectBrokerReturn(ret *authd.SBResponse, err error) func(o *options) {
 }
 
 // WithGetAuthenticationModesReturn is the option to define the GetAuthenticationModes return values.
-func WithGetAuthenticationModesReturn(ret []*authd.GAMResponse_AuthenticationMode, err error) func(o *options) {
+func WithGetAuthenticationModesReturn(ret []*proto.GAMResponse_AuthenticationMode, err error) func(o *options) {
 	return func(o *options) {
 		o.getAuthenticationModesRet = ret
 		o.getAuthenticationModesErr = err
@@ -116,7 +116,7 @@ func WithGetAuthenticationModesReturn(ret []*authd.GAMResponse_AuthenticationMod
 }
 
 // WithSelectAuthenticationModeReturn is the option to define the SelectAuthenticationMode return values.
-func WithSelectAuthenticationModeReturn(ret *authd.UILayout, err error) func(o *options) {
+func WithSelectAuthenticationModeReturn(ret *proto.UILayout, err error) func(o *options) {
 	return func(o *options) {
 		o.selectAuthenticationModeRet = ret
 		o.selectAuthenticationModeErr = err
@@ -124,7 +124,7 @@ func WithSelectAuthenticationModeReturn(ret *authd.UILayout, err error) func(o *
 }
 
 // WithIsAuthenticatedReturn is the option to define the IsAuthenticated return values.
-func WithIsAuthenticatedReturn(ret *authd.IAResponse, err error) func(o *options) {
+func WithIsAuthenticatedReturn(ret *proto.IAResponse, err error) func(o *options) {
 	return func(o *options) {
 		o.isAuthenticatedRet = ret
 		o.isAuthenticatedErr = err
@@ -181,10 +181,10 @@ func WithSetDefaultBrokerReturn(err error) func(o *options) {
 }
 
 // WithUILayout is the option to define the UI layouts supported return values.
-func WithUILayout(authModeID string, label string, uiLayout *authd.UILayout) func(o *options) {
+func WithUILayout(authModeID string, label string, uiLayout *proto.UILayout) func(o *options) {
 	return func(o *options) {
 		o.uiLayouts[authModeID] = uiLayout
-		o.authModes[authModeID] = &authd.GAMResponse_AuthenticationMode{Id: authModeID, Label: label}
+		o.authModes[authModeID] = &proto.GAMResponse_AuthenticationMode{Id: authModeID, Label: label}
 	}
 }
 
@@ -218,8 +218,8 @@ func NewDummyClient(privateKey *rsa.PrivateKey, args ...DummyClientOptions) *Dum
 	}
 
 	dc.defaultBrokerForUser = make(map[string]string)
-	dc.uiLayouts = make(map[string]*authd.UILayout)
-	dc.authModes = make(map[string]*authd.GAMResponse_AuthenticationMode)
+	dc.uiLayouts = make(map[string]*proto.UILayout)
+	dc.authModes = make(map[string]*proto.GAMResponse_AuthenticationMode)
 
 	// Apply given args.
 	for _, f := range args {
@@ -234,22 +234,22 @@ func NewDummyClient(privateKey *rsa.PrivateKey, args ...DummyClientOptions) *Dum
 }
 
 // AvailableBrokers simulates AvailableBrokers using the provided parameters.
-func (dc *DummyClient) AvailableBrokers(ctx context.Context, in *authd.Empty, opts ...grpc.CallOption) (*authd.ABResponse, error) {
+func (dc *DummyClient) AvailableBrokers(ctx context.Context, in *proto.Empty, opts ...grpc.CallOption) (*proto.ABResponse, error) {
 	log.Debugf(ctx, "AvailableBrokers Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return dc.availableBrokers()
 }
 
-func (dc *DummyClient) availableBrokers() (*authd.ABResponse, error) {
+func (dc *DummyClient) availableBrokers() (*proto.ABResponse, error) {
 	if dc.availableBrokersErr != nil {
 		return nil, dc.availableBrokersErr
 	}
-	return &authd.ABResponse{BrokersInfos: dc.availableBrokersRet}, nil
+	return &proto.ABResponse{BrokersInfos: dc.availableBrokersRet}, nil
 }
 
 // GetPreviousBroker simulates GetPreviousBroker using the provided parameters.
-func (dc *DummyClient) GetPreviousBroker(ctx context.Context, in *authd.GPBRequest, opts ...grpc.CallOption) (*authd.GPBResponse, error) {
+func (dc *DummyClient) GetPreviousBroker(ctx context.Context, in *proto.GPBRequest, opts ...grpc.CallOption) (*proto.GPBResponse, error) {
 	log.Debugf(ctx, "GetPreviousBroker Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -257,20 +257,20 @@ func (dc *DummyClient) GetPreviousBroker(ctx context.Context, in *authd.GPBReque
 		return nil, dc.getPreviousBrokerErr
 	}
 	if dc.getPreviousBrokerRet != "" {
-		return &authd.GPBResponse{PreviousBroker: dc.getPreviousBrokerRet}, nil
+		return &proto.GPBResponse{PreviousBroker: dc.getPreviousBrokerRet}, nil
 	}
 	if in == nil {
-		return &authd.GPBResponse{}, nil
+		return &proto.GPBResponse{}, nil
 	}
 	if in.Username == "" {
 		return nil, errors.New("no username provided")
 	}
 	brokerID := dc.defaultBrokerForUser[in.Username]
-	return &authd.GPBResponse{PreviousBroker: brokerID}, nil
+	return &proto.GPBResponse{PreviousBroker: brokerID}, nil
 }
 
 // SelectBroker simulates SelectBroker using the provided parameters.
-func (dc *DummyClient) SelectBroker(ctx context.Context, in *authd.SBRequest, opts ...grpc.CallOption) (*authd.SBResponse, error) {
+func (dc *DummyClient) SelectBroker(ctx context.Context, in *proto.SBRequest, opts ...grpc.CallOption) (*proto.SBResponse, error) {
 	log.Debugf(ctx, "SelectBroker Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -312,7 +312,7 @@ func (dc *DummyClient) SelectBroker(ctx context.Context, in *authd.SBRequest, op
 	if err != nil {
 		return nil, err
 	}
-	if !slices.ContainsFunc(brokers.BrokersInfos, func(b *authd.ABResponse_BrokerInfo) bool {
+	if !slices.ContainsFunc(brokers.BrokersInfos, func(b *proto.ABResponse_BrokerInfo) bool {
 		return b.Id == in.BrokerId
 	}) {
 		return nil, fmt.Errorf("broker %q not found", in.BrokerId)
@@ -321,14 +321,14 @@ func (dc *DummyClient) SelectBroker(ctx context.Context, in *authd.SBRequest, op
 	dc.selectedLang = in.Lang
 	dc.selectedUsername = in.Username
 	dc.currentSessionID = sessionID
-	return &authd.SBResponse{
+	return &proto.SBResponse{
 		SessionId:     dc.currentSessionID,
 		EncryptionKey: dc.encryptionKey,
 	}, nil
 }
 
 // GetAuthenticationModes simulates GetAuthenticationModes using the provided parameters.
-func (dc *DummyClient) GetAuthenticationModes(ctx context.Context, in *authd.GAMRequest, opts ...grpc.CallOption) (*authd.GAMResponse, error) {
+func (dc *DummyClient) GetAuthenticationModes(ctx context.Context, in *proto.GAMRequest, opts ...grpc.CallOption) (*proto.GAMResponse, error) {
 	log.Debugf(ctx, "GetAuthenticationModes Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -336,7 +336,7 @@ func (dc *DummyClient) GetAuthenticationModes(ctx context.Context, in *authd.GAM
 		return nil, dc.getAuthenticationModesErr
 	}
 	if dc.getAuthenticationModesRet != nil {
-		return &authd.GAMResponse{
+		return &proto.GAMResponse{
 			AuthenticationModes: dc.getAuthenticationModesRet,
 		}, nil
 	}
@@ -351,16 +351,16 @@ func (dc *DummyClient) GetAuthenticationModes(ctx context.Context, in *authd.GAM
 	}
 	authModes := maps.Values(dc.authModes)
 	slices.SortFunc(authModes,
-		func(a *authd.GAMResponse_AuthenticationMode, b *authd.GAMResponse_AuthenticationMode) int {
+		func(a *proto.GAMResponse_AuthenticationMode, b *proto.GAMResponse_AuthenticationMode) int {
 			return strings.Compare(a.Id, b.Id)
 		})
-	return &authd.GAMResponse{
+	return &proto.GAMResponse{
 		AuthenticationModes: authModes,
 	}, nil
 }
 
 // SelectAuthenticationMode simulates SelectAuthenticationMode using the provided parameters.
-func (dc *DummyClient) SelectAuthenticationMode(ctx context.Context, in *authd.SAMRequest, opts ...grpc.CallOption) (*authd.SAMResponse, error) {
+func (dc *DummyClient) SelectAuthenticationMode(ctx context.Context, in *proto.SAMRequest, opts ...grpc.CallOption) (*proto.SAMResponse, error) {
 	log.Debugf(ctx, "SelectAuthenticationMode Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -368,7 +368,7 @@ func (dc *DummyClient) SelectAuthenticationMode(ctx context.Context, in *authd.S
 		return nil, dc.selectAuthenticationModeErr
 	}
 	if dc.selectAuthenticationModeRet != nil {
-		return &authd.SAMResponse{
+		return &proto.SAMResponse{
 			UiLayoutInfo: dc.selectAuthenticationModeRet,
 		}, nil
 	}
@@ -388,11 +388,11 @@ func (dc *DummyClient) SelectAuthenticationMode(ctx context.Context, in *authd.S
 	if !ok {
 		return nil, fmt.Errorf("authentication mode %q not found", in.AuthenticationModeId)
 	}
-	return &authd.SAMResponse{UiLayoutInfo: uiLayout}, nil
+	return &proto.SAMResponse{UiLayoutInfo: uiLayout}, nil
 }
 
 // IsAuthenticated simulates IsAuthenticated using the provided parameters.
-func (dc *DummyClient) IsAuthenticated(ctx context.Context, in *authd.IARequest, opts ...grpc.CallOption) (*authd.IAResponse, error) {
+func (dc *DummyClient) IsAuthenticated(ctx context.Context, in *proto.IARequest, opts ...grpc.CallOption) (*proto.IAResponse, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	log.Debugf(ctx, "IsAuthenticated Called: %#v", in)
@@ -421,38 +421,38 @@ func (dc *DummyClient) IsAuthenticated(ctx context.Context, in *authd.IARequest,
 	}
 
 	switch item := in.AuthenticationData.Item.(type) {
-	case *authd.IARequest_AuthenticationData_Challenge:
+	case *proto.IARequest_AuthenticationData_Challenge:
 		if dc.isAuthenticatedWantChallenge == "" {
 			return nil, errors.New("no wanted challenge provided")
 		}
 		return dc.handleChallenge(item.Challenge, msg)
-	case *authd.IARequest_AuthenticationData_Wait:
+	case *proto.IARequest_AuthenticationData_Wait:
 		if dc.isAuthenticatedWantWait == 0 {
 			return nil, errors.New("no wanted wait provided")
 		}
 		select {
 		case <-time.After(dc.isAuthenticatedWantWait):
 		case <-ctx.Done():
-			return &authd.IAResponse{
+			return &proto.IAResponse{
 				Access: auth.Cancelled,
 				Msg:    fmt.Sprintf(`{"message": "Cancelled: %s"}`, dc.isAuthenticatedMessage),
 			}, nil
 		}
-		return &authd.IAResponse{
+		return &proto.IAResponse{
 			Access: auth.Granted,
 			Msg:    msg,
 		}, nil
-	case *authd.IARequest_AuthenticationData_Skip:
+	case *proto.IARequest_AuthenticationData_Skip:
 		if !dc.isAuthenticatedWantSkip {
 			return nil, errors.New("no wanted skip requested")
 		}
-		return &authd.IAResponse{Msg: msg}, nil
+		return &proto.IAResponse{Msg: msg}, nil
 	default:
 		return nil, errors.New("no authentication data provided")
 	}
 }
 
-func (dc *DummyClient) handleChallenge(challenge string, msg string) (*authd.IAResponse, error) {
+func (dc *DummyClient) handleChallenge(challenge string, msg string) (*proto.IAResponse, error) {
 	if challenge == "" {
 		return nil, errors.New("no challenge provided")
 	}
@@ -469,7 +469,7 @@ func (dc *DummyClient) handleChallenge(challenge string, msg string) (*authd.IAR
 	}
 
 	if string(plaintext) == dc.isAuthenticatedWantChallenge {
-		return &authd.IAResponse{
+		return &proto.IAResponse{
 			Access: auth.Granted,
 			Msg:    msg,
 		}, nil
@@ -477,20 +477,20 @@ func (dc *DummyClient) handleChallenge(challenge string, msg string) (*authd.IAR
 
 	dc.isAuthenticatedMaxRetries--
 	if dc.isAuthenticatedMaxRetries < 0 {
-		return &authd.IAResponse{
+		return &proto.IAResponse{
 			Access: auth.Denied,
 			Msg:    msg,
 		}, nil
 	}
 
-	return &authd.IAResponse{
+	return &proto.IAResponse{
 		Access: auth.Retry,
 		Msg:    msg,
 	}, nil
 }
 
 // EndSession simulates EndSession using the provided parameters.
-func (dc *DummyClient) EndSession(ctx context.Context, in *authd.ESRequest, opts ...grpc.CallOption) (*authd.Empty, error) {
+func (dc *DummyClient) EndSession(ctx context.Context, in *proto.ESRequest, opts ...grpc.CallOption) (*proto.Empty, error) {
 	log.Debugf(ctx, "EndSession Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -508,11 +508,11 @@ func (dc *DummyClient) EndSession(ctx context.Context, in *authd.ESRequest, opts
 	}
 	dc.currentSessionID = ""
 	dc.selectedUsername = ""
-	return &authd.Empty{}, nil
+	return &proto.Empty{}, nil
 }
 
 // SetDefaultBrokerForUser simulates SetDefaultBrokerForUser using the provided parameters.
-func (dc *DummyClient) SetDefaultBrokerForUser(ctx context.Context, in *authd.SDBFURequest, opts ...grpc.CallOption) (*authd.Empty, error) {
+func (dc *DummyClient) SetDefaultBrokerForUser(ctx context.Context, in *proto.SDBFURequest, opts ...grpc.CallOption) (*proto.Empty, error) {
 	log.Debugf(ctx, "SetDefaultBrokerForUser Called: %#v", in)
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -529,7 +529,7 @@ func (dc *DummyClient) SetDefaultBrokerForUser(ctx context.Context, in *authd.SD
 		return nil, errors.New("no valid broker ID provided")
 	}
 	dc.defaultBrokerForUser[in.Username] = in.BrokerId
-	return &authd.Empty{}, nil
+	return &proto.Empty{}, nil
 }
 
 // Utility functions for testing purposes.
@@ -562,8 +562,8 @@ func (dc *DummyClient) SelectedLang() string {
 	return dc.selectedLang
 }
 
-// FormUILayout returns an [authd.UILayout] for forms.
-func FormUILayout() *authd.UILayout {
+// FormUILayout returns an [proto.UILayout] for forms.
+func FormUILayout() *proto.UILayout {
 	return layouts.NewUI(layouts.UIForm,
 		layouts.WithLabel(layouts.Required),
 		layouts.WithEntry(
@@ -581,8 +581,8 @@ func WithQrCodeRenders(renders *bool) func(l *layouts.UILayout) {
 	return func(l *layouts.UILayout) { l.RendersQrcode = renders }
 }
 
-// QrCodeUILayout returns an [authd.UILayout] for qr code.
-func QrCodeUILayout(opts ...layouts.UIOptions) *authd.UILayout {
+// QrCodeUILayout returns an [proto.UILayout] for qr code.
+func QrCodeUILayout(opts ...layouts.UIOptions) *proto.UILayout {
 	return layouts.NewUI(layouts.UIQrCode, append([]layouts.UIOptions{
 		layouts.WithContent(layouts.Required),
 		layouts.WithCode(layouts.Required),
@@ -593,8 +593,8 @@ func QrCodeUILayout(opts ...layouts.UIOptions) *authd.UILayout {
 	}, opts...)...).UILayout
 }
 
-// NewPasswordUILayout returns an [authd.UILayout] for new password forms.
-func NewPasswordUILayout() *authd.UILayout {
+// NewPasswordUILayout returns an [proto.UILayout] for new password forms.
+func NewPasswordUILayout() *proto.UILayout {
 	return layouts.NewUI(layouts.UINewPassword,
 		layouts.WithLabel(layouts.Required),
 		layouts.WithEntry(

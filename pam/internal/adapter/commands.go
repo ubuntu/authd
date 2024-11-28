@@ -10,7 +10,7 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 )
 
 // sendEvent sends an event msg to the main event loop.
@@ -21,7 +21,7 @@ func sendEvent(msg tea.Msg) tea.Cmd {
 }
 
 // startBrokerSession returns the sessionID after marking a broker as current.
-func startBrokerSession(client authd.PAMClient, brokerID, username string, mode authd.SessionMode) tea.Cmd {
+func startBrokerSession(client proto.PAMClient, brokerID, username string, mode proto.SessionMode) tea.Cmd {
 	return func() tea.Msg {
 		if brokerID == brokers.LocalBrokerName {
 			return PamIgnore{LocalBrokerID: brokerID}
@@ -38,7 +38,7 @@ func startBrokerSession(client authd.PAMClient, brokerID, username string, mode 
 		}
 		lang = strings.TrimSuffix(lang, ".UTF-8")
 
-		sbReq := &authd.SBRequest{
+		sbReq := &proto.SBRequest{
 			BrokerId: brokerID,
 			Username: username,
 			Lang:     lang,
@@ -68,9 +68,9 @@ func startBrokerSession(client authd.PAMClient, brokerID, username string, mode 
 }
 
 // getLayout fetches the layout for a given authModeID.
-func getLayout(client authd.PAMClient, sessionID, authModeID string) tea.Cmd {
+func getLayout(client proto.PAMClient, sessionID, authModeID string) tea.Cmd {
 	return func() tea.Msg {
-		samReq := &authd.SAMRequest{
+		samReq := &proto.SAMRequest{
 			SessionId:            sessionID,
 			AuthenticationModeId: authModeID,
 		}
@@ -106,12 +106,12 @@ func (m *UIModel) quit() tea.Cmd {
 }
 
 // endSession requests the broker to end the session.
-func endSession(client authd.PAMClient, currentSession *sessionInfo) tea.Cmd {
+func endSession(client proto.PAMClient, currentSession *sessionInfo) tea.Cmd {
 	if currentSession == nil {
 		return nil
 	}
 	return func() tea.Msg {
-		_, err := client.EndSession(context.Background(), &authd.ESRequest{
+		_, err := client.EndSession(context.Background(), &proto.ESRequest{
 			SessionId: currentSession.sessionID,
 		})
 		if err != nil {

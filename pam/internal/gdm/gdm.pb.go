@@ -7,7 +7,7 @@
 package gdm
 
 import (
-	authd "github.com/ubuntu/authd/internal/proto/authd"
+	authd "github.com/ubuntu/authd/internal/proto"
 	proto "github.com/ubuntu/authd/pam/internal/proto"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"

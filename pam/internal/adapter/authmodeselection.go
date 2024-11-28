@@ -12,7 +12,7 @@ import (
 	"github.com/ubuntu/authd/brokers/layouts"
 	"github.com/ubuntu/authd/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/log"
-	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/proto"
 )
 
 // authModeSelectionModel is the model list to select supported authentication modes.
@@ -21,14 +21,14 @@ type authModeSelectionModel struct {
 	focused bool
 
 	clientType                PamClientType
-	supportedUILayouts        []*authd.UILayout
-	availableAuthModes        []*authd.GAMResponse_AuthenticationMode
+	supportedUILayouts        []*proto.UILayout
+	availableAuthModes        []*proto.GAMResponse_AuthenticationMode
 	currentAuthModeSelectedID string
 }
 
 // supportedUILayoutsReceived is the internal event signalling that the current supported ui layout in the context have been received.
 type supportedUILayoutsReceived struct {
-	layouts []*authd.UILayout
+	layouts []*proto.UILayout
 }
 
 // supportedUILayoutsSet is the event signalling that the current supported ui layout in the context have been set.
@@ -36,7 +36,7 @@ type supportedUILayoutsSet struct{}
 
 // authModesReceived is the internal event signalling that the supported authentication modes have been received.
 type authModesReceived struct {
-	authModes []*authd.GAMResponse_AuthenticationMode
+	authModes []*proto.GAMResponse_AuthenticationMode
 }
 
 // authModeSelected is the internal event signalling that the an authentication mode has been selected.
@@ -92,7 +92,7 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 		)
 
 		return supportedUILayoutsReceived{
-			layouts: []*authd.UILayout{
+			layouts: []*proto.UILayout{
 				layouts.NewUI(layouts.UIForm,
 					layouts.WithLabel(layouts.Required),
 					layouts.WithEntry(supportedEntries),
@@ -248,7 +248,7 @@ type authModeItem struct {
 func (i authModeItem) FilterValue() string { return "" }
 
 // validAuthModeID returns if a authmode ID exists in the available list.
-func validAuthModeID(id string, authModes []*authd.GAMResponse_AuthenticationMode) bool {
+func validAuthModeID(id string, authModes []*proto.GAMResponse_AuthenticationMode) bool {
 	for _, a := range authModes {
 		if a.Id != id {
 			continue
@@ -259,9 +259,9 @@ func validAuthModeID(id string, authModes []*authd.GAMResponse_AuthenticationMod
 }
 
 // getAuthenticationModes returns available authentication mode for this broker from authd.
-func getAuthenticationModes(client authd.PAMClient, sessionID string, uiLayouts []*authd.UILayout) tea.Cmd {
+func getAuthenticationModes(client proto.PAMClient, sessionID string, uiLayouts []*proto.UILayout) tea.Cmd {
 	return func() tea.Msg {
-		gamReq := &authd.GAMRequest{
+		gamReq := &proto.GAMRequest{
 			SessionId:          sessionID,
 			SupportedUiLayouts: uiLayouts,
 		}
@@ -295,6 +295,6 @@ func (m *authModeSelectionModel) Reset() {
 }
 
 // SupportedUILayouts returns safely currently loaded supported ui layouts.
-func (m authModeSelectionModel) SupportedUILayouts() []*authd.UILayout {
+func (m authModeSelectionModel) SupportedUILayouts() []*proto.UILayout {
 	return m.supportedUILayouts
 }
