@@ -18,8 +18,7 @@ Show
 
 Hide
 Type "2"
-Wait+Screen /Gimme your password/
-Wait
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
@@ -30,8 +29,7 @@ Show
 
 Hide
 Type "2"
-Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/3 /Click on the link received at/
-Wait
+Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/3 /Click on the link received at .* or enter the code/
 Show
 
 Hide
@@ -53,7 +51,7 @@ Show
 
 Hide
 Type "1"
-Wait+Screen /Gimme your password/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
