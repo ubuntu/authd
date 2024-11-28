@@ -8,5 +8,7 @@ Show
 Hide
 Type "root"
 Enter
+Wait+Screen /\nPAM Authenticate\(\)/
+Wait+Screen /\nPAM AcctMgmt\(\)/
 Wait
 Show
