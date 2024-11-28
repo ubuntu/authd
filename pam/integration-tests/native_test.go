@@ -320,7 +320,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 
 		"Retry if new password is rejected by broker": {
 			tape:         "passwd_rejected",
-			tapeSettings: []tapeSetting{{vhsHeight, 700}},
+			tapeSettings: []tapeSetting{{vhsHeight, 1000}},
 		},
 		"Retry if new password is same of previous": {
 			tape: "passwd_not_changed",
