@@ -28,25 +28,3 @@ func (l *UILayout) ToMap() (map[string]string, error) {
 
 	return m, nil
 }
-
-func (l *UILayout) MarshalJSON() ([]byte, error) {
-	fmt.Fprintf(os.Stderr, "XXX: UILayout.MarshalJSON(%#v)\n", l)
-	// The rendersQrcode field must be marshalled as a string.
-	var rendersQrcodeStr string
-	if l.RendersQrcode != nil {
-		if *l.RendersQrcode {
-			rendersQrcodeStr = "true"
-		} else {
-			rendersQrcodeStr = "false"
-		}
-	}
-
-	type Alias UILayout
-	return json.Marshal(&struct {
-		RendersQrcode string `json:"renders_qrcode"`
-		*Alias
-	}{
-		RendersQrcode: rendersQrcodeStr,
-		Alias:         (*Alias)(l),
-	})
-}
