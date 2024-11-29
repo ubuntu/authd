@@ -32,7 +32,7 @@ Show
 # Wait for MFA auth to happen
 Hide
 Wait+Screen @${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /Enter your new password \(3 days until mandatory\)\n/
-Wait+Screen @${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /New password:\n>\n/
+Wait+CLIPrompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /New password/ /\[ Skip \]/
 Show
 
 Hide
@@ -41,8 +41,7 @@ Show
 
 Hide
 Enter
-Wait /The password is the same as the old one/
-Wait+Screen /New password:\n>\n/
+Wait+CLIPrompt /New password/ /\[ Skip \]/ /The password is the same as the old one/
 Show
 
 Hide
@@ -51,8 +50,7 @@ Show
 
 Hide
 Enter
-Wait /The password fails the dictionary check/
-Wait+Screen /New password:\n>\n/
+Wait+CLIPrompt /New password/ /\[ Skip \]\nThe password fails the dictionary check[^\n]+/
 Show
 
 Hide
@@ -61,8 +59,7 @@ Show
 
 Hide
 Enter
-Wait /The password is the same as the old one/
-Wait+Screen /New password:\n>\n/
+Wait+CLIPrompt /New password/ /\[ Skip \]\nThe password is the same as the old one/
 Show
 
 Hide
@@ -71,8 +68,7 @@ Show
 
 Hide
 Enter
-Wait /The password is shorter than \d+ characters/
-Wait+Screen /New password:\n>\n/
+Wait+CLIPrompt /New password/ /\[ Skip \]\nThe password is shorter than \d+ characters/
 Show
 
 Hide
@@ -81,7 +77,7 @@ Show
 
 Hide
 Enter
-Wait+Screen /Confirm password:\n>\n/
+Wait+CLIPrompt /Confirm password/ /\[ Skip \]/
 Show
 
 Hide
