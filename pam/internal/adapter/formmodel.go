@@ -1,6 +1,8 @@
 package adapter
 
 import (
+	"strings"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
@@ -27,6 +29,7 @@ func newFormModel(label, entryType, buttonLabel string, wait bool) formModel {
 	case entries.Chars, entries.CharsPassword:
 		entry := newTextInputModel(entryType)
 		focusableModels = append(focusableModels, &entry)
+		label = strings.TrimSuffix(label, ":") + ":"
 	}
 	if buttonLabel != "" {
 		button := newAuthReselectionButtonModel(buttonLabel)

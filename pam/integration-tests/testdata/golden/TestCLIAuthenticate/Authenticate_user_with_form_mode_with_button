@@ -11,7 +11,7 @@ Username: user-integration-form-w-button
   2. ExampleBroker
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password
+Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
@@ -26,19 +26,19 @@ Gimme your password
   7. Authentication code
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Enter your one time credential
+Enter your one time credential:
 >
 
   [ Resend SMS (1 sent) ]
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Enter your one time credential
+Enter your one time credential:
 >
 
   [ Resend SMS (1 sent) ]
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Enter your one time credential
+Enter your one time credential:
 >
 
   [ Resend SMS (2 sent) ]

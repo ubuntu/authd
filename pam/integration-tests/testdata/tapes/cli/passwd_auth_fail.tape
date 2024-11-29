@@ -28,7 +28,7 @@ Show
 Hide
 Enter
 Wait /invalid password/
-Wait+Screen /Gimme your password\n>\n/
+Wait+Screen /Gimme your password:\n>\n/
 Show
 
 Hide
@@ -38,7 +38,7 @@ Show
 Hide
 Enter
 Wait /invalid password/
-Wait+Screen /Gimme your password\n>\n/
+Wait+Screen /Gimme your password:\n>\n/
 Show
 
 Hide
@@ -48,7 +48,7 @@ Show
 Hide
 Enter
 Wait /invalid password/
-Wait+Screen /Gimme your password\n>\n/
+Wait+Screen /Gimme your password:\n>\n/
 Show
 
 Hide
@@ -58,7 +58,7 @@ Show
 Hide
 Enter
 Wait /invalid password/
-Wait+Screen /Gimme your password\n>\n/
+Wait+Screen /Gimme your password:\n>\n/
 Show
 
 Hide

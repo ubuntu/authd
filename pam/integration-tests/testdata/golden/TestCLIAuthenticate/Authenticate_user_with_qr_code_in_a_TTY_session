@@ -6,7 +6,7 @@
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password
+Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi

@@ -53,7 +53,7 @@ Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press w
 Show
 
 Hide
-Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Unlock your phone \+33... or accept request on web interface:/
+Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Unlock your phone \+33\.\.\. or accept request on web interface/
 Show
 
 Hide
@@ -64,7 +64,7 @@ Show
 
 Hide
 Enter
-Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Unlock your phone \+33... or accept request on web interface:/
+Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Unlock your phone \+33\.\.\. or accept request on web interface/
 Show
 
 Hide
