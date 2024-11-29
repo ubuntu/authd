@@ -116,7 +116,11 @@ func WithCode(code string) func(l *UILayout) {
 
 // WithRendersQrCode is an [UIOptions] for [NewUI] to set the qrcode rendering parameter in [UILayout].
 func WithRendersQrCode(renders bool) func(l *UILayout) {
-	return func(l *UILayout) { l.RendersQrcode = &renders }
+	if !renders {
+		return func(l *UILayout) { l.RendersQrcode = nil }
+	}
+	trueStr := True
+	return func(l *UILayout) { l.RendersQrcode = &trueStr }
 }
 
 // NewUI allows to create a new [UILayout] with [UIOptions].
@@ -207,11 +211,8 @@ func (layout UILayout) ToMap() (map[string]string, error) {
 	if c := layout.GetCode(); c != "" {
 		r[Code] = c
 	}
-	if rc := layout.RendersQrcode; rc != nil {
-		r[RendersQrCode] = False
-		if *rc {
-			r[RendersQrCode] = True
-		}
+	if rc := layout.GetRendersQrcode(); rc != "" {
+		r[RendersQrCode] = rc
 	}
 	return r, nil
 }

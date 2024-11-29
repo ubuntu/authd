@@ -578,7 +578,15 @@ func FormUILayout() *proto.UILayout {
 
 // WithQrCodeRenders is an option for [layouts.NewUI] to set the rendering parameter in QrCode UI.
 func WithQrCodeRenders(renders *bool) func(l *layouts.UILayout) {
-	return func(l *layouts.UILayout) { l.RendersQrcode = renders }
+	var rendersStr string
+	if renders != nil {
+		if *renders {
+			rendersStr = "true"
+		} else {
+			rendersStr = "false"
+		}
+	}
+	return func(l *layouts.UILayout) { l.RendersQrcode = &rendersStr }
 }
 
 // QrCodeUILayout returns an [proto.UILayout] for qr code.
