@@ -32,7 +32,7 @@ Show
 
 # Wait for MFA auth to happen
 Hide
-Wait+Screen @${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /Enter your new password \(3 days until mandatory\)/
+Wait+Screen @${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /Enter your new password \(3 days until mandatory\)\n/
 Wait+Screen @${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /New password:\n>\n/
 Show
 

@@ -369,7 +369,7 @@ func getSupportedModes(sessionInfo sessionInfo, supportedUILayouts []map[string]
 					"phone":           "+33...",
 					"ui": mapToJSON(map[string]string{
 						"type":  "form",
-						"label": "Unlock your phone +33... or accept request on web interface:",
+						"label": "Unlock your phone +33... or accept request on web interface",
 						"wait":  "true",
 					}),
 				}
