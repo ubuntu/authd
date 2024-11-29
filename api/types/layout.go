@@ -2,8 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
-	"os"
 )
 
 // LayoutType is the type of layout.
@@ -74,7 +72,6 @@ func LayoutFromMap(m map[string]string) (Layout, error) {
 }
 
 func (l Layout) MarshalJSON() ([]byte, error) {
-	fmt.Fprintf(os.Stderr, "XXX: Layout.MarshalJSON(%#v)\n", l)
 	// The Wait and rendersQrcode fields must be marshalled as strings.
 	waitStr := "false"
 	if l.Wait {
@@ -98,7 +95,6 @@ func (l Layout) MarshalJSON() ([]byte, error) {
 }
 
 func (l Layout) UnmarshalJSON(data []byte) error {
-	fmt.Fprintf(os.Stderr, "XXX: Layout.UnmarshalJSON(%s)\n", data)
 	// The Wait and rendersQrcode fields must be unmarshalled as strings.
 	type Alias Layout
 	aux := struct {
@@ -108,8 +104,6 @@ func (l Layout) UnmarshalJSON(data []byte) error {
 	}{
 		Alias: (*Alias)(&l),
 	}
-
-	fmt.Fprintf(os.Stderr, "XXX: aux = %#v\n", aux)
 
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err

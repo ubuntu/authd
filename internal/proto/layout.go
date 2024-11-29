@@ -3,7 +3,6 @@ package proto
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/ubuntu/authd/api/types"
 )
@@ -15,14 +14,11 @@ func (l *UILayout) ToMap() (map[string]string, error) {
 		return nil, fmt.Errorf("failed to marshal Layout to JSON: %w", err)
 	}
 
-	fmt.Fprintf(os.Stderr, "XXX: data = %s\n", data)
-
 	// Check if the JSON can be successfully unmarshalled into the Layout struct
 	_, err = types.LayoutFromJSON(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal JSON to Layout: %w", err)
 	}
-	fmt.Fprintf(os.Stderr, "XXXXXX\n")
 
 	var m map[string]string
 	err = json.Unmarshal(data, &m)
