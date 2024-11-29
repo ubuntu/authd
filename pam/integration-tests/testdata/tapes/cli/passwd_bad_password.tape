@@ -26,27 +26,24 @@ Show
 
 Hide
 Enter
-Wait+Prompt /New password/
+Wait+CLIPrompt /New password/
 Show
 
 Hide
 Enter
-Wait /No password supplied/
-Wait+Screen /New password:\n>\n/
+Wait+CLIPrompt /New password/ /No password supplied/
 Show
 
 Hide
 TypeCLIPassword "1234"
 Enter
-Wait /The password is shorter than \d+ characters/
-Wait+Screen /New password:\n>\n/
+Wait+CLIPrompt /New password/ /The password is shorter than \d+ characters/
 Show
 
 Hide
 TypeCLIPassword "12345678"
 Enter
-Wait /The password fails the dictionary check/
-Wait+Screen /New password:\n>\n/
+Wait+CLIPrompt /New password/ /The password fails the dictionary check[^\n]*/
 Show
 
 Hide
@@ -61,8 +58,7 @@ Show
 
 Hide
 Enter
-Wait /Password entries don't match/
-Wait+Screen /New password:\n>\n/
+Wait+CLIPrompt /New password/ /Password entries don't match/
 Show
 
 Hide

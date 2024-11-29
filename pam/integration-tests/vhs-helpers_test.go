@@ -115,6 +115,14 @@ var (
 	// Pattern:
 	// > .
 	vhsWaitPromptRegex = regexp.MustCompile(`\bWait\+Prompt(@\S+)?[\t ]+(/(.*)/|(.*))`)
+	// vhsWaitCLIPromptRegex adds support for Wait+CLIPrompt /Pattern1/ /Pattern2/ command.
+	// It allows to wait for CLI a terminal output that ends with a prompt message in the form:
+	// Pattern:
+	// >
+	// ([ Button text ]|error message)
+	// (error message)?
+	vhsWaitCLIPromptRegex = regexp.MustCompile(
+		`\bWait\+CLIPrompt(@\S+)?[\t ]+/([^/]+)/([\t ]+/([^/]+)/)?([\t ]+/(.+)/)?`)
 	// vhsWaitNthRegex adds support for Wait+Nth(N) /Pattern/ command, where N is the
 	// number of values of the same content we want to match.
 	// It allows to wait for the same content being repeated N times in the terminal.
@@ -469,6 +477,8 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 			prefix+strings.Join(commands, "\n"+prefix))
 	}
 
+	tapeString = vhsWaitCLIPromptRegex.ReplaceAllString(tapeString,
+		`Wait+Suffix$1 /$2:\n>[\n]+[ ]*$4[\n]*[\n]+$6/`)
 	tapeString = vhsWaitPromptRegex.ReplaceAllString(tapeString,
 		`Wait+Suffix$1 /$3$4:\n>/`)
 	tapeString = vhsWaitSuffixRegex.ReplaceAllString(tapeString,

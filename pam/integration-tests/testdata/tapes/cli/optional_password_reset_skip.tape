@@ -26,8 +26,7 @@ Show
 
 Hide
 Enter
-Wait+Screen /New password:\n>\n/
-Wait /\[ Skip \]/
+Wait+CLIPrompt /New password/ /\[ Skip \]/
 Show
 
 Hide

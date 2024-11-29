@@ -26,8 +26,7 @@ Show
 
 Hide
 Enter
-Wait /invalid password/
-Wait+Screen /Gimme your password:\n>\n/
+Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+/
 Show
 
 Hide
@@ -36,8 +35,7 @@ Show
 
 Hide
 Enter
-Wait /invalid password/
-Wait+Screen /Gimme your password:\n>\n/
+Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+/
 Show
 
 Hide
@@ -46,8 +44,7 @@ Show
 
 Hide
 Enter
-Wait /invalid password/
-Wait+Screen /Gimme your password:\n>\n/
+Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+/
 Show
 
 Hide
@@ -56,8 +53,7 @@ Show
 
 Hide
 Enter
-Wait /invalid password/
-Wait+Screen /Gimme your password:\n>\n/
+Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+/
 Show
 
 Hide
@@ -66,6 +62,6 @@ Show
 
 Hide
 Enter
-Wait+Screen /invalid password/
+Wait+Screen /invalid password 'wrongpass', should be[^\n]+/
 ${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show

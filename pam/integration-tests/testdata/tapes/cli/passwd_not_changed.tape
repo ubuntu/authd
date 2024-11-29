@@ -35,8 +35,7 @@ Show
 
 Hide
 Enter
-Wait /The password is the same as the old one/
-Wait+Screen /New password:\n>\n/
+Wait+CLIPrompt /New password/ /The password is the same as the old one/
 Show
 
 Hide

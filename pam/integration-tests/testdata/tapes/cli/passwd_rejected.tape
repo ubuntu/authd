@@ -41,8 +41,7 @@ Show
 
 Hide
 Enter
-Wait+Screen /New password:\n>\n/
-Wait /new password does not match criteria/
+Wait+CLIPrompt /New password/ /new password does not match criteria: must be [^\n]+/
 Show
 
 Hide
@@ -97,8 +96,7 @@ Show
 
 Hide
 Enter
-Wait+Screen /New password:\n>\n/
-Wait /new password does not match criteria/
+Wait+CLIPrompt /New password/ /new password does not match criteria: must be [^\n]+/
 Show
 
 Hide

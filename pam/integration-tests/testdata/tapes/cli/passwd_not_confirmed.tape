@@ -41,8 +41,7 @@ Show
 
 Hide
 Enter
-Wait /Password entries don't match/
-Wait+Screen /New password:\n>\n/
+Wait+CLIPrompt /New password/ /Password entries don't match/
 Show
 
 Hide
