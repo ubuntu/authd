@@ -28,8 +28,7 @@ Show
 
 Hide
 Type "7"
-Wait+Screen /Enter your one time credential:\n>\n/
-Wait /\[ Resend SMS \(1 sent\) \]/
+Wait+CLIPrompt /Enter your one time credential/ /\[ Resend SMS \(1 sent\) \]/
 Show
 
 Hide
@@ -38,8 +37,7 @@ Show
 
 Hide
 Enter
-Wait+Screen /Enter your one time credential:\n>\n/
-Wait /\[ Resend SMS \(2 sent\) \]/
+Wait+CLIPrompt /Enter your one time credential/ /\[ Resend SMS \(2 sent\) \]/
 Show
 
 Hide
