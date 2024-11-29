@@ -367,7 +367,7 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 	for _, layoutMap := range supportedUILayoutsMap {
 		layout, err := types.LayoutFromMap(layoutMap)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("could not convert layout map to layout: %w", err)
 		}
 		supportedUILayouts = append(supportedUILayouts, layout)
 	}
@@ -540,7 +540,7 @@ func qrcodeData(sessionInfo *sessionInfo) (content string, code string) {
 }
 
 // SelectAuthenticationMode returns the UI layout information for the selected authentication mode.
-func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, err error) {
+func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authenticationModeName string) (map[string]string, error) {
 	// Ensure session ID is an active one.
 	sessionInfo, err := b.sessionInfo(sessionID)
 	if err != nil {
@@ -586,7 +586,12 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 		return nil, err
 	}
 
-	return uiLayout.ToMap()
+	uiLayoutMap, err := uiLayout.ToMap()
+	if err != nil {
+		return nil, fmt.Errorf("could not convert layout to map: %w", err)
+	}
+
+	return uiLayoutMap, nil
 }
 
 // IsAuthenticated evaluates the provided authenticationData and returns the authentication status for the user.

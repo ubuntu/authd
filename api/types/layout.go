@@ -74,38 +74,50 @@ func LayoutFromMap(m map[string]string) (Layout, error) {
 }
 
 func (l Layout) MarshalJSON() ([]byte, error) {
-	// The Wait field must be marshalled as a string.
+	fmt.Fprintf(os.Stderr, "XXX: Layout.MarshalJSON(%#v)\n", l)
+	// The Wait and rendersQrcode fields must be marshalled as strings.
 	waitStr := "false"
 	if l.Wait {
 		waitStr = "true"
 	}
+	rendersQrcodeStr := "XXXfoo"
+	if l.RendersQrcode {
+		rendersQrcodeStr = "XXXbar"
+	}
 
 	type Alias Layout
 	return json.Marshal(&struct {
-		Wait string `json:"wait"`
+		Wait          string `json:"wait"`
+		RendersQrcode string `json:"renders_qrcode"`
 		*Alias
 	}{
-		Wait:  waitStr,
-		Alias: (*Alias)(&l),
+		Wait:          waitStr,
+		RendersQrcode: rendersQrcodeStr,
+		Alias:         (*Alias)(&l),
 	})
 }
 
 func (l Layout) UnmarshalJSON(data []byte) error {
 	fmt.Fprintf(os.Stderr, "XXX: Layout.UnmarshalJSON(%s)\n", data)
-	// The Wait field must be unmarshalled as a string.
+	// The Wait and rendersQrcode fields must be unmarshalled as strings.
 	type Alias Layout
-	aux := &struct {
-		Wait string `json:"wait"`
+	aux := struct {
+		Wait          string `json:"wait"`
+		RendersQrcode string `json:"renders_qrcode"`
 		*Alias
 	}{
 		Alias: (*Alias)(&l),
 	}
+
+	fmt.Fprintf(os.Stderr, "XXX: aux = %#v\n", aux)
 
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
 	}
 
 	l.Wait = aux.Wait == "true"
+	l.RendersQrcode = aux.RendersQrcode == "true"
+
 	return nil
 }
 

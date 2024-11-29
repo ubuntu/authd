@@ -167,7 +167,7 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *proto.GAMReque
 	for _, layoutPb := range req.GetSupportedUiLayouts() {
 		layoutMap, err := layoutPb.ToMap()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("could not convert layout to map: %w", err)
 		}
 
 		supportedLayouts = append(supportedLayouts, layoutMap)
