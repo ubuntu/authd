@@ -26,7 +26,7 @@ Show
 
 Hide
 Type "7"
-Wait+Screen /Enter your one time credential\n>\n/
+Wait+Screen /Enter your one time credential:\n>\n/
 Show
 
 Hide
@@ -49,7 +49,7 @@ Show
 
 Hide
 Enter
-Wait+Screen /Enter your one time credential\n>\n/
+Wait+Screen /Enter your one time credential:\n>\n/
 Show
 
 Hide
