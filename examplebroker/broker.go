@@ -171,7 +171,7 @@ var (
 		isMFA:          true,
 		ui: map[string]string{
 			layouts.Type:  layouts.Form,
-			layouts.Label: "Unlock your phone +33... or accept request on web interface:",
+			layouts.Label: "Unlock your phone +33... or accept request on web interface",
 			layouts.Wait:  layouts.True,
 		},
 	}
