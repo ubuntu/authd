@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/api/types"
 	"github.com/ubuntu/authd/brokers/auth"
 	"github.com/ubuntu/authd/brokers/layouts"
 	"github.com/ubuntu/authd/internal/brokers"
@@ -40,11 +41,18 @@ var (
 
 // Used for TestGetAuthenticationModes and TestSelectAuthenticationMode.
 var (
-	requiredEntries = layouts.RequiredItems("entry_type", "other_entry_type")
-	optionalEntries = layouts.OptionalItems("entry_type", "other_entry_type")
+	requiredEntries = types.RequiredItems("entry_type", "other_entry_type")
+	optionalEntries = types.OptionalItems("entry_type", "other_entry_type")
 
 	withCustomUIType = func(t string) func(l *layouts.UILayout) {
 		return func(l *layouts.UILayout) { l.Type = t }
+	}
+
+	requiredEntry = types.Layout{
+		Type:   "required-entry",
+		Label:  types.Optional,
+		Button: types.Optional,
+		Wait:   types.Optional,
 	}
 
 	requiredEntry = layouts.NewUI(

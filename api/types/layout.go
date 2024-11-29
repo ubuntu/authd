@@ -2,7 +2,13 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 )
+
+type LayoutField struct {
+	Required bool
+	Optional bool
+}
 
 // LayoutType is the type of layout.
 type LayoutType string
@@ -13,12 +19,32 @@ const (
 	// QRCodeLayout is a layout that displays a QR code.
 	QRCodeLayout LayoutType = "qrcode"
 	// NewPasswordLayout is a layout that displays a new password form.
-	NewPasswordLayout LayoutType = "new_password"
+	NewPasswordLayout LayoutType = "newpassword"
 
 	// These are only for testing purposes, so we don't expose them publicly.
-	requiredEntryLayout LayoutType = "required_entry"
-	optionalEntryLayout LayoutType = "optional_entry"
+	requiredEntryLayout LayoutType = "required-entry"
+	optionalEntryLayout LayoutType = "optional-entry"
 )
+
+var validLayoutTypes = map[LayoutType]struct{}{
+	FormLayout:          {},
+	QRCodeLayout:        {},
+	NewPasswordLayout:   {},
+	requiredEntryLayout: {},
+	optionalEntryLayout: {},
+}
+
+type InvalidLayoutTypeError struct {
+	Message string
+}
+
+// Is makes this error insensitive to the actual error content.
+func (InvalidLayoutTypeError) Is(err error) bool { return err == InvalidLayoutTypeError{} }
+
+// Error is the implementation of the error interface.
+func (e InvalidLayoutTypeError) Error() string {
+	return e.Message
+}
 
 // EntriesType is the type of entries.
 type EntriesType string
@@ -49,26 +75,12 @@ type Layout struct {
 var _ json.Unmarshaler = Layout{}
 var _ json.Marshaler = Layout{}
 
-// LayoutFromJSON creates a Layout from JSON.
-func LayoutFromJSON(data []byte) (Layout, error) {
-	var layout Layout
-
-	err := json.Unmarshal(data, &layout)
-	if err != nil {
-		return Layout{}, err
+func (l Layout) Validate() error {
+	if _, ok := validLayoutTypes[l.Type]; !ok {
+		return InvalidLayoutTypeError{Message: fmt.Sprintf("invalid layout type %q", l.Type)}
 	}
 
-	return layout, nil
-}
-
-// LayoutFromMap creates a Layout from a map of strings.
-func LayoutFromMap(m map[string]string) (Layout, error) {
-	data, err := json.Marshal(m)
-	if err != nil {
-		return Layout{}, err
-	}
-
-	return LayoutFromJSON(data)
+	return nil
 }
 
 func (l Layout) MarshalJSON() ([]byte, error) {
@@ -112,7 +124,7 @@ func (l Layout) UnmarshalJSON(data []byte) error {
 	l.Wait = aux.Wait == "true"
 	l.RendersQrcode = aux.RendersQrcode == "true"
 
-	return nil
+	return l.Validate()
 }
 
 // ToMap converts a Layout to a map of strings.
@@ -129,4 +141,26 @@ func (l Layout) ToMap() (map[string]string, error) {
 	}
 
 	return mp, nil
+}
+
+// LayoutFromJSON creates a Layout from JSON.
+func LayoutFromJSON(data []byte) (Layout, error) {
+	var layout Layout
+
+	err := json.Unmarshal(data, &layout)
+	if err != nil {
+		return Layout{}, err
+	}
+
+	return layout, nil
+}
+
+// LayoutFromMap creates a Layout from a map of strings.
+func LayoutFromMap(m map[string]string) (Layout, error) {
+	data, err := json.Marshal(m)
+	if err != nil {
+		return Layout{}, err
+	}
+
+	return LayoutFromJSON(data)
 }
