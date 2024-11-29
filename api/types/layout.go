@@ -1,6 +1,10 @@
 package types
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+)
 
 // LayoutType is the type of layout.
 type LayoutType string
@@ -44,6 +48,9 @@ type Layout struct {
 	RendersQrcode bool        `json:"renders_qrcode"`
 }
 
+var _ json.Unmarshaler = Layout{}
+var _ json.Marshaler = Layout{}
+
 // LayoutFromJSON creates a Layout from JSON.
 func LayoutFromJSON(data []byte) (Layout, error) {
 	var layout Layout
@@ -66,9 +73,45 @@ func LayoutFromMap(m map[string]string) (Layout, error) {
 	return LayoutFromJSON(data)
 }
 
+func (l Layout) MarshalJSON() ([]byte, error) {
+	// The Wait field must be marshalled as a string.
+	waitStr := "false"
+	if l.Wait {
+		waitStr = "true"
+	}
+
+	type Alias Layout
+	return json.Marshal(&struct {
+		Wait string `json:"wait"`
+		*Alias
+	}{
+		Wait:  waitStr,
+		Alias: (*Alias)(&l),
+	})
+}
+
+func (l Layout) UnmarshalJSON(data []byte) error {
+	fmt.Fprintf(os.Stderr, "XXX: Layout.UnmarshalJSON(%s)\n", data)
+	// The Wait field must be unmarshalled as a string.
+	type Alias Layout
+	aux := &struct {
+		Wait string `json:"wait"`
+		*Alias
+	}{
+		Alias: (*Alias)(&l),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	l.Wait = aux.Wait == "true"
+	return nil
+}
+
 // ToMap converts a Layout to a map of strings.
-func (m *Layout) ToMap() (map[string]string, error) {
-	data, err := json.Marshal(m)
+func (l Layout) ToMap() (map[string]string, error) {
+	data, err := json.Marshal(l)
 	if err != nil {
 		return nil, err
 	}
