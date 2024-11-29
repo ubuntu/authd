@@ -6,8 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-Type "user-mfa"
-Wait /Username: user-mfa\n/
+TypeUsername "user-mfa"
 Show
 
 Hide

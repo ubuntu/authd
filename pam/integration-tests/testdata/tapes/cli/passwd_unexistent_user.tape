@@ -6,8 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-Type "user-unexistent"
-Wait /Username: user-unexistent\n/
+TypeUsername "user-unexistent"
 Show
 
 Hide

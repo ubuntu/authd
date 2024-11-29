@@ -115,6 +115,7 @@ var (
 	// number of values of the same content we want to match.
 	vhsWaitNth = regexp.MustCompile(`\bWait\+Nth\((\d+)\)(@\S+)?[\t ]+(/(.*)/|(.*))`)
 
+	vhsTypeAndWaitUsername    = regexp.MustCompile(`TypeUsername "([^"]+)"`)
 	vhsTypeAndWaitCLIPassword = regexp.MustCompile(`TypeCLIPassword "([^"]+)"`)
 
 	// vhsClearTape clears the tape by clearing the terminal.
@@ -433,6 +434,8 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 		fmt.Sprintf("${%s}", vhsCommandFinalChangeAuthokWaitVariable),
 		finalWaitCommands(testType, authd.SessionMode_PASSWD))
 
+	tapeString = vhsTypeAndWaitUsername.ReplaceAllString(tapeString, `Type "$1"
+Wait /Username: $1\n/`)
 	for _, m := range vhsTypeAndWaitCLIPassword.FindAllStringSubmatch(tapeString, -1) {
 		fullMatch, password := m[0], m[1]
 		tapeString = strings.ReplaceAll(tapeString, fullMatch,

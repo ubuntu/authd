@@ -6,8 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-Type "user-local-groups"
-Wait /Username: user-local-groups\n/
+TypeUsername "user-local-groups"
 Show
 
 Hide

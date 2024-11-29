@@ -6,8 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-Type "user-integration-same-new-password"
-Wait /Username: user-integration-same-new-password\n/
+TypeUsername "user-integration-same-new-password"
 Show
 
 Hide

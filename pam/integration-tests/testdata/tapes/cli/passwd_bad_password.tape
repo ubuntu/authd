@@ -6,8 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-Type "user-integration-bad-password"
-Wait /Username: user-integration-bad-password\n/
+TypeUsername "user-integration-bad-password"
 Show
 
 Hide

@@ -6,8 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-Type "user-integration-form-w-button"
-Wait /Username: user-integration-form-w-button\n/
+TypeUsername "user-integration-form-w-button"
 Show
 
 Hide

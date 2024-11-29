@@ -6,8 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-Type "user-integration-qrcode-static-regenerate"
-Wait /Username: user-integration-qrcode-static-regenerate\n/
+TypeUsername "user-integration-qrcode-static-regenerate"
 Show
 
 Hide

@@ -6,8 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-Type "user-integration-switch-mode"
-Wait /Username: user-integration-switch-mode\n/
+TypeUsername "user-integration-switch-mode"
 Show
 
 Hide
