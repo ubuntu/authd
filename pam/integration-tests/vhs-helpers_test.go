@@ -109,6 +109,9 @@ var (
 	vhsWaitSuffix = regexp.MustCompile(`\bWait\+Suffix(@\S+)?[\t ]+(/(.*)/|(.*))`)
 	// vhsWaitPromptRegex adds support for Wait+Prompt /Pattern/ command.
 	vhsWaitPromptRegex = regexp.MustCompile(`\bWait\+Prompt(@\S+)?[\t ]+(/(.*)/|(.*))`)
+	// vhsWaitCLIPromptRegex adds support for Wait+CLIPrompt /Pattern1/ /Pattern2/ command.
+	vhsWaitCLIPromptRegex = regexp.MustCompile(
+		`\bWait\+CLIPrompt(@\S+)?[\t ]+/([^/]+)/([\t ]+/([^/]+)/)?([\t ]+/(.+)/)?`)
 	// vhsWaitNth adds support for Wait+Nth(X) /Pattern/ command, where X is the
 	// number of values of the same content we want to match.
 	vhsWaitNth = regexp.MustCompile(`\bWait\+Nth\((\d+)\)(@\S+)?[\t ]+(/(.*)/|(.*))`)
@@ -460,6 +463,8 @@ ${1}Wait /Username: $2$$/`)
 			prefix+strings.Join(commands, "\n"+prefix))
 	}
 
+	tapeString = vhsWaitCLIPromptRegex.ReplaceAllString(tapeString,
+		`Wait+Suffix$1 /$2:\n>[\n]+[ ]*$4[\n]*[\n]+$6/`)
 	tapeString = vhsWaitPromptRegex.ReplaceAllString(tapeString,
 		`Wait+Suffix$1 /$3$4:\n>/`)
 	tapeString = vhsWaitSuffix.ReplaceAllString(tapeString,

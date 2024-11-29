@@ -35,8 +35,7 @@ Show
 
 Hide
 Enter
-Wait /No password supplied/
-Wait+Screen /New password:\n>\n/
+Wait+CLIPrompt /New password/ /No password supplied/
 Show
 
 Hide
@@ -45,8 +44,7 @@ Show
 
 Hide
 Enter
-Wait+Screen /New password:\n>\n/
-Wait /The password is shorter than \d+ characters/
+Wait+CLIPrompt /New password/ /The password is shorter than \d+ characters/
 Show
 
 Hide
@@ -55,8 +53,7 @@ Show
 
 Hide
 Enter
-Wait /The password fails the dictionary check/
-Wait+Screen /New password:\n>\n/
+Wait+CLIPrompt /New password/ /The password fails the dictionary check[^\n]*/
 Show
 
 Hide
@@ -74,8 +71,7 @@ Show
 
 Hide
 Enter
-Wait /Password entries don't match/
-Wait+Screen /New password:\n>\n/
+Wait+CLIPrompt /New password/ /Password entries don't match/
 Show
 
 Hide
