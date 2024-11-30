@@ -67,6 +67,7 @@ type sessionInfo struct {
 	firstSelectedMode string
 
 	qrcodeSelections int
+	totpSelections   int
 }
 
 type isAuthenticatedCtx struct {
@@ -506,6 +507,9 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 		// add a 0 to simulate new code generation.
 		authenticationMode["wantedCode"] = authenticationMode["wantedCode"] + "0"
 		sessionInfo.allModes[authenticationModeName] = authenticationMode
+		sessionInfo.totpSelections++
+		uiLayoutInfo["button"] = fmt.Sprintf("Resend SMS (%d sent)",
+			sessionInfo.totpSelections)
 	case "phoneack1", "phoneack2":
 		// send request to sessionInfo.allModes[authenticationModeName]["phone"]
 	case "fidodevice1":

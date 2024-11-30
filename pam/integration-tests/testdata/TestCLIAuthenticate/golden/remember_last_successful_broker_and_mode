@@ -25,7 +25,7 @@ Username: user-integration-remember-mode
 Enter your one time credential
 >
 
-  [ Resend sms ]
+  [ Resend SMS (1 sent) ]
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 PAM Authenticate()
@@ -67,7 +67,7 @@ PAM AcctMgmt()
 Enter your one time credential
 >
 
-  [ Resend sms ]
+  [ Resend SMS (1 sent) ]
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 PAM Authenticate()

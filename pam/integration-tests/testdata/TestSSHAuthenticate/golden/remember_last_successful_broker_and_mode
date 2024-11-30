@@ -72,7 +72,7 @@ entication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 >
@@ -104,7 +104,7 @@ entication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
@@ -141,7 +141,7 @@ entication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
@@ -192,7 +192,7 @@ entication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
@@ -217,7 +217,7 @@ Connection to localhost closed.
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 >
@@ -249,7 +249,7 @@ entication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
@@ -274,7 +274,7 @@ Connection to localhost closed.
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
@@ -311,7 +311,7 @@ entication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
@@ -336,7 +336,7 @@ Connection to localhost closed.
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
@@ -387,7 +387,7 @@ entication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1
@@ -412,7 +412,7 @@ Connection to localhost closed.
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-remember-last-successful-broker-and-mode@localhost) Choose action:
 > 1

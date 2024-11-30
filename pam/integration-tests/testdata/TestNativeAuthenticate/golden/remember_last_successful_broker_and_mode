@@ -63,7 +63,7 @@ Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 Choose action:
 >
@@ -92,7 +92,7 @@ Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 1
@@ -125,7 +125,7 @@ Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 1
@@ -165,7 +165,7 @@ Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 1
@@ -182,7 +182,7 @@ PAM AcctMgmt()
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 Choose action:
 >
@@ -211,7 +211,7 @@ Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 1
@@ -228,7 +228,7 @@ PAM AcctMgmt()
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 1
@@ -261,7 +261,7 @@ Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 1
@@ -278,7 +278,7 @@ PAM AcctMgmt()
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 1
@@ -314,7 +314,7 @@ Choose your authentication method:
 > 8
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 1
@@ -331,7 +331,7 @@ PAM AcctMgmt()
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Authentication code ==
   1. Proceed with Authentication code
-  2. Resend sms
+  2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 1
