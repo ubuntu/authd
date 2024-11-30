@@ -63,9 +63,9 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if !m.wait {
 			return m, nil
 		}
-		return m, sendEvent(isAuthenticatedRequested{
+		return m, tea.Sequence(m.updateFocusModel(msg), sendEvent(isAuthenticatedRequested{
 			item: &authd.IARequest_AuthenticationData_Wait{Wait: "true"},
-		})
+		}))
 	}
 
 	switch msg := msg.(type) {
@@ -103,17 +103,17 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	var cmd tea.Cmd
-	for i, fm := range m.focusableModels {
-		if i != m.focusIndex {
-			continue
-		}
-		var model tea.Model
-		model, cmd = fm.Update(msg)
-		m.focusableModels[i] = convertTo[authenticationComponent](model)
-	}
+	return m, m.updateFocusModel(msg)
+}
 
-	return m, cmd
+func (m *formModel) updateFocusModel(msg tea.Msg) tea.Cmd {
+	if m.focusIndex >= len(m.focusableModels) {
+		return nil
+	}
+	model, cmd := m.focusableModels[m.focusIndex].Update(msg)
+	m.focusableModels[m.focusIndex] = convertTo[authenticationComponent](model)
+
+	return cmd
 }
 
 // View renders a text view of the form.
