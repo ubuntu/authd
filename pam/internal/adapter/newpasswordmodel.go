@@ -78,6 +78,14 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return m, tea.Batch(sendEvent(errMsgToDisplay{}), m.focusNextField())
 
+	case buttonSelectionEvent:
+		if m.focusIndex < len(m.focusableModels) &&
+			msg.model == m.focusableModels[m.focusIndex] {
+			return m, sendEvent(isAuthenticatedRequested{
+				item: &authd.IARequest_AuthenticationData_Skip{Skip: "true"},
+			})
+		}
+
 	case tea.KeyMsg: // Key presses
 		switch msg.String() {
 		case "tab", "shift+tab":
@@ -124,14 +132,7 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, sendEvent(isAuthenticatedRequested{
 					item: &authd.IARequest_AuthenticationData_Challenge{Challenge: entry.Value()},
 				})
-
-			case *buttonModel:
-				return m, sendEvent(isAuthenticatedRequested{
-					item: &authd.IARequest_AuthenticationData_Skip{Skip: "true"},
-				})
 			}
-
-			return m, nil
 
 		default:
 			m.errorMsg = ""
