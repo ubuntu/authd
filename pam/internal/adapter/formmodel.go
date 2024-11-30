@@ -27,7 +27,7 @@ func newFormModel(label, entryType, buttonLabel string, wait bool) formModel {
 		focusableModels = append(focusableModels, &entry)
 	}
 	if buttonLabel != "" {
-		button := &buttonModel{label: buttonLabel}
+		button := newAuthReselectionButtonModel(buttonLabel)
 		focusableModels = append(focusableModels, button)
 	}
 
@@ -84,11 +84,7 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						Challenge: entry.Value(),
 					},
 				})
-			case *buttonModel:
-				return m, sendEvent(reselectAuthMode{})
 			}
-
-			return m, nil
 
 		case "tab":
 			m.focusIndex++

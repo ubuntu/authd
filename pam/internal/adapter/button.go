@@ -1,15 +1,26 @@
 package adapter
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/ubuntu/authd/internal/log"
 )
+
+// reselectionWaitTime is the amount of time that we wait before emitting buttonSelected event.
+const reselectionWaitTime = 500 * time.Millisecond
+
+type buttonSelectionEvent struct {
+	model *buttonModel
+}
 
 // buttonModel creates a virtual button model which can be focused.
 type buttonModel struct {
-	label string
+	label         string
+	selectionTime time.Time
 
 	focused bool
 }
@@ -20,8 +31,23 @@ func (b buttonModel) Init() tea.Cmd {
 }
 
 // Update handles events and actions.
-func (b *buttonModel) Update(tea.Msg) (tea.Model, tea.Cmd) {
-	return b, nil
+func (b buttonModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	// Key presses
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "enter":
+			now := time.Now()
+			if now.Sub(b.selectionTime) < reselectionWaitTime {
+				log.Debug(context.TODO(), "Button press ignored, too fast!")
+				return &b, nil
+			}
+			b.selectionTime = now
+			return &b, sendEvent(buttonSelectionEvent{&b})
+		}
+	}
+
+	return &b, nil
 }
 
 var (
