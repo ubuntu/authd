@@ -410,7 +410,9 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 		})
 	}
 
-	return tea.Sequence(sendEvent(ChangeStage{pam_proto.Stage_challenge}),
+	return tea.Sequence(
+		m.currentModel.Init(),
+		sendEvent(ChangeStage{pam_proto.Stage_challenge}),
 		sendEvent(startAuthentication{}))
 }
 

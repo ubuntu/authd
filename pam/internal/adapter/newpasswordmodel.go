@@ -53,7 +53,14 @@ func newNewPasswordModel(label, entryType, buttonLabel string) newPasswordModel 
 
 // Init initializes newPasswordModel.
 func (m newPasswordModel) Init() tea.Cmd {
-	return nil
+	var commands []tea.Cmd
+	for _, c := range m.focusableModels {
+		commands = append(commands, c.Init())
+	}
+	for _, c := range m.passwordEntries {
+		commands = append(commands, c.Init())
+	}
+	return tea.Batch(commands...)
 }
 
 // Update handles events and actions.

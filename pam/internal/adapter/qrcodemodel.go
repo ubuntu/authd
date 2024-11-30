@@ -58,7 +58,7 @@ func newQRCodeModel(content, code, label, buttonLabel string, wait bool) (qrcode
 
 // Init initializes qrcodeModel.
 func (m qrcodeModel) Init() tea.Cmd {
-	return nil
+	return m.buttonModel.Init()
 }
 
 // Update handles events and actions.

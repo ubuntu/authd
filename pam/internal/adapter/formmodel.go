@@ -41,7 +41,11 @@ func newFormModel(label, entryType, buttonLabel string, wait bool) formModel {
 
 // Init initializes formModel.
 func (m formModel) Init() tea.Cmd {
-	return nil
+	var commands []tea.Cmd
+	for _, c := range m.focusableModels {
+		commands = append(commands, c.Init())
+	}
+	return tea.Batch(commands...)
 }
 
 // Update handles events and actions.
