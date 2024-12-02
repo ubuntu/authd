@@ -79,12 +79,20 @@ Confirm password:
 > *********
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-PAM ChangeAuthTok() for user "user-mfa" exited with success
-PAM AcctMgmt() for user "user-mfa" exited with success
+PAM ChangeAuthTok()
+  User: "user-mfa"
+  Result: success
+PAM AcctMgmt()
+  User: "user-mfa"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-PAM ChangeAuthTok() for user "user-mfa" exited with success
-PAM AcctMgmt() for user "user-mfa" exited with success
+PAM ChangeAuthTok()
+  User: "user-mfa"
+  Result: success
+PAM AcctMgmt()
+  User: "user-mfa"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────

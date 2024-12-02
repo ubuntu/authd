@@ -4,7 +4,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -179,21 +178,7 @@ func printPamResult(resultAction pam_test.RunnerResultAction, user string, resul
 	if user == "" {
 		user = "<unset>"
 	}
-	action := resultAction.Message(user)
-	var pamErr pam.Error
-	if errors.As(result, &pamErr) {
-		// If we got a test ignore error, then let's set it back to its actual meaning.
-		if pamErr == pam_test.ErrIgnore {
-			pamErr = pam.ErrIgnore
-		}
-		fmt.Printf("%s exited with error (PAM exit code: %d): %s\n", action, pamErr, pamErr)
-		return
-	}
-	if result != nil {
-		fmt.Printf("%s exited with error: %v\n", action, result)
-		return
-	}
-	fmt.Printf("%s exited with success\n", action)
+	fmt.Println(resultAction.MessageWithError(user, result))
 }
 
 func getPkgConfigFlags(args []string) ([]string, error) {

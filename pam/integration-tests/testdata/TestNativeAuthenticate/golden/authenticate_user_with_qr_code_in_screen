@@ -1303,8 +1303,12 @@ Scan the qrcode or enter the code in the login page
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 1
-PAM Authenticate() for user "user-integration-qr-code-screen" exited with success
-PAM AcctMgmt() for user "user-integration-qr-code-screen" exited with success
+PAM Authenticate()
+  User: "user-integration-qr-code-screen"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-qr-code-screen"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
@@ -1549,7 +1553,11 @@ Scan the qrcode or enter the code in the login page
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 1
-PAM Authenticate() for user "user-integration-qr-code-screen" exited with success
-PAM AcctMgmt() for user "user-integration-qr-code-screen" exited with success
+PAM Authenticate()
+  User: "user-integration-qr-code-screen"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-qr-code-screen"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────

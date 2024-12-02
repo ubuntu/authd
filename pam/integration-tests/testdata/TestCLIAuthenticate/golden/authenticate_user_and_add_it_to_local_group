@@ -19,12 +19,20 @@ Gimme your password
 > ********
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-local-groups" exited with success
-PAM AcctMgmt() for user "user-local-groups" exited with success
+PAM Authenticate()
+  User: "user-local-groups"
+  Result: success
+PAM AcctMgmt()
+  User: "user-local-groups"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-local-groups" exited with success
-PAM AcctMgmt() for user "user-local-groups" exited with success
+PAM Authenticate()
+  User: "user-local-groups"
+  Result: success
+PAM AcctMgmt()
+  User: "user-local-groups"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────

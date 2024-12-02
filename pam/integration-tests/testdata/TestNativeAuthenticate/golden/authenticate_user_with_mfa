@@ -409,9 +409,12 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 od
 Plug your fido device and press with your thumb:
 >
-PAM Authenticate() for user "user-mfa-integration-auth" exited with success
-PAM AcctMgmt() for user "user-mfa-integration-auth" exited with success
->
+PAM Authenticate()
+  User: "user-mfa-integration-auth"
+  Result: success
+PAM AcctMgmt()
+  User: "user-mfa-integration-auth"
+  Result: success
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Provider selection ==
@@ -473,9 +476,12 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 od
 Plug your fido device and press with your thumb:
 >
-PAM Authenticate() for user "user-mfa-integration-auth" exited with success
-PAM AcctMgmt() for user "user-mfa-integration-auth" exited with success
->
+PAM Authenticate()
+  User: "user-mfa-integration-auth"
+  Result: success
+PAM AcctMgmt()
+  User: "user-mfa-integration-auth"
+  Result: success
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Provider selection ==
@@ -537,7 +543,10 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 od
 Plug your fido device and press with your thumb:
 >
-PAM Authenticate() for user "user-mfa-integration-auth" exited with success
-PAM AcctMgmt() for user "user-mfa-integration-auth" exited with success
->
+PAM Authenticate()
+  User: "user-mfa-integration-auth"
+  Result: success
+PAM AcctMgmt()
+  User: "user-mfa-integration-auth"
+  Result: success
 ────────────────────────────────────────────────────────────────────────────────

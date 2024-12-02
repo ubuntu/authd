@@ -1,8 +1,10 @@
 package pam_test
 
 import (
+	"errors"
 	"fmt"
 
+	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd"
 )
 
@@ -100,5 +102,23 @@ func (result RunnerResultAction) Message(user string) string {
 	if user == "" {
 		return result.String()
 	}
-	return fmt.Sprintf("%s for user %q", result, user)
+	return fmt.Sprintf("%s\n  User: %q", result, user)
+}
+
+// MessageWithError returns the result message for the [PamResultMessage] that the runner writes,
+// including the error message or the exit state.
+func (result RunnerResultAction) MessageWithError(user string, err error) string {
+	resultStr := "success"
+
+	var pamErr pam.Error
+	if errors.As(err, &pamErr) {
+		pamErr = ErrorTest(pamErr).ToPamError()
+		err = fmt.Errorf("PAM exit code: %d\n    %s", pamErr, pamErr)
+	}
+
+	if err != nil {
+		resultStr = fmt.Sprintf("error: %s", err)
+	}
+
+	return fmt.Sprintf("%s\n  Result: %s", result.Message(user), resultStr)
 }

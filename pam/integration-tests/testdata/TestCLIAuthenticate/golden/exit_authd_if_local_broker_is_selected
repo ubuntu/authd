@@ -35,11 +35,13 @@ Username: user-local-broker
 
 
 PAM Info Message: auth=incomplete
-PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
-n value should be ignored by PAM dispatch
-PAM AcctMgmt() for user "user-local-broker" exited with error (PAM exit code: 26): Critical erro
-r - immediate abort
->
+PAM Authenticate()
+  User: "user-local-broker"
+  Result: error: PAM exit code: 25
+    The return value should be ignored by PAM dispatch
+PAM AcctMgmt()
+  User: "user-local-broker"
+  Result: error: PAM exit code: 26
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
@@ -66,9 +68,11 @@ r - immediate abort
 
 
 PAM Info Message: auth=incomplete
-PAM Authenticate() for user "user-local-broker" exited with error (PAM exit code: 25): The retur
-n value should be ignored by PAM dispatch
-PAM AcctMgmt() for user "user-local-broker" exited with error (PAM exit code: 26): Critical erro
-r - immediate abort
->
+PAM Authenticate()
+  User: "user-local-broker"
+  Result: error: PAM exit code: 25
+    The return value should be ignored by PAM dispatch
+PAM AcctMgmt()
+  User: "user-local-broker"
+  Result: error: PAM exit code: 26
 ────────────────────────────────────────────────────────────────────────────────

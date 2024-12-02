@@ -279,13 +279,21 @@ Scan the qrcode or enter the code in the login page
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-integration-qr-code-tty" exited with success
-PAM AcctMgmt() for user "user-integration-qr-code-tty" exited with success
+PAM Authenticate()
+  User: "user-integration-qr-code-tty"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-qr-code-tty"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-integration-qr-code-tty" exited with success
-PAM AcctMgmt() for user "user-integration-qr-code-tty" exited with success
+PAM Authenticate()
+  User: "user-integration-qr-code-tty"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-qr-code-tty"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────

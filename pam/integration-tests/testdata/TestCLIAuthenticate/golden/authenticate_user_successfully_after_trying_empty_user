@@ -24,12 +24,20 @@ Gimme your password
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-integration-was-empty" exited with success
-PAM AcctMgmt() for user "user-integration-was-empty" exited with success
+PAM Authenticate()
+  User: "user-integration-was-empty"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-was-empty"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-integration-was-empty" exited with success
-PAM AcctMgmt() for user "user-integration-was-empty" exited with success
+PAM Authenticate()
+  User: "user-integration-was-empty"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-was-empty"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────

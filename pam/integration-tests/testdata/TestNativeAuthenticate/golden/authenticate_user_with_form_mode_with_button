@@ -180,8 +180,12 @@ Choose action:
 Enter 'r' to cancel the request and go back to select the authentication method
 Enter your one time credential:
 > temporary pass00
-PAM Authenticate() for user "user-integration-form-w-button" exited with success
-PAM AcctMgmt() for user "user-integration-form-w-button" exited with success
+PAM Authenticate()
+  User: "user-integration-form-w-button"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-form-w-button"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
@@ -222,7 +226,11 @@ Choose action:
 Enter 'r' to cancel the request and go back to select the authentication method
 Enter your one time credential:
 > temporary pass00
-PAM Authenticate() for user "user-integration-form-w-button" exited with success
-PAM AcctMgmt() for user "user-integration-form-w-button" exited with success
+PAM Authenticate()
+  User: "user-integration-form-w-button"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-form-w-button"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────

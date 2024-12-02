@@ -62,7 +62,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in a TTY": {
 			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3700}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 4000}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty",
@@ -71,7 +71,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in a TTY session": {
 			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3700}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 4000}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty-session",
@@ -80,7 +80,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in screen": {
 			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3700}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 4000}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-screen",
