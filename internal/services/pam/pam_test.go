@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net"
 	"os"
 	"os/user"
@@ -19,6 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/pam"
@@ -846,7 +846,7 @@ func TestMain(m *testing.M) {
 		os.Exit(m.Run())
 	}
 
-	slog.SetLogLoggerLevel(slog.LevelDebug)
+	log.SetLevel(log.DebugLevel)
 
 	cleanup, err := setupGlobalBrokerMock()
 	if err != nil {
