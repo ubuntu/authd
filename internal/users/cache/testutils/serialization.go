@@ -24,10 +24,11 @@ var (
 	DbName string
 )
 
-// DumpToYaml deserializes the cache database as a string in yaml format.
+// DumpNormalizedYAML gets the content of the database, normalizes it (so that
+// it can be compared with a golden file) and returns it as a YAML string.
 //
-//go:linkname DumpToYaml github.com/ubuntu/authd/internal/users/cache.(*Cache).dumpToYaml
-func DumpToYaml(c *cache.Cache) (string, error)
+//go:linkname DumpNormalizedYAML github.com/ubuntu/authd/internal/users/cache.(*Cache).dumpNormalizedYAML
+func DumpNormalizedYAML(c *cache.Cache) (string, error)
 
 // DbfromYAML loads a yaml formatted of the buckets from a reader and dump it into destDir, with its dbname.
 //

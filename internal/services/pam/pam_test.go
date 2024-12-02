@@ -530,7 +530,7 @@ func TestIsAuthenticated(t *testing.T) {
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
 
 			// Check that cache has been updated too.
-			gotDB, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
+			gotDB, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
@@ -571,7 +571,7 @@ func TestIDGeneration(t *testing.T) {
 			require.NoError(t, err, "Setup: could not authenticate user")
 			require.Equal(t, "granted", resp.GetAccess(), "Setup: authentication should be granted")
 
-			gotDB, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
+			gotDB, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
@@ -631,7 +631,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			require.Equal(t, tc.brokerID, gpbResp.GetPreviousBroker(), "SetDefaultBrokerForUser should set the default broker as expected")
 
 			// Check that cache has been updated too.
-			gotDB, err := cachetestutils.DumpToYaml(userstestutils.GetManagerCache(m))
+			gotDB, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := testutils.LoadWithUpdateFromGolden(t, gotDB, testutils.WithGoldenPath(filepath.Join(testutils.GoldenPath(t), "cache.db")))
 			require.Equal(t, wantDB, gotDB, "SetDefaultBrokerForUser should update the cache database as expected")

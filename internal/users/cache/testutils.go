@@ -61,10 +61,11 @@ func redactTime(line string) string {
 	return line
 }
 
-// dumpToYaml deserializes the cache database as a string in yaml format.
+// dumpNormalizedYAML gets the content of the database, normalizes it (so that
+// it can be compared with a golden file) and returns it as a YAML string.
 //
 //nolint:unused // This is used for tests, with go linking. Not part of exported API.
-func (c *Cache) dumpToYaml() (string, error) {
+func (c *Cache) dumpNormalizedYAML() (string, error) {
 	testsdetection.MustBeTesting()
 
 	d := make(map[string]map[string]string)
