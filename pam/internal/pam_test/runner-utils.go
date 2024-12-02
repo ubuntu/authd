@@ -97,7 +97,7 @@ func (result RunnerResultAction) String() string {
 
 // Message returns the result message for the [PamResultMessage] that the runner writes.
 func (result RunnerResultAction) Message(user string) string {
-	if user == "" || result == RunnerResultActionAcctMgmt {
+	if user == "" {
 		return result.String()
 	}
 	return fmt.Sprintf("%s for user %q", result, user)

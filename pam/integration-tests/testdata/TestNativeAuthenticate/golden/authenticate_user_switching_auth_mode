@@ -2028,7 +2028,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Enter your pin code:
 > 4242
 PAM Authenticate() for user "user-integration-switch-mode" exited with success
-PAM AcctMgmt() exited with success
+PAM AcctMgmt() for user "user-integration-switch-mode" exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
@@ -2215,6 +2215,6 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Enter your pin code:
 > 4242
 PAM Authenticate() for user "user-integration-switch-mode" exited with success
-PAM AcctMgmt() exited with success
+PAM AcctMgmt() for user "user-integration-switch-mode" exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────

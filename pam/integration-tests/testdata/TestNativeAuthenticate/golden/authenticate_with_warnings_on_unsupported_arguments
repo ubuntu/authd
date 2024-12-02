@@ -30,7 +30,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 PAM Authenticate() for user "user-integration-with-unsupported-args" exited with success
-PAM AcctMgmt() exited with success
+PAM AcctMgmt() for user "user-integration-with-unsupported-args" exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo force_nat
@@ -45,6 +45,6 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 PAM Authenticate() for user "user-integration-with-unsupported-args" exited with success
-PAM AcctMgmt() exited with success
+PAM AcctMgmt() for user "user-integration-with-unsupported-args" exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────

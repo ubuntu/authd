@@ -410,7 +410,7 @@ od
 Plug your fido device and press with your thumb:
 >
 PAM Authenticate() for user "user-mfa-integration-auth" exited with success
-PAM AcctMgmt() exited with success
+PAM AcctMgmt() for user "user-mfa-integration-auth" exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
@@ -474,7 +474,7 @@ od
 Plug your fido device and press with your thumb:
 >
 PAM Authenticate() for user "user-mfa-integration-auth" exited with success
-PAM AcctMgmt() exited with success
+PAM AcctMgmt() for user "user-mfa-integration-auth" exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
@@ -538,6 +538,6 @@ od
 Plug your fido device and press with your thumb:
 >
 PAM Authenticate() for user "user-mfa-integration-auth" exited with success
-PAM AcctMgmt() exited with success
+PAM AcctMgmt() for user "user-mfa-integration-auth" exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────

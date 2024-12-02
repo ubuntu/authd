@@ -749,7 +749,7 @@ Enter your new password:
 Confirm Password:
 >
 PAM ChangeAuthTok() for user "user-mfa" exited with success
-PAM AcctMgmt() exited with success
+PAM AcctMgmt() for user "user-mfa" exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
@@ -820,6 +820,6 @@ Enter your new password:
 Confirm Password:
 >
 PAM ChangeAuthTok() for user "user-mfa" exited with success
-PAM AcctMgmt() exited with success
+PAM AcctMgmt() for user "user-mfa" exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────

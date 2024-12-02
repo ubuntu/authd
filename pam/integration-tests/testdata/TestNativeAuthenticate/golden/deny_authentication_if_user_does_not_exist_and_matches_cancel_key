@@ -41,8 +41,8 @@ Gimme your password:
 PAM Error Message: user not found
 PAM Authenticate() for user "r" exited with error (PAM exit code: 7): Authentication failure
 acct=incomplete
-PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
-dispatch
+PAM AcctMgmt() for user "r" exited with error (PAM exit code: 25): The return value should be ig
+nored by PAM dispatch
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
@@ -60,7 +60,7 @@ Gimme your password:
 PAM Error Message: user not found
 PAM Authenticate() for user "r" exited with error (PAM exit code: 7): Authentication failure
 acct=incomplete
-PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
-dispatch
+PAM AcctMgmt() for user "r" exited with error (PAM exit code: 25): The return value should be ig
+nored by PAM dispatch
 >
 ────────────────────────────────────────────────────────────────────────────────

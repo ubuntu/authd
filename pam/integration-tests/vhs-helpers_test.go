@@ -335,7 +335,7 @@ func requireRunnerResultForUser(t *testing.T, sessionMode authd.SessionMode, use
 	require.Contains(t, goldenContent, pam_test.RunnerAction(sessionMode).Result().Message(user),
 		"Golden file does not include required value, consider increasing the terminal size:\n%s",
 		goldenContent)
-	require.Contains(t, goldenContent, pam_test.RunnerResultActionAcctMgmt.String(),
+	require.Contains(t, goldenContent, pam_test.RunnerResultActionAcctMgmt.Message(user),
 		"Golden file does not include required value, consider increasing the terminal size:\n%s",
 		goldenContent)
 }
