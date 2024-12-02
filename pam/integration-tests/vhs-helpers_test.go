@@ -294,7 +294,14 @@ func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath st
 	require.NoError(t, err, "Setup: read tape file %s", td.Name)
 
 	tapeString := evaluateTapeVariables(t, string(tape), td)
-	tape = []byte(fmt.Sprintf("%s\n%s", td, tapeString))
+	tape = []byte(strings.Join([]string{
+		td.String(),
+		tapeString,
+		// Note that not sleeping enough may lead to a system hang, so keep it
+		// in mind if tests are failing in CI with with error code 143.
+		fmt.Sprintf("Sleep %dms",
+			sleepDuration(defaultSleepValues[authdSleepDefault]).Milliseconds()),
+	}, "\n"))
 
 	tapePath := filepath.Join(outputPath, td.Name)
 	err = os.WriteFile(tapePath, tape, 0600)

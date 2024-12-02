@@ -25,5 +25,3 @@ Hide
 Ctrl+C
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

@@ -20,5 +20,3 @@ Hide
 Type "2"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

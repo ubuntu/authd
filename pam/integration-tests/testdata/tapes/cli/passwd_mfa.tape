@@ -83,5 +83,3 @@ Hide
 Enter
 Sleep ${AUTHD_SLEEP_LONG}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

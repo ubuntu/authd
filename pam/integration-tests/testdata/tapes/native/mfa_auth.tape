@@ -65,5 +65,3 @@ Show
 Hide
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}
