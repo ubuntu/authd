@@ -24,7 +24,6 @@ require (
 	google.golang.org/protobuf v1.35.2
 	gopkg.in/ini.v1 v1.67.0
 	gopkg.in/yaml.v3 v3.0.1
-	gorbe.io/go/osrelease v0.3.0
 )
 
 require (

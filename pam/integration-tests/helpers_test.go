@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -23,7 +22,6 @@ import (
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"gorbe.io/go/osrelease"
 )
 
 var (
@@ -243,26 +241,4 @@ func prepareGPasswdFiles(t *testing.T) (string, string) {
 	saveArtifactsForDebugOnCleanup(t, []string{gpasswdOutput, groupsFile})
 
 	return gpasswdOutput, groupsFile
-}
-
-func getUbuntuVersion(t *testing.T) int {
-	t.Helper()
-
-	err := osrelease.Parse()
-	require.NoError(t, err, "Can't parse os-release file %q: %v", osrelease.Path, err)
-
-	var versionID string
-	switch osrelease.Release.ID {
-	case "ubuntu":
-		versionID = strings.ReplaceAll(osrelease.Release.VersionID, ".", "")
-	case "ubuntu-core":
-		versionID = osrelease.Release.VersionID + "04"
-	default:
-		t.Logf("Not an ubuntu version: %q", osrelease.Release.ID)
-		return 0
-	}
-
-	v, err := strconv.Atoi(versionID)
-	require.NoError(t, err, "Can't parse version ID: %q", osrelease.Release.ID)
-	return v
 }
