@@ -40,5 +40,3 @@ Type "echo ${SSH_CONNECTION:-Outside SSH}"
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}
