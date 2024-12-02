@@ -26,7 +26,8 @@ Choose your provider:
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-PAM Authenticate() for user "user-integration-simple-auth" exited with success
+PAM Authenticate() for user "user-integration-native-authenticate-user-successfully" exited with
+ success
 PAM AcctMgmt() exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────
@@ -40,7 +41,8 @@ Choose your provider:
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-PAM Authenticate() for user "user-integration-simple-auth" exited with success
+PAM Authenticate() for user "user-integration-native-authenticate-user-successfully" exited with
+ success
 PAM AcctMgmt() exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────

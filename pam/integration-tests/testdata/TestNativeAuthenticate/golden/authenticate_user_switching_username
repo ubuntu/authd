@@ -2,10 +2,10 @@
 Username:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-username
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-username
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -14,7 +14,7 @@ Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-username
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -24,24 +24,24 @@ Choose your provider:
 Username:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-username
 == Provider selection ==
   1. local
   2. ExampleBroker
 Or enter 'r' to go back to user selection
 Choose your provider:
 > r
-Username: user-integration-username-switched
+Username: user-integration-native-username-switched
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-username
 == Provider selection ==
   1. local
   2. ExampleBroker
 Or enter 'r' to go back to user selection
 Choose your provider:
 > r
-Username: user-integration-username-switched
+Username: user-integration-native-username-switched
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -50,14 +50,14 @@ Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-username
 == Provider selection ==
   1. local
   2. ExampleBroker
 Or enter 'r' to go back to user selection
 Choose your provider:
 > r
-Username: user-integration-username-switched
+Username: user-integration-native-username-switched
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -70,14 +70,14 @@ Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-username
 == Provider selection ==
   1. local
   2. ExampleBroker
 Or enter 'r' to go back to user selection
 Choose your provider:
 > r
-Username: user-integration-username-switched
+Username: user-integration-native-username-switched
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -88,19 +88,19 @@ Choose your provider:
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-PAM Authenticate() for user "user-integration-username-switched" exited with success
+PAM Authenticate() for user "user-integration-native-username-switched" exited with success
 PAM AcctMgmt() exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-Username: user-integration-switch-username
+Username: user-integration-native-username
 == Provider selection ==
   1. local
   2. ExampleBroker
 Or enter 'r' to go back to user selection
 Choose your provider:
 > r
-Username: user-integration-username-switched
+Username: user-integration-native-username-switched
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -111,7 +111,7 @@ Choose your provider:
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-PAM Authenticate() for user "user-integration-username-switched" exited with success
+PAM Authenticate() for user "user-integration-native-username-switched" exited with success
 PAM AcctMgmt() exited with success
 >
 ────────────────────────────────────────────────────────────────────────────────

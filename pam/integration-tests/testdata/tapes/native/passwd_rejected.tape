@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_COMMAND} * 2
 Show
 
 Hide
-Type "user-integration-invalid-new-password"
+Type "${AUTHD_TEST_TAPE_USERNAME}"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
@@ -63,7 +63,7 @@ Sleep ${AUTHD_SLEEP_COMMAND} * 2
 Show
 
 Hide
-Type "user-integration-invalid-new-password"
+Type "${AUTHD_TEST_TAPE_USERNAME}"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

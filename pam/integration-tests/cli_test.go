@@ -9,6 +9,7 @@ import (
 
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -24,9 +25,6 @@ func TestCLIAuthenticate(t *testing.T) {
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s}", socketPathEnv)
 
-	defaultGPasswdOutput, groupsFile := prepareGPasswdFiles(t)
-	defaultSocketPath := runAuthd(t, defaultGPasswdOutput, groupsFile, true)
-
 	tests := map[string]struct {
 		tape         string
 		tapeSettings []tapeSetting
@@ -39,8 +37,10 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape: "simple_auth",
 		},
 		"Authenticate user successfully with preset user": {
-			tape:          "simple_auth_with_preset_user",
-			clientOptions: clientOptions{PamUser: "user-integration-simple-preset"},
+			tape: "simple_auth_with_preset_user",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "simple-preset",
+			},
 		},
 		"Authenticate user successfully after trying empty user": {
 			tape: "simple_auth_empty_user",
@@ -52,14 +52,16 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape: "form_with_button",
 		},
 		"Authenticate user with qr code": {
-			tape:          "qr_code",
-			clientOptions: clientOptions{PamUser: "user-integration-qr-code"},
+			tape: "qr_code",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "qr-code",
+			},
 		},
 		"Authenticate user with qr code in a TTY": {
 			tape:         "qr_code",
 			tapeSettings: []tapeSetting{{vhsHeight, 650}},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-tty",
+				PamUser: examplebroker.UserIntegrationPrefix + "qr-code-tty",
 				Term:    "linux",
 			},
 		},
@@ -67,7 +69,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape:         "qr_code",
 			tapeSettings: []tapeSetting{{vhsHeight, 650}},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-tty-session",
+				PamUser: examplebroker.UserIntegrationPrefix + "qr-code-tty-session",
 				Term:    "xterm-256color", SessionType: "tty",
 			},
 		},
@@ -75,7 +77,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape:         "qr_code",
 			tapeSettings: []tapeSetting{{vhsHeight, 650}},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-screen",
+				PamUser: examplebroker.UserIntegrationPrefix + "qr-code-screen",
 				Term:    "screen",
 			},
 		},
@@ -121,8 +123,10 @@ func TestCLIAuthenticate(t *testing.T) {
 		},
 
 		"Prevent user from switching username": {
-			tape:          "switch_preset_username",
-			clientOptions: clientOptions{PamUser: "user-integration-pam-preset"},
+			tape: "switch_preset_username",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "pam-preset",
+			},
 		},
 
 		"Deny authentication if current user is not considered as root": {
@@ -155,8 +159,7 @@ func TestCLIAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			socketPath := defaultSocketPath
-			gpasswdOutput := defaultGPasswdOutput
+			var socketPath, gpasswdOutput string
 			if tc.wantLocalGroups || tc.currentUserNotRoot {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
@@ -165,6 +168,8 @@ func TestCLIAuthenticate(t *testing.T) {
 				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			} else {
+				socketPath, gpasswdOutput = sharedAuthd(t)
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
@@ -190,7 +195,6 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
 	const tapeBaseCommand = "./pam_authd %s socket=${%s}"
 	tapeCommand := fmt.Sprintf(tapeBaseCommand, "passwd", socketPathEnv)
-	defaultSocketPath := runAuthd(t, os.DevNull, os.DevNull, true)
 
 	tests := map[string]struct {
 		tape          string
@@ -207,6 +211,9 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		},
 		"Change passwd after MFA auth": {
 			tape: "passwd_mfa",
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: examplebroker.UserIntegrationMfaPrefix + "cli-passwd",
+			},
 		},
 
 		"Retry if new password is rejected by broker": {
@@ -227,6 +234,9 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		},
 		"Prevent change password if user does not exist": {
 			tape: "passwd_unexistent_user",
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: examplebroker.UserIntegrationUnexistent,
+			},
 		},
 		"Prevent change password if current user is not root as can't authenticate": {
 			tape:               "passwd_not_root",
@@ -244,11 +254,20 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			socketPath := defaultSocketPath
+			var socketPath string
 			if tc.currentUserNotRoot {
 				// For the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				socketPath = runAuthd(t, os.DevNull, os.DevNull, false)
+			} else {
+				socketPath, _ = sharedAuthd(t)
+			}
+
+			if _, ok := tc.tapeVariables[vhsTapeUserVariable]; !ok && !tc.currentUserNotRoot {
+				if tc.tapeVariables == nil {
+					tc.tapeVariables = make(map[string]string)
+				}
+				tc.tapeVariables[vhsTapeUserVariable] = vhsTestUserName(t, "cli-passwd")
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)

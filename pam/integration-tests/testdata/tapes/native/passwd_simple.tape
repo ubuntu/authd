@@ -5,7 +5,7 @@ Sleep ${AUTHD_SLEEP_COMMAND}
 Show
 
 Hide
-Type "user1"
+Type "${AUTHD_TEST_TAPE_USERNAME}"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
@@ -49,7 +49,7 @@ Sleep ${AUTHD_SLEEP_COMMAND}
 Show
 
 Hide
-Type "user1"
+Type "${AUTHD_TEST_TAPE_USERNAME}"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
