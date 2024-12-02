@@ -49,5 +49,3 @@ Type "wrongpass"
 Enter
 Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

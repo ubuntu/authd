@@ -21,5 +21,3 @@ Type "2"
 Enter
 Sleep ${AUTHD_SLEEP_LONG} * 1.5
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

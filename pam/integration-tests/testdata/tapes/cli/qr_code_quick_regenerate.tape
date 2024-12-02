@@ -40,5 +40,3 @@ Hide
 Enter@1ms 500
 Sleep ${AUTHD_SLEEP_LONG} * 15
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

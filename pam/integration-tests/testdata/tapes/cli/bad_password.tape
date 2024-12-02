@@ -94,5 +94,3 @@ Hide
 Enter
 Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}
