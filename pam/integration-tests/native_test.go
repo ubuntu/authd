@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -34,6 +35,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		clientOptions      clientOptions
 		currentUserNotRoot bool
 		wantLocalGroups    bool
+		skipRunnerCheck    bool
 	}{
 		"Authenticate user successfully": {
 			tape:          "simple_auth",
@@ -44,23 +46,23 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with mfa": {
 			tape:          "mfa_auth",
-			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 1000}},
 			clientOptions: clientOptions{PamUser: "user-mfa-integration-auth"},
 		},
 		"Authenticate user with form mode with button": {
 			tape:          "form_with_button",
-			tapeSettings:  []tapeSetting{{vhsHeight, 600}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
 			clientOptions: clientOptions{PamUser: "user-integration-form-w-button"},
 		},
 		"Authenticate user with qr code": {
 			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 2300}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 3000}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{PamUser: "user-integration-qr-code"},
 		},
 		"Authenticate user with qr code in a TTY": {
 			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3700}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 4000}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty",
@@ -69,7 +71,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in a TTY session": {
 			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3700}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 4000}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty-session",
@@ -78,7 +80,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in screen": {
 			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3700}},
+			tapeSettings:  []tapeSetting{{vhsHeight, 4000}},
 			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-screen",
@@ -236,8 +238,9 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		// FIXME: While this works now, it requires proper handling via signal_fd
 		"Exit authd if user sigints": {
-			tape:          "sigint",
-			clientOptions: clientOptions{PamUser: "user-integration-sigint"},
+			tape:            "sigint",
+			clientOptions:   clientOptions{PamUser: "user-integration-sigint"},
+			skipRunnerCheck: true,
 		},
 	}
 	for name, tc := range tests {
@@ -277,6 +280,10 @@ func TestNativeAuthenticate(t *testing.T) {
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
 			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, testutils.GoldenPath(t)+".gpasswd_out")
+
+			if !tc.skipRunnerCheck {
+				requireRunnerResultForUser(t, authd.SessionMode_AUTH, tc.clientOptions.PamUser, got)
+			}
 		})
 	}
 }
@@ -298,6 +305,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		tapeVariables map[string]string
 
 		currentUserNotRoot bool
+		skipRunnerCheck    bool
 	}{
 		"Change password successfully and authenticate with new one": {
 			tape: "passwd_simple",
@@ -312,7 +320,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 
 		"Retry if new password is rejected by broker": {
 			tape:         "passwd_rejected",
-			tapeSettings: []tapeSetting{{vhsHeight, 700}},
+			tapeSettings: []tapeSetting{{vhsHeight, 1000}},
 		},
 		"Retry if new password is same of previous": {
 			tape: "passwd_not_changed",
@@ -341,7 +349,8 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		},
 		// FIXME: While this works now, it requires proper handling via signal_fd
 		"Exit authd if user sigints": {
-			tape: "passwd_sigint",
+			tape:            "passwd_sigint",
+			skipRunnerCheck: true,
 		},
 	}
 	for name, tc := range tests {
@@ -365,6 +374,10 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			got := td.ExpectedOutput(t, outDir)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
+
+			if !tc.skipRunnerCheck {
+				requireRunnerResult(t, authd.SessionMode_PASSWD, got)
+			}
 		})
 	}
 }

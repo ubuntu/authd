@@ -35,11 +35,13 @@ Username: user-unexistent
 
 
 PAM Error Message: can't select broker: user "user-unexistent" does not exist
-PAM Authenticate() for user "user-unexistent" exited with error (PAM exit code: 4): System error
+PAM Authenticate()
+  User: "user-unexistent"
+  Result: error: PAM exit code: 4
+    System error
 PAM Info Message: acct=incomplete
-PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
-dispatch
->
+PAM AcctMgmt()
+  User: "user-unexistent"
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
@@ -66,9 +68,11 @@ dispatch
 
 
 PAM Error Message: can't select broker: user "user-unexistent" does not exist
-PAM Authenticate() for user "user-unexistent" exited with error (PAM exit code: 4): System error
+PAM Authenticate()
+  User: "user-unexistent"
+  Result: error: PAM exit code: 4
+    System error
 PAM Info Message: acct=incomplete
-PAM AcctMgmt() exited with error (PAM exit code: 25): The return value should be ignored by PAM
-dispatch
->
+PAM AcctMgmt()
+  User: "user-unexistent"
 ────────────────────────────────────────────────────────────────────────────────

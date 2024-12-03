@@ -6,6 +6,7 @@ import (
 	"math"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -15,6 +16,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd"
 	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -137,6 +139,12 @@ func (td tapeData) RunVhs(t *testing.T, tapesDir, outDir string, cliEnv []string
 
 	// If vhs is installed with "go install", we need to add GOPATH to PATH.
 	cmd.Env = append(cmd.Env, prependBinToPath(t))
+
+	u, err := user.Current()
+	require.NoError(t, err, "Setup: getting current user")
+	if u.Name == "root" || os.Getenv("SCHROOT_CHROOT_NAME") != "" {
+		cmd.Env = append(cmd.Env, "VHS_NO_SANDBOX=1")
+	}
 
 	// Move some of the environment specific-variables from the tape to the launched process
 	if e, ok := td.Env[pam_test.RunnerEnvLogFile]; ok {
@@ -321,4 +329,26 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData) string 
 	}
 
 	return tapeString
+}
+
+func requireRunnerResultForUser(t *testing.T, sessionMode authd.SessionMode, user, goldenContent string) {
+	t.Helper()
+
+	// Only check the last 50 lines of the golden file, because that's where
+	// the result is printed, while printing the full output on failure is too much.
+	goldenLines := strings.Split(goldenContent, "\n")
+	goldenContent = strings.Join(goldenLines[max(0, len(goldenLines)-50):], "\n")
+
+	require.Contains(t, goldenContent, pam_test.RunnerAction(sessionMode).Result().Message(user),
+		"Golden file does not include required value, consider increasing the terminal size:\n%s",
+		goldenContent)
+	require.Contains(t, goldenContent, pam_test.RunnerResultActionAcctMgmt.Message(user),
+		"Golden file does not include required value, consider increasing the terminal size:\n%s",
+		goldenContent)
+}
+
+func requireRunnerResult(t *testing.T, sessionMode authd.SessionMode, goldenContent string) {
+	t.Helper()
+
+	requireRunnerResultForUser(t, sessionMode, "", goldenContent)
 }

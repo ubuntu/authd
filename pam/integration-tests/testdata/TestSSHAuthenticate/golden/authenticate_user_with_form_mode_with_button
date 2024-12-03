@@ -1,38 +1,37 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Provider
-selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Provider
-selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+provider:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Password
-authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Gimme your p
+assword:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Provider
-selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+provider:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Password
-authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Gimme your p
+assword:
 >
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.c
@@ -43,23 +42,23 @@ om
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Provider
-selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+provider:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Password
-authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Gimme your p
+assword:
 >
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.c
@@ -70,30 +69,30 @@ om
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+authentication method:
 > 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose actio
+n:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Provider
-selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+provider:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Password
-authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Gimme your p
+assword:
 >
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.c
@@ -104,37 +103,37 @@ om
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+authentication method:
 > 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose actio
+n:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose actio
+n:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Provider
-selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+provider:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Password
-authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Gimme your p
+assword:
 >
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.c
@@ -145,42 +144,42 @@ om
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+authentication method:
 > 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose actio
+n:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose actio
+n:
 > 1
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code ==
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Enter your o
+ne time credential:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Provider
-selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+provider:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Password
-authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Gimme your p
+assword:
 >
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.c
@@ -191,26 +190,27 @@ om
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+authentication method:
 > 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose actio
+n:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose actio
+n:
 > 1
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code ==
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Enter your o
+ne time credential:
 > temporary pass00
 Environment:
   USER=user-integration-pre-check-authenticate-user-with-form-mode-with-button
@@ -228,19 +228,18 @@ Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Provider
-selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+provider:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Password
-authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Gimme your p
+assword:
 >
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation method selection ==
+== Authentication method selection ==
   1. Password authentication
   2. Use a Login code
   3. Send URL to user-integration-pre-check-authenticate-user-with-form-mode-with-button@gmail.c
@@ -251,26 +250,27 @@ om
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-Choose your authentication method:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose your
+authentication method:
 > 8
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose actio
+n:
 > 2
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code ==
+== Authentication code ==
   1. Proceed with Authentication code
   2. Resend sms
 Or enter 'r' to go back to select the authentication method
-Choose action:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Choose actio
+n:
 > 1
-(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) == Authentic
-ation code ==
+== Authentication code ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Enter your one time credential:
+(user-integration-pre-check-authenticate-user-with-form-mode-with-button@localhost) Enter your o
+ne time credential:
 > temporary pass00
 Environment:
   USER=user-integration-pre-check-authenticate-user-with-form-mode-with-button

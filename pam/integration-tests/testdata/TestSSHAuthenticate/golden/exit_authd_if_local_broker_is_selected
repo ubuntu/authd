@@ -1,30 +1,30 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) == Provider select
-ion ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) Choose your provid
+er:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) == Provider select
-ion ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) Choose your provid
+er:
 > 1
-(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) SSH PAM user 'user
--integration-pre-check-exit-authd-if-local-broker-is-selected' using local broker
-Password:
+SSH PAM user 'user-integration-pre-check-exit-authd-if-local-broker-is-selected' using local bro
+ker
+(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) Password:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) == Provider select
-ion ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) Choose your provid
+er:
 > 1
-(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) SSH PAM user 'user
--integration-pre-check-exit-authd-if-local-broker-is-selected' using local broker
-Password:
+SSH PAM user 'user-integration-pre-check-exit-authd-if-local-broker-is-selected' using local bro
+ker
+(user-integration-pre-check-exit-authd-if-local-broker-is-selected@localhost) Password:
 ────────────────────────────────────────────────────────────────────────────────

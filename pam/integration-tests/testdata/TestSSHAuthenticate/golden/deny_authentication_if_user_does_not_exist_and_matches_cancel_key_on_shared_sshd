@@ -1,8 +1,8 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(r@localhost) SSH PAM user 'r' using local broker
-Password:
+SSH PAM user 'r' using local broker
+(r@localhost) Password:
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(r@localhost) SSH PAM user 'r' using local broker
-Password:
+SSH PAM user 'r' using local broker
+(r@localhost) Password:
 ────────────────────────────────────────────────────────────────────────────────

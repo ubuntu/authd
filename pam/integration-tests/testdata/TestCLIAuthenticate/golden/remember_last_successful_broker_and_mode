@@ -28,25 +28,41 @@ Enter your one time credential
   [ Resend sms ]
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-integration-remember-mode" exited with success
-PAM AcctMgmt() exited with success
+PAM Authenticate()
+  User: "user-integration-remember-mode"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-remember-mode"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-integration-remember-mode" exited with success
-PAM AcctMgmt() exited with success
+PAM Authenticate()
+  User: "user-integration-remember-mode"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-remember-mode"
+  Result: success
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Username: user name
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-integration-remember-mode" exited with success
-PAM AcctMgmt() exited with success
+PAM Authenticate()
+  User: "user-integration-remember-mode"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-remember-mode"
+  Result: success
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Username: user-integration-remember-mode
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-integration-remember-mode" exited with success
-PAM AcctMgmt() exited with success
+PAM Authenticate()
+  User: "user-integration-remember-mode"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-remember-mode"
+  Result: success
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Enter your one time credential
 >
@@ -54,18 +70,34 @@ Enter your one time credential
   [ Resend sms ]
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-integration-remember-mode" exited with success
-PAM AcctMgmt() exited with success
+PAM Authenticate()
+  User: "user-integration-remember-mode"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-remember-mode"
+  Result: success
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-integration-remember-mode" exited with success
-PAM AcctMgmt() exited with success
+PAM Authenticate()
+  User: "user-integration-remember-mode"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-remember-mode"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-integration-remember-mode" exited with success
-PAM AcctMgmt() exited with success
+PAM Authenticate()
+  User: "user-integration-remember-mode"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-remember-mode"
+  Result: success
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate() for user "user-integration-remember-mode" exited with success
-PAM AcctMgmt() exited with success
+PAM Authenticate()
+  User: "user-integration-remember-mode"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-remember-mode"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────

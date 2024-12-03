@@ -30,7 +30,7 @@ env:
 jobs:
   go-sanity:
     name: "Go: Code sanity"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
       - name: Install dependencies
         run: |
@@ -67,7 +67,7 @@ jobs:
 
   rust-sanity:
     name: "Rust: Code sanity"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
       - name: Install dependencies
         run: |
@@ -81,7 +81,7 @@ jobs:
 
   c-sanity:
     name: "C Code sanity"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # ubuntu-latest-runner
     env:
       CFLAGS: "-Werror"
     steps:
@@ -122,7 +122,7 @@ jobs:
 
   go-tests:
     name: "Go: Tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # ubuntu-latest-runner
     strategy:
       fail-fast: false
       matrix:
@@ -257,13 +257,11 @@ jobs:
           echo "Running PAM integration tests"
           pushd ./pam/integration-tests
           go test -asan -gcflags=all="${GO_GC_FLAGS}" -c
-          # FIXME: Suppression may be removed with newer libpam, as the one we ship in ubuntu as some leaks
-          LSAN_OPTIONS=suppressions=$(pwd)/lsan.supp \
-            go tool test2json -p pam/integrations-test ./integration-tests.test \
-              -test.v=test2json \
-              -test.timeout ${GO_TESTS_TIMEOUT} | \
-            gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.pam-integration-tests-asan.log" || \
-            exit_code=$?
+          go tool test2json -p pam/integrations-test ./integration-tests.test \
+            -test.v=test2json \
+            -test.timeout ${GO_TESTS_TIMEOUT} | \
+          gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.pam-integration-tests-asan.log" || \
+          exit_code=$?
           popd
 
           # We don't need the xtrace output after this point

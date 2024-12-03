@@ -86,6 +86,19 @@ Show
 
 Hide
 Type "noble2404"
+Enter
+Sleep ${AUTHD_SLEEP_LONG} * 2
+Show
+
+Hide
+Type "noble2404.1"
+Enter
+Sleep ${AUTHD_SLEEP_DEFAULT}
+Show
+
+Hide
+Type "noble2404.2"
+Enter
 Sleep ${AUTHD_SLEEP_LONG} * 2
 Show
 

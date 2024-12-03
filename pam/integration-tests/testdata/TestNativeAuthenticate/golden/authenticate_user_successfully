@@ -26,8 +26,12 @@ Choose your provider:
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-PAM Authenticate() for user "user-integration-simple-auth" exited with success
-PAM AcctMgmt() exited with success
+PAM Authenticate()
+  User: "user-integration-simple-auth"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-simple-auth"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
@@ -40,7 +44,11 @@ Choose your provider:
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-PAM Authenticate() for user "user-integration-simple-auth" exited with success
-PAM AcctMgmt() exited with success
+PAM Authenticate()
+  User: "user-integration-simple-auth"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-simple-auth"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────

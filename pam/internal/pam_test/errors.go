@@ -1,6 +1,8 @@
 package pam_test
 
-import "github.com/msteinert/pam/v2"
+import (
+	"github.com/msteinert/pam/v2"
+)
 
 // ErrorTest is like pam.Error but we redefine some hopefully unused errors to values for testing purposes.
 type ErrorTest pam.Error
@@ -26,3 +28,14 @@ const (
 	// ErrArgumentTypeMismatch is used on invalid arguments types.
 	ErrArgumentTypeMismatch = pam.ErrAuthtokLockBusy
 )
+
+// ToPamError returns the actual error for a test error.
+func (et ErrorTest) ToPamError() pam.Error {
+	// If we got a test error, let's set it back to their values
+	switch pam.Error(et) {
+	case ErrIgnore:
+		return pam.ErrIgnore
+	}
+
+	return pam.Error(et)
+}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -57,7 +58,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in a TTY": {
 			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 650}},
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty",
 				Term:    "linux",
@@ -65,7 +66,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in a TTY session": {
 			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 650}},
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty-session",
 				Term:    "xterm-256color", SessionType: "tty",
@@ -73,7 +74,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code in screen": {
 			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 650}},
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-screen",
 				Term:    "screen",
@@ -81,7 +82,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		},
 		"Authenticate user with qr code after many regenerations": {
 			tape:         "qr_code_quick_regenerate",
-			tapeSettings: []tapeSetting{{vhsHeight, 650}},
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Authenticate user and reset password while enforcing policy": {
 			tape: "mandatory_password_reset",
@@ -177,6 +178,8 @@ func TestCLIAuthenticate(t *testing.T) {
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 
 			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, testutils.GoldenPath(t)+".gpasswd_out")
+
+			requireRunnerResultForUser(t, authd.SessionMode_AUTH, tc.clientOptions.PamUser, got)
 		})
 	}
 }
@@ -260,6 +263,8 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			got := td.ExpectedOutput(t, outDir)
 			want := testutils.LoadWithUpdateFromGolden(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
+
+			requireRunnerResult(t, authd.SessionMode_PASSWD, got)
 		})
 	}
 }

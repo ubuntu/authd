@@ -1,30 +1,30 @@
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-local-groups@localhost) == Provider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-local-groups@localhost) Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-local-groups@localhost) == Provider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-local-groups@localhost) Choose your provider:
 > 2
-(user-local-groups@localhost) == Password authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-local-groups@localhost) Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-local-groups@localhost) == Provider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-local-groups@localhost) Choose your provider:
 > 2
-(user-local-groups@localhost) == Password authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-local-groups@localhost) Gimme your password:
 >
 Environment:
   USER=user-local-groups
@@ -42,14 +42,14 @@ Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-(user-local-groups@localhost) == Provider selection ==
+== Provider selection ==
   1. local
   2. ExampleBroker
-Choose your provider:
+(user-local-groups@localhost) Choose your provider:
 > 2
-(user-local-groups@localhost) == Password authentication ==
+== Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
+(user-local-groups@localhost) Gimme your password:
 >
 Environment:
   USER=user-local-groups

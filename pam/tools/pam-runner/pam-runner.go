@@ -4,7 +4,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -113,15 +112,13 @@ func main() {
 		}
 	}
 
-	var resultMsg string
 	var pamFunc func(pam.Flags) error
-	switch action {
-	case "login":
+	runnerAction := pam_test.RunnerActionFromString(action)
+	switch runnerAction {
+	case pam_test.RunnerActionLogin:
 		pamFunc = tx.Authenticate
-		resultMsg = "PAM Authenticate() for user %q"
-	case "passwd":
+	case pam_test.RunnerActionPasswd:
 		pamFunc = tx.ChangeAuthTok
-		resultMsg = "PAM ChangeAuthTok() for user %q"
 	default:
 		panic("Unknown PAM operation: " + action)
 	}
@@ -130,10 +127,10 @@ func main() {
 	pamRes := pamFunc(pamFlags)
 	user, _ := tx.GetItem(pam.User)
 
-	printPamResult(fmt.Sprintf(resultMsg, user), pamRes)
+	printPamResult(runnerAction.Result(), user, pamRes)
 
 	// Simulate setting auth broker as default.
-	printPamResult("PAM AcctMgmt()", tx.AcctMgmt(pamFlags))
+	printPamResult(pam_test.RunnerResultActionAcctMgmt, user, tx.AcctMgmt(pamFlags))
 }
 
 func noConversationHandler(style pam.Style, msg string) (string, error) {
@@ -177,21 +174,11 @@ func simpleConversationHandler(style pam.Style, msg string) (string, error) {
 	return "", nil
 }
 
-func printPamResult(action string, result error) {
-	var pamErr pam.Error
-	if errors.As(result, &pamErr) {
-		// If we got a test ignore error, then let's set it back to its actual meaning.
-		if pamErr == pam_test.ErrIgnore {
-			pamErr = pam.ErrIgnore
-		}
-		fmt.Printf("%s exited with error (PAM exit code: %d): %s\n", action, pamErr, pamErr)
-		return
+func printPamResult(resultAction pam_test.RunnerResultAction, user string, result error) {
+	if user == "" {
+		user = "<unset>"
 	}
-	if result != nil {
-		fmt.Printf("%s exited with error: %v\n", action, result)
-		return
-	}
-	fmt.Printf("%s exited with success\n", action)
+	fmt.Println(resultAction.MessageWithError(user, result))
 }
 
 func getPkgConfigFlags(args []string) ([]string, error) {

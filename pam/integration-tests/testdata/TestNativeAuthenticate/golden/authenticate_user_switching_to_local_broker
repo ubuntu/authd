@@ -172,9 +172,14 @@ PAM Error Message: Invalid selection
 Choose your provider:
 > 1
 auth=incomplete
-PAM Authenticate() for user "user-integration-switch-broker" exited with error (PAM exit code: 2
-5): The return value should be ignored by PAM dispatch
-PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
+PAM Authenticate()
+  User: "user-integration-switch-broker"
+  Result: error: PAM exit code: 25
+    The return value should be ignored by PAM dispatch
+PAM AcctMgmt()
+  User: "user-integration-switch-broker"
+  Result: error: PAM exit code: 26
+    Critical error - immediate abort
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
@@ -214,8 +219,13 @@ PAM Error Message: Invalid selection
 Choose your provider:
 > 1
 auth=incomplete
-PAM Authenticate() for user "user-integration-switch-broker" exited with error (PAM exit code: 2
-5): The return value should be ignored by PAM dispatch
-PAM AcctMgmt() exited with error (PAM exit code: 26): Critical error - immediate abort
+PAM Authenticate()
+  User: "user-integration-switch-broker"
+  Result: error: PAM exit code: 25
+    The return value should be ignored by PAM dispatch
+PAM AcctMgmt()
+  User: "user-integration-switch-broker"
+  Result: error: PAM exit code: 26
+    Critical error - immediate abort
 >
 ────────────────────────────────────────────────────────────────────────────────

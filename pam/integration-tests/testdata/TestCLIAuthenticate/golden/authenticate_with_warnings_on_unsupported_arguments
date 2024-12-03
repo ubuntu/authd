@@ -19,12 +19,20 @@ Gimme your password
 > ********
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo bar
-PAM Authenticate() for user "user2" exited with success
-PAM AcctMgmt() exited with success
+PAM Authenticate()
+  User: "user2"
+  Result: success
+PAM AcctMgmt()
+  User: "user2"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo bar
-PAM Authenticate() for user "user2" exited with success
-PAM AcctMgmt() exited with success
+PAM Authenticate()
+  User: "user2"
+  Result: success
+PAM AcctMgmt()
+  User: "user2"
+  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
