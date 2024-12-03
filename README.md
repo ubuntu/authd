@@ -21,12 +21,12 @@
 [![Reference documentation][reference-documentation-image]][reference-documentation-url]
 [![Documentation Status](https://readthedocs.com/projects/canonical-authd/badge/?version=latest)](https://canonical-authd.readthedocs-hosted.com/en/latest/?badge=latest)
 
-Authd is an authentication daemon for cloud-based identity providers. It helps
-ensure the secure management of identity and access for Ubuntu machines
-anywhere in the world, on desktop and the server. Authd's modular design makes
-it a versatile authentication service that can integrate with multiple identity
-providers. MS Entra ID is currently supported and several other
-identity providers are under active development.
+authd is an authentication daemon for cloud-based identity providers. It helps
+ensure the secure management of identity and access for Ubuntu machines anywhere
+in the world, on desktop and the server. authd's modular design makes it a
+versatile authentication service that can integrate with multiple identity
+providers. MS Entra ID is currently supported and several other identity
+providers are under active development.
 
 ## Documentation
 
@@ -38,22 +38,35 @@ in addition to information about authd architecture and troubleshooting.
 
 ## Brokers
 
-Authd uses brokers to interface with cloud identity providers through a [DBus API](https://github.com/ubuntu/authd/blob/HEAD/examplebroker/com.ubuntu.auth.ExampleBroker.xml).
+authd uses brokers to interface with cloud identity providers through a
+[DBus API](https://github.com/ubuntu/authd/blob/HEAD/examplebroker/com.ubuntu.auth.ExampleBroker.xml).
 
-Currently [MS Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) is supported as an identity provider. 
-The [MS Entra ID broker](https://github.com/ubuntu/oidc-broker) allows you to authenticate against MS Entra ID using MFA and the device authentication flow.
+Currently [MS Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis)
+is supported as an identity provider.
+The [MS Entra ID broker](https://github.com/ubuntu/oidc-broker) allows you to
+authenticate against MS Entra ID using MFA and the device authentication flow.
 
-For development purposes, authd also provides an [example broker](https://github.com/ubuntu/authd/tree/main/examplebroker) to help you develop your own.
+For development purposes, authd also provides an
+[example broker](https://github.com/ubuntu/authd/tree/main/examplebroker) 
+to help you develop your own.
 
 ## Get involved
 
-This is an [open source](COPYING) project and we warmly welcome community contributions, suggestions, and constructive feedback. If you're interested in contributing, please take a look at our [contribution guidelines](CONTRIBUTING.md) first.
+This is an [open source](COPYING) project and we warmly welcome community
+contributions, suggestions, and constructive feedback. If you're interested in
+contributing, please take a look at our [contribution guidelines](CONTRIBUTING.md)
+first.
 
-When reporting an issue you can [choose from several templates](https://github.com/ubuntu/authd/issues/new/choose):
+When reporting an issue you can
+[choose from several templates](https://github.com/ubuntu/authd/issues/new/choose):
 
-- To report an issue, please file a bug report against our repository, using the [report an issue](https://github.com/ubuntu/authd/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml&title=Issue%3A+) template.
-- For suggestions and constructive feedback, report a feature request bug report, using the [request a feature](https://github.com/ubuntu/authd/issues/new?assignees=&labels=feature&projects=&template=feature_request.yml&title=Feature%3A+) template.
+- To report an issue, please file a bug report against our repository, using the
+  [report an issue](https://github.com/ubuntu/authd/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml&title=Issue%3A+) template.
+- For suggestions and constructive feedback, report a feature request bug report, using the
+  [request a feature](https://github.com/ubuntu/authd/issues/new?assignees=&labels=feature&projects=&template=feature_request.yml&title=Feature%3A+) template.
 
 ## Get in touch
 
-We're friendly! You can find our community forum at [https://discourse.ubuntu.com](https://discourse.ubuntu.com) where we discuss feature plans, development news, issues, updates and troubleshooting.
+We're friendly! You can find our community forum at
+[https://discourse.ubuntu.com](https://discourse.ubuntu.com)
+where we discuss feature plans, development news, issues, updates and troubleshooting.
