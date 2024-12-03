@@ -36,8 +36,9 @@ type gdmTestModuleHandler struct {
 	selectedAuthModeIDs []string
 
 	brokersInfos       []*authd.ABResponse_BrokerInfo
-	brokerID           string
 	selectedBrokerName string
+	selectedBrokerID   string
+	brokerInfo         *authd.ABResponse_BrokerInfo
 
 	eventPollResponses map[gdm.EventType][]*gdm.EventData
 
@@ -95,6 +96,30 @@ func (gh gdmTestModuleHandler) tunePollEvents(events []*gdm.EventData) []*gdm.Ev
 	return sanitized
 }
 
+func (gh *gdmTestModuleHandler) queueSelectBrokerEvent() error {
+	if gh.currentStage != proto.Stage_brokerSelection {
+		return nil
+	}
+	if gh.selectedBrokerName == ignoredBrokerName {
+		return nil
+	}
+	if gh.selectedBrokerID != "" {
+		return nil
+	}
+
+	idx := slices.IndexFunc(gh.brokersInfos, func(bi *authd.ABResponse_BrokerInfo) bool {
+		return bi.Name == gh.selectedBrokerName
+	})
+	if idx < 0 {
+		return fmt.Errorf("broker %q is not known", gh.selectedBrokerName)
+	}
+
+	gh.selectedBrokerID = gh.brokersInfos[idx].Id
+	gh.pollResponses = append(gh.pollResponses,
+		gdm_test.SelectBrokerEvent(gh.selectedBrokerID))
+	return nil
+}
+
 func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 	defer func() {
 		events, ok := gh.eventPollResponses[event.Type]
@@ -122,6 +147,11 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 		}
 		gh.brokersInfos = ev.BrokersReceived.BrokersInfos
 
+		err := gh.queueSelectBrokerEvent()
+		if err != nil {
+			return err
+		}
+
 	case *gdm.EventData_BrokerSelected:
 		idx := slices.IndexFunc(gh.brokersInfos, func(broker *authd.ABResponse_BrokerInfo) bool {
 			return broker.Id == ev.BrokerSelected.BrokerId
@@ -129,9 +159,9 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 		if idx < 0 {
 			return fmt.Errorf("unknown broker: %s", ev.BrokerSelected.BrokerId)
 		}
-		gh.brokerID = gh.brokersInfos[idx].Id
-		gh.t.Logf("Using broker '%s'", gh.brokersInfos[idx].Name)
-		require.Equal(gh.t, gh.selectedBrokerName, gh.brokersInfos[idx].Name,
+		gh.brokerInfo = gh.brokersInfos[idx]
+		gh.t.Logf("Using broker '%s'", gh.brokerInfo.Name)
+		require.Equal(gh.t, gh.selectedBrokerName, gh.brokerInfo.Name,
 			"Selected broker name does not match expected one")
 
 	case *gdm.EventData_AuthModesReceived:
@@ -210,20 +240,12 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 		switch req.ChangeStage.Stage {
 		case proto.Stage_brokerSelection:
 			gh.authModes = nil
-			gh.brokerID = ""
+			gh.brokerInfo = nil
 
-			if gh.selectedBrokerName == ignoredBrokerName {
-				break
+			err := gh.queueSelectBrokerEvent()
+			if err != nil && len(gh.brokersInfos) > 0 {
+				return nil, err
 			}
-
-			idx := slices.IndexFunc(gh.brokersInfos, func(bi *authd.ABResponse_BrokerInfo) bool {
-				return bi.Name == gh.selectedBrokerName
-			})
-			if idx < 0 {
-				return nil, fmt.Errorf("broker '%s' is not known", gh.selectedBrokerName)
-			}
-
-			gh.pollResponses = append(gh.pollResponses, gdm_test.SelectBrokerEvent(gh.brokersInfos[idx].Id))
 
 		case proto.Stage_authModeSelection:
 			gh.currentUILayout = nil
