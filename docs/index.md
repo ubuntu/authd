@@ -8,6 +8,8 @@ authd uses brokers to interface with cloud identity providers through a [DBus AP
 
 This line was added.
 
+This line was also added.
+
 ---------
 
 ## In this documentation
