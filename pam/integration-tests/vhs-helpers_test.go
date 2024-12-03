@@ -55,6 +55,30 @@ type tapeData struct {
 	Variables    map[string]string
 }
 
+type vhsTestType int
+
+const (
+	vhsTestTypeCLI = iota
+	vhsTestTypeNative
+	vhsTestTypeSSH
+)
+
+func (tt vhsTestType) tapesPath(t *testing.T) string {
+	t.Helper()
+
+	switch tt {
+	case vhsTestTypeCLI:
+		return "cli"
+	case vhsTestTypeNative:
+		return "native"
+	case vhsTestTypeSSH:
+		return "ssh"
+	default:
+		t.Errorf("Unknown test type %d", tt)
+		return ""
+	}
+}
+
 var (
 	defaultSleepValues = map[string]time.Duration{
 		authdSleepDefault: 300 * time.Millisecond,
@@ -130,7 +154,7 @@ func (td *tapeData) AddClientOptions(t *testing.T, opts clientOptions) {
 	}
 }
 
-func (td tapeData) RunVhs(t *testing.T, tapesDir, outDir string, cliEnv []string) {
+func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cliEnv []string) {
 	t.Helper()
 
 	cmd := exec.Command("env", "vhs")
@@ -152,7 +176,7 @@ func (td tapeData) RunVhs(t *testing.T, tapesDir, outDir string, cliEnv []string
 		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", pam_test.RunnerEnvLogFile, e))
 	}
 
-	cmd.Args = append(cmd.Args, td.PrepareTape(t, tapesDir, outDir))
+	cmd.Args = append(cmd.Args, td.PrepareTape(t, testType, outDir))
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, "Failed to run tape %q: %v: %s", td.Name, err, out)
 }
@@ -240,14 +264,14 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 	return got
 }
 
-func (td tapeData) PrepareTape(t *testing.T, tapesDir, outputPath string) string {
+func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath string) string {
 	t.Helper()
 
 	currentDir, err := os.Getwd()
 	require.NoError(t, err, "Setup: Could not get current directory for the tests")
 
 	tape, err := os.ReadFile(filepath.Join(
-		currentDir, "testdata", "tapes", tapesDir, td.Name+".tape"))
+		currentDir, "testdata", "tapes", testType.tapesPath(t), td.Name+".tape"))
 	require.NoError(t, err, "Setup: read tape file %s", td.Name)
 
 	tapeString := evaluateTapeVariables(t, string(tape), td)
