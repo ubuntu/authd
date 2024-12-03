@@ -296,7 +296,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
 	const tapeBaseCommand = "./pam_authd %s socket=${%s} force_native_client=true"
-	tapeCommand := fmt.Sprintf(tapeBaseCommand, "passwd", socketPathEnv)
+	tapeCommand := fmt.Sprintf(tapeBaseCommand, pam_test.RunnerActionPasswd, socketPathEnv)
 	defaultSocketPath := runAuthd(t, os.DevNull, os.DevNull, true)
 
 	tests := map[string]struct {
@@ -310,7 +310,8 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		"Change password successfully and authenticate with new one": {
 			tape: "passwd_simple",
 			tapeVariables: map[string]string{
-				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(tapeBaseCommand, "login", socketPathEnv),
+				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(
+					tapeBaseCommand, pam_test.RunnerActionLogin, socketPathEnv),
 			},
 		},
 		"Change passwd after MFA auth": {
