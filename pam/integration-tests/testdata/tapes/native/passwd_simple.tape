@@ -35,6 +35,8 @@ Enter
 ${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
 Show
 
+ClearTerminal
+
 Hide
 Type "${AUTHD_TEST_TAPE_LOGIN_COMMAND}"
 Enter

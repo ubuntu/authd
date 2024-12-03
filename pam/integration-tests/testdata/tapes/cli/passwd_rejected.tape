@@ -61,7 +61,7 @@ Enter
 ${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
 Show
 
-Sleep ${AUTHD_SLEEP_LONG}
+ClearTerminal
 
 # Repeat again, to check that we can use still use another new password
 
