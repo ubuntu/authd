@@ -36,8 +36,8 @@ type gdmTestModuleHandler struct {
 	selectedAuthModeIDs []string
 
 	brokersInfos       []*authd.ABResponse_BrokerInfo
-	brokerID           string
 	selectedBrokerName string
+	brokerInfo         *authd.ABResponse_BrokerInfo
 
 	eventPollResponses map[gdm.EventType][]*gdm.EventData
 
@@ -129,9 +129,9 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 		if idx < 0 {
 			return fmt.Errorf("unknown broker: %s", ev.BrokerSelected.BrokerId)
 		}
-		gh.brokerID = gh.brokersInfos[idx].Id
-		gh.t.Logf("Using broker '%s'", gh.brokersInfos[idx].Name)
-		require.Equal(gh.t, gh.selectedBrokerName, gh.brokersInfos[idx].Name,
+		gh.brokerInfo = gh.brokersInfos[idx]
+		gh.t.Logf("Using broker '%s'", gh.brokerInfo.Name)
+		require.Equal(gh.t, gh.selectedBrokerName, gh.brokerInfo.Name,
 			"Selected broker name does not match expected one")
 
 	case *gdm.EventData_AuthModesReceived:
@@ -210,7 +210,7 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 		switch req.ChangeStage.Stage {
 		case proto.Stage_brokerSelection:
 			gh.authModes = nil
-			gh.brokerID = ""
+			gh.brokerInfo = nil
 
 			if gh.selectedBrokerName == ignoredBrokerName {
 				break
