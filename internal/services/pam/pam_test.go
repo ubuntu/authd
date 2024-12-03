@@ -299,7 +299,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			pm.Z_ForTests_SetCurrentUserAsRoot(!tc.currentUserNotRoot)
+			permissions.Z_ForTests_SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			if tc.supportedUILayouts == nil {
 				tc.supportedUILayouts = []*authd.UILayout{requiredEntry}
@@ -393,7 +393,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			pm.Z_ForTests_SetCurrentUserAsRoot(!tc.currentUserNotRoot)
+			permissions.Z_ForTests_SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			samReq := &authd.SAMRequest{
 				SessionId:            tc.sessionID,
@@ -484,7 +484,7 @@ func TestIsAuthenticated(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			pm.Z_ForTests_SetCurrentUserAsRoot(!tc.currentUserNotRoot)
+			permissions.Z_ForTests_SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			var firstCall, secondCall string
 			ctx, cancel := context.WithCancel(context.Background())
@@ -532,7 +532,7 @@ func TestIsAuthenticated(t *testing.T) {
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
 
 			// Check that cache has been updated too.
-			gotDB, err := userstestutils.GetManagerCache(m).Z_ForTests_DumpNormalizedYAML()
+			gotDB, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := golden.LoadWithUpdate(t, gotDB, golden.WithPath("cache.db"))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
@@ -573,7 +573,7 @@ func TestIDGeneration(t *testing.T) {
 			require.NoError(t, err, "Setup: could not authenticate user")
 			require.Equal(t, "granted", resp.GetAccess(), "Setup: authentication should be granted")
 
-			gotDB, err := userstestutils.GetManagerCache(m).Z_ForTests_DumpNormalizedYAML()
+			gotDB, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := golden.LoadWithUpdate(t, gotDB, golden.WithPath("cache.db"))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
@@ -633,7 +633,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			require.Equal(t, tc.brokerID, gpbResp.GetPreviousBroker(), "SetDefaultBrokerForUser should set the default broker as expected")
 
 			// Check that cache has been updated too.
-			gotDB, err := userstestutils.GetManagerCache(m).Z_ForTests_DumpNormalizedYAML()
+			gotDB, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := golden.LoadWithUpdate(t, gotDB, golden.WithPath("cache.db"))
 			require.Equal(t, wantDB, gotDB, "SetDefaultBrokerForUser should update the cache database as expected")
@@ -678,7 +678,7 @@ func TestEndSession(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			pm.Z_ForTests_SetCurrentUserAsRoot(!tc.currentUserNotRoot)
+			permissions.Z_ForTests_SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			esReq := &authd.ESRequest{
 				SessionId: tc.sessionID,

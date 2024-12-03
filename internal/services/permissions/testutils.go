@@ -44,7 +44,7 @@ func currentUserUID() uint32 {
 // Z_ForTests_SetCurrentUserAsRoot mutates a default permission to the current user's UID if currentUserAsRoot is true.
 //
 // nolint:revive,nolintlint // We want to use underscores in the function name here.
-func (m *Manager) Z_ForTests_SetCurrentUserAsRoot(currentUserAsRoot bool) {
+func Z_ForTests_SetCurrentUserAsRoot(m *Manager, currentUserAsRoot bool) {
 	testsdetection.MustBeTesting()
 
 	if !currentUserAsRoot {

@@ -74,7 +74,7 @@ func TestNew(t *testing.T) {
 			require.NoError(t, err)
 			defer c.Close()
 
-			got, err := c.Z_ForTests_DumpNormalizedYAML()
+			got, err := cache.Z_ForTests_DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := golden.LoadWithUpdate(t, got)
@@ -225,7 +225,7 @@ func TestUpdateUserEntry(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			got, err := c.Z_ForTests_DumpNormalizedYAML()
+			got, err := cache.Z_ForTests_DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := golden.LoadWithUpdate(t, got)
@@ -479,7 +479,7 @@ func TestDeleteUser(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			got, err := c.Z_ForTests_DumpNormalizedYAML()
+			got, err := cache.Z_ForTests_DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")

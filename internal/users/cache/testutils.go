@@ -64,7 +64,7 @@ func redactTime(line string) string {
 // (so that it can be compared with a golden file) and returns it as a YAML string.
 //
 // nolint:revive,nolintlint // We want to use underscores in the function name here.
-func (c *Cache) Z_ForTests_DumpNormalizedYAML() (string, error) {
+func Z_ForTests_DumpNormalizedYAML(c *Cache) (string, error) {
 	testsdetection.MustBeTesting()
 
 	d := make(map[string]map[string]string)
