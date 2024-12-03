@@ -7,7 +7,7 @@
 
 Install authd <install-authd>
 Configure authd <configure-authd>
-Login with GDM <login-gdm>
-Login with SSH <login-ssh>
+Log in with GDM <log-in-gdm>
+Log in with SSH <log-in-ssh>
 Contributing to authd <contributing>
 ```
