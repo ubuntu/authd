@@ -173,7 +173,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			td.Command = tapeCommand
 			td.Env[socketPathEnv] = socketPath
 			td.AddClientOptions(t, tc.clientOptions)
-			td.RunVhs(t, "cli", outDir, cliEnv)
+			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
@@ -261,7 +261,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			td.Variables = tc.tapeVariables
 			td.Env[socketPathEnv] = socketPath
 			td.AddClientOptions(t, clientOptions{})
-			td.RunVhs(t, "cli", outDir, cliEnv)
+			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)

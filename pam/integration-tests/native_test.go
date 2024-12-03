@@ -274,7 +274,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.Variables = tc.tapeVariables
 			td.AddClientOptions(t, tc.clientOptions)
-			td.RunVhs(t, "native", outDir, cliEnv)
+			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
@@ -371,7 +371,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			td.Env[socketPathEnv] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.AddClientOptions(t, clientOptions{})
-			td.RunVhs(t, "native", outDir, cliEnv)
+			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
