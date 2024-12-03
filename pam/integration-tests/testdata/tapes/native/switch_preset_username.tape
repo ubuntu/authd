@@ -50,5 +50,5 @@ Show
 Hide
 Type "goodpass"
 Enter
-Wait
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show

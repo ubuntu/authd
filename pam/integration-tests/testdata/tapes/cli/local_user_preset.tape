@@ -2,9 +2,7 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait+Screen /\nPAM Authenticate\(\)/
-Wait+Screen /\nPAM AcctMgmt\(\)/
-Wait
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show
 
 Hide

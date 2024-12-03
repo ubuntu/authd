@@ -14,5 +14,5 @@ Show
 Hide
 Type "2"
 Enter
-Wait
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
 Show

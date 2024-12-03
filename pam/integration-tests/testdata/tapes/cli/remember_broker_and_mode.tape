@@ -32,9 +32,7 @@ Show
 Hide
 Type "temporary pass0"
 Enter
-Wait+Screen /\nPAM Authenticate\(\)/
-Wait+Screen /\nPAM AcctMgmt\(\)/
-Wait
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show
 
 Hide
@@ -57,7 +55,5 @@ Show
 Hide
 Type "temporary pass0"
 Enter
-Wait+Screen /\nPAM Authenticate\(\)/
-Wait+Screen /\nPAM AcctMgmt\(\)/
-Wait
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show

@@ -59,7 +59,5 @@ Show
 
 Hide
 Enter
-Wait+Screen /\nPAM ChangeAuthTok\(\)/
-Wait+Screen /\nPAM AcctMgmt\(\)/
-Wait
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
 Show

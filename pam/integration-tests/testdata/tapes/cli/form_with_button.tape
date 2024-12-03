@@ -47,7 +47,5 @@ Show
 Hide
 Type "temporary pass00"
 Enter
-Wait+Screen /\nPAM Authenticate\(\)/
-Wait+Screen /\nPAM AcctMgmt\(\)/
-Wait
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show

@@ -46,7 +46,7 @@ Show
 Hide
 Type "authd2404"
 Enter
-Wait
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
 Show
 
 # Repeat again, to check that we can use still use another new password
@@ -102,5 +102,5 @@ Show
 Hide
 Type "goodpass"
 Enter
-Wait
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
 Show

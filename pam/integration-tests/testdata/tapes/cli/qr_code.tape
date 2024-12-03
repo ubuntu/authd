@@ -62,7 +62,5 @@ Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT}/3 /\b1341\b/
 Show
 
 Hide
-Wait+Screen /\nPAM Authenticate\(\)/
-Wait+Screen /\nPAM AcctMgmt\(\)/
-Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT}*1.2
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show
