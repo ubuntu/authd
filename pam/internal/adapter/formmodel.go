@@ -27,7 +27,7 @@ func newFormModel(label, entryType, buttonLabel string, wait bool) formModel {
 		focusableModels = append(focusableModels, &entry)
 	}
 	if buttonLabel != "" {
-		button := &buttonModel{label: buttonLabel}
+		button := newAuthReselectionButtonModel(buttonLabel)
 		focusableModels = append(focusableModels, button)
 	}
 
@@ -41,7 +41,11 @@ func newFormModel(label, entryType, buttonLabel string, wait bool) formModel {
 
 // Init initializes formModel.
 func (m formModel) Init() tea.Cmd {
-	return nil
+	var commands []tea.Cmd
+	for _, c := range m.focusableModels {
+		commands = append(commands, c.Init())
+	}
+	return tea.Batch(commands...)
 }
 
 // Update handles events and actions.
@@ -59,9 +63,9 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if !m.wait {
 			return m, nil
 		}
-		return m, sendEvent(isAuthenticatedRequested{
+		return m, tea.Sequence(m.updateFocusModel(msg), sendEvent(isAuthenticatedRequested{
 			item: &authd.IARequest_AuthenticationData_Wait{Wait: "true"},
-		})
+		}))
 	}
 
 	switch msg := msg.(type) {
@@ -80,11 +84,7 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						Challenge: entry.Value(),
 					},
 				})
-			case *buttonModel:
-				return m, sendEvent(reselectAuthMode{})
 			}
-
-			return m, nil
 
 		case "tab":
 			m.focusIndex++
@@ -103,17 +103,17 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	var cmd tea.Cmd
-	for i, fm := range m.focusableModels {
-		if i != m.focusIndex {
-			continue
-		}
-		var model tea.Model
-		model, cmd = fm.Update(msg)
-		m.focusableModels[i] = convertTo[authenticationComponent](model)
-	}
+	return m, m.updateFocusModel(msg)
+}
 
-	return m, cmd
+func (m *formModel) updateFocusModel(msg tea.Msg) tea.Cmd {
+	if m.focusIndex >= len(m.focusableModels) {
+		return nil
+	}
+	model, cmd := m.focusableModels[m.focusIndex].Update(msg)
+	m.focusableModels[m.focusIndex] = convertTo[authenticationComponent](model)
+
+	return cmd
 }
 
 // View renders a text view of the form.

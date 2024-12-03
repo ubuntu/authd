@@ -53,7 +53,14 @@ func newNewPasswordModel(label, entryType, buttonLabel string) newPasswordModel 
 
 // Init initializes newPasswordModel.
 func (m newPasswordModel) Init() tea.Cmd {
-	return nil
+	var commands []tea.Cmd
+	for _, c := range m.focusableModels {
+		commands = append(commands, c.Init())
+	}
+	for _, c := range m.passwordEntries {
+		commands = append(commands, c.Init())
+	}
+	return tea.Batch(commands...)
 }
 
 // Update handles events and actions.
@@ -61,7 +68,7 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case startAuthentication:
 		m.Clear()
-		return m, nil
+		return m, m.updateFocusModel(msg)
 
 	case newPasswordCheckResult:
 		if msg.msg != "" {
@@ -70,6 +77,14 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		return m, tea.Batch(sendEvent(errMsgToDisplay{}), m.focusNextField())
+
+	case buttonSelectionEvent:
+		if m.focusIndex < len(m.focusableModels) &&
+			msg.model == m.focusableModels[m.focusIndex] {
+			return m, sendEvent(isAuthenticatedRequested{
+				item: &authd.IARequest_AuthenticationData_Skip{Skip: "true"},
+			})
+		}
 
 	case tea.KeyMsg: // Key presses
 		switch msg.String() {
@@ -117,31 +132,24 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, sendEvent(isAuthenticatedRequested{
 					item: &authd.IARequest_AuthenticationData_Challenge{Challenge: entry.Value()},
 				})
-
-			case *buttonModel:
-				return m, sendEvent(isAuthenticatedRequested{
-					item: &authd.IARequest_AuthenticationData_Skip{Skip: "true"},
-				})
 			}
-
-			return m, nil
 
 		default:
 			m.errorMsg = ""
 		}
 	}
 
-	var cmd tea.Cmd
-	for i, fm := range m.focusableModels {
-		if i != m.focusIndex {
-			continue
-		}
-		var model tea.Model
-		model, cmd = fm.Update(msg)
-		m.focusableModels[i] = convertTo[authenticationComponent](model)
-	}
+	return m, m.updateFocusModel(msg)
+}
 
-	return m, cmd
+func (m *newPasswordModel) updateFocusModel(msg tea.Msg) tea.Cmd {
+	if m.focusIndex >= len(m.focusableModels) {
+		return nil
+	}
+	model, cmd := m.focusableModels[m.focusIndex].Update(msg)
+	m.focusableModels[m.focusIndex] = convertTo[authenticationComponent](model)
+
+	return cmd
 }
 
 // View renders a text view of the form.
