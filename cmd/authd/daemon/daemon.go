@@ -79,6 +79,10 @@ func New() *App {
 			setVerboseMode(a.config.Verbosity)
 			log.Debugf(context.Background(), "Verbosity: %d", a.config.Verbosity)
 
+			if err := migrateOldCacheDir(consts.OldCacheDir, a.config.Paths.Cache); err != nil {
+				return err
+			}
+
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
