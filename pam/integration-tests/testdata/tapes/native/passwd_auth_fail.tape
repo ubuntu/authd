@@ -49,5 +49,5 @@ Hide
 Type "wrongpass"
 Enter
 Wait+Nth(5) /invalid password 'wrongpass', should be/
-Wait
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
 Show

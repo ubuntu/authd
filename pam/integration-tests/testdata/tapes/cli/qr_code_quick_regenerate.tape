@@ -41,7 +41,5 @@ Show
 Hide
 Sleep ${AUTHD_SLEEP_QRCODE_RESELECTION_WAIT}
 Enter@1ms 500
-Wait+Screen@${AUTHD_SLEEP_LONG}*15 /\nPAM Authenticate\(\)/
-Wait+Screen@${AUTHD_SLEEP_LONG}*15 /\nPAM AcctMgmt\(\)/
-Wait
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show
