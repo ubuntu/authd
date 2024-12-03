@@ -6,7 +6,7 @@ authd features a modular structure, facilitating straightforward integration wit
 
 authd uses brokers to interface with cloud identity providers through a [DBus API](https://github.com/ubuntu/authd/blob/HEAD/examplebroker/com.ubuntu.auth.ExampleBroker.xml). Currently only [MS Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) is supported. For development purposes, authd also provides an example broker to help you develop your own.
 
-The [MS Entra ID broker](https://github.com/ubuntu/oidc-broker) allows you to authenticate against MS Entra ID using MFA and the device authentication flow.
+This line was added.
 
 ---------
 
