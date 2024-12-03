@@ -1,4 +1,4 @@
-# Login with SSH
+# Log in with SSH
 
 ## Server configuration
 
@@ -13,7 +13,7 @@ UsePAM yes
 KbdInteractiveAuthentication yes
 ```
 
-Alternatively you can directly set the keys in the sshd configuration file `/etc/ssh/sshd_config`.
+Alternatively, you can directly set the keys in the sshd configuration file `/etc/ssh/sshd_config`.
 
 Then restart the SSH server:
 
@@ -36,7 +36,7 @@ client_id = <CLIENT_ID>
 # The user home directory will be created in the format of {home_base_dir}/{username}
 # home_base_dir = /home
 
-# The username suffixes that are allowed to login via ssh without existing previously in the system.
+# The username suffixes that are allowed to log in via ssh without existing previously in the system.
 # The suffixes must be separated by commas.
 ssh_allowed_suffixes = <ALLOWED DOMAINS>
 ```
