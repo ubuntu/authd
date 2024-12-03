@@ -1,4 +1,4 @@
-# Login with GDM
+# Log in with GDM
 
 ## Logging in with a remote provider
 
@@ -16,13 +16,13 @@ If MFA is enabled, a QR code and a login code are displayed.
 
 ![Display of QR code, login code and button to Request new login code.](../assets/gdm-qr.png)
 
-From a second device, flash the QR code or type the URL in a web browser, then follow the authentication process from your provider.
+From a second device, flash the QR code or type the URL in a web browser, then follow your provider's authentication process.
 
 Upon successful authentication, the user is prompted to enter a local password. This password can be used for offline authentication.
 
 ![Prompt to create local password on successful authentication.](../assets/gdm-pass.png)
 
-## Groups management
+## Group management
 
 In our example the user `authd test` is a member of the Azure groups `Azure_OIDC_Test` and `linux-sudo`:
 
