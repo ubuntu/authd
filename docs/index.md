@@ -10,6 +10,8 @@ This line was added.
 
 This line was also added.
 
+This line was also added too.
+
 ---------
 
 ## In this documentation
