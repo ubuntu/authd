@@ -35,6 +35,8 @@ Enter
 Wait
 Show
 
+ClearTerminal
+
 Hide
 Type "${AUTHD_TEST_TAPE_LOGIN_COMMAND}"
 Enter

@@ -39,6 +39,12 @@ const (
 	vhsCommandFinalAuthWaitVariable         = "AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT"
 	vhsCommandFinalChangeAuthokWaitVariable = "AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT"
 
+	vhsClearCommands = `Hide
+Type "clear"
+Enter
+Wait
+Show`
+
 	authdSleepDefault                 = "AUTHD_SLEEP_DEFAULT"
 	authdSleepLong                    = "AUTHD_SLEEP_LONG"
 	authdSleepExampleBrokerMfaWait    = "AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT"
@@ -106,6 +112,9 @@ var (
 	// vhsWaitNth adds support for Wait+Nth(X) /Pattern/ command, where X is the
 	// number of values of the same content we want to match.
 	vhsWaitNth = regexp.MustCompile(`\bWait\+Nth\((\d+)\)(@\S+)?[\t ]+(/(.*)/|(.*))`)
+
+	// vhsClearTape clears the tape by clearing the terminal.
+	vhsClearTape = regexp.MustCompile(`\bClearTerminal\b`)
 )
 
 func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
@@ -426,6 +435,7 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 		`Wait+Screen$1 /$3$4[\n]*$$/`)
 	tapeString = vhsWaitNth.ReplaceAllString(tapeString,
 		`Wait+Screen$2 /($4$5(.|\n)+){$1}/`)
+	tapeString = vhsClearTape.ReplaceAllLiteralString(tapeString, vhsClearCommands)
 
 	return tapeString
 }

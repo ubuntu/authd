@@ -173,7 +173,6 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 
 		"Remember last successful broker and mode": {
 			tape:          "remember_broker_and_mode",
-			tapeSettings:  []tapeSetting{{vhsHeight, 1200}},
 			daemonizeSSHd: true,
 		},
 		"Autoselect local broker for local user": {
