@@ -37,6 +37,7 @@ type gdmTestModuleHandler struct {
 
 	brokersInfos       []*authd.ABResponse_BrokerInfo
 	selectedBrokerName string
+	selectedBrokerID   string
 	brokerInfo         *authd.ABResponse_BrokerInfo
 
 	eventPollResponses map[gdm.EventType][]*gdm.EventData
@@ -121,6 +122,26 @@ func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 			return errors.New("no brokers available")
 		}
 		gh.brokersInfos = ev.BrokersReceived.BrokersInfos
+
+		if gh.currentStage != proto.Stage_brokerSelection {
+			return nil
+		}
+		if gh.selectedBrokerName == ignoredBrokerName {
+			return nil
+		}
+		if gh.selectedBrokerID != "" {
+			return nil
+		}
+		idx := slices.IndexFunc(gh.brokersInfos, func(bi *authd.ABResponse_BrokerInfo) bool {
+			return bi.Name == gh.selectedBrokerName
+		})
+		if idx < 0 {
+			return fmt.Errorf("broker %q is not known", gh.selectedBrokerName)
+		}
+
+		gh.selectedBrokerID = gh.brokersInfos[idx].Id
+		gh.pollResponses = append(gh.pollResponses,
+			gdm_test.SelectBrokerEvent(gh.selectedBrokerID))
 
 	case *gdm.EventData_BrokerSelected:
 		idx := slices.IndexFunc(gh.brokersInfos, func(broker *authd.ABResponse_BrokerInfo) bool {
@@ -215,15 +236,23 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 			if gh.selectedBrokerName == ignoredBrokerName {
 				break
 			}
+			if gh.selectedBrokerID != "" {
+				break
+			}
 
 			idx := slices.IndexFunc(gh.brokersInfos, func(bi *authd.ABResponse_BrokerInfo) bool {
 				return bi.Name == gh.selectedBrokerName
 			})
-			if idx < 0 {
+			if idx < 0 && len(gh.brokersInfos) > 0 {
 				return nil, fmt.Errorf("broker '%s' is not known", gh.selectedBrokerName)
 			}
+			if idx < 0 {
+				break
+			}
 
-			gh.pollResponses = append(gh.pollResponses, gdm_test.SelectBrokerEvent(gh.brokersInfos[idx].Id))
+			gh.selectedBrokerID = gh.brokersInfos[idx].Id
+			gh.pollResponses = append(gh.pollResponses,
+				gdm_test.SelectBrokerEvent(gh.selectedBrokerID))
 
 		case proto.Stage_authModeSelection:
 			gh.currentUILayout = nil
