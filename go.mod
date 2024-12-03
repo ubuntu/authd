@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/charmbracelet/bubbles v0.20.0
-	github.com/charmbracelet/bubbletea v1.2.3
+	github.com/charmbracelet/bubbletea v1.2.4
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf
 	github.com/godbus/dbus/v5 v5.1.0
@@ -14,7 +14,7 @@ require (
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	github.com/ubuntu/decorate v0.0.0-20230606064312-bc4ac83958d6
 	go.etcd.io/bbolt v1.3.11
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
