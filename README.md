@@ -30,13 +30,11 @@ identity providers are under active development.
 
 ## Documentation
 
-Documentation for authd is currently available as a [wiki](https://github.com/ubuntu/authd/wiki/01---Get-started-with-authd) that includes how-to guides on:
+If you want to know more about using authd, refer to the
+[official authd documentation](https://canonical-authd.readthedocs-hosted.com/en/latest/).
 
-- [Installation](https://github.com/ubuntu/authd/wiki/02---How%E2%80%90to-install)
-- [Configuration](https://github.com/ubuntu/authd/wiki/03---How%E2%80%90to-configure)
-- Login through [GDM](https://github.com/ubuntu/authd/wiki/04---How%E2%80%90to-log-in-with-GDM) and [SSH](https://github.com/ubuntu/authd/wiki/05--How%E2%80%90to-log-in-over-SSH)
-
-A reference for [troubleshooting](https://github.com/ubuntu/authd/wiki/06--Troubleshooting-reference) is also provided along with an explanation of authd's [architecture](https://github.com/ubuntu/authd/wiki/07-Architecture-explanation).
+The documentation includes how-to guides on installing and configuring authd,
+in addition to information about authd architecture and troubleshooting.
 
 ## Brokers
 
