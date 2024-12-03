@@ -26,5 +26,5 @@ Show
 Hide
 Type "authd2404"
 Enter
-Wait
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show

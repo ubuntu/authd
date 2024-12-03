@@ -130,5 +130,5 @@ Show
 Hide
 Type "4242"
 Enter
-Wait
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show

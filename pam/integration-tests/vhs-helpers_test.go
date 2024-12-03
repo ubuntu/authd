@@ -36,6 +36,9 @@ const (
 
 	vhsCommandVariable = "AUTHD_TEST_TAPE_COMMAND"
 
+	vhsCommandFinalAuthWaitVariable         = "AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT"
+	vhsCommandFinalChangeAuthokWaitVariable = "AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT"
+
 	authdSleepDefault                 = "AUTHD_SLEEP_DEFAULT"
 	authdSleepLong                    = "AUTHD_SLEEP_LONG"
 	authdSleepCommand                 = "AUTHD_SLEEP_COMMAND"
@@ -323,7 +326,7 @@ func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath st
 		currentDir, "testdata", "tapes", testType.tapesPath(t), td.Name+".tape"))
 	require.NoError(t, err, "Setup: read tape file %s", td.Name)
 
-	tapeString := evaluateTapeVariables(t, string(tape), td)
+	tapeString := evaluateTapeVariables(t, string(tape), td, testType)
 
 	tapeLines := strings.Split(tapeString, "\n")
 	var lastCommand string
@@ -367,7 +370,7 @@ func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath st
 	return tapePath
 }
 
-func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData) string {
+func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testType vhsTestType) string {
 	t.Helper()
 
 	require.Greater(t, td.CommandSleep.Milliseconds(), int64(0),
@@ -411,16 +414,29 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData) string 
 			"Setup: Tape contains %q but it's not defined", vhsCommandVariable)
 	}
 
-	variables := td.Variables
+	variables := maps.Clone(td.Variables)
+	if variables == nil {
+		variables = make(map[string]string)
+	}
+
 	if td.Command != "" {
-		if variables != nil {
-			variables = maps.Clone(variables)
-		}
-		if variables == nil {
-			variables = make(map[string]string)
-		}
 		variables[vhsCommandVariable] = td.Command
 	}
+
+	addOptionalVariable := func(name, value string) {
+		if _, ok := variables[name]; ok {
+			return
+		}
+		if !strings.Contains(tapeString, fmt.Sprintf("${%s}", name)) {
+			return
+		}
+		variables[name] = value
+	}
+
+	addOptionalVariable(vhsCommandFinalAuthWaitVariable,
+		finalWaitCommands(testType, authd.SessionMode_AUTH))
+	addOptionalVariable(vhsCommandFinalChangeAuthokWaitVariable,
+		finalWaitCommands(testType, authd.SessionMode_PASSWD))
 
 	for k, v := range variables {
 		variable := fmt.Sprintf("${%s}", k)
@@ -437,6 +453,24 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData) string 
 		`Wait+Screen$2 /($4$5(.|\n)+){$1}/`)
 
 	return tapeString
+}
+
+func finalWaitCommands(testType vhsTestType, sessionMode authd.SessionMode) string {
+	if testType == vhsTestTypeSSH {
+		return `Wait+Suffix /Connection to localhost closed\.\n>/`
+	}
+
+	firstResult := pam_test.RunnerResultActionAuthenticate
+	if sessionMode == authd.SessionMode_PASSWD {
+		firstResult = pam_test.RunnerResultActionChangeAuthTok
+	}
+
+	return fmt.Sprintf(`Wait+Screen /%s[^\n]*/
+Wait+Screen /%s[^\n]*/
+Wait`,
+		regexp.QuoteMeta(firstResult.String()),
+		regexp.QuoteMeta(pam_test.RunnerResultActionAcctMgmt.String()),
+	)
 }
 
 func requireRunnerResultForUser(t *testing.T, sessionMode authd.SessionMode, user, goldenContent string) {
