@@ -15,6 +15,7 @@ import (
 	"github.com/ubuntu/authd/internal/services"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -68,7 +69,7 @@ func TestRegisterGRPCServices(t *testing.T) {
 			return cmp.Compare(a.Name, b.Name)
 		})
 	}
-	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+	want := golden.LoadWithUpdateYAML(t, got)
 	requireEqualServices(t, want, got)
 }
 

@@ -22,6 +22,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
@@ -35,7 +36,7 @@ func TestSSHAuthenticate(t *testing.T) {
 	testSSHAuthenticate(t, runSharedDaemonTests)
 
 	// When updating the golden files we need to perform all kind of tests.
-	if os.Getenv(testutils.UpdateGoldenFilesEnv) != "" {
+	if golden.UpdateEnabled() {
 		testSSHAuthenticate(t, !runSharedDaemonTests)
 	}
 }
@@ -260,7 +261,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			td.Variables = tc.tapeVariables
 			td.RunVhs(t, "ssh", outDir, nil)
 			got := sanitizeGoldenFile(t, td, outDir)
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
 			userEnv := fmt.Sprintf("USER=%s", user)
@@ -270,7 +271,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 				require.Contains(t, got, userEnv, "Logged in user does not matches")
 			}
 
-			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, testutils.GoldenPath(t)+".gpasswd_out")
+			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, golden.Path(t)+".gpasswd_out")
 		})
 	}
 }

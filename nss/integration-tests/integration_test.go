@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 )
 
@@ -154,7 +155,7 @@ func TestIntegration(t *testing.T) {
 				return
 			}
 
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Outputs must match")
 
 			// This is to check that some cache tasks, such as cleaning a corrupted database, work as expected.

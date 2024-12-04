@@ -16,6 +16,7 @@ import (
 	"github.com/ubuntu/authd/internal/services/permissions"
 	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
@@ -368,7 +369,7 @@ func requireExpectedResult[T authd.PasswdEntry | authd.GroupEntry | authd.Shadow
 	}
 	require.NoError(t, err, fmt.Sprintf("%s should not return an error, but did", funcName))
 
-	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+	want := golden.LoadWithUpdateYAML(t, got)
 	requireExportedEquals(t, want, got, fmt.Sprintf("%s should return the expected entry, but did not", funcName))
 }
 
@@ -385,7 +386,7 @@ func requireExpectedEntriesResult[T authd.PasswdEntry | authd.GroupEntry | authd
 	}
 	require.NoError(t, err, fmt.Sprintf("%s should not return an error, but did", funcName))
 
-	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+	want := golden.LoadWithUpdateYAML(t, got)
 	if len(want) != len(got) {
 		require.Equal(t, len(want), len(got), "Not the expected number of elements in the list. Wanted: %v\nGot: %v", want, got)
 	}

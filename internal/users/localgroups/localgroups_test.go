@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/localgroups"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 )
@@ -32,9 +32,9 @@ func TestUpdateLocalGroups(t *testing.T) {
 		"No-Op for user is already present in both local groups":                  {groupFilePath: "user_in_both_groups.group"},
 		"Insert user in the only local group when not present":                    {groupFilePath: "user_in_one_group.group"},
 		"Insert user in the only local group when not present even with multiple": {groupFilePath: "user_and_others_in_one_groups.group"},
-		"Remove user from an additional group, being alone":                       {groupFilePath: "user_in_second_local_group.group"},
-		"Remove user from an additional group, multiple users in group":           {groupFilePath: "user_in_second_local_group_with_others.group"},
-		"Add and remove user from multiple groups, one remaining":                 {groupFilePath: "user_in_many_groups.group"},
+		"Remove user from an additional group without other users":                {groupFilePath: "user_in_second_local_group.group"},
+		"Remove user from an additional group with other users":                   {groupFilePath: "user_in_second_local_group_with_others.group"},
+		"Add and remove user from multiple groups with one remaining":             {groupFilePath: "user_in_many_groups.group"},
 
 		// Flexible accepted cases
 		"Missing group is ignored":              {groupFilePath: "missing_group.group"},
@@ -80,7 +80,7 @@ func TestUpdateLocalGroups(t *testing.T) {
 				require.NoError(t, err, "UpdateLocalGroups should not have failed")
 			}
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t))
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
 		})
 	}
 }
@@ -101,7 +101,7 @@ func TestCleanLocalGroups(t *testing.T) {
 		"Cleans up multiple users from group":           {groupFilePath: "inactive_users_in_one_group.group"},
 		"Cleans up multiple users from multiple groups": {groupFilePath: "inactive_users_in_many_groups.group"},
 
-		"Error if there's no active user":             {groupFilePath: "user_in_many_groups.group", getUsersReturn: []string{}, wantErr: true},
+		"Error if there is no active user":            {groupFilePath: "user_in_many_groups.group", getUsersReturn: []string{}, wantErr: true},
 		"Error on missing groups file":                {groupFilePath: "does_not_exists.group", wantErr: true},
 		"Error when groups file is malformed":         {groupFilePath: "malformed_file.group", wantErr: true},
 		"Error on any unignored delete gpasswd error": {groupFilePath: "gpasswdfail_in_deleted_group.group", wantErr: true},
@@ -133,7 +133,7 @@ func TestCleanLocalGroups(t *testing.T) {
 				require.NoError(t, err, "CleanupLocalGroups should not have failed")
 			}
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t))
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
 		})
 	}
 }
@@ -189,7 +189,7 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 				require.NoError(t, err, "CleanUserFromLocalGroups should not have failed")
 			}
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, testutils.GoldenPath(t))
+			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
 		})
 	}
 }

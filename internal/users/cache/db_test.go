@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/cache"
 	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
 )
@@ -78,7 +78,7 @@ func TestNew(t *testing.T) {
 			got, err := cachetestutils.DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
 
 			// check database permission
@@ -183,9 +183,9 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Remove user from a group still part from another user": {userCase: "user3", groupCases: []string{"group3"}, dbFile: "multiple_users_and_groups"},
 
 		// Allowed inconsistent cases
-		"Invalid value entry in groupByName recreates entries":                        {dbFile: "invalid_entry_in_groupByName"},
-		"Invalid value entry in userByName recreates entries":                         {dbFile: "invalid_entry_in_userByName"},
-		"Invalid value entries in other user and groups don't impact current request": {dbFile: "invalid_entries_but_user_and_group1"},
+		"Invalid value entry in groupByName recreates entries":                         {dbFile: "invalid_entry_in_groupByName"},
+		"Invalid value entry in userByName recreates entries":                          {dbFile: "invalid_entry_in_userByName"},
+		"Invalid value entries in other user and groups do not impact current request": {dbFile: "invalid_entries_but_user_and_group1"},
 
 		// Renaming errors
 		"Error when user has conflicting uid":  {userCase: "user1-new-name", dbFile: "one_user_and_group", wantErr: true},
@@ -229,7 +229,7 @@ func TestUpdateUserEntry(t *testing.T) {
 			got, err := cachetestutils.DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
 		})
 	}
@@ -380,7 +380,7 @@ func TestAllGroups(t *testing.T) {
 		"Get one group":       {dbFile: "one_user_and_group"},
 		"Get multiple groups": {dbFile: "multiple_users_and_groups"},
 
-		"Get groups rely on groupByID, groupToUsers, UserByID": {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers_UserByID"},
+		"Get groups rely on groupByID groupToUsers UserByID": {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers_UserByID"},
 
 		"Error on some invalid groups entry":     {dbFile: "invalid_entries_but_user_and_group1", wantErr: true},
 		"Error as not only relying on groupByID": {dbFile: "partially_valid_multiple_users_and_groups_only_groupByID", wantErr: true},
@@ -420,7 +420,7 @@ func TestBrokerForUser(t *testing.T) {
 	// Get existing BrokerForUser entry
 	gotID, err := c.BrokerForUser("user1")
 	require.NoError(t, err, "BrokerForUser for an existent user should not return an error")
-	wantID := testutils.LoadWithUpdateFromGolden(t, gotID)
+	wantID := golden.LoadWithUpdate(t, gotID)
 	require.Equal(t, wantID, gotID, "BrokerForUser should return expected broker ID")
 
 	// Get unassigned broker to existent user
@@ -482,7 +482,7 @@ func TestDeleteUser(t *testing.T) {
 
 			got, err := cachetestutils.DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
-			want := testutils.LoadWithUpdateFromGolden(t, got)
+			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
 		})
 	}
@@ -517,6 +517,6 @@ func requireGetAssertions[E any](t *testing.T, got E, wantErr bool, wantErrType,
 	}
 	require.NoError(t, err)
 
-	want := testutils.LoadWithUpdateFromGoldenYAML(t, got)
+	want := golden.LoadWithUpdateYAML(t, got)
 	require.Equal(t, want, got, "Did not get expected database entry")
 }

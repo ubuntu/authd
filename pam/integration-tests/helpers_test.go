@@ -19,6 +19,7 @@ import (
 	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 	"google.golang.org/grpc"
@@ -196,7 +197,7 @@ func saveArtifactsForDebug(t *testing.T, artifacts []string) {
 		return
 	}
 
-	tmpDir := filepath.Join(artifactsPath(t), testutils.GoldenPath(t))
+	tmpDir := filepath.Join(artifactsPath(t), golden.Path(t))
 	err := os.MkdirAll(tmpDir, 0750)
 	require.NoError(t, err, "TearDown: could not create temporary directory %q for artifacts", tmpDir)
 
