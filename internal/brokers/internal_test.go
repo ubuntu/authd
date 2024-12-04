@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/golden"
+	"github.com/ubuntu/authd/internal/testutils/golden"
 )
 
 // These are used to test the JSON unmarshaling of the User struct.

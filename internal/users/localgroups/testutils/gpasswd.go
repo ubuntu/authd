@@ -9,12 +9,11 @@ import (
 	"slices"
 	"strings"
 	"testing"
-
 	//nolint:revive,nolintlint // needed for go:linkname, but only used in tests. nolintlint as false positive then.
 	_ "unsafe"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/golden"
+	"github.com/ubuntu/authd/internal/testutils/golden"
 )
 
 // Mockgpasswd is the gpasswd mock.
