@@ -1,7 +1,5 @@
 package localgrouptestutils
 
-//nolint:gci // We import unsafe as it is needed for go:linkname, but the nolint comment confuses gofmt and it adds
-// a blank space between the imports, which creates problems with gci so we need to ignore it.
 import (
 	"fmt"
 	"os"
