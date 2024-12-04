@@ -1,6 +1,9 @@
 package adapter
 
 import (
+	"slices"
+	"strings"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ubuntu/authd"
@@ -25,6 +28,7 @@ func newFormModel(label, entryType, buttonLabel string, wait bool) formModel {
 	case "chars", "chars_password":
 		entry := newTextInputModel(entryType)
 		focusableModels = append(focusableModels, &entry)
+		label = strings.TrimSuffix(label, ":") + ":"
 	}
 	if buttonLabel != "" {
 		button := newAuthReselectionButtonModel(buttonLabel)
@@ -147,4 +151,16 @@ func (m formModel) Blur() {
 		return
 	}
 	m.focusableModels[m.focusIndex].Blur()
+}
+
+// Focused returns whether if this model is focused.
+func (m formModel) Focused() bool {
+	if len(m.focusableModels) == 0 {
+		// We consider the model being focused in this case, since there's nothing
+		// to interact with, but we want to be able to draw.
+		return true
+	}
+	return slices.ContainsFunc(m.focusableModels, func(ac authenticationComponent) bool {
+		return ac.Focused()
+	})
 }

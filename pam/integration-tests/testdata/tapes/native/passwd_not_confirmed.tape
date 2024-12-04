@@ -1,61 +1,48 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username:/
 Show
 
 Hide
-Type "user-integration-wrong-confirmation"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
+TypeUsername "user-integration-wrong-confirmation"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Confirm Password/
 Show
 
 Hide
 Type "badpass"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Confirm Password/
 Show
 
 Hide
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

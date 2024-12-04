@@ -164,5 +164,8 @@ func (m userSelectionModel) View() string {
 	if !m.enabled {
 		return ""
 	}
+	if !m.Focused() {
+		return ""
+	}
 	return m.Model.View()
 }

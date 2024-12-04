@@ -1,45 +1,42 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username:/
 Show
 
 Hide
-Type "user-integration-switch-username"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-switch-username"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "r"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait /Username:/
 Show
 
 Hide
-Type "user-integration-username-switched"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-username-switched"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

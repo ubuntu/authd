@@ -9,6 +9,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -23,21 +24,32 @@ import (
 )
 
 const (
-	vhsWidth      = "Width"
-	vhsHeight     = "Height"
-	vhsFontFamily = "FontFamily"
-	vhsFontSize   = "FontSize"
-	vhsPadding    = "Padding"
-	vhsMargin     = "Margin"
-	vhsShell      = "Shell"
+	vhsWidth       = "Width"
+	vhsHeight      = "Height"
+	vhsFontFamily  = "FontFamily"
+	vhsFontSize    = "FontSize"
+	vhsPadding     = "Padding"
+	vhsMargin      = "Margin"
+	vhsShell       = "Shell"
+	vhsWaitTimeout = "WaitTimeout"
+	vhsWaitPattern = "WaitPattern"
 
 	vhsCommandVariable = "AUTHD_TEST_TAPE_COMMAND"
 
+	vhsCommandFinalAuthWaitVariable         = "AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT"
+	vhsCommandFinalChangeAuthokWaitVariable = "AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT"
+
+	vhsClearCommands = `Hide
+Type "clear"
+Enter
+Wait
+Show`
+
 	authdSleepDefault                 = "AUTHD_SLEEP_DEFAULT"
 	authdSleepLong                    = "AUTHD_SLEEP_LONG"
-	authdSleepCommand                 = "AUTHD_SLEEP_COMMAND"
 	authdSleepExampleBrokerMfaWait    = "AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT"
 	authdSleepExampleBrokerQrcodeWait = "AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT"
+	authdSleepQrCodeReselection       = "AUTHD_SLEEP_QRCODE_RESELECTION_WAIT"
 )
 
 type tapeSetting struct {
@@ -46,28 +58,71 @@ type tapeSetting struct {
 }
 
 type tapeData struct {
-	Name         string
-	Command      string
-	CommandSleep time.Duration
-	Outputs      []string
-	Settings     map[string]any
-	Env          map[string]string
-	Variables    map[string]string
+	Name      string
+	Command   string
+	Outputs   []string
+	Settings  map[string]any
+	Env       map[string]string
+	Variables map[string]string
+}
+
+type vhsTestType int
+
+const (
+	vhsTestTypeCLI = iota
+	vhsTestTypeNative
+	vhsTestTypeSSH
+)
+
+func (tt vhsTestType) tapesPath(t *testing.T) string {
+	t.Helper()
+
+	switch tt {
+	case vhsTestTypeCLI:
+		return "cli"
+	case vhsTestTypeNative:
+		return "native"
+	case vhsTestTypeSSH:
+		return "ssh"
+	default:
+		t.Errorf("Unknown test type %d", tt)
+		return ""
+	}
 }
 
 var (
 	defaultSleepValues = map[string]time.Duration{
-		authdSleepDefault: 300 * time.Millisecond,
-		authdSleepCommand: 400 * time.Millisecond,
+		authdSleepDefault: 100 * time.Millisecond,
 		authdSleepLong:    1 * time.Second,
 		// Keep these in sync with example broker default wait times
 		authdSleepExampleBrokerMfaWait:    4 * time.Second,
 		authdSleepExampleBrokerQrcodeWait: 4 * time.Second,
+		// Keep this bigger or equal of qrcodemodel's reselectionWaitTime
+		authdSleepQrCodeReselection: 400 * time.Millisecond,
 	}
 
 	vhsSleepRegex = regexp.MustCompile(
-		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?.*$`)
+		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?(.*)$`)
 	vhsEmptyLinesRegex = regexp.MustCompile(`(?m)((^\n^\n)+(^\n)?|^\n)(^─+$)`)
+
+	// vhsWaitRegex ensures proper debug on Wait /Pattern/ command.
+	vhsWaitRegex = regexp.MustCompile(`\bWait(\+Line)?(@\S+)?[\t ]+(/(.+)/|(.+))`)
+	// vhsWaitSuffix adds support for Wait+Suffix /Pattern/ command.
+	vhsWaitSuffix = regexp.MustCompile(`\bWait\+Suffix(@\S+)?[\t ]+(/(.*)/|(.*))`)
+	// vhsWaitPromptRegex adds support for Wait+Prompt /Pattern/ command.
+	vhsWaitPromptRegex = regexp.MustCompile(`\bWait\+Prompt(@\S+)?[\t ]+(/(.*)/|(.*))`)
+	// vhsWaitCLIPromptRegex adds support for Wait+CLIPrompt /Pattern1/ /Pattern2/ command.
+	vhsWaitCLIPromptRegex = regexp.MustCompile(
+		`\bWait\+CLIPrompt(@\S+)?[\t ]+/([^/]+)/([\t ]+/([^/]+)/)?([\t ]+/(.+)/)?`)
+	// vhsWaitNth adds support for Wait+Nth(X) /Pattern/ command, where X is the
+	// number of values of the same content we want to match.
+	vhsWaitNth = regexp.MustCompile(`\bWait\+Nth\((\d+)\)(@\S+)?[\t ]+(/(.*)/|(.*))`)
+
+	vhsTypeAndWaitUsername    = regexp.MustCompile(`TypeUsername "([^"]+)"`)
+	vhsTypeAndWaitCLIPassword = regexp.MustCompile(`TypeCLIPassword "([^"]+)"`)
+
+	// vhsClearTape clears the tape by clearing the terminal.
+	vhsClearTape = regexp.MustCompile(`\bClearTerminal\b`)
 )
 
 func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
@@ -76,18 +131,18 @@ func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 		vhsHeight: 500,
 		// TODO: Ideally, we should use Ubuntu Mono. However, the github runner is still on Jammy, which does not have it.
 		// We should update this to use Ubuntu Mono once the runner is updated.
-		vhsFontFamily: "Monospace",
-		vhsFontSize:   13,
-		vhsPadding:    0,
-		vhsMargin:     0,
-		vhsShell:      "bash",
+		vhsFontFamily:  "Monospace",
+		vhsFontSize:    13,
+		vhsPadding:     0,
+		vhsMargin:      0,
+		vhsShell:       "bash",
+		vhsWaitTimeout: 10 * time.Second,
 	}
 	for _, s := range settings {
 		m[s.Key] = s.Value
 	}
 	return tapeData{
-		Name:         tapeName,
-		CommandSleep: defaultSleepValues[authdSleepDefault],
+		Name: tapeName,
 		Outputs: []string{
 			tapeName + ".txt",
 			// If we don't specify a .gif output, it will still create a default out.gif file.
@@ -130,7 +185,7 @@ func (td *tapeData) AddClientOptions(t *testing.T, opts clientOptions) {
 	}
 }
 
-func (td tapeData) RunVhs(t *testing.T, tapesDir, outDir string, cliEnv []string) {
+func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cliEnv []string) {
 	t.Helper()
 
 	cmd := exec.Command("env", "vhs")
@@ -152,8 +207,31 @@ func (td tapeData) RunVhs(t *testing.T, tapesDir, outDir string, cliEnv []string
 		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", pam_test.RunnerEnvLogFile, e))
 	}
 
-	cmd.Args = append(cmd.Args, td.PrepareTape(t, tapesDir, outDir))
+	cmd.Args = append(cmd.Args, td.PrepareTape(t, testType, outDir))
 	out, err := cmd.CombinedOutput()
+
+	isSSHError := func(processOut []byte) bool {
+		const sshConnectionResetByPeer = "Connection reset by peer"
+		const sshConnectionClosed = "Connection closed by"
+		output := string(processOut)
+		if strings.Contains(output, sshConnectionResetByPeer) {
+			return true
+		}
+		return strings.Contains(output, sshConnectionClosed)
+	}
+	if err != nil && testType == vhsTestTypeSSH && isSSHError(out) {
+		t.Logf("SSH Connection failed on tape %q: %v: %s", td.Name, err, out)
+		// Let's repeat first, if it fails again, let's just skip the test.
+		//nolint:gosec // G204 it's a test and we explicitly set the parameters before.
+		newCmd := exec.Command(cmd.Args[0], cmd.Args[1:]...)
+		newCmd.Dir = cmd.Dir
+		newCmd.Env = slices.Clone(cmd.Env)
+		out, err = newCmd.CombinedOutput()
+		if err != nil && isSSHError(out) {
+			t.Skipf("SSH Connection failed on tape %q again, it's not an authd issue, ignoring it!\n%s\n",
+				td.Name, out)
+		}
+	}
 	require.NoError(t, err, "Failed to run tape %q: %v: %s", td.Name, err, out)
 }
 
@@ -163,7 +241,17 @@ func (td tapeData) String() string {
 		str += fmt.Sprintf("Output %q\n", o)
 	}
 	for s, v := range td.Settings {
-		str += fmt.Sprintf(`Set %s "%v"`+"\n", s, v)
+		switch vv := v.(type) {
+		case time.Duration:
+			v = fmt.Sprintf("%dms", sleepDuration(vv).Milliseconds())
+		case string:
+			if s == vhsWaitPattern {
+				// VHS wait pattern can be a regex, so don't quote it by default.
+				break
+			}
+			v = fmt.Sprintf("%q", vv)
+		}
+		str += fmt.Sprintf(`Set %s %v`+"\n", s, v)
 	}
 	for s, v := range td.Env {
 		str += fmt.Sprintf(`Env %s %q`+"\n", s, v)
@@ -240,18 +328,42 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 	return got
 }
 
-func (td tapeData) PrepareTape(t *testing.T, tapesDir, outputPath string) string {
+func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath string) string {
 	t.Helper()
 
 	currentDir, err := os.Getwd()
 	require.NoError(t, err, "Setup: Could not get current directory for the tests")
 
 	tape, err := os.ReadFile(filepath.Join(
-		currentDir, "testdata", "tapes", tapesDir, td.Name+".tape"))
+		currentDir, "testdata", "tapes", testType.tapesPath(t), td.Name+".tape"))
 	require.NoError(t, err, "Setup: read tape file %s", td.Name)
 
-	tapeString := evaluateTapeVariables(t, string(tape), td)
-	tape = []byte(fmt.Sprintf("%s\n%s", td, tapeString))
+	tapeString := evaluateTapeVariables(t, string(tape), td, testType)
+
+	tapeLines := strings.Split(tapeString, "\n")
+	var lastCommand string
+	for i := len(tapeLines) - 1; i >= 0; i-- {
+		s := strings.TrimSpace(tapeLines[i])
+		if len(s) == 0 || s[0] == '#' {
+			continue
+		}
+		if idx := strings.Index(s, "#"); idx > 0 {
+			s = strings.TrimSpace(s[:idx])
+		}
+		lastCommand = s
+		break
+	}
+	require.Equal(t, "Show", lastCommand,
+		"Setup: Tape %q must terminate with a `Show` command", td.Name)
+
+	tape = []byte(strings.Join([]string{
+		td.String(),
+		tapeString,
+		// Note that not sleeping enough may lead to a system hang, so keep it
+		// in mind if tests are failing in CI with with error code 143.
+		fmt.Sprintf("Sleep %dms",
+			sleepDuration(defaultSleepValues[authdSleepDefault]).Milliseconds()),
+	}, "\n"))
 
 	tapePath := filepath.Join(outputPath, td.Name)
 	err = os.WriteFile(tapePath, tape, 0600)
@@ -266,22 +378,12 @@ func (td tapeData) PrepareTape(t *testing.T, tapesDir, outputPath string) string
 	return tapePath
 }
 
-func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData) string {
+func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testType vhsTestType) string {
 	t.Helper()
 
-	require.Greater(t, td.CommandSleep.Milliseconds(), int64(0),
-		"Setup: Command sleep can't be unset or minor than 0")
-
-	sleepValues := &defaultSleepValues
-	if td.CommandSleep != defaultSleepValues[authdSleepCommand] {
-		sv := maps.Clone(*sleepValues)
-		sv[authdSleepCommand] = td.CommandSleep
-		sleepValues = &sv
-	}
-
 	for _, m := range vhsSleepRegex.FindAllStringSubmatch(tapeString, -1) {
-		fullMatch, sleepKind, op, arg := m[0], m[1], m[3], m[4]
-		sleep, ok := (*sleepValues)[sleepKind]
+		fullMatch, sleepKind, op, arg, rest := m[0], m[1], m[3], m[4], m[5]
+		sleep, ok := defaultSleepValues[sleepKind]
 		require.True(t, ok, "Setup: unknown sleep kind: %q", sleepKind)
 
 		// We don't need to support math that is complex enough to use proper parsers as go.ast
@@ -302,7 +404,7 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData) string 
 
 		replaceRegex := regexp.MustCompile(fmt.Sprintf(`(?m)%s$`, regexp.QuoteMeta(fullMatch)))
 		tapeString = replaceRegex.ReplaceAllString(tapeString,
-			fmt.Sprintf("%dms", sleepDuration(sleep).Milliseconds()))
+			fmt.Sprintf("%dms%s", sleepDuration(sleep).Milliseconds(), rest))
 	}
 
 	if td.Command == "" {
@@ -328,7 +430,55 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData) string 
 		tapeString = strings.ReplaceAll(tapeString, variable, v)
 	}
 
+	tapeString = strings.ReplaceAll(tapeString,
+		fmt.Sprintf("${%s}", vhsCommandFinalAuthWaitVariable),
+		finalWaitCommands(testType, authd.SessionMode_AUTH))
+	tapeString = strings.ReplaceAll(tapeString,
+		fmt.Sprintf("${%s}", vhsCommandFinalChangeAuthokWaitVariable),
+		finalWaitCommands(testType, authd.SessionMode_PASSWD))
+
+	tapeString = vhsTypeAndWaitUsername.ReplaceAllString(tapeString, `Type "$1"
+Wait /Username: $1\n/`)
+	for _, m := range vhsTypeAndWaitCLIPassword.FindAllStringSubmatch(tapeString, -1) {
+		fullMatch, password := m[0], m[1]
+		tapeString = strings.ReplaceAll(tapeString, fullMatch,
+			fmt.Sprintf(`Type "%s"
+Wait+Screen /\n> %s\n/`,
+				regexp.QuoteMeta(password),
+				regexp.QuoteMeta(strings.Repeat("*", len(password)))))
+	}
+
+	tapeString = vhsWaitRegex.ReplaceAllString(tapeString,
+		`Wait+Suffix$2 /(^|[\n]+)[^\n]*$4$5[^\n]*/`)
+	tapeString = vhsWaitCLIPromptRegex.ReplaceAllString(tapeString,
+		`Wait+Suffix$1 /$2:\n>[\n]+[ ]*$4[\n]*[\n]+$6/`)
+	tapeString = vhsWaitPromptRegex.ReplaceAllString(tapeString,
+		`Wait+Suffix$1 /$3$4:\n>/`)
+	tapeString = vhsWaitSuffix.ReplaceAllString(tapeString,
+		`Wait+Screen$1 /$3$4[\n]*$$/`)
+	tapeString = vhsWaitNth.ReplaceAllString(tapeString,
+		`Wait+Screen$2 /($4$5(.|\n)+){$1}/`)
+	tapeString = vhsClearTape.ReplaceAllLiteralString(tapeString, vhsClearCommands)
+
 	return tapeString
+}
+
+func finalWaitCommands(testType vhsTestType, sessionMode authd.SessionMode) string {
+	if testType != vhsTestTypeCLI {
+		return "Wait"
+	}
+
+	firstResult := pam_test.RunnerResultActionAuthenticate
+	if sessionMode == authd.SessionMode_PASSWD {
+		firstResult = pam_test.RunnerResultActionChangeAuthTok
+	}
+
+	return fmt.Sprintf(`Wait+Screen /%s[^\n]*/
+Wait+Screen /%s[^\n]*/
+Wait`,
+		regexp.QuoteMeta(firstResult.String()),
+		regexp.QuoteMeta(pam_test.RunnerResultActionAcctMgmt.String()),
+	)
 }
 
 func requireRunnerResultForUser(t *testing.T, sessionMode authd.SessionMode, user, goldenContent string) {

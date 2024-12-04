@@ -1,23 +1,18 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username:/
 Show
 
 Hide
-Type "user-local-broker"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
+TypeUsername "user-local-broker"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "1"
 Enter
-Sleep ${AUTHD_SLEEP_LONG}
+Wait
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

@@ -55,51 +55,69 @@ func TestNativeAuthenticate(t *testing.T) {
 			clientOptions: clientOptions{PamUser: "user-integration-form-w-button"},
 		},
 		"Authenticate user with qr code": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3000}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 3000}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "7",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
+			},
 			clientOptions: clientOptions{PamUser: "user-integration-qr-code"},
 		},
 		"Authenticate user with qr code in a TTY": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 4000}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 4000}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "7",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
+			},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty",
 				Term:    "linux",
 			},
 		},
 		"Authenticate user with qr code in a TTY session": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 4000}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 4000}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "7",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
+			},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-tty-session",
 				Term:    "xterm-256color", SessionType: "tty",
 			},
 		},
 		"Authenticate user with qr code in screen": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 4000}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "7"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 4000}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "7",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
+			},
 			clientOptions: clientOptions{
 				PamUser: "user-integration-qr-code-screen",
 				Term:    "screen",
 			},
 		},
 		"Authenticate user with qr code in polkit": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3500}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "2"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "2",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "Login code",
+			},
 			clientOptions: clientOptions{
 				PamUser:        "user-integration-qr-code-polkit",
 				PamServiceName: "polkit-1",
 			},
 		},
 		"Authenticate user with qr code in ssh": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3500}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "2"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "2",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "Login code",
+			},
 			clientOptions: clientOptions{
 				PamUser:        "user-integration-pre-check-ssh-service-qr-code",
 				PamServiceName: "sshd",
@@ -126,7 +144,17 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape:          "switch_auth_mode",
 			tapeSettings:  []tapeSetting{{vhsHeight, 3000}},
 			clientOptions: clientOptions{PamUser: "user-integration-switch-mode"},
-			tapeVariables: map[string]string{"AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM": "6"},
+			tapeVariables: map[string]string{
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_SEND_URL_TO_EMAIL_ITEM":   "2",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_FIDO_DEVICE_FOO_ITEM":     "3",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_PHONE_33_ITEM":            "4",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_PHONE_1_ITEM":             "5",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM":            "6",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_QR_OR_LOGIN_CODE_ITEM":    "7",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_AUTHENTICATION_CODE_ITEM": "8",
+
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_QR_OR_LOGIN_CODE_ITEM_NAME": "QR code",
+			},
 		},
 		"Authenticate user switching username": {
 			tape: "switch_username",
@@ -135,6 +163,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape:          "switch_local_broker",
 			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
 			clientOptions: clientOptions{PamUser: "user-integration-switch-broker"},
+			tapeVariables: map[string]string{"AUTHD_TAPE_FINAL_WAIT_PATTERN": `/>[\n]*/`},
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
@@ -171,7 +200,6 @@ func TestNativeAuthenticate(t *testing.T) {
 
 		"Remember last successful broker and mode": {
 			tape:          "remember_broker_and_mode",
-			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
 			clientOptions: clientOptions{PamUser: "user-integration-remember-mode"},
 		},
 		"Autoselect local broker for local user": {
@@ -269,12 +297,11 @@ func TestNativeAuthenticate(t *testing.T) {
 			}
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Command = tc.tapeCommand
-			td.CommandSleep = defaultSleepValues[authdSleepCommand] * 2
 			td.Env[socketPathEnv] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.Variables = tc.tapeVariables
 			td.AddClientOptions(t, tc.clientOptions)
-			td.RunVhs(t, "native", outDir, cliEnv)
+			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
@@ -319,8 +346,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		},
 
 		"Retry if new password is rejected by broker": {
-			tape:         "passwd_rejected",
-			tapeSettings: []tapeSetting{{vhsHeight, 1000}},
+			tape: "passwd_rejected",
 		},
 		"Retry if new password is same of previous": {
 			tape: "passwd_not_changed",
@@ -370,7 +396,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			td.Env[socketPathEnv] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.AddClientOptions(t, clientOptions{})
-			td.RunVhs(t, "native", outDir, cliEnv)
+			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)

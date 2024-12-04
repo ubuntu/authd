@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
@@ -82,8 +83,11 @@ func TestCLIAuthenticate(t *testing.T) {
 			},
 		},
 		"Authenticate user with qr code after many regenerations": {
-			tape:         "qr_code_quick_regenerate",
-			tapeSettings: []tapeSetting{{vhsHeight, 800}},
+			tape: "qr_code_quick_regenerate",
+			tapeSettings: []tapeSetting{
+				{vhsHeight, 800},
+				{vhsWaitTimeout, 15 * time.Second},
+			},
 		},
 		"Authenticate user and reset password while enforcing policy": {
 			tape: "mandatory_password_reset",
@@ -173,7 +177,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			td.Command = tapeCommand
 			td.Env[socketPathEnv] = socketPath
 			td.AddClientOptions(t, tc.clientOptions)
-			td.RunVhs(t, "cli", outDir, cliEnv)
+			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
@@ -260,7 +264,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			td.Variables = tc.tapeVariables
 			td.Env[socketPathEnv] = socketPath
 			td.AddClientOptions(t, clientOptions{})
-			td.RunVhs(t, "cli", outDir, cliEnv)
+			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)

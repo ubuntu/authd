@@ -1,55 +1,58 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "r"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Choose your authentication method/
+Wait+Screen /8\. Authentication code/
 Show
 
 Hide
 Type "8"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Choose action/
 Show
 
 Hide
 Type "1"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Enter your one time credential/
 Show
 
 Hide
 Type "temporary pass0"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait
 Show
 
+ClearTerminal
+
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Prompt /Choose action/
 Show
 
 Hide
 Type "1"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Enter your one time credential/
 Show
 
 Hide
 Type "temporary pass0"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}
