@@ -130,6 +130,19 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
+          # Disable installing of locales and manpages
+          cat <<"EOF" | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
+          # Delete locales
+          path-exclude=/usr/share/locale/*
+
+          # Delete man pages
+          path-exclude=/usr/share/man/*
+
+          # Delete docs
+          path-exclude=/usr/share/doc/*
+          path-include=/usr/share/doc/*/copyright
+          EOF
+
           sudo apt update
 
           # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
