@@ -1,7 +1,9 @@
 GroupByID:
-    "22222": '{"Name":"group2","GID":22222}'
+    "22222": '{"Name":"group2","GID":22222,"UGID":"56781234"}'
 GroupByName:
-    group2: '{"Name":"group2","GID":22222}'
+    group2: '{"Name":"group2","GID":22222,"UGID":"56781234"}'
+GroupByUGID:
+    "56781234": '{"Name":"group2","GID":22222,"UGID":"56781234"}'
 GroupToUsers:
     "22222": '{"GID":22222,"UIDs":[1111]}'
 UserByID:

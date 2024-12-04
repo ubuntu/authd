@@ -1,9 +1,12 @@
 GroupByID:
-    "1369382419": '{"Name":"group-IA_second_call","GID":1369382419}'
-    "1556535091": '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","GID":1556535091}'
+    "1369382419": '{"Name":"group-IA_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
+    "1556535091": '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","GID":1556535091,"UGID":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call"}'
 GroupByName:
-    TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","GID":1556535091}'
-    group-IA_second_call: '{"Name":"group-IA_second_call","GID":1369382419}'
+    TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","GID":1556535091,"UGID":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call"}'
+    group-IA_second_call: '{"Name":"group-IA_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
+GroupByUGID:
+    TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","GID":1556535091,"UGID":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call"}'
+    ugid-IA_second_call: '{"Name":"group-IA_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
 GroupToUsers:
     "1369382419": '{"GID":1369382419,"UIDs":[1556535091]}'
     "1556535091": '{"GID":1556535091,"UIDs":[1556535091]}'

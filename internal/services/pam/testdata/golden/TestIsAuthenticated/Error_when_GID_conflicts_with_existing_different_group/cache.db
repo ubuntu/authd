@@ -1,16 +1,25 @@
 GroupByID:
     "71705": '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":71705}'
-    "1795458232": '{"Name":"different-group-same-gid","GID":1795458232}'
+    "1137309812": '{"Name":"TestIsAuthenticated/Error_when_GID_conflicts_with_existing_different_group_separator_conflicting-gid","GID":1137309812,"UGID":"TestIsAuthenticated/Error_when_GID_conflicts_with_existing_different_group_separator_conflicting-gid"}'
+    "1795458232": '{"Name":"group-conflicting-gid","GID":1795458232,"UGID":"ugid-conflicting-gid"}'
 GroupByName:
+    TestIsAuthenticated/Error_when_GID_conflicts_with_existing_different_group_separator_conflicting-gid: '{"Name":"TestIsAuthenticated/Error_when_GID_conflicts_with_existing_different_group_separator_conflicting-gid","GID":1137309812,"UGID":"TestIsAuthenticated/Error_when_GID_conflicts_with_existing_different_group_separator_conflicting-gid"}'
     TestIsAuthenticated/Successfully_authenticate_separator_success: '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":71705}'
-    different-group-same-gid: '{"Name":"different-group-same-gid","GID":1795458232}'
+    group-conflicting-gid: '{"Name":"group-conflicting-gid","GID":1795458232,"UGID":"ugid-conflicting-gid"}'
+GroupByUGID:
+    TestIsAuthenticated/Error_when_GID_conflicts_with_existing_different_group_separator_conflicting-gid: '{"Name":"TestIsAuthenticated/Error_when_GID_conflicts_with_existing_different_group_separator_conflicting-gid","GID":1137309812,"UGID":"TestIsAuthenticated/Error_when_GID_conflicts_with_existing_different_group_separator_conflicting-gid"}'
+    ugid-conflicting-gid: '{"Name":"group-conflicting-gid","GID":1795458232,"UGID":"ugid-conflicting-gid"}'
 GroupToUsers:
     "71705": '{"GID":71705,"UIDs":[71705]}'
-    "1795458232": '{"GID":1795458232,"UIDs":[71705]}'
+    "1137309812": '{"GID":1137309812,"UIDs":[1137309812]}'
+    "1795458232": '{"GID":1795458232,"UIDs":[71705,1137309812]}'
 UserByID:
     "71705": '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","UID":71705,"GID":71705,"Gecos":"gecos for success","Dir":"/home/success","Shell":"/bin/sh/success","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+    "1137309812": '{"Name":"TestIsAuthenticated/Error_when_GID_conflicts_with_existing_different_group_separator_conflicting-gid","UID":1137309812,"GID":1137309812,"Gecos":"gecos for conflicting-gid","Dir":"/home/conflicting-gid","Shell":"/bin/sh/conflicting-gid","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserByName:
+    TestIsAuthenticated/Error_when_GID_conflicts_with_existing_different_group_separator_conflicting-gid: '{"Name":"TestIsAuthenticated/Error_when_GID_conflicts_with_existing_different_group_separator_conflicting-gid","UID":1137309812,"GID":1137309812,"Gecos":"gecos for conflicting-gid","Dir":"/home/conflicting-gid","Shell":"/bin/sh/conflicting-gid","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
     TestIsAuthenticated/Successfully_authenticate_separator_success: '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","UID":71705,"GID":71705,"Gecos":"gecos for success","Dir":"/home/success","Shell":"/bin/sh/success","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserToBroker: {}
 UserToGroups:
     "71705": '{"UID":71705,"GIDs":[71705,1795458232]}'
+    "1137309812": '{"UID":1137309812,"GIDs":[1137309812,1795458232]}'

@@ -1,17 +1,21 @@
 - name: group1
   gid: 11111
+  ugid: ""
   users:
     - user1
 - name: group2
   gid: 22222
+  ugid: ""
   users:
     - user2
 - name: group3
   gid: 33333
+  ugid: ""
   users:
     - user3
 - name: commongroup
   gid: 99999
+  ugid: ""
   users:
     - user2
     - user3
