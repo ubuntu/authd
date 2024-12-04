@@ -294,6 +294,23 @@ func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath st
 	require.NoError(t, err, "Setup: read tape file %s", td.Name)
 
 	tapeString := evaluateTapeVariables(t, string(tape), td)
+
+	tapeLines := strings.Split(tapeString, "\n")
+	var lastCommand string
+	for i := len(tapeLines) - 1; i >= 0; i-- {
+		s := strings.TrimSpace(tapeLines[i])
+		if len(s) == 0 || s[0] == '#' {
+			continue
+		}
+		if idx := strings.Index(s, "#"); idx > 0 {
+			s = strings.TrimSpace(s[:idx])
+		}
+		lastCommand = s
+		break
+	}
+	require.Equal(t, "Show", lastCommand,
+		"Setup: Tape %q must terminate with a `Show` command", td.Name)
+
 	tape = []byte(strings.Join([]string{
 		td.String(),
 		tapeString,
