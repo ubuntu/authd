@@ -46,6 +46,8 @@ type Group struct {
 	GID  uint32
 }
 
+var getgrentMutex sync.Mutex
+
 // GetGroupEntries returns all group entries.
 func GetGroupEntries() []Group {
 	C.setgrent()
