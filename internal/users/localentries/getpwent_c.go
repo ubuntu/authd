@@ -55,8 +55,8 @@ func GetGroupEntries() []Group {
 	getgrentMutex.Lock()
 	defer getgrentMutex.Unlock()
 
-
-var getgrentMutex sync.Mutex
+	C.setgrent()
+	defer C.endgrent()
 
 	var entries []Group
 	for {
