@@ -17,7 +17,8 @@ func TestUpdateLocalGroups(t *testing.T) {
 	tests := map[string]struct {
 		username string
 
-		groups        []string
+		newGroups     []string
+		oldGroups     []string
 		groupFilePath string
 
 		wantErr bool
@@ -28,7 +29,7 @@ func TestUpdateLocalGroups(t *testing.T) {
 		"Insert new user in existing files with other users in our group":          {groupFilePath: "users_in_our_groups.group"},
 		"Insert new user in existing files with multiple other users in our group": {groupFilePath: "multiple_users_in_our_groups.group"},
 
-		// Users in existing groups
+		// User already in groups
 		"No-Op for user is already present in both local groups":                  {groupFilePath: "user_in_both_groups.group"},
 		"Insert user in the only local group when not present":                    {groupFilePath: "user_in_one_group.group"},
 		"Insert user in the only local group when not present even with multiple": {groupFilePath: "user_and_others_in_one_groups.group"},
@@ -40,9 +41,14 @@ func TestUpdateLocalGroups(t *testing.T) {
 		"Missing group is ignored":              {groupFilePath: "missing_group.group"},
 		"Group file with empty line is ignored": {groupFilePath: "empty_line.group"},
 
-		// No group
-		"No-Op for user with no groups and was in none": {groups: []string{}, groupFilePath: "no_users_in_our_groups.group"},
-		"Remove user with no groups from existing ones": {groups: []string{}, groupFilePath: "user_in_both_groups.group"},
+		// No new groups
+		"No-Op for user with no groups and was in none": {newGroups: []string{}, groupFilePath: "no_users_in_our_groups.group"},
+		"Remove user with no groups from existing ones": {newGroups: []string{}, groupFilePath: "user_in_both_groups.group"},
+
+		// User removed from groups
+		"User is added to group they were added to before":          {newGroups: []string{"localgroup1"}, oldGroups: []string{"localgroup1"}, groupFilePath: "no_users.group"},
+		"User is removed from old groups but not from other groups": {newGroups: []string{}, oldGroups: []string{"localgroup3"}, groupFilePath: "user_in_both_groups.group"},
+		"User is not removed from groups they are not part of":      {newGroups: []string{}, oldGroups: []string{"localgroup2"}, groupFilePath: "user_in_one_group.group"},
 
 		// Error cases
 		"Error on missing groups file":                {groupFilePath: "does_not_exists.group", wantErr: true},
@@ -54,8 +60,8 @@ func TestUpdateLocalGroups(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if tc.groups == nil {
-				tc.groups = []string{"localgroup1", "localgroup3"}
+			if tc.newGroups == nil {
+				tc.newGroups = []string{"localgroup1", "localgroup3"}
 			}
 
 			switch tc.username {
@@ -73,7 +79,7 @@ func TestUpdateLocalGroups(t *testing.T) {
 				groupFilePath, destCmdsFile,
 			}
 
-			err := localgroups.Update(tc.username, tc.groups, localgroups.WithGroupPath(groupFilePath), localgroups.WithGpasswdCmd(cmdArgs))
+			err := localgroups.Update(tc.username, tc.newGroups, tc.oldGroups, localgroups.WithGroupPath(groupFilePath), localgroups.WithGpasswdCmd(cmdArgs))
 			if tc.wantErr {
 				require.Error(t, err, "UpdateLocalGroups should have failed")
 			} else {

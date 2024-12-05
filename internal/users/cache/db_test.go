@@ -156,9 +156,10 @@ func TestUpdateUserEntry(t *testing.T) {
 	}
 
 	tests := map[string]struct {
-		userCase   string
-		groupCases []string
-		dbFile     string
+		userCase    string
+		groupCases  []string
+		localGroups []string
+		dbFile      string
 
 		wantErr bool
 	}{
@@ -176,6 +177,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Update user by adding a new group":         {groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group"},
 		"Update user by adding a new default group": {groupCases: []string{"group2", "group1"}, dbFile: "one_user_and_group"},
 		"Remove group from user":                    {groupCases: []string{"group2"}, dbFile: "one_user_and_group"},
+		"Update user by adding a new local group":   {localGroups: []string{"localgroup1"}, dbFile: "one_user_and_group"},
 
 		// Multi users handling
 		"Update only user even if we have multiple of them":     {dbFile: "multiple_users_and_groups"},
@@ -219,7 +221,7 @@ func TestUpdateUserEntry(t *testing.T) {
 			}
 			user.GID = groups[0].GID
 
-			err := c.UpdateUserEntry(user, groups)
+			err := c.UpdateUserEntry(user, groups, tc.localGroups)
 			if tc.wantErr {
 				require.Error(t, err, "UpdateFromUserInfo should return an error but didn't")
 				return

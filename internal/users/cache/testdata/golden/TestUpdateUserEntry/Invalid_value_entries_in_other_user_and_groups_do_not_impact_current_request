@@ -29,3 +29,5 @@ UserToGroups:
     "1111": '{"UID":1111,"GIDs":[11111]}'
     "2222": '"not-a-valid-json"'
     "3333": '"not-a-valid-json"'
+UserToLocalGroups:
+    "1111": "null"

@@ -124,7 +124,7 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 		}
 	}
 
-	var groupContents []cache.GroupDB
+	var authdGroups []cache.GroupDB
 	var localGroups []string
 	for _, g := range u.Groups {
 		// Empty GID assume local group
@@ -132,17 +132,22 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 			localGroups = append(localGroups, g.Name)
 			continue
 		}
-		groupContents = append(groupContents, cache.NewGroupDB(g.Name, *g.GID, nil))
+		authdGroups = append(authdGroups, cache.NewGroupDB(g.Name, *g.GID, nil))
+	}
+
+	oldLocalGroups, err := m.cache.UserLocalGroups(u.UID)
+	if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
+		return err
 	}
 
 	// Update user information in the cache.
 	userDB := cache.NewUserDB(u.Name, u.UID, *u.Groups[0].GID, u.Gecos, u.Dir, u.Shell)
-	if err := m.cache.UpdateUserEntry(userDB, groupContents); err != nil {
+	if err := m.cache.UpdateUserEntry(userDB, authdGroups, localGroups); err != nil {
 		return err
 	}
 
 	// Update local groups.
-	if err := localgroups.Update(u.Name, localGroups); err != nil {
+	if err := localgroups.Update(u.Name, localGroups, oldLocalGroups); err != nil {
 		return errors.Join(err, m.cache.DeleteUser(u.UID))
 	}
 

@@ -13,4 +13,4 @@ UserToBroker:
 UserToGroups:
     "1111": '{"UID":1111,"GIDs":[11111]}'
 UserToLocalGroups:
-    "1111": "null"
+    "1111": '["localgroup1"]'

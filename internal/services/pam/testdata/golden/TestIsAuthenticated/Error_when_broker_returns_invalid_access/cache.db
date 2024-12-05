@@ -5,3 +5,4 @@ UserByID: {}
 UserByName: {}
 UserToBroker: {}
 UserToGroups: {}
+UserToLocalGroups: {}
