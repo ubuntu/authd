@@ -35,7 +35,7 @@ providers are under active development.
 ## Documentation
 
 If you want to know more about using authd, refer to the
-[official authd documentation](docs-url).
+[official authd documentation][docs-url].
 
 The documentation includes how-to guides on installing and configuring authd,
 in addition to information about authd architecture and troubleshooting.
