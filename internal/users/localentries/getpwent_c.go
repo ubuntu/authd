@@ -4,12 +4,15 @@ package localentries
 // #include <pwd.h>
 // #include <grp.h>
 import "C"
+import "sync"
 
 // Passwd represents a passwd entry.
 type Passwd struct {
 	Name string
 	UID  uint32
 }
+
+var getpwentMutex sync.Mutex
 
 // GetPasswdEntries returns all passwd entries.
 func GetPasswdEntries() []Passwd {
