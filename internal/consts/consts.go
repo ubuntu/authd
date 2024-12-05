@@ -21,6 +21,9 @@ const (
 	// DefaultBrokersConfPath is the default configuration directory for the brokers.
 	DefaultBrokersConfPath = "/etc/authd/brokers.d/"
 
-	// DefaultCacheDir is the default directory for the cache.
-	DefaultCacheDir = "/var/cache/authd/"
+	// OldCacheDir is the directory where the database was stored by default before 0.3.7.
+	OldCacheDir = "/var/cache/authd/"
+
+	// DefaultCacheDir is the default directory for the database.
+	DefaultCacheDir = "/var/lib/authd/"
 )
