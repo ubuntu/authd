@@ -1,5 +1,5 @@
-// Package localgroups handles the synchronization of local groups the users.
-package localgroups
+// Package localentries provides functions to retrieve passwd and group entries and to update the groups of a user.
+package localentries
 
 import (
 	"bufio"
@@ -74,6 +74,16 @@ func Update(username string, newGroups []string, oldGroups []string, args ...Opt
 	}
 
 	return nil
+}
+
+// getPasswdUsernames gets the passwd entries and returns their usernames.
+func getPasswdUsernames() []string {
+	var usernames []string
+	for _, e := range GetPasswdEntries() {
+		usernames = append(usernames, e.Name)
+	}
+
+	return usernames
 }
 
 // existingLocalGroups returns which groups from groupPath the user is part of.

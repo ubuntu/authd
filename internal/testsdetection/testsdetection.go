@@ -7,6 +7,11 @@ import (
 
 var integrationtests = false
 
+// IsIntegrationTest returns true if we are running under integration tests.
+func IsIntegrationTest() bool {
+	return integrationtests
+}
+
 // MustBeTesting panics if we are not running under tests or integration tests.
 func MustBeTesting() {
 	if !testing.Testing() && !integrationtests {
