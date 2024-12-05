@@ -50,8 +50,6 @@ var getgrentMutex sync.Mutex
 
 // GetGroupEntries returns all group entries.
 func GetGroupEntries() []Group {
-	C.setgrent()
-	defer C.endgrent()
 	// This function repeatedly calls getgrent, which iterates over the records in the group database.
 	// Use a mutex to avoid that parallel calls to this function interfere with each other.
 	getgrentMutex.Lock()
