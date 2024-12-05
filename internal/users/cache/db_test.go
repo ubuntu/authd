@@ -149,10 +149,11 @@ func TestUpdateUserEntry(t *testing.T) {
 		},
 	}
 	groupCases := map[string]cache.GroupDB{
-		"group1":    cache.NewGroupDB("group1", 11111, nil),
-		"newgroup1": cache.NewGroupDB("newgroup1", 11111, nil),
-		"group2":    cache.NewGroupDB("group2", 22222, nil),
-		"group3":    cache.NewGroupDB("group3", 33333, nil),
+		"group1":              cache.NewGroupDB("group1", 11111, nil),
+		"newgroup1":           cache.NewGroupDB("newgroup1", 11111, nil),
+		"new-group-same-name": cache.NewGroupDB("group1", 99999, nil),
+		"group2":              cache.NewGroupDB("group2", 22222, nil),
+		"group3":              cache.NewGroupDB("group3", 33333, nil),
 	}
 
 	tests := map[string]struct {
@@ -198,6 +199,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Error on invalid value entry in groupToUsers":                              {dbFile: "invalid_entry_in_groupToUsers", wantErr: true},
 		"Error on invalid value entry in groupToUsers for user dropping from group": {dbFile: "invalid_entry_in_groupToUsers_secondary_group", wantErr: true},
 		"Error on invalid value entry in groupByID for user dropping from group":    {dbFile: "invalid_entry_in_groupByID_secondary_group", wantErr: true},
+		"Error when group has conflicting name":                                     {groupCases: []string{"new-group-same-name"}, dbFile: "one_user_and_group", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
