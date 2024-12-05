@@ -1,14 +1,15 @@
 |
     GroupByID:
-        "11111": '{"Name":"group1","GID":11111}'
+        "11111": '{"Name":"group1","GID":11111,"UGID":""}'
         "33333": '{"Name":"group3","GID":33333}'
         "44444": '{"Name":"group4","GID":44444}'
         "99999": '{"Name":"commongroup","GID":99999}'
     GroupByName:
         commongroup: '{"Name":"commongroup","GID":99999}'
-        group1: '{"Name":"group1","GID":11111}'
+        group1: '{"Name":"group1","GID":11111,"UGID":""}'
         group3: '{"Name":"group3","GID":33333}'
         group4: '{"Name":"group4","GID":44444}'
+    GroupByUGID: {}
     GroupToUsers:
         "11111": '{"GID":11111,"UIDs":[1111]}'
         "33333": '{"GID":33333,"UIDs":[3333]}'

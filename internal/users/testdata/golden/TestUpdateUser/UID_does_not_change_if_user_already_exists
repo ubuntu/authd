@@ -1,8 +1,10 @@
 |
     GroupByID:
-        "1526760316": '{"Name":"user1","GID":1526760316}'
+        "1526760316": '{"Name":"user1","GID":1526760316,"UGID":"user1"}'
     GroupByName:
-        user1: '{"Name":"user1","GID":1526760316}'
+        user1: '{"Name":"user1","GID":1526760316,"UGID":"user1"}'
+    GroupByUGID:
+        user1: '{"Name":"user1","GID":1526760316,"UGID":"user1"}'
     GroupToUsers:
         "1526760316": '{"GID":1526760316,"UIDs":[1111]}'
     UserByID:

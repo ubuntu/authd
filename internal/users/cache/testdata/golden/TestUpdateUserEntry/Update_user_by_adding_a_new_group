@@ -1,9 +1,12 @@
 GroupByID:
-    "11111": '{"Name":"group1","GID":11111}'
-    "22222": '{"Name":"group2","GID":22222}'
+    "11111": '{"Name":"group1","GID":11111,"UGID":"12345678"}'
+    "22222": '{"Name":"group2","GID":22222,"UGID":"56781234"}'
 GroupByName:
-    group1: '{"Name":"group1","GID":11111}'
-    group2: '{"Name":"group2","GID":22222}'
+    group1: '{"Name":"group1","GID":11111,"UGID":"12345678"}'
+    group2: '{"Name":"group2","GID":22222,"UGID":"56781234"}'
+GroupByUGID:
+    "12345678": '{"Name":"group1","GID":11111,"UGID":"12345678"}'
+    "56781234": '{"Name":"group2","GID":22222,"UGID":"56781234"}'
 GroupToUsers:
     "11111": '{"GID":11111,"UIDs":[1111]}'
     "22222": '{"GID":22222,"UIDs":[1111]}'
