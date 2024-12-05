@@ -16,6 +16,11 @@ var getpwentMutex sync.Mutex
 
 // GetPasswdEntries returns all passwd entries.
 func GetPasswdEntries() []Passwd {
+	// This function repeatedly calls getpwent, which iterates over the records in the passwd database.
+	// Use a mutex to avoid that parallel calls to this function interfere with each other.
+	getpwentMutex.Lock()
+	defer getpwentMutex.Unlock()
+
 	C.setpwent()
 	defer C.endpwent()
 
