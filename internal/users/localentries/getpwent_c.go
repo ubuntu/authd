@@ -46,6 +46,8 @@ func GetGroupEntries() []Group {
 	C.setgrent()
 	defer C.endgrent()
 
+var getgrentMutex sync.Mutex
+
 	var entries []Group
 	for {
 		cGroup := C.getgrent()
