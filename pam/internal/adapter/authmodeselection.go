@@ -9,8 +9,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/msteinert/pam/v2"
-	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/proto/authd"
 )
 
 // authModeSelectionModel is the model list to select supported authentication modes.
@@ -84,33 +86,33 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 		return nil
 	}
 	return func() tea.Msg {
-		required, optional := "required", "optional"
-		supportedEntries := "optional:chars,chars_password"
-		requiredWithBooleans := "required:true,false"
-		optionalWithBooleans := "optional:true,false"
-
+		required, optional := layouts.Required, layouts.Optional
+		supportedEntries := layouts.OptionalItems(
+			entries.Chars,
+			entries.CharsPassword,
+		)
 		rendersQrCode := true
 
 		return supportedUILayoutsReceived{
 			layouts: []*authd.UILayout{
 				{
-					Type:   "form",
+					Type:   layouts.Form,
 					Label:  &required,
 					Entry:  &supportedEntries,
-					Wait:   &optionalWithBooleans,
+					Wait:   &layouts.OptionalWithBooleans,
 					Button: &optional,
 				},
 				{
-					Type:          "qrcode",
+					Type:          layouts.QrCode,
 					Content:       &required,
 					Code:          &optional,
-					Wait:          &requiredWithBooleans,
+					Wait:          &layouts.RequiredWithBooleans,
 					Label:         &optional,
 					Button:        &optional,
 					RendersQrcode: &rendersQrCode,
 				},
 				{
-					Type:   "newpassword",
+					Type:   layouts.NewPassword,
 					Label:  &required,
 					Entry:  &supportedEntries,
 					Button: &optional,

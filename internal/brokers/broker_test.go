@@ -11,29 +11,31 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 )
 
 var supportedLayouts = map[string]map[string]string{
 	"required-entry": {
-		"type":  "required-entry",
-		"entry": "required:entry_type,other_entry_type",
+		layouts.Type:  "required-entry",
+		layouts.Entry: layouts.RequiredItems("entry_type", "other_entry_type"),
 	},
 	"optional-entry": {
-		"type":  "optional-entry",
-		"entry": "optional:entry_type,other_entry_type",
+		layouts.Type:  "optional-entry",
+		layouts.Entry: layouts.OptionalItems("entry_type", "other_entry_type"),
 	},
 	"missing-type": {
-		"entry": "required:missing_type",
+		layouts.Entry: layouts.RequiredItems("missing_type"),
 	},
 	"misconfigured-layout": {
-		"type":  "misconfigured-layout",
-		"entry": "required-but-misformatted",
+		layouts.Type:  "misconfigured-layout",
+		layouts.Entry: "required-but-misformatted",
 	},
 	"layout-with-spaces": {
-		"type":  "layout-with-spaces",
-		"entry": "required: entry_type, other_entry_type",
+		layouts.Type:  "layout-with-spaces",
+		layouts.Entry: layouts.RequiredItems(" entry_type ", "other_entry_type"),
 	},
 }
 
@@ -291,8 +293,8 @@ func TestCancelIsAuthenticated(t *testing.T) {
 
 		wantAnswer string
 	}{
-		"Successfully cancels IsAuthenticated": {sessionID: "IA_wait", wantAnswer: brokers.AuthCancelled},
-		"Call returns denied if not cancelled": {sessionID: "IA_timeout", wantAnswer: brokers.AuthDenied},
+		"Successfully cancels IsAuthenticated": {sessionID: "IA_wait", wantAnswer: auth.Cancelled},
+		"Call returns denied if not cancelled": {sessionID: "IA_timeout", wantAnswer: auth.Denied},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

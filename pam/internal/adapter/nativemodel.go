@@ -14,9 +14,12 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/muesli/termenv"
 	"github.com/skip2/go-qrcode"
-	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/pam/internal/proto"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 	"golang.org/x/term"
@@ -91,31 +94,34 @@ func (m *nativeModel) Init() tea.Cmd {
 	rendersQrCode := m.isQrcodeRenderingSupported()
 
 	return func() tea.Msg {
-		required, optional := "required", "optional"
-		supportedEntries := "optional:chars,chars_password,digits,digits_password"
-		requiredWithBooleans := "required:true,false"
-		optionalWithBooleans := "optional:true,false"
+		required, optional := layouts.Required, layouts.Optional
+		supportedEntries := layouts.OptionalItems(
+			entries.Chars,
+			entries.CharsPassword,
+			entries.Digits,
+			entries.DigitsPassword,
+		)
 
 		return supportedUILayoutsReceived{
 			layouts: []*authd.UILayout{
 				{
-					Type:   "form",
+					Type:   layouts.Form,
 					Label:  &required,
 					Entry:  &supportedEntries,
-					Wait:   &optionalWithBooleans,
+					Wait:   &layouts.OptionalWithBooleans,
 					Button: &optional,
 				},
 				{
-					Type:          "qrcode",
+					Type:          layouts.QrCode,
 					Content:       &required,
 					Code:          &optional,
-					Wait:          &requiredWithBooleans,
+					Wait:          &layouts.RequiredWithBooleans,
 					Label:         &optional,
 					Button:        &optional,
 					RendersQrcode: &rendersQrCode,
 				},
 				{
-					Type:   "newpassword",
+					Type:   layouts.NewPassword,
 					Label:  &required,
 					Entry:  &supportedEntries,
 					Button: &optional,
@@ -290,17 +296,17 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		}
 
 		switch access {
-		case brokers.AuthGranted:
+		case auth.Granted:
 			return m, maybeSendPamError(m.sendInfo(authMsg))
-		case brokers.AuthNext:
+		case auth.Next:
 			m.uiLayout = nil
 			return m, maybeSendPamError(m.sendInfo(authMsg))
-		case brokers.AuthRetry:
+		case auth.Retry:
 			return m, maybeSendPamError(m.sendError(authMsg))
-		case brokers.AuthDenied:
+		case auth.Denied:
 			// This is handled by the main authentication model
 			return m, nil
-		case brokers.AuthCancelled:
+		case auth.Cancelled:
 			return m, sendEvent(isAuthenticatedCancelled{})
 		default:
 			return m, maybeSendPamError(m.sendError("Access %q is not valid", access))
@@ -534,13 +540,13 @@ func (m nativeModel) startChallenge() tea.Cmd {
 		})
 	}
 
-	hasWait := m.uiLayout.GetWait() == "true"
+	hasWait := m.uiLayout.GetWait() == layouts.True
 
 	switch m.uiLayout.Type {
-	case "form":
+	case layouts.Form:
 		return m.handleFormChallenge(hasWait)
 
-	case "qrcode":
+	case layouts.QrCode:
 		if !hasWait {
 			return sendEvent(pamError{
 				status: pam.ErrSystem,
@@ -549,7 +555,7 @@ func (m nativeModel) startChallenge() tea.Cmd {
 		}
 		return m.handleQrCode()
 
-	case "newpassword":
+	case layouts.NewPassword:
 		return m.handleNewPassword()
 
 	default:
@@ -578,7 +584,7 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 			{id: "continue", label: fmt.Sprintf("Proceed with %s", authMode)},
 		}
 		if buttonLabel := m.uiLayout.GetButton(); buttonLabel != "" {
-			choices = append(choices, choicePair{id: "button", label: buttonLabel})
+			choices = append(choices, choicePair{id: layouts.Button, label: buttonLabel})
 		}
 
 		id, err := m.promptForChoice(authMode, choices, "Choose action")
@@ -591,7 +597,7 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 		if err != nil {
 			return maybeSendPamError(err)
 		}
-		if id == "button" {
+		if id == layouts.Button {
 			return sendEvent(reselectAuthMode{})
 		}
 	}
@@ -644,13 +650,13 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 
 func (m nativeModel) promptForChallenge(prompt string) (string, error) {
 	switch m.uiLayout.GetEntry() {
-	case "chars", "":
+	case entries.Chars, "":
 		return m.promptForInput(pam.PromptEchoOn, inputPromptStyleMultiLine, prompt)
-	case "chars_password":
+	case entries.CharsPassword:
 		return m.promptForInput(pam.PromptEchoOff, inputPromptStyleMultiLine, prompt)
-	case "digits":
+	case entries.Digits:
 		return m.promptForNumericInputAsString(pam.PromptEchoOn, prompt)
-	case "digits_password":
+	case entries.DigitsPassword:
 		return m.promptForNumericInputAsString(pam.PromptEchoOff, prompt)
 	default:
 		return "", fmt.Errorf("Unhandled entry %q", m.uiLayout.GetEntry())
@@ -740,10 +746,10 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 	qrcodeView = append(qrcodeView, " ")
 
 	choices := []choicePair{
-		{id: "wait", label: "Wait for the QR code scan result"},
+		{id: layouts.Wait, label: "Wait for the QR code scan result"},
 	}
 	if buttonLabel := m.uiLayout.GetButton(); buttonLabel != "" {
-		choices = append(choices, choicePair{id: "button", label: buttonLabel})
+		choices = append(choices, choicePair{id: layouts.Button, label: buttonLabel})
 	}
 
 	id, err := m.promptForChoiceWithMessage("Qr Code authentication",
@@ -759,9 +765,9 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 	}
 
 	switch id {
-	case "button":
+	case layouts.Button:
 		return sendEvent(reselectAuthMode{})
-	case "wait":
+	case layouts.Wait:
 		return sendAuthWaitCommand()
 	default:
 		return nil
@@ -797,7 +803,7 @@ func (m nativeModel) handleNewPassword() tea.Cmd {
 			{id: "continue", label: "Proceed with password update"},
 		}
 		if buttonLabel := m.uiLayout.GetButton(); buttonLabel != "" {
-			choices = append(choices, choicePair{id: "button", label: buttonLabel})
+			choices = append(choices, choicePair{id: layouts.Button, label: buttonLabel})
 		}
 
 		label := m.selectedAuthModeLabel("Password Update")
@@ -811,9 +817,9 @@ func (m nativeModel) handleNewPassword() tea.Cmd {
 		if err != nil {
 			return maybeSendPamError(err)
 		}
-		if id == "button" {
+		if id == layouts.Button {
 			return sendEvent(isAuthenticatedRequested{
-				item: &authd.IARequest_AuthenticationData_Skip{Skip: "true"},
+				item: &authd.IARequest_AuthenticationData_Skip{Skip: layouts.True},
 			})
 		}
 	}
@@ -912,6 +918,6 @@ func (m nativeModel) goBackActionLabel() string {
 
 func sendAuthWaitCommand() tea.Cmd {
 	return sendEvent(isAuthenticatedRequested{
-		item: &authd.IARequest_AuthenticationData_Wait{Wait: "true"},
+		item: &authd.IARequest_AuthenticationData_Wait{Wait: layouts.True},
 	})
 }

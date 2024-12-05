@@ -16,8 +16,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/services/permissions"
@@ -39,9 +41,9 @@ var (
 
 // Used for TestGetAuthenticationModes and TestSelectAuthenticationMode.
 var (
-	requiredEntries = "required:entry_type,other_entry_type"
-	optionalEntries = "optional:entry_type,other_entry_type"
-	optional        = "optional"
+	requiredEntries = layouts.RequiredItems("entry_type", "other_entry_type")
+	optionalEntries = layouts.OptionalItems("entry_type", "other_entry_type")
+	optional        = layouts.Optional
 
 	rendersQrCode = true
 
@@ -196,8 +198,8 @@ func TestSelectBroker(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully select a broker and creates auth session":   {username: "success"},
-		"Successfully select a broker and creates passwd session": {username: "success", sessionMode: "passwd"},
+		"Successfully select a broker and creates auth session":   {username: "success", sessionMode: auth.SessionModeAuth},
+		"Successfully select a broker and creates passwd session": {username: "success", sessionMode: auth.SessionModePasswd},
 
 		"Error when not root":                             {username: "success", currentUserNotRoot: true, wantErr: true},
 		"Error when username is empty":                    {wantErr: true},
@@ -228,9 +230,9 @@ func TestSelectBroker(t *testing.T) {
 
 			var sessionMode authd.SessionMode
 			switch tc.sessionMode {
-			case "":
+			case auth.SessionModeAuth, "":
 				sessionMode = authd.SessionMode_AUTH
-			case "passwd":
+			case auth.SessionModePasswd:
 				sessionMode = authd.SessionMode_PASSWD
 			case "-":
 				sessionMode = authd.SessionMode_UNDEFINED

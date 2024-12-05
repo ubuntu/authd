@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/msteinert/pam/v2"
-	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/proto/authd"
 )
 
 const (

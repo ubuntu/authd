@@ -14,9 +14,10 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/msteinert/pam/v2"
-	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/proto/authd"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -53,7 +54,7 @@ func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID 
 				<-time.After(cancellationWait * 3)
 
 				return isAuthenticatedResultReceived{
-					access:    brokers.AuthCancelled,
+					access:    auth.Cancelled,
 					challenge: challenge,
 				}
 			}
@@ -220,7 +221,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		}
 
 		return *m, sendEvent(isAuthenticatedResultReceived{
-			access: brokers.AuthRetry,
+			access: auth.Retry,
 			msg:    fmt.Sprintf(`{"message": %s}`, errMsg),
 		})
 
@@ -250,7 +251,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 			authTracker.waitAndStart(cancelFunc)
 
 			challenge, hasChallenge := msg.item.(*authd.IARequest_AuthenticationData_Challenge)
-			if hasChallenge && clientType == Gdm && currentLayout == "newpassword" {
+			if hasChallenge && clientType == Gdm && currentLayout == layouts.NewPassword {
 				return newPasswordCheck{ctx: ctx, challenge: challenge.Challenge}
 			}
 
@@ -279,25 +280,25 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 			// the returned authModel is a copy of function-level's `m` at this point!
 			m := &authModel
 			if msg.challenge != nil &&
-				(msg.access == brokers.AuthGranted || msg.access == brokers.AuthNext) {
+				(msg.access == auth.Granted || msg.access == auth.Next) {
 				m.currentChallenge = *msg.challenge
 			}
 
-			if msg.access != brokers.AuthNext && msg.access != brokers.AuthRetry {
+			if msg.access != auth.Next && msg.access != auth.Retry {
 				m.currentModel = nil
 			}
 			m.authTracker.reset()
 		}()
 
 		switch msg.access {
-		case brokers.AuthGranted:
+		case auth.Granted:
 			infoMsg, err := dataToMsg(msg.msg)
 			if err != nil {
 				return *m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
 			}
 			return *m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID, msg: infoMsg})
 
-		case brokers.AuthRetry:
+		case auth.Retry:
 			errorMsg, err := dataToMsg(msg.msg)
 			if err != nil {
 				return *m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
@@ -305,7 +306,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 			m.errorMsg = errorMsg
 			return *m, sendEvent(startAuthentication{})
 
-		case brokers.AuthDenied:
+		case auth.Denied:
 			errMsg, err := dataToMsg(msg.msg)
 			if err != nil {
 				return *m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
@@ -315,10 +316,10 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 			}
 			return *m, sendEvent(pamError{status: pam.ErrAuth, msg: errMsg})
 
-		case brokers.AuthNext:
+		case auth.Next:
 			return *m, sendEvent(GetAuthenticationModesRequested{})
 
-		case brokers.AuthCancelled:
+		case auth.Cancelled:
 			// nothing to do
 			return *m, nil
 		}
@@ -387,19 +388,19 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 	}
 
 	switch layout.Type {
-	case "form":
-		form := newFormModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton(), layout.GetWait() == "true")
+	case layouts.Form:
+		form := newFormModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton(), layout.GetWait() == layouts.True)
 		m.currentModel = form
 
-	case "qrcode":
+	case layouts.QrCode:
 		qrcodeModel, err := newQRCodeModel(layout.GetContent(), layout.GetCode(),
-			layout.GetLabel(), layout.GetButton(), layout.GetWait() == "true")
+			layout.GetLabel(), layout.GetButton(), layout.GetWait() == layouts.True)
 		if err != nil {
 			return sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
 		}
 		m.currentModel = qrcodeModel
 
-	case "newpassword":
+	case layouts.NewPassword:
 		newPasswordModel := newNewPasswordModel(layout.GetLabel(), layout.GetEntry(), layout.GetButton())
 		m.currentModel = newPasswordModel
 

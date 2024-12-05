@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/ubuntu/authd"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
 	"google.golang.org/grpc/codes"

@@ -8,9 +8,9 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/msteinert/pam/v2"
-	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/proto"
 )
@@ -249,18 +249,18 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 		}
 
 		switch access {
-		case brokers.AuthGranted:
-		case brokers.AuthDenied:
-		case brokers.AuthCancelled:
+		case auth.Granted:
+		case auth.Denied:
+		case auth.Cancelled:
 			return m, sendEvent(isAuthenticatedCancelled{})
-		case brokers.AuthRetry:
-		case brokers.AuthNext:
+		case auth.Retry:
+		case auth.Next:
 		default:
 			errMsg := fmt.Sprintf("Access %q is not valid", access)
 			accessJSON, _ := json.Marshal(errMsg)
 			return m, tea.Sequence(
 				sendEvent(gdmIsAuthenticatedResultReceived{
-					access: brokers.AuthDenied,
+					access: auth.Denied,
 					msg:    fmt.Sprintf(`{"message": %s}`, accessJSON),
 				}),
 				sendEvent(pamError{status: pam.ErrAuth, msg: errMsg}),
@@ -279,7 +279,7 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 
 		return m, sendEvent(m.emitEventSync(&gdm.EventData_AuthEvent{
 			AuthEvent: &gdm.Events_AuthEvent{Response: &authd.IAResponse{
-				Access: brokers.AuthCancelled,
+				Access: auth.Cancelled,
 				Msg:    msg.msg,
 			}},
 		}))

@@ -4,7 +4,9 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
+	"github.com/ubuntu/authd/internal/proto/authd"
 )
 
 // newPasswordModel is the form layout type to allow authentication and return a challenge.
@@ -28,7 +30,7 @@ func newNewPasswordModel(label, entryType, buttonLabel string) newPasswordModel 
 	// TODO: add digits and force validation.
 	for range []int{0, 1} {
 		entry := &textinputModel{Model: textinput.New()}
-		if entryType == "chars_password" {
+		if entryType == entries.CharsPassword {
 			entry.EchoMode = textinput.EchoPassword
 		}
 		passwordEntries = append(passwordEntries, entry)
@@ -82,7 +84,7 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.focusIndex < len(m.focusableModels) &&
 			msg.model == m.focusableModels[m.focusIndex] {
 			return m, sendEvent(isAuthenticatedRequested{
-				item: &authd.IARequest_AuthenticationData_Skip{Skip: "true"},
+				item: &authd.IARequest_AuthenticationData_Skip{Skip: layouts.True},
 			})
 		}
 

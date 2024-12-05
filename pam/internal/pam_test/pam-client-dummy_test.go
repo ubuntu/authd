@@ -15,8 +15,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd"
-	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/internal/proto/authd"
 )
 
 var errTest = errors.New("an error")
@@ -572,12 +573,12 @@ func TestSelectAuthenticationModes(t *testing.T) {
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
 				WithUILayout("password", "Write the password", FormUILayout()),
 				WithUILayout("pin", "Write the PIN number", FormUILayout()),
-				WithUILayout("qrcode", "Scan the QR code", QrCodeUILayout()),
+				WithUILayout(layouts.QrCode, "Scan the QR code", QrCodeUILayout()),
 				WithUILayout("new-pass", "Update your password", NewPasswordUILayout()),
 			),
 			args: &authd.SAMRequest{
 				SessionId:            "started-session-id",
-				AuthenticationModeId: "qrcode",
+				AuthenticationModeId: layouts.QrCode,
 			},
 			wantRet: &authd.SAMResponse{UiLayoutInfo: QrCodeUILayout()},
 		},
@@ -677,13 +678,13 @@ func TestIsAuthenticated(t *testing.T) {
 				}}, nil),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
 				WithIsAuthenticatedReturn(&authd.IAResponse{
-					Access: brokers.AuthRetry,
+					Access: auth.Retry,
 					Msg:    "Try again",
 				}, nil),
 			),
 			args: &authd.IARequest{SessionId: "started-session-id"},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthRetry,
+				Access: auth.Retry,
 				Msg:    "Try again",
 			},
 		},
@@ -705,7 +706,7 @@ func TestIsAuthenticated(t *testing.T) {
 				},
 			},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthDenied,
+				Access: auth.Denied,
 			},
 		},
 		"Invalid challenge with message": {
@@ -727,7 +728,7 @@ func TestIsAuthenticated(t *testing.T) {
 				},
 			},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthDenied,
+				Access: auth.Denied,
 				Msg:    `{"message": "You're out!"}`,
 			},
 		},
@@ -751,7 +752,7 @@ func TestIsAuthenticated(t *testing.T) {
 				},
 			},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthRetry,
+				Access: auth.Retry,
 				Msg:    `{"message": "try again!"}`,
 			},
 		},
@@ -773,7 +774,7 @@ func TestIsAuthenticated(t *testing.T) {
 				},
 			},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthGranted,
+				Access: auth.Granted,
 			},
 		},
 		"Valid challenge with message": {
@@ -795,7 +796,7 @@ func TestIsAuthenticated(t *testing.T) {
 				},
 			},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthGranted,
+				Access: auth.Granted,
 				Msg:    `{"message": "try again!"}`,
 			},
 		},
@@ -812,11 +813,11 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Wait{Wait: "true"},
+					Item: &authd.IARequest_AuthenticationData_Wait{Wait: layouts.True},
 				},
 			},
 			wantRet: &authd.IAResponse{
-				Access: brokers.AuthGranted,
+				Access: auth.Granted,
 				Msg:    `{"message": "Wait done!"}`,
 			},
 		},
@@ -833,7 +834,7 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Skip{Skip: "true"},
+					Item: &authd.IARequest_AuthenticationData_Skip{Skip: layouts.True},
 				},
 			},
 			wantRet: &authd.IAResponse{

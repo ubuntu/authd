@@ -1,4 +1,4 @@
-//go:generate ../../../tools/generate-proto.sh -I../../.. -I../proto gdm.proto
+//go:generate ../../../tools/generate-proto.sh -I../../../internal/proto/authd -I../proto gdm.proto
 
 // Package gdm is the package for the GDM pam module handing.
 package gdm
@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/proto/authd"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 

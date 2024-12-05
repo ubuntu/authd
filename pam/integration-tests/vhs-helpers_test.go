@@ -16,7 +16,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd"
+	"github.com/ubuntu/authd/internal/proto/authd"
 	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"

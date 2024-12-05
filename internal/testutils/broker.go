@@ -13,6 +13,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
+	"github.com/ubuntu/authd/internal/brokers/layouts"
 )
 
 const (
@@ -146,12 +147,12 @@ func (b *BrokerBusMock) GetAuthenticationModes(sessionID string, supportedUILayo
 		return nil, dbus.MakeFailedError(fmt.Errorf("broker %q: GetAuthenticationModes errored out", b.name))
 	case "GAM_multiple_modes":
 		return []map[string]string{
-			{"id": "mode1", "label": "Mode 1"},
-			{"id": "mode2", "label": "Mode 2"},
+			{layouts.ID: "mode1", layouts.Label: "Mode 1"},
+			{layouts.ID: "mode2", layouts.Label: "Mode 2"},
 		}, nil
 	default:
 		return []map[string]string{
-			{"id": "mode1", "label": "Mode 1"},
+			{layouts.ID: "mode1", layouts.Label: "Mode 1"},
 		}, nil
 	}
 }
@@ -162,17 +163,17 @@ func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeNa
 	switch sessionID {
 	case "SAM_success_required_entry":
 		return map[string]string{
-			"type":  "required-entry",
-			"entry": "entry_type",
+			layouts.Type:  "required-entry",
+			layouts.Entry: "entry_type",
 		}, nil
 	case "SAM_success_optional_entry":
 		return map[string]string{
-			"type":  "optional-entry",
-			"entry": "entry_type",
+			layouts.Type:  "optional-entry",
+			layouts.Entry: "entry_type",
 		}, nil
 	case "SAM_missing_optional_entry":
 		return map[string]string{
-			"type": "optional-entry",
+			layouts.Type: "optional-entry",
 		}, nil
 	case "SAM_invalid_layout_type":
 		return map[string]string{
@@ -180,22 +181,22 @@ func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeNa
 		}, nil
 	case "SAM_missing_required_entry":
 		return map[string]string{
-			"type": "required-entry",
+			layouts.Type: "required-entry",
 		}, nil
 	case "SAM_invalid_required_entry":
 		return map[string]string{
-			"type":  "required-entry",
-			"entry": "invalid entry",
+			layouts.Type:  "required-entry",
+			layouts.Entry: "invalid entry",
 		}, nil
 	case "SAM_invalid_optional_entry":
 		return map[string]string{
-			"type":  "optional-entry",
-			"entry": "invalid entry",
+			layouts.Type:  "optional-entry",
+			layouts.Entry: "invalid entry",
 		}, nil
 	case "SAM_unknown_field":
 		return map[string]string{
-			"type":          "required-entry",
-			"entry":         "entry_type",
+			layouts.Type:    "required-entry",
+			layouts.Entry:   "entry_type",
 			"unknown_field": "unknown",
 		}, nil
 	case "SAM_error":
