@@ -446,7 +446,7 @@ func (m *Manager) registerUser(name string, preAuth bool) (uid uint32, cleanup f
 			return 0, nil, fmt.Errorf("could not register temporary user: %w", err)
 		}
 
-		if unique := m.checkIsUniqueUID(uid, tmpName); unique {
+		if unique := m.isUniqueUID(uid, tmpName); unique {
 			if preAuth {
 				// Rename the temporary user so that we can recognize it later.
 				tmpName = name + "-preauth"
@@ -463,9 +463,9 @@ func (m *Manager) registerUser(name string, preAuth bool) (uid uint32, cleanup f
 	return uid, cleanup, nil
 }
 
-// checkIsUniqueUID checks if the given UID is unique in the system. It returns false if the UID is already assigned to
-// a user by any NSS source (except the given temporary user) and true otherwise.
-func (m *Manager) checkIsUniqueUID(uid uint32, tmpName string) bool {
+// isUniqueUID returns true if the given UID is unique in the system. It returns false if the UID is already assigned to
+// a user by any NSS source (except the given temporary user).
+func (m *Manager) isUniqueUID(uid uint32, tmpName string) bool {
 	for _, entry := range localentries.GetPasswdEntries() {
 		if entry.UID == uid && entry.Name != tmpName {
 			log.Debugf(context.Background(), "UID %d already in use by user %q, generating a new one", uid, entry.Name)
