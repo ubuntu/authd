@@ -14,13 +14,9 @@ func TestGetPasswdEntries(t *testing.T) {
 	require.NotEmpty(t, got, "GetPasswdEntries should never return an empty list")
 
 	// Check if the root user is present in the list
-	var rootFound bool
-	for _, entry := range got {
-		if entry.Name == "root" {
-			rootFound = true
-			break
-		}
-	}
+	rootFound := slices.ContainsFunc(got, func(entry Passwd) bool {
+		return entry.Name == "root"
+	})
 	require.True(t, rootFound, "GetPasswdEntries should always return root")
 }
 
