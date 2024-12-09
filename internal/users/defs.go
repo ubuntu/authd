@@ -7,7 +7,6 @@ import (
 // UserInfo is the user information returned by the broker.
 type UserInfo struct {
 	Name  string
-	UID   uint32
 	Gecos string
 	Dir   string
 	Shell string

@@ -184,9 +184,13 @@ func (s Service) userPreCheck(ctx context.Context, username string) (pwent *auth
 	if err := json.Unmarshal([]byte(userinfo), &u); err != nil {
 		return nil, fmt.Errorf("user data from broker invalid: %v", err)
 	}
-	// We need to generate the ID for the user, as its business logic is authd responsibility, not the broker's.
-	u.UID = s.userManager.GenerateUID(u.Name)
-	u.GID = s.userManager.GenerateGID(u.Name)
+
+	// Register a temporary user with a unique UID. If the user authenticates successfully, the user will be added to
+	// the database with the same UID.
+	u.UID, err = s.userManager.RegisterUserPreAuth(u.Name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate unique UID for user %q: %v", username, err)
+	}
 
 	return nssPasswdFromUsersPasswd(u), nil
 }
