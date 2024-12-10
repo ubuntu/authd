@@ -1,3 +1,20 @@
+authd (0.3.7) noble; urgency=medium
+
+  * Change database directory from /var/cache/authd to /var/lib/authd.
+    The database is not a cache, removing it has an impact on security
+    because it allows users to be assigned the UID of a previous user
+    This is now reflected by storing the database below /var/lib instead
+    of /var/cache.
+  * Fix user being removed from local groups during login
+  * Fix defaulting to local broker even after local user is removed
+  * API: Support exposing if the UI supports QR code rendering
+  * PAM module:
+    - Fix races
+    - Many small fixes
+  * Update dependencies
+
+ --  <adrian.dombeck@canonical.com>  Tue, 10 Dec 2024 13:31:21 +0100
+
 authd (0.3.6) noble; urgency=medium
 
   * CVE-2024-9312: Avoid UID collisions with other users on the system
