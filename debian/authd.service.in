@@ -8,10 +8,6 @@ PartOf=authd.socket
 Type=notify
 ExecStart=@AUTHD_DAEMONS_PATH@/authd
 
-# Automatically create /var/lib/authd with the correct permissions
-StateDirectory=authd
-StateDirectoryMode=0700
-
 # Some daemon restrictions
 LockPersonality=yes
 MemoryDenyWriteExecute=yes
