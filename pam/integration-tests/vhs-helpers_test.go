@@ -33,6 +33,7 @@ const (
 	vhsShell       = "Shell"
 	vhsWaitTimeout = "WaitTimeout"
 	vhsWaitPattern = "WaitPattern"
+	vhsTypingSpeed = "TypingSpeed"
 
 	vhsCommandVariable = "AUTHD_TEST_TAPE_COMMAND"
 
@@ -158,6 +159,7 @@ func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 		vhsMargin:      0,
 		vhsShell:       "bash",
 		vhsWaitTimeout: 10 * time.Second,
+		vhsTypingSpeed: 5 * time.Millisecond,
 	}
 	for _, s := range settings {
 		m[s.Key] = s.Value
