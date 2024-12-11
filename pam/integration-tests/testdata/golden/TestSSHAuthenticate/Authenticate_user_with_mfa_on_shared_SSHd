@@ -392,6 +392,7 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 >
+PAM Authenticate() finished for user 'user-mfa'
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
   LOGNAME=user-mfa
@@ -462,6 +463,7 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 >
+PAM Authenticate() finished for user 'user-mfa'
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
   LOGNAME=user-mfa
@@ -532,6 +534,7 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication method
 (user-mfa@localhost) Plug your fido device and press with your thumb:
 >
+PAM Authenticate() finished for user 'user-mfa'
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
   LOGNAME=user-mfa

@@ -171,6 +171,7 @@ Invalid selection
   2. ExampleBroker
 (user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost) Choose your provider:
 > 1
+PAM Authenticate() finished for user 'user-integration-pre-check-authenticate-user-switching-to-local-broker'
 SSH PAM user 'user-integration-pre-check-authenticate-user-switching-to-local-broker' using local broker
 (user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost) Password:
 ────────────────────────────────────────────────────────────────────────────────
@@ -210,6 +211,7 @@ Invalid selection
   2. ExampleBroker
 (user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost) Choose your provider:
 > 1
+PAM Authenticate() finished for user 'user-integration-pre-check-authenticate-user-switching-to-local-broker'
 SSH PAM user 'user-integration-pre-check-authenticate-user-switching-to-local-broker' using local broker
 (user-integration-pre-check-authenticate-user-switching-to-local-broker@localhost) Password:
 ────────────────────────────────────────────────────────────────────────────────
