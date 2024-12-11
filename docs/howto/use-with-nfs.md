@@ -1,19 +1,19 @@
 # Using authd with NFS
 
-The user identifiers (UIDs) and group identifiers (GIDs) assigned by authd are unique to each
-machine. This means that when using authd with NFS, the UIDs and GIDs of users
-and groups on the NFS server will not match those on the client machines, which
-leads to permission issues.
+The user identifiers (UIDs) and group identifiers (GIDs) assigned by authd are
+unique to each machine. This means that when using authd with NFS, the UIDs and
+GIDs of users and groups on the NFS server will not match those on the client
+machines, which leads to permission issues.
 
 To avoid these issues, you can use NFS with ID mapping and Kerberos. This
-ensures that the UIDs and GIDs are mapped correctly across
-all machines.
+ensures that the UIDs and GIDs are mapped correctly across all machines.
 
 ## Setting up NFS with IDMAP and Kerberos
 
 This guide will walk you through setting up an NFS server with ID mapping and
-Kerberos authentication. After following the steps outlined below, the user `alice` will be able to access a shared
-directory on the server from a client machine.
+Kerberos authentication. After following the steps outlined below, the user
+`alice` will be able to access a shared directory on the server from a client
+machine.
 
 ---
 
@@ -28,22 +28,26 @@ directory on the server from a client machine.
    ```
 
 2. **Handle Kerberos configuration prompts:**
-   During the installation of `krb5-user`, you will be prompted to provide configuration details for Kerberos. Here's what to enter:
+   During the installation of `krb5-user`, you will be prompted to provide
+   configuration details for Kerberos. Here's what to enter:
 
    - **Default Kerberos version 5 realm:**
-     Enter the Kerberos realm name, which is the uppercase version of your domain. For example:
+     Enter the Kerberos realm name, which is the uppercase version of your
+     domain. For example:
      ```
      EXAMPLE.COM
      ```
 
    - **Kerberos servers for your realm:**
-     Enter the hostname of the Key Distribution Center (KDC). Assuming the KDC is on the same host as the NFS server:
+     Enter the hostname of the Key Distribution Center (KDC). Assuming the KDC
+     is on the same host as the NFS server:
      ```
      server.example.com
      ```
 
    - **Administrative server for your Kerberos realm:**
-     Enter the hostname of the Kerberos admin server, which is also the same as the NFS server in this case:
+     Enter the hostname of the Kerberos admin server, which is also the same as
+     the NFS server in this case:
      ```
      server.example.com
      ```
@@ -62,13 +66,15 @@ directory on the server from a client machine.
    In Kerberos, a principal is a unique identity that is used for authentication.
 
    - Add a principal for the NFS server:
-     This principal is used by the NFS client to authenticate when mounting an NFS directory.
+     This principal is used by the NFS client to authenticate when mounting an
+     NFS directory.
      ```bash
      sudo kadmin.local addprinc -randkey nfs/server.example.com
      ```
 
    - Add a principal for the user `alice`:
-     This principal is used for authentication when the user accesses the mounted NFS directory.
+     This principal is used for authentication when the user accesses the
+     mounted NFS directory.
      ```bash
      sudo kadmin.local addprinc alice
      ```
@@ -76,7 +82,9 @@ directory on the server from a client machine.
 
 3. **Generate Keytabs:**
 
-   A *keytab* is a file that contains Kerberos principals and their associated secret keys. It allows services (such as NFS) to authenticate without needing to input a password each time.
+   A *keytab* is a file that contains Kerberos principals and their associated
+   secret keys. It allows services (such as NFS) to authenticate without needing
+   to input a password each time.
 
    - Export the keytab for the NFS server and the user `alice`:
      ```bash
@@ -89,7 +97,8 @@ directory on the server from a client machine.
 
 1. **Create and configure the shared directory:**
 
-   You’ll need to create the directory to share via NFS and configure the shared directory in the `/etc/exports` file.
+   You’ll need to create the directory to share via NFS and configure the shared
+   directory in the `/etc/exports` file.
 
    - **Create a directory owned by `alice`:**
      ```bash
@@ -142,7 +151,8 @@ directory on the server from a client machine.
    ```
 
 2. **Handle Kerberos configuration prompts:**
-   During the installation of `krb5-user`, you will be prompted to provide configuration details for Kerberos again. Enter the same details as before:
+   During the installation of `krb5-user`, you will be prompted to provide
+   configuration details for Kerberos again. Enter the same details as before:
 
    - **Default Kerberos version 5 realm:**
      ```
@@ -253,7 +263,8 @@ klist
 
 ### Cleanup
 
-If you no longer need the NFS share or want to clean up the configuration, follow these steps:
+If you no longer need the NFS share or want to clean up the configuration,
+follow these steps:
 
 #### On the server
 

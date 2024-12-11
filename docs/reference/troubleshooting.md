@@ -106,10 +106,10 @@ snap refresh authd-msentraid
 
 ### File ownership on shared network resources (e.g. NFS, Samba)
 
-The user identifiers (UIDs) and group identifiers (GIDs) assigned by authd are unique to each
-machine. This means that when using authd with NFS or Samba, the UIDs and GIDs
-of users and groups on the server will not match those on the client machines,
-which leads to permission issues.
+The user identifiers (UIDs) and group identifiers (GIDs) assigned by authd are
+unique to each machine. This means that when using authd with NFS or Samba, the
+UIDs and GIDs of users and groups on the server will not match those on the
+client machines, which leads to permission issues.
 
 To avoid these issues, you can use ID mapping. For more information, see
 * [Using authd with NFS](../howto/use-with-nfs)

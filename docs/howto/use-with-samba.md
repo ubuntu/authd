@@ -1,18 +1,18 @@
 # Using authd with Samba
 
-The user identifiers (UIDs) and group identifiers (GIDs) assigned by authd are unique to each
-machine. This means that when using authd with Samba, the UIDs and GIDs of users
-and groups on the Samba server will not match those on the client machines,
-which leads to permission issues.
+The user identifiers (UIDs) and group identifiers (GIDs) assigned by authd are
+unique to each machine. This means that when using authd with Samba, the UIDs
+and GIDs of users and groups on the Samba server will not match those on the
+client machines, which leads to permission issues.
 
 To avoid these issues, you can use Samba with ID mapping. This ensures that the
 UIDs and GIDs are mapped correctly across all machines.
 
 ## Setting up Samba with ID mapping
 
-This guide will walk you through setting up a Samba server with ID mapping. By following
-the steps outlined below, a user `alice` will be able to access a shared directory on the server from a
-client machine.
+This guide will walk you through setting up a Samba server with ID mapping. By
+following the steps outlined below, a user `alice` will be able to access a
+shared directory on the server from a client machine.
 
 ---
 
@@ -53,8 +53,8 @@ client machine.
 
    ```{admonition} Explanation
    :class: information
-   This section defines a Samba share named `alice` located
-   at `/srv/samba/alice`. It is visible to users on the network (`browsable`),
+   This section defines a Samba share named `alice` located at
+   `/srv/samba/alice`. It is visible to users on the network (`browsable`),
    allows writing (`writable`), and restricts access to the `alice` user (`valid
    users`).
    ```
@@ -88,8 +88,8 @@ client machine.
    ```
 
 2. **Test access to the share:**
-   Test connectivity using `smbclient`, making sure to replace `$SERVER` with the Samba
-   server's hostname or IP address:
+   Test connectivity using `smbclient`, making sure to replace `$SERVER` with
+   the Samba server's hostname or IP address:
 
    ```bash
    smbclient //$SERVER/alice -U alice
@@ -156,11 +156,14 @@ client machine.
 
    ```{admonition} Security note
    :class: note
-   **Security Note:** Files and directories in the share may appear as owned by
-   `alice` on the client, but access control is enforced by the server.
-   
-   For example, if `alice` does not have permission on the server, access will be
-   denied even if ownership appears correct on the client.
+
+   **Security Note:**
+
+   Files and directories in the share may appear as owned by `alice` on the
+   client, but access control is enforced by the server.
+
+   For example, if `alice` does not have permission on the server, access will
+   be denied even if ownership appears correct on the client.
    ```
 
    Example:
