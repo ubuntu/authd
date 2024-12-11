@@ -22,7 +22,7 @@ Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "wrongpass"
+TypeCLIPassword "wrongpass"
 Show
 
 Hide
@@ -32,7 +32,7 @@ Wait+Screen /Gimme your password:\n>\n/
 Show
 
 Hide
-Type "wrongpass"
+TypeCLIPassword "wrongpass"
 Show
 
 Hide
@@ -42,7 +42,7 @@ Wait+Screen /Gimme your password:\n>\n/
 Show
 
 Hide
-Type "wrongpass"
+TypeCLIPassword "wrongpass"
 Show
 
 Hide
@@ -52,7 +52,7 @@ Wait+Screen /Gimme your password:\n>\n/
 Show
 
 Hide
-Type "wrongpass"
+TypeCLIPassword "wrongpass"
 Show
 
 Hide
@@ -62,7 +62,7 @@ Wait+Screen /Gimme your password:\n>\n/
 Show
 
 Hide
-Type "wrongpass"
+TypeCLIPassword "wrongpass"
 Show
 
 Hide

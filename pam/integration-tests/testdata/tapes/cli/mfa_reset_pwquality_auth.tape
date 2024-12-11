@@ -22,7 +22,7 @@ Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "goodpass"
+TypeCLIPassword "goodpass"
 Show
 
 Hide
@@ -37,7 +37,7 @@ Wait+Screen @${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /New password:\n>\n/
 Show
 
 Hide
-Type "goodpass"
+TypeCLIPassword "goodpass"
 Show
 
 Hide
@@ -47,7 +47,7 @@ Wait+Screen /New password:\n>\n/
 Show
 
 Hide
-Type "password"
+TypeCLIPassword "password"
 Show
 
 Hide
@@ -57,7 +57,7 @@ Wait+Screen /New password:\n>\n/
 Show
 
 Hide
-Type "goodpass"
+TypeCLIPassword "goodpass"
 Show
 
 Hide
@@ -67,7 +67,7 @@ Wait+Screen /New password:\n>\n/
 Show
 
 Hide
-Type "1234"
+TypeCLIPassword "1234"
 Show
 
 Hide
@@ -77,7 +77,7 @@ Wait+Screen /New password:\n>\n/
 Show
 
 Hide
-Type "authd2404"
+TypeCLIPassword "authd2404"
 Show
 
 Hide
@@ -86,7 +86,7 @@ Wait+Screen /Confirm password:\n>\n/
 Show
 
 Hide
-Type "authd2404"
+TypeCLIPassword "authd2404"
 Show
 
 Hide

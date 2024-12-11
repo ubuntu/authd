@@ -22,7 +22,7 @@ Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "goodpass"
+TypeCLIPassword "goodpass"
 Show
 
 Hide
@@ -31,13 +31,13 @@ Wait+Prompt /New password/
 Show
 
 Hide
-Type "noble2404"
+TypeCLIPassword "noble2404"
 Show
 
 Hide
 Enter
 Wait+Prompt /Confirm password/
-Type "noble2404"
+TypeCLIPassword "noble2404"
 Show
 
 Hide
@@ -47,13 +47,13 @@ Wait /new password does not match criteria/
 Show
 
 Hide
-Type "authd2404"
+TypeCLIPassword "authd2404"
 Show
 
 Hide
 Enter
 Wait+Prompt /Confirm password/
-Type "authd2404"
+TypeCLIPassword "authd2404"
 Show
 
 Hide
@@ -82,19 +82,19 @@ Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "authd2404"
+TypeCLIPassword "authd2404"
 Enter
 Wait+Prompt /New password/
 Show
 
 Hide
-Type "noble2404"
+TypeCLIPassword "noble2404"
 Show
 
 Hide
 Enter
 Wait+Prompt /Confirm password/
-Type "noble2404"
+TypeCLIPassword "noble2404"
 Show
 
 Hide
@@ -104,13 +104,13 @@ Wait /new password does not match criteria/
 Show
 
 Hide
-Type "goodpass"
+TypeCLIPassword "goodpass"
 Show
 
 Hide
 Enter
 Wait+Prompt /Confirm password/
-Type "goodpass"
+TypeCLIPassword "goodpass"
 Show
 
 Hide
