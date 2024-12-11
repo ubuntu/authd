@@ -53,32 +53,6 @@ Scan the qrcode or enter the code in the login page
 
 █████████████████████████████████
 █████████████████████████████████
-████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
-████ █   █ █▀▄██ ▄▄▄██ █   █ ████
-████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
-████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
-█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
-████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
-████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
-███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
-████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
-████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
-████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
-████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
-█████████████████████████████████
-▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-       https://ubuntu.com
-              1337
-
-        [ Regenerate code ]
-────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Scan the qrcode or enter the code in the login page
-
-█████████████████████████████████
-█████████████████████████████████
 ████ ▄▄▄▄▄ █ ▄█▄▀ ████ ▄▄▄▄▄ ████
 ████ █   █ █▀██▄█▄▄  █ █   █ ████
 ████ █▄▄▄█ ██▀ █▄▄ ▄ █ █▄▄▄█ ████
@@ -178,16 +152,6 @@ Scan the qrcode or enter the code in the login page
               1341
 
         [ Regenerate code ]
-────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate()
-  User: "user-integration-qr-code"
-  Result: success
-PAM AcctMgmt()
-  User: "user-integration-qr-code"
-  Result: success
->
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}

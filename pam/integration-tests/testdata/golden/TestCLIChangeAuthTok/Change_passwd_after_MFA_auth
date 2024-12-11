@@ -87,12 +87,3 @@ PAM AcctMgmt()
   Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-PAM ChangeAuthTok()
-  User: "user-mfa"
-  Result: success
-PAM AcctMgmt()
-  User: "user-mfa"
-  Result: success
->
-────────────────────────────────────────────────────────────────────────────────
