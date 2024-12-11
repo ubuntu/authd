@@ -1,4 +1,0 @@
-FIRST CALL:
-	access: 
-	msg: 
-	err: can't check authentication: failed to update user "TestIsAuthenticated/Error_when_UID_conflicts_with_existing_different_user_separator_conflicting-uid": UID already in use by a different user

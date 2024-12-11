@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 )
 
 // load any behaviour modifiers from env variable.
