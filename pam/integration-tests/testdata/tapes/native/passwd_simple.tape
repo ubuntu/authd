@@ -2,7 +2,7 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait /Username:$/
+Wait /Username:\n/
 Show
 
 Hide
@@ -40,7 +40,7 @@ ClearTerminal
 Hide
 Type "${AUTHD_TEST_TAPE_LOGIN_COMMAND}"
 Enter
-Wait /Username:$/
+Wait /Username:\n/
 Show
 
 Hide

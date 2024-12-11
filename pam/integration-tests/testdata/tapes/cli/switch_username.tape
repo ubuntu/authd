@@ -2,7 +2,7 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait /Username: user name$/
+Wait /Username: user name\n/
 Show
 
 Hide
@@ -17,11 +17,11 @@ Show
 
 Hide
 Escape
-Wait /Username: user-integration-switch-username$/
+Wait /Username: user-integration-switch-username\n/
 Backspace 15
-Wait /Username: user-integration-$/
+Wait /Username: user-integration-\n/
 Type "username-switched"
-Wait /Username: user-integration-username-switched$/
+Wait /Username: user-integration-username-switched\n/
 Show
 
 Hide

@@ -1,7 +1,7 @@
 Hide
 Type "${AUTHD_TEST_TAPE_COMMAND} invalid_flag=foo bar"
 Enter
-Wait /Username: user name$/
+Wait /Username: user name\n/
 Show
 
 Hide

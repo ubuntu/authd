@@ -105,6 +105,10 @@ var (
 		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?(.*)$`)
 	vhsEmptyLinesRegex = regexp.MustCompile(`(?m)((^\n^\n)+(^\n)?|^\n)(^─+$)`)
 
+	// vhsWaitRegex ensures proper debug on Wait /Pattern/ command.
+	vhsWaitRegex = regexp.MustCompile(`\bWait(\+Line)?(@\S+)?[\t ]+(/(.+)/|(.+))`)
+	// vhsWaitLineRegex ensures proper debug on Wait command (without pattern).
+	vhsWaitLineRegex = regexp.MustCompile(`\bWait(\+Line)?(@\S+)?[\t ]*\n`)
 	// vhsWaitSuffix adds support for Wait+Suffix /Pattern/ command.
 	vhsWaitSuffix = regexp.MustCompile(`\bWait\+Suffix(@\S+)?[\t ]+(/(.*)/|(.*))`)
 	// vhsWaitPromptRegex adds support for Wait+Prompt /Pattern/ command.
@@ -447,9 +451,9 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 		tapeString = strings.ReplaceAll(tapeString, variable, v)
 	}
 
-	tapeString = vhsTypeAndWaitUsername.ReplaceAllString(tapeString, `${1}Wait /Username:[^\n]*$$/
+	tapeString = vhsTypeAndWaitUsername.ReplaceAllString(tapeString, `${1}Wait /Username:[^\n]*\n/
 ${1}Type "$2"
-${1}Wait /Username: $2$$/`)
+${1}Wait /Username: $2\n/`)
 
 	for _, m := range vhsTypeAndWaitCLIPassword.FindAllStringSubmatch(tapeString, -1) {
 		fullMatch, prefix, password := m[0], m[1], m[2]
@@ -463,6 +467,16 @@ ${1}Wait /Username: $2$$/`)
 			prefix+strings.Join(commands, "\n"+prefix))
 	}
 
+	waitPattern := `/(^|\n)>/`
+	if wp, ok := td.Settings[vhsWaitPattern]; ok {
+		waitPattern, ok = wp.(string)
+		require.True(t, ok, "Setup: %s must be a string", vhsWaitPattern)
+	}
+
+	tapeString = vhsWaitRegex.ReplaceAllString(tapeString,
+		`Wait+Suffix$2 /(^|[\n]+)[^\n]*$4$5[^\n]*/`)
+	tapeString = vhsWaitLineRegex.ReplaceAllString(tapeString,
+		fmt.Sprintf("Wait+Suffix$2 %s\n", waitPattern))
 	tapeString = vhsWaitCLIPromptRegex.ReplaceAllString(tapeString,
 		`Wait+Suffix$1 /$2:\n>[\n]+[ ]*$4[\n]*[\n]+$6/`)
 	tapeString = vhsWaitPromptRegex.ReplaceAllString(tapeString,
