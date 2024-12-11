@@ -35,22 +35,7 @@ Enter your one time credential:
 Enter your one time credential:
 >
 
-  [ Resend SMS (1 sent) ]
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Enter your one time credential:
->
-
   [ Resend SMS (2 sent) ]
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate()
-  User: "user-integration-form-w-button"
-  Result: success
-PAM AcctMgmt()
-  User: "user-integration-form-w-button"
-  Result: success
->
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 PAM Authenticate()

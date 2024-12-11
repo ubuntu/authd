@@ -59,12 +59,3 @@ PAM AcctMgmt()
   Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate()
-  User: "user-integration-remember-mode"
-  Result: success
-PAM AcctMgmt()
-  User: "user-integration-remember-mode"
-  Result: success
->
-────────────────────────────────────────────────────────────────────────────────
