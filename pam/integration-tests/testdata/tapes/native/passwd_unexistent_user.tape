@@ -6,7 +6,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "user-unexistent"
+TypeUsername "user-unexistent"
 Enter
 Wait+Prompt /Choose your provider/
 Show

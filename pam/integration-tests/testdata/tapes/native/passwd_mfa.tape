@@ -6,7 +6,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "user-mfa"
+TypeUsername "user-mfa"
 Enter
 Wait+Prompt /Choose your provider/
 Show

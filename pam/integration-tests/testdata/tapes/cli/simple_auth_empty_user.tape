@@ -6,8 +6,7 @@ Wait /Username: user name$/
 Show
 
 Hide
-Type "user-integration-not-empty"
-Wait+Screen /Username: user-integration-not-empty\n/
+TypeUsername "user-integration-not-empty"
 Show
 
 Hide
@@ -23,8 +22,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user-integration-was-empty"
-Wait+Screen /Username: user-integration-was-empty\n/
+TypeUsername "user-integration-was-empty"
 Show
 
 Hide

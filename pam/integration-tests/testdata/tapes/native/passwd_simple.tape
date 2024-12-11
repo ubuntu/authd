@@ -6,7 +6,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "user1"
+TypeUsername "user1"
 Enter
 Wait+Prompt /Choose your provider/
 Show
@@ -44,7 +44,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "user1"
+TypeUsername "user1"
 Enter
 Wait+Prompt /Gimme your password/
 Show
