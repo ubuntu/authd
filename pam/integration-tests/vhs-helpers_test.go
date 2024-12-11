@@ -119,6 +119,10 @@ var (
 	// It allows to wait for the same content being repeated N times in the terminal.
 	vhsWaitNthRegex = regexp.MustCompile(`\bWait\+Nth\((\d+)\)(@\S+)?[\t ]+(/(.*)/|(.*))`)
 
+	// vhsTypeAndWaitCLIPassword adds support for typing the CLI password, waiting for the expected output.
+	vhsTypeAndWaitCLIPassword = regexp.MustCompile(`(.*)\bTypeCLIPassword[\t ]+` +
+		"[\"`]" + `((?:[^"` + "`" + `\\]|\\.)*)"`)
+
 	// vhsClearTape clears the tape by clearing the terminal.
 	vhsClearTape = regexp.MustCompile(`\bClearTerminal\b`)
 )
@@ -438,6 +442,18 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 		require.Contains(t, tapeString, variable,
 			"Setup: Tape does not contain %q", variable)
 		tapeString = strings.ReplaceAll(tapeString, variable, v)
+	}
+
+	for _, m := range vhsTypeAndWaitCLIPassword.FindAllStringSubmatch(tapeString, -1) {
+		fullMatch, prefix, password := m[0], m[1], m[2]
+		commands := []string{
+			`Wait+Screen /\n>[ \t]*\n/`,
+			fmt.Sprintf("Type `%s`", password),
+			fmt.Sprintf(`Wait+Suffix /:\n> %s(\n[^>].+)*/`,
+				regexp.QuoteMeta(strings.Repeat("*", len(password)))),
+		}
+		tapeString = strings.ReplaceAll(tapeString, fullMatch,
+			prefix+strings.Join(commands, "\n"+prefix))
 	}
 
 	tapeString = vhsWaitPromptRegex.ReplaceAllString(tapeString,

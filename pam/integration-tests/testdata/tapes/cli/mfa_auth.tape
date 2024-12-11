@@ -33,7 +33,7 @@ Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "goodpass"
+TypeCLIPassword "goodpass"
 Show
 
 Hide

@@ -22,7 +22,7 @@ Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "goodpass"
+TypeCLIPassword "goodpass"
 Show
 
 Hide
@@ -37,27 +37,27 @@ Wait+Screen /New password:\n>\n/
 Show
 
 Hide
-Type "1234"
+TypeCLIPassword "1234"
 Enter
 Wait /The password is shorter than \d+ characters/
 Wait+Screen /New password:\n>\n/
 Show
 
 Hide
-Type "12345678"
+TypeCLIPassword "12345678"
 Enter
 Wait /The password fails the dictionary check/
 Wait+Screen /New password:\n>\n/
 Show
 
 Hide
-Type "authd2404"
+TypeCLIPassword "authd2404"
 Enter
 Wait+Prompt /Confirm password/
 Show
 
 Hide
-Type "123456789"
+TypeCLIPassword "123456789"
 Show
 
 Hide
@@ -67,13 +67,13 @@ Wait+Screen /New password:\n>\n/
 Show
 
 Hide
-Type "authd2404"
+TypeCLIPassword "authd2404"
 Enter
 Wait+Prompt /Confirm password/
 Show
 
 Hide
-Type "authd2404"
+TypeCLIPassword "authd2404"
 Show
 
 Hide

@@ -33,7 +33,7 @@ Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "goodpass"
+TypeCLIPassword "goodpass"
 Show
 
 Hide
@@ -72,13 +72,13 @@ Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /New password/
 Show
 
 Hide
-Type "authd2404"
+TypeCLIPassword "authd2404"
 Show
 
 Hide
 Enter
 Wait+Prompt /Confirm password/
-Type "authd2404"
+TypeCLIPassword "authd2404"
 Show
 
 Hide
