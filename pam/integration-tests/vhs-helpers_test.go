@@ -106,8 +106,7 @@ var (
 
 	vhsSleepRegex = regexp.MustCompile(
 		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?(.*)$`)
-	vhsEmptyLinesRegex = regexp.MustCompile(
-		fmt.Sprintf(`(?m)((^\n^\n)+(^\n)?|^\n)(^%s+$)`, string(vhsFrameSeparator)))
+	vhsEmptyTrailingLinesRegex = regexp.MustCompile(`(?m)\s+\z`)
 
 	// vhsWaitRegex ensures proper debug on Wait /Pattern/ command.
 	vhsWaitRegex = regexp.MustCompile(`\bWait(\+Line)?(@\S+)?[\t ]+(/(.+)/|(.+))`)
@@ -318,13 +317,14 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 
 	got = permissionstestutils.IdempotentPermissionError(got)
 
-	// Drop all the empty lines before each page separator, to remove the clutter.
-	got = vhsEmptyLinesRegex.ReplaceAllString(got, "$4")
-
 	// Remove consecutive equal frames from vhs tapes.
 	framesSeparator := strings.Repeat(string(vhsFrameSeparator), vhsFrameSeparatorLength)
-	frames := strings.Split(got, framesSeparator)
-	got = strings.Join(slices.Compact(frames), framesSeparator)
+	frames := slices.Compact(strings.Split(got, framesSeparator))
+	// Drop all the empty lines before each page separator, to remove the clutter.
+	for i, f := range frames {
+		frames[i] = vhsEmptyTrailingLinesRegex.ReplaceAllString(f, "\n")
+	}
+	got = strings.Join(frames, framesSeparator)
 
 	// Save the sanitized result on cleanup
 	t.Cleanup(func() {
