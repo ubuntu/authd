@@ -11,6 +11,7 @@
   2. ExampleBroker
 (user-integration-pre-check-exit-authd-if-local-broker-is-selected-on-shared-sshd@localhost) Choose your provider:
 > 1
+PAM Authenticate() finished for user 'user-integration-pre-check-exit-authd-if-local-broker-is-selected-on-shared-sshd'
 SSH PAM user 'user-integration-pre-check-exit-authd-if-local-broker-is-selected-on-shared-sshd' using local broker
 (user-integration-pre-check-exit-authd-if-local-broker-is-selected-on-shared-sshd@localhost) Password:
 ────────────────────────────────────────────────────────────────────────────────
@@ -20,6 +21,7 @@ SSH PAM user 'user-integration-pre-check-exit-authd-if-local-broker-is-selected-
   2. ExampleBroker
 (user-integration-pre-check-exit-authd-if-local-broker-is-selected-on-shared-sshd@localhost) Choose your provider:
 > 1
+PAM Authenticate() finished for user 'user-integration-pre-check-exit-authd-if-local-broker-is-selected-on-shared-sshd'
 SSH PAM user 'user-integration-pre-check-exit-authd-if-local-broker-is-selected-on-shared-sshd' using local broker
 (user-integration-pre-check-exit-authd-if-local-broker-is-selected-on-shared-sshd@localhost) Password:
 ────────────────────────────────────────────────────────────────────────────────

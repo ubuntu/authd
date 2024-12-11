@@ -26,6 +26,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
+PAM Authenticate() finished for user 'user-integration-pre-check-authenticate-user-successfully-and-enters-shell'
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
   LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
@@ -47,6 +48,7 @@ Environment:
 Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
+PAM Authenticate() finished for user 'user-integration-pre-check-authenticate-user-successfully-and-enters-shell'
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
   LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
@@ -68,6 +70,7 @@ Environment:
 Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
+PAM Authenticate() finished for user 'user-integration-pre-check-authenticate-user-successfully-and-enters-shell'
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
   LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
@@ -91,6 +94,7 @@ $
 Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
+PAM Authenticate() finished for user 'user-integration-pre-check-authenticate-user-successfully-and-enters-shell'
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
   LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
@@ -116,6 +120,7 @@ $
 Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
+PAM Authenticate() finished for user 'user-integration-pre-check-authenticate-user-successfully-and-enters-shell'
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
   LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
@@ -143,6 +148,7 @@ Connection to localhost closed.
 Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
+PAM Authenticate() finished for user 'user-integration-pre-check-authenticate-user-successfully-and-enters-shell'
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
   LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
@@ -172,6 +178,7 @@ Outside SSH
 Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-authenticate-user-successfully-and-enters-shell@localhost) Gimme your password:
 >
+PAM Authenticate() finished for user 'user-integration-pre-check-authenticate-user-successfully-and-enters-shell'
 Environment:
   USER=user-integration-pre-check-authenticate-user-successfully-and-enters-shell
   LOGNAME=user-integration-pre-check-authenticate-user-successfully-and-enters-shell

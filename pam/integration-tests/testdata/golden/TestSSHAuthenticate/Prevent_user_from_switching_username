@@ -238,6 +238,7 @@ Unsupported input
 Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-prevent-user-from-switching-username@localhost) Gimme your password:
 >
+PAM Authenticate() finished for user 'user-integration-pre-check-prevent-user-from-switching-username'
 Environment:
   USER=user-integration-pre-check-prevent-user-from-switching-username
   LOGNAME=user-integration-pre-check-prevent-user-from-switching-username
@@ -292,6 +293,7 @@ Unsupported input
 Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-prevent-user-from-switching-username@localhost) Gimme your password:
 >
+PAM Authenticate() finished for user 'user-integration-pre-check-prevent-user-from-switching-username'
 Environment:
   USER=user-integration-pre-check-prevent-user-from-switching-username
   LOGNAME=user-integration-pre-check-prevent-user-from-switching-username

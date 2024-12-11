@@ -458,6 +458,7 @@ https://ubuntu.com
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 1
+PAM Authenticate() finished for user 'user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd'
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
   LOGNAME=user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd
@@ -545,6 +546,7 @@ https://ubuntu.com
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 1
+PAM Authenticate() finished for user 'user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd'
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
   LOGNAME=user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd

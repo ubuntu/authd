@@ -314,10 +314,22 @@ func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) s
 
 	outDir := t.TempDir()
 	pamServiceName := "authd-sshd"
+	moduleControl := "[success=ok new_authtok_reqd=done ignore=2 default=die]"
+	notifyState := pam_test.ServiceLine{
+		Action: pam_test.Auth, Control: pam_test.Optional, Module: "pam_echo.so",
+		Args: []string{fmt.Sprintf("%s finished for user '%%u'", pam_test.RunnerResultActionAuthenticate.Message(""))},
+	}
 	serviceFile, err := pam_test.CreateService(outDir, pamServiceName, []pam_test.ServiceLine{
-		{Action: pam_test.Auth, Control: pam_test.SufficientRequisite, Module: module, Args: moduleArgs},
+		{Action: pam_test.Auth, Control: pam_test.NewControl(moduleControl), Module: module, Args: moduleArgs},
+		// Success case:
+		notifyState,
+		{Action: pam_test.Auth, Control: pam_test.Sufficient, Module: pam_test.Permit.String()},
+
+		// Ignore case:
+		notifyState,
 		{Action: pam_test.Auth, Control: pam_test.Optional, Module: "pam_echo.so", Args: []string{"SSH PAM user '%u' using local broker"}},
 		{Action: pam_test.Include, Module: "common-auth"},
+
 		{Action: pam_test.Account, Control: pam_test.SufficientRequisite, Module: module, Args: moduleArgs},
 		{Action: pam_test.Session, Control: pam_test.Requisite, Module: pam_test.Permit.String()},
 	})
