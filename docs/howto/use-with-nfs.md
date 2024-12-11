@@ -174,7 +174,8 @@ machine.
 #### Step 2: Copy the Kerberos keytab file
 
 1. **Copy keytab file:**
-   Securely copy the keytab from the server to the client:
+   Securely copy the keytab from the server to the client and set the correct
+   permissions:
    ```bash
    scp root@server.example.com:/etc/krb5.keytab /tmp/krb5.keytab && \
    sudo mv /tmp/krb5.keytab /etc/krb5.keytab && \

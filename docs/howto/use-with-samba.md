@@ -113,7 +113,7 @@ shared directory on the server from a client machine.
 
    Enter the Samba password for `alice` when prompted.
 
-4. **Optional: Add to `/etc/fstab` for persistent mounting:**
+4. **Optional: Add the share to `/etc/fstab` for persistent mounting:**
    To automatically mount the share at boot, use a credentials file:
 
    - Create a credentials file:
@@ -154,19 +154,19 @@ shared directory on the server from a client machine.
    touch /home/alice/samba/test
    ```
 
+6. **Test enforced access control (optional):**
+
    ```{admonition} Security note
    :class: note
-
-   **Security Note:**
-
-   Files and directories in the share may appear as owned by `alice` on the
-   client, but access control is enforced by the server.
+   **Security Note:** Files and directories in the share may appear as owned by
+   `alice` on the client, but access control is enforced by the server.
 
    For example, if `alice` does not have permission on the server, access will
    be denied even if ownership appears correct on the client.
    ```
 
-   Example:
+   To test this, you can create a restricted directory on the server and attempt
+   to access it on the client:
 
    - Create a restricted directory on the server:
 
@@ -181,7 +181,12 @@ shared directory on the server from a client machine.
      ls /home/alice/samba/secrets
      ```
 
-     **Result:** *Permission denied.*
+     The terminal output will indicate that the user does not have access to the
+     restricted directory:
+
+     ```
+     ls: cannot open directory '/home/alice/samba/secrets': Permission denied
+     ```
 
 ---
 
@@ -209,14 +214,12 @@ shared directory on the server from a client machine.
 #### On the client
 
 1. **Unmount the shared directory:**
-   Unmount the shared directory:
 
    ```bash
    sudo umount /home/alice/samba
    ```
 
 2. **Delete the mount point:**
-   Remove the mount point directory:
 
    ```bash
    rmdir /home/alice/samba
