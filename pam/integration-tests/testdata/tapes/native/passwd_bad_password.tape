@@ -6,7 +6,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "user-integration-bad-password"
+TypeUsername "user-integration-bad-password"
 Enter
 Wait+Prompt /Choose your provider/
 Show

@@ -12,7 +12,7 @@ Wait+Nth(2) /Username:/
 Show
 
 Hide
-Type "user-integration-user-selection"
+TypeUsername "user-integration-user-selection"
 Enter
 Wait+Prompt /Choose your provider/
 Show

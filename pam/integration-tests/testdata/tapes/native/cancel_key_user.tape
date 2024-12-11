@@ -6,7 +6,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "r"
+TypeUsername "r"
 Enter
 Wait+Prompt /Choose your provider/
 Show

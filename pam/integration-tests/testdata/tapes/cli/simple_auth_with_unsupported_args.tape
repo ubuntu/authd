@@ -5,8 +5,7 @@ Wait /Username: user name$/
 Show
 
 Hide
-Type "user2"
-Wait /Username: user2$/
+TypeUsername "user2"
 Show
 
 Hide

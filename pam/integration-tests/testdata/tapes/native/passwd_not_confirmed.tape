@@ -6,7 +6,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "user-integration-wrong-confirmation"
+TypeUsername "user-integration-wrong-confirmation"
 Enter
 Wait+Prompt /Choose your provider/
 Show

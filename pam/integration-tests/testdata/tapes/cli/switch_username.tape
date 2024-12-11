@@ -7,8 +7,7 @@ Show
 
 Hide
 Escape
-Type "user-integration-switch-username"
-Wait /Username: user-integration-switch-username$/
+TypeUsername "user-integration-switch-username"
 Show
 
 Hide

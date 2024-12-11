@@ -6,8 +6,7 @@ Wait /Username: user name$/
 Show
 
 Hide
-Type "user-integration-max-attempts"
-Wait /Username: user-integration-max-attempts$/
+TypeUsername "user-integration-max-attempts"
 Show
 
 Hide

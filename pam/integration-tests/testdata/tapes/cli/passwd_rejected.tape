@@ -6,8 +6,7 @@ Wait /Username: user name$/
 Show
 
 Hide
-Type "user-integration-invalid-new-password"
-Wait /Username: user-integration-invalid-new-password$/
+TypeUsername "user-integration-invalid-new-password"
 Show
 
 Hide
@@ -72,8 +71,7 @@ Wait /Username: user name$/
 Show
 
 Hide
-Type "user-integration-invalid-new-password"
-Wait /Username: user-integration-invalid-new-password$/
+TypeUsername "user-integration-invalid-new-password"
 Show
 
 Hide

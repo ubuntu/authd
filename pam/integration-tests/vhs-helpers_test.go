@@ -39,7 +39,8 @@ const (
 	vhsCommandFinalAuthWaitVariable         = "AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT"
 	vhsCommandFinalChangeAuthokWaitVariable = "AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT"
 
-	vhsClearCommands = `Hide
+	vhsQuotedTextMatch = "[\"`]" + `((?:[^"` + "`" + `\\]|\\.)*)"`
+	vhsClearCommands   = `Hide
 Type "clear"
 Enter
 Wait
@@ -119,9 +120,10 @@ var (
 	// It allows to wait for the same content being repeated N times in the terminal.
 	vhsWaitNthRegex = regexp.MustCompile(`\bWait\+Nth\((\d+)\)(@\S+)?[\t ]+(/(.*)/|(.*))`)
 
+	// vhsTypeAndWaitUsername adds support for typing the username, waiting for it being printed.
+	vhsTypeAndWaitUsername = regexp.MustCompile(`(.*)\bTypeUsername[\t ]+` + vhsQuotedTextMatch)
 	// vhsTypeAndWaitCLIPassword adds support for typing the CLI password, waiting for the expected output.
-	vhsTypeAndWaitCLIPassword = regexp.MustCompile(`(.*)\bTypeCLIPassword[\t ]+` +
-		"[\"`]" + `((?:[^"` + "`" + `\\]|\\.)*)"`)
+	vhsTypeAndWaitCLIPassword = regexp.MustCompile(`(.*)\bTypeCLIPassword[\t ]+` + vhsQuotedTextMatch)
 
 	// vhsClearTape clears the tape by clearing the terminal.
 	vhsClearTape = regexp.MustCompile(`\bClearTerminal\b`)
@@ -442,6 +444,17 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 		require.Contains(t, tapeString, variable,
 			"Setup: Tape does not contain %q", variable)
 		tapeString = strings.ReplaceAll(tapeString, variable, v)
+	}
+
+	for _, m := range vhsTypeAndWaitUsername.FindAllStringSubmatch(tapeString, -1) {
+		fullMatch, prefix, username := m[0], m[1], m[2]
+		commands := []string{
+			`Wait /Username:[^\n]*$/`,
+			fmt.Sprintf("Type `%s`", username),
+			fmt.Sprintf(`Wait /Username: %s$/`, regexp.QuoteMeta(username)),
+		}
+		tapeString = strings.ReplaceAll(tapeString, fullMatch,
+			prefix+strings.Join(commands, "\n"+prefix))
 	}
 
 	for _, m := range vhsTypeAndWaitCLIPassword.FindAllStringSubmatch(tapeString, -1) {

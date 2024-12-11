@@ -6,8 +6,7 @@ Wait /Username: user name$/
 Show
 
 Hide
-Type "user-needs-reset-integration-mandatory"
-Wait /Username: user-needs-reset-integration-mandatory$/
+TypeUsername "user-needs-reset-integration-mandatory"
 Show
 
 Hide

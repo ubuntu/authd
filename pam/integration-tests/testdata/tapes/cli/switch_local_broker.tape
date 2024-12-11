@@ -6,8 +6,7 @@ Wait /Username: user name$/
 Show
 
 Hide
-Type "user-integration-switch-broker"
-Wait /Username: user-integration-switch-broker$/
+TypeUsername "user-integration-switch-broker"
 Show
 
 Hide

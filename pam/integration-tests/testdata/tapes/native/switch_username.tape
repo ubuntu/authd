@@ -6,7 +6,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "user-integration-switch-username"
+TypeUsername "user-integration-switch-username"
 Show
 
 Hide
@@ -21,7 +21,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "user-integration-username-switched"
+TypeUsername "user-integration-username-switched"
 Show
 
 Hide

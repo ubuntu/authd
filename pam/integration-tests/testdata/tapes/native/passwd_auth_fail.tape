@@ -6,7 +6,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "user-integration-max-attempts"
+TypeUsername "user-integration-max-attempts"
 Enter
 Wait+Prompt /Choose your provider/
 Show
