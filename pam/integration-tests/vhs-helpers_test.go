@@ -106,6 +106,12 @@ var (
 		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?(.*)$`)
 	vhsEmptyLinesRegex = regexp.MustCompile(`(?m)((^\n^\n)+(^\n)?|^\n)(^─+$)`)
 
+	// vhsWaitRegex catches Wait(@timeout)? /Pattern/ commands to re-implement default vhs
+	// Wait /Pattern/ command with full context on errors.
+	vhsWaitRegex = regexp.MustCompile(`\bWait(\+Line)?(@\S+)?[\t ]+(/(.+)/|(.+))`)
+	// vhsWaitLineRegex catches Wait(@timeout) commands to re-implement default Wait command
+	// with full context on errors.
+	vhsWaitLineRegex = regexp.MustCompile(`\bWait(\+Line)?(@\S+)?[\t ]*\n`)
 	// vhsWaitSuffixRegex adds support for Wait+Suffix /Pattern/ command.
 	// It allows allows to wait for a terminal output that ends with a content
 	// that matches Pattern.
@@ -457,9 +463,9 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 	for _, m := range vhsTypeAndWaitUsername.FindAllStringSubmatch(tapeString, -1) {
 		fullMatch, prefix, username := m[0], m[1], m[2]
 		commands := []string{
-			`Wait /Username:[^\n]*$/`,
+			`Wait /Username:[^\n]*\n/`,
 			fmt.Sprintf("Type `%s`", username),
-			fmt.Sprintf(`Wait /Username: %s$/`, regexp.QuoteMeta(username)),
+			fmt.Sprintf(`Wait /Username: %s\n/`, regexp.QuoteMeta(username)),
 		}
 		tapeString = strings.ReplaceAll(tapeString, fullMatch,
 			prefix+strings.Join(commands, "\n"+prefix))
@@ -477,6 +483,16 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 			prefix+strings.Join(commands, "\n"+prefix))
 	}
 
+	waitPattern := `/(^|\n)>/`
+	if wp, ok := td.Settings[vhsWaitPattern]; ok {
+		waitPattern, ok = wp.(string)
+		require.True(t, ok, "Setup: %s must be a string", vhsWaitPattern)
+	}
+
+	tapeString = vhsWaitRegex.ReplaceAllString(tapeString,
+		`Wait+Suffix$2 /(^|[\n]+)[^\n]*$4$5[^\n]*/`)
+	tapeString = vhsWaitLineRegex.ReplaceAllString(tapeString,
+		fmt.Sprintf("Wait+Suffix$2 %s\n", waitPattern))
 	tapeString = vhsWaitCLIPromptRegex.ReplaceAllString(tapeString,
 		`Wait+Suffix$1 /$2:\n>[\n]+[ ]*$4[\n]*[\n]+$6/`)
 	tapeString = vhsWaitPromptRegex.ReplaceAllString(tapeString,
