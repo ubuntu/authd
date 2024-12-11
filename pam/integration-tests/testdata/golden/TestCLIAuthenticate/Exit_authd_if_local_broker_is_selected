@@ -45,38 +45,3 @@ PAM AcctMgmt()
     Critical error - immediate abort
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-  Select your provider
-
-> 1. local
-  2. ExampleBroker
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-PAM Info Message: auth=incomplete
-PAM Authenticate()
-  User: "user-local-broker"
-  Result: error: PAM exit code: 25
-    The return value should be ignored by PAM dispatch
-PAM AcctMgmt()
-  User: "user-local-broker"
-  Result: error: PAM exit code: 26
-    Critical error - immediate abort
->
-────────────────────────────────────────────────────────────────────────────────

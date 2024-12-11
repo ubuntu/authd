@@ -21,12 +21,3 @@ PAM AcctMgmt()
   Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate()
-  User: "user-integration-simple-preset"
-  Result: success
-PAM AcctMgmt()
-  User: "user-integration-simple-preset"
-  Result: success
->
-────────────────────────────────────────────────────────────────────────────────

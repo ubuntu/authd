@@ -29,22 +29,3 @@ PAM AcctMgmt()
     Critical error - immediate abort
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
-Username: user-local-broker
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-Or enter 'r' to go back to user selection
-Choose your provider:
-> 1
-chauthtok=incomplete
-PAM ChangeAuthTok()
-  User: "user-local-broker"
-  Result: error: PAM exit code: 25
-    The return value should be ignored by PAM dispatch
-PAM AcctMgmt()
-  User: "user-local-broker"
-  Result: error: PAM exit code: 26
-    Critical error - immediate abort
->
-────────────────────────────────────────────────────────────────────────────────

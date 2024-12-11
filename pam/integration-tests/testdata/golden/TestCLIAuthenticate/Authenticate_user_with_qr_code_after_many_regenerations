@@ -51,40 +51,6 @@ Scan the qrcode or enter the code in the login page
         [ Regenerate code ]
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Scan the qrcode or enter the code in the login page
-
-█████████████████████████████████
-█████████████████████████████████
-████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
-████ █   █ █▀▄██ ▄▄▄██ █   █ ████
-████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
-████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
-█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
-████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
-████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
-███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
-████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
-████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
-████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
-████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
-█████████████████████████████████
-▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-       https://ubuntu.com
-              1337
-
-        [ Regenerate code ]
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Authenticate()
-  User: "user-integration-qrcode-static-regenerate"
-  Result: success
-PAM AcctMgmt()
-  User: "user-integration-qrcode-static-regenerate"
-  Result: success
->
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 PAM Authenticate()
   User: "user-integration-qrcode-static-regenerate"
   Result: success
