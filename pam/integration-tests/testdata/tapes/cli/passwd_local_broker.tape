@@ -6,8 +6,7 @@ Wait /Username: user name$/
 Show
 
 Hide
-Type "user-local-broker"
-Wait /Username: user-local-broker$/
+TypeUsername "user-local-broker"
 Show
 
 Hide

@@ -6,8 +6,7 @@ Wait /Username: user name$/
 Show
 
 Hide
-Type "user-can-reset"
-Wait /Username: user-can-reset$/
+TypeUsername "user-can-reset"
 Show
 
 Hide

@@ -6,8 +6,7 @@ Wait /Username: user name$/
 Show
 
 Hide
-Type "user-integration-sigint"
-Wait /Username: user-integration-sigint$/
+TypeUsername "user-integration-sigint"
 Show
 
 Hide

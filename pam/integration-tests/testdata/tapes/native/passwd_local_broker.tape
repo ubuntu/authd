@@ -6,7 +6,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "user-local-broker"
+TypeUsername "user-local-broker"
 Enter
 Wait+Prompt /Choose your provider/
 Show

@@ -6,8 +6,7 @@ Wait /Username: user name$/
 Show
 
 Hide
-Type "user1"
-Wait /Username: user1$/
+TypeUsername "user1"
 Show
 
 Hide
@@ -54,8 +53,7 @@ Wait /Username: user name$/
 Show
 
 Hide
-Type "user1"
-Wait+Screen /Username: user1\n/
+TypeUsername "user1"
 Show
 
 Hide

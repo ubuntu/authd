@@ -5,7 +5,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "user-integration-invalid-new-password"
+TypeUsername "user-integration-invalid-new-password"
 Enter
 Wait+Prompt /Choose your provider/
 Show
@@ -60,7 +60,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "user-integration-invalid-new-password"
+TypeUsername "user-integration-invalid-new-password"
 Enter
 Wait+Prompt /Gimme your password/
 Show

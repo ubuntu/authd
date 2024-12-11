@@ -6,7 +6,7 @@ Wait /Username:$/
 Show
 
 Hide
-Type "user-integration-same-new-password"
+TypeUsername "user-integration-same-new-password"
 Enter
 Wait+Prompt /Choose your provider/
 Show
