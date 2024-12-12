@@ -7,6 +7,9 @@ Show
 
 Hide
 Type "2"
+Show
+
+Hide
 Enter
 Wait+Prompt /Gimme your password/
 Show
@@ -19,6 +22,9 @@ Show
 
 Hide
 Type "1"
+Show
+
+Hide
 Enter
 Wait+Prompt /Enter your new password \(3 days until mandatory\)/
 Show
