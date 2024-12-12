@@ -38,7 +38,14 @@ var (
 // The event will contain the returned value from the broker.
 func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID string,
 	authData *authd.IARequest_AuthenticationData, challenge *string) tea.Cmd {
-	return func() tea.Msg {
+	return func() (msg tea.Msg) {
+		log.Debugf(context.TODO(), "Authentication request for session %q: %#v",
+			sessionID, authData.Item)
+		defer func() {
+			log.Debugf(context.TODO(), "Authentication completed for session %q: %#v",
+				sessionID, msg)
+		}()
+
 		res, err := client.IsAuthenticated(ctx, &authd.IARequest{
 			SessionId:          sessionID,
 			AuthenticationData: authData,
@@ -330,6 +337,11 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 
 	if m.clientType != InteractiveTerminal {
 		return *m, nil
+	}
+
+	if _, ok := msg.(startAuthentication); ok {
+		log.Debugf(context.TODO(), "%T: %#v: current model %v, focused %v",
+			m, msg, m.currentModel, m.Focused())
 	}
 
 	// interaction events
