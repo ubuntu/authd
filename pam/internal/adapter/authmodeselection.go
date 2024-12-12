@@ -233,6 +233,7 @@ func (m authModeSelectionModel) View() string {
 
 // Focus focuses this model.
 func (m *authModeSelectionModel) Focus() tea.Cmd {
+	log.Debugf(context.TODO(), "%T: Focus", m)
 	m.focused = true
 	return nil
 }
@@ -244,6 +245,7 @@ func (m *authModeSelectionModel) Focused() bool {
 
 // Blur releases the focus from this model.
 func (m *authModeSelectionModel) Blur() {
+	log.Debugf(context.TODO(), "%T: Blur", m)
 	m.focused = false
 }
 
@@ -305,6 +307,7 @@ func getAuthenticationModes(client authd.PAMClient, sessionID string, uiLayouts 
 
 // Resets zeroes any internal state on the authModeSelectionModel.
 func (m *authModeSelectionModel) Reset() {
+	log.Debugf(context.TODO(), "%T: Reset", m)
 	m.currentAuthModeSelectedID = ""
 }
 

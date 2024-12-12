@@ -1,6 +1,7 @@
 package adapter
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strings"
@@ -10,6 +11,7 @@ import (
 	"github.com/muesli/termenv"
 	"github.com/skip2/go-qrcode"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
+	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/proto/authd"
 )
 
@@ -121,6 +123,7 @@ func (m qrcodeModel) View() string {
 
 // Focus focuses this model.
 func (m qrcodeModel) Focus() tea.Cmd {
+	log.Debugf(context.TODO(), "%T: Focus", m)
 	if m.buttonModel == nil {
 		return nil
 	}
@@ -129,6 +132,7 @@ func (m qrcodeModel) Focus() tea.Cmd {
 
 // Blur releases the focus from this model.
 func (m qrcodeModel) Blur() {
+	log.Debugf(context.TODO(), "%T: Blur", m)
 	if m.buttonModel == nil {
 		return
 	}

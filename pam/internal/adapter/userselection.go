@@ -155,6 +155,7 @@ func (m userSelectionModel) Username() string {
 // selected so that the returned value won't be valid until the user did an
 // explicit ack.
 func (m *userSelectionModel) Focus() tea.Cmd {
+	log.Debugf(context.TODO(), "%T: Focus", m)
 	m.selected = false
 	return m.Model.Focus()
 }
