@@ -18,6 +18,15 @@ Username: user-local-broker
 Or enter 'r' to go back to user selection
 Choose your provider:
 > 1
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK} force_native_client=true
+Username: user-local-broker
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 1
 chauthtok=incomplete
 PAM ChangeAuthTok()
   User: "user-local-broker"

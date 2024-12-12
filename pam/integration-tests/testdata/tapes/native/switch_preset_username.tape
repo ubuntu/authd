@@ -7,42 +7,63 @@ Show
 
 Hide
 Type "r"
+Show
+
+Hide
 Enter
 Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "2"
+Show
+
+Hide
 Enter
 Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "r"
+Show
+
+Hide
 Enter
 Wait+Prompt /Choose your authentication method/
 Show
 
 Hide
 Type "r"
+Show
+
+Hide
 Enter
 Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "r"
+Show
+
+Hide
 Enter
 Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "r"
+Show
+
+Hide
 Enter
 Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "2"
+Show
+
+Hide
 Enter
 Wait+Prompt /Gimme your password/
 Show

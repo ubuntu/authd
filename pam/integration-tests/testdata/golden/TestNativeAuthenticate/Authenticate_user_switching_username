@@ -21,6 +21,15 @@ Username: user-integration-switch-username
 Or enter 'r' to go back to user selection
 Choose your provider:
 > r
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-switch-username
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> r
 Username:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
@@ -48,6 +57,22 @@ Username: user-integration-username-switched
 Or enter 'r' to go back to user selection
 Choose your provider:
 >
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-switch-username
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> r
+Username: user-integration-username-switched
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> 2
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-username
