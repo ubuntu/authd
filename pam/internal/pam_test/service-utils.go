@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 )
 
 // Action represents a PAM action to perform.
@@ -65,7 +66,34 @@ const (
 	SufficientRequisite
 	// Optional implies that the module is optional.
 	Optional
+
+	lastControl
 )
+
+var (
+	customControls   map[Control]string
+	customControlsMu sync.RWMutex
+)
+
+// NewControl allows to create a new custom control for the given string.
+func NewControl(controlValue string) Control {
+	customControlsMu.Lock()
+	defer customControlsMu.Unlock()
+
+	if customControls == nil {
+		customControls = make(map[Control]string)
+	}
+
+	for control, value := range customControls {
+		if value == controlValue {
+			return control
+		}
+	}
+
+	control := Control(int(lastControl) + len(customControls))
+	customControls[control] = controlValue
+	return control
+}
 
 // String is the method to stringify a control to their PAM config file representation.
 func (c Control) String() string {
@@ -81,7 +109,9 @@ func (c Control) String() string {
 	case SufficientRequisite:
 		return "[success=done new_authtok_reqd=done ignore=ignore default=die]"
 	default:
-		return ""
+		customControlsMu.RLock()
+		defer customControlsMu.RUnlock()
+		return customControls[c]
 	}
 }
 

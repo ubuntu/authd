@@ -78,7 +78,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	defaultSocketPath := runAuthd(t, defaultGPasswdOutput, groupsFile, true)
 
 	const tapeCommand = "ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}"
-	defaultTapeSettings := []tapeSetting{{vhsHeight, 1000}, {vhsWidth, 800}}
+	defaultTapeSettings := []tapeSetting{{vhsHeight, 1000}, {vhsWidth, 1500}}
 
 	defaultSSHDPort := ""
 	defaultUserHome := ""
@@ -118,9 +118,12 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
 		},
 		"Authenticate user with qr code": {
-			tape:          "qr_code",
-			tapeSettings:  []tapeSetting{{vhsHeight, 1500}},
-			tapeVariables: map[string]string{"AUTHD_QRCODE_TAPE_ITEM": "2"},
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "2",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "Login code",
+			},
 		},
 		"Authenticate user and reset password while enforcing policy": {
 			tape: "mandatory_password_reset",
@@ -140,13 +143,27 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			user: "user-can-reset2",
 		},
 		"Authenticate user switching auth mode": {
-			tape:          "switch_auth_mode",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3500}},
-			tapeVariables: map[string]string{"AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM": "7"},
+			tape:         "switch_auth_mode",
+			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
+			tapeVariables: map[string]string{
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_QR_OR_LOGIN_CODE_ITEM":    "2",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_SEND_URL_TO_EMAIL_ITEM":   "3",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_FIDO_DEVICE_FOO_ITEM":     "4",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_PHONE_33_ITEM":            "5",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_PHONE_1_ITEM":             "6",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM":            "7",
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_AUTHENTICATION_CODE_ITEM": "8",
+
+				"AUTHD_SWITCH_AUTH_MODE_TAPE_QR_OR_LOGIN_CODE_ITEM_NAME": "Login code",
+			},
 		},
 		"Authenticate user switching to local broker": {
 			tape:                "switch_local_broker",
 			wantNotLoggedInUser: true,
+			tapeSettings:        []tapeSetting{{vhsHeight, 900}},
+			tapeVariables: map[string]string{
+				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
+			},
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
@@ -156,19 +173,26 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 
 		"Remember last successful broker and mode": {
 			tape:          "remember_broker_and_mode",
-			tapeSettings:  []tapeSetting{{vhsHeight, 1200}},
 			daemonizeSSHd: true,
 		},
 		"Autoselect local broker for local user": {
 			tape:                "local_user_preset",
 			user:                "root",
 			wantNotLoggedInUser: true,
-			tapeSettings:        []tapeSetting{{vhsHeight, 200}},
+			tapeSettings: []tapeSetting{
+				{vhsHeight, 200},
+			},
+			tapeVariables: map[string]string{
+				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
+			},
 		},
 
 		"Deny authentication if max attempts reached": {
 			tape:                "max_attempts",
 			wantNotLoggedInUser: true,
+			tapeVariables: map[string]string{
+				vhsCommandFinalAuthWaitVariable: `Wait+Prompt /Choose your provider/`,
+			},
 		},
 		"Deny authentication if user does not exist": {
 			tape:                "unexistent_user",
@@ -192,12 +216,18 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		"Exit authd if local broker is selected": {
 			tape:                "local_broker",
 			wantNotLoggedInUser: true,
+			tapeVariables: map[string]string{
+				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
+			},
 		},
 		"Exit if user is not pre-checked on ssh service": {
 			tape:                "local_ssh",
-			user:                "user-integration-ssh-service",
+			user:                "user-integration-ssh-service-not-allowed",
 			pamServiceName:      "sshd",
 			wantNotLoggedInUser: true,
+			tapeVariables: map[string]string{
+				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
+			},
 		},
 		"Exit authd if user sigints": {
 			tape:                "sigint",
@@ -245,7 +275,6 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			outDir := t.TempDir()
 			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
 			td.Command = tapeCommand
-			td.CommandSleep = defaultSleepValues[authdSleepLong]
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.Env["HOME"] = userHome
 			td.Env["AUTHD_PAM_SSH_USER"] = user
@@ -259,7 +288,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 				"-o", "UserKnownHostsFile=" + knownHost,
 			}, " ")
 			td.Variables = tc.tapeVariables
-			td.RunVhs(t, "ssh", outDir, nil)
+			td.RunVhs(t, vhsTestTypeSSH, outDir, nil)
 			got := sanitizeGoldenFile(t, td, outDir)
 			want := golden.LoadWithUpdate(t, got)
 
@@ -314,10 +343,22 @@ func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) s
 
 	outDir := t.TempDir()
 	pamServiceName := "authd-sshd"
+	moduleControl := "[success=ok new_authtok_reqd=done ignore=2 default=die]"
+	notifyState := pam_test.ServiceLine{
+		Action: pam_test.Auth, Control: pam_test.Optional, Module: "pam_echo.so",
+		Args: []string{fmt.Sprintf("%s finished for user '%%u'", pam_test.RunnerResultActionAuthenticate.Message(""))},
+	}
 	serviceFile, err := pam_test.CreateService(outDir, pamServiceName, []pam_test.ServiceLine{
-		{Action: pam_test.Auth, Control: pam_test.SufficientRequisite, Module: module, Args: moduleArgs},
+		{Action: pam_test.Auth, Control: pam_test.NewControl(moduleControl), Module: module, Args: moduleArgs},
+		// Success case:
+		notifyState,
+		{Action: pam_test.Auth, Control: pam_test.Sufficient, Module: pam_test.Permit.String()},
+
+		// Ignore case:
+		notifyState,
 		{Action: pam_test.Auth, Control: pam_test.Optional, Module: "pam_echo.so", Args: []string{"SSH PAM user '%u' using local broker"}},
 		{Action: pam_test.Include, Module: "common-auth"},
+
 		{Action: pam_test.Account, Control: pam_test.SufficientRequisite, Module: module, Args: moduleArgs},
 		{Action: pam_test.Session, Control: pam_test.Requisite, Module: pam_test.Permit.String()},
 	})

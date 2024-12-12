@@ -1,23 +1,21 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username:\n/
 Show
 
 Hide
-Type "user-unexistent"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
+TypeUsername "user-unexistent"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "2"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT} * 3
 Show
 
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Hide
+Enter
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
+Show

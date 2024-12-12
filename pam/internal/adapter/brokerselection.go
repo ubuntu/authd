@@ -165,8 +165,18 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 	return m, cmd
 }
 
+// View renders a text view of the authentication UI.
+func (m brokerSelectionModel) View() string {
+	if !m.Focused() {
+		return ""
+	}
+
+	return m.Model.View()
+}
+
 // Focus focuses this model. It always returns nil.
 func (m *brokerSelectionModel) Focus() tea.Cmd {
+	log.Debugf(context.TODO(), "%T: Focus", m)
 	m.focused = true
 	return nil
 }
@@ -178,6 +188,7 @@ func (m *brokerSelectionModel) Focused() bool {
 
 // Blur releases the focus from this model.
 func (m *brokerSelectionModel) Blur() {
+	log.Debugf(context.TODO(), "%T: Blur", m)
 	m.focused = false
 }
 
