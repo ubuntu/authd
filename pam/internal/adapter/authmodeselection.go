@@ -44,6 +44,9 @@ type authModeSelected struct {
 	id string
 }
 
+// authModeSelectionFocused is the internal event to signal that the auth mode selection view is focused.
+type authModeSelectionFocused struct{}
+
 // selectAuthMode selects current authentication mode.
 func selectAuthMode(id string) tea.Cmd {
 	return func() tea.Msg {
@@ -125,6 +128,10 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 // Update handles events and actions.
 func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
+	case authModeSelectionFocused:
+		log.Debugf(context.TODO(), "%T: %#v", m, msg)
+		m.focused = true
+
 	case supportedUILayoutsReceived:
 		log.Debugf(context.TODO(), "%#v", msg)
 		if len(msg.layouts) == 0 {
@@ -234,8 +241,7 @@ func (m authModeSelectionModel) View() string {
 // Focus focuses this model.
 func (m *authModeSelectionModel) Focus() tea.Cmd {
 	log.Debugf(context.TODO(), "%T: Focus", m)
-	m.focused = true
-	return nil
+	return sendEvent(authModeSelectionFocused{})
 }
 
 // Focused returns if this model is focused.
