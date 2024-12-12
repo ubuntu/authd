@@ -815,6 +815,41 @@ func startSession(t *testing.T, client authd.PAMClient, username string) string 
 	return sbResp.GetSessionId()
 }
 
+// setupGlobalBrokerMock creates and points to a test-wide system bus, registering the mock broker on it.
+func setupGlobalBrokerMock() (cleanup func(), err error) {
+	cleanup = func() {}
+
+	// Start system bus mock.
+	busCleanup, err := testutils.StartSystemBusMock()
+	if err != nil {
+		return cleanup, err
+	}
+	cleanup = busCleanup
+
+	// Start brokers mock over dbus.
+	brokersConfPath, brokerCleanup, err := initBrokers()
+	if err != nil {
+		return cleanup, err
+	}
+
+	cleanup = func() {
+		brokerCleanup()
+		busCleanup()
+	}
+
+	// Get manager shared across grpc services.
+	globalBrokerManager, err = brokers.NewManager(context.Background(), brokersConfPath, nil)
+	if err != nil {
+		return cleanup, err
+	}
+	mockBrokerGeneratedID, err = getMockBrokerGeneratedID(globalBrokerManager)
+	if err != nil {
+		return cleanup, err
+	}
+
+	return cleanup, nil
+}
+
 func TestMain(m *testing.M) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
 		os.Exit(m.Run())
@@ -822,33 +857,13 @@ func TestMain(m *testing.M) {
 
 	slog.SetLogLoggerLevel(slog.LevelDebug)
 
-	// Start system bus mock.
-	busCleanup, err := testutils.StartSystemBusMock()
+	cleanup, err := setupGlobalBrokerMock()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
-	defer busCleanup()
-
-	// Start brokers mock over dbus.
-	brokersConfPath, cleanup, err := initBrokers()
-	if err != nil {
+		cleanup()
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 	defer cleanup()
 
-	// Get manager shared across grpc services.
-	globalBrokerManager, err = brokers.NewManager(context.Background(), brokersConfPath, nil)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
-	mockBrokerGeneratedID, err = getMockBrokerGeneratedID(globalBrokerManager)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
-
-	os.Exit(m.Run())
+	m.Run()
 }

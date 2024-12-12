@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"os"
 	"slices"
 	"sync"
 	"testing"
@@ -2466,5 +2465,6 @@ func TestMain(m *testing.M) {
 		panic(fmt.Sprintf("could not create an valid rsa key: %v", err))
 	}
 	defer pam_test.MaybeDoLeakCheck()
-	os.Exit(m.Run())
+
+	m.Run()
 }

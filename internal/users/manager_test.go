@@ -636,7 +636,3 @@ func newManagerForTests(t *testing.T, cacheDir string) *users.Manager {
 func ptrUint32(v uint32) *uint32 {
 	return &v
 }
-
-func TestMain(m *testing.M) {
-	os.Exit(m.Run())
-}

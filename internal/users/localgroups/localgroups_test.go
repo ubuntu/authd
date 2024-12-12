@@ -203,7 +203,3 @@ func TestCleanUserFromLocalGroups(t *testing.T) {
 func TestMockgpasswd(t *testing.T) {
 	localgroupstestutils.Mockgpasswd(t)
 }
-
-func TestMain(m *testing.M) {
-	os.Exit(m.Run())
-}
