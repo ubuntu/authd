@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
@@ -148,6 +149,8 @@ func requirePreviousBrokerForUser(t *testing.T, socketPath string, brokerName st
 	require.NoError(t, err, "Can't connect to authd socket")
 
 	t.Cleanup(func() { conn.Close() })
+	require.NoError(t, grpcutils.WaitForConnection(context.TODO(), conn,
+		sleepDuration(30*time.Second)))
 	pamClient := authd.NewPAMClient(conn)
 	brokers, err := pamClient.AvailableBrokers(context.TODO(), nil)
 	require.NoError(t, err, "Can't get available brokers")

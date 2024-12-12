@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/daemon"
 	"github.com/ubuntu/authd/internal/daemon/testdata/grpctestservice"
+	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -245,7 +245,6 @@ func TestQuit(t *testing.T) {
 				var connected bool
 				connected, disconnectClient = createClientConnection(t, socketPath)
 				require.True(t, connected, "new connection should be made allowed")
-				defer disconnectClient()
 			}
 
 			// Request quitting.
@@ -290,26 +289,15 @@ func createClientConnection(t *testing.T, socketPath string) (success bool, disc
 	t.Helper()
 
 	ctx, disconnect := context.WithCancel(context.Background())
+	t.Cleanup(disconnect)
 
-	var conn *grpc.ClientConn
-	connected := make(chan struct{})
-	go func() {
-		defer close(connected)
-		var err error
-		conn, err = grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
-		require.NoError(t, err, "Could not connect to grpc server")
+	conn, err := grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
+	require.NoError(t, err, "Could not connect to grpc server")
 
-		// The daemon tests require an active connection, so we need to block here until the connection is ready.
-		conn.Connect()
-		for conn.GetState() != connectivity.Ready {
-			conn.WaitForStateChange(context.Background(), conn.GetState())
-		}
-	}()
-	select {
-	case <-connected:
-	case <-time.After(5 * time.Second):
-		disconnect()
-		return false, func() {}
+	// The daemon tests require an active connection, so we need to block here until the connection is ready.
+	if err := grpcutils.WaitForConnection(ctx, conn, 5*time.Second); err != nil {
+		t.Logf("Client connection failed: %v", err)
+		return false, nil
 	}
 
 	client := grpctestservice.NewTestServiceClient(conn)
