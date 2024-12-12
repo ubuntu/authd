@@ -360,6 +360,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 
 // Focus focuses this model.
 func (m *authenticationModel) Focus() tea.Cmd {
+	log.Debugf(context.TODO(), "%T: Focus", m)
 	if m.currentModel == nil {
 		return nil
 	}
@@ -377,6 +378,7 @@ func (m *authenticationModel) Focused() bool {
 
 // Blur releases the focus from this model.
 func (m *authenticationModel) Blur() {
+	log.Debugf(context.TODO(), "%T: Blur", m)
 	if m.currentModel == nil {
 		return
 	}
@@ -450,6 +452,7 @@ func (m authenticationModel) View() string {
 
 // Resets zeroes any internal state on the authenticationModel.
 func (m *authenticationModel) Reset() tea.Cmd {
+	log.Debugf(context.TODO(), "%T: Reset", m)
 	m.currentModel = nil
 	m.currentSessionID = ""
 	m.currentBrokerID = ""

@@ -75,12 +75,14 @@ func (b buttonModel) View() string {
 
 // Focus focuses this model.
 func (b *buttonModel) Focus() tea.Cmd {
+	log.Debugf(context.TODO(), "%T: Focus", b)
 	b.focused = true
 	return nil
 }
 
 // Blur releases the focus from this model.
 func (b *buttonModel) Blur() {
+	log.Debugf(context.TODO(), "%T: Blur", b)
 	b.focused = false
 }
 
