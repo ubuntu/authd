@@ -424,5 +424,5 @@ func TestMain(m *testing.M) {
 	}
 	defer cleanup()
 
-	os.Exit(m.Run())
+	m.Run()
 }

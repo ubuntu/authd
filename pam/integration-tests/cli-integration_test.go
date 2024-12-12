@@ -24,5 +24,5 @@ func TestMain(m *testing.M) {
 	defer daemonCleanup()
 	daemonPath = execPath
 
-	os.Exit(m.Run())
+	m.Run()
 }

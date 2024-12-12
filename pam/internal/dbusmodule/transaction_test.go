@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"sync"
 	"testing"
 
@@ -673,5 +672,6 @@ func prepareTestServer(t *testing.T, expectedReturns []methodReturn) (string, *t
 
 func TestMain(m *testing.M) {
 	log.SetLevel(log.DebugLevel)
-	os.Exit(m.Run())
+
+	m.Run()
 }
