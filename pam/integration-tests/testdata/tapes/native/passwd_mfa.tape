@@ -13,12 +13,18 @@ Show
 
 Hide
 Type "2"
+Show
+
+Hide
 Enter
 Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "r"
+Show
+
+Hide
 Enter
 Wait+Prompt /Choose your authentication method/
 Wait+Screen /1\. Password authentication/
@@ -38,6 +44,9 @@ Show
 
 Hide
 Type "r"
+Show
+
+Hide
 Enter
 Wait+Prompt /Choose your authentication method/
 Wait+Screen /1\. Use your fido device foo/
@@ -56,6 +65,9 @@ Show
 
 Hide
 Type "r"
+Show
+
+Hide
 Enter
 Wait+Prompt /Choose your authentication method/
 Wait+Screen /1\. Use your phone \+33\.\.\./

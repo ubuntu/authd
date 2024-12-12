@@ -7,12 +7,18 @@ Show
 
 Hide
 TypeUsername "r"
+Show
+
+Hide
 Enter
 Wait+Prompt /Choose your provider/
 Show
 
 Hide
 Type "2"
+Show
+
+Hide
 Enter
 Wait+Prompt /Gimme your password/
 Show

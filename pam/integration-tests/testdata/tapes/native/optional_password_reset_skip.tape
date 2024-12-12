@@ -7,6 +7,9 @@ Show
 
 Hide
 Type "2"
+Show
+
+Hide
 Enter
 Wait+Prompt /Gimme your password/
 Show
@@ -19,6 +22,9 @@ Show
 
 Hide
 Type "2"
+Show
+
+Hide
 Enter
 ${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show

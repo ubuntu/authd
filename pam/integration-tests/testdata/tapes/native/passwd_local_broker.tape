@@ -13,6 +13,9 @@ Show
 
 Hide
 Type "1"
+Show
+
+Hide
 Enter
 ${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
 Show

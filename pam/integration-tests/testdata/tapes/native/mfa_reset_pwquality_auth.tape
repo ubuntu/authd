@@ -10,6 +10,9 @@ Type "2"
 Show
 
 Hide
+Show
+
+Hide
 Enter
 Wait+Prompt /Gimme your password/
 Show
@@ -28,6 +31,9 @@ Show
 
 Hide
 Type "1"
+Show
+
+Hide
 Enter
 Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Enter your new password \(3 days until mandatory\)/
 Show
