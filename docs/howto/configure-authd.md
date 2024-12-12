@@ -89,6 +89,65 @@ client_id = <CLIENT_ID>
 client_secret = <CLIENT_SECRET>
 ```
 
+## Configure allowed users
+
+The users who are allowed to log in (after successfully authenticating via the
+identity provider) are configured in the `users` section of the
+`/var/snap/authd-<broker_name>/current/broker.conf` file:
+
+```ini
+[users]
+## 'allowed_users' specifies the users who are permitted to log in after
+## successfully authenticating with the Identity Provider.
+## Values are separated by commas. Supported values:
+## - 'OWNER': Grants access to the user specified in the 'owner' option
+##            (see below). This is the default.
+## - 'ALL': Grants access to all users who successfully authenticate
+##          with the Identity Provider.
+## - <username>: Grants access to specific additional users
+##               (e.g. user1@example.com).
+## Example: allowed_users = OWNER,user1@example.com,admin@example.com
+#allowed_users = OWNER
+
+## 'owner' specifies the user assigned the owner role. This user is
+## permitted to log in if 'OWNER' is included in the 'allowed_users'
+## option.
+##
+## If this option is left unset, the first user to successfully log in
+## via this broker will automatically be assigned the owner role. A
+## drop-in configuration file will be created in broker.conf.d/ to set
+## the 'owner' option.
+##
+## To disable automatic assignment, you can either:
+## 1. Explicitly set this option to an empty value (e.g. owner = "")
+## 2. Remove 'OWNER' from the 'allowed_users' option
+##
+## Example: owner = user2@example.com
+#owner =
+```
+
+By default, the first person to log in to the machine is automatically registered
+as the owner. If you wish to override this behavior then specify a list of allowed
+users with the `allowed_users` keyword, while omitting the `OWNER` keyword:
+
+```text
+allowed_users = person1@email.com,person2@email.com
+```
+
+Alternatively, you can directly register someone as the owner by using the `owner`
+keyword:
+
+```text
+owner = your@email.com
+```
+
+Explicitly setting an empty owner, has the same effect as omitting the `OWNER` keyword
+in `allowed_users`:
+
+```text
+owner =
+```
+
 ## Restart the broker
 
 When a configuration file is added you have to restart authd:
