@@ -137,6 +137,17 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	// Key presses
 	case tea.KeyMsg:
+		if log.IsLevelEnabled(log.DebugLevel) {
+			debugKey := m.currentStage() != pam_proto.Stage_challenge
+			switch msg.String() {
+			case "enter", "ctrl+c", "esc", "tab", "shift+tab":
+				debugKey = true
+			}
+			if debugKey {
+				log.Debugf(context.TODO(), "Key: %q in stage %q", msg, m.currentStage())
+			}
+		}
+
 		switch msg.String() {
 		case "ctrl+c":
 			return m, sendEvent(pamError{
@@ -147,7 +158,6 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.brokerSelectionModel.WillCaptureEscape() || m.authModeSelectionModel.WillCaptureEscape() {
 				break
 			}
-			log.Debugf(context.TODO(), "%#v from %v", msg, m.currentStage())
 			var cmd tea.Cmd
 			switch m.currentStage() {
 			case pam_proto.Stage_brokerSelection:
