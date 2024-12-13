@@ -103,6 +103,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 
 		user             string
 		pamServiceName   string
+		socketPath       string
 		daemonizeSSHd    bool
 		interactiveShell bool
 
@@ -211,6 +212,12 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tape:                "sigint",
 			wantNotLoggedInUser: true,
 		},
+
+		"Error if cannot connect to authd": {
+			tape:                "connection_error",
+			socketPath:          "/some-path/not-existent-socket",
+			wantNotLoggedInUser: true,
+		},
 	}
 	for name, tc := range tests {
 		if sharedSSHd {
@@ -229,6 +236,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, true)
 			}
+			if tc.socketPath != "" {
+				socketPath = tc.socketPath
+			}
 
 			user := tc.user
 			if user == "" {
@@ -238,7 +248,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 
 			sshdPort := defaultSSHDPort
 			userHome := defaultUserHome
-			if !sharedSSHd || tc.wantLocalGroups || tc.interactiveShell {
+			if !sharedSSHd || tc.wantLocalGroups || tc.interactiveShell || tc.socketPath != "" {
 				serviceFile := createSshdServiceFile(t, execModule, execChild, socketPath)
 				sshdPort, userHome = startSSHdForTest(t, serviceFile, sshdHostKey, user,
 					sshdPreloadLibrary, tc.daemonizeSSHd, tc.interactiveShell)

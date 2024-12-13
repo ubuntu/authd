@@ -34,6 +34,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		tapeSettings []tapeSetting
 
 		clientOptions      clientOptions
+		socketPath         string
 		currentUserNotRoot bool
 		wantLocalGroups    bool
 	}{
@@ -147,6 +148,11 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Exit authd if user sigints": {
 			tape: "sigint",
 		},
+
+		"Error if cannot connect to authd": {
+			tape:       "connection_error",
+			socketPath: "/some-path/not-existent-socket",
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -167,6 +173,9 @@ func TestCLIAuthenticate(t *testing.T) {
 				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			}
+			if tc.socketPath != "" {
+				socketPath = tc.socketPath
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
@@ -304,7 +313,7 @@ func TestPamCLIRunStandalone(t *testing.T) {
 	outStr := string(out)
 	t.Log(outStr)
 
-	require.Contains(t, outStr, pam.ErrSystem.Error())
+	require.Contains(t, outStr, pam.ErrAuthinfoUnavail.Error())
 	require.Contains(t, outStr, pam.ErrIgnore.Error())
 }
 
