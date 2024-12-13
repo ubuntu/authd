@@ -35,3 +35,41 @@ jobs:
           extra-source-build-script: |
             cargo install --locked --root=/usr cargo-vendor-filterer
             command -v cargo-vendor-filterer
+
+  run-autopkgtests:
+    name: Run autopkgtests
+    needs: build-deb-package
+    runs-on: ubuntu-latest
+
+    container:
+      image: ubuntu:${{ env.UBUNTU_VERSION }}
+
+    steps:
+    - name: Prepare container
+      run: |
+        set -eu
+
+        echo 'APT::Get::Assume-Yes "true";' > /etc/apt/apt.conf.d/90aptyes
+        apt update
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        run-id: ${{ needs.build-deb-package.outputs.run-id }}
+
+    - name: Install dependencies
+      run: |
+        apt install autopkgtest
+
+    - name: Create test user
+      run: |
+        apt install adduser
+        adduser --disabled-password --gecos "" tester
+
+    - name: Run autopkgtests
+      run: |
+        mv -v ./*-debian-source/* .
+        mv -v ./*-debian-packages/* .
+        autopkgtest --apt-pocket proposed --apt-upgrade --no-built-binaries --user=tester \
+          *_${{ needs.build-deb-package.outputs.pkg-version }}*.deb \
+          ${{ needs.build-deb-package.outputs.pkg-name }}_${{ needs.build-deb-package.outputs.pkg-version }}_source.changes -- null
