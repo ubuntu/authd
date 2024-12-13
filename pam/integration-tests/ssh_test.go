@@ -27,6 +27,10 @@ import (
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
+var (
+	sshEnvVariablesRegex *regexp.Regexp
+)
+
 func TestSSHAuthenticate(t *testing.T) {
 	t.Parallel()
 
@@ -87,6 +91,8 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		defaultSSHDPort, defaultUserHome = startSSHdForTest(t, serviceFile, sshdHostKey,
 			"authd-test-user-sshd-accept-all", sshdPreloadLibrary, true, false)
 	}
+
+	sshEnvVariablesRegex = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`)
 
 	tests := map[string]struct {
 		tape          string
@@ -311,8 +317,7 @@ func sanitizeGoldenFile(t *testing.T, td tapeData, outDir string) string {
 	golden := td.ExpectedOutput(t, outDir)
 
 	// When sshd is in debug mode, it shows the environment variables, so let's sanitize them
-	golden = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`).ReplaceAllString(
-		golden, "  $1=$${AUTHD_TEST_$1}")
+	golden = sshEnvVariablesRegex.ReplaceAllString(golden, "  $1=$${AUTHD_TEST_$1}")
 	return golden
 }
 
