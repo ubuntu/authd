@@ -29,6 +29,7 @@ import (
 
 var (
 	sshEnvVariablesRegex *regexp.Regexp
+	sshHostPortRegex     *regexp.Regexp
 )
 
 func TestSSHAuthenticate(t *testing.T) {
@@ -93,6 +94,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	}
 
 	sshEnvVariablesRegex = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`)
+	sshHostPortRegex = regexp.MustCompile(`([\d\.:]+) port ([\d:]+)`)
 
 	tests := map[string]struct {
 		tape          string
@@ -197,7 +199,8 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tape:                "max_attempts",
 			wantNotLoggedInUser: true,
 			tapeVariables: map[string]string{
-				vhsCommandFinalAuthWaitVariable: `Wait+Prompt /Choose your provider/`,
+				vhsCommandFinalAuthWaitVariable: `Wait+Screen /Too many authentication failures/
+Wait`,
 			},
 		},
 		"Deny authentication if user does not exist": {
@@ -318,7 +321,8 @@ func sanitizeGoldenFile(t *testing.T, td tapeData, outDir string) string {
 
 	// When sshd is in debug mode, it shows the environment variables, so let's sanitize them
 	golden = sshEnvVariablesRegex.ReplaceAllString(golden, "  $1=$${AUTHD_TEST_$1}")
-	return golden
+
+	return sshHostPortRegex.ReplaceAllLiteralString(golden, "${SSH_HOST} port ${SSH_PORT}")
 }
 
 func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) string {
@@ -434,6 +438,7 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 		"-o", "ClientAliveInterval=300",
 		"-o", "ClientAliveCountMax=3",
 		"-o", "ForceCommand="+forcedCommand,
+		"-o", "MaxAuthTries=1",
 	)
 	sshd.Args = append(sshd.Args, runModeArgs...)
 	sshd.Env = append(sshd.Env, env...)
