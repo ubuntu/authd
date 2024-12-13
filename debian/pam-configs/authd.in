@@ -7,7 +7,7 @@ Auth:
 	[success=end ignore=ignore default=die authinfo_unavail=ignore]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
 Account-Type: Additional
 Account:
-	[default=ignore success=ok user_unknown=ignore authinfo_unavail=ignore]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
+	[default=ignore success=ok]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
 Password-Type: Primary
 Password:
 	[success=end ignore=ignore default=die authinfo_unavail=ignore]	pam_authd_exec.so @AUTHD_DAEMONS_PATH@/authd-pam
