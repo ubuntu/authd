@@ -345,10 +345,6 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		return nil
 
 	case adapter.PamIgnore:
-		// localBrokerID is only set on pamIgnore if the user has chosen local broker.
-		if err := mTx.SetData(authenticationBrokerIDKey, exitStatus.LocalBrokerID); err != nil {
-			return err
-		}
 		return fmt.Errorf("%w: %s", exitStatus.Status(), exitStatus.Message())
 
 	case adapter.PamReturnError:
@@ -426,11 +422,6 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 		return pam.ErrAuthinfoUnavail
 	}
 	defer closeConn()
-
-	if brokerIDUsedToAuthenticate == brokers.LocalBrokerName {
-		// Don't set the default broker to the local broker.
-		return pam.ErrIgnore
-	}
 
 	req := authd.SDBFURequest{
 		BrokerId: brokerIDUsedToAuthenticate,
