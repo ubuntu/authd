@@ -350,9 +350,10 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 
 	case adapter.PamReturnError:
 		return fmt.Errorf("%w: %s", exitStatus.Status(), exitStatus.Message())
-	}
 
-	return fmt.Errorf("%w: unknown exit code", pam.ErrSystem)
+	default:
+		return fmt.Errorf("%w: unknown exit code: %#v", pam.ErrSystem, exitStatus)
+	}
 }
 
 // AcctMgmt sets any used brokerID as default for the user.
