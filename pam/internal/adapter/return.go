@@ -28,22 +28,6 @@ func (p PamSuccess) Message() string {
 	return p.msg
 }
 
-// PamIgnore signals PAM module to return pam.Ignore and Quit tea.Model.
-type PamIgnore struct {
-	LocalBrokerID string // Only set for local broker to store it globally.
-	msg           string
-}
-
-// Status returns [pam.ErrIgnore].
-func (p PamIgnore) Status() pam.Error {
-	return pam.ErrIgnore
-}
-
-// Message returns the message that should be sent to pam as info message.
-func (p PamIgnore) Message() string {
-	return p.msg
-}
-
 // pamError signals PAM module to return the provided error message and Quit tea.Model.
 type pamError struct {
 	status pam.Error
@@ -59,6 +43,9 @@ func (p pamError) Status() pam.Error {
 func (p pamError) Message() string {
 	if p.msg != "" {
 		return p.msg
+	}
+	if p.status == pam.ErrIgnore {
+		return ""
 	}
 	return p.status.Error()
 }
