@@ -312,7 +312,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		if err := showPamMessage(mTx, pam.ErrorMsg, err.Error()); err != nil {
 			log.Warningf(context.TODO(), "Impossible to show PAM message: %v", err)
 		}
-		return errors.Join(err, pam.ErrAuthinfoUnavail)
+		return fmt.Errorf("%w: %w", pam.ErrAuthinfoUnavail, err)
 	}
 	defer closeConn()
 
