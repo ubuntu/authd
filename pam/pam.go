@@ -305,7 +305,6 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 
 	conn, closeConn, err := newClientConnection(parsedArgs)
 	if err != nil {
-		log.Debug(context.TODO(), err)
 		if err := showPamMessage(mTx, pam.ErrorMsg, err.Error()); err != nil {
 			log.Warningf(context.TODO(), "Impossible to show PAM message: %v", err)
 		}
