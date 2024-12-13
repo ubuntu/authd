@@ -1,0 +1,8 @@
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+could not connect to unix:///some-path/not-existent-socket: context deadline exceeded
+Received disconnect from ${SSH_HOST} port ${SSH_PORT} Too many authentication failures
+Disconnected from ${SSH_HOST} port ${SSH_PORT}
+>
+────────────────────────────────────────────────────────────────────────────────

@@ -17,6 +17,7 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/consts"
+	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
@@ -447,7 +448,16 @@ func newClientConnection(args map[string]string) (conn *grpc.ClientConn, closeCo
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not connect to authd: %v", err)
 	}
-	return conn, func() { conn.Close() }, err
+
+	cleanup := func() { conn.Close() }
+
+	// Block until the daemon is started and ready to accept connections.
+	if err := grpcutils.WaitForConnection(context.Background(), conn, time.Second*5); err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+
+	return conn, cleanup, err
 }
 
 // newClient returns a new GRPC client ready to emit requests.
