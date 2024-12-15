@@ -129,8 +129,8 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	var authdGroups []cache.GroupDB
 	var localGroups []string
 	for _, g := range u.Groups {
-		// Empty GID assume local group
-		if g.GID == nil {
+		// Empty UGID means it is a local group
+		if g.UGID == "" {
 			localGroups = append(localGroups, g.Name)
 			continue
 		}
