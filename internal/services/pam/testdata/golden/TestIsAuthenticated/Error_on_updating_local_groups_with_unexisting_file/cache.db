@@ -1,9 +1,9 @@
 GroupByID: {}
 GroupByName: {}
+GroupByUGID: {}
 GroupToUsers: {}
 UserByID: {}
 UserByName: {}
 UserToBroker: {}
 UserToGroups: {}
-UserToLocalGroups:
-    "1042855937": '["localgroup1","localgroup3"]'
+UserToLocalGroups: {}

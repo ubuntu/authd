@@ -1,4 +1,4 @@
 FIRST CALL:
-	access: granted
+	access: 
 	msg: 
-	err: <nil>
+	err: can't check authentication: failed to update user "TestIsAuthenticated/Update_existing_DB_on_success_separator_success": GID for group "TestIsAuthenticated/Update_existing_DB_on_success_separator_success" already in use by a different group
