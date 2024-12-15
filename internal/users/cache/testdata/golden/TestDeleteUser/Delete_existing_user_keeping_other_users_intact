@@ -1,13 +1,18 @@
 GroupByID:
-    "22222": '{"Name":"group2","GID":22222}'
-    "33333": '{"Name":"group3","GID":33333}'
-    "44444": '{"Name":"group4","GID":44444}'
-    "99999": '{"Name":"commongroup","GID":99999}'
+    "22222": '{"Name":"group2","GID":22222,"UGID":"56781234"}'
+    "33333": '{"Name":"group3","GID":33333,"UGID":"34567812"}'
+    "44444": '{"Name":"group4","GID":44444,"UGID":"45678123"}'
+    "99999": '{"Name":"commongroup","GID":99999,"UGID":"87654321"}'
 GroupByName:
-    commongroup: '{"Name":"commongroup","GID":99999}'
-    group2: '{"Name":"group2","GID":22222}'
-    group3: '{"Name":"group3","GID":33333}'
-    group4: '{"Name":"group4","GID":44444}'
+    commongroup: '{"Name":"commongroup","GID":99999,"UGID":"87654321"}'
+    group2: '{"Name":"group2","GID":22222,"UGID":"56781234"}'
+    group3: '{"Name":"group3","GID":33333,"UGID":"34567812"}'
+    group4: '{"Name":"group4","GID":44444,"UGID":"45678123"}'
+GroupByUGID:
+    "34567812": '{"Name":"group3","GID":33333,"UGID":"34567812"}'
+    "45678123": '{"Name":"group4","GID":44444,"UGID":"45678123"}'
+    "56781234": '{"Name":"group2","GID":22222,"UGID":"56781234"}'
+    "87654321": '{"Name":"commongroup","GID":99999,"UGID":"87654321"}'
 GroupToUsers:
     "22222": '{"GID":22222,"UIDs":[2222]}'
     "33333": '{"GID":33333,"UIDs":[3333]}'

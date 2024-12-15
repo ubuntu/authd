@@ -1,7 +1,7 @@
 FIRST CALL:
-	access: granted
+	access: 
 	msg: 
-	err: <nil>
+	err: can't check authentication: failed to update user "TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call": GID for group "TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call" already in use by a different group
 SECOND CALL:
 	access: 
 	msg: 

@@ -1,22 +1,16 @@
 GroupByID:
     "88888": '{"Name":"group-success","GID":88888}'
-    "1714308795": '{"Name":"TestIsAuthenticated/Update_existing_DB_on_success_separator_success","GID":1714308795}'
 GroupByName:
-    TestIsAuthenticated/Update_existing_DB_on_success_separator_success: '{"Name":"TestIsAuthenticated/Update_existing_DB_on_success_separator_success","GID":1714308795}'
     group-success: '{"Name":"group-success","GID":88888}'
+GroupByUGID: {}
 GroupToUsers:
-    "88888": '{"GID":88888,"UIDs":[77777,1714308795]}'
-    "1714308795": '{"GID":1714308795,"UIDs":[1714308795]}'
+    "88888": '{"GID":88888,"UIDs":[77777]}'
 UserByID:
     "77777": '{"Name":"otheruser","UID":77777,"GID":88888,"Gecos":"gecos for other user","Dir":"/home/otheruser","Shell":"/bin/sh/otheruser","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"AAAAATIME"}'
-    "1714308795": '{"Name":"TestIsAuthenticated/Update_existing_DB_on_success_separator_success","UID":1714308795,"GID":1714308795,"Gecos":"gecos for success","Dir":"/home/success","Shell":"/bin/sh/success","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserByName:
-    TestIsAuthenticated/Update_existing_DB_on_success_separator_success: '{"Name":"TestIsAuthenticated/Update_existing_DB_on_success_separator_success","UID":1714308795,"GID":1714308795,"Gecos":"gecos for success","Dir":"/home/success","Shell":"/bin/sh/success","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
     otheruser: '{"Name":"otheruser","UID":77777,"GID":88888,"Gecos":"gecos for other user","Dir":"/home/otheruser","Shell":"/bin/sh/otheruser","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"AAAAATIME"}'
 UserToBroker:
     "77777": '"broker-id"'
 UserToGroups:
     "77777": '{"UID":77777,"GIDs":[88888]}'
-    "1714308795": '{"UID":1714308795,"GIDs":[1714308795,88888]}'
-UserToLocalGroups:
-    "1714308795": "null"
+UserToLocalGroups: {}
