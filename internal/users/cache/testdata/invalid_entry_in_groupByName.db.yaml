@@ -1,5 +1,5 @@
 GroupByID:
-  "11111": '{"Name":"group1","GID":11111}'
+  "11111": '{"Name":"group1","GID":11111, "UGID": "12345678"}'
 GroupByName:
   group1: '"not-a-valid-json"'
 GroupToUsers:
