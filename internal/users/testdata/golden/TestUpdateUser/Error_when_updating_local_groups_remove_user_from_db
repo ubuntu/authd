@@ -7,4 +7,5 @@
     UserByName: {}
     UserToBroker: {}
     UserToGroups: {}
-    UserToLocalGroups: {}
+    UserToLocalGroups:
+        "1111": '["gpasswdfail"]'

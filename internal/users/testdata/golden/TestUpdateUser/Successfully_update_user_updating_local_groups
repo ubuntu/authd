@@ -1,10 +1,13 @@
 |
     GroupByID:
-        "11111": '{"Name":"group1","GID":11111}'
-        "1526760316": '{"Name":"user1","GID":1526760316}'
+        "11111": '{"Name":"group1","GID":11111,"UGID":"1"}'
+        "1526760316": '{"Name":"user1","GID":1526760316,"UGID":"user1"}'
     GroupByName:
-        group1: '{"Name":"group1","GID":11111}'
-        user1: '{"Name":"user1","GID":1526760316}'
+        group1: '{"Name":"group1","GID":11111,"UGID":"1"}'
+        user1: '{"Name":"user1","GID":1526760316,"UGID":"user1"}'
+    GroupByUGID:
+        "1": '{"Name":"group1","GID":11111,"UGID":"1"}'
+        user1: '{"Name":"user1","GID":1526760316,"UGID":"user1"}'
     GroupToUsers:
         "11111": '{"GID":11111,"UIDs":[1111]}'
         "1526760316": '{"GID":1526760316,"UIDs":[1111]}'
