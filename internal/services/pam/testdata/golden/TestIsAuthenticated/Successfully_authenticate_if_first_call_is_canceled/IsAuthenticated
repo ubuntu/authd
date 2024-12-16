@@ -3,6 +3,6 @@ FIRST CALL:
 	msg: 
 	err: rpc error: code = Canceled desc = context canceled
 SECOND CALL:
-	access: 
+	access: granted
 	msg: 
-	err: can't check authentication: failed to update user "TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call": GID for group "TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call" already in use by a different group
+	err: <nil>

@@ -6,4 +6,5 @@ UserByID: {}
 UserByName: {}
 UserToBroker: {}
 UserToGroups: {}
-UserToLocalGroups: {}
+UserToLocalGroups:
+    "1042855937": '["localgroup1","localgroup3"]'

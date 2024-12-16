@@ -1,0 +1,2 @@
+--add TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups localgroup1
+--add TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups localgroup3
