@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
+	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 // WaitForConnection synchronously waits for a [grpc.ClientConn] connection to be established.
@@ -20,17 +21,16 @@ func WaitForConnection(ctx context.Context, conn *grpc.ClientConn, timeout time.
 	log.Debugf(ctx, "Connecting to %s", conn.Target())
 	conn.Connect()
 
+	healthClient := healthgrpc.NewHealthClient(conn)
+	hcReq := &healthgrpc.HealthCheckRequest{Service: consts.ServiceName}
 	for {
-		switch state := conn.GetState(); state {
-		// In case of connectivity.TransientFailure we can't fail early since we may
-		// still connect in time for the timeout, so we have to be conservative here.
-		case connectivity.Ready:
-			return nil
-		}
-
-		conn.WaitForStateChange(waitCtx, conn.GetState())
-		if err := waitCtx.Err(); err != nil {
+		r, err := healthClient.Check(waitCtx, hcReq, grpc.WaitForReady(true))
+		if err != nil {
 			return fmt.Errorf("could not connect to %v: %w", conn.Target(), err)
 		}
+		if r.Status != healthgrpc.HealthCheckResponse_SERVING {
+			continue
+		}
+		return nil
 	}
 }

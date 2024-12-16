@@ -11,12 +11,16 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/daemon"
 	"github.com/ubuntu/authd/internal/daemon/testdata/grpctestservice"
 	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/health"
+	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func TestNew(t *testing.T) {
@@ -220,6 +224,9 @@ func TestQuit(t *testing.T) {
 			registerGRPC := func(context.Context) *grpc.Server {
 				var service testGRPCService
 				grpctestservice.RegisterTestServiceServer(grpcServer, service)
+				hc := health.NewServer()
+				hc.SetServingStatus(consts.ServiceName, healthpb.HealthCheckResponse_SERVING)
+				healthgrpc.RegisterHealthServer(grpcServer, hc)
 				return grpcServer
 			}
 			systemdNotifier := func(unsetEnvironment bool, state string) (bool, error) {

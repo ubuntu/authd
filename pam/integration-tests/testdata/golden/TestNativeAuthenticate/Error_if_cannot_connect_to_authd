@@ -1,8 +1,8 @@
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-PAM Error Message: could not connect to unix:///some-path/not-existent-socket: context deadline
-exceeded
+PAM Error Message: could not connect to unix:///some-path/not-existent-socket: service took too
+long to respond. Disconnecting client
 PAM Authenticate()
   User: "<unset>"
   Result: error: PAM exit code: 9

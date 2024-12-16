@@ -643,7 +643,7 @@ func TestGdmModule(t *testing.T) {
 		"Error on connection failure": {
 			moduleArgs: []string{fmt.Sprintf("socket=%s_invalid", socketPath)},
 			wantPamErrorMessages: []string{
-				fmt.Sprintf("could not connect to unix://%s_invalid: context deadline exceeded", socketPath),
+				fmt.Sprintf("could not connect to unix://%s_invalid: service took too long to respond. Disconnecting client", socketPath),
 			},
 			wantError:       pam.ErrAuthinfoUnavail,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
