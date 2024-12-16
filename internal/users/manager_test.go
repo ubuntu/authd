@@ -120,39 +120,49 @@ func TestUpdateUser(t *testing.T) {
 		"cloud-group": {{
 			Name: "group1",
 			GID:  ptrUint32(11111),
+			UGID: "1",
 		}},
 		"local-group": {{
 			Name: "localgroup1",
 			GID:  nil,
+			UGID: "",
 		}},
 		"mixed-groups-cloud-first": {{
 			Name: "group1",
 			GID:  ptrUint32(11111),
+			UGID: "1",
 		}, {
 			Name: "localgroup1",
 			GID:  nil,
+			UGID: "",
 		}},
 		"mixed-groups-local-first": {{
 			Name: "localgroup1",
 			GID:  nil,
+			UGID: "",
 		}, {
 			Name: "group1",
 			GID:  ptrUint32(11111),
+			UGID: "1",
 		}},
 		"mixed-groups-gpasswd-fail": {{
 			Name: "group1",
 			GID:  ptrUint32(11111),
+			UGID: "1",
 		}, {
 			Name: "gpasswdfail",
 			GID:  nil,
+			UGID: "",
 		}},
 		"nameless-group": {{
 			Name: "",
 			GID:  ptrUint32(11111),
+			UGID: "1",
 		}},
 		"different-name-same-gid": {{
 			Name: "newgroup1",
 			GID:  ptrUint32(11111),
+			UGID: "1",
 		}},
 		"no-groups": {},
 	}
