@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
@@ -14,6 +15,9 @@ import (
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/decorate"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
+	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
+	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 // Manager mediate the whole business logic of the application.
@@ -59,6 +63,14 @@ func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 
 	opts := []grpc.ServerOption{permissions.WithUnixPeerCreds(), grpc.ChainUnaryInterceptor(m.globalPermissions, errmessages.RedactErrorInterceptor)}
 	grpcServer := grpc.NewServer(opts...)
+
+	healthCheck := health.NewServer()
+	healthgrpc.RegisterHealthServer(grpcServer, healthCheck)
+
+	// We may provide status per each service, but for now we only care about the global state.
+	// Also, we're serving by default because all the brokers have been initialized at this
+	// point, so no need to start in NOT_SERVING mode and then update it accordingly.
+	defer healthCheck.SetServingStatus(consts.ServiceName, healthpb.HealthCheckResponse_SERVING)
 
 	authd.RegisterNSSServer(grpcServer, m.nssService)
 	authd.RegisterPAMServer(grpcServer, m.pamService)

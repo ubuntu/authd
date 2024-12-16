@@ -26,4 +26,7 @@ const (
 
 	// DefaultCacheDir is the default directory for the database.
 	DefaultCacheDir = "/var/lib/authd/"
+
+	// ServiceName is the authd service name for health check purposes.
+	ServiceName = "com.ubuntu.authd"
 )
