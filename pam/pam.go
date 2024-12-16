@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -47,6 +48,9 @@ const (
 	// gdmServiceName is the name of the service that is loaded by GDM.
 	// Keep this in sync with the service file installed by the package.
 	gdmServiceName = "gdm-authd"
+
+	// defaultConnectionTimeout is the default connection timeout.
+	defaultConnectionTimeout = 2 * time.Second
 )
 
 var supportedArgs = []string{
@@ -54,6 +58,7 @@ var supportedArgs = []string{
 	"logfile",             // The path of the file that will be used for logging.
 	"disable_journal",     // Disable logging on systemd journal (this is implicit when `logfile` is set).
 	"socket",              // The authd socket to connect to.
+	"connection_timeout",  // The timeout on connecting to authd socket in milliseconds (defaults to 2 seconds).
 	"force_native_client", // Use native PAM client instead of custom UIs.
 	"force_reauth",        // Whether the authentication should be performed again even if it has been already completed.
 }
@@ -451,8 +456,19 @@ func newClientConnection(args map[string]string) (conn *grpc.ClientConn, closeCo
 
 	cleanup := func() { conn.Close() }
 
+	timeout := defaultConnectionTimeout
+	if ct, ok := args["connection_timeout"]; ok {
+		t, err := strconv.Atoi(ct)
+		if err != nil {
+			log.Warningf(context.Background(), "Impossible to parse connection timeout %q, using default!", ct)
+		}
+		if t > 0 {
+			timeout = time.Duration(t) * time.Millisecond
+		}
+	}
+
 	// Block until the daemon is started and ready to accept connections.
-	if err := grpcutils.WaitForConnection(context.Background(), conn, time.Second*5); err != nil {
+	if err := grpcutils.WaitForConnection(context.Background(), conn, timeout); err != nil {
 		cleanup()
 		return nil, nil, err
 	}

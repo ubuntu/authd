@@ -45,6 +45,13 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Authenticate user successfully with user selection": {
 			tape: "simple_auth_with_user_selection",
 		},
+		"Authenticate user successfully with invalid connection timeout": {
+			tape: "simple_auth",
+			clientOptions: clientOptions{
+				PamUser:    "user-integration-simple-auth-invalid-timeout",
+				PamTimeout: "invalid",
+			},
+		},
 		"Authenticate user with mfa": {
 			tape:          "mfa_auth",
 			tapeSettings:  []tapeSetting{{vhsHeight, 1200}},

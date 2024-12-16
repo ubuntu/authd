@@ -31,8 +31,9 @@ func TestCLIAuthenticate(t *testing.T) {
 	defaultSocketPath := runAuthd(t, defaultGPasswdOutput, groupsFile, true)
 
 	tests := map[string]struct {
-		tape         string
-		tapeSettings []tapeSetting
+		tape          string
+		tapeSettings  []tapeSetting
+		tapeVariables map[string]string
 
 		clientOptions      clientOptions
 		socketPath         string
@@ -40,11 +41,19 @@ func TestCLIAuthenticate(t *testing.T) {
 		wantLocalGroups    bool
 	}{
 		"Authenticate user successfully": {
-			tape: "simple_auth",
+			tape:          "simple_auth",
+			tapeVariables: map[string]string{"AUTHD_SIMPLE_AUTH_TAPE_USER": "user1"},
 		},
 		"Authenticate user successfully with preset user": {
 			tape:          "simple_auth_with_preset_user",
 			clientOptions: clientOptions{PamUser: "user-integration-simple-preset"},
+		},
+		"Authenticate user successfully with invalid connection timeout": {
+			tape: "simple_auth",
+			tapeVariables: map[string]string{
+				"AUTHD_SIMPLE_AUTH_TAPE_USER": "user-integration-invalid-timeout",
+			},
+			clientOptions: clientOptions{PamTimeout: "invalid"},
 		},
 		"Authenticate user successfully after trying empty user": {
 			tape: "simple_auth_empty_user",
@@ -187,6 +196,7 @@ func TestCLIAuthenticate(t *testing.T) {
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Command = tapeCommand
+			td.Variables = tc.tapeVariables
 			td.Env[socketPathEnv] = socketPath
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
