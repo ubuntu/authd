@@ -65,6 +65,8 @@ var (
 		authdSleepExampleBrokerQrcodeWait: 4 * time.Second,
 	}
 
+	defaultConnectionTimeout = sleepDuration(3*time.Second) / time.Millisecond
+
 	vhsSleepRegex = regexp.MustCompile(
 		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?.*$`)
 	vhsEmptyLinesRegex = regexp.MustCompile(`(?m)((^\n^\n)+(^\n)?|^\n)(^─+$)`)
@@ -102,6 +104,7 @@ type clientOptions struct {
 	PamUser        string
 	PamEnv         []string
 	PamServiceName string
+	PamTimeout     string
 	Term           string
 	SessionType    string
 }
@@ -121,6 +124,12 @@ func (td *tapeData) AddClientOptions(t *testing.T, opts clientOptions) {
 	}
 	if opts.PamServiceName != "" {
 		td.Env[pam_test.RunnerEnvService] = opts.PamServiceName
+	}
+	if opts.PamTimeout != "" {
+		td.Env[pam_test.RunnerEnvConnectionTimeout] = opts.PamTimeout
+	}
+	if _, ok := td.Env[pam_test.RunnerEnvConnectionTimeout]; !ok {
+		td.Env[pam_test.RunnerEnvConnectionTimeout] = fmt.Sprintf("%d", defaultConnectionTimeout)
 	}
 	if opts.Term != "" {
 		td.Env["AUTHD_PAM_CLI_TERM"] = opts.Term

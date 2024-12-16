@@ -27,6 +27,7 @@ func main() {
 	pamUser := os.Getenv(pam_test.RunnerEnvUser)
 	pamEnvs := os.Getenv(pam_test.RunnerEnvEnvs)
 	pamService := os.Getenv(pam_test.RunnerEnvService)
+	timeoutDuration := os.Getenv(pam_test.RunnerEnvConnectionTimeout)
 
 	tmpDir, err := os.MkdirTemp(os.TempDir(), "pam-cli-tester-")
 	if err != nil {
@@ -48,7 +49,11 @@ func main() {
 		}
 	}
 
-	defaultArgs := []string{execChildPath, "debug=true"}
+	defaultArgs := []string{
+		execChildPath,
+		"debug=true",
+		"connection_timeout=" + timeoutDuration,
+	}
 	if logFile != "" {
 		defaultArgs = append(defaultArgs, "logfile="+logFile)
 		defaultArgs = append(defaultArgs, "--exec-debug", "--exec-log", logFile)

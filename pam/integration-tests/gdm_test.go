@@ -153,6 +153,16 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 		},
+		"Authenticates user with invalid connection timeout": {
+			moduleArgs: []string{"connection_timeout=invalid"},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "goodpass",
+					}),
+				},
+			},
+		},
 		"Authenticates user with multiple retries": {
 			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, passwordAuthID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{

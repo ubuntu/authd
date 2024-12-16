@@ -7,7 +7,7 @@ Show
 Hide
 Escape
 Backspace
-Type "user1"
+Type "${AUTHD_SIMPLE_AUTH_TAPE_USER}"
 Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 

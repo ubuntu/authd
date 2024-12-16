@@ -2,7 +2,7 @@ Hide
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
 Sleep ${AUTHD_SLEEP_COMMAND}
-Sleep ${AUTHD_SLEEP_LONG} * 6
+Sleep ${AUTHD_SLEEP_LONG} * 4
 Show
 
 Sleep ${AUTHD_SLEEP_DEFAULT}
