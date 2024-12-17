@@ -533,7 +533,7 @@ func (m *Manager) registerGroup(name string) (gid uint32, cleanup func() error, 
 			return 0, nil, fmt.Errorf("could not register temporary group: %w", err)
 		}
 
-		if unique := m.checkIsUniqueGID(gid, tmpName); unique {
+		if unique := m.isUniqueGID(gid, tmpName); unique {
 			break
 		}
 
@@ -548,7 +548,7 @@ func (m *Manager) registerGroup(name string) (gid uint32, cleanup func() error, 
 	return gid, cleanup, nil
 }
 
-func (m *Manager) checkIsUniqueGID(gid uint32, tmpName string) bool {
+func (m *Manager) isUniqueGID(gid uint32, tmpName string) bool {
 	for _, entry := range localentries.GetGroupEntries() {
 		if entry.GID == gid && entry.Name != tmpName {
 			log.Debugf(context.Background(), "GID %d already in use by group %q, generating a new one", gid, entry.Name)
