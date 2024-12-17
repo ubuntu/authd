@@ -430,7 +430,10 @@ func (m *Manager) registerUser(name string, preAuth bool) (uid uint32, cleanup f
 		if user.preAuth && user.name == name+"-preauth" {
 			// A temporary user with the same name is already registered. To avoid that we generate multiple UIDs for
 			// the same user, we return the already generated UID.
-			cleanup = func() { m.deleteTemporaryUser(uid) }
+			cleanup = func() {
+				m.deleteTemporaryUser(uid)
+				m.numPreAuthUsers--
+			}
 			return uid, cleanup, nil
 		}
 	}
