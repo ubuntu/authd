@@ -38,8 +38,11 @@ var DefaultConfig = Config{
 }
 
 type temporaryUser struct {
-	name    string
-	preAuth bool
+	// name is the generated random name of the temporary user (which is returned by UserByID).
+	name string
+	// loginName is the name of the user who the temporary user record is created for.
+	loginName string
+	preAuth   bool
 }
 
 // Manager is the manager for any user related operation.
@@ -416,8 +419,7 @@ func (m *Manager) RegisterUserPreAuth(name string) (uint32, error) {
 	return uid, nil
 }
 
-// registerUser registers a temporary user with the given name and a unique UID in our NSS handler (in memory, not in
-// the database).
+// registerUser registers a temporary with a unique UID in our NSS handler (in memory, not in the database).
 //
 // The caller must lock m.temporaryEntriesMu for writing before calling this function, to avoid that multiple parallel
 // calls can register the same UID multiple times.
@@ -427,9 +429,15 @@ func (m *Manager) RegisterUserPreAuth(name string) (uint32, error) {
 func (m *Manager) registerUser(name string, preAuth bool) (uid uint32, cleanup func(), err error) {
 	// Check if there is already a temporary user for that name
 	for uid, user := range m.temporaryUsers {
-		if user.preAuth && user.name == name+"-preauth" {
-			// A temporary user with the same name is already registered. To avoid that we generate multiple UIDs for
-			// the same user, we return the already generated UID.
+		if user.loginName == name {
+			if !user.preAuth {
+				// This should never happen, non-preauth temporary users should be removed before the
+				// m.temporaryEntriesMu lock is released and this function is called again.
+				return 0, nil, fmt.Errorf("temporary user for %q already exists", name)
+			}
+
+			// A pre-auth user is already registered for this name. To avoid that we generate multiple UIDs for the same
+			// user, we return the already generated UID.
 			cleanup = func() {
 				m.deleteTemporaryUser(uid)
 				m.numPreAuthUsers--
@@ -449,7 +457,7 @@ func (m *Manager) registerUser(name string, preAuth bool) (uid uint32, cleanup f
 		// can guarantee that the UID is unique, under the assumption that other NSS sources don't add users with a UID
 		// that we already registered (if they do, there's nothing we can do about it).
 		var tmpName string
-		tmpName, cleanup, err = m.addTemporaryUser(uid, preAuth)
+		tmpName, cleanup, err = m.addTemporaryUser(uid, name, preAuth)
 		if errors.Is(err, errUserAlreadyExists) {
 			log.Debugf(context.Background(), "UID %d already in use, generating a new one", uid)
 			continue
@@ -459,11 +467,6 @@ func (m *Manager) registerUser(name string, preAuth bool) (uid uint32, cleanup f
 		}
 
 		if unique := m.isUniqueUID(uid, tmpName); unique {
-			if preAuth {
-				// Rename the temporary user so that we can recognize it later.
-				tmpName = name + "-preauth"
-				m.temporaryUsers[uid] = temporaryUser{name: tmpName, preAuth: preAuth}
-			}
 			log.Debugf(context.Background(), "Registered temporary user %q with UID %d", tmpName, uid)
 			break
 		}
@@ -492,7 +495,7 @@ var errUserAlreadyExists = errors.New("user already exists")
 
 // addTemporaryUser adds a temporary user with a random name and the given UID. It returns the generated name.
 // If the UID is already registered, it returns a errUserAlreadyExists.
-func (m *Manager) addTemporaryUser(uid uint32, preAuth bool) (name string, cleanup func(), err error) {
+func (m *Manager) addTemporaryUser(uid uint32, loginName string, preAuth bool) (name string, cleanup func(), err error) {
 	// Check if the UID is already registered.
 	_, err = m.UserByID(uid)
 	if err == nil {
@@ -502,14 +505,18 @@ func (m *Manager) addTemporaryUser(uid uint32, preAuth bool) (name string, clean
 		return "", nil, err
 	}
 
-	// Generate a 32 character (16 bytes in hex) random name.
-	bytes := make([]byte, 16)
+	// Generate a 64 character (32 bytes in hex) random name.
+	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
 		return "", nil, fmt.Errorf("failed to generate random name: %w", err)
 	}
-	name = fmt.Sprintf("%x", bytes)
+	if preAuth {
+		name = fmt.Sprintf("authd-preauth-user-%x", bytes)
+	} else {
+		name = fmt.Sprintf("authd-temp-user-%x", bytes)
+	}
 
-	m.temporaryUsers[uid] = temporaryUser{name: name, preAuth: preAuth}
+	m.temporaryUsers[uid] = temporaryUser{name: name, loginName: loginName, preAuth: preAuth}
 
 	cleanup = func() { m.deleteTemporaryUser(uid) }
 
