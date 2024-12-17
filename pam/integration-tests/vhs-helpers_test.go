@@ -70,6 +70,7 @@ var (
 	vhsSleepRegex = regexp.MustCompile(
 		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?.*$`)
 	vhsEmptyLinesRegex = regexp.MustCompile(`(?m)((^\n^\n)+(^\n)?|^\n)(^─+$)`)
+	vhsUnixTargetRegex = regexp.MustCompile(fmt.Sprintf(`unix://%s/(.*)\b`, regexp.QuoteMeta(os.TempDir())))
 )
 
 func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
@@ -233,6 +234,9 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 
 	// Drop all the empty lines before each page separator, to remove the clutter.
 	got = vhsEmptyLinesRegex.ReplaceAllString(got, "$4")
+
+	// Drop all the socket references.
+	got = vhsUnixTargetRegex.ReplaceAllLiteralString(got, "unix:///authd/test_socket.sock")
 
 	// Save the sanitized result on cleanup
 	t.Cleanup(func() {

@@ -37,17 +37,25 @@ var (
 func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool) string {
 	t.Helper()
 
+	socketPath, _ := runAuthdWithCancel(t, gpasswdOutput, groupsFile, currentUserAsRoot)
+	return socketPath
+}
+
+func runAuthdWithCancel(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) (string, func()) {
+	t.Helper()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile)
 	if currentUserAsRoot {
 		env = append(env, authdCurrentUserRootEnvVariableContent)
 	}
-	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
+	args = append(args, testutils.WithEnvironment(env...))
+	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, args...)
 	t.Cleanup(func() {
 		cancel()
 		<-stopped
 	})
-	return socketPath
+	return socketPath, cancel
 }
 
 func preparePamRunnerTest(t *testing.T, clientPath string) []string {
