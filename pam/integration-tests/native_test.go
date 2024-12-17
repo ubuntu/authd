@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/proto/authd"
@@ -35,6 +36,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		clientOptions      clientOptions
 		currentUserNotRoot bool
 		wantLocalGroups    bool
+		stopDaemonAfter    time.Duration
 		skipRunnerCheck    bool
 		socketPath         string
 	}{
@@ -279,6 +281,11 @@ func TestNativeAuthenticate(t *testing.T) {
 			clientOptions:   clientOptions{PamUser: "user-integration-sigint"},
 			skipRunnerCheck: true,
 		},
+		"Exit if authd is stopped": {
+			tape:            "authd_stopped",
+			clientOptions:   clientOptions{PamUser: "user-integration-authd-stopped"},
+			stopDaemonAfter: sleepDuration(defaultSleepValues[authdSleepLong] * 5),
+		},
 
 		"Error if cannot connect to authd": {
 			tape:       "connection_error",
@@ -296,14 +303,23 @@ func TestNativeAuthenticate(t *testing.T) {
 
 			socketPath := defaultSocketPath
 			gpasswdOutput := defaultGPasswdOutput
-			if tc.wantLocalGroups || tc.currentUserNotRoot {
+			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.stopDaemonAfter > 0 {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// Similarly for the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				var groupsFile string
+				var cancel func()
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
-				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+				socketPath, cancel = runAuthdWithCancel(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+
+				if tc.stopDaemonAfter > 0 {
+					go func() {
+						<-time.After(tc.stopDaemonAfter)
+						t.Log("Stopping daemon!")
+						cancel()
+					}()
+				}
 			}
 			if tc.socketPath != "" {
 				socketPath = tc.socketPath

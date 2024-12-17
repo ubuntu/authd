@@ -8,13 +8,18 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/msteinert/pam/v2"
+	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/status"
 )
 
 // PamClientType indicates the type of the PAM client we're handling.
@@ -55,6 +60,7 @@ type UIModel struct {
 	sessionStartingForBroker string
 	currentSession           *sessionInfo
 
+	healthCheckCancel      func()
 	userSelectionModel     userSelectionModel
 	brokerSelectionModel   brokerSelectionModel
 	authModeSelectionModel authModeSelectionModel
@@ -146,7 +152,45 @@ func (m *UIModel) Init() tea.Cmd {
 	m.authenticationModel = newAuthenticationModel(m.client, m.ClientType)
 	cmds = append(cmds, m.authenticationModel.Init())
 
+	m.healthCheckCancel = func() {}
+	cmds = append(cmds, m.startHealthCheck())
+
 	return tea.Batch(cmds...)
+}
+
+func (m *UIModel) startHealthCheck() tea.Cmd {
+	if m.Conn == nil {
+		return nil
+	}
+
+	var ctx context.Context
+	ctx, m.healthCheckCancel = context.WithCancel(context.Background())
+	healthClient := healthgrpc.NewHealthClient(m.Conn)
+	hcReq := &healthgrpc.HealthCheckRequest{Service: consts.ServiceName}
+
+	return func() tea.Msg {
+		for {
+			r, err := healthClient.Check(ctx, hcReq)
+			if status.Convert(err).Code() == codes.Canceled {
+				return nil
+			}
+			if err != nil {
+				log.Errorf(ctx, "Health check failed: %v", err)
+				// We just consider this as a serving failure, without writing the whole error.
+				r = &healthgrpc.HealthCheckResponse{
+					Status: healthgrpc.HealthCheckResponse_NOT_SERVING,
+				}
+			}
+			if r.Status != healthgrpc.HealthCheckResponse_SERVING {
+				return pamError{
+					status: pam.ErrSystem,
+					msg:    fmt.Sprintf("%s stopped serving", m.Conn.Target()),
+				}
+			}
+
+			<-time.After(500 * time.Millisecond)
+		}
+	}
 }
 
 // Update handles events and actions to be done from the main model orchestrator.
@@ -446,6 +490,7 @@ func (m *UIModel) MsgFilter(model tea.Model, msg tea.Msg) tea.Msg {
 	}
 
 	if _, ok := msg.(tea.QuitMsg); ok {
+		m.healthCheckCancel()
 		m.gdmModel = m.gdmModel.stopConversations()
 	}
 

@@ -39,6 +39,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		socketPath         string
 		currentUserNotRoot bool
 		wantLocalGroups    bool
+		stopDaemonAfter    time.Duration
 	}{
 		"Authenticate user successfully": {
 			tape:          "simple_auth",
@@ -164,6 +165,10 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Exit authd if user sigints": {
 			tape: "sigint",
 		},
+		"Exit if authd is stopped": {
+			tape:            "authd_stopped",
+			stopDaemonAfter: sleepDuration(defaultSleepValues[authdSleepLong] * 5),
+		},
 
 		"Error if cannot connect to authd": {
 			tape:       "connection_error",
@@ -181,14 +186,23 @@ func TestCLIAuthenticate(t *testing.T) {
 
 			socketPath := defaultSocketPath
 			gpasswdOutput := defaultGPasswdOutput
-			if tc.wantLocalGroups || tc.currentUserNotRoot {
+			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.stopDaemonAfter > 0 {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// Similarly for the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				var groupsFile string
+				var cancel func()
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
-				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+				socketPath, cancel = runAuthdWithCancel(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+
+				if tc.stopDaemonAfter > 0 {
+					go func() {
+						<-time.After(tc.stopDaemonAfter)
+						t.Log("Stopping daemon!")
+						cancel()
+					}()
+				}
 			}
 			if tc.socketPath != "" {
 				socketPath = tc.socketPath

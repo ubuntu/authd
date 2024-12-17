@@ -112,6 +112,8 @@ var (
 	vhsSleepRegex = regexp.MustCompile(
 		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?(.*)$`)
 	vhsEmptyTrailingLinesRegex = regexp.MustCompile(`(?m)\s+\z`)
+	vhsUnixTargetRegex         = regexp.MustCompile(fmt.Sprintf(`unix://%s/(\S*)\b`,
+		regexp.QuoteMeta(os.TempDir())))
 
 	// vhsWaitRegex catches Wait(@timeout)? /Pattern/ commands to re-implement default vhs
 	// Wait /Pattern/ command with full context on errors.
@@ -349,6 +351,9 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 		frames[i] = vhsEmptyTrailingLinesRegex.ReplaceAllString(f, "\n")
 	}
 	got = strings.Join(frames, framesSeparator)
+
+	// Drop all the socket references.
+	got = vhsUnixTargetRegex.ReplaceAllLiteralString(got, "unix:///authd/test_socket.sock")
 
 	// Save the sanitized result on cleanup
 	t.Cleanup(func() {
