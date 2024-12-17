@@ -189,7 +189,7 @@ func (s Service) userPreCheck(ctx context.Context, username string) (pwent *auth
 	// the database with the same UID.
 	u.UID, err = s.userManager.RegisterUserPreAuth(u.Name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to generate unique UID for user %q: %v", username, err)
+		return nil, fmt.Errorf("failed to add temporary record for user %q: %v", username, err)
 	}
 
 	return nssPasswdFromUsersPasswd(u), nil
