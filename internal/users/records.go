@@ -40,6 +40,11 @@ type temporaryUser struct {
 //
 // The temporary user record is removed when UpdateUser is called with the same username.
 func (m *Manager) RegisterUserPreAuth(name string) (uint32, error) {
+	// To mitigate DoS attacks, we limit the length of the name to 256 characters.
+	if len(name) > 256 {
+		return 0, errors.New("username is too long (max 256 characters)")
+	}
+
 	m.temporaryRecords.mutex.Lock()
 	defer m.temporaryRecords.mutex.Unlock()
 
