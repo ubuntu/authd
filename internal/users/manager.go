@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	maxPreAuthUsers = 1024
+	maxPreAuthUsers = 65536
 )
 
 // Config is the configuration for the user manager.
