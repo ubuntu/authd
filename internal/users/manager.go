@@ -395,7 +395,7 @@ func (m *Manager) RegisterUserPreAuth(name string) (uint32, error) {
 	defer m.temporaryEntriesMu.Unlock()
 
 	if m.numPreAuthUsers >= maxPreAuthUsers {
-		return 0, fmt.Errorf("maximum number of pre-auth users reached, login for new users via SSH is disabled, restart authd to enable it")
+		return 0, errors.New("maximum number of pre-auth users reached, login for new users via SSH is disabled until authd is restarted")
 	}
 
 	uid, _, err := m.registerUser(name, true)
