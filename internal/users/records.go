@@ -75,8 +75,7 @@ func (m *Manager) registerUser(name string, preAuth bool) (uid uint32, cleanup f
 			return 0, nil, fmt.Errorf("temporary record for user %q already exists", name)
 		}
 
-		// A pre-auth user is already registered for this name. To avoid that we generate multiple UIDs for the same
-		// user, we return the already generated UID.
+		// A pre-auth user is already registered for this name, so we return the already generated UID.
 		cleanup = func() {
 			m.deleteTemporaryUser(uid)
 			m.temporaryRecords.numPreAuthUsers--
