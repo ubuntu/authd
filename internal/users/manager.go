@@ -47,14 +47,15 @@ type temporaryUser struct {
 
 // Manager is the manager for any user related operation.
 type Manager struct {
-	cache                 *cache.Cache
-	config                Config
-	temporaryEntriesMu    sync.Mutex
-	numPreAuthUsers       int
-	temporaryUsers        map[uint32]temporaryUser
-	temporaryGroups       map[uint32]string
-	uidsToGenerateInTests []uint32
-	gidsToGenerateInTests []uint32
+	cache                     *cache.Cache
+	config                    Config
+	temporaryEntriesMu        sync.Mutex
+	numPreAuthUsers           int
+	temporaryUsers            map[uint32]temporaryUser
+	temporaryUsersByLoginName map[string]uint32
+	temporaryGroups           map[uint32]string
+	uidsToGenerateInTests     []uint32
+	gidsToGenerateInTests     []uint32
 }
 
 type options struct {
@@ -287,15 +288,9 @@ func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 // UserByName returns the user information for the given user name.
 func (m *Manager) UserByName(username string) (UserEntry, error) {
 	usr, err := m.cache.UserByName(username)
-	if errors.Is(err, cache.NoDataFoundError{}) {
-		// Check if the user is a temporary user.
-		for uid, user := range m.temporaryUsers {
-			if user.name == username {
-				return UserEntry{Name: user.name, UID: uid}, nil
-			}
-		}
-	}
 	if err != nil {
+		// We explicitly don't check if the user is a temporary user here, because the temporary user records should
+		// only reserve the UID, not the username (which is randomly generated).
 		return UserEntry{}, err
 	}
 	return userEntryFromUserDB(usr), nil
@@ -399,8 +394,9 @@ func (m *Manager) AllShadows() ([]ShadowEntry, error) {
 	return shadowEntries, err
 }
 
-// RegisterUserPreAuth registers a temporary user with the given name and a unique UID in our NSS handler (in memory,
-// not in the database). It returns the generated UID or an error if the user could not be registered.
+// RegisterUserPreAuth registers a temporary user with a unique UID in our NSS handler (in memory, not in the database).
+//
+// The temporary user record is removed when UpdateUser is called with the same username.
 func (m *Manager) RegisterUserPreAuth(name string) (uint32, error) {
 	m.temporaryEntriesMu.Lock()
 	defer m.temporaryEntriesMu.Unlock()
@@ -419,7 +415,7 @@ func (m *Manager) RegisterUserPreAuth(name string) (uint32, error) {
 	return uid, nil
 }
 
-// registerUser registers a temporary with a unique UID in our NSS handler (in memory, not in the database).
+// registerUser registers a temporary user with a unique UID in our NSS handler (in memory, not in the database).
 //
 // The caller must lock m.temporaryEntriesMu for writing before calling this function, to avoid that multiple parallel
 // calls can register the same UID multiple times.
@@ -428,22 +424,22 @@ func (m *Manager) RegisterUserPreAuth(name string) (uint32, error) {
 // added to the database.
 func (m *Manager) registerUser(name string, preAuth bool) (uid uint32, cleanup func(), err error) {
 	// Check if there is already a temporary user for that name
-	for uid, user := range m.temporaryUsers {
-		if user.loginName == name {
-			if !user.preAuth {
-				// This should never happen, non-preauth temporary users should be removed before the
-				// m.temporaryEntriesMu lock is released and this function is called again.
-				return 0, nil, fmt.Errorf("temporary user for %q already exists", name)
-			}
-
-			// A pre-auth user is already registered for this name. To avoid that we generate multiple UIDs for the same
-			// user, we return the already generated UID.
-			cleanup = func() {
-				m.deleteTemporaryUser(uid)
-				m.numPreAuthUsers--
-			}
-			return uid, cleanup, nil
+	uid, ok := m.temporaryUsersByLoginName[name]
+	if ok {
+		user := m.temporaryUsers[uid]
+		if !user.preAuth {
+			// This should never happen, non-preauth temporary users should be removed before the
+			// m.temporaryEntriesMu lock is released and this function is called again.
+			return 0, nil, fmt.Errorf("temporary record for user %q already exists", name)
 		}
+
+		// A pre-auth user is already registered for this name. To avoid that we generate multiple UIDs for the same
+		// user, we return the already generated UID.
+		cleanup = func() {
+			m.deleteTemporaryUser(uid)
+			m.numPreAuthUsers--
+		}
+		return uid, cleanup, nil
 	}
 
 	for {
@@ -463,11 +459,11 @@ func (m *Manager) registerUser(name string, preAuth bool) (uid uint32, cleanup f
 			continue
 		}
 		if err != nil {
-			return 0, nil, fmt.Errorf("could not register temporary user: %w", err)
+			return 0, nil, fmt.Errorf("could not add temporary user record: %w", err)
 		}
 
 		if unique := m.isUniqueUID(uid, tmpName); unique {
-			log.Debugf(context.Background(), "Registered temporary user %q with UID %d", tmpName, uid)
+			log.Debugf(context.Background(), "Added temporary record for user %q with UID %d", name, uid)
 			break
 		}
 
@@ -517,6 +513,7 @@ func (m *Manager) addTemporaryUser(uid uint32, loginName string, preAuth bool) (
 	}
 
 	m.temporaryUsers[uid] = temporaryUser{name: name, loginName: loginName, preAuth: preAuth}
+	m.temporaryUsersByLoginName[loginName] = uid
 
 	cleanup = func() { m.deleteTemporaryUser(uid) }
 
@@ -525,10 +522,15 @@ func (m *Manager) addTemporaryUser(uid uint32, loginName string, preAuth bool) (
 
 // deleteTemporaryUser deletes the temporary user with the given UID.
 func (m *Manager) deleteTemporaryUser(uid uint32) {
-	// We ignore the case that the temporary user does not exist, because it might happen that the same user is
-	// registered multiple times (by UserPreCheck) and the cleanup function is called multiple times.
+	user, ok := m.temporaryUsers[uid]
+	if !ok {
+		// We ignore the case that the temporary user does not exist, because it might happen that the same user is
+		// registered multiple times (by UserPreCheck) and the cleanup function is called multiple times.
+		return
+	}
 	delete(m.temporaryUsers, uid)
-	log.Debugf(context.Background(), "Removed temporary user with UID %d", uid)
+	delete(m.temporaryUsersByLoginName, user.loginName)
+	log.Debugf(context.Background(), "Removed temporary record for user %q with UID %d", user.loginName, uid)
 }
 
 // registerGroup registers a temporary group with a unique GID in our NSS handler (in memory, not in the database).
