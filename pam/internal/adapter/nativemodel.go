@@ -90,7 +90,7 @@ func (m *nativeModel) Init() tea.Cmd {
 		log.Errorf(context.TODO(), "failed to get the PAM service: %v", err)
 	}
 
-	m.interactive = IsSSHSession(m.pamMTx) || m.isTerminalTty()
+	m.interactive = isSSHSession(m.pamMTx) || m.isTerminalTty()
 	rendersQrCode := m.isQrcodeRenderingSupported()
 
 	return func() tea.Msg {
@@ -779,7 +779,7 @@ func (m nativeModel) isQrcodeRenderingSupported() bool {
 	case polkitServiceName:
 		return false
 	default:
-		if IsSSHSession(m.pamMTx) {
+		if isSSHSession(m.pamMTx) {
 			return false
 		}
 		return m.isTerminalTty()
