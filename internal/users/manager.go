@@ -121,6 +121,8 @@ func (m *Manager) Stop() error {
 func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	defer decorate.OnError(&err, "failed to update user %q", u.Name)
 
+	// Protect writing to the temporary user/group maps with a mutex, to avoid a race where multiple calls to UpdateUser
+	// could register the same UID/GID multiple times.
 	m.temporaryEntriesMu.Lock()
 	defer m.temporaryEntriesMu.Unlock()
 
@@ -137,7 +139,10 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 		return fmt.Errorf("could not get user %q: %w", u.Name, err)
 	}
 	if errors.Is(err, cache.NoDataFoundError{}) {
-		// The user does not exist, so we register it with a unique UID.
+		// The user does not exist, so we generate a unique UID for it. To avoid that a user with the same UID is
+		// created by some other NSS source, this also registers a temporary user in our NSS handler. We remove that
+		// temporary user before returning from this function, at which point the user is added to the database (so we
+		// don't need the temporary user anymore to keep the UID unique).
 		var cleanup func()
 		uid, cleanup, err = m.registerUser(u.Name, false)
 		if err != nil {
@@ -180,7 +185,10 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 		}
 
 		if g.GID == nil {
-			// The group does not exist in the database, so we generate a new GID.
+			// The group does not exist in the database, so we generate a unique GID for it. Similar to the registerUser
+			// call above, this also registers a temporary group in our NSS handler. We remove that temporary group
+			// before returning from this function, at which point the group is added to the database (so we don't need
+			// the temporary group anymore to keep the GID unique).
 			gid, cleanup, err := m.registerGroup(g.Name)
 			if err != nil {
 				return fmt.Errorf("could not generate GID for group %q: %v", g.Name, err)
@@ -411,7 +419,8 @@ func (m *Manager) RegisterUserPreAuth(name string) (uint32, error) {
 // registerUser registers a temporary user with the given name and a unique UID in our NSS handler (in memory, not in
 // the database).
 //
-// The caller must lock m.temporaryEntriesMu for writing before calling this function.
+// The caller must lock m.temporaryEntriesMu for writing before calling this function, to avoid that multiple parallel
+// calls can register the same UID multiple times.
 //
 // Returns the generated UID and a cleanup function that should be called to remove the temporary user once the user was
 // added to the database.
@@ -512,6 +521,13 @@ func (m *Manager) deleteTemporaryUser(uid uint32) {
 	log.Debugf(context.Background(), "Removed temporary user with UID %d", uid)
 }
 
+// registerGroup registers a temporary group with a unique GID in our NSS handler (in memory, not in the database).
+//
+// The caller must lock m.temporaryEntriesMu for writing before calling this function, to avoid that multiple parallel
+// calls can register the same GID multiple times.
+//
+// Returns the generated GID and a cleanup function that should be called to remove the temporary group once the group
+// was added to the database.
 func (m *Manager) registerGroup(name string) (gid uint32, cleanup func() error, err error) {
 	for {
 		gid, err = m.GenerateGID()
