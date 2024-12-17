@@ -324,13 +324,9 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 
 	appState := adapter.UIModel{
 		PamMTx:      mTx,
-		Client:      authd.NewPAMClient(conn),
+		Conn:        conn,
 		ClientType:  pamClientType,
 		SessionMode: mode,
-	}
-
-	if pamClientType == adapter.Native && adapter.IsSSHSession(mTx) {
-		appState.NssClient = authd.NewNSSClient(conn)
 	}
 
 	if err := mTx.SetData(authenticationBrokerIDKey, nil); err != nil {

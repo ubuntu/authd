@@ -2241,7 +2241,7 @@ func TestGdmModel(t *testing.T) {
 			uiModel := UIModel{
 				PamMTx:     pam_test.NewModuleTransactionDummy(gdmHandler),
 				ClientType: Gdm,
-				Client:     tc.client,
+				client:     tc.client,
 			}
 			appState := gdmTestUIModel{
 				UIModel:             uiModel,
@@ -2447,7 +2447,7 @@ func TestGdmModel(t *testing.T) {
 
 			wantBrokers := []*authd.ABResponse_BrokerInfo(nil)
 			if !tc.wantNoBrokers {
-				availableBrokers, err := appState.Client.AvailableBrokers(context.TODO(), nil)
+				availableBrokers, err := appState.client.AvailableBrokers(context.TODO(), nil)
 				require.NoError(t, err)
 				wantBrokers = availableBrokers.GetBrokersInfos()
 			}

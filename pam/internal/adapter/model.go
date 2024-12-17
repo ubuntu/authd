@@ -14,6 +14,7 @@ import (
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
+	"google.golang.org/grpc"
 )
 
 // PamClientType indicates the type of the PAM client we're handling.
@@ -41,14 +42,15 @@ type sessionInfo struct {
 type UIModel struct {
 	// PamMTx is the [pam.ModuleTransaction] used to communicate with PAM.
 	PamMTx pam.ModuleTransaction
-	// Client is the [authd.PAMClient] handle used to communicate with authd.
-	Client authd.PAMClient
-	// NssClient is the [authd.NSSClient] handle used to communicate with authd.
-	NssClient authd.NSSClient
+	// Conn is the [grpc.ClientConn] opened with authd daemon.
+	Conn *grpc.ClientConn
 	// PamClientType is the kind of the PAM client we're handling.
 	ClientType PamClientType
 	// SessionMode is the mode of the session invoked by the module.
 	SessionMode authd.SessionMode
+
+	// client is the [authd.PAMClient] handle used to communicate with authd.
+	client authd.PAMClient
 
 	sessionStartingForBroker string
 	currentSession           *sessionInfo
@@ -108,25 +110,40 @@ type ChangeStage struct {
 func (m *UIModel) Init() tea.Cmd {
 	var cmds []tea.Cmd
 
+	if m.Conn != nil {
+		m.client = authd.NewPAMClient(m.Conn)
+	}
+
 	switch m.ClientType {
 	case Gdm:
 		m.gdmModel = gdmModel{pamMTx: m.PamMTx}
 		cmds = append(cmds, m.gdmModel.Init())
 	case Native:
-		m.nativeModel = nativeModel{pamMTx: m.PamMTx, nssClient: m.NssClient}
+		var nssClient authd.NSSClient
+		if m.Conn != nil && isSSHSession(m.PamMTx) {
+			nssClient = authd.NewNSSClient(m.Conn)
+		}
+		m.nativeModel = nativeModel{pamMTx: m.PamMTx, nssClient: nssClient}
 		cmds = append(cmds, m.nativeModel.Init())
+	}
+
+	if m.client == nil {
+		return sendEvent(pamError{
+			status: pam.ErrAbort,
+			msg:    "No PAM client set",
+		})
 	}
 
 	m.userSelectionModel = newUserSelectionModel(m.PamMTx, m.ClientType)
 	cmds = append(cmds, m.userSelectionModel.Init())
 
-	m.brokerSelectionModel = newBrokerSelectionModel(m.Client, m.ClientType)
+	m.brokerSelectionModel = newBrokerSelectionModel(m.client, m.ClientType)
 	cmds = append(cmds, m.brokerSelectionModel.Init())
 
 	m.authModeSelectionModel = newAuthModeSelectionModel(m.ClientType)
 	cmds = append(cmds, m.authModeSelectionModel.Init())
 
-	m.authenticationModel = newAuthenticationModel(m.Client, m.ClientType)
+	m.authenticationModel = newAuthenticationModel(m.client, m.ClientType)
 	cmds = append(cmds, m.authenticationModel.Init())
 
 	return tea.Batch(cmds...)
@@ -197,16 +214,16 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Got user and brokers? Time to auto or manually select.
-		return m, AutoSelectForUser(m.Client, m.username())
+		return m, AutoSelectForUser(m.client, m.username())
 
 	case BrokerSelected:
 		log.Debugf(context.TODO(), "%#v", msg)
 		if m.sessionStartingForBroker == "" {
 			m.sessionStartingForBroker = msg.BrokerID
-			return m, startBrokerSession(m.Client, msg.BrokerID, m.username(), m.SessionMode)
+			return m, startBrokerSession(m.client, msg.BrokerID, m.username(), m.SessionMode)
 		}
 		if m.sessionStartingForBroker != msg.BrokerID {
-			return m, tea.Sequence(endSession(m.Client, m.currentSession), sendEvent(msg))
+			return m, tea.Sequence(endSession(m.client, m.currentSession), sendEvent(msg))
 		}
 	case SessionStarted:
 		log.Debugf(context.TODO(), "%#v", msg)
@@ -252,7 +269,7 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		return m, tea.Sequence(
-			getAuthenticationModes(m.Client, m.currentSession.sessionID, m.authModeSelectionModel.SupportedUILayouts()),
+			getAuthenticationModes(m.client, m.currentSession.sessionID, m.authModeSelectionModel.SupportedUILayouts()),
 			m.changeStage(pam_proto.Stage_authModeSelection),
 		)
 
@@ -273,7 +290,7 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, tea.Sequence(
 			m.updateClientModel(msg),
-			getLayout(m.Client, m.currentSession.sessionID, msg.ID),
+			getLayout(m.client, m.currentSession.sessionID, msg.ID),
 		)
 
 	case UILayoutReceived:
@@ -399,11 +416,11 @@ func (m *UIModel) changeStage(s pam_proto.Stage) tea.Cmd {
 	case pam_proto.Stage_userSelection:
 		// The session should be ended when going back to previous state, but we don’t quit the stage immediately
 		// and so, we should always ensure we cancel previous session.
-		commands = append(commands, endSession(m.Client, m.currentSession), m.userSelectionModel.Focus())
+		commands = append(commands, endSession(m.client, m.currentSession), m.userSelectionModel.Focus())
 
 	case pam_proto.Stage_brokerSelection:
 		m.authModeSelectionModel.Reset()
-		commands = append(commands, endSession(m.Client, m.currentSession), m.brokerSelectionModel.Focus())
+		commands = append(commands, endSession(m.client, m.currentSession), m.brokerSelectionModel.Focus())
 
 	case pam_proto.Stage_authModeSelection:
 		commands = append(commands, m.authenticationModel.Reset())
