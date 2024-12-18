@@ -13,7 +13,7 @@ import (
 )
 
 type temporaryRecords struct {
-	mutex            sync.Mutex
+	mutex            sync.RWMutex
 	numPreAuthUsers  int
 	users            map[uint32]temporaryUser
 	usersByLoginName map[string]uint32

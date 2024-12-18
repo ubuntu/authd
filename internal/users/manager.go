@@ -285,6 +285,8 @@ func (m *Manager) UserByID(uid uint32) (UserEntry, error) {
 	usr, err := m.cache.UserByID(uid)
 	if errors.Is(err, cache.NoDataFoundError{}) {
 		// Check if the user is a temporary user.
+		m.temporaryRecords.mutex.RLock()
+		defer m.temporaryRecords.mutex.RUnlock()
 		if user, ok := m.temporaryRecords.users[uid]; ok {
 			return UserEntry{Name: user.name, UID: uid}, nil
 		}
