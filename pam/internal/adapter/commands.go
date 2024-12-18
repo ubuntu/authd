@@ -24,7 +24,7 @@ func sendEvent(msg tea.Msg) tea.Cmd {
 func startBrokerSession(client authd.PAMClient, brokerID, username string, mode authd.SessionMode) tea.Cmd {
 	return func() tea.Msg {
 		if brokerID == brokers.LocalBrokerName {
-			return PamIgnore{LocalBrokerID: brokerID}
+			return pamError{status: pam.ErrIgnore}
 		}
 
 		// Start a transaction for this user with the broker.

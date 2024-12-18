@@ -100,9 +100,13 @@ func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus adapter.PamRetu
 	}
 
 	style := pam.ErrorMsg
-	switch retStatus.(type) {
-	case adapter.PamIgnore, adapter.PamSuccess:
+	switch rs := retStatus.(type) {
+	case adapter.PamSuccess:
 		style = pam.TextInfo
+	case adapter.PamReturnError:
+		if rs.Status() == pam.ErrIgnore {
+			style = pam.TextInfo
+		}
 	}
 
 	if err := showPamMessage(mTx, style, msg); err != nil {
@@ -344,18 +348,12 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		}
 		return nil
 
-	case adapter.PamIgnore:
-		// localBrokerID is only set on pamIgnore if the user has chosen local broker.
-		if err := mTx.SetData(authenticationBrokerIDKey, exitStatus.LocalBrokerID); err != nil {
-			return err
-		}
-		return fmt.Errorf("%w: %s", exitStatus.Status(), exitStatus.Message())
-
 	case adapter.PamReturnError:
 		return fmt.Errorf("%w: %s", exitStatus.Status(), exitStatus.Message())
-	}
 
-	return fmt.Errorf("%w: unknown exit code", pam.ErrSystem)
+	default:
+		return fmt.Errorf("%w: unknown exit code: %#v", pam.ErrSystem, exitStatus)
+	}
 }
 
 // AcctMgmt sets any used brokerID as default for the user.
@@ -426,11 +424,6 @@ func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []
 		return pam.ErrAuthinfoUnavail
 	}
 	defer closeConn()
-
-	if brokerIDUsedToAuthenticate == brokers.LocalBrokerName {
-		// Don't set the default broker to the local broker.
-		return pam.ErrIgnore
-	}
 
 	req := authd.SDBFURequest{
 		BrokerId: brokerIDUsedToAuthenticate,
