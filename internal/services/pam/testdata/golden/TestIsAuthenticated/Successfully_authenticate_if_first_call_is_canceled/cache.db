@@ -1,9 +1,12 @@
 GroupByID:
-    "1369382419": '{"Name":"group-IA_second_call","GID":1369382419}'
-    "1569396774": '{"Name":"TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call","GID":1569396774}'
+    "1369382419": '{"Name":"group-IA_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
+    "1569396774": '{"Name":"TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call","GID":1569396774,"UGID":"TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call"}'
 GroupByName:
-    TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call","GID":1569396774}'
-    group-IA_second_call: '{"Name":"group-IA_second_call","GID":1369382419}'
+    TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call","GID":1569396774,"UGID":"TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call"}'
+    group-IA_second_call: '{"Name":"group-IA_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
+GroupByUGID:
+    TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call","GID":1569396774,"UGID":"TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call"}'
+    ugid-IA_second_call: '{"Name":"group-IA_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
 GroupToUsers:
     "1369382419": '{"GID":1369382419,"UIDs":[1569396774]}'
     "1569396774": '{"GID":1569396774,"UIDs":[1569396774]}'

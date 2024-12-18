@@ -23,6 +23,7 @@ const (
 	userByIDBucketName          = "UserByID"
 	groupByNameBucketName       = "GroupByName"
 	groupByIDBucketName         = "GroupByID"
+	groupByUGIDBucketName       = "GroupByUGID"
 	userToGroupsBucketName      = "UserToGroups"
 	groupToUsersBucketName      = "GroupToUsers"
 	userToBrokerBucketName      = "UserToBroker"
@@ -33,8 +34,9 @@ var (
 	allBuckets = [][]byte{
 		[]byte(userByNameBucketName), []byte(userByIDBucketName),
 		[]byte(groupByNameBucketName), []byte(groupByIDBucketName),
-		[]byte(userToGroupsBucketName), []byte(groupToUsersBucketName),
-		[]byte(userToBrokerBucketName), []byte(userToLocalGroupsBucketName),
+		[]byte(groupByUGIDBucketName), []byte(userToGroupsBucketName),
+		[]byte(groupToUsersBucketName), []byte(userToBrokerBucketName),
+		[]byte(userToLocalGroupsBucketName),
 	}
 )
 
@@ -66,6 +68,7 @@ type UserDB struct {
 type GroupDB struct {
 	Name  string
 	GID   uint32
+	UGID  string
 	Users []string
 }
 

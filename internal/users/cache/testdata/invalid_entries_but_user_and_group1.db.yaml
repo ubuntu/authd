@@ -1,11 +1,11 @@
 GroupByID:
-  "11111": '{"Name":"group1","GID":11111}'
+  "11111": '{"Name":"group1","GID":11111, "UGID": "12345678"}'
   "22222": '"not-a-valid-json"'
   "33333": '"not-a-valid-json"'
   "99999": '"not-a-valid-json"'
 GroupByName:
   commongroup: '"not-a-valid-json"'
-  group1: '{"Name":"group1","GID":11111}'
+  group1: '{"Name":"group1","GID":11111, "UGID": "12345678"}'
   group2: '"not-a-valid-json"'
   group3: '"not-a-valid-json"'
 GroupToUsers:
