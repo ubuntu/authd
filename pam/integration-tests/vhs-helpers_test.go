@@ -17,7 +17,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/proto/authd"
-	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
+	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
@@ -220,7 +220,7 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 		}
 	}
 
-	got = permissionstestutils.IdempotentPermissionError(got)
+	got = permissions.Z_ForTests_IdempotentPermissionError(got)
 
 	// Drop all the empty lines before each page separator, to remove the clutter.
 	got = vhsEmptyLinesRegex.ReplaceAllString(got, "$4")

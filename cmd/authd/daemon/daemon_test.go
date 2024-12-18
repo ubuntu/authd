@@ -15,7 +15,7 @@ import (
 	"github.com/ubuntu/authd/cmd/authd/daemon"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/testutils"
-	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
+	"github.com/ubuntu/authd/internal/users/cache"
 )
 
 func TestHelp(t *testing.T) {
@@ -176,7 +176,7 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 				err := os.MkdirAll(config.Paths.Cache, 0700)
 				require.NoError(t, err, "Setup: could not create cache directory")
 				//nolint: gosec // This is a file with invalid permission for tests.
-				err = os.WriteFile(filepath.Join(config.Paths.Cache, cachetestutils.DbName), nil, 0644)
+				err = os.WriteFile(filepath.Join(config.Paths.Cache, cache.Z_ForTests_DBName()), nil, 0644)
 				require.NoError(t, err, "Setup: could not create database with invalid permissions")
 			}
 

@@ -23,11 +23,10 @@ import (
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/services/permissions"
-	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
-	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
+	"github.com/ubuntu/authd/internal/users/cache"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"google.golang.org/grpc"
@@ -157,7 +156,7 @@ func TestGetPreviousBroker(t *testing.T) {
 			d, err := io.ReadAll(f)
 			require.NoError(t, err, "Setup: could not read fixture database file")
 			d = bytes.ReplaceAll(d, []byte("MOCKBROKERID"), []byte(mockBrokerGeneratedID))
-			err = cachetestutils.DbfromYAML(bytes.NewBuffer(d), cacheDir)
+			err = cache.Z_ForTests_FromYAML(bytes.NewBuffer(d), cacheDir)
 			require.NoError(t, err, "Setup: could not prepare cache database file")
 
 			m, err := users.NewManager(users.DefaultConfig, cacheDir)
@@ -300,7 +299,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			permissionstestutils.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
+			permissions.Z_ForTests_SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			if tc.supportedUILayouts == nil {
 				tc.supportedUILayouts = []*authd.UILayout{requiredEntry}
@@ -394,7 +393,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			permissionstestutils.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
+			permissions.Z_ForTests_SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			samReq := &authd.SAMRequest{
 				SessionId:            tc.sessionID,
@@ -464,7 +463,7 @@ func TestIsAuthenticated(t *testing.T) {
 
 			cacheDir := t.TempDir()
 			if tc.existingDB != "" {
-				cachetestutils.CreateDBFromYAML(t, filepath.Join(testutils.TestFamilyPath(t), tc.existingDB), cacheDir)
+				cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join(testutils.TestFamilyPath(t), tc.existingDB), cacheDir)
 			}
 
 			m, err := users.NewManager(users.DefaultConfig, cacheDir)
@@ -485,7 +484,7 @@ func TestIsAuthenticated(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			permissionstestutils.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
+			permissions.Z_ForTests_SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			var firstCall, secondCall string
 			ctx, cancel := context.WithCancel(context.Background())
@@ -528,12 +527,12 @@ func TestIsAuthenticated(t *testing.T) {
 			<-done
 
 			got := firstCall + secondCall
-			got = permissionstestutils.IdempotentPermissionError(got)
+			got = permissions.Z_ForTests_IdempotentPermissionError(got)
 			want := golden.LoadWithUpdate(t, got, golden.WithPath("IsAuthenticated"))
 			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
 
 			// Check that cache has been updated too.
-			gotDB, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			gotDB, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := golden.LoadWithUpdate(t, gotDB, golden.WithPath("cache.db"))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
@@ -574,7 +573,7 @@ func TestIDGeneration(t *testing.T) {
 			require.NoError(t, err, "Setup: could not authenticate user")
 			require.Equal(t, "granted", resp.GetAccess(), "Setup: authentication should be granted")
 
-			gotDB, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			gotDB, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := golden.LoadWithUpdate(t, gotDB, golden.WithPath("cache.db"))
 			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
@@ -606,7 +605,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			t.Parallel()
 
 			cacheDir := t.TempDir()
-			cachetestutils.CreateDBFromYAML(t, filepath.Join(testutils.TestFamilyPath(t), "set-default-broker.db"), cacheDir)
+			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join(testutils.TestFamilyPath(t), "set-default-broker.db"), cacheDir)
 
 			m, err := users.NewManager(users.DefaultConfig, cacheDir)
 			require.NoError(t, err, "Setup: could not create user manager")
@@ -634,7 +633,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			require.Equal(t, tc.brokerID, gpbResp.GetPreviousBroker(), "SetDefaultBrokerForUser should set the default broker as expected")
 
 			// Check that cache has been updated too.
-			gotDB, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			gotDB, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			wantDB := golden.LoadWithUpdate(t, gotDB, golden.WithPath("cache.db"))
 			require.Equal(t, wantDB, gotDB, "SetDefaultBrokerForUser should update the cache database as expected")
@@ -679,7 +678,7 @@ func TestEndSession(t *testing.T) {
 			}
 
 			// Now, set tests permissions for this use case
-			permissionstestutils.SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
+			permissions.Z_ForTests_SetCurrentUserAsRoot(&pm, !tc.currentUserNotRoot)
 
 			esReq := &authd.ESRequest{
 				SessionId: tc.sessionID,
@@ -772,7 +771,7 @@ func newPermissionManager(t *testing.T, currentUserNotRoot bool) permissions.Man
 
 	var opts = []permissions.Option{}
 	if !currentUserNotRoot {
-		opts = append(opts, permissionstestutils.WithCurrentUserAsRoot())
+		opts = append(opts, permissions.Z_ForTests_WithCurrentUserAsRoot())
 	}
 	return permissions.New(opts...)
 }
