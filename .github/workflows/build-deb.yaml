@@ -9,12 +9,26 @@ on:
   pull_request:
 
 env:
-  UBUNTU_VERSION: devel
+  UBUNTU_VERSIONS: |
+    ["noble", "devel"]
 
 jobs:
+  define-versions:
+    name: Define build versions
+    runs-on: ubuntu-latest
+    outputs:
+      ubuntu-versions: ${{ env.UBUNTU_VERSIONS }}
+    steps:
+      - run: 'true'
+
   build-deb-package:
     name: Build ubuntu package
     runs-on: ubuntu-latest
+    needs: define-versions
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu-version: ${{ fromJSON(needs.define-versions.outputs.ubuntu-versions) }}
     outputs:
       run-id: ${{ github.run_id }}
       pkg-src-changes: ${{ env.PKG_SOURCE_CHANGES }}
@@ -26,7 +40,7 @@ jobs:
       - name: Build debian packages and sources
         uses: canonical/desktop-engineering/gh-actions/common/build-debian@main
         with:
-          docker-image: ubuntu:${{ env.UBUNTU_VERSION }}
+          docker-image: ubuntu:${{ matrix.ubuntu-version }}
           extra-source-build-deps: |
             ca-certificates
             git
@@ -37,8 +51,14 @@ jobs:
 
   run-autopkgtests:
     name: Run autopkgtests
-    needs: build-deb-package
     runs-on: ubuntu-latest
+    needs:
+      - define-versions
+      - build-deb-package
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu-version: ${{ fromJSON(needs.define-versions.outputs.ubuntu-versions) }}
 
     steps:
     - name: Download artifacts
@@ -50,5 +70,5 @@ jobs:
     - name: Run autopkgtests
       uses: canonical/desktop-engineering/gh-actions/common/run-autopkgtest@main
       with:
-        lxd-image: ubuntu:${{ env.UBUNTU_VERSION }}
+        lxd-image: ubuntu:${{ matrix.ubuntu-version }}
         source-changes: ${{ needs.build-deb-package.outputs.pkg-src-changes }}
