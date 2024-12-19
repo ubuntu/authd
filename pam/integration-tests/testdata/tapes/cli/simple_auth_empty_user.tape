@@ -1,45 +1,43 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name\n/
 Show
 
 Hide
-Type "user-integration-not-empty"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-not-empty"
 Show
 
 Hide
 Backspace 26
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait /Username: user name\n/
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait /Username: user name\n/
 Show
 
 Hide
 Escape
 Backspace
-Type "user-integration-was-empty"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-was-empty"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "goodpass"
+TypeCLIPassword "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

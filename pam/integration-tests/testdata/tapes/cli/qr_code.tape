@@ -1,57 +1,65 @@
 Hide
 Type "if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Escape
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your authentication method/
+Wait+Screen /6\. Use a QR code/
 Show
 
 Hide
 Type "6"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT}/3 /Scan the qrcode or enter the code in the login page/
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT}/3 /\b1337\b/
 Show
 
 Hide
 Tab
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT} / 3
 Show
 
 Hide
+Sleep ${AUTHD_SLEEP_QRCODE_RESELECTION_WAIT}
 Enter
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT} / 3
+Wait+Screen /Scan the qrcode or enter the code in the login page/
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT}/3 /\b1338\b/
 Show
 
 Hide
+Sleep ${AUTHD_SLEEP_QRCODE_RESELECTION_WAIT}
 Enter
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT} / 3
+Wait+Screen /Scan the qrcode or enter the code in the login page/
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT}/3 /\b1339\b/
 Show
 
 Hide
+Sleep ${AUTHD_SLEEP_QRCODE_RESELECTION_WAIT}
 Enter
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT} / 3
+Wait+Screen /Scan the qrcode or enter the code in the login page/
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT}/3 /\b1340\b/
 Show
 
 Hide
+Sleep ${AUTHD_SLEEP_QRCODE_RESELECTION_WAIT}
 Enter
-Sleep ${AUTHD_SLEEP_LONG}
+Wait+Screen /Scan the qrcode or enter the code in the login page/
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT}/3 /\b1341\b/
 Show
 
 Hide
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT} * 1.2
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

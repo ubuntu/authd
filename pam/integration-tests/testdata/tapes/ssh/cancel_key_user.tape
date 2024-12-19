@@ -1,7 +1,6 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Password:/
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

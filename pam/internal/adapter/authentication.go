@@ -38,7 +38,14 @@ var (
 // The event will contain the returned value from the broker.
 func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID string,
 	authData *authd.IARequest_AuthenticationData, challenge *string) tea.Cmd {
-	return func() tea.Msg {
+	return func() (msg tea.Msg) {
+		log.Debugf(context.TODO(), "Authentication request for session %q: %#v",
+			sessionID, authData.Item)
+		defer func() {
+			log.Debugf(context.TODO(), "Authentication completed for session %q: %#v",
+				sessionID, msg)
+		}()
+
 		res, err := client.IsAuthenticated(ctx, &authd.IARequest{
 			SessionId:          sessionID,
 			AuthenticationData: authData,
@@ -108,13 +115,12 @@ type authenticationComponent interface {
 	Update(msg tea.Msg) (tea.Model, tea.Cmd)
 	View() string
 	Focus() tea.Cmd
+	Focused() bool
 	Blur()
 }
 
 // authenticationModel is the orchestrator model of all the authentication sub model layouts.
 type authenticationModel struct {
-	focused bool
-
 	client     authd.PAMClient
 	clientType PamClientType
 
@@ -333,6 +339,11 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		return *m, nil
 	}
 
+	if _, ok := msg.(startAuthentication); ok {
+		log.Debugf(context.TODO(), "%T: %#v: current model %v, focused %v",
+			m, msg, m.currentModel, m.Focused())
+	}
+
 	// interaction events
 	if !m.Focused() {
 		return *m, nil
@@ -349,23 +360,25 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 
 // Focus focuses this model.
 func (m *authenticationModel) Focus() tea.Cmd {
-	m.focused = true
-
+	log.Debugf(context.TODO(), "%T: Focus", m)
 	if m.currentModel == nil {
 		return nil
 	}
+
 	return m.currentModel.Focus()
 }
 
 // Focused returns if this model is focused.
 func (m *authenticationModel) Focused() bool {
-	return m.focused
+	if m.currentModel == nil {
+		return false
+	}
+	return m.currentModel.Focused()
 }
 
 // Blur releases the focus from this model.
 func (m *authenticationModel) Blur() {
-	m.focused = false
-
+	log.Debugf(context.TODO(), "%T: Blur", m)
 	if m.currentModel == nil {
 		return
 	}
@@ -422,6 +435,9 @@ func (m authenticationModel) View() string {
 	if m.currentModel == nil {
 		return ""
 	}
+	if !m.Focused() {
+		return ""
+	}
 	contents := []string{m.currentModel.View()}
 
 	errMsg := m.errorMsg
@@ -436,6 +452,7 @@ func (m authenticationModel) View() string {
 
 // Resets zeroes any internal state on the authenticationModel.
 func (m *authenticationModel) Reset() tea.Cmd {
+	log.Debugf(context.TODO(), "%T: Reset", m)
 	m.currentModel = nil
 	m.currentSessionID = ""
 	m.currentBrokerID = ""

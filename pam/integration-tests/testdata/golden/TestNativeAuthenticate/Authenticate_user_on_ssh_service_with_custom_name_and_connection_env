@@ -11,10 +11,6 @@ Choose your provider:
   2. ExampleBroker
 Choose your provider:
 > 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Provider selection ==
@@ -25,13 +21,6 @@ Choose your provider:
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
->
-PAM Authenticate()
-  User: "user-integration-pre-check-ssh-connection"
-  Result: success
-PAM AcctMgmt()
-  User: "user-integration-pre-check-ssh-connection"
-  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true

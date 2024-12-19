@@ -1,19 +1,15 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name\n/
 Show
 
 Hide
-Escape
-Backspace
-Type "root"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "root"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

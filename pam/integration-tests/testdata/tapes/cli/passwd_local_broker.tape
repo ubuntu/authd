@@ -1,24 +1,21 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name\n/
 Show
 
 Hide
-Escape
-Backspace
-Type "user-local-broker"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-local-broker"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

@@ -13,10 +13,6 @@ ive_client=true bar
   2. ExampleBroker
 Choose your provider:
 > 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo force_nat
 ive_client=true bar
@@ -28,13 +24,6 @@ Choose your provider:
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
->
-PAM Authenticate()
-  User: "user-integration-with-unsupported-args"
-  Result: success
-PAM AcctMgmt()
-  User: "user-integration-with-unsupported-args"
-  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo force_nat
