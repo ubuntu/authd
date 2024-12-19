@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
@@ -82,8 +83,11 @@ func TestCLIAuthenticate(t *testing.T) {
 			},
 		},
 		"Authenticate user with qr code after many regenerations": {
-			tape:         "qr_code_quick_regenerate",
-			tapeSettings: []tapeSetting{{vhsHeight, 800}},
+			tape: "qr_code_quick_regenerate",
+			tapeSettings: []tapeSetting{
+				{vhsHeight, 800},
+				{vhsWaitTimeout, 15 * time.Second},
+			},
 		},
 		"Authenticate user and reset password while enforcing policy": {
 			tape: "mandatory_password_reset",
@@ -101,7 +105,8 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape: "switch_username",
 		},
 		"Authenticate user switching to local broker": {
-			tape: "switch_local_broker",
+			tape:         "switch_local_broker",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
@@ -135,14 +140,16 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape: "max_attempts",
 		},
 		"Deny authentication if user does not exist": {
-			tape: "unexistent_user",
+			tape:         "unexistent_user",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Deny authentication if newpassword does not match required criteria": {
 			tape: "bad_password",
 		},
 
 		"Exit authd if local broker is selected": {
-			tape: "local_broker",
+			tape:         "local_broker",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Exit authd if user sigints": {
 			tape: "sigint",
@@ -173,7 +180,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			td.Command = tapeCommand
 			td.Env[socketPathEnv] = socketPath
 			td.AddClientOptions(t, tc.clientOptions)
-			td.RunVhs(t, "cli", outDir, cliEnv)
+			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
@@ -231,7 +238,8 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			tape: "passwd_auth_fail",
 		},
 		"Prevent change password if user does not exist": {
-			tape: "passwd_unexistent_user",
+			tape:         "passwd_unexistent_user",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Prevent change password if current user is not root as can not authenticate": {
 			tape:               "passwd_not_root",
@@ -239,7 +247,8 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		},
 
 		"Exit authd if local broker is selected": {
-			tape: "passwd_local_broker",
+			tape:         "passwd_local_broker",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Exit authd if user sigints": {
 			tape: "passwd_sigint",
@@ -261,7 +270,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			td.Variables = tc.tapeVariables
 			td.Env[socketPathEnv] = socketPath
 			td.AddClientOptions(t, clientOptions{})
-			td.RunVhs(t, "cli", outDir, cliEnv)
+			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)

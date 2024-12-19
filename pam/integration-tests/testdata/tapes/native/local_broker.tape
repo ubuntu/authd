@@ -1,13 +1,15 @@
 Hide
+Wait /^>\n/
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "1"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT} * 3
+TypeInPrompt "1"
 Show
 
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Hide
+Enter
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
+Show

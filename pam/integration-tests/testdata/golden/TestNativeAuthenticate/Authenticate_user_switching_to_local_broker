@@ -11,6 +11,13 @@ Choose your provider:
   2. ExampleBroker
 Choose your provider:
 > 2
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
@@ -38,6 +45,29 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 >
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-broker@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> r
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Provider selection ==
@@ -94,9 +124,68 @@ Choose your authentication method:
   2. ExampleBroker
 Choose your provider:
 > invalid-ID
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-broker@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> invalid-ID
 PAM Error Message: Unsupported input
 Choose your provider:
 >
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-broker@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> invalid-ID
+PAM Error Message: Unsupported input
+Choose your provider:
+> 555
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Provider selection ==
@@ -171,16 +260,6 @@ PAM Error Message: Invalid selection
   2. ExampleBroker
 Choose your provider:
 > 1
-auth=incomplete
-PAM Authenticate()
-  User: "user-integration-switch-broker"
-  Result: error: PAM exit code: 25
-    The return value should be ignored by PAM dispatch
-PAM AcctMgmt()
-  User: "user-integration-switch-broker"
-  Result: error: PAM exit code: 26
-    Critical error - immediate abort
->
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 == Provider selection ==

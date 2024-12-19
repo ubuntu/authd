@@ -1,28 +1,26 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username:\n/
 Show
 
 Hide
-Type "user-integration-sigint"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-sigint"
+Enter
+Wait+Prompt /Choose your provider/
+Show
+
+Hide
+TypeInPrompt "2"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Type "2"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Ctrl+C
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Suffix />[\n]+>/
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

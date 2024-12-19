@@ -1,53 +1,56 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username:\n/
 Show
 
 Hide
-Type "user-integration-max-attempts"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-max-attempts"
+Enter
+Wait+Prompt /Choose your provider/
+Show
+
+Hide
+TypeInPrompt "2"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Type "2"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "wrongpass"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
+Wait+Nth(1) /invalid password 'wrongpass', should be/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "wrongpass"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
+Wait+Nth(2) /invalid password 'wrongpass', should be/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "wrongpass"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
+Wait+Nth(3) /invalid password 'wrongpass', should be/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "wrongpass"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
+Wait+Nth(4) /invalid password 'wrongpass', should be/
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "wrongpass"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
+Wait+Nth(5) /invalid password 'wrongpass', should be/
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

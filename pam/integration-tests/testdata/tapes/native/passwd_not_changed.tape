@@ -1,55 +1,46 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username:\n/
 Show
 
 Hide
-Type "user-integration-same-new-password"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-same-new-password"
+Enter
+Wait+Prompt /Choose your provider/
+Show
+
+Hide
+TypeInPrompt "2"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Type "2"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "goodpass"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /The password is the same as the old one/
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Confirm Password/
 Show
 
 Hide
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

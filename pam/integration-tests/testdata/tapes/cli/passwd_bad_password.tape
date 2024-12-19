@@ -1,82 +1,77 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name\n/
 Show
 
 Hide
-Escape
-Backspace
-Type "user-integration-bad-password"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-bad-password"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "goodpass"
-Show
-
-Hide
-Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
-Show
-
-Hide
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Enter
-Show
-
-Hide
-Type "1234"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Type "12345678"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Type "authd2404"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Type "123456789"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeCLIPassword "goodpass"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Type "authd2404"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+CLIPrompt /New password/
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+CLIPrompt /New password/ /No password supplied/
 Show
 
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Hide
+TypeCLIPassword "1234"
+Enter
+Wait+CLIPrompt /New password/ /The password is shorter than \d+ characters/
+Show
+
+Hide
+TypeCLIPassword "12345678"
+Enter
+Wait+CLIPrompt /New password/ /The password fails the dictionary check[^\n]*/
+Show
+
+Hide
+TypeCLIPassword "authd2404"
+Enter
+Wait+Prompt /Confirm password/
+Show
+
+Hide
+TypeCLIPassword "123456789"
+Show
+
+Hide
+Enter
+Wait+CLIPrompt /New password/ /Password entries don't match/
+Show
+
+Hide
+TypeCLIPassword "authd2404"
+Enter
+Wait+Prompt /Confirm password/
+Show
+
+Hide
+TypeCLIPassword "authd2404"
+Show
+
+Hide
+Enter
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
+Show

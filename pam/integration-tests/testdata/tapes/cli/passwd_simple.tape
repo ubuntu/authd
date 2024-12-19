@@ -1,73 +1,68 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name\n/
 Show
 
 Hide
-Escape
-Backspace
-Type "user1"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user1"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "goodpass"
-Show
-
-Hide
-Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
-Show
-
-Hide
-Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeCLIPassword "goodpass"
 Show
 
 Hide
 Enter
-Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /New password/
+Show
+
+Hide
+TypeCLIPassword "authd2404"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Confirm password/
+TypeCLIPassword "authd2404"
 Show
+
+Hide
+Enter
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
+Show
+
+ClearTerminal
 
 Hide
 Type "${AUTHD_TEST_TAPE_LOGIN_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name\n/
 Show
 
 Hide
-Escape
-Backspace
-Type "user1"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user1"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "authd2404"
+TypeCLIPassword "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

@@ -44,6 +44,9 @@ type authModeSelected struct {
 	id string
 }
 
+// authModeSelectionFocused is the internal event to signal that the auth mode selection view is focused.
+type authModeSelectionFocused struct{}
+
 // selectAuthMode selects current authentication mode.
 func selectAuthMode(id string) tea.Cmd {
 	return func() tea.Msg {
@@ -125,6 +128,10 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 // Update handles events and actions.
 func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
+	case authModeSelectionFocused:
+		log.Debugf(context.TODO(), "%T: %#v", m, msg)
+		m.focused = true
+
 	case supportedUILayoutsReceived:
 		log.Debugf(context.TODO(), "%#v", msg)
 		if len(msg.layouts) == 0 {
@@ -222,10 +229,19 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 	return m, cmd
 }
 
+// View renders a text view of the authentication UI.
+func (m authModeSelectionModel) View() string {
+	if !m.Focused() {
+		return ""
+	}
+
+	return m.Model.View()
+}
+
 // Focus focuses this model.
 func (m *authModeSelectionModel) Focus() tea.Cmd {
-	m.focused = true
-	return nil
+	log.Debugf(context.TODO(), "%T: Focus", m)
+	return sendEvent(authModeSelectionFocused{})
 }
 
 // Focused returns if this model is focused.
@@ -235,6 +251,7 @@ func (m *authModeSelectionModel) Focused() bool {
 
 // Blur releases the focus from this model.
 func (m *authModeSelectionModel) Blur() {
+	log.Debugf(context.TODO(), "%T: Blur", m)
 	m.focused = false
 }
 
@@ -296,6 +313,7 @@ func getAuthenticationModes(client authd.PAMClient, sessionID string, uiLayouts 
 
 // Resets zeroes any internal state on the authModeSelectionModel.
 func (m *authModeSelectionModel) Reset() {
+	log.Debugf(context.TODO(), "%T: Reset", m)
 	m.currentAuthModeSelectedID = ""
 }
 

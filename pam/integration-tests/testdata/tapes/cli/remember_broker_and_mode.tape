@@ -1,61 +1,59 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name\n/
 Show
 
 Hide
-Escape
-Backspace
-Type "user-integration-remember-mode"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-remember-mode"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Escape
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your authentication method/
+Wait+Screen /7\. Authentication code/
 Show
 
 Hide
 Type "7"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+CLIPrompt /Enter your one time credential/ /\[ Resend SMS \(1 sent\) \]/
 Show
 
 Hide
-Type "temporary pass0"
+TypeInPrompt "temporary pass0"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show
 
+ClearTerminal
+
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name\n/
 Show
 
 Hide
-Escape
-Backspace
-Type "user-integration-remember-mode"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-remember-mode"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+CLIPrompt /Enter your one time credential/ /\[ Resend SMS \(1 sent\) \]/
 Show
 
 Hide
-Type "temporary pass0"
+TypeInPrompt "temporary pass0"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

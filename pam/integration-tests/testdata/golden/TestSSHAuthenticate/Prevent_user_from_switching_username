@@ -2,32 +2,44 @@
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > r
 Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > r
 Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> 2
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
@@ -38,12 +50,10 @@ Enter 'r' to cancel the request and go back to select the authentication method
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > r
 Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
@@ -59,20 +69,17 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authenti
-cation method:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authentication method:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > r
 Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
@@ -88,26 +95,17 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authenti
-cation method:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authentication method:
 > r
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
->
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > r
 Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
@@ -123,30 +121,22 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authenti
-cation method:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authentication method:
 > r
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
-> r
-Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > r
 Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
@@ -162,34 +152,22 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authenti
-cation method:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authentication method:
 > r
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > r
-Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
-> r
-Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
->
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > r
 Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
@@ -205,38 +183,25 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authenti
-cation method:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authentication method:
 > r
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > r
 Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
-> r
-Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
-> 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Gimme your password:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > r
 Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
@@ -252,27 +217,173 @@ Enter 'r' to cancel the request and go back to select the authentication method
   7. Pin code
   8. Authentication code
 Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authenti
-cation method:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authentication method:
 > r
 == Provider selection ==
   1. local
   2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > r
 Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > r
 Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
 > 2
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-prevent-user-from-switching-username@localhost) Gimme your password:
 >
+== Authentication method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-prevent-user-from-switching-username@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authentication method:
+> r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-prevent-user-from-switching-username@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authentication method:
+> r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> 2
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-prevent-user-from-switching-username@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authentication method:
+> r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-prevent-user-from-switching-username@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authentication method:
+> r
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> r
+Unsupported input
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-integration-pre-check-prevent-user-from-switching-username@localhost) Gimme your password:
+>
+PAM Authenticate() finished for user 'user-integration-pre-check-prevent-user-from-switching-username'
 Environment:
   USER=user-integration-pre-check-prevent-user-from-switching-username
   LOGNAME=user-integration-pre-check-prevent-user-from-switching-username
@@ -283,69 +394,7 @@ Environment:
   SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
   SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
   SSH_TTY=${AUTHD_TEST_SSH_TTY}
- SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Prevent_user_from_switching_usern
-ame]
-Connection to localhost closed.
->
-────────────────────────────────────────────────────────────────────────────────
-> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
-> r
-Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
-> 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Gimme your password:
->
-== Authentication method selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-prevent-user-from-switching-username@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33...
-  6. Use your phone +1...
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your authenti
-cation method:
-> r
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
-> r
-Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
-> r
-Unsupported input
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Choose your provider
-:
-> 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-prevent-user-from-switching-username@localhost) Gimme your password:
->
-Environment:
-  USER=user-integration-pre-check-prevent-user-from-switching-username
-  LOGNAME=user-integration-pre-check-prevent-user-from-switching-username
-  HOME=${AUTHD_TEST_HOME}
-  PATH=${AUTHD_TEST_PATH}
-  SHELL=/bin/sh
-  TERM=xterm-256color
-  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
-  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
-  SSH_TTY=${AUTHD_TEST_SSH_TTY}
- SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Prevent_user_from_switching_usern
-ame]
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Prevent_user_from_switching_username]
 Connection to localhost closed.
 >
 ────────────────────────────────────────────────────────────────────────────────

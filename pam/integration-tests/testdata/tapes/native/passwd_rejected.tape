@@ -1,117 +1,111 @@
 Hide
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND} * 2
+Wait /Username:\n/
 Show
 
 Hide
-Type "user-integration-invalid-new-password"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-invalid-new-password"
+Enter
+Wait+Prompt /Choose your provider/
+Show
+
+Hide
+TypeInPrompt "2"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Type "2"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "noble2404"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Confirm Password/
 Show
 
 Hide
 Type "noble2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
-Show
-
-Hide
-Type "authd2404"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Confirm Password/
 Show
+
+Hide
+Type "authd2404"
+Enter
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
+Show
+
+ClearTerminal
 
 # Repeat again, to check that we can use still use another new password
 
 Hide
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND} * 2
+Wait /Username:\n/
 Show
 
 Hide
-Type "user-integration-invalid-new-password"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
+TypeUsername "user-integration-invalid-new-password"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "noble2404"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Confirm Password/
 Show
 
 Hide
 Type "noble2404"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "noble2404.1"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Confirm Password/
 Show
 
 Hide
 Type "noble2404.2"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Confirm Password/
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG}
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

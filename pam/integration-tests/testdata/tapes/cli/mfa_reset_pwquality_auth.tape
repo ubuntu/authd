@@ -1,99 +1,90 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name\n/
 Show
 
 Hide
-Escape
-Backspace
-Type "user-mfa-with-reset"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-mfa-with-reset"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "goodpass"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeCLIPassword "goodpass"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} / 2
+Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
 Show
 
 # Wait for MFA auth to happen
 Hide
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2
+Wait+Screen @${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /Enter your new password \(3 days until mandatory\)\n/
+Wait+CLIPrompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /New password/ /\[ Skip \]/
 Show
 
 Hide
-Type "goodpass"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Enter
-Sleep ${AUTHD_SLEEP_LONG}
-Show
-
-Hide
-Type "password"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeCLIPassword "goodpass"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG}
+Wait+CLIPrompt /New password/ /\[ Skip \]/ /The password is the same as the old one/
 Show
 
 Hide
-Type "goodpass"
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
-Show
-
-Hide
-Enter
-Sleep ${AUTHD_SLEEP_LONG}
-Show
-
-Hide
-Type "1234"
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
+TypeCLIPassword "password"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG}
+Wait+CLIPrompt /New password/ /\[ Skip \]\nThe password fails the dictionary check[^\n]+/
 Show
 
 Hide
-Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
-Show
-
-Hide
-Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
-Show
-
-Hide
-Type "authd2404"
-Sleep ${AUTHD_SLEEP_LONG} / 2
+TypeCLIPassword "goodpass"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+CLIPrompt /New password/ /\[ Skip \]\nThe password is the same as the old one/
 Show
 
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Hide
+TypeCLIPassword "1234"
+Show
+
+Hide
+Enter
+Wait+CLIPrompt /New password/ /\[ Skip \]\nThe password is shorter than \d+ characters/
+Show
+
+Hide
+TypeCLIPassword "authd2404"
+Show
+
+Hide
+Enter
+Wait+CLIPrompt /Confirm password/ /\[ Skip \]/
+Show
+
+Hide
+TypeCLIPassword "authd2404"
+Show
+
+Hide
+Enter
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
+Show

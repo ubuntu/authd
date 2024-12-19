@@ -1,24 +1,26 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
+Show
+
+Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Ctrl+C
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Suffix />[\n]+>/
 Show
 
 Hide
 Type "echo $TERM"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait
 Show
-
-Sleep ${AUTHD_SLEEP_DEFAULT}

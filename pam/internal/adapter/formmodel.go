@@ -1,10 +1,15 @@
 package adapter
 
 import (
+	"context"
+	"slices"
+	"strings"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
+	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/proto/authd"
 )
 
@@ -27,6 +32,7 @@ func newFormModel(label, entryType, buttonLabel string, wait bool) formModel {
 	case entries.Chars, entries.CharsPassword:
 		entry := newTextInputModel(entryType)
 		focusableModels = append(focusableModels, &entry)
+		label = strings.TrimSuffix(label, ":") + ":"
 	}
 	if buttonLabel != "" {
 		button := newAuthReselectionButtonModel(buttonLabel)
@@ -137,6 +143,7 @@ func (m formModel) View() string {
 
 // Focus focuses this model.
 func (m formModel) Focus() tea.Cmd {
+	log.Debugf(context.TODO(), "%T: Focus", m)
 	if m.focusIndex >= len(m.focusableModels) {
 		return nil
 	}
@@ -145,8 +152,21 @@ func (m formModel) Focus() tea.Cmd {
 
 // Blur releases the focus from this model.
 func (m formModel) Blur() {
+	log.Debugf(context.TODO(), "%T: Blur", m)
 	if m.focusIndex >= len(m.focusableModels) {
 		return
 	}
 	m.focusableModels[m.focusIndex].Blur()
+}
+
+// Focused returns whether this model is focused.
+func (m formModel) Focused() bool {
+	if len(m.focusableModels) == 0 {
+		// We consider the model being focused in this case, since there's nothing
+		// to interact with, but we want to be able to draw.
+		return true
+	}
+	return slices.ContainsFunc(m.focusableModels, func(ac authenticationComponent) bool {
+		return ac.Focused()
+	})
 }

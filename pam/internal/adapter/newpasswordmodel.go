@@ -1,11 +1,15 @@
 package adapter
 
 import (
+	"context"
+	"slices"
+
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
+	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/proto/authd"
 )
 
@@ -176,6 +180,7 @@ func (m newPasswordModel) View() string {
 
 // Focus focuses this model.
 func (m newPasswordModel) Focus() tea.Cmd {
+	log.Debugf(context.TODO(), "%T: Focus", m)
 	if m.focusIndex >= len(m.focusableModels) {
 		return nil
 	}
@@ -184,10 +189,18 @@ func (m newPasswordModel) Focus() tea.Cmd {
 
 // Blur releases the focus from this model.
 func (m newPasswordModel) Blur() {
+	log.Debugf(context.TODO(), "%T: Blur", m)
 	if m.focusIndex >= len(m.focusableModels) {
 		return
 	}
 	m.focusableModels[m.focusIndex].Blur()
+}
+
+// Focused returns whether this model is focused.
+func (m newPasswordModel) Focused() bool {
+	return slices.ContainsFunc(m.focusableModels, func(ac authenticationComponent) bool {
+		return ac.Focused()
+	})
 }
 
 func (m *newPasswordModel) focusField(increment int) tea.Cmd {

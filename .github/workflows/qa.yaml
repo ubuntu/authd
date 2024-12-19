@@ -130,6 +130,19 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
+          # Disable installing of locales and manpages
+          cat <<"EOF" | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
+          # Delete locales
+          path-exclude=/usr/share/locale/*
+
+          # Delete man pages
+          path-exclude=/usr/share/man/*
+
+          # Delete docs
+          path-exclude=/usr/share/doc/*
+          path-include=/usr/share/doc/*/copyright
+          EOF
+
           sudo apt update
 
           # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
@@ -163,10 +176,13 @@ jobs:
       - name: Install VHS and ttyd for integration tests
         run: |
           set -eu
-          go install github.com/charmbracelet/vhs@latest
+          # We pin this to the last commit in the upstream branch that contains
+          # the Wait feature (https://github.com/charmbracelet/vhs/pull/257), but
+          # we can safely go back to latest once a new version will be released.
+          go install github.com/charmbracelet/vhs@28be2de
 
           # VHS requires ttyd >= 1.7.2 to work properly.
-          wget https://github.com/tsl0922/ttyd/releases/download/1.7.4/ttyd.x86_64
+          wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64
           chmod +x ttyd.x86_64
           sudo mv ttyd.x86_64 /usr/bin/ttyd
 

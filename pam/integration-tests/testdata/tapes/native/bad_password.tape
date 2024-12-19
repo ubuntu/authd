@@ -1,65 +1,72 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
+Show
+
+Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Enter
+Wait+Nth(1)  /No password supplied/
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "1234"
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Enter
+Wait+Nth(1) /The password is shorter than \d+ characters/
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "12345678"
-Sleep ${AUTHD_SLEEP_DEFAULT} * 3
 Enter
+Wait+Nth(1) /The password fails the dictionary check/
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Enter
+Wait+Prompt /Confirm Password/
 Show
 
 Hide
 Type "123456789"
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
 Enter
+Wait+Nth(1) /Password entries don't match/
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
-Show
-
-Hide
-Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT} * 2
-Enter
+Wait+Nth(2)  /No password supplied/
+Wait+Prompt /Enter your new password/
 Show
 
 Hide
 Type "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Confirm Password/
 Show
 
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Hide
+Type "authd2404"
+Enter
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
+Show

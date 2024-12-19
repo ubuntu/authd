@@ -1,25 +1,30 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
+Show
+
+Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "goodpass"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "2"
-Enter
-Sleep ${AUTHD_SLEEP_LONG} * 1.5
+TypeInPrompt "2"
 Show
 
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Hide
+Enter
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
+Show

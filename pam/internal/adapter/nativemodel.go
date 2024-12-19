@@ -604,7 +604,7 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 
 	var prompt string
 	if m.uiLayout.Label != nil {
-		prompt, _ = strings.CutSuffix(*m.uiLayout.Label, ":")
+		prompt = strings.TrimSuffix(*m.uiLayout.Label, ":")
 	}
 	if prompt == "" {
 		return sendEvent(pamError{

@@ -11,65 +11,52 @@ Username: user-integration-max-attempts
   2. ExampleBroker
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password
+Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password
+Gimme your password:
 > *********
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password
+Gimme your password:
 >
 invalid password 'wrongpass', should be 'goodpass'
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password
-> *********
-invalid password 'wrongpass', should be 'goodpass'
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password
->
-invalid password 'wrongpass', should be 'goodpass'
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password
+Gimme your password:
 > *********
 invalid password 'wrongpass', should be 'goodpass'
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password
+Gimme your password:
 >
 invalid password 'wrongpass', should be 'goodpass'
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password
+Gimme your password:
 > *********
 invalid password 'wrongpass', should be 'goodpass'
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password
+Gimme your password:
 >
 invalid password 'wrongpass', should be 'goodpass'
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password
+Gimme your password:
 > *********
 invalid password 'wrongpass', should be 'goodpass'
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
-PAM Authenticate()
-  User: "user-integration-max-attempts"
-  Result: error: PAM exit code: 7
-    Authentication failure
-PAM Info Message: acct=incomplete
-PAM AcctMgmt()
-  User: "user-integration-max-attempts"
-  Result: error: PAM exit code: 25
-    The return value should be ignored by PAM dispatch
+Gimme your password:
 >
+invalid password 'wrongpass', should be 'goodpass'
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+Gimme your password:
+> *********
+invalid password 'wrongpass', should be 'goodpass'
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 PAM Error Message: invalid password 'wrongpass', should be 'goodpass'

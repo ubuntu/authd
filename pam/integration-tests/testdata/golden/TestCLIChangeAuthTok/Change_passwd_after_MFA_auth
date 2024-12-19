@@ -11,7 +11,7 @@ Username: user-mfa
   2. ExampleBroker
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-Gimme your password
+Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
@@ -26,11 +26,11 @@ Gimme your password
   7. Authentication code
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-Gimme your password
+Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-Gimme your password
+Gimme your password:
 > ********
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
@@ -47,7 +47,7 @@ Plug your fido device and press with your thumb
 Plug your fido device and press with your thumb
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-Unlock your phone +33... or accept request on web interface:
+Unlock your phone +33... or accept request on web interface
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
   Select your authentication method
@@ -56,7 +56,7 @@ Unlock your phone +33... or accept request on web interface:
   2. Authentication code
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-Unlock your phone +33... or accept request on web interface:
+Unlock your phone +33... or accept request on web interface
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 Enter your new password
@@ -77,15 +77,6 @@ New password:
 > *********
 Confirm password:
 > *********
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-PAM ChangeAuthTok()
-  User: "user-mfa"
-  Result: success
-PAM AcctMgmt()
-  User: "user-mfa"
-  Result: success
->
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 PAM ChangeAuthTok()

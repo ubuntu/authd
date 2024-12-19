@@ -1,125 +1,115 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name\n/
 Show
 
 Hide
-Escape
-Backspace
-Type "user-integration-invalid-new-password"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-invalid-new-password"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "goodpass"
-Show
-
-Hide
-Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
-Show
-
-Hide
-Type "noble2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeCLIPassword "goodpass"
 Show
 
 Hide
 Enter
-Type "noble2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /New password/
+Show
+
+Hide
+TypeCLIPassword "noble2404"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
-Show
-
-Hide
-Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Confirm password/
+TypeCLIPassword "noble2404"
 Show
 
 Hide
 Enter
-Type "authd2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+CLIPrompt /New password/ /new password does not match criteria: must be [^\n]+/
+Show
+
+Hide
+TypeCLIPassword "authd2404"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Confirm password/
+TypeCLIPassword "authd2404"
 Show
 
-Sleep ${AUTHD_SLEEP_LONG}
+Hide
+Enter
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
+Show
+
+ClearTerminal
 
 # Repeat again, to check that we can use still use another new password
 
 Hide
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name\n/
 Show
 
 Hide
-Escape
-Backspace
-Type "user-integration-invalid-new-password"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-invalid-new-password"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "authd2404"
+TypeCLIPassword "authd2404"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /New password/
 Show
 
 Hide
-Type "noble2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Enter
-Type "noble2404"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeCLIPassword "noble2404"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
-Show
-
-Hide
-Type "goodpass"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Confirm password/
+TypeCLIPassword "noble2404"
 Show
 
 Hide
 Enter
-Type "goodpass"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+CLIPrompt /New password/ /new password does not match criteria: must be [^\n]+/
+Show
+
+Hide
+TypeCLIPassword "goodpass"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} * 2
+Wait+Prompt /Confirm password/
+TypeCLIPassword "goodpass"
 Show
 
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Hide
+Enter
+${AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT}
+Show

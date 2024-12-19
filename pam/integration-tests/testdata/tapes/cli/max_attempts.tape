@@ -1,69 +1,67 @@
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait /Username: user name\n/
 Show
 
 Hide
-Escape
-Backspace
-Type "user-integration-max-attempts"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeUsername "user-integration-max-attempts"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /Select your provider/
+Wait+Screen /2. ExampleBroker/
 Show
 
 Hide
 Type "2"
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
-Type "wrongpass"
-Show
-
-Hide
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Type "wrongpass"
+TypeCLIPassword "wrongpass"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+/
 Show
 
 Hide
-Type "wrongpass"
-Show
-
-Hide
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
-Show
-
-Hide
-Type "wrongpass"
+TypeCLIPassword "wrongpass"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+/
 Show
 
 Hide
-Type "wrongpass"
+TypeCLIPassword "wrongpass"
 Show
 
 Hide
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+/
 Show
 
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Hide
+TypeCLIPassword "wrongpass"
+Show
+
+Hide
+Enter
+Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+/
+Show
+
+Hide
+TypeCLIPassword "wrongpass"
+Show
+
+Hide
+Enter
+Wait+Screen /invalid password 'wrongpass', should be[^\n]+/
+${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
+Show

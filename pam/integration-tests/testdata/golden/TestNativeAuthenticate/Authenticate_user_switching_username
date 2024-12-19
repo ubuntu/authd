@@ -21,6 +21,15 @@ Username: user-integration-switch-username
 Or enter 'r' to go back to user selection
 Choose your provider:
 > r
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+Username: user-integration-switch-username
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Or enter 'r' to go back to user selection
+Choose your provider:
+> r
 Username:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
@@ -64,10 +73,6 @@ Username: user-integration-username-switched
 Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
 Username: user-integration-switch-username
@@ -87,13 +92,6 @@ Choose your provider:
 == Password authentication ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
->
-PAM Authenticate()
-  User: "user-integration-username-switched"
-  Result: success
-PAM AcctMgmt()
-  User: "user-integration-username-switched"
-  Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true

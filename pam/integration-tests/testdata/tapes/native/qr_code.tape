@@ -1,65 +1,85 @@
 Hide
+Wait
 Type "if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
+Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Sleep ${AUTHD_SLEEP_COMMAND}
+Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
+Show
+
+Hide
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Prompt /Gimme your password/
 Show
 
 Hide
 Type "r"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
 Show
 
 Hide
-Type "${AUTHD_QRCODE_TAPE_ITEM}"
 Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Wait+Screen /${AUTHD_QRCODE_TAPE_ITEM}\. Use a ${AUTHD_QRCODE_TAPE_ITEM_NAME}/
+Wait+Prompt /Choose your authentication method/
 Show
 
 Hide
-Type "2"
-Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+TypeInPrompt "${AUTHD_QRCODE_TAPE_ITEM}"
 Show
 
 Hide
-Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "2"
-Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+TypeInPrompt "2"
 Show
 
 Hide
-Type "2"
 Enter
-Sleep ${AUTHD_SLEEP_LONG} / 2
+Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "1"
-Enter
-Sleep ${AUTHD_SLEEP_DEFAULT}
+TypeInPrompt "2"
 Show
 
 Hide
-Sleep ${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT} * 1.2
+Enter
+Wait+Prompt /Choose action/
 Show
 
-Sleep ${AUTHD_SLEEP_DEFAULT}
+Hide
+TypeInPrompt "2"
+Show
+
+Hide
+Enter
+Wait+Prompt /Choose action/
+Show
+
+Hide
+TypeInPrompt "2"
+Show
+
+Hide
+Enter
+Wait+Prompt /Choose action/
+Show
+
+Hide
+TypeInPrompt "1"
+Show
+
+Hide
+Enter
+Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_QRCODE_WAIT} * 1.2
+Show

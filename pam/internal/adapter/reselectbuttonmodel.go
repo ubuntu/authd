@@ -2,7 +2,6 @@ package adapter
 
 import (
 	"context"
-	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/ubuntu/authd/internal/log"
@@ -15,8 +14,7 @@ type authReselectButtonModel struct {
 func newAuthReselectionButtonModel(label string) *authReselectButtonModel {
 	return &authReselectButtonModel{
 		buttonModel: &buttonModel{
-			selectionTime: time.Now(),
-			label:         label,
+			label: label,
 		},
 	}
 }
@@ -29,10 +27,6 @@ func (b authReselectButtonModel) Init() tea.Cmd {
 // Update handles events and actions.
 func (b *authReselectButtonModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case startAuthentication:
-		b.buttonModel.selectionTime = time.Now()
-		return b, nil
-
 	case buttonSelectionEvent:
 		log.Debugf(context.TODO(), "%#v: %#v", b, msg)
 		if msg.model == b.buttonModel {
