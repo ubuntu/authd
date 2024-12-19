@@ -6,11 +6,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/cache"
 	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"go.etcd.io/bbolt"
 )
@@ -97,23 +98,31 @@ func TestStop(t *testing.T) {
 	require.ErrorIs(t, err, bbolt.ErrDatabaseNotOpen, "AllUsers should return an error, but did not")
 }
 
+type userCase struct {
+	users.UserInfo
+	UID uint32
+}
+
 func TestUpdateUser(t *testing.T) {
-	userCases := map[string]users.UserInfo{
+	userCases := map[string]userCase{
 		"user1": {
-			Name: "user1",
-			UID:  1111,
+			UserInfo: users.UserInfo{Name: "user1"},
+			UID:      1111,
+		},
+		"nameless": {
+			UID: 1111,
 		},
 		"user2": {
-			Name: "user2",
-			UID:  2222,
+			UserInfo: users.UserInfo{Name: "user2"},
+			UID:      2222,
 		},
 		"same-name-different-uid": {
-			Name: "user1",
-			UID:  3333,
+			UserInfo: users.UserInfo{Name: "user1"},
+			UID:      3333,
 		},
 		"different-name-same-uid": {
-			Name: "newuser1",
-			UID:  1111,
+			UserInfo: users.UserInfo{Name: "newuser1"},
+			UID:      1111,
 		},
 	}
 
@@ -174,7 +183,6 @@ func TestUpdateUser(t *testing.T) {
 		"UID does not change if user already exists":     {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
 
 		"Error if user has no username":      {userCase: "nameless", wantErr: true, noOutput: true},
-		"Error if user has conflicting uid":  {userCase: "different-name-same-uid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
 		"Error if group has no name":         {groupsCase: "nameless-group", wantErr: true, noOutput: true},
 		"Error if group has conflicting gid": {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
 
@@ -209,7 +217,18 @@ func TestUpdateUser(t *testing.T) {
 			if tc.dbFile != "" {
 				cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
-			m := newManagerForTests(t, cacheDir)
+
+			gids := []uint32{user.UID}
+			for _, group := range user.Groups {
+				if group.GID != nil {
+					gids = append(gids, *group.GID)
+				}
+			}
+			managerOpts := []users.Option{
+				users.WithUIDsToGenerateInTests([]uint32{user.UID}),
+				users.WithGIDsToGenerateInTests(gids),
+			}
+			m := newManagerForTests(t, cacheDir, managerOpts...)
 
 			var oldUID uint32
 			if tc.wantSameUID {
@@ -218,7 +237,7 @@ func TestUpdateUser(t *testing.T) {
 				oldUID = oldUser.UID
 			}
 
-			err := m.UpdateUser(user)
+			err := m.UpdateUser(user.UserInfo)
 
 			requireErrorAssertions(t, err, nil, tc.wantErr)
 			if tc.wantErr && tc.noOutput {
@@ -624,10 +643,10 @@ func requireErrorAssertions(t *testing.T, gotErr, wantErrType error, wantErr boo
 	require.NoError(t, gotErr, "Error should not be returned")
 }
 
-func newManagerForTests(t *testing.T, cacheDir string) *users.Manager {
+func newManagerForTests(t *testing.T, cacheDir string, opts ...users.Option) *users.Manager {
 	t.Helper()
 
-	m, err := users.NewManager(users.DefaultConfig, cacheDir)
+	m, err := users.NewManager(users.DefaultConfig, cacheDir, opts...)
 	require.NoError(t, err, "NewManager should not return an error, but did")
 
 	return m
@@ -635,4 +654,9 @@ func newManagerForTests(t *testing.T, cacheDir string) *users.Manager {
 
 func ptrUint32(v uint32) *uint32 {
 	return &v
+}
+
+func TestMain(m *testing.M) {
+	log.SetLevel(log.DebugLevel)
+	os.Exit(m.Run())
 }
