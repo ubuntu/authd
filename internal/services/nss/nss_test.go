@@ -14,11 +14,10 @@ import (
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/services/permissions"
-	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
-	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
+	"github.com/ubuntu/authd/internal/users/cache"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -286,7 +285,7 @@ func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (clien
 
 	var opts []permissions.Option
 	if !currentUserNotRoot {
-		opts = append(opts, permissionstestutils.WithCurrentUserAsRoot())
+		opts = append(opts, permissions.Z_ForTests_WithCurrentUserAsRoot())
 	}
 	pm := permissions.New(opts...)
 
@@ -330,7 +329,7 @@ func newUserManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 	if sourceDB == "" {
 		sourceDB = "cache.db.yaml"
 	}
-	cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", sourceDB), cacheDir)
+	cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", sourceDB), cacheDir)
 
 	m, err := users.NewManager(users.DefaultConfig, cacheDir)
 	require.NoError(t, err, "Setup: could not create user manager")

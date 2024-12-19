@@ -14,13 +14,6 @@ func init() {
 	testsdetection.MustBeTesting()
 }
 
-var (
-	// DirtyFlagName is the dirty flag name exported for tests
-	//
-	//go:linkname DirtyFlagName github.com/ubuntu/authd/internal/users.dirtyFlagName
-	DirtyFlagName string
-)
-
 type manager struct {
 	cache *cache.Cache
 }

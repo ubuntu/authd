@@ -8,6 +8,5 @@ func NewTestPeerCredsInfo(uid uint32, pid int32) PeerCredsInfo {
 }
 
 var (
-	CurrentUserUID        = currentUserUID
-	WithCurrentUserAsRoot = withCurrentUserAsRoot
+	CurrentUserUID = currentUserUID
 )

@@ -10,14 +10,15 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testsdetection"
 	"go.etcd.io/bbolt"
 	"gopkg.in/yaml.v3"
 )
 
-//nolint:unused // This is used for tests, with methods that are using go linking. Not part of exported API.
 var redactedTimes = map[string]string{
 	"AAAAATIME": "2004-10-20T11:06:23Z",
 	"BBBBBTIME": "2006-06-01T10:08:04Z",
@@ -28,8 +29,6 @@ var redactedTimes = map[string]string{
 }
 
 // redactTime replace current time by a redacted version.
-//
-//nolint:unused // This is used for tests, with methods that are using go linking. Not part of exported API.
 func redactTime(line string) string {
 	testsdetection.MustBeTesting()
 
@@ -61,11 +60,11 @@ func redactTime(line string) string {
 	return line
 }
 
-// dumpNormalizedYAML gets the content of the database, normalizes it (so that
-// it can be compared with a golden file) and returns it as a YAML string.
+// Z_ForTests_DumpNormalizedYAML gets the content of the database, normalizes it
+// (so that it can be compared with a golden file) and returns it as a YAML string.
 //
-//nolint:unused // This is used for tests, with go linking. Not part of exported API.
-func (c *Cache) dumpNormalizedYAML() (string, error) {
+// nolint:revive,nolintlint // We want to use underscores in the function name here.
+func Z_ForTests_DumpNormalizedYAML(c *Cache) (string, error) {
 	testsdetection.MustBeTesting()
 
 	d := make(map[string]map[string]string)
@@ -96,10 +95,10 @@ func (c *Cache) dumpNormalizedYAML() (string, error) {
 	return string(content), nil
 }
 
-// dbfromYAML loads a yaml formatted of the buckets from a reader and dump it into destDir, with its dbname.
+// Z_ForTests_FromYAML loads the content of the database from YAML.
 //
-//nolint:unused // This is used for tests, with go linking. Not part of exported API.
-func dbfromYAML(r io.Reader, destDir string) error {
+// nolint:revive,nolintlint // We want to use underscores in the function name here.
+func Z_ForTests_FromYAML(r io.Reader, destDir string) error {
 	testsdetection.MustBeTesting()
 
 	dbPath := filepath.Join(destDir, dbName)
@@ -150,4 +149,27 @@ func dbfromYAML(r io.Reader, destDir string) error {
 		}
 		return nil
 	})
+}
+
+// Z_ForTests_CreateDBFromYAML creates the database inside destDir and loads the src file content into it.
+//
+// nolint:revive,nolintlint // We want to use underscores in the function name here.
+func Z_ForTests_CreateDBFromYAML(t *testing.T, src, destDir string) {
+	t.Helper()
+	testsdetection.MustBeTesting()
+
+	f, err := os.Open(src)
+	require.NoError(t, err, "Setup: should be able to read source file")
+	defer f.Close()
+
+	err = Z_ForTests_FromYAML(f, destDir)
+	require.NoError(t, err, "Setup: should be able to write database file")
+}
+
+// Z_ForTests_DBName returns the name of the database.
+//
+// nolint:revive,nolintlint // We want to use underscores in the function name here.
+func Z_ForTests_DBName() string {
+	testsdetection.MustBeTesting()
+	return dbName
 }

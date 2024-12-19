@@ -19,7 +19,7 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/proto/authd"
-	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
+	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
@@ -341,7 +341,7 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 		}
 	}
 
-	got = permissionstestutils.IdempotentPermissionError(got)
+	got = permissions.Z_ForTests_IdempotentPermissionError(got)
 
 	// Remove consecutive equal frames from vhs tapes.
 	framesSeparator := strings.Repeat(string(vhsFrameSeparator), vhsFrameSeparatorLength)

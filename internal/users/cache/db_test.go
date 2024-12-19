@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/cache"
-	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
 )
 
 func TestNew(t *testing.T) {
@@ -41,13 +40,13 @@ func TestNew(t *testing.T) {
 			t.Parallel()
 
 			cacheDir := t.TempDir()
-			dbDestPath := filepath.Join(cacheDir, cachetestutils.DbName)
+			dbDestPath := filepath.Join(cacheDir, cache.Z_ForTests_DBName())
 
 			if tc.dbFile == "-" {
 				err := os.RemoveAll(cacheDir)
 				require.NoError(t, err, "Setup: could not remove temporary cache directory")
 			} else if tc.dbFile != "" {
-				cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
+				cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
 			}
 			if tc.corruptedDbFile {
 				err := os.WriteFile(dbDestPath, []byte("corrupted"), 0600)
@@ -75,7 +74,7 @@ func TestNew(t *testing.T) {
 			require.NoError(t, err)
 			defer c.Close()
 
-			got, err := cachetestutils.DumpNormalizedYAML(c)
+			got, err := cache.Z_ForTests_DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := golden.LoadWithUpdate(t, got)
@@ -228,7 +227,7 @@ func TestUpdateUserEntry(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			got, err := cachetestutils.DumpNormalizedYAML(c)
+			got, err := cache.Z_ForTests_DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := golden.LoadWithUpdate(t, got)
@@ -482,7 +481,7 @@ func TestDeleteUser(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			got, err := cachetestutils.DumpNormalizedYAML(c)
+			got, err := cache.Z_ForTests_DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 			want := golden.LoadWithUpdate(t, got)
 			require.Equal(t, want, got, "Did not get expected database content")
@@ -496,7 +495,7 @@ func initCache(t *testing.T, dbFile string) (c *cache.Cache) {
 
 	cacheDir := t.TempDir()
 	if dbFile != "" {
-		cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", dbFile+".db.yaml"), cacheDir)
+		cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", dbFile+".db.yaml"), cacheDir)
 	}
 
 	c, err := cache.New(cacheDir)

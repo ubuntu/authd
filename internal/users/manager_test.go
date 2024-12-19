@@ -9,7 +9,6 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/cache"
-	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"go.etcd.io/bbolt"
@@ -48,10 +47,10 @@ func TestNewManager(t *testing.T) {
 				err := os.RemoveAll(cacheDir)
 				require.NoError(t, err, "Setup: could not remove temporary cache directory")
 			} else if tc.dbFile != "" {
-				cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+				cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
 			if tc.corruptedDbFile {
-				err := os.WriteFile(filepath.Join(cacheDir, cachetestutils.DbName), []byte("Corrupted db"), 0600)
+				err := os.WriteFile(filepath.Join(cacheDir, cache.Z_ForTests_DBName()), []byte("Corrupted db"), 0600)
 				require.NoError(t, err, "Setup: Can't update the file with invalid db content")
 			}
 
@@ -76,7 +75,7 @@ func TestNewManager(t *testing.T) {
 			}
 			require.NoError(t, err, "NewManager should not return an error, but did")
 
-			got, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			got, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := golden.LoadWithUpdate(t, got)
@@ -207,7 +206,7 @@ func TestUpdateUser(t *testing.T) {
 
 			cacheDir := t.TempDir()
 			if tc.dbFile != "" {
-				cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+				cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
 			m := newManagerForTests(t, cacheDir)
 
@@ -231,7 +230,7 @@ func TestUpdateUser(t *testing.T) {
 				require.Equal(t, oldUID, newUser.UID, "UID should not have changed")
 			}
 
-			got, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			got, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := golden.LoadWithUpdateYAML(t, got)
@@ -263,7 +262,7 @@ func TestBrokerForUser(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			brokerID, err := m.BrokerForUser(tc.username)
@@ -305,7 +304,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 			}
 
 			cacheDir := t.TempDir()
-			cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			err := m.UpdateBrokerForUser(tc.username, "ExampleBrokerID")
@@ -315,7 +314,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 				return
 			}
 
-			got, err := cachetestutils.DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			got, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			want := golden.LoadWithUpdateYAML(t, got)
@@ -344,7 +343,7 @@ func TestUserByName(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.UserByName(tc.username)
@@ -380,7 +379,7 @@ func TestUserByID(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 
 			m := newManagerForTests(t, cacheDir)
 
@@ -414,7 +413,7 @@ func TestAllUsers(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.AllUsers()
@@ -450,7 +449,7 @@ func TestGroupByName(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.GroupByName(tc.groupname)
@@ -486,7 +485,7 @@ func TestGroupByID(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.GroupByID(tc.gid)
@@ -519,7 +518,7 @@ func TestAllGroups(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 
 			m := newManagerForTests(t, cacheDir)
 
@@ -556,7 +555,7 @@ func TestShadowByName(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 
 			m := newManagerForTests(t, cacheDir)
 
@@ -589,7 +588,7 @@ func TestAllShadows(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cachetestutils.CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 
 			m := newManagerForTests(t, cacheDir)
 
