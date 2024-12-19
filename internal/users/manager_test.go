@@ -98,63 +98,30 @@ func TestStop(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	userCases := map[string]users.UserInfo{
-		"user1": {
-			Name: "user1",
-			UID:  1111,
-		},
-		"user2": {
-			Name: "user2",
-			UID:  2222,
-		},
-		"same-name-different-uid": {
-			Name: "user1",
-			UID:  3333,
-		},
-		"different-name-same-uid": {
-			Name: "newuser1",
-			UID:  1111,
-		},
+		"user1":                   {Name: "user1", UID: 1111},
+		"user2":                   {Name: "user2", UID: 2222},
+		"same-name-different-uid": {Name: "user1", UID: 3333},
+		"different-name-same-uid": {Name: "newuser1", UID: 1111},
 	}
 
 	groupsCases := map[string][]users.GroupInfo{
-		"cloud-group": {{
-			Name: "group1",
-			GID:  ptrUint32(11111),
-		}},
-		"local-group": {{
-			Name: "localgroup1",
-			GID:  nil,
-		}},
-		"mixed-groups-cloud-first": {{
-			Name: "group1",
-			GID:  ptrUint32(11111),
-		}, {
-			Name: "localgroup1",
-			GID:  nil,
-		}},
-		"mixed-groups-local-first": {{
-			Name: "localgroup1",
-			GID:  nil,
-		}, {
-			Name: "group1",
-			GID:  ptrUint32(11111),
-		}},
-		"mixed-groups-gpasswd-fail": {{
-			Name: "group1",
-			GID:  ptrUint32(11111),
-		}, {
-			Name: "gpasswdfail",
-			GID:  nil,
-		}},
-		"nameless-group": {{
-			Name: "",
-			GID:  ptrUint32(11111),
-		}},
-		"different-name-same-gid": {{
-			Name: "newgroup1",
-			GID:  ptrUint32(11111),
-		}},
-		"no-groups": {},
+		"cloud-group": {{Name: "group1", GID: ptrUint32(11111), UGID: "1"}},
+		"local-group": {{Name: "localgroup1"}},
+		"mixed-groups-cloud-first": {
+			{Name: "group1", GID: ptrUint32(11111), UGID: "1"},
+			{Name: "localgroup1", GID: nil, UGID: ""},
+		},
+		"mixed-groups-local-first": {
+			{Name: "localgroup1"},
+			{Name: "group1", GID: ptrUint32(11111), UGID: "1"},
+		},
+		"mixed-groups-gpasswd-fail": {
+			{Name: "group1", GID: ptrUint32(11111), UGID: "1"},
+			{Name: "gpasswdfail"},
+		},
+		"nameless-group":          {{Name: "", GID: ptrUint32(11111), UGID: "1"}},
+		"different-name-same-gid": {{Name: "newgroup1", GID: ptrUint32(11111), UGID: "1"}},
+		"no-groups":               {},
 	}
 
 	tests := map[string]struct {

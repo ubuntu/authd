@@ -1,9 +1,12 @@
 GroupByID:
-    "1127066031": '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":1127066031}'
-    "1946747284": '{"Name":"group-success","GID":1946747284}'
+    "1127066031": '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":1127066031,"UGID":"TestIsAuthenticated/Successfully_authenticate_separator_success"}'
+    "1946747284": '{"Name":"group-success","GID":1946747284,"UGID":"ugid-success"}'
 GroupByName:
-    TestIsAuthenticated/Successfully_authenticate_separator_success: '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":1127066031}'
-    group-success: '{"Name":"group-success","GID":1946747284}'
+    TestIsAuthenticated/Successfully_authenticate_separator_success: '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":1127066031,"UGID":"TestIsAuthenticated/Successfully_authenticate_separator_success"}'
+    group-success: '{"Name":"group-success","GID":1946747284,"UGID":"ugid-success"}'
+GroupByUGID:
+    TestIsAuthenticated/Successfully_authenticate_separator_success: '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":1127066031,"UGID":"TestIsAuthenticated/Successfully_authenticate_separator_success"}'
+    ugid-success: '{"Name":"group-success","GID":1946747284,"UGID":"ugid-success"}'
 GroupToUsers:
     "1127066031": '{"GID":1127066031,"UIDs":[1127066031]}'
     "1946747284": '{"GID":1946747284,"UIDs":[1127066031]}'

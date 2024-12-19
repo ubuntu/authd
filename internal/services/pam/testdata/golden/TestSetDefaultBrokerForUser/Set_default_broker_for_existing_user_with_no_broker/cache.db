@@ -12,6 +12,7 @@ GroupByName:
     group3: '{"Name":"group3","GID":33333}'
     group4: '{"Name":"group4","GID":44444}'
     group5: '{"Name":"group5","GID":55555}'
+GroupByUGID: {}
 GroupToUsers:
     "11111": '{"GID":11111,"UIDs":[1111]}'
     "22222": '{"GID":22222,"UIDs":[2222]}'

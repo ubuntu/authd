@@ -1,9 +1,9 @@
 GroupByID:
-    "11111": '{"Name":"group1","GID":11111,"UGID":"12345678"}'
+    "11111": '{"Name":"newgroup1-same-ugid","GID":11111,"UGID":"12345678"}'
 GroupByName:
-    group1: '{"Name":"group1","GID":11111,"UGID":"12345678"}'
+    newgroup1-same-ugid: '{"Name":"newgroup1-same-ugid","GID":11111,"UGID":"12345678"}'
 GroupByUGID:
-    "12345678": '{"Name":"group1","GID":11111,"UGID":"12345678"}'
+    "12345678": '{"Name":"newgroup1-same-ugid","GID":11111,"UGID":"12345678"}'
 GroupToUsers:
     "11111": '{"GID":11111,"UIDs":[1111]}'
 UserByID:
@@ -15,4 +15,4 @@ UserToBroker:
 UserToGroups:
     "1111": '{"UID":1111,"GIDs":[11111]}'
 UserToLocalGroups:
-    "1111": '["localgroup1"]'
+    "1111": "null"

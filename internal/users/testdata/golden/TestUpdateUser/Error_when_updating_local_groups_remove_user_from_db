@@ -1,6 +1,7 @@
 |
     GroupByID: {}
     GroupByName: {}
+    GroupByUGID: {}
     GroupToUsers: {}
     UserByID: {}
     UserByName: {}

@@ -86,23 +86,36 @@ func updateUser(buckets map[string]bucketWithName, userContent userDB) error {
 	return nil
 }
 
-// updateUser updates both group buckets with groupContent.
+// updateUser updates all group buckets with groupContent.
 func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) error {
 	for _, groupContent := range groupContents {
 		existingGroup, err := getFromBucket[groupDB](buckets[groupByIDBucketName], groupContent.GID)
 		if err != nil && !errors.Is(err, NoDataFoundError{}) {
 			return err
 		}
+		groupExists := !errors.Is(err, NoDataFoundError{})
 
 		// If a group with the same GID exists, we need to ensure that it's the same group or fail the update otherwise.
-		if existingGroup.Name != "" && existingGroup.Name != groupContent.Name {
-			log.Errorf(context.TODO(), "GID %d for group %q already in use by group %q", groupContent.GID, groupContent.Name, existingGroup.Name)
+		if groupExists && existingGroup.UGID != groupContent.UGID {
+			log.Errorf(context.TODO(), "GID %d for group with UGID %q already in use by a group with UGID %q", groupContent.GID, groupContent.UGID, existingGroup.UGID)
 			return fmt.Errorf("GID for group %q already in use by a different group", groupContent.Name)
 		}
 
+		// Same GID and UGID but a different Name can happen due to group renaming at provider's end.
+		if groupExists && existingGroup.Name != groupContent.Name {
+			// The record being pointed by the existing group name in the groupByName bucket should be deleted.
+			if err := deleteRenamedGroup(buckets, existingGroup.Name); err != nil {
+				return err
+			}
+		}
+
 		// Update group buckets
-		updateBucket(buckets[groupByIDBucketName], groupContent.GID, groupDB{Name: groupContent.Name, GID: groupContent.GID})
-		updateBucket(buckets[groupByNameBucketName], groupContent.Name, groupDB{Name: groupContent.Name, GID: groupContent.GID})
+		updateBucket(buckets[groupByIDBucketName], groupContent.GID, groupDB{Name: groupContent.Name, GID: groupContent.GID, UGID: groupContent.UGID})
+		updateBucket(buckets[groupByNameBucketName], groupContent.Name, groupDB{Name: groupContent.Name, GID: groupContent.GID, UGID: groupContent.UGID})
+
+		if groupContent.UGID != "" {
+			updateBucket(buckets[groupByUGIDBucketName], groupContent.UGID, groupDB{Name: groupContent.Name, GID: groupContent.GID, UGID: groupContent.UGID})
+		}
 	}
 
 	return nil

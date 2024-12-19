@@ -1,9 +1,12 @@
 GroupByID:
-    "1370830640": '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","GID":1370830640}'
-    "1602050681": '{"Name":"group-success_with_local_groups","GID":1602050681}'
+    "1370830640": '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","GID":1370830640,"UGID":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups"}'
+    "1602050681": '{"Name":"group-success_with_local_groups","GID":1602050681,"UGID":"ugid-success_with_local_groups"}'
 GroupByName:
-    TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups: '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","GID":1370830640}'
-    group-success_with_local_groups: '{"Name":"group-success_with_local_groups","GID":1602050681}'
+    TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups: '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","GID":1370830640,"UGID":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups"}'
+    group-success_with_local_groups: '{"Name":"group-success_with_local_groups","GID":1602050681,"UGID":"ugid-success_with_local_groups"}'
+GroupByUGID:
+    TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups: '{"Name":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups","GID":1370830640,"UGID":"TestIsAuthenticated/Update_local_groups_separator_success_with_local_groups"}'
+    ugid-success_with_local_groups: '{"Name":"group-success_with_local_groups","GID":1602050681,"UGID":"ugid-success_with_local_groups"}'
 GroupToUsers:
     "1370830640": '{"GID":1370830640,"UIDs":[1370830640]}'
     "1602050681": '{"GID":1602050681,"UIDs":[1370830640]}'
