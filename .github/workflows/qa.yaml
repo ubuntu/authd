@@ -169,7 +169,7 @@ jobs:
           go install github.com/charmbracelet/vhs@28be2de
 
           # VHS requires ttyd >= 1.7.2 to work properly.
-          wget https://github.com/tsl0922/ttyd/releases/download/1.7.4/ttyd.x86_64
+          wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64
           chmod +x ttyd.x86_64
           sudo mv ttyd.x86_64 /usr/bin/ttyd
 
