@@ -6,7 +6,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide
@@ -21,7 +21,7 @@ Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide

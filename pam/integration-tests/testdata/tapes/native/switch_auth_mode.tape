@@ -6,7 +6,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide
@@ -25,7 +25,7 @@ Wait+Screen /${AUTHD_SWITCH_AUTH_MODE_TAPE_SEND_URL_TO_EMAIL_ITEM}\. Send URL to
 Show
 
 Hide
-Type "${AUTHD_SWITCH_AUTH_MODE_TAPE_SEND_URL_TO_EMAIL_ITEM}"
+TypeInPrompt "${AUTHD_SWITCH_AUTH_MODE_TAPE_SEND_URL_TO_EMAIL_ITEM}"
 Show
 
 Hide
@@ -34,7 +34,7 @@ Wait+Prompt /enter the code/
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
@@ -44,7 +44,7 @@ Wait+Screen /${AUTHD_SWITCH_AUTH_MODE_TAPE_FIDO_DEVICE_FOO_ITEM}\. Use your fido
 Show
 
 Hide
-Type "${AUTHD_SWITCH_AUTH_MODE_TAPE_FIDO_DEVICE_FOO_ITEM}"
+TypeInPrompt "${AUTHD_SWITCH_AUTH_MODE_TAPE_FIDO_DEVICE_FOO_ITEM}"
 Show
 
 Hide
@@ -53,7 +53,7 @@ Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and 
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
@@ -63,7 +63,7 @@ Wait+Screen /${AUTHD_SWITCH_AUTH_MODE_TAPE_PHONE_33_ITEM}\. Use your phone \+33\
 Show
 
 Hide
-Type "${AUTHD_SWITCH_AUTH_MODE_TAPE_PHONE_33_ITEM}"
+TypeInPrompt "${AUTHD_SWITCH_AUTH_MODE_TAPE_PHONE_33_ITEM}"
 Show
 
 Hide
@@ -72,7 +72,7 @@ Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Unlock your phone \+33\.\.
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
@@ -82,7 +82,7 @@ Wait+Screen /${AUTHD_SWITCH_AUTH_MODE_TAPE_PHONE_1_ITEM}\. Use your phone \+1\.\
 Show
 
 Hide
-Type "${AUTHD_SWITCH_AUTH_MODE_TAPE_PHONE_1_ITEM}"
+TypeInPrompt "${AUTHD_SWITCH_AUTH_MODE_TAPE_PHONE_1_ITEM}"
 Show
 
 Hide
@@ -91,7 +91,7 @@ Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Unlock your phone \+1\.\.\
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
@@ -101,7 +101,7 @@ Wait+Screen /${AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM}\. Pin code/
 Show
 
 Hide
-Type "${AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM}"
+TypeInPrompt "${AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM}"
 Show
 
 Hide
@@ -120,7 +120,7 @@ Wait+Screen /${AUTHD_SWITCH_AUTH_MODE_TAPE_QR_OR_LOGIN_CODE_ITEM}\. Use a ${AUTH
 Show
 
 Hide
-Type "${AUTHD_SWITCH_AUTH_MODE_TAPE_QR_OR_LOGIN_CODE_ITEM}"
+TypeInPrompt "${AUTHD_SWITCH_AUTH_MODE_TAPE_QR_OR_LOGIN_CODE_ITEM}"
 Show
 
 Hide
@@ -129,7 +129,7 @@ Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
@@ -139,7 +139,7 @@ Wait+Screen /${AUTHD_SWITCH_AUTH_MODE_TAPE_AUTHENTICATION_CODE_ITEM}\. Authentic
 Show
 
 Hide
-Type "${AUTHD_SWITCH_AUTH_MODE_TAPE_AUTHENTICATION_CODE_ITEM}"
+TypeInPrompt "${AUTHD_SWITCH_AUTH_MODE_TAPE_AUTHENTICATION_CODE_ITEM}"
 Show
 
 Hide
@@ -148,7 +148,7 @@ Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
@@ -157,7 +157,7 @@ Wait+Prompt /Choose your authentication method/
 Show
 
 Hide
-Type "invalid-selection"
+TypeInPrompt "invalid-selection"
 Show
 
 Hide
@@ -166,7 +166,7 @@ Wait+Prompt /Choose your authentication method/
 Show
 
 Hide
-Type "-1"
+TypeInPrompt "-1"
 Show
 
 Hide
@@ -176,7 +176,7 @@ Wait+Screen /${AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM}\. Pin code/
 Show
 
 Hide
-Type "${AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM}"
+TypeInPrompt "${AUTHD_SWITCH_AUTH_MODE_TAPE_PIN_CODE_ITEM}"
 Show
 
 Hide
@@ -185,7 +185,7 @@ Wait+Prompt /Enter your pin code/
 Show
 
 Hide
-Type "4242"
+TypeInPrompt "4242"
 Show
 
 Hide

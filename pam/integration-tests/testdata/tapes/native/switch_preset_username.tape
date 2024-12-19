@@ -6,7 +6,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
@@ -15,7 +15,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide
@@ -33,7 +33,7 @@ Wait+Prompt /Choose your authentication method/
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
@@ -42,7 +42,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
@@ -51,7 +51,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
@@ -60,7 +60,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide

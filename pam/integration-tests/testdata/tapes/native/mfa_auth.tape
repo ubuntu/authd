@@ -6,7 +6,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide
@@ -25,7 +25,7 @@ Wait+Screen /1\. Password authentication/
 Show
 
 Hide
-Type "1"
+TypeInPrompt "1"
 Enter
 Wait+Prompt /Gimme your password/
 Show
@@ -37,7 +37,7 @@ Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and 
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
@@ -47,13 +47,13 @@ Wait+Screen /1\. Password authentication/
 Show
 
 Hide
-Type "1"
+TypeInPrompt "1"
 Enter
 Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
@@ -63,7 +63,7 @@ Wait+Screen /2. Use your phone \+33\.\.\./
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Enter
 Wait+Prompt /Unlock your phone \+33\.\.\. or accept request on web interface/
 Show

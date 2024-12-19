@@ -29,7 +29,7 @@ Wait+CLIPrompt /Enter your one time credential/ /\[ Resend SMS \(1 sent\) \]/
 Show
 
 Hide
-Type "temporary pass0"
+TypeInPrompt "temporary pass0"
 Enter
 ${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show
@@ -53,7 +53,7 @@ Wait+CLIPrompt /Enter your one time credential/ /\[ Resend SMS \(1 sent\) \]/
 Show
 
 Hide
-Type "temporary pass0"
+TypeInPrompt "temporary pass0"
 Enter
 ${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show

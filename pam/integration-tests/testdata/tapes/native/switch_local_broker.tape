@@ -6,7 +6,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide
@@ -24,7 +24,7 @@ Wait+Prompt /Choose your authentication method/
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
@@ -33,7 +33,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "invalid-ID"
+TypeInPrompt "invalid-ID"
 Show
 
 Hide
@@ -43,7 +43,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "555"
+TypeInPrompt "555"
 Show
 
 Hide
@@ -53,7 +53,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "1"
+TypeInPrompt "1"
 Show
 
 Hide

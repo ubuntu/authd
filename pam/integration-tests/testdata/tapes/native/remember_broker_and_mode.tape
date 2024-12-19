@@ -6,7 +6,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide
@@ -25,7 +25,7 @@ Wait+Screen /8\. Authentication code/
 Show
 
 Hide
-Type "8"
+TypeInPrompt "8"
 Show
 
 Hide
@@ -34,13 +34,13 @@ Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "1"
+TypeInPrompt "1"
 Enter
 Wait+Prompt /Enter your one time credential/
 Show
 
 Hide
-Type "temporary pass0"
+TypeInPrompt "temporary pass0"
 Show
 
 Hide
@@ -61,13 +61,13 @@ Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "1"
+TypeInPrompt "1"
 Enter
 Wait+Prompt /Enter your one time credential/
 Show
 
 Hide
-Type "temporary pass0"
+TypeInPrompt "temporary pass0"
 Show
 
 Hide

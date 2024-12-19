@@ -6,7 +6,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "1"
+TypeInPrompt "1"
 Show
 
 Hide

@@ -16,6 +16,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	permissionstestutils "github.com/ubuntu/authd/internal/services/permissions/testutils"
@@ -140,6 +141,9 @@ var (
 
 	// vhsTypeAndWaitUsername adds support for typing the username, waiting for it being printed.
 	vhsTypeAndWaitUsername = regexp.MustCompile(`(.*)\bTypeUsername[\t ]+` + vhsQuotedTextMatch)
+	// vhsTypeAndWaitVisiblePrompt adds support for typing some text in an "Echo On" prompt,
+	// waiting for it being printed in the terminal.
+	vhsTypeAndWaitVisiblePrompt = regexp.MustCompile(`(.*)\bTypeInPrompt[\t ]+` + vhsQuotedTextMatch)
 	// vhsTypeAndWaitCLIPassword adds support for typing the CLI password, waiting for the expected output.
 	vhsTypeAndWaitCLIPassword = regexp.MustCompile(`(.*)\bTypeCLIPassword[\t ]+` + vhsQuotedTextMatch)
 
@@ -482,16 +486,26 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 			prefix+strings.Join(commands, "\n"+prefix))
 	}
 
-	for _, m := range vhsTypeAndWaitCLIPassword.FindAllStringSubmatch(tapeString, -1) {
-		fullMatch, prefix, password := m[0], m[1], m[2]
+	waitForPromptText := func(matches []string, style pam.Style) {
+		fullMatch, prefix, promptValue := matches[0], matches[1], matches[2]
+		visibleValue := promptValue
+		if style == pam.PromptEchoOff {
+			visibleValue = regexp.QuoteMeta(strings.Repeat("*", len(promptValue)))
+		}
 		commands := []string{
 			`Wait+Screen /\n>[ \t]*\n/`,
-			fmt.Sprintf("Type `%s`", password),
-			fmt.Sprintf(`Wait+Suffix /:\n> %s(\n[^>].+)*/`,
-				regexp.QuoteMeta(strings.Repeat("*", len(password)))),
+			fmt.Sprintf("Type `%s`", promptValue),
+			fmt.Sprintf(`Wait+Suffix /:\n> %s(\n[^>].+)*/`, visibleValue),
 		}
 		tapeString = strings.ReplaceAll(tapeString, fullMatch,
 			prefix+strings.Join(commands, "\n"+prefix))
+	}
+
+	for _, m := range vhsTypeAndWaitCLIPassword.FindAllStringSubmatch(tapeString, -1) {
+		waitForPromptText(m, pam.PromptEchoOff)
+	}
+	for _, m := range vhsTypeAndWaitVisiblePrompt.FindAllStringSubmatch(tapeString, -1) {
+		waitForPromptText(m, pam.PromptEchoOn)
 	}
 
 	waitPattern := `/(^|\n)>/`

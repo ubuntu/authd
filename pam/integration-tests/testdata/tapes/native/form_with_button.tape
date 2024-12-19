@@ -6,7 +6,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide
@@ -25,7 +25,7 @@ Wait+Prompt /Choose your authentication method/
 Show
 
 Hide
-Type "8"
+TypeInPrompt "8"
 Show
 
 Hide
@@ -34,7 +34,7 @@ Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide
@@ -43,7 +43,7 @@ Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "1"
+TypeInPrompt "1"
 Show
 
 Hide
@@ -52,7 +52,7 @@ Wait+Prompt /Enter your one time credential/
 Show
 
 Hide
-Type "temporary pass00"
+TypeInPrompt "temporary pass00"
 Show
 
 Hide

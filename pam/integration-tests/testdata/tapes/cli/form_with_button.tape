@@ -41,7 +41,7 @@ Wait+CLIPrompt /Enter your one time credential/ /\[ Resend SMS \(2 sent\) \]/
 Show
 
 Hide
-Type "temporary pass00"
+TypeInPrompt "temporary pass00"
 Enter
 ${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show

@@ -12,7 +12,7 @@ Wait+Prompt /Choose your provider/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide
@@ -31,7 +31,7 @@ Wait+Prompt /Choose your authentication method/
 Show
 
 Hide
-Type "${AUTHD_QRCODE_TAPE_ITEM}"
+TypeInPrompt "${AUTHD_QRCODE_TAPE_ITEM}"
 Show
 
 Hide
@@ -40,7 +40,7 @@ Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide
@@ -49,7 +49,7 @@ Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide
@@ -58,7 +58,7 @@ Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide
@@ -67,7 +67,7 @@ Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "2"
+TypeInPrompt "2"
 Show
 
 Hide
@@ -76,7 +76,7 @@ Wait+Prompt /Choose action/
 Show
 
 Hide
-Type "1"
+TypeInPrompt "1"
 Show
 
 Hide
