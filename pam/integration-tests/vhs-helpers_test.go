@@ -102,8 +102,8 @@ var (
 		// Keep these in sync with example broker default wait times
 		authdSleepExampleBrokerMfaWait:    4 * time.Second,
 		authdSleepExampleBrokerQrcodeWait: 4 * time.Second,
-		// Keep this bigger or equal of qrcodemodel's reselectionWaitTime
-		authdSleepQrCodeReselection: 400 * time.Millisecond,
+		// Keep this bigger or equal of button's reselectionWaitTime
+		authdSleepQrCodeReselection: 700 * time.Millisecond,
 	}
 
 	vhsSleepRegex = regexp.MustCompile(
