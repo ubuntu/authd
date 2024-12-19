@@ -1,6 +1,6 @@
 #%PAM-1.0
 auth    [success=ok user_unknown=ignore default=bad] pam_succeed_if.so user != root quiet_success
-auth    [success=1 ignore=ignore default=die] pam_authd.so
+auth    [success=1 ignore=ignore default=die authinfo_unavail=ignore] pam_authd.so
 # If authd ignored the request => local broker is selected,
 # then we continue with normal stack
 auth    substack        common-auth
@@ -8,7 +8,7 @@ auth    substack        common-auth
 auth    requisite       pam_nologin.so
 auth    optional        pam_gnome_keyring.so
 
-account [default=ignore success=ok user_unknown=ignore]	pam_authd.so
+account [default=ignore success=ok]	pam_authd.so
 # This is potentially loading pam_authd.again but we've checks in AcctMgmt() to
 # prevent this to happen when the gdm-authd service is used without GDM extensions.
 # Plus the model used by the services is different, so there's no risk for this to happen.

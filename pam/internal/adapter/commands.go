@@ -102,7 +102,7 @@ func (m *UIModel) quit() tea.Cmd {
 	if m.currentSession == nil {
 		return tea.Quit
 	}
-	return tea.Sequence(endSession(m.Client, m.currentSession), tea.Quit)
+	return tea.Sequence(endSession(m.client, m.currentSession), tea.Quit)
 }
 
 // endSession requests the broker to end the session.

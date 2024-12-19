@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/proto/authd"
@@ -35,7 +36,9 @@ func TestNativeAuthenticate(t *testing.T) {
 		clientOptions      clientOptions
 		currentUserNotRoot bool
 		wantLocalGroups    bool
+		stopDaemonAfter    time.Duration
 		skipRunnerCheck    bool
+		socketPath         string
 	}{
 		"Authenticate user successfully": {
 			tape:          "simple_auth",
@@ -43,6 +46,13 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user successfully with user selection": {
 			tape: "simple_auth_with_user_selection",
+		},
+		"Authenticate user successfully with invalid connection timeout": {
+			tape: "simple_auth",
+			clientOptions: clientOptions{
+				PamUser:    "user-integration-simple-auth-invalid-timeout",
+				PamTimeout: "invalid",
+			},
 		},
 		"Authenticate user with mfa": {
 			tape:          "mfa_auth",
@@ -271,6 +281,16 @@ func TestNativeAuthenticate(t *testing.T) {
 			clientOptions:   clientOptions{PamUser: "user-integration-sigint"},
 			skipRunnerCheck: true,
 		},
+		"Exit if authd is stopped": {
+			tape:            "authd_stopped",
+			clientOptions:   clientOptions{PamUser: "user-integration-authd-stopped"},
+			stopDaemonAfter: sleepDuration(defaultSleepValues[authdSleepLong] * 5),
+		},
+
+		"Error if cannot connect to authd": {
+			tape:       "connection_error",
+			socketPath: "/some-path/not-existent-socket",
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -283,14 +303,26 @@ func TestNativeAuthenticate(t *testing.T) {
 
 			socketPath := defaultSocketPath
 			gpasswdOutput := defaultGPasswdOutput
-			if tc.wantLocalGroups || tc.currentUserNotRoot {
+			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.stopDaemonAfter > 0 {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// Similarly for the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				var groupsFile string
+				var cancel func()
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
-				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+				socketPath, cancel = runAuthdWithCancel(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+
+				if tc.stopDaemonAfter > 0 {
+					go func() {
+						<-time.After(tc.stopDaemonAfter)
+						t.Log("Stopping daemon!")
+						cancel()
+					}()
+				}
+			}
+			if tc.socketPath != "" {
+				socketPath = tc.socketPath
 			}
 
 			if tc.tapeCommand == "" {

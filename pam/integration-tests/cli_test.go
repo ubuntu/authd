@@ -31,19 +31,30 @@ func TestCLIAuthenticate(t *testing.T) {
 	defaultSocketPath := runAuthd(t, defaultGPasswdOutput, groupsFile, true)
 
 	tests := map[string]struct {
-		tape         string
-		tapeSettings []tapeSetting
+		tape          string
+		tapeSettings  []tapeSetting
+		tapeVariables map[string]string
 
 		clientOptions      clientOptions
+		socketPath         string
 		currentUserNotRoot bool
 		wantLocalGroups    bool
+		stopDaemonAfter    time.Duration
 	}{
 		"Authenticate user successfully": {
-			tape: "simple_auth",
+			tape:          "simple_auth",
+			tapeVariables: map[string]string{"AUTHD_SIMPLE_AUTH_TAPE_USER": "user1"},
 		},
 		"Authenticate user successfully with preset user": {
 			tape:          "simple_auth_with_preset_user",
 			clientOptions: clientOptions{PamUser: "user-integration-simple-preset"},
+		},
+		"Authenticate user successfully with invalid connection timeout": {
+			tape: "simple_auth",
+			tapeVariables: map[string]string{
+				"AUTHD_SIMPLE_AUTH_TAPE_USER": "user-integration-invalid-timeout",
+			},
+			clientOptions: clientOptions{PamTimeout: "invalid"},
 		},
 		"Authenticate user successfully after trying empty user": {
 			tape: "simple_auth_empty_user",
@@ -154,6 +165,15 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Exit authd if user sigints": {
 			tape: "sigint",
 		},
+		"Exit if authd is stopped": {
+			tape:            "authd_stopped",
+			stopDaemonAfter: sleepDuration(defaultSleepValues[authdSleepLong] * 5),
+		},
+
+		"Error if cannot connect to authd": {
+			tape:       "connection_error",
+			socketPath: "/some-path/not-existent-socket",
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -166,18 +186,31 @@ func TestCLIAuthenticate(t *testing.T) {
 
 			socketPath := defaultSocketPath
 			gpasswdOutput := defaultGPasswdOutput
-			if tc.wantLocalGroups || tc.currentUserNotRoot {
+			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.stopDaemonAfter > 0 {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// Similarly for the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				var groupsFile string
+				var cancel func()
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
-				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+				socketPath, cancel = runAuthdWithCancel(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+
+				if tc.stopDaemonAfter > 0 {
+					go func() {
+						<-time.After(tc.stopDaemonAfter)
+						t.Log("Stopping daemon!")
+						cancel()
+					}()
+				}
+			}
+			if tc.socketPath != "" {
+				socketPath = tc.socketPath
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Command = tapeCommand
+			td.Variables = tc.tapeVariables
 			td.Env[socketPathEnv] = socketPath
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
@@ -313,7 +346,7 @@ func TestPamCLIRunStandalone(t *testing.T) {
 	outStr := string(out)
 	t.Log(outStr)
 
-	require.Contains(t, outStr, pam.ErrSystem.Error())
+	require.Contains(t, outStr, pam.ErrAuthinfoUnavail.Error())
 	require.Contains(t, outStr, pam.ErrIgnore.Error())
 }
 

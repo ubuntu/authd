@@ -107,9 +107,13 @@ var (
 		authdSleepQrCodeReselection: 700 * time.Millisecond,
 	}
 
+	defaultConnectionTimeout = sleepDuration(3*time.Second) / time.Millisecond
+
 	vhsSleepRegex = regexp.MustCompile(
 		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?(.*)$`)
 	vhsEmptyTrailingLinesRegex = regexp.MustCompile(`(?m)\s+\z`)
+	vhsUnixTargetRegex         = regexp.MustCompile(fmt.Sprintf(`unix://%s/(\S*)\b`,
+		regexp.QuoteMeta(os.TempDir())))
 
 	// vhsWaitRegex catches Wait(@timeout)? /Pattern/ commands to re-implement default vhs
 	// Wait /Pattern/ command with full context on errors.
@@ -184,6 +188,7 @@ type clientOptions struct {
 	PamUser        string
 	PamEnv         []string
 	PamServiceName string
+	PamTimeout     string
 	Term           string
 	SessionType    string
 }
@@ -203,6 +208,12 @@ func (td *tapeData) AddClientOptions(t *testing.T, opts clientOptions) {
 	}
 	if opts.PamServiceName != "" {
 		td.Env[pam_test.RunnerEnvService] = opts.PamServiceName
+	}
+	if opts.PamTimeout != "" {
+		td.Env[pam_test.RunnerEnvConnectionTimeout] = opts.PamTimeout
+	}
+	if _, ok := td.Env[pam_test.RunnerEnvConnectionTimeout]; !ok {
+		td.Env[pam_test.RunnerEnvConnectionTimeout] = fmt.Sprintf("%d", defaultConnectionTimeout)
 	}
 	if opts.Term != "" {
 		td.Env["AUTHD_PAM_CLI_TERM"] = opts.Term
@@ -340,6 +351,9 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 		frames[i] = vhsEmptyTrailingLinesRegex.ReplaceAllString(f, "\n")
 	}
 	got = strings.Join(frames, framesSeparator)
+
+	// Drop all the socket references.
+	got = vhsUnixTargetRegex.ReplaceAllLiteralString(got, "unix:///authd/test_socket.sock")
 
 	// Save the sanitized result on cleanup
 	t.Cleanup(func() {

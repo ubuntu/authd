@@ -6,7 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-TypeUsername "user1"
+TypeUsername "${AUTHD_SIMPLE_AUTH_TAPE_USER}"
 Show
 
 Hide

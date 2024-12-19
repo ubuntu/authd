@@ -27,6 +27,11 @@ import (
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
+var (
+	sshEnvVariablesRegex *regexp.Regexp
+	sshHostPortRegex     *regexp.Regexp
+)
+
 func TestSSHAuthenticate(t *testing.T) {
 	t.Parallel()
 
@@ -88,6 +93,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			"authd-test-user-sshd-accept-all", sshdPreloadLibrary, true, false)
 	}
 
+	sshEnvVariablesRegex = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`)
+	sshHostPortRegex = regexp.MustCompile(`([\d\.:]+) port ([\d:]+)`)
+
 	tests := map[string]struct {
 		tape          string
 		tapeSettings  []tapeSetting
@@ -95,6 +103,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 
 		user             string
 		pamServiceName   string
+		socketPath       string
 		daemonizeSSHd    bool
 		interactiveShell bool
 
@@ -191,7 +200,8 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tape:                "max_attempts",
 			wantNotLoggedInUser: true,
 			tapeVariables: map[string]string{
-				vhsCommandFinalAuthWaitVariable: `Wait+Prompt /Choose your provider/`,
+				vhsCommandFinalAuthWaitVariable: `Wait+Screen /Too many authentication failures/
+Wait`,
 			},
 		},
 		"Deny authentication if user does not exist": {
@@ -233,6 +243,12 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tape:                "sigint",
 			wantNotLoggedInUser: true,
 		},
+
+		"Error if cannot connect to authd": {
+			tape:                "connection_error",
+			socketPath:          "/some-path/not-existent-socket",
+			wantNotLoggedInUser: true,
+		},
 	}
 	for name, tc := range tests {
 		if sharedSSHd {
@@ -251,6 +267,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, true)
 			}
+			if tc.socketPath != "" {
+				socketPath = tc.socketPath
+			}
 
 			user := tc.user
 			if user == "" {
@@ -260,7 +279,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 
 			sshdPort := defaultSSHDPort
 			userHome := defaultUserHome
-			if !sharedSSHd || tc.wantLocalGroups || tc.interactiveShell {
+			if !sharedSSHd || tc.wantLocalGroups || tc.interactiveShell || tc.socketPath != "" {
 				serviceFile := createSshdServiceFile(t, execModule, execChild, socketPath)
 				sshdPort, userHome = startSSHdForTest(t, serviceFile, sshdHostKey, user,
 					sshdPreloadLibrary, tc.daemonizeSSHd, tc.interactiveShell)
@@ -311,9 +330,9 @@ func sanitizeGoldenFile(t *testing.T, td tapeData, outDir string) string {
 	golden := td.ExpectedOutput(t, outDir)
 
 	// When sshd is in debug mode, it shows the environment variables, so let's sanitize them
-	golden = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`).ReplaceAllString(
-		golden, "  $1=$${AUTHD_TEST_$1}")
-	return golden
+	golden = sshEnvVariablesRegex.ReplaceAllString(golden, "  $1=$${AUTHD_TEST_$1}")
+
+	return sshHostPortRegex.ReplaceAllLiteralString(golden, "${SSH_HOST} port ${SSH_PORT}")
 }
 
 func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) string {
@@ -322,6 +341,7 @@ func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) s
 	moduleArgs := []string{
 		execChild,
 		"socket=" + socketPath,
+		fmt.Sprintf("connection_timeout=%d", defaultConnectionTimeout),
 		"debug=true",
 		"logfile=" + os.Stderr.Name(),
 		"--exec-debug",
@@ -429,6 +449,7 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 		"-o", "ClientAliveInterval=300",
 		"-o", "ClientAliveCountMax=3",
 		"-o", "ForceCommand="+forcedCommand,
+		"-o", "MaxAuthTries=1",
 	)
 	sshd.Args = append(sshd.Args, runModeArgs...)
 	sshd.Env = append(sshd.Env, env...)

@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
@@ -36,17 +37,25 @@ var (
 func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool) string {
 	t.Helper()
 
+	socketPath, _ := runAuthdWithCancel(t, gpasswdOutput, groupsFile, currentUserAsRoot)
+	return socketPath
+}
+
+func runAuthdWithCancel(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) (string, func()) {
+	t.Helper()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile)
 	if currentUserAsRoot {
 		env = append(env, authdCurrentUserRootEnvVariableContent)
 	}
-	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, testutils.WithEnvironment(env...))
+	args = append(args, testutils.WithEnvironment(env...))
+	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, args...)
 	t.Cleanup(func() {
 		cancel()
 		<-stopped
 	})
-	return socketPath
+	return socketPath, cancel
 }
 
 func preparePamRunnerTest(t *testing.T, clientPath string) []string {
@@ -148,6 +157,8 @@ func requirePreviousBrokerForUser(t *testing.T, socketPath string, brokerName st
 	require.NoError(t, err, "Can't connect to authd socket")
 
 	t.Cleanup(func() { conn.Close() })
+	require.NoError(t, grpcutils.WaitForConnection(context.TODO(), conn,
+		sleepDuration(30*time.Second)))
 	pamClient := authd.NewPAMClient(conn)
 	brokers, err := pamClient.AvailableBrokers(context.TODO(), nil)
 	require.NoError(t, err, "Can't get available brokers")

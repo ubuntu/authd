@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,6 +18,7 @@ import (
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/consts"
+	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
@@ -46,6 +48,9 @@ const (
 	// gdmServiceName is the name of the service that is loaded by GDM.
 	// Keep this in sync with the service file installed by the package.
 	gdmServiceName = "gdm-authd"
+
+	// defaultConnectionTimeout is the default connection timeout.
+	defaultConnectionTimeout = 2 * time.Second
 )
 
 var supportedArgs = []string{
@@ -53,6 +58,7 @@ var supportedArgs = []string{
 	"logfile",             // The path of the file that will be used for logging.
 	"disable_journal",     // Disable logging on systemd journal (this is implicit when `logfile` is set).
 	"socket",              // The authd socket to connect to.
+	"connection_timeout",  // The timeout on connecting to authd socket in milliseconds (defaults to 2 seconds).
 	"force_native_client", // Use native PAM client instead of custom UIs.
 	"force_reauth",        // Whether the authentication should be performed again even if it has been already completed.
 }
@@ -309,23 +315,18 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 
 	conn, closeConn, err := newClientConnection(parsedArgs)
 	if err != nil {
-		log.Debug(context.TODO(), err)
 		if err := showPamMessage(mTx, pam.ErrorMsg, err.Error()); err != nil {
 			log.Warningf(context.TODO(), "Impossible to show PAM message: %v", err)
 		}
-		return errors.Join(err, pam.ErrAuthinfoUnavail)
+		return fmt.Errorf("%w: %w", pam.ErrAuthinfoUnavail, err)
 	}
 	defer closeConn()
 
 	appState := adapter.UIModel{
 		PamMTx:      mTx,
-		Client:      authd.NewPAMClient(conn),
+		Conn:        conn,
 		ClientType:  pamClientType,
 		SessionMode: mode,
-	}
-
-	if pamClientType == adapter.Native && adapter.IsSSHSession(mTx) {
-		appState.NssClient = authd.NewNSSClient(conn)
 	}
 
 	if err := mTx.SetData(authenticationBrokerIDKey, nil); err != nil {
@@ -448,7 +449,27 @@ func newClientConnection(args map[string]string) (conn *grpc.ClientConn, closeCo
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not connect to authd: %v", err)
 	}
-	return conn, func() { conn.Close() }, err
+
+	cleanup := func() { conn.Close() }
+
+	timeout := defaultConnectionTimeout
+	if ct, ok := args["connection_timeout"]; ok {
+		t, err := strconv.Atoi(ct)
+		if err != nil {
+			log.Warningf(context.Background(), "Impossible to parse connection timeout %q, using default!", ct)
+		}
+		if t > 0 {
+			timeout = time.Duration(t) * time.Millisecond
+		}
+	}
+
+	// Block until the daemon is started and ready to accept connections.
+	if err := grpcutils.WaitForConnection(context.Background(), conn, timeout); err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+
+	return conn, cleanup, err
 }
 
 // newClient returns a new GRPC client ready to emit requests.
