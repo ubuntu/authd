@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	isSSHSession     bool
-	isSSHSessionOnce sync.Once
+	isSSHSessionValue bool
+	isSSHSessionOnce  sync.Once
 )
 
 // convertTo converts an interface I value to T. It will panic (progamming error) if this is not the case.
@@ -59,10 +59,10 @@ func isSSHSessionFunc(mTx pam.ModuleTransaction) bool {
 	return false
 }
 
-// IsSSHSession checks if the module transaction is currently handling a SSH session.
-func IsSSHSession(mTx pam.ModuleTransaction) bool {
-	isSSHSessionOnce.Do(func() { isSSHSession = isSSHSessionFunc(mTx) })
-	return isSSHSession
+// isSSHSession checks if the module transaction is currently handling a SSH session.
+func isSSHSession(mTx pam.ModuleTransaction) bool {
+	isSSHSessionOnce.Do(func() { isSSHSessionValue = isSSHSessionFunc(mTx) })
+	return isSSHSessionValue
 }
 
 func maybeSendPamError(err error) tea.Cmd {

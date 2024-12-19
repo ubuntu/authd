@@ -168,11 +168,8 @@ Enter 'r' to cancel the request and go back to select the authentication method
 ssword:
 >
 invalid password 'wrongpass', should be 'goodpass'
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) Choose your p
-rovider:
+Received disconnect from ${SSH_HOST} port ${SSH_PORT} Too many authentication failures
+Disconnected from ${SSH_HOST} port ${SSH_PORT}
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
@@ -212,10 +209,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 ssword:
 >
 invalid password 'wrongpass', should be 'goodpass'
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-(user-integration-pre-check-deny-authentication-if-max-attempts-reached@localhost) Choose your p
-rovider:
+Received disconnect from ${SSH_HOST} port ${SSH_PORT} Too many authentication failures
+Disconnected from ${SSH_HOST} port ${SSH_PORT}
 >
 ────────────────────────────────────────────────────────────────────────────────

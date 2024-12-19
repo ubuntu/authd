@@ -36,6 +36,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		currentUserNotRoot bool
 		wantLocalGroups    bool
 		skipRunnerCheck    bool
+		socketPath         string
 	}{
 		"Authenticate user successfully": {
 			tape:          "simple_auth",
@@ -43,6 +44,13 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate user successfully with user selection": {
 			tape: "simple_auth_with_user_selection",
+		},
+		"Authenticate user successfully with invalid connection timeout": {
+			tape: "simple_auth",
+			clientOptions: clientOptions{
+				PamUser:    "user-integration-simple-auth-invalid-timeout",
+				PamTimeout: "invalid",
+			},
 		},
 		"Authenticate user with mfa": {
 			tape:          "mfa_auth",
@@ -242,6 +250,11 @@ func TestNativeAuthenticate(t *testing.T) {
 			clientOptions:   clientOptions{PamUser: "user-integration-sigint"},
 			skipRunnerCheck: true,
 		},
+
+		"Error if cannot connect to authd": {
+			tape:       "connection_error",
+			socketPath: "/some-path/not-existent-socket",
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -262,6 +275,9 @@ func TestNativeAuthenticate(t *testing.T) {
 				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
+			}
+			if tc.socketPath != "" {
+				socketPath = tc.socketPath
 			}
 
 			if tc.tapeCommand == "" {

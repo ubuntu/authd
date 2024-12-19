@@ -134,6 +134,7 @@ func TestGdmModule(t *testing.T) {
 		protoVersion       uint32
 		brokerName         string
 		eventPollResponses map[gdm.EventType][]*gdm.EventData
+		moduleArgs         []string
 
 		wantError            error
 		wantAuthModeIDs      []string
@@ -144,6 +145,16 @@ func TestGdmModule(t *testing.T) {
 		wantAcctMgmtErr      error
 	}{
 		"Authenticates user": {
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "goodpass",
+					}),
+				},
+			},
+		},
+		"Authenticates user with invalid connection timeout": {
+			moduleArgs: []string{"connection_timeout=invalid"},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
@@ -639,6 +650,14 @@ func TestGdmModule(t *testing.T) {
 			wantError:       pam.ErrCredUnavail,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
+		"Error on connection failure": {
+			moduleArgs: []string{fmt.Sprintf("socket=%s_invalid", socketPath)},
+			wantPamErrorMessages: []string{
+				fmt.Sprintf("could not connect to unix://%s_invalid: service took too long to respond. Disconnecting client", socketPath),
+			},
+			wantError:       pam.ErrAuthinfoUnavail,
+			wantAcctMgmtErr: pam_test.ErrIgnore,
+		},
 		"Error on missing user": {
 			pamUser: ptrValue(""),
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
@@ -794,6 +813,7 @@ func TestGdmModule(t *testing.T) {
 
 			gdmLog := prepareFileLogging(t, "authd-pam-gdm.log")
 			moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
+			moduleArgs = append(moduleArgs, tc.moduleArgs...)
 
 			serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
 			saveArtifactsForDebugOnCleanup(t, []string{serviceFile})

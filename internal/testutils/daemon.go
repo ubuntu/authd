@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	cachetestutils "github.com/ubuntu/authd/internal/users/cache/testutils"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
@@ -118,15 +118,9 @@ paths:
 	require.NoError(t, err, "Setup: could not connect to the daemon on %s", opts.socketPath)
 	defer conn.Close()
 
-	waitCtx, cancel := context.WithTimeout(ctx, time.Second*30)
-	defer cancel()
-
 	// Block until the daemon is started and ready to accept connections.
-	conn.Connect()
-	for conn.GetState() != connectivity.Ready {
-		conn.WaitForStateChange(waitCtx, conn.GetState())
-		require.NoError(t, waitCtx.Err(), "Setup: wait for daemon to be ready timed out")
-	}
+	err = grpcutils.WaitForConnection(ctx, conn, time.Second*30)
+	require.NoError(t, err, "Setup: wait for daemon to be ready timed out")
 
 	return opts.socketPath, stopped
 }
