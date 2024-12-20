@@ -2,20 +2,25 @@
   gid: 11111
   users:
     - user1
+  passwd: ""
 - name: group2
   gid: 22222
   users:
     - user2
+  passwd: ""
 - name: group3
   gid: 33333
   users:
     - user3
+  passwd: ""
 - name: group4
   gid: 44444
   users:
     - userwithoutbroker
+  passwd: ""
 - name: commongroup
   gid: 99999
   users:
     - user2
     - user3
+  passwd: ""

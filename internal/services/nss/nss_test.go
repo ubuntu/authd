@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/brokers"
+	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/nss"
@@ -18,7 +19,8 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/cache"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
+	"github.com/ubuntu/authd/internal/users/idgenerator"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -331,7 +333,14 @@ func newUserManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 	}
 	cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", sourceDB), cacheDir)
 
-	m, err := users.NewManager(users.DefaultConfig, cacheDir)
+	managerOpts := []users.Option{
+		users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+			UIDsToGenerate: []uint32{1234},
+			GIDsToGenerate: []uint32{1234},
+		}),
+	}
+
+	m, err := users.NewManager(users.DefaultConfig, cacheDir, managerOpts...)
 	require.NoError(t, err, "Setup: could not create user manager")
 
 	t.Cleanup(func() { _ = m.Stop() })
@@ -415,6 +424,8 @@ func TestMain(m *testing.M) {
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
 		os.Exit(m.Run())
 	}
+
+	log.SetLevel(log.DebugLevel)
 
 	cleanup, err := testutils.StartSystemBusMock()
 	if err != nil {

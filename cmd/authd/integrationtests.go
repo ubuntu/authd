@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/ubuntu/authd/internal/services/permissions"
-	"github.com/ubuntu/authd/internal/users/localgroups"
+	"github.com/ubuntu/authd/internal/users/localentries"
 )
 
 // load any behaviour modifiers from env variable.
@@ -21,6 +21,6 @@ func init() {
 	if gpasswdArgs == "" || grpFilePath == "" {
 		panic("AUTHD_INTEGRATIONTESTS_GPASSWD_ARGS and AUTHD_INTEGRATIONTESTS_GPASSWD_GRP_FILE_PATH must be set")
 	}
-	localgroups.Z_ForTests_SetGpasswdCmd(strings.Split(gpasswdArgs, " "))
-	localgroups.Z_ForTests_SetGroupPath(grpFilePath)
+	localentries.Z_ForTests_SetGpasswdCmd(strings.Split(gpasswdArgs, " "))
+	localentries.Z_ForTests_SetGroupPath(grpFilePath)
 }
