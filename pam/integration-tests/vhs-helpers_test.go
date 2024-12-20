@@ -528,12 +528,26 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 		tapeString = strings.ReplaceAll(tapeString, variable, v)
 	}
 
+	multiLineValueRegex := func(value string) string {
+		// If the value is very long it may be split in multiple lines, so that
+		// we need to use a regex to match it.
+		const maxLength = 80
+		if len(value) <= maxLength {
+			return regexp.QuoteMeta(value)
+		}
+		valueRegex := regexp.QuoteMeta(value[:maxLength])
+		for i := maxLength; i < len(value); i++ {
+			valueRegex += regexp.QuoteMeta(string(value[i])) + `\n?`
+		}
+		return valueRegex
+	}
+
 	for _, m := range vhsTypeAndWaitUsername.FindAllStringSubmatch(tapeString, -1) {
 		fullMatch, prefix, username := m[0], m[1], m[2]
 		commands := []string{
 			`Wait /Username:[^\n]*\n/`,
 			fmt.Sprintf("Type `%s`", username),
-			fmt.Sprintf(`Wait /Username: %s\n/`, regexp.QuoteMeta(username)),
+			fmt.Sprintf(`Wait /Username: %s\n/`, multiLineValueRegex(username)),
 		}
 		tapeString = strings.ReplaceAll(tapeString, fullMatch,
 			prefix+strings.Join(commands, "\n"+prefix))
@@ -543,12 +557,12 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 		fullMatch, prefix, promptValue := matches[0], matches[1], matches[2]
 		visibleValue := promptValue
 		if style == pam.PromptEchoOff {
-			visibleValue = regexp.QuoteMeta(strings.Repeat("*", len(promptValue)))
+			visibleValue = strings.Repeat("*", len(promptValue))
 		}
 		commands := []string{
 			`Wait+Screen /\n>[ \t]*\n/`,
 			fmt.Sprintf("Type `%s`", promptValue),
-			fmt.Sprintf(`Wait+Suffix /:\n> %s(\n[^>].+)*/`, visibleValue),
+			fmt.Sprintf(`Wait+Suffix /:\n> %s(\n[^>].+)*/`, multiLineValueRegex(visibleValue)),
 		}
 		tapeString = strings.ReplaceAll(tapeString, fullMatch,
 			prefix+strings.Join(commands, "\n"+prefix))
