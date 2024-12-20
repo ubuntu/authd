@@ -6,7 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-TypeUsername "user-integration-same-new-password"
+TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
 Show
 
 Hide

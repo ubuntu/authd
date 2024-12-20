@@ -258,6 +258,9 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		},
 		"Change_passwd_after_MFA_auth": {
 			tape: "passwd_mfa",
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: examplebroker.UserIntegrationMfaPrefix + "cli-passwd",
+			},
 		},
 
 		"Retry_if_new_password_is_rejected_by_broker": {
@@ -279,6 +282,9 @@ func TestCLIChangeAuthTok(t *testing.T) {
 		"Prevent_change_password_if_user_does_not_exist": {
 			tape:         "passwd_unexistent_user",
 			tapeSettings: []tapeSetting{{vhsHeight, 800}},
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: examplebroker.UserIntegrationUnexistent,
+			},
 		},
 		"Prevent_change_password_if_current_user_is_not_root_as_can_not_authenticate": {
 			tape:               "passwd_not_root",
@@ -302,6 +308,13 @@ func TestCLIChangeAuthTok(t *testing.T) {
 				// For the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				socketPath = runAuthd(t, os.DevNull, os.DevNull, false)
+			}
+
+			if _, ok := tc.tapeVariables[vhsTapeUserVariable]; !ok && !tc.currentUserNotRoot {
+				if tc.tapeVariables == nil {
+					tc.tapeVariables = make(map[string]string)
+				}
+				tc.tapeVariables[vhsTapeUserVariable] = vhsTestUserName(t, "cli-passwd")
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)

@@ -6,7 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-TypeUsername "user1"
+TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
 Show
 
 Hide
@@ -53,7 +53,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-TypeUsername "user1"
+TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
 Show
 
 Hide
