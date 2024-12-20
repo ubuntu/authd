@@ -89,7 +89,7 @@ The broker configuration consists of two sections: the `oidc` section and the `u
 
 ### OIDC section
 
-The `oidc` section configures how the authd-broker will interract with the OIDC Provider.
+The `oidc` section configures how the authd-broker will interact with the OIDC Provider.
 
 Replace `<ISSUER_ID>` and `<CLIENT_ID>` by the issuer ID and client ID retrieved from the MS Entra ID portal.
 
@@ -98,7 +98,7 @@ Replace `<ISSUER_ID>` and `<CLIENT_ID>` by the issuer ID and client ID retrieved
 The `users` section configures which users will be allowed to access the machine.
 
 By default the first person to log in to the machine is automatically registered
-as the owner. If you wish to override this behavior then specify a list of allowed
+as the owner. If you wish to override this behaviour then specify a list of allowed
 users with the `allowed_users` keyword, while omitting the `OWNER` keyword:
 
 ```text
@@ -112,7 +112,7 @@ keyword:
 owner = your@email.com
 ```
 
-Explicitly setting an empty owner, has the same effect as omiting the `OWNER` keyword
+Explicitly setting an empty owner, has the same effect as omitting the `OWNER` keyword
 in `allowed_users`:
 
 ```text
