@@ -247,6 +247,9 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 
 	cmd.Args = append(cmd.Args, td.PrepareTape(t, testType, outDir))
 	out, err := cmd.CombinedOutput()
+	if err != nil {
+		maybeIgnoreKnownDataRace(t, string(out))
+	}
 
 	isSSHError := func(processOut []byte) bool {
 		const sshConnectionResetByPeer = "Connection reset by peer"
@@ -302,6 +305,31 @@ func (td tapeData) Output() string {
 	return txt
 }
 
+func maybeIgnoreKnownDataRace(t *testing.T, out string) {
+	t.Helper()
+
+	if !testutils.IsRace() {
+		return
+	}
+	if !strings.Contains(out, "WARNING: DATA RACE") {
+		return
+	}
+
+	if strings.Contains(out, "bubbles/cursor.(*Model).BlinkCmd.func1") {
+		// FIXME: This is a well known race of bubble tea:
+		// https://github.com/charmbracelet/bubbletea/issues/909
+		// We can't do much here, as the workaround will likely affect the
+		// GUI behavior, but we ignore this since it's definitely not our bug.
+		defer t.Skip("This is a very well known bubble tea bug (#909), ignoring it")
+		if testutils.IsVerbose() {
+			t.Logf("Ignored bubbletea race:\n%s", out)
+			return
+		}
+
+		fmt.Fprintf(os.Stderr, "Ignored bubbletea race:\n%s", out)
+	}
+}
+
 func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 	t.Helper()
 
@@ -309,20 +337,6 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 	out, err := os.ReadFile(outPath)
 	require.NoError(t, err, "Could not read output file of tape %q (%s)", td.Name, outPath)
 	got := string(out)
-
-	if testutils.IsRace() && strings.Contains(got, "WARNING: DATA RACE") &&
-		strings.Contains(got, "bubbles/cursor.(*Model).BlinkCmd.func1") {
-		// FIXME: This is a well known race of bubble tea:
-		// https://github.com/charmbracelet/bubbletea/issues/909
-		// We can't do much here, as the workaround will likely affect the
-		// GUI behavior, but we ignore this since it's definitely not our bug.
-		t.Skip("This is a very well known bubble tea bug (#909), ignoring it")
-		if testutils.IsVerbose() {
-			t.Logf("Ignored bubbletea race:\n%s", got)
-		} else {
-			fmt.Fprintf(os.Stderr, "Ignored bubbletea race:\n%s", got)
-		}
-	}
 
 	// We need to format the output a little bit, since the txt file can have some noise at the beginning.
 	command := "> " + td.Command
