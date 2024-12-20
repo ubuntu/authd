@@ -288,54 +288,22 @@ func TestUpdateBrokerForUser(t *testing.T) {
 	}
 }
 
-//nolint:dupl // This is not a duplicate test
-func TestUserByName(t *testing.T) {
+func TestUserByIDAndName(t *testing.T) {
 	tests := map[string]struct {
+		uid      uint32
 		username string
 		dbFile   string
 
 		wantErr     bool
 		wantErrType error
 	}{
+		"Successfully get user by ID":   {uid: 1111, dbFile: "multiple_users_and_groups"},
 		"Successfully get user by name": {username: "user1", dbFile: "multiple_users_and_groups"},
 
-		"Error if user does not exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
-	}
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
-
-			cacheDir := t.TempDir()
-			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
-			m := newManagerForTests(t, cacheDir)
-
-			got, err := m.UserByName(tc.username)
-
-			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
-			if tc.wantErrType != nil || tc.wantErr {
-				return
-			}
-
-			golden.CheckOrUpdateYAML(t, got)
-		})
-	}
-}
-
-//nolint:dupl // This is not a duplicate test
-func TestUserByID(t *testing.T) {
-	tests := map[string]struct {
-		uid    uint32
-		dbFile string
-
-		wantErr     bool
-		wantErrType error
-	}{
-		"Successfully get user by ID": {uid: 1111, dbFile: "multiple_users_and_groups"},
-
-		"Error if user does not exist":  {uid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {uid: 1111, dbFile: "invalid_entry_in_userByID", wantErr: true},
+		"Error if user does not exist - by ID":    {uid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if user does not exist - by name":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if db has invalid entry - by ID":   {uid: 1111, dbFile: "invalid_entry_in_userByID", wantErr: true},
+		"Error if db has invalid entry - by name": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -347,14 +315,20 @@ func TestUserByID(t *testing.T) {
 
 			m := newManagerForTests(t, cacheDir)
 
-			got, err := m.UserByID(tc.uid)
+			var user users.UserEntry
+			var err error
+			if tc.username != "" {
+				user, err = m.UserByName(tc.username)
+			} else {
+				user, err = m.UserByID(tc.uid)
+			}
 
 			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
 			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
-			golden.CheckOrUpdateYAML(t, got)
+			golden.CheckOrUpdateYAML(t, user)
 		})
 	}
 }
@@ -391,19 +365,22 @@ func TestAllUsers(t *testing.T) {
 	}
 }
 
-//nolint:dupl // This is not a duplicate test
-func TestGroupByName(t *testing.T) {
+func TestGroupByIDAndName(t *testing.T) {
 	tests := map[string]struct {
+		gid       uint32
 		groupname string
 		dbFile    string
 
 		wantErr     bool
 		wantErrType error
 	}{
+		"Successfully get group by ID":   {gid: 11111, dbFile: "multiple_users_and_groups"},
 		"Successfully get group by name": {groupname: "group1", dbFile: "multiple_users_and_groups"},
 
-		"Error if group does not exist": {groupname: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {groupname: "group1", dbFile: "invalid_entry_in_groupByName", wantErr: true},
+		"Error if group does not exist - by ID":   {gid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if group does not exist - by name": {groupname: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if db has invalid entry - by ID":   {gid: 11111, dbFile: "invalid_entry_in_groupByID", wantErr: true},
+		"Error if db has invalid entry - by name": {groupname: "group1", dbFile: "invalid_entry_in_groupByName", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -414,49 +391,20 @@ func TestGroupByName(t *testing.T) {
 			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
-			got, err := m.GroupByName(tc.groupname)
+			var group users.GroupEntry
+			var err error
+			if tc.groupname != "" {
+				group, err = m.GroupByName(tc.groupname)
+			} else {
+				group, err = m.GroupByID(tc.gid)
+			}
 
 			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
 			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
-			golden.CheckOrUpdateYAML(t, got)
-		})
-	}
-}
-
-//nolint:dupl // This is not a duplicate test
-func TestGroupByID(t *testing.T) {
-	tests := map[string]struct {
-		gid    uint32
-		dbFile string
-
-		wantErr     bool
-		wantErrType error
-	}{
-		"Successfully get group by ID": {gid: 11111, dbFile: "multiple_users_and_groups"},
-
-		"Error if group does not exist": {gid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {gid: 11111, dbFile: "invalid_entry_in_groupByID", wantErr: true},
-	}
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
-
-			cacheDir := t.TempDir()
-			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
-			m := newManagerForTests(t, cacheDir)
-
-			got, err := m.GroupByID(tc.gid)
-
-			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
-			if tc.wantErrType != nil || tc.wantErr {
-				return
-			}
-
-			golden.CheckOrUpdateYAML(t, got)
+			golden.CheckOrUpdateYAML(t, group)
 		})
 	}
 }
@@ -494,7 +442,6 @@ func TestAllGroups(t *testing.T) {
 	}
 }
 
-//nolint:dupl // This is not a duplicate test
 func TestShadowByName(t *testing.T) {
 	tests := map[string]struct {
 		username string
