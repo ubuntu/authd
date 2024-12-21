@@ -6,7 +6,7 @@ Wait /Username:\n/
 Show
 
 Hide
-TypeUsername "user-integration-bad-password"
+TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
 Enter
 Wait+Prompt /Choose your provider/
 Show

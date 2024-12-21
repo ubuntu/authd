@@ -12,7 +12,10 @@ Wait+Nth(2) /Username:/
 Show
 
 Hide
-TypeUsername "user-integration-user-selection"
+TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
+Show
+
+Hide
 Enter
 Wait+Prompt /Choose your provider/
 Show

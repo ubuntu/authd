@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
@@ -24,9 +25,6 @@ func TestNativeAuthenticate(t *testing.T) {
 	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s} force_native_client=true",
 		socketPathEnv)
 
-	defaultGPasswdOutput, groupsFile := prepareGPasswdFiles(t)
-	defaultSocketPath := runAuthd(t, defaultGPasswdOutput, groupsFile, true)
-
 	tests := map[string]struct {
 		tape          string
 		tapeSettings  []tapeSetting
@@ -35,17 +33,21 @@ func TestNativeAuthenticate(t *testing.T) {
 
 		clientOptions      clientOptions
 		currentUserNotRoot bool
+		userSelection      bool
 		wantLocalGroups    bool
 		stopDaemonAfter    time.Duration
 		skipRunnerCheck    bool
 		socketPath         string
 	}{
 		"Authenticate user successfully": {
-			tape:          "simple_auth",
-			clientOptions: clientOptions{PamUser: "user-integration-simple-auth"},
+			tape: "simple_auth",
 		},
 		"Authenticate user successfully with user selection": {
-			tape: "simple_auth_with_user_selection",
+			tape:          "simple_auth_with_user_selection",
+			userSelection: true,
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: examplebroker.UserIntegrationPrefix + "native-user-selection",
+			},
 		},
 		"Authenticate user successfully with invalid connection timeout": {
 			tape: "simple_auth",
@@ -55,14 +57,15 @@ func TestNativeAuthenticate(t *testing.T) {
 			},
 		},
 		"Authenticate user with mfa": {
-			tape:          "mfa_auth",
-			tapeSettings:  []tapeSetting{{vhsHeight, 1200}},
-			clientOptions: clientOptions{PamUser: "user-mfa-integration-auth"},
+			tape:         "mfa_auth",
+			tapeSettings: []tapeSetting{{vhsHeight, 1200}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationMfaPrefix + "auth",
+			},
 		},
 		"Authenticate user with form mode with button": {
-			tape:          "form_with_button",
-			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
-			clientOptions: clientOptions{PamUser: "user-integration-form-w-button"},
+			tape:         "form_with_button",
+			tapeSettings: []tapeSetting{{vhsHeight, 700}},
 		},
 		"Authenticate user with qr code": {
 			tape:         "qr_code",
@@ -71,7 +74,6 @@ func TestNativeAuthenticate(t *testing.T) {
 				"AUTHD_QRCODE_TAPE_ITEM":      "7",
 				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
 			},
-			clientOptions: clientOptions{PamUser: "user-integration-qr-code"},
 		},
 		"Authenticate user with qr code in a TTY": {
 			tape:         "qr_code",
@@ -81,8 +83,7 @@ func TestNativeAuthenticate(t *testing.T) {
 				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
 			},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-tty",
-				Term:    "linux",
+				Term: "linux",
 			},
 		},
 		"Authenticate user with qr code in a TTY session": {
@@ -93,8 +94,7 @@ func TestNativeAuthenticate(t *testing.T) {
 				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
 			},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-tty-session",
-				Term:    "xterm-256color", SessionType: "tty",
+				Term: "xterm-256color", SessionType: "tty",
 			},
 		},
 		"Authenticate user with qr code in screen": {
@@ -105,8 +105,7 @@ func TestNativeAuthenticate(t *testing.T) {
 				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
 			},
 			clientOptions: clientOptions{
-				PamUser: "user-integration-qr-code-screen",
-				Term:    "screen",
+				Term: "screen",
 			},
 		},
 		"Authenticate user with qr code in polkit": {
@@ -117,7 +116,6 @@ func TestNativeAuthenticate(t *testing.T) {
 				"AUTHD_QRCODE_TAPE_ITEM_NAME": "Login code",
 			},
 			clientOptions: clientOptions{
-				PamUser:        "user-integration-qr-code-polkit",
 				PamServiceName: "polkit-1",
 			},
 		},
@@ -129,26 +127,35 @@ func TestNativeAuthenticate(t *testing.T) {
 				"AUTHD_QRCODE_TAPE_ITEM_NAME": "Login code",
 			},
 			clientOptions: clientOptions{
-				PamUser:        "user-integration-pre-check-ssh-service-qr-code",
+				PamUser:        examplebroker.UserIntegrationPreCheckPrefix + "ssh-service-qr-code",
 				PamServiceName: "sshd",
 			},
 		},
 		"Authenticate user and reset password while enforcing policy": {
-			tape:          "mandatory_password_reset",
-			clientOptions: clientOptions{PamUser: "user-needs-reset-integration-mandatory"},
+			tape:         "mandatory_password_reset",
+			tapeSettings: []tapeSetting{{vhsHeight, 550}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationNeedsResetPrefix + "mandatory",
+			},
 		},
 		"Authenticate user with mfa and reset password while enforcing policy": {
-			tape:          "mfa_reset_pwquality_auth",
-			tapeSettings:  []tapeSetting{{vhsHeight, 3000}},
-			clientOptions: clientOptions{PamUser: "user-mfa-with-reset-integration-pwquality"},
+			tape:         "mfa_reset_pwquality_auth",
+			tapeSettings: []tapeSetting{{vhsHeight, 3000}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationMfaWithResetPrefix + "pwquality",
+			},
 		},
 		"Authenticate user and offer password reset": {
-			tape:          "optional_password_reset_skip",
-			clientOptions: clientOptions{PamUser: "user-can-reset-integration-skip"},
+			tape: "optional_password_reset_skip",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationCanResetPrefix + "skip",
+			},
 		},
 		"Authenticate user and accept password reset": {
-			tape:          "optional_password_reset_accept",
-			clientOptions: clientOptions{PamUser: "user-can-reset-integration-accept"},
+			tape: "optional_password_reset_accept",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationCanResetPrefix + "accept",
+			},
 		},
 		"Authenticate user switching auth mode": {
 			tape:          "switch_auth_mode",
@@ -167,37 +174,43 @@ func TestNativeAuthenticate(t *testing.T) {
 			},
 		},
 		"Authenticate user switching username": {
-			tape: "switch_username",
+			tape:          "switch_username",
+			userSelection: true,
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable:               examplebroker.UserIntegrationPrefix + "native-username",
+				vhsTapeUserVariable + "_SWITCHED": examplebroker.UserIntegrationPrefix + "native-username-switched",
+			},
 		},
 		"Authenticate user switching to local broker": {
-			tape:          "switch_local_broker",
-			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
-			clientOptions: clientOptions{PamUser: "user-integration-switch-broker"},
+			tape:         "switch_local_broker",
+			tapeSettings: []tapeSetting{{vhsHeight, 700}},
 		},
 		"Authenticate user and add it to local group": {
 			tape:            "local_group",
 			tapeSettings:    []tapeSetting{{vhsHeight, 700}},
 			wantLocalGroups: true,
-			clientOptions:   clientOptions{PamUser: "user-local-groups"},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationLocalGroupsPrefix + "auth",
+			},
 		},
 		"Authenticate user on ssh service": {
 			tape: "simple_ssh_auth",
 			clientOptions: clientOptions{
-				PamUser:        "user-integration-pre-check-ssh-service",
+				PamUser:        examplebroker.UserIntegrationPreCheckPrefix + "ssh-service",
 				PamServiceName: "sshd",
 			},
 		},
 		"Authenticate user on ssh service with custom name and connection env": {
 			tape: "simple_ssh_auth",
 			clientOptions: clientOptions{
-				PamUser: "user-integration-pre-check-ssh-connection",
+				PamUser: examplebroker.UserIntegrationPreCheckPrefix + "ssh-connection",
 				PamEnv:  []string{"SSH_CONNECTION=foo-connection"},
 			},
 		},
 		"Authenticate user on ssh service with custom name and auth info env": {
 			tape: "simple_ssh_auth",
 			clientOptions: clientOptions{
-				PamUser: "user-integration-pre-check-ssh-auth-info",
+				PamUser: examplebroker.UserIntegrationPreCheckPrefix + "ssh-auth-info",
 				PamEnv:  []string{"SSH_AUTH_INFO_0=foo-authinfo"},
 			},
 		},
@@ -205,85 +218,82 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape: "simple_auth_with_unsupported_args",
 			tapeCommand: strings.ReplaceAll(tapeCommand, "force_native_client=true",
 				"invalid_flag=foo force_native_client=true bar"),
-			clientOptions: clientOptions{PamUser: "user-integration-with-unsupported-args"},
 		},
 
 		"Remember last successful broker and mode": {
-			tape:          "remember_broker_and_mode",
-			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
-			clientOptions: clientOptions{PamUser: "user-integration-remember-mode"},
+			tape:         "remember_broker_and_mode",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 		"Autoselect local broker for local user": {
-			tape: "local_user",
+			tape:          "local_user",
+			userSelection: true,
 		},
 		"Autoselect local broker for local user preset": {
-			tape:          "local_user_preset",
-			clientOptions: clientOptions{PamUser: "root"},
+			tape: "local_user_preset",
+			clientOptions: clientOptions{
+				PamUser: "root",
+			},
 		},
 
 		"Deny authentication if current user is not considered as root": {
 			tape: "not_root", currentUserNotRoot: true,
-			clientOptions: clientOptions{PamUser: "user-integration-not-root"},
 		},
 
 		"Deny authentication if max attempts reached": {
-			tape:          "max_attempts",
-			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
-			clientOptions: clientOptions{PamUser: "user-integration-max-attempts"},
+			tape:         "max_attempts",
+			tapeSettings: []tapeSetting{{vhsHeight, 700}},
 		},
 		"Deny authentication if user does not exist": {
-			tape:          "unexistent_user",
-			clientOptions: clientOptions{PamUser: "user-unexistent"},
+			tape: "unexistent_user",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationUnexistent,
+			},
 		},
 		"Deny authentication if user does not exist and matches cancel key": {
-			tape: "cancel_key_user",
+			tape:          "cancel_key_user",
+			userSelection: true,
 		},
 		"Deny authentication if newpassword does not match required criteria": {
-			tape:          "bad_password",
-			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
-			clientOptions: clientOptions{PamUser: "user-needs-reset-integration-bad-password"},
+			tape:         "bad_password",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationNeedsResetPrefix + "bad-password",
+			},
 		},
 
 		"Prevent preset user from switching username": {
-			tape:          "switch_preset_username",
-			tapeSettings:  []tapeSetting{{vhsHeight, 800}},
-			clientOptions: clientOptions{PamUser: "user-integration-pam-preset"},
+			tape:         "switch_preset_username",
+			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
 
 		"Exit authd if local broker is selected": {
-			tape:          "local_broker",
-			clientOptions: clientOptions{PamUser: "user-local-broker"},
+			tape: "local_broker",
 		},
 		"Exit if user is not pre-checked on ssh service": {
 			tape: "local_ssh",
 			clientOptions: clientOptions{
-				PamUser:        "user-integration-ssh-service",
 				PamServiceName: "sshd",
 			},
 		},
 		"Exit if user is not pre-checked on custom ssh service with connection env": {
 			tape: "local_ssh",
 			clientOptions: clientOptions{
-				PamUser: "user-integration-ssh-connection",
-				PamEnv:  []string{"SSH_CONNECTION=foo-connection"},
+				PamEnv: []string{"SSH_CONNECTION=foo-connection"},
 			},
 		},
 		"Exit if user is not pre-checked on custom ssh service with auth info env": {
 			tape: "local_ssh",
 			clientOptions: clientOptions{
-				PamUser: "user-integration-ssh-auth-info",
-				PamEnv:  []string{"SSH_AUTH_INFO_0=foo-authinfo"},
+				PamEnv: []string{"SSH_AUTH_INFO_0=foo-authinfo"},
 			},
 		},
 		// FIXME: While this works now, it requires proper handling via signal_fd
 		"Exit authd if user sigints": {
 			tape:            "sigint",
-			clientOptions:   clientOptions{PamUser: "user-integration-sigint"},
 			skipRunnerCheck: true,
 		},
 		"Exit if authd is stopped": {
 			tape:            "authd_stopped",
-			clientOptions:   clientOptions{PamUser: "user-integration-authd-stopped"},
 			stopDaemonAfter: sleepDuration(defaultSleepValues[authdSleepLong] * 5),
 		},
 
@@ -301,8 +311,7 @@ func TestNativeAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			socketPath := defaultSocketPath
-			gpasswdOutput := defaultGPasswdOutput
+			var socketPath, gpasswdOutput string
 			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.stopDaemonAfter > 0 {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
@@ -320,6 +329,8 @@ func TestNativeAuthenticate(t *testing.T) {
 						cancel()
 					}()
 				}
+			} else {
+				socketPath, gpasswdOutput = sharedAuthd(t)
 			}
 			if tc.socketPath != "" {
 				socketPath = tc.socketPath
@@ -328,6 +339,14 @@ func TestNativeAuthenticate(t *testing.T) {
 			if tc.tapeCommand == "" {
 				tc.tapeCommand = tapeCommand
 			}
+
+			if u := tc.clientOptions.PamUser; strings.Contains(u, "integration") && !strings.Contains(u, "native") {
+				tc.clientOptions.PamUser += "-native"
+			}
+			if tc.clientOptions.PamUser == "" && !tc.userSelection {
+				tc.clientOptions.PamUser = vhsTestUserName(t, "native")
+			}
+
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Command = tc.tapeCommand
 			td.Env[socketPathEnv] = socketPath
@@ -357,7 +376,6 @@ func TestNativeChangeAuthTok(t *testing.T) {
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
 	const tapeBaseCommand = "./pam_authd %s socket=${%s} force_native_client=true"
 	tapeCommand := fmt.Sprintf(tapeBaseCommand, pam_test.RunnerActionPasswd, socketPathEnv)
-	defaultSocketPath := runAuthd(t, os.DevNull, os.DevNull, true)
 
 	tests := map[string]struct {
 		tape          string
@@ -368,7 +386,8 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		skipRunnerCheck    bool
 	}{
 		"Change password successfully and authenticate with new one": {
-			tape: "passwd_simple",
+			tape:         "passwd_simple",
+			tapeSettings: []tapeSetting{{vhsHeight, 600}},
 			tapeVariables: map[string]string{
 				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(
 					tapeBaseCommand, pam_test.RunnerActionLogin, socketPathEnv),
@@ -377,6 +396,9 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		"Change passwd after MFA auth": {
 			tape:         "passwd_mfa",
 			tapeSettings: []tapeSetting{{vhsHeight, 1300}},
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: examplebroker.UserIntegrationMfaPrefix + "native-passwd",
+			},
 		},
 
 		"Retry if new password is rejected by broker": {
@@ -400,6 +422,9 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		},
 		"Prevent change password if user does not exist": {
 			tape: "passwd_unexistent_user",
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: examplebroker.UserIntegrationUnexistent,
+			},
 		},
 		"Prevent change password if current user is not root as can not authenticate": {
 			tape: "passwd_not_root", currentUserNotRoot: true,
@@ -418,11 +443,20 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			socketPath := defaultSocketPath
+			var socketPath string
 			if tc.currentUserNotRoot {
 				// For the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				socketPath = runAuthd(t, os.DevNull, os.DevNull, false)
+			} else {
+				socketPath, _ = sharedAuthd(t)
+			}
+
+			if _, ok := tc.tapeVariables[vhsTapeUserVariable]; !ok && !tc.currentUserNotRoot {
+				if tc.tapeVariables == nil {
+					tc.tapeVariables = make(map[string]string)
+				}
+				tc.tapeVariables[vhsTapeUserVariable] = vhsTestUserName(t, "native-passwd")
 			}
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
