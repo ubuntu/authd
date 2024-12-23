@@ -1,21 +1,21 @@
 GroupByID:
-    "1369382419": '{"Name":"group-IA_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
-    "1556535091": '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","GID":1556535091,"UGID":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call"}'
+    "1111": '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","GID":1111,"UGID":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call"}'
+    "2222": '{"Name":"group-IA_second_call","GID":2222,"UGID":"ugid-IA_second_call"}'
 GroupByName:
-    TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","GID":1556535091,"UGID":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call"}'
-    group-IA_second_call: '{"Name":"group-IA_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
+    TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","GID":1111,"UGID":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call"}'
+    group-IA_second_call: '{"Name":"group-IA_second_call","GID":2222,"UGID":"ugid-IA_second_call"}'
 GroupByUGID:
-    TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","GID":1556535091,"UGID":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call"}'
-    ugid-IA_second_call: '{"Name":"group-IA_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
+    TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","GID":1111,"UGID":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call"}'
+    ugid-IA_second_call: '{"Name":"group-IA_second_call","GID":2222,"UGID":"ugid-IA_second_call"}'
 GroupToUsers:
-    "1369382419": '{"GID":1369382419,"UIDs":[1556535091]}'
-    "1556535091": '{"GID":1556535091,"UIDs":[1556535091]}'
+    "1111": '{"GID":1111,"UIDs":[1111]}'
+    "2222": '{"GID":2222,"UIDs":[1111]}'
 UserByID:
-    "1556535091": '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","UID":1556535091,"GID":1556535091,"Gecos":"gecos for IA_second_call","Dir":"/home/IA_second_call","Shell":"/bin/sh/IA_second_call","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+    "1111": '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","UID":1111,"GID":1111,"Gecos":"gecos for IA_second_call","Dir":"/home/IA_second_call","Shell":"/bin/sh/IA_second_call","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserByName:
-    TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","UID":1556535091,"GID":1556535091,"Gecos":"gecos for IA_second_call","Dir":"/home/IA_second_call","Shell":"/bin/sh/IA_second_call","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+    TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call: '{"Name":"TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call","UID":1111,"GID":1111,"Gecos":"gecos for IA_second_call","Dir":"/home/IA_second_call","Shell":"/bin/sh/IA_second_call","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserToBroker: {}
 UserToGroups:
-    "1556535091": '{"UID":1556535091,"GIDs":[1556535091,1369382419]}'
+    "1111": '{"UID":1111,"GIDs":[1111,2222]}'
 UserToLocalGroups:
-    "1556535091": "null"
+    "1111": "null"

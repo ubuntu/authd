@@ -15,6 +15,7 @@ import (
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
+	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/decorate"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -262,7 +263,7 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 		}, nil
 	}
 
-	var uInfo users.UserInfo
+	var uInfo types.UserInfo
 	if err := json.Unmarshal([]byte(data), &uInfo); err != nil {
 		return nil, fmt.Errorf("user data from broker invalid: %v", err)
 	}
