@@ -55,71 +55,7 @@ client_id = <CLIENT_ID>
 ## The username suffixes that are allowed to login via ssh without existing previously in the system.
 ## The suffixes must be separated by commas.
 #ssh_allowed_suffixes = @example.com,@anotherexample.com
-
-## 'allowed_users' specifies the users who are permitted to log in after
-## successfully authenticating with the Identity Provider.
-## Values are separated by commas. Supported values:
-## - 'OWNER': Grants access to the user specified in the 'owner' option
-##        	(see below). This is the default.
-## - 'ALL': Grants access to all users who successfully authenticate
-##      	with the Identity Provider.
-## - <username>: Grants access to specific additional users
-##           	(e.g. user1@example.com).
-## Example: allowed_users = OWNER,user1@example.com,admin@example.com
-#allowed_users = OWNER
-
-## 'owner' specifies the user assigned the owner role. This user is
-## permitted to log in if 'OWNER' is included in the 'allowed_users'
-## option.
-##
-## If this option is left unset, the first user to successfully log in
-## via this broker will automatically be assigned the owner role. A
-## drop-in configuration file will be created in broker.conf.d/ to set
-## the 'owner' option.
-##
-## To disable automatic assignment, you can either:
-## 1. Explicitly set this option to an empty value (e.g. owner = "")
-## 2. Remove 'OWNER' from the 'allowed_users' option
-##
-## Example: owner = user2@example.com
-#owner =
 ```
-
-The broker configuration consists of two sections: the `oidc` section and the `users` section.
-
-### OIDC section
-
-The `oidc` section configures how the authd-broker will interact with the OIDC Provider.
-
-Replace `<ISSUER_ID>` and `<CLIENT_ID>` by the issuer ID and client ID retrieved from the MS Entra ID portal.
-
-### Users section
-
-The `users` section configures which users will be allowed to access the machine.
-
-By default the first person to log in to the machine is automatically registered
-as the owner. If you wish to override this behaviour then specify a list of allowed
-users with the `allowed_users` keyword, while omitting the `OWNER` keyword:
-
-```text
-allowed_users = person1@email.com,person2@email.com
-```
-
-Alternatively, you can directly register someone as the owner by using the `owner`
-keyword:
-
-```text
-owner = your@email.com
-```
-
-Explicitly setting an empty owner, has the same effect as omitting the `OWNER` keyword
-in `allowed_users`:
-
-```text
-owner =
-```
-
-### Apply your configuration changes
 
 When a configuration file is added you have to restart authd:
 
