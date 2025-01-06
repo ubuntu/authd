@@ -96,7 +96,9 @@ func updateGroups(buckets map[string]bucketWithName, groupContents []GroupDB) er
 		groupExists := !errors.Is(err, NoDataFoundError{})
 
 		// If a group with the same GID exists, we need to ensure that it's the same group or fail the update otherwise.
-		if groupExists && existingGroup.UGID != groupContent.UGID {
+		// Ignore the case that the UGID of the existing group is empty, which means that the group was stored without a
+		// UGID, which was the case before https://github.com/ubuntu/authd/pull/647.
+		if groupExists && existingGroup.UGID != "" && existingGroup.UGID != groupContent.UGID {
 			log.Errorf(context.TODO(), "GID %d for group with UGID %q already in use by a group with UGID %q", groupContent.GID, groupContent.UGID, existingGroup.UGID)
 			return fmt.Errorf("GID for group %q already in use by a different group", groupContent.Name)
 		}
