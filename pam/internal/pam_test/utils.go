@@ -41,7 +41,7 @@ import (
 // compiled with -asan flag, do a memory leak check.
 // This is meant to be used as a test Cleanup function, to force Go detecting
 // if allocated resources have been released, e.g. using
-// t.Cleanup(pam_test.MaybeDoLeakCheck)
+// t.Cleanup(pam_test.MaybeDoLeakCheck).
 func MaybeDoLeakCheck() {
 	runtime.GC()
 	time.Sleep(time.Millisecond * 10)

@@ -46,7 +46,7 @@ func validateJSONDisabled(jsonValue []byte) error {
 
 var validateJSONFunc = validateJSONDisabled
 
-// IsPamExtensionSupported returns if the provided extension is supported
+// IsPamExtensionSupported returns if the provided extension is supported.
 func IsPamExtensionSupported(extension string) bool {
 	cExtension := C.CString(extension)
 	defer C.free(unsafe.Pointer(cExtension))
