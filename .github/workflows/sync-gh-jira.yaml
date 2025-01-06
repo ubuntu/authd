@@ -8,7 +8,7 @@ jobs:
     name: Sync issues to Jira
     runs-on: ubuntu-latest
     steps:
-      - uses: canonical/sync-issues-github-jira@v1
+      - uses: canonical/sync-issues-github-jira@1bf3ea460c726ecdd4cbb4ca012bb4af7f1ec8a6
         with:
           # TODO: JIRA_WEBHOOK_URL should be stored as secret on the repository.
           # Ask your Jira project administrator for it.
