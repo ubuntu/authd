@@ -1,9 +1,9 @@
 GroupByID:
-    "71705": '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":71705}'
-    "1795458232": '{"Name":"different-group-same-gid","GID":1795458232}'
+    "71705": '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":71705,"UGID":"TestIsAuthenticated/Successfully_authenticate_separator_success"}'
+    "1795458232": '{"Name":"different-group-same-gid","GID":1795458232,"UGID":"different-group-same-gid"}'
 GroupByName:
-    TestIsAuthenticated/Successfully_authenticate_separator_success: '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":71705}'
-    different-group-same-gid: '{"Name":"different-group-same-gid","GID":1795458232}'
+    TestIsAuthenticated/Successfully_authenticate_separator_success: '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":71705,"UGID":"TestIsAuthenticated/Successfully_authenticate_separator_success"}'
+    different-group-same-gid: '{"Name":"different-group-same-gid","GID":1795458232,"UGID":"different-group-same-gid"}'
 GroupByUGID: {}
 GroupToUsers:
     "71705": '{"GID":71705,"UIDs":[71705]}'

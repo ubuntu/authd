@@ -1,5 +1,5 @@
 GroupByID:
-    "88888": '{"Name":"group-success","GID":88888}'
+    "88888": '{"Name":"group-success","GID":88888,"UGID":"group-success"}'
     "1714308795": '{"Name":"TestIsAuthenticated/Update_existing_DB_on_success_separator_success","GID":1714308795,"UGID":"TestIsAuthenticated/Update_existing_DB_on_success_separator_success"}'
     "1946747284": '{"Name":"group-success","GID":1946747284,"UGID":"ugid-success"}'
 GroupByName:
