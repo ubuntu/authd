@@ -1,6 +1,6 @@
 # authd architecture
 
-authd can help organisations ensure secure identity and access management by enabling seamless cloud-based authentication of Ubuntu machines.
+authd can help organizations ensure secure identity and access management by enabling seamless cloud-based authentication of Ubuntu machines.
 Here we explain the architecture of authd and some of its design decisions.
 Links are provided at the end to support further reading.
 
