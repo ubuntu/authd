@@ -1,7 +1,7 @@
 GroupByID:
-  "11111": '{"Name":"group1","GID":11111}'
+  "11111": '{"Name":"group1","GID":11111,"UGID":"group1"}'
 GroupByName:
-  group1: '{"Name":"group1","GID":11111}'
+  group1: '{"Name":"group1","GID":11111,"UGID":"group1"}'
 GroupToUsers:
   "11111": '{"GID":11111,"UIDs":[1111]}'
 UserByID:

@@ -1,9 +1,9 @@
 GroupByID:
-  "11111": '{"Name":"group1","GID":11111}'
-  "22222": '{"Name":"group2","GID":22222}'
+  "11111": '{"Name":"group1","GID":11111,"UGID":"group1"}'
+  "22222": '{"Name":"group2","GID":22222,"UGID":"group2"}'
 GroupByName:
-  group1: '{"Name":"group1","GID":11111}'
-  group2: '{"Name":"group2","GID":22222}'
+  group1: '{"Name":"group1","GID":11111,"UGID":"group1"}'
+  group2: '{"Name":"group2","GID":22222,"UGID":"group2"}'
 GroupToUsers:
   "11111": '{"GID":11111,"UIDs":[1111]}'
   "22222": '"not-a-valid-json"'
