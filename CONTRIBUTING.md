@@ -3,9 +3,9 @@
 
 A big welcome and thank you for considering making a contribution to authd and Ubuntu! It’s people like you that help make these products a reality for users in our community.
 
-By agreeing to follow these guidelines the contribution process should be easy and effective for everyone involved. This also communicates that you agree to respect the time of the developers working on this project. In return, we will reciprocate that respect by addressing your issues, assessing proposed changes and helping you finalise your pull requests.
+By agreeing to follow these guidelines the contribution process should be easy and effective for everyone involved. This also communicates that you agree to respect the time of the developers working on this project. In return, we will reciprocate that respect by addressing your issues, assessing proposed changes and helping you finalize your pull requests.
 
-These are mostly guidelines, not rules. Use your best judgement and feel free to propose changes to this document in a pull request.
+These are mostly guidelines, not rules. Use your best judgment and feel free to propose changes to this document in a pull request.
 
 <!-- Include end contributing intro -->
 ## Quicklinks
@@ -74,7 +74,7 @@ In general, we follow the ["fork-and-pull" Git workflow](https://github.com/susa
 
 > PRs will trigger unit and integration tests with and without race detection, linting and formatting validations, static and security checks, and freshness of generated files verification. All these tests must pass before any merge into the main branch.
 
-Once merged into the main branch, `po` files and any documentation change will be automatically updated. Updates to these files are therefore not necessary in the pull request itself, which helps minimise diff review.
+Once merged into the main branch, `po` files and any documentation change will be automatically updated. Updates to these files are therefore not necessary in the pull request itself, which helps minimize diff review.
 
 ## Contributing to the code
 
