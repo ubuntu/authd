@@ -309,9 +309,7 @@ Wait`,
 			td.Variables = tc.tapeVariables
 			td.RunVhs(t, vhsTestTypeSSH, outDir, nil)
 			got := sanitizeGoldenFile(t, td, outDir)
-			want := golden.LoadWithUpdate(t, got)
-
-			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
+			golden.CheckOrUpdate(t, got)
 			userEnv := fmt.Sprintf("USER=%s", user)
 			if tc.wantNotLoggedInUser {
 				require.NotContains(t, got, userEnv, "Should not have a logged in user")

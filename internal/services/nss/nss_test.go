@@ -368,8 +368,7 @@ func requireExpectedResult[T authd.PasswdEntry | authd.GroupEntry | authd.Shadow
 	}
 	require.NoError(t, err, fmt.Sprintf("%s should not return an error, but did", funcName))
 
-	want := golden.LoadWithUpdateYAML(t, got)
-	requireExportedEquals(t, want, got, fmt.Sprintf("%s should return the expected entry, but did not", funcName))
+	golden.CheckOrUpdateYAML(t, got)
 }
 
 // requireExpectedEntriesResult asserts expected behaviour from any get* NSS request returning a list and can update them from golden content.

@@ -111,8 +111,7 @@ func TestAvailableBrokers(t *testing.T) {
 			for _, broker := range got {
 				broker.Id = broker.Name + "_ID"
 			}
-			want := golden.LoadWithUpdateYAML(t, got)
-			require.Equal(t, want, got, "AvailableBrokers returned unexpected brokers")
+			golden.CheckOrUpdateYAML(t, got)
 		})
 	}
 }
@@ -252,8 +251,7 @@ func TestSelectBroker(t *testing.T) {
 			got := fmt.Sprintf("ID: %s\nEncryption Key: %s\n",
 				strings.ReplaceAll(sbResp.GetSessionId(), tc.brokerID, "BROKER_ID"),
 				sbResp.GetEncryptionKey())
-			want := golden.LoadWithUpdate(t, got)
-			require.Equal(t, want, got, "SelectBroker returned an unexpected response")
+			golden.CheckOrUpdate(t, got)
 		})
 	}
 }
@@ -317,8 +315,7 @@ func TestGetAuthenticationModes(t *testing.T) {
 			require.NoError(t, err, "GetAuthenticationModes should not return an error, but did")
 
 			got := gamResp.GetAuthenticationModes()
-			want := golden.LoadWithUpdateYAML(t, got)
-			require.Equal(t, want, got, "GetAuthenticationModes returned an unexpected response")
+			golden.CheckOrUpdateYAML(t, got)
 		})
 	}
 }
@@ -407,8 +404,7 @@ func TestSelectAuthenticationMode(t *testing.T) {
 			require.NoError(t, err, "SelectAuthenticationMode should not return an error, but did")
 
 			got := samResp.GetUiLayoutInfo()
-			want := golden.LoadWithUpdateYAML(t, got)
-			require.Equal(t, want, got, "SelectAuthenticationMode should have returned the expected UI layout")
+			golden.CheckOrUpdateYAML(t, got)
 		})
 	}
 }
@@ -528,14 +524,12 @@ func TestIsAuthenticated(t *testing.T) {
 
 			got := firstCall + secondCall
 			got = permissions.Z_ForTests_IdempotentPermissionError(got)
-			want := golden.LoadWithUpdate(t, got, golden.WithPath("IsAuthenticated"))
-			require.Equal(t, want, got, "IsAuthenticated should return the expected combined data, but did not")
+			golden.CheckOrUpdate(t, got, golden.WithPath("IsAuthenticated"))
 
 			// Check that cache has been updated too.
 			gotDB, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
-			wantDB := golden.LoadWithUpdate(t, gotDB, golden.WithPath("cache.db"))
-			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
+			golden.CheckOrUpdate(t, gotDB, golden.WithPath("cache.db"))
 
 			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, filepath.Join(golden.Path(t), "gpasswd.output"))
 		})
@@ -575,8 +569,7 @@ func TestIDGeneration(t *testing.T) {
 
 			gotDB, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
-			wantDB := golden.LoadWithUpdate(t, gotDB, golden.WithPath("cache.db"))
-			require.Equal(t, wantDB, gotDB, "IsAuthenticated should update the cache database as expected")
+			golden.CheckOrUpdate(t, gotDB, golden.WithPath("cache.db"))
 		})
 	}
 }
@@ -635,8 +628,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			// Check that cache has been updated too.
 			gotDB, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
-			wantDB := golden.LoadWithUpdate(t, gotDB, golden.WithPath("cache.db"))
-			require.Equal(t, wantDB, gotDB, "SetDefaultBrokerForUser should update the cache database as expected")
+			golden.CheckOrUpdate(t, gotDB, golden.WithPath("cache.db"))
 		})
 	}
 }

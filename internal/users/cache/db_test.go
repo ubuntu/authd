@@ -77,8 +77,7 @@ func TestNew(t *testing.T) {
 			got, err := cache.Z_ForTests_DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := golden.LoadWithUpdate(t, got)
-			require.Equal(t, want, got, "Did not get expected database content")
+			golden.CheckOrUpdate(t, got)
 
 			// check database permission
 			fileInfo, err := os.Stat(dbDestPath)
@@ -232,8 +231,7 @@ func TestUpdateUserEntry(t *testing.T) {
 			got, err := cache.Z_ForTests_DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			want := golden.LoadWithUpdate(t, got)
-			require.Equal(t, want, got, "Did not get expected database content")
+			golden.CheckOrUpdate(t, got)
 		})
 	}
 }
@@ -423,8 +421,7 @@ func TestBrokerForUser(t *testing.T) {
 	// Get existing BrokerForUser entry
 	gotID, err := c.BrokerForUser("user1")
 	require.NoError(t, err, "BrokerForUser for an existent user should not return an error")
-	wantID := golden.LoadWithUpdate(t, gotID)
-	require.Equal(t, wantID, gotID, "BrokerForUser should return expected broker ID")
+	golden.CheckOrUpdate(t, gotID)
 
 	// Get unassigned broker to existent user
 	gotID, err = c.BrokerForUser("userwithoutbroker")
@@ -485,8 +482,7 @@ func TestDeleteUser(t *testing.T) {
 
 			got, err := cache.Z_ForTests_DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
-			want := golden.LoadWithUpdate(t, got)
-			require.Equal(t, want, got, "Did not get expected database content")
+			golden.CheckOrUpdate(t, got)
 		})
 	}
 }
@@ -520,6 +516,5 @@ func requireGetAssertions[E any](t *testing.T, got E, wantErr bool, wantErrType,
 	}
 	require.NoError(t, err)
 
-	want := golden.LoadWithUpdateYAML(t, got)
-	require.Equal(t, want, got, "Did not get expected database entry")
+	golden.CheckOrUpdateYAML(t, got)
 }

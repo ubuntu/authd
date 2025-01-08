@@ -215,8 +215,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
-			want := golden.LoadWithUpdate(t, got)
-			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
+			golden.CheckOrUpdate(t, got)
 
 			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, golden.Path(t)+".gpasswd_out")
 
@@ -305,8 +304,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			td.AddClientOptions(t, clientOptions{})
 			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
-			want := golden.LoadWithUpdate(t, got)
-			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
+			golden.CheckOrUpdate(t, got)
 
 			requireRunnerResult(t, authd.SessionMode_PASSWD, got)
 		})
