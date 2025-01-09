@@ -174,20 +174,9 @@ func initLogging(args map[string]string, flags pam.Flags) (func(), error) {
 		return resetFunc, nil
 	}
 
-	log.SetHandler(func(_ context.Context, level log.Level, format string, args ...interface{}) {
-		journalPriority := journal.PriInfo
-		switch level {
-		case log.DebugLevel:
-			journalPriority = journal.PriDebug
-		case log.InfoLevel:
-			journalPriority = journal.PriInfo
-		case log.WarnLevel:
-			journalPriority = journal.PriWarning
-		case log.ErrorLevel:
-			journalPriority = journal.PriErr
-		}
-		journal.Print(journalPriority, format, args...)
-	})
+	// Force logging to the journal because we're running as a PAM module and don't want to clutter the output of the
+	// program that has loaded us.
+	log.InitJournalHandler(true)
 
 	return func() {
 		resetFunc()
