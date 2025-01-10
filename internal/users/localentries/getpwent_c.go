@@ -90,6 +90,9 @@ var ErrUserNotFound = errors.New("user not found")
 
 // GetPasswdByName returns the user with the given name.
 func GetPasswdByName(name string) (Passwd, error) {
+	errnoMutex.Lock()
+	defer errnoMutex.Unlock()
+
 	C.unset_errno()
 	cPasswd := C.getpwnam(C.CString(name))
 	if cPasswd == nil {
