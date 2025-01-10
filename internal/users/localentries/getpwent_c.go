@@ -8,15 +8,6 @@ package localentries
 #include <pwd.h>
 #include <grp.h>
 #include <errno.h>
-#include <string.h>
-
-static void unset_errno(void) {
-  errno = 0;
-}
-
-static int get_errno(void) {
-  return errno;
-}
 */
 import "C"
 
@@ -38,17 +29,19 @@ var getpwentMu sync.Mutex
 func getPasswdEntry() (*C.struct_passwd, error) {
 	errnoMutex.Lock()
 	defer errnoMutex.Unlock()
-	C.unset_errno()
+
+	unsetErrno()
+
 	cPasswd := C.getpwent()
 	if cPasswd == nil {
-		errno := C.get_errno()
+		errno := getErrno()
 		// It's not documented in the man page, but apparently getpwent sets errno to ENOENT when there are no more
 		// entries in the passwd database.
 		if errno == C.ENOENT {
 			return nil, nil
 		}
 		if errno != 0 {
-			return nil, fmt.Errorf("getpwent: %v", C.GoString(C.strerror(errno)))
+			return nil, fmt.Errorf("getpwent: %v", errnoToError(errno))
 		}
 	}
 	return cPasswd, nil
@@ -93,15 +86,16 @@ func GetPasswdByName(name string) (Passwd, error) {
 	errnoMutex.Lock()
 	defer errnoMutex.Unlock()
 
-	C.unset_errno()
+	unsetErrno()
+
 	cPasswd := C.getpwnam(C.CString(name))
 	if cPasswd == nil {
-		errno := C.get_errno()
+		errno := getErrno()
 		switch errno {
 		case 0, C.ENOENT, C.ESRCH, C.EBADF, C.EPERM:
 			return Passwd{}, ErrUserNotFound
 		default:
-			return Passwd{}, fmt.Errorf("getpwnam: %v", C.GoString(C.strerror(errno)))
+			return Passwd{}, fmt.Errorf("getpwnam: %v", errnoToError(errno))
 		}
 	}
 

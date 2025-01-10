@@ -8,15 +8,6 @@ package localentries
 #include <pwd.h>
 #include <grp.h>
 #include <errno.h>
-#include <string.h>
-
-static void unset_errno(void) {
-  errno = 0;
-}
-
-static int get_errno(void) {
-  return errno;
-}
 */
 import "C"
 
@@ -39,17 +30,17 @@ func getGroupEntry() (*C.struct_group, error) {
 	errnoMutex.Lock()
 	defer errnoMutex.Unlock()
 
-	C.unset_errno()
+	unsetErrno()
 	cGroup := C.getgrent()
 	if cGroup == nil {
-		errno := C.get_errno()
+		errno := getErrno()
 		// It's not documented in the man page, but apparently getgrent sets errno to ENOENT when there are no more
 		// entries in the group database.
 		if errno == C.ENOENT {
 			return nil, nil
 		}
 		if errno != 0 {
-			return nil, fmt.Errorf("getgrent: %v", C.GoString(C.strerror(errno)))
+			return nil, fmt.Errorf("getgrent: %v", errnoToError(errno))
 		}
 	}
 	return cGroup, nil
@@ -94,15 +85,15 @@ func GetGroupByName(name string) (Group, error) {
 	errnoMutex.Lock()
 	defer errnoMutex.Unlock()
 
-	C.unset_errno()
+	unsetErrno()
 	cGroup := C.getgrnam(C.CString(name))
 	if cGroup == nil {
-		errno := C.get_errno()
+		errno := getErrno()
 		switch errno {
 		case 0, C.ENOENT, C.ESRCH, C.EBADF, C.EPERM:
 			return Group{}, ErrGroupNotFound
 		default:
-			return Group{}, fmt.Errorf("getgrnam: %v", C.GoString(C.strerror(errno)))
+			return Group{}, fmt.Errorf("getgrnam: %v", errnoToError(errno))
 		}
 	}
 
