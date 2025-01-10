@@ -15,6 +15,8 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+
+	"github.com/ubuntu/authd/internal/errno"
 )
 
 // Group represents a group entry.
@@ -27,20 +29,18 @@ type Group struct {
 var getgrentMu sync.Mutex
 
 func getGroupEntry() (*C.struct_group, error) {
-	errnoMutex.Lock()
-	defer errnoMutex.Unlock()
-
-	defer unsetErrno()
+	errno.Lock()
+	defer errno.Unlock()
 
 	cGroup := C.getgrent()
 	if cGroup != nil {
 		return cGroup, nil
 	}
 
-	err := getErrno()
+	err := errno.Get()
 	// It's not documented in the man page, but apparently getgrent sets errno to ENOENT when there are no more
 	// entries in the group database.
-	if errors.Is(err, errNoEnt) {
+	if errors.Is(err, errno.ErrNoEnt) {
 		return nil, nil
 	}
 	if err != nil {
@@ -85,19 +85,17 @@ var ErrGroupNotFound = errors.New("group not found")
 
 // GetGroupByName returns the group with the given name.
 func GetGroupByName(name string) (Group, error) {
-	errnoMutex.Lock()
-	defer errnoMutex.Unlock()
-
-	defer unsetErrno()
+	errno.Lock()
+	defer errno.Unlock()
 
 	cGroup := C.getgrnam(C.CString(name))
 	if cGroup == nil {
-		err := getErrno()
+		err := errno.Get()
 		if err == nil ||
-			errors.Is(err, errNoEnt) ||
-			errors.Is(err, errSrch) ||
-			errors.Is(err, errBadf) ||
-			errors.Is(err, errPerm) {
+			errors.Is(err, errno.ErrNoEnt) ||
+			errors.Is(err, errno.ErrSrch) ||
+			errors.Is(err, errno.ErrBadf) ||
+			errors.Is(err, errno.ErrPerm) {
 			return Group{}, ErrGroupNotFound
 		}
 		return Group{}, fmt.Errorf("getgrnam: %v", err)
