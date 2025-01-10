@@ -89,8 +89,7 @@ func TestUnmarshalUserInfo(t *testing.T) {
 			gotJSON, err := json.Marshal(got)
 			require.NoError(t, err, "Marshaling the result should not return an error, but did")
 
-			want := golden.LoadWithUpdate(t, string(gotJSON))
-			require.Equal(t, want, string(gotJSON), "unmarshalUserInfo should return the expected format, but did not")
+			golden.CheckOrUpdate(t, string(gotJSON))
 		})
 	}
 }

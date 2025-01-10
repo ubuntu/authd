@@ -155,8 +155,7 @@ func TestIntegration(t *testing.T) {
 				return
 			}
 
-			want := golden.LoadWithUpdate(t, got)
-			require.Equal(t, want, got, "Outputs must match")
+			golden.CheckOrUpdate(t, got)
 
 			// This is to check that some cache tasks, such as cleaning a corrupted database, work as expected.
 			if tc.wantSecondCall {

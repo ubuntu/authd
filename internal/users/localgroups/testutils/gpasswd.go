@@ -128,8 +128,7 @@ func RequireGPasswdOutput(t *testing.T, destCmdsFile, goldenGpasswdPath string) 
 	}
 
 	gotGPasswd := idempotentGPasswdOutput(t, destCmdsFile)
-	wantGPasswd := golden.LoadWithUpdate(t, gotGPasswd, golden.WithPath(goldenGpasswdPath))
-	require.Equal(t, wantGPasswd, gotGPasswd, "IsAuthenticated should return the expected combined data, but did not")
+	golden.CheckOrUpdate(t, gotGPasswd, golden.WithPath(goldenGpasswdPath))
 }
 
 // idempotentGPasswdOutput sort and trim spaces around mock gpasswd output.

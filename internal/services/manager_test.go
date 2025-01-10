@@ -69,8 +69,7 @@ func TestRegisterGRPCServices(t *testing.T) {
 			return cmp.Compare(a.Name, b.Name)
 		})
 	}
-	want := golden.LoadWithUpdateYAML(t, got)
-	requireEqualServices(t, want, got)
+	golden.CheckOrUpdateYAML(t, got)
 }
 
 func TestAccessAuthorization(t *testing.T) {
@@ -113,24 +112,6 @@ func TestAccessAuthorization(t *testing.T) {
 
 	err = conn.Close()
 	require.NoError(t, err, "Teardown: could not close the client connection")
-}
-
-// requireEqualServices asserts that the grpc services were registered as expected.
-//
-// This is needed because the order of the methods and the services is not guaranteed.
-func requireEqualServices(t *testing.T, want, got map[string]grpc.ServiceInfo) {
-	t.Helper()
-
-	for name, wantInfo := range want {
-		gotInfo, ok := got[name]
-		if !ok {
-			t.Error("Expected services to match, but didn't")
-			return
-		}
-		require.ElementsMatch(t, wantInfo.Methods, gotInfo.Methods, "Expected methods to match, but didn't")
-		delete(got, name)
-	}
-	require.Empty(t, got, "Expected no extra services, but got %v", got)
 }
 
 func TestMain(m *testing.M) {

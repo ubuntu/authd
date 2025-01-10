@@ -23,7 +23,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
-	"gopkg.in/yaml.v3"
 )
 
 func TestNewService(t *testing.T) {
@@ -368,8 +367,7 @@ func requireExpectedResult[T authd.PasswdEntry | authd.GroupEntry | authd.Shadow
 	}
 	require.NoError(t, err, fmt.Sprintf("%s should not return an error, but did", funcName))
 
-	want := golden.LoadWithUpdateYAML(t, got)
-	requireExportedEquals(t, want, got, fmt.Sprintf("%s should return the expected entry, but did not", funcName))
+	golden.CheckOrUpdateYAML(t, got)
 }
 
 // requireExpectedEntriesResult asserts expected behaviour from any get* NSS request returning a list and can update them from golden content.
@@ -385,29 +383,7 @@ func requireExpectedEntriesResult[T authd.PasswdEntry | authd.GroupEntry | authd
 	}
 	require.NoError(t, err, fmt.Sprintf("%s should not return an error, but did", funcName))
 
-	want := golden.LoadWithUpdateYAML(t, got)
-	if len(want) != len(got) {
-		require.Equal(t, len(want), len(got), "Not the expected number of elements in the list. Wanted: %v\nGot: %v", want, got)
-	}
-	for i, e := range got {
-		requireExportedEquals(t, want[i], e, fmt.Sprintf("%s should return the expected entry in the list, but did not", funcName))
-	}
-}
-
-// requireExportedEquals compare *want to *got, only using the exported fields.
-// It helps ensuring that we don’t end up in a lockcopy vetting warning when we directly
-// compare the exported fields with require.EqualExportedValues.
-func requireExportedEquals[T authd.PasswdEntry | authd.GroupEntry | authd.ShadowEntry](t *testing.T, want *T, got *T, msg string) {
-	t.Helper()
-
-	data, err := yaml.Marshal(got)
-	require.NoError(t, err, "Setup: could not encode got")
-
-	var exportedGotOnly *T
-	err = yaml.Unmarshal(data, &exportedGotOnly)
-	require.NoError(t, err, "Setup: could not decode got")
-
-	require.Equal(t, want, exportedGotOnly, msg)
+	golden.CheckOrUpdateYAML(t, got)
 }
 
 func TestMain(m *testing.M) {

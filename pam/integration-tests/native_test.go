@@ -336,8 +336,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
-			want := golden.LoadWithUpdate(t, got)
-			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
+			golden.CheckOrUpdate(t, got)
 
 			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, golden.Path(t)+".gpasswd_out")
 
@@ -433,8 +432,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			td.AddClientOptions(t, clientOptions{})
 			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
-			want := golden.LoadWithUpdate(t, got)
-			require.Equal(t, want, got, "Output of tape %q does not match golden file", tc.tape)
+			golden.CheckOrUpdate(t, got)
 
 			if !tc.skipRunnerCheck {
 				requireRunnerResult(t, authd.SessionMode_PASSWD, got)
