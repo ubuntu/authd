@@ -1,17 +1,25 @@
 package adapter
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"math"
 	"os"
 	"sync"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/x/term"
 	"github.com/msteinert/pam/v2"
+	"github.com/ubuntu/authd/log"
 )
 
 var (
 	isSSHSessionValue bool
 	isSSHSessionOnce  sync.Once
+
+	isTerminalTTYValue bool
+	isTerminalTTYOnce  sync.Once
 )
 
 // convertTo converts an interface I value to T. It will panic (progamming error) if this is not the case.
@@ -63,6 +71,48 @@ func isSSHSessionFunc(mTx pam.ModuleTransaction) bool {
 func isSSHSession(mTx pam.ModuleTransaction) bool {
 	isSSHSessionOnce.Do(func() { isSSHSessionValue = isSSHSessionFunc(mTx) })
 	return isSSHSessionValue
+}
+
+func getPamTTY(mTx pam.ModuleTransaction) (*os.File, func(), error) {
+	pamTTY, err := mTx.GetItem(pam.Tty)
+	if err != nil {
+		return nil, nil, err
+	}
+	if pamTTY == "" {
+		return nil, func() {}, nil
+	}
+
+	tty, err := os.OpenFile(pamTTY, os.O_RDWR, 0600)
+	if err != nil {
+		return nil, nil, err
+	}
+	cleanup := func() { tty.Close() }
+
+	// We check the fd could be passed to x/term to decide if we should fallback to stdin
+	if tty.Fd() > math.MaxInt {
+		defer cleanup()
+		return nil, nil, fmt.Errorf("unexpected large PAM TTY fd: %d", tty.Fd())
+	}
+
+	return tty, cleanup, nil
+}
+
+// IsTerminalTTY returns whether the [pam.Tty] or the [os.Stdin] is a terminal TTY.
+func IsTerminalTTY(mTx pam.ModuleTransaction) bool {
+	isTerminalTTYOnce.Do(func() {
+		tty, cleanup, err := getPamTTY(mTx)
+		if err != nil {
+			log.Warningf(context.TODO(), "Failed to open PAM TTY: %s", err)
+		}
+		if tty == nil {
+			tty = os.Stdin
+		}
+		if cleanup != nil {
+			defer cleanup()
+		}
+		isTerminalTTYValue = term.IsTerminal(tty.Fd())
+	})
+	return isTerminalTTYValue
 }
 
 func maybeSendPamError(err error) tea.Cmd {

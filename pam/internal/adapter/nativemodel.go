@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math"
 	"os"
 	"slices"
 	"strconv"
@@ -22,7 +21,6 @@ import (
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/authd/pam/internal/proto"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
-	"golang.org/x/term"
 )
 
 type nativeModel struct {
@@ -90,7 +88,7 @@ func (m *nativeModel) Init() tea.Cmd {
 		log.Errorf(context.TODO(), "failed to get the PAM service: %v", err)
 	}
 
-	m.interactive = isSSHSession(m.pamMTx) || m.isTerminalTty()
+	m.interactive = isSSHSession(m.pamMTx) || IsTerminalTTY(m.pamMTx)
 	rendersQrCode := m.isQrcodeRenderingSupported()
 
 	return func() tea.Msg {
@@ -663,41 +661,6 @@ func (m nativeModel) promptForChallenge(prompt string) (string, error) {
 	}
 }
 
-func (m nativeModel) getPamTty() (*os.File, error) {
-	pamTty, err := m.pamMTx.GetItem(pam.Tty)
-	if err != nil {
-		return nil, err
-	}
-
-	if pamTty == "" {
-		return nil, errors.New("no PAM_TTY value set")
-	}
-
-	f, err := os.OpenFile(pamTty, os.O_RDWR, 0600)
-	if err != nil {
-		return nil, err
-	}
-
-	return f, nil
-}
-
-func (m nativeModel) isTerminalTty() bool {
-	tty, err := m.getPamTty()
-	// We check the fd could be passed to x/term to decide if we should fallback to stdin
-	if err == nil {
-		defer tty.Close()
-		if tty.Fd() > math.MaxInt {
-			err = fmt.Errorf("unexpected large PAM TTY fd: %d", tty.Fd())
-		}
-	}
-	if err != nil {
-		log.Debugf(context.TODO(), "Failed to open PAM TTY: %s", err)
-		tty = os.Stdin
-	}
-
-	return term.IsTerminal(int(tty.Fd()))
-}
-
 func (m nativeModel) renderQrCode(qrCode *qrcode.QRCode) (qr string) {
 	defer func() { qr = strings.TrimRight(qr, "\n") }()
 
@@ -782,7 +745,7 @@ func (m nativeModel) isQrcodeRenderingSupported() bool {
 		if isSSHSession(m.pamMTx) {
 			return false
 		}
-		return m.isTerminalTty()
+		return IsTerminalTTY(m.pamMTx)
 	}
 }
 
