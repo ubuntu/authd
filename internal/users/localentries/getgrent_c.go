@@ -30,7 +30,8 @@ func getGroupEntry() (*C.struct_group, error) {
 	errnoMutex.Lock()
 	defer errnoMutex.Unlock()
 
-	unsetErrno()
+	defer unsetErrno()
+
 	cGroup := C.getgrent()
 	if cGroup == nil {
 		errno := getErrno()
@@ -85,7 +86,8 @@ func GetGroupByName(name string) (Group, error) {
 	errnoMutex.Lock()
 	defer errnoMutex.Unlock()
 
-	unsetErrno()
+	defer unsetErrno()
+
 	cGroup := C.getgrnam(C.CString(name))
 	if cGroup == nil {
 		errno := getErrno()
