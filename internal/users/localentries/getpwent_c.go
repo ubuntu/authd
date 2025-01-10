@@ -33,16 +33,18 @@ func getPasswdEntry() (*C.struct_passwd, error) {
 	defer unsetErrno()
 
 	cPasswd := C.getpwent()
-	if cPasswd == nil {
-		errno := getErrno()
-		// It's not documented in the man page, but apparently getpwent sets errno to ENOENT when there are no more
-		// entries in the passwd database.
-		if errno == C.ENOENT {
-			return nil, nil
-		}
-		if errno != 0 {
-			return nil, fmt.Errorf("getpwent: %v", errnoToError(errno))
-		}
+	if cPasswd != nil {
+		return cPasswd, nil
+	}
+
+	err := getErrno()
+	// It's not documented in the man page, but apparently getpwent sets errno to ENOENT when there are no more
+	// entries in the passwd database.
+	if errors.Is(err, errNoEnt) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("getpwent: %v", err)
 	}
 	return cPasswd, nil
 }
@@ -90,13 +92,15 @@ func GetPasswdByName(name string) (Passwd, error) {
 
 	cPasswd := C.getpwnam(C.CString(name))
 	if cPasswd == nil {
-		errno := getErrno()
-		switch errno {
-		case 0, C.ENOENT, C.ESRCH, C.EBADF, C.EPERM:
+		err := getErrno()
+		if err == nil ||
+			errors.Is(err, errNoEnt) ||
+			errors.Is(err, errSrch) ||
+			errors.Is(err, errBadf) ||
+			errors.Is(err, errPerm) {
 			return Passwd{}, ErrUserNotFound
-		default:
-			return Passwd{}, fmt.Errorf("getpwnam: %v", errnoToError(errno))
 		}
+		return Passwd{}, fmt.Errorf("getpwnam: %v", err)
 	}
 
 	return Passwd{

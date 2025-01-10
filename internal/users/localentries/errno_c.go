@@ -15,8 +15,20 @@ static int get_errno(void) {
 import "C"
 
 import (
-	"errors"
 	"sync"
+)
+
+type errnoError C.int
+
+func (errno errnoError) Error() string {
+	return C.GoString(C.strerror(C.int(errno)))
+}
+
+const (
+	errNoEnt errnoError = C.ENOENT
+	errSrch  errnoError = C.ESRCH
+	errBadf  errnoError = C.EBADF
+	errPerm  errnoError = C.EPERM
 )
 
 // All these functions are expected to be called while this mutex is locked.
@@ -26,10 +38,9 @@ func unsetErrno() {
 	C.unset_errno()
 }
 
-func getErrno() C.int {
-	return C.get_errno()
-}
-
-func errnoToError(errno C.int) error {
-	return errors.New(C.GoString(C.strerror(errno)))
+func getErrno() error {
+	if errno := C.get_errno(); errno != 0 {
+		return errnoError(errno)
+	}
+	return nil
 }

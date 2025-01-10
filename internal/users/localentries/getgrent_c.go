@@ -33,16 +33,18 @@ func getGroupEntry() (*C.struct_group, error) {
 	defer unsetErrno()
 
 	cGroup := C.getgrent()
-	if cGroup == nil {
-		errno := getErrno()
-		// It's not documented in the man page, but apparently getgrent sets errno to ENOENT when there are no more
-		// entries in the group database.
-		if errno == C.ENOENT {
-			return nil, nil
-		}
-		if errno != 0 {
-			return nil, fmt.Errorf("getgrent: %v", errnoToError(errno))
-		}
+	if cGroup != nil {
+		return cGroup, nil
+	}
+
+	err := getErrno()
+	// It's not documented in the man page, but apparently getgrent sets errno to ENOENT when there are no more
+	// entries in the group database.
+	if errors.Is(err, errNoEnt) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("getgrent: %v", err)
 	}
 	return cGroup, nil
 }
@@ -90,13 +92,15 @@ func GetGroupByName(name string) (Group, error) {
 
 	cGroup := C.getgrnam(C.CString(name))
 	if cGroup == nil {
-		errno := getErrno()
-		switch errno {
-		case 0, C.ENOENT, C.ESRCH, C.EBADF, C.EPERM:
+		err := getErrno()
+		if err == nil ||
+			errors.Is(err, errNoEnt) ||
+			errors.Is(err, errSrch) ||
+			errors.Is(err, errBadf) ||
+			errors.Is(err, errPerm) {
 			return Group{}, ErrGroupNotFound
-		default:
-			return Group{}, fmt.Errorf("getgrnam: %v", errnoToError(errno))
 		}
+		return Group{}, fmt.Errorf("getgrnam: %v", err)
 	}
 
 	return Group{
