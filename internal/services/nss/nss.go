@@ -50,12 +50,14 @@ func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetPasswdByName
 	}
 
 	if !errors.Is(err, users.NoDataFoundError{}) || !req.GetShouldPreCheck() {
+		log.Debugf(context.Background(), "GetPasswdByName: %v", err)
 		return nil, noDataFoundErrorToGRPCError(err)
 	}
 
 	// If the user is not found in the database, we check if it exists in at least one broker.
 	pwent, err := s.userPreCheck(ctx, req.GetName())
 	if err != nil {
+		log.Debugf(context.Background(), "GetPasswdByName: %v", err)
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
