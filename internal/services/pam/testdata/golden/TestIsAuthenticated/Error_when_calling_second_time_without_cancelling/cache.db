@@ -1,14 +1,14 @@
 users:
-    - name: TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call
+    - name: testisauthenticated/error_when_calling_second_time_without_cancelling_separator_ia_second_call
       uid: 1111
       gid: 1111
       gecos: gecos for IA_second_call
       dir: /home/IA_second_call
       shell: /bin/sh/IA_second_call
 groups:
-    - name: TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call
+    - name: testisauthenticated/error_when_calling_second_time_without_cancelling_separator_ia_second_call
       gid: 1111
-      ugid: TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call
+      ugid: testisauthenticated/error_when_calling_second_time_without_cancelling_separator_ia_second_call
     - name: group-IA_second_call
       gid: 2222
       ugid: ugid-IA_second_call

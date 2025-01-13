@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/user"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -111,6 +112,9 @@ func (m *Manager) Stop() error {
 // UpdateUser updates the user information in the db.
 func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	defer decorate.OnError(&err, "failed to update user %q", u.Name)
+
+	// authd uses lowercase usernames
+	u.Name = strings.ToLower(u.Name)
 
 	if u.Name == "" {
 		return errors.New("empty username")
