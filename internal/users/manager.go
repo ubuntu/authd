@@ -113,6 +113,8 @@ func (m *Manager) Stop() error {
 func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	defer decorate.OnError(&err, "failed to update user %q", u.Name)
 
+	log.Debugf(context.TODO(), "Updating user %q", u.Name)
+
 	// authd uses lowercase usernames
 	u.Name = strings.ToLower(u.Name)
 
