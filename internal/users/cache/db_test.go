@@ -136,6 +136,15 @@ func TestUpdateUserEntry(t *testing.T) {
 			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
 			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
+		"user1-in-caps": {
+			Name:  "User1",
+			UID:   1111,
+			Gecos: "User1 gecos\nOn multiple lines",
+			Dir:   "/home/user1",
+			Shell: "/bin/bash",
+			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
+		},
 		"user3": {
 			Name:  "user3",
 			UID:   3333,
@@ -171,6 +180,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Update user by changing attributes":                      {userCase: "user1-new-attributes", dbFile: "one_user_and_group"},
 		"Update user does not change homedir if it exists":        {userCase: "user1-new-homedir", dbFile: "one_user_and_group"},
 		"Update user by removing optional gecos field if not set": {userCase: "user1-without-gecos", dbFile: "one_user_and_group"},
+		"Updating user with different capitalization":             {userCase: "user1-in-caps", dbFile: "one_user_and_group"},
 
 		// Group updates
 		"Update user by adding a new group":         {groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group"},

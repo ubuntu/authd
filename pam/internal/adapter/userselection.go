@@ -3,6 +3,7 @@ package adapter
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/charmbracelet/bubbles/cursor"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -148,7 +149,8 @@ func (m userSelectionModel) Username() string {
 	if m.clientType == InteractiveTerminal && !m.selected {
 		return ""
 	}
-	return m.Model.Value()
+	// authd uses lowercase usernames
+	return strings.ToLower(m.Model.Value())
 }
 
 // Focus sets the focus state on the model. We also mark as the user is not

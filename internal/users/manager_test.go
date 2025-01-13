@@ -97,10 +97,11 @@ func TestStop(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	userCases := map[string]users.UserInfo{
-		"user1":                   {Name: "user1", UID: 1111},
-		"user2":                   {Name: "user2", UID: 2222},
-		"same-name-different-uid": {Name: "user1", UID: 3333},
-		"different-name-same-uid": {Name: "newuser1", UID: 1111},
+		"user1":                             {Name: "user1", UID: 1111},
+		"user2":                             {Name: "user2", UID: 2222},
+		"same-name-different-uid":           {Name: "user1", UID: 3333},
+		"different-name-same-uid":           {Name: "newuser1", UID: 1111},
+		"different-capitalization-same-uid": {Name: "User1", UID: 1111},
 	}
 
 	groupsCases := map[string][]users.GroupInfo{
@@ -134,9 +135,10 @@ func TestUpdateUser(t *testing.T) {
 		noOutput    bool
 		wantSameUID bool
 	}{
-		"Successfully update user":                       {groupsCase: "cloud-group"},
-		"Successfully update user updating local groups": {groupsCase: "mixed-groups-cloud-first", localGroupsFile: "users_in_groups.group"},
-		"UID does not change if user already exists":     {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
+		"Successfully update user":                               {groupsCase: "cloud-group"},
+		"Successfully update user updating local groups":         {groupsCase: "mixed-groups-cloud-first", localGroupsFile: "users_in_groups.group"},
+		"UID does not change if user already exists":             {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
+		"Successfully update user with different capitalization": {userCase: "different-capitalization-same-uid", dbFile: "one_user_and_group"},
 
 		"Error if user has no username":      {userCase: "nameless", wantErr: true, noOutput: true},
 		"Error if user has conflicting uid":  {userCase: "different-name-same-uid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
