@@ -113,12 +113,13 @@ type groupCase struct {
 
 func TestUpdateUser(t *testing.T) {
 	userCases := map[string]userCase{
-		"user1":                   {UserInfo: types.UserInfo{Name: "user1"}, UID: 1111},
-		"nameless":                {UID: 1111},
-		"user2":                   {UserInfo: types.UserInfo{Name: "user2"}, UID: 2222},
-		"same-name-different-uid": {UserInfo: types.UserInfo{Name: "user1"}, UID: 3333},
-		"different-name-same-uid": {UserInfo: types.UserInfo{Name: "newuser1"}, UID: 1111},
-		"user-exists-on-system":   {UserInfo: types.UserInfo{Name: "root"}, UID: 1111},
+		"user1":                             {UserInfo: types.UserInfo{Name: "user1"}, UID: 1111},
+		"nameless":                          {UID: 1111},
+		"user2":                             {UserInfo: types.UserInfo{Name: "user2"}, UID: 2222},
+		"same-name-different-uid":           {UserInfo: types.UserInfo{Name: "user1"}, UID: 3333},
+		"different-name-same-uid":           {UserInfo: types.UserInfo{Name: "newuser1"}, UID: 1111},
+		"different-capitalization-same-uid": {UserInfo: types.UserInfo{Name: "User1"}, UID: 1111},
+		"user-exists-on-system":             {UserInfo: types.UserInfo{Name: "root"}, UID: 1111},
 	}
 
 	groupsCases := map[string][]groupCase{
@@ -158,6 +159,7 @@ func TestUpdateUser(t *testing.T) {
 		"Successfully_update_user":                                          {groupsCase: "authd-group"},
 		"Successfully_update_user_updating_local_groups":                    {groupsCase: "mixed-groups-authd-first", localGroupsFile: "users_in_groups.group"},
 		"UID_does_not_change_if_user_already_exists":                        {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
+		"Successfully update user with different capitalization":            {userCase: "different-capitalization-same-uid", dbFile: "one_user_and_group"},
 		"GID_does_not_change_if_group_with_same_UGID_exists":                {groupsCase: "different-name-same-ugid", dbFile: "one_user_and_group"},
 		"GID_does_not_change_if_group_with_same_name_and_empty_UGID_exists": {groupsCase: "authd-group", dbFile: "group-with-empty-UGID"},
 		"Removing_last_user_from_a_group_keeps_the_group_record":            {groupsCase: "no-groups", dbFile: "one_user_and_group"},
