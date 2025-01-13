@@ -1,5 +1,5 @@
 users:
-    - name: TestIsAuthenticated/Update_existing_DB_on_success_separator_success
+    - name: testisauthenticated/update_existing_db_on_success_separator_success
       uid: 1111
       gid: 1111
       gecos: gecos for success
@@ -13,9 +13,9 @@ users:
       shell: /bin/sh/otheruser
       broker_id: broker-id
 groups:
-    - name: TestIsAuthenticated/Update_existing_DB_on_success_separator_success
+    - name: testisauthenticated/update_existing_db_on_success_separator_success
       gid: 1111
-      ugid: TestIsAuthenticated/Update_existing_DB_on_success_separator_success
+      ugid: testisauthenticated/update_existing_db_on_success_separator_success
     - name: group-success
       gid: 88888
       ugid: ugid-success

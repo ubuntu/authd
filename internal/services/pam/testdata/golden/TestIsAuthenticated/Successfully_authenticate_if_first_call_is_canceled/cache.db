@@ -1,14 +1,14 @@
 users:
-    - name: TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call
+    - name: testisauthenticated/successfully_authenticate_if_first_call_is_canceled_separator_ia_second_call
       uid: 1111
       gid: 1111
       gecos: gecos for IA_second_call
       dir: /home/IA_second_call
       shell: /bin/sh/IA_second_call
 groups:
-    - name: TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call
+    - name: testisauthenticated/successfully_authenticate_if_first_call_is_canceled_separator_ia_second_call
       gid: 1111
-      ugid: TestIsAuthenticated/Successfully_authenticate_if_first_call_is_canceled_separator_IA_second_call
+      ugid: testisauthenticated/successfully_authenticate_if_first_call_is_canceled_separator_ia_second_call
     - name: group-IA_second_call
       gid: 2222
       ugid: ugid-IA_second_call
