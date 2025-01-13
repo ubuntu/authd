@@ -2,18 +2,23 @@
 
 ## Broker discovery
 
-Create the directory that will contain the declaration files of the broker and copy the one from the Entra ID broker snap package:
+Create the directory that will contain the declaration files of the broker and copy the one from a broker snap package, with a specific `<broker_name>`, such as `google` or `msentraid`:
 
 ```shell
 sudo mkdir -p /etc/authd/brokers.d/
-sudo cp /snap/authd-msentraid/current/conf/authd/msentraid.conf /etc/authd/brokers.d/
+sudo cp /snap/authd-<broker_name>/current/conf/authd/<broker_name>.conf /etc/authd/brokers.d/
 ```
 
 This file is used to declare the brokers available on the system. Several brokers can be enabled at the same time.
 
-## Entra ID configuration
+## Application registration
 
-Register a new application in the Microsoft Azure portal. Once the application is registered, note the `Application (client) ID` and the `Directory (tenant) ID` from the `Overview` menu. These IDs are respectively the `<CLIENT_ID>` and `<ISSUER_ID>` used in the broker configuration file described in this document.
+In this section we are going to register an OAuth 2.0 application that the broker can use to authenticate users.
+The registration process for both Entra ID and Google IAM will be demonstrated.
+
+### Entra ID
+
+Register a new application in the Microsoft Azure portal. Once the application is registered, note the `Application (client) ID` and the `Directory (tenant) ID` from the `Overview` menu. These IDs are respectively a `<CLIENT_ID>` and `<ISSUER_ID>` that will be used in the next section.
 
 To register a new application, in Entra, select the menu `Identity > Applications > App registration`
 
@@ -37,25 +42,54 @@ Finally, as the supported authentication mechanism is the device workflow, you n
 
 [The Microsoft documentation](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) provides detailed instructions for registering an application with the Microsoft identity platform.
 
+### Google IAM
+
+Register a new application in Google IAM. Once the application is registered, note the `Client ID` and the `Client secret`. These values are respectively the `<CLIENT_ID>` and `<CLIENT_SECRET>` that will be used in the next section.
+
+To register a new application go to the [Credentials page](https://console.cloud.google.com/apis/credentials).
+
+Click `Create credentials > OAuth client ID`.
+
+![Menu showing selection of Create credentials > OAuth client ID.](../assets/google-app-registration.png)
+
+Select the `TVs and Limited Input devices` application type.
+
+![Menu showing app type.](../assets/google-choose-app-type.png)
+
+Name your OAuth 2.0 client and click `Create`.
+
+Your app's `Client ID` and `Client Secret` will be shown on your page, store them somewhere as you will need them in the next step.
+
+![Screen showing app credentials.](../assets/google-app-credentials.png)
+
+For more detailed information please refer to the [OAuth 2.0 for TV and Limited-Input Device Applications documentation](https://developers.google.com/identity/protocols/oauth2/limited-input-device).
+
 ## Broker configuration
 
-To configure the broker, edit the file `/var/snap/authd-msentraid/current/broker.conf`:
+Now we can configure the broker. Note that different brokers can require different configuration data.
+
+### Entra ID
+
+To configure Entra ID, edit  `/var/snap/authd-msentraid/current/broker.conf`:
 
 ```ini
 [oidc]
-issuer = https://login.microsoftonline.com/<ISSUER_ID>/v2.0
+issuer = <ISSUER_URL>
 client_id = <CLIENT_ID>
-
-[users]
-## The directory where the home directory will be created for new users.
-## Existing users will keep their current directory.
-## The user home directory will be created in the format of {home_base_dir}/{username}
-#home_base_dir = /home
-
-## The username suffixes that are allowed to login via ssh without existing previously in the system.
-## The suffixes must be separated by commas.
-#ssh_allowed_suffixes = @example.com,@anotherexample.com
 ```
+
+### Google IAM
+
+To configure Google IAM, edit  `/var/snap/authd-google/current/broker.conf`:
+
+```ini
+[oidc]
+issuer = https://accounts.google.com
+client_id = <CLIENT_ID>
+client_secret = <CLIENT_SECRET>
+```
+
+## Restart the broker
 
 When a configuration file is added you have to restart authd:
 
@@ -63,10 +97,16 @@ When a configuration file is added you have to restart authd:
 sudo systemctl restart authd
 ```
 
-When the configuration of a broker is updated, you have to restart the broker:
+When the configuration of an `msentraid` broker is updated, you have to restart the broker:
 
 ```shell
 sudo snap restart authd-msentraid
+```
+
+When the configuration of a `google` broker is updated, you have to restart the broker:
+
+```shell
+sudo snap restart authd-google
 ```
 
 ## System configuration

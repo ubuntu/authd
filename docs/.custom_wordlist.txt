@@ -26,6 +26,7 @@ mountpoint
 msentraid
 NFS
 nss
+OAuth
 OIDC
 OpenID
 ppa

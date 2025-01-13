@@ -49,7 +49,7 @@ body:
     attributes:
       label: "System information and logs"
       description: |
-        Provide details about the environment you experienced the issue in. Change msentraid for the provider you are using:
+        Provide details about the environment you experienced the issue in.
       value: |
         ### Environment
         * broker version: please run `snap info authd-msentraid`
@@ -73,20 +73,38 @@ body:
         journalctl -u snap.authd-msentraid.authd-msentraid.service
         ```
 
+        ####  Google broker entries:
+
+        ```raw
+        journalctl -u snap.authd-google.authd-google.service
+        ```
+
         ### Application settings
 
         Please redact/remove sensitive information:
 
-        ####  Broker configuration:
+        ####  MS Entra ID broker configuration:
 
         ```raw
         cat /var/snap/authd-msentraid/current/broker.conf
         ```
 
-        ####  Broker authd configuration:
+        ####  MS Entra ID broker authd configuration:
 
         ```raw
         cat /etc/authd/brokers.d/msentraid.conf
+        ```
+
+        ####  Google broker configuration:
+
+        ```raw
+        cat /var/snap/authd-google/current/broker.conf
+        ```
+
+        ####  Google broker authd configuration:
+
+        ```raw
+        cat /etc/authd/brokers.d/google.conf
         ```
 
   - type: textarea

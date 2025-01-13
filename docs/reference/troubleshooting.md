@@ -10,10 +10,10 @@ For ```authd``` entries, run:
 journalctl -u authd.service
 ```
 
-For the MS Entra ID broker entries, run:
+For the broker entries, substitute `<broker_name>` with your broker's name and run:
 
 ```shell
-journalctl -u snap.authd-msentraid.authd-msentraid.service
+journalctl -u snap.authd-<broker_name>.authd-<broker_name>.service
 ```
 
 For the GDM integration:
@@ -68,12 +68,12 @@ Enable=true
 
 Then you need to restart the service with `sudo systemctl restart gdm`.
 
-#### authd-msentraid service
+#### authd broker service
 
 To increase the verbosity of the broker service, edit the service file:
 
 ```shell
-sudo systemctl edit snap.authd-msentraid.authd-msentraid.service
+sudo systemctl edit snap.authd-<broker_name>.authd-<broker_name>.service
 ```
 
 Add the following lines to the override file and make sure to add `-vv` to the exec command:
@@ -81,25 +81,25 @@ Add the following lines to the override file and make sure to add `-vv` to the e
 ```
 [Service]
 ExecStart=
-ExecStart=/usr/bin/snap run authd-msentraid -vv
+ExecStart=/usr/bin/snap run authd-<broker_name> -vv
 ```
 
-You will then need to restart the service with `snap restart authd-msentraid`.
+You will then need to restart the service with `snap restart authd-<broker_name>`.
 
 ## Switch the snap to the edge channel
 
 Maybe your issue is already fixed! You should try switching to the edge channel of the broker snap. You can easily do that with:
 
 ```shell
-snap switch authd-msentraid --edge
-snap refresh authd-msentraid
+snap switch authd-<broker_name> --edge
+snap refresh authd-<broker_name>
 ```
 
-Keep in mind that this version is not tested and may be incompatible with current released version of authd. You should switch back to stable after trying the edge channel:
+Keep in mind that this version is not tested and may be incompatible with the current released version of authd. You should switch back to stable after trying the edge channel:
 
 ```shell
-snap switch authd-msentraid --stable
-snap refresh authd-msentraid
+snap switch authd-<broker_name> --stable
+snap refresh authd-<broker_name>
 ```
 
 ## Common issues and limitations
