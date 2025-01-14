@@ -13,7 +13,7 @@ import (
 	"sync"
 
 	"github.com/godbus/dbus/v5"
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
 )
 

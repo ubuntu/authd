@@ -12,7 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/ubuntu/authd/internal/consts"
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
 )
 

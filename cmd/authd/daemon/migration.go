@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/ubuntu/authd/internal/fileutils"
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/log"
 )
 
 func migrateOldCacheDir(oldPath, newPath string) error {

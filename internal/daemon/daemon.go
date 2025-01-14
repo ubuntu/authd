@@ -9,7 +9,7 @@ import (
 
 	"github.com/coreos/go-systemd/v22/activation"
 	"github.com/coreos/go-systemd/v22/daemon"
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
 	"google.golang.org/grpc"
 )

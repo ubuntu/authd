@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/ubuntu/authd/examplebroker"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/log"
 )
 
 // useExampleBrokers starts a mock system bus and exports the examplebroker in it.
