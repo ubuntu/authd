@@ -54,6 +54,9 @@ func New() *App {
 		Long:/*i18n.G(*/ "Authentication daemon bridging the system with external brokers.", /*)*/
 		Args:                                                                                cobra.NoArgs,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// First thing, initialize the journal handler
+			log.InitJournalHandler(false)
+
 			// Command parsing has been successful. Returns to not print usage anymore.
 			a.rootCmd.SilenceUsage = true
 			// TODO: before or after?  cmd.LocalFlags()
