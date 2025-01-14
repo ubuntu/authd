@@ -6,8 +6,8 @@ import (
 	"fmt"
 
 	"github.com/godbus/dbus/v5"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/services/errmessages"
+	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
 	"gopkg.in/ini.v1"
 )

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/log"
 	"go.etcd.io/bbolt"
 )
 

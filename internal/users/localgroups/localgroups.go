@@ -12,8 +12,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/sliceutils"
+	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
 )
 

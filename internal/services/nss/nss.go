@@ -9,10 +9,10 @@ import (
 	"math"
 
 	"github.com/ubuntu/authd/internal/brokers"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
+	"github.com/ubuntu/authd/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

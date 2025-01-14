@@ -11,9 +11,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/users/cache"
 	"github.com/ubuntu/authd/internal/users/localgroups"
+	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
 )
 

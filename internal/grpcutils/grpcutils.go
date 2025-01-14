@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/ubuntu/authd/internal/consts"
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/log"
 	"google.golang.org/grpc"
 	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
 )

@@ -9,7 +9,7 @@ import (
 	"syscall"
 
 	"github.com/ubuntu/authd/cmd/authd/daemon"
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/log"
 )
 
 //FIXME go:generate go run ../generate_completion_documentation.go completion ../../generated

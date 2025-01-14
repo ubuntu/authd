@@ -4,7 +4,7 @@ import (
 	"context"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ubuntu/authd/internal/log"
+	"github.com/ubuntu/authd/log"
 )
 
 type authReselectButtonModel struct {

@@ -13,8 +13,8 @@ import (
 	"github.com/godbus/dbus/v5"
 	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
-	"github.com/ubuntu/authd/internal/log"
 	"github.com/ubuntu/authd/internal/users"
+	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
 	"golang.org/x/exp/slices"
 )
