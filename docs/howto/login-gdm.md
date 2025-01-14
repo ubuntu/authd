@@ -25,24 +25,6 @@ Upon successful authentication, the user is prompted to enter a local password. 
 
 ![Prompt to create local password on successful authentication.](../assets/gdm-pass.png)
 
-## Group management
-
-In our example the user `authd test` is a member of the Azure groups `Azure_OIDC_Test` and `linux-sudo`:
-
-![Azure portal interface showing the Azure groups.](../assets/gdm-groups.png)
-
-This translates to the following unix groups on the local machine:
-
-```shell
-~$ groups
-aadtest-testauthd@uaadtest.onmicrosoft.com sudo azure_oidc_test
-```
-
-There are three types of groups:
-1. **Primary group**: Created automatically based on the user name
-1. **Local group**: Group local to the machine prefixed with `linux-`. For instance if the user is a member of the Azure group `linux-sudo`, they will be a member of the `sudo` group locally.
-1. **Remote group**: All the other Azure groups the user is a member of.
-
 ## Commands
 
 ### authd
