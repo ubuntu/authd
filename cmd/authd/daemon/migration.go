@@ -68,7 +68,7 @@ func maybeMigrateBBoltToSQLite(dbDir string) (migrated bool, err error) {
 		return false, nil
 	}
 
-	if err := db.MigrateData(dbDir); err != nil {
+	if err := db.MigrateFromBBoltToSQLite(dbDir); err != nil {
 		return false, fmt.Errorf("failed to migrate data: %w", err)
 	}
 
