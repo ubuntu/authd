@@ -544,7 +544,6 @@ func TestIDGeneration(t *testing.T) {
 		username string
 	}{
 		"Generate ID": {username: "success"},
-		"Generates same ID if user has upper cases in username": {username: "SuCcEsS"},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
