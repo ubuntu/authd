@@ -18,6 +18,7 @@ env:
   test_apt_deps: >-
     cracklib-runtime
     ffmpeg
+    git-delta
     openssh-client
     openssh-server
 
