@@ -207,7 +207,7 @@ func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeNa
 		return map[string]string{}, nil
 	}
 	// Should never get here
-	return map[string]string{}, nil
+	return map[string]string{}, dbus.MakeFailedError(fmt.Errorf("broker %q: unknown sessionID %q", b.name, sessionID))
 }
 
 // IsAuthenticated returns default values to be used in tests or an error if requested.
