@@ -7,10 +7,10 @@ func (m *Manager) Path() string {
 
 // GetCreateSchemaQuery exposes the query to create the schema for testing.
 func GetCreateSchemaQuery() string {
-	return createSchema
+	return createSchemaQuery
 }
 
 // SetCreateSchemaQuery sets the query to create the schema for testing.
 func SetCreateSchemaQuery(query string) {
-	createSchema = query
+	createSchemaQuery = query
 }
