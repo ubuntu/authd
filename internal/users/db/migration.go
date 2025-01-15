@@ -140,8 +140,9 @@ func (m *Manager) migrateFromBBoltToSQLite(dbDir string) (err error) {
 }
 
 var schemaMigrations = map[string]string{
-	"Migrate to lowercase usernames": `		
+	"Migrate to lowercase user and group names": `
 	UPDATE users SET name = LOWER(name);
+	UPDATE groups SET name = LOWER(name);
 	`,
 }
 

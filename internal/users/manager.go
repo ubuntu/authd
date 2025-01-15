@@ -176,6 +176,9 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			continue
 		}
 
+		// authd groups are lowercase
+		g.Name = strings.ToLower(g.Name)
+
 		// It's not a local group, so before storing it in the database, check if a group with the same name already
 		// exists.
 		if err := m.checkGroupNameConflict(g.Name, g.UGID); err != nil {

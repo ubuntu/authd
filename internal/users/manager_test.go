@@ -122,8 +122,9 @@ func TestUpdateUser(t *testing.T) {
 	}
 
 	groupsCases := map[string][]groupCase{
-		"authd-group": {{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111}},
-		"local-group": {{GroupInfo: types.GroupInfo{Name: "localgroup1", UGID: ""}}},
+		"authd-group":                {{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111}},
+		"local-group":                {{GroupInfo: types.GroupInfo{Name: "localgroup1", UGID: ""}}},
+		"authd-group-with-uppercase": {{GroupInfo: types.GroupInfo{Name: "Group1", UGID: "1"}, GID: 11111}},
 		"mixed-groups-authd-first": {
 			{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111},
 			{GroupInfo: types.GroupInfo{Name: "localgroup1", UGID: ""}},
@@ -162,6 +163,7 @@ func TestUpdateUser(t *testing.T) {
 		"GID_does_not_change_if_group_with_same_UGID_exists":                {groupsCase: "different-name-same-ugid", dbFile: "one_user_and_group"},
 		"GID_does_not_change_if_group_with_same_name_and_empty_UGID_exists": {groupsCase: "authd-group", dbFile: "group-with-empty-UGID"},
 		"Removing_last_user_from_a_group_keeps_the_group_record":            {groupsCase: "no-groups", dbFile: "one_user_and_group"},
+		"Names of authd groups are stored in lowercase":                     {groupsCase: "authd-group-with-uppercase"},
 
 		"Error_if_user_has_no_username":                           {userCase: "nameless", wantErr: true, noOutput: true},
 		"Error_if_group_has_no_name":                              {groupsCase: "nameless-group", wantErr: true, noOutput: true},

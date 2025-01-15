@@ -9,7 +9,7 @@ groups:
     - name: testisauthenticated/successfully_authenticate_if_first_call_is_canceled_separator_ia_second_call
       gid: 1111
       ugid: testisauthenticated/successfully_authenticate_if_first_call_is_canceled_separator_ia_second_call
-    - name: group-IA_second_call
+    - name: group-ia_second_call
       gid: 2222
       ugid: ugid-IA_second_call
 users_to_groups:
