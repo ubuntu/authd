@@ -124,10 +124,10 @@ func writeConfig(cfgDir, name string) (string, error) {
 // NewSession returns default values to be used in tests or an error if requested.
 func (b *BrokerBusMock) NewSession(username, lang, mode string) (sessionID, encryptionKey string, dbusErr *dbus.Error) {
 	parsedUsername := parseSessionID(username)
-	if parsedUsername == "NS_error" {
+	if parsedUsername == "ns_error" {
 		return "", "", dbus.MakeFailedError(fmt.Errorf("broker %q: NewSession errored out", b.name))
 	}
-	if parsedUsername == "NS_no_id" {
+	if parsedUsername == "ns_no_id" {
 		return "", username + "_key", nil
 	}
 	return GenerateSessionID(username), GenerateEncryptionKey(b.name), nil
@@ -137,15 +137,15 @@ func (b *BrokerBusMock) NewSession(username, lang, mode string) (sessionID, encr
 func (b *BrokerBusMock) GetAuthenticationModes(sessionID string, supportedUILayouts []map[string]string) (authenticationModes []map[string]string, dbusErr *dbus.Error) {
 	sessionID = parseSessionID(sessionID)
 	switch sessionID {
-	case "GAM_invalid":
+	case "gam_invalid":
 		return []map[string]string{
 			{"invalid": "invalid"},
 		}, nil
-	case "GAM_empty":
+	case "gam_empty":
 		return nil, nil
-	case "GAM_error":
+	case "gam_error":
 		return nil, dbus.MakeFailedError(fmt.Errorf("broker %q: GetAuthenticationModes errored out", b.name))
-	case "GAM_multiple_modes":
+	case "gam_multiple_modes":
 		return []map[string]string{
 			{layouts.ID: "mode1", layouts.Label: "Mode 1"},
 			{layouts.ID: "mode2", layouts.Label: "Mode 2"},
@@ -161,49 +161,49 @@ func (b *BrokerBusMock) GetAuthenticationModes(sessionID string, supportedUILayo
 func (b *BrokerBusMock) SelectAuthenticationMode(sessionID, authenticationModeName string) (uiLayoutInfo map[string]string, dbusErr *dbus.Error) {
 	sessionID = parseSessionID(sessionID)
 	switch sessionID {
-	case "SAM_success_required_entry":
+	case "sam_success_required_entry":
 		return map[string]string{
 			layouts.Type:  "required-entry",
 			layouts.Entry: "entry_type",
 		}, nil
-	case "SAM_success_optional_entry":
+	case "sam_success_optional_entry":
 		return map[string]string{
 			layouts.Type:  "optional-entry",
 			layouts.Entry: "entry_type",
 		}, nil
-	case "SAM_missing_optional_entry":
+	case "sam_missing_optional_entry":
 		return map[string]string{
 			layouts.Type: "optional-entry",
 		}, nil
-	case "SAM_invalid_layout_type":
+	case "sam_invalid_layout_type":
 		return map[string]string{
 			"invalid": "invalid",
 		}, nil
-	case "SAM_missing_required_entry":
+	case "sam_missing_required_entry":
 		return map[string]string{
 			layouts.Type: "required-entry",
 		}, nil
-	case "SAM_invalid_required_entry":
+	case "sam_invalid_required_entry":
 		return map[string]string{
 			layouts.Type:  "required-entry",
 			layouts.Entry: "invalid entry",
 		}, nil
-	case "SAM_invalid_optional_entry":
+	case "sam_invalid_optional_entry":
 		return map[string]string{
 			layouts.Type:  "optional-entry",
 			layouts.Entry: "invalid entry",
 		}, nil
-	case "SAM_unknown_field":
+	case "sam_unknown_field":
 		return map[string]string{
 			layouts.Type:    "required-entry",
 			layouts.Entry:   "entry_type",
 			"unknown_field": "unknown",
 		}, nil
-	case "SAM_error":
+	case "sam_error":
 		return nil, dbus.MakeFailedError(fmt.Errorf("broker %q: SelectAuthenticationMode errored out", b.name))
-	case "SAM_no_layout":
+	case "sam_no_layout":
 		return nil, nil
-	case "SAM_empty_layout":
+	case "sam_empty_layout":
 		return map[string]string{}, nil
 	}
 	// Should never get here
@@ -216,7 +216,7 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 	// We have to use both the prefixed sessionID and the parsed one in order to differentiate between test cases.
 	parsedID := parseSessionID(sessionID)
 
-	if parsedID == "IA_error" {
+	if parsedID == "ia_error" {
 		return "", "", dbus.MakeFailedError(fmt.Errorf("broker %q: IsAuthenticated errored out", b.name))
 	}
 
@@ -244,17 +244,17 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 	data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionID, nil))
 
 	switch parsedID {
-	case "IA_timeout":
+	case "ia_timeout":
 		time.Sleep(time.Second)
 		access = authDenied
 		data = `{"message": "denied by time out"}`
 
-	case "IA_wait":
+	case "ia_wait":
 		<-ctx.Done()
 		access = authCancelled
 		data = ""
 
-	case "IA_second_call":
+	case "ia_second_call":
 		select {
 		case <-ctx.Done():
 			access = authCancelled
@@ -264,7 +264,7 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 			data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionID, nil))
 		}
 
-	case "IA_next":
+	case "ia_next":
 		access = authNext
 		data = ""
 
@@ -272,35 +272,35 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 		extragroups := []groupJSONInfo{{Name: "localgroup1"}, {Name: "localgroup3"}}
 		data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionID, extragroups))
 
-	case "IA_invalid_access":
+	case "ia_invalid_access":
 		access = "invalid"
 
-	case "IA_invalid_data":
+	case "ia_invalid_data":
 		data = "invalid"
 
-	case "IA_empty_data":
+	case "ia_empty_data":
 		data = ""
 
-	case "IA_invalid_userinfo":
+	case "ia_invalid_userinfo":
 		data = `{"userinfo": "not valid"}`
 
-	case "IA_denied_without_data":
+	case "ia_denied_without_data":
 		access = authDenied
 		data = ""
 
-	case "IA_retry_without_data":
+	case "ia_retry_without_data":
 		access = authRetry
 		data = ""
 
-	case "IA_next_with_data":
+	case "ia_next_with_data":
 		access = authNext
 		data = `{"message": "It's fine to show a message here"}`
 
-	case "IA_next_with_invalid_data":
+	case "ia_next_with_invalid_data":
 		access = authNext
 		data = `{"msg": "there should not be a message here"}`
 
-	case "IA_cancelled_with_data":
+	case "ia_cancelled_with_data":
 		access = authCancelled
 		data = `{"message": "there should not be a message here"}`
 	}
@@ -311,7 +311,7 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 // EndSession returns default values to be used in tests or an error if requested.
 func (b *BrokerBusMock) EndSession(sessionID string) (dbusErr *dbus.Error) {
 	sessionID = parseSessionID(sessionID)
-	if sessionID == "ES_error" {
+	if sessionID == "es_error" {
 		return dbus.MakeFailedError(fmt.Errorf("broker %q: EndSession errored out", b.name))
 	}
 	return nil
@@ -367,21 +367,21 @@ func userInfoFromName(sessionID string, extraGroups []groupJSONInfo) string {
 	ugid := "ugid-" + parsedID
 
 	switch parsedID {
-	case "IA_info_empty_user_name":
+	case "ia_info_empty_user_name":
 		name = ""
-	case "IA_info_mismatching_user_name":
+	case "ia_info_mismatching_user_name":
 		name = "different_username"
-	case "IA_info_empty_group_name":
+	case "ia_info_empty_group_name":
 		group = ""
-	case "IA_info_empty_ugid":
+	case "ia_info_empty_ugid":
 		ugid = ""
-	case "IA_info_empty_gecos":
+	case "ia_info_empty_gecos":
 		gecos = ""
-	case "IA_info_empty_groups":
+	case "ia_info_empty_groups":
 		group = "-"
-	case "IA_info_invalid_home":
+	case "ia_info_invalid_home":
 		home = "this is not a homedir"
-	case "IA_info_invalid_shell":
+	case "ia_info_invalid_shell":
 		shell = "this is not a valid shell"
 	}
 
