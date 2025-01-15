@@ -9,7 +9,7 @@ groups:
     - name: testisauthenticated/error_when_calling_second_time_without_cancelling_separator_ia_second_call
       gid: 1111
       ugid: testisauthenticated/error_when_calling_second_time_without_cancelling_separator_ia_second_call
-    - name: group-IA_second_call
+    - name: group-ia_second_call
       gid: 2222
       ugid: ugid-IA_second_call
 users_to_groups:
