@@ -59,7 +59,7 @@ func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configure
 
 // RegisterGRPCServices returns a new grpc Server after registering both NSS and PAM services.
 func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
-	log.Debug(ctx, "Registering GRPC services")
+	log.Debug(ctx, "Registering gRPC services")
 
 	opts := []grpc.ServerOption{permissions.WithUnixPeerCreds(), grpc.ChainUnaryInterceptor(m.globalPermissions, errmessages.RedactErrorInterceptor)}
 	grpcServer := grpc.NewServer(opts...)
@@ -80,7 +80,7 @@ func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 
 // stop stops the underlying cache.
 func (m *Manager) stop() error {
-	log.Debug(context.TODO(), "Closing grpc manager and cache")
+	log.Debug(context.TODO(), "Closing gRPC manager and cache")
 
 	return m.userManager.Stop()
 }

@@ -34,7 +34,7 @@ type Service struct {
 
 // NewService returns a new PAM GRPC service.
 func NewService(ctx context.Context, userManager *users.Manager, brokerManager *brokers.Manager, permissionManager *permissions.Manager) Service {
-	log.Debug(ctx, "Building new GRPC PAM service")
+	log.Debug(ctx, "Building new gRPC PAM service")
 
 	return Service{
 		userManager:       userManager,

@@ -749,7 +749,7 @@ func newPamClient(t *testing.T, m *users.Manager, brokerManager *brokers.Manager
 	})
 
 	conn, err := grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
-	require.NoError(t, err, "Setup: Could not connect to GRPC server")
+	require.NoError(t, err, "Setup: Could not connect to gRPC server")
 
 	t.Cleanup(func() { _ = conn.Close() }) // We don't care about the error on cleanup
 
