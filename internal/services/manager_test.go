@@ -108,7 +108,7 @@ func TestAccessAuthorization(t *testing.T) {
 	// Global authorization for NSS is always granted for non root user.
 	nssClient := authd.NewNSSClient(conn)
 	_, err = nssClient.GetPasswdByName(context.Background(), &authd.GetPasswdByNameRequest{Name: ""})
-	require.Error(t, err, "Expected a GRPC error from the server")
+	require.Error(t, err, "Expected a gRPC error from the server")
 
 	err = conn.Close()
 	require.NoError(t, err, "Teardown: could not close the client connection")

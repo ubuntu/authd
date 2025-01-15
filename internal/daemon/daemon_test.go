@@ -120,7 +120,7 @@ func TestNew(t *testing.T) {
 			}
 			require.NoError(t, err, "New() should not return an error")
 
-			require.True(t, registered, "daemon should register GRPC services")
+			require.True(t, registered, "daemon should register gRPC services")
 			require.Equal(t, tc.wantSelectedSocket, filepath.Base(d.SelectedSocketAddr()), "Desired socket is selected")
 		})
 	}
