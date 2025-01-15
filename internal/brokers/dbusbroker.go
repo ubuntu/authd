@@ -23,9 +23,9 @@ type dbusBroker struct {
 
 // newDbusBroker returns a dbus broker and broker attributes from its configuration file.
 func newDbusBroker(ctx context.Context, bus *dbus.Conn, configFile string) (b dbusBroker, name, brandIcon string, err error) {
-	defer decorate.OnError(&err, "dbus broker from configuration file: %q", configFile)
+	defer decorate.OnError(&err, "D-Bus broker from configuration file: %q", configFile)
 
-	log.Debugf(ctx, "Dbus broker configuration at %q", configFile)
+	log.Debugf(ctx, "D-Bus broker configuration at %q", configFile)
 
 	cfg, err := ini.Load(configFile)
 	if err != nil {

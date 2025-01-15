@@ -1076,7 +1076,7 @@ do_pam_action_thread (pam_handle_t *pamh,
   server = setup_dbus_server (module_data, &error);
   if (!server)
     {
-      notify_error (pamh, action, "can't create DBus connection: %s", error->message);
+      notify_error (pamh, action, "can't create D-Bus connection: %s", error->message);
       return PAM_SYSTEM_ERR;
     }
 
