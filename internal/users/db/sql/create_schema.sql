@@ -31,3 +31,7 @@ CREATE TABLE IF NOT EXISTS users_to_local_groups (
     PRIMARY KEY (uid, group_name),
     FOREIGN KEY (uid) REFERENCES users (uid) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS schema_version (
+    version INT PRIMARY KEY
+);

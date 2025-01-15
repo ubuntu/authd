@@ -29,8 +29,9 @@ func TestNew(t *testing.T) {
 
 		wantErr bool
 	}{
-		"New_without_any_initialized_database": {},
-		"New_with_already_existing_database":   {dbFile: "multiple_users_and_groups"},
+		"New_without_any_initialized_database":         {},
+		"New_with_already_existing_database":           {dbFile: "multiple_users_and_groups"},
+		"New_migrates_database_to_lowercase_usernames": {dbFile: "one_user_and_group_with_uppercase"},
 
 		"Error_on_non_existent_db_dir":                   {dbFile: "-", wantErr: true},
 		"Error_on_corrupted_db_file":                     {corruptedDbFile: true, wantErr: true},
