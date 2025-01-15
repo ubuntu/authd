@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/log"
 )
 
 func TestNew(t *testing.T) {
@@ -29,6 +30,7 @@ func TestNew(t *testing.T) {
 		"New with already existing database":                     {dbFile: "multiple_users_and_groups"},
 		"New recreates any missing buckets and delete unknowns":  {dbFile: "database_with_unknown_bucket"},
 		"New removes orphaned user records from UserByID bucket": {dbFile: "orphaned_user_record"},
+		"New migrates database to lowercase usernames":           {dbFile: "one_user_and_group_with_uppercase"},
 
 		"Error on cacheDir non existent cacheDir":      {dbFile: "-", wantErr: true},
 		"Error on corrupted db file":                   {corruptedDbFile: true, wantErr: true},
@@ -527,4 +529,9 @@ func requireGetAssertions[E any](t *testing.T, got E, wantErr bool, wantErrType,
 	require.NoError(t, err)
 
 	golden.CheckOrUpdateYAML(t, got)
+}
+
+func TestMain(m *testing.M) {
+	log.SetLevel(log.DebugLevel)
+	m.Run()
 }

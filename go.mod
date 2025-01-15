@@ -20,6 +20,7 @@ require (
 	github.com/ubuntu/decorate v0.0.0-20230606064312-bc4ac83958d6
 	go.etcd.io/bbolt v1.3.11
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
+	golang.org/x/mod v0.17.0
 	golang.org/x/sys v0.29.0
 	golang.org/x/term v0.28.0
 	google.golang.org/grpc v1.69.4

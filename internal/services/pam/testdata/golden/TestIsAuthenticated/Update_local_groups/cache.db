@@ -19,3 +19,5 @@ UserToGroups:
     "1370830640": '{"UID":1370830640,"GIDs":[1370830640,1602050681]}'
 UserToLocalGroups:
     "1370830640": '["localgroup1","localgroup3"]'
+Version:
+    version: Dev

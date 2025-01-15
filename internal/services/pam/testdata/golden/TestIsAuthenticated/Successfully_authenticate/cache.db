@@ -19,3 +19,5 @@ UserToGroups:
     "1127066031": '{"UID":1127066031,"GIDs":[1127066031,1946747284]}'
 UserToLocalGroups:
     "1127066031": "null"
+Version:
+    version: Dev
