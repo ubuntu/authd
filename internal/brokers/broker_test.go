@@ -105,13 +105,13 @@ func TestGetAuthenticationModes(t *testing.T) {
 		"Get authentication modes and generate validators":                                         {sessionID: "success", supportedUILayouts: []string{"required-entry", "optional-entry"}},
 		"Get authentication modes and generate validator ignoring whitespaces in supported values": {sessionID: "success", supportedUILayouts: []string{"layout-with-spaces"}},
 		"Get authentication modes and ignores invalid UI layout":                                   {sessionID: "success", supportedUILayouts: []string{"required-entry", "missing-type"}},
-		"Get multiple authentication modes and generate validators":                                {sessionID: "GAM_multiple_modes", supportedUILayouts: []string{"required-entry", "optional-entry"}},
+		"Get multiple authentication modes and generate validators":                                {sessionID: "gam_multiple_modes", supportedUILayouts: []string{"required-entry", "optional-entry"}},
 
-		"Does not error out when no authentication modes are returned": {sessionID: "GAM_empty"},
+		"Does not error out when no authentication modes are returned": {sessionID: "gam_empty"},
 
 		// broker errors
-		"Error when getting authentication modes": {sessionID: "GAM_error", wantErr: true},
-		"Error when broker returns invalid modes": {sessionID: "GAM_invalid", wantErr: true},
+		"Error when getting authentication modes": {sessionID: "gam_error", wantErr: true},
+		"Error when broker returns invalid modes": {sessionID: "gam_invalid", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -153,23 +153,23 @@ func TestSelectAuthenticationMode(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully select mode with required value":         {sessionID: "SAM_success_required_entry"},
-		"Successfully select mode with optional value":         {sessionID: "SAM_success_optional_entry", supportedUILayouts: []string{"optional-entry"}},
-		"Successfully select mode with missing optional value": {sessionID: "SAM_missing_optional_entry", supportedUILayouts: []string{"optional-entry"}},
+		"Successfully select mode with required value":         {sessionID: "sam_success_required_entry"},
+		"Successfully select mode with optional value":         {sessionID: "sam_success_optional_entry", supportedUILayouts: []string{"optional-entry"}},
+		"Successfully select mode with missing optional value": {sessionID: "sam_missing_optional_entry", supportedUILayouts: []string{"optional-entry"}},
 
 		// broker errors
-		"Error when selecting invalid auth mode":              {sessionID: "SAM_error", wantErr: true},
+		"Error when selecting invalid auth mode":              {sessionID: "sam_error", wantErr: true},
 		"Error when no validators were generated for session": {sessionID: "no-validators", wantErr: true},
 
 		/* Layout errors */
-		"Error when returns no layout":                          {sessionID: "SAM_no_layout", wantErr: true},
-		"Error when returns empty layout":                       {sessionID: "SAM_empty_layout", wantErr: true},
-		"Error when returns layout with no type":                {sessionID: "SAM_no_layout_type", wantErr: true},
-		"Error when returns layout with invalid type":           {sessionID: "SAM_invalid_layout_type", wantErr: true},
-		"Error when returns layout without required value":      {sessionID: "SAM_missing_required_entry", wantErr: true},
-		"Error when returns layout with unknown field":          {sessionID: "SAM_unknown_field", wantErr: true},
-		"Error when returns layout with invalid required value": {sessionID: "SAM_invalid_required_entry", wantErr: true},
-		"Error when returns layout with invalid optional value": {sessionID: "SAM_invalid_optional_entry", wantErr: true},
+		"Error when returns no layout":                          {sessionID: "sam_no_layout", wantErr: true},
+		"Error when returns empty layout":                       {sessionID: "sam_empty_layout", wantErr: true},
+		"Error when returns layout with no type":                {sessionID: "sam_no_layout_type", wantErr: true},
+		"Error when returns layout with invalid type":           {sessionID: "sam_invalid_layout_type", wantErr: true},
+		"Error when returns layout without required value":      {sessionID: "sam_missing_required_entry", wantErr: true},
+		"Error when returns layout with unknown field":          {sessionID: "sam_unknown_field", wantErr: true},
+		"Error when returns layout with invalid required value": {sessionID: "sam_invalid_required_entry", wantErr: true},
+		"Error when returns layout with invalid optional value": {sessionID: "sam_invalid_optional_entry", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -213,30 +213,30 @@ func TestIsAuthenticated(t *testing.T) {
 		cancelFirstCall bool
 	}{
 		"Successfully authenticate":                                        {sessionID: "success"},
-		"Successfully authenticate after cancelling first call":            {sessionID: "IA_second_call", secondCall: true},
-		"Denies authentication when broker times out":                      {sessionID: "IA_timeout"},
-		"Adds default groups even if broker did not set them":              {sessionID: "IA_info_empty_groups"},
-		"No error when auth.Next and no data":                              {sessionID: "IA_next"},
-		"No error when broker returns userinfo with empty gecos":           {sessionID: "IA_info_empty_gecos"},
-		"No error when broker returns userinfo with group with empty UGID": {sessionID: "IA_info_empty_ugid"},
-		"No error when broker returns userinfo with mismatching username":  {sessionID: "IA_info_mismatching_user_name"},
+		"Successfully authenticate after cancelling first call":            {sessionID: "ia_second_call", secondCall: true},
+		"Denies authentication when broker times out":                      {sessionID: "ia_timeout"},
+		"Adds default groups even if broker did not set them":              {sessionID: "ia_info_empty_groups"},
+		"No error when auth.Next and no data":                              {sessionID: "ia_next"},
+		"No error when broker returns userinfo with empty gecos":           {sessionID: "ia_info_empty_gecos"},
+		"No error when broker returns userinfo with group with empty UGID": {sessionID: "ia_info_empty_ugid"},
+		"No error when broker returns userinfo with mismatching username":  {sessionID: "ia_info_mismatching_user_name"},
 
 		// broker errors
-		"Error when authenticating":                                           {sessionID: "IA_error"},
-		"Error on empty data even if granted":                                 {sessionID: "IA_empty_data"},
-		"Error when broker returns invalid data":                              {sessionID: "IA_invalid_data"},
-		"Error when broker returns invalid access":                            {sessionID: "IA_invalid_access"},
-		"Error when broker returns invalid userinfo":                          {sessionID: "IA_invalid_userinfo"},
-		"Error when broker returns userinfo with empty username":              {sessionID: "IA_info_empty_user_name"},
-		"Error when broker returns userinfo with empty group name":            {sessionID: "IA_info_empty_group_name"},
-		"Error when broker returns userinfo with empty UUID":                  {sessionID: "IA_info_empty_uuid"},
-		"Error when broker returns userinfo with invalid homedir":             {sessionID: "IA_info_invalid_home"},
-		"Error when broker returns userinfo with invalid shell":               {sessionID: "IA_info_invalid_shell"},
-		"Error when broker returns data on auth.Next":                         {sessionID: "IA_next_with_data"},
-		"Error when broker returns data on auth.Cancelled":                    {sessionID: "IA_cancelled_with_data"},
-		"Error when broker returns no data on auth.Denied":                    {sessionID: "IA_denied_without_data"},
-		"Error when broker returns no data on auth.Retry":                     {sessionID: "IA_retry_without_data"},
-		"Error when calling IsAuthenticated a second time without cancelling": {sessionID: "IA_second_call", secondCall: true, cancelFirstCall: true},
+		"Error when authenticating":                                           {sessionID: "ia_error"},
+		"Error on empty data even if granted":                                 {sessionID: "ia_empty_data"},
+		"Error when broker returns invalid data":                              {sessionID: "ia_invalid_data"},
+		"Error when broker returns invalid access":                            {sessionID: "ia_invalid_access"},
+		"Error when broker returns invalid userinfo":                          {sessionID: "ia_invalid_userinfo"},
+		"Error when broker returns userinfo with empty username":              {sessionID: "ia_info_empty_user_name"},
+		"Error when broker returns userinfo with empty group name":            {sessionID: "ia_info_empty_group_name"},
+		"Error when broker returns userinfo with empty UUID":                  {sessionID: "ia_info_empty_uuid"},
+		"Error when broker returns userinfo with invalid homedir":             {sessionID: "ia_info_invalid_home"},
+		"Error when broker returns userinfo with invalid shell":               {sessionID: "ia_info_invalid_shell"},
+		"Error when broker returns data on auth.Next":                         {sessionID: "ia_next_with_data"},
+		"Error when broker returns data on auth.Cancelled":                    {sessionID: "ia_cancelled_with_data"},
+		"Error when broker returns no data on auth.Denied":                    {sessionID: "ia_denied_without_data"},
+		"Error when broker returns no data on auth.Retry":                     {sessionID: "ia_retry_without_data"},
+		"Error when calling IsAuthenticated a second time without cancelling": {sessionID: "ia_second_call", secondCall: true, cancelFirstCall: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -289,8 +289,8 @@ func TestCancelIsAuthenticated(t *testing.T) {
 
 		wantAnswer string
 	}{
-		"Successfully cancels IsAuthenticated": {sessionID: "IA_wait", wantAnswer: auth.Cancelled},
-		"Call returns denied if not cancelled": {sessionID: "IA_timeout", wantAnswer: auth.Denied},
+		"Successfully cancels IsAuthenticated": {sessionID: "ia_wait", wantAnswer: auth.Cancelled},
+		"Call returns denied if not cancelled": {sessionID: "ia_timeout", wantAnswer: auth.Denied},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -305,7 +305,7 @@ func TestCancelIsAuthenticated(t *testing.T) {
 			}()
 			defer cancel()
 
-			if tc.sessionID == "IA_wait" {
+			if tc.sessionID == "ia_wait" {
 				// Give some time for the IsAuthenticated routine to start.
 				time.Sleep(time.Second)
 				cancel()
