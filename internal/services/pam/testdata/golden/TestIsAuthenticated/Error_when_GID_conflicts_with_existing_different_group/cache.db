@@ -1,10 +1,11 @@
 GroupByID:
-    "71705": '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":71705,"UGID":"TestIsAuthenticated/Successfully_authenticate_separator_success"}'
+    "71705": '{"Name":"testisauthenticated/successfully_authenticate_separator_success","GID":71705,"UGID":"TestIsAuthenticated/Successfully_authenticate_separator_success"}'
     "1795458232": '{"Name":"different-group-same-gid","GID":1795458232,"UGID":"different-group-same-gid"}'
 GroupByName:
-    TestIsAuthenticated/Successfully_authenticate_separator_success: '{"Name":"TestIsAuthenticated/Successfully_authenticate_separator_success","GID":71705,"UGID":"TestIsAuthenticated/Successfully_authenticate_separator_success"}'
     different-group-same-gid: '{"Name":"different-group-same-gid","GID":1795458232,"UGID":"different-group-same-gid"}'
-GroupByUGID: {}
+    testisauthenticated/successfully_authenticate_separator_success: '{"Name":"testisauthenticated/successfully_authenticate_separator_success","GID":71705,"UGID":"TestIsAuthenticated/Successfully_authenticate_separator_success"}'
+GroupByUGID:
+    TestIsAuthenticated/Successfully_authenticate_separator_success: '{"Name":"testisauthenticated/successfully_authenticate_separator_success","GID":71705,"UGID":"TestIsAuthenticated/Successfully_authenticate_separator_success"}'
 GroupToUsers:
     "71705": '{"GID":71705,"UIDs":[71705]}'
     "1795458232": '{"GID":1795458232,"UIDs":[71705]}'

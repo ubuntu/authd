@@ -3,6 +3,7 @@ package cache
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -12,9 +13,9 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-const initialLowercaseUsernamesVersion = "0.3.8"
+const initialLowercaseUserAndGroupNamesVersion = "0.3.8"
 
-func maybeMigrateToLowercaseUsernames(c *Cache) error {
+func maybeMigrateToLowercaseUserAndGroupNames(c *Cache) error {
 	// Get the current version.
 	version, err := c.GetVersion()
 	if err != nil {
@@ -26,16 +27,23 @@ func maybeMigrateToLowercaseUsernames(c *Cache) error {
 		return nil
 	}
 
-	// If the version is less than 0.3.8-pre1, we need to migrate lowercase usernames.
-	// Use semantic versioning to compare versions.
-	if version == "" || semver.Compare(version, initialLowercaseUsernamesVersion) < 0 {
-		log.Infof(context.Background(), "Migrating database to lowercase usernames (database version: %q)", version)
-		if err := migrateToLowercaseUsernames(c); err != nil {
+	// Migrate if:
+	// - the version is empty (database was created before we started storing the version)
+	// - the version is less than the version where we started storing user and group names in lowercase
+	if version == "" || semver.Compare(version, initialLowercaseUserAndGroupNamesVersion) < 0 {
+		log.Infof(context.Background(), "Migrating database to lowercase user and group names (database version: %q)", version)
+		if err := migrateToLowercaseUserAndGroupNames(c); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func migrateToLowercaseUserAndGroupNames(c *Cache) error {
+	err := migrateToLowercaseUsernames(c)
+	err2 := migrateToLowercaseGroups(c)
+	return errors.Join(err, err2)
 }
 
 func migrateToLowercaseUsernames(c *Cache) error {
@@ -56,6 +64,57 @@ func migrateToLowercaseUsernames(c *Cache) error {
 	}
 
 	return nil
+}
+
+func migrateToLowercaseGroups(c *Cache) error {
+	allGroups, err := c.allGroups()
+	if err != nil {
+		return fmt.Errorf("error getting all groups: %w", err)
+	}
+
+	for _, g := range allGroups {
+		if g.Name == strings.ToLower(g.Name) {
+			continue
+		}
+
+		err = migrateGroupToLowercase(c, g)
+		if err != nil {
+			log.Warningf(context.Background(), "Error migrating group %q to lowercase: %v", g.Name, err)
+		}
+	}
+
+	return nil
+}
+
+func migrateGroupToLowercase(c *Cache, group groupDB) error {
+	log.Debugf(context.Background(), "Migrating group %q to lowercase", group.Name)
+	oldName := group.Name
+	newName := strings.ToLower(group.Name)
+	group.Name = newName
+
+	// Update the group in all group buckets
+	return c.db.Update(func(tx *bbolt.Tx) error {
+		buckets, err := getAllBuckets(tx)
+		if err != nil {
+			return err
+		}
+
+		// Update the group in the GroupByID bucket.
+		updateBucket(buckets[groupByIDBucketName], group.GID, group)
+
+		// Update the group in the GroupByUGID bucket.
+		if group.UGID != "" {
+			updateBucket(buckets[groupByUGIDBucketName], group.UGID, group)
+		}
+
+		// Update the group in the GroupByName bucket.
+		if err = buckets[groupByNameBucketName].Delete([]byte(oldName)); err != nil {
+			return err
+		}
+		updateBucket(buckets[groupByNameBucketName], newName, group)
+
+		return nil
+	})
 }
 
 func migrateUserToLowercase(c *Cache, user userDB) error {

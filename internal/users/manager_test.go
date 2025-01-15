@@ -105,8 +105,9 @@ func TestUpdateUser(t *testing.T) {
 	}
 
 	groupsCases := map[string][]users.GroupInfo{
-		"cloud-group": {{Name: "group1", GID: ptrUint32(11111), UGID: "1"}},
-		"local-group": {{Name: "localgroup1"}},
+		"cloud-group":                {{Name: "group1", GID: ptrUint32(11111), UGID: "1"}},
+		"local-group":                {{Name: "localgroup1"}},
+		"cloud-group-with-uppercase": {{Name: "Group1", GID: ptrUint32(11111), UGID: "1"}},
 		"mixed-groups-cloud-first": {
 			{Name: "group1", GID: ptrUint32(11111), UGID: "1"},
 			{Name: "localgroup1", GID: nil, UGID: ""},
@@ -139,6 +140,7 @@ func TestUpdateUser(t *testing.T) {
 		"Successfully update user updating local groups":         {groupsCase: "mixed-groups-cloud-first", localGroupsFile: "users_in_groups.group"},
 		"UID does not change if user already exists":             {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
 		"Successfully update user with different capitalization": {userCase: "different-capitalization-same-uid", dbFile: "one_user_and_group"},
+		"Names of authd groups are stored in lowercase":          {groupsCase: "cloud-group-with-uppercase"},
 
 		"Error if user has no username":      {userCase: "nameless", wantErr: true, noOutput: true},
 		"Error if user has conflicting uid":  {userCase: "different-name-same-uid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},

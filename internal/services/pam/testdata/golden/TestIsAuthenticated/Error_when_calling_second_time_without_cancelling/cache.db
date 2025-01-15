@@ -1,12 +1,12 @@
 GroupByID:
-    "1369382419": '{"Name":"group-IA_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
+    "1369382419": '{"Name":"group-ia_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
     "1556535091": '{"Name":"testisauthenticated/error_when_calling_second_time_without_cancelling_separator_ia_second_call","GID":1556535091,"UGID":"testisauthenticated/error_when_calling_second_time_without_cancelling_separator_ia_second_call"}'
 GroupByName:
-    group-IA_second_call: '{"Name":"group-IA_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
+    group-ia_second_call: '{"Name":"group-ia_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
     testisauthenticated/error_when_calling_second_time_without_cancelling_separator_ia_second_call: '{"Name":"testisauthenticated/error_when_calling_second_time_without_cancelling_separator_ia_second_call","GID":1556535091,"UGID":"testisauthenticated/error_when_calling_second_time_without_cancelling_separator_ia_second_call"}'
 GroupByUGID:
     testisauthenticated/error_when_calling_second_time_without_cancelling_separator_ia_second_call: '{"Name":"testisauthenticated/error_when_calling_second_time_without_cancelling_separator_ia_second_call","GID":1556535091,"UGID":"testisauthenticated/error_when_calling_second_time_without_cancelling_separator_ia_second_call"}'
-    ugid-IA_second_call: '{"Name":"group-IA_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
+    ugid-IA_second_call: '{"Name":"group-ia_second_call","GID":1369382419,"UGID":"ugid-IA_second_call"}'
 GroupToUsers:
     "1369382419": '{"GID":1369382419,"UIDs":[1556535091]}'
     "1556535091": '{"GID":1556535091,"UIDs":[1556535091]}'

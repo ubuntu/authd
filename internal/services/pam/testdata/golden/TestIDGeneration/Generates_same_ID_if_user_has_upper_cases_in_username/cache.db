@@ -1,12 +1,12 @@
 GroupByID:
     "1648262143": '{"Name":"testidgeneration_separator_success","GID":1648262143,"UGID":"testidgeneration_separator_success"}'
-    "1946747284": '{"Name":"group-SuCcEsS","GID":1946747284,"UGID":"ugid-SuCcEsS"}'
+    "1946747284": '{"Name":"group-success","GID":1946747284,"UGID":"ugid-SuCcEsS"}'
 GroupByName:
-    group-SuCcEsS: '{"Name":"group-SuCcEsS","GID":1946747284,"UGID":"ugid-SuCcEsS"}'
+    group-success: '{"Name":"group-success","GID":1946747284,"UGID":"ugid-SuCcEsS"}'
     testidgeneration_separator_success: '{"Name":"testidgeneration_separator_success","GID":1648262143,"UGID":"testidgeneration_separator_success"}'
 GroupByUGID:
     testidgeneration_separator_success: '{"Name":"testidgeneration_separator_success","GID":1648262143,"UGID":"testidgeneration_separator_success"}'
-    ugid-SuCcEsS: '{"Name":"group-SuCcEsS","GID":1946747284,"UGID":"ugid-SuCcEsS"}'
+    ugid-SuCcEsS: '{"Name":"group-success","GID":1946747284,"UGID":"ugid-SuCcEsS"}'
 GroupToUsers:
     "1648262143": '{"GID":1648262143,"UIDs":[1648262143]}'
     "1946747284": '{"GID":1946747284,"UIDs":[1648262143]}'

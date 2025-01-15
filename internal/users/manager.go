@@ -139,6 +139,9 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 			localGroups = append(localGroups, g.Name)
 			continue
 		}
+
+		// authd groups are lowercase
+		g.Name = strings.ToLower(g.Name)
 		authdGroups = append(authdGroups, cache.NewGroupDB(g.Name, *g.GID, g.UGID, nil))
 	}
 

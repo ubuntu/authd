@@ -108,7 +108,7 @@ func New(cacheDir string) (cache *Cache, err error) {
 
 	cache = &Cache{db: db, mu: sync.RWMutex{}}
 
-	if err = maybeMigrateToLowercaseUsernames(cache); err != nil {
+	if err = maybeMigrateToLowercaseUserAndGroupNames(cache); err != nil {
 		log.Warningf(context.Background(), "Error migrating database to lowercase usernames: %v", err)
 	} else {
 		// Store the current version in the database

@@ -3,6 +3,7 @@ package cache
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"go.etcd.io/bbolt"
 )
@@ -30,6 +31,8 @@ func (c *Cache) GroupByID(gid uint32) (GroupDB, error) {
 
 // GroupByName returns a group matching a given name or an error if the database is corrupted or no entry was found.
 func (c *Cache) GroupByName(name string) (GroupDB, error) {
+	// authd uses lowercase group names
+	name = strings.ToLower(name)
 	return getGroup(c, groupByNameBucketName, name)
 }
 
@@ -107,37 +110,61 @@ func (c *Cache) UserLocalGroups(uid uint32) ([]string, error) {
 }
 
 // AllGroups returns all groups or an error if the database is corrupted.
-func (c *Cache) AllGroups() (all []GroupDB, err error) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
+func (c *Cache) AllGroups() (groups []GroupDB, err error) {
+	groupRecords, err := c.allGroups()
+	if err != nil {
+		return nil, err
+	}
+
 	err = c.db.View(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)
 		if err != nil {
 			return err
 		}
 
-		return buckets[groupByIDBucketName].ForEach(func(key, value []byte) error {
-			var g groupDB
-			if err := json.Unmarshal(value, &g); err != nil {
-				return fmt.Errorf("can't unmarshal user in bucket %q for key %v: %v", userByIDBucketName, key, err)
-			}
-
-			// Get user names in the group.
+		for _, g := range groupRecords {
 			users, err := getUsersInGroup(buckets, g.GID)
 			if err != nil {
 				return err
 			}
 
-			all = append(all, NewGroupDB(g.Name, g.GID, g.UGID, users))
-			return nil
-		})
-	})
+			groups = append(groups, NewGroupDB(g.Name, g.GID, g.UGID, users))
+		}
 
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	return all, nil
+	return groups, nil
+}
+
+// allGroups is an internal function to get all group records from the database (without members).
+func (c *Cache) allGroups() (groups []groupDB, err error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	err = c.db.View(func(tx *bbolt.Tx) error {
+		bucket, err := getBucket(tx, groupByIDBucketName)
+		if err != nil {
+			return err
+		}
+
+		return bucket.ForEach(func(key, value []byte) error {
+			var g groupDB
+			if err := json.Unmarshal(value, &g); err != nil {
+				return fmt.Errorf("can't unmarshal group in bucket %q for key %v: %v", groupByIDBucketName, key, err)
+			}
+			groups = append(groups, g)
+			return nil
+		})
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return groups, nil
 }
 
 // getGroup returns a group matching the key and its members or an error if the database is corrupted
