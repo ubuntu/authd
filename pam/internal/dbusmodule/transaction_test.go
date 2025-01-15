@@ -654,7 +654,7 @@ func prepareTestServer(t *testing.T, expectedReturns []methodReturn) (string, *t
 	require.NoError(t, err, "Setup: Connecting to system Bus failed")
 	t.Cleanup(func() {
 		if err := conn.Close(); err != nil {
-			t.Logf("Failed closing the dbus connection: %v", err)
+			t.Logf("Failed closing the D-Bus connection: %v", err)
 		}
 	})
 

@@ -303,7 +303,7 @@ func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (clien
 	})
 
 	conn, err := grpc.NewClient("unix://"+socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	require.NoError(t, err, "Setup: Could not connect to GRPC server")
+	require.NoError(t, err, "Setup: Could not connect to gRPC server")
 
 	t.Cleanup(func() { _ = conn.Close() }) // We don't care about the error on cleanup
 
@@ -359,7 +359,7 @@ func requireExpectedResult[T authd.PasswdEntry | authd.GroupEntry | authd.Shadow
 	if wantErr {
 		require.Error(t, err, fmt.Sprintf("%s should return an error but did not", funcName))
 		s, ok := status.FromError(err)
-		require.True(t, ok, "The error is always a GRPC error")
+		require.True(t, ok, "The error is always a gRPC error")
 		if wantErrNotExists {
 			require.Equal(t, codes.NotFound, s.Code(), fmt.Sprintf("%s should return NotFound error", funcName))
 		}
@@ -377,7 +377,7 @@ func requireExpectedEntriesResult[T authd.PasswdEntry | authd.GroupEntry | authd
 	if wantErr {
 		require.Error(t, err, fmt.Sprintf("%s should return an error but did not", funcName))
 		s, ok := status.FromError(err)
-		require.True(t, ok, "The error is always a GRPC error")
+		require.True(t, ok, "The error is always a gRPC error")
 		require.NotEqual(t, codes.NotFound, s.Code(), fmt.Sprintf("%s should never return NotFound error even with empty list", funcName))
 		return
 	}

@@ -122,9 +122,9 @@ func (d *Daemon) Serve(ctx context.Context) (err error) {
 		log.Debug(context.Background(), "Ready state sent to systemd")
 	}
 
-	log.Infof(ctx, "Serving GRPC requests on %v", d.lis.Addr())
+	log.Infof(ctx, "Serving gRPC requests on %v", d.lis.Addr())
 	if err := d.grpcServer.Serve(d.lis); err != nil {
-		return fmt.Errorf("grpc error: %v", err)
+		return fmt.Errorf("gRPC error: %v", err)
 	}
 	return nil
 }

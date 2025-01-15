@@ -82,5 +82,5 @@ func TestWithUnixPeerCreds(t *testing.T) {
 
 	g := grpc.NewServer(permissions.WithUnixPeerCreds())
 
-	require.NotNil(t, g, "New grpc with Unix Peer Creds is created")
+	require.NotNil(t, g, "New gRPC with Unix Peer Creds is created")
 }

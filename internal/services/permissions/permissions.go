@@ -48,11 +48,11 @@ func (m Manager) IsRequestFromRoot(ctx context.Context) (err error) {
 
 	p, ok := peer.FromContext(ctx)
 	if !ok {
-		return errors.New("context request doesn't have grpc peer information")
+		return errors.New("context request doesn't have gRPC peer information")
 	}
 	pci, ok := p.AuthInfo.(peerCredsInfo)
 	if !ok {
-		return errors.New("context request doesn't have valid grpc peer credential information")
+		return errors.New("context request doesn't have valid gRPC peer credential information")
 	}
 
 	if pci.uid != m.rootUID {
