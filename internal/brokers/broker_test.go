@@ -105,13 +105,13 @@ func TestGetAuthenticationModes(t *testing.T) {
 		"Get_authentication_modes_and_generate_validators":                                         {sessionID: "success", supportedUILayouts: []string{"required-entry", "optional-entry"}},
 		"Get_authentication_modes_and_generate_validator_ignoring_whitespaces_in_supported_values": {sessionID: "success", supportedUILayouts: []string{"layout-with-spaces"}},
 		"Get_authentication_modes_and_ignores_invalid_UI_layout":                                   {sessionID: "success", supportedUILayouts: []string{"required-entry", "missing-type"}},
-		"Get_multiple_authentication_modes_and_generate_validators":                                {sessionID: "GAM_multiple_modes", supportedUILayouts: []string{"required-entry", "optional-entry"}},
+		"Get_multiple_authentication_modes_and_generate_validators":                                {sessionID: "gam_multiple_modes", supportedUILayouts: []string{"required-entry", "optional-entry"}},
 
-		"Does_not_error_out_when_no_authentication_modes_are_returned": {sessionID: "GAM_empty"},
+		"Does_not_error_out_when_no_authentication_modes_are_returned": {sessionID: "gam_empty"},
 
 		// broker errors
-		"Error_when_getting_authentication_modes": {sessionID: "GAM_error", wantErr: true},
-		"Error_when_broker_returns_invalid_modes": {sessionID: "GAM_invalid", wantErr: true},
+		"Error_when_getting_authentication_modes": {sessionID: "gam_error", wantErr: true},
+		"Error_when_broker_returns_invalid_modes": {sessionID: "gam_invalid", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -153,23 +153,23 @@ func TestSelectAuthenticationMode(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully_select_mode_with_required_value":         {sessionID: "SAM_success_required_entry"},
-		"Successfully_select_mode_with_optional_value":         {sessionID: "SAM_success_optional_entry", supportedUILayouts: []string{"optional-entry"}},
-		"Successfully_select_mode_with_missing_optional_value": {sessionID: "SAM_missing_optional_entry", supportedUILayouts: []string{"optional-entry"}},
+		"Successfully_select_mode_with_required_value":         {sessionID: "sam_success_required_entry"},
+		"Successfully_select_mode_with_optional_value":         {sessionID: "sam_success_optional_entry", supportedUILayouts: []string{"optional-entry"}},
+		"Successfully_select_mode_with_missing_optional_value": {sessionID: "sam_missing_optional_entry", supportedUILayouts: []string{"optional-entry"}},
 
 		// broker errors
-		"Error_when_selecting_invalid_auth_mode":              {sessionID: "SAM_error", wantErr: true},
+		"Error_when_selecting_invalid_auth_mode":              {sessionID: "sam_error", wantErr: true},
 		"Error_when_no_validators_were_generated_for_session": {sessionID: "no-validators", wantErr: true},
 
 		/* Layout errors */
-		"Error_when_returns_no_layout":                          {sessionID: "SAM_no_layout", wantErr: true},
-		"Error_when_returns_empty_layout":                       {sessionID: "SAM_empty_layout", wantErr: true},
-		"Error_when_returns_layout_with_no_type":                {sessionID: "SAM_no_layout_type", wantErr: true},
-		"Error_when_returns_layout_with_invalid_type":           {sessionID: "SAM_invalid_layout_type", wantErr: true},
-		"Error_when_returns_layout_without_required_value":      {sessionID: "SAM_missing_required_entry", wantErr: true},
-		"Error_when_returns_layout_with_unknown_field":          {sessionID: "SAM_unknown_field", wantErr: true},
-		"Error_when_returns_layout_with_invalid_required_value": {sessionID: "SAM_invalid_required_entry", wantErr: true},
-		"Error_when_returns_layout_with_invalid_optional_value": {sessionID: "SAM_invalid_optional_entry", wantErr: true},
+		"Error_when_returns_no_layout":                          {sessionID: "sam_no_layout", wantErr: true},
+		"Error_when_returns_empty_layout":                       {sessionID: "sam_empty_layout", wantErr: true},
+		"Error_when_returns_layout_with_no_type":                {sessionID: "sam_no_layout_type", wantErr: true},
+		"Error_when_returns_layout_with_invalid_type":           {sessionID: "sam_invalid_layout_type", wantErr: true},
+		"Error_when_returns_layout_without_required_value":      {sessionID: "sam_missing_required_entry", wantErr: true},
+		"Error_when_returns_layout_with_unknown_field":          {sessionID: "sam_unknown_field", wantErr: true},
+		"Error_when_returns_layout_with_invalid_required_value": {sessionID: "sam_invalid_required_entry", wantErr: true},
+		"Error_when_returns_layout_with_invalid_optional_value": {sessionID: "sam_invalid_optional_entry", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -213,29 +213,29 @@ func TestIsAuthenticated(t *testing.T) {
 		cancelFirstCall bool
 	}{
 		"Successfully_authenticate":                                        {sessionID: "success"},
-		"Successfully_authenticate_after_cancelling_first_call":            {sessionID: "IA_second_call", secondCall: true},
-		"Denies_authentication_when_broker_times_out":                      {sessionID: "IA_timeout"},
-		"Adds_default_groups_even_if_broker_did_not_set_them":              {sessionID: "IA_info_empty_groups"},
-		"No_error_when_auth.Next_and_no_data":                              {sessionID: "IA_next"},
-		"No_error_when_broker_returns_userinfo_with_empty_gecos":           {sessionID: "IA_info_empty_gecos"},
-		"No_error_when_broker_returns_userinfo_with_group_with_empty_UGID": {sessionID: "IA_info_empty_ugid"},
-		"No_error_when_broker_returns_userinfo_with_mismatching_username":  {sessionID: "IA_info_mismatching_user_name"},
+		"Successfully_authenticate_after_cancelling_first_call":            {sessionID: "ia_second_call", secondCall: true},
+		"Denies_authentication_when_broker_times_out":                      {sessionID: "ia_timeout"},
+		"Adds_default_groups_even_if_broker_did_not_set_them":              {sessionID: "ia_info_empty_groups"},
+		"No_error_when_auth.Next_and_no_data":                              {sessionID: "ia_next"},
+		"No_error_when_broker_returns_userinfo_with_empty_gecos":           {sessionID: "ia_info_empty_gecos"},
+		"No_error_when_broker_returns_userinfo_with_group_with_empty_UGID": {sessionID: "ia_info_empty_ugid"},
+		"No_error_when_broker_returns_userinfo_with_mismatching_username":  {sessionID: "ia_info_mismatching_user_name"},
 
 		// broker errors
-		"Error_when_authenticating":                                           {sessionID: "IA_error"},
-		"Error_on_empty_data_even_if_granted":                                 {sessionID: "IA_empty_data"},
-		"Error_when_broker_returns_invalid_data":                              {sessionID: "IA_invalid_data"},
-		"Error_when_broker_returns_invalid_access":                            {sessionID: "IA_invalid_access"},
-		"Error_when_broker_returns_invalid_userinfo":                          {sessionID: "IA_invalid_userinfo"},
-		"Error_when_broker_returns_userinfo_with_empty_username":              {sessionID: "IA_info_empty_user_name"},
-		"Error_when_broker_returns_userinfo_with_empty_group_name":            {sessionID: "IA_info_empty_group_name"},
-		"Error_when_broker_returns_userinfo_with_invalid_homedir":             {sessionID: "IA_info_invalid_home"},
-		"Error_when_broker_returns_userinfo_with_invalid_shell":               {sessionID: "IA_info_invalid_shell"},
-		"Error_when_broker_returns_data_on_auth.Next":                         {sessionID: "IA_next_with_data"},
-		"Error_when_broker_returns_data_on_auth.Cancelled":                    {sessionID: "IA_cancelled_with_data"},
-		"Error_when_broker_returns_no_data_on_auth.Denied":                    {sessionID: "IA_denied_without_data"},
-		"Error_when_broker_returns_no_data_on_auth.Retry":                     {sessionID: "IA_retry_without_data"},
-		"Error_when_calling_IsAuthenticated_a_second_time_without_cancelling": {sessionID: "IA_second_call", secondCall: true, cancelFirstCall: true},
+		"Error_when_authenticating":                                           {sessionID: "ia_error"},
+		"Error_on_empty_data_even_if_granted":                                 {sessionID: "ia_empty_data"},
+		"Error_when_broker_returns_invalid_data":                              {sessionID: "ia_invalid_data"},
+		"Error_when_broker_returns_invalid_access":                            {sessionID: "ia_invalid_access"},
+		"Error_when_broker_returns_invalid_userinfo":                          {sessionID: "ia_invalid_userinfo"},
+		"Error_when_broker_returns_userinfo_with_empty_username":              {sessionID: "ia_info_empty_user_name"},
+		"Error_when_broker_returns_userinfo_with_empty_group_name":            {sessionID: "ia_info_empty_group_name"},
+		"Error_when_broker_returns_userinfo_with_invalid_homedir":             {sessionID: "ia_info_invalid_home"},
+		"Error_when_broker_returns_userinfo_with_invalid_shell":               {sessionID: "ia_info_invalid_shell"},
+		"Error_when_broker_returns_data_on_auth.Next":                         {sessionID: "ia_next_with_data"},
+		"Error_when_broker_returns_data_on_auth.Cancelled":                    {sessionID: "ia_cancelled_with_data"},
+		"Error_when_broker_returns_no_data_on_auth.Denied":                    {sessionID: "ia_denied_without_data"},
+		"Error_when_broker_returns_no_data_on_auth.Retry":                     {sessionID: "ia_retry_without_data"},
+		"Error_when_calling_IsAuthenticated_a_second_time_without_cancelling": {sessionID: "ia_second_call", secondCall: true, cancelFirstCall: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -288,8 +288,8 @@ func TestCancelIsAuthenticated(t *testing.T) {
 
 		wantAnswer string
 	}{
-		"Successfully_cancels_IsAuthenticated": {sessionID: "IA_wait", wantAnswer: auth.Cancelled},
-		"Call_returns_denied_if_not_cancelled": {sessionID: "IA_timeout", wantAnswer: auth.Denied},
+		"Successfully_cancels_IsAuthenticated": {sessionID: "ia_wait", wantAnswer: auth.Cancelled},
+		"Call_returns_denied_if_not_cancelled": {sessionID: "ia_timeout", wantAnswer: auth.Denied},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -304,7 +304,7 @@ func TestCancelIsAuthenticated(t *testing.T) {
 			}()
 			defer cancel()
 
-			if tc.sessionID == "IA_wait" {
+			if tc.sessionID == "ia_wait" {
 				// Give some time for the IsAuthenticated routine to start.
 				time.Sleep(time.Second)
 				cancel()
