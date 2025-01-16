@@ -23,7 +23,7 @@ require (
 	golang.org/x/sys v0.29.0
 	golang.org/x/term v0.28.0
 	google.golang.org/grpc v1.69.4
-	google.golang.org/protobuf v1.36.2
+	google.golang.org/protobuf v1.36.3
 	gopkg.in/ini.v1 v1.67.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorbe.io/go/osrelease v0.3.0
