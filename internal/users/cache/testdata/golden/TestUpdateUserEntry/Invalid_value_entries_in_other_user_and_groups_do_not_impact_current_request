@@ -33,3 +33,4 @@ UserToGroups:
     "3333": '"not-a-valid-json"'
 UserToLocalGroups:
     "1111": "null"
+Version: {}

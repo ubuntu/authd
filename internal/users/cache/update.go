@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ubuntu/authd/log"
@@ -17,6 +18,9 @@ import (
 func (c *Cache) UpdateUserEntry(usr UserDB, authdGroups []GroupDB, localGroups []string) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
+
+	// authd uses lowercase usernames
+	usr.Name = strings.ToLower(usr.Name)
 
 	userDB := userDB{
 		UserDB:    usr,

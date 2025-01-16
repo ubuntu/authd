@@ -9,3 +9,5 @@
     UserToGroups: {}
     UserToLocalGroups:
         "1111": '["gpasswdfail"]'
+    Version:
+        version: Dev

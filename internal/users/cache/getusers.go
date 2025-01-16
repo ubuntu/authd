@@ -3,6 +3,7 @@ package cache
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"go.etcd.io/bbolt"
@@ -42,12 +43,26 @@ func (c *Cache) UserByID(uid uint32) (UserDB, error) {
 
 // UserByName returns a user matching this name or an error if the database is corrupted or no entry was found.
 func (c *Cache) UserByName(name string) (UserDB, error) {
+	// authd uses lowercase usernames
+	name = strings.ToLower(name)
 	u, err := getUser(c, userByNameBucketName, name)
 	return u.UserDB, err
 }
 
 // AllUsers returns all users or an error if the database is corrupted.
-func (c *Cache) AllUsers() (all []UserDB, err error) {
+func (c *Cache) AllUsers() (users []UserDB, err error) {
+	userRecords, err := c.allUsers()
+	if err != nil {
+		return nil, err
+	}
+	for _, u := range userRecords {
+		users = append(users, u.UserDB)
+	}
+	return users, nil
+}
+
+// allUsers is an internal function to get all user records from the database (including lastLogin).
+func (c *Cache) allUsers() (users []userDB, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
@@ -61,7 +76,7 @@ func (c *Cache) AllUsers() (all []UserDB, err error) {
 			if err := json.Unmarshal(value, &e); err != nil {
 				return fmt.Errorf("can't unmarshal user in bucket %q for key %v: %v", userByIDBucketName, key, err)
 			}
-			all = append(all, e.UserDB)
+			users = append(users, e)
 			return nil
 		})
 	})
@@ -70,7 +85,7 @@ func (c *Cache) AllUsers() (all []UserDB, err error) {
 		return nil, err
 	}
 
-	return all, nil
+	return users, nil
 }
 
 // getUser returns an user matching the key or an error if the database is corrupted or no entry was found.

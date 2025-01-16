@@ -9,3 +9,5 @@ UserByName:
 UserToBroker: {}
 UserToGroups: {}
 UserToLocalGroups: {}
+Version:
+    version: Dev

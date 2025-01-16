@@ -73,6 +73,11 @@ func (m *Manager) Stop() error {
 func (m *Manager) UpdateUser(u UserInfo) (err error) {
 	defer decorate.OnError(&err, "failed to update user %q", u.Name)
 
+	log.Debugf(context.TODO(), "Updating user %q", u.Name)
+
+	// authd uses lowercase usernames
+	u.Name = strings.ToLower(u.Name)
+
 	if u.Name == "" {
 		return errors.New("empty username")
 	}
@@ -134,6 +139,9 @@ func (m *Manager) UpdateUser(u UserInfo) (err error) {
 			localGroups = append(localGroups, g.Name)
 			continue
 		}
+
+		// authd groups are lowercase
+		g.Name = strings.ToLower(g.Name)
 		authdGroups = append(authdGroups, cache.NewGroupDB(g.Name, *g.GID, g.UGID, nil))
 	}
 

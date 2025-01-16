@@ -16,3 +16,5 @@ UserToBroker: {}
 UserToGroups:
     "1797931382": '{"UID":1797931382,"GIDs":[1797931382,1840530284]}'
 UserToLocalGroups: {}
+Version:
+    version: Dev

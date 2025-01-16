@@ -2,6 +2,7 @@
 package cache
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -10,6 +11,8 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/ubuntu/authd/internal/consts"
+	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
 	"go.etcd.io/bbolt"
 )
@@ -28,6 +31,7 @@ const (
 	groupToUsersBucketName      = "GroupToUsers"
 	userToBrokerBucketName      = "UserToBroker"
 	userToLocalGroupsBucketName = "UserToLocalGroups"
+	versionBucketName           = "Version"
 )
 
 var (
@@ -36,7 +40,7 @@ var (
 		[]byte(groupByNameBucketName), []byte(groupByIDBucketName),
 		[]byte(groupByUGIDBucketName), []byte(userToGroupsBucketName),
 		[]byte(groupToUsersBucketName), []byte(userToBrokerBucketName),
-		[]byte(userToLocalGroupsBucketName),
+		[]byte(userToLocalGroupsBucketName), []byte(versionBucketName),
 	}
 )
 
@@ -102,7 +106,18 @@ func New(cacheDir string) (cache *Cache, err error) {
 		return nil, err
 	}
 
-	return &Cache{db: db, mu: sync.RWMutex{}}, nil
+	cache = &Cache{db: db, mu: sync.RWMutex{}}
+
+	if err = maybeMigrateToLowercaseUserAndGroupNames(cache); err != nil {
+		log.Warningf(context.Background(), "Error migrating database to lowercase usernames: %v", err)
+	} else {
+		// Store the current version in the database
+		if err := cache.StoreVersion(consts.Version); err != nil {
+			log.Warningf(context.Background(), "Error storing version in database: %v", err)
+		}
+	}
+
+	return cache, nil
 }
 
 // openAndInitDB open a pre-existing database and potentially initializes its buckets.

@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/log"
 )
 
 func TestNew(t *testing.T) {
@@ -25,10 +26,11 @@ func TestNew(t *testing.T) {
 
 		wantErr bool
 	}{
-		"New without any initialized database":                   {},
-		"New with already existing database":                     {dbFile: "multiple_users_and_groups"},
-		"New recreates any missing buckets and delete unknowns":  {dbFile: "database_with_unknown_bucket"},
-		"New removes orphaned user records from UserByID bucket": {dbFile: "orphaned_user_record"},
+		"New without any initialized database":                    {},
+		"New with already existing database":                      {dbFile: "multiple_users_and_groups"},
+		"New recreates any missing buckets and delete unknowns":   {dbFile: "database_with_unknown_bucket"},
+		"New removes orphaned user records from UserByID bucket":  {dbFile: "orphaned_user_record"},
+		"New migrates database to lowercase user and group names": {dbFile: "one_user_and_group_with_uppercase"},
 
 		"Error on cacheDir non existent cacheDir":      {dbFile: "-", wantErr: true},
 		"Error on corrupted db file":                   {corruptedDbFile: true, wantErr: true},
@@ -136,6 +138,15 @@ func TestUpdateUserEntry(t *testing.T) {
 			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
 			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
+		"user1-in-caps": {
+			Name:  "User1",
+			UID:   1111,
+			Gecos: "User1 gecos\nOn multiple lines",
+			Dir:   "/home/user1",
+			Shell: "/bin/bash",
+			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
+			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
+		},
 		"user3": {
 			Name:  "user3",
 			UID:   3333,
@@ -171,6 +182,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Update user by changing attributes":                      {userCase: "user1-new-attributes", dbFile: "one_user_and_group"},
 		"Update user does not change homedir if it exists":        {userCase: "user1-new-homedir", dbFile: "one_user_and_group"},
 		"Update user by removing optional gecos field if not set": {userCase: "user1-without-gecos", dbFile: "one_user_and_group"},
+		"Updating user with different capitalization":             {userCase: "user1-in-caps", dbFile: "one_user_and_group"},
 
 		// Group updates
 		"Update user by adding a new group":         {groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group"},
@@ -517,4 +529,9 @@ func requireGetAssertions[E any](t *testing.T, got E, wantErr bool, wantErrType,
 	require.NoError(t, err)
 
 	golden.CheckOrUpdateYAML(t, got)
+}
+
+func TestMain(m *testing.M) {
+	log.SetLevel(log.DebugLevel)
+	m.Run()
 }

@@ -51,7 +51,8 @@ func TestGetPasswdByName(t *testing.T) {
 		wantErr          bool
 		wantErrNotExists bool
 	}{
-		"Return existing user": {username: "user1"},
+		"Return existing user":                               {username: "user1"},
+		"Return existing user with different capitalization": {username: "User1"},
 
 		"Precheck user if not in cache":                                          {username: "user-pre-check", shouldPreCheck: true},
 		"Prechecked user with upper cases in username has same id as lower case": {username: "User-Pre-Check", shouldPreCheck: true},

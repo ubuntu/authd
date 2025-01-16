@@ -43,3 +43,5 @@ UserToGroups:
     "4444": '{"UID":4444,"GIDs":[44444]}'
 UserToLocalGroups:
     "1111": "null"
+Version:
+    version: Dev
