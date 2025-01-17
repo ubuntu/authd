@@ -182,12 +182,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			// Unexpected error
 			return err
 		}
-		// Keep the old GID if the group already exists in the database, to avoid permission issues
-		if err == nil {
-			g.GID = &oldGroup.GID
-		}
-
-		if g.GID == nil {
+		if errors.Is(err, cache.NoDataFoundError{}) {
 			// The group does not exist in the database, so we generate a unique GID for it. Similar to the RegisterUser
 			// call above, this also registers a temporary group in our NSS handler. We remove that temporary group
 			// before returning from this function, at which point the group is added to the database (so we don't need
@@ -200,6 +195,9 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			defer cleanup()
 
 			g.GID = &gid
+		} else {
+			// The group already exists in the database, use the existing GID to avoid permission issues.
+			g.GID = &oldGroup.GID
 		}
 
 		authdGroups = append(authdGroups, cache.NewGroupDB(g.Name, *g.GID, g.UGID, nil))
