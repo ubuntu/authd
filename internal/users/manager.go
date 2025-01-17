@@ -150,6 +150,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		}
 		defer cleanup()
 	} else {
+		// The user already exists in the database, use the existing UID to avoid permission issues.
 		uid = oldUser.UID
 	}
 
