@@ -80,10 +80,6 @@ Files: vendor/github.com/charmbracelet/*
 Copyright: 2019-2023 Charmbracelet, Inc
 License: MIT
 
-Files: vendor/github.com/containerd/console/*
-Copyright: The containerd Authors.
-License: Apache-2.0
-
 Files: vendor/github.com/coreos/*
 Copyright: 2015-2018 CoreOS, Inc. / 2014 Docker, Inc.
 License: Apache-2.0
@@ -99,10 +95,6 @@ License: BSD-3
 Files: vendor/github.com/godbus/*
 Copyright: 2013 Georg Reinke (<guelfey at gmail dot com>), Google
 License: BSD-2
-
-Files: vendor/github.com/golang/protobuf/*
-Copyright: Copyright: 2010 The Go Authors.
-License: BSD-3
 
 Files: vendor/github.com/google/uuid/*
 Copyright: 2009, 2014-2017, 2021 Google Inc.
@@ -244,12 +236,10 @@ Files: vendor_rust/anyhow/*
        vendor_rust/fastrand/*
        vendor_rust/fixedbitset/*
        vendor_rust/hermit-abi/*
-       vendor_rust/home/*
        vendor_rust/indexmap/*
        vendor_rust/itertools/*
        vendor_rust/itoa/*
        vendor_rust/linux-raw-sys/*
-       vendor_rust/num_cpus/*
        vendor_rust/once_cell/*
        vendor_rust/paste/*
        vendor_rust/petgraph/*
@@ -291,7 +281,6 @@ License: MIT
 Files: vendor_rust/backtrace/*
        vendor_rust/cc/*
        vendor_rust/cfg-if/*
-       vendor_rust/match_cfg/*
        vendor_rust/rustc-demangle/*
        vendor_rust/socket2/*
 Copyright: 2014 Alex Crichton
@@ -319,10 +308,6 @@ License: Apache-2.0
 
 Files: vendor_rust/errno/*
 Copyright: 2014 Chris Wong
-License: MIT
-
-Files: vendor_rust/error-chain/*
-Copyright: 2017 The Error-Chain Project Developers
 License: MIT
 
 Files: vendor_rust/fnv/*
@@ -449,10 +434,6 @@ Files: vendor_rust/tokio/*
 Copyright: 2019, 2023 Tokio Contributors
 License: MIT
 
-Files: vendor_rust/tokio-io-timeout/*
-Copyright: 2017 The tokio-io-timeout Developers
-License: MIT
-
 Files: vendor_rust/tonic/*
        vendor_rust/tonic-build/*
 Copyright: 2020 Lucio Franco
@@ -466,18 +447,6 @@ License: MIT
 
 Files: vendor_rust/try-lock/*
 Copyright: 2018 Sean McArthur / 2016 Alex Crichton
-License: MIT
-
-Files: vendor_rust/version_check/*
-Copyright: 2017-2018 Sergio Benitez
-License: MIT
-
-Files: vendor_rust/which/*
-Copyright: 2015 fangyuanziti
-License: MIT
-
-Files: vendor_rust/winapi*/*
-Copyright: 2015-2018 The winapi-rs Developers
 License: MIT
 
 Files: vendor_rust/windows*/*
