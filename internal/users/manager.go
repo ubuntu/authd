@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/user"
 	"sync"
 	"syscall"
 
@@ -130,6 +131,14 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		return fmt.Errorf("could not get user %q: %w", u.Name, err)
 	}
 	if errors.Is(err, cache.NoDataFoundError{}) {
+		// Check if the user exists on the system
+		existingUser, err := user.Lookup(u.Name)
+		var unknownUserErr user.UnknownUserError
+		if !errors.As(err, &unknownUserErr) {
+			log.Errorf(context.Background(), "User already exists on the system: %+v", existingUser)
+			return fmt.Errorf("user %q already exists on the system (but not in this authd instance)", u.Name)
+		}
+
 		// The user does not exist, so we generate a unique UID for it. To avoid that a user with the same UID is
 		// created by some other NSS source, this also registers a temporary user in our NSS handler. We remove that
 		// temporary user before returning from this function, at which point the user is added to the database (so we
