@@ -170,6 +170,12 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			continue
 		}
 
+		// It's not a local group, so before storing it in the database, check if a group with the same name already
+		// exists.
+		if err := m.checkGroupNameConflict(g.Name, g.UGID); err != nil {
+			return err
+		}
+
 		// Check if the group already exists in the database
 		oldGroup, err := m.findGroup(g)
 		if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
@@ -222,6 +228,42 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	return nil
 }
 
+// checkGroupNameConflict checks if a group with the given name already exists.
+// If it does, it checks if it has the same UGID.
+func (m *Manager) checkGroupNameConflict(name string, ugid string) error {
+	// First check in our database.
+	existingGroup, err := m.cache.GroupByName(name)
+	if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
+		// Unexpected error
+		return err
+	}
+
+	if errors.Is(err, cache.NoDataFoundError{}) {
+		// The group does not exist in the database, check if it exists on the system.
+		existingGroup, err := user.LookupGroup(name)
+		var unknownGroupErr user.UnknownGroupError
+		if !errors.As(err, &unknownGroupErr) {
+			log.Errorf(context.Background(), "Group already exists on the system: %+v", existingGroup)
+			return fmt.Errorf("group %q already exists on the system (but not in this authd instance)", name)
+		}
+		// The group does not exist on the system, so we can proceed.
+		return nil
+	}
+
+	// A group with that name already exists in the database, check if it has the same UGID.
+	// Ignore it if the UGID of the existing group is empty, because we didn't store the UGID in 0.3.7 and earlier.
+	if existingGroup.UGID == "" {
+		return nil
+	}
+	if existingGroup.UGID != ugid {
+		log.Errorf(context.Background(), "Group %q already exists in the database with UGID %q (expected %q)", name, existingGroup.UGID, ugid)
+		return errors.New("found a different group with the same name in the database")
+	}
+
+	// The group exists in the database and has the same UGID, so we can proceed.
+	return nil
+}
+
 func (m *Manager) findGroup(group types.GroupInfo) (oldGroup cache.GroupDB, err error) {
 	// Search by UGID first to support renaming groups
 	oldGroup, err = m.cache.GroupByUGID(group.UGID)
@@ -234,13 +276,7 @@ func (m *Manager) findGroup(group types.GroupInfo) (oldGroup cache.GroupDB, err 
 	}
 
 	// The group was not found by UGID. Search by name, because we didn't store the UGID in 0.3.7 and earlier.
-	log.Debugf(context.Background(), "Group %q not found by UGID %q, trying lookup by name", group.Name, group.UGID)
-	oldGroup, err = m.cache.GroupByName(group.Name)
-	if err == nil && oldGroup.UGID != "" {
-		// There is a group with the same name but a different UGID, which should not happen
-		return oldGroup, fmt.Errorf("group %q already exists with UGID %q (expected %q)", group.Name, oldGroup.UGID, group.UGID)
-	}
-	return oldGroup, err
+	return m.cache.GroupByName(group.Name)
 }
 
 // checkHomeDirOwnership checks if the home directory of the user is owned by the user and the user's group.
