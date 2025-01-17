@@ -58,7 +58,7 @@ func TestErrorValues(t *testing.T) {
 
 			set(tc.err)
 			t.Logf("Checking for error %v", tc.err)
-			require.ErrorIs(t, Get(), tc.err, "Errorno is not matching")
+			require.ErrorIs(t, Get(), tc.err, "Errno is not matching")
 		})
 	}
 }
