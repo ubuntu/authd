@@ -11,7 +11,7 @@ func TestNoError(t *testing.T) {
 	t.Parallel()
 
 	Lock()
-	defer Unlock()
+	t.Cleanup(Unlock)
 
 	require.NoError(t, Get())
 }
@@ -32,7 +32,7 @@ func TestSetInvalidError(t *testing.T) {
 	t.Parallel()
 
 	Lock()
-	defer Unlock()
+	t.Cleanup(Unlock)
 
 	require.PanicsWithValue(t, "Not a valid errno value", func() { set(errors.New("invalid")) })
 }
@@ -54,7 +54,7 @@ func TestErrorValues(t *testing.T) {
 			t.Parallel()
 
 			Lock()
-			defer Unlock()
+			t.Cleanup(Unlock)
 
 			set(tc.err)
 			t.Logf("Checking for error %v", tc.err)
