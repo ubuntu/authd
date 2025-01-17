@@ -152,7 +152,7 @@ authd (0.2) noble; urgency=medium
       - libc
       - simple_logger
       - tokio
-  * Update tools and CI dependencies not related to package 
+  * Update tools and CI dependencies not related to package
     functionality
       - google.golang.org/protobuf
 
