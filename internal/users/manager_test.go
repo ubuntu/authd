@@ -185,7 +185,8 @@ func TestUpdateUser(t *testing.T) {
 				cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
 
-			gids := []uint32{user.UID}
+			// One GID is generated for the user private group
+			gids := []uint32{11110}
 			for _, group := range user.Groups {
 				if group.GID != nil {
 					gids = append(gids, *group.GID)
