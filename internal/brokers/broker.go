@@ -13,7 +13,7 @@ import (
 	"github.com/godbus/dbus/v5"
 	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
-	"github.com/ubuntu/authd/internal/users"
+	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
 	"golang.org/x/exp/slices"
@@ -184,7 +184,7 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 			return "", "", err
 		}
 
-		d, err := json.Marshal(info.UserInfo)
+		d, err := json.Marshal(info)
 		if err != nil {
 			return "", "", fmt.Errorf("can't marshal UserInfo: %v", err)
 		}
@@ -317,22 +317,17 @@ func (b Broker) parseSessionID(sessionID string) string {
 	return strings.TrimPrefix(sessionID, fmt.Sprintf("%s-", b.ID))
 }
 
-type userInfo struct {
-	users.UserInfo
-	UUID string
-}
-
 // unmarshalUserInfo tries to unmarshal the rawMsg into a userinfo.
-func unmarshalUserInfo(rawMsg json.RawMessage) (userInfo, error) {
-	var u userInfo
+func unmarshalUserInfo(rawMsg json.RawMessage) (types.UserInfo, error) {
+	var u types.UserInfo
 	if err := json.Unmarshal(rawMsg, &u); err != nil {
-		return userInfo{}, fmt.Errorf("message is not JSON formatted: %v", err)
+		return types.UserInfo{}, fmt.Errorf("message is not JSON formatted: %v", err)
 	}
 	return u, nil
 }
 
 // validateUserInfo checks if the specified userinfo is valid.
-func validateUserInfo(uInfo userInfo) (err error) {
+func validateUserInfo(uInfo types.UserInfo) (err error) {
 	defer decorate.OnError(&err, "provided userinfo is invalid")
 
 	// Validate username. We don't want to check here if it matches the username from the request, because it's the
@@ -348,11 +343,6 @@ func validateUserInfo(uInfo userInfo) (err error) {
 	}
 	if !filepath.IsAbs(filepath.Clean(uInfo.Shell)) {
 		return fmt.Errorf("value provided for shell is not an absolute path: %s", uInfo.Shell)
-	}
-
-	// Validate UUID
-	if uInfo.UUID == "" {
-		return errors.New("empty UUID")
 	}
 
 	// Validate groups

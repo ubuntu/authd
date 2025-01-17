@@ -9,8 +9,11 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/cache"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
+	"github.com/ubuntu/authd/internal/users/idgenerator"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
+	"github.com/ubuntu/authd/internal/users/types"
+	"github.com/ubuntu/authd/log"
 	"go.etcd.io/bbolt"
 )
 
@@ -25,7 +28,8 @@ func TestNewManager(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully create a new manager": {},
+		"Successfully create manager with default config": {},
+		"Successfully create manager with custom config":  {uidMin: 10000, uidMax: 20000, gidMin: 10000, gidMax: 20000},
 
 		// Corrupted databases
 		"New recreates any missing buckets and delete unknowns": {dbFile: "database_with_unknown_bucket"},
@@ -34,6 +38,7 @@ func TestNewManager(t *testing.T) {
 		"Error if cacheDir does not exist":     {dbFile: "-", wantErr: true},
 		"Error if UID_MIN is equal to UID_MAX": {uidMin: 1000, uidMax: 1000, wantErr: true},
 		"Error if GID_MIN is equal to GID_MAX": {gidMin: 1000, gidMax: 1000, wantErr: true},
+		"Error if UID range is too small":      {uidMin: 1000, uidMax: 2000, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -95,28 +100,34 @@ func TestStop(t *testing.T) {
 	require.ErrorIs(t, err, bbolt.ErrDatabaseNotOpen, "AllUsers should return an error, but did not")
 }
 
+type userCase struct {
+	types.UserInfo
+	UID uint32
+}
+
 func TestUpdateUser(t *testing.T) {
-	userCases := map[string]users.UserInfo{
-		"user1":                   {Name: "user1", UID: 1111},
-		"user2":                   {Name: "user2", UID: 2222},
-		"same-name-different-uid": {Name: "user1", UID: 3333},
-		"different-name-same-uid": {Name: "newuser1", UID: 1111},
+	userCases := map[string]userCase{
+		"user1":                   {UserInfo: types.UserInfo{Name: "user1"}, UID: 1111},
+		"nameless":                {UID: 1111},
+		"user2":                   {UserInfo: types.UserInfo{Name: "user2"}, UID: 2222},
+		"same-name-different-uid": {UserInfo: types.UserInfo{Name: "user1"}, UID: 3333},
+		"different-name-same-uid": {UserInfo: types.UserInfo{Name: "newuser1"}, UID: 1111},
 	}
 
-	groupsCases := map[string][]users.GroupInfo{
+	groupsCases := map[string][]types.GroupInfo{
 		"cloud-group": {{Name: "group1", GID: ptrUint32(11111), UGID: "1"}},
-		"local-group": {{Name: "localgroup1"}},
+		"local-group": {{Name: "localgroup1", GID: nil, UGID: ""}},
 		"mixed-groups-cloud-first": {
 			{Name: "group1", GID: ptrUint32(11111), UGID: "1"},
 			{Name: "localgroup1", GID: nil, UGID: ""},
 		},
 		"mixed-groups-local-first": {
-			{Name: "localgroup1"},
+			{Name: "localgroup1", GID: nil, UGID: ""},
 			{Name: "group1", GID: ptrUint32(11111), UGID: "1"},
 		},
 		"mixed-groups-gpasswd-fail": {
 			{Name: "group1", GID: ptrUint32(11111), UGID: "1"},
-			{Name: "gpasswdfail"},
+			{Name: "gpasswdfail", GID: nil, UGID: ""},
 		},
 		"nameless-group":          {{Name: "", GID: ptrUint32(11111), UGID: "1"}},
 		"different-name-same-gid": {{Name: "newgroup1", GID: ptrUint32(11111), UGID: "1"}},
@@ -139,7 +150,6 @@ func TestUpdateUser(t *testing.T) {
 		"UID does not change if user already exists":     {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
 
 		"Error if user has no username":      {userCase: "nameless", wantErr: true, noOutput: true},
-		"Error if user has conflicting uid":  {userCase: "different-name-same-uid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
 		"Error if group has no name":         {groupsCase: "nameless-group", wantErr: true, noOutput: true},
 		"Error if group has conflicting gid": {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
 
@@ -174,7 +184,20 @@ func TestUpdateUser(t *testing.T) {
 			if tc.dbFile != "" {
 				cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
-			m := newManagerForTests(t, cacheDir)
+
+			gids := []uint32{user.UID}
+			for _, group := range user.Groups {
+				if group.GID != nil {
+					gids = append(gids, *group.GID)
+				}
+			}
+			managerOpts := []users.Option{
+				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+					UIDsToGenerate: []uint32{user.UID},
+					GIDsToGenerate: gids,
+				}),
+			}
+			m := newManagerForTests(t, cacheDir, managerOpts...)
 
 			var oldUID uint32
 			if tc.wantSameUID {
@@ -183,7 +206,7 @@ func TestUpdateUser(t *testing.T) {
 				oldUID = oldUser.UID
 			}
 
-			err := m.UpdateUser(user)
+			err := m.UpdateUser(user.UserInfo)
 
 			requireErrorAssertions(t, err, nil, tc.wantErr)
 			if tc.wantErr && tc.noOutput {
@@ -288,53 +311,25 @@ func TestUpdateBrokerForUser(t *testing.T) {
 }
 
 //nolint:dupl // This is not a duplicate test
-func TestUserByName(t *testing.T) {
+func TestUserByIDAndName(t *testing.T) {
 	tests := map[string]struct {
-		username string
-		dbFile   string
+		uid        uint32
+		username   string
+		dbFile     string
+		isTempUser bool
 
 		wantErr     bool
 		wantErrType error
 	}{
-		"Successfully get user by name": {username: "user1", dbFile: "multiple_users_and_groups"},
+		"Successfully get user by ID":             {uid: 1111, dbFile: "multiple_users_and_groups"},
+		"Successfully get user by name":           {username: "user1", dbFile: "multiple_users_and_groups"},
+		"Successfully get temporary user by ID":   {dbFile: "multiple_users_and_groups", isTempUser: true},
+		"Successfully get temporary user by name": {username: "tempuser1", dbFile: "multiple_users_and_groups", isTempUser: true},
 
-		"Error if user does not exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
-	}
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
-
-			cacheDir := t.TempDir()
-			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
-			m := newManagerForTests(t, cacheDir)
-
-			got, err := m.UserByName(tc.username)
-
-			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
-			if tc.wantErrType != nil || tc.wantErr {
-				return
-			}
-
-			golden.CheckOrUpdateYAML(t, got)
-		})
-	}
-}
-
-//nolint:dupl // This is not a duplicate test
-func TestUserByID(t *testing.T) {
-	tests := map[string]struct {
-		uid    uint32
-		dbFile string
-
-		wantErr     bool
-		wantErrType error
-	}{
-		"Successfully get user by ID": {uid: 1111, dbFile: "multiple_users_and_groups"},
-
-		"Error if user does not exist":  {uid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {uid: 1111, dbFile: "invalid_entry_in_userByID", wantErr: true},
+		"Error if user does not exist - by ID":    {uid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if user does not exist - by name":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if db has invalid entry - by ID":   {uid: 1111, dbFile: "invalid_entry_in_userByID", wantErr: true},
+		"Error if db has invalid entry - by name": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -346,14 +341,34 @@ func TestUserByID(t *testing.T) {
 
 			m := newManagerForTests(t, cacheDir)
 
-			got, err := m.UserByID(tc.uid)
+			var err error
+			if tc.isTempUser {
+				tc.uid, _, err = m.TemporaryRecords().RegisterUser("tempuser1")
+				require.NoError(t, err, "RegisterUser should not return an error, but did")
+			}
+
+			var user types.UserEntry
+			if tc.username != "" {
+				user, err = m.UserByName(tc.username)
+			} else {
+				user, err = m.UserByID(tc.uid)
+			}
 
 			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
 			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
-			golden.CheckOrUpdateYAML(t, got)
+			// Registering a temporary user creates it with a random UID and random gecos, so we have to make it
+			// deterministic before comparing it with the golden file
+			if tc.isTempUser {
+				require.Equal(t, tc.uid, user.UID)
+				user.UID = 0
+				require.NotEmpty(t, user.Gecos)
+				user.Gecos = ""
+			}
+
+			golden.CheckOrUpdateYAML(t, user)
 		})
 	}
 }
@@ -391,18 +406,25 @@ func TestAllUsers(t *testing.T) {
 }
 
 //nolint:dupl // This is not a duplicate test
-func TestGroupByName(t *testing.T) {
+func TestGroupByIDAndName(t *testing.T) {
 	tests := map[string]struct {
-		groupname string
-		dbFile    string
+		gid         uint32
+		groupname   string
+		dbFile      string
+		isTempGroup bool
 
 		wantErr     bool
 		wantErrType error
 	}{
-		"Successfully get group by name": {groupname: "group1", dbFile: "multiple_users_and_groups"},
+		"Successfully get group by ID":             {gid: 11111, dbFile: "multiple_users_and_groups"},
+		"Successfully get group by name":           {groupname: "group1", dbFile: "multiple_users_and_groups"},
+		"Successfully get temporary group by ID":   {dbFile: "multiple_users_and_groups", isTempGroup: true},
+		"Successfully get temporary group by name": {groupname: "tempgroup1", dbFile: "multiple_users_and_groups", isTempGroup: true},
 
-		"Error if group does not exist": {groupname: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {groupname: "group1", dbFile: "invalid_entry_in_groupByName", wantErr: true},
+		"Error if group does not exist - by ID":   {gid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if group does not exist - by name": {groupname: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error if db has invalid entry - by ID":   {gid: 11111, dbFile: "invalid_entry_in_groupByID", wantErr: true},
+		"Error if db has invalid entry - by name": {groupname: "group1", dbFile: "invalid_entry_in_groupByName", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -413,49 +435,34 @@ func TestGroupByName(t *testing.T) {
 			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
-			got, err := m.GroupByName(tc.groupname)
+			var err error
+			if tc.isTempGroup {
+				tc.gid, _, err = m.TemporaryRecords().RegisterGroup("tempgroup1")
+				require.NoError(t, err, "RegisterGroup should not return an error, but did")
+			}
+
+			var group types.GroupEntry
+			if tc.groupname != "" {
+				group, err = m.GroupByName(tc.groupname)
+			} else {
+				group, err = m.GroupByID(tc.gid)
+			}
 
 			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
 			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
-			golden.CheckOrUpdateYAML(t, got)
-		})
-	}
-}
-
-//nolint:dupl // This is not a duplicate test
-func TestGroupByID(t *testing.T) {
-	tests := map[string]struct {
-		gid    uint32
-		dbFile string
-
-		wantErr     bool
-		wantErrType error
-	}{
-		"Successfully get group by ID": {gid: 11111, dbFile: "multiple_users_and_groups"},
-
-		"Error if group does not exist": {gid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error if db has invalid entry": {gid: 11111, dbFile: "invalid_entry_in_groupByID", wantErr: true},
-	}
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
-
-			cacheDir := t.TempDir()
-			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
-			m := newManagerForTests(t, cacheDir)
-
-			got, err := m.GroupByID(tc.gid)
-
-			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
-			if tc.wantErrType != nil || tc.wantErr {
-				return
+			// Registering a temporary group creates it with a random GID and random passwd, so we have to make it
+			// deterministic before comparing it with the golden file
+			if tc.isTempGroup {
+				require.Equal(t, tc.gid, group.GID)
+				group.GID = 0
+				require.NotEmpty(t, group.Passwd)
+				group.Passwd = ""
 			}
 
-			golden.CheckOrUpdateYAML(t, got)
+			golden.CheckOrUpdateYAML(t, group)
 		})
 	}
 }
@@ -493,7 +500,6 @@ func TestAllGroups(t *testing.T) {
 	}
 }
 
-//nolint:dupl // This is not a duplicate test
 func TestShadowByName(t *testing.T) {
 	tests := map[string]struct {
 		username string
@@ -579,10 +585,10 @@ func requireErrorAssertions(t *testing.T, gotErr, wantErrType error, wantErr boo
 	require.NoError(t, gotErr, "Error should not be returned")
 }
 
-func newManagerForTests(t *testing.T, cacheDir string) *users.Manager {
+func newManagerForTests(t *testing.T, cacheDir string, opts ...users.Option) *users.Manager {
 	t.Helper()
 
-	m, err := users.NewManager(users.DefaultConfig, cacheDir)
+	m, err := users.NewManager(users.DefaultConfig, cacheDir, opts...)
 	require.NoError(t, err, "NewManager should not return an error, but did")
 
 	return m
@@ -590,4 +596,9 @@ func newManagerForTests(t *testing.T, cacheDir string) *users.Manager {
 
 func ptrUint32(v uint32) *uint32 {
 	return &v
+}
+
+func TestMain(m *testing.M) {
+	log.SetLevel(log.DebugLevel)
+	m.Run()
 }

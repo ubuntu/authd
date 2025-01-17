@@ -1,6 +1,6 @@
 {
 		"name": "user-pre-check",
-		"uuid": "uuid-user-pre-check",
+		"uuid": "",
 		"gecos": "gecos for user-pre-check",
 		"dir": "/home/user-pre-check",
 		"shell": "/bin/sh/user-pre-check",

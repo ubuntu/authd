@@ -229,7 +229,6 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error when broker returns invalid userinfo":                          {sessionID: "IA_invalid_userinfo"},
 		"Error when broker returns userinfo with empty username":              {sessionID: "IA_info_empty_user_name"},
 		"Error when broker returns userinfo with empty group name":            {sessionID: "IA_info_empty_group_name"},
-		"Error when broker returns userinfo with empty UUID":                  {sessionID: "IA_info_empty_uuid"},
 		"Error when broker returns userinfo with invalid homedir":             {sessionID: "IA_info_invalid_home"},
 		"Error when broker returns userinfo with invalid shell":               {sessionID: "IA_info_invalid_shell"},
 		"Error when broker returns data on auth.Next":                         {sessionID: "IA_next_with_data"},

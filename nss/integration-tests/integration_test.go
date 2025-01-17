@@ -5,12 +5,13 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 )
 
 var daemonPath string
@@ -147,6 +148,18 @@ func TestIntegration(t *testing.T) {
 
 			got, status := getentOutputForLib(t, libPath, socketPath, rustCovEnv, tc.shouldPreCheck, cmds...)
 			require.Equal(t, tc.wantStatus, status, "Expected status %d, but got %d", tc.wantStatus, status)
+
+			if tc.shouldPreCheck && tc.db == "passwd" {
+				// When pre-checking, the `getent passwd` output contains a randomly generated UID.
+				// To make the test deterministic, we replace the UID with a placeholder.
+				// The output looks something like this:
+				//     user-pre-check:x:1776689191:0:gecos for user-pre-check:/home/user-pre-check:/usr/bin/bash\n
+				fields := strings.Split(got, ":")
+				require.Len(t, fields, 7, "Invalid number of fields in the output: %q", got)
+				// The UID is the third field.
+				fields[2] = "{{UID}}"
+				got = strings.Join(fields, ":")
+			}
 
 			// If the exit status is NotFound, there is no need to create an empty golden file.
 			// But we need to ensure that the output is indeed empty.

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net"
 	"os"
 	"os/user"
@@ -27,8 +26,10 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/cache"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localgroups/testutils"
+	"github.com/ubuntu/authd/internal/users/idgenerator"
+	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
+	"github.com/ubuntu/authd/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -429,11 +430,9 @@ func TestIsAuthenticated(t *testing.T) {
 		"Update local groups":                                 {username: "success_with_local_groups", localGroupsFile: "valid.group"},
 
 		// service errors
-		"Error when not root": {username: "success", currentUserNotRoot: true},
-		"Error when UID conflicts with existing different user":  {username: "conflicting-uid", existingDB: "cache-with-conflicting-uid.db"},
-		"Error when GID conflicts with existing different group": {username: "conflicting-gid", existingDB: "cache-with-conflicting-gid.db"},
-		"Error when sessionID is empty":                          {sessionID: "-"},
-		"Error when there is no broker":                          {sessionID: "invalid-session"},
+		"Error when not root":           {username: "success", currentUserNotRoot: true},
+		"Error when sessionID is empty": {sessionID: "-"},
+		"Error when there is no broker": {sessionID: "invalid-session"},
 
 		// broker errors
 		"Error when authenticating":                         {username: "IA_error"},
@@ -462,7 +461,14 @@ func TestIsAuthenticated(t *testing.T) {
 				cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join(testutils.TestFamilyPath(t), tc.existingDB), cacheDir)
 			}
 
-			m, err := users.NewManager(users.DefaultConfig, cacheDir)
+			managerOpts := []users.Option{
+				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+					UIDsToGenerate: []uint32{1111},
+					GIDsToGenerate: []uint32{1111, 2222},
+				}),
+			}
+
+			m, err := users.NewManager(users.DefaultConfig, cacheDir, managerOpts...)
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
@@ -544,13 +550,19 @@ func TestIDGeneration(t *testing.T) {
 		username string
 	}{
 		"Generate ID": {username: "success"},
-		"Generates same ID if user has upper cases in username": {username: "SuCcEsS"},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			m, err := users.NewManager(users.DefaultConfig, t.TempDir())
+			managerOpts := []users.Option{
+				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+					UIDsToGenerate: []uint32{1111},
+					GIDsToGenerate: []uint32{1111, 2222},
+				}),
+			}
+
+			m, err := users.NewManager(users.DefaultConfig, t.TempDir(), managerOpts...)
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
@@ -846,7 +858,7 @@ func TestMain(m *testing.M) {
 		os.Exit(m.Run())
 	}
 
-	slog.SetLogLoggerLevel(slog.LevelDebug)
+	log.SetLevel(log.DebugLevel)
 
 	cleanup, err := setupGlobalBrokerMock()
 	if err != nil {

@@ -360,7 +360,6 @@ func userInfoFromName(sessionID string, extraGroups []groupJSONInfo) string {
 	home := "/home/" + parsedID
 	shell := "/bin/sh/" + parsedID
 	gecos := "gecos for " + parsedID
-	uuid := "uuid-" + parsedID
 	ugid := "ugid-" + parsedID
 
 	switch parsedID {
@@ -370,8 +369,6 @@ func userInfoFromName(sessionID string, extraGroups []groupJSONInfo) string {
 		name = "different_username"
 	case "IA_info_empty_group_name":
 		group = ""
-	case "IA_info_empty_uuid":
-		uuid = ""
 	case "IA_info_empty_ugid":
 		ugid = ""
 	case "IA_info_empty_gecos":
@@ -404,7 +401,7 @@ func userInfoFromName(sessionID string, extraGroups []groupJSONInfo) string {
 		Shell  string
 		Groups []groupJSONInfo
 		Gecos  string
-	}{Name: name, UUID: uuid, Home: home, Shell: shell, Groups: groups, Gecos: gecos}
+	}{Name: name, Home: home, Shell: shell, Groups: groups, Gecos: gecos}
 
 	// only used for tests, we can ignore the template execution error as the returned data will be failing.
 	var buf bytes.Buffer

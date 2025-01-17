@@ -1,5 +1,5 @@
 name: group1
-passwd: x
+passwd: ""
 gid: 11111
 members:
     - user1

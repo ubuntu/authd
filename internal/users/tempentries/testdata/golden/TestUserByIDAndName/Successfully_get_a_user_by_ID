@@ -1,0 +1,6 @@
+name: authd-temp-users-test
+uid: 12345
+gid: 0
+gecos: ""
+dir: /nonexistent
+shell: /usr/sbin/nologin
