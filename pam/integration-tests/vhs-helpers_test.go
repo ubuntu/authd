@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"math"
@@ -245,10 +246,17 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", pam_test.RunnerEnvLogFile, e))
 	}
 
+	var raceLog string
+	if testutils.IsRace() {
+		raceLog = filepath.Join(t.TempDir(), "gorace.log")
+		cmd.Env = append(cmd.Env, fmt.Sprintf("GORACE=log_path=%s", raceLog))
+		saveArtifactsForDebugOnCleanup(t, []string{raceLog})
+	}
+
 	cmd.Args = append(cmd.Args, td.PrepareTape(t, testType, outDir))
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		maybeIgnoreKnownDataRace(t, string(out))
+		checkDataRace(t, raceLog)
 	}
 
 	isSSHError := func(processOut []byte) bool {
@@ -305,13 +313,21 @@ func (td tapeData) Output() string {
 	return txt
 }
 
-func maybeIgnoreKnownDataRace(t *testing.T, out string) {
+func checkDataRace(t *testing.T, raceLog string) {
 	t.Helper()
 
-	if !testutils.IsRace() {
+	if !testutils.IsRace() || raceLog == "" {
 		return
 	}
-	if !strings.Contains(out, "WARNING: DATA RACE") {
+
+	content, err := os.ReadFile(raceLog)
+	if err == nil || errors.Is(err, os.ErrNotExist) {
+		return
+	}
+	require.NoError(t, err, "TearDown: Error reading race log %q", raceLog)
+
+	out := string(content)
+	if strings.TrimSpace(out) == "" {
 		return
 	}
 
@@ -320,14 +336,13 @@ func maybeIgnoreKnownDataRace(t *testing.T, out string) {
 		// https://github.com/charmbracelet/bubbletea/issues/909
 		// We can't do much here, as the workaround will likely affect the
 		// GUI behavior, but we ignore this since it's definitely not our bug.
-		defer t.Skip("This is a very well known bubble tea bug (#909), ignoring it")
-		if testutils.IsVerbose() {
-			t.Logf("Ignored bubbletea race:\n%s", out)
-			return
-		}
 
-		fmt.Fprintf(os.Stderr, "Ignored bubbletea race:\n%s", out)
+		// TODO: In case other races are detected, we should still fail here.
+		t.Skipf("This is a very well known bubble tea bug (#909), ignoring it:\n%s", out)
+		return
 	}
+
+	t.Fatalf("Got a GO Race on vhs child:\n%s", out)
 }
 
 func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
