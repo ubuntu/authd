@@ -197,7 +197,7 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 		return err
 	}
 
-	err = h.handleAuthRequest(authd.SessionMode_AUTH, mTx, flags, parsedArgs, logArgsIssues)
+	err = h.handleAuthRequest(authd.SessionMode_LOGIN, mTx, flags, parsedArgs, logArgsIssues)
 	if err != nil && !errors.Is(err, pam.ErrIgnore) {
 		return err
 	}
@@ -211,7 +211,7 @@ func (h *pamModule) Authenticate(mTx pam.ModuleTransaction, flags pam.Flags, arg
 func (h *pamModule) ChangeAuthTok(mTx pam.ModuleTransaction, flags pam.Flags, args []string) error {
 	parsedArgs, logArgsIssues := parseArgs(args)
 
-	err := h.handleAuthRequest(authd.SessionMode_PASSWD, mTx, flags, parsedArgs, logArgsIssues)
+	err := h.handleAuthRequest(authd.SessionMode_CHANGE_PASSWORD, mTx, flags, parsedArgs, logArgsIssues)
 	if errors.Is(err, pam.ErrPermDenied) {
 		return pam.ErrAuthtokRecovery
 	}
@@ -239,7 +239,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 	}
 	logArgsIssues()
 
-	if mode == authd.SessionMode_PASSWD && flags&pam.PrelimCheck != 0 {
+	if mode == authd.SessionMode_CHANGE_PASSWORD && flags&pam.PrelimCheck != 0 {
 		log.Debug(context.TODO(), "ChangeAuthTok, preliminary check")
 		c, closeConn, err := newClient(parsedArgs)
 		if err != nil {
@@ -268,7 +268,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		return nil
 	}
 
-	if mode == authd.SessionMode_PASSWD {
+	if mode == authd.SessionMode_CHANGE_PASSWORD {
 		log.Debugf(context.TODO(), "ChangeAuthTok, password update phase: %d",
 			flags&pam.UpdateAuthtok)
 	}

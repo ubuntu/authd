@@ -34,9 +34,9 @@ type RunnerAction authd.SessionMode
 
 const (
 	// RunnerActionLogin is the runner action for login operation.
-	RunnerActionLogin = RunnerAction(authd.SessionMode_AUTH)
+	RunnerActionLogin = RunnerAction(authd.SessionMode_LOGIN)
 	// RunnerActionPasswd is the runner action for passwd operation.
-	RunnerActionPasswd = RunnerAction(authd.SessionMode_PASSWD)
+	RunnerActionPasswd = RunnerAction(authd.SessionMode_CHANGE_PASSWORD)
 )
 
 // RunnerActionFromString gets the [RunnerAction] from its string representation.

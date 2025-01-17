@@ -18,8 +18,10 @@ const (
 var Replies = []string{Granted, Denied, Cancelled, Retry, Next}
 
 const (
-	// SessionModeAuth is the name of the authentication session.
-	SessionModeAuth = "auth"
-	// SessionModePasswd is the name of the passwd session.
-	SessionModePasswd = "passwd"
+	// SessionModeLogin is used when the session is for user login.
+	// TODO: We can change this to "login" once all broker installations are updated to use the new name.
+	SessionModeLogin = "auth"
+	// SessionModeChangePassword is used when the session is for changing the user password.
+	// TODO: We can change this to "change-password" once all broker installations are updated to use the new name.
+	SessionModeChangePassword = "passwd"
 )

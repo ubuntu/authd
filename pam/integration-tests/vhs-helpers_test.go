@@ -518,9 +518,9 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 	}
 
 	addOptionalVariable(vhsCommandFinalAuthWaitVariable,
-		finalWaitCommands(testType, authd.SessionMode_AUTH))
+		finalWaitCommands(testType, authd.SessionMode_LOGIN))
 	addOptionalVariable(vhsCommandFinalChangeAuthokWaitVariable,
-		finalWaitCommands(testType, authd.SessionMode_PASSWD))
+		finalWaitCommands(testType, authd.SessionMode_CHANGE_PASSWORD))
 
 	for k, v := range variables {
 		variable := fmt.Sprintf("${%s}", k)
@@ -605,7 +605,7 @@ func finalWaitCommands(testType vhsTestType, sessionMode authd.SessionMode) stri
 	}
 
 	firstResult := pam_test.RunnerResultActionAuthenticate
-	if sessionMode == authd.SessionMode_PASSWD {
+	if sessionMode == authd.SessionMode_CHANGE_PASSWORD {
 		firstResult = pam_test.RunnerResultActionChangeAuthTok
 	}
 

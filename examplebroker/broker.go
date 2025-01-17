@@ -337,7 +337,7 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 		}
 	}
 
-	if info.sessionMode == auth.SessionModePasswd {
+	if info.sessionMode == auth.SessionModeChangePassword {
 		info.neededAuthSteps++
 		info.pwdChange = mustReset
 	}

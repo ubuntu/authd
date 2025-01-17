@@ -43,8 +43,8 @@ message StringResponse {
 
 enum SessionMode {
   UNDEFINED = 0;
-  AUTH = 1;
-  PASSWD = 2;
+  LOGIN = 1;
+  CHANGE_PASSWORD = 2;
 }
 
 message SBRequest {
