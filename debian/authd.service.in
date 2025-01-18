@@ -28,6 +28,18 @@ RestrictRealtime=yes
 RestrictSUIDSGID=yes
 SystemCallArchitectures=native
 
+# This always corresponds to /var/cache/authd
+CacheDirectory=authd
+CacheDirectoryMode=0700
+
+# This always corresponds to /var/lib/authd
+StateDirectory=authd
+StateDirectoryMode=0700
+
+# This always corresponds to /etc/authd
+ConfigurationDirectory=authd
+ConfigurationDirectoryMode=0700
+
 # Only permit system calls used by common system services, excluding any special purpose calls
 SystemCallFilter=@system-service
 
