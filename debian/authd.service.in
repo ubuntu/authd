@@ -65,6 +65,26 @@ InaccessiblePaths=-/lost+found
 # via TemporaryFileSystem + Binds because we'd still get a write failure on rename.
 ReadWritePaths=/etc
 
+# Still let's protect some important etc paths.
+BindReadOnlyPaths=-/etc/environment
+BindReadOnlyPaths=-/etc/fstab
+BindReadOnlyPaths=-/etc/localtime
+BindReadOnlyPaths=-/etc/login.defs
+BindReadOnlyPaths=-/etc/nsswitch.conf
+BindReadOnlyPaths=-/etc/passwd
+BindReadOnlyPaths=-/etc/shadow
+BindReadOnlyPaths=-/etc/subgid
+BindReadOnlyPaths=-/etc/sudo.conf
+BindReadOnlyPaths=-/etc/sudoers
+BindReadOnlyPaths=-/etc/sysctl.conf
+BindReadOnlyPaths=-/etc/timezone
+InaccessiblePaths=-/etc/apt
+InaccessiblePaths=-/etc/default
+InaccessiblePaths=-/etc/ssh
+InaccessiblePaths=-/etc/systemd
+ReadOnlyPaths=-/etc/pam.d
+ReadOnlyPaths=-/etc/security
+
 # Only permit system calls used by common system services, excluding any special purpose calls
 SystemCallFilter=@system-service
 
