@@ -11,6 +11,7 @@ on:
 env:
   UBUNTU_VERSIONS: |
     ["noble", "devel"]
+  CARGO_VENDOR_FILTERER_VERSION: 0.5.16
 
 jobs:
   define-versions:
@@ -46,7 +47,8 @@ jobs:
             git
             libssl-dev
           extra-source-build-script: |
-            cargo install --locked --root=/usr cargo-vendor-filterer
+            cargo install --locked --root=/usr \
+              cargo-vendor-filterer@${{ env.CARGO_VENDOR_FILTERER_VERSION }}
             command -v cargo-vendor-filterer
 
   check-modified-files:
