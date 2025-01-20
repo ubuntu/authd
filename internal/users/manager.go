@@ -149,7 +149,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 
 	var authdGroups []cache.GroupDB
 	var localGroups []string
-	for i, g := range u.Groups {
+	for _, g := range u.Groups {
 		if g.Name == "" {
 			return fmt.Errorf("empty group name for user %q", u.Name)
 		}
@@ -169,7 +169,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		}
 		// Keep the old GID if the group already exists in the database, to avoid permission issues
 		if !errors.Is(err, cache.NoDataFoundError{}) {
-			u.Groups[i].GID = &oldGroup.GID
+			g.GID = &oldGroup.GID
 		}
 
 		if g.GID == nil {
