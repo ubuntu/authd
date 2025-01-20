@@ -23,19 +23,12 @@ sudo systemctl restart ssh
 
 ### Broker configuration
 
-To configure the broker edit the file `/var/snap/authd-msentraid/current/broker.conf` and set the key `ssh_allowed_suffixes` with the list of domains that you want to allow.
+To configure the broker edit the file `/var/snap/authd-<broker_name>/current/broker.conf` and set the key `ssh_allowed_suffixes` with the list of domains that you want to allow.
 
 ```
-[oidc]
-issuer = https://login.microsoftonline.com/<ISSUER_ID>/v2.0
-client_id = <CLIENT_ID>
+...
 
 [users]
-# The directory where the home directory will be created for new users.
-# Existing users will keep their current directory.
-# The user home directory will be created in the format of {home_base_dir}/{username}
-# home_base_dir = /home
-
 # The username suffixes that are allowed to log in via ssh without existing previously in the system.
 # The suffixes must be separated by commas.
 ssh_allowed_suffixes = <ALLOWED DOMAINS>
@@ -49,9 +42,9 @@ ssh_allowed_suffixes = @example.com,@ubuntu.com
 
 ## Usage
 
-Once this is all set up, you can ssh to the server in the same way you'd do with any server: `ssh <username>@<host>`. The format of `<username>` is the user handle on Entra ID such as `user@domain.tld`.
+Once this is all set up, you can ssh to the server in the same way that you would do with any server: `ssh <username>@<host>`. The format of `<username>` is the user handle on the provider, such as `user@domain.tld`.
 
-For instance:
+For instance, here is an example using MS Entra ID as a provider:
 
 ```shell
 ssh user@domain.tld@remote.host

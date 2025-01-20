@@ -28,9 +28,11 @@ Install the following Debian packages (note that `gnome-shell` and `yaru-theme*`
 sudo apt install authd gnome-shell yaru-theme-gnome-shell
 ```
 
-## MS Entra ID broker
+## Install brokers
 
 The brokers are provided as Snap packages and available from the Snap Store.
+
+### MS Entra ID broker
 
 To install the MS Entra ID broker, run the following command:
 
@@ -39,3 +41,13 @@ sudo snap install authd-msentraid
 ```
 
 At this stage, you have installed the main service and an identity broker to authenticate against Microsoft Entra ID.
+
+### Google IAM broker
+
+To install the Google IAM broker, run the following command:
+
+```shell
+sudo snap install authd-google
+```
+
+At this stage, you have installed the main service and an identity broker to authenticate against Google IAM.

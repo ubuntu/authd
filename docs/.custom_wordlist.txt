@@ -22,10 +22,12 @@ Kerberos
 keytab
 Keytab
 Keytabs
+linux
 mountpoint
 msentraid
 NFS
 nss
+OAuth
 OIDC
 OpenID
 ppa

@@ -134,7 +134,7 @@ html_context = {
     # NOTE: If set, links for viewing the documentation source files
     #       and creating GitHub issues are added at the bottom of each page.
     "github_url": "https://github.com/ubuntu/authd",
-    # 
+    #
     # Add a feedback button
     'github_issues': 'enabled',
     # Docs branch in the repo; used in links for viewing the source files
@@ -211,6 +211,10 @@ linkcheck_anchors_ignore_for_url = [r"https://github\.com/.*"]
 #       substitution, deflist, linkify
 
 # myst_enable_extensions = set()
+
+
+# Auto-generate header anchors
+myst_heading_anchors = 3
 
 
 # Custom Sphinx extensions; see
