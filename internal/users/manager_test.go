@@ -120,9 +120,9 @@ func TestUpdateUser(t *testing.T) {
 	}
 
 	groupsCases := map[string][]groupCase{
-		"cloud-group": {{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111}},
+		"authd-group": {{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111}},
 		"local-group": {{GroupInfo: types.GroupInfo{Name: "localgroup1", UGID: ""}}},
-		"mixed-groups-cloud-first": {
+		"mixed-groups-authd-first": {
 			{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111},
 			{GroupInfo: types.GroupInfo{Name: "localgroup1", UGID: ""}},
 		},
@@ -150,8 +150,8 @@ func TestUpdateUser(t *testing.T) {
 		noOutput    bool
 		wantSameUID bool
 	}{
-		"Successfully update user":                       {groupsCase: "cloud-group"},
-		"Successfully update user updating local groups": {groupsCase: "mixed-groups-cloud-first", localGroupsFile: "users_in_groups.group"},
+		"Successfully update user":                       {groupsCase: "authd-group"},
+		"Successfully update user updating local groups": {groupsCase: "mixed-groups-authd-first", localGroupsFile: "users_in_groups.group"},
 		"UID does not change if user already exists":     {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
 
 		"Error if user has no username":      {userCase: "nameless", wantErr: true, noOutput: true},
@@ -162,7 +162,7 @@ func TestUpdateUser(t *testing.T) {
 		"Error when updating local groups remove user from db without touching other users": {dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
 		"Error when updating local groups remove user from db even if already existed":      {userCase: "user2", dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
 
-		"Error on invalid entry": {groupsCase: "cloud-group", dbFile: "invalid_entry_in_userToGroups", localGroupsFile: "users_in_groups.group", wantErr: true, noOutput: true},
+		"Error on invalid entry": {groupsCase: "authd-group", dbFile: "invalid_entry_in_userToGroups", localGroupsFile: "users_in_groups.group", wantErr: true, noOutput: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
