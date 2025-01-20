@@ -1,6 +1,7 @@
 package users_test
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -137,6 +138,8 @@ func TestUpdateUser(t *testing.T) {
 		"nameless-group":          {{GroupInfo: types.GroupInfo{Name: "", UGID: "1"}, GID: 11111}},
 		"different-name-same-gid": {{GroupInfo: types.GroupInfo{Name: "newgroup1", UGID: "1"}, GID: 11111}},
 		"no-groups":               {},
+		// This group case has no GID to generate, because it's expected that the GID of the old group is re-used
+		"different-name-same-ugid": {{GroupInfo: types.GroupInfo{Name: "renamed-group", UGID: "12345678"}}},
 	}
 
 	tests := map[string]struct {
@@ -150,13 +153,16 @@ func TestUpdateUser(t *testing.T) {
 		noOutput    bool
 		wantSameUID bool
 	}{
-		"Successfully update user":                       {groupsCase: "authd-group"},
-		"Successfully update user updating local groups": {groupsCase: "mixed-groups-authd-first", localGroupsFile: "users_in_groups.group"},
-		"UID does not change if user already exists":     {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
+		"Successfully update user":                                          {groupsCase: "authd-group"},
+		"Successfully update user updating local groups":                    {groupsCase: "mixed-groups-authd-first", localGroupsFile: "users_in_groups.group"},
+		"UID does not change if user already exists":                        {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
+		"GID does not change if group with same UGID exists":                {groupsCase: "different-name-same-ugid", dbFile: "one_user_and_group"},
+		"GID does not change if group with same name and empty UGID exists": {groupsCase: "authd-group", dbFile: "group-with-empty-UGID"},
 
-		"Error if user has no username":      {userCase: "nameless", wantErr: true, noOutput: true},
-		"Error if group has no name":         {groupsCase: "nameless-group", wantErr: true, noOutput: true},
-		"Error if group has conflicting gid": {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
+		"Error if user has no username":                           {userCase: "nameless", wantErr: true, noOutput: true},
+		"Error if group has no name":                              {groupsCase: "nameless-group", wantErr: true, noOutput: true},
+		"Error if group has conflicting gid":                      {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
+		"Error if group with same name but different UGID exists": {groupsCase: "authd-group", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
 
 		"Error when updating local groups remove user from db":                              {groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
 		"Error when updating local groups remove user from db without touching other users": {dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
@@ -199,6 +205,7 @@ func TestUpdateUser(t *testing.T) {
 					gids = append(gids, group.GID)
 				}
 			}
+
 			managerOpts := []users.Option{
 				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
 					UIDsToGenerate: []uint32{user.UID},
@@ -215,6 +222,7 @@ func TestUpdateUser(t *testing.T) {
 			}
 
 			err := m.UpdateUser(user.UserInfo)
+			log.Debugf(context.Background(), "UpdateUser error: %v", err)
 
 			requireErrorAssertions(t, err, nil, tc.wantErr)
 			if tc.wantErr && tc.noOutput {
