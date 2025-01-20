@@ -102,7 +102,12 @@ func TestStop(t *testing.T) {
 
 type userCase struct {
 	types.UserInfo
-	UID uint32
+	UID uint32 // The UID to generate for this user
+}
+
+type groupCase struct {
+	types.GroupInfo
+	GID uint32 // The GID to generate for this group
 }
 
 func TestUpdateUser(t *testing.T) {
@@ -114,23 +119,23 @@ func TestUpdateUser(t *testing.T) {
 		"different-name-same-uid": {UserInfo: types.UserInfo{Name: "newuser1"}, UID: 1111},
 	}
 
-	groupsCases := map[string][]types.GroupInfo{
-		"cloud-group": {{Name: "group1", GID: ptrUint32(11111), UGID: "1"}},
-		"local-group": {{Name: "localgroup1", GID: nil, UGID: ""}},
+	groupsCases := map[string][]groupCase{
+		"cloud-group": {{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111}},
+		"local-group": {{GroupInfo: types.GroupInfo{Name: "localgroup1", UGID: ""}}},
 		"mixed-groups-cloud-first": {
-			{Name: "group1", GID: ptrUint32(11111), UGID: "1"},
-			{Name: "localgroup1", GID: nil, UGID: ""},
+			{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111},
+			{GroupInfo: types.GroupInfo{Name: "localgroup1", UGID: ""}},
 		},
 		"mixed-groups-local-first": {
-			{Name: "localgroup1", GID: nil, UGID: ""},
-			{Name: "group1", GID: ptrUint32(11111), UGID: "1"},
+			{GroupInfo: types.GroupInfo{Name: "localgroup1", UGID: ""}},
+			{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111},
 		},
 		"mixed-groups-gpasswd-fail": {
-			{Name: "group1", GID: ptrUint32(11111), UGID: "1"},
-			{Name: "gpasswdfail", GID: nil, UGID: ""},
+			{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111},
+			{GroupInfo: types.GroupInfo{Name: "gpasswdfail", UGID: ""}},
 		},
-		"nameless-group":          {{Name: "", GID: ptrUint32(11111), UGID: "1"}},
-		"different-name-same-gid": {{Name: "newgroup1", GID: ptrUint32(11111), UGID: "1"}},
+		"nameless-group":          {{GroupInfo: types.GroupInfo{Name: "", UGID: "1"}, GID: 11111}},
+		"different-name-same-gid": {{GroupInfo: types.GroupInfo{Name: "newgroup1", UGID: "1"}, GID: 11111}},
 		"no-groups":               {},
 	}
 
@@ -178,7 +183,9 @@ func TestUpdateUser(t *testing.T) {
 			user.Dir = "/home/" + user.Name
 			user.Shell = "/bin/bash"
 			user.Gecos = "gecos for " + user.Name
-			user.Groups = groupsCases[tc.groupsCase]
+			for _, g := range groupsCases[tc.groupsCase] {
+				user.Groups = append(user.Groups, g.GroupInfo)
+			}
 
 			cacheDir := t.TempDir()
 			if tc.dbFile != "" {
@@ -187,9 +194,9 @@ func TestUpdateUser(t *testing.T) {
 
 			// One GID is generated for the user private group
 			gids := []uint32{11110}
-			for _, group := range user.Groups {
-				if group.GID != nil {
-					gids = append(gids, *group.GID)
+			for _, group := range groupsCases[tc.groupsCase] {
+				if group.GID != 0 {
+					gids = append(gids, group.GID)
 				}
 			}
 			managerOpts := []users.Option{
@@ -593,10 +600,6 @@ func newManagerForTests(t *testing.T, cacheDir string, opts ...users.Option) *us
 	require.NoError(t, err, "NewManager should not return an error, but did")
 
 	return m
-}
-
-func ptrUint32(v uint32) *uint32 {
-	return &v
 }
 
 func TestMain(m *testing.M) {
