@@ -1,17 +1,15 @@
 GroupByID:
     "1111": '{"Name":"TestIsAuthenticated/Update_existing_DB_on_success_separator_success","GID":1111,"UGID":"TestIsAuthenticated/Update_existing_DB_on_success_separator_success"}'
-    "2222": '{"Name":"group-success","GID":2222,"UGID":"ugid-success"}'
-    "88888": '{"Name":"group-success","GID":88888,"UGID":"group-success"}'
+    "88888": '{"Name":"group-success","GID":88888,"UGID":"ugid-success"}'
 GroupByName:
     TestIsAuthenticated/Update_existing_DB_on_success_separator_success: '{"Name":"TestIsAuthenticated/Update_existing_DB_on_success_separator_success","GID":1111,"UGID":"TestIsAuthenticated/Update_existing_DB_on_success_separator_success"}'
-    group-success: '{"Name":"group-success","GID":2222,"UGID":"ugid-success"}'
+    group-success: '{"Name":"group-success","GID":88888,"UGID":"ugid-success"}'
 GroupByUGID:
     TestIsAuthenticated/Update_existing_DB_on_success_separator_success: '{"Name":"TestIsAuthenticated/Update_existing_DB_on_success_separator_success","GID":1111,"UGID":"TestIsAuthenticated/Update_existing_DB_on_success_separator_success"}'
-    ugid-success: '{"Name":"group-success","GID":2222,"UGID":"ugid-success"}'
+    ugid-success: '{"Name":"group-success","GID":88888,"UGID":"ugid-success"}'
 GroupToUsers:
     "1111": '{"GID":1111,"UIDs":[1111]}'
-    "2222": '{"GID":2222,"UIDs":[1111]}'
-    "88888": '{"GID":88888,"UIDs":[77777]}'
+    "88888": '{"GID":88888,"UIDs":[77777,1111]}'
 UserByID:
     "1111": '{"Name":"TestIsAuthenticated/Update_existing_DB_on_success_separator_success","UID":1111,"GID":1111,"Gecos":"gecos for success","Dir":"/home/success","Shell":"/bin/sh/success","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
     "77777": '{"Name":"otheruser","UID":77777,"GID":88888,"Gecos":"gecos for other user","Dir":"/home/otheruser","Shell":"/bin/sh/otheruser","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"AAAAATIME"}'
@@ -21,7 +19,7 @@ UserByName:
 UserToBroker:
     "77777": '"broker-id"'
 UserToGroups:
-    "1111": '{"UID":1111,"GIDs":[1111,2222]}'
+    "1111": '{"UID":1111,"GIDs":[1111,88888]}'
     "77777": '{"UID":77777,"GIDs":[88888]}'
 UserToLocalGroups:
     "1111": "null"
