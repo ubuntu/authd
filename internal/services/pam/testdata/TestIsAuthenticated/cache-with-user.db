@@ -1,7 +1,9 @@
 GroupByID:
-    "88888": '{"Name":"group-success","GID":88888,"UGID":"group-success"}'
+    "88888": '{"Name":"group-success","GID":88888,"UGID":"ugid-success"}'
 GroupByName:
-    group-success: '{"Name":"group-success","GID":88888,"UGID":"group-success"}'
+    group-success: '{"Name":"group-success","GID":88888,"UGID":"ugid-success"}'
+GroupByUGID:
+    ugid-success: '{"Name":"group-success","GID":88888,"UGID":"ugid-success"}'
 GroupToUsers:
     "88888": '{"GID":88888,"UIDs":[77777]}'
 UserByID:

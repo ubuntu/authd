@@ -1,9 +1,12 @@
 GroupByID:
     "1797931382": '{"Name":"different-user-same-uid","GID":1797931382,"UGID":"different-user-same-uid"}'
-    "1840530284": '{"Name":"group-success","GID":1840530284,"UGID":"group-success"}'
+    "1840530284": '{"Name":"group-success","GID":1840530284,"UGID":"ugid-success"}'
 GroupByName:
     different-user-same-uid: '{"Name":"different-user-same-uid","GID":1797931382,"UGID":"different-user-same-uid"}'
-    group-success: '{"Name":"group-success","GID":1840530284,"UGID":"group-success"}'
+    group-success: '{"Name":"group-success","GID":1840530284,"UGID":"ugid-success"}'
+GroupByUGID:
+    different-user-same-uid: '{"Name":"different-user-same-uid","GID":1797931382,"UGID":"different-user-same-uid"}'
+    ugid-success: '{"Name":"group-success","GID":1840530284,"UGID":"ugid-success"}'
 GroupToUsers:
     "1797931382": '{"GID":1797931382,"UIDs":[1797931382]}'
     "1840530284": '{"GID":1840530284,"UIDs":[1797931382]}'

@@ -1,6 +1,7 @@
 package users_test
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -102,7 +103,12 @@ func TestStop(t *testing.T) {
 
 type userCase struct {
 	types.UserInfo
-	UID uint32
+	UID uint32 // The UID to generate for this user
+}
+
+type groupCase struct {
+	types.GroupInfo
+	GID uint32 // The GID to generate for this group
 }
 
 func TestUpdateUser(t *testing.T) {
@@ -114,24 +120,26 @@ func TestUpdateUser(t *testing.T) {
 		"different-name-same-uid": {UserInfo: types.UserInfo{Name: "newuser1"}, UID: 1111},
 	}
 
-	groupsCases := map[string][]types.GroupInfo{
-		"cloud-group": {{Name: "group1", GID: ptrUint32(11111), UGID: "1"}},
-		"local-group": {{Name: "localgroup1", GID: nil, UGID: ""}},
-		"mixed-groups-cloud-first": {
-			{Name: "group1", GID: ptrUint32(11111), UGID: "1"},
-			{Name: "localgroup1", GID: nil, UGID: ""},
+	groupsCases := map[string][]groupCase{
+		"authd-group": {{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111}},
+		"local-group": {{GroupInfo: types.GroupInfo{Name: "localgroup1", UGID: ""}}},
+		"mixed-groups-authd-first": {
+			{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111},
+			{GroupInfo: types.GroupInfo{Name: "localgroup1", UGID: ""}},
 		},
 		"mixed-groups-local-first": {
-			{Name: "localgroup1", GID: nil, UGID: ""},
-			{Name: "group1", GID: ptrUint32(11111), UGID: "1"},
+			{GroupInfo: types.GroupInfo{Name: "localgroup1", UGID: ""}},
+			{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111},
 		},
 		"mixed-groups-gpasswd-fail": {
-			{Name: "group1", GID: ptrUint32(11111), UGID: "1"},
-			{Name: "gpasswdfail", GID: nil, UGID: ""},
+			{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111},
+			{GroupInfo: types.GroupInfo{Name: "gpasswdfail", UGID: ""}},
 		},
-		"nameless-group":          {{Name: "", GID: ptrUint32(11111), UGID: "1"}},
-		"different-name-same-gid": {{Name: "newgroup1", GID: ptrUint32(11111), UGID: "1"}},
+		"nameless-group":          {{GroupInfo: types.GroupInfo{Name: "", UGID: "1"}, GID: 11111}},
+		"different-name-same-gid": {{GroupInfo: types.GroupInfo{Name: "newgroup1", UGID: "1"}, GID: 11111}},
 		"no-groups":               {},
+		// This group case has no GID to generate, because it's expected that the GID of the old group is re-used
+		"different-name-same-ugid": {{GroupInfo: types.GroupInfo{Name: "renamed-group", UGID: "12345678"}}},
 	}
 
 	tests := map[string]struct {
@@ -145,19 +153,22 @@ func TestUpdateUser(t *testing.T) {
 		noOutput    bool
 		wantSameUID bool
 	}{
-		"Successfully update user":                       {groupsCase: "cloud-group"},
-		"Successfully update user updating local groups": {groupsCase: "mixed-groups-cloud-first", localGroupsFile: "users_in_groups.group"},
-		"UID does not change if user already exists":     {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
+		"Successfully update user":                                          {groupsCase: "authd-group"},
+		"Successfully update user updating local groups":                    {groupsCase: "mixed-groups-authd-first", localGroupsFile: "users_in_groups.group"},
+		"UID does not change if user already exists":                        {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
+		"GID does not change if group with same UGID exists":                {groupsCase: "different-name-same-ugid", dbFile: "one_user_and_group"},
+		"GID does not change if group with same name and empty UGID exists": {groupsCase: "authd-group", dbFile: "group-with-empty-UGID"},
 
-		"Error if user has no username":      {userCase: "nameless", wantErr: true, noOutput: true},
-		"Error if group has no name":         {groupsCase: "nameless-group", wantErr: true, noOutput: true},
-		"Error if group has conflicting gid": {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
+		"Error if user has no username":                           {userCase: "nameless", wantErr: true, noOutput: true},
+		"Error if group has no name":                              {groupsCase: "nameless-group", wantErr: true, noOutput: true},
+		"Error if group has conflicting gid":                      {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
+		"Error if group with same name but different UGID exists": {groupsCase: "authd-group", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
 
 		"Error when updating local groups remove user from db":                              {groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
 		"Error when updating local groups remove user from db without touching other users": {dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
 		"Error when updating local groups remove user from db even if already existed":      {userCase: "user2", dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
 
-		"Error on invalid entry": {groupsCase: "cloud-group", dbFile: "invalid_entry_in_userToGroups", localGroupsFile: "users_in_groups.group", wantErr: true, noOutput: true},
+		"Error on invalid entry": {groupsCase: "authd-group", dbFile: "invalid_entry_in_userToGroups", localGroupsFile: "users_in_groups.group", wantErr: true, noOutput: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -178,19 +189,23 @@ func TestUpdateUser(t *testing.T) {
 			user.Dir = "/home/" + user.Name
 			user.Shell = "/bin/bash"
 			user.Gecos = "gecos for " + user.Name
-			user.Groups = groupsCases[tc.groupsCase]
+			for _, g := range groupsCases[tc.groupsCase] {
+				user.Groups = append(user.Groups, g.GroupInfo)
+			}
 
 			cacheDir := t.TempDir()
 			if tc.dbFile != "" {
 				cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
 
-			gids := []uint32{user.UID}
-			for _, group := range user.Groups {
-				if group.GID != nil {
-					gids = append(gids, *group.GID)
+			// One GID is generated for the user private group
+			gids := []uint32{11110}
+			for _, group := range groupsCases[tc.groupsCase] {
+				if group.GID != 0 {
+					gids = append(gids, group.GID)
 				}
 			}
+
 			managerOpts := []users.Option{
 				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
 					UIDsToGenerate: []uint32{user.UID},
@@ -207,6 +222,7 @@ func TestUpdateUser(t *testing.T) {
 			}
 
 			err := m.UpdateUser(user.UserInfo)
+			log.Debugf(context.Background(), "UpdateUser error: %v", err)
 
 			requireErrorAssertions(t, err, nil, tc.wantErr)
 			if tc.wantErr && tc.noOutput {
@@ -592,10 +608,6 @@ func newManagerForTests(t *testing.T, cacheDir string, opts ...users.Option) *us
 	require.NoError(t, err, "NewManager should not return an error, but did")
 
 	return m
-}
-
-func ptrUint32(v uint32) *uint32 {
-	return &v
 }
 
 func TestMain(m *testing.M) {

@@ -149,7 +149,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 
 	var authdGroups []cache.GroupDB
 	var localGroups []string
-	for i, g := range u.Groups {
+	for _, g := range u.Groups {
 		if g.Name == "" {
 			return fmt.Errorf("empty group name for user %q", u.Name)
 		}
@@ -161,15 +161,14 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		}
 
 		// Check if the group already exists in the database
-		// We search by UGID because this is a non-local group
-		// and it should have a unique UGID
-		oldGroup, err := m.cache.GroupByUGID(g.UGID)
+		oldGroup, err := m.findGroup(g)
 		if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
+			// Unexpected error
 			return err
 		}
 		// Keep the old GID if the group already exists in the database, to avoid permission issues
-		if !errors.Is(err, cache.NoDataFoundError{}) {
-			u.Groups[i].GID = &oldGroup.GID
+		if err == nil {
+			g.GID = &oldGroup.GID
 		}
 
 		if g.GID == nil {
@@ -211,6 +210,27 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 
 	return nil
+}
+
+func (m *Manager) findGroup(group types.GroupInfo) (oldGroup cache.GroupDB, err error) {
+	// Search by UGID first to support renaming groups
+	oldGroup, err = m.cache.GroupByUGID(group.UGID)
+	if err == nil {
+		return oldGroup, nil
+	}
+	if !errors.Is(err, cache.NoDataFoundError{}) {
+		// Unexpected error
+		return oldGroup, err
+	}
+
+	// The group was not found by UGID. Search by name, because we didn't store the UGID in 0.3.7 and earlier.
+	log.Debugf(context.Background(), "Group %q not found by UGID %q, trying lookup by name", group.Name, group.UGID)
+	oldGroup, err = m.cache.GroupByName(group.Name)
+	if err == nil && oldGroup.UGID != "" {
+		// There is a group with the same name but a different UGID, which should not happen
+		return oldGroup, fmt.Errorf("group %q already exists with UGID %q (expected %q)", group.Name, oldGroup.UGID, group.UGID)
+	}
+	return oldGroup, err
 }
 
 // checkHomeDirOwnership checks if the home directory of the user is owned by the user and the user's group.
