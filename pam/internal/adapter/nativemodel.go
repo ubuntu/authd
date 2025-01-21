@@ -67,7 +67,7 @@ type nativeBrokerSelection struct{}
 // nativeAuthSelection is used to require the user input for auth selection.
 type nativeAuthSelection struct{}
 
-// nativeChallengeRequested is used to require the user input for challenge.
+// nativeChallengeRequested is used to require the user input for password.
 type nativeChallengeRequested struct{}
 
 // nativeAsyncOperationCompleted is a message to tell we're done with an async operation.
@@ -284,7 +284,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 			}
 			return m, m.newPasswordChallenge(nil)
 		}
-		return m, m.newPasswordChallenge(&msg.challenge)
+		return m, m.newPasswordChallenge(&msg.password)
 
 	case isAuthenticatedResultReceived:
 		access := msg.access
@@ -627,7 +627,7 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 		return cmd
 	}
 
-	challenge, err := m.promptForChallenge(prompt)
+	secret, err := m.promptForSecret(prompt)
 	if errors.Is(err, errGoBack) {
 		return sendEvent(nativeGoBack{})
 	}
@@ -642,11 +642,11 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 	}
 
 	return sendEvent(isAuthenticatedRequested{
-		item: &authd.IARequest_AuthenticationData_Challenge{Challenge: challenge},
+		item: &authd.IARequest_AuthenticationData_Challenge{Challenge: secret},
 	})
 }
 
-func (m nativeModel) promptForChallenge(prompt string) (string, error) {
+func (m nativeModel) promptForSecret(prompt string) (string, error) {
 	switch m.uiLayout.GetEntry() {
 	case entries.Chars, "":
 		return m.promptForInput(pam.PromptEchoOn, inputPromptStyleMultiLine, prompt)
@@ -790,8 +790,8 @@ func (m nativeModel) handleNewPassword() tea.Cmd {
 	return m.newPasswordChallenge(nil)
 }
 
-func (m nativeModel) newPasswordChallenge(previousChallenge *string) tea.Cmd {
-	if previousChallenge == nil {
+func (m nativeModel) newPasswordChallenge(previousPassword *string) tea.Cmd {
+	if previousPassword == nil {
 		instructions := fmt.Sprintf("Enter '%[1]s' to cancel the request and %[2]s",
 			nativeCancelKey, m.goBackActionLabel())
 		title := m.selectedAuthModeLabel("Password Update")
@@ -801,11 +801,11 @@ func (m nativeModel) newPasswordChallenge(previousChallenge *string) tea.Cmd {
 	}
 
 	prompt := m.uiLayout.GetLabel()
-	if previousChallenge != nil {
+	if previousPassword != nil {
 		prompt = "Confirm Password"
 	}
 
-	challenge, err := m.promptForChallenge(prompt)
+	password, err := m.promptForSecret(prompt)
 	if errors.Is(err, errGoBack) {
 		return sendEvent(nativeGoBack{})
 	}
@@ -813,10 +813,10 @@ func (m nativeModel) newPasswordChallenge(previousChallenge *string) tea.Cmd {
 		return maybeSendPamError(err)
 	}
 
-	if previousChallenge == nil {
-		return sendEvent(newPasswordCheck{challenge: challenge})
+	if previousPassword == nil {
+		return sendEvent(newPasswordCheck{password: password})
 	}
-	if challenge != *previousChallenge {
+	if password != *previousPassword {
 		err := m.sendError("Password entries don't match")
 		if err != nil {
 			return maybeSendPamError(err)
@@ -824,7 +824,7 @@ func (m nativeModel) newPasswordChallenge(previousChallenge *string) tea.Cmd {
 		return m.newPasswordChallenge(nil)
 	}
 	return sendEvent(isAuthenticatedRequested{
-		item: &authd.IARequest_AuthenticationData_Challenge{Challenge: challenge},
+		item: &authd.IARequest_AuthenticationData_Challenge{Challenge: password},
 	})
 }
 

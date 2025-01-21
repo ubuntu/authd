@@ -157,7 +157,7 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 			log.Infof(context.TODO(), "GDM Stage changed to %s", res.StageChanged.Stage)
 
 			if m.waitingAuth && res.StageChanged.Stage != proto.Stage_challenge {
-				// Maybe this can be sent only if we ever hit the challenge phase.
+				// Maybe this can be sent only if we ever hit the password phase.
 				commands = append(commands, sendEvent(isAuthenticatedCancelled{}))
 			}
 			commands = append(commands, sendEvent(ChangeStage{res.StageChanged.Stage}))

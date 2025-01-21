@@ -655,10 +655,10 @@ func (b *Broker) sleepDuration(in time.Duration) time.Duration {
 }
 
 func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (access, data string) {
-	// Decrypt challenge if present.
-	challenge, err := decodeRawChallenge(b.privateKey, authData["challenge"])
+	// Decrypt secret if present.
+	secret, err := decodeRawSecret(b.privateKey, authData["challenge"])
 	if err != nil {
-		return auth.Retry, fmt.Sprintf(`{"message": "could not decode challenge: %v"}`, err)
+		return auth.Retry, fmt.Sprintf(`{"message": "could not decode secret: %v"}`, err)
 	}
 
 	exampleUsersMu.Lock()
@@ -670,24 +670,24 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 
 	sleepDuration := b.sleepDuration(4 * time.Second)
 
-	// Note that the layouts.Wait authentication can be cancelled and switch to another mode with a challenge.
+	// Note that the layouts.Wait authentication can be cancelled and switch to another mode with a secret.
 	// Take into account the cancellation.
 	switch sessionInfo.currentAuthMode {
 	case passwordMode.id:
-		expectedChallenge := user.Password
+		expectedSecret := user.Password
 
-		if challenge != expectedChallenge {
-			return auth.Retry, fmt.Sprintf(`{"message": "invalid password '%s', should be '%s'"}`, challenge, expectedChallenge)
+		if secret != expectedSecret {
+			return auth.Retry, fmt.Sprintf(`{"message": "invalid password '%s', should be '%s'"}`, secret, expectedSecret)
 		}
 
 	case pinCodeMode.id:
-		if challenge != "4242" {
+		if secret != "4242" {
 			return auth.Retry, `{"message": "invalid pincode, should be 4242"}`
 		}
 
 	case totpWithButtonMode.id, totpMode.id:
 		wantedCode := sessionInfo.allModes[sessionInfo.currentAuthMode].wantedCode
-		if challenge != wantedCode {
+		if secret != wantedCode {
 			return auth.Retry, `{"message": "invalid totp code"}`
 		}
 
@@ -745,27 +745,27 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 		}
 		fallthrough
 	case mandatoryResetMode:
-		expectedChallenge := "authd2404"
+		expectedSecret := "authd2404"
 		// Reset the password to default if it had already been changed.
 		// As at PAM level we'd refuse a previous password to be re-used.
-		if user.Password == expectedChallenge {
-			expectedChallenge = "goodpass"
+		if user.Password == expectedSecret {
+			expectedSecret = "goodpass"
 		}
 
-		if challenge != expectedChallenge {
-			return auth.Retry, fmt.Sprintf(`{"message": "new password does not match criteria: must be '%s'"}`, expectedChallenge)
+		if secret != expectedSecret {
+			return auth.Retry, fmt.Sprintf(`{"message": "new password does not match criteria: must be '%s'"}`, expectedSecret)
 		}
 		exampleUsersMu.Lock()
-		exampleUsers[sessionInfo.username] = userInfoBroker{Password: challenge}
+		exampleUsers[sessionInfo.username] = userInfoBroker{Password: secret}
 		exampleUsersMu.Unlock()
 
 	// this case name was dynamically generated
 	case emailMode(sessionInfo.username).id:
-		// do we have a challenge sent or should we just wait?
-		if challenge != "" {
-			// validate challenge given manually by the user
-			if challenge != "aaaaa" {
-				return auth.Denied, `{"message": "invalid challenge, should be aaaaa"}`
+		// do we have a secret sent or should we just wait?
+		if secret != "" {
+			// validate secret given manually by the user
+			if secret != "aaaaa" {
+				return auth.Denied, `{"message": "invalid secret, should be aaaaa"}`
 			}
 		} else if authData[layouts.Wait] == layouts.True {
 			// we are simulating clicking on the url signal received by the broker
@@ -783,13 +783,13 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 	return auth.Granted, fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionInfo.username))
 }
 
-// decodeRawChallenge extract the base64 challenge and try to decrypt it with the private key.
-func decodeRawChallenge(priv *rsa.PrivateKey, rawChallenge string) (string, error) {
-	if rawChallenge == "" {
+// decodeRawSecret extract the base64 secret and try to decrypt it with the private key.
+func decodeRawSecret(priv *rsa.PrivateKey, rawSecret string) (string, error) {
+	if rawSecret == "" {
 		return "", nil
 	}
 
-	ciphertext, err := base64.StdEncoding.DecodeString(rawChallenge)
+	ciphertext, err := base64.StdEncoding.DecodeString(rawSecret)
 	if err != nil {
 		return "", err
 	}

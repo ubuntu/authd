@@ -39,13 +39,13 @@ type options struct {
 	selectAuthenticationModeRet *authd.UILayout
 	selectAuthenticationModeErr error
 
-	isAuthenticatedRet           *authd.IAResponse
-	isAuthenticatedErr           error
-	isAuthenticatedWantChallenge string
-	isAuthenticatedWantSkip      bool
-	isAuthenticatedWantWait      time.Duration
-	isAuthenticatedMessage       string
-	isAuthenticatedMaxRetries    int
+	isAuthenticatedRet        *authd.IAResponse
+	isAuthenticatedErr        error
+	isAuthenticatedWantSecret string
+	isAuthenticatedWantSkip   bool
+	isAuthenticatedWantWait   time.Duration
+	isAuthenticatedMessage    string
+	isAuthenticatedMaxRetries int
 
 	endSessionErr error
 
@@ -131,10 +131,10 @@ func WithIsAuthenticatedReturn(ret *authd.IAResponse, err error) func(o *options
 	}
 }
 
-// WithIsAuthenticatedWantChallenge is the option to define the IsAuthenticated wanted challenge.
-func WithIsAuthenticatedWantChallenge(challenge string) func(o *options) {
+// WithIsAuthenticatedWantSecret is the option to define the IsAuthenticated wanted secret.
+func WithIsAuthenticatedWantSecret(secret string) func(o *options) {
 	return func(o *options) {
-		o.isAuthenticatedWantChallenge = challenge
+		o.isAuthenticatedWantSecret = secret
 	}
 }
 
@@ -422,8 +422,8 @@ func (dc *DummyClient) IsAuthenticated(ctx context.Context, in *authd.IARequest,
 
 	switch item := in.AuthenticationData.Item.(type) {
 	case *authd.IARequest_AuthenticationData_Challenge:
-		if dc.isAuthenticatedWantChallenge == "" {
-			return nil, errors.New("no wanted challenge provided")
+		if dc.isAuthenticatedWantSecret == "" {
+			return nil, errors.New("no wanted secret provided")
 		}
 		return dc.handleChallenge(item.Challenge, msg)
 	case *authd.IARequest_AuthenticationData_Wait:
@@ -452,11 +452,11 @@ func (dc *DummyClient) IsAuthenticated(ctx context.Context, in *authd.IARequest,
 	}
 }
 
-func (dc *DummyClient) handleChallenge(challenge string, msg string) (*authd.IAResponse, error) {
-	if challenge == "" {
-		return nil, errors.New("no challenge provided")
+func (dc *DummyClient) handleChallenge(secret string, msg string) (*authd.IAResponse, error) {
+	if secret == "" {
+		return nil, errors.New("no secret provided")
 	}
-	ciphertext, err := base64.StdEncoding.DecodeString(challenge)
+	ciphertext, err := base64.StdEncoding.DecodeString(secret)
 	if err != nil {
 		return nil, err
 	}
@@ -468,7 +468,7 @@ func (dc *DummyClient) handleChallenge(challenge string, msg string) (*authd.IAR
 		return nil, err
 	}
 
-	if string(plaintext) == dc.isAuthenticatedWantChallenge {
+	if string(plaintext) == dc.isAuthenticatedWantSecret {
 		return &authd.IAResponse{
 			Access: auth.Granted,
 			Msg:    msg,

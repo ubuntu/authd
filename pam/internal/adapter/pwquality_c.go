@@ -12,12 +12,12 @@ import (
 	"unsafe"
 )
 
-var challengeQualityMu sync.Mutex
+var passwordQualityMu sync.Mutex
 
-// checkChallengeQuality checks the quality of the new password using the pwquality library.
-func checkChallengeQuality(oldChallenge, newChallenge string) error {
-	challengeQualityMu.Lock()
-	defer challengeQualityMu.Unlock()
+// checkPasswordQuality checks the quality of the new password using the pwquality library.
+func checkPasswordQuality(oldPassword, newPassword string) error {
+	passwordQualityMu.Lock()
+	defer passwordQualityMu.Unlock()
 
 	pwq := C.pwquality_default_settings()
 	if pwq == nil {
@@ -35,10 +35,10 @@ func checkChallengeQuality(oldChallenge, newChallenge string) error {
 		return fmt.Errorf("can't ready pwquality configuration: %s", errMsg)
 	}
 
-	oldC := C.CString(oldChallenge)
+	oldC := C.CString(oldPassword)
 	defer C.free(unsafe.Pointer(oldC))
 
-	newC := C.CString(newChallenge)
+	newC := C.CString(newPassword)
 	defer C.free(unsafe.Pointer(newC))
 
 	if ret := C.pwquality_check(pwq, newC, oldC, nil, &auxErrPointer); ret < 0 {

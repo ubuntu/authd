@@ -13,7 +13,7 @@ import (
 	"github.com/ubuntu/authd/log"
 )
 
-// newPasswordModel is the form layout type to allow authentication and return a challenge.
+// newPasswordModel is the form layout type to allow authentication and return a password.
 type newPasswordModel struct {
 	errorMsg  string
 	label     string
@@ -123,7 +123,7 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				// First entry is focused
 				if m.focusIndex == 0 {
 					// Check password quality
-					return m, sendEvent(newPasswordCheck{challenge: m.passwordEntries[0].Value()})
+					return m, sendEvent(newPasswordCheck{password: m.passwordEntries[0].Value()})
 				}
 
 				// Second entry is focused

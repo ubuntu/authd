@@ -687,20 +687,20 @@ func TestIsAuthenticated(t *testing.T) {
 				Msg:    "Try again",
 			},
 		},
-		"Invalid_challenge": {
+		"Invalid_secret": {
 			client: NewDummyClient(privateKey,
 				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithIsAuthenticatedWantChallenge("super-secret-password"),
+				WithIsAuthenticatedWantSecret("super-secret-password"),
 			),
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
 					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: encryptAndEncodeChallenge(t, &privateKey.PublicKey, "invalid-password"),
+						Challenge: encryptAndEncodeSecret(t, &privateKey.PublicKey, "invalid-password"),
 					},
 				},
 			},
@@ -708,21 +708,21 @@ func TestIsAuthenticated(t *testing.T) {
 				Access: auth.Denied,
 			},
 		},
-		"Invalid_challenge_with_message": {
+		"Invalid_secret_with_message": {
 			client: NewDummyClient(privateKey,
 				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithIsAuthenticatedWantChallenge("super-secret-password"),
+				WithIsAuthenticatedWantSecret("super-secret-password"),
 				WithIsAuthenticatedMessage("You're out!"),
 			),
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
 					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: encryptAndEncodeChallenge(t, &privateKey.PublicKey, "invalid-password"),
+						Challenge: encryptAndEncodeSecret(t, &privateKey.PublicKey, "invalid-password"),
 					},
 				},
 			},
@@ -738,7 +738,7 @@ func TestIsAuthenticated(t *testing.T) {
 					Name: "A test broker",
 				}}, nil),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithIsAuthenticatedWantChallenge("super-secret-password"),
+				WithIsAuthenticatedWantSecret("super-secret-password"),
 				WithIsAuthenticatedMaxRetries(1),
 				WithIsAuthenticatedMessage("try again!"),
 			),
@@ -746,7 +746,7 @@ func TestIsAuthenticated(t *testing.T) {
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
 					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: encryptAndEncodeChallenge(t, &privateKey.PublicKey, "invalid-password"),
+						Challenge: encryptAndEncodeSecret(t, &privateKey.PublicKey, "invalid-password"),
 					},
 				},
 			},
@@ -755,20 +755,20 @@ func TestIsAuthenticated(t *testing.T) {
 				Msg:    `{"message": "try again!"}`,
 			},
 		},
-		"Valid_challenge": {
+		"Valid_secret": {
 			client: NewDummyClient(privateKey,
 				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithIsAuthenticatedWantChallenge("super-secret-password"),
+				WithIsAuthenticatedWantSecret("super-secret-password"),
 			),
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
 					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: encryptAndEncodeChallenge(t, &privateKey.PublicKey, "super-secret-password"),
+						Challenge: encryptAndEncodeSecret(t, &privateKey.PublicKey, "super-secret-password"),
 					},
 				},
 			},
@@ -776,21 +776,21 @@ func TestIsAuthenticated(t *testing.T) {
 				Access: auth.Granted,
 			},
 		},
-		"Valid_challenge_with_message": {
+		"Valid_secret_with_message": {
 			client: NewDummyClient(privateKey,
 				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithIsAuthenticatedWantChallenge("super-secret-password"),
+				WithIsAuthenticatedWantSecret("super-secret-password"),
 				WithIsAuthenticatedMessage("try again!"),
 			),
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
 					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: encryptAndEncodeChallenge(t, &privateKey.PublicKey, "super-secret-password"),
+						Challenge: encryptAndEncodeSecret(t, &privateKey.PublicKey, "super-secret-password"),
 					},
 				},
 			},
@@ -875,7 +875,7 @@ func TestIsAuthenticated(t *testing.T) {
 					Name: "A test broker",
 				}}, nil),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithIsAuthenticatedWantChallenge("super-secret-password"),
+				WithIsAuthenticatedWantSecret("super-secret-password"),
 			),
 			args: &authd.IARequest{
 				SessionId:          "started-session-id",
@@ -883,7 +883,7 @@ func TestIsAuthenticated(t *testing.T) {
 			},
 			wantError: errors.New("no authentication data provided"),
 		},
-		"Error_missing_wanted_challenge": {
+		"Error_missing_wanted_secret": {
 			client: NewDummyClient(nil,
 				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
@@ -897,7 +897,7 @@ func TestIsAuthenticated(t *testing.T) {
 					Item: &authd.IARequest_AuthenticationData_Challenge{},
 				},
 			},
-			wantError: errors.New("no wanted challenge provided"),
+			wantError: errors.New("no wanted secret provided"),
 		},
 		"Error_missing_wanted_wait": {
 			client: NewDummyClient(nil,
@@ -931,14 +931,14 @@ func TestIsAuthenticated(t *testing.T) {
 			},
 			wantError: errors.New("no wanted skip requested"),
 		},
-		"Error_empty_challenge": {
+		"Error_empty_secret": {
 			client: NewDummyClient(nil,
 				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithIsAuthenticatedWantChallenge("challenge"),
+				WithIsAuthenticatedWantSecret("secret"),
 			),
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
@@ -946,16 +946,16 @@ func TestIsAuthenticated(t *testing.T) {
 					Item: &authd.IARequest_AuthenticationData_Challenge{},
 				},
 			},
-			wantError: errors.New("no challenge provided"),
+			wantError: errors.New("no secret provided"),
 		},
-		"Error_decoding_challenge": {
+		"Error_decoding_secret": {
 			client: NewDummyClient(nil,
 				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithIsAuthenticatedWantChallenge("challenge"),
+				WithIsAuthenticatedWantSecret("secret"),
 			),
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
@@ -967,14 +967,14 @@ func TestIsAuthenticated(t *testing.T) {
 			},
 			wantError: base64.CorruptInputError(7),
 		},
-		"Error_decrypting_challenge_per_missing_private_key": {
+		"Error_decrypting_secret_per_missing_private_key": {
 			client: NewDummyClient(nil,
 				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithIsAuthenticatedWantChallenge("challenge"),
+				WithIsAuthenticatedWantSecret("secret"),
 			),
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
@@ -986,14 +986,14 @@ func TestIsAuthenticated(t *testing.T) {
 			},
 			wantError: errors.New("no private key defined"),
 		},
-		"Error_decrypting_invalid_challenge": {
+		"Error_decrypting_invalid_secret": {
 			client: NewDummyClient(privateKey,
 				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
-				WithIsAuthenticatedWantChallenge("challenge"),
+				WithIsAuthenticatedWantSecret("secret"),
 			),
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
@@ -1022,13 +1022,13 @@ func TestIsAuthenticated(t *testing.T) {
 	}
 }
 
-func encryptAndEncodeChallenge(t *testing.T, pubKey *rsa.PublicKey, challenge string) string {
+func encryptAndEncodeSecret(t *testing.T, pubKey *rsa.PublicKey, secret string) string {
 	t.Helper()
 
-	ciphertext, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, pubKey, []byte(challenge), nil)
+	ciphertext, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, pubKey, []byte(secret), nil)
 	require.NoError(t, err)
 
-	// encrypt it to base64 and replace the challenge with it
+	// encrypt it to base64 and replace the secret with it
 	base64Encoded := base64.StdEncoding.EncodeToString(ciphertext)
 	return base64Encoded
 }
