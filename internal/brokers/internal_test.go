@@ -68,12 +68,12 @@ func TestUnmarshalUserInfo(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully unmarshal complete user info":            {jsonInput: completeJSON},
-		"Unmarshaling json with empty field keeps its value":   {jsonInput: emptyFieldJSON},
-		"Unmarshaling json with missing field adds zero value": {jsonInput: missingFieldJSON},
-		"Unmarshaling json with additional field ignores it":   {jsonInput: additionalFieldJSON},
+		"Successfully_unmarshal_complete_user_info":            {jsonInput: completeJSON},
+		"Unmarshaling_json_with_empty_field_keeps_its_value":   {jsonInput: emptyFieldJSON},
+		"Unmarshaling_json_with_missing_field_adds_zero_value": {jsonInput: missingFieldJSON},
+		"Unmarshaling_json_with_additional_field_ignores_it":   {jsonInput: additionalFieldJSON},
 
-		"Error when unmarshaling invalid json": {jsonInput: "invalid-json", wantErr: true},
+		"Error_when_unmarshaling_invalid_json": {jsonInput: "invalid-json", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

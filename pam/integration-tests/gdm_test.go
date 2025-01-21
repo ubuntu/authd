@@ -144,7 +144,7 @@ func TestGdmModule(t *testing.T) {
 		wantPamErrorMessages []string
 		wantAcctMgmtErr      error
 	}{
-		"Authenticates user": {
+		"Authenticates_user": {
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
@@ -153,7 +153,7 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 		},
-		"Authenticates user with invalid connection timeout": {
+		"Authenticates_user_with_invalid_connection_timeout": {
 			moduleArgs: []string{"connection_timeout=invalid"},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -163,7 +163,7 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 		},
-		"Authenticates user with multiple retries": {
+		"Authenticates_user_with_multiple_retries": {
 			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, passwordAuthID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -190,7 +190,7 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
-		"Authenticates with MFA": {
+		"Authenticates_with_MFA": {
 			pamUser:         ptrValue("user-mfa-integration-basic"),
 			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
@@ -217,7 +217,7 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
-		"Authenticates user with MFA after retry": {
+		"Authenticates_user_with_MFA_after_retry": {
 			pamUser:         ptrValue("user-mfa-integration-retry"),
 			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
@@ -252,7 +252,7 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
-		"Authenticates user switching to phone ack": {
+		"Authenticates_user_switching_to_phone_ack": {
 			wantAuthModeIDs: []string{passwordAuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -275,7 +275,7 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
-		"Authenticates after password change": {
+		"Authenticates_after_password_change": {
 			pamUser:         ptrValue("user-needs-reset-integration-gdm-pass"),
 			wantAuthModeIDs: []string{passwordAuthID, newPasswordAuthID},
 			supportedLayouts: []*authd.UILayout{
@@ -298,7 +298,7 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
-		"Authenticates after mfa authentication with wait and password change checking quality": {
+		"Authenticates_after_mfa_authentication_with_wait_and_password_change_checking_quality": {
 			pamUser: ptrValue("user-mfa-needs-reset-integration-gdm-wait-and-new-password"),
 			wantAuthModeIDs: []string{
 				passwordAuthID,
@@ -366,7 +366,7 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
-		"Authenticates after various invalid password changes": {
+		"Authenticates_after_various_invalid_password_changes": {
 			pamUser: ptrValue("user-needs-reset-integration-gdm-retries"),
 			wantAuthModeIDs: []string{
 				passwordAuthID,
@@ -428,7 +428,7 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 		},
-		"Authenticates user with qrcode": {
+		"Authenticates_user_with_qrcode": {
 			wantAuthModeIDs:  []string{qrcodeID},
 			supportedLayouts: []*authd.UILayout{pam_test.QrCodeUILayout()},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
@@ -440,7 +440,7 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantUILayouts: []*authd.UILayout{&testQrcodeUILayout},
 		},
-		"Authenticates user with qrcode without code field": {
+		"Authenticates_user_with_qrcode_without_code_field": {
 			wantAuthModeIDs: []string{qrcodeWithoutCodeID},
 			supportedLayouts: []*authd.UILayout{
 				pam_test.QrCodeUILayout(pam_test.WithQrCodeCode("")),
@@ -454,7 +454,7 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantUILayouts: []*authd.UILayout{&testQrcodeUIWithoutCodeLayout},
 		},
-		"Authenticates user with qrcode without rendering support": {
+		"Authenticates_user_with_qrcode_without_rendering_support": {
 			wantAuthModeIDs: []string{qrcodeWithoutRenderingID},
 			supportedLayouts: []*authd.UILayout{
 				pam_test.QrCodeUILayout(pam_test.WithQrCodeRenders(ptrValue(false))),
@@ -468,7 +468,7 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantUILayouts: []*authd.UILayout{&testQrcodeUIWithoutRendering},
 		},
-		"Authenticates user with qrcode without explicit rendering support": {
+		"Authenticates_user_with_qrcode_without_explicit_rendering_support": {
 			// This checks that we're backward compatible
 			wantAuthModeIDs: []string{qrcodeID},
 			supportedLayouts: []*authd.UILayout{
@@ -483,7 +483,7 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantUILayouts: []*authd.UILayout{&testQrcodeUILayout},
 		},
-		"Authenticates user after switching to qrcode": {
+		"Authenticates_user_after_switching_to_qrcode": {
 			wantAuthModeIDs: []string{passwordAuthID, qrcodeID},
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(),
@@ -510,7 +510,7 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
-		"Authenticates user after regenerating the qrcode with optional code field": {
+		"Authenticates_user_after_regenerating_the_qrcode_with_optional_code_field": {
 			wantAuthModeIDs: []string{
 				passwordAuthID,
 				qrcodeID,
@@ -575,7 +575,7 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
-		"Authenticates user after regenerating the qrcode without code field": {
+		"Authenticates_user_after_regenerating_the_qrcode_without_code_field": {
 			wantAuthModeIDs: []string{
 				passwordAuthID,
 				qrcodeWithoutCodeID,
@@ -642,7 +642,7 @@ func TestGdmModule(t *testing.T) {
 		},
 
 		// Error cases
-		"Error on unknown protocol": {
+		"Error_on_unknown_protocol": {
 			protoVersion: 9999,
 			wantPamErrorMessages: []string{
 				"GDM protocol initialization failed, type hello, version 9999",
@@ -650,7 +650,7 @@ func TestGdmModule(t *testing.T) {
 			wantError:       pam.ErrCredUnavail,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
-		"Error on connection failure": {
+		"Error_on_connection_failure": {
 			moduleArgs: []string{fmt.Sprintf("socket=%s_invalid", socketPath)},
 			wantPamErrorMessages: []string{
 				fmt.Sprintf("could not connect to unix://%s_invalid: service took too long to respond. Disconnecting client", socketPath),
@@ -658,7 +658,7 @@ func TestGdmModule(t *testing.T) {
 			wantError:       pam.ErrAuthinfoUnavail,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
-		"Error on missing user": {
+		"Error_on_missing_user": {
 			pamUser: ptrValue(""),
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_brokersReceived: {
@@ -671,7 +671,7 @@ func TestGdmModule(t *testing.T) {
 			wantError:       pam.ErrSystem,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
-		"Error on no supported layouts": {
+		"Error_on_no_supported_layouts": {
 			supportedLayouts: []*authd.UILayout{},
 			wantPamErrorMessages: []string{
 				"UI does not support any layouts",
@@ -679,7 +679,7 @@ func TestGdmModule(t *testing.T) {
 			wantError:       pam.ErrCredUnavail,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
-		"Error on unknown broker": {
+		"Error_on_unknown_broker": {
 			brokerName: "Not a valid broker!",
 			wantPamErrorMessages: []string{
 				"Changing GDM stage failed: Conversation error",
@@ -687,7 +687,7 @@ func TestGdmModule(t *testing.T) {
 			wantError:       pam.ErrSystem,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
-		"Error (ignored) on local broker causes fallback error": {
+		"Error_(ignored)_on_local_broker_causes_fallback_error": {
 			brokerName: brokers.LocalBrokerName,
 			wantPamInfoMessages: []string{
 				"auth=incomplete",
@@ -695,7 +695,7 @@ func TestGdmModule(t *testing.T) {
 			wantError:       pam_test.ErrIgnore,
 			wantAcctMgmtErr: pam.ErrAbort,
 		},
-		"Error on authenticating user with too many retries": {
+		"Error_on_authenticating_user_with_too_many_retries": {
 			wantAuthModeIDs: []string{
 				passwordAuthID,
 				passwordAuthID,
@@ -754,7 +754,7 @@ func TestGdmModule(t *testing.T) {
 			wantError:       pam.ErrAuth,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
-		"Error on authenticating unknown user": {
+		"Error_on_authenticating_unknown_user": {
 			pamUser: ptrValue("user-unknown"),
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -775,7 +775,7 @@ func TestGdmModule(t *testing.T) {
 			wantError:       pam.ErrAuth,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
 		},
-		"Error on invalid fido ack": {
+		"Error_on_invalid_fido_ack": {
 			pamUser:         ptrValue("user-mfa-integration-error-fido-ack"),
 			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{

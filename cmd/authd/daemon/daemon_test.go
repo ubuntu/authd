@@ -128,13 +128,13 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 		cachePathBehavior  int
 		socketPathBehavior int
 	}{
-		"Error on existing cache path not being a directory":    {cachePathBehavior: dirIsFile},
-		"Error on existing cache path with invalid permissions": {cachePathBehavior: hasWrongPermission},
-		"Error on missing parent cache directory":               {cachePathBehavior: parentDirDoesNotExists},
+		"Error_on_existing_cache_path_not_being_a_directory":    {cachePathBehavior: dirIsFile},
+		"Error_on_existing_cache_path_with_invalid_permissions": {cachePathBehavior: hasWrongPermission},
+		"Error_on_missing_parent_cache_directory":               {cachePathBehavior: parentDirDoesNotExists},
 
-		"Error on grpc daemon creation failure": {socketPathBehavior: dirIsFile},
+		"Error_on_grpc_daemon_creation_failure": {socketPathBehavior: dirIsFile},
 
-		"Error on manager creationg failure": {cacheDBBehavior: hasWrongPermission},
+		"Error_on_manager_creationg_failure": {cacheDBBehavior: hasWrongPermission},
 	}
 
 	for name, tc := range testCases {

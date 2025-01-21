@@ -32,16 +32,16 @@ func TestGdmExtensionSupport(t *testing.T) {
 		checkExtensions      []string
 		supportedExtensions  []string
 	}{
-		"Unknown extension is unsupported": {
+		"Unknown_extension_is_unsupported": {
 			checkExtensions:     []string{"foo.extension"},
 			supportedExtensions: nil,
 		},
-		"Extensions are advertised": {
+		"Extensions_are_advertised": {
 			advertisedExtensions: []string{PamExtensionCustomJSON, "foo"},
 			checkExtensions:      []string{PamExtensionCustomJSON, "foo"},
 			supportedExtensions:  []string{PamExtensionCustomJSON, "foo"},
 		},
-		"The private string extension unsupported if not advertised": {
+		"The_private_string_extension_unsupported_if_not_advertised": {
 			checkExtensions:     []string{PamExtensionCustomJSON},
 			supportedExtensions: nil,
 		},
@@ -69,25 +69,25 @@ func TestGdmJSONProto(t *testing.T) {
 	testCases := map[string]struct {
 		value []byte
 	}{
-		"With null data": {
+		"With_null_data": {
 			value: []byte("null"),
 		},
-		"With single int": {
+		"With_single_int": {
 			value: []byte("55"),
 		},
-		"With single float": {
+		"With_single_float": {
 			value: []byte("5.5"),
 		},
-		"With single string": {
+		"With_single_string": {
 			value: []byte(`"hello"`),
 		},
-		"With single boolean": {
+		"With_single_boolean": {
 			value: []byte("true"),
 		},
-		"With empty object": {
+		"With_empty_object": {
 			value: []byte("{}"),
 		},
-		"With complex object": {
+		"With_complex_object": {
 			value: []byte(`{"type":"pollResponse","pollResponse":` +
 				`[{"type":"brokerSelected","brokerSelected":{"brokerId":"a broker"}},` +
 				`{"type":"authModeSelected","authModeSelected":{"authModeId":"auth mode"}}]}`),
@@ -120,16 +120,16 @@ func TestGdmJSONProtoRequestErrors(t *testing.T) {
 	testCases := map[string]struct {
 		value []byte
 	}{
-		"With empty data": {
+		"With_empty_data": {
 			value: []byte{},
 		},
-		"With null data": {
+		"With_null_data": {
 			value: nil,
 		},
-		"With single char": {
+		"With_single_char": {
 			value: []byte("m"),
 		},
-		"With lorem ipsum string data": {
+		"With_lorem_ipsum_string_data": {
 			value: []byte(`
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
 	tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
@@ -139,7 +139,7 @@ func TestGdmJSONProtoRequestErrors(t *testing.T) {
 	non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 `),
 		},
-		"With invalid JSON object": {
+		"With_invalid_JSON_object": {
 			value: []byte("{[,]}"),
 		},
 	}
@@ -166,31 +166,31 @@ func TestGdmJSONProtoResponseErrors(t *testing.T) {
 
 		wantError error
 	}{
-		"On proto name mismatch": {
+		"On_proto_name_mismatch": {
 			protoName:    "some.other.protocol",
 			protoVersion: JSONProtoVersion,
 			jsonValue:    []byte("null"),
 			wantError:    ErrProtoNotSupported,
 		},
-		"On proto version mismatch": {
+		"On_proto_version_mismatch": {
 			protoName:    JSONProtoName,
 			protoVersion: JSONProtoVersion + 100,
 			jsonValue:    []byte("{}"),
 			wantError:    ErrProtoNotSupported,
 		},
-		"On nil JSON": {
+		"On_nil_JSON": {
 			protoName:    JSONProtoName,
 			protoVersion: JSONProtoVersion,
 			jsonValue:    nil,
 			wantError:    ErrInvalidJSON,
 		},
-		"On empty JSON": {
+		"On_empty_JSON": {
 			protoName:    JSONProtoName,
 			protoVersion: JSONProtoVersion,
 			jsonValue:    []byte{},
 			wantError:    ErrInvalidJSON,
 		},
-		"On invalid JSON": {
+		"On_invalid_JSON": {
 			protoName:    JSONProtoName,
 			protoVersion: JSONProtoVersion,
 			jsonValue:    []byte("{]"),

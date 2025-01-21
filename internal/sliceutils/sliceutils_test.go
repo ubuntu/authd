@@ -13,22 +13,22 @@ func TestDifference(t *testing.T) {
 	tests := map[string]struct {
 		a, b, want []int
 	}{
-		"test difference between two slices": {
+		"test_difference_between_two_slices": {
 			a:    []int{1, 2, 3, 4, 5},
 			b:    []int{3, 4, 5, 6, 7},
 			want: []int{1, 2},
 		},
-		"test difference between an empty slice and a non-empty slice": {
+		"test_difference_between_an_empty_slice_and_a_non-empty_slice": {
 			a:    []int{},
 			b:    []int{3, 4, 5, 6, 7},
 			want: []int(nil),
 		},
-		"test difference between a non-empty slice and an empty slice": {
+		"test_difference_between_a_non-empty_slice_and_an_empty_slice": {
 			a:    []int{1, 2, 3, 4, 5},
 			b:    []int{},
 			want: []int{1, 2, 3, 4, 5},
 		},
-		"test difference between two empty slices": {
+		"test_difference_between_two_empty_slices": {
 			a:    []int{},
 			b:    []int{},
 			want: []int(nil),
@@ -51,22 +51,22 @@ func TestIntersection(t *testing.T) {
 	tests := map[string]struct {
 		a, b, want []int
 	}{
-		"test intersection between two slices": {
+		"test_intersection_between_two_slices": {
 			a:    []int{1, 2, 3, 4, 5},
 			b:    []int{3, 4, 5, 6, 7},
 			want: []int{3, 4, 5},
 		},
-		"test intersection between an empty slice and a non-empty slice": {
+		"test_intersection_between_an_empty_slice_and_a_non-empty_slice": {
 			a:    []int{},
 			b:    []int{3, 4, 5, 6, 7},
 			want: []int(nil),
 		},
-		"test intersection between a non-empty slice and an empty slice": {
+		"test_intersection_between_a_non-empty_slice_and_an_empty_slice": {
 			a:    []int{1, 2, 3, 4, 5},
 			b:    []int{},
 			want: []int(nil),
 		},
-		"test intersection between two empty slices": {
+		"test_intersection_between_two_empty_slices": {
 			a:    []int{},
 			b:    []int{},
 			want: []int(nil),

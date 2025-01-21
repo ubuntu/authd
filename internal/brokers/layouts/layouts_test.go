@@ -17,12 +17,12 @@ func TestOptionalItems(t *testing.T) {
 
 		want string
 	}{
-		"Optional empty item": {want: layouts.Optional + ":"},
-		"Optional with one item": {
+		"Optional_empty_item": {want: layouts.Optional + ":"},
+		"Optional_with_one_item": {
 			items: []string{entries.Chars},
 			want:  layouts.Optional + ":" + entries.Chars,
 		},
-		"Optional with multiple items": {
+		"Optional_with_multiple_items": {
 			items: []string{entries.Chars, entries.DigitsPassword},
 			want:  layouts.Optional + ":" + entries.Chars + "," + entries.DigitsPassword,
 		},
@@ -45,12 +45,12 @@ func TestRequiredItems(t *testing.T) {
 
 		want string
 	}{
-		"Required empty item": {want: layouts.Required + ":"},
-		"Required with one item": {
+		"Required_empty_item": {want: layouts.Required + ":"},
+		"Required_with_one_item": {
 			items: []string{entries.Chars},
 			want:  layouts.Required + ":" + entries.Chars,
 		},
-		"Required with multiple items": {
+		"Required_with_multiple_items": {
 			items: []string{entries.Chars, entries.DigitsPassword},
 			want:  layouts.Required + ":" + entries.Chars + "," + entries.DigitsPassword,
 		},
@@ -74,34 +74,34 @@ func TestParseItems(t *testing.T) {
 		wantKind  string
 		wantItems []string
 	}{
-		"Required empty item": {},
-		"Required with one item": {
+		"Required_empty_item": {},
+		"Required_with_one_item": {
 			items:     layouts.Required + ":" + entries.Chars,
 			wantKind:  layouts.Required,
 			wantItems: []string{entries.Chars},
 		},
-		"Required with multiple items": {
+		"Required_with_multiple_items": {
 			items:     layouts.Required + ":" + entries.Chars + ", " + entries.DigitsPassword,
 			wantKind:  layouts.Required,
 			wantItems: []string{entries.Chars, entries.DigitsPassword},
 		},
-		"Required with booleans": {
+		"Required_with_booleans": {
 			items:     layouts.RequiredWithBooleans,
 			wantKind:  layouts.Required,
 			wantItems: []string{layouts.True, layouts.False},
 		},
-		"Optional empty item": {},
-		"Optional with one item": {
+		"Optional_empty_item": {},
+		"Optional_with_one_item": {
 			items:     layouts.Optional + ":" + entries.CharsPassword,
 			wantKind:  layouts.Optional,
 			wantItems: []string{entries.CharsPassword},
 		},
-		"Optional with multiple items": {
+		"Optional_with_multiple_items": {
 			items:     layouts.Optional + ":" + entries.Digits + " , " + entries.Chars + "," + entries.DigitsPassword,
 			wantKind:  layouts.Optional,
 			wantItems: []string{entries.Digits, entries.Chars, entries.DigitsPassword},
 		},
-		"Optional with booleans": {
+		"Optional_with_booleans": {
 			items:     layouts.OptionalWithBooleans,
 			wantKind:  layouts.Optional,
 			wantItems: []string{layouts.True, layouts.False},

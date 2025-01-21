@@ -25,40 +25,40 @@ func TestSendToGdm(t *testing.T) {
 		wantError                    error
 		wantConvHandlerNotToBeCalled bool
 	}{
-		"JSON null data can be sent and received": {
+		"JSON_null_data_can_be_sent_and_received": {
 			value: []byte(`null`),
 		},
-		"JSON number can be sent and received": {
+		"JSON_number_can_be_sent_and_received": {
 			value: []byte(`1.5`),
 		},
-		"Single char is sent and received as string": {
+		"Single_char_is_sent_and_received_as_string": {
 			value: []byte(`"m"`),
 		},
-		"JSON null is returned": {
+		"JSON_null_is_returned": {
 			value:      []byte(`"give me 🚫"`),
 			wantReturn: []byte("null"),
 		},
-		"Utf-8 data is sent and returned": {
+		"Utf-8_data_is_sent_and_returned": {
 			value:      []byte(`"give me 🍕"`),
 			wantReturn: []byte(`"😋"`),
 		},
-		"Nil data returned": {
+		"Nil_data_returned": {
 			value:      []byte(`"give me 🚫"`),
 			wantReturn: []byte(nil),
 		},
 
 		// Error cases
-		"Error on empty data": {
+		"Error_on_empty_data": {
 			value:                        []byte{},
 			wantError:                    ErrInvalidJSON,
 			wantConvHandlerNotToBeCalled: true,
 		},
-		"Error on nil data": {
+		"Error_on_nil_data": {
 			value:                        nil,
 			wantError:                    ErrInvalidJSON,
 			wantConvHandlerNotToBeCalled: true,
 		},
-		"Error with empty data returned": {
+		"Error_with_empty_data_returned": {
 			value:      []byte(`"give me 🗑‼"`),
 			wantReturn: []byte{},
 			wantError:  ErrInvalidJSON,
@@ -114,7 +114,7 @@ func TestSendData(t *testing.T) {
 		wantError                    error
 		wantConvHandlerNotToBeCalled bool
 	}{
-		"Send data can handle null JSON value as return value": {
+		"Send_data_can_handle_null_JSON_value_as_return_value": {
 			value: &Data{
 				Type: DataType_event,
 				Event: &EventData{
@@ -125,7 +125,7 @@ func TestSendData(t *testing.T) {
 
 			wantReturn: []byte("null"),
 		},
-		"Can send Hello packet data": {
+		"Can_send_Hello_packet_data": {
 			value: &Data{
 				Type:  DataType_hello,
 				Hello: &HelloData{Version: 12345},
@@ -134,13 +134,13 @@ func TestSendData(t *testing.T) {
 		},
 
 		// Error cases
-		"Error on empty data": {
+		"Error_on_empty_data": {
 			value:                        &Data{},
 			wantConvHandlerNotToBeCalled: true,
 			wantReturn:                   nil,
 			wantError:                    errors.New("unexpected type unknownType"),
 		},
-		"Error on missing data return": {
+		"Error_on_missing_data_return": {
 			value: &Data{
 				Type: DataType_event,
 				Event: &EventData{
@@ -152,7 +152,7 @@ func TestSendData(t *testing.T) {
 			wantConvHandlerNotToBeCalled: true,
 			wantError:                    errors.New("missing event data"),
 		},
-		"Error on wrong data": {
+		"Error_on_wrong_data": {
 			value: &Data{
 				Type:    DataType_event,
 				Request: &RequestData{},
@@ -222,7 +222,7 @@ func TestDataConversationFunc(t *testing.T) {
 		wantError                    error
 		wantConvHandlerNotToBeCalled bool
 	}{
-		"Send valid data and return it back": {
+		"Send_valid_data_and_return_it_back": {
 			inData: &Data{
 				Type:  DataType_hello,
 				Hello: &HelloData{Version: 12345},
@@ -232,7 +232,7 @@ func TestDataConversationFunc(t *testing.T) {
 		},
 
 		// Error cases
-		"Error on invalid protocol": {
+		"Error_on_invalid_protocol": {
 			mayHitLeakSanitizer: true,
 			inBinReq: func() pam.BinaryConvRequester {
 				if pam_test.IsAddressSanitizerActive() {
@@ -246,7 +246,7 @@ func TestDataConversationFunc(t *testing.T) {
 			wantConvHandlerNotToBeCalled: true,
 			wantError:                    ErrProtoNotSupported,
 		},
-		"Error on unexpected JSON": {
+		"Error_on_unexpected_JSON": {
 			mayHitLeakSanitizer: true,
 			inBinReq: func() pam.BinaryConvRequester {
 				if pam_test.IsAddressSanitizerActive() {
@@ -259,7 +259,7 @@ func TestDataConversationFunc(t *testing.T) {
 			wantConvHandlerNotToBeCalled: true,
 			wantError:                    errors.New("syntax error"),
 		},
-		"Error on invalid Returned Data": {
+		"Error_on_invalid_Returned_Data": {
 			inData: &Data{
 				Type:  DataType_hello,
 				Hello: &HelloData{Version: 12345},
@@ -336,14 +336,14 @@ func TestDataSendChecked(t *testing.T) {
 		wantError                    error
 		wantConvHandlerNotToBeCalled bool
 	}{
-		"Can send and receive Hello packet data": {
+		"Can_send_and_receive_Hello_packet_data": {
 			value: &Data{
 				Type:  DataType_hello,
 				Hello: &HelloData{Version: 12345},
 			},
 			wantReturn: &Data{Type: DataType_hello},
 		},
-		"Can send event and receive an event ack": {
+		"Can_send_event_and_receive_an_event_ack": {
 			value: &Data{
 				Type: DataType_event,
 				Event: &EventData{
@@ -356,13 +356,13 @@ func TestDataSendChecked(t *testing.T) {
 		},
 
 		// Error cases
-		"Error on empty data": {
+		"Error_on_empty_data": {
 			value:                        &Data{},
 			wantConvHandlerNotToBeCalled: true,
 			wantReturn:                   nil,
 			wantError:                    errors.New("unexpected type unknownType"),
 		},
-		"Error on missing data return": {
+		"Error_on_missing_data_return": {
 			value: &Data{
 				Type: DataType_event,
 				Event: &EventData{
@@ -373,7 +373,7 @@ func TestDataSendChecked(t *testing.T) {
 			wantConvHandlerNotToBeCalled: true,
 			wantError:                    errors.New("missing event data"),
 		},
-		"Error on wrong data": {
+		"Error_on_wrong_data": {
 			value: &Data{
 				Type:    DataType_event,
 				Request: &RequestData{},
@@ -428,18 +428,18 @@ func TestDataSendPoll(t *testing.T) {
 		wantError                    error
 		wantConvHandlerNotToBeCalled bool
 	}{
-		"Polling handles a null response": {
+		"Polling_handles_a_null_response": {
 			wantReturn: &Data{
 				Type: DataType_pollResponse,
 			},
 		},
-		"Polling handles an empty response": {
+		"Polling_handles_an_empty_response": {
 			wantReturn: &Data{
 				Type:         DataType_pollResponse,
 				PollResponse: []*EventData{},
 			},
 		},
-		"Polling handles multiple event events response": {
+		"Polling_handles_multiple_event_events_response": {
 			wantReturn: &Data{
 				Type: DataType_pollResponse,
 				PollResponse: []*EventData{
@@ -451,11 +451,11 @@ func TestDataSendPoll(t *testing.T) {
 		},
 
 		// Error cases
-		"Error on nil return": {
+		"Error_on_nil_return": {
 			wantReturn: nil,
 			wantError:  errors.New("unexpected token null"),
 		},
-		"Error on unexpected type": {
+		"Error_on_unexpected_type": {
 			wantReturn: &Data{Type: DataType_hello},
 			wantError:  errors.New("gdm replied with an unexpected type: hello"),
 		},
@@ -541,7 +541,7 @@ func TestDataSendRequestTyped(t *testing.T) {
 		wantConvHandlerNotToBeCalled bool
 		wantReturnType               any
 	}{
-		"Request change state": {
+		"Request_change_state": {
 			request: &RequestData_ChangeStage{},
 			wantData: &Data{
 				Type: DataType_response,
@@ -551,7 +551,7 @@ func TestDataSendRequestTyped(t *testing.T) {
 				},
 			},
 		},
-		"Request Ui layout capabilities": {
+		"Request_Ui_layout_capabilities": {
 			request: &RequestData_UiLayoutCapabilities{},
 			wantData: &Data{
 				Type: DataType_response,
@@ -561,7 +561,7 @@ func TestDataSendRequestTyped(t *testing.T) {
 				},
 			},
 		},
-		"Request change state, handles nil response data": {
+		"Request_change_state,_handles_nil_response_data": {
 			request: &RequestData_ChangeStage{},
 			wantData: &Data{
 				Type: DataType_response,
@@ -571,7 +571,7 @@ func TestDataSendRequestTyped(t *testing.T) {
 				},
 			},
 		},
-		"Request Ui layout capabilities, handles nil response data": {
+		"Request_Ui_layout_capabilities,_handles_nil_response_data": {
 			request: &RequestData_UiLayoutCapabilities{},
 			wantData: &Data{
 				Type: DataType_response,
@@ -581,7 +581,7 @@ func TestDataSendRequestTyped(t *testing.T) {
 				},
 			},
 		},
-		"Request change state, expecting Ack type": {
+		"Request_change_state,_expecting_Ack_type": {
 			request: &RequestData_ChangeStage{},
 			wantData: &Data{
 				Type: DataType_response,
@@ -592,7 +592,7 @@ func TestDataSendRequestTyped(t *testing.T) {
 			},
 			wantReturnType: &ResponseData_Ack{},
 		},
-		"Request Ui layout capabilities, expecting Ack type": {
+		"Request_Ui_layout_capabilities,_expecting_Ack_type": {
 			request: &RequestData_UiLayoutCapabilities{},
 			wantData: &Data{
 				Type: DataType_response,
@@ -604,7 +604,7 @@ func TestDataSendRequestTyped(t *testing.T) {
 			wantError:      errors.New("impossible to convert"),
 			wantReturnType: &ResponseData_Ack{},
 		},
-		"Request change state, handles nil response data, expecting Ack type": {
+		"Request_change_state,_handles_nil_response_data,_expecting_Ack_type": {
 			request: &RequestData_ChangeStage{},
 			wantData: &Data{
 				Type: DataType_response,
@@ -615,7 +615,7 @@ func TestDataSendRequestTyped(t *testing.T) {
 			},
 			wantReturnType: &ResponseData_Ack{},
 		},
-		"Request change state, expecting UiLayoutCapabilities type": {
+		"Request_change_state,_expecting_UiLayoutCapabilities_type": {
 			request: &RequestData_ChangeStage{},
 			wantData: &Data{
 				Type: DataType_response,
@@ -627,7 +627,7 @@ func TestDataSendRequestTyped(t *testing.T) {
 			wantReturnType: &ResponseData_UiLayoutCapabilities{},
 			wantError:      errors.New("impossible to convert"),
 		},
-		"Request Ui layout capabilities, handles nil response data, expecting UiLayoutCapabilities type": {
+		"Request_Ui_layout_capabilities,_handles_nil_response_data,_expecting_UiLayoutCapabilities_type": {
 			request: &RequestData_UiLayoutCapabilities{},
 			wantData: &Data{
 				Type: DataType_response,
@@ -638,7 +638,7 @@ func TestDataSendRequestTyped(t *testing.T) {
 			},
 			wantReturnType: &ResponseData_UiLayoutCapabilities{},
 		},
-		"Request Ui layout capabilities, expecting UiLayoutCapabilities type": {
+		"Request_Ui_layout_capabilities,_expecting_UiLayoutCapabilities_type": {
 			request: &RequestData_UiLayoutCapabilities{},
 			wantData: &Data{
 				Type: DataType_response,
@@ -659,18 +659,18 @@ func TestDataSendRequestTyped(t *testing.T) {
 		},
 
 		// Error cases
-		"Error with unknown request": {
+		"Error_with_unknown_request": {
 			request:                      &invalidRequest{},
 			wantConvHandlerNotToBeCalled: true,
 			wantError:                    errors.New("no known request type"),
 		},
 		// Error cases
-		"Error on nil return": {
+		"Error_on_nil_return": {
 			request:   &RequestData_ChangeStage{},
 			wantData:  nil,
 			wantError: errors.New("unexpected token null"),
 		},
-		"Error with mismatching response type": {
+		"Error_with_mismatching_response_type": {
 			request: &RequestData_ChangeStage{},
 			wantData: &Data{
 				Type:     DataType_response,
@@ -678,20 +678,20 @@ func TestDataSendRequestTyped(t *testing.T) {
 			},
 			wantError: errors.New("gdm replied with invalid response type"),
 		},
-		"Error with non-response type": {
+		"Error_with_non-response_type": {
 			request: &RequestData_ChangeStage{},
 			wantData: &Data{
 				Type: DataType_hello,
 			},
 			wantError: errors.New("gdm replied with an unexpected type: hello"),
 		},
-		"Error with unknown request expecting Ack type": {
+		"Error_with_unknown_request_expecting_Ack_type": {
 			request:                      &invalidRequest{},
 			wantConvHandlerNotToBeCalled: true,
 			wantError:                    errors.New("no known request type"),
 			wantReturnType:               &ResponseData_Ack{},
 		},
-		"Error with mismatching response type expecting Ack type": {
+		"Error_with_mismatching_response_type_expecting_Ack_type": {
 			request: &RequestData_ChangeStage{},
 			wantData: &Data{
 				Type:     DataType_response,
@@ -700,7 +700,7 @@ func TestDataSendRequestTyped(t *testing.T) {
 			wantError:      errors.New("gdm replied with invalid response type"),
 			wantReturnType: &ResponseData_Ack{},
 		},
-		"Error with non-response type expecting Ack type": {
+		"Error_with_non-response_type_expecting_Ack_type": {
 			request: &RequestData_ChangeStage{},
 			wantData: &Data{
 				Type: DataType_hello,
@@ -708,13 +708,13 @@ func TestDataSendRequestTyped(t *testing.T) {
 			wantError:      errors.New("gdm replied with an unexpected type: hello"),
 			wantReturnType: &ResponseData_Ack{},
 		},
-		"Error with unknown request expecting UiLayoutCapabilities type": {
+		"Error_with_unknown_request_expecting_UiLayoutCapabilities_type": {
 			request:                      &invalidRequest{},
 			wantConvHandlerNotToBeCalled: true,
 			wantError:                    errors.New("no known request type"),
 			wantReturnType:               &ResponseData_UiLayoutCapabilities{},
 		},
-		"Error with mismatching response type expecting UiLayoutCapabilities type": {
+		"Error_with_mismatching_response_type_expecting_UiLayoutCapabilities_type": {
 			request: &RequestData_ChangeStage{},
 			wantData: &Data{
 				Type:     DataType_response,
@@ -723,7 +723,7 @@ func TestDataSendRequestTyped(t *testing.T) {
 			wantError:      errors.New("gdm replied with invalid response type"),
 			wantReturnType: &ResponseData_UiLayoutCapabilities{},
 		},
-		"Error with non-response type expecting UiLayoutCapabilities type": {
+		"Error_with_non-response_type_expecting_UiLayoutCapabilities_type": {
 			request: &RequestData_ChangeStage{},
 			wantData: &Data{
 				Type: DataType_hello,
@@ -798,66 +798,66 @@ func TestDataEmitEvent(t *testing.T) {
 		wantError                    error
 		wantConvHandlerNotToBeCalled bool
 	}{
-		"Emit event BrokersReceived": {
+		"Emit_event_BrokersReceived": {
 			event:         &EventData_BrokersReceived{},
 			wantEventType: EventType_brokersReceived,
 		},
-		"Emit event BrokerSelected": {
+		"Emit_event_BrokerSelected": {
 			event:         &EventData_BrokerSelected{},
 			wantEventType: EventType_brokerSelected,
 		},
-		"Emit event AuthModesReceived": {
+		"Emit_event_AuthModesReceived": {
 			event:         &EventData_AuthModesReceived{},
 			wantEventType: EventType_authModesReceived,
 		},
-		"Emit event AuthModeSelected": {
+		"Emit_event_AuthModeSelected": {
 			event:         &EventData_AuthModeSelected{},
 			wantEventType: EventType_authModeSelected,
 		},
-		"Emit event IsAuthenticatedRequested": {
+		"Emit_event_IsAuthenticatedRequested": {
 			event:         &EventData_IsAuthenticatedRequested{},
 			wantEventType: EventType_isAuthenticatedRequested,
 		},
-		"Emit event IsAuthenticatedCancelled": {
+		"Emit_event_IsAuthenticatedCancelled": {
 			event:         &EventData_IsAuthenticatedCancelled{},
 			wantEventType: EventType_isAuthenticatedCancelled,
 		},
-		"Emit event StageChanged": {
+		"Emit_event_StageChanged": {
 			event:         &EventData_StageChanged{},
 			wantEventType: EventType_stageChanged,
 		},
-		"Emit event UiLayoutReceived": {
+		"Emit_event_UiLayoutReceived": {
 			event:         &EventData_UiLayoutReceived{},
 			wantEventType: EventType_uiLayoutReceived,
 		},
-		"Emit event AuthEvent": {
+		"Emit_event_AuthEvent": {
 			event:         &EventData_AuthEvent{},
 			wantEventType: EventType_authEvent,
 		},
-		"Emit event ReselectAuthMode": {
+		"Emit_event_ReselectAuthMode": {
 			event:         &EventData_ReselectAuthMode{},
 			wantEventType: EventType_reselectAuthMode,
 		},
-		"Emit event UserSelected": {
+		"Emit_event_UserSelected": {
 			event:         &EventData_UserSelected{},
 			wantEventType: EventType_userSelected,
 		},
-		"Emit event StartAuthentication": {
+		"Emit_event_StartAuthentication": {
 			event:         &EventData_StartAuthentication{},
 			wantEventType: EventType_startAuthentication,
 		},
 
 		// Error cases
-		"Error on nil event": {
+		"Error_on_nil_event": {
 			wantConvHandlerNotToBeCalled: true,
 			wantError:                    errors.New("no known event type"),
 		},
-		"Error on unexpected event type": {
+		"Error_on_unexpected_event_type": {
 			event:                        &invalidEvent{},
 			wantConvHandlerNotToBeCalled: true,
 			wantError:                    fmt.Errorf("no known event type %#v", &invalidEvent{}),
 		},
-		"Error on invalid data": {
+		"Error_on_invalid_data": {
 			event:        &EventData_ReselectAuthMode{},
 			returnedData: []byte("null"),
 			wantError:    errors.New("unexpected token null"),

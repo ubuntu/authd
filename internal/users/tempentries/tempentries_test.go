@@ -24,22 +24,22 @@ func TestRegisterUser(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully register a new user": {},
-		"Successfully register a user if the first generated UID is already in use": {
+		"Successfully_register_a_new_user": {},
+		"Successfully_register_a_user_if_the_first_generated_UID_is_already_in_use": {
 			uidsToGenerate: []uint32{0, uidToGenerate}, // UID 0 (root) always exists
 		},
-		"Successfully register a user if the pre-auth user already exists": {
+		"Successfully_register_a_user_if_the_pre-auth_user_already_exists": {
 			replacesPreAuthUser: true,
 			uidsToGenerate:      []uint32{}, // No UID generation needed
 		},
 
-		"Error when name is already in use": {userName: "root", wantErr: true},
-		"Error when pre-auth user already exists and name is not unique": {
+		"Error_when_name_is_already_in_use": {userName: "root", wantErr: true},
+		"Error_when_pre-auth_user_already_exists_and_name_is_not_unique": {
 			replacesPreAuthUser: true,
 			userName:            "root",
 			wantErr:             true,
 		},
-		"Error when pre-auth UID is not unique": {
+		"Error_when_pre-auth_UID_is_not_unique": {
 			replacesPreAuthUser:     true,
 			preAuthUIDAlreadyExists: true,
 			wantErr:                 true,
@@ -107,17 +107,17 @@ func TestUserByIDAndName(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully get a user by ID":   {registerUser: true},
-		"Successfully get a user by name": {registerUser: true, byName: true},
+		"Successfully_get_a_user_by_ID":   {registerUser: true},
+		"Successfully_get_a_user_by_name": {registerUser: true, byName: true},
 
-		"Error when user is not registered - UserByID":   {wantErr: true},
-		"Error when user is not registered - UserByName": {byName: true, wantErr: true},
-		"Error when user is already removed - UserByID": {
+		"Error_when_user_is_not_registered_-_UserByID":   {wantErr: true},
+		"Error_when_user_is_not_registered_-_UserByName": {byName: true, wantErr: true},
+		"Error_when_user_is_already_removed_-_UserByID": {
 			registerUser:       true,
 			userAlreadyRemoved: true,
 			wantErr:            true,
 		},
-		"Error when user is already removed - UserByName": {
+		"Error_when_user_is_already_removed_-_UserByName": {
 			registerUser:       true,
 			userAlreadyRemoved: true,
 			byName:             true,

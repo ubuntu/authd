@@ -29,10 +29,10 @@ func TestNewManager(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully create the manager": {},
+		"Successfully_create_the_manager": {},
 
-		"Error when can not create cache":          {cacheDir: "doesnotexist", wantErr: true},
-		"Error when can not create broker manager": {systemBusSocket: "doesnotexist", wantErr: true},
+		"Error_when_can_not_create_cache":          {cacheDir: "doesnotexist", wantErr: true},
+		"Error_when_can_not_create_broker_manager": {systemBusSocket: "doesnotexist", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

@@ -14,8 +14,8 @@ func TestGenerateID(t *testing.T) {
 		idMin uint32
 		idMax uint32
 	}{
-		"Generated ID is within the defined range":        {input: "test", idMin: 1000, idMax: 2000},
-		"Generate ID with minimum ID equal to maximum ID": {input: "test", idMin: 1000, idMax: 1000},
+		"Generated_ID_is_within_the_defined_range":        {input: "test", idMin: 1000, idMax: 2000},
+		"Generate_ID_with_minimum_ID_equal_to_maximum_ID": {input: "test", idMin: 1000, idMax: 1000},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

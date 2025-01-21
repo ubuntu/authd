@@ -110,23 +110,23 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		wantNotLoggedInUser bool
 		wantLocalGroups     bool
 	}{
-		"Authenticate user successfully": {
+		"Authenticate_user_successfully": {
 			tape: "simple_auth",
 		},
-		"Authenticate user successfully and enters shell": {
+		"Authenticate_user_successfully_and_enters_shell": {
 			tape:             "simple_auth_with_shell",
 			interactiveShell: true,
 		},
-		"Authenticate user with mfa": {
+		"Authenticate_user_with_mfa": {
 			tape:         "mfa_auth",
 			tapeSettings: []tapeSetting{{vhsHeight, 1200}},
 			user:         "user-mfa",
 		},
-		"Authenticate user with form mode with button": {
+		"Authenticate_user_with_form_mode_with_button": {
 			tape:         "form_with_button",
 			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
 		},
-		"Authenticate user with qr code": {
+		"Authenticate_user_with_qr_code": {
 			tape:         "qr_code",
 			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
 			tapeVariables: map[string]string{
@@ -134,24 +134,24 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 				"AUTHD_QRCODE_TAPE_ITEM_NAME": "Login code",
 			},
 		},
-		"Authenticate user and reset password while enforcing policy": {
+		"Authenticate_user_and_reset_password_while_enforcing_policy": {
 			tape: "mandatory_password_reset",
 			user: "user-needs-reset",
 		},
-		"Authenticate user with mfa and reset password while enforcing policy": {
+		"Authenticate_user_with_mfa_and_reset_password_while_enforcing_policy": {
 			tape:         "mfa_reset_pwquality_auth",
 			user:         "user-mfa-with-reset",
 			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
 		},
-		"Authenticate user and offer password reset": {
+		"Authenticate_user_and_offer_password_reset": {
 			tape: "optional_password_reset_skip",
 			user: "user-can-reset",
 		},
-		"Authenticate user and accept password reset": {
+		"Authenticate_user_and_accept_password_reset": {
 			tape: "optional_password_reset_accept",
 			user: "user-can-reset2",
 		},
-		"Authenticate user switching auth mode": {
+		"Authenticate_user_switching_auth_mode": {
 			tape:         "switch_auth_mode",
 			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
 			tapeVariables: map[string]string{
@@ -166,7 +166,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 				"AUTHD_SWITCH_AUTH_MODE_TAPE_QR_OR_LOGIN_CODE_ITEM_NAME": "Login code",
 			},
 		},
-		"Authenticate user switching to local broker": {
+		"Authenticate_user_switching_to_local_broker": {
 			tape:                "switch_local_broker",
 			wantNotLoggedInUser: true,
 			tapeSettings:        []tapeSetting{{vhsHeight, 900}},
@@ -174,17 +174,17 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
 			},
 		},
-		"Authenticate user and add it to local group": {
+		"Authenticate_user_and_add_it_to_local_group": {
 			tape:            "local_group",
 			user:            "user-local-groups",
 			wantLocalGroups: true,
 		},
 
-		"Remember last successful broker and mode": {
+		"Remember_last_successful_broker_and_mode": {
 			tape:          "remember_broker_and_mode",
 			daemonizeSSHd: true,
 		},
-		"Autoselect local broker for local user": {
+		"Autoselect_local_broker_for_local_user": {
 			tape:                "local_user_preset",
 			user:                "root",
 			wantNotLoggedInUser: true,
@@ -196,7 +196,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			},
 		},
 
-		"Deny authentication if max attempts reached": {
+		"Deny_authentication_if_max_attempts_reached": {
 			tape:                "max_attempts",
 			wantNotLoggedInUser: true,
 			tapeVariables: map[string]string{
@@ -204,33 +204,33 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 Wait`,
 			},
 		},
-		"Deny authentication if user does not exist": {
+		"Deny_authentication_if_user_does_not_exist": {
 			tape:                "unexistent_user",
 			user:                "user-unexistent",
 			wantNotLoggedInUser: true,
 		},
-		"Deny authentication if user does not exist and matches cancel key": {
+		"Deny_authentication_if_user_does_not_exist_and_matches_cancel_key": {
 			tape:                "cancel_key_user",
 			user:                "r",
 			wantNotLoggedInUser: true,
 		},
-		"Deny authentication if newpassword does not match required criteria": {
+		"Deny_authentication_if_newpassword_does_not_match_required_criteria": {
 			tape: "bad_password",
 			user: "user-needs-reset2",
 		},
 
-		"Prevent user from switching username": {
+		"Prevent_user_from_switching_username": {
 			tape: "switch_preset_username",
 		},
 
-		"Exit authd if local broker is selected": {
+		"Exit_authd_if_local_broker_is_selected": {
 			tape:                "local_broker",
 			wantNotLoggedInUser: true,
 			tapeVariables: map[string]string{
 				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
 			},
 		},
-		"Exit if user is not pre-checked on ssh service": {
+		"Exit_if_user_is_not_pre-checked_on_ssh_service": {
 			tape:                "local_ssh",
 			user:                "user-integration-ssh-service-not-allowed",
 			pamServiceName:      "sshd",
@@ -239,12 +239,12 @@ Wait`,
 				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
 			},
 		},
-		"Exit authd if user sigints": {
+		"Exit_authd_if_user_sigints": {
 			tape:                "sigint",
 			wantNotLoggedInUser: true,
 		},
 
-		"Error if cannot connect to authd": {
+		"Error_if_cannot_connect_to_authd": {
 			tape:                "connection_error",
 			socketPath:          "/some-path/not-existent-socket",
 			wantNotLoggedInUser: true,

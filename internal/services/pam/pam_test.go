@@ -89,9 +89,9 @@ func TestAvailableBrokers(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Success getting available brokers": {},
+		"Success_getting_available_brokers": {},
 
-		"Error when not root": {currentUserNotRoot: true, wantErr: true},
+		"Error_when_not_root": {currentUserNotRoot: true, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -134,15 +134,15 @@ func TestGetPreviousBroker(t *testing.T) {
 		wantBroker string
 		wantErr    bool
 	}{
-		"Success getting previous broker":                          {user: "userwithbroker", wantBroker: mockBrokerGeneratedID},
-		"For local user, get local broker":                         {user: currentUsername, wantBroker: brokers.LocalBrokerName},
-		"For unmanaged user and only one broker, get local broker": {user: "nonexistent", onlyLocalBroker: true, wantBroker: brokers.LocalBrokerName},
+		"Success_getting_previous_broker":                          {user: "userwithbroker", wantBroker: mockBrokerGeneratedID},
+		"For_local_user,_get_local_broker":                         {user: currentUsername, wantBroker: brokers.LocalBrokerName},
+		"For_unmanaged_user_and_only_one_broker,_get_local_broker": {user: "nonexistent", onlyLocalBroker: true, wantBroker: brokers.LocalBrokerName},
 
-		"Returns empty when user does not exist":         {user: "nonexistent", wantBroker: ""},
-		"Returns empty when user does not have a broker": {user: "userwithoutbroker", wantBroker: ""},
-		"Returns empty when broker is not available":     {user: "userwithinactivebroker", wantBroker: ""},
+		"Returns_empty_when_user_does_not_exist":         {user: "nonexistent", wantBroker: ""},
+		"Returns_empty_when_user_does_not_have_a_broker": {user: "userwithoutbroker", wantBroker: ""},
+		"Returns_empty_when_broker_is_not_available":     {user: "userwithinactivebroker", wantBroker: ""},
 
-		"Error when not root": {user: "userwithbroker", currentUserNotRoot: true, wantErr: true},
+		"Error_when_not_root": {user: "userwithbroker", currentUserNotRoot: true, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -197,17 +197,17 @@ func TestSelectBroker(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully select a broker and creates auth session":   {username: "success", sessionMode: auth.SessionModeAuth},
-		"Successfully select a broker and creates passwd session": {username: "success", sessionMode: auth.SessionModePasswd},
+		"Successfully_select_a_broker_and_creates_auth_session":   {username: "success", sessionMode: auth.SessionModeAuth},
+		"Successfully_select_a_broker_and_creates_passwd_session": {username: "success", sessionMode: auth.SessionModePasswd},
 
-		"Error when not root":                             {username: "success", currentUserNotRoot: true, wantErr: true},
-		"Error when username is empty":                    {wantErr: true},
-		"Error when mode is empty":                        {sessionMode: "-", wantErr: true},
-		"Error when mode does not exist":                  {sessionMode: "does not exist", wantErr: true},
-		"Error when brokerID is empty":                    {username: "empty broker", brokerID: "-", wantErr: true},
-		"Error when broker does not exist":                {username: "no broker", brokerID: "does not exist", wantErr: true},
-		"Error when broker does not provide a session ID": {username: "NS_no_id", wantErr: true},
-		"Error when starting the session":                 {username: "NS_error", wantErr: true},
+		"Error_when_not_root":                             {username: "success", currentUserNotRoot: true, wantErr: true},
+		"Error_when_username_is_empty":                    {wantErr: true},
+		"Error_when_mode_is_empty":                        {sessionMode: "-", wantErr: true},
+		"Error_when_mode_does_not_exist":                  {sessionMode: "does not exist", wantErr: true},
+		"Error_when_brokerID_is_empty":                    {username: "empty broker", brokerID: "-", wantErr: true},
+		"Error_when_broker_does_not_exist":                {username: "no broker", brokerID: "does not exist", wantErr: true},
+		"Error_when_broker_does_not_provide_a_session_ID": {username: "NS_no_id", wantErr: true},
+		"Error_when_starting_the_session":                 {username: "NS_error", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -269,15 +269,15 @@ func TestGetAuthenticationModes(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully get authentication modes":          {},
-		"Successfully get multiple authentication modes": {username: "GAM_multiple_modes"},
+		"Successfully_get_authentication_modes":          {},
+		"Successfully_get_multiple_authentication_modes": {username: "GAM_multiple_modes"},
 
-		"Error when not root":                     {currentUserNotRoot: true, wantErr: true},
-		"Error when sessionID is empty":           {sessionID: "-", wantErr: true},
-		"Error when passing invalid layout":       {supportedUILayouts: []*authd.UILayout{emptyType}, wantErr: true},
-		"Error when sessionID is invalid":         {sessionID: "invalid-session", wantErr: true},
-		"Error when getting authentication modes": {username: "GAM_error", wantErr: true},
-		"Error when broker returns invalid modes": {username: "GAM_invalid", wantErr: true},
+		"Error_when_not_root":                     {currentUserNotRoot: true, wantErr: true},
+		"Error_when_sessionID_is_empty":           {sessionID: "-", wantErr: true},
+		"Error_when_passing_invalid_layout":       {supportedUILayouts: []*authd.UILayout{emptyType}, wantErr: true},
+		"Error_when_sessionID_is_invalid":         {sessionID: "invalid-session", wantErr: true},
+		"Error_when_getting_authentication_modes": {username: "GAM_error", wantErr: true},
+		"Error_when_broker_returns_invalid_modes": {username: "GAM_invalid", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -335,24 +335,24 @@ func TestSelectAuthenticationMode(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully select mode with required value":         {username: "SAM_success_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}},
-		"Successfully select mode with missing optional value": {username: "SAM_missing_optional_entry", supportedUILayouts: []*authd.UILayout{optionalEntry}},
+		"Successfully_select_mode_with_required_value":         {username: "SAM_success_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}},
+		"Successfully_select_mode_with_missing_optional_value": {username: "SAM_missing_optional_entry", supportedUILayouts: []*authd.UILayout{optionalEntry}},
 
 		// service errors
-		"Error when not root":                {username: "SAM_success_required_entry", currentUserNotRoot: true, wantErr: true},
-		"Error when sessionID is empty":      {sessionID: "-", wantErr: true},
-		"Error when session ID is invalid":   {sessionID: "invalid-session", wantErr: true},
-		"Error when no authmode is selected": {sessionID: "no auth mode", authMode: "-", wantErr: true},
+		"Error_when_not_root":                {username: "SAM_success_required_entry", currentUserNotRoot: true, wantErr: true},
+		"Error_when_sessionID_is_empty":      {sessionID: "-", wantErr: true},
+		"Error_when_session_ID_is_invalid":   {sessionID: "invalid-session", wantErr: true},
+		"Error_when_no_authmode_is_selected": {sessionID: "no auth mode", authMode: "-", wantErr: true},
 
 		// broker errors
-		"Error when selecting invalid auth mode":                     {username: "SAM_error", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error when broker does not have validators for the session": {username: "does not matter", noValidators: true, wantErr: true},
+		"Error_when_selecting_invalid_auth_mode":                     {username: "SAM_error", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error_when_broker_does_not_have_validators_for_the_session": {username: "does not matter", noValidators: true, wantErr: true},
 
 		/* Layout errors */
-		"Error when returns no layout":                     {username: "SAM_no_layout", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error when returns layout with no type":           {username: "SAM_no_layout_type", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error when returns layout without required value": {username: "SAM_missing_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error when returns layout with unknown field":     {username: "SAM_unknown_field", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error_when_returns_no_layout":                     {username: "SAM_no_layout", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error_when_returns_layout_with_no_type":           {username: "SAM_no_layout_type", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error_when_returns_layout_without_required_value": {username: "SAM_missing_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error_when_returns_layout_with_unknown_field":     {username: "SAM_unknown_field", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -423,27 +423,27 @@ func TestIsAuthenticated(t *testing.T) {
 
 		// There is no wantErr as it's stored in the golden file.
 	}{
-		"Successfully authenticate":                           {username: "success"},
-		"Successfully authenticate if first call is canceled": {username: "IA_second_call", secondCall: true, cancelFirstCall: true},
-		"Denies authentication when broker times out":         {username: "IA_timeout"},
-		"Update existing DB on success":                       {username: "success", existingDB: "cache-with-user.db"},
-		"Update local groups":                                 {username: "success_with_local_groups", localGroupsFile: "valid.group"},
+		"Successfully_authenticate":                           {username: "success"},
+		"Successfully_authenticate_if_first_call_is_canceled": {username: "IA_second_call", secondCall: true, cancelFirstCall: true},
+		"Denies_authentication_when_broker_times_out":         {username: "IA_timeout"},
+		"Update_existing_DB_on_success":                       {username: "success", existingDB: "cache-with-user.db"},
+		"Update_local_groups":                                 {username: "success_with_local_groups", localGroupsFile: "valid.group"},
 
 		// service errors
-		"Error when not root":           {username: "success", currentUserNotRoot: true},
-		"Error when sessionID is empty": {sessionID: "-"},
-		"Error when there is no broker": {sessionID: "invalid-session"},
+		"Error_when_not_root":           {username: "success", currentUserNotRoot: true},
+		"Error_when_sessionID_is_empty": {sessionID: "-"},
+		"Error_when_there_is_no_broker": {sessionID: "invalid-session"},
 
 		// broker errors
-		"Error when authenticating":                         {username: "IA_error"},
-		"Error on empty data even if granted":               {username: "IA_empty_data"},
-		"Error when broker returns invalid access":          {username: "IA_invalid_access"},
-		"Error when broker returns invalid data":            {username: "IA_invalid_data"},
-		"Error when broker returns invalid userinfo":        {username: "IA_invalid_userinfo"},
-		"Error when calling second time without cancelling": {username: "IA_second_call", secondCall: true},
+		"Error_when_authenticating":                         {username: "IA_error"},
+		"Error_on_empty_data_even_if_granted":               {username: "IA_empty_data"},
+		"Error_when_broker_returns_invalid_access":          {username: "IA_invalid_access"},
+		"Error_when_broker_returns_invalid_data":            {username: "IA_invalid_data"},
+		"Error_when_broker_returns_invalid_userinfo":        {username: "IA_invalid_userinfo"},
+		"Error_when_calling_second_time_without_cancelling": {username: "IA_second_call", secondCall: true},
 
 		// local group error
-		"Error on updating local groups with unexisting file": {username: "success_with_local_groups", localGroupsFile: "does_not_exists.group"},
+		"Error_on_updating_local_groups_with_unexisting_file": {username: "success_with_local_groups", localGroupsFile: "does_not_exists.group"},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -549,7 +549,7 @@ func TestIDGeneration(t *testing.T) {
 	tests := map[string]struct {
 		username string
 	}{
-		"Generate ID": {username: "success"},
+		"Generate_ID": {username: "success"},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -596,14 +596,14 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Set default broker for existing user with no broker":   {username: "usersetbroker"},
-		"Update default broker for existing user with a broker": {username: "userupdatebroker"},
+		"Set_default_broker_for_existing_user_with_no_broker":   {username: "usersetbroker"},
+		"Update_default_broker_for_existing_user_with_a_broker": {username: "userupdatebroker"},
 
-		"Error when setting default broker to local broker": {username: "userlocalbroker", brokerID: brokers.LocalBrokerName, wantErr: true},
-		"Error when not root":                               {username: "usersetbroker", currentUserNotRoot: true, wantErr: true},
-		"Error when username is empty":                      {wantErr: true},
-		"Error when user does not exist ":                   {username: "doesnotexist", wantErr: true},
-		"Error when broker does not exist":                  {username: "userwithbroker", brokerID: "does not exist", wantErr: true},
+		"Error_when_setting_default_broker_to_local_broker": {username: "userlocalbroker", brokerID: brokers.LocalBrokerName, wantErr: true},
+		"Error_when_not_root":                               {username: "usersetbroker", currentUserNotRoot: true, wantErr: true},
+		"Error_when_username_is_empty":                      {wantErr: true},
+		"Error_when_user_does_not_exist":                    {username: "doesnotexist", wantErr: true},
+		"Error_when_broker_does_not_exist":                  {username: "userwithbroker", brokerID: "does not exist", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -656,12 +656,12 @@ func TestEndSession(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully end session": {username: "success"},
+		"Successfully_end_session": {username: "success"},
 
-		"Error when not root":             {username: "success", currentUserNotRoot: true, wantErr: true},
-		"Error when sessionID is empty":   {sessionID: "-", wantErr: true},
-		"Error when sessionID is invalid": {sessionID: "invalid-session", wantErr: true},
-		"Error when ending session":       {username: "ES_error", wantErr: true},
+		"Error_when_not_root":             {username: "success", currentUserNotRoot: true, wantErr: true},
+		"Error_when_sessionID_is_empty":   {sessionID: "-", wantErr: true},
+		"Error_when_sessionID_is_invalid": {sessionID: "invalid-session", wantErr: true},
+		"Error_when_ending_session":       {username: "ES_error", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

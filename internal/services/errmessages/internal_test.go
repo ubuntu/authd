@@ -20,11 +20,11 @@ func TestRedactErrorInterceptor(t *testing.T) {
 
 		wantMessage string
 	}{
-		"Trim input down to ErrToDisplay": {
+		"Trim_input_down_to_ErrToDisplay": {
 			inputError:  fmt.Errorf("Error to be redacted: %w", ToDisplayError{errors.New("Error to be shown")}),
 			wantMessage: "Error to be shown",
 		},
-		"Return original error": {
+		"Return_original_error": {
 			inputError:  errors.New("Not a redacted error"),
 			wantMessage: "Not a redacted error",
 		},
@@ -48,28 +48,28 @@ func TestFormatErrorMessage(t *testing.T) {
 
 		wantMessage string
 	}{
-		"Non-gRPC error is left untouched": {
+		"Non-gRPC_error_is_left_untouched": {
 			inputError:  errors.New("Non-gRPC error"),
 			wantMessage: "Non-gRPC error",
 		},
-		"Unrecognized error is left untouched": {
+		"Unrecognized_error_is_left_untouched": {
 			inputError:  status.Error(100, "Unrecognized error"),
 			wantMessage: "error Code(100) from server: Unrecognized error",
 		},
-		"Code Canceled is left untouched": {
+		"Code_Canceled_is_left_untouched": {
 			inputError:  status.Error(codes.Canceled, "Canceled error"),
 			wantMessage: "rpc error: code = Canceled desc = Canceled error",
 		},
 
-		"Parse code Unavailable": {
+		"Parse_code_Unavailable": {
 			inputError:  status.Error(codes.Unavailable, "Unavailable error"),
 			wantMessage: "couldn't connect to authd daemon: Unavailable error",
 		},
-		"Parse code DeadlineExceeded": {
+		"Parse_code_DeadlineExceeded": {
 			inputError:  status.Error(codes.DeadlineExceeded, "DeadlineExceeded error"),
 			wantMessage: "service took too long to respond. Disconnecting client",
 		},
-		"Parse code Unknown": {
+		"Parse_code_Unknown": {
 			inputError:  status.Error(codes.Unknown, "Unknown error"),
 			wantMessage: "Unknown error",
 		},

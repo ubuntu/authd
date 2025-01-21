@@ -20,12 +20,12 @@ func TestRegisterGroup(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully register a new group": {},
-		"Successfully register a group if the first generated GID is already in use": {
+		"Successfully_register_a_new_group": {},
+		"Successfully_register_a_group_if_the_first_generated_GID_is_already_in_use": {
 			gidsToGenerate: []uint32{0, gidToGenerate}, // GID 0 (root) always exists
 		},
 
-		"Error when name is already in use": {groupName: "root", wantErr: true},
+		"Error_when_name_is_already_in_use": {groupName: "root", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -77,17 +77,17 @@ func TestGroupByIDAndName(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully get a group by ID":   {registerGroup: true},
-		"Successfully get a group by name": {registerGroup: true, byName: true},
+		"Successfully_get_a_group_by_ID":   {registerGroup: true},
+		"Successfully_get_a_group_by_name": {registerGroup: true, byName: true},
 
-		"Error when group is not registered - GroupByID":   {wantErr: true},
-		"Error when group is not registered - GroupByName": {byName: true, wantErr: true},
-		"Error when group is already removed - GroupByID": {
+		"Error_when_group_is_not_registered_-_GroupByID":   {wantErr: true},
+		"Error_when_group_is_not_registered_-_GroupByName": {byName: true, wantErr: true},
+		"Error_when_group_is_already_removed_-_GroupByID": {
 			registerGroup:       true,
 			groupAlreadyRemoved: true,
 			wantErr:             true,
 		},
-		"Error when group is already removed - GroupByName": {
+		"Error_when_group_is_already_removed_-_GroupByName": {
 			registerGroup:       true,
 			groupAlreadyRemoved: true,
 			byName:              true,

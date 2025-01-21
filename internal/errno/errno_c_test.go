@@ -44,11 +44,11 @@ func TestErrorValues(t *testing.T) {
 	testCases := map[string]struct {
 		err error
 	}{
-		"No error":                  {},
-		"No such file or directory": {err: errno.ErrNoEnt},
-		"No such process":           {err: errno.ErrSrch},
-		"Bad file descriptor":       {err: errno.ErrBadf},
-		"Operation not permitted":   {err: errno.ErrPerm},
+		"No_error":                  {},
+		"No_such_file_or_directory": {err: errno.ErrNoEnt},
+		"No_such_process":           {err: errno.ErrSrch},
+		"Bad_file_descriptor":       {err: errno.ErrBadf},
+		"Operation_not_permitted":   {err: errno.ErrPerm},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {

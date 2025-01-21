@@ -23,26 +23,26 @@ func TestMigrateOldCacheDir(t *testing.T) {
 		wantOldDirExists bool
 		wantNewDirExists bool
 	}{
-		"Success if old dir does not exist": {oldDirExists: false, newDirExists: false},
-		"Success if old dir exists and new dir does not": {
+		"Success_if_old_dir_does_not_exist": {oldDirExists: false, newDirExists: false},
+		"Success_if_old_dir_exists_and_new_dir_does_not": {
 			oldDirExists:     true,
 			newDirExists:     false,
 			wantOldDirExists: false,
 			wantNewDirExists: true,
 			wantDbInNewDir:   true,
 		},
-		"Success if old dir exists and new dir exists": {
+		"Success_if_old_dir_exists_and_new_dir_exists": {
 			oldDirExists:     true,
 			newDirExists:     true,
 			wantOldDirExists: true,
 			wantNewDirExists: true,
 		},
-		"Success if old dir exists but is unreadable": {
+		"Success_if_old_dir_exists_but_is_unreadable": {
 			oldDirExists:     true,
 			oldDirUnreadable: true,
 		},
 
-		"Error if new dir exists but is unreadable": {
+		"Error_if_new_dir_exists_but_is_unreadable": {
 			oldDirExists:     true,
 			newDirExists:     true,
 			newDirUnreadable: true,

@@ -31,11 +31,11 @@ func TestIsRequestFromRoot(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Granted if current user considered as root": {},
+		"Granted_if_current_user_considered_as_root": {},
 
-		"Error as deny when current user is not root": {currentUserNotRoot: true, wantErr: true},
-		"Error as deny when missing peer creds Info":  {noPeerCredsInfo: true, wantErr: true},
-		"Error as deny when missing auth info creds":  {noAuthInfo: true, wantErr: true},
+		"Error_as_deny_when_current_user_is_not_root": {currentUserNotRoot: true, wantErr: true},
+		"Error_as_deny_when_missing_peer_creds_Info":  {noPeerCredsInfo: true, wantErr: true},
+		"Error_as_deny_when_missing_auth_info_creds":  {noAuthInfo: true, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

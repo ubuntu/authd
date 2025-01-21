@@ -43,14 +43,14 @@ func TestNew(t *testing.T) {
 		wantSelectedSocket string
 		wantErr            bool
 	}{
-		"With socket activation":                               {wantSelectedSocket: "systemd.sock1"},
-		"Socket provided manually is created":                  {socketType: manualSocket, wantSelectedSocket: "manual.sock"},
-		"Socket provided manually wins over socket activation": {socketType: systemdActivationListenerAndManualSocket, wantSelectedSocket: "manual.sock"},
+		"With_socket_activation":                               {wantSelectedSocket: "systemd.sock1"},
+		"Socket_provided_manually_is_created":                  {socketType: manualSocket, wantSelectedSocket: "manual.sock"},
+		"Socket_provided_manually_wins_over_socket_activation": {socketType: systemdActivationListenerAndManualSocket, wantSelectedSocket: "manual.sock"},
 
-		"Error when systemd provides multiple sockets":             {socketType: systemdActivationListenerMultipleSockets, wantErr: true},
-		"Error when systemd activation fails":                      {socketType: systemdActivationListenerFails, wantErr: true},
-		"Error when systemd activated socket does not exists":      {socketType: systemdActivationListenerSocketDoesNotExists, wantErr: true},
-		"Error when manually provided socket path does not exists": {socketType: manualSocketParentDirectoryDoesNotExists, wantErr: true},
+		"Error_when_systemd_provides_multiple_sockets":             {socketType: systemdActivationListenerMultipleSockets, wantErr: true},
+		"Error_when_systemd_activation_fails":                      {socketType: systemdActivationListenerFails, wantErr: true},
+		"Error_when_systemd_activated_socket_does_not_exists":      {socketType: systemdActivationListenerSocketDoesNotExists, wantErr: true},
+		"Error_when_manually_provided_socket_path_does_not_exists": {socketType: manualSocketParentDirectoryDoesNotExists, wantErr: true},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
@@ -143,11 +143,11 @@ func TestServe(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Success with systemd notifier":    {},
-		"Success without systemd notifier": {systemdNotifier: noSystemdNotifier},
+		"Success_with_systemd_notifier":    {},
+		"Success_without_systemd_notifier": {systemdNotifier: noSystemdNotifier},
 
-		"Error on call to Quit before serve": {quitBeforeServe: true, wantErr: true},
-		"Error on systemd notifier failing":  {systemdNotifier: systemdNotifierFails, wantErr: true},
+		"Error_on_call_to_Quit_before_serve": {quitBeforeServe: true, wantErr: true},
+		"Error_on_systemd_notifier_failing":  {systemdNotifier: systemdNotifierFails, wantErr: true},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
@@ -211,9 +211,9 @@ func TestQuit(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Graceful stop": {},
-		"Graceful stop is blocked on active connection": {activeConnection: true},
-		"Force stop drops active connection":            {force: true, activeConnection: true},
+		"Graceful_stop": {},
+		"Graceful_stop_is_blocked_on_active_connection": {activeConnection: true},
+		"Force_stop_drops_active_connection":            {force: true, activeConnection: true},
 	}
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {

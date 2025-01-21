@@ -41,22 +41,22 @@ func TestExecModule(t *testing.T) {
 		wantError  error
 	}{
 		// Error cases
-		"Error on no arguments": {
+		"Error_on_no_arguments": {
 			wantError: pam.ErrModuleUnknown,
 		},
-		"Error on empty executable parameter": {
+		"Error_on_empty_executable_parameter": {
 			moduleArgs: []string{""},
 			wantError:  pam.ErrModuleUnknown,
 		},
-		"Error on non existent executable parameter": {
+		"Error_on_non_existent_executable_parameter": {
 			moduleArgs: []string{"/non-existent/file"},
 			wantError:  pam.ErrModuleUnknown,
 		},
-		"Error on non executable parameter": {
+		"Error_on_non_executable_parameter": {
 			moduleArgs: execModuleSources,
 			wantError:  pam.ErrModuleUnknown,
 		},
-		"Error on not runnable parameter": {
+		"Error_on_not_runnable_parameter": {
 			moduleArgs: []string{filepath.Join(testutils.ProjectRoot())},
 			wantError:  pam.ErrSystem,
 		},
@@ -82,19 +82,19 @@ func TestExecModule(t *testing.T) {
 		rawModuleArgs []string
 		wantError     error
 	}{
-		"SetGet Item": {
+		"SetGet_Item": {
 			methodCalls: []cliMethodCall{
 				{m: "SetItem", args: []any{pam.Rhost, "some-rhost-value"}, r: []any{nil}},
 				{m: "GetItem", args: []any{pam.Rhost}, r: []any{"some-rhost-value", nil}},
 			},
 		},
-		"SetGet Item handling errors": {
+		"SetGet_Item_handling_errors": {
 			methodCalls: []cliMethodCall{
 				{m: "SetItem", args: []any{pam.Item(-1), "some-value"}, r: []any{pam.ErrBadItem}},
 				{m: "GetItem", args: []any{pam.Item(-1)}, r: []any{"", pam.ErrBadItem}},
 			},
 		},
-		"SetGet Env": {
+		"SetGet_Env": {
 			methodCalls: []cliMethodCall{
 				{m: "PutEnv", args: []any{"FooEnv=bar"}, r: []any{nil}},
 				{m: "GetEnv", args: []any{"FooEnv"}, r: []any{"bar"}},
@@ -109,7 +109,7 @@ func TestExecModule(t *testing.T) {
 				{m: "GetEnv", args: []any{"FooEnv"}},
 			},
 		},
-		"SetGet Data": {
+		"SetGet_Data": {
 			methodCalls: []cliMethodCall{
 				{m: "SetData", args: []any{"FooData", "bar"}, r: []any{nil}},
 				{m: "GetData", args: []any{"FooData"}, r: []any{"bar", nil}},
@@ -123,12 +123,12 @@ func TestExecModule(t *testing.T) {
 				{m: "GetData", args: []any{"FooData"}, r: []any{nil, nil}},
 			},
 		},
-		"GetEnvList empty": {
+		"GetEnvList_empty": {
 			methodCalls: []cliMethodCall{
 				{m: "GetEnvList", r: []any{map[string]string{}, nil}},
 			},
 		},
-		"GetEnvList populated": {
+		"GetEnvList_populated": {
 			methodCalls: []cliMethodCall{
 				{m: "PutEnv", args: []any{"Env=value"}},
 				{m: "PutEnv", args: []any{"Env2=value2"}},
@@ -143,27 +143,27 @@ func TestExecModule(t *testing.T) {
 		},
 
 		// Error cases
-		"Error providing invalid variant argument": {
+		"Error_providing_invalid_variant_argument": {
 			rawModuleArgs: []string{"$not_A-variant Action"},
 			wantError:     pam_test.ErrInvalidArguments,
 		},
-		"Error providing no action": {
+		"Error_providing_no_action": {
 			rawModuleArgs: []string{dbus.MakeVariant(map[string]dbus.Variant{}).String()},
 			wantError:     pam_test.ErrInvalidMethod,
 		},
-		"Error providing invalid action type": {
+		"Error_providing_invalid_action_type": {
 			rawModuleArgs: []string{dbus.MakeVariant(
 				map[string]dbus.Variant{"act": dbus.MakeVariant([]int{1, 2, 3})},
 			).String()},
 			wantError: pam_test.ErrInvalidMethod,
 		},
-		"Error when not providing arguments": {
+		"Error_when_not_providing_arguments": {
 			rawModuleArgs: []string{dbus.MakeVariant(
 				map[string]dbus.Variant{"act": dbus.MakeVariant("SetItem")},
 			).String()},
 			wantError: pam_test.ErrInvalidArguments,
 		},
-		"Error when providing no arguments": {
+		"Error_when_providing_no_arguments": {
 			rawModuleArgs: []string{dbus.MakeVariant(
 				map[string]dbus.Variant{
 					"act":  dbus.MakeVariant("SetItem"),
@@ -172,7 +172,7 @@ func TestExecModule(t *testing.T) {
 			).String()},
 			wantError: pam_test.ErrInvalidArguments,
 		},
-		"Error providing invalid arguments type": {
+		"Error_providing_invalid_arguments_type": {
 			rawModuleArgs: []string{dbus.MakeVariant(
 				map[string]dbus.Variant{
 					"act":  dbus.MakeVariant("GetItem"),
@@ -181,53 +181,53 @@ func TestExecModule(t *testing.T) {
 			).String()},
 			wantError: pam_test.ErrInvalidArguments,
 		},
-		"Error when providing empty arguments": {
+		"Error_when_providing_empty_arguments": {
 			methodCalls: []cliMethodCall{{m: "SetItem", args: []any{}}},
 			wantError:   pam_test.ErrInvalidArguments,
 		},
-		"Error when not providing enough arguments": {
+		"Error_when_not_providing_enough_arguments": {
 			methodCalls: []cliMethodCall{{m: "SetItem", args: []any{pam.User}}},
 			wantError:   pam_test.ErrInvalidArguments,
 		},
-		"Error when providing empty return values": {
+		"Error_when_providing_empty_return_values": {
 			methodCalls: []cliMethodCall{{m: "SetItem", args: []any{pam.User, "an-user"}, r: []any{}}},
 			wantError:   pam_test.ErrReturnMismatch,
 		},
-		"Error when not providing enough return values": {
+		"Error_when_not_providing_enough_return_values": {
 			methodCalls: []cliMethodCall{{m: "GetItem", args: []any{pam.User}, r: []any{}}},
 			wantError:   pam_test.ErrReturnMismatch,
 		},
-		"Error when calling unknown method": {
+		"Error_when_calling_unknown_method": {
 			methodCalls: []cliMethodCall{{m: "ThisMethodDoesNotExist"}},
 			wantError:   pam_test.ErrInvalidMethod,
 		},
-		"Error when argument types do not match arguments": {
+		"Error_when_argument_types_do_not_match_arguments": {
 			methodCalls: []cliMethodCall{{m: "SetItem", args: []any{"an-item", "value"}}},
 			wantError:   pam_test.ErrArgumentTypeMismatch,
 		},
-		"Error when return values types do not match expected": {
+		"Error_when_return_values_types_do_not_match_expected": {
 			methodCalls: []cliMethodCall{
 				{m: "GetItem", args: []any{pam.Item(-1)}, r: []any{"", "should have been an error"}},
 			},
 			wantError: pam_test.ErrReturnMismatch,
 		},
-		"Error when trying to compare an unexpected variant value": {
+		"Error_when_trying_to_compare_an_unexpected_variant_value": {
 			methodCalls: []cliMethodCall{{m: "GetEnvList", r: []any{"", nil}}},
 			wantError:   pam_test.ErrReturnMismatch,
 		},
-		"Error when trying to compare a not-matching variant value": {
+		"Error_when_trying_to_compare_a_not-matching_variant_value": {
 			methodCalls: []cliMethodCall{{m: "GetEnvList", r: []any{"string", nil}}},
 			wantError:   pam_test.ErrReturnMismatch,
 		},
-		"Error when getting not-available user data": {
+		"Error_when_getting_not-available_user_data": {
 			methodCalls: []cliMethodCall{{m: "GetData", args: []any{"NotAvailable"}}},
 			wantError:   pam.ErrNoModuleData,
 		},
-		"Error when client fails panicking": {
+		"Error_when_client_fails_panicking": {
 			methodCalls: []cliMethodCall{{m: "SimulateClientPanic", args: []any{"Client panicked! (As expected)"}}},
 			wantError:   pam.ErrSymbol,
 		},
-		"Error when client fails because an unhandled error": {
+		"Error_when_client_fails_because_an_unhandled_error": {
 			methodCalls: []cliMethodCall{{m: "SimulateClientError", args: []any{"Client error!"}}},
 			wantError:   pam.ErrSystem,
 		},
@@ -249,9 +249,9 @@ func TestExecModule(t *testing.T) {
 	actionFlags := map[string]struct {
 		flags pam.Flags
 	}{
-		"No flags set":                    {},
-		"Silent flag set":                 {flags: pam.Silent},
-		"Silent and RefreshCred flag set": {flags: pam.Silent | pam.RefreshCred},
+		"No_flags_set":                    {},
+		"Silent_flag_set":                 {flags: pam.Silent},
+		"Silent_and_RefreshCred_flag_set": {flags: pam.Silent | pam.RefreshCred},
 	}
 	for name, tc := range actionFlags {
 		t.Run("Flags "+name, func(t *testing.T) {
@@ -280,7 +280,7 @@ func TestExecModule(t *testing.T) {
 	actionArgs := map[string]struct {
 		moduleArgs []string
 	}{
-		"Do not deadlock if invalid log path is provided": {
+		"Do_not_deadlock_if_invalid_log_path_is_provided": {
 			[]string{"--exec-log", "/not-existent/file-path.log"},
 		},
 	}
@@ -308,36 +308,36 @@ func TestExecModule(t *testing.T) {
 		wantGetError error
 		wantSetError error
 	}{
-		"Set user": {
+		"Set_user": {
 			item:  pam.User,
 			value: ptrValue("an user"),
 		},
-		"Returns empty when getting an unset user": {
+		"Returns_empty_when_getting_an_unset_user": {
 			item:      pam.User,
 			wantValue: ptrValue(""),
 		},
-		"Returns the user when getting a preset user": {
+		"Returns_the_user_when_getting_a_preset_user": {
 			item:      pam.User,
 			user:      "preset PAM user",
 			wantValue: ptrValue("preset PAM user"),
 		},
-		"Setting and getting an user": {
+		"Setting_and_getting_an_user": {
 			item:      pam.User,
 			value:     ptrValue("the-user"),
 			wantValue: ptrValue("the-user"),
 		},
-		"Getting the preset service name": {
+		"Getting_the_preset_service_name": {
 			item:      pam.Service,
 			wantValue: ptrValue(execServiceName),
 		},
 
 		// Error cases
-		"Error when setting invalid item": {
+		"Error_when_setting_invalid_item": {
 			item:         pam.Item(-1),
 			value:        ptrValue("some value"),
 			wantSetError: pam.ErrBadItem,
 		},
-		"Error when getting invalid item": {
+		"Error_when_getting_invalid_item": {
 			item:         pam.Item(-1),
 			wantGetError: pam.ErrBadItem,
 			wantValue:    ptrValue(""),
@@ -391,32 +391,32 @@ func TestExecModule(t *testing.T) {
 		wantValue    *string
 		wantPutError error
 	}{
-		"Put var": {
+		"Put_var": {
 			env:   "AN_ENV",
 			value: ptrValue("value"),
 		},
-		"Unset a not-previously set value": {
+		"Unset_a_not-previously_set_value": {
 			env:          "NEVER_SET_ENV",
 			wantPutError: pam.ErrBadItem,
 			wantValue:    ptrValue(""),
 		},
-		"Unset a preset value": {
+		"Unset_a_preset_value": {
 			presetValues: map[string]string{"PRESET_ENV": "hey!"},
 			env:          "PRESET_ENV",
 			wantValue:    ptrValue(""),
 		},
-		"Changes a preset var": {
+		"Changes_a_preset_var": {
 			presetValues: map[string]string{"PRESET_ENV": "hey!"},
 			env:          "PRESET_ENV",
 			value:        ptrValue("hello!"),
 			wantValue:    ptrValue("hello!"),
 		},
-		"Get an unset env": {
+		"Get_an_unset_env": {
 			skipPut:   true,
 			env:       "AN_UNSET_ENV",
 			wantValue: ptrValue(""),
 		},
-		"Gets an invalid env name": {
+		"Gets_an_invalid_env_name": {
 			env:       "",
 			value:     ptrValue("Invalid Value"),
 			wantValue: ptrValue(""),
@@ -424,7 +424,7 @@ func TestExecModule(t *testing.T) {
 		},
 
 		// Error cases
-		"Error when putting an invalid env name": {
+		"Error_when_putting_an_invalid_env_name": {
 			env:          "",
 			value:        ptrValue("Invalid Value"),
 			wantPutError: pam.ErrBadItem,
@@ -518,26 +518,26 @@ func TestExecModule(t *testing.T) {
 		wantSetError error
 		wantGetError error
 	}{
-		"Sets and gets data": {
+		"Sets_and_gets_data": {
 			presetData: map[string]any{"some-data": []string{"hey! That's", "true"}},
 			key:        "data",
 			data:       []string{"hey! That's", "true"},
 			wantData:   []string{"hey! That's", "true"},
 		},
-		"Gets previously set data": {
+		"Gets_previously_set_data": {
 			presetData: map[string]any{"some-old-data": []int{3, 2, 1}},
 			key:        "some-old-data",
 			skipSet:    true,
 			wantData:   []int{3, 2, 1},
 		},
-		"Data can be nil": {
+		"Data_can_be_nil": {
 			// This is actually a libpam issue, but we should respect that for now
 			// See: https://github.com/linux-pam/linux-pam/pull/780
 			data:     nil,
 			key:      "nil-data",
 			wantData: nil,
 		},
-		"Set replaces data": {
+		"Set_replaces_data": {
 			presetData: map[string]any{"some-data": []string{"hey! That's", "true"}},
 			key:        "some-data",
 			data: []map[string]string{
@@ -549,7 +549,7 @@ func TestExecModule(t *testing.T) {
 				{"foo": "bar"},
 			},
 		},
-		"No error when getting data that has been removed": {
+		"No_error_when_getting_data_that_has_been_removed": {
 			presetData: map[string]any{"some-data": []string{"hey! That's", "true"}},
 			key:        "some-data",
 			data:       nil,
@@ -557,7 +557,7 @@ func TestExecModule(t *testing.T) {
 		},
 
 		// Error cases
-		"Error when getting data that has never been set": {
+		"Error_when_getting_data_that_has_never_been_set": {
 			skipSet:      true,
 			key:          "not set",
 			wantGetError: pam.ErrNoModuleData,
@@ -620,20 +620,20 @@ func TestExecModule(t *testing.T) {
 		wantError      error
 		wantExitError  error
 	}{
-		"Messages with info style are handled by conversation": {
+		"Messages_with_info_style_are_handled_by_conversation": {
 			prompt:    "This is an info message!",
 			convStyle: pam.TextInfo,
 		},
-		"Messages with error style are handled by conversation": {
+		"Messages_with_error_style_are_handled_by_conversation": {
 			prompt:    "This is an error message!",
 			convStyle: pam.ErrorMsg,
 		},
-		"Messages with echo on style are handled by conversation": {
+		"Messages_with_echo_on_style_are_handled_by_conversation": {
 			prompt:    "This is an echo on message!",
 			convStyle: pam.PromptEchoOn,
 			want:      "I'm handling it perfectly!",
 		},
-		"Conversation prompt can be formatted": {
+		"Conversation_prompt_can_be_formatted": {
 			promptFormat:     "Sending some %s, right? %v - But that's %v or %d?",
 			promptFormatArgs: []interface{}{"info", true, nil, 123},
 			convStyle:        pam.PromptEchoOff,
@@ -641,31 +641,31 @@ func TestExecModule(t *testing.T) {
 		},
 
 		// Error cases
-		"Error if no conversation handler is set": {
+		"Error_if_no_conversation_handler_is_set": {
 			convHandler: ptrValue(pam.ConversationFunc(nil)),
 			wantError:   pam.ErrConv,
 		},
-		"Error if the conversation handler fails": {
+		"Error_if_the_conversation_handler_fails": {
 			prompt:    "Tell me your secret!",
 			convStyle: pam.PromptEchoOff,
 			convError: pam.ErrBuf,
 			wantError: pam.ErrConv,
 		},
-		"Error when conversation uses binary content style": {
+		"Error_when_conversation_uses_binary_content_style": {
 			prompt:                "I am a binary content\xff!",
 			convStyle:             pam.BinaryPrompt,
 			convError:             pam.ErrConv,
 			wantError:             pam.ErrConv,
 			convShouldNotBeCalled: true,
 		},
-		"Error when when parsing returned response fails": {
+		"Error_when_when_parsing_returned_response_fails": {
 			prompt:         "Hello!",
 			convStyle:      pam.PromptEchoOn,
 			want:           "Hey, hey!",
 			stringResponse: "Hey, hey!",
 			wantExitError:  pam_test.ErrReturnMismatch,
 		},
-		"Error when when parsing returned value style fails": {
+		"Error_when_when_parsing_returned_value_style_fails": {
 			prompt:    "Hello!",
 			convStyle: pam.PromptEchoOn,
 			want:      "Hey, hey!",
@@ -675,7 +675,7 @@ func TestExecModule(t *testing.T) {
 			},
 			wantExitError: pam_test.ErrInvalidArguments,
 		},
-		"Error when when parsing returned reply fails": {
+		"Error_when_when_parsing_returned_reply_fails": {
 			prompt:    "Hello!",
 			convStyle: pam.PromptEchoOff,
 			want:      "Hey, hey!",
@@ -763,18 +763,18 @@ func TestExecModule(t *testing.T) {
 		want      string
 		wantError error
 	}{
-		"Getting a previously set user does not require conversation handler": {
+		"Getting_a_previously_set_user_does_not_require_conversation_handler": {
 			presetUser: "an-user",
 			want:       "an-user",
 		},
-		"Getting a previously set user does not use conversation handler": {
+		"Getting_a_previously_set_user_does_not_use_conversation_handler": {
 			presetUser: "an-user",
 			want:       "an-user",
 			convHandler: pam.ConversationFunc(func(s pam.Style, msg string) (string, error) {
 				return "another-user", pam.ErrConv
 			}),
 		},
-		"Getting the user uses conversation handler if none was set": {
+		"Getting_the_user_uses_conversation_handler_if_none_was_set": {
 			want: "provided-user",
 			convHandler: pam.ConversationFunc(
 				func(s pam.Style, msg string) (string, error) {
@@ -790,7 +790,7 @@ func TestExecModule(t *testing.T) {
 		},
 
 		// Error cases
-		"Error when no conversation is set": {
+		"Error_when_no_conversation_is_set": {
 			want:      "",
 			wantError: pam.ErrConv,
 		},
