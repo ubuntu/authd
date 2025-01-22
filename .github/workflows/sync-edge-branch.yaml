@@ -1,0 +1,31 @@
+name: Sync edge with main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync-edge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Ensure edge branch exists
+        run: |
+          if ! git show-ref --verify --quiet refs/heads/edge; then
+            git branch edge
+          fi
+
+      - name: Sync edge with main
+        run: |
+          git fetch origin main
+          git checkout edge          
+          git reset --hard origin/main
+          git push origin edge --force
