@@ -102,6 +102,11 @@ snap switch authd-<broker_name> --stable
 snap refresh authd-<broker_name>
 ```
 
+```{note}
+If using an edge release, you can read the
+[latest development version of the documentation](https://canonical-authd.readthedocs-hosted.com/en/latest/)
+```
+
 ## Common issues and limitations
 
 ### File ownership on shared network resources (e.g. NFS, Samba)

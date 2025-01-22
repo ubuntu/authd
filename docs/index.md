@@ -41,7 +41,11 @@ These brokers allow you to authenticate against MS Entra ID or Google IAM using 
 **Discussion** of product architecture
 ```
 
+
 ````
+
+Documentation for the [stable](https://canonical-authd.readthedocs-hosted.com/en/stable/) release of authd and the [latest](https://canonical-authd.readthedocs-hosted.com/en/latest/) development version are
+both available.
 
 ---------
 

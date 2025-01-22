@@ -15,7 +15,8 @@
 [goreport-url]: https://goreportcard.com/report/github.com/ubuntu/authd
 
 [docs-image]: https://readthedocs.com/projects/canonical-authd/badge/?version=latest
-[docs-url]: https://canonical-authd.readthedocs-hosted.com/en/latest/
+[docs-url-stable]: https://canonical-authd.readthedocs-hosted.com/en/stable/
+[docs-url-latest]: https://canonical-authd.readthedocs-hosted.com/en/latest/
 
 [![Code quality][actions-image]][actions-url]
 [![License][license-image]](COPYING)
@@ -23,7 +24,7 @@
 [![Go Report Card][goreport-image]][goreport-url]
 [![Reference documentation][reference-documentation-image]][reference-documentation-url]
 
-[![Documentation Status][docs-image]][docs-url]
+[![Documentation Status][docs-image]][docs-url-stable]
 
 authd is an authentication daemon for cloud-based identity providers. It helps
 ensure the secure management of identity and access for Ubuntu machines anywhere
@@ -34,8 +35,11 @@ supported and several other identity providers are under active development.
 
 ## Documentation
 
-If you want to know more about using authd, refer to the
-[official authd documentation][docs-url].
+To find out more about using authd, refer to the
+[official authd documentation][docs-url-stable].
+If you are on an edge release then you can also read the
+[latest development version of the documentation][docs-url-latest],
+which may include features not yet available in the stable release.
 
 The documentation includes how-to guides on installing and configuring authd,
 in addition to information about authd architecture and troubleshooting.
