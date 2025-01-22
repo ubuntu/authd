@@ -1,4 +1,4 @@
-package cache
+package db
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 
 // BrokerForUser returns the broker ID assigned to the given username, empty if it's not assigned yet
 // or an error if no user was found in cache.
-func (c *Cache) BrokerForUser(username string) (brokerID string, err error) {
+func (c *Database) BrokerForUser(username string) (brokerID string, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 

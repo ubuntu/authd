@@ -10,7 +10,7 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/tempentries"
@@ -37,7 +37,7 @@ var DefaultConfig = Config{
 
 // Manager is the manager for any user related operation.
 type Manager struct {
-	cache            *cache.Cache
+	db               *db.Database
 	config           Config
 	temporaryRecords *tempentries.TemporaryRecords
 	updateUserMu     sync.Mutex
@@ -95,21 +95,21 @@ func NewManager(config Config, cacheDir string, args ...Option) (m *Manager, err
 		temporaryRecords: tempentries.NewTemporaryRecords(opts.idGenerator),
 	}
 
-	c, err := cache.New(cacheDir)
+	c, err := db.New(cacheDir)
 	if err != nil {
 		return nil, err
 	}
-	m.cache = c
+	m.db = c
 
 	return m, nil
 }
 
-// Stop closes the underlying cache.
+// Stop closes the underlying db.
 func (m *Manager) Stop() error {
-	return m.cache.Close()
+	return m.db.Close()
 }
 
-// UpdateUser updates the user information in the cache.
+// UpdateUser updates the user information in the db.
 func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	defer decorate.OnError(&err, "failed to update user %q", u.Name)
 
@@ -126,11 +126,11 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	defer m.updateUserMu.Unlock()
 
 	// Check if the user already exists in the database
-	oldUser, err := m.cache.UserByName(u.Name)
-	if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
+	oldUser, err := m.db.UserByName(u.Name)
+	if err != nil && !errors.Is(err, db.NoDataFoundError{}) {
 		return fmt.Errorf("could not get user %q: %w", u.Name, err)
 	}
-	if errors.Is(err, cache.NoDataFoundError{}) {
+	if errors.Is(err, db.NoDataFoundError{}) {
 		// Check if the user exists on the system
 		existingUser, err := user.Lookup(u.Name)
 		var unknownUserErr user.UnknownUserError
@@ -157,7 +157,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	// Prepend the user private group
 	u.Groups = append([]types.GroupInfo{{Name: u.Name, UGID: u.Name}}, u.Groups...)
 
-	var authdGroups []cache.GroupDB
+	var authdGroups []db.GroupDB
 	var localGroups []string
 	for _, g := range u.Groups {
 		if g.Name == "" {
@@ -178,11 +178,11 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 
 		// Check if the group already exists in the database
 		oldGroup, err := m.findGroup(g)
-		if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
+		if err != nil && !errors.Is(err, db.NoDataFoundError{}) {
 			// Unexpected error
 			return err
 		}
-		if errors.Is(err, cache.NoDataFoundError{}) {
+		if errors.Is(err, db.NoDataFoundError{}) {
 			// The group does not exist in the database, so we generate a unique GID for it. Similar to the RegisterUser
 			// call above, this also registers a temporary group in our NSS handler. We remove that temporary group
 			// before returning from this function, at which point the group is added to the database (so we don't need
@@ -200,17 +200,17 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			g.GID = &oldGroup.GID
 		}
 
-		authdGroups = append(authdGroups, cache.NewGroupDB(g.Name, *g.GID, g.UGID, nil))
+		authdGroups = append(authdGroups, db.NewGroupDB(g.Name, *g.GID, g.UGID, nil))
 	}
 
-	oldLocalGroups, err := m.cache.UserLocalGroups(uid)
-	if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
+	oldLocalGroups, err := m.db.UserLocalGroups(uid)
+	if err != nil && !errors.Is(err, db.NoDataFoundError{}) {
 		return err
 	}
 
-	// Update user information in the cache.
-	userDB := cache.NewUserDB(u.Name, uid, authdGroups[0].GID, u.Gecos, u.Dir, u.Shell)
-	if err := m.cache.UpdateUserEntry(userDB, authdGroups, localGroups); err != nil {
+	// Update user information in the db.
+	userDB := db.NewUserDB(u.Name, uid, authdGroups[0].GID, u.Gecos, u.Dir, u.Shell)
+	if err := m.db.UpdateUserEntry(userDB, authdGroups, localGroups); err != nil {
 		return err
 	}
 
@@ -230,13 +230,13 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 // If it does, it checks if it has the same UGID.
 func (m *Manager) checkGroupNameConflict(name string, ugid string) error {
 	// First check in our database.
-	existingGroup, err := m.cache.GroupByName(name)
-	if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
+	existingGroup, err := m.db.GroupByName(name)
+	if err != nil && !errors.Is(err, db.NoDataFoundError{}) {
 		// Unexpected error
 		return err
 	}
 
-	if errors.Is(err, cache.NoDataFoundError{}) {
+	if errors.Is(err, db.NoDataFoundError{}) {
 		// The group does not exist in the database, check if it exists on the system.
 		existingGroup, err := user.LookupGroup(name)
 		var unknownGroupErr user.UnknownGroupError
@@ -262,19 +262,19 @@ func (m *Manager) checkGroupNameConflict(name string, ugid string) error {
 	return nil
 }
 
-func (m *Manager) findGroup(group types.GroupInfo) (oldGroup cache.GroupDB, err error) {
+func (m *Manager) findGroup(group types.GroupInfo) (oldGroup db.GroupDB, err error) {
 	// Search by UGID first to support renaming groups
-	oldGroup, err = m.cache.GroupByUGID(group.UGID)
+	oldGroup, err = m.db.GroupByUGID(group.UGID)
 	if err == nil {
 		return oldGroup, nil
 	}
-	if !errors.Is(err, cache.NoDataFoundError{}) {
+	if !errors.Is(err, db.NoDataFoundError{}) {
 		// Unexpected error
 		return oldGroup, err
 	}
 
 	// The group was not found by UGID. Search by name, because we didn't store the UGID in 0.3.7 and earlier.
-	return m.cache.GroupByName(group.Name)
+	return m.db.GroupByName(group.Name)
 }
 
 // checkHomeDirOwnership checks if the home directory of the user is owned by the user and the user's group.
@@ -308,9 +308,9 @@ func checkHomeDirOwnership(home string, uid, gid uint32) error {
 
 // BrokerForUser returns the broker ID for the given user.
 func (m *Manager) BrokerForUser(username string) (string, error) {
-	brokerID, err := m.cache.BrokerForUser(username)
-	// User not in cache.
-	if err != nil && errors.Is(err, cache.NoDataFoundError{}) {
+	brokerID, err := m.db.BrokerForUser(username)
+	// User not in db.
+	if err != nil && errors.Is(err, db.NoDataFoundError{}) {
 		return "", NoDataFoundError{}
 	} else if err != nil {
 		return "", err
@@ -321,7 +321,7 @@ func (m *Manager) BrokerForUser(username string) (string, error) {
 
 // UpdateBrokerForUser updates the broker ID for the given user.
 func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
-	if err := m.cache.UpdateBrokerForUser(username, brokerID); err != nil {
+	if err := m.db.UpdateBrokerForUser(username, brokerID); err != nil {
 		return err
 	}
 
@@ -330,8 +330,8 @@ func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 
 // UserByName returns the user information for the given user name.
 func (m *Manager) UserByName(username string) (types.UserEntry, error) {
-	usr, err := m.cache.UserByName(username)
-	if errors.Is(err, cache.NoDataFoundError{}) {
+	usr, err := m.db.UserByName(username)
+	if errors.Is(err, db.NoDataFoundError{}) {
 		// Check if the user is a temporary user.
 		return m.temporaryRecords.UserByName(username)
 	}
@@ -343,8 +343,8 @@ func (m *Manager) UserByName(username string) (types.UserEntry, error) {
 
 // UserByID returns the user information for the given user ID.
 func (m *Manager) UserByID(uid uint32) (types.UserEntry, error) {
-	usr, err := m.cache.UserByID(uid)
-	if errors.Is(err, cache.NoDataFoundError{}) {
+	usr, err := m.db.UserByID(uid)
+	if errors.Is(err, db.NoDataFoundError{}) {
 		// Check if the user is a temporary user.
 		return m.temporaryRecords.UserByID(uid)
 	}
@@ -359,7 +359,7 @@ func (m *Manager) AllUsers() ([]types.UserEntry, error) {
 	// TODO: I'm not sure if we should return temporary users here. On the one hand, they are usually not interesting to
 	// the user and would clutter the output of `getent passwd`. On the other hand, it might be surprising that some
 	// users are not returned by `getent passwd` and some apps might rely on all users being returned.
-	usrs, err := m.cache.AllUsers()
+	usrs, err := m.db.AllUsers()
 	if err != nil {
 		return nil, err
 	}
@@ -373,8 +373,8 @@ func (m *Manager) AllUsers() ([]types.UserEntry, error) {
 
 // GroupByName returns the group information for the given group name.
 func (m *Manager) GroupByName(groupname string) (types.GroupEntry, error) {
-	grp, err := m.cache.GroupByName(groupname)
-	if errors.Is(err, cache.NoDataFoundError{}) {
+	grp, err := m.db.GroupByName(groupname)
+	if errors.Is(err, db.NoDataFoundError{}) {
 		// Check if the group is a temporary group.
 		return m.temporaryRecords.GroupByName(groupname)
 	}
@@ -386,8 +386,8 @@ func (m *Manager) GroupByName(groupname string) (types.GroupEntry, error) {
 
 // GroupByID returns the group information for the given group ID.
 func (m *Manager) GroupByID(gid uint32) (types.GroupEntry, error) {
-	grp, err := m.cache.GroupByID(gid)
-	if errors.Is(err, cache.NoDataFoundError{}) {
+	grp, err := m.db.GroupByID(gid)
+	if errors.Is(err, db.NoDataFoundError{}) {
 		// Check if the group is a temporary group.
 		return m.temporaryRecords.GroupByID(gid)
 	}
@@ -400,7 +400,7 @@ func (m *Manager) GroupByID(gid uint32) (types.GroupEntry, error) {
 // AllGroups returns all groups.
 func (m *Manager) AllGroups() ([]types.GroupEntry, error) {
 	// TODO: Same as for AllUsers, we might want to return temporary groups here.
-	grps, err := m.cache.AllGroups()
+	grps, err := m.db.AllGroups()
 	if err != nil {
 		return nil, err
 	}
@@ -414,7 +414,7 @@ func (m *Manager) AllGroups() ([]types.GroupEntry, error) {
 
 // ShadowByName returns the shadow information for the given user name.
 func (m *Manager) ShadowByName(username string) (types.ShadowEntry, error) {
-	usr, err := m.cache.UserByName(username)
+	usr, err := m.db.UserByName(username)
 	if err != nil {
 		return types.ShadowEntry{}, err
 	}
@@ -424,7 +424,7 @@ func (m *Manager) ShadowByName(username string) (types.ShadowEntry, error) {
 // AllShadows returns all shadow entries.
 func (m *Manager) AllShadows() ([]types.ShadowEntry, error) {
 	// TODO: Even less sure if we should return temporary users here.
-	usrs, err := m.cache.AllUsers()
+	usrs, err := m.db.AllUsers()
 	if err != nil {
 		return nil, err
 	}

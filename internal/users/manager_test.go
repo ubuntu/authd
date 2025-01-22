@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
-	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
@@ -51,12 +51,12 @@ func TestNewManager(t *testing.T) {
 			}
 			if tc.dbFile == "-" {
 				err := os.RemoveAll(cacheDir)
-				require.NoError(t, err, "Setup: could not remove temporary cache directory")
+				require.NoError(t, err, "Setup: could not remove temporary db directory")
 			} else if tc.dbFile != "" {
-				cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+				db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
 			if tc.corruptedDbFile {
-				err := os.WriteFile(filepath.Join(cacheDir, cache.Z_ForTests_DBName()), []byte("Corrupted db"), 0600)
+				err := os.WriteFile(filepath.Join(cacheDir, db.Z_ForTests_DBName()), []byte("Corrupted db"), 0600)
 				require.NoError(t, err, "Setup: Can't update the file with invalid db content")
 			}
 
@@ -81,7 +81,7 @@ func TestNewManager(t *testing.T) {
 			}
 			require.NoError(t, err, "NewManager should not return an error, but did")
 
-			got, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -96,7 +96,7 @@ func TestStop(t *testing.T) {
 	m := newManagerForTests(t, cacheDir)
 	require.NoError(t, m.Stop(), "Stop should not return an error, but did")
 
-	// Should fail, because the cache is closed
+	// Should fail, because the db is closed
 	_, err := userstestutils.GetManagerCache(m).AllUsers()
 	require.ErrorIs(t, err, bbolt.ErrDatabaseNotOpen, "AllUsers should return an error, but did not")
 }
@@ -196,7 +196,7 @@ func TestUpdateUser(t *testing.T) {
 
 			cacheDir := t.TempDir()
 			if tc.dbFile != "" {
-				cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+				db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			}
 
 			// One GID is generated for the user private group
@@ -236,7 +236,7 @@ func TestUpdateUser(t *testing.T) {
 				require.Equal(t, oldUID, newUser.UID, "UID should not have changed")
 			}
 
-			got, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdateYAML(t, got)
@@ -258,7 +258,7 @@ func TestBrokerForUser(t *testing.T) {
 		"Successfully_get_broker_for_user":                        {username: "user1", dbFile: "multiple_users_and_groups", wantBrokerID: "broker-id"},
 		"Return_no_broker_but_in_cache_if_user_has_no_broker_yet": {username: "userwithoutbroker", dbFile: "multiple_users_and_groups", wantBrokerID: ""},
 
-		"Error_if_user_does_not_exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error_if_user_does_not_exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 		"Error_if_db_has_invalid_entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
 	}
 	for name, tc := range tests {
@@ -267,7 +267,7 @@ func TestBrokerForUser(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			brokerID, err := m.BrokerForUser(tc.username)
@@ -293,7 +293,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 	}{
 		"Successfully_update_broker_for_user": {},
 
-		"Error_if_user_does_not_exist":  {username: "doesnotexist", wantErrType: cache.NoDataFoundError{}},
+		"Error_if_user_does_not_exist":  {username: "doesnotexist", wantErrType: db.NoDataFoundError{}},
 		"Error_if_db_has_invalid_entry": {dbFile: "invalid_entry_in_userByName", wantErr: true},
 	}
 	for name, tc := range tests {
@@ -309,7 +309,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 			}
 
 			cacheDir := t.TempDir()
-			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			err := m.UpdateBrokerForUser(tc.username, "ExampleBrokerID")
@@ -319,7 +319,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 				return
 			}
 
-			got, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdateYAML(t, got)
@@ -343,8 +343,8 @@ func TestUserByIDAndName(t *testing.T) {
 		"Successfully_get_temporary_user_by_ID":   {dbFile: "multiple_users_and_groups", isTempUser: true},
 		"Successfully_get_temporary_user_by_name": {username: "tempuser1", dbFile: "multiple_users_and_groups", isTempUser: true},
 
-		"Error_if_user_does_not_exist_-_by_ID":    {uid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error_if_user_does_not_exist_-_by_name":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error_if_user_does_not_exist_-_by_ID":    {uid: 0, dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
+		"Error_if_user_does_not_exist_-_by_name":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 		"Error_if_db_has_invalid_entry_-_by_ID":   {uid: 1111, dbFile: "invalid_entry_in_userByID", wantErr: true},
 		"Error_if_db_has_invalid_entry_-_by_name": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
 	}
@@ -354,7 +354,7 @@ func TestUserByIDAndName(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 
 			m := newManagerForTests(t, cacheDir)
 
@@ -407,7 +407,7 @@ func TestAllUsers(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			got, err := m.AllUsers()
@@ -438,8 +438,8 @@ func TestGroupByIDAndName(t *testing.T) {
 		"Successfully_get_temporary_group_by_ID":   {dbFile: "multiple_users_and_groups", isTempGroup: true},
 		"Successfully_get_temporary_group_by_name": {groupname: "tempgroup1", dbFile: "multiple_users_and_groups", isTempGroup: true},
 
-		"Error_if_group_does_not_exist_-_by_ID":   {gid: 0, dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
-		"Error_if_group_does_not_exist_-_by_name": {groupname: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error_if_group_does_not_exist_-_by_ID":   {gid: 0, dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
+		"Error_if_group_does_not_exist_-_by_name": {groupname: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 		"Error_if_db_has_invalid_entry_-_by_ID":   {gid: 11111, dbFile: "invalid_entry_in_groupByID", wantErr: true},
 		"Error_if_db_has_invalid_entry_-_by_name": {groupname: "group1", dbFile: "invalid_entry_in_groupByName", wantErr: true},
 	}
@@ -449,7 +449,7 @@ func TestGroupByIDAndName(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 			m := newManagerForTests(t, cacheDir)
 
 			var err error
@@ -501,7 +501,7 @@ func TestAllGroups(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 
 			m := newManagerForTests(t, cacheDir)
 
@@ -527,7 +527,7 @@ func TestShadowByName(t *testing.T) {
 	}{
 		"Successfully_get_shadow_by_name": {username: "user1", dbFile: "multiple_users_and_groups"},
 
-		"Error_if_shadow_does_not_exist": {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: cache.NoDataFoundError{}},
+		"Error_if_shadow_does_not_exist": {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 		"Error_if_db_has_invalid_entry":  {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
 	}
 	for name, tc := range tests {
@@ -536,7 +536,7 @@ func TestShadowByName(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 
 			m := newManagerForTests(t, cacheDir)
 
@@ -568,7 +568,7 @@ func TestAllShadows(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			cacheDir := t.TempDir()
-			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
 
 			m := newManagerForTests(t, cacheDir)
 

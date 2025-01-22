@@ -1,12 +1,12 @@
 package users
 
 import (
-	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/types"
 )
 
 // userEntryFromUserDB returns a UserEntry from a UserDB.
-func userEntryFromUserDB(u cache.UserDB) types.UserEntry {
+func userEntryFromUserDB(u db.UserDB) types.UserEntry {
 	return types.UserEntry{
 		Name:  u.Name,
 		UID:   u.UID,
@@ -18,7 +18,7 @@ func userEntryFromUserDB(u cache.UserDB) types.UserEntry {
 }
 
 // shadowEntryFromUserDB returns a ShadowEntry from a UserDB.
-func shadowEntryFromUserDB(u cache.UserDB) types.ShadowEntry {
+func shadowEntryFromUserDB(u db.UserDB) types.ShadowEntry {
 	return types.ShadowEntry{
 		Name:           u.Name,
 		LastPwdChange:  u.LastPwdChange,
@@ -31,7 +31,7 @@ func shadowEntryFromUserDB(u cache.UserDB) types.ShadowEntry {
 }
 
 // groupEntryFromGroupDB returns a GroupEntry from a GroupDB.
-func groupEntryFromGroupDB(g cache.GroupDB) types.GroupEntry {
+func groupEntryFromGroupDB(g db.GroupDB) types.GroupEntry {
 	return types.GroupEntry{
 		Name:  g.Name,
 		GID:   g.GID,
@@ -39,5 +39,5 @@ func groupEntryFromGroupDB(g cache.GroupDB) types.GroupEntry {
 	}
 }
 
-// NoDataFoundError is the error returned when no entry is found in the cache.
-type NoDataFoundError = cache.NoDataFoundError
+// NoDataFoundError is the error returned when no entry is found in the db.
+type NoDataFoundError = db.NoDataFoundError

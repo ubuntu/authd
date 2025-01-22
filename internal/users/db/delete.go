@@ -1,4 +1,4 @@
-package cache
+package db
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 )
 
 // DeleteUser removes the user from the database.
-func (c *Cache) DeleteUser(uid uint32) error {
+func (c *Database) DeleteUser(uid uint32) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 

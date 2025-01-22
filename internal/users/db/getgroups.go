@@ -1,4 +1,4 @@
-package cache
+package db
 
 import (
 	"encoding/json"
@@ -24,22 +24,22 @@ func NewGroupDB(name string, gid uint32, ugid string, members []string) GroupDB 
 }
 
 // GroupByID returns a group matching this gid or an error if the database is corrupted or no entry was found.
-func (c *Cache) GroupByID(gid uint32) (GroupDB, error) {
+func (c *Database) GroupByID(gid uint32) (GroupDB, error) {
 	return getGroup(c, groupByIDBucketName, gid)
 }
 
 // GroupByName returns a group matching a given name or an error if the database is corrupted or no entry was found.
-func (c *Cache) GroupByName(name string) (GroupDB, error) {
+func (c *Database) GroupByName(name string) (GroupDB, error) {
 	return getGroup(c, groupByNameBucketName, name)
 }
 
 // GroupByUGID returns a group matching this ugid or an error if the database is corrupted or no entry was found.
-func (c *Cache) GroupByUGID(ugid string) (GroupDB, error) {
+func (c *Database) GroupByUGID(ugid string) (GroupDB, error) {
 	return getGroup(c, groupByUGIDBucketName, ugid)
 }
 
 // UserGroups returns all groups for a given user or an error if the database is corrupted or no entry was found.
-func (c *Cache) UserGroups(uid uint32) ([]GroupDB, error) {
+func (c *Database) UserGroups(uid uint32) ([]GroupDB, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	var groups []GroupDB
@@ -81,7 +81,7 @@ func (c *Cache) UserGroups(uid uint32) ([]GroupDB, error) {
 }
 
 // UserLocalGroups returns all local groups for a given user or an error if the database is corrupted or no entry was found.
-func (c *Cache) UserLocalGroups(uid uint32) ([]string, error) {
+func (c *Database) UserLocalGroups(uid uint32) ([]string, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	var localGroups []string
@@ -107,7 +107,7 @@ func (c *Cache) UserLocalGroups(uid uint32) ([]string, error) {
 }
 
 // AllGroups returns all groups or an error if the database is corrupted.
-func (c *Cache) AllGroups() (all []GroupDB, err error) {
+func (c *Database) AllGroups() (all []GroupDB, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
@@ -142,7 +142,7 @@ func (c *Cache) AllGroups() (all []GroupDB, err error) {
 
 // getGroup returns a group matching the key and its members or an error if the database is corrupted
 // or no entry was found.
-func getGroup[K uint32 | string](c *Cache, bucketName string, key K) (GroupDB, error) {
+func getGroup[K uint32 | string](c *Database, bucketName string, key K) (GroupDB, error) {
 	var groupName string
 	var gid uint32
 	var ugid string

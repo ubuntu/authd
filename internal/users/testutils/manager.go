@@ -6,7 +6,7 @@ import (
 
 	"github.com/ubuntu/authd/internal/testsdetection"
 	"github.com/ubuntu/authd/internal/users"
-	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/internal/users/db"
 )
 
 func init() {
@@ -15,11 +15,11 @@ func init() {
 }
 
 type manager struct {
-	cache *cache.Cache
+	cache *db.Database
 }
 
 // GetManagerCache returns the cache of the manager.
-func GetManagerCache(m *users.Manager) *cache.Cache {
+func GetManagerCache(m *users.Manager) *db.Database {
 	//#nosec:G103 // This is only used in tests.
 	mTest := *(*manager)(unsafe.Pointer(m))
 

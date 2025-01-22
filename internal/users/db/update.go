@@ -1,4 +1,4 @@
-package cache
+package db
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 )
 
 // UpdateUserEntry inserts or updates user and group buckets from the user information.
-func (c *Cache) UpdateUserEntry(usr UserDB, authdGroups []GroupDB, localGroups []string) error {
+func (c *Database) UpdateUserEntry(usr UserDB, authdGroups []GroupDB, localGroups []string) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
@@ -180,7 +180,7 @@ func updateBucket[K uint32 | string](bucket bucketWithName, key K, value any) {
 }
 
 // UpdateBrokerForUser updates the last broker the user successfully authenticated with.
-func (c *Cache) UpdateBrokerForUser(username, brokerID string) error {
+func (c *Database) UpdateBrokerForUser(username, brokerID string) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
