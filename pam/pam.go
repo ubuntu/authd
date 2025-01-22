@@ -24,7 +24,6 @@ import (
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/authd/pam/internal/adapter"
 	"github.com/ubuntu/authd/pam/internal/gdm"
-	"golang.org/x/term"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -123,7 +122,7 @@ func sendReturnMessageToPam(mTx pam.ModuleTransaction, retStatus adapter.PamRetu
 // initLogging initializes the logging given the passed parameters.
 // It returns a function that should be called in order to reset the logging to
 // the default and potentially close the opened resources.
-func initLogging(args map[string]string, flags pam.Flags) (func(), error) {
+func initLogging(mTx pam.ModuleTransaction, args map[string]string, flags pam.Flags) (func(), error) {
 	log.SetLevel(log.InfoLevel)
 	resetFunc := func() {}
 	if args["debug"] == "true" {
@@ -163,7 +162,7 @@ func initLogging(args map[string]string, flags pam.Flags) (func(), error) {
 		if log.IsLevelEnabled(log.DebugLevel) {
 			return
 		}
-		if term.IsTerminal(int(os.Stdin.Fd())) {
+		if adapter.IsTerminalTTY(mTx) {
 			return
 		}
 		log.SetLevel(log.WarnLevel)
@@ -226,7 +225,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 	var pamClientType adapter.PamClientType
 	var teaOpts []tea.ProgramOption
 
-	closeLogging, err := initLogging(parsedArgs, flags)
+	closeLogging, err := initLogging(mTx, parsedArgs, flags)
 	defer func() {
 		log.Debugf(context.TODO(), "%s: exiting with error %v", mode, err)
 
@@ -291,8 +290,11 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 			return fmt.Errorf("%w: can't create tea options: %w", pam.ErrSystem, err)
 		}
 		teaOpts = append(teaOpts, modeOpts...)
-	} else if !forceNativeClient && term.IsTerminal(int(os.Stdin.Fd())) {
+	} else if !forceNativeClient && adapter.IsTerminalTTY(mTx) {
 		pamClientType = adapter.InteractiveTerminal
+		tty, cleanup := adapter.GetPamTTY(mTx)
+		defer cleanup()
+		teaOpts = append(teaOpts, tea.WithInput(tty))
 	} else {
 		pamClientType = adapter.Native
 		modeOpts, err := adapter.TeaHeadlessOptions()
@@ -349,7 +351,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 // AcctMgmt sets any used brokerID as default for the user.
 func (h *pamModule) AcctMgmt(mTx pam.ModuleTransaction, flags pam.Flags, args []string) (err error) {
 	parsedArgs, logArgsIssues := parseArgs(args)
-	closeLogging, err := initLogging(parsedArgs, flags)
+	closeLogging, err := initLogging(mTx, parsedArgs, flags)
 	defer closeLogging()
 	defer func() {
 		log.Debugf(context.TODO(), "AcctMgmt: exiting with error %v", err)
