@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"math"
@@ -245,8 +246,18 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 		cmd.Env = append(cmd.Env, fmt.Sprintf("%s=%s", pam_test.RunnerEnvLogFile, e))
 	}
 
+	var raceLog string
+	if testutils.IsRace() {
+		raceLog = filepath.Join(t.TempDir(), "gorace.log")
+		cmd.Env = append(cmd.Env, fmt.Sprintf("GORACE=log_path=%s", raceLog))
+		saveArtifactsForDebugOnCleanup(t, []string{raceLog})
+	}
+
 	cmd.Args = append(cmd.Args, td.PrepareTape(t, testType, outDir))
 	out, err := cmd.CombinedOutput()
+	if err != nil {
+		checkDataRace(t, raceLog)
+	}
 
 	isSSHError := func(processOut []byte) bool {
 		const sshConnectionResetByPeer = "Connection reset by peer"
@@ -302,6 +313,38 @@ func (td tapeData) Output() string {
 	return txt
 }
 
+func checkDataRace(t *testing.T, raceLog string) {
+	t.Helper()
+
+	if !testutils.IsRace() || raceLog == "" {
+		return
+	}
+
+	content, err := os.ReadFile(raceLog)
+	if err == nil || errors.Is(err, os.ErrNotExist) {
+		return
+	}
+	require.NoError(t, err, "TearDown: Error reading race log %q", raceLog)
+
+	out := string(content)
+	if strings.TrimSpace(out) == "" {
+		return
+	}
+
+	if strings.Contains(out, "bubbles/cursor.(*Model).BlinkCmd.func1") {
+		// FIXME: This is a well known race of bubble tea:
+		// https://github.com/charmbracelet/bubbletea/issues/909
+		// We can't do much here, as the workaround will likely affect the
+		// GUI behavior, but we ignore this since it's definitely not our bug.
+
+		// TODO: In case other races are detected, we should still fail here.
+		t.Skipf("This is a very well known bubble tea bug (#909), ignoring it:\n%s", out)
+		return
+	}
+
+	t.Fatalf("Got a GO Race on vhs child:\n%s", out)
+}
+
 func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 	t.Helper()
 
@@ -309,20 +352,6 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 	out, err := os.ReadFile(outPath)
 	require.NoError(t, err, "Could not read output file of tape %q (%s)", td.Name, outPath)
 	got := string(out)
-
-	if testutils.IsRace() && strings.Contains(got, "WARNING: DATA RACE") &&
-		strings.Contains(got, "bubbles/cursor.(*Model).BlinkCmd.func1") {
-		// FIXME: This is a well known race of bubble tea:
-		// https://github.com/charmbracelet/bubbletea/issues/909
-		// We can't do much here, as the workaround will likely affect the
-		// GUI behavior, but we ignore this since it's definitely not our bug.
-		t.Skip("This is a very well known bubble tea bug (#909), ignoring it")
-		if testutils.IsVerbose() {
-			t.Logf("Ignored bubbletea race:\n%s", got)
-		} else {
-			fmt.Fprintf(os.Stderr, "Ignored bubbletea race:\n%s", got)
-		}
-	}
 
 	// We need to format the output a little bit, since the txt file can have some noise at the beginning.
 	command := "> " + td.Command

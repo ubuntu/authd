@@ -13,15 +13,10 @@ static int get_errno(void) {
   return errno;
 }
 
-static void set_errno(int e) {
-  errno = e;
-}
-
 */
 import "C"
 
 import (
-	"errors"
 	"sync"
 )
 
@@ -46,15 +41,18 @@ const (
 // All these functions are expected to be called while this mutex is locked.
 var mu sync.Mutex
 
+var getErrno = func() int { return int(C.get_errno()) }
+var unsetErrno = func() { C.unset_errno() }
+
 // Lock the usage of errno.
 func Lock() {
 	mu.Lock()
-	C.unset_errno()
+	unsetErrno()
 }
 
 // Unlock unlocks the errno package for being re-used.
 func Unlock() {
-	C.unset_errno()
+	unsetErrno()
 	mu.Unlock()
 }
 
@@ -64,21 +62,9 @@ func Get() error {
 		mu.Unlock()
 		panic("Using errno without locking!")
 	}
-	if errno := C.get_errno(); errno != 0 {
+
+	if errno := getErrno(); errno != 0 {
 		return Error(errno)
 	}
 	return nil
-}
-
-func set(err error) {
-	if mu.TryLock() {
-		mu.Unlock()
-		panic("Using errno without locking!")
-	}
-
-	var e Error
-	if err != nil && !errors.As(err, &e) {
-		panic("Not a valid errno value")
-	}
-	C.set_errno(C.int(e))
 }

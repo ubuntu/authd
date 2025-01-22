@@ -62,6 +62,9 @@ func main() {
 	if coverDir := os.Getenv("GOCOVERDIR"); coverDir != "" {
 		defaultArgs = append(defaultArgs, "--exec-env", fmt.Sprintf("GOCOVERDIR=%s", coverDir))
 	}
+	if goRace := os.Getenv("GORACE"); goRace != "" {
+		defaultArgs = append(defaultArgs, "--exec-env", fmt.Sprintf("GORACE=%s", goRace))
+	}
 	if asanOptions := os.Getenv("ASAN_OPTIONS"); asanOptions != "" {
 		defaultArgs = append(defaultArgs, "--exec-env", fmt.Sprintf("ASAN_OPTIONS=%s", asanOptions))
 	}
