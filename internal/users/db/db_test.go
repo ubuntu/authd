@@ -1,4 +1,4 @@
-package cache_test
+package db_test
 
 import (
 	"io/fs"
@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils/golden"
-	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/internal/users/db"
 )
 
 func TestNew(t *testing.T) {
@@ -40,13 +40,13 @@ func TestNew(t *testing.T) {
 			t.Parallel()
 
 			cacheDir := t.TempDir()
-			dbDestPath := filepath.Join(cacheDir, cache.Z_ForTests_DBName())
+			dbDestPath := filepath.Join(cacheDir, db.Z_ForTests_DBName())
 
 			if tc.dbFile == "-" {
 				err := os.RemoveAll(cacheDir)
 				require.NoError(t, err, "Setup: could not remove temporary cache directory")
 			} else if tc.dbFile != "" {
-				cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
+				db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
 			}
 			if tc.corruptedDbFile {
 				err := os.WriteFile(dbDestPath, []byte("corrupted"), 0600)
@@ -66,7 +66,7 @@ func TestNew(t *testing.T) {
 				}
 			}
 
-			c, err := cache.New(cacheDir)
+			c, err := db.New(cacheDir)
 			if tc.wantErr {
 				require.Error(t, err, "New should return an error but didn't")
 				return
@@ -74,7 +74,7 @@ func TestNew(t *testing.T) {
 			require.NoError(t, err)
 			defer c.Close()
 
-			got, err := cache.Z_ForTests_DumpNormalizedYAML(c)
+			got, err := db.Z_ForTests_DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -91,7 +91,7 @@ func TestNew(t *testing.T) {
 func TestUpdateUserEntry(t *testing.T) {
 	t.Parallel()
 
-	userCases := map[string]cache.UserDB{
+	userCases := map[string]db.UserDB{
 		"user1": {
 			Name:  "user1",
 			UID:   1111,
@@ -146,12 +146,12 @@ func TestUpdateUserEntry(t *testing.T) {
 			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 	}
-	groupCases := map[string]cache.GroupDB{
-		"group1":              cache.NewGroupDB("group1", 11111, "12345678", nil),
-		"newgroup1-same-ugid": cache.NewGroupDB("newgroup1-same-ugid", 11111, "12345678", nil),
-		"newgroup1-diff-ugid": cache.NewGroupDB("newgroup1-diff-ugid", 11111, "99999999", nil),
-		"group2":              cache.NewGroupDB("group2", 22222, "56781234", nil),
-		"group3":              cache.NewGroupDB("group3", 33333, "34567812", nil),
+	groupCases := map[string]db.GroupDB{
+		"group1":              db.NewGroupDB("group1", 11111, "12345678", nil),
+		"newgroup1-same-ugid": db.NewGroupDB("newgroup1-same-ugid", 11111, "12345678", nil),
+		"newgroup1-diff-ugid": db.NewGroupDB("newgroup1-diff-ugid", 11111, "99999999", nil),
+		"group2":              db.NewGroupDB("group2", 22222, "56781234", nil),
+		"group3":              db.NewGroupDB("group3", 33333, "34567812", nil),
 	}
 
 	tests := map[string]struct {
@@ -215,7 +215,7 @@ func TestUpdateUserEntry(t *testing.T) {
 			}
 
 			user := userCases[tc.userCase]
-			var groups []cache.GroupDB
+			var groups []db.GroupDB
 			for _, g := range tc.groupCases {
 				groups = append(groups, groupCases[g])
 			}
@@ -228,7 +228,7 @@ func TestUpdateUserEntry(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			got, err := cache.Z_ForTests_DumpNormalizedYAML(c)
+			got, err := db.Z_ForTests_DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -247,7 +247,7 @@ func TestUserByID(t *testing.T) {
 	}{
 		"Get_existing_user": {dbFile: "one_user_and_group"},
 
-		"Error_on_missing_user":           {wantErrType: cache.NoDataFoundError{}},
+		"Error_on_missing_user":           {wantErrType: db.NoDataFoundError{}},
 		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_userByID", wantErr: true},
 	}
 	for name, tc := range tests {
@@ -273,7 +273,7 @@ func TestUserByName(t *testing.T) {
 	}{
 		"Get_existing_user": {dbFile: "one_user_and_group"},
 
-		"Error_on_missing_user":           {wantErrType: cache.NoDataFoundError{}},
+		"Error_on_missing_user":           {wantErrType: db.NoDataFoundError{}},
 		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_userByName", wantErr: true},
 	}
 	for name, tc := range tests {
@@ -326,7 +326,7 @@ func TestGroupByID(t *testing.T) {
 	}{
 		"Get_existing_group": {dbFile: "one_user_and_group"},
 
-		"Error_on_missing_group":          {wantErrType: cache.NoDataFoundError{}},
+		"Error_on_missing_group":          {wantErrType: db.NoDataFoundError{}},
 		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_groupByID", wantErr: true},
 		"Error_as_missing_userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
 	}
@@ -353,7 +353,7 @@ func TestGroupByName(t *testing.T) {
 	}{
 		"Get_existing_group": {dbFile: "one_user_and_group"},
 
-		"Error_on_missing_group":          {wantErrType: cache.NoDataFoundError{}},
+		"Error_on_missing_group":          {wantErrType: db.NoDataFoundError{}},
 		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_groupByName", wantErr: true},
 		"Error_as_missing_userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
 	}
@@ -380,7 +380,7 @@ func TestUserGroups(t *testing.T) {
 	}{
 		"Get_groups_of_existing_user": {dbFile: "one_user_and_group"},
 
-		"Error_on_missing_user":           {wantErrType: cache.NoDataFoundError{}},
+		"Error_on_missing_user":           {wantErrType: db.NoDataFoundError{}},
 		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_userToGroups", wantErr: true},
 		"Error_on_missing_groupByID":      {dbFile: "invalid_entry_in_groupByID", wantErr: true},
 	}
@@ -468,11 +468,11 @@ func TestRemoveDb(t *testing.T) {
 	cacheDir := filepath.Dir(c.DbPath())
 
 	// First call should return with no error.
-	require.NoError(t, cache.RemoveDb(cacheDir), "RemoveDb should not return an error on the first call")
+	require.NoError(t, db.RemoveDb(cacheDir), "RemoveDb should not return an error on the first call")
 	require.NoFileExists(t, cacheDir, "RemoveDb should remove the database file")
 
 	// Second call should return ErrNotExist as the database file was already removed.
-	require.ErrorIs(t, cache.RemoveDb(cacheDir), fs.ErrNotExist, "RemoveDb should return os.ErrNotExist on the second call")
+	require.ErrorIs(t, db.RemoveDb(cacheDir), fs.ErrNotExist, "RemoveDb should return os.ErrNotExist on the second call")
 }
 
 func TestDeleteUser(t *testing.T) {
@@ -487,7 +487,7 @@ func TestDeleteUser(t *testing.T) {
 		"Deleting_last_user_from_a_group_keeps_the_group_record":  {dbFile: "one_user_and_group"},
 		"Deleting_existing_user_keeps_other_group_members_intact": {dbFile: "multiple_users_and_groups"},
 
-		"Error_on_missing_user":           {wantErrType: cache.NoDataFoundError{}},
+		"Error_on_missing_user":           {wantErrType: db.NoDataFoundError{}},
 		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_userByID", wantErr: true},
 	}
 	for name, tc := range tests {
@@ -507,7 +507,7 @@ func TestDeleteUser(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			got, err := cache.Z_ForTests_DumpNormalizedYAML(c)
+			got, err := db.Z_ForTests_DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 			golden.CheckOrUpdate(t, got)
 		})
@@ -515,15 +515,15 @@ func TestDeleteUser(t *testing.T) {
 }
 
 // initCache returns a new cache ready to be used alongside its cache directory.
-func initCache(t *testing.T, dbFile string) (c *cache.Cache) {
+func initCache(t *testing.T, dbFile string) (c *db.Database) {
 	t.Helper()
 
 	cacheDir := t.TempDir()
 	if dbFile != "" {
-		cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", dbFile+".db.yaml"), cacheDir)
+		db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", dbFile+".db.yaml"), cacheDir)
 	}
 
-	c, err := cache.New(cacheDir)
+	c, err := db.New(cacheDir)
 	require.NoError(t, err)
 	t.Cleanup(func() { c.Close() })
 

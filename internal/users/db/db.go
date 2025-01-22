@@ -1,5 +1,5 @@
-// Package cache handles transaction with an underlying database to cache user and group information.
-package cache
+// Package db handles transaction with an underlying database to store user and group information.
+package db
 
 import (
 	"encoding/json"
@@ -40,8 +40,8 @@ var (
 	}
 )
 
-// Cache is our database API.
-type Cache struct {
+// Database is our database API.
+type Database struct {
 	db *bbolt.DB
 	mu sync.RWMutex
 }
@@ -85,7 +85,7 @@ type groupToUsersDB struct {
 }
 
 // New creates a new database cache by creating or opening the underlying db.
-func New(cacheDir string) (cache *Cache, err error) {
+func New(cacheDir string) (cache *Database, err error) {
 	dbPath := filepath.Join(cacheDir, dbName)
 	defer decorate.OnError(&err, "could not create new database object at %q", dbPath)
 
@@ -102,7 +102,7 @@ func New(cacheDir string) (cache *Cache, err error) {
 		return nil, err
 	}
 
-	return &Cache{db: db, mu: sync.RWMutex{}}, nil
+	return &Database{db: db, mu: sync.RWMutex{}}, nil
 }
 
 // openAndInitDB open a pre-existing database and potentially initializes its buckets.
@@ -158,7 +158,7 @@ func openAndInitDB(path string) (*bbolt.DB, error) {
 }
 
 // Close closes the db and signal the monitoring goroutine to stop.
-func (c *Cache) Close() error {
+func (c *Database) Close() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.db.Close()

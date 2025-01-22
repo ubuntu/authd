@@ -17,7 +17,7 @@ import (
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
-	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	"github.com/ubuntu/authd/log"
@@ -330,7 +330,7 @@ func newUserManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 	if sourceDB == "" {
 		sourceDB = "cache.db.yaml"
 	}
-	cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", sourceDB), cacheDir)
+	db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", sourceDB), cacheDir)
 
 	managerOpts := []users.Option{
 		users.WithIDGenerator(&idgenerator.IDGeneratorMock{

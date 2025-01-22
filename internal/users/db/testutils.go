@@ -1,4 +1,4 @@
-package cache
+package db
 
 // All those functions and methods are only for tests.
 // They are not exported, and guarded by testing assertions.
@@ -6,6 +6,7 @@ package cache
 import (
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -64,7 +65,7 @@ func redactTime(line string) string {
 // (so that it can be compared with a golden file) and returns it as a YAML string.
 //
 // nolint:revive,nolintlint // We want to use underscores in the function name here.
-func Z_ForTests_DumpNormalizedYAML(c *Cache) (string, error) {
+func Z_ForTests_DumpNormalizedYAML(c *Database) (string, error) {
 	testsdetection.MustBeTesting()
 
 	d := make(map[string]map[string]string)
@@ -157,6 +158,12 @@ func Z_ForTests_FromYAML(r io.Reader, destDir string) error {
 func Z_ForTests_CreateDBFromYAML(t *testing.T, src, destDir string) {
 	t.Helper()
 	testsdetection.MustBeTesting()
+
+	if !path.IsAbs(src) {
+		wd, err := os.Getwd()
+		require.NoError(t, err, "Setup: should be able to get working directory")
+		src = filepath.Join(wd, src)
+	}
 
 	f, err := os.Open(src)
 	require.NoError(t, err, "Setup: should be able to read source file")

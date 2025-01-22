@@ -1,4 +1,4 @@
-package cache
+package db
 
 import (
 	"encoding/json"
@@ -35,19 +35,19 @@ func NewUserDB(name string, uid, gid uint32, gecos, dir, shell string) UserDB {
 }
 
 // UserByID returns a user matching this uid or an error if the database is corrupted or no entry was found.
-func (c *Cache) UserByID(uid uint32) (UserDB, error) {
+func (c *Database) UserByID(uid uint32) (UserDB, error) {
 	u, err := getUser(c, userByIDBucketName, uid)
 	return u.UserDB, err
 }
 
 // UserByName returns a user matching this name or an error if the database is corrupted or no entry was found.
-func (c *Cache) UserByName(name string) (UserDB, error) {
+func (c *Database) UserByName(name string) (UserDB, error) {
 	u, err := getUser(c, userByNameBucketName, name)
 	return u.UserDB, err
 }
 
 // AllUsers returns all users or an error if the database is corrupted.
-func (c *Cache) AllUsers() (all []UserDB, err error) {
+func (c *Database) AllUsers() (all []UserDB, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
@@ -74,7 +74,7 @@ func (c *Cache) AllUsers() (all []UserDB, err error) {
 }
 
 // getUser returns an user matching the key or an error if the database is corrupted or no entry was found.
-func getUser[K uint32 | string](c *Cache, bucketName string, key K) (u userDB, err error) {
+func getUser[K uint32 | string](c *Database, bucketName string, key K) (u userDB, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	err = c.db.View(func(tx *bbolt.Tx) error {
