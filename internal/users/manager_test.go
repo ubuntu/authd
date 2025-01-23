@@ -118,6 +118,7 @@ func TestUpdateUser(t *testing.T) {
 		"user2":                   {UserInfo: types.UserInfo{Name: "user2"}, UID: 2222},
 		"same-name-different-uid": {UserInfo: types.UserInfo{Name: "user1"}, UID: 3333},
 		"different-name-same-uid": {UserInfo: types.UserInfo{Name: "newuser1"}, UID: 1111},
+		"user-exists-on-system":   {UserInfo: types.UserInfo{Name: "root"}, UID: 1111},
 	}
 
 	groupsCases := map[string][]groupCase{
@@ -137,6 +138,7 @@ func TestUpdateUser(t *testing.T) {
 		},
 		"nameless-group":          {{GroupInfo: types.GroupInfo{Name: "", UGID: "1"}, GID: 11111}},
 		"different-name-same-gid": {{GroupInfo: types.GroupInfo{Name: "newgroup1", UGID: "1"}, GID: 11111}},
+		"group-exists-on-system":  {{GroupInfo: types.GroupInfo{Name: "root", UGID: "1"}, GID: 11111}},
 		"no-groups":               {},
 		// This group case has no GID to generate, because it's expected that the GID of the old group is re-used
 		"different-name-same-ugid": {{GroupInfo: types.GroupInfo{Name: "renamed-group", UGID: "12345678"}}},
@@ -163,6 +165,8 @@ func TestUpdateUser(t *testing.T) {
 		"Error_if_group_has_no_name":                              {groupsCase: "nameless-group", wantErr: true, noOutput: true},
 		"Error_if_group_has_conflicting_gid":                      {groupsCase: "different-name-same-gid", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
 		"Error_if_group_with_same_name_but_different_UGID_exists": {groupsCase: "authd-group", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
+		"Error_if_user_exists_on_system":                          {userCase: "user-exists-on-system", wantErr: true, noOutput: true},
+		"Error_if_group_exists_on_system":                         {groupsCase: "group-exists-on-system", wantErr: true, noOutput: true},
 
 		"Error_when_updating_local_groups_remove_user_from_db":                              {groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},
 		"Error_when_updating_local_groups_remove_user_from_db_without_touching_other_users": {dbFile: "multiple_users_and_groups", groupsCase: "mixed-groups-gpasswd-fail", localGroupsFile: "gpasswdfail_in_deleted_group.group", wantErr: true},

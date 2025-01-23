@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/user"
 	"sync"
 	"syscall"
 
@@ -130,6 +131,14 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		return fmt.Errorf("could not get user %q: %w", u.Name, err)
 	}
 	if errors.Is(err, cache.NoDataFoundError{}) {
+		// Check if the user exists on the system
+		existingUser, err := user.Lookup(u.Name)
+		var unknownUserErr user.UnknownUserError
+		if !errors.As(err, &unknownUserErr) {
+			log.Errorf(context.Background(), "User already exists on the system: %+v", existingUser)
+			return fmt.Errorf("user %q already exists on the system (but not in this authd instance)", u.Name)
+		}
+
 		// The user does not exist, so we generate a unique UID for it. To avoid that a user with the same UID is
 		// created by some other NSS source, this also registers a temporary user in our NSS handler. We remove that
 		// temporary user before returning from this function, at which point the user is added to the database (so we
@@ -141,6 +150,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		}
 		defer cleanup()
 	} else {
+		// The user already exists in the database, use the existing UID to avoid permission issues.
 		uid = oldUser.UID
 	}
 
@@ -160,18 +170,19 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			continue
 		}
 
+		// It's not a local group, so before storing it in the database, check if a group with the same name already
+		// exists.
+		if err := m.checkGroupNameConflict(g.Name, g.UGID); err != nil {
+			return err
+		}
+
 		// Check if the group already exists in the database
 		oldGroup, err := m.findGroup(g)
 		if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
 			// Unexpected error
 			return err
 		}
-		// Keep the old GID if the group already exists in the database, to avoid permission issues
-		if err == nil {
-			g.GID = &oldGroup.GID
-		}
-
-		if g.GID == nil {
+		if errors.Is(err, cache.NoDataFoundError{}) {
 			// The group does not exist in the database, so we generate a unique GID for it. Similar to the RegisterUser
 			// call above, this also registers a temporary group in our NSS handler. We remove that temporary group
 			// before returning from this function, at which point the group is added to the database (so we don't need
@@ -184,6 +195,9 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			defer cleanup()
 
 			g.GID = &gid
+		} else {
+			// The group already exists in the database, use the existing GID to avoid permission issues.
+			g.GID = &oldGroup.GID
 		}
 
 		authdGroups = append(authdGroups, cache.NewGroupDB(g.Name, *g.GID, g.UGID, nil))
@@ -212,6 +226,42 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	return nil
 }
 
+// checkGroupNameConflict checks if a group with the given name already exists.
+// If it does, it checks if it has the same UGID.
+func (m *Manager) checkGroupNameConflict(name string, ugid string) error {
+	// First check in our database.
+	existingGroup, err := m.cache.GroupByName(name)
+	if err != nil && !errors.Is(err, cache.NoDataFoundError{}) {
+		// Unexpected error
+		return err
+	}
+
+	if errors.Is(err, cache.NoDataFoundError{}) {
+		// The group does not exist in the database, check if it exists on the system.
+		existingGroup, err := user.LookupGroup(name)
+		var unknownGroupErr user.UnknownGroupError
+		if !errors.As(err, &unknownGroupErr) {
+			log.Errorf(context.Background(), "Group already exists on the system: %+v", existingGroup)
+			return fmt.Errorf("group %q already exists on the system (but not in this authd instance)", name)
+		}
+		// The group does not exist on the system, so we can proceed.
+		return nil
+	}
+
+	// A group with that name already exists in the database, check if it has the same UGID.
+	// Ignore it if the UGID of the existing group is empty, because we didn't store the UGID in 0.3.7 and earlier.
+	if existingGroup.UGID == "" {
+		return nil
+	}
+	if existingGroup.UGID != ugid {
+		log.Errorf(context.Background(), "Group %q already exists in the database with UGID %q (expected %q)", name, existingGroup.UGID, ugid)
+		return errors.New("found a different group with the same name in the database")
+	}
+
+	// The group exists in the database and has the same UGID, so we can proceed.
+	return nil
+}
+
 func (m *Manager) findGroup(group types.GroupInfo) (oldGroup cache.GroupDB, err error) {
 	// Search by UGID first to support renaming groups
 	oldGroup, err = m.cache.GroupByUGID(group.UGID)
@@ -224,13 +274,7 @@ func (m *Manager) findGroup(group types.GroupInfo) (oldGroup cache.GroupDB, err 
 	}
 
 	// The group was not found by UGID. Search by name, because we didn't store the UGID in 0.3.7 and earlier.
-	log.Debugf(context.Background(), "Group %q not found by UGID %q, trying lookup by name", group.Name, group.UGID)
-	oldGroup, err = m.cache.GroupByName(group.Name)
-	if err == nil && oldGroup.UGID != "" {
-		// There is a group with the same name but a different UGID, which should not happen
-		return oldGroup, fmt.Errorf("group %q already exists with UGID %q (expected %q)", group.Name, oldGroup.UGID, group.UGID)
-	}
-	return oldGroup, err
+	return m.cache.GroupByName(group.Name)
 }
 
 // checkHomeDirOwnership checks if the home directory of the user is owned by the user and the user's group.
