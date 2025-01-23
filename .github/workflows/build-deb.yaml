@@ -1,0 +1,126 @@
+name: Build debian packages
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+  pull_request:
+
+env:
+  UBUNTU_VERSIONS: |
+    ["noble", "devel"]
+  CARGO_VENDOR_FILTERER_VERSION: 0.5.16
+
+jobs:
+  define-versions:
+    name: Define build versions
+    runs-on: ubuntu-latest
+    outputs:
+      ubuntu-versions: ${{ env.UBUNTU_VERSIONS }}
+    steps:
+      - run: 'true'
+
+  build-deb-package:
+    name: Build ubuntu package
+    runs-on: ubuntu-latest
+    needs: define-versions
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu-version: ${{ fromJSON(needs.define-versions.outputs.ubuntu-versions) }}
+    outputs:
+      run-id: ${{ github.run_id }}
+      pkg-src-changes: ${{ env.PKG_SOURCE_CHANGES }}
+
+    steps:
+      - name: Checkout authd code
+        uses: actions/checkout@v4
+
+      - name: Build debian packages and sources
+        uses: canonical/desktop-engineering/gh-actions/common/build-debian@main
+        with:
+          docker-image: ubuntu:${{ matrix.ubuntu-version }}
+          extra-source-build-deps: |
+            ca-certificates
+            git
+            libssl-dev
+          extra-source-build-script: |
+            cargo install --locked --root=/usr \
+              cargo-vendor-filterer@${{ env.CARGO_VENDOR_FILTERER_VERSION }}
+            command -v cargo-vendor-filterer
+
+  check-modified-files:
+    name: Check modified files
+    runs-on: ubuntu-latest
+    needs:
+      - build-deb-package
+    outputs:
+      list: ${{ fromJSON(steps.git-diff.outputs.modified_files) }}
+
+    steps:
+      - name: Checkout authd code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+
+      - id: git-diff
+        name: Check modified files
+        run: |
+          set -ue
+
+          base_ref=${{ github.event.pull_request.base.sha }}
+          if [ -z "${base_ref}" ]; then
+            base_ref=${{ github.event.before }}
+          fi
+          if [ -z "${base_ref}" ]; then
+            base_ref=$(git log --root --reverse -n1 --format=%H)
+          fi
+
+          # Build a JSON array of modified paths.
+          modified_files=$(git diff --name-only "${base_ref}" HEAD | \
+            while read line; do
+              jq -n --arg path "$line" '$path'
+            done | jq -n '. |= [inputs]')
+          echo "${modified_files}"
+
+          escaped_json=$(echo "${modified_files}" | jq '.| tostring')
+          echo "modified_files=${escaped_json}" >> "${GITHUB_OUTPUT}"
+
+  run-autopkgtests:
+    name: Run autopkgtests
+    runs-on: ubuntu-latest
+    needs:
+      - define-versions
+      - build-deb-package
+      - check-modified-files
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu-version: ${{ fromJSON(needs.define-versions.outputs.ubuntu-versions) }}
+
+    # Run autopkgtests only on:
+    #  - Push events to main
+    #  - When a file in the debian subdir is modified
+    #  - When this file is modified
+    #  - On new tags
+    #  - On github release
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+       contains(needs.check-modified-files.outputs.list, 'debian/') ||
+       contains(needs.check-modified-files.outputs.list, '.github/workflows/build-deb.yaml') ||
+       startsWith(github.ref, 'refs/tags/') ||
+       github.event_name == 'release' }}
+
+    steps:
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        run-id: ${{ needs.build-deb-package.outputs.run-id }}
+        merge-multiple: true
+
+    - name: Run autopkgtests
+      uses: canonical/desktop-engineering/gh-actions/common/run-autopkgtest@main
+      with:
+        lxd-image: ubuntu:${{ matrix.ubuntu-version }}
+        source-changes: ${{ needs.build-deb-package.outputs.pkg-src-changes }}
