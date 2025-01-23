@@ -22,13 +22,13 @@ func TestPreAuthUser(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully register a pre-auth user": {},
-		"Successfully register a pre-auth user if the first generated UID is already in use": {
+		"Successfully_register_a_pre-auth_user": {},
+		"Successfully_register_a_pre-auth_user_if_the_first_generated_UID_is_already_in_use": {
 			uidsToGenerate: []uint32{0, uidToGenerate}, // UID 0 (root) always exists
 		},
-		"No error when registering a pre-auth user with the same name": {registerTwice: true},
+		"No_error_when_registering_a_pre-auth_user_with_the_same_name": {registerTwice: true},
 
-		"Error when maximum number of pre-auth users is reached": {maxUsers: true, wantErr: true},
+		"Error_when_maximum_number_of_pre-auth_users_is_reached": {maxUsers: true, wantErr: true},
 	}
 
 	for name, tc := range tests {
@@ -90,10 +90,10 @@ func TestPreAuthUserByIDAndName(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully get a user by ID and name": {registerUser: true},
+		"Successfully_get_a_user_by_ID_and_name": {registerUser: true},
 
-		"Error when user is not registered":  {wantErr: true},
-		"Error when user is already removed": {registerUser: true, userAlreadyRemoved: true, wantErr: true},
+		"Error_when_user_is_not_registered":  {wantErr: true},
+		"Error_when_user_is_already_removed": {registerUser: true, userAlreadyRemoved: true, wantErr: true},
 	}
 
 	for name, tc := range tests {

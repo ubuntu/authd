@@ -31,27 +31,27 @@ func TestSetGetItem(t *testing.T) {
 		wantGetError error
 		wantSetError error
 	}{
-		"Set user": {
+		"Set_user": {
 			item:  pam.User,
 			value: ptrValue("an user"),
 		},
-		"Returns empty when getting an unset user": {
+		"Returns_empty_when_getting_an_unset_user": {
 			item:      pam.User,
 			wantValue: ptrValue(""),
 		},
-		"Setting and getting an user": {
+		"Setting_and_getting_an_user": {
 			item:      pam.User,
 			value:     ptrValue("the-user"),
 			wantValue: ptrValue("the-user"),
 		},
 
 		// Error cases
-		"Error when setting invalid item": {
+		"Error_when_setting_invalid_item": {
 			item:         pam.Item(-1),
 			value:        ptrValue("some value"),
 			wantSetError: pam.ErrBadItem,
 		},
-		"Error when getting invalid item": {
+		"Error_when_getting_invalid_item": {
 			item:         pam.Item(-1),
 			wantGetError: pam.ErrBadItem,
 			wantValue:    ptrValue(""),
@@ -91,32 +91,32 @@ func TestSetPutEnv(t *testing.T) {
 		wantValue    *string
 		wantPutError error
 	}{
-		"Put var": {
+		"Put_var": {
 			env:   "AN_ENV",
 			value: ptrValue("value"),
 		},
-		"Unset a not-previously set value": {
+		"Unset_a_not-previously_set_value": {
 			env:          "NEVER_SET_ENV",
 			wantPutError: pam.ErrBadItem,
 			wantValue:    ptrValue(""),
 		},
-		"Unset a preset value": {
+		"Unset_a_preset_value": {
 			presetValues: map[string]string{"PRESET_ENV": "hey!"},
 			env:          "PRESET_ENV",
 			wantValue:    ptrValue(""),
 		},
-		"Changes a preset var": {
+		"Changes_a_preset_var": {
 			presetValues: map[string]string{"PRESET_ENV": "hey!"},
 			env:          "PRESET_ENV",
 			value:        ptrValue("hello!"),
 			wantValue:    ptrValue("hello!"),
 		},
-		"Get an unset env": {
+		"Get_an_unset_env": {
 			skipPut:   true,
 			env:       "AN_UNSET_ENV",
 			wantValue: ptrValue(""),
 		},
-		"Gets an invalid env name": {
+		"Gets_an_invalid_env_name": {
 			env:       "",
 			value:     ptrValue("Invalid Value"),
 			wantValue: ptrValue(""),
@@ -124,7 +124,7 @@ func TestSetPutEnv(t *testing.T) {
 		},
 
 		// Error cases
-		"Error when putting an invalid env name": {
+		"Error_when_putting_an_invalid_env_name": {
 			env:          "",
 			value:        ptrValue("Invalid Value"),
 			wantPutError: pam.ErrBadItem,
@@ -197,13 +197,13 @@ func TestSetGetData(t *testing.T) {
 		wantSetError error
 		wantGetError error
 	}{
-		"Sets and gets data": {
+		"Sets_and_gets_data": {
 			presetData: map[string]any{"some-data": []any{"hey! That's", true}},
 			key:        "data",
 			data:       []any{"hey! That's", true},
 			wantData:   []any{"hey! That's", true},
 		},
-		"Set replaces data": {
+		"Set_replaces_data": {
 			presetData: map[string]any{"some-data": []any{"hey! That's", true}},
 			key:        "some-data",
 			data: ModuleTransactionDummy{
@@ -217,14 +217,14 @@ func TestSetGetData(t *testing.T) {
 		},
 		// This is weird, but it's to mimic actual PAM behavior:
 		// See: https://github.com/linux-pam/linux-pam/pull/780
-		"Nil is returned when getting data that has been removed": {
+		"Nil_is_returned_when_getting_data_that_has_been_removed": {
 			presetData: map[string]any{"some-data": []any{"hey! That's", true}},
 			key:        "some-data",
 			data:       nil,
 		},
 
 		// Error cases
-		"Error when getting data that has never been set": {
+		"Error_when_getting_data_that_has_never_been_set": {
 			skipSet:      true,
 			key:          "not set",
 			wantGetError: pam.ErrNoModuleData,
@@ -269,18 +269,18 @@ func TestGetUser(t *testing.T) {
 		want      string
 		wantError error
 	}{
-		"Getting a previously set user does not require conversation handler": {
+		"Getting_a_previously_set_user_does_not_require_conversation_handler": {
 			presetUser: "an-user",
 			want:       "an-user",
 		},
-		"Getting a previously set user does not use conversation handler": {
+		"Getting_a_previously_set_user_does_not_use_conversation_handler": {
 			presetUser: "an-user",
 			want:       "an-user",
 			convHandler: pam.ConversationFunc(func(s pam.Style, msg string) (string, error) {
 				return "another-user", pam.ErrConv
 			}),
 		},
-		"Getting the user uses conversation handler if none was set": {
+		"Getting_the_user_uses_conversation_handler_if_none_was_set": {
 			want: "provided-user",
 			convHandler: pam.ConversationFunc(
 				func(s pam.Style, msg string) (string, error) {
@@ -296,7 +296,7 @@ func TestGetUser(t *testing.T) {
 		},
 
 		// Error cases
-		"Error when no conversation is set": {
+		"Error_when_no_conversation_is_set": {
 			want:      "",
 			wantError: pam.ErrConv,
 		},
@@ -337,12 +337,12 @@ func TestStartStringConv(t *testing.T) {
 		want      string
 		wantError error
 	}{
-		"Messages with error style are handled by conversation": {
+		"Messages_with_error_style_are_handled_by_conversation": {
 			prompt:    "This is an error!",
 			convStyle: pam.ErrorMsg,
 			want:      "I'm handling it fine though",
 		},
-		"Conversation prompt can be formatted": {
+		"Conversation_prompt_can_be_formatted": {
 			promptFormat:     "Sending some %s, right? %v",
 			promptFormatArgs: []interface{}{"info", true},
 			convStyle:        pam.TextInfo,
@@ -350,17 +350,17 @@ func TestStartStringConv(t *testing.T) {
 		},
 
 		// Error cases
-		"Error if no conversation handler is set": {
+		"Error_if_no_conversation_handler_is_set": {
 			convHandler: ptrValue(pam.ConversationFunc(nil)),
 			wantError:   pam.ErrConv,
 		},
-		"Error if the conversation handler fails": {
+		"Error_if_the_conversation_handler_fails": {
 			prompt:    "Tell me your secret!",
 			convStyle: pam.PromptEchoOff,
 			convError: pam.ErrBuf,
 			wantError: pam.ErrBuf,
 		},
-		"Error when conversation uses binary content style": {
+		"Error_when_conversation_uses_binary_content_style": {
 			prompt:                "I am a binary content\xff!",
 			convStyle:             pam.BinaryPrompt,
 			convError:             pam.ErrConv,
@@ -429,24 +429,24 @@ func TestStartBinaryConv(t *testing.T) {
 		want      []byte
 		wantError error
 	}{
-		"Simple binary conversation": {
+		"Simple_binary_conversation": {
 			request: []byte{0x01, 0x02, 0x03},
 			want:    []byte{0x00, 0x01, 0x02, 0x03, 0x4},
 		},
 
 		// Error cases
-		"Error if no conversation handler is set": {
+		"Error_if_no_conversation_handler_is_set": {
 			convHandler: ptrValue(pam.ConversationHandler(nil)),
 			wantError:   pam.ErrConv,
 		},
-		"Error if no binary conversation handler is set": {
+		"Error_if_no_binary_conversation_handler_is_set": {
 			convHandler: ptrValue(pam.ConversationHandler(pam.ConversationFunc(
 				func(s pam.Style, msg string) (string, error) {
 					return "", nil
 				}))),
 			wantError: pam.ErrConv,
 		},
-		"Error if the conversation handler fails": {
+		"Error_if_the_conversation_handler_fails": {
 			request:   []byte{0x03, 0x02, 0x01},
 			convError: pam.ErrBuf,
 			wantError: pam.ErrBuf,
@@ -509,37 +509,37 @@ func TestStartBinaryPointerConv(t *testing.T) {
 		want      []byte
 		wantError error
 	}{
-		"With nil argument": {
+		"With_nil_argument": {
 			request: nil,
 			want:    nil,
 		},
-		"With empty argument": {
+		"With_empty_argument": {
 			request: []byte{},
 			want:    []byte{},
 		},
-		"With simple argument": {
+		"With_simple_argument": {
 			request: []byte{0x01, 0x02, 0x03},
 			want:    []byte{0x00, 0x01, 0x02, 0x03, 0x4},
 		},
 
 		// Error cases
-		"Error if no conversation handler is set": {
+		"Error_if_no_conversation_handler_is_set": {
 			convHandler: ptrValue(pam.ConversationHandler(nil)),
 			wantError:   pam.ErrConv,
 		},
-		"Error if no binary conversation handler is set": {
+		"Error_if_no_binary_conversation_handler_is_set": {
 			convHandler: ptrValue(pam.ConversationHandler(pam.ConversationFunc(
 				func(s pam.Style, msg string) (string, error) {
 					return "", nil
 				}))),
 			wantError: pam.ErrConv,
 		},
-		"Error if the conversation handler fails": {
+		"Error_if_the_conversation_handler_fails": {
 			request:   []byte{0xde, 0xad, 0xbe, 0xef, 0xf},
 			convError: pam.ErrBuf,
 			wantError: pam.ErrBuf,
 		},
-		"Error if no conversation handler is set handles allocated data": {
+		"Error_if_no_conversation_handler_is_set_handles_allocated_data": {
 			convError: pam.ErrSystem,
 			want:      []byte{0xde, 0xad, 0xbe, 0xef, 0xf},
 			wantError: pam.ErrSystem,
@@ -655,7 +655,7 @@ func TestStartConvMulti(t *testing.T) {
 		wantConvCalls *int
 		wantError     error
 	}{
-		"Can address multiple string requests": {
+		"Can_address_multiple_string_requests": {
 			requests: []pam.ConvRequest{
 				pam.NewStringConvRequest(pam.PromptEchoOff, "give some PromptEchoOff"),
 				pam.NewStringConvRequest(pam.PromptEchoOn, "give some PromptEchoOn"),
@@ -669,7 +669,7 @@ func TestStartConvMulti(t *testing.T) {
 				StringResponseDummy{pam.TextInfo, "answer to TextInfo"},
 			},
 		},
-		"Can address multiple binary requests": {
+		"Can_address_multiple_binary_requests": {
 			requests: []pam.ConvRequest{
 				NewBinaryRequestDummy(nil),
 				NewBinaryRequestDummy(pam.BinaryPointer(&[]byte{})),
@@ -683,7 +683,7 @@ func TestStartConvMulti(t *testing.T) {
 				&BinaryResponseDummy{pam.BinaryPointer(&[]byte{0xAF, 0x00, 0xBA, 0xAC})},
 			},
 		},
-		"Can address multiple mixed binary and string requests ": {
+		"Can_address_multiple_mixed_binary_and_string_requests": {
 			requests: []pam.ConvRequest{
 				NewBinaryRequestDummy(nil),
 				pam.NewStringConvRequest(pam.PromptEchoOff, "PromptEchoOff"),
@@ -707,10 +707,10 @@ func TestStartConvMulti(t *testing.T) {
 		},
 
 		// Error cases
-		"Error if no request is provided": {
+		"Error_if_no_request_is_provided": {
 			wantError: pam.ErrConv,
 		},
-		"Error if one of the multiple request fails": {
+		"Error_if_one_of_the_multiple_request_fails": {
 			requests: []pam.ConvRequest{
 				NewBinaryRequestDummy(nil),
 				pam.NewStringConvRequest(pam.PromptEchoOff, "PromptEchoOff"),

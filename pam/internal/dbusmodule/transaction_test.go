@@ -48,38 +48,38 @@ func TestTransactionSetEnv(t *testing.T) {
 		wantMethodCall methodCall
 		wantError      error
 	}{
-		"Sets an env": {
+		"Sets_an_env": {
 			env:            "ENV=foo",
 			methodReturns:  methodReturn{m: setMethodName, values: []any{0}},
 			wantMethodCall: methodCall{setMethodName, []any{"ENV", "foo"}},
 		},
-		"Sets an empty env": {
+		"Sets_an_empty_env": {
 			env:            "ENV=",
 			methodReturns:  methodReturn{m: setMethodName, values: []any{0}},
 			wantMethodCall: methodCall{setMethodName, []any{"ENV", ""}},
 		},
-		"Unsets an env": {
+		"Unsets_an_env": {
 			env:            "ENV",
 			methodReturns:  methodReturn{m: unsetMethodName, values: []any{0}},
 			wantMethodCall: methodCall{unsetMethodName, []any{"ENV"}},
 		},
 
 		// Error cases
-		"Errors when setting an env, receiving a DBus error": {
+		"Errors_when_setting_an_env,_receiving_a_DBus_error": {
 			env:       "ENV=foo",
 			wantError: pam.ErrSystem,
 		},
-		"Errors when setting an env, receiving a PAM error": {
+		"Errors_when_setting_an_env,_receiving_a_PAM_error": {
 			env:            "ENV=foo",
 			methodReturns:  methodReturn{m: setMethodName, values: []any{pam.ErrBadItem}},
 			wantMethodCall: methodCall{setMethodName, []any{"ENV", "foo"}},
 			wantError:      pam.ErrBadItem,
 		},
-		"Errors when unsetting an env, receiving a DBus error": {
+		"Errors_when_unsetting_an_env,_receiving_a_DBus_error": {
 			env:       "ENV",
 			wantError: pam.ErrSystem,
 		},
-		"Errors when unsetting an env, receiving a PAM error": {
+		"Errors_when_unsetting_an_env,_receiving_a_PAM_error": {
 			env:            "ENV",
 			methodReturns:  methodReturn{m: unsetMethodName, values: []any{pam.ErrAbort}},
 			wantMethodCall: methodCall{unsetMethodName, []any{"ENV"}},
@@ -114,12 +114,12 @@ func TestTransactionGetEnv(t *testing.T) {
 		wantMethodCall methodCall
 		wantValue      string
 	}{
-		"Gets an empty env": {
+		"Gets_an_empty_env": {
 			env:            "ENV",
 			wantMethodCall: methodCall{methodName, []any{"ENV"}},
 			methodReturns:  methodReturn{m: methodName, values: []any{0, ""}},
 		},
-		"Gets an value env": {
+		"Gets_an_value_env": {
 			env:            "ENV",
 			wantMethodCall: methodCall{methodName, []any{"ENV"}},
 			methodReturns:  methodReturn{m: methodName, values: []any{0, "some-value"}},
@@ -127,10 +127,10 @@ func TestTransactionGetEnv(t *testing.T) {
 		},
 
 		// Error cases
-		"Errors when getting an env, receiving a DBus error": {
+		"Errors_when_getting_an_env,_receiving_a_DBus_error": {
 			env: "ENV",
 		},
-		"Errors when getting an env, receiving a PAM error": {
+		"Errors_when_getting_an_env,_receiving_a_PAM_error": {
 			env:            "ENV",
 			wantMethodCall: methodCall{methodName, []any{"ENV", "foo"}},
 			methodReturns:  methodReturn{m: methodName, values: []any{pam.ErrIncomplete, "some-value"}},
@@ -161,22 +161,22 @@ func TestTransactionGetEnvList(t *testing.T) {
 		wantEnvList    map[string]string
 		wantError      error
 	}{
-		"Gets an empty env list": {
+		"Gets_an_empty_env_list": {
 			wantMethodCall: methodCall{m: methodName},
 			methodReturns:  methodReturn{m: methodName, values: []any{0, map[string]string{}}},
 			wantEnvList:    map[string]string{},
 		},
-		"Gets a filled env list": {
+		"Gets_a_filled_env_list": {
 			wantMethodCall: methodCall{m: methodName},
 			methodReturns:  methodReturn{m: methodName, values: []any{0, someEnvList}},
 			wantEnvList:    someEnvList,
 		},
 
 		// Error cases
-		"Errors when getting an env list, receiving a DBus error": {
+		"Errors_when_getting_an_env_list,_receiving_a_DBus_error": {
 			wantError: pam.ErrSystem,
 		},
-		"Errors when getting an env, receiving a PAM error": {
+		"Errors_when_getting_an_env,_receiving_a_PAM_error": {
 			wantMethodCall: methodCall{m: methodName},
 			methodReturns:  methodReturn{m: methodName, values: []any{pam.ErrBuf, someEnvList}},
 			wantError:      pam.ErrBuf,
@@ -212,13 +212,13 @@ func TestTransactionSetItem(t *testing.T) {
 		wantMethodCall methodCall
 		wantError      error
 	}{
-		"Sets an item": {
+		"Sets_an_item": {
 			item:           pam.User,
 			value:          "user",
 			methodReturns:  methodReturn{m: methodName, values: []any{0}},
 			wantMethodCall: methodCall{methodName, []any{pam.User, "user"}},
 		},
-		"Sets an empty item": {
+		"Sets_an_empty_item": {
 			item:           pam.Rhost,
 			value:          "",
 			methodReturns:  methodReturn{m: methodName, values: []any{0}},
@@ -226,11 +226,11 @@ func TestTransactionSetItem(t *testing.T) {
 		},
 
 		// Error cases
-		"Errors when setting an item, receiving a DBus error": {
+		"Errors_when_setting_an_item,_receiving_a_DBus_error": {
 			value:     "item",
 			wantError: pam.ErrSystem,
 		},
-		"Errors when setting an item, receiving a PAM error": {
+		"Errors_when_setting_an_item,_receiving_a_PAM_error": {
 			item:           pam.User,
 			value:          "user",
 			methodReturns:  methodReturn{m: methodName, values: []any{pam.ErrBadItem}},
@@ -267,13 +267,13 @@ func TestTransactionGetItem(t *testing.T) {
 		wantValue      string
 		wantError      error
 	}{
-		"Gets an item": {
+		"Gets_an_item": {
 			item:           pam.User,
 			wantValue:      "user",
 			methodReturns:  methodReturn{m: methodName, values: []any{0, "user"}},
 			wantMethodCall: methodCall{methodName, []any{pam.User}},
 		},
-		"Gets an empty item": {
+		"Gets_an_empty_item": {
 			item:           pam.Rhost,
 			wantValue:      "",
 			methodReturns:  methodReturn{m: methodName, values: []any{0, ""}},
@@ -281,11 +281,11 @@ func TestTransactionGetItem(t *testing.T) {
 		},
 
 		// Error cases
-		"Errors when getting an item, receiving a DBus error": {
+		"Errors_when_getting_an_item,_receiving_a_DBus_error": {
 			item:      pam.Item(-1),
 			wantError: pam.ErrSystem,
 		},
-		"Errors when getting an item, receiving a PAM error": {
+		"Errors_when_getting_an_item,_receiving_a_PAM_error": {
 			item:           pam.Item(-1),
 			methodReturns:  methodReturn{m: methodName, values: []any{pam.ErrBadItem, "user"}},
 			wantMethodCall: methodCall{methodName, []any{pam.Item(-1)}},
@@ -325,13 +325,13 @@ func TestTransactionSetData(t *testing.T) {
 		wantMethodCall methodCall
 		wantError      error
 	}{
-		"Sets some data": {
+		"Sets_some_data": {
 			key:            "data",
 			data:           testData,
 			methodReturns:  methodReturn{m: setMethodName, values: []any{0}},
 			wantMethodCall: methodCall{setMethodName, []any{"data", variantTestData}},
 		},
-		"Unsets some data": {
+		"Unsets_some_data": {
 			key:            "data-to-unset",
 			data:           nil,
 			methodReturns:  methodReturn{m: unsetMethodName, values: []any{0}},
@@ -339,23 +339,23 @@ func TestTransactionSetData(t *testing.T) {
 		},
 
 		// Error cases
-		"Errors when setting data, receiving a DBus error": {
+		"Errors_when_setting_data,_receiving_a_DBus_error": {
 			key:       "data",
 			data:      testData,
 			wantError: pam.ErrSystem,
 		},
-		"Errors when setting data, receiving a PAM error": {
+		"Errors_when_setting_data,_receiving_a_PAM_error": {
 			key:            "data",
 			data:           testData,
 			methodReturns:  methodReturn{m: setMethodName, values: []any{pam.ErrBuf}},
 			wantMethodCall: methodCall{setMethodName, []any{"data", variantTestData}},
 			wantError:      pam.ErrBuf,
 		},
-		"Errors when unsetting data, receiving a DBus error": {
+		"Errors_when_unsetting_data,_receiving_a_DBus_error": {
 			key:       "data",
 			wantError: pam.ErrSystem,
 		},
-		"Errors when unsetting data, receiving a PAM error": {
+		"Errors_when_unsetting_data,_receiving_a_PAM_error": {
 			key:            "data-to-unset",
 			data:           nil,
 			methodReturns:  methodReturn{m: unsetMethodName, values: []any{pam.ErrAbort}},
@@ -394,7 +394,7 @@ func TestTransactionGetData(t *testing.T) {
 		wantData       any
 		wantError      error
 	}{
-		"Gets some data": {
+		"Gets_some_data": {
 			key:            "data",
 			wantData:       testData,
 			methodReturns:  methodReturn{m: methodName, values: []any{0, variantTestData}},
@@ -402,11 +402,11 @@ func TestTransactionGetData(t *testing.T) {
 		},
 
 		// Error cases
-		"Errors when getting data, receiving a DBus error": {
+		"Errors_when_getting_data,_receiving_a_DBus_error": {
 			key:       "data",
 			wantError: pam.ErrSystem,
 		},
-		"Errors when getting data, receiving a PAM error": {
+		"Errors_when_getting_data,_receiving_a_PAM_error": {
 			key:            "data",
 			methodReturns:  methodReturn{m: methodName, values: []any{pam.ErrNoModuleData, variantTestData}},
 			wantMethodCall: methodCall{methodName, []any{"data"}},
@@ -446,12 +446,12 @@ func TestStartStringConv(t *testing.T) {
 		wantMethodCalls *methodCallExpectations
 		wantError       error
 	}{
-		"Messages with error style are handled by conversation": {
+		"Messages_with_error_style_are_handled_by_conversation": {
 			prompt:    "This is an error!",
 			convStyle: pam.ErrorMsg,
 			want:      "I'm handling it fine though",
 		},
-		"Conversation prompt can be formatted": {
+		"Conversation_prompt_can_be_formatted": {
 			promptFormat:     "Sending some %s, right? %v",
 			promptFormatArgs: []interface{}{"info", true},
 			convStyle:        pam.TextInfo,
@@ -459,17 +459,17 @@ func TestStartStringConv(t *testing.T) {
 		},
 
 		// Error cases
-		"Error if conversation receives a DBus error": {
+		"Error_if_conversation_receives_a_DBus_error": {
 			wantError:             pam.ErrSystem,
 			convShouldNotBeCalled: true,
 		},
-		"Error if the conversation handler fails": {
+		"Error_if_the_conversation_handler_fails": {
 			prompt:    "Tell me your secret!",
 			convStyle: pam.PromptEchoOff,
 			convError: pam.ErrBuf,
 			wantError: pam.ErrBuf,
 		},
-		"Error when conversation uses binary content style": {
+		"Error_when_conversation_uses_binary_content_style": {
 			prompt:                "I am a binary content\xff!",
 			convStyle:             pam.BinaryPrompt,
 			convError:             pam.ErrConv,
@@ -531,27 +531,27 @@ func TestTransactionGetUser(t *testing.T) {
 		want      string
 		wantError error
 	}{
-		"Getting a previously set user does not require conversation handler": {
+		"Getting_a_previously_set_user_does_not_require_conversation_handler": {
 			presetUser: "an-user",
 			want:       "an-user",
 		},
-		"Getting a previously set user does not use conversation handler": {
+		"Getting_a_previously_set_user_does_not_use_conversation_handler": {
 			presetUser: "an-user",
 			convUser:   "another-user",
 			want:       "an-user",
 		},
-		"Getting the user uses conversation handler if none was set": {
+		"Getting_the_user_uses_conversation_handler_if_none_was_set": {
 			want:     "provided-user",
 			convUser: "provided-user",
 		},
 
 		// Error cases
-		"Error when can't get user item": {
+		"Error_when_can't_get_user_item": {
 			want:      "",
 			getError:  pam.ErrBadItem,
 			wantError: pam.ErrBadItem,
 		},
-		"Error when conversation fails": {
+		"Error_when_conversation_fails": {
 			want:      "",
 			convError: pam.ErrConv,
 			wantError: pam.ErrConv,
@@ -588,7 +588,7 @@ func TestStartBinaryConv(t *testing.T) {
 		wantError error
 	}{
 		// Error cases
-		"Error as they are not supported": {
+		"Error_as_they_are_not_supported": {
 			wantError: pam.ErrConv,
 		},
 	}

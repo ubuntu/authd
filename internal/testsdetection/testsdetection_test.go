@@ -29,9 +29,9 @@ func TestMustBeTestingInProcess(t *testing.T) {
 
 		wantPanic bool
 	}{
-		"Pass when called in an integration tests build": {integrationtestsTag: true, wantPanic: false},
+		"Pass_when_called_in_an_integration_tests_build": {integrationtestsTag: true, wantPanic: false},
 
-		"Error (panics) when called in non tests and no integration tests": {integrationtestsTag: false, wantPanic: true},
+		"Error_(panics)_when_called_in_non_tests_and_no_integration_tests": {integrationtestsTag: false, wantPanic: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

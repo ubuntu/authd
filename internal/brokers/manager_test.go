@@ -28,18 +28,18 @@ func TestNewManager(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Creates all brokers when config dir has only valid brokers":                 {brokerConfigDir: "valid_brokers"},
-		"Creates without autodiscovery when configuredBrokers is set":                {brokerConfigDir: "valid_brokers", configuredBrokers: []string{"valid_2.conf"}},
-		"Creates only correct brokers when config dir has valid and invalid brokers": {brokerConfigDir: "mixed_brokers"},
-		"Creates only local broker when config dir has only invalid ones":            {brokerConfigDir: "invalid_brokers"},
-		"Creates only local broker when config dir does not exist":                   {brokerConfigDir: "does/not/exist"},
-		"Creates manager even if broker is not exported on dbus":                     {brokerConfigDir: "not_on_bus"},
+		"Creates_all_brokers_when_config_dir_has_only_valid_brokers":                 {brokerConfigDir: "valid_brokers"},
+		"Creates_without_autodiscovery_when_configuredBrokers_is_set":                {brokerConfigDir: "valid_brokers", configuredBrokers: []string{"valid_2.conf"}},
+		"Creates_only_correct_brokers_when_config_dir_has_valid_and_invalid_brokers": {brokerConfigDir: "mixed_brokers"},
+		"Creates_only_local_broker_when_config_dir_has_only_invalid_ones":            {brokerConfigDir: "invalid_brokers"},
+		"Creates_only_local_broker_when_config_dir_does_not_exist":                   {brokerConfigDir: "does/not/exist"},
+		"Creates_manager_even_if_broker_is_not_exported_on_dbus":                     {brokerConfigDir: "not_on_bus"},
 
-		"Ignores broker configuration file not ending with .conf": {brokerConfigDir: "some_ignored_brokers"},
-		"Ignores any unknown sections and fields":                 {brokerConfigDir: "extra_fields"},
+		"Ignores_broker_configuration_file_not_ending_with_.conf": {brokerConfigDir: "some_ignored_brokers"},
+		"Ignores_any_unknown_sections_and_fields":                 {brokerConfigDir: "extra_fields"},
 
-		"Error when can't connect to system bus": {brokerConfigDir: "valid_brokers", noBus: true, wantErr: true},
-		"Error when broker config dir is a file": {brokerConfigDir: "file_config_dir", wantErr: true},
+		"Error_when_can't_connect_to_system_bus": {brokerConfigDir: "valid_brokers", noBus: true, wantErr: true},
+		"Error_when_broker_config_dir_is_a_file": {brokerConfigDir: "file_config_dir", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -73,9 +73,9 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully assigns existent broker to user": {exists: true},
+		"Successfully_assigns_existent_broker_to_user": {exists: true},
 
-		"Error when broker does not exist": {wantErr: true},
+		"Error_when_broker_does_not_exist": {wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -129,10 +129,10 @@ func TestBrokerFromSessionID(t *testing.T) {
 		wantBrokerID string
 		wantErr      bool
 	}{
-		"Successfully returns expected broker":       {sessionID: "success"},
-		"Returns local broker if sessionID is empty": {wantBrokerID: brokers.LocalBrokerName},
+		"Successfully_returns_expected_broker":       {sessionID: "success"},
+		"Returns_local_broker_if_sessionID_is_empty": {wantBrokerID: brokers.LocalBrokerName},
 
-		"Error if broker does not exist": {sessionID: "does not exist", wantErr: true},
+		"Error_if_broker_does_not_exist": {sessionID: "does not exist", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -180,14 +180,14 @@ func TestNewSession(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully start a new auth session":                    {username: "success"},
-		"Successfully start a new passwd session":                  {username: "success", sessionMode: auth.SessionModePasswd},
-		"Successfully start a new session with the correct broker": {username: "success", configuredBrokers: []string{t.Name() + "_Broker1.conf", t.Name() + "_Broker2.conf"}},
+		"Successfully_start_a_new_auth_session":                    {username: "success"},
+		"Successfully_start_a_new_passwd_session":                  {username: "success", sessionMode: auth.SessionModePasswd},
+		"Successfully_start_a_new_session_with_the_correct_broker": {username: "success", configuredBrokers: []string{t.Name() + "_Broker1.conf", t.Name() + "_Broker2.conf"}},
 
-		"Error when broker does not exist":           {brokerID: "does_not_exist", wantErr: true},
-		"Error when broker does not provide an ID":   {username: "NS_no_id", wantErr: true},
-		"Error when starting a new session":          {username: "NS_error", wantErr: true},
-		"Error when broker is not available on dbus": {unavailableBroker: true, wantErr: true},
+		"Error_when_broker_does_not_exist":           {brokerID: "does_not_exist", wantErr: true},
+		"Error_when_broker_does_not_provide_an_ID":   {username: "NS_no_id", wantErr: true},
+		"Error_when_starting_a_new_session":          {username: "NS_error", wantErr: true},
+		"Error_when_broker_is_not_available_on_dbus": {unavailableBroker: true, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -265,11 +265,11 @@ func TestEndSession(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully end session":                       {sessionID: "success"},
-		"Successfully end session on the correct broker": {sessionID: "success", configuredBrokers: []string{t.Name() + "_Broker1", t.Name() + "_Broker2"}},
+		"Successfully_end_session":                       {sessionID: "success"},
+		"Successfully_end_session_on_the_correct_broker": {sessionID: "success", configuredBrokers: []string{t.Name() + "_Broker1", t.Name() + "_Broker2"}},
 
-		"Error when broker does not exist": {brokerID: "does not exist", sessionID: "dont matter", wantErr: true},
-		"Error when ending session":        {sessionID: "ES_error", wantErr: true},
+		"Error_when_broker_does_not_exist": {brokerID: "does not exist", sessionID: "dont matter", wantErr: true},
+		"Error_when_ending_session":        {sessionID: "ES_error", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

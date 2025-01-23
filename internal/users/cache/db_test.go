@@ -25,15 +25,15 @@ func TestNew(t *testing.T) {
 
 		wantErr bool
 	}{
-		"New without any initialized database":                   {},
-		"New with already existing database":                     {dbFile: "multiple_users_and_groups"},
-		"New recreates any missing buckets and delete unknowns":  {dbFile: "database_with_unknown_bucket"},
-		"New removes orphaned user records from UserByID bucket": {dbFile: "orphaned_user_record"},
+		"New_without_any_initialized_database":                   {},
+		"New_with_already_existing_database":                     {dbFile: "multiple_users_and_groups"},
+		"New_recreates_any_missing_buckets_and_delete_unknowns":  {dbFile: "database_with_unknown_bucket"},
+		"New_removes_orphaned_user_records_from_UserByID_bucket": {dbFile: "orphaned_user_record"},
 
-		"Error on cacheDir non existent cacheDir":      {dbFile: "-", wantErr: true},
-		"Error on corrupted db file":                   {corruptedDbFile: true, wantErr: true},
-		"Error on invalid permission on database file": {dbFile: "multiple_users_and_groups", perm: &perm0644, wantErr: true},
-		"Error on unreadable database file":            {dbFile: "multiple_users_and_groups", perm: &perm0000, wantErr: true},
+		"Error_on_cacheDir_non_existent_cacheDir":      {dbFile: "-", wantErr: true},
+		"Error_on_corrupted_db_file":                   {corruptedDbFile: true, wantErr: true},
+		"Error_on_invalid_permission_on_database_file": {dbFile: "multiple_users_and_groups", perm: &perm0644, wantErr: true},
+		"Error_on_unreadable_database_file":            {dbFile: "multiple_users_and_groups", perm: &perm0000, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -163,43 +163,43 @@ func TestUpdateUserEntry(t *testing.T) {
 		wantErr bool
 	}{
 		// New user
-		"Insert new user":                              {},
-		"Update last login time for user":              {dbFile: "one_user_and_group"},
-		"Insert new user without optional gecos field": {userCase: "user1-without-gecos"},
+		"Insert_new_user":                              {},
+		"Update_last_login_time_for_user":              {dbFile: "one_user_and_group"},
+		"Insert_new_user_without_optional_gecos_field": {userCase: "user1-without-gecos"},
 
 		// User and Group updates
-		"Update user by changing attributes":                      {userCase: "user1-new-attributes", dbFile: "one_user_and_group"},
-		"Update user does not change homedir if it exists":        {userCase: "user1-new-homedir", dbFile: "one_user_and_group"},
-		"Update user by removing optional gecos field if not set": {userCase: "user1-without-gecos", dbFile: "one_user_and_group"},
+		"Update_user_by_changing_attributes":                      {userCase: "user1-new-attributes", dbFile: "one_user_and_group"},
+		"Update_user_does_not_change_homedir_if_it_exists":        {userCase: "user1-new-homedir", dbFile: "one_user_and_group"},
+		"Update_user_by_removing_optional_gecos_field_if_not_set": {userCase: "user1-without-gecos", dbFile: "one_user_and_group"},
 
 		// Group updates
-		"Update user by adding a new group":         {groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group"},
-		"Update user by adding a new default group": {groupCases: []string{"group2", "group1"}, dbFile: "one_user_and_group"},
-		"Update user by renaming a group":           {groupCases: []string{"newgroup1-same-ugid"}, dbFile: "one_user_and_group"},
-		"Remove group from user":                    {groupCases: []string{"group2"}, dbFile: "one_user_and_group"},
-		"Update user by adding a new local group":   {localGroups: []string{"localgroup1"}, dbFile: "one_user_and_group"},
+		"Update_user_by_adding_a_new_group":         {groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group"},
+		"Update_user_by_adding_a_new_default_group": {groupCases: []string{"group2", "group1"}, dbFile: "one_user_and_group"},
+		"Update_user_by_renaming_a_group":           {groupCases: []string{"newgroup1-same-ugid"}, dbFile: "one_user_and_group"},
+		"Remove_group_from_user":                    {groupCases: []string{"group2"}, dbFile: "one_user_and_group"},
+		"Update_user_by_adding_a_new_local_group":   {localGroups: []string{"localgroup1"}, dbFile: "one_user_and_group"},
 
 		// Multi users handling
-		"Update only user even if we have multiple of them":     {dbFile: "multiple_users_and_groups"},
-		"Add user to group from another user":                   {groupCases: []string{"group1", "group2"}, dbFile: "multiple_users_and_groups"},
-		"Remove user from a group still part from another user": {userCase: "user3", groupCases: []string{"group3"}, dbFile: "multiple_users_and_groups"},
+		"Update_only_user_even_if_we_have_multiple_of_them":     {dbFile: "multiple_users_and_groups"},
+		"Add_user_to_group_from_another_user":                   {groupCases: []string{"group1", "group2"}, dbFile: "multiple_users_and_groups"},
+		"Remove_user_from_a_group_still_part_from_another_user": {userCase: "user3", groupCases: []string{"group3"}, dbFile: "multiple_users_and_groups"},
 
 		// Allowed inconsistent cases
-		"Invalid value entry in groupByName recreates entries":                         {dbFile: "invalid_entry_in_groupByName"},
-		"Invalid value entry in userByName recreates entries":                          {dbFile: "invalid_entry_in_userByName"},
-		"Invalid value entries in other user and groups do not impact current request": {dbFile: "invalid_entries_but_user_and_group1"},
+		"Invalid_value_entry_in_groupByName_recreates_entries":                         {dbFile: "invalid_entry_in_groupByName"},
+		"Invalid_value_entry_in_userByName_recreates_entries":                          {dbFile: "invalid_entry_in_userByName"},
+		"Invalid_value_entries_in_other_user_and_groups_do_not_impact_current_request": {dbFile: "invalid_entries_but_user_and_group1"},
 
 		// Renaming errors
-		"Error when user has conflicting uid": {userCase: "user1-new-name", dbFile: "one_user_and_group", wantErr: true},
+		"Error_when_user_has_conflicting_uid": {userCase: "user1-new-name", dbFile: "one_user_and_group", wantErr: true},
 
 		// Error cases
-		"Error on invalid value entry in groupByID":                                 {dbFile: "invalid_entry_in_groupByID", wantErr: true},
-		"Error on invalid value entry in userByID":                                  {dbFile: "invalid_entry_in_userByID", wantErr: true},
-		"Error on invalid value entry in userToGroups":                              {dbFile: "invalid_entry_in_userToGroups", wantErr: true},
-		"Error on invalid value entry in groupToUsers":                              {dbFile: "invalid_entry_in_groupToUsers", wantErr: true},
-		"Error on invalid value entry in groupToUsers for user dropping from group": {dbFile: "invalid_entry_in_groupToUsers_secondary_group", wantErr: true},
-		"Error on invalid value entry in groupByID for user dropping from group":    {dbFile: "invalid_entry_in_groupByID_secondary_group", wantErr: true},
-		"Error when group has conflicting gid":                                      {groupCases: []string{"newgroup1-diff-ugid"}, dbFile: "one_user_and_group", wantErr: true},
+		"Error_on_invalid_value_entry_in_groupByID":                                 {dbFile: "invalid_entry_in_groupByID", wantErr: true},
+		"Error_on_invalid_value_entry_in_userByID":                                  {dbFile: "invalid_entry_in_userByID", wantErr: true},
+		"Error_on_invalid_value_entry_in_userToGroups":                              {dbFile: "invalid_entry_in_userToGroups", wantErr: true},
+		"Error_on_invalid_value_entry_in_groupToUsers":                              {dbFile: "invalid_entry_in_groupToUsers", wantErr: true},
+		"Error_on_invalid_value_entry_in_groupToUsers_for_user_dropping_from_group": {dbFile: "invalid_entry_in_groupToUsers_secondary_group", wantErr: true},
+		"Error_on_invalid_value_entry_in_groupByID_for_user_dropping_from_group":    {dbFile: "invalid_entry_in_groupByID_secondary_group", wantErr: true},
+		"Error_when_group_has_conflicting_gid":                                      {groupCases: []string{"newgroup1-diff-ugid"}, dbFile: "one_user_and_group", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -245,10 +245,10 @@ func TestUserByID(t *testing.T) {
 		wantErr     bool
 		wantErrType error
 	}{
-		"Get existing user": {dbFile: "one_user_and_group"},
+		"Get_existing_user": {dbFile: "one_user_and_group"},
 
-		"Error on missing user":           {wantErrType: cache.NoDataFoundError{}},
-		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByID", wantErr: true},
+		"Error_on_missing_user":           {wantErrType: cache.NoDataFoundError{}},
+		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_userByID", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -271,10 +271,10 @@ func TestUserByName(t *testing.T) {
 		wantErrType error
 		wantErr     bool
 	}{
-		"Get existing user": {dbFile: "one_user_and_group"},
+		"Get_existing_user": {dbFile: "one_user_and_group"},
 
-		"Error on missing user":           {wantErrType: cache.NoDataFoundError{}},
-		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByName", wantErr: true},
+		"Error_on_missing_user":           {wantErrType: cache.NoDataFoundError{}},
+		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_userByName", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -296,12 +296,12 @@ func TestAllUsers(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Get one user":       {dbFile: "one_user_and_group"},
-		"Get multiple users": {dbFile: "multiple_users_and_groups"},
+		"Get_one_user":       {dbFile: "one_user_and_group"},
+		"Get_multiple_users": {dbFile: "multiple_users_and_groups"},
 
-		"Get users only rely on valid userByID": {dbFile: "partially_valid_multiple_users_and_groups_only_userByID"},
+		"Get_users_only_rely_on_valid_userByID": {dbFile: "partially_valid_multiple_users_and_groups_only_userByID"},
 
-		"Error on some invalid users entry": {dbFile: "invalid_entries_but_user_and_group1", wantErr: true},
+		"Error_on_some_invalid_users_entry": {dbFile: "invalid_entries_but_user_and_group1", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -324,11 +324,11 @@ func TestGroupByID(t *testing.T) {
 		wantErr     bool
 		wantErrType error
 	}{
-		"Get existing group": {dbFile: "one_user_and_group"},
+		"Get_existing_group": {dbFile: "one_user_and_group"},
 
-		"Error on missing group":          {wantErrType: cache.NoDataFoundError{}},
-		"Error on invalid database entry": {dbFile: "invalid_entry_in_groupByID", wantErr: true},
-		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
+		"Error_on_missing_group":          {wantErrType: cache.NoDataFoundError{}},
+		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_groupByID", wantErr: true},
+		"Error_as_missing_userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -351,11 +351,11 @@ func TestGroupByName(t *testing.T) {
 		wantErr     bool
 		wantErrType error
 	}{
-		"Get existing group": {dbFile: "one_user_and_group"},
+		"Get_existing_group": {dbFile: "one_user_and_group"},
 
-		"Error on missing group":          {wantErrType: cache.NoDataFoundError{}},
-		"Error on invalid database entry": {dbFile: "invalid_entry_in_groupByName", wantErr: true},
-		"Error as missing userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
+		"Error_on_missing_group":          {wantErrType: cache.NoDataFoundError{}},
+		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_groupByName", wantErr: true},
+		"Error_as_missing_userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -378,11 +378,11 @@ func TestUserGroups(t *testing.T) {
 		wantErr     bool
 		wantErrType error
 	}{
-		"Get groups of existing user": {dbFile: "one_user_and_group"},
+		"Get_groups_of_existing_user": {dbFile: "one_user_and_group"},
 
-		"Error on missing user":           {wantErrType: cache.NoDataFoundError{}},
-		"Error on invalid database entry": {dbFile: "invalid_entry_in_userToGroups", wantErr: true},
-		"Error on missing groupByID":      {dbFile: "invalid_entry_in_groupByID", wantErr: true},
+		"Error_on_missing_user":           {wantErrType: cache.NoDataFoundError{}},
+		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_userToGroups", wantErr: true},
+		"Error_on_missing_groupByID":      {dbFile: "invalid_entry_in_groupByID", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -405,14 +405,14 @@ func TestAllGroups(t *testing.T) {
 		wantErr     bool
 		wantErrType error
 	}{
-		"Get one group":       {dbFile: "one_user_and_group"},
-		"Get multiple groups": {dbFile: "multiple_users_and_groups"},
+		"Get_one_group":       {dbFile: "one_user_and_group"},
+		"Get_multiple_groups": {dbFile: "multiple_users_and_groups"},
 
-		"Get groups rely on groupByID groupToUsers UserByID": {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers_UserByID"},
+		"Get_groups_rely_on_groupByID_groupToUsers_UserByID": {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers_UserByID"},
 
-		"Error on some invalid groups entry":     {dbFile: "invalid_entries_but_user_and_group1", wantErr: true},
-		"Error as not only relying on groupByID": {dbFile: "partially_valid_multiple_users_and_groups_only_groupByID", wantErr: true},
-		"Error as missing userByID":              {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
+		"Error_on_some_invalid_groups_entry":     {dbFile: "invalid_entries_but_user_and_group1", wantErr: true},
+		"Error_as_not_only_relying_on_groupByID": {dbFile: "partially_valid_multiple_users_and_groups_only_groupByID", wantErr: true},
+		"Error_as_missing_userByID":              {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -484,11 +484,11 @@ func TestDeleteUser(t *testing.T) {
 		wantErr     bool
 		wantErrType error
 	}{
-		"Delete existing user":                            {dbFile: "one_user_and_group"},
-		"Delete existing user keeping other users intact": {dbFile: "multiple_users_and_groups"},
+		"Delete_existing_user":                            {dbFile: "one_user_and_group"},
+		"Delete_existing_user_keeping_other_users_intact": {dbFile: "multiple_users_and_groups"},
 
-		"Error on missing user":           {wantErrType: cache.NoDataFoundError{}},
-		"Error on invalid database entry": {dbFile: "invalid_entry_in_userByID", wantErr: true},
+		"Error_on_missing_user":           {wantErrType: cache.NoDataFoundError{}},
+		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_userByID", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

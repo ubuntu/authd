@@ -53,18 +53,18 @@ func TestGetPasswdByName(t *testing.T) {
 		wantErr          bool
 		wantErrNotExists bool
 	}{
-		"Return existing user": {username: "user1"},
+		"Return_existing_user": {username: "user1"},
 
-		"Precheck user if not in cache":                                          {username: "user-pre-check", shouldPreCheck: true},
-		"Prechecked user with upper cases in username has same id as lower case": {username: "User-Pre-Check", shouldPreCheck: true},
+		"Precheck_user_if_not_in_cache":                                          {username: "user-pre-check", shouldPreCheck: true},
+		"Prechecked_user_with_upper_cases_in_username_has_same_id_as_lower_case": {username: "User-Pre-Check", shouldPreCheck: true},
 
-		"Error in database fetched content":                      {username: "user1", sourceDB: "invalid.db.yaml", wantErr: true},
-		"Error with typed GRPC notfound code on unexisting user": {username: "does-not-exists", wantErr: true, wantErrNotExists: true},
-		"Error on missing name":                                  {wantErr: true},
+		"Error_in_database_fetched_content":                      {username: "user1", sourceDB: "invalid.db.yaml", wantErr: true},
+		"Error_with_typed_GRPC_notfound_code_on_unexisting_user": {username: "does-not-exists", wantErr: true, wantErrNotExists: true},
+		"Error_on_missing_name":                                  {wantErr: true},
 
-		"Error in database fetched content does not trigger precheck": {username: "user1", sourceDB: "invalid.db.yaml", shouldPreCheck: true, wantErr: true},
-		"Error if user not in cache and precheck is disabled":         {username: "user-pre-check", wantErr: true, wantErrNotExists: true},
-		"Error if user not in cache and precheck fails":               {username: "does-not-exist", sourceDB: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
+		"Error_in_database_fetched_content_does_not_trigger_precheck": {username: "user1", sourceDB: "invalid.db.yaml", shouldPreCheck: true, wantErr: true},
+		"Error_if_user_not_in_cache_and_precheck_is_disabled":         {username: "user-pre-check", wantErr: true, wantErrNotExists: true},
+		"Error_if_user_not_in_cache_and_precheck_fails":               {username: "does-not-exist", sourceDB: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -88,11 +88,11 @@ func TestGetPasswdByUID(t *testing.T) {
 		wantErr          bool
 		wantErrNotExists bool
 	}{
-		"Return existing user": {uid: 1111},
+		"Return_existing_user": {uid: 1111},
 
-		"Error in database fetched content":                      {uid: 1111, sourceDB: "invalid.db.yaml", wantErr: true},
-		"Error with typed GRPC notfound code on unexisting user": {uid: 4242, wantErr: true, wantErrNotExists: true},
-		"Error on missing uid":                                   {wantErr: true},
+		"Error_in_database_fetched_content":                      {uid: 1111, sourceDB: "invalid.db.yaml", wantErr: true},
+		"Error_with_typed_GRPC_notfound_code_on_unexisting_user": {uid: 4242, wantErr: true, wantErrNotExists: true},
+		"Error_on_missing_uid":                                   {wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -113,10 +113,10 @@ func TestGetPasswdEntries(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Return all users": {},
-		"Return no users":  {sourceDB: "empty.db.yaml"},
+		"Return_all_users": {},
+		"Return_no_users":  {sourceDB: "empty.db.yaml"},
 
-		"Error in database fetched content": {sourceDB: "invalid.db.yaml", wantErr: true},
+		"Error_in_database_fetched_content": {sourceDB: "invalid.db.yaml", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -140,11 +140,11 @@ func TestGetGroupByName(t *testing.T) {
 		wantErr          bool
 		wantErrNotExists bool
 	}{
-		"Return existing group": {groupname: "group1"},
+		"Return_existing_group": {groupname: "group1"},
 
-		"Error in database fetched content":                      {groupname: "group1", sourceDB: "invalid.db.yaml", wantErr: true},
-		"Error with typed GRPC notfound code on unexisting user": {groupname: "does-not-exists", wantErr: true, wantErrNotExists: true},
-		"Error on missing name":                                  {wantErr: true},
+		"Error_in_database_fetched_content":                      {groupname: "group1", sourceDB: "invalid.db.yaml", wantErr: true},
+		"Error_with_typed_GRPC_notfound_code_on_unexisting_user": {groupname: "does-not-exists", wantErr: true, wantErrNotExists: true},
+		"Error_on_missing_name":                                  {wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -168,11 +168,11 @@ func TestGetGroupByGID(t *testing.T) {
 		wantErr          bool
 		wantErrNotExists bool
 	}{
-		"Return existing group": {gid: 11111},
+		"Return_existing_group": {gid: 11111},
 
-		"Error in database fetched content":                      {gid: 1111, sourceDB: "invalid.db.yaml", wantErr: true},
-		"Error with typed GRPC notfound code on unexisting user": {gid: 4242, wantErr: true, wantErrNotExists: true},
-		"Error on missing uid":                                   {wantErr: true},
+		"Error_in_database_fetched_content":                      {gid: 1111, sourceDB: "invalid.db.yaml", wantErr: true},
+		"Error_with_typed_GRPC_notfound_code_on_unexisting_user": {gid: 4242, wantErr: true, wantErrNotExists: true},
+		"Error_on_missing_uid":                                   {wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -193,10 +193,10 @@ func TestGetGroupEntries(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Return all groups": {},
-		"Return no groups":  {sourceDB: "empty.db.yaml"},
+		"Return_all_groups": {},
+		"Return_no_groups":  {sourceDB: "empty.db.yaml"},
 
-		"Error in database fetched content": {sourceDB: "invalid.db.yaml", wantErr: true},
+		"Error_in_database_fetched_content": {sourceDB: "invalid.db.yaml", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -221,12 +221,12 @@ func TestGetShadowByName(t *testing.T) {
 		wantErr          bool
 		wantErrNotExists bool
 	}{
-		"Return existing user": {username: "user1"},
+		"Return_existing_user": {username: "user1"},
 
-		"Error when not root":                                    {currentUserNotRoot: true, username: "user1", wantErr: true},
-		"Error in database fetched content":                      {username: "user1", sourceDB: "invalid.db.yaml", wantErr: true},
-		"Error with typed GRPC notfound code on unexisting user": {username: "does-not-exists", wantErr: true, wantErrNotExists: true},
-		"Error on missing name":                                  {wantErr: true},
+		"Error_when_not_root":                                    {currentUserNotRoot: true, username: "user1", wantErr: true},
+		"Error_in_database_fetched_content":                      {username: "user1", sourceDB: "invalid.db.yaml", wantErr: true},
+		"Error_with_typed_GRPC_notfound_code_on_unexisting_user": {username: "does-not-exists", wantErr: true, wantErrNotExists: true},
+		"Error_on_missing_name":                                  {wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -248,11 +248,11 @@ func TestGetShadowEntries(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Return all users": {},
-		"Return no users":  {sourceDB: "empty.db.yaml"},
+		"Return_all_users": {},
+		"Return_no_users":  {sourceDB: "empty.db.yaml"},
 
-		"Error when not root":               {currentUserNotRoot: true, wantErr: true},
-		"Error in database fetched content": {sourceDB: "invalid.db.yaml", wantErr: true},
+		"Error_when_not_root":               {currentUserNotRoot: true, wantErr: true},
+		"Error_in_database_fetched_content": {sourceDB: "invalid.db.yaml", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
