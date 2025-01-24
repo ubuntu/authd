@@ -26,7 +26,7 @@ jobs:
           set -euo pipefail
 
           sudo apt update -y
-          sudo apt install -y cargo dh-cargo git jq
+          sudo apt install -y dh-cargo git
 
       - name: Checkout the code
         uses: actions/checkout@v4
