@@ -75,8 +75,9 @@ func SendData(pamMTx pam.ModuleTransaction, d *Data) (*Data, error) {
 	}
 	if log.IsLevelEnabled(log.DebugLevel) && jsonValue != nil &&
 		gdmData != nil && gdmData.Type == DataType_pollResponse {
-		jsonValue = secretRegex.ReplaceAll(jsonValue, []byte(`"secret":"**************"`))
-		jsonValue = secretRegexOld.ReplaceAll(jsonValue, []byte(`"secret":"**************"`))
+		maskedValue := []byte(`"secret":"**************"`)
+		jsonValue = secretRegex.ReplaceAllLiteral(jsonValue, maskedValue)
+		jsonValue = secretRegexOld.ReplaceAllLiteral(jsonValue, maskedValue)
 	}
 	if jsonValue != nil {
 		log.Debugf(context.TODO(), "Got from GDM: %s", jsonValue)
