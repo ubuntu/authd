@@ -29,8 +29,17 @@ insert_nss_entry() {
 }
 
 action="$1"
+previous_version="$2"
 
 if [ configure = "$action" ]; then
     pam-auth-update --package
     insert_nss_entry
+
+    # We installed /etc/authd with permissions 777 - umask in versions prior to 0.4.0
+    if dpkg --compare-versions "$previous_version" lt-nl "0.4.0~"; then
+        # Ensure that the /etc/authd directory has mode 700
+        if [ -d /etc/authd ] && [ "$(stat -c %a /etc/authd)" != "700" ]; then
+            chmod 700 /etc/authd
+        fi
+    fi
 fi
