@@ -23,6 +23,7 @@ jobs:
       - name: Install dependencies
         env:
           DEBIAN_FRONTEND: noninteractive
+          CARGO_VENDOR_FILTERER_VERSION: 0.5.16
         shell: bash
         run: |
           set -euo pipefail
@@ -30,17 +31,23 @@ jobs:
           sudo apt update -y
           sudo apt install -y dh-cargo git
 
+          sudo apt install -y libssl-dev pkg-config
+          sudo cargo install --locked --root=/usr \
+            cargo-vendor-filterer@${{ env.CARGO_VENDOR_FILTERER_VERSION }}
+
       - name: Checkout the code
         uses: actions/checkout@v4
         with:
           ref: main
 
       - name: Vendor the dependencies
+        env:
+          CARGO_PATH: /usr/share/cargo/bin/cargo
         shell: bash
         run: |
           set -euo pipefail
 
-          cargo vendor vendor_rust/
+          sh -x debian/vendor-rust.sh
 
       - name: Update XS-Vendored-Sources-Rust
         shell: bash
