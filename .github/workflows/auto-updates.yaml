@@ -16,7 +16,9 @@ permissions:
 jobs:
   update-rust-packaging:
     name: Update packaging related Rust files
-    runs-on: ubuntu-24.04 # ubuntu-latest-runner
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:noble
       env:
         CARGO_VENDOR_DIR: ${{ github.workspace }}/vendor_rust
     steps:
@@ -28,11 +30,11 @@ jobs:
         run: |
           set -euo pipefail
 
-          sudo apt update -y
-          sudo apt install -y dh-cargo git
+          apt update -y
+          apt install -y dh-cargo git
 
-          sudo apt install -y libssl-dev pkg-config
-          sudo cargo install --locked --root=/usr \
+          apt install -y libssl-dev pkg-config
+          cargo install --locked --root=/usr \
             cargo-vendor-filterer@${{ env.CARGO_VENDOR_FILTERER_VERSION }}
 
       - name: Checkout the code
@@ -89,4 +91,5 @@ jobs:
         run: |
           set -eu
 
+          git config --system --add safe.directory "${PWD}"
           git push origin auto-update-rust-packaging:main
