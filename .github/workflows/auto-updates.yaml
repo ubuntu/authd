@@ -21,30 +21,41 @@ jobs:
       - name: Install dependencies
         env:
           DEBIAN_FRONTEND: noninteractive
+        shell: bash
         run: |
-          sudo apt update
-          sudo apt install cargo dh-cargo git jq
-      - uses: actions/checkout@v4
+          set -euo pipefail
+
+          sudo apt update -y
+          sudo apt install -y cargo dh-cargo git jq
+
+      - name: Checkout the code
+        uses: actions/checkout@v4
         with:
           ref: main
+
       - name: Vendor the dependencies
+        shell: bash
         run: |
+          set -euo pipefail
+
           cargo vendor vendor_rust/
+
       - name: Update XS-Vendored-Sources-Rust
         shell: bash
         run: |
-          set -eu
+          set -euo pipefail
 
           export CARGO_VENDOR_DIR=vendor_rust/
           VENDORED_SOURCES=$(/usr/share/cargo/bin/dh-cargo-vendored-sources 2>&1 || true)
           OUTPUT=$(echo "$VENDORED_SOURCES" | grep ^XS-Vendored-Sources-Rust: || true)
-          if [ -z "$OUTPUT" ]; then
+          if [ -z "${OUTPUT}" ]; then
             echo "XS-Vendored-Sources-Rust is up to date. No change is needed.";
             exit 0
           fi
           sed -i "s/^XS-Vendored-Sources-Rust:.*/$OUTPUT/" debian/control
 
-          echo "modified=true" >> $GITHUB_ENV
+          echo "modified=true" >> "${GITHUB_ENV}"
+
       - name: Create Pull Request
         if: ${{ env.modified == 'true' }}
         uses: peter-evans/create-pull-request@v7
@@ -55,7 +66,11 @@ jobs:
           branch: auto-update-rust-packaging
           delete-branch: true
           token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Push branch
         if: ${{ env.modified == 'true' }}
+        shell: bash
         run: |
+          set -eu
+
           git push origin auto-update-rust-packaging:main
