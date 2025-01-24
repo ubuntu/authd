@@ -17,6 +17,8 @@ jobs:
   update-rust-packaging:
     name: Update packaging related Rust files
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
+      env:
+        CARGO_VENDOR_DIR: ${{ github.workspace }}/vendor_rust
     steps:
       - name: Install dependencies
         env:
@@ -45,7 +47,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          export CARGO_VENDOR_DIR=vendor_rust/
           VENDORED_SOURCES=$(/usr/share/cargo/bin/dh-cargo-vendored-sources 2>&1 || true)
           OUTPUT=$(echo "$VENDORED_SOURCES" | grep ^XS-Vendored-Sources-Rust: || true)
           if [ -z "${OUTPUT}" ]; then
