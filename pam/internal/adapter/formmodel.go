@@ -13,7 +13,7 @@ import (
 	"github.com/ubuntu/authd/log"
 )
 
-// formModel is the form layout type to allow authentication and return a challenge.
+// formModel is the form layout type to allow authentication and return a password.
 type formModel struct {
 	label string
 

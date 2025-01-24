@@ -174,7 +174,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -209,7 +209,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -229,7 +229,7 @@ func TestGdmModel(t *testing.T) {
 		"Authenticated_with_preset_PAM_user_and_server-side_broker_and_authMode_selection": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
-				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password")),
+				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password")),
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
@@ -246,7 +246,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -285,7 +285,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -330,7 +330,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -374,7 +374,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -426,7 +426,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -516,11 +516,11 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -550,7 +550,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Authentication_is_ignored_if_not_requested_by_model_first": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password")),
+				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password")),
 			gdmEvents: []*gdm.EventData{
 				gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
 					Challenge: "gdm-good-password",
@@ -594,7 +594,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -627,7 +627,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -645,7 +645,7 @@ func TestGdmModel(t *testing.T) {
 		"Authenticated_with_preset_PAM_user_and_server-side_broker_and_authMode_selection_and_after_various_retries": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
-				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
+				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password"),
 				pam_test.WithIsAuthenticatedMaxRetries(1),
 			),
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
@@ -667,7 +667,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -693,7 +693,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Authenticated_after_client-side_user_and_broker_and_authMode_selection": {
 			clientOptions: append(slices.Clone(multiBrokerClientOptions),
-				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
+				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password"),
 			),
 			gdmEvents: []*gdm.EventData{
 				gdm_test.SelectUserEvent("gdm-selected-user-broker-and-auth-mode"),
@@ -717,7 +717,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -734,7 +734,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Authenticated_after_client-side_user_and_broker_and_authMode_selection_and_after_various_retries": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
+				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password"),
 				pam_test.WithIsAuthenticatedMaxRetries(1),
 			),
 			gdmEvents: []*gdm.EventData{
@@ -765,7 +765,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -815,7 +815,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -854,7 +854,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
 			},
 			wantMessages: []tea.Msg{
@@ -896,7 +896,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
 			},
 			wantGdmEvents: []gdm.EventType{
@@ -940,7 +940,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
 			},
 			wantMessages: []tea.Msg{
@@ -962,7 +962,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Authenticated_after_auth_selection_stage_from_client_after_client-side_broker_and_auth_mode_selection_if_there_is_only_one_auth_mode": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
+				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password"),
 			),
 			gdmEvents: []*gdm.EventData{
 				gdm_test.SelectUserEvent("gdm-selected-user-broker-and-auth-mode"),
@@ -1000,9 +1000,9 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantMessages: []tea.Msg{
 				startAuthentication{},
@@ -1030,7 +1030,7 @@ func TestGdmModel(t *testing.T) {
 		"Authenticated_after_auth_selection_stage_from_client_after_client-side_broker_and_auth_mode_selection_with_multiple_auth_modes": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithUILayout("pincode", "Write the pin Code", pam_test.FormUILayout()),
-				pam_test.WithIsAuthenticatedWantChallenge("1234"),
+				pam_test.WithIsAuthenticatedWantSecret("1234"),
 			),
 			gdmEvents: []*gdm.EventData{
 				gdm_test.SelectUserEvent("gdm-selected-user-broker-and-auth-mode"),
@@ -1068,9 +1068,9 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantMessages: []tea.Msg{
 				startAuthentication{},
@@ -1141,9 +1141,9 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantMessages: []tea.Msg{
 				startAuthentication{},
@@ -1222,9 +1222,9 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantMessages: []tea.Msg{
 				startAuthentication{},
@@ -1307,9 +1307,9 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantMessages: []tea.Msg{
 				startAuthentication{},
@@ -1370,7 +1370,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
 				gdm.RequestType_changeStage, // -> broker Selection
 			},
@@ -1433,7 +1433,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> user Selection
@@ -1765,7 +1765,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -1802,7 +1802,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -1837,7 +1837,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -1855,7 +1855,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Error_on_authentication_client_denied_because_of_wrong_password_-_with_error_message": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
+				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password"),
 				pam_test.WithIsAuthenticatedMessage("you're not allowed!"),
 			),
 			pamUser: "pam-preset-user-for-client-selected-brokers-with-wrong-pass",
@@ -1880,7 +1880,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -1903,7 +1903,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Error_on_authentication_client_denied_because_of_wrong_password": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
-				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
+				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password"),
 			),
 			pamUser: "pam-preset-user-and-client-selected-broker-with-wrong-pass",
 			messages: []tea.Msg{
@@ -1927,7 +1927,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -1948,7 +1948,7 @@ func TestGdmModel(t *testing.T) {
 		"Error_on_authentication_client_denied_because_of_wrong_password_after_retry": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
-				pam_test.WithIsAuthenticatedWantChallenge("gdm-good-password"),
+				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password"),
 				pam_test.WithIsAuthenticatedMaxRetries(1),
 			),
 			pamUser: "pam-preset-user-and-daemon-selected-broker-with-wrong-pass",
@@ -1970,7 +1970,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -2013,7 +2013,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
@@ -2058,7 +2058,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_uiLayoutCapabilities,
 				gdm.RequestType_changeStage, // -> broker Selection
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> challenge
+				gdm.RequestType_changeStage, // -> password
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,

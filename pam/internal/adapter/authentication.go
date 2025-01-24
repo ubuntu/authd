@@ -34,10 +34,10 @@ var (
 	errorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#ff0000"))
 )
 
-// sendIsAuthenticated sends the authentication challenges or wait request to the brokers.
+// sendIsAuthenticated sends the authentication secrets or wait request to the brokers.
 // The event will contain the returned value from the broker.
 func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID string,
-	authData *authd.IARequest_AuthenticationData, challenge *string) tea.Cmd {
+	authData *authd.IARequest_AuthenticationData, secret *string) tea.Cmd {
 	return func() (msg tea.Msg) {
 		log.Debugf(context.TODO(), "Authentication request for session %q: %#v",
 			sessionID, authData.Item)
@@ -61,8 +61,8 @@ func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID 
 				<-time.After(cancellationWait * 3)
 
 				return isAuthenticatedResultReceived{
-					access:    auth.Cancelled,
-					challenge: challenge,
+					access: auth.Cancelled,
+					secret: secret,
 				}
 			}
 			return pamError{
@@ -72,15 +72,15 @@ func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID 
 		}
 
 		return isAuthenticatedResultReceived{
-			access:    res.Access,
-			msg:       res.Msg,
-			challenge: challenge,
+			access: res.Access,
+			msg:    res.Msg,
+			secret: secret,
 		}
 	}
 }
 
 // isAuthenticatedRequested is the internal events signalling that authentication
-// with the given challenge or wait has been requested.
+// with the given password or wait has been requested.
 type isAuthenticatedRequested struct {
 	item authd.IARequestAuthenticationDataItem
 }
@@ -95,9 +95,9 @@ type isAuthenticatedRequestedSend struct {
 // isAuthenticatedResultReceived is the internal event with the authentication access result
 // and data that was retrieved.
 type isAuthenticatedResultReceived struct {
-	access    string
-	challenge *string
-	msg       string
+	access string
+	secret *string
+	msg    string
 }
 
 // isAuthenticatedCancelled is the event to cancel the auth request.
@@ -127,7 +127,7 @@ type authenticationModel struct {
 	currentModel     authenticationComponent
 	currentSessionID string
 	currentBrokerID  string
-	currentChallenge string
+	currentSecret    string
 	currentLayout    string
 
 	authTracker *authTracker
@@ -153,15 +153,15 @@ type errMsgToDisplay struct {
 
 // newPasswordCheck is sent to request a new password quality check.
 type newPasswordCheck struct {
-	ctx       context.Context
-	challenge string
+	ctx      context.Context
+	password string
 }
 
 // newPasswordCheckResult returns the password quality check result.
 type newPasswordCheckResult struct {
-	ctx       context.Context
-	challenge string
-	msg       string
+	ctx      context.Context
+	password string
+	msg      string
 }
 
 // newAuthenticationModel initializes a authenticationModel which needs to be Compose then.
@@ -194,10 +194,10 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		return *m, tea.Sequence(m.cancelIsAuthenticated(), sendEvent(AuthModeSelected{}))
 
 	case newPasswordCheck:
-		currentChallenge := m.currentChallenge
+		currentSecret := m.currentSecret
 		return *m, func() tea.Msg {
-			res := newPasswordCheckResult{ctx: msg.ctx, challenge: msg.challenge}
-			if err := checkChallengeQuality(currentChallenge, msg.challenge); err != nil {
+			res := newPasswordCheckResult{ctx: msg.ctx, password: msg.password}
+			if err := checkPasswordQuality(currentSecret, msg.password); err != nil {
 				res.msg = err.Error()
 			}
 			return res
@@ -213,7 +213,8 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 			return *m, sendEvent(isAuthenticatedRequestedSend{
 				ctx: msg.ctx,
 				isAuthenticatedRequested: isAuthenticatedRequested{
-					item: &authd.IARequest_AuthenticationData_Challenge{Challenge: msg.challenge},
+					// TODO(UDENG-5844): Rename this to "secret" once all broker installations support the auth data field "secret".
+					item: &authd.IARequest_AuthenticationData_Challenge{Challenge: msg.password},
 				},
 			})
 		}
@@ -256,9 +257,9 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		return *m, func() tea.Msg {
 			authTracker.waitAndStart(cancelFunc)
 
-			challenge, hasChallenge := msg.item.(*authd.IARequest_AuthenticationData_Challenge)
-			if hasChallenge && clientType == Gdm && currentLayout == layouts.NewPassword {
-				return newPasswordCheck{ctx: ctx, challenge: challenge.Challenge}
+			secret, hasSecret := msg.item.(*authd.IARequest_AuthenticationData_Challenge)
+			if hasSecret && clientType == Gdm && currentLayout == layouts.NewPassword {
+				return newPasswordCheck{ctx: ctx, password: secret.Challenge}
 			}
 
 			return isAuthenticatedRequestedSend{msg, ctx}
@@ -266,13 +267,13 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 
 	case isAuthenticatedRequestedSend:
 		log.Debugf(context.TODO(), "%#v", msg)
-		// no challenge value, pass it as is
-		plainTextChallenge, err := msg.encryptChallengeIfPresent(m.encryptionKey)
+		// no password value, pass it as is
+		plainTextSecret, err := msg.encryptSecretIfPresent(m.encryptionKey)
 		if err != nil {
-			return *m, sendEvent(pamError{status: pam.ErrSystem, msg: fmt.Sprintf("could not encrypt challenge payload: %v", err)})
+			return *m, sendEvent(pamError{status: pam.ErrSystem, msg: fmt.Sprintf("could not encrypt password payload: %v", err)})
 		}
 
-		return *m, sendIsAuthenticated(msg.ctx, m.client, m.currentSessionID, &authd.IARequest_AuthenticationData{Item: msg.item}, plainTextChallenge)
+		return *m, sendIsAuthenticated(msg.ctx, m.client, m.currentSessionID, &authd.IARequest_AuthenticationData{Item: msg.item}, plainTextSecret)
 
 	case isAuthenticatedCancelled:
 		log.Debugf(context.TODO(), "%#v", msg)
@@ -281,13 +282,13 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 	case isAuthenticatedResultReceived:
 		log.Debugf(context.TODO(), "%#v", msg)
 
-		// Resets challenge if the authentication wasn't successful.
+		// Resets password if the authentication wasn't successful.
 		defer func() {
 			// the returned authModel is a copy of function-level's `m` at this point!
 			m := &authModel
-			if msg.challenge != nil &&
+			if msg.secret != nil &&
 				(msg.access == auth.Granted || msg.access == auth.Next) {
-				m.currentChallenge = *msg.challenge
+				m.currentSecret = *msg.secret
 			}
 
 			if msg.access != auth.Next && msg.access != auth.Retry {
@@ -481,22 +482,22 @@ func dataToMsg(data string) (string, error) {
 	return r, nil
 }
 
-func (authData *isAuthenticatedRequestedSend) encryptChallengeIfPresent(publicKey *rsa.PublicKey) (*string, error) {
-	// no challenge value, pass it as is
-	challenge, ok := authData.item.(*authd.IARequest_AuthenticationData_Challenge)
+func (authData *isAuthenticatedRequestedSend) encryptSecretIfPresent(publicKey *rsa.PublicKey) (*string, error) {
+	// no password value, pass it as is
+	secret, ok := authData.item.(*authd.IARequest_AuthenticationData_Challenge)
 	if !ok {
 		return nil, nil
 	}
 
-	ciphertext, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, publicKey, []byte(challenge.Challenge), nil)
+	ciphertext, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, publicKey, []byte(secret.Challenge), nil)
 	if err != nil {
 		return nil, err
 	}
 
-	// encrypt it to base64 and replace the challenge with it
+	// encrypt it to base64 and replace the password with it
 	base64Encoded := base64.StdEncoding.EncodeToString(ciphertext)
 	authData.item = &authd.IARequest_AuthenticationData_Challenge{Challenge: base64Encoded}
-	return &challenge.Challenge, nil
+	return &secret.Challenge, nil
 }
 
 // wait waits for the current authentication to be completed.

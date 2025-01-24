@@ -17,7 +17,7 @@ import (
 
 var centeredStyle = lipgloss.NewStyle().Align(lipgloss.Center, lipgloss.Top)
 
-// qrcodeModel is the form layout type to allow authenticating and return a challenge.
+// qrcodeModel is the form layout type to allow authenticating and return a password.
 type qrcodeModel struct {
 	label       string
 	buttonModel *authReselectButtonModel

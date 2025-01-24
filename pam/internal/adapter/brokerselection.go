@@ -15,7 +15,7 @@ import (
 	"github.com/ubuntu/authd/pam/internal/proto"
 )
 
-// brokerSelectionModel is the model list selection layout to allow authenticating and return a challenge.
+// brokerSelectionModel is the model list selection layout to allow authenticating and return a password.
 type brokerSelectionModel struct {
 	list.Model
 	focused bool
