@@ -6,7 +6,7 @@ export CARGO_HOME
 trap 'rm -rf "$CARGO_HOME"' EXIT INT HUP
 
 # We need a filtered vendored directory
-if [ ! $(which cargo-vendor-filterer) ]; then
+if ! command -v cargo-vendor-filterer 2>/dev/null; then
     echo "ERROR: could not find cargo-vendor-filterer in PATH to filter vendored dependencies." >&2
     echo "Please install cargo-vendor-filterer to run this script. More info at https://github.com/coreos/cargo-vendor-filterer." >&2
     exit 3
