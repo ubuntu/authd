@@ -96,7 +96,7 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 7
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -118,7 +118,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
@@ -147,7 +147,7 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 7
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -169,7 +169,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
@@ -198,7 +198,7 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 7
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -220,12 +220,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -247,7 +247,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
@@ -276,7 +276,7 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 7
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -298,12 +298,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -325,7 +325,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
@@ -354,7 +354,7 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 7
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -376,12 +376,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -403,12 +403,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████████
 █████████████████████████████████████
@@ -432,7 +432,7 @@ Scan the qrcode or enter the code in the login page
      https://ubuntuforum-br.org/
                 1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
@@ -461,7 +461,7 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 7
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -483,12 +483,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -510,12 +510,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████████
 █████████████████████████████████████
@@ -539,7 +539,7 @@ Scan the qrcode or enter the code in the login page
      https://ubuntuforum-br.org/
                 1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
@@ -568,7 +568,7 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 7
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -590,12 +590,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -617,12 +617,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████████
 █████████████████████████████████████
@@ -646,12 +646,12 @@ Scan the qrcode or enter the code in the login page
      https://ubuntuforum-br.org/
                 1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -673,7 +673,7 @@ Scan the qrcode or enter the code in the login page
    https://www.ubuntu-it.org/
               1340
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
@@ -702,7 +702,7 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 7
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -724,12 +724,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -751,12 +751,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████████
 █████████████████████████████████████
@@ -780,12 +780,12 @@ Scan the qrcode or enter the code in the login page
      https://ubuntuforum-br.org/
                 1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -807,7 +807,7 @@ Scan the qrcode or enter the code in the login page
    https://www.ubuntu-it.org/
               1340
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
@@ -836,7 +836,7 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 7
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -858,12 +858,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -885,12 +885,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████████
 █████████████████████████████████████
@@ -914,12 +914,12 @@ Scan the qrcode or enter the code in the login page
      https://ubuntuforum-br.org/
                 1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -941,12 +941,12 @@ Scan the qrcode or enter the code in the login page
    https://www.ubuntu-it.org/
               1340
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -968,7 +968,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1341
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
@@ -997,7 +997,7 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 7
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -1019,12 +1019,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -1046,12 +1046,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████████
 █████████████████████████████████████
@@ -1075,12 +1075,12 @@ Scan the qrcode or enter the code in the login page
      https://ubuntuforum-br.org/
                 1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -1102,12 +1102,12 @@ Scan the qrcode or enter the code in the login page
    https://www.ubuntu-it.org/
               1340
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -1129,7 +1129,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1341
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
@@ -1158,7 +1158,7 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 7
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -1180,12 +1180,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -1207,12 +1207,12 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.fr/
               1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████████
 █████████████████████████████████████
@@ -1236,12 +1236,12 @@ Scan the qrcode or enter the code in the login page
      https://ubuntuforum-br.org/
                 1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -1263,12 +1263,12 @@ Scan the qrcode or enter the code in the login page
    https://www.ubuntu-it.org/
               1340
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Qr Code authentication ==
+== Use a QR code ==
 Scan the qrcode or enter the code in the login page
 █████████████████████████████████
 █████████████████████████████████
@@ -1290,7 +1290,7 @@ Scan the qrcode or enter the code in the login page
        https://ubuntu.com
               1341
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
