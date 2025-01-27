@@ -1,12 +1,13 @@
 #!/usr/bin/make -f
 #export DH_VERBOSE = 1
 
+include /usr/share/dpkg/pkg-info.mk
 include /usr/share/rustc/architecture.mk
 
 # The package name for authd, used only locally to avoid repetitions
 AUTHD_GO_PACKAGE := $(shell grep-dctrl -s XS-Go-Import-Path -n - ./debian/control)
 
-export GOFLAGS := -ldflags=-X=$(AUTHD_GO_PACKAGE)/internal/consts.Version=$(shell dpkg-parsechangelog -S Version) --mod=vendor -buildmode=pie
+export GOFLAGS := -ldflags=-X=$(AUTHD_GO_PACKAGE)/internal/consts.Version=$(DEB_VERSION_UPSTREAM) --mod=vendor -buildmode=pie
 
 export DEB_BUILD_MAINT_OPTIONS := optimize=-lto
 
