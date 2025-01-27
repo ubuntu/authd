@@ -80,7 +80,16 @@ override_dh_auto_configure:
 	dh_auto_configure
 
 	touch debian/cargo-checksum.json
-	dh_auto_configure --buildsystem=cargo
+
+	# Go manual if cargo-vendor-filterer is not around, otherwise dh-cargo will
+	# ensure that what we've filtered won't be still listed in debian/control.
+	# TODO: Drop this when we won't care about noble anymore.
+	if ! command -v cargo-vendor-filterer 2>/dev/null; then \
+		env DEB_CARGO_CRATE="$(DEB_SOURCE)_$(DEB_VERSION_UPSTREAM)" \
+		  $(CARGO_PATH) prepare-debian "$(CARGO_VENDOR_DIR)"; \
+	else \
+		dh_auto_configure --buildsystem=cargo; \
+	fi
 
 	for i in debian/*.service.in debian/pam-configs/*.in; do \
 		sed s,@AUTHD_DAEMONS_PATH@,$(AUTHD_DAEMONS_PATH),g $$i > $${i%.*}; \
