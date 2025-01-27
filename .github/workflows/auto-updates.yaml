@@ -15,12 +15,19 @@ permissions:
 # When adding more jobs, make sure to use the "needs:" attribute to make sure they run sequentially.
 jobs:
   update-rust-packaging:
-    name: Update packaging related Rust files
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: [main]
+        ubuntu-version: [noble]
+
+    name: Update ${{ matrix.ubuntu-version }} packaging related Rust files
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:noble
+      image: ubuntu:${{ matrix.ubuntu-version }}
       env:
         CARGO_VENDOR_DIR: ${{ github.workspace }}/vendor_rust
+        UPDATE_BRANCH: auto-update-rust-packaging-${{ matrix.ubuntu-version }}
     steps:
       - name: Install dependencies
         env:
@@ -40,7 +47,7 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ matrix.branch }}
 
       - name: Vendor the dependencies
         env:
@@ -73,15 +80,17 @@ jobs:
           sed -i "s/^XS-Vendored-Sources-Rust:.*/$OUTPUT/" debian/control
 
           echo "modified=true" >> "${GITHUB_ENV}"
+          echo "update_branch=${UPDATE_BRANCH}" >> "${GITHUB_ENV}"
 
       - name: Create Pull Request
         if: ${{ env.modified == 'true' }}
         uses: peter-evans/create-pull-request@v7
         with:
           commit-message: Auto update packaging related Rust files
-          title: Auto update packaging related Rust files
+          title: |
+            [${{ matrix.ubuntu-version }}] Auto update packaging related Rust files
           labels: control, automated pr
-          branch: auto-update-rust-packaging
+          branch: ${{ env.update_branch }}
           delete-branch: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -92,4 +101,4 @@ jobs:
           set -eu
 
           git config --system --add safe.directory "${PWD}"
-          git push origin auto-update-rust-packaging:main
+          git push origin ${{ env.update_branch }}:${{ matrix.branch }}
