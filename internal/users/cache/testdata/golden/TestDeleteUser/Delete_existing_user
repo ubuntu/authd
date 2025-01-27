@@ -1,7 +1,11 @@
-GroupByID: {}
-GroupByName: {}
-GroupByUGID: {}
-GroupToUsers: {}
+GroupByID:
+    "11111": '{"Name":"group1","GID":11111,"UGID":"12345678"}'
+GroupByName:
+    group1: '{"Name":"group1","GID":11111,"UGID":"12345678"}'
+GroupByUGID:
+    "12345678": '{"Name":"group1","GID":11111,"UGID":"12345678"}'
+GroupToUsers:
+    "11111": '{"GID":11111,"UIDs":[]}'
 UserByID: {}
 UserByName: {}
 UserToBroker: {}
