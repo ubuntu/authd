@@ -20,12 +20,12 @@ Show
 
 Hide
 Enter
-Wait+Screen /8\. Authentication code/
+Wait+Screen /${AUTHD_FORM_BUTTON_TAPE_ITEM}\. Authentication code/
 Wait+Prompt /Choose your authentication method/
 Show
 
 Hide
-TypeInPrompt "8"
+TypeInPrompt "${AUTHD_FORM_BUTTON_TAPE_ITEM}"
 Show
 
 Hide

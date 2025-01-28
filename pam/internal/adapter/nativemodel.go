@@ -90,6 +90,7 @@ func (m *nativeModel) Init() tea.Cmd {
 
 	m.interactive = isSSHSession(m.pamMTx) || IsTerminalTTY(m.pamMTx)
 	rendersQrCode := m.isQrcodeRenderingSupported()
+	supportsQrCode := m.serviceName != polkitServiceName
 
 	return func() tea.Msg {
 		required, optional := layouts.Required, layouts.Optional
@@ -100,7 +101,7 @@ func (m *nativeModel) Init() tea.Cmd {
 			entries.DigitsPassword,
 		)
 
-		return supportedUILayoutsReceived{
+		supportedLayouts := supportedUILayoutsReceived{
 			layouts: []*authd.UILayout{
 				{
 					Type:   layouts.Form,
@@ -110,15 +111,6 @@ func (m *nativeModel) Init() tea.Cmd {
 					Button: &optional,
 				},
 				{
-					Type:          layouts.QrCode,
-					Content:       &required,
-					Code:          &optional,
-					Wait:          &layouts.RequiredWithBooleans,
-					Label:         &optional,
-					Button:        &optional,
-					RendersQrcode: &rendersQrCode,
-				},
-				{
 					Type:   layouts.NewPassword,
 					Label:  &required,
 					Entry:  &supportedEntries,
@@ -126,6 +118,20 @@ func (m *nativeModel) Init() tea.Cmd {
 				},
 			},
 		}
+
+		if supportsQrCode {
+			supportedLayouts.layouts = append(supportedLayouts.layouts, &authd.UILayout{
+				Type:          layouts.QrCode,
+				Content:       &required,
+				Code:          &optional,
+				Wait:          &layouts.RequiredWithBooleans,
+				Label:         &optional,
+				Button:        &optional,
+				RendersQrcode: &rendersQrCode,
+			})
+		}
+
+		return supportedLayouts
 	}
 }
 

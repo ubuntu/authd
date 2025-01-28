@@ -124,6 +124,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		"Authenticate_user_with_form_mode_with_button": {
 			tape:         "form_with_button",
 			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
+			tapeVariables: map[string]string{
+				"AUTHD_FORM_BUTTON_TAPE_ITEM": "8",
+			},
 		},
 		"Authenticate_user_with_qr_code": {
 			tape:         "qr_code",

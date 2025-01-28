@@ -66,6 +66,17 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Authenticate_user_with_form_mode_with_button": {
 			tape:         "form_with_button",
 			tapeSettings: []tapeSetting{{vhsHeight, 700}},
+			tapeVariables: map[string]string{
+				"AUTHD_FORM_BUTTON_TAPE_ITEM": "8",
+			},
+		},
+		"Authenticate_user_with_form_mode_with_button_in_polkit": {
+			tape:          "form_with_button",
+			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
+			clientOptions: clientOptions{PamServiceName: "polkit-1"},
+			tapeVariables: map[string]string{
+				"AUTHD_FORM_BUTTON_TAPE_ITEM": "7",
+			},
 		},
 		"Authenticate_user_with_qr_code": {
 			tape:         "qr_code",
@@ -106,17 +117,6 @@ func TestNativeAuthenticate(t *testing.T) {
 			},
 			clientOptions: clientOptions{
 				Term: "screen",
-			},
-		},
-		"Authenticate_user_with_qr_code_in_polkit": {
-			tape:         "qr_code",
-			tapeSettings: []tapeSetting{{vhsHeight, 3500}},
-			tapeVariables: map[string]string{
-				"AUTHD_QRCODE_TAPE_ITEM":      "2",
-				"AUTHD_QRCODE_TAPE_ITEM_NAME": "Login code",
-			},
-			clientOptions: clientOptions{
-				PamServiceName: "polkit-1",
 			},
 		},
 		"Authenticate_user_with_qr_code_in_ssh": {
