@@ -484,8 +484,8 @@ func TestDeleteUser(t *testing.T) {
 		wantErr     bool
 		wantErrType error
 	}{
-		"Delete_existing_user":                            {dbFile: "one_user_and_group"},
-		"Delete_existing_user_keeping_other_users_intact": {dbFile: "multiple_users_and_groups"},
+		"Deleting_last_user_from_a_group_keeps_the_group_record":  {dbFile: "one_user_and_group"},
+		"Deleting_existing_user_keeps_other_group_members_intact": {dbFile: "multiple_users_and_groups"},
 
 		"Error_on_missing_user":           {wantErrType: cache.NoDataFoundError{}},
 		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_userByID", wantErr: true},

@@ -41,34 +41,10 @@ func deleteUserFromGroup(buckets map[string]bucketWithName, uid, gid uint32) err
 	}
 
 	groupToUsers.UIDs = slices.DeleteFunc(groupToUsers.UIDs, func(id uint32) bool { return id == uid })
-	if len(groupToUsers.UIDs) > 0 {
-		// Update the group entry with the new list of UIDs
-		updateBucket(buckets[groupToUsersBucketName], gid, groupToUsers)
-		return nil
-	}
 
-	// We now need to delete this group with no remaining user.
-	// We need the group.Name to delete from groupByName bucket.
-	group, err := getFromBucket[GroupDB](buckets[groupByIDBucketName], gid)
-	if err != nil {
-		return err
-	}
+	// Update the group entry with the new list of UIDs
+	updateBucket(buckets[groupToUsersBucketName], gid, groupToUsers)
 
-	gidKey := []byte(strconv.FormatUint(uint64(gid), 10))
-	// Delete group
-	// Delete calls fail if the transaction is read only, so we should panic if this function is called in that context.
-	if err = buckets[groupToUsersBucketName].Delete(gidKey); err != nil {
-		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
-	}
-	if err = buckets[groupByIDBucketName].Delete(gidKey); err != nil {
-		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
-	}
-	if err = buckets[groupByNameBucketName].Delete([]byte(group.Name)); err != nil {
-		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
-	}
-	if err = buckets[groupByUGIDBucketName].Delete([]byte(group.UGID)); err != nil {
-		panic(fmt.Sprintf("programming error: delete is not allowed in a RO transaction: %v", err))
-	}
 	return nil
 }
 

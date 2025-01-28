@@ -216,7 +216,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 
 	// Update local groups.
 	if err := localentries.Update(u.Name, localGroups, oldLocalGroups); err != nil {
-		return errors.Join(err, m.cache.DeleteUser(uid))
+		return err
 	}
 
 	if err = checkHomeDirOwnership(userDB.Dir, userDB.UID, userDB.GID); err != nil {

@@ -1,10 +1,21 @@
-GroupByID: {}
-GroupByName: {}
-GroupByUGID: {}
-GroupToUsers: {}
-UserByID: {}
-UserByName: {}
+GroupByID:
+    "1111": '{"Name":"TestIsAuthenticated/Error_on_updating_local_groups_with_unexisting_file_separator_success_with_local_groups","GID":1111,"UGID":"TestIsAuthenticated/Error_on_updating_local_groups_with_unexisting_file_separator_success_with_local_groups"}'
+    "2222": '{"Name":"group-success_with_local_groups","GID":2222,"UGID":"ugid-success_with_local_groups"}'
+GroupByName:
+    TestIsAuthenticated/Error_on_updating_local_groups_with_unexisting_file_separator_success_with_local_groups: '{"Name":"TestIsAuthenticated/Error_on_updating_local_groups_with_unexisting_file_separator_success_with_local_groups","GID":1111,"UGID":"TestIsAuthenticated/Error_on_updating_local_groups_with_unexisting_file_separator_success_with_local_groups"}'
+    group-success_with_local_groups: '{"Name":"group-success_with_local_groups","GID":2222,"UGID":"ugid-success_with_local_groups"}'
+GroupByUGID:
+    TestIsAuthenticated/Error_on_updating_local_groups_with_unexisting_file_separator_success_with_local_groups: '{"Name":"TestIsAuthenticated/Error_on_updating_local_groups_with_unexisting_file_separator_success_with_local_groups","GID":1111,"UGID":"TestIsAuthenticated/Error_on_updating_local_groups_with_unexisting_file_separator_success_with_local_groups"}'
+    ugid-success_with_local_groups: '{"Name":"group-success_with_local_groups","GID":2222,"UGID":"ugid-success_with_local_groups"}'
+GroupToUsers:
+    "1111": '{"GID":1111,"UIDs":[1111]}'
+    "2222": '{"GID":2222,"UIDs":[1111]}'
+UserByID:
+    "1111": '{"Name":"TestIsAuthenticated/Error_on_updating_local_groups_with_unexisting_file_separator_success_with_local_groups","UID":1111,"GID":1111,"Gecos":"gecos for success_with_local_groups","Dir":"/home/success_with_local_groups","Shell":"/bin/sh/success_with_local_groups","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+UserByName:
+    TestIsAuthenticated/Error_on_updating_local_groups_with_unexisting_file_separator_success_with_local_groups: '{"Name":"TestIsAuthenticated/Error_on_updating_local_groups_with_unexisting_file_separator_success_with_local_groups","UID":1111,"GID":1111,"Gecos":"gecos for success_with_local_groups","Dir":"/home/success_with_local_groups","Shell":"/bin/sh/success_with_local_groups","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
 UserToBroker: {}
-UserToGroups: {}
+UserToGroups:
+    "1111": '{"UID":1111,"GIDs":[1111,2222]}'
 UserToLocalGroups:
     "1111": '["localgroup1","localgroup3"]'

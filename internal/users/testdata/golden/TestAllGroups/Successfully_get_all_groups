@@ -21,6 +21,8 @@
 - name: commongroup
   gid: 99999
   users:
+    - user1
     - user2
     - user3
+    - userwithoutbroker
   passwd: ""
