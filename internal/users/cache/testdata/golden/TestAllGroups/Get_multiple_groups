@@ -22,5 +22,7 @@
   gid: 99999
   ugid: "87654321"
   users:
+    - user1
     - user2
     - user3
+    - userwithoutbroker
