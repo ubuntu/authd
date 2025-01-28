@@ -47,9 +47,11 @@ jobs:
             git
             libssl-dev
           extra-source-build-script: |
-            cargo install --locked --root=/usr \
-              cargo-vendor-filterer@${{ env.CARGO_VENDOR_FILTERER_VERSION }}
-            command -v cargo-vendor-filterer
+            if [ "${{ matrix.ubuntu-version }}" == noble ]; then
+              cargo install --locked --root=/usr \
+                cargo-vendor-filterer@${{ env.CARGO_VENDOR_FILTERER_VERSION }}
+              command -v cargo-vendor-filterer
+            fi
 
   check-modified-files:
     name: Check modified files

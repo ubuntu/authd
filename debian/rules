@@ -1,12 +1,13 @@
 #!/usr/bin/make -f
 #export DH_VERBOSE = 1
 
+include /usr/share/dpkg/pkg-info.mk
 include /usr/share/rustc/architecture.mk
 
 # The package name for authd, used only locally to avoid repetitions
 AUTHD_GO_PACKAGE := $(shell grep-dctrl -s XS-Go-Import-Path -n - ./debian/control)
 
-export GOFLAGS := -ldflags=-X=$(AUTHD_GO_PACKAGE)/internal/consts.Version=$(shell dpkg-parsechangelog -S Version) --mod=vendor -buildmode=pie
+export GOFLAGS := -ldflags=-X=$(AUTHD_GO_PACKAGE)/internal/consts.Version=$(DEB_VERSION_UPSTREAM) --mod=vendor -buildmode=pie
 
 export DEB_BUILD_MAINT_OPTIONS := optimize=-lto
 
@@ -24,7 +25,6 @@ export GOTOOLCHAIN := local
 export CARGO_PATH := /usr/share/cargo/bin/cargo
 
 # Needed for Rust vendored sources tracking
-export DH_CARGO_VENDORED_SOURCES := /usr/share/cargo/bin/dh-cargo-vendored-sources
 export CARGO_VENDOR_DIR := $(CURDIR)/vendor_rust
 
 # Needed for Rust configure/build/test stages
@@ -80,7 +80,16 @@ override_dh_auto_configure:
 	dh_auto_configure
 
 	touch debian/cargo-checksum.json
-	dh_auto_configure --buildsystem=cargo
+
+	# Go manual if cargo-vendor-filterer is not around, otherwise dh-cargo will
+	# ensure that what we've filtered won't be still listed in debian/control.
+	# TODO: Drop this when we won't care about noble anymore.
+	if ! command -v cargo-vendor-filterer 2>/dev/null; then \
+		env DEB_CARGO_CRATE="$(DEB_SOURCE)_$(DEB_VERSION_UPSTREAM)" \
+		  $(CARGO_PATH) prepare-debian "$(CARGO_VENDOR_DIR)"; \
+	else \
+		dh_auto_configure --buildsystem=cargo; \
+	fi
 
 	for i in debian/*.service.in debian/pam-configs/*.in; do \
 		sed s,@AUTHD_DAEMONS_PATH@,$(AUTHD_DAEMONS_PATH),g $$i > $${i%.*}; \
