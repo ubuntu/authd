@@ -96,12 +96,12 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Or enter 'r' to go back to choose the provider
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
@@ -130,12 +130,12 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Or enter 'r' to go back to choose the provider
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
@@ -164,22 +164,22 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Or enter 'r' to go back to choose the provider
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.fr/
        1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
@@ -208,22 +208,22 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Or enter 'r' to go back to choose the provider
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.fr/
        1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
@@ -252,32 +252,32 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Or enter 'r' to go back to choose the provider
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.fr/
        1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
@@ -306,32 +306,32 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Or enter 'r' to go back to choose the provider
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.fr/
        1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
@@ -360,42 +360,42 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Or enter 'r' to go back to choose the provider
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.fr/
        1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
@@ -424,42 +424,42 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Or enter 'r' to go back to choose the provider
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.fr/
        1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
@@ -488,52 +488,52 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Or enter 'r' to go back to choose the provider
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.fr/
        1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1341
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
@@ -562,52 +562,52 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Or enter 'r' to go back to choose the provider
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.fr/
        1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1341
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
@@ -636,52 +636,52 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Or enter 'r' to go back to choose the provider
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose your authentication method:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1337
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.fr/
        1338
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntuforum-br.org/
            1339
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://www.ubuntu-it.org/
            1340
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
 > 2
-== Qr Code authentication ==
+== Use a Login code ==
 Enter the code in the login page
 https://ubuntu.com
        1341
 
-  1. Wait for the QR code scan result
+  1. Wait for authentication result
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-authenticate-user-with-qr-code-on-shared-sshd@localhost) Choose action:
