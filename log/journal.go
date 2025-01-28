@@ -31,6 +31,9 @@ func mapPriority(level Level) journal.Priority {
 	if level <= InfoLevel {
 		return journal.PriInfo
 	}
+	if level <= NoticeLevel {
+		return journal.PriNotice
+	}
 	if level <= WarnLevel {
 		return journal.PriWarning
 	}
