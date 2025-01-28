@@ -18,6 +18,7 @@ import (
 	"maps"
 	"math"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -62,9 +63,10 @@ type sessionInfo struct {
 	lang        string
 	sessionMode string
 
-	currentAuthMode string
-	allModes        map[string]authMode
-	attemptsPerMode map[string]int
+	currentAuthMode      string
+	allModes             map[string]authMode
+	acceptedAuthModesIDs []string
+	attemptsPerMode      map[string]int
 
 	pwdChange passwdReset
 
@@ -325,6 +327,16 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
 	}
 
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationAuthModesPrefix) {
+		r := regexp.MustCompile(UserIntegrationAuthModesPrefix + `([\w-,]+)-integration`)
+		if matches := r.FindStringSubmatch(username); len(matches) > 1 {
+			exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+			info.acceptedAuthModesIDs = strings.Split(matches[1], ",")
+			log.Debugf(context.Background(), "%q accepts authentication mode IDs: %v",
+				username, info.acceptedAuthModesIDs)
+		}
+	}
+
 	if info.sessionMode == auth.SessionModePasswd {
 		info.neededAuthSteps++
 		info.pwdChange = mustReset
@@ -365,6 +377,12 @@ func (b *Broker) GetAuthenticationModes(ctx context.Context, sessionID string, s
 		if sessionInfo.pwdChange == mustReset && len(allModes) == 0 {
 			return nil, fmt.Errorf("user %q must reset password, but no mode was provided for it", sessionInfo.username)
 		}
+	}
+
+	if sessionInfo.acceptedAuthModesIDs != nil {
+		maps.DeleteFunc(allModes, func(id string, mode authMode) bool {
+			return !slices.Contains(sessionInfo.acceptedAuthModesIDs, id)
+		})
 	}
 
 	b.userLastSelectedModeMu.Lock()

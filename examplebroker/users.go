@@ -47,4 +47,7 @@ const (
 	UserIntegrationPreCheckPrefix = UserIntegrationPrefix + UserIntegrationPreCheckValue + "-"
 	// UserIntegrationUnexistent is an unexistent user leading to a non-existent user error.
 	UserIntegrationUnexistent = "user-unexistent"
+	// UserIntegrationAuthModesPrefix is the prefix for an user listing for supported auth modes.
+	// The modes can be exposed as list, in the form: `user-auth-modes-id1,id2,id3-integration-whatever`.
+	UserIntegrationAuthModesPrefix = "user-auth-modes-"
 )

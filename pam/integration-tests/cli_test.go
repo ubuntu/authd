@@ -56,6 +56,12 @@ func TestCLIAuthenticate(t *testing.T) {
 			},
 			clientOptions: clientOptions{PamTimeout: "invalid"},
 		},
+		"Authenticate_user_successfully_with_password_only_supported_method": {
+			tape: "simple_auth",
+			tapeVariables: map[string]string{
+				"AUTHD_SIMPLE_AUTH_TAPE_USER": examplebroker.UserIntegrationAuthModesPrefix + "password-integration-cli",
+			},
+		},
 		"Authenticate_user_successfully_after_trying_empty_user": {
 			tape: "simple_auth_empty_user",
 		},

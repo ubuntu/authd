@@ -56,6 +56,12 @@ func TestNativeAuthenticate(t *testing.T) {
 				PamTimeout: "invalid",
 			},
 		},
+		"Authenticate_user_successfully_with_password_only_supported_method": {
+			tape: "simple_auth",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationAuthModesPrefix + "password-integration-native",
+			},
+		},
 		"Authenticate_user_with_mfa": {
 			tape:         "mfa_auth",
 			tapeSettings: []tapeSetting{{vhsHeight, 1200}},
@@ -68,6 +74,16 @@ func TestNativeAuthenticate(t *testing.T) {
 			tapeSettings: []tapeSetting{{vhsHeight, 700}},
 			tapeVariables: map[string]string{
 				"AUTHD_FORM_BUTTON_TAPE_ITEM": "8",
+			},
+		},
+		"Authenticate_user_with_form_mode_with_button_two_supported_methods": {
+			tape: "form_with_button",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationAuthModesPrefix + "totp_with_button,password-integration-native",
+			},
+			tapeSettings: []tapeSetting{{vhsHeight, 700}},
+			tapeVariables: map[string]string{
+				"AUTHD_FORM_BUTTON_TAPE_ITEM": "2",
 			},
 		},
 		"Authenticate_user_with_form_mode_with_button_in_polkit": {
