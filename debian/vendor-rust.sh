@@ -3,7 +3,7 @@ set -eu
 
 CARGO_HOME=${DEB_CARGO_HOME:-$(mktemp --tmpdir -d -t "cargo-home-XXXXXX")}
 export CARGO_HOME
-trap 'rm -rf "$CARGO_HOME"' EXIT INT HUP
+trap '[ -z "${DEB_CARGO_HOME:-}" ] && rm -rf "$CARGO_HOME"' EXIT INT HUP
 
 # We need a filtered vendored directory
 if [ ! $(which cargo-vendor-filterer) ]; then
