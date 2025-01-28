@@ -13,7 +13,7 @@ const (
 	TEXTDOMAIN = "adsys"
 
 	// DefaultLogLevel is the default logging level selected without any option.
-	DefaultLogLevel = log.WarnLevel
+	DefaultLogLevel = log.NoticeLevel
 
 	// DefaultSocketPath is the default socket path.
 	DefaultSocketPath = "/run/authd.sock"
