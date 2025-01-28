@@ -15,47 +15,98 @@ permissions:
 # When adding more jobs, make sure to use the "needs:" attribute to make sure they run sequentially.
 jobs:
   update-rust-packaging:
-    name: Update packaging related Rust files
-    runs-on: ubuntu-24.04 # ubuntu-latest-runner
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: [main]
+        ubuntu-version: [devel]
+        include:
+          - branch: noble
+            ubuntu-version: noble
+
+    name: Update ${{ matrix.ubuntu-version }} packaging related Rust files
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:${{ matrix.ubuntu-version }}
+      env:
+        CARGO_VENDOR_DIR: ${{ github.workspace }}/vendor_rust
+        UPDATE_BRANCH: auto-update-rust-packaging-${{ matrix.ubuntu-version }}
     steps:
       - name: Install dependencies
         env:
           DEBIAN_FRONTEND: noninteractive
+          CARGO_VENDOR_FILTERER_NOBLE_VERSION: 0.5.16
+        shell: bash
         run: |
-          sudo apt update
-          sudo apt install cargo dh-cargo git jq
-      - uses: actions/checkout@v4
+          set -euo pipefail
+
+          apt update -y
+          apt install -y dh-cargo git
+
+          if [ "${{ matrix.ubuntu-version }}" = "noble" ]; then
+            # Special behavior on noble as dh-cargo is not new enough there
+            apt install -y libssl-dev pkg-config
+            cargo install --locked --root=/usr \
+              cargo-vendor-filterer@${{ env.CARGO_VENDOR_FILTERER_NOBLE_VERSION }}
+          else
+            apt install -y cargo-vendor-filterer
+          fi
+
+      - name: Checkout the code
+        uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ matrix.branch }}
+
       - name: Vendor the dependencies
+        env:
+          CARGO_PATH: /usr/share/cargo/bin/cargo
+        shell: bash
         run: |
-          cargo vendor vendor_rust/
+          set -euo pipefail
+
+          sh -x debian/vendor-rust.sh
+
       - name: Update XS-Vendored-Sources-Rust
         shell: bash
         run: |
-          set -eu
+          set -euo pipefail
 
-          export CARGO_VENDOR_DIR=vendor_rust/
-          VENDORED_SOURCES=$(/usr/share/cargo/bin/dh-cargo-vendored-sources 2>&1 || true)
+          VENDORED_SOURCES=$(/usr/share/cargo/bin/dh-cargo-vendored-sources 2>&1) \
+            || cmd_status=$?
           OUTPUT=$(echo "$VENDORED_SOURCES" | grep ^XS-Vendored-Sources-Rust: || true)
-          if [ -z "$OUTPUT" ]; then
+          if [ -z "${OUTPUT}" ]; then
+            if [ "${cmd_status:-0}" -ne 0 ]; then
+              # dh-cargo-vendored-sources failed because of other reason, so let's fail with it!
+              echo "dh-cargo-vendored-sources failed:"
+              echo "${VENDORED_SOURCES}"
+              exit "${cmd_status}"
+            fi
+
             echo "XS-Vendored-Sources-Rust is up to date. No change is needed.";
             exit 0
           fi
           sed -i "s/^XS-Vendored-Sources-Rust:.*/$OUTPUT/" debian/control
 
-          echo "modified=true" >> $GITHUB_ENV
+          echo "modified=true" >> "${GITHUB_ENV}"
+          echo "update_branch=${UPDATE_BRANCH}" >> "${GITHUB_ENV}"
+
       - name: Create Pull Request
         if: ${{ env.modified == 'true' }}
         uses: peter-evans/create-pull-request@v7
         with:
           commit-message: Auto update packaging related Rust files
-          title: Auto update packaging related Rust files
+          title: |
+            [${{ matrix.ubuntu-version }}] Auto update packaging related Rust files
           labels: control, automated pr
-          branch: auto-update-rust-packaging
+          branch: ${{ env.update_branch }}
           delete-branch: true
           token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Push branch
         if: ${{ env.modified == 'true' }}
+        shell: bash
         run: |
-          git push origin auto-update-rust-packaging:main
+          set -eu
+
+          git config --system --add safe.directory "${PWD}"
+          git push origin ${{ env.update_branch }}:${{ matrix.branch }}
