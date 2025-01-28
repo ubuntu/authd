@@ -196,6 +196,14 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		return m.startAsyncOp(m.userSelection)
 
 	case brokersListReceived:
+		if m.serviceName == polkitServiceName {
+			// Do not support using local broker in the polkit case.
+			// FIXME: This should be up to authd to keep a list of brokers based on service.
+			m.availableBrokers = slices.DeleteFunc(msg.brokers, func(b *authd.ABResponse_BrokerInfo) bool {
+				return b.Id == brokers.LocalBrokerName
+			})
+			return m, nil
+		}
 		m.availableBrokers = msg.brokers
 
 	case authModesReceived:

@@ -87,7 +87,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			},
 		},
 		"Authenticate_user_with_form_mode_with_button_in_polkit": {
-			tape:          "form_with_button",
+			tape:          "form_with_button_polkit",
 			tapeSettings:  []tapeSetting{{vhsHeight, 700}},
 			clientOptions: clientOptions{PamServiceName: "polkit-1"},
 			tapeVariables: map[string]string{
