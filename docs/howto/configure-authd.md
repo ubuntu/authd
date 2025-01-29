@@ -145,7 +145,7 @@ Explicitly setting an empty owner, has the same effect as omitting the `OWNER` k
 in `allowed_users`:
 
 ```text
-owner =
+owner = ""
 ```
 
 ## Restart the broker
