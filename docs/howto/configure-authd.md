@@ -128,14 +128,14 @@ identity provider) are configured in the `users` section of the
 
 By default, the first person to log in to the machine is automatically registered
 as the owner. If you wish to override this behavior then specify a list of allowed
-users with the `allowed_users` keyword, while omitting the `OWNER` keyword:
+users with the `allowed_users` option, while omitting the `OWNER` keyword:
 
 ```text
 allowed_users = person1@email.com,person2@email.com
 ```
 
 Alternatively, you can directly register someone as the owner by using the `owner`
-keyword:
+option:
 
 ```text
 owner = your@email.com
