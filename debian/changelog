@@ -1,4 +1,4 @@
-authd (0.4.0) UNRELEASED; urgency=medium
+authd (0.4.0) plucky; urgency=medium
 
   * Generate random UIDs and GIDs. This fixes an issue which can lead to login
     failing because of UID/GID collisions.
