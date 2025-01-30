@@ -1,10 +1,10 @@
-authd (0.4.1) plucky; urgency=medium
+authd (0.4.1) noble; urgency=medium
 
   * New Launchpad upload
 
  --  <adrian.dombeck@canonical.com>  Thu, 30 Jan 2025 15:06:09 +0100
 
-authd (0.4.0) plucky; urgency=medium
+authd (0.4.0) noble; urgency=medium
 
   * Generate random UIDs and GIDs. This fixes an issue which can lead to login
     failing because of UID/GID collisions.
