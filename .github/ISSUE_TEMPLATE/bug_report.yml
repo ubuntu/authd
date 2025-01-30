@@ -98,16 +98,16 @@ body:
         \`\`\`
 
         #### authd broker configuration
-        $(if ! find /etc/authd/brokers.d -name '*.conf' | grep -q .; then echo ":warning: No config files in /etc/authd/brokers.d/"; else for f in /etc/authd/brokers.d/*.conf; do echo "#### $f"; echo "\`\`\`";  cat $f; echo "\`\`\`"; done; fi)
+        $(sudo sh -c 'if ! find /etc/authd/brokers.d -name \*.conf | grep -q .; then echo ":warning: No config files in /etc/authd/brokers.d/"; else for f in /etc/authd/brokers.d/*.conf; do echo "#### $f"; echo "\`\`\`";  cat $f; echo "\`\`\`"; done; fi')
 
         #### authd-msentraid configuration
         \`\`\`
-        $(cat 2>&1 /var/snap/authd-msentraid/current/broker.conf | sed -E 's/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/<UUID redacted>/g')
+        $(sudo cat 2>&1 /var/snap/authd-msentraid/current/broker.conf | sed -E 's/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/<UUID redacted>/g')
         \`\`\`
 
         #### authd-google configuration
         \`\`\`
-        $(cat 2>&1 /var/snap/authd-google/current/broker.conf | sed -E 's/client_id = .*/client_id = <redacted>/g' | sed -E 's/client_secret = .*/client_secret = <redacted>/g')
+        $(sudo cat 2>&1 /var/snap/authd-google/current/broker.conf | sed -E 's/client_id = .*/client_id = <redacted>/g' | sed -E 's/client_secret = .*/client_secret = <redacted>/g')
         \`\`\`
 
         EOF

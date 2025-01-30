@@ -1,3 +1,43 @@
+authd (0.4.1) plucky; urgency=medium
+
+  * New Launchpad upload
+
+ --  <adrian.dombeck@canonical.com>  Thu, 30 Jan 2025 15:06:09 +0100
+
+authd (0.4.0) plucky; urgency=medium
+
+  * Generate random UIDs and GIDs. This fixes an issue which can lead to login
+    failing because of UID/GID collisions.
+  * Fix login with non-authd user failing when authd is unavailable
+  * Fix login failing if a group has been renamed on the provider's end
+  * Avoid creating users or groups which already exist (with the same name,
+    but different UID/GID) on the system.
+  * Use more restrictive sandboxing for the authd systemd service
+  * Use journal native protocol to print nice log messages to the systemd journal
+  * Update Go dependencies:
+    - toolchain go1.23.5
+    - github.com/charmbracelet/x/term v0.2.1
+    - github.com/coreos/go-systemd/v22 v22.5.0
+    - github.com/otiai10/copy v1.14.1
+    - golang.org/x/sys v0.29.0
+    - golang.org/x/term v0.28.0
+    - google.golang.org/grpc v1.70.0
+    - google.golang.org/protobuf v1.36.4
+    - github.com/otiai10/mint v1.6.3 // indirect
+    - golang.org/x/net v0.34.0 // indirect
+    - golang.org/x/sync v0.10.0 // indirect
+    - golang.org/x/text v0.21.0 // indirect
+    - google.golang.org/genproto/googleapis/rpc v0.0.0-20241202173237-19429a94021a // indirect
+  * Update Rust dependencies:
+    - cc ^1.2.2
+    - libc ^0.2.167
+    - log ^0.4.22
+    - prost ^0.13.3
+    - rustix ^0.38.41
+    - tokio ^1.42.0
+
+ --  <adrian.dombeck@canonical.com>  Wed, 22 Jan 2025 14:07:49 +0100
+
 authd (0.3.7) noble; urgency=medium
 
   * Change database directory from /var/cache/authd to /var/lib/authd.
