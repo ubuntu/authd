@@ -30,6 +30,9 @@ const (
 	ErrorLevel = slog.LevelError
 	// WarnLevel level. Non-critical entries that deserve eyes.
 	WarnLevel = slog.LevelWarn
+	// NoticeLevel level. Normal but significant conditions. Conditions that are not error conditions, but that may
+	// require special handling. slog doesn't have a Notice level, so we use the average between Info and Warn.
+	NoticeLevel = (slog.LevelInfo + slog.LevelWarn) / 2
 	// InfoLevel level. General operational entries about what's going on inside the application.
 	InfoLevel = slog.LevelInfo
 	// DebugLevel level. Usually only enabled when debugging. Very verbose logging.
@@ -43,17 +46,20 @@ func logFuncAdapter(slogFunc func(ctx context.Context, msg string, args ...inter
 }
 
 var allLevels = []slog.Level{
-	slog.LevelDebug,
-	slog.LevelInfo,
-	slog.LevelWarn,
-	slog.LevelError,
+	DebugLevel,
+	InfoLevel,
+	NoticeLevel,
+	WarnLevel,
+	ErrorLevel,
 }
 
 var defaultHandlers = map[Level]Handler{
 	DebugLevel: logFuncAdapter(slog.DebugContext),
 	InfoLevel:  logFuncAdapter(slog.InfoContext),
-	WarnLevel:  logFuncAdapter(slog.WarnContext),
-	ErrorLevel: logFuncAdapter(slog.ErrorContext),
+	// slog doesn't have a Notice level, so in the default handler, we use Warn instead.
+	NoticeLevel: logFuncAdapter(slog.WarnContext),
+	WarnLevel:   logFuncAdapter(slog.WarnContext),
+	ErrorLevel:  logFuncAdapter(slog.ErrorContext),
 }
 var handlers = maps.Clone(defaultHandlers)
 var handlersMu = sync.RWMutex{}
@@ -164,6 +170,18 @@ func Info(context context.Context, args ...interface{}) {
 // configured logging handler.
 func Infof(context context.Context, format string, args ...interface{}) {
 	logf(context, InfoLevel, format, args...)
+}
+
+// Notice outputs messages with the level [NoticeLevel] (when that is enabled) using the
+// configured logging handler.
+func Notice(context context.Context, args ...interface{}) {
+	log(context, NoticeLevel, args...)
+}
+
+// Noticef outputs messages with the level [NoticeLevel] (when that is enabled) using the
+// configured logging handler.
+func Noticef(context context.Context, format string, args ...interface{}) {
+	logf(context, NoticeLevel, format, args...)
 }
 
 // Warning outputs messages with the level [WarningLevel] (when that is enabled) using the

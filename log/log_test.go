@@ -12,6 +12,7 @@ import (
 var supportedLevels = []log.Level{
 	log.DebugLevel,
 	log.InfoLevel,
+	log.NoticeLevel,
 	log.WarnLevel,
 	log.ErrorLevel,
 }
@@ -38,6 +39,8 @@ func callLogHandler(ctx context.Context, level log.Level, args ...any) {
 		log.Error(ctx, args...)
 	case log.WarnLevel:
 		log.Warning(ctx, args...)
+	case log.NoticeLevel:
+		log.Notice(ctx, args...)
 	case log.InfoLevel:
 		log.Info(ctx, args...)
 	case log.DebugLevel:
@@ -51,6 +54,8 @@ func callLogHandlerf(ctx context.Context, level log.Level, format string, args .
 		log.Errorf(ctx, format, args...)
 	case log.WarnLevel:
 		log.Warningf(ctx, format, args...)
+	case log.NoticeLevel:
+		log.Noticef(ctx, format, args...)
 	case log.InfoLevel:
 		log.Infof(ctx, format, args...)
 	case log.DebugLevel:
