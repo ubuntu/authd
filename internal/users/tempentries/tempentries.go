@@ -11,7 +11,7 @@ import (
 	"github.com/ubuntu/authd/log"
 )
 
-// NoDataFoundError is the error returned when no entry is found in the cache.
+// NoDataFoundError is the error returned when no entry is found in the database.
 type NoDataFoundError = db.NoDataFoundError
 
 // IDGenerator is the interface that must be implemented by the ID generator.

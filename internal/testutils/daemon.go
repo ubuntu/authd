@@ -20,7 +20,7 @@ import (
 )
 
 type daemonOptions struct {
-	cachePath  string
+	dbPath     string
 	existentDB string
 	socketPath string
 	pidFile    string
@@ -30,14 +30,14 @@ type daemonOptions struct {
 // DaemonOption represents an optional function that can be used to override some of the daemon default values.
 type DaemonOption func(*daemonOptions)
 
-// WithCachePath overrides the default cache path of the daemon.
-func WithCachePath(path string) DaemonOption {
+// WithDBPath overrides the default database path of the daemon.
+func WithDBPath(path string) DaemonOption {
 	return func(o *daemonOptions) {
-		o.cachePath = path
+		o.dbPath = path
 	}
 }
 
-// WithPreviousDBState initializes the cache of the daemon with a preexistent database.
+// WithPreviousDBState initializes the database of the daemon with a preexistent database.
 func WithPreviousDBState(db string) DaemonOption {
 	return func(o *daemonOptions) {
 		o.existentDB = db
@@ -80,13 +80,13 @@ func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...Daemo
 	tempDir, err := os.MkdirTemp("", "authd-daemon4tests")
 	require.NoError(t, err, "Setup: failed to create temp dir for tests")
 
-	if opts.cachePath == "" {
-		opts.cachePath = filepath.Join(tempDir, "cache")
-		require.NoError(t, os.MkdirAll(opts.cachePath, 0700), "Setup: failed to create cache dir")
+	if opts.dbPath == "" {
+		opts.dbPath = filepath.Join(tempDir, "db")
+		require.NoError(t, os.MkdirAll(opts.dbPath, 0700), "Setup: failed to create database dir")
 	}
 
 	if opts.existentDB != "" {
-		db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", opts.existentDB+".db.yaml"), opts.cachePath)
+		db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", opts.existentDB+".db.yaml"), opts.dbPath)
 	}
 
 	if opts.socketPath == "" {
@@ -96,9 +96,9 @@ func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...Daemo
 	config := fmt.Sprintf(`
 verbosity: 2
 paths:
-  cache: %s
+  database: %s
   socket: %s
-`, opts.cachePath, opts.socketPath)
+`, opts.dbPath, opts.socketPath)
 
 	configPath := filepath.Join(tempDir, "testconfig.yaml")
 	require.NoError(t, os.WriteFile(configPath, []byte(config), 0600), "Setup: failed to create config file for tests")

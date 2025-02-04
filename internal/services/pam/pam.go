@@ -60,20 +60,20 @@ func (s Service) AvailableBrokers(ctx context.Context, _ *authd.Empty) (*authd.A
 }
 
 // GetPreviousBroker returns the previous broker set for a given user, if any.
-// If the user is not in our cache, it will try to check if it’s on the system, and return then "local".
+// If the user is not in our cache/database, it will try to check if it’s on the system, and return then "local".
 func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (*authd.GPBResponse, error) {
 	// Use in memory cache first
 	if b := s.brokerManager.BrokerForUser(req.GetUsername()); b != nil {
 		return &authd.GPBResponse{PreviousBroker: b.ID}, nil
 	}
 
-	// Load from database cache.
+	// Load from database.
 	brokerID, err := s.userManager.BrokerForUser(req.GetUsername())
-	// User is not in our cache.
+	// User is not in our database.
 	if err != nil && errors.Is(err, users.NoDataFoundError{}) {
 		// FIXME: this part will not be here in the v2 API version, as we won’t have GetPreviousBroker and handle
 		// autoselection silently in authd.
-		// User not in cache, if there is only the local broker available, return this one without saving it.
+		// User not in database, if there is only the local broker available, return this one without saving it.
 		if len(s.brokerManager.AvailableBrokers()) == 1 {
 			log.Debugf(ctx, "User %q is not handled by authd and only local broker: select it.", req.GetUsername())
 			return &authd.GPBResponse{PreviousBroker: brokers.LocalBrokerName}, nil
@@ -89,13 +89,13 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 		// service (passwd, winbind, sss…) is handling that user.
 		brokerID = brokers.LocalBrokerName
 	} else if err != nil {
-		log.Infof(ctx, "Could not get previous broker for user %q from cache: %v", req.GetUsername(), err)
+		log.Infof(ctx, "Could not get previous broker for user %q from database: %v", req.GetUsername(), err)
 		return &authd.GPBResponse{}, nil
 	}
 
-	// No error but the brokerID is empty (broker in cache but default broker not stored yet due no successful login)
+	// No error but the brokerID is empty (broker in database but default broker not stored yet due no successful login)
 	if brokerID == "" {
-		log.Infof(ctx, "No assigned broker for user %q from cache", req.GetUsername())
+		log.Infof(ctx, "No assigned broker for user %q from database", req.GetUsername())
 		return &authd.GPBResponse{}, nil
 	}
 
@@ -104,7 +104,7 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 		return &authd.GPBResponse{}, nil
 	}
 
-	// Cache the broker which should be used for the user, so that we don't have to query the database again next time -
+	// Database the broker which should be used for the user, so that we don't have to query the database again next time -
 	// except if the broker is the local broker, because then the decision to use the local broker should be made each
 	// time the user tries to log in, based on whether the user is provided by any other NSS service.
 	if brokerID == brokers.LocalBrokerName {

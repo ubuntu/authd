@@ -9,7 +9,7 @@ import (
 	"github.com/ubuntu/authd/log"
 )
 
-func migrateOldCacheDir(oldPath, newPath string) error {
+func migrateOldDBDir(oldPath, newPath string) error {
 	exists, err := fileutils.FileExists(oldPath)
 	if err != nil {
 		// Let's not fail if we can't access the old database dir, but log a warning

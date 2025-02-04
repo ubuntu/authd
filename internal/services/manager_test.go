@@ -23,7 +23,7 @@ import (
 
 func TestNewManager(t *testing.T) {
 	tests := map[string]struct {
-		cacheDir string
+		dbDir string
 
 		systemBusSocket string
 
@@ -31,19 +31,19 @@ func TestNewManager(t *testing.T) {
 	}{
 		"Successfully_create_the_manager": {},
 
-		"Error_when_can_not_create_cache":          {cacheDir: "doesnotexist", wantErr: true},
+		"Error_when_can_not_create_db":             {dbDir: "doesnotexist", wantErr: true},
 		"Error_when_can_not_create_broker_manager": {systemBusSocket: "doesnotexist", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			if tc.cacheDir == "" {
-				tc.cacheDir = t.TempDir()
+			if tc.dbDir == "" {
+				tc.dbDir = t.TempDir()
 			}
 			if tc.systemBusSocket != "" {
 				t.Setenv("DBUS_SYSTEM_BUS_ADDRESS", tc.systemBusSocket)
 			}
 
-			m, err := services.NewManager(context.Background(), tc.cacheDir, t.TempDir(), nil, users.DefaultConfig)
+			m, err := services.NewManager(context.Background(), tc.dbDir, t.TempDir(), nil, users.DefaultConfig)
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should have returned an error, but did not")
 				return

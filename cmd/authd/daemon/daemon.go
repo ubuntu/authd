@@ -33,7 +33,7 @@ type App struct {
 // only overriable for tests.
 type systemPaths struct {
 	BrokersConf string
-	Cache       string
+	Database    string
 	Socket      string
 }
 
@@ -65,7 +65,7 @@ func New() *App {
 			a.config = daemonConfig{
 				Paths: systemPaths{
 					BrokersConf: consts.DefaultBrokersConfPath,
-					Cache:       consts.DefaultCacheDir,
+					Database:    consts.DefaultDatabaseDir,
 					Socket:      "",
 				},
 				UsersConfig: users.DefaultConfig,
@@ -82,7 +82,7 @@ func New() *App {
 			setVerboseMode(a.config.Verbosity)
 			log.Debugf(context.Background(), "Verbosity: %d", a.config.Verbosity)
 
-			if err := migrateOldCacheDir(consts.OldCacheDir, a.config.Paths.Cache); err != nil {
+			if err := migrateOldDBDir(consts.OldDBDir, a.config.Paths.Database); err != nil {
 				return err
 			}
 
@@ -111,18 +111,18 @@ func New() *App {
 func (a *App) serve(config daemonConfig) error {
 	ctx := context.Background()
 
-	cacheDir := config.Paths.Cache
-	if err := ensureDirWithPerms(cacheDir, 0700); err != nil {
+	dbDir := config.Paths.Database
+	if err := ensureDirWithPerms(dbDir, 0700); err != nil {
 		close(a.ready)
-		return fmt.Errorf("error initializing cache directory at %q: %v", cacheDir, err)
+		return fmt.Errorf("error initializing database directory at %q: %v", dbDir, err)
 	}
 
-	m, err := services.NewManager(ctx, cacheDir, config.Paths.BrokersConf, config.Brokers, config.UsersConfig)
+	m, err := services.NewManager(ctx, dbDir, config.Paths.BrokersConf, config.Brokers, config.UsersConfig)
 	if err != nil {
 		close(a.ready)
 		return err
 	}
-	// We are closing the cache on exit.
+	// We are closing the database on exit.
 	defer func() { _ = m.Stop() }()
 
 	socketPath := config.Paths.Socket

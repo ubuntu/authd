@@ -38,11 +38,11 @@ func GenerateTestConfig(t *testing.T, origConf *daemonConfig) string {
 	if conf.Verbosity == 0 {
 		conf.Verbosity = 2
 	}
-	if conf.Paths.Cache == "" {
-		conf.Paths.Cache = t.TempDir()
+	if conf.Paths.Database == "" {
+		conf.Paths.Database = t.TempDir()
 		//nolint: gosec // This is a directory owned only by the current user for tests.
-		err := os.Chmod(conf.Paths.Cache, 0700)
-		require.NoError(t, err, "Setup: could not change permission on cache directory for tests")
+		err := os.Chmod(conf.Paths.Database, 0700)
+		require.NoError(t, err, "Setup: could not change permission on database directory for tests")
 	}
 	if conf.Paths.Socket == "" {
 		conf.Paths.Socket = filepath.Join(t.TempDir(), "authd.socket")

@@ -55,7 +55,7 @@ func TestGetPasswdByName(t *testing.T) {
 	}{
 		"Return_existing_user": {username: "user1"},
 
-		"Precheck_user_if_not_in_cache":                                          {username: "user-pre-check", shouldPreCheck: true},
+		"Precheck_user_if_not_in_db": {username: "user-pre-check", shouldPreCheck: true},
 		"Prechecked_user_with_upper_cases_in_username_has_same_id_as_lower_case": {username: "User-Pre-Check", shouldPreCheck: true},
 
 		"Error_in_database_fetched_content":                      {username: "user1", sourceDB: "invalid.db.yaml", wantErr: true},
@@ -63,12 +63,12 @@ func TestGetPasswdByName(t *testing.T) {
 		"Error_on_missing_name":                                  {wantErr: true},
 
 		"Error_in_database_fetched_content_does_not_trigger_precheck": {username: "user1", sourceDB: "invalid.db.yaml", shouldPreCheck: true, wantErr: true},
-		"Error_if_user_not_in_cache_and_precheck_is_disabled":         {username: "user-pre-check", wantErr: true, wantErrNotExists: true},
-		"Error_if_user_not_in_cache_and_precheck_fails":               {username: "does-not-exist", sourceDB: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
+		"Error_if_user_not_in_db_and_precheck_is_disabled":            {username: "user-pre-check", wantErr: true, wantErrNotExists: true},
+		"Error_if_user_not_in_db_and_precheck_fails":                  {username: "does-not-exist", sourceDB: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			// We don't care about gpasswd output here as it's already covered in the db unit tests.
 			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, false)
@@ -96,7 +96,7 @@ func TestGetPasswdByUID(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			// We don't care about gpasswd output here as it's already covered in the db unit tests.
 			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, false)
@@ -120,7 +120,7 @@ func TestGetPasswdEntries(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			// We don't care about gpasswd output here as it's already covered in the db unit tests.
 			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, false)
@@ -148,7 +148,7 @@ func TestGetGroupByName(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			// We don't care about gpasswd output here as it's already covered in the db unit tests.
 			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, false)
@@ -176,7 +176,7 @@ func TestGetGroupByGID(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			// We don't care about gpasswd output here as it's already covered in the db unit tests.
 			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, false)
@@ -200,7 +200,7 @@ func TestGetGroupEntries(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			// We don't care about gpasswd output here as it's already covered in the db unit tests.
 			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, false)
@@ -230,7 +230,7 @@ func TestGetShadowByName(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			// We don't care about gpasswd output here as it's already covered in the db unit tests.
 			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, tc.currentUserNotRoot)
@@ -256,7 +256,7 @@ func TestGetShadowEntries(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the cache unit tests.
+			// We don't care about gpasswd output here as it's already covered in the db unit tests.
 			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
 
 			client := newNSSClient(t, tc.sourceDB, tc.currentUserNotRoot)
@@ -271,7 +271,7 @@ func TestMockgpasswd(t *testing.T) {
 	localgroupstestutils.Mockgpasswd(t)
 }
 
-// newNSSClient returns a new GRPC PAM client for tests with the provided sourceDB as its initial cache.
+// newNSSClient returns a new GRPC PAM client for tests with the provided sourceDB as its initial database.
 func newNSSClient(t *testing.T, sourceDB string, currentUserNotRoot bool) (client authd.NSSClient) {
 	t.Helper()
 
@@ -322,15 +322,15 @@ func enableCheckGlobalAccess(s nss.Service) grpc.UnaryServerInterceptor {
 	}
 }
 
-// newUserManagerForTests returns a cache object cleaned up with the test ends.
+// newUserManagerForTests returns a user manager object cleaned up with the test ends.
 func newUserManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 	t.Helper()
 
-	cacheDir := t.TempDir()
+	dbDir := t.TempDir()
 	if sourceDB == "" {
-		sourceDB = "cache.db.yaml"
+		sourceDB = "default.db.yaml"
 	}
-	db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", sourceDB), cacheDir)
+	db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", sourceDB), dbDir)
 
 	managerOpts := []users.Option{
 		users.WithIDGenerator(&idgenerator.IDGeneratorMock{
@@ -339,7 +339,7 @@ func newUserManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 		}),
 	}
 
-	m, err := users.NewManager(users.DefaultConfig, cacheDir, managerOpts...)
+	m, err := users.NewManager(users.DefaultConfig, dbDir, managerOpts...)
 	require.NoError(t, err, "Setup: could not create user manager")
 
 	t.Cleanup(func() { _ = m.Stop() })

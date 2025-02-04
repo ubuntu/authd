@@ -7,7 +7,7 @@ import (
 )
 
 // BrokerForUser returns the broker ID assigned to the given username, empty if it's not assigned yet
-// or an error if no user was found in cache.
+// or an error if no user was found in the database.
 func (c *Database) BrokerForUser(username string) (brokerID string, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()

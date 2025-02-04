@@ -9,7 +9,7 @@ import (
 	"github.com/ubuntu/authd/internal/fileutils"
 )
 
-func TestMigrateOldCacheDir(t *testing.T) {
+func TestMigrateOlddbDir(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
@@ -56,8 +56,8 @@ func TestMigrateOldCacheDir(t *testing.T) {
 
 			oldParentDir := t.TempDir()
 			newParentDir := t.TempDir()
-			oldDir := filepath.Join(oldParentDir, "cache")
-			newDir := filepath.Join(newParentDir, "cache")
+			oldDir := filepath.Join(oldParentDir, "db")
+			newDir := filepath.Join(newParentDir, "db")
 			dbFilename := "authd.db"
 
 			if tc.oldDirExists {
@@ -94,7 +94,7 @@ func TestMigrateOldCacheDir(t *testing.T) {
 				}()
 			}
 
-			err := migrateOldCacheDir(oldDir, newDir)
+			err := migrateOldDBDir(oldDir, newDir)
 			require.ErrorIs(t, err, tc.wantedErr)
 
 			if tc.wantOldDirExists {

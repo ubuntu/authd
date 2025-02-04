@@ -29,7 +29,7 @@ type Manager struct {
 }
 
 // NewManager returns a new manager after creating all necessary items for our business logic.
-func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configuredBrokers []string, usersConfig users.Config) (m Manager, err error) {
+func NewManager(ctx context.Context, dbDir, brokersConfPath string, configuredBrokers []string, usersConfig users.Config) (m Manager, err error) {
 	defer decorate.OnError(&err /*i18n.G(*/, "can't create authd object") //)
 
 	log.Debug(ctx, "Building authd object")
@@ -39,7 +39,7 @@ func NewManager(ctx context.Context, cacheDir, brokersConfPath string, configure
 		return m, err
 	}
 
-	userManager, err := users.NewManager(usersConfig, cacheDir)
+	userManager, err := users.NewManager(usersConfig, dbDir)
 	if err != nil {
 		return m, err
 	}
@@ -78,9 +78,9 @@ func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 	return grpcServer
 }
 
-// stop stops the underlying cache.
+// stop stops the underlying database.
 func (m *Manager) stop() error {
-	log.Debug(context.TODO(), "Closing gRPC manager and cache")
+	log.Debug(context.TODO(), "Closing gRPC manager and database")
 
 	return m.userManager.Stop()
 }

@@ -10,7 +10,7 @@ import (
 
 // userDB is the struct stored in json format in the bucket.
 //
-// It prevents leaking of lastLogin, which is only relevant to the cache.
+// It prevents leaking of lastLogin, which is only relevant to the database.
 type userDB struct {
 	UserDB
 	LastLogin time.Time
