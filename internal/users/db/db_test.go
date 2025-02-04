@@ -1,6 +1,7 @@
 package db_test
 
 import (
+	"context"
 	"io/fs"
 	"os"
 	"os/user"
@@ -10,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/db"
+	"github.com/ubuntu/authd/log"
 )
 
 func TestNew(t *testing.T) {
@@ -25,10 +27,8 @@ func TestNew(t *testing.T) {
 
 		wantErr bool
 	}{
-		"New_without_any_initialized_database":                   {},
-		"New_with_already_existing_database":                     {dbFile: "multiple_users_and_groups"},
-		"New_recreates_any_missing_buckets_and_delete_unknowns":  {dbFile: "database_with_unknown_bucket"},
-		"New_removes_orphaned_user_records_from_UserByID_bucket": {dbFile: "orphaned_user_record"},
+		"New_without_any_initialized_database": {},
+		"New_with_already_existing_database":   {dbFile: "multiple_users_and_groups"},
 
 		"Error_on_non_existent_db_dir":                 {dbFile: "-", wantErr: true},
 		"Error_on_corrupted_db_file":                   {corruptedDbFile: true, wantErr: true},
@@ -41,6 +41,8 @@ func TestNew(t *testing.T) {
 
 			dbDir := t.TempDir()
 			dbDestPath := filepath.Join(dbDir, db.Z_ForTests_DBName())
+
+			var c *db.Database
 
 			if tc.dbFile == "-" {
 				err := os.RemoveAll(dbDir)
@@ -74,7 +76,7 @@ func TestNew(t *testing.T) {
 			require.NoError(t, err)
 			defer c.Close()
 
-			got, err := db.Z_ForTests_DumpNormalizedYAML(c)
+			got := db.Z_ForTests_DumpNormalizedYAML(t, c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -98,8 +100,6 @@ func TestUpdateUserEntry(t *testing.T) {
 			Gecos: "User1 gecos\nOn multiple lines",
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
-			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
-			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user1-new-attributes": {
 			Name:  "user1",
@@ -107,8 +107,6 @@ func TestUpdateUserEntry(t *testing.T) {
 			Gecos: "New user1 gecos",
 			Dir:   "/home/user1",
 			Shell: "/bin/dash",
-			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
-			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user1-new-name": {
 			Name:  "newuser1",
@@ -116,8 +114,6 @@ func TestUpdateUserEntry(t *testing.T) {
 			Gecos: "User1 gecos\nOn multiple lines",
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
-			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
-			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user1-new-homedir": {
 			Name:  "user1",
@@ -125,16 +121,12 @@ func TestUpdateUserEntry(t *testing.T) {
 			Gecos: "User1 gecos\nOn multiple lines",
 			Dir:   "/new/home/user1",
 			Shell: "/bin/bash",
-			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
-			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user1-without-gecos": {
 			Name:  "user1",
 			UID:   1111,
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
-			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
-			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 		"user3": {
 			Name:  "user3",
@@ -142,8 +134,6 @@ func TestUpdateUserEntry(t *testing.T) {
 			Gecos: "User3 gecos",
 			Dir:   "/home/user3",
 			Shell: "/bin/zsh",
-			// These values don't matter. We just want to make sure they are the same as the ones provided by the manager.
-			LastPwdChange: -1, MaxPwdAge: -1, PwdWarnPeriod: -1, PwdInactivity: -1, MinPwdAge: -1, ExpirationDate: -1,
 		},
 	}
 	groupCases := map[string]db.GroupDB{
@@ -184,22 +174,11 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Add_user_to_group_from_another_user":                   {groupCases: []string{"group1", "group2"}, dbFile: "multiple_users_and_groups"},
 		"Remove_user_from_a_group_still_part_from_another_user": {userCase: "user3", groupCases: []string{"group3"}, dbFile: "multiple_users_and_groups"},
 
-		// Allowed inconsistent cases
-		"Invalid_value_entry_in_groupByName_recreates_entries":                         {dbFile: "invalid_entry_in_groupByName"},
-		"Invalid_value_entry_in_userByName_recreates_entries":                          {dbFile: "invalid_entry_in_userByName"},
-		"Invalid_value_entries_in_other_user_and_groups_do_not_impact_current_request": {dbFile: "invalid_entries_but_user_and_group1"},
-
 		// Renaming errors
 		"Error_when_user_has_conflicting_uid": {userCase: "user1-new-name", dbFile: "one_user_and_group", wantErr: true},
 
 		// Error cases
-		"Error_on_invalid_value_entry_in_groupByID":                                 {dbFile: "invalid_entry_in_groupByID", wantErr: true},
-		"Error_on_invalid_value_entry_in_userByID":                                  {dbFile: "invalid_entry_in_userByID", wantErr: true},
-		"Error_on_invalid_value_entry_in_userToGroups":                              {dbFile: "invalid_entry_in_userToGroups", wantErr: true},
-		"Error_on_invalid_value_entry_in_groupToUsers":                              {dbFile: "invalid_entry_in_groupToUsers", wantErr: true},
-		"Error_on_invalid_value_entry_in_groupToUsers_for_user_dropping_from_group": {dbFile: "invalid_entry_in_groupToUsers_secondary_group", wantErr: true},
-		"Error_on_invalid_value_entry_in_groupByID_for_user_dropping_from_group":    {dbFile: "invalid_entry_in_groupByID_secondary_group", wantErr: true},
-		"Error_when_group_has_conflicting_gid":                                      {groupCases: []string{"newgroup1-diff-ugid"}, dbFile: "one_user_and_group", wantErr: true},
+		"Error_when_group_has_conflicting_gid": {groupCases: []string{"newgroup1-diff-ugid"}, dbFile: "one_user_and_group", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -228,7 +207,7 @@ func TestUpdateUserEntry(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			got, err := db.Z_ForTests_DumpNormalizedYAML(c)
+			got := db.Z_ForTests_DumpNormalizedYAML(t, c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -247,8 +226,7 @@ func TestUserByID(t *testing.T) {
 	}{
 		"Get_existing_user": {dbFile: "one_user_and_group"},
 
-		"Error_on_missing_user":           {wantErrType: db.NoDataFoundError{}},
-		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_userByID", wantErr: true},
+		"Error_on_missing_user": {wantErrType: db.NoDataFoundError{}},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -273,8 +251,7 @@ func TestUserByName(t *testing.T) {
 	}{
 		"Get_existing_user": {dbFile: "one_user_and_group"},
 
-		"Error_on_missing_user":           {wantErrType: db.NoDataFoundError{}},
-		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_userByName", wantErr: true},
+		"Error_on_missing_user": {wantErrType: db.NoDataFoundError{}},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -298,10 +275,6 @@ func TestAllUsers(t *testing.T) {
 	}{
 		"Get_one_user":       {dbFile: "one_user_and_group"},
 		"Get_multiple_users": {dbFile: "multiple_users_and_groups"},
-
-		"Get_users_only_rely_on_valid_userByID": {dbFile: "partially_valid_multiple_users_and_groups_only_userByID"},
-
-		"Error_on_some_invalid_users_entry": {dbFile: "invalid_entries_but_user_and_group1", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -326,9 +299,7 @@ func TestGroupByID(t *testing.T) {
 	}{
 		"Get_existing_group": {dbFile: "one_user_and_group"},
 
-		"Error_on_missing_group":          {wantErrType: db.NoDataFoundError{}},
-		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_groupByID", wantErr: true},
-		"Error_as_missing_userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
+		"Error_on_missing_group": {wantErrType: db.NoDataFoundError{}},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -353,9 +324,7 @@ func TestGroupByName(t *testing.T) {
 	}{
 		"Get_existing_group": {dbFile: "one_user_and_group"},
 
-		"Error_on_missing_group":          {wantErrType: db.NoDataFoundError{}},
-		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_groupByName", wantErr: true},
-		"Error_as_missing_userByID":       {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
+		"Error_on_missing_group": {wantErrType: db.NoDataFoundError{}},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -380,9 +349,7 @@ func TestUserGroups(t *testing.T) {
 	}{
 		"Get_groups_of_existing_user": {dbFile: "one_user_and_group"},
 
-		"Error_on_missing_user":           {wantErrType: db.NoDataFoundError{}},
-		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_userToGroups", wantErr: true},
-		"Error_on_missing_groupByID":      {dbFile: "invalid_entry_in_groupByID", wantErr: true},
+		"Error_on_missing_user": {wantErrType: db.NoDataFoundError{}},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -407,12 +374,6 @@ func TestAllGroups(t *testing.T) {
 	}{
 		"Get_one_group":       {dbFile: "one_user_and_group"},
 		"Get_multiple_groups": {dbFile: "multiple_users_and_groups"},
-
-		"Get_groups_rely_on_groupByID_groupToUsers_UserByID": {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers_UserByID"},
-
-		"Error_on_some_invalid_groups_entry":     {dbFile: "invalid_entries_but_user_and_group1", wantErr: true},
-		"Error_as_not_only_relying_on_groupByID": {dbFile: "partially_valid_multiple_users_and_groups_only_groupByID", wantErr: true},
-		"Error_as_missing_userByID":              {dbFile: "partially_valid_multiple_users_and_groups_groupByID_groupToUsers", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -440,39 +401,18 @@ func TestUpdateBrokerForUser(t *testing.T) {
 	require.Error(t, err, "UpdateBrokerForUser for a nonexistent user should return an error")
 }
 
-func TestBrokerForUser(t *testing.T) {
-	t.Parallel()
-
-	c := initDB(t, "multiple_users_and_groups")
-
-	// Get existing BrokerForUser entry
-	gotID, err := c.BrokerForUser("user1")
-	require.NoError(t, err, "BrokerForUser for an existent user should not return an error")
-	golden.CheckOrUpdate(t, gotID)
-
-	// Get unassigned broker to existent user
-	gotID, err = c.BrokerForUser("userwithoutbroker")
-	require.NoError(t, err, "BrokerForUser for an existent user should not return an error")
-	require.Empty(t, gotID, "BrokerForUser should return empty broker ID for unassigned broker to existent user")
-
-	// Error when user does not exist
-	gotID, err = c.BrokerForUser("nonexistent")
-	require.Error(t, err, "BrokerForUser for a nonexistent user should return an error")
-	require.Empty(t, gotID, "BrokerForUser should return empty broker ID when user entry does not exist")
-}
-
 func TestRemoveDb(t *testing.T) {
 	t.Parallel()
 
 	c := initDB(t, "multiple_users_and_groups")
-	dbDir := filepath.Dir(c.DbPath())
+	dbDir := filepath.Dir(c.Path())
 
 	// First call should return with no error.
-	require.NoError(t, db.RemoveDb(dbDir), "RemoveDb should not return an error on the first call")
-	require.NoFileExists(t, dbDir, "RemoveDb should remove the database file")
+	require.NoError(t, db.RemoveDB(dbDir), "RemoveDB should not return an error on the first call")
+	require.NoFileExists(t, dbDir, "RemoveDB should remove the database file")
 
 	// Second call should return ErrNotExist as the database file was already removed.
-	require.ErrorIs(t, db.RemoveDb(dbDir), fs.ErrNotExist, "RemoveDb should return os.ErrNotExist on the second call")
+	require.ErrorIs(t, db.RemoveDB(dbDir), fs.ErrNotExist, "RemoveDB should return os.ErrNotExist on the second call")
 }
 
 func TestDeleteUser(t *testing.T) {
@@ -487,8 +427,7 @@ func TestDeleteUser(t *testing.T) {
 		"Deleting_last_user_from_a_group_keeps_the_group_record":  {dbFile: "one_user_and_group"},
 		"Deleting_existing_user_keeps_other_group_members_intact": {dbFile: "multiple_users_and_groups"},
 
-		"Error_on_missing_user":           {wantErrType: db.NoDataFoundError{}},
-		"Error_on_invalid_database_entry": {dbFile: "invalid_entry_in_userByID", wantErr: true},
+		"Error_on_missing_user": {wantErrType: db.NoDataFoundError{}},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -497,6 +436,7 @@ func TestDeleteUser(t *testing.T) {
 			c := initDB(t, tc.dbFile)
 
 			err := c.DeleteUser(1111)
+			log.Debugf(context.Background(), "DeleteUser error: %v", err)
 			if tc.wantErr {
 				require.Error(t, err, "DeleteUser should return an error but didn't")
 				return
@@ -507,18 +447,26 @@ func TestDeleteUser(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			got, err := db.Z_ForTests_DumpNormalizedYAML(c)
-			require.NoError(t, err, "Created database should be valid yaml content")
+			got := db.Z_ForTests_DumpNormalizedYAML(t, c)
 			golden.CheckOrUpdate(t, got)
 		})
 	}
 }
 
 // initDB returns a new database ready to be used alongside its database directory.
-func initDB(t *testing.T, dbFile string) (c *db.Database) {
+func initDB(t *testing.T, dbFile string) *db.Database {
 	t.Helper()
 
-	dbDir := t.TempDir()
+	dbDir, err := os.MkdirTemp("", "authd-db-test-*")
+	require.NoError(t, err)
+
+	if os.Getenv("SKIP_TEST_CLEANUP") == "" {
+		t.Cleanup(func() {
+			err := os.RemoveAll(dbDir)
+			require.NoError(t, err, "Cleanup: could not remove temporary database directory")
+		})
+	}
+
 	if dbFile != "" {
 		db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", dbFile+".db.yaml"), dbDir)
 	}
@@ -544,4 +492,10 @@ func requireGetAssertions[E any](t *testing.T, got E, wantErr bool, wantErrType,
 	require.NoError(t, err)
 
 	golden.CheckOrUpdateYAML(t, got)
+}
+
+func TestMain(m *testing.M) {
+	log.SetLevel(log.DebugLevel)
+
+	m.Run()
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/ubuntu/authd/internal/fileutils"
 )
 
-func TestMigrateOlddbDir(t *testing.T) {
+func TestMigrateOldDBDir(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {

@@ -12,6 +12,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/godbus/dbus/v5 v5.1.0
 	github.com/google/uuid v1.6.0
+	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/msteinert/pam/v2 v2.0.0
 	github.com/muesli/termenv v0.15.2
 	github.com/otiai10/copy v1.14.1

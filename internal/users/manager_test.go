@@ -15,7 +15,6 @@ import (
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
-	bboltErrors "go.etcd.io/bbolt/errors"
 )
 
 func TestNewManager(t *testing.T) {
@@ -33,8 +32,6 @@ func TestNewManager(t *testing.T) {
 		"Successfully_create_manager_with_custom_config":  {uidMin: 10000, uidMax: 20000, gidMin: 10000, gidMax: 20000},
 
 		// Corrupted databases
-		"New_recreates_any_missing_buckets_and_delete_unknowns": {dbFile: "database_with_unknown_bucket"},
-
 		"Error_when_database_is_corrupted":     {corruptedDbFile: true, wantErr: true},
 		"Error_if_dbDir_does_not_exist":        {dbFile: "-", wantErr: true},
 		"Error_if_UID_MIN_is_equal_to_UID_MAX": {uidMin: 1000, uidMax: 1000, wantErr: true},
@@ -81,7 +78,7 @@ func TestNewManager(t *testing.T) {
 			}
 			require.NoError(t, err, "NewManager should not return an error, but did")
 
-			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
+			got := db.Z_ForTests_DumpNormalizedYAML(t, userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -98,7 +95,8 @@ func TestStop(t *testing.T) {
 
 	// Should fail, because the db is closed
 	_, err := userstestutils.GetManagerDB(m).AllUsers()
-	require.ErrorIs(t, err, bboltErrors.ErrDatabaseNotOpen, "AllUsers should return an error, but did not")
+
+	require.Error(t, err, "AllUsers should return an error, but did not")
 }
 
 type userCase struct {
@@ -168,8 +166,6 @@ func TestUpdateUser(t *testing.T) {
 		"Error_if_group_with_same_name_but_different_UGID_exists": {groupsCase: "authd-group", dbFile: "one_user_and_group", wantErr: true, noOutput: true},
 		"Error_if_user_exists_on_system":                          {userCase: "user-exists-on-system", wantErr: true, noOutput: true},
 		"Error_if_group_exists_on_system":                         {groupsCase: "group-exists-on-system", wantErr: true, noOutput: true},
-
-		"Error_on_invalid_entry": {groupsCase: "authd-group", dbFile: "invalid_entry_in_userToGroups", localGroupsFile: "users_in_groups.group", wantErr: true, noOutput: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -236,7 +232,7 @@ func TestUpdateUser(t *testing.T) {
 				require.Equal(t, oldUID, newUser.UID, "UID should not have changed")
 			}
 
-			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
+			got := db.Z_ForTests_DumpNormalizedYAML(t, userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -258,8 +254,7 @@ func TestBrokerForUser(t *testing.T) {
 		"Successfully_get_broker_for_user":                     {username: "user1", dbFile: "multiple_users_and_groups", wantBrokerID: "broker-id"},
 		"Return_no_broker_but_in_db_if_user_has_no_broker_yet": {username: "userwithoutbroker", dbFile: "multiple_users_and_groups", wantBrokerID: ""},
 
-		"Error_if_user_does_not_exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
-		"Error_if_db_has_invalid_entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
+		"Error_if_user_does_not_exist": {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -293,8 +288,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 	}{
 		"Successfully_update_broker_for_user": {},
 
-		"Error_if_user_does_not_exist":  {username: "doesnotexist", wantErrType: db.NoDataFoundError{}},
-		"Error_if_db_has_invalid_entry": {dbFile: "invalid_entry_in_userByName", wantErr: true},
+		"Error_if_user_does_not_exist": {username: "doesnotexist", wantErrType: db.NoDataFoundError{}},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -319,7 +313,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 				return
 			}
 
-			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
+			got := db.Z_ForTests_DumpNormalizedYAML(t, userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -343,10 +337,8 @@ func TestUserByIDAndName(t *testing.T) {
 		"Successfully_get_temporary_user_by_ID":   {dbFile: "multiple_users_and_groups", isTempUser: true},
 		"Successfully_get_temporary_user_by_name": {username: "tempuser1", dbFile: "multiple_users_and_groups", isTempUser: true},
 
-		"Error_if_user_does_not_exist_-_by_ID":    {uid: 0, dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
-		"Error_if_user_does_not_exist_-_by_name":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
-		"Error_if_db_has_invalid_entry_-_by_ID":   {uid: 1111, dbFile: "invalid_entry_in_userByID", wantErr: true},
-		"Error_if_db_has_invalid_entry_-_by_name": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
+		"Error_if_user_does_not_exist_-_by_ID":   {uid: 0, dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
+		"Error_if_user_does_not_exist_-_by_name": {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -398,8 +390,6 @@ func TestAllUsers(t *testing.T) {
 		wantErrType error
 	}{
 		"Successfully_get_all_users": {dbFile: "multiple_users_and_groups"},
-
-		"Error_if_db_has_invalid_entry": {dbFile: "invalid_entry_in_userByID", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -440,8 +430,6 @@ func TestGroupByIDAndName(t *testing.T) {
 
 		"Error_if_group_does_not_exist_-_by_ID":   {gid: 0, dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 		"Error_if_group_does_not_exist_-_by_name": {groupname: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
-		"Error_if_db_has_invalid_entry_-_by_ID":   {gid: 11111, dbFile: "invalid_entry_in_groupByID", wantErr: true},
-		"Error_if_db_has_invalid_entry_-_by_name": {groupname: "group1", dbFile: "invalid_entry_in_groupByName", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -492,8 +480,6 @@ func TestAllGroups(t *testing.T) {
 		wantErrType error
 	}{
 		"Successfully_get_all_groups": {dbFile: "multiple_users_and_groups"},
-
-		"Error_if_db_has_invalid_entry": {dbFile: "invalid_entry_in_groupByID", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -528,7 +514,6 @@ func TestShadowByName(t *testing.T) {
 		"Successfully_get_shadow_by_name": {username: "user1", dbFile: "multiple_users_and_groups"},
 
 		"Error_if_shadow_does_not_exist": {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
-		"Error_if_db_has_invalid_entry":  {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -559,8 +544,6 @@ func TestAllShadows(t *testing.T) {
 		wantErr bool
 	}{
 		"Successfully_get_all_users": {dbFile: "multiple_users_and_groups"},
-
-		"Error_if_db_has_invalid_entry": {dbFile: "invalid_entry_in_userByID", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

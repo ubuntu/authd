@@ -76,11 +76,6 @@ func TestIntegration(t *testing.T) {
 		"Returns_empty_when_getting_all_entries_from_shadow_and_daemon_is_not_available": {getentDB: "shadow", noDaemon: true},
 
 		/* Error cases */
-		// We can't assert on the returned error type since the error returned by getent will always be 2 (i.e. Not Found), even though the library returns other types.
-		"Error_when_getting_all_entries_from_passwd_and_database_is_corrupted": {getentDB: "passwd", dbState: "invalid_entry_in_userByID", wantSecondCall: true},
-		"Error_when_getting_all_entries_from_group_and_database_is_corrupted":  {getentDB: "group", dbState: "invalid_entry_in_groupByID", wantSecondCall: true},
-		"Error_when_getting_all_entries_from_shadow_and_database_is_corrupted": {getentDB: "shadow", dbState: "invalid_entry_in_userByID", wantSecondCall: true},
-
 		"Error_when_getting_shadow_by_name_if_regular_user": {getentDB: "shadow", key: "user1", currentUserNotRoot: true, wantStatus: codeNotFound},
 
 		"Error_when_getting_passwd_by_name_and_entry_does_not_exist":                        {getentDB: "passwd", key: "doesnotexit", wantStatus: codeNotFound},

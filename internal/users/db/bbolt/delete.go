@@ -1,4 +1,4 @@
-package db
+package bbolt
 
 import (
 	"context"
@@ -103,7 +103,7 @@ func deleteOrphanedUsers(db *bbolt.DB) error {
 				return nil
 			}
 
-			user2, err := getFromBucket[userDB](buckets[userByNameBucketName], user.Name)
+			user2, err := getFromBucket[UserDB](buckets[userByNameBucketName], user.Name)
 			if err != nil && !errors.Is(err, NoDataFoundError{}) {
 				log.Warningf(context.TODO(), "Error loading user record %q: %v", user.Name, err)
 				return nil

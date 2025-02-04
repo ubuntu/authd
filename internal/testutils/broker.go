@@ -397,11 +397,11 @@ func userInfoFromName(sessionID string, extraGroups []groupJSONInfo) string {
 	user := struct {
 		Name   string
 		UUID   string
-		Home   string
+		Dir    string
 		Shell  string
 		Groups []groupJSONInfo
 		Gecos  string
-	}{Name: name, Home: home, Shell: shell, Groups: groups, Gecos: gecos}
+	}{Name: name, Dir: home, Shell: shell, Groups: groups, Gecos: gecos}
 
 	// only used for tests, we can ignore the template execution error as the returned data will be failing.
 	var buf bytes.Buffer
@@ -409,7 +409,7 @@ func userInfoFromName(sessionID string, extraGroups []groupJSONInfo) string {
 		"name": "{{.Name}}",
 		"uuid": "{{.UUID}}",
 		"gecos": "{{.Gecos}}",
-		"dir": "{{.Home}}",
+		"dir": "{{.Dir}}",
 		"shell": "{{.Shell}}",
 		"avatar": "avatar for {{.Name}}",
 		"groups": [ {{range $index, $g := .Groups}}

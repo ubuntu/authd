@@ -21,12 +21,12 @@ func userEntryFromUserDB(u db.UserDB) types.UserEntry {
 func shadowEntryFromUserDB(u db.UserDB) types.ShadowEntry {
 	return types.ShadowEntry{
 		Name:           u.Name,
-		LastPwdChange:  u.LastPwdChange,
-		MaxPwdAge:      u.MaxPwdAge,
-		PwdWarnPeriod:  u.PwdWarnPeriod,
-		PwdInactivity:  u.PwdInactivity,
-		MinPwdAge:      u.MinPwdAge,
-		ExpirationDate: u.ExpirationDate,
+		LastPwdChange:  -1,
+		MaxPwdAge:      -1,
+		PwdWarnPeriod:  -1,
+		PwdInactivity:  -1,
+		MinPwdAge:      -1,
+		ExpirationDate: -1,
 	}
 }
 

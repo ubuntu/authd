@@ -926,14 +926,14 @@ func userInfoFromName(name string) string {
 	user := struct {
 		Name   string
 		UUID   string
-		Home   string
+		Dir    string
 		Shell  string
 		Groups []groupJSONInfo
 		Gecos  string
 	}{
 		Name:   name,
 		UUID:   "uuid-" + name,
-		Home:   "/home/" + name,
+		Dir:    "/home/" + name,
 		Shell:  "/usr/bin/bash",
 		Groups: []groupJSONInfo{{Name: "group-" + name, UGID: "ugid-" + name}},
 		Gecos:  "gecos for " + name,
@@ -957,7 +957,7 @@ func userInfoFromName(name string) string {
 		"name": "{{.Name}}",
 		"uuid": "{{.UUID}}",
 		"gecos": "{{.Gecos}}",
-		"dir": "{{.Home}}",
+		"dir": "{{.Dir}}",
 		"shell": "{{.Shell}}",
 		"groups": [ {{range $index, $g := .Groups}}
 			{{- if $index}}, {{end -}}
