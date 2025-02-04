@@ -59,7 +59,7 @@ func WithIDGenerator(g tempentries.IDGenerator) Option {
 }
 
 // NewManager creates a new user manager.
-func NewManager(config Config, cacheDir string, args ...Option) (m *Manager, err error) {
+func NewManager(config Config, dbDir string, args ...Option) (m *Manager, err error) {
 	log.Debugf(context.Background(), "Creating user manager with config: %+v", config)
 
 	opts := &options{}
@@ -95,7 +95,7 @@ func NewManager(config Config, cacheDir string, args ...Option) (m *Manager, err
 		temporaryRecords: tempentries.NewTemporaryRecords(opts.idGenerator),
 	}
 
-	c, err := db.New(cacheDir)
+	c, err := db.New(dbDir)
 	if err != nil {
 		return nil, err
 	}

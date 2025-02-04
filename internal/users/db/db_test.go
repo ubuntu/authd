@@ -30,7 +30,7 @@ func TestNew(t *testing.T) {
 		"New_recreates_any_missing_buckets_and_delete_unknowns":  {dbFile: "database_with_unknown_bucket"},
 		"New_removes_orphaned_user_records_from_UserByID_bucket": {dbFile: "orphaned_user_record"},
 
-		"Error_on_cacheDir_non_existent_cacheDir":      {dbFile: "-", wantErr: true},
+		"Error_on_dbDir_non_existent_dbDir":            {dbFile: "-", wantErr: true},
 		"Error_on_corrupted_db_file":                   {corruptedDbFile: true, wantErr: true},
 		"Error_on_invalid_permission_on_database_file": {dbFile: "multiple_users_and_groups", perm: &perm0644, wantErr: true},
 		"Error_on_unreadable_database_file":            {dbFile: "multiple_users_and_groups", perm: &perm0000, wantErr: true},
@@ -39,14 +39,14 @@ func TestNew(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cacheDir := t.TempDir()
-			dbDestPath := filepath.Join(cacheDir, db.Z_ForTests_DBName())
+			dbDir := t.TempDir()
+			dbDestPath := filepath.Join(dbDir, db.Z_ForTests_DBName())
 
 			if tc.dbFile == "-" {
-				err := os.RemoveAll(cacheDir)
-				require.NoError(t, err, "Setup: could not remove temporary cache directory")
+				err := os.RemoveAll(dbDir)
+				require.NoError(t, err, "Setup: could not remove temporary database directory")
 			} else if tc.dbFile != "" {
-				db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), cacheDir)
+				db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), dbDir)
 			}
 			if tc.corruptedDbFile {
 				err := os.WriteFile(dbDestPath, []byte("corrupted"), 0600)
@@ -66,7 +66,7 @@ func TestNew(t *testing.T) {
 				}
 			}
 
-			c, err := db.New(cacheDir)
+			c, err := db.New(dbDir)
 			if tc.wantErr {
 				require.Error(t, err, "New should return an error but didn't")
 				return
@@ -205,7 +205,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := initCache(t, tc.dbFile)
+			c := initDB(t, tc.dbFile)
 
 			if tc.userCase == "" {
 				tc.userCase = "user1"
@@ -254,7 +254,7 @@ func TestUserByID(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := initCache(t, tc.dbFile)
+			c := initDB(t, tc.dbFile)
 
 			got, err := c.UserByID(1111)
 			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
@@ -280,7 +280,7 @@ func TestUserByName(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := initCache(t, tc.dbFile)
+			c := initDB(t, tc.dbFile)
 
 			got, err := c.UserByName("user1")
 			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
@@ -307,7 +307,7 @@ func TestAllUsers(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := initCache(t, tc.dbFile)
+			c := initDB(t, tc.dbFile)
 
 			got, err := c.AllUsers()
 			requireGetAssertions(t, got, tc.wantErr, nil, err)
@@ -334,7 +334,7 @@ func TestGroupByID(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := initCache(t, tc.dbFile)
+			c := initDB(t, tc.dbFile)
 
 			got, err := c.GroupByID(11111)
 			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
@@ -361,7 +361,7 @@ func TestGroupByName(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := initCache(t, tc.dbFile)
+			c := initDB(t, tc.dbFile)
 
 			got, err := c.GroupByName("group1")
 			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
@@ -388,7 +388,7 @@ func TestUserGroups(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := initCache(t, tc.dbFile)
+			c := initDB(t, tc.dbFile)
 
 			got, err := c.UserGroups(1111)
 			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
@@ -418,7 +418,7 @@ func TestAllGroups(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := initCache(t, tc.dbFile)
+			c := initDB(t, tc.dbFile)
 
 			got, err := c.AllGroups()
 			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
@@ -429,7 +429,7 @@ func TestAllGroups(t *testing.T) {
 func TestUpdateBrokerForUser(t *testing.T) {
 	t.Parallel()
 
-	c := initCache(t, "one_user_and_group")
+	c := initDB(t, "one_user_and_group")
 
 	// Update broker for existent user
 	err := c.UpdateBrokerForUser("user1", "ExampleBrokerID")
@@ -443,7 +443,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 func TestBrokerForUser(t *testing.T) {
 	t.Parallel()
 
-	c := initCache(t, "multiple_users_and_groups")
+	c := initDB(t, "multiple_users_and_groups")
 
 	// Get existing BrokerForUser entry
 	gotID, err := c.BrokerForUser("user1")
@@ -464,15 +464,15 @@ func TestBrokerForUser(t *testing.T) {
 func TestRemoveDb(t *testing.T) {
 	t.Parallel()
 
-	c := initCache(t, "multiple_users_and_groups")
-	cacheDir := filepath.Dir(c.DbPath())
+	c := initDB(t, "multiple_users_and_groups")
+	dbDir := filepath.Dir(c.DbPath())
 
 	// First call should return with no error.
-	require.NoError(t, db.RemoveDb(cacheDir), "RemoveDb should not return an error on the first call")
-	require.NoFileExists(t, cacheDir, "RemoveDb should remove the database file")
+	require.NoError(t, db.RemoveDb(dbDir), "RemoveDb should not return an error on the first call")
+	require.NoFileExists(t, dbDir, "RemoveDb should remove the database file")
 
 	// Second call should return ErrNotExist as the database file was already removed.
-	require.ErrorIs(t, db.RemoveDb(cacheDir), fs.ErrNotExist, "RemoveDb should return os.ErrNotExist on the second call")
+	require.ErrorIs(t, db.RemoveDb(dbDir), fs.ErrNotExist, "RemoveDb should return os.ErrNotExist on the second call")
 }
 
 func TestDeleteUser(t *testing.T) {
@@ -494,7 +494,7 @@ func TestDeleteUser(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			c := initCache(t, tc.dbFile)
+			c := initDB(t, tc.dbFile)
 
 			err := c.DeleteUser(1111)
 			if tc.wantErr {
@@ -514,16 +514,16 @@ func TestDeleteUser(t *testing.T) {
 	}
 }
 
-// initCache returns a new cache ready to be used alongside its cache directory.
-func initCache(t *testing.T, dbFile string) (c *db.Database) {
+// initDB returns a new database ready to be used alongside its database directory.
+func initDB(t *testing.T, dbFile string) (c *db.Database) {
 	t.Helper()
 
-	cacheDir := t.TempDir()
+	dbDir := t.TempDir()
 	if dbFile != "" {
-		db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", dbFile+".db.yaml"), cacheDir)
+		db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", dbFile+".db.yaml"), dbDir)
 	}
 
-	c, err := db.New(cacheDir)
+	c, err := db.New(dbDir)
 	require.NoError(t, err)
 	t.Cleanup(func() { c.Close() })
 

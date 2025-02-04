@@ -36,7 +36,7 @@ func TestNewManager(t *testing.T) {
 		"New_recreates_any_missing_buckets_and_delete_unknowns": {dbFile: "database_with_unknown_bucket"},
 
 		"Error_when_database_is_corrupted":     {corruptedDbFile: true, wantErr: true},
-		"Error_if_cacheDir_does_not_exist":     {dbFile: "-", wantErr: true},
+		"Error_if_dbDir_does_not_exist":        {dbFile: "-", wantErr: true},
 		"Error_if_UID_MIN_is_equal_to_UID_MAX": {uidMin: 1000, uidMax: 1000, wantErr: true},
 		"Error_if_GID_MIN_is_equal_to_GID_MAX": {gidMin: 1000, gidMax: 1000, wantErr: true},
 		"Error_if_UID_range_is_too_small":      {uidMin: 1000, uidMax: 2000, wantErr: true},
@@ -45,18 +45,18 @@ func TestNewManager(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			destCmdsFile := localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "groups", "users_in_groups.group"))
 
-			cacheDir := t.TempDir()
+			dbDir := t.TempDir()
 			if tc.dbFile == "" {
 				tc.dbFile = "multiple_users_and_groups"
 			}
 			if tc.dbFile == "-" {
-				err := os.RemoveAll(cacheDir)
+				err := os.RemoveAll(dbDir)
 				require.NoError(t, err, "Setup: could not remove temporary db directory")
 			} else if tc.dbFile != "" {
-				db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+				db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
 			}
 			if tc.corruptedDbFile {
-				err := os.WriteFile(filepath.Join(cacheDir, db.Z_ForTests_DBName()), []byte("Corrupted db"), 0600)
+				err := os.WriteFile(filepath.Join(dbDir, db.Z_ForTests_DBName()), []byte("Corrupted db"), 0600)
 				require.NoError(t, err, "Setup: Can't update the file with invalid db content")
 			}
 
@@ -74,14 +74,14 @@ func TestNewManager(t *testing.T) {
 				config.GIDMax = tc.gidMax
 			}
 
-			m, err := users.NewManager(config, cacheDir)
+			m, err := users.NewManager(config, dbDir)
 			if tc.wantErr {
 				require.Error(t, err, "NewManager should return an error, but did not")
 				return
 			}
 			require.NoError(t, err, "NewManager should not return an error, but did")
 
-			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -92,12 +92,12 @@ func TestNewManager(t *testing.T) {
 }
 
 func TestStop(t *testing.T) {
-	cacheDir := t.TempDir()
-	m := newManagerForTests(t, cacheDir)
+	dbDir := t.TempDir()
+	m := newManagerForTests(t, dbDir)
 	require.NoError(t, m.Stop(), "Stop should not return an error, but did")
 
 	// Should fail, because the db is closed
-	_, err := userstestutils.GetManagerCache(m).AllUsers()
+	_, err := userstestutils.GetManagerDB(m).AllUsers()
 	require.ErrorIs(t, err, bbolt.ErrDatabaseNotOpen, "AllUsers should return an error, but did not")
 }
 
@@ -194,9 +194,9 @@ func TestUpdateUser(t *testing.T) {
 				user.Groups = append(user.Groups, g.GroupInfo)
 			}
 
-			cacheDir := t.TempDir()
+			dbDir := t.TempDir()
 			if tc.dbFile != "" {
-				db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+				db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
 			}
 
 			// One GID is generated for the user private group
@@ -213,7 +213,7 @@ func TestUpdateUser(t *testing.T) {
 					GIDsToGenerate: gids,
 				}),
 			}
-			m := newManagerForTests(t, cacheDir, managerOpts...)
+			m := newManagerForTests(t, dbDir, managerOpts...)
 
 			var oldUID uint32
 			if tc.wantSameUID {
@@ -236,7 +236,7 @@ func TestUpdateUser(t *testing.T) {
 				require.Equal(t, oldUID, newUser.UID, "UID should not have changed")
 			}
 
-			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdateYAML(t, got)
@@ -255,8 +255,8 @@ func TestBrokerForUser(t *testing.T) {
 		wantErr      bool
 		wantErrType  error
 	}{
-		"Successfully_get_broker_for_user":                        {username: "user1", dbFile: "multiple_users_and_groups", wantBrokerID: "broker-id"},
-		"Return_no_broker_but_in_cache_if_user_has_no_broker_yet": {username: "userwithoutbroker", dbFile: "multiple_users_and_groups", wantBrokerID: ""},
+		"Successfully_get_broker_for_user":                     {username: "user1", dbFile: "multiple_users_and_groups", wantBrokerID: "broker-id"},
+		"Return_no_broker_but_in_db_if_user_has_no_broker_yet": {username: "userwithoutbroker", dbFile: "multiple_users_and_groups", wantBrokerID: ""},
 
 		"Error_if_user_does_not_exist":  {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 		"Error_if_db_has_invalid_entry": {username: "user1", dbFile: "invalid_entry_in_userByName", wantErr: true},
@@ -266,9 +266,9 @@ func TestBrokerForUser(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
-			cacheDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
-			m := newManagerForTests(t, cacheDir)
+			dbDir := t.TempDir()
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			m := newManagerForTests(t, dbDir)
 
 			brokerID, err := m.BrokerForUser(tc.username)
 
@@ -308,9 +308,9 @@ func TestUpdateBrokerForUser(t *testing.T) {
 				tc.dbFile = "multiple_users_and_groups"
 			}
 
-			cacheDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
-			m := newManagerForTests(t, cacheDir)
+			dbDir := t.TempDir()
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			m := newManagerForTests(t, dbDir)
 
 			err := m.UpdateBrokerForUser(tc.username, "ExampleBrokerID")
 
@@ -319,7 +319,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 				return
 			}
 
-			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdateYAML(t, got)
@@ -353,10 +353,10 @@ func TestUserByIDAndName(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
-			cacheDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			dbDir := t.TempDir()
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
 
-			m := newManagerForTests(t, cacheDir)
+			m := newManagerForTests(t, dbDir)
 
 			var err error
 			if tc.isTempUser {
@@ -406,9 +406,9 @@ func TestAllUsers(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
-			cacheDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
-			m := newManagerForTests(t, cacheDir)
+			dbDir := t.TempDir()
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			m := newManagerForTests(t, dbDir)
 
 			got, err := m.AllUsers()
 
@@ -448,9 +448,9 @@ func TestGroupByIDAndName(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
-			cacheDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
-			m := newManagerForTests(t, cacheDir)
+			dbDir := t.TempDir()
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			m := newManagerForTests(t, dbDir)
 
 			var err error
 			if tc.isTempGroup {
@@ -500,10 +500,10 @@ func TestAllGroups(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
-			cacheDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			dbDir := t.TempDir()
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
 
-			m := newManagerForTests(t, cacheDir)
+			m := newManagerForTests(t, dbDir)
 
 			got, err := m.AllGroups()
 
@@ -535,10 +535,10 @@ func TestShadowByName(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
-			cacheDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			dbDir := t.TempDir()
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
 
-			m := newManagerForTests(t, cacheDir)
+			m := newManagerForTests(t, dbDir)
 
 			got, err := m.ShadowByName(tc.username)
 
@@ -567,10 +567,10 @@ func TestAllShadows(t *testing.T) {
 			// We don't care about the output of gpasswd in this test, but we still need to mock it.
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
-			cacheDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), cacheDir)
+			dbDir := t.TempDir()
+			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
 
-			m := newManagerForTests(t, cacheDir)
+			m := newManagerForTests(t, dbDir)
 
 			got, err := m.AllShadows()
 
@@ -602,10 +602,10 @@ func requireErrorAssertions(t *testing.T, gotErr, wantErrType error, wantErr boo
 	require.NoError(t, gotErr, "Error should not be returned")
 }
 
-func newManagerForTests(t *testing.T, cacheDir string, opts ...users.Option) *users.Manager {
+func newManagerForTests(t *testing.T, dbDir string, opts ...users.Option) *users.Manager {
 	t.Helper()
 
-	m, err := users.NewManager(users.DefaultConfig, cacheDir, opts...)
+	m, err := users.NewManager(users.DefaultConfig, dbDir, opts...)
 	require.NoError(t, err, "NewManager should not return an error, but did")
 
 	return m

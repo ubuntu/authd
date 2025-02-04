@@ -84,9 +84,9 @@ type groupToUsersDB struct {
 	UIDs []uint32
 }
 
-// New creates a new database cache by creating or opening the underlying db.
-func New(cacheDir string) (cache *Database, err error) {
-	dbPath := filepath.Join(cacheDir, dbName)
+// New creates a new database by creating or opening the underlying db.
+func New(dbDir string) (database *Database, err error) {
+	dbPath := filepath.Join(dbDir, dbName)
 	defer decorate.OnError(&err, "could not create new database object at %q", dbPath)
 
 	db, err := openAndInitDB(dbPath)
@@ -165,8 +165,8 @@ func (c *Database) Close() error {
 }
 
 // RemoveDb removes the database file.
-func RemoveDb(cacheDir string) error {
-	return os.Remove(filepath.Join(cacheDir, dbName))
+func RemoveDb(dbDir string) error {
+	return os.Remove(filepath.Join(dbDir, dbName))
 }
 
 // bucketWithName is a wrapper adding the name on top of a bbolt Bucket.

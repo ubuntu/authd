@@ -72,7 +72,7 @@ func updateUser(buckets map[string]bucketWithName, userContent userDB) error {
 		return errors.New("UID already in use by a different user")
 	}
 
-	// Ensure that we use the same homedir as the one we have in cache.
+	// Ensure that we use the same homedir as the one we have in the database.
 	if existingUser.Dir != "" && existingUser.Dir != userContent.Dir {
 		log.Warningf(context.TODO(), "User %q already has a homedir. The existing %q one will be kept instead of %q", userContent.Name, existingUser.Dir, userContent.Dir)
 		userContent.Dir = existingUser.Dir
