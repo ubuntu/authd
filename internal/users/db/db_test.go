@@ -30,7 +30,7 @@ func TestNew(t *testing.T) {
 		"New_recreates_any_missing_buckets_and_delete_unknowns":  {dbFile: "database_with_unknown_bucket"},
 		"New_removes_orphaned_user_records_from_UserByID_bucket": {dbFile: "orphaned_user_record"},
 
-		"Error_on_dbDir_non_existent_dbDir":            {dbFile: "-", wantErr: true},
+		"Error_on_non_existent_db_dir":                 {dbFile: "-", wantErr: true},
 		"Error_on_corrupted_db_file":                   {corruptedDbFile: true, wantErr: true},
 		"Error_on_invalid_permission_on_database_file": {dbFile: "multiple_users_and_groups", perm: &perm0644, wantErr: true},
 		"Error_on_unreadable_database_file":            {dbFile: "multiple_users_and_groups", perm: &perm0000, wantErr: true},
