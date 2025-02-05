@@ -14,6 +14,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
+	"github.com/ubuntu/authd/log"
 )
 
 var (
@@ -386,6 +387,8 @@ func TestStartAndEndSession(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
+	log.SetLevel(log.DebugLevel)
+
 	// Start system bus mock.
 	cleanup, err := testutils.StartSystemBusMock()
 	if err != nil {
