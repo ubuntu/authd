@@ -20,14 +20,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var redactedTimes = map[string]string{
-	"AAAAATIME": "2004-10-20T11:06:23Z",
-	"BBBBBTIME": "2006-06-01T10:08:04Z",
-	"CCCCCTIME": "2010-01-11T08:05:34Z",
-	"DDDDDTIME": "2010-10-10T10:10:00Z",
-	"EEEEETIME": "2011-04-28T14:30:85Z",
-	"ABCDETIME": "now",
-}
+// We need to replace the current time by a deterministic time in the golden files to be able to compare them.
+// We use the first second of the year 2020 as a recognizable value (which is not the zero value).
+var redactedCurrentTime = "2020-01-01T00:00:00Z"
 
 // redactTime replace current time by a redacted version.
 func redactTime(line string) string {
@@ -46,18 +41,10 @@ func redactTime(line string) string {
 	if err != nil {
 		return line
 	}
-	var isNow bool
 	if time.Since(lastLoginTime) < time.Minute*5 {
-		isNow = true
+		return strings.Replace(line, lastLogin, redactedCurrentTime, 1)
 	}
 
-	for redacted, time := range redactedTimes {
-		if lastLogin != time && (time != "now" || !isNow) {
-			continue
-		}
-
-		return strings.Replace(line, lastLogin, redacted, 1)
-	}
 	return line
 }
 
@@ -136,12 +123,7 @@ func Z_ForTests_FromYAML(r io.Reader, destDir string) error {
 					key = strings.Replace(key, "{{CURRENT_UID}}", strconv.Itoa(uid), 1)
 
 					// Replace the redacted time in the json value by a valid time.
-					for redacted, t := range redactedTimes {
-						if t == "now" {
-							t = time.Now().Format(time.RFC3339)
-						}
-						val = strings.Replace(val, redacted, t, 1)
-					}
+					val = strings.Replace(val, redactedCurrentTime, time.Now().Format(time.RFC3339), 1)
 				}
 				if err := bucket.Put([]byte(key), []byte(val)); err != nil {
 					panic("programming error: put called in a RO transaction")

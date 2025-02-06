@@ -5,11 +5,11 @@ GroupByName:
 GroupToUsers:
   "11111": '{"GID":11111,"UIDs":[2222]}'
 UserByID:
-  "1111": '{"Name":"user1","UID":1111,"GID":11111,"Gecos":"User1 gecos\nOn multiple lines","Dir":"/home/user1","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"AAAAATIME"}'
-  "2222": '{"Name":"user2","UID":2222,"GID":11111,"Gecos":"user2 gecos\nOn multiple lines","Dir":"/home/user2","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+  "1111": '{"Name":"user1","UID":1111,"GID":11111,"Gecos":"User1 gecos\nOn multiple lines","Dir":"/home/user1","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"2001-01-01T01:01:01Z"}'
+  "2222": '{"Name":"user2","UID":2222,"GID":11111,"Gecos":"user2 gecos\nOn multiple lines","Dir":"/home/user2","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"2002-02-02T02:02:02Z"}'
 UserByName:
-  user1: '{"Name":"user1","UID":1111,"GID":11111,"Gecos":"User1 gecos\nOn multiple lines","Dir":"/home/user1","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"AAAAATIME"}'
-  user2: '{"Name":"user2","UID":2222,"GID":11111,"Gecos":"user2 gecos\nOn multiple lines","Dir":"/home/user2","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"ABCDETIME"}'
+  user1: '{"Name":"user1","UID":1111,"GID":11111,"Gecos":"User1 gecos\nOn multiple lines","Dir":"/home/user1","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"2001-01-01T01:01:01Z"}'
+  user2: '{"Name":"user2","UID":2222,"GID":11111,"Gecos":"user2 gecos\nOn multiple lines","Dir":"/home/user2","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"2002-02-02T02:02:02Z"}'
 UserToGroups:
   "1111": '{"UID":1111,"GIDs":[11111]}'
   "2222": '{"UID":2222,"GIDs":[11111]}'

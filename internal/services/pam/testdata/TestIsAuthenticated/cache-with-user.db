@@ -7,9 +7,9 @@ GroupByUGID:
 GroupToUsers:
     "88888": '{"GID":88888,"UIDs":[77777]}'
 UserByID:
-    "77777": '{"Name":"otheruser","UID":77777,"GID":88888,"Gecos":"gecos for other user","Dir":"/home/otheruser","Shell":"/bin/sh/otheruser","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"AAAAATIME"}'
+    "77777": '{"Name":"otheruser","UID":77777,"GID":88888,"Gecos":"gecos for other user","Dir":"/home/otheruser","Shell":"/bin/sh/otheruser","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"2001-01-01T01:01:01Z"}'
 UserByName:
-    otheruser: '{"Name":"otheruser","UID":77777,"GID":88888,"Gecos":"gecos for other user","Dir":"/home/otheruser","Shell":"/bin/sh/otheruser","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"AAAAATIME"}'
+    otheruser: '{"Name":"otheruser","UID":77777,"GID":88888,"Gecos":"gecos for other user","Dir":"/home/otheruser","Shell":"/bin/sh/otheruser","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"2001-01-01T01:01:01Z"}'
 UserToGroups:
     "77777": '{"UID":77777,"GIDs":[88888]}'
 UserToBroker:
