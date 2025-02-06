@@ -13,7 +13,7 @@ authd is delivered as a Debian package.
 
 
 ```{note}
-While this project is in active development, a version for Ubuntu 24.04 is available from the [authd testing PPA](https://launchpad.net/~ubuntu-enterprise-desktop/+archive/ubuntu/authd). <br />
+You can install authd from the [stable PPA](https://launchpad.net/~ubuntu-enterprise-desktop/+archive/ubuntu/authd).
 
 You can add this PPA to your system's software sources with the following commands:
 
