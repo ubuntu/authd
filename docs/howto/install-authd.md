@@ -4,7 +4,7 @@ This project consists of two components:
 * authd: The authentication daemon responsible for managing access to the authentication mechanism.
 * an identity broker: The services that handle the interface with an identity provider. There can be several identity brokers installed and enabled on the system.
 
-authd is delivered as a Debian package.
+authd is delivered as a Debian package for Ubuntu Desktop and Ubuntu Server.
 
 ## System requirements
 
@@ -22,11 +22,28 @@ sudo add-apt-repository ppa:ubuntu-enterprise-desktop/authd
 sudo apt update
 ```
 
-Install the following Debian packages (note that `gnome-shell` and `yaru-theme*` are only required for desktop integration, server installations may ignore them):
+Then install authd and any additional Debian packages needed for your system of
+choice:
+
+:::::{tab-set}
+:sync-group: system
+
+::::{tab-item} Ubuntu Desktop
+:sync: desktop
 
 ```shell
 sudo apt install authd gnome-shell yaru-theme-gnome-shell
 ```
+::::
+
+::::{tab-item} Ubuntu Server
+:sync: server
+
+```shell
+sudo apt install authd
+```
+::::
+:::::
 
 ## Install brokers
 
