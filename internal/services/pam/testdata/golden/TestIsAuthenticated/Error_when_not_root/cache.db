@@ -1,9 +1,3 @@
-GroupByID: {}
-GroupByName: {}
-GroupByUGID: {}
-GroupToUsers: {}
-UserByID: {}
-UserByName: {}
-UserToBroker: {}
-UserToGroups: {}
-UserToLocalGroups: {}
+users: []
+groups: []
+users_to_groups: []

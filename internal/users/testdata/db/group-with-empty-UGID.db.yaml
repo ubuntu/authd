@@ -1,16 +1,18 @@
-GroupByID:
-  "11111": '{"Name":"group1","GID":11111}'
-GroupByName:
-  group1: '{"Name":"group1","GID":11111}'
-GroupByUGID:
-  "12345678": '{"Name":"group1","GID":11111}'
-GroupToUsers:
-  "11111": '{"GID":11111,"UIDs":[1111]}'
-UserByID:
-  "1111": '{"Name":"user1","UID":1111,"GID":11111,"Gecos":"User1 gecos\nOn multiple lines","Dir":"/home/user1","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"2001-01-01T01:01:01Z"}'
-UserByName:
-  user1: '{"Name":"user1","UID":1111,"GID":11111,"Gecos":"User1 gecos\nOn multiple lines","Dir":"/home/user1","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"2001-01-01T01:01:01Z"}'
-UserToGroups:
-  "1111": '{"UID":1111,"GIDs":[11111]}'
-UserToBroker:
-  "1111": '"broker-id"'
+users:
+    - name: user1
+      uid: 1111
+      gid: 11111
+      gecos: |-
+        User1 gecos
+        On multiple lines
+      dir: /home/user1
+      shell: /bin/bash
+      broker_id: broker-id
+      last_login: 2001-01-01T01:01:01Z
+groups:
+    - name: group1
+      gid: 11111
+      ugid: ""
+users_to_groups:
+    - uid: 1111
+      gid: 11111

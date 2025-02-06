@@ -1,7 +1,3 @@
-GroupByID:
-GroupByName:
-GroupToUsers:
-UserByID:
-UserByName:
-UserToGroups:
-UserToBroker:
+users: []
+groups: []
+users_to_groups: []

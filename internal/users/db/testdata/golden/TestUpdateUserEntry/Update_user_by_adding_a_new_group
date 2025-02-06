@@ -1,22 +1,22 @@
-GroupByID:
-    "11111": '{"Name":"group1","GID":11111,"UGID":"12345678"}'
-    "22222": '{"Name":"group2","GID":22222,"UGID":"56781234"}'
-GroupByName:
-    group1: '{"Name":"group1","GID":11111,"UGID":"12345678"}'
-    group2: '{"Name":"group2","GID":22222,"UGID":"56781234"}'
-GroupByUGID:
-    "12345678": '{"Name":"group1","GID":11111,"UGID":"12345678"}'
-    "56781234": '{"Name":"group2","GID":22222,"UGID":"56781234"}'
-GroupToUsers:
-    "11111": '{"GID":11111,"UIDs":[1111]}'
-    "22222": '{"GID":22222,"UIDs":[1111]}'
-UserByID:
-    "1111": '{"Name":"user1","UID":1111,"GID":11111,"Gecos":"User1 gecos\nOn multiple lines","Dir":"/home/user1","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"2020-01-01T00:00:00Z"}'
-UserByName:
-    user1: '{"Name":"user1","UID":1111,"GID":11111,"Gecos":"User1 gecos\nOn multiple lines","Dir":"/home/user1","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"2020-01-01T00:00:00Z"}'
-UserToBroker:
-    "1111": '"broker-id"'
-UserToGroups:
-    "1111": '{"UID":1111,"GIDs":[11111,22222]}'
-UserToLocalGroups:
-    "1111": "null"
+users:
+    - name: user1
+      uid: 1111
+      gid: 11111
+      gecos: |-
+        User1 gecos
+        On multiple lines
+      dir: /home/user1
+      shell: /bin/bash
+      last_login: 2020-01-01T00:00:00Z
+groups:
+    - name: group1
+      gid: 11111
+      ugid: "12345678"
+    - name: group2
+      gid: 22222
+      ugid: "56781234"
+users_to_groups:
+    - uid: 1111
+      gid: 11111
+    - uid: 1111
+      gid: 22222

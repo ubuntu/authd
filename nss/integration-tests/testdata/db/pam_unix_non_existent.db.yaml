@@ -1,16 +1,18 @@
-GroupByID:
-  "11111": '{"Name":"group1","GID":11111,"UGID":"12345678"}'
-GroupByName:
-  group1: '{"Name":"group1","GID":11111,"UGID":"12345678"}'
-GroupByUGID:
-  "12345678": '{"Name":"group1","GID":11111,"UGID":"12345678"}'
-GroupToUsers:
-  "11111": '{"GID":11111,"UIDs":[1111]}'
-UserByID:
-  "1111": '{"Name":"pam_unix_non_existent","UID":1111,"GID":11111,"Gecos":"pam_unix_non_existent gecos\nOn multiple lines","Dir":"/home/pam_unix_non_existent","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"2001-01-01T01:01:01Z"}'
-UserByName:
-  pam_unix_non_existent: '{"Name":"pam_unix_non_existent","UID":1111,"GID":11111,"Gecos":"pam_unix_non_existent gecos\nOn multiple lines","Dir":"/home/pam_unix_non_existent","Shell":"/bin/bash","LastPwdChange":-1,"MaxPwdAge":-1,"PwdWarnPeriod":-1,"PwdInactivity":-1,"MinPwdAge":-1,"ExpirationDate":-1,"LastLogin":"2001-01-01T01:01:01Z"}'
-UserToGroups:
-  "1111": '{"UID":1111,"GIDs":[11111]}'
-UserToBroker:
-  "1111": '"broker-id"'
+users:
+    - name: pam_unix_non_existent
+      uid: 1111
+      gid: 11111
+      gecos: |-
+        pam_unix_non_existent gecos
+        On multiple lines
+      dir: /home/pam_unix_non_existent
+      shell: /bin/bash
+      broker_id: broker-id
+      last_login: 2001-01-01T01:01:01Z
+groups:
+    - name: group1
+      gid: 11111
+      ugid: "12345678"
+users_to_groups:
+    - uid: 1111
+      gid: 11111
