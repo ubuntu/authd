@@ -210,7 +210,7 @@ linkcheck_anchors_ignore_for_url = [r"https://github\.com/.*"]
 # NOTE: By default, the following MyST extensions are enabled:
 #       substitution, deflist, linkify
 
-# myst_enable_extensions = set()
+myst_enable_extensions = set({"colon_fence"})
 
 
 # Auto-generate header anchors
