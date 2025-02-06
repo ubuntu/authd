@@ -239,7 +239,7 @@ func TestUpdateUser(t *testing.T) {
 			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			golden.CheckOrUpdateYAML(t, got)
+			golden.CheckOrUpdate(t, got)
 
 			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t)+".gpasswd.output")
 		})
@@ -322,7 +322,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
-			golden.CheckOrUpdateYAML(t, got)
+			golden.CheckOrUpdate(t, got)
 		})
 	}
 }
