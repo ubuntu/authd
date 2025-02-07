@@ -468,6 +468,16 @@ func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 	return nil
 }
 
+// IsUserDisabled returns true if the user with the given user name is disabled, false otherwise.
+func (m *Manager) IsUserDisabled(username string) (bool, error) {
+	u, err := m.db.UserByName(username)
+	if err != nil {
+		return false, err
+	}
+
+	return u.Disabled, nil
+}
+
 // UserByName returns the user information for the given user name.
 func (m *Manager) UserByName(username string) (types.UserEntry, error) {
 	usr, err := m.db.UserByName(username)
