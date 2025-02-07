@@ -296,6 +296,10 @@ func checkHomeDirOwnership(home string, uid, gid uint32) error {
 	oldUID, oldGID := sys.Uid, sys.Gid
 
 	// Check if the home directory is owned by the user.
+	if oldUID != uid && oldGID != gid {
+		log.Warningf(context.Background(), "Home directory %q is not owned by UID %d and GID %d. To fix this, run `sudo chown -R %d:%d %s`.", home, uid, gid, uid, gid, home)
+		return nil
+	}
 	if oldUID != uid {
 		log.Warningf(context.Background(), "Home directory %q is not owned by UID %d. To fix this, run `sudo chown -R --from=%d %d %s`.", home, oldUID, oldUID, uid, home)
 	}
