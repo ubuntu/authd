@@ -91,16 +91,7 @@ func New(dbDir string) (*Database, error) {
 		}
 	}
 
-	database := &Database{db: db, path: dbPath, mu: sync.RWMutex{}}
-
-	if !exists && os.Getenv("MIGRATE_BBOLT_TO_SQLITE") != "" {
-		// Migrate data from bbolt to SQLite.
-		if err := database.migrateData(dbDir); err != nil {
-			return nil, fmt.Errorf("failed to migrate data: %w", err)
-		}
-	}
-
-	return database, nil
+	return &Database{db: db, path: dbPath, mu: sync.RWMutex{}}, nil
 }
 
 // MigrateData migrates data from bbolt to SQLite.

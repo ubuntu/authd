@@ -15,7 +15,6 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testsdetection"
-	"github.com/ubuntu/authd/internal/users/db/bbolt"
 	"github.com/ubuntu/authd/log"
 	"gopkg.in/yaml.v3"
 )
@@ -110,34 +109,12 @@ func Z_ForTests_CreateDBFromYAML(t *testing.T, src, destDir string) {
 	src, err := filepath.Abs(src)
 	require.NoError(t, err)
 
-	if os.Getenv("MIGRATE_BBOLT_TO_SQLITE") == "" {
-		// No migration requested, just create the SQLite database.
-		createDBFromYAML(t, src, destDir)
-		return
-	}
+	log.Debugf(context.Background(), "Loading SQLite database from %s", src)
 
-	// Load the bbolt database
-	err = bbolt.Z_ForTests_CreateDBFromYAML(src, destDir)
-	if err != nil {
-		// Loading the database as bbolt failed, maybe it's already in the SQLite format.
-		createDBFromYAML(t, src, destDir)
-		return
-	}
-
-	// New() migrates the data from bbolt to SQLite.
-	db, err := New(destDir)
+	f, err := os.Open(src)
 	require.NoError(t, err)
-	defer func() {
-		err := db.Close()
-		require.NoError(t, err)
-	}()
 
-	// Now dump the SQLite database to YAML
-	s := Z_ForTests_DumpNormalizedYAML(t, db)
-
-	// Store the YAML in a new db file
-	err = os.WriteFile(src, []byte(s), 0600)
-	require.NoError(t, err)
+	createDBFromYAMLReader(t, f, destDir)
 }
 
 // Z_ForTests_CreateDBFromYAML creates the bbolt database inside destDir and loads the src file content into it.
@@ -146,16 +123,6 @@ func Z_ForTests_CreateDBFromYAML(t *testing.T, src, destDir string) {
 func Z_ForTests_CreateDBFromYAMLReader(t *testing.T, r io.Reader, destDir string) {
 	t.Helper()
 	createDBFromYAMLReader(t, r, destDir)
-}
-
-func createDBFromYAML(t *testing.T, src, destDir string) {
-	t.Helper()
-	log.Debugf(context.Background(), "Loading SQLite database from %s", src)
-
-	f, err := os.Open(src)
-	require.NoError(t, err)
-
-	createDBFromYAMLReader(t, f, destDir)
 }
 
 func createDBFromYAMLReader(t *testing.T, r io.Reader, destDir string) {

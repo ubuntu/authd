@@ -149,20 +149,15 @@ func TestGetPreviousBroker(t *testing.T) {
 			t.Parallel()
 
 			dbDir := t.TempDir()
-			src := filepath.Join(testutils.TestFamilyPath(t), "get-previous-broker.db")
 
-			if os.Getenv("MIGRATE_BBOLT_TO_SQLITE") != "" {
-				db.Z_ForTests_CreateDBFromYAML(t, src, dbDir)
-			} else {
-				// We have to replace MOCKBROKERID with our generated broker id.
-				f, err := os.Open(src)
-				require.NoError(t, err, "Setup: could not open fixture database file")
-				defer f.Close()
-				d, err := io.ReadAll(f)
-				require.NoError(t, err, "Setup: could not read fixture database file")
-				d = bytes.ReplaceAll(d, []byte("MOCKBROKERID"), []byte(mockBrokerGeneratedID))
-				db.Z_ForTests_CreateDBFromYAMLReader(t, bytes.NewBuffer(d), dbDir)
-			}
+			// We have to replace MOCKBROKERID with our generated broker id.
+			f, err := os.Open(filepath.Join(testutils.TestFamilyPath(t), "get-previous-broker.db"))
+			require.NoError(t, err, "Setup: could not open fixture database file")
+			defer f.Close()
+			d, err := io.ReadAll(f)
+			require.NoError(t, err, "Setup: could not read fixture database file")
+			d = bytes.ReplaceAll(d, []byte("MOCKBROKERID"), []byte(mockBrokerGeneratedID))
+			db.Z_ForTests_CreateDBFromYAMLReader(t, bytes.NewBuffer(d), dbDir)
 
 			m, err := users.NewManager(users.DefaultConfig, dbDir)
 			require.NoError(t, err, "Setup: could not create user manager")
