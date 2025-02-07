@@ -166,6 +166,11 @@ func (c *Database) Close() error {
 	return c.db.Close()
 }
 
+// DBFilename returns the filename of the database.
+func DBFilename() string {
+	return dbFilename
+}
+
 // RemoveDb removes the database file.
 func RemoveDb(dbDir string) error {
 	return os.Remove(filepath.Join(dbDir, dbFilename))

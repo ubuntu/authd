@@ -82,7 +82,11 @@ func New() *App {
 			setVerboseMode(a.config.Verbosity)
 			log.Debugf(context.Background(), "Verbosity: %d", a.config.Verbosity)
 
-			if err := migrateOldDBDir(consts.OldDBDir, a.config.Paths.Database); err != nil {
+			if err := maybeMigrateOldDBDir(consts.OldDBDir, a.config.Paths.Database); err != nil {
+				return err
+			}
+
+			if _, err := maybeMigrateBBoltToSQLite(a.config.Paths.Database); err != nil {
 				return err
 			}
 

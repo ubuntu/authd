@@ -94,20 +94,8 @@ func New(dbDir string) (*Database, error) {
 	database := &Database{db: db, path: dbPath, mu: sync.RWMutex{}}
 
 	if !exists && os.Getenv("MIGRATE_BBOLT_TO_SQLITE") != "" {
-		// Open the bbolt database.
-		bboltDB, err := bbolt.New(dbDir)
-		if err != nil {
-			return nil, err
-		}
-		defer func() {
-			err := bboltDB.Close()
-			if err != nil {
-				log.Warningf(context.Background(), "failed to close bbolt database: %v", err)
-			}
-		}()
-
-		// Migrate data from bbolt to sqlite3.
-		if err := database.migrateData(bboltDB); err != nil {
+		// Migrate data from bbolt to SQLite.
+		if err := database.migrateData(dbDir); err != nil {
 			return nil, fmt.Errorf("failed to migrate data: %w", err)
 		}
 	}
@@ -115,8 +103,36 @@ func New(dbDir string) (*Database, error) {
 	return database, nil
 }
 
-func (c *Database) migrateData(bboltDB *bbolt.Database) error {
-	log.Infof(context.Background(), "Migrating data from bbolt to sqlite3")
+// MigrateData migrates data from bbolt to SQLite.
+func MigrateData(dbDir string) error {
+	db, err := New(dbDir)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err := db.Close()
+		if err != nil {
+			log.Warningf(context.Background(), "Failed to close database after migration: %v", err)
+		}
+	}()
+
+	return db.migrateData(dbDir)
+}
+
+func (c *Database) migrateData(dbDir string) error {
+	log.Infof(context.Background(), "Migrating data from bbolt to SQLite")
+
+	// Open the bbolt database.
+	bboltDB, err := bbolt.New(dbDir)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		err := bboltDB.Close()
+		if err != nil {
+			log.Warningf(context.Background(), "Failed to close bbolt database: %v", err)
+		}
+	}()
 
 	// Start a transaction
 	tx, err := c.db.Begin()
@@ -230,6 +246,11 @@ func (c *Database) migrateData(bboltDB *bbolt.Database) error {
 func (c *Database) Close() error {
 	log.Debugf(context.Background(), "Closing database")
 	return c.db.Close()
+}
+
+// Filename returns the name of the database file.
+func Filename() string {
+	return filename
 }
 
 // RemoveDB removes the database file.
