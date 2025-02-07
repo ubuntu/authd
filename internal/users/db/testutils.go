@@ -9,7 +9,6 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -60,15 +59,10 @@ func Z_ForTests_DumpNormalizedYAML(c *Database) (string, error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	uid := os.Geteuid()
-
 	if err := c.db.View(func(tx *bbolt.Tx) error {
 		return tx.ForEach(func(name []byte, bucket *bbolt.Bucket) error {
 			d[string(name)] = make(map[string]string)
 			return bucket.ForEach(func(key, value []byte) error {
-				key = []byte(strings.Replace(string(key), strconv.Itoa(uid), "{{CURRENT_UID}}", 1))
-				value = []byte(strings.ReplaceAll(string(value), strconv.Itoa(uid), "{{CURRENT_UID}}"))
-
 				d[string(name)][string(key)] = redactTime(string(value))
 				return nil
 			})
@@ -106,8 +100,6 @@ func Z_ForTests_FromYAML(r io.Reader, destDir string) error {
 		return err
 	}
 
-	uid := os.Geteuid()
-
 	// Create buckets and content.
 	return db.Update(func(tx *bbolt.Tx) error {
 		for bucketName, bucketContent := range dbContent {
@@ -118,10 +110,6 @@ func Z_ForTests_FromYAML(r io.Reader, destDir string) error {
 
 			for key, val := range bucketContent {
 				if bucketName == userByIDBucketName || bucketName == userByNameBucketName {
-					// Replace {{CURRENT_UID}} with the UID of the current process
-					val = strings.ReplaceAll(val, "{{CURRENT_UID}}", strconv.Itoa(uid))
-					key = strings.Replace(key, "{{CURRENT_UID}}", strconv.Itoa(uid), 1)
-
 					// Replace the redacted time in the json value by a valid time.
 					val = strings.Replace(val, redactedCurrentTime, time.Now().Format(time.RFC3339), 1)
 				}
