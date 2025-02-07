@@ -144,7 +144,7 @@ func allUsersInternal(db queryable) ([]userRow, error) {
 	return users, nil
 }
 
-func insertOrUpdateUser(db queryable, u userRow) error {
+func insertOrUpdateUserByID(db queryable, u userRow) error {
 	exists, err := userExists(db, u)
 	if err != nil {
 		return fmt.Errorf("failed to check if user exists: %w", err)
@@ -154,7 +154,7 @@ func insertOrUpdateUser(db queryable, u userRow) error {
 		return insertUser(db, u)
 	}
 
-	return updateUser(db, u)
+	return updateUserByID(db, u)
 }
 
 func userExists(db queryable, u userRow) (bool, error) {
@@ -187,7 +187,7 @@ func insertUser(db queryable, u userRow) error {
 	return nil
 }
 
-func updateUser(db queryable, u userRow) error {
+func updateUserByID(db queryable, u userRow) error {
 	log.Debugf(context.Background(), "Updating user %v", u.Name)
 	query := fmt.Sprintf(`UPDATE users SET %s WHERE uid = ?`, allUserColumnsWithPlaceholders)
 	_, err := db.Exec(query, u.Name, u.UID, u.GID, u.Gecos, u.Dir, u.Shell, u.LastLogin.Unix(), u.BrokerID, u.UID)

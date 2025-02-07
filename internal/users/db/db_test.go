@@ -137,11 +137,15 @@ func TestUpdateUserEntry(t *testing.T) {
 		},
 	}
 	groupCases := map[string]db.GroupDB{
-		"group1":              db.NewGroupDB("group1", 11111, "12345678", nil),
-		"newgroup1-same-ugid": db.NewGroupDB("newgroup1-same-ugid", 11111, "12345678", nil),
-		"newgroup1-diff-ugid": db.NewGroupDB("newgroup1-diff-ugid", 11111, "99999999", nil),
-		"group2":              db.NewGroupDB("group2", 22222, "56781234", nil),
-		"group3":              db.NewGroupDB("group3", 33333, "34567812", nil),
+		"group1":                        db.NewGroupDB("group1", 11111, "12345678", nil),
+		"group1-different-gid":          db.NewGroupDB("group1", 99999, "12345678", nil),
+		"group1-different-ugid":         db.NewGroupDB("group1", 11111, "99999999", nil),
+		"group1-different-gid-and-ugid": db.NewGroupDB("group1", 99999, "99999999", nil),
+		"new-group-same-gid":            db.NewGroupDB("new-group-same-gid", 11111, "99999999", nil),
+		"new-group-same-ugid":           db.NewGroupDB("new-group-same-ugid", 99999, "12345678", nil),
+		"new-group-same-gid-and-ugid":   db.NewGroupDB("new-group-same-gid", 11111, "12345678", nil),
+		"group2":                        db.NewGroupDB("group2", 22222, "56781234", nil),
+		"group3":                        db.NewGroupDB("group3", 33333, "34567812", nil),
 	}
 
 	tests := map[string]struct {
@@ -165,7 +169,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		// Group updates
 		"Update_user_by_adding_a_new_group":         {groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group"},
 		"Update_user_by_adding_a_new_default_group": {groupCases: []string{"group2", "group1"}, dbFile: "one_user_and_group"},
-		"Update_user_by_renaming_a_group":           {groupCases: []string{"newgroup1-same-ugid"}, dbFile: "one_user_and_group"},
+		"Update_user_by_renaming_a_group":           {groupCases: []string{"new-group-same-gid-and-ugid"}, dbFile: "one_user_and_group"},
 		"Remove_group_from_user":                    {groupCases: []string{"group2"}, dbFile: "one_user_and_group"},
 		"Update_user_by_adding_a_new_local_group":   {localGroups: []string{"localgroup1"}, dbFile: "one_user_and_group"},
 
@@ -178,7 +182,11 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Error_when_user_has_conflicting_uid": {userCase: "user1-new-name", dbFile: "one_user_and_group", wantErr: true},
 
 		// Error cases
-		"Error_when_group_has_conflicting_gid": {groupCases: []string{"newgroup1-diff-ugid"}, dbFile: "one_user_and_group", wantErr: true},
+		"Error_when_new_group_has_conflicting_gid":                  {groupCases: []string{"new-group-same-gid"}, dbFile: "one_user_and_group", wantErr: true},
+		"Error_when_new_group_has_conflicting_ugid":                 {groupCases: []string{"new-group-same-ugid"}, dbFile: "one_user_and_group", wantErr: true},
+		"Error_when_group_has_same_name_and_ugid_but_different_gid": {groupCases: []string{"group1-different-gid"}, dbFile: "one_user_and_group", wantErr: true},
+		"Error_when_group_has_same_name_and_gid_but_different_ugid": {groupCases: []string{"group1-different-ugid"}, dbFile: "one_user_and_group", wantErr: true},
+		"Error_when_group_has_same_name_but_different_gid_and_ugid": {groupCases: []string{"group1-different-gid-and-ugid"}, dbFile: "one_user_and_group", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -201,6 +209,9 @@ func TestUpdateUserEntry(t *testing.T) {
 			user.GID = groups[0].GID
 
 			err := c.UpdateUserEntry(user, groups, tc.localGroups)
+			if err != nil {
+				log.Errorf(context.Background(), "UpdateUserEntry error: %v", err)
+			}
 			if tc.wantErr {
 				require.Error(t, err, "UpdateFromUserInfo should return an error but didn't")
 				return

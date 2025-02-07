@@ -9,7 +9,7 @@ users:
       shell: /bin/bash
       last_login: 2020-01-01T00:00:00Z
 groups:
-    - name: newgroup1-same-ugid
+    - name: new-group-same-gid
       gid: 11111
       ugid: "12345678"
 users_to_groups:

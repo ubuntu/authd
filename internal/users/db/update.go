@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/mattn/go-sqlite3"
 	"github.com/ubuntu/authd/log"
 )
 
@@ -78,7 +79,7 @@ func handleUserUpdate(db queryable, u userRow) error {
 	}
 
 	log.Debug(context.Background(), fmt.Sprintf("Updating entry of user %q (UID: %d)", u.Name, u.UID))
-	return insertOrUpdateUser(db, u)
+	return insertOrUpdateUserByID(db, u)
 }
 
 // updateGroup updates the group records in the database.
@@ -119,6 +120,24 @@ func handleUsersToGroupsUpdate(db queryable, uid uint32, groups []GroupDB) error
 	// Add the user to the groups they're a member of
 	for _, group := range groups {
 		if err := addUserToGroup(db, uid, group.GID); err != nil {
+			var sqliteErr sqlite3.Error
+			if errors.As(err, &sqliteErr) && sqliteErr.ExtendedCode == sqlite3.ErrConstraintForeignKey {
+				// A FOREIGN KEY constraint failed. The SQLite error does not tell us which column caused the constraint
+				// to fail, so to make the error message more useful, we check if a user and group with the given UID and
+				// GID exist.
+				_, userErr := userByID(db, uid)
+				if errors.Is(userErr, NoDataFoundError{}) {
+					err = fmt.Errorf("%w (user with UID %d does not exist)", err, uid)
+				} else if userErr != nil {
+					err = errors.Join(err, fmt.Errorf("failed to check if user with UID %d exists: %w", uid, userErr))
+				}
+				_, groupErr := groupByID(db, group.GID)
+				if errors.Is(groupErr, NoDataFoundError{}) {
+					err = fmt.Errorf("%w (group with GID %d does not exist)", err, group.GID)
+				} else if groupErr != nil {
+					err = errors.Join(err, fmt.Errorf("failed to check if group with GID %d exists: %w", group.GID, groupErr))
+				}
+			}
 			return fmt.Errorf("failed to add user to group: %w", err)
 		}
 	}
