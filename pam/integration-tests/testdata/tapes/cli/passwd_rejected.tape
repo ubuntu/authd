@@ -6,7 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-TypeUsername "user-integration-invalid-new-password"
+TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
 Show
 
 Hide
@@ -70,7 +70,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-TypeUsername "user-integration-invalid-new-password"
+TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
 Show
 
 Hide

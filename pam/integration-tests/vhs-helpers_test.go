@@ -19,6 +19,7 @@ import (
 
 	"github.com/msteinert/pam/v2"
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/testutils"
@@ -37,7 +38,8 @@ const (
 	vhsWaitPattern = "WaitPattern"
 	vhsTypingSpeed = "TypingSpeed"
 
-	vhsCommandVariable = "AUTHD_TEST_TAPE_COMMAND"
+	vhsCommandVariable  = "AUTHD_TEST_TAPE_COMMAND"
+	vhsTapeUserVariable = "AUTHD_TEST_TAPE_USERNAME"
 
 	vhsCommandFinalAuthWaitVariable         = "AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT"
 	vhsCommandFinalChangeAuthokWaitVariable = "AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT"
@@ -112,10 +114,14 @@ var (
 
 	vhsSleepRegex = regexp.MustCompile(
 		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?(.*)$`)
+
 	vhsEmptyTrailingLinesRegex = regexp.MustCompile(`(?m)\s+\z`)
 	vhsUnixTargetRegex         = regexp.MustCompile(fmt.Sprintf(`unix://%s/(\S*)\b`,
 		regexp.QuoteMeta(os.TempDir())))
+	vhsUserCheckRegex = regexp.MustCompile(`(?m)  (User:|(USER|LOGNAME)=).*$\n*[a-z0-9-"]+$`)
+)
 
+var (
 	// vhsWaitRegex catches Wait(@timeout)? /Pattern/ commands to re-implement default vhs
 	// Wait /Pattern/ command with full context on errors.
 	vhsWaitRegex = regexp.MustCompile(`\bWait(\+Line)?(@\S+)?[\t ]+(/(.+)/|(.+))`)
@@ -384,6 +390,11 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 	// Drop all the socket references.
 	got = vhsUnixTargetRegex.ReplaceAllLiteralString(got, "unix:///authd/test_socket.sock")
 
+	// Username may be split in multiple lines, so fix this not to break further checks.
+	got = vhsUserCheckRegex.ReplaceAllStringFunc(got, func(s string) string {
+		return strings.ReplaceAll(s, "\n", "")
+	})
+
 	// Save the sanitized result on cleanup
 	t.Cleanup(func() {
 		if !t.Failed() {
@@ -518,12 +529,26 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 		tapeString = strings.ReplaceAll(tapeString, variable, v)
 	}
 
+	multiLineValueRegex := func(value string) string {
+		// If the value is very long it may be split in multiple lines, so that
+		// we need to use a regex to match it.
+		const maxLength = 80
+		if len(value) <= maxLength {
+			return regexp.QuoteMeta(value)
+		}
+		valueRegex := regexp.QuoteMeta(value[:maxLength])
+		for i := maxLength; i < len(value); i++ {
+			valueRegex += regexp.QuoteMeta(string(value[i])) + `\n?`
+		}
+		return valueRegex
+	}
+
 	for _, m := range vhsTypeAndWaitUsername.FindAllStringSubmatch(tapeString, -1) {
 		fullMatch, prefix, username := m[0], m[1], m[2]
 		commands := []string{
 			`Wait /Username:[^\n]*\n/`,
 			fmt.Sprintf("Type `%s`", username),
-			fmt.Sprintf(`Wait /Username: %s\n/`, regexp.QuoteMeta(username)),
+			fmt.Sprintf(`Wait /Username: %s\n/`, multiLineValueRegex(username)),
 		}
 		tapeString = strings.ReplaceAll(tapeString, fullMatch,
 			prefix+strings.Join(commands, "\n"+prefix))
@@ -533,12 +558,12 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 		fullMatch, prefix, promptValue := matches[0], matches[1], matches[2]
 		visibleValue := promptValue
 		if style == pam.PromptEchoOff {
-			visibleValue = regexp.QuoteMeta(strings.Repeat("*", len(promptValue)))
+			visibleValue = strings.Repeat("*", len(promptValue))
 		}
 		commands := []string{
 			`Wait+Screen /\n>[ \t]*\n/`,
 			fmt.Sprintf("Type `%s`", promptValue),
-			fmt.Sprintf(`Wait+Suffix /:\n> %s(\n[^>].+)*/`, visibleValue),
+			fmt.Sprintf(`Wait+Suffix /:\n> %s(\n[^>].+)*/`, multiLineValueRegex(visibleValue)),
 		}
 		tapeString = strings.ReplaceAll(tapeString, fullMatch,
 			prefix+strings.Join(commands, "\n"+prefix))
@@ -612,4 +637,25 @@ func requireRunnerResult(t *testing.T, sessionMode authd.SessionMode, goldenCont
 	t.Helper()
 
 	requireRunnerResultForUser(t, sessionMode, "", goldenContent)
+}
+
+func vhsTestUserNameFull(t *testing.T, userPrefix string, namePrefix string) string {
+	t.Helper()
+
+	require.NotEmpty(t, userPrefix, "Setup: user prefix needs to be set", t.Name())
+	if userPrefix[len(userPrefix)-1] != '-' {
+		userPrefix += "-"
+	}
+	if namePrefix != "" && namePrefix[len(namePrefix)-1] != '-' {
+		namePrefix += "-"
+	}
+	return userPrefix + namePrefix + strings.ReplaceAll(
+		strings.ToLower(filepath.Base(t.Name())), "_", "-")
+}
+
+func vhsTestUserName(t *testing.T, prefix string) string {
+	t.Helper()
+
+	require.NotEmpty(t, prefix, "Setup: user prefix needs to be set", t.Name())
+	return vhsTestUserNameFull(t, examplebroker.UserIntegrationPrefix, prefix)
 }

@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
@@ -79,15 +80,12 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	require.NoError(t, err, "Setup: Can't read sshd host public key")
 	saveArtifactsForDebugOnCleanup(t, []string{sshdHostKey + ".pub"})
 
-	defaultGPasswdOutput, groupsFile := prepareGPasswdFiles(t)
-	defaultSocketPath := runAuthd(t, defaultGPasswdOutput, groupsFile, true)
-
 	const tapeCommand = "ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}"
 	defaultTapeSettings := []tapeSetting{{vhsHeight, 1000}, {vhsWidth, 1500}}
 
-	defaultSSHDPort := ""
-	defaultUserHome := ""
+	var defaultSSHDPort, defaultUserHome, defaultSocketPath, defaultGPasswdOutput string
 	if sharedSSHd {
+		defaultSocketPath, defaultGPasswdOutput = sharedAuthd(t)
 		serviceFile := createSshdServiceFile(t, execModule, execChild, defaultSocketPath)
 		defaultSSHDPort, defaultUserHome = startSSHdForTest(t, serviceFile, sshdHostKey,
 			"authd-test-user-sshd-accept-all", sshdPreloadLibrary, true, false)
@@ -102,6 +100,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		tapeVariables map[string]string
 
 		user             string
+		userPrefix       string
 		pamServiceName   string
 		socketPath       string
 		daemonizeSSHd    bool
@@ -119,8 +118,8 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 		"Authenticate_user_with_mfa": {
 			tape:         "mfa_auth",
-			tapeSettings: []tapeSetting{{vhsHeight, 1200}},
-			user:         "user-mfa",
+			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
+			userPrefix:   examplebroker.UserIntegrationMfaPrefix,
 		},
 		"Authenticate_user_with_form_mode_with_button": {
 			tape:         "form_with_button",
@@ -135,21 +134,21 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			},
 		},
 		"Authenticate_user_and_reset_password_while_enforcing_policy": {
-			tape: "mandatory_password_reset",
-			user: "user-needs-reset",
+			tape:       "mandatory_password_reset",
+			userPrefix: examplebroker.UserIntegrationNeedsResetPrefix,
 		},
 		"Authenticate_user_with_mfa_and_reset_password_while_enforcing_policy": {
 			tape:         "mfa_reset_pwquality_auth",
-			user:         "user-mfa-with-reset",
-			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
+			tapeSettings: []tapeSetting{{vhsHeight, 1500}, {vhsWidth, 1800}},
+			userPrefix:   examplebroker.UserIntegrationMfaWithResetPrefix,
 		},
 		"Authenticate_user_and_offer_password_reset": {
-			tape: "optional_password_reset_skip",
-			user: "user-can-reset",
+			tape:       "optional_password_reset_skip",
+			userPrefix: examplebroker.UserIntegrationCanResetPrefix,
 		},
 		"Authenticate_user_and_accept_password_reset": {
-			tape: "optional_password_reset_accept",
-			user: "user-can-reset2",
+			tape:       "optional_password_reset_accept",
+			userPrefix: examplebroker.UserIntegrationCanResetPrefix,
 		},
 		"Authenticate_user_switching_auth_mode": {
 			tape:         "switch_auth_mode",
@@ -176,7 +175,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 		"Authenticate_user_and_add_it_to_local_group": {
 			tape:            "local_group",
-			user:            "user-local-groups",
+			userPrefix:      examplebroker.UserIntegrationLocalGroupsPrefix,
 			wantLocalGroups: true,
 		},
 
@@ -206,7 +205,7 @@ Wait`,
 		},
 		"Deny_authentication_if_user_does_not_exist": {
 			tape:                "unexistent_user",
-			user:                "user-unexistent",
+			user:                examplebroker.UserIntegrationUnexistent,
 			wantNotLoggedInUser: true,
 		},
 		"Deny_authentication_if_user_does_not_exist_and_matches_cancel_key": {
@@ -215,8 +214,9 @@ Wait`,
 			wantNotLoggedInUser: true,
 		},
 		"Deny_authentication_if_newpassword_does_not_match_required_criteria": {
-			tape: "bad_password",
-			user: "user-needs-reset2",
+			tape:         "bad_password",
+			userPrefix:   examplebroker.UserIntegrationNeedsResetPrefix,
+			tapeSettings: []tapeSetting{{vhsHeight, 1200}},
 		},
 
 		"Prevent_user_from_switching_username": {
@@ -232,7 +232,7 @@ Wait`,
 		},
 		"Exit_if_user_is_not_pre-checked_on_ssh_service": {
 			tape:                "local_ssh",
-			user:                "user-integration-ssh-service-not-allowed",
+			user:                examplebroker.UserIntegrationPrefix + "ssh-service-not-allowed",
 			pamServiceName:      "sshd",
 			wantNotLoggedInUser: true,
 			tapeVariables: map[string]string{
@@ -266,15 +266,22 @@ Wait`,
 				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, true)
+			} else if !sharedSSHd {
+				socketPath, gpasswdOutput = sharedAuthd(t)
 			}
 			if tc.socketPath != "" {
 				socketPath = tc.socketPath
 			}
 
 			user := tc.user
+			if tc.userPrefix != "" {
+				tc.userPrefix = tc.userPrefix + examplebroker.UserIntegrationPreCheckValue
+			}
+			if tc.userPrefix == "" {
+				tc.userPrefix = examplebroker.UserIntegrationPreCheckPrefix
+			}
 			if user == "" {
-				user = "user-integration-pre-check-" + strings.ReplaceAll(
-					strings.ToLower(filepath.Base(t.Name())), "_", "-")
+				user = vhsTestUserNameFull(t, tc.userPrefix, "ssh")
 			}
 
 			sshdPort := defaultSSHDPort

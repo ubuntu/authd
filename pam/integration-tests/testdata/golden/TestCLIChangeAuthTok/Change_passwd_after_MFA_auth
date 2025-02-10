@@ -2,7 +2,7 @@
 Username: user name
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
-Username: user-mfa
+Username: user-mfa-integration-cli-passwd
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
   Select your provider
@@ -18,7 +18,7 @@ Gimme your password:
   Select your authentication method
 
 > 1. Password authentication
-  2. Send URL to user-mfa@gmail.com
+  2. Send URL to user-mfa-integration-cli-passwd@gmail.com
   3. Use your fido device foo
   4. Use your phone +33...
   5. Use your phone +1...
@@ -80,10 +80,10 @@ Confirm password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd passwd socket=${AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK}
 PAM ChangeAuthTok()
-  User: "user-mfa"
+  User: "user-mfa-integration-cli-passwd"
   Result: success
 PAM AcctMgmt()
-  User: "user-mfa"
+  User: "user-mfa-integration-cli-passwd"
   Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────

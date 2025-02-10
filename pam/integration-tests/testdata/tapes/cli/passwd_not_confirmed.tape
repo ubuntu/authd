@@ -6,7 +6,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-TypeUsername "user-integration-wrong-confirmation"
+TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
 Show
 
 Hide

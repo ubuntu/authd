@@ -95,28 +95,6 @@ type Broker struct {
 	sleepMultiplier float64
 }
 
-type userInfoBroker struct {
-	Password string
-}
-
-var (
-	exampleUsersMu = sync.RWMutex{}
-	exampleUsers   = map[string]userInfoBroker{
-		"user1":               {Password: "goodpass"},
-		"user2":               {Password: "goodpass"},
-		"user3":               {Password: "goodpass"},
-		"user-mfa":            {Password: "goodpass"},
-		"user-mfa-with-reset": {Password: "goodpass"},
-		"user-needs-reset":    {Password: "goodpass"},
-		"user-needs-reset2":   {Password: "goodpass"},
-		"user-can-reset":      {Password: "goodpass"},
-		"user-can-reset2":     {Password: "goodpass"},
-		"user-local-groups":   {Password: "goodpass"},
-		"user-pre-check":      {Password: "goodpass"},
-		"user-sudo":           {Password: "goodpass"},
-	}
-)
-
 var (
 	passwordMode = authMode{
 		id:             "password",
@@ -304,48 +282,52 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 	case "user-mfa-with-reset":
 		info.neededAuthSteps = 3
 		info.pwdChange = canReset
-	case "user-unexistent":
+	case UserIntegrationUnexistent:
 		return "", "", fmt.Errorf("user %q does not exist", username)
+	}
+
+	exampleUsersMu.Lock()
+	defer exampleUsersMu.Unlock()
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationPrefix) {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+	}
+
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationMfaPrefix) {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+		info.neededAuthSteps = 3
+	}
+
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationMfaNeedsResetPrefix) {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+		info.neededAuthSteps = 3
+		info.pwdChange = mustReset
+	}
+
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationMfaWithResetPrefix) {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+		info.neededAuthSteps = 3
+		info.pwdChange = canReset
+	}
+
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationNeedsResetPrefix) {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+		info.neededAuthSteps = 2
+		info.pwdChange = mustReset
+	}
+
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationCanResetPrefix) {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+		info.neededAuthSteps = 2
+		info.pwdChange = canReset
+	}
+
+	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, UserIntegrationLocalGroupsPrefix) {
+		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
 	}
 
 	if info.sessionMode == auth.SessionModePasswd {
 		info.neededAuthSteps++
 		info.pwdChange = mustReset
-	}
-
-	exampleUsersMu.Lock()
-	defer exampleUsersMu.Unlock()
-	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-integration") {
-		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
-	}
-
-	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-mfa-integration") {
-		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
-		info.neededAuthSteps = 3
-	}
-
-	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-mfa-needs-reset-integration") {
-		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
-		info.neededAuthSteps = 3
-		info.pwdChange = mustReset
-	}
-
-	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-mfa-with-reset-integration") {
-		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
-		info.neededAuthSteps = 3
-		info.pwdChange = canReset
-	}
-
-	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-needs-reset-integration") {
-		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
-		info.neededAuthSteps = 2
-		info.pwdChange = mustReset
-	}
-
-	if _, ok := exampleUsers[username]; !ok && strings.HasPrefix(username, "user-can-reset-integration") {
-		exampleUsers[username] = userInfoBroker{Password: "goodpass"}
-		info.neededAuthSteps = 2
-		info.pwdChange = canReset
 	}
 
 	pubASN1, err := x509.MarshalPKIXPublicKey(&b.privateKey.PublicKey)
@@ -530,7 +512,7 @@ func qrcodeData(sessionInfo *sessionInfo) (content string, code string) {
 		"https://www.ubuntu-it.org/",
 	}
 
-	if strings.HasPrefix(sessionInfo.username, "user-integration-qrcode-static") {
+	if strings.HasPrefix(sessionInfo.username, UserIntegrationQRcodeStaticPrefix) {
 		return qrcodeURIs[0], fmt.Sprint(baseCode)
 	}
 
@@ -839,7 +821,8 @@ func (b *Broker) cancelIsAuthenticatedUnlocked(_ context.Context, sessionID stri
 
 // UserPreCheck checks if the user is known to the broker.
 func (b *Broker) UserPreCheck(ctx context.Context, username string) (string, error) {
-	if strings.HasPrefix(username, "user-integration-pre-check") {
+	if strings.HasPrefix(username, "user-") && strings.Contains(username, "integration") &&
+		strings.Contains(username, fmt.Sprintf("-%s-", UserIntegrationPreCheckValue)) {
 		return userInfoFromName(username), nil
 	}
 	if _, exists := exampleUsers[username]; !exists {
@@ -944,6 +927,10 @@ func userInfoFromName(name string) string {
 
 	case "user-sudo":
 		user.Groups = append(user.Groups, groupJSONInfo{Name: "sudo", UGID: ""}, groupJSONInfo{Name: "admin", UGID: ""})
+	}
+
+	if strings.HasPrefix(name, "user-local-groups-integration") {
+		user.Groups = append(user.Groups, groupJSONInfo{Name: "localgroup", UGID: ""})
 	}
 
 	// only used for tests, we can ignore the template execution error as the returned data will be failing.
