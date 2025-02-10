@@ -8,7 +8,6 @@ users:
       dir: /home/userwithbroker
       shell: /bin/bash
       broker_id: broker-id
-      last_login: 2001-01-01T01:01:01Z
     - name: userwithinactivebroker
       uid: 2222
       gid: 22222
@@ -16,14 +15,12 @@ users:
       dir: /home/userwithinactivebroker
       shell: /bin/dash
       broker_id: inactive-broker-id
-      last_login: 2002-02-02T02:02:02Z
     - name: userlocalbroker
       uid: 3333
       gid: 33333
       gecos: userlocalbroker
       dir: /home/userlocalbroker
       shell: /bin/zsh
-      last_login: 2003-03-03T03:03:03Z
     - name: usersetbroker
       uid: 4444
       gid: 44444
@@ -31,7 +28,6 @@ users:
       dir: /home/usersetbroker
       shell: /bin/dash
       broker_id: "1902181170"
-      last_login: 2004-04-04T04:04:04Z
     - name: userupdatebroker
       uid: 5555
       gid: 55555
@@ -39,7 +35,6 @@ users:
       dir: /home/userupdatebroker
       shell: /bin/zsh
       broker_id: tobereplaced-broker-id
-      last_login: 2005-05-05T05:05:05Z
 groups:
     - name: group1
       gid: 11111

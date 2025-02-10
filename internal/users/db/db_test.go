@@ -157,8 +157,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		wantErr bool
 	}{
 		// New user
-		"Insert_new_user":                              {},
-		"Update_last_login_time_for_user":              {dbFile: "one_user_and_group"},
+		"Insert_new_user": {},
 		"Insert_new_user_without_optional_gecos_field": {userCase: "user1-without-gecos"},
 
 		// User and Group updates

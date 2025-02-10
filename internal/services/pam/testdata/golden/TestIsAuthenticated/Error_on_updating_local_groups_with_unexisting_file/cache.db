@@ -5,7 +5,6 @@ users:
       gecos: gecos for success_with_local_groups
       dir: /home/success_with_local_groups
       shell: /bin/sh/success_with_local_groups
-      last_login: 2020-01-01T00:00:00Z
 groups:
     - name: TestIsAuthenticated/Error_on_updating_local_groups_with_unexisting_file_separator_success_with_local_groups
       gid: 1111

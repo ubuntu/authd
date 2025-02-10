@@ -8,7 +8,6 @@ users:
       dir: /home/userwithbroker
       shell: /bin/bash
       broker_id: MOCKBROKERID
-      last_login: 2001-01-01T01:01:01Z
     - name: userwithinactivebroker
       uid: 2222
       gid: 22222
@@ -16,14 +15,12 @@ users:
       dir: /home/userwithinactivebroker
       shell: /bin/dash
       broker_id: inactive-broker-id
-      last_login: 2002-02-02T02:02:02Z
     - name: userwithoutbroker
       uid: 3333
       gid: 33333
       gecos: userwithoutbroker
       dir: /home/userwithoutbroker
       shell: /bin/zsh
-      last_login: 2003-03-03T03:03:03Z
 groups:
     - name: group1
       gid: 11111

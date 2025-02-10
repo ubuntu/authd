@@ -5,7 +5,6 @@ users:
       gecos: gecos for success
       dir: /home/success
       shell: /bin/sh/success
-      last_login: 2020-01-01T00:00:00Z
     - name: otheruser
       uid: 77777
       gid: 88888
@@ -13,7 +12,6 @@ users:
       dir: /home/otheruser
       shell: /bin/sh/otheruser
       broker_id: broker-id
-      last_login: 2001-01-01T01:01:01Z
 groups:
     - name: TestIsAuthenticated/Update_existing_DB_on_success_separator_success
       gid: 1111

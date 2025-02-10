@@ -9,7 +9,6 @@ import (
 	"slices"
 	"strconv"
 	"sync"
-	"time"
 
 	"github.com/ubuntu/decorate"
 	"go.etcd.io/bbolt"
@@ -49,13 +48,12 @@ type Database struct {
 
 // UserDB is the public type that is shared to external packages.
 type UserDB struct {
-	Name      string
-	UID       uint32
-	GID       uint32
-	Gecos     string // Gecos is an optional field. It can be empty.
-	Dir       string
-	Shell     string
-	LastLogin time.Time
+	Name  string
+	UID   uint32
+	GID   uint32
+	Gecos string // Gecos is an optional field. It can be empty.
+	Dir   string
+	Shell string
 
 	// Shadow entries
 	LastPwdChange  int

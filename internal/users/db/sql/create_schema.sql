@@ -1,12 +1,11 @@
 CREATE TABLE IF NOT EXISTS users (
-    name       TEXT NOT NULL,  -- Uniqueness is enforced by the index below
-    uid        INT PRIMARY KEY, -- Uniqueness and not NULL is enforced by PRIMARY KEY
-    gid        INT NOT NULL,
-    gecos      TEXT DEFAULT "",
+    name      TEXT NOT NULL,  -- Uniqueness is enforced by the index below
+    uid       INT PRIMARY KEY, -- Uniqueness and not NULL is enforced by PRIMARY KEY
+    gid       INT NOT NULL,
+    gecos     TEXT DEFAULT "",
     dir       TEXT DEFAULT "",
-    shell      TEXT DEFAULT "/bin/bash",
-    last_login DATE,
-    broker_id  TEXT DEFAULT ""
+    shell     TEXT DEFAULT "/bin/bash",
+    broker_id TEXT DEFAULT ""
 );
 CREATE UNIQUE INDEX "idx_user_name" ON users ("name");
 

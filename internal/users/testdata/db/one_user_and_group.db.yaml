@@ -8,7 +8,6 @@ users:
       dir: /home/user1
       shell: /bin/bash
       broker_id: broker-id
-      last_login: 2001-01-01T01:01:01Z
 groups:
     - name: group1
       gid: 11111

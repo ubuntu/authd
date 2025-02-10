@@ -6,7 +6,6 @@ users:
       dir: /home/otheruser
       shell: /bin/sh/otheruser
       broker_id: broker-id
-      last_login: 2001-01-01T01:01:01Z
 groups:
     - name: group-success
       gid: 88888

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/mattn/go-sqlite3"
 	"github.com/ubuntu/authd/log"
@@ -31,13 +30,8 @@ func (c *Database) UpdateUserEntry(user UserDB, authdGroups []GroupDB, localGrou
 		err = tx.Commit()
 	}()
 
-	u := userRow{
-		UserDB:    user,
-		LastLogin: time.Now(),
-	}
-
 	/* 1. Handle user update */
-	if err := handleUserUpdate(tx, u); err != nil {
+	if err := handleUserUpdate(tx, user); err != nil {
 		return err
 	}
 
@@ -47,12 +41,12 @@ func (c *Database) UpdateUserEntry(user UserDB, authdGroups []GroupDB, localGrou
 	}
 
 	/* 3. Update the users to groups table  */
-	if err := handleUsersToGroupsUpdate(tx, u.UID, authdGroups); err != nil {
+	if err := handleUsersToGroupsUpdate(tx, user.UID, authdGroups); err != nil {
 		return err
 	}
 
 	/* 4. Update user to local groups table */
-	if err := handleUsersToLocalGroupsUpdate(tx, u.UID, localGroups); err != nil {
+	if err := handleUsersToLocalGroupsUpdate(tx, user.UID, localGroups); err != nil {
 		return err
 	}
 
@@ -60,7 +54,7 @@ func (c *Database) UpdateUserEntry(user UserDB, authdGroups []GroupDB, localGrou
 }
 
 // handleUserUpdate updates the user record in the database.
-func handleUserUpdate(db queryable, u userRow) error {
+func handleUserUpdate(db queryable, u UserDB) error {
 	existingUser, err := userByID(db, u.UID)
 	if err != nil && !errors.Is(err, NoDataFoundError{}) {
 		return err

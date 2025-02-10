@@ -5,7 +5,6 @@ users:
       gecos: gecos for IA_second_call
       dir: /home/IA_second_call
       shell: /bin/sh/IA_second_call
-      last_login: 2020-01-01T00:00:00Z
 groups:
     - name: TestIsAuthenticated/Error_when_calling_second_time_without_cancelling_separator_IA_second_call
       gid: 1111

@@ -5,7 +5,6 @@ users:
       gecos: gecos for success
       dir: /home/success
       shell: /bin/sh/success
-      last_login: 2020-01-01T00:00:00Z
 groups:
     - name: TestIDGeneration_separator_success
       gid: 1111

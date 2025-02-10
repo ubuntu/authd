@@ -5,7 +5,6 @@ users:
       gecos: ""
       dir: /home/user1
       shell: /bin/bash
-      last_login: 2020-01-01T00:00:00Z
 groups:
     - name: group1
       gid: 11111

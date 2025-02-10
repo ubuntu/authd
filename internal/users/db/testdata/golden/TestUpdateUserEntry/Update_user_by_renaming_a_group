@@ -7,7 +7,6 @@ users:
         On multiple lines
       dir: /home/user1
       shell: /bin/bash
-      last_login: 2020-01-01T00:00:00Z
 groups:
     - name: new-group-same-gid
       gid: 11111

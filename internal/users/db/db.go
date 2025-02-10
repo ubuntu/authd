@@ -156,17 +156,14 @@ func (c *Database) migrateData(dbDir string) error {
 			return err
 		}
 
-		user := userRow{
-			UserDB: UserDB{
-				Name:     u.Name,
-				UID:      u.UID,
-				GID:      u.GID,
-				Gecos:    u.Gecos,
-				Dir:      u.Dir,
-				Shell:    u.Shell,
-				BrokerID: brokerID,
-			},
-			LastLogin: u.LastLogin,
+		user := UserDB{
+			Name:     u.Name,
+			UID:      u.UID,
+			GID:      u.GID,
+			Gecos:    u.Gecos,
+			Dir:      u.Dir,
+			Shell:    u.Shell,
+			BrokerID: brokerID,
 		}
 
 		log.Debugf(context.Background(), "Migrating user %v", user.Name)

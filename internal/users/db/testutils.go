@@ -11,25 +11,12 @@ import (
 	"path/filepath"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testsdetection"
 	"github.com/ubuntu/authd/log"
 	"gopkg.in/yaml.v3"
 )
-
-// replaceLastLogin replaces the last login date with a deterministic value.
-func replaceLastLogin(lastLogin time.Time) time.Time {
-	testsdetection.MustBeTesting()
-
-	if time.Since(lastLogin) < time.Minute*5 {
-		// We use the first second of the year 2020 as a recognizable value (which is not the zero value).
-		return time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
-	}
-
-	return lastLogin
-}
 
 // Z_ForTests_DumpNormalizedYAML gets the content of the database, normalizes it
 // (so that it can be compared with a golden file) and returns it as a YAML string.
@@ -40,18 +27,13 @@ func Z_ForTests_DumpNormalizedYAML(t *testing.T, c *Database) string {
 	testsdetection.MustBeTesting()
 
 	// Get all users
-	users, err := allUsersInternal(c.db)
+	users, err := allUsers(c.db)
 	require.NoError(t, err)
 
 	// Sort the users by UID.
 	sort.Slice(users, func(i, j int) bool {
 		return users[i].UID < users[j].UID
 	})
-
-	// Make the last login time deterministic.
-	for i, u := range users {
-		users[i].LastLogin = replaceLastLogin(u.LastLogin)
-	}
 
 	// Get all groups
 	groups, err := allGroupsInternal(c.db)
@@ -75,7 +57,7 @@ func Z_ForTests_DumpNormalizedYAML(t *testing.T, c *Database) string {
 	})
 
 	content := struct {
-		Users         []userRow        `yaml:"users"`
+		Users         []UserDB         `yaml:"users"`
 		Groups        []groupRow       `yaml:"groups"`
 		UsersToGroups []userToGroupRow `yaml:"users_to_groups"`
 	}{

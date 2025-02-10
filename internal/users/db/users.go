@@ -6,14 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/ubuntu/authd/log"
 )
 
-const allUserColumns = "name, uid, gid, gecos, dir, shell, last_login, broker_id"
+const allUserColumns = "name, uid, gid, gecos, dir, shell, broker_id"
 const publicUserColumns = "name, uid, gid, gecos, dir, shell, broker_id"
-const allUserColumnsWithPlaceholders = "name = ?, uid = ?, gid = ?, gecos = ?, dir = ?, shell = ?, last_login = ?, broker_id = ?"
+const allUserColumnsWithPlaceholders = "name = ?, uid = ?, gid = ?, gecos = ?, dir = ?, shell = ?, broker_id = ?"
 
 // UserDB is the public type that is shared to external packages.
 type UserDB struct {
@@ -26,23 +25,6 @@ type UserDB struct {
 
 	// BrokerID specifies the broker the user last successfully authenticated with.
 	BrokerID string `yaml:"broker_id,omitempty"`
-}
-
-// userRow is the struct that is stored in the database.
-//
-// It prevents leaking of lastLogin, which is only relevant to the database.
-// TODO: The only consumer of this package is the users manager, which converts the UserDB into a types.UserEntry anyway,
-//
-//	so there is no need to hide the lastLogin field (which complicates the code).
-type userRow struct {
-	UserDB `yaml:",inline"`
-	// TODO: Why do we store the last login time in the database? It's not used anywhere.
-	LastLogin time.Time `yaml:"last_login,omitempty"`
-}
-
-type nullableUserRow struct {
-	UserDB
-	LastLogin sql.NullTime
 }
 
 // NewUserDB creates a new UserDB.
@@ -101,20 +83,6 @@ func (c *Database) AllUsers() ([]UserDB, error) {
 }
 
 func allUsers(db queryable) ([]UserDB, error) {
-	users, err := allUsersInternal(db)
-	if err != nil {
-		return nil, err
-	}
-
-	var res []UserDB
-	for _, u := range users {
-		res = append(res, u.UserDB)
-	}
-
-	return res, nil
-}
-
-func allUsersInternal(db queryable) ([]userRow, error) {
 	query := fmt.Sprintf(`SELECT %s FROM users`, allUserColumns)
 	rows, err := db.Query(query)
 	if err != nil {
@@ -122,18 +90,14 @@ func allUsersInternal(db queryable) ([]userRow, error) {
 	}
 	defer closeRows(rows)
 
-	var users []userRow
+	var users []UserDB
 	for rows.Next() {
-		var u nullableUserRow
-		err := rows.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.LastLogin, &u.BrokerID)
+		var u UserDB
+		err := rows.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID)
 		if err != nil {
 			return nil, fmt.Errorf("scan error: %w", err)
 		}
-		userRow := userRow{UserDB: u.UserDB}
-		if u.LastLogin.Valid {
-			userRow.LastLogin = u.LastLogin.Time
-		}
-		users = append(users, userRow)
+		users = append(users, u)
 	}
 
 	// Check for errors from iteration
@@ -144,7 +108,7 @@ func allUsersInternal(db queryable) ([]userRow, error) {
 	return users, nil
 }
 
-func insertOrUpdateUserByID(db queryable, u userRow) error {
+func insertOrUpdateUserByID(db queryable, u UserDB) error {
 	exists, err := userExists(db, u)
 	if err != nil {
 		return fmt.Errorf("failed to check if user exists: %w", err)
@@ -157,7 +121,7 @@ func insertOrUpdateUserByID(db queryable, u userRow) error {
 	return updateUserByID(db, u)
 }
 
-func userExists(db queryable, u userRow) (bool, error) {
+func userExists(db queryable, u UserDB) (bool, error) {
 	query := `
 		SELECT 1 FROM users 
 		WHERE name = ? OR uid = ? 
@@ -177,20 +141,20 @@ func userExists(db queryable, u userRow) (bool, error) {
 	return true, nil
 }
 
-func insertUser(db queryable, u userRow) error {
+func insertUser(db queryable, u UserDB) error {
 	log.Debugf(context.Background(), "Inserting user %v", u.Name)
-	query := fmt.Sprintf(`INSERT INTO users (%s) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, allUserColumns)
-	_, err := db.Exec(query, u.Name, u.UID, u.GID, u.Gecos, u.Dir, u.Shell, u.LastLogin, u.BrokerID)
+	query := fmt.Sprintf(`INSERT INTO users (%s) VALUES (?, ?, ?, ?, ?, ?, ?)`, allUserColumns)
+	_, err := db.Exec(query, u.Name, u.UID, u.GID, u.Gecos, u.Dir, u.Shell, u.BrokerID)
 	if err != nil {
 		return fmt.Errorf("insert user error: %w", err)
 	}
 	return nil
 }
 
-func updateUserByID(db queryable, u userRow) error {
+func updateUserByID(db queryable, u UserDB) error {
 	log.Debugf(context.Background(), "Updating user %v", u.Name)
 	query := fmt.Sprintf(`UPDATE users SET %s WHERE uid = ?`, allUserColumnsWithPlaceholders)
-	_, err := db.Exec(query, u.Name, u.UID, u.GID, u.Gecos, u.Dir, u.Shell, u.LastLogin.Unix(), u.BrokerID, u.UID)
+	_, err := db.Exec(query, u.Name, u.UID, u.GID, u.Gecos, u.Dir, u.Shell, u.BrokerID, u.UID)
 	if err != nil {
 		return fmt.Errorf("update user error: %w", err)
 	}
