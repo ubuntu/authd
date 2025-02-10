@@ -22,6 +22,7 @@ type daemonOptions struct {
 	cachePath  string
 	existentDB string
 	socketPath string
+	pidFile    string
 	env        []string
 }
 
@@ -53,6 +54,14 @@ func WithSocketPath(path string) DaemonOption {
 func WithEnvironment(env ...string) DaemonOption {
 	return func(o *daemonOptions) {
 		o.env = env
+	}
+}
+
+// WithPidFile sets the path where the process pid will be saved while running.
+// The pidFile is also special because when it gets removed, authd is stopped.
+func WithPidFile(pidFile string) DaemonOption {
+	return func(o *daemonOptions) {
+		o.pidFile = pidFile
 	}
 }
 
@@ -93,6 +102,11 @@ paths:
 	configPath := filepath.Join(tempDir, "testconfig.yaml")
 	require.NoError(t, os.WriteFile(configPath, []byte(config), 0600), "Setup: failed to create config file for tests")
 
+	var cancel context.CancelCauseFunc
+	if opts.pidFile != "" {
+		ctx, cancel = context.WithCancelCause(ctx)
+	}
+
 	// #nosec:G204 - we control the command arguments in tests
 	cmd := exec.CommandContext(ctx, execPath, "-c", configPath)
 	opts.env = append(opts.env, os.Environ()...)
@@ -111,6 +125,12 @@ paths:
 		defer close(stopped)
 		out, err := cmd.CombinedOutput()
 		require.ErrorIs(t, err, context.Canceled, "Setup: daemon stopped unexpectedly: %s", out)
+		if opts.pidFile != "" {
+			defer cancel(nil)
+			if err := os.Remove(opts.pidFile); err != nil {
+				t.Logf("TearDown: failed to remove pid file %q: %v", opts.pidFile, err)
+			}
+		}
 		t.Logf("Daemon stopped (%v)\n ##### STDOUT #####\n %s \n ##### END #####", err, out)
 	}()
 
@@ -121,6 +141,25 @@ paths:
 	// Block until the daemon is started and ready to accept connections.
 	err = grpcutils.WaitForConnection(ctx, conn, time.Second*30)
 	require.NoError(t, err, "Setup: wait for daemon to be ready timed out")
+
+	if opts.pidFile != "" {
+		err := os.WriteFile(opts.pidFile, []byte(fmt.Sprint(cmd.Process.Pid)), 0600)
+		require.NoError(t, err, "Setup: cannot create PID file")
+
+		// In case the pid file gets removed externally, close authd!
+		// fsnotify watcher doesn't seem to work here, so let's go manual.
+		go func() {
+			for {
+				f, err := os.Open(opts.pidFile)
+				if err != nil {
+					cancel(err)
+					return
+				}
+				defer f.Close()
+				<-time.After(time.Millisecond * 200)
+			}
+		}()
+	}
 
 	return opts.socketPath, stopped
 }
