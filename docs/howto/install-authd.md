@@ -22,6 +22,12 @@ sudo add-apt-repository ppa:ubuntu-enterprise-desktop/authd
 sudo apt update
 ```
 
+```{note}
+The stable PPA release of authd can be used today as an authentication service.
+This project is under active development and the release of authd to the
+official archive is planned for Ubuntu 26.04 LTS.
+```
+
 Then install authd and any additional Debian packages needed for your system of
 choice:
 
