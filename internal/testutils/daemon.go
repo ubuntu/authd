@@ -142,7 +142,7 @@ paths:
 				t.Logf("TearDown: failed to remove pid file %q: %v", opts.pidFile, err)
 			}
 		}
-		t.Logf("Daemon stopped (%v)\n ##### STDOUT #####\n %s \n ##### END #####", err, out)
+		t.Logf("Daemon stopped (%v)\n ##### Output #####\n %s \n ##### END #####", err, out)
 	}()
 
 	conn, err := grpc.NewClient("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
