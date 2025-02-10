@@ -44,7 +44,7 @@ const (
 	vhsCommandFinalAuthWaitVariable         = "AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT"
 	vhsCommandFinalChangeAuthokWaitVariable = "AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT"
 
-	vhsQuotedTextMatch = "[\"`]" + `((?:[^"` + "`" + `\\]|\\.)*)"`
+	vhsQuotedTextMatch = "[\"`]" + `((?:[^"` + "`" + `\\]|\\.)*)` + "[\"`]"
 	vhsClearCommands   = `Hide
 Type "clear"
 Enter
