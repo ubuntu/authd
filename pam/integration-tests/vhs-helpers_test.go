@@ -222,6 +222,13 @@ func (td *tapeData) AddClientOptions(t *testing.T, opts clientOptions) {
 	if _, ok := td.Env[pam_test.RunnerEnvConnectionTimeout]; !ok {
 		td.Env[pam_test.RunnerEnvConnectionTimeout] = fmt.Sprintf("%d", defaultConnectionTimeout)
 	}
+	if _, ok := td.Env["SHELL"]; !ok {
+		shell, ok := td.Settings[vhsShell].(string)
+		require.True(t, ok, "Setup: %s is of invalid type: %T", shell, td.Settings[vhsShell])
+		shellPath, err := exec.LookPath(shell)
+		require.NoError(t, err, "Shell %s not found: %s", shell, err)
+		td.Env["SHELL"] = shellPath
+	}
 	if opts.Term != "" {
 		td.Env["AUTHD_PAM_CLI_TERM"] = opts.Term
 	}
