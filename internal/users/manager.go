@@ -356,9 +356,8 @@ func (m *Manager) UserByID(uid uint32) (types.UserEntry, error) {
 
 // AllUsers returns all users.
 func (m *Manager) AllUsers() ([]types.UserEntry, error) {
-	// TODO: I'm not sure if we should return temporary users here. On the one hand, they are usually not interesting to
-	// the user and would clutter the output of `getent passwd`. On the other hand, it might be surprising that some
-	// users are not returned by `getent passwd` and some apps might rely on all users being returned.
+	// We don't return temporary users here, because they are not interesting to the user and would clutter the output
+	// of `getent passwd`. Other tools should check `getpwnam`/`getpwuid` to check for conflicts, like `useradd` does.
 	usrs, err := m.cache.AllUsers()
 	if err != nil {
 		return nil, err
@@ -399,7 +398,7 @@ func (m *Manager) GroupByID(gid uint32) (types.GroupEntry, error) {
 
 // AllGroups returns all groups.
 func (m *Manager) AllGroups() ([]types.GroupEntry, error) {
-	// TODO: Same as for AllUsers, we might want to return temporary groups here.
+	// Same as in AllUsers, we don't return temporary groups here.
 	grps, err := m.cache.AllGroups()
 	if err != nil {
 		return nil, err
@@ -423,7 +422,6 @@ func (m *Manager) ShadowByName(username string) (types.ShadowEntry, error) {
 
 // AllShadows returns all shadow entries.
 func (m *Manager) AllShadows() ([]types.ShadowEntry, error) {
-	// TODO: Even less sure if we should return temporary users here.
 	usrs, err := m.cache.AllUsers()
 	if err != nil {
 		return nil, err
