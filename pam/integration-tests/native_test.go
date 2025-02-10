@@ -6,11 +6,11 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -35,7 +35,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		currentUserNotRoot bool
 		userSelection      bool
 		wantLocalGroups    bool
-		stopDaemonAfter    time.Duration
+		wantSeparateDaemon bool
 		skipRunnerCheck    bool
 		socketPath         string
 	}{
@@ -293,8 +293,8 @@ func TestNativeAuthenticate(t *testing.T) {
 			skipRunnerCheck: true,
 		},
 		"Exit_if_authd_is_stopped": {
-			tape:            "authd_stopped",
-			stopDaemonAfter: sleepDuration(defaultSleepValues[authdSleepLong] * 5),
+			tape:               "authd_stopped",
+			wantSeparateDaemon: true,
 		},
 
 		"Error_if_cannot_connect_to_authd": {
@@ -311,24 +311,17 @@ func TestNativeAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			var socketPath, gpasswdOutput string
-			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.stopDaemonAfter > 0 {
+			var socketPath, gpasswdOutput, pidFile string
+			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.wantSeparateDaemon {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// Similarly for the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				var groupsFile string
-				var cancel func()
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
-				socketPath, cancel = runAuthdWithCancel(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
-
-				if tc.stopDaemonAfter > 0 {
-					go func() {
-						<-time.After(tc.stopDaemonAfter)
-						t.Log("Stopping daemon!")
-						cancel()
-					}()
-				}
+				pidFile = filepath.Join(outDir, "authd.pid")
+				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot,
+					testutils.WithPidFile(pidFile))
 			} else {
 				socketPath, gpasswdOutput = sharedAuthd(t)
 			}
@@ -351,6 +344,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			td.Command = tc.tapeCommand
 			td.Env[socketPathEnv] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
+			td.Env["AUTHD_TEST_PID_FILE"] = pidFile
 			td.Variables = tc.tapeVariables
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)

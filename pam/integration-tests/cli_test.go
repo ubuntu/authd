@@ -188,24 +188,17 @@ func TestCLIAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			var socketPath, gpasswdOutput string
+			var socketPath, gpasswdOutput, pidFile string
 			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.stopDaemonAfter > 0 {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// Similarly for the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				var groupsFile string
-				var cancel func()
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
-				socketPath, cancel = runAuthdWithCancel(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot)
-
-				if tc.stopDaemonAfter > 0 {
-					go func() {
-						<-time.After(tc.stopDaemonAfter)
-						t.Log("Stopping daemon!")
-						cancel()
-					}()
-				}
+				pidFile = filepath.Join(outDir, "authd.pid")
+				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot,
+					testutils.WithPidFile(pidFile))
 			} else {
 				socketPath, gpasswdOutput = sharedAuthd(t)
 			}
@@ -217,6 +210,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			td.Command = tapeCommand
 			td.Variables = tc.tapeVariables
 			td.Env[socketPathEnv] = socketPath
+			td.Env["AUTHD_TEST_PID_FILE"] = pidFile
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)

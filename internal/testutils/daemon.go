@@ -1,6 +1,7 @@
 package testutils
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -121,9 +122,19 @@ paths:
 
 	// Start the daemon
 	stopped = make(chan struct{})
+	processPid := make(chan int)
 	go func() {
 		defer close(stopped)
-		out, err := cmd.CombinedOutput()
+		var b bytes.Buffer
+		cmd.Stdout = &b
+		cmd.Stderr = &b
+		err := cmd.Start()
+		require.NoError(t, err, "Setup: daemon cannot start %v", cmd.Args)
+		if opts.pidFile != "" {
+			processPid <- cmd.Process.Pid
+		}
+		err = cmd.Wait()
+		out := b.Bytes()
 		require.ErrorIs(t, err, context.Canceled, "Setup: daemon stopped unexpectedly: %s", out)
 		if opts.pidFile != "" {
 			defer cancel(nil)
@@ -143,7 +154,7 @@ paths:
 	require.NoError(t, err, "Setup: wait for daemon to be ready timed out")
 
 	if opts.pidFile != "" {
-		err := os.WriteFile(opts.pidFile, []byte(fmt.Sprint(cmd.Process.Pid)), 0600)
+		err := os.WriteFile(opts.pidFile, []byte(fmt.Sprint(<-processPid)), 0600)
 		require.NoError(t, err, "Setup: cannot create PID file")
 
 		// In case the pid file gets removed externally, close authd!
