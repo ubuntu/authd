@@ -230,7 +230,7 @@ func TestCLIAuthenticate(t *testing.T) {
 
 			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, golden.Path(t)+".gpasswd_out")
 
-			requireRunnerResultForUser(t, authd.SessionMode_AUTH, tc.clientOptions.PamUser, got)
+			requireRunnerResultForUser(t, authd.SessionMode_LOGIN, tc.clientOptions.PamUser, got)
 		})
 	}
 }
@@ -331,7 +331,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			got := td.ExpectedOutput(t, outDir)
 			golden.CheckOrUpdate(t, got)
 
-			requireRunnerResult(t, authd.SessionMode_PASSWD, got)
+			requireRunnerResult(t, authd.SessionMode_CHANGE_PASSWORD, got)
 		})
 	}
 }

@@ -197,8 +197,8 @@ func TestSelectBroker(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully_select_a_broker_and_creates_auth_session":   {username: "success", sessionMode: auth.SessionModeAuth},
-		"Successfully_select_a_broker_and_creates_passwd_session": {username: "success", sessionMode: auth.SessionModePasswd},
+		"Successfully_select_a_broker_and_creates_auth_session":   {username: "success", sessionMode: auth.SessionModeLogin},
+		"Successfully_select_a_broker_and_creates_passwd_session": {username: "success", sessionMode: auth.SessionModeChangePassword},
 
 		"Error_when_not_root":                             {username: "success", currentUserNotRoot: true, wantErr: true},
 		"Error_when_username_is_empty":                    {wantErr: true},
@@ -229,10 +229,10 @@ func TestSelectBroker(t *testing.T) {
 
 			var sessionMode authd.SessionMode
 			switch tc.sessionMode {
-			case auth.SessionModeAuth, "":
-				sessionMode = authd.SessionMode_AUTH
-			case auth.SessionModePasswd:
-				sessionMode = authd.SessionMode_PASSWD
+			case auth.SessionModeLogin, "":
+				sessionMode = authd.SessionMode_LOGIN
+			case auth.SessionModeChangePassword:
+				sessionMode = authd.SessionMode_CHANGE_PASSWORD
 			case "-":
 				sessionMode = authd.SessionMode_UNDEFINED
 			}
@@ -571,7 +571,7 @@ func TestIDGeneration(t *testing.T) {
 			sbResp, err := client.SelectBroker(context.Background(), &authd.SBRequest{
 				BrokerId: mockBrokerGeneratedID,
 				Username: usernamePrefix + testutils.IDSeparator + tc.username,
-				Mode:     authd.SessionMode_AUTH,
+				Mode:     authd.SessionMode_LOGIN,
 			})
 			require.NoError(t, err, "Setup: failed to create session for tests")
 
@@ -602,7 +602,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		"Error_when_setting_default_broker_to_local_broker": {username: "userlocalbroker", brokerID: brokers.LocalBrokerName, wantErr: true},
 		"Error_when_not_root":                               {username: "usersetbroker", currentUserNotRoot: true, wantErr: true},
 		"Error_when_username_is_empty":                      {wantErr: true},
-		"Error_when_user_does_not_exist":                    {username: "doesnotexist", wantErr: true},
+		"Error_when_user_does_not_exist_":                   {username: "doesnotexist", wantErr: true},
 		"Error_when_broker_does_not_exist":                  {username: "userwithbroker", brokerID: "does not exist", wantErr: true},
 	}
 	for name, tc := range tests {
@@ -812,7 +812,7 @@ func startSession(t *testing.T, client authd.PAMClient, username string) string 
 	sbResp, err := client.SelectBroker(context.Background(), &authd.SBRequest{
 		BrokerId: mockBrokerGeneratedID,
 		Username: username,
-		Mode:     authd.SessionMode_AUTH,
+		Mode:     authd.SessionMode_LOGIN,
 	})
 	require.NoError(t, err, "Setup: failed to create session for tests")
 	return sbResp.GetSessionId()

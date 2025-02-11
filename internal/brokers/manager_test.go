@@ -181,7 +181,7 @@ func TestNewSession(t *testing.T) {
 		wantErr bool
 	}{
 		"Successfully_start_a_new_auth_session":                    {username: "success"},
-		"Successfully_start_a_new_passwd_session":                  {username: "success", sessionMode: auth.SessionModePasswd},
+		"Successfully_start_a_new_passwd_session":                  {username: "success", sessionMode: auth.SessionModeChangePassword},
 		"Successfully_start_a_new_session_with_the_correct_broker": {username: "success", configuredBrokers: []string{t.Name() + "_Broker1.conf", t.Name() + "_Broker2.conf"}},
 
 		"Error_when_broker_does_not_exist":           {brokerID: "does_not_exist", wantErr: true},
