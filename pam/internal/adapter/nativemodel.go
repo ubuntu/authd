@@ -90,6 +90,7 @@ func (m *nativeModel) Init() tea.Cmd {
 
 	m.interactive = isSSHSession(m.pamMTx) || IsTerminalTTY(m.pamMTx)
 	rendersQrCode := m.isQrcodeRenderingSupported()
+	supportsQrCode := m.serviceName != polkitServiceName
 
 	return func() tea.Msg {
 		required, optional := layouts.Required, layouts.Optional
@@ -100,7 +101,7 @@ func (m *nativeModel) Init() tea.Cmd {
 			entries.DigitsPassword,
 		)
 
-		return supportedUILayoutsReceived{
+		supportedLayouts := supportedUILayoutsReceived{
 			layouts: []*authd.UILayout{
 				{
 					Type:   layouts.Form,
@@ -110,15 +111,6 @@ func (m *nativeModel) Init() tea.Cmd {
 					Button: &optional,
 				},
 				{
-					Type:          layouts.QrCode,
-					Content:       &required,
-					Code:          &optional,
-					Wait:          &layouts.RequiredWithBooleans,
-					Label:         &optional,
-					Button:        &optional,
-					RendersQrcode: &rendersQrCode,
-				},
-				{
 					Type:   layouts.NewPassword,
 					Label:  &required,
 					Entry:  &supportedEntries,
@@ -126,6 +118,20 @@ func (m *nativeModel) Init() tea.Cmd {
 				},
 			},
 		}
+
+		if supportsQrCode {
+			supportedLayouts.layouts = append(supportedLayouts.layouts, &authd.UILayout{
+				Type:          layouts.QrCode,
+				Content:       &required,
+				Code:          &optional,
+				Wait:          &layouts.RequiredWithBooleans,
+				Label:         &optional,
+				Button:        &optional,
+				RendersQrcode: &rendersQrCode,
+			})
+		}
+
+		return supportedLayouts
 	}
 }
 
@@ -190,6 +196,14 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		return m.startAsyncOp(m.userSelection)
 
 	case brokersListReceived:
+		if m.serviceName == polkitServiceName {
+			// Do not support using local broker in the polkit case.
+			// FIXME: This should be up to authd to keep a list of brokers based on service.
+			m.availableBrokers = slices.DeleteFunc(msg.brokers, func(b *authd.ABResponse_BrokerInfo) bool {
+				return b.Id == brokers.LocalBrokerName
+			})
+			return m, nil
+		}
 		m.availableBrokers = msg.brokers
 
 	case authModesReceived:

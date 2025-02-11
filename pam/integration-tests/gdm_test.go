@@ -163,6 +163,16 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 		},
+		"Authenticate_user_successfully_with_password_only_supported_method": {
+			pamUser: ptrValue(examplebroker.UserIntegrationAuthModesPrefix + "password-integration-gdm"),
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "goodpass",
+					}),
+				},
+			},
+		},
 		"Authenticates_user_with_multiple_retries": {
 			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, passwordAuthID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{

@@ -2,15 +2,6 @@ Hide
 Wait
 Type "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait+Prompt /Choose your provider/
-Show
-
-Hide
-TypeInPrompt "2"
-Show
-
-Hide
-Enter
 Wait+Prompt /Gimme your password/
 Show
 
