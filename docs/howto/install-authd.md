@@ -63,7 +63,24 @@ sudo apt install authd
 The brokers are provided as Snap packages and are available from the Snap
 Store.
 
-### MS Entra ID broker
+:::::{tab-set}
+:sync-group: broker
+
+::::{tab-item} Google IAM
+:sync: google
+
+To install the Google IAM broker, run the following command:
+
+```shell
+sudo snap install authd-google
+```
+At this stage, you have installed the main service and an identity broker to
+authenticate against Google IAM.
+
+::::
+
+::::{tab-item} Microsoft Entra ID
+:sync: msentraid
 
 To install the MS Entra ID broker, run the following command:
 
@@ -74,13 +91,5 @@ sudo snap install authd-msentraid
 At this stage, you have installed the main service and an identity broker to
 authenticate against Microsoft Entra ID.
 
-### Google IAM broker
-
-To install the Google IAM broker, run the following command:
-
-```shell
-sudo snap install authd-google
-```
-
-At this stage, you have installed the main service and an identity broker to
-authenticate against Google IAM.
+::::
+:::::

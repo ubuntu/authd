@@ -27,36 +27,50 @@ full transition to the cloud.
 ## In this documentation
 
 <!-- NOTE: changed grid layout as there is only three cards -->
-````{grid} 1 1 1 1
+::::::{grid} 1 1 1 1
 
-```{grid-item-card} [How-to guides](howto/index)
-:link: howto/index
-:link-type: doc
+:::::{grid-item-card} [How-to guides](howto/index)
 
-**Step-by-step guides** covering key operations and common tasks
-```
+**Step-by-step guides** covering key operations for your chosen identity provider.
 
-````
+::::{tab-set}
+:sync-group: broker
 
-````{grid} 1 1 2 2
+:::{tab-item} Google IAM
+:sync: google
+
+* <a href="howto/install-authd/?broker=google">Install authd and the Google IAM broker</a>
+* <a href="howto/install-authd/?broker=google">Configure the Google IAM broker</a>
+:::
+
+:::{tab-item} MS Entra ID
+:sync: msentraid
+
+* <a href="howto/configure-authd/?broker=msentraid">Install authd and the MS Entra ID broker</a>
+* <a href="howto/configure-authd/?broker=msentraid">Configure the MS Entra ID broker</a>
+:::
+
+::::::
+
+::::::{grid} 1 1 2 2
 :reverse:
 
-```{grid-item-card} [Reference](reference/index)
+:::::{grid-item-card} [Reference](reference/index)
 :link: reference/index
 :link-type: doc
 
-**Technical information** on troubleshooting authd
-```
+**Technical information** on supported cloud providers and troubleshooting authd.
+:::::
 
-```{grid-item-card} [Explanation](explanation/index)
+:::::{grid-item-card} [Explanation](explanation/index)
 :link: explanation/index
 :link-type: doc
 
-**Discussion** of product architecture
-```
+**Architecture reference for authd**, showing how its brokers interface with multiple cloud
+providers.
+:::::
 
-
-````
+::::::
 
 Documentation for the [stable](https://canonical-authd.readthedocs-hosted.com/en/stable/) release of authd and the [latest](https://canonical-authd.readthedocs-hosted.com/en/latest/) development version are
 both available.
