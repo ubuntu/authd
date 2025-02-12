@@ -9,9 +9,6 @@ var (
 )
 
 const (
-	// TEXTDOMAIN is the gettext domain for l10n.
-	TEXTDOMAIN = "adsys"
-
 	// DefaultLogLevel is the default logging level selected without any option.
 	DefaultLogLevel = log.NoticeLevel
 
