@@ -1,10 +1,10 @@
-# Configure authd
 ---
 myst:
   html_meta:
     "description lang=en": "Configure authd and its identity brokers to enable authentication of Ubuntu devices with multiple cloud identity providers, including Google IAM and Microsoft Entra ID."
 ---
 
+# Configure authd for cloud identity providers
 ## Broker discovery
 
 Create the directory that will contain the declaration files of the broker and copy the one from a broker snap package, with a specific `<broker_name>`, such as `google` or `msentraid`:
