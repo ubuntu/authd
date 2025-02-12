@@ -39,10 +39,8 @@ Then install authd and any additional Debian packages needed for your system of
 choice:
 
 :::::{tab-set}
-:sync-group: system
 
 ::::{tab-item} Ubuntu Desktop
-:sync: desktop
 
 ```shell
 sudo apt install authd gnome-shell yaru-theme-gnome-shell
@@ -50,7 +48,6 @@ sudo apt install authd gnome-shell yaru-theme-gnome-shell
 ::::
 
 ::::{tab-item} Ubuntu Server
-:sync: server
 
 ```shell
 sudo apt install authd
