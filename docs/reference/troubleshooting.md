@@ -1,3 +1,8 @@
+---
+myst:
+  html_meta:
+    "description lang=en": "Troubleshoot issues with authd when authenticating Ubuntu devices with cloud identity providers like Google IAM and Microsoft Entra ID."
+---
 # Troubleshooting
 
 ## Logging

@@ -1,4 +1,9 @@
 # Installation
+---
+myst:
+  html_meta:
+    "description lang=en": "Install the authd authentication service and its identity brokers to enable Ubuntu devices to authenticate with multiple cloud identity providers, including Google IAM and Microsoft Entra ID."
+---
 
 This project consists of two components:
 * **authd**: The authentication daemon responsible for managing access to the authentication mechanism.

@@ -1,6 +1,12 @@
 # authd
 
 authd is a versatile authentication service for Ubuntu, designed to seamlessly integrate with cloud identity providers like OpenID Connect and Entra ID. It offers a secure interface for system authentication, enabling cloud-based identity management. It can be used to support logins through both GDM and SSH.
+---
+myst:
+  html_meta:
+    "description lang=en":
+      "authd is an authentication service for Ubuntu, offering integration with multiple cloud identity providers, including Google IAM and Microsoft Entra ID."
+---
 
 authd features a modular structure, facilitating straightforward integration with different cloud services. This design aids in maintaining strong security and effective user authentication. It's well-suited for handling access to cloud identities, offering a balance of security and ease of use.
 

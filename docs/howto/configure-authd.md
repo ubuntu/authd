@@ -1,4 +1,9 @@
 # Configure authd
+---
+myst:
+  html_meta:
+    "description lang=en": "Configure authd and its identity brokers to enable authentication of Ubuntu devices with multiple cloud identity providers, including Google IAM and Microsoft Entra ID."
+---
 
 ## Broker discovery
 
