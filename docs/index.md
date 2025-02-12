@@ -1,6 +1,3 @@
-# authd
-
-authd is a versatile authentication service for Ubuntu, designed to seamlessly integrate with cloud identity providers like OpenID Connect and Entra ID. It offers a secure interface for system authentication, enabling cloud-based identity management. It can be used to support logins through both GDM and SSH.
 ---
 myst:
   html_meta:
@@ -8,13 +5,24 @@ myst:
       "authd is an authentication service for Ubuntu, offering integration with multiple cloud identity providers, including Google IAM and Microsoft Entra ID."
 ---
 
-authd features a modular structure, facilitating straightforward integration with different cloud services. This design aids in maintaining strong security and effective user authentication. It's well-suited for handling access to cloud identities, offering a balance of security and ease of use.
+# authd
 
-authd uses brokers to interface with cloud identity providers through a [DBus API](https://github.com/ubuntu/authd/blob/HEAD/examplebroker/com.ubuntu.auth.ExampleBroker.xml). Currently, both [MS Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) and [Google IAM](https://cloud.google.com/iam/docs/overview) are supported. For development purposes, authd also provides an example broker to help you develop your own.
-These brokers allow you to authenticate against MS Entra ID or Google IAM using multi-factor authentication and the device authentication flow.
+authd is an authentication service for Ubuntu that integrates with multiple
+cloud identity providers. It offers a secure interface for system
+authentication, enabling cloud-based identity management for Ubuntu Desktop and
+Server.
 
+authd has a modular design, comprising an authentication daemon and various
+identity brokers. This enables authd to support a growing list of cloud
+identity providers. Currently, authd supports authentication with both [MS
+Entra ID](https://learn.microsoft.com/en-us/entra/fundamentals/whatis) and
+[Google IAM](https://cloud.google.com/iam/docs/overview). An example broker is
+also provided to help developers create new brokers for additional identity
+services.
 
----------
+If an organization is pursuing cloud-based authentication of Ubuntu
+workstations and servers, authd is a secure and versatile service to support a
+full transition to the cloud.
 
 ## In this documentation
 
