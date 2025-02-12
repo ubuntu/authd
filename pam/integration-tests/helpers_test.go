@@ -48,7 +48,7 @@ var (
 )
 
 func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) (
-	socketPath string, waitFunc func(), cancelFunc func()) {
+	socketPath string, waitFunc func()) {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -61,22 +61,13 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 	return socketPath, func() {
 		cancel()
 		<-stopped
-	}, cancel
+	}
 }
 
-func runAuthdWithCancel(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) (
-	socketPath string, cancel func()) {
+func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) string {
 	t.Helper()
 
-	socketPath, cancelAndWait, cancel := runAuthdForTesting(t, gpasswdOutput, groupsFile, currentUserAsRoot, args...)
-	t.Cleanup(cancelAndWait)
-	return socketPath, cancel
-}
-
-func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool) string {
-	t.Helper()
-
-	socketPath, _ := runAuthdWithCancel(t, gpasswdOutput, groupsFile, currentUserAsRoot)
+	socketPath, _ := runAuthdForTesting(t, gpasswdOutput, groupsFile, currentUserAsRoot, args...)
 	return socketPath
 }
 
@@ -91,7 +82,7 @@ func sharedAuthd(t *testing.T) (socketPath string, gpasswdFile string) {
 	if !useSharedInstance {
 		gPasswd := filepath.Join(t.TempDir(), "gpasswd.output")
 		groups := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-		socket, cleanup, _ := runAuthdForTesting(t, gPasswd, groups, true)
+		socket, cleanup := runAuthdForTesting(t, gPasswd, groups, true)
 		t.Cleanup(cleanup)
 		return socket, gPasswd
 	}
@@ -130,7 +121,7 @@ func sharedAuthd(t *testing.T) (socketPath string, gpasswdFile string) {
 
 	sa.gPasswdOutputPath = filepath.Join(t.TempDir(), "gpasswd.output")
 	sa.groupsFile = filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-	sa.socketPath, sa.cleanup, _ = runAuthdForTesting(t, sa.gPasswdOutputPath, sa.groupsFile, true)
+	sa.socketPath, sa.cleanup = runAuthdForTesting(t, sa.gPasswdOutputPath, sa.groupsFile, true)
 	return sa.socketPath, sa.gPasswdOutputPath
 }
 
