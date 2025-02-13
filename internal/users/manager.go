@@ -165,7 +165,8 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		}
 
 		if g.UGID == "" {
-			// An empty UGID means that the group is local.
+			// An empty UGID means that the group is local, i.e. it's not stored in the database but expected to be
+			// already present in /etc/group.
 			localGroups = append(localGroups, g.Name)
 			continue
 		}
