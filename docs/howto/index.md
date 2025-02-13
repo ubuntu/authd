@@ -27,9 +27,9 @@ Log in with GDM <login-gdm>
 Log in with SSH <login-ssh>
 ```
 
-## File-sharing
+## Network file systems
 
-Learn how to use authd with different file-sharing protocols.
+Learn how to use authd with different network file systems.
 
 ```{toctree}
 :titlesonly:

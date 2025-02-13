@@ -6,7 +6,7 @@ myst:
 
 # Troubleshooting
 
-This page includes tips for troubleshooting tips for authd and the identity
+This page includes tips for troubleshooting authd and the identity
 brokers for different cloud providers.
 
 ## Logging

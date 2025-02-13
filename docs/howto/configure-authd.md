@@ -49,7 +49,7 @@ Several brokers can be enabled at the same time.
 
 ## Application registration
 
-This section demonstrate registering an OAuth 2.0 application that your chosen
+This section demonstrates registering an OAuth 2.0 application that your chosen
 broker can then use to authenticate users.
 
 :::::{tab-set}
