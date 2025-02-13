@@ -40,13 +40,13 @@ full transition to the cloud.
 :sync: google
 
 * <a href="howto/install-authd/?broker=google">Install authd and the Google IAM broker</a>
-* <a href="howto/install-authd/?broker=google">Configure the Google IAM broker</a>
+* <a href="howto/configure-authd/?broker=google">Configure the Google IAM broker</a>
 :::
 
 :::{tab-item} MS Entra ID
 :sync: msentraid
 
-* <a href="howto/configure-authd/?broker=msentraid">Install authd and the MS Entra ID broker</a>
+* <a href="howto/install-authd/?broker=msentraid">Install authd and the MS Entra ID broker</a>
 * <a href="howto/configure-authd/?broker=msentraid">Configure the MS Entra ID broker</a>
 :::
 
