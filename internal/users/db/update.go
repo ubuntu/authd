@@ -10,7 +10,7 @@ import (
 )
 
 // UpdateUserEntry inserts or updates user and group records from the user information.
-func (m *Manager) UpdateUserEntry(user UserDB, authdGroups []GroupDB, localGroups []string) (err error) {
+func (m *Manager) UpdateUserEntry(user UserRow, authdGroups []GroupRow, localGroups []string) (err error) {
 	// Start a transaction
 	tx, err := m.db.Begin()
 	if err != nil {
@@ -19,15 +19,7 @@ func (m *Manager) UpdateUserEntry(user UserDB, authdGroups []GroupDB, localGroup
 
 	// Ensure the transaction is committed or rolled back
 	defer func() {
-		// If there's an error, roll back the transaction
-		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				err = errors.Join(err, fmt.Errorf("failed to rollback transaction: %w", rollbackErr))
-			}
-			return
-		}
-		// Otherwise, commit the transaction
-		err = tx.Commit()
+		err = commitOrRollBackTransaction(err, tx)
 	}()
 
 	/* 1. Handle user update */
@@ -54,7 +46,7 @@ func (m *Manager) UpdateUserEntry(user UserDB, authdGroups []GroupDB, localGroup
 }
 
 // handleUserUpdate updates the user record in the database.
-func handleUserUpdate(db queryable, u UserDB) error {
+func handleUserUpdate(db queryable, u UserRow) error {
 	existingUser, err := userByID(db, u.UID)
 	if err != nil && !errors.Is(err, NoDataFoundError{}) {
 		return err
@@ -77,7 +69,7 @@ func handleUserUpdate(db queryable, u UserDB) error {
 }
 
 // updateGroup updates the group records in the database.
-func handleGroupsUpdate(db queryable, groups []GroupDB) error {
+func handleGroupsUpdate(db queryable, groups []GroupRow) error {
 	for _, group := range groups {
 		existingGroup, err := groupByID(db, group.GID)
 		if err != nil && !errors.Is(err, NoDataFoundError{}) {
@@ -104,7 +96,7 @@ func handleGroupsUpdate(db queryable, groups []GroupDB) error {
 
 // handleUsersToGroupsUpdate updates the users_to_groups table. It adds the user to the groups they're a member of and
 // removes it from all other groups.
-func handleUsersToGroupsUpdate(db queryable, uid uint32, groups []GroupDB) error {
+func handleUsersToGroupsUpdate(db queryable, uid uint32, groups []GroupRow) error {
 	// Remove the user from all groups
 	err := removeUserFromAllGroups(db, uid)
 	if err != nil && !errors.Is(err, NoDataFoundError{}) {

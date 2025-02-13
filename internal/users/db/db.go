@@ -31,14 +31,6 @@ type Manager struct {
 	mu   sync.RWMutex
 }
 
-// GroupDB is the public type representing a group in the database.
-type GroupDB struct {
-	Name  string
-	GID   uint32
-	UGID  string
-	Users []string
-}
-
 // queryable is an interface to execute SQL queries. Both sql.DB and sql.Tx implement this interface.
 type queryable interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
@@ -110,7 +102,7 @@ func MigrateData(dbDir string) error {
 	return m.migrateData(dbDir)
 }
 
-func (m *Manager) migrateData(dbDir string) error {
+func (m *Manager) migrateData(dbDir string) (err error) {
 	log.Infof(context.Background(), "Migrating data from bbolt to SQLite")
 
 	// Open the bbolt database.
@@ -125,7 +117,7 @@ func (m *Manager) migrateData(dbDir string) error {
 		}
 	}()
 
-	// Start a transaction
+	// Use transaction to ensure that all data is migrated or none at all
 	tx, err := m.db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to start transaction: %w", err)
@@ -133,15 +125,7 @@ func (m *Manager) migrateData(dbDir string) error {
 
 	// Ensure the transaction is committed or rolled back
 	defer func() {
-		// If there's an error, roll back the transaction
-		if err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				err = errors.Join(err, fmt.Errorf("failed to rollback transaction: %w", rollbackErr))
-			}
-			return
-		}
-		// Otherwise, commit the transaction
-		err = tx.Commit()
+		err = commitOrRollBackTransaction(err, tx)
 	}()
 
 	// Migrate users
@@ -156,7 +140,7 @@ func (m *Manager) migrateData(dbDir string) error {
 			return err
 		}
 
-		user := UserDB{
+		user := UserRow{
 			Name:     u.Name,
 			UID:      u.UID,
 			GID:      u.GID,
@@ -179,12 +163,7 @@ func (m *Manager) migrateData(dbDir string) error {
 	}
 
 	for _, g := range bboltGroups {
-		group := GroupDB{
-			Name:  g.Name,
-			GID:   g.GID,
-			UGID:  g.UGID,
-			Users: g.Users,
-		}
+		group := GroupRow{Name: g.Name, GID: g.GID, UGID: g.UGID}
 
 		log.Debugf(context.Background(), "Migrating group %v", group.Name)
 		if err := insertGroup(tx, group); err != nil {
@@ -264,4 +243,21 @@ func closeRows(rows *sql.Rows) {
 	if err := rows.Close(); err != nil {
 		log.Warningf(context.Background(), "failed to close rows: %v", err)
 	}
+}
+
+func commitOrRollBackTransaction(err error, tx *sql.Tx) error {
+	// If there's an error, roll back the transaction
+	if err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			err = errors.Join(err, fmt.Errorf("failed to rollback transaction: %w", rollbackErr))
+		}
+		return err
+	}
+
+	// Otherwise, commit the transaction
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
 }

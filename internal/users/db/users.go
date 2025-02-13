@@ -14,8 +14,8 @@ const allUserColumns = "name, uid, gid, gecos, dir, shell, broker_id"
 const publicUserColumns = "name, uid, gid, gecos, dir, shell, broker_id"
 const allUserColumnsWithPlaceholders = "name = ?, uid = ?, gid = ?, gecos = ?, dir = ?, shell = ?, broker_id = ?"
 
-// UserDB is the public type that is shared to external packages.
-type UserDB struct {
+// UserRow represents a user row in the database.
+type UserRow struct {
 	Name  string
 	UID   uint32
 	GID   uint32
@@ -27,9 +27,9 @@ type UserDB struct {
 	BrokerID string `yaml:"broker_id,omitempty"`
 }
 
-// NewUserDB creates a new UserDB.
-func NewUserDB(name string, uid, gid uint32, gecos, dir, shell string) UserDB {
-	return UserDB{
+// NewUserRow creates a new UserRow.
+func NewUserRow(name string, uid, gid uint32, gecos, dir, shell string) UserRow {
+	return UserRow{
 		Name:  name,
 		UID:   uid,
 		GID:   gid,
@@ -40,49 +40,49 @@ func NewUserDB(name string, uid, gid uint32, gecos, dir, shell string) UserDB {
 }
 
 // UserByID returns a user matching this uid or an error if the database is corrupted or no entry was found.
-func (m *Manager) UserByID(uid uint32) (UserDB, error) {
+func (m *Manager) UserByID(uid uint32) (UserRow, error) {
 	return userByID(m.db, uid)
 }
 
-func userByID(db queryable, uid uint32) (UserDB, error) {
+func userByID(db queryable, uid uint32) (UserRow, error) {
 	query := fmt.Sprintf(`SELECT %s FROM users WHERE uid = ?`, publicUserColumns)
 	row := db.QueryRow(query, uid)
 
-	var u UserDB
+	var u UserRow
 	err := row.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return UserDB{}, NoDataFoundError{key: strconv.FormatUint(uint64(uid), 10), table: "users"}
+		return UserRow{}, NoDataFoundError{key: strconv.FormatUint(uint64(uid), 10), table: "users"}
 	}
 	if err != nil {
-		return UserDB{}, fmt.Errorf("query error: %w", err)
+		return UserRow{}, fmt.Errorf("query error: %w", err)
 	}
 
 	return u, nil
 }
 
 // UserByName returns a user matching this name or an error if the database is corrupted or no entry was found.
-func (m *Manager) UserByName(name string) (UserDB, error) {
+func (m *Manager) UserByName(name string) (UserRow, error) {
 	query := fmt.Sprintf(`SELECT %s FROM users WHERE name = ?`, publicUserColumns)
 	row := m.db.QueryRow(query, name)
 
-	var u UserDB
+	var u UserRow
 	err := row.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return UserDB{}, NoDataFoundError{key: name, table: "users"}
+		return UserRow{}, NoDataFoundError{key: name, table: "users"}
 	}
 	if err != nil {
-		return UserDB{}, fmt.Errorf("query error: %w", err)
+		return UserRow{}, fmt.Errorf("query error: %w", err)
 	}
 
 	return u, nil
 }
 
 // AllUsers returns all users or an error if the database is corrupted.
-func (m *Manager) AllUsers() ([]UserDB, error) {
+func (m *Manager) AllUsers() ([]UserRow, error) {
 	return allUsers(m.db)
 }
 
-func allUsers(db queryable) ([]UserDB, error) {
+func allUsers(db queryable) ([]UserRow, error) {
 	query := fmt.Sprintf(`SELECT %s FROM users`, allUserColumns)
 	rows, err := db.Query(query)
 	if err != nil {
@@ -90,9 +90,9 @@ func allUsers(db queryable) ([]UserDB, error) {
 	}
 	defer closeRows(rows)
 
-	var users []UserDB
+	var users []UserRow
 	for rows.Next() {
-		var u UserDB
+		var u UserRow
 		err := rows.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID)
 		if err != nil {
 			return nil, fmt.Errorf("scan error: %w", err)
@@ -108,7 +108,7 @@ func allUsers(db queryable) ([]UserDB, error) {
 	return users, nil
 }
 
-func insertOrUpdateUserByID(db queryable, u UserDB) error {
+func insertOrUpdateUserByID(db queryable, u UserRow) error {
 	exists, err := userExists(db, u)
 	if err != nil {
 		return fmt.Errorf("failed to check if user exists: %w", err)
@@ -121,7 +121,7 @@ func insertOrUpdateUserByID(db queryable, u UserDB) error {
 	return updateUserByID(db, u)
 }
 
-func userExists(db queryable, u UserDB) (bool, error) {
+func userExists(db queryable, u UserRow) (bool, error) {
 	query := `
 		SELECT 1 FROM users 
 		WHERE name = ? OR uid = ? 
@@ -141,7 +141,7 @@ func userExists(db queryable, u UserDB) (bool, error) {
 	return true, nil
 }
 
-func insertUser(db queryable, u UserDB) error {
+func insertUser(db queryable, u UserRow) error {
 	log.Debugf(context.Background(), "Inserting user %v", u.Name)
 	query := fmt.Sprintf(`INSERT INTO users (%s) VALUES (?, ?, ?, ?, ?, ?, ?)`, allUserColumns)
 	_, err := db.Exec(query, u.Name, u.UID, u.GID, u.Gecos, u.Dir, u.Shell, u.BrokerID)
@@ -151,7 +151,7 @@ func insertUser(db queryable, u UserDB) error {
 	return nil
 }
 
-func updateUserByID(db queryable, u UserDB) error {
+func updateUserByID(db queryable, u UserRow) error {
 	log.Debugf(context.Background(), "Updating user %v", u.Name)
 	query := fmt.Sprintf(`UPDATE users SET %s WHERE uid = ?`, allUserColumnsWithPlaceholders)
 	_, err := db.Exec(query, u.Name, u.UID, u.GID, u.Gecos, u.Dir, u.Shell, u.BrokerID, u.UID)

@@ -36,7 +36,7 @@ func Z_ForTests_DumpNormalizedYAML(t *testing.T, c *Manager) string {
 	})
 
 	// Get all groups
-	groups, err := allGroupsInternal(c.db)
+	groups, err := allGroups(c.db)
 	require.NoError(t, err)
 
 	// Sort the groups by GID.
@@ -57,8 +57,8 @@ func Z_ForTests_DumpNormalizedYAML(t *testing.T, c *Manager) string {
 	})
 
 	content := struct {
-		Users         []UserDB         `yaml:"users"`
-		Groups        []groupRow       `yaml:"groups"`
+		Users         []UserRow        `yaml:"users"`
+		Groups        []GroupRow       `yaml:"groups"`
 		UsersToGroups []userToGroupRow `yaml:"users_to_groups"`
 	}{
 		Users:         users,

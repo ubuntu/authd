@@ -9,11 +9,11 @@ import (
 )
 
 // UserGroups returns all groups for a given user or an error if the database is corrupted or no entry was found.
-func (m *Manager) UserGroups(uid uint32) ([]GroupDB, error) {
+func (m *Manager) UserGroups(uid uint32) ([]GroupRow, error) {
 	return userGroups(m.db, uid)
 }
 
-func userGroups(db queryable, uid uint32) ([]GroupDB, error) {
+func userGroups(db queryable, uid uint32) ([]GroupRow, error) {
 	query := `
 		SELECT g.name, g.gid, g.ugid 
 		FROM users_to_groups ug
@@ -26,17 +26,12 @@ func userGroups(db queryable, uid uint32) ([]GroupDB, error) {
 	}
 	defer closeRows(rows)
 
-	var groups []GroupDB
+	var groups []GroupRow
 	for rows.Next() {
-		var g GroupDB
+		var g GroupRow
 		err := rows.Scan(&g.Name, &g.GID, &g.UGID)
 		if err != nil {
 			return nil, fmt.Errorf("scan error: %w", err)
-		}
-
-		g.Users, err = getGroupMembers(db, g.GID)
-		if err != nil {
-			return nil, fmt.Errorf("failed to get group members: %w", err)
 		}
 
 		groups = append(groups, g)

@@ -93,7 +93,7 @@ func TestNew(t *testing.T) {
 func TestUpdateUserEntry(t *testing.T) {
 	t.Parallel()
 
-	userCases := map[string]db.UserDB{
+	userCases := map[string]db.UserRow{
 		"user1": {
 			Name:  "user1",
 			UID:   1111,
@@ -136,16 +136,16 @@ func TestUpdateUserEntry(t *testing.T) {
 			Shell: "/bin/zsh",
 		},
 	}
-	groupCases := map[string]db.GroupDB{
-		"group1":                        db.NewGroupDB("group1", 11111, "12345678", nil),
-		"group1-different-gid":          db.NewGroupDB("group1", 99999, "12345678", nil),
-		"group1-different-ugid":         db.NewGroupDB("group1", 11111, "99999999", nil),
-		"group1-different-gid-and-ugid": db.NewGroupDB("group1", 99999, "99999999", nil),
-		"new-group-same-gid":            db.NewGroupDB("new-group-same-gid", 11111, "99999999", nil),
-		"new-group-same-ugid":           db.NewGroupDB("new-group-same-ugid", 99999, "12345678", nil),
-		"new-group-same-gid-and-ugid":   db.NewGroupDB("new-group-same-gid", 11111, "12345678", nil),
-		"group2":                        db.NewGroupDB("group2", 22222, "56781234", nil),
-		"group3":                        db.NewGroupDB("group3", 33333, "34567812", nil),
+	groupCases := map[string]db.GroupRow{
+		"group1":                        {"group1", 11111, "12345678"},
+		"group1-different-gid":          {"group1", 99999, "12345678"},
+		"group1-different-ugid":         {"group1", 11111, "99999999"},
+		"group1-different-gid-and-ugid": {"group1", 99999, "99999999"},
+		"new-group-same-gid":            {"new-group-same-gid", 11111, "99999999"},
+		"new-group-same-ugid":           {"new-group-same-ugid", 99999, "12345678"},
+		"new-group-same-gid-and-ugid":   {"new-group-same-gid", 11111, "12345678"},
+		"group2":                        {"group2", 22222, "56781234"},
+		"group3":                        {"group3", 33333, "34567812"},
 	}
 
 	tests := map[string]struct {
@@ -201,7 +201,7 @@ func TestUpdateUserEntry(t *testing.T) {
 			}
 
 			user := userCases[tc.userCase]
-			var groups []db.GroupDB
+			var groups []db.GroupRow
 			for _, g := range tc.groupCases {
 				groups = append(groups, groupCases[g])
 			}
@@ -323,6 +323,31 @@ func TestGroupByID(t *testing.T) {
 	}
 }
 
+func TestGroupWithMembersByID(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		dbFile string
+
+		wantErr     bool
+		wantErrType error
+	}{
+		"Get_existing_group": {dbFile: "one_user_and_group"},
+
+		"Error_on_missing_group": {wantErrType: db.NoDataFoundError{}},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			c := initDB(t, tc.dbFile)
+
+			got, err := c.GroupWithMembersByID(11111)
+			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
+		})
+	}
+}
+
 func TestGroupByName(t *testing.T) {
 	t.Parallel()
 
@@ -343,6 +368,31 @@ func TestGroupByName(t *testing.T) {
 			c := initDB(t, tc.dbFile)
 
 			got, err := c.GroupByName("group1")
+			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
+		})
+	}
+}
+
+func TestGroupWithMembersByName(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		dbFile string
+
+		wantErr     bool
+		wantErrType error
+	}{
+		"Get_existing_group": {dbFile: "one_user_and_group"},
+
+		"Error_on_missing_group": {wantErrType: db.NoDataFoundError{}},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			c := initDB(t, tc.dbFile)
+
+			got, err := c.GroupWithMembersByName("group1")
 			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
 		})
 	}
@@ -373,7 +423,7 @@ func TestUserGroups(t *testing.T) {
 	}
 }
 
-func TestAllGroups(t *testing.T) {
+func TestAllGroupsWithMembers(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
@@ -391,7 +441,7 @@ func TestAllGroups(t *testing.T) {
 
 			c := initDB(t, tc.dbFile)
 
-			got, err := c.AllGroups()
+			got, err := c.AllGroupsWithMembers()
 			requireGetAssertions(t, got, tc.wantErr, tc.wantErrType, err)
 		})
 	}

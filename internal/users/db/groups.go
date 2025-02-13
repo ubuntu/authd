@@ -7,10 +7,17 @@ import (
 	"strconv"
 )
 
-type groupRow struct {
+// GroupRow represents a group in the database.
+type GroupRow struct {
 	Name string
 	GID  uint32
 	UGID string
+}
+
+// GroupWithMembers is a GroupRow with a list of users that are members of the group.
+type GroupWithMembers struct {
+	GroupRow `yaml:",inline"`
+	Users    []string
 }
 
 type userToGroupRow struct {
@@ -18,112 +25,163 @@ type userToGroupRow struct {
 	GID uint32
 }
 
-// NewGroupDB creates a new GroupDB.
-func NewGroupDB(name string, gid uint32, ugid string, members []string) GroupDB {
-	return GroupDB{
-		Name:  name,
-		GID:   gid,
-		UGID:  ugid,
-		Users: members,
+// NewGroupRow creates a new GroupRow.
+func NewGroupRow(name string, gid uint32, ugid string) GroupRow {
+	return GroupRow{
+		Name: name,
+		GID:  gid,
+		UGID: ugid,
 	}
 }
 
-// GroupByID returns a group matching this gid or an error if the database is corrupted or no entry was found.
-func (m *Manager) GroupByID(gid uint32) (GroupDB, error) {
+// GroupByID returns the group with the given group ID or a NoDataFoundError if no group was found.
+func (m *Manager) GroupByID(gid uint32) (GroupRow, error) {
 	return groupByID(m.db, gid)
 }
 
-func groupByID(db queryable, gid uint32) (GroupDB, error) {
+func groupByID(db queryable, gid uint32) (GroupRow, error) {
 	query := `SELECT name, gid, ugid FROM groups WHERE gid = ?`
 	row := db.QueryRow(query, gid)
 
-	var g GroupDB
+	var g GroupRow
 	err := row.Scan(&g.Name, &g.GID, &g.UGID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return GroupDB{}, NoDataFoundError{key: strconv.FormatUint(uint64(gid), 10), table: "groups"}
+		return GroupRow{}, NoDataFoundError{key: strconv.FormatUint(uint64(gid), 10), table: "groups"}
 	}
 	if err != nil {
-		return GroupDB{}, fmt.Errorf("query error: %w", err)
-	}
-
-	g.Users, err = getGroupMembers(db, g.GID)
-	if err != nil {
-		return GroupDB{}, fmt.Errorf("failed to get group members: %w", err)
+		return GroupRow{}, fmt.Errorf("query error: %w", err)
 	}
 
 	return g, nil
 }
 
-// GroupByName returns a group matching a given name or an error if the database is corrupted or no entry was found.
-func (m *Manager) GroupByName(name string) (GroupDB, error) {
+// GroupWithMembersByID returns the group with the given group ID with a list of users that are members of the group.
+func (m *Manager) GroupWithMembersByID(gid uint32) (_ GroupWithMembers, err error) {
+	// Start a transaction to receive the group row and its members in a single transaction
+	tx, err := m.db.Begin()
+	if err != nil {
+		return GroupWithMembers{}, fmt.Errorf("failed to start transaction: %w", err)
+	}
+
+	// Ensure the transaction is committed or rolled back
+	defer func() {
+		err = commitOrRollBackTransaction(err, tx)
+	}()
+
+	group, err := groupByID(tx, gid)
+	if err != nil {
+		return GroupWithMembers{}, err
+	}
+
+	users, err := getGroupMembers(tx, gid)
+	if err != nil {
+		return GroupWithMembers{}, err
+	}
+
+	return GroupWithMembers{GroupRow: group, Users: users}, nil
+}
+
+// GroupByName returns the group with the given name or a NoDataFoundError if no group was found.
+func (m *Manager) GroupByName(name string) (GroupRow, error) {
+	return groupByName(m.db, name)
+}
+
+func groupByName(db queryable, name string) (GroupRow, error) {
 	query := `SELECT name, gid, ugid FROM groups WHERE name = ?`
-	row := m.db.QueryRow(query, name)
+	row := db.QueryRow(query, name)
 
-	var g GroupDB
+	var g GroupRow
 	err := row.Scan(&g.Name, &g.GID, &g.UGID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return GroupDB{}, NoDataFoundError{key: name, table: "groups"}
+		return GroupRow{}, NoDataFoundError{key: name, table: "groups"}
 	}
 	if err != nil {
-		return GroupDB{}, fmt.Errorf("query error: %w", err)
-	}
-
-	g.Users, err = getGroupMembers(m.db, g.GID)
-	if err != nil {
-		return GroupDB{}, fmt.Errorf("failed to get group members: %w", err)
+		return GroupRow{}, fmt.Errorf("query error: %w", err)
 	}
 
 	return g, nil
 }
 
-// GroupByUGID returns a group matching this ugid or an error if the database is corrupted or no entry was found.
-func (m *Manager) GroupByUGID(ugid string) (GroupDB, error) {
+// GroupWithMembersByName returns the group with the given name with a list of users that are members of the group.
+func (m *Manager) GroupWithMembersByName(name string) (_ GroupWithMembers, err error) {
+	// Start a transaction to receive the group row and its members in a single transaction
+	tx, err := m.db.Begin()
+	if err != nil {
+		return GroupWithMembers{}, fmt.Errorf("failed to start transaction: %w", err)
+	}
+
+	// Ensure the transaction is committed or rolled back
+	defer func() {
+		err = commitOrRollBackTransaction(err, tx)
+	}()
+
+	group, err := groupByName(tx, name)
+	if err != nil {
+		return GroupWithMembers{}, err
+	}
+
+	users, err := getGroupMembers(tx, group.GID)
+	if err != nil {
+		return GroupWithMembers{}, err
+	}
+
+	return GroupWithMembers{GroupRow: group, Users: users}, nil
+}
+
+// GroupByUGID returns the group with the given UGID or a NoDataFoundError if no group was found.
+func (m *Manager) GroupByUGID(ugid string) (GroupRow, error) {
+	return groupByUGID(m.db, ugid)
+}
+
+func groupByUGID(db queryable, ugid string) (GroupRow, error) {
 	query := `SELECT name, gid, ugid FROM groups WHERE ugid = ?`
-	row := m.db.QueryRow(query, ugid)
+	row := db.QueryRow(query, ugid)
 
-	var g GroupDB
+	var g GroupRow
 	err := row.Scan(&g.Name, &g.GID, &g.UGID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return GroupDB{}, NoDataFoundError{key: ugid, table: "groups"}
+		return GroupRow{}, NoDataFoundError{key: ugid, table: "groups"}
 	}
 	if err != nil {
-		return GroupDB{}, fmt.Errorf("query error: %w", err)
-	}
-
-	g.Users, err = getGroupMembers(m.db, g.GID)
-	if err != nil {
-		return GroupDB{}, fmt.Errorf("failed to get group members: %w", err)
+		return GroupRow{}, fmt.Errorf("query error: %w", err)
 	}
 
 	return g, nil
 }
 
-// AllGroups returns all groups from the database.
-func (m *Manager) AllGroups() ([]GroupDB, error) {
-	return m.allGroups(m.db)
-}
+// AllGroupsWithMembers returns all groups with their members.
+func (m *Manager) AllGroupsWithMembers() (_ []GroupWithMembers, err error) {
+	// Start a transaction to receive all groups and their members in a single transaction
+	tx, err := m.db.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("failed to start transaction: %w", err)
+	}
 
-func (m *Manager) allGroups(db queryable) ([]GroupDB, error) {
-	groups, err := allGroupsInternal(db)
+	// Ensure the transaction is committed or rolled back
+	defer func() {
+		err = commitOrRollBackTransaction(err, tx)
+	}()
+
+	groups, err := allGroups(tx)
 	if err != nil {
 		return nil, err
 	}
 
-	var res []GroupDB
+	var res []GroupWithMembers
 	for _, g := range groups {
-		group := NewGroupDB(g.Name, g.GID, g.UGID, nil)
-		group.Users, err = getGroupMembers(db, g.GID)
+		users, err := getGroupMembers(tx, g.GID)
 		if err != nil {
-			return nil, fmt.Errorf("failed to get group members: %w", err)
+			return nil, err
 		}
-		res = append(res, group)
+
+		res = append(res, GroupWithMembers{GroupRow: g, Users: users})
 	}
 
 	return res, nil
 }
 
-// allGroupsInternal returns all groups from the database as the internal groupRow type.
-func allGroupsInternal(db queryable) ([]groupRow, error) {
+// allGroups returns all groups from the database.
+func allGroups(db queryable) ([]GroupRow, error) {
 	query := `SELECT name, gid, ugid FROM groups`
 	rows, err := db.Query(query)
 	if err != nil {
@@ -131,9 +189,9 @@ func allGroupsInternal(db queryable) ([]groupRow, error) {
 	}
 	defer closeRows(rows)
 
-	var groups []groupRow
+	var groups []GroupRow
 	for rows.Next() {
-		var g groupRow
+		var g GroupRow
 		err := rows.Scan(&g.Name, &g.GID, &g.UGID)
 		if err != nil {
 			return nil, fmt.Errorf("scan error: %w", err)
@@ -149,7 +207,7 @@ func allGroupsInternal(db queryable) ([]groupRow, error) {
 	return groups, nil
 }
 
-func insertOrUpdateGroup(db queryable, g GroupDB) error {
+func insertOrUpdateGroup(db queryable, g GroupRow) error {
 	exists, err := groupExists(db, g)
 	if err != nil {
 		return fmt.Errorf("failed to check if group exists: %w", err)
@@ -162,7 +220,7 @@ func insertOrUpdateGroup(db queryable, g GroupDB) error {
 	return updateGroup(db, g)
 }
 
-func groupExists(db queryable, g GroupDB) (bool, error) {
+func groupExists(db queryable, g GroupRow) (bool, error) {
 	query := `
 		SELECT 1 FROM groups 
 		WHERE name = ? OR gid = ? OR ugid = ? 
@@ -182,7 +240,7 @@ func groupExists(db queryable, g GroupDB) (bool, error) {
 	return true, nil
 }
 
-func insertGroup(db queryable, g GroupDB) error {
+func insertGroup(db queryable, g GroupRow) error {
 	_, err := db.Exec(`INSERT INTO groups (name, gid, ugid) VALUES (?, ?, ?)`, g.Name, g.GID, g.UGID)
 	if err != nil {
 		return fmt.Errorf("insert group error: %w", err)
@@ -191,7 +249,7 @@ func insertGroup(db queryable, g GroupDB) error {
 	return nil
 }
 
-func updateGroup(db queryable, g GroupDB) error {
+func updateGroup(db queryable, g GroupRow) error {
 	_, err := db.Exec(`UPDATE groups SET name = ?, gid = ?, ugid = ? WHERE gid = ?`, g.Name, g.GID, g.UGID, g.GID)
 	if err != nil {
 		return fmt.Errorf("update group error: %w", err)

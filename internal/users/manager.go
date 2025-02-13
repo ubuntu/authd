@@ -156,7 +156,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	// Prepend the user private group
 	u.Groups = append([]types.GroupInfo{{Name: u.Name, UGID: u.Name}}, u.Groups...)
 
-	var authdGroups []db.GroupDB
+	var groupRows []db.GroupRow
 	var localGroups []string
 	for _, g := range u.Groups {
 		if g.Name == "" {
@@ -200,7 +200,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			g.GID = &oldGroup.GID
 		}
 
-		authdGroups = append(authdGroups, db.NewGroupDB(g.Name, *g.GID, g.UGID, nil))
+		groupRows = append(groupRows, db.NewGroupRow(g.Name, *g.GID, g.UGID))
 	}
 
 	oldLocalGroups, err := m.db.UserLocalGroups(uid)
@@ -209,8 +209,8 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 
 	// Update user information in the db.
-	userDB := db.NewUserDB(u.Name, uid, authdGroups[0].GID, u.Gecos, u.Dir, u.Shell)
-	if err := m.db.UpdateUserEntry(userDB, authdGroups, localGroups); err != nil {
+	userRow := db.NewUserRow(u.Name, uid, groupRows[0].GID, u.Gecos, u.Dir, u.Shell)
+	if err := m.db.UpdateUserEntry(userRow, groupRows, localGroups); err != nil {
 		return err
 	}
 
@@ -219,7 +219,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		return err
 	}
 
-	if err = checkHomeDirOwnership(userDB.Dir, userDB.UID, userDB.GID); err != nil {
+	if err = checkHomeDirOwnership(userRow.Dir, userRow.UID, userRow.GID); err != nil {
 		return fmt.Errorf("failed to check home directory owner and group: %w", err)
 	}
 
@@ -262,7 +262,7 @@ func (m *Manager) checkGroupNameConflict(name string, ugid string) error {
 	return nil
 }
 
-func (m *Manager) findGroup(group types.GroupInfo) (oldGroup db.GroupDB, err error) {
+func (m *Manager) findGroup(group types.GroupInfo) (oldGroup db.GroupRow, err error) {
 	// Search by UGID first to support renaming groups
 	oldGroup, err = m.db.GroupByUGID(group.UGID)
 	if err == nil {
@@ -343,7 +343,7 @@ func (m *Manager) UserByName(username string) (types.UserEntry, error) {
 	if err != nil {
 		return types.UserEntry{}, err
 	}
-	return userEntryFromUserDB(usr), nil
+	return userEntryFromUserRow(usr), nil
 }
 
 // UserByID returns the user information for the given user ID.
@@ -356,7 +356,7 @@ func (m *Manager) UserByID(uid uint32) (types.UserEntry, error) {
 	if err != nil {
 		return types.UserEntry{}, err
 	}
-	return userEntryFromUserDB(usr), nil
+	return userEntryFromUserRow(usr), nil
 }
 
 // AllUsers returns all users.
@@ -370,14 +370,14 @@ func (m *Manager) AllUsers() ([]types.UserEntry, error) {
 
 	var usrEntries []types.UserEntry
 	for _, usr := range usrs {
-		usrEntries = append(usrEntries, userEntryFromUserDB(usr))
+		usrEntries = append(usrEntries, userEntryFromUserRow(usr))
 	}
 	return usrEntries, err
 }
 
 // GroupByName returns the group information for the given group name.
 func (m *Manager) GroupByName(groupname string) (types.GroupEntry, error) {
-	grp, err := m.db.GroupByName(groupname)
+	grp, err := m.db.GroupWithMembersByName(groupname)
 	if errors.Is(err, db.NoDataFoundError{}) {
 		// Check if the group is a temporary group.
 		return m.temporaryRecords.GroupByName(groupname)
@@ -385,12 +385,12 @@ func (m *Manager) GroupByName(groupname string) (types.GroupEntry, error) {
 	if err != nil {
 		return types.GroupEntry{}, err
 	}
-	return groupEntryFromGroupDB(grp), nil
+	return groupEntryFromGroupWithMembers(grp), nil
 }
 
 // GroupByID returns the group information for the given group ID.
 func (m *Manager) GroupByID(gid uint32) (types.GroupEntry, error) {
-	grp, err := m.db.GroupByID(gid)
+	grp, err := m.db.GroupWithMembersByID(gid)
 	if errors.Is(err, db.NoDataFoundError{}) {
 		// Check if the group is a temporary group.
 		return m.temporaryRecords.GroupByID(gid)
@@ -398,20 +398,20 @@ func (m *Manager) GroupByID(gid uint32) (types.GroupEntry, error) {
 	if err != nil {
 		return types.GroupEntry{}, err
 	}
-	return groupEntryFromGroupDB(grp), nil
+	return groupEntryFromGroupWithMembers(grp), nil
 }
 
 // AllGroups returns all groups.
 func (m *Manager) AllGroups() ([]types.GroupEntry, error) {
 	// Same as in AllUsers, we don't return temporary groups here.
-	grps, err := m.db.AllGroups()
+	grps, err := m.db.AllGroupsWithMembers()
 	if err != nil {
 		return nil, err
 	}
 
 	var grpEntries []types.GroupEntry
 	for _, grp := range grps {
-		grpEntries = append(grpEntries, groupEntryFromGroupDB(grp))
+		grpEntries = append(grpEntries, groupEntryFromGroupWithMembers(grp))
 	}
 	return grpEntries, nil
 }
@@ -422,7 +422,7 @@ func (m *Manager) ShadowByName(username string) (types.ShadowEntry, error) {
 	if err != nil {
 		return types.ShadowEntry{}, err
 	}
-	return shadowEntryFromUserDB(usr), nil
+	return shadowEntryFromUserRow(usr), nil
 }
 
 // AllShadows returns all shadow entries.
@@ -434,7 +434,7 @@ func (m *Manager) AllShadows() ([]types.ShadowEntry, error) {
 
 	var shadowEntries []types.ShadowEntry
 	for _, usr := range usrs {
-		shadowEntries = append(shadowEntries, shadowEntryFromUserDB(usr))
+		shadowEntries = append(shadowEntries, shadowEntryFromUserRow(usr))
 	}
 	return shadowEntries, err
 }
