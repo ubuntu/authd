@@ -64,21 +64,26 @@ func NewManager(ctx context.Context, brokersConfPath string, configuredBrokers [
 
 		entries, err := os.ReadDir(brokersConfPath)
 		if errors.Is(err, fs.ErrNotExist) {
-			log.Warningf(ctx, "Broker configuration directory %q does not exist, only local broker will be available", brokersConfPath)
+			log.Noticef(ctx, "Broker configuration directory %q does not exist, so using only the local broker", brokersConfPath)
 		} else if err != nil {
 			return m, fmt.Errorf("could not read brokers directory to detect brokers: %v", err)
 		}
 
 		for _, e := range entries {
 			if !e.Type().IsRegular() {
+				log.Noticef(ctx, "Skipping non-regular file %q in brokers configuration directory", e.Name())
 				continue
 			}
 			if !strings.HasSuffix(e.Name(), ".conf") {
-				log.Infof(ctx, "Skipping file %q in brokers configuration directory, only .conf files are supported", e.Name())
+				log.Noticef(ctx, "Skipping file %q in brokers configuration directory, only .conf files are supported", e.Name())
 				continue
 			}
 			configuredBrokers = append(configuredBrokers, e.Name())
 		}
+	}
+
+	if len(configuredBrokers) == 0 {
+		log.Notice(ctx, "No broker configuration found, using only the local broker.")
 	}
 
 	brokers := make(map[string]*Broker)
