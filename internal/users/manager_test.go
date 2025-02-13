@@ -15,7 +15,7 @@ import (
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
-	"go.etcd.io/bbolt"
+	bboltErrors "go.etcd.io/bbolt/errors"
 )
 
 func TestNewManager(t *testing.T) {
@@ -98,7 +98,7 @@ func TestStop(t *testing.T) {
 
 	// Should fail, because the cache is closed
 	_, err := userstestutils.GetManagerCache(m).AllUsers()
-	require.ErrorIs(t, err, bbolt.ErrDatabaseNotOpen, "AllUsers should return an error, but did not")
+	require.ErrorIs(t, err, bboltErrors.ErrDatabaseNotOpen, "AllUsers should return an error, but did not")
 }
 
 type userCase struct {
