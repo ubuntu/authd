@@ -9,6 +9,7 @@ import (
 	"slices"
 	"strconv"
 	"sync"
+	"syscall"
 
 	"github.com/ubuntu/decorate"
 	"go.etcd.io/bbolt"
@@ -111,14 +112,9 @@ func openAndInitDB(path string) (*bbolt.DB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't open database file: %v", err)
 	}
-	// Fail if permissions are not 0600
-	fileInfo, err := os.Stat(path)
-	if err != nil {
-		return nil, fmt.Errorf("can't stat database file: %v", err)
-	}
-	perm := fileInfo.Mode().Perm()
-	if perm != 0600 {
-		return nil, fmt.Errorf("wrong file permission for %s: %o", path, perm)
+
+	if err := checkOwnerAndPermissions(path); err != nil {
+		return nil, err
 	}
 
 	// Create buckets
@@ -155,6 +151,31 @@ func openAndInitDB(path string) (*bbolt.DB, error) {
 	}
 
 	return db, nil
+}
+
+// checkOwnerAndPermissions checks if the database file has secure owner and permissions.
+func checkOwnerAndPermissions(path string) error {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("can't stat database file: %v", err)
+	}
+
+	// Fail if the file is not owned by root or the current user.
+	stat, ok := fileInfo.Sys().(*syscall.Stat_t)
+	if !ok {
+		return fmt.Errorf("can't get file information for %s", path)
+	}
+	if stat.Uid != 0 && int(stat.Uid) != os.Getuid() {
+		return fmt.Errorf("unexpected file owner for %s, should be root or %d but is %d", path, os.Getuid(), stat.Uid)
+	}
+
+	// Fail if the file is world-writable.
+	perm := fileInfo.Mode().Perm()
+	if perm&0002 != 0 {
+		return fmt.Errorf("insecure file permissions for %s: %o", path, perm)
+	}
+
+	return nil
 }
 
 // Close closes the db and signal the monitoring goroutine to stop.

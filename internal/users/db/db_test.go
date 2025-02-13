@@ -17,7 +17,7 @@ import (
 func TestNew(t *testing.T) {
 	t.Parallel()
 
-	perm0644 := os.FileMode(0644)
+	perm0666 := os.FileMode(0666)
 	perm0000 := os.FileMode(0000)
 
 	tests := map[string]struct {
@@ -30,10 +30,10 @@ func TestNew(t *testing.T) {
 		"New_without_any_initialized_database": {},
 		"New_with_already_existing_database":   {dbFile: "multiple_users_and_groups"},
 
-		"Error_on_non_existent_db_dir":                 {dbFile: "-", wantErr: true},
-		"Error_on_corrupted_db_file":                   {corruptedDbFile: true, wantErr: true},
-		"Error_on_invalid_permission_on_database_file": {dbFile: "multiple_users_and_groups", perm: &perm0644, wantErr: true},
-		"Error_on_unreadable_database_file":            {dbFile: "multiple_users_and_groups", perm: &perm0000, wantErr: true},
+		"Error_on_non_existent_db_dir":                   {dbFile: "-", wantErr: true},
+		"Error_on_corrupted_db_file":                     {corruptedDbFile: true, wantErr: true},
+		"Error_on_insecure_permissions_on_database_file": {dbFile: "multiple_users_and_groups", perm: &perm0666, wantErr: true},
+		"Error_on_unreadable_database_file":              {dbFile: "multiple_users_and_groups", perm: &perm0000, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -59,7 +59,7 @@ func TestNew(t *testing.T) {
 				err := os.Chmod(dbDestPath, *tc.perm)
 				require.NoError(t, err, "Setup: could not change mode of database file")
 
-				if *tc.perm == perm0644 {
+				if *tc.perm == perm0666 {
 					currentUser, err := user.Current()
 					require.NoError(t, err)
 					if os.Getenv("AUTHD_SKIP_ROOT_TESTS") != "" && currentUser.Username == "root" {

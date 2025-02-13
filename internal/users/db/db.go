@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"syscall"
 
 	// sqlite3 driver.
 	_ "github.com/mattn/go-sqlite3"
@@ -53,15 +54,8 @@ func New(dbDir string) (*Manager, error) {
 		}
 	}
 
-	// Fail if permissions are not 0600
-	// TODO: I don't see why we should fail here instead of just fixing the permissions.
-	fileInfo, err := os.Stat(dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("can't stat database file: %v", err)
-	}
-	perm := fileInfo.Mode().Perm()
-	if perm != 0600 {
-		return nil, fmt.Errorf("wrong file permission for %s: %o", dbPath, perm)
+	if err := checkOwnerAndPermissions(dbPath); err != nil {
+		return nil, err
 	}
 
 	db, err := sql.Open("sqlite3", dbPath)
@@ -84,6 +78,31 @@ func New(dbDir string) (*Manager, error) {
 	}
 
 	return &Manager{db: db, path: dbPath, mu: sync.RWMutex{}}, nil
+}
+
+// checkOwnerAndPermissions checks if the database file has secure owner and permissions.
+func checkOwnerAndPermissions(path string) error {
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		return fmt.Errorf("can't stat database file: %v", err)
+	}
+
+	// Fail if the file is not owned by root or the current user.
+	stat, ok := fileInfo.Sys().(*syscall.Stat_t)
+	if !ok {
+		return fmt.Errorf("can't get file information for %s", path)
+	}
+	if stat.Uid != 0 && int(stat.Uid) != os.Getuid() {
+		return fmt.Errorf("unexpected file owner for %s, should be root or %d but is %d", path, os.Getuid(), stat.Uid)
+	}
+
+	// Fail if the file is world-writable.
+	perm := fileInfo.Mode().Perm()
+	if perm&0002 != 0 {
+		return fmt.Errorf("insecure file permissions for %s: %o", path, perm)
+	}
+
+	return nil
 }
 
 // MigrateData migrates data from bbolt to SQLite.
