@@ -9,8 +9,8 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/msteinert/pam/v2"
-	"github.com/ubuntu/authd/internal/brokers/layouts"
-	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
+	"github.com/ubuntu/authd/brokers/layouts"
+	"github.com/ubuntu/authd/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/log"
 )
@@ -89,37 +89,32 @@ func (m *authModeSelectionModel) Init() tea.Cmd {
 		return nil
 	}
 	return func() tea.Msg {
-		required, optional := layouts.Required, layouts.Optional
 		supportedEntries := layouts.OptionalItems(
 			entries.Chars,
 			entries.CharsPassword,
 		)
-		rendersQrCode := true
 
 		return supportedUILayoutsReceived{
 			layouts: []*authd.UILayout{
-				{
-					Type:   layouts.Form,
-					Label:  &required,
-					Entry:  &supportedEntries,
-					Wait:   &layouts.OptionalWithBooleans,
-					Button: &optional,
-				},
-				{
-					Type:          layouts.QrCode,
-					Content:       &required,
-					Code:          &optional,
-					Wait:          &layouts.RequiredWithBooleans,
-					Label:         &optional,
-					Button:        &optional,
-					RendersQrcode: &rendersQrCode,
-				},
-				{
-					Type:   layouts.NewPassword,
-					Label:  &required,
-					Entry:  &supportedEntries,
-					Button: &optional,
-				},
+				authd.NewFromUILayout(layouts.NewUI(layouts.UIForm,
+					layouts.WithLabel(layouts.Required),
+					layouts.WithEntry(supportedEntries),
+					layouts.WithWait(layouts.OptionalWithBooleans),
+					layouts.WithButton(layouts.Optional),
+				)),
+				authd.NewFromUILayout(layouts.NewUI(layouts.UIQrCode,
+					layouts.WithContent(layouts.Required),
+					layouts.WithCode(layouts.Optional),
+					layouts.WithWait(layouts.RequiredWithBooleans),
+					layouts.WithLabel(layouts.Optional),
+					layouts.WithButton(layouts.Optional),
+					layouts.WithRendersQrCode(true),
+				)),
+				authd.NewFromUILayout(layouts.NewUI(layouts.UINewPassword,
+					layouts.WithLabel(layouts.Required),
+					layouts.WithEntry(supportedEntries),
+					layouts.WithButton(layouts.Optional),
+				)),
 			},
 		}
 	}

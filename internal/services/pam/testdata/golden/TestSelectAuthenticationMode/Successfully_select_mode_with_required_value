@@ -1,8 +1,8 @@
 type: required-entry
-label: ""
-button: ""
-wait: ""
+label: null
+button: null
+wait: null
 entry: entry_type
-content: ""
-code: ""
+content: null
+code: null
 rendersqrcode: null

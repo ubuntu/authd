@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/ubuntu/authd/internal/brokers/auth"
-	"github.com/ubuntu/authd/internal/brokers/layouts"
-	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
+	"github.com/ubuntu/authd/brokers/auth"
+	"github.com/ubuntu/authd/brokers/layouts"
+	"github.com/ubuntu/authd/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/log"
 	"golang.org/x/exp/maps"
@@ -564,69 +564,45 @@ func (dc *DummyClient) SelectedLang() string {
 
 // FormUILayout returns an [authd.UILayout] for forms.
 func FormUILayout() *authd.UILayout {
-	required, optional := layouts.Required, layouts.Optional
-	optionalWithBooleans := layouts.OptionalWithBooleans
-	supportedEntries := layouts.OptionalItems(
-		entries.Chars,
-		entries.CharsPassword,
-	)
-	return &authd.UILayout{
-		Type:   layouts.Form,
-		Label:  &required,
-		Entry:  &supportedEntries,
-		Wait:   &optionalWithBooleans,
-		Button: &optional,
-	}
+	return authd.NewFromUILayout(layouts.NewUI(layouts.UIForm,
+		layouts.WithLabel(layouts.Required),
+		layouts.WithEntry(
+			layouts.OptionalItems(
+				entries.Chars,
+				entries.CharsPassword,
+			)),
+		layouts.WithWait(layouts.OptionalWithBooleans),
+		layouts.WithButton(layouts.Optional),
+	))
 }
 
-// QrCodeOptions is the function signature used to tweak the qrcode.
-type QrCodeOptions func(*authd.UILayout)
-
-// WithQrCodeCode is an option for [QrCodeUILayout] to set the code parameter in QrCode UI.
-func WithQrCodeCode(code string) func(l *authd.UILayout) {
-	return func(l *authd.UILayout) { l.Code = &code }
-}
-
-// WithQrCodeRenders is an option for [QrCodeUILayout] to set the rendering parameter in QrCode UI.
-func WithQrCodeRenders(renders *bool) func(l *authd.UILayout) {
-	return func(l *authd.UILayout) { l.RendersQrcode = renders }
+// WithQrCodeRenders is an option for [layouts.NewUI] to set the rendering parameter in QrCode UI.
+func WithQrCodeRenders(renders *bool) func(l *layouts.UILayout) {
+	return func(l *layouts.UILayout) { l.RendersQrcode = renders }
 }
 
 // QrCodeUILayout returns an [authd.UILayout] for qr code.
-func QrCodeUILayout(opts ...QrCodeOptions) *authd.UILayout {
-	required, optional := layouts.Required, layouts.Optional
-	rendersQrCode := true
-
-	uiLayout := &authd.UILayout{
-		Type:          layouts.QrCode,
-		Content:       &required,
-		Code:          &required,
-		Wait:          &layouts.RequiredWithBooleans,
-		Label:         &optional,
-		Button:        &optional,
-		RendersQrcode: &rendersQrCode,
-	}
-
-	for _, f := range opts {
-		f(uiLayout)
-	}
-
-	return uiLayout
+func QrCodeUILayout(opts ...layouts.UIOptions) *authd.UILayout {
+	return authd.NewFromUILayout(layouts.NewUI(layouts.UIQrCode, append([]layouts.UIOptions{
+		layouts.WithContent(layouts.Required),
+		layouts.WithCode(layouts.Required),
+		layouts.WithWait(layouts.OptionalWithBooleans),
+		layouts.WithLabel(layouts.Required),
+		layouts.WithButton(layouts.Optional),
+		layouts.WithRendersQrCode(true),
+	}, opts...)...))
 }
 
 // NewPasswordUILayout returns an [authd.UILayout] for new password forms.
 func NewPasswordUILayout() *authd.UILayout {
-	required, optional := layouts.Required, layouts.Optional
-	optionalWithBooleans := layouts.OptionalWithBooleans
-	supportedEntries := layouts.OptionalItems(
-		entries.Chars,
-		entries.CharsPassword,
-	)
-	return &authd.UILayout{
-		Type:   layouts.NewPassword,
-		Label:  &required,
-		Entry:  &supportedEntries,
-		Wait:   &optionalWithBooleans,
-		Button: &optional,
-	}
+	return authd.NewFromUILayout(layouts.NewUI(layouts.UINewPassword,
+		layouts.WithLabel(layouts.Required),
+		layouts.WithEntry(
+			layouts.OptionalItems(
+				entries.Chars,
+				entries.CharsPassword,
+			)),
+		layouts.WithWait(layouts.OptionalWithBooleans),
+		layouts.WithButton(layouts.Optional),
+	))
 }
