@@ -40,8 +40,8 @@ func NewUserDB(name string, uid, gid uint32, gecos, dir, shell string) UserDB {
 }
 
 // UserByID returns a user matching this uid or an error if the database is corrupted or no entry was found.
-func (c *Database) UserByID(uid uint32) (UserDB, error) {
-	return userByID(c.db, uid)
+func (m *Manager) UserByID(uid uint32) (UserDB, error) {
+	return userByID(m.db, uid)
 }
 
 func userByID(db queryable, uid uint32) (UserDB, error) {
@@ -61,9 +61,9 @@ func userByID(db queryable, uid uint32) (UserDB, error) {
 }
 
 // UserByName returns a user matching this name or an error if the database is corrupted or no entry was found.
-func (c *Database) UserByName(name string) (UserDB, error) {
+func (m *Manager) UserByName(name string) (UserDB, error) {
 	query := fmt.Sprintf(`SELECT %s FROM users WHERE name = ?`, publicUserColumns)
-	row := c.db.QueryRow(query, name)
+	row := m.db.QueryRow(query, name)
 
 	var u UserDB
 	err := row.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID)
@@ -78,8 +78,8 @@ func (c *Database) UserByName(name string) (UserDB, error) {
 }
 
 // AllUsers returns all users or an error if the database is corrupted.
-func (c *Database) AllUsers() ([]UserDB, error) {
-	return allUsers(c.db)
+func (m *Manager) AllUsers() ([]UserDB, error) {
+	return allUsers(m.db)
 }
 
 func allUsers(db queryable) ([]UserDB, error) {
@@ -162,9 +162,9 @@ func updateUserByID(db queryable, u UserDB) error {
 }
 
 // DeleteUser removes the user from the database.
-func (c *Database) DeleteUser(uid uint32) error {
+func (m *Manager) DeleteUser(uid uint32) error {
 	query := `DELETE FROM users WHERE uid = ?`
-	res, err := c.db.Exec(query, uid)
+	res, err := m.db.Exec(query, uid)
 	if err != nil {
 		return fmt.Errorf("failed to delete user: %w", err)
 	}

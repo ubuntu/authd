@@ -29,8 +29,8 @@ func NewGroupDB(name string, gid uint32, ugid string, members []string) GroupDB 
 }
 
 // GroupByID returns a group matching this gid or an error if the database is corrupted or no entry was found.
-func (c *Database) GroupByID(gid uint32) (GroupDB, error) {
-	return groupByID(c.db, gid)
+func (m *Manager) GroupByID(gid uint32) (GroupDB, error) {
+	return groupByID(m.db, gid)
 }
 
 func groupByID(db queryable, gid uint32) (GroupDB, error) {
@@ -55,9 +55,9 @@ func groupByID(db queryable, gid uint32) (GroupDB, error) {
 }
 
 // GroupByName returns a group matching a given name or an error if the database is corrupted or no entry was found.
-func (c *Database) GroupByName(name string) (GroupDB, error) {
+func (m *Manager) GroupByName(name string) (GroupDB, error) {
 	query := `SELECT name, gid, ugid FROM groups WHERE name = ?`
-	row := c.db.QueryRow(query, name)
+	row := m.db.QueryRow(query, name)
 
 	var g GroupDB
 	err := row.Scan(&g.Name, &g.GID, &g.UGID)
@@ -68,7 +68,7 @@ func (c *Database) GroupByName(name string) (GroupDB, error) {
 		return GroupDB{}, fmt.Errorf("query error: %w", err)
 	}
 
-	g.Users, err = getGroupMembers(c.db, g.GID)
+	g.Users, err = getGroupMembers(m.db, g.GID)
 	if err != nil {
 		return GroupDB{}, fmt.Errorf("failed to get group members: %w", err)
 	}
@@ -77,9 +77,9 @@ func (c *Database) GroupByName(name string) (GroupDB, error) {
 }
 
 // GroupByUGID returns a group matching this ugid or an error if the database is corrupted or no entry was found.
-func (c *Database) GroupByUGID(ugid string) (GroupDB, error) {
+func (m *Manager) GroupByUGID(ugid string) (GroupDB, error) {
 	query := `SELECT name, gid, ugid FROM groups WHERE ugid = ?`
-	row := c.db.QueryRow(query, ugid)
+	row := m.db.QueryRow(query, ugid)
 
 	var g GroupDB
 	err := row.Scan(&g.Name, &g.GID, &g.UGID)
@@ -90,7 +90,7 @@ func (c *Database) GroupByUGID(ugid string) (GroupDB, error) {
 		return GroupDB{}, fmt.Errorf("query error: %w", err)
 	}
 
-	g.Users, err = getGroupMembers(c.db, g.GID)
+	g.Users, err = getGroupMembers(m.db, g.GID)
 	if err != nil {
 		return GroupDB{}, fmt.Errorf("failed to get group members: %w", err)
 	}
@@ -99,11 +99,11 @@ func (c *Database) GroupByUGID(ugid string) (GroupDB, error) {
 }
 
 // AllGroups returns all groups from the database.
-func (c *Database) AllGroups() ([]GroupDB, error) {
-	return c.allGroups(c.db)
+func (m *Manager) AllGroups() ([]GroupDB, error) {
+	return m.allGroups(m.db)
 }
 
-func (c *Database) allGroups(db queryable) ([]GroupDB, error) {
+func (m *Manager) allGroups(db queryable) ([]GroupDB, error) {
 	groups, err := allGroupsInternal(db)
 	if err != nil {
 		return nil, err

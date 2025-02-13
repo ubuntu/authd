@@ -22,7 +22,7 @@ import (
 // (so that it can be compared with a golden file) and returns it as a YAML string.
 //
 // nolint:revive,nolintlint // We want to use underscores in the function name here.
-func Z_ForTests_DumpNormalizedYAML(t *testing.T, c *Database) string {
+func Z_ForTests_DumpNormalizedYAML(t *testing.T, c *Manager) string {
 	t.Helper()
 	testsdetection.MustBeTesting()
 

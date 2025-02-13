@@ -10,9 +10,9 @@ import (
 )
 
 // UpdateUserEntry inserts or updates user and group records from the user information.
-func (c *Database) UpdateUserEntry(user UserDB, authdGroups []GroupDB, localGroups []string) (err error) {
+func (m *Manager) UpdateUserEntry(user UserDB, authdGroups []GroupDB, localGroups []string) (err error) {
 	// Start a transaction
-	tx, err := c.db.Begin()
+	tx, err := m.db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to start transaction: %w", err)
 	}
@@ -157,9 +157,9 @@ func handleUsersToLocalGroupsUpdate(db queryable, uid uint32, localGroups []stri
 }
 
 // UpdateBrokerForUser updates the last broker the user successfully authenticated with.
-func (c *Database) UpdateBrokerForUser(username, brokerID string) error {
+func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 	query := `UPDATE users SET broker_id = ? WHERE name = ?`
-	res, err := c.db.Exec(query, brokerID, username)
+	res, err := m.db.Exec(query, brokerID, username)
 	if err != nil {
 		return fmt.Errorf("failed to update broker for user: %w", err)
 	}

@@ -37,7 +37,7 @@ var DefaultConfig = Config{
 
 // Manager is the manager for any user related operation.
 type Manager struct {
-	db               *db.Database
+	db               *db.Manager
 	config           Config
 	temporaryRecords *tempentries.TemporaryRecords
 	updateUserMu     sync.Mutex
@@ -95,11 +95,10 @@ func NewManager(config Config, dbDir string, args ...Option) (m *Manager, err er
 		temporaryRecords: tempentries.NewTemporaryRecords(opts.idGenerator),
 	}
 
-	c, err := db.New(dbDir)
+	m.db, err = db.New(dbDir)
 	if err != nil {
 		return nil, err
 	}
-	m.db = c
 
 	return m, nil
 }

@@ -24,8 +24,8 @@ var (
 	createSchema string
 )
 
-// Database is our database API.
-type Database struct {
+// Manager is an abstraction to interact with the database.
+type Manager struct {
 	db   *sql.DB
 	path string
 	mu   sync.RWMutex
@@ -46,8 +46,8 @@ type queryable interface {
 	Query(query string, args ...any) (*sql.Rows, error)
 }
 
-// New creates a new database by creating or opening the underlying db.
-func New(dbDir string) (*Database, error) {
+// New creates a new database manager by creating or opening the underlying database.
+func New(dbDir string) (*Manager, error) {
 	dbPath := filepath.Join(dbDir, filename)
 
 	exists, err := fileutils.FileExists(dbPath)
@@ -91,26 +91,26 @@ func New(dbDir string) (*Database, error) {
 		}
 	}
 
-	return &Database{db: db, path: dbPath, mu: sync.RWMutex{}}, nil
+	return &Manager{db: db, path: dbPath, mu: sync.RWMutex{}}, nil
 }
 
 // MigrateData migrates data from bbolt to SQLite.
 func MigrateData(dbDir string) error {
-	db, err := New(dbDir)
+	m, err := New(dbDir)
 	if err != nil {
 		return err
 	}
 	defer func() {
-		err := db.Close()
+		err := m.Close()
 		if err != nil {
 			log.Warningf(context.Background(), "Failed to close database after migration: %v", err)
 		}
 	}()
 
-	return db.migrateData(dbDir)
+	return m.migrateData(dbDir)
 }
 
-func (c *Database) migrateData(dbDir string) error {
+func (m *Manager) migrateData(dbDir string) error {
 	log.Infof(context.Background(), "Migrating data from bbolt to SQLite")
 
 	// Open the bbolt database.
@@ -126,7 +126,7 @@ func (c *Database) migrateData(dbDir string) error {
 	}()
 
 	// Start a transaction
-	tx, err := c.db.Begin()
+	tx, err := m.db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to start transaction: %w", err)
 	}
@@ -231,9 +231,9 @@ func (c *Database) migrateData(dbDir string) error {
 }
 
 // Close closes the db and signal the monitoring goroutine to stop.
-func (c *Database) Close() error {
+func (m *Manager) Close() error {
 	log.Debugf(context.Background(), "Closing database")
-	return c.db.Close()
+	return m.db.Close()
 }
 
 // Filename returns the name of the database file.

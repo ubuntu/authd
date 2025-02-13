@@ -42,7 +42,7 @@ func TestNew(t *testing.T) {
 			dbDir := t.TempDir()
 			dbDestPath := filepath.Join(dbDir, db.Z_ForTests_DBName())
 
-			var c *db.Database
+			var m *db.Manager
 
 			if tc.dbFile == "-" {
 				err := os.RemoveAll(dbDir)
@@ -68,15 +68,15 @@ func TestNew(t *testing.T) {
 				}
 			}
 
-			c, err := db.New(dbDir)
+			m, err := db.New(dbDir)
 			if tc.wantErr {
 				require.Error(t, err, "New should return an error but didn't")
 				return
 			}
 			require.NoError(t, err)
-			defer c.Close()
+			defer m.Close()
 
-			got := db.Z_ForTests_DumpNormalizedYAML(t, c)
+			got := db.Z_ForTests_DumpNormalizedYAML(t, m)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -464,7 +464,7 @@ func TestDeleteUser(t *testing.T) {
 }
 
 // initDB returns a new database ready to be used alongside its database directory.
-func initDB(t *testing.T, dbFile string) *db.Database {
+func initDB(t *testing.T, dbFile string) *db.Manager {
 	t.Helper()
 
 	dbDir, err := os.MkdirTemp("", "authd-db-test-*")
@@ -481,11 +481,11 @@ func initDB(t *testing.T, dbFile string) *db.Database {
 		db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", dbFile+".db.yaml"), dbDir)
 	}
 
-	c, err := db.New(dbDir)
+	m, err := db.New(dbDir)
 	require.NoError(t, err)
-	t.Cleanup(func() { c.Close() })
+	t.Cleanup(func() { m.Close() })
 
-	return c
+	return m
 }
 
 func requireGetAssertions[E any](t *testing.T, got E, wantErr bool, wantErrType, err error) {

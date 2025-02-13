@@ -15,11 +15,11 @@ func init() {
 }
 
 type manager struct {
-	db *db.Database
+	db *db.Manager
 }
 
 // GetManagerDB returns the database of the manager.
-func GetManagerDB(m *users.Manager) *db.Database {
+func GetManagerDB(m *users.Manager) *db.Manager {
 	//#nosec:G103 // This is only used in tests.
 	mTest := *(*manager)(unsafe.Pointer(m))
 

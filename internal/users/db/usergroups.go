@@ -9,8 +9,8 @@ import (
 )
 
 // UserGroups returns all groups for a given user or an error if the database is corrupted or no entry was found.
-func (c *Database) UserGroups(uid uint32) ([]GroupDB, error) {
-	return userGroups(c.db, uid)
+func (m *Manager) UserGroups(uid uint32) ([]GroupDB, error) {
+	return userGroups(m.db, uid)
 }
 
 func userGroups(db queryable, uid uint32) ([]GroupDB, error) {
@@ -55,9 +55,9 @@ func userGroups(db queryable, uid uint32) ([]GroupDB, error) {
 }
 
 // RemoveUserFromGroup removes a user from a group.
-func (c *Database) RemoveUserFromGroup(uid, gid uint32) error {
+func (m *Manager) RemoveUserFromGroup(uid, gid uint32) error {
 	query := `DELETE FROM users_to_groups WHERE uid = ? AND gid = ?`
-	_, err := c.db.Exec(query, uid, gid)
+	_, err := m.db.Exec(query, uid, gid)
 	return err
 }
 

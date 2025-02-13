@@ -5,8 +5,8 @@ import (
 )
 
 // UserLocalGroups returns all local groups for a given user or an error if the database is corrupted or no entry was found.
-func (c *Database) UserLocalGroups(uid uint32) ([]string, error) {
-	rows, err := c.db.Query(`SELECT group_name FROM users_to_local_groups WHERE uid = ?`, uid)
+func (m *Manager) UserLocalGroups(uid uint32) ([]string, error) {
+	rows, err := m.db.Query(`SELECT group_name FROM users_to_local_groups WHERE uid = ?`, uid)
 	if err != nil {
 		return nil, fmt.Errorf("query error: %w", err)
 	}
