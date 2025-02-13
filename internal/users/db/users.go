@@ -108,6 +108,7 @@ func allUsers(db queryable) ([]UserRow, error) {
 	return users, nil
 }
 
+// insertOrUpdateUserByID inserts or, if a user with the same name or UID already exists, updates the user in the database.
 func insertOrUpdateUserByID(db queryable, u UserRow) error {
 	exists, err := userExists(db, u)
 	if err != nil {
@@ -121,6 +122,7 @@ func insertOrUpdateUserByID(db queryable, u UserRow) error {
 	return updateUserByID(db, u)
 }
 
+// userExists checks if a user with the same name or UID already exists in the database.
 func userExists(db queryable, u UserRow) (bool, error) {
 	query := `
 		SELECT 1 FROM users 
@@ -141,6 +143,7 @@ func userExists(db queryable, u UserRow) (bool, error) {
 	return true, nil
 }
 
+// insertUser inserts a new user into the database.
 func insertUser(db queryable, u UserRow) error {
 	log.Debugf(context.Background(), "Inserting user %v", u.Name)
 	query := fmt.Sprintf(`INSERT INTO users (%s) VALUES (?, ?, ?, ?, ?, ?, ?)`, allUserColumns)
@@ -151,6 +154,7 @@ func insertUser(db queryable, u UserRow) error {
 	return nil
 }
 
+// updateUserByID updates the user with the same UID in the database.
 func updateUserByID(db queryable, u UserRow) error {
 	log.Debugf(context.Background(), "Updating user %v", u.Name)
 	query := fmt.Sprintf(`UPDATE users SET %s WHERE uid = ?`, allUserColumnsWithPlaceholders)

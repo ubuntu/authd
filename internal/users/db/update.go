@@ -68,7 +68,7 @@ func handleUserUpdate(db queryable, u UserRow) error {
 	return insertOrUpdateUserByID(db, u)
 }
 
-// updateGroup updates the group records in the database.
+// updateGroupByID updates the group records in the database.
 func handleGroupsUpdate(db queryable, groups []GroupRow) error {
 	for _, group := range groups {
 		existingGroup, err := groupByID(db, group.GID)
@@ -86,7 +86,7 @@ func handleGroupsUpdate(db queryable, groups []GroupRow) error {
 		}
 
 		log.Debug(context.Background(), fmt.Sprintf("Updating entry of group %q (%+v)", group.Name, group))
-		if err := insertOrUpdateGroup(db, group); err != nil {
+		if err := insertOrUpdateGroupByID(db, group); err != nil {
 			return err
 		}
 	}

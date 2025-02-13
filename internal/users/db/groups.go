@@ -207,7 +207,8 @@ func allGroups(db queryable) ([]GroupRow, error) {
 	return groups, nil
 }
 
-func insertOrUpdateGroup(db queryable, g GroupRow) error {
+// insertOrUpdateGroupByID inserts or, if a group with the same name, GID or UGID already exists, updates the group in the database.
+func insertOrUpdateGroupByID(db queryable, g GroupRow) error {
 	exists, err := groupExists(db, g)
 	if err != nil {
 		return fmt.Errorf("failed to check if group exists: %w", err)
@@ -217,9 +218,10 @@ func insertOrUpdateGroup(db queryable, g GroupRow) error {
 		return insertGroup(db, g)
 	}
 
-	return updateGroup(db, g)
+	return updateGroupByID(db, g)
 }
 
+// groupExists checks if a group with the same name, GID or UGID already exists in the database.
 func groupExists(db queryable, g GroupRow) (bool, error) {
 	query := `
 		SELECT 1 FROM groups 
@@ -240,6 +242,7 @@ func groupExists(db queryable, g GroupRow) (bool, error) {
 	return true, nil
 }
 
+// insertGroup inserts a group into the database.
 func insertGroup(db queryable, g GroupRow) error {
 	_, err := db.Exec(`INSERT INTO groups (name, gid, ugid) VALUES (?, ?, ?)`, g.Name, g.GID, g.UGID)
 	if err != nil {
@@ -249,7 +252,8 @@ func insertGroup(db queryable, g GroupRow) error {
 	return nil
 }
 
-func updateGroup(db queryable, g GroupRow) error {
+// updateGroupByID updates the group with the same GID in the database.
+func updateGroupByID(db queryable, g GroupRow) error {
 	_, err := db.Exec(`UPDATE groups SET name = ?, gid = ?, ugid = ? WHERE gid = ?`, g.Name, g.GID, g.UGID, g.GID)
 	if err != nil {
 		return fmt.Errorf("update group error: %w", err)
