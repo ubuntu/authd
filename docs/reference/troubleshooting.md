@@ -21,6 +21,35 @@ For ```authd``` entries, run:
 journalctl -u authd.service
 ```
 
+If you want logs for authd and all brokers on the system, run:
+
+```shell
+journalctl -u authd.service -u "snap.authd-*.service"
+```
+
+For specific broker entries run the command for your chosen broker:
+
+::::{tab-set}
+:sync-group: broker
+
+:::{tab-item} Google IAM
+:sync: google
+
+```shell
+journalctl -u snap.authd-google.authd-google.service
+```
+:::
+
+:::{tab-item} MS Entra ID
+:sync: msentraid
+
+```shell
+journalctl -u snap.authd-msentraid.authd-msentraid.service
+```
+:::
+::::
+
+
 For the GDM integration:
 
 ```shell
@@ -75,29 +104,6 @@ Then you need to restart the service with `sudo systemctl restart gdm`.
 
 #### authd broker service
 
-The brokers for authd log to the system journal.
-
-For the broker entries run the command for your chosen broker:
-
-::::{tab-set}
-:sync-group: broker
-
-:::{tab-item} Google IAM
-:sync: google
-
-```shell
-journalctl -u snap.authd-google.authd-google.service
-```
-:::
-
-:::{tab-item} MS Entra ID
-:sync: msentraid
-
-```shell
-journalctl -u snap.authd-msentraid.authd-msentraid.service
-```
-:::
-::::
 
 To increase the verbosity of the broker service, edit the service file:
 
