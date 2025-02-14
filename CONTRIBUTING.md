@@ -132,10 +132,8 @@ The built binary will be found in the current directory. The daemon can be run d
 
 #### Building the PAM module only
 
-To build the PAM module, from the top of the source tree run the following commands:
-
-> [!NOTE]
-> This command installs the tooling to hook up the Go GRPC modules to protoc.
+To build the PAM module, you first need to install the tooling to hook up the Go gRPC modules to protoc.
+From the top of the source tree run the following commands:
 
 ```shell
 cd tools/

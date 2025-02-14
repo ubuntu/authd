@@ -1,8 +1,19 @@
+---
+myst:
+  html_meta:
+    "description lang=en": "Troubleshoot issues with authd when authenticating Ubuntu devices with cloud identity providers like Google IAM and Microsoft Entra ID."
+---
+
 # Troubleshooting
+
+This page includes tips for troubleshooting authd and the identity
+brokers for different cloud providers.
 
 ## Logging
 
-```authd``` and the brokers are all logging to the system journal.
+### authd
+
+```authd``` logs to the system journal.
 
 For ```authd``` entries, run:
 
@@ -10,11 +21,34 @@ For ```authd``` entries, run:
 journalctl -u authd.service
 ```
 
-For the broker entries, substitute `<broker_name>` with your broker's name and run:
+If you want logs for authd and all brokers on the system, run:
 
 ```shell
-journalctl -u snap.authd-<broker_name>.authd-<broker_name>.service
+journalctl -u authd.service -u "snap.authd-*.service"
 ```
+
+For specific broker entries run the command for your chosen broker:
+
+::::{tab-set}
+:sync-group: broker
+
+:::{tab-item} Google IAM
+:sync: google
+
+```shell
+journalctl -u snap.authd-google.authd-google.service
+```
+:::
+
+:::{tab-item} MS Entra ID
+:sync: msentraid
+
+```shell
+journalctl -u snap.authd-msentraid.authd-msentraid.service
+```
+:::
+::::
+
 
 For the GDM integration:
 
@@ -70,37 +104,121 @@ Then you need to restart the service with `sudo systemctl restart gdm`.
 
 #### authd broker service
 
+
 To increase the verbosity of the broker service, edit the service file:
 
+::::{tab-set}
+:sync-group: broker
+
+:::{tab-item} Google IAM
+:sync: google
+
 ```shell
-sudo systemctl edit snap.authd-<broker_name>.authd-<broker_name>.service
+sudo systemctl edit snap.authd-google.authd-google.service
 ```
+:::
+
+:::{tab-item} MS Entra ID
+:sync: msentraid
+
+```shell
+sudo systemctl edit snap.authd-msentraid.authd-msentraid.service
+```
+:::
+::::
 
 Add the following lines to the override file and make sure to add `-vv` to the exec command:
+
+::::{tab-set}
+:sync-group: broker
+
+:::{tab-item} Google IAM
+:sync: google
 
 ```
 [Service]
 ExecStart=
-ExecStart=/usr/bin/snap run authd-<broker_name> -vv
+ExecStart=/usr/bin/snap run authd-google -vv
 ```
+:::
 
-You will then need to restart the service with `snap restart authd-<broker_name>`.
+:::{tab-item} MS Entra ID
+:sync: msentraid
+
+```
+[Service]
+ExecStart=
+ExecStart=/usr/bin/snap run authd-msentraid -vv
+```
+::::
+
+You will then need to restart the service with:
+
+::::{tab-set}
+:sync-group: broker
+
+:::{tab-item} Google IAM
+:sync: google
+
+`snap restart authd-google`.
+:::
+
+:::{tab-item} MS Entra ID
+:sync: msentraid
+
+`snap restart authd-msentraid`.
+:::
+::::
 
 ## Switch the snap to the edge channel
 
 Maybe your issue is already fixed! You should try switching to the edge channel of the broker snap. You can easily do that with:
 
+::::{tab-set}
+:sync-group: broker
+
+:::{tab-item} Google IAM
+:sync: google
+
 ```shell
-snap switch authd-<broker_name> --edge
-snap refresh authd-<broker_name>
+snap switch authd-google --edge
+snap refresh authd-google
 ```
+:::
+
+:::{tab-item} MS Entra ID
+:sync: msentraid
+
+```shell
+snap switch authd-msentraid --edge
+snap refresh authd-msentraid
+```
+:::
+::::
 
 Keep in mind that this version is not tested and may be incompatible with the current released version of authd. You should switch back to stable after trying the edge channel:
 
+::::{tab-set}
+:sync-group: broker
+
+:::{tab-item} Google IAM
+:sync: google
+
 ```shell
-snap switch authd-<broker_name> --stable
-snap refresh authd-<broker_name>
+snap switch authd-google --stable
+snap refresh authd-google
 ```
+:::
+
+:::{tab-item} MS Entra ID
+:sync: msentraid
+
+```shell
+snap switch authd-msentraid --stable
+snap refresh authd-msentraid
+```
+:::
+::::
 
 ```{note}
 If using an edge release, you can read the
