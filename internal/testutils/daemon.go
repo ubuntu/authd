@@ -86,7 +86,8 @@ func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...Daemo
 	}
 
 	if opts.existentDB != "" {
-		db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", opts.existentDB+".db.yaml"), opts.dbPath)
+		err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", opts.existentDB+".db.yaml"), opts.dbPath)
+		require.NoError(t, err, "Setup: could not create database from testdata")
 	}
 
 	if opts.socketPath == "" {

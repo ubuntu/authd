@@ -319,7 +319,8 @@ func newUserManagerForTests(t *testing.T, sourceDB string) *users.Manager {
 	if sourceDB == "" {
 		sourceDB = "default.db.yaml"
 	}
-	db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", sourceDB), dbDir)
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", sourceDB), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	managerOpts := []users.Option{
 		users.WithIDGenerator(&idgenerator.IDGeneratorMock{

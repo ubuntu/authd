@@ -50,7 +50,8 @@ func TestNewManager(t *testing.T) {
 				err := os.RemoveAll(dbDir)
 				require.NoError(t, err, "Setup: could not remove temporary db directory")
 			} else if tc.dbFile != "" {
-				db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+				err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+				require.NoError(t, err, "Setup: could not create database from testdata")
 			}
 			if tc.corruptedDbFile {
 				err := os.WriteFile(filepath.Join(dbDir, db.Z_ForTests_DBName()), []byte("Corrupted db"), 0600)
@@ -78,7 +79,7 @@ func TestNewManager(t *testing.T) {
 			}
 			require.NoError(t, err, "NewManager should not return an error, but did")
 
-			got := db.Z_ForTests_DumpNormalizedYAML(t, userstestutils.GetManagerDB(m))
+			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -192,7 +193,8 @@ func TestUpdateUser(t *testing.T) {
 
 			dbDir := t.TempDir()
 			if tc.dbFile != "" {
-				db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+				err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+				require.NoError(t, err, "Setup: could not create database from testdata")
 			}
 
 			// One GID is generated for the user private group
@@ -232,7 +234,7 @@ func TestUpdateUser(t *testing.T) {
 				require.Equal(t, oldUID, newUser.UID, "UID should not have changed")
 			}
 
-			got := db.Z_ForTests_DumpNormalizedYAML(t, userstestutils.GetManagerDB(m))
+			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -262,7 +264,8 @@ func TestBrokerForUser(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			dbDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			require.NoError(t, err, "Setup: could not create database from testdata")
 			m := newManagerForTests(t, dbDir)
 
 			brokerID, err := m.BrokerForUser(tc.username)
@@ -303,17 +306,18 @@ func TestUpdateBrokerForUser(t *testing.T) {
 			}
 
 			dbDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			require.NoError(t, err, "Setup: could not create database from testdata")
 			m := newManagerForTests(t, dbDir)
 
-			err := m.UpdateBrokerForUser(tc.username, "ExampleBrokerID")
+			err = m.UpdateBrokerForUser(tc.username, "ExampleBrokerID")
 
 			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
 			if tc.wantErrType != nil || tc.wantErr {
 				return
 			}
 
-			got := db.Z_ForTests_DumpNormalizedYAML(t, userstestutils.GetManagerDB(m))
+			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -346,11 +350,11 @@ func TestUserByIDAndName(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			dbDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			require.NoError(t, err, "Setup: could not create database from testdata")
 
 			m := newManagerForTests(t, dbDir)
 
-			var err error
 			if tc.isTempUser {
 				tc.uid, _, err = m.TemporaryRecords().RegisterUser("tempuser1")
 				require.NoError(t, err, "RegisterUser should not return an error, but did")
@@ -397,7 +401,8 @@ func TestAllUsers(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			dbDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			require.NoError(t, err, "Setup: could not create database from testdata")
 			m := newManagerForTests(t, dbDir)
 
 			got, err := m.AllUsers()
@@ -437,10 +442,10 @@ func TestGroupByIDAndName(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			dbDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			require.NoError(t, err, "Setup: could not create database from testdata")
 			m := newManagerForTests(t, dbDir)
 
-			var err error
 			if tc.isTempGroup {
 				tc.gid, _, err = m.TemporaryRecords().RegisterGroup("tempgroup1")
 				require.NoError(t, err, "RegisterGroup should not return an error, but did")
@@ -487,7 +492,8 @@ func TestAllGroups(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			dbDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			require.NoError(t, err, "Setup: could not create database from testdata")
 
 			m := newManagerForTests(t, dbDir)
 
@@ -521,7 +527,8 @@ func TestShadowByName(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			dbDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			require.NoError(t, err, "Setup: could not create database from testdata")
 
 			m := newManagerForTests(t, dbDir)
 
@@ -551,7 +558,8 @@ func TestAllShadows(t *testing.T) {
 			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
 
 			dbDir := t.TempDir()
-			db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			require.NoError(t, err, "Setup: could not create database from testdata")
 
 			m := newManagerForTests(t, dbDir)
 

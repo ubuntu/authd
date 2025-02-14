@@ -5,14 +5,13 @@ package db
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"sort"
-	"testing"
 
-	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testsdetection"
 	"github.com/ubuntu/authd/log"
 	"gopkg.in/yaml.v3"
@@ -22,13 +21,14 @@ import (
 // (so that it can be compared with a golden file) and returns it as a YAML string.
 //
 // nolint:revive,nolintlint // We want to use underscores in the function name here.
-func Z_ForTests_DumpNormalizedYAML(t *testing.T, c *Manager) string {
-	t.Helper()
+func Z_ForTests_DumpNormalizedYAML(c *Manager) (string, error) {
 	testsdetection.MustBeTesting()
 
 	// Get all users
 	users, err := allUsers(c.db)
-	require.NoError(t, err)
+	if err != nil {
+		return "", err
+	}
 
 	// Sort the users by UID.
 	sort.Slice(users, func(i, j int) bool {
@@ -37,7 +37,9 @@ func Z_ForTests_DumpNormalizedYAML(t *testing.T, c *Manager) string {
 
 	// Get all groups
 	groups, err := allGroups(c.db)
-	require.NoError(t, err)
+	if err != nil {
+		return "", err
+	}
 
 	// Sort the groups by GID.
 	sort.Slice(groups, func(i, j int) bool {
@@ -46,7 +48,9 @@ func Z_ForTests_DumpNormalizedYAML(t *testing.T, c *Manager) string {
 
 	// Get all rows from the users_to_groups table.
 	userGroups, err := allUserGroupsInternal(c.db)
-	require.NoError(t, err)
+	if err != nil {
+		return "", err
+	}
 
 	// Sort the userGroups by UID.
 	sort.Slice(userGroups, func(i, j int) bool {
@@ -68,9 +72,11 @@ func Z_ForTests_DumpNormalizedYAML(t *testing.T, c *Manager) string {
 
 	// Marshal the content into a YAML string.
 	yamlData, err := yaml.Marshal(content)
-	require.NoError(t, err)
+	if err != nil {
+		return "", err
+	}
 
-	return string(yamlData)
+	return string(yamlData), nil
 }
 
 // Z_ForTests_DBName returns the name of the database.
@@ -84,45 +90,52 @@ func Z_ForTests_DBName() string {
 // Z_ForTests_CreateDBFromYAML creates the bbolt database inside destDir and loads the src file content into it.
 //
 // nolint:revive,nolintlint // We want to use underscores in the function name here.
-func Z_ForTests_CreateDBFromYAML(t *testing.T, src, destDir string) {
-	t.Helper()
+func Z_ForTests_CreateDBFromYAML(src, destDir string) error {
 	testsdetection.MustBeTesting()
 
 	src, err := filepath.Abs(src)
-	require.NoError(t, err)
+	if err != nil {
+		return err
+	}
 
 	log.Debugf(context.Background(), "Loading SQLite database from %s", src)
 
 	f, err := os.Open(src)
-	require.NoError(t, err)
+	if err != nil {
+		return err
+	}
 
-	createDBFromYAMLReader(t, f, destDir)
+	return createDBFromYAMLReader(f, destDir)
 }
 
 // Z_ForTests_CreateDBFromYAML creates the bbolt database inside destDir and loads the src file content into it.
 //
 // nolint:revive,nolintlint // We want to use underscores in the function name here.
-func Z_ForTests_CreateDBFromYAMLReader(t *testing.T, r io.Reader, destDir string) {
-	t.Helper()
-	createDBFromYAMLReader(t, r, destDir)
+func Z_ForTests_CreateDBFromYAMLReader(r io.Reader, destDir string) error {
+	return createDBFromYAMLReader(r, destDir)
 }
 
-func createDBFromYAMLReader(t *testing.T, r io.Reader, destDir string) {
-	t.Helper()
-
+func createDBFromYAMLReader(r io.Reader, destDir string) (err error) {
 	yamlData, err := io.ReadAll(r)
-	require.NoError(t, err)
+	if err != nil {
+		return err
+	}
 
 	// unmarshal the content into a map.
 	dbContent := make(map[string][]map[string]string)
 	err = yaml.Unmarshal(yamlData, dbContent)
-	require.NoError(t, err)
+	if err != nil {
+		return err
+	}
 
 	db, err := New(destDir)
-	require.NoError(t, err)
+	if err != nil {
+		return err
+	}
 	defer func() {
-		err := db.Close()
-		require.NoError(t, err)
+		if closeErr := db.Close(); closeErr != nil {
+			err = errors.Join(err, closeErr)
+		}
 	}()
 
 	tablesInOrder := []string{"users", "groups", "users_to_groups"}
@@ -153,9 +166,12 @@ func createDBFromYAMLReader(t *testing.T, r io.Reader, destDir string) {
 			//nolint:gosec // We don't care about SQL injection in our tests.
 			query := fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table, columns, values)
 			_, err = db.db.Exec(query, vals...)
-			require.NoError(t, err)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	log.Debug(context.Background(), "Database created")
+	return nil
 }

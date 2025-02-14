@@ -48,7 +48,8 @@ func TestNew(t *testing.T) {
 				err := os.RemoveAll(dbDir)
 				require.NoError(t, err, "Setup: could not remove temporary database directory")
 			} else if tc.dbFile != "" {
-				db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", tc.dbFile+".db.yaml"), dbDir)
+				err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", tc.dbFile+".db.yaml"), dbDir)
+				require.NoError(t, err, "Setup: could not create database from testdata")
 			}
 			if tc.corruptedDbFile {
 				err := os.WriteFile(dbDestPath, []byte("corrupted"), 0600)
@@ -76,7 +77,7 @@ func TestNew(t *testing.T) {
 			require.NoError(t, err)
 			defer m.Close()
 
-			got := db.Z_ForTests_DumpNormalizedYAML(t, m)
+			got, err := db.Z_ForTests_DumpNormalizedYAML(m)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -217,7 +218,7 @@ func TestUpdateUserEntry(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			got := db.Z_ForTests_DumpNormalizedYAML(t, c)
+			got, err := db.Z_ForTests_DumpNormalizedYAML(c)
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
@@ -507,7 +508,8 @@ func TestDeleteUser(t *testing.T) {
 			}
 			require.NoError(t, err)
 
-			got := db.Z_ForTests_DumpNormalizedYAML(t, c)
+			got, err := db.Z_ForTests_DumpNormalizedYAML(c)
+			require.NoError(t, err)
 			golden.CheckOrUpdate(t, got)
 		})
 	}
@@ -528,7 +530,8 @@ func initDB(t *testing.T, dbFile string) *db.Manager {
 	}
 
 	if dbFile != "" {
-		db.Z_ForTests_CreateDBFromYAML(t, filepath.Join("testdata", dbFile+".db.yaml"), dbDir)
+		err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile+".db.yaml"), dbDir)
+		require.NoError(t, err, "Setup: could not create database from testdata")
 	}
 
 	m, err := db.New(dbDir)

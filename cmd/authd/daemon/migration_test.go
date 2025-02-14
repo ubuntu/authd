@@ -200,7 +200,8 @@ func TestMaybeMigrateBBoltToSQLite(t *testing.T) {
 			})
 			require.NoError(t, err)
 
-			yamlData := db.Z_ForTests_DumpNormalizedYAML(t, database)
+			yamlData, err := db.Z_ForTests_DumpNormalizedYAML(database)
+			require.NoError(t, err)
 			golden.CheckOrUpdate(t, yamlData)
 		})
 	}
