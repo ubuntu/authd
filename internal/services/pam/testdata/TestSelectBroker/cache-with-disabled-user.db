@@ -1,0 +1,16 @@
+users:
+    - name: testselectbroker/error_when_user_is_disabled_separator_disabled
+      uid: 1111
+      gid: 11111
+      gecos: gecos for other user
+      dir: /home/disabled
+      shell: /bin/bash
+      broker_id: broker-id
+      disabled: true
+groups:
+    - name: group1
+      gid: 11111
+      ugid: ugid
+users_to_groups:
+    - uid: 1111
+      gid: 11111
