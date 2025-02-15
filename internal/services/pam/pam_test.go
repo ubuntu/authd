@@ -193,6 +193,7 @@ func TestSelectBroker(t *testing.T) {
 		brokerID    string
 		username    string
 		sessionMode string
+		existingDB  string
 
 		currentUserNotRoot bool
 
@@ -209,13 +210,24 @@ func TestSelectBroker(t *testing.T) {
 		"Error_when_broker_does_not_exist":                {username: "no broker", brokerID: "does not exist", wantErr: true},
 		"Error_when_broker_does_not_provide_a_session_ID": {username: "ns_no_id", wantErr: true},
 		"Error_when_starting_the_session":                 {username: "ns_error", wantErr: true},
+		"Error_when_user_is_disabled":                     {username: "disabled", wantErr: true, existingDB: "cache-with-disabled-user.db"},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
+			cacheDir := t.TempDir()
+			if tc.existingDB != "" {
+				err := db.Z_ForTests_CreateDBFromYAML(filepath.Join(testutils.TestFamilyPath(t), tc.existingDB), cacheDir)
+				require.NoError(t, err, "Setup: could not create database from testdata")
+			}
+
+			m, err := users.NewManager(users.DefaultConfig, cacheDir)
+			require.NoError(t, err, "Setup: could not create user manager")
+			t.Cleanup(func() { _ = m.Stop() })
+
 			pm := newPermissionManager(t, tc.currentUserNotRoot)
-			client := newPamClient(t, nil, globalBrokerManager, &pm)
+			client := newPamClient(t, m, globalBrokerManager, &pm)
 
 			switch tc.brokerID {
 			case "":
