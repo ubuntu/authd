@@ -14,8 +14,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/cmd/authd/daemon"
 	"github.com/ubuntu/authd/internal/consts"
+	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/testutils"
-	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/internal/users/db"
 )
 
 func TestHelp(t *testing.T) {
@@ -113,7 +114,7 @@ func TestAppCanQuitWithoutExecute(t *testing.T) {
 
 func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 	t.Parallel()
-	// Trigger the error with a cache directory that cannot be created over an
+	// Trigger the error with a database directory that cannot be created over an
 	// existing file
 
 	const (
@@ -124,17 +125,17 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 	)
 
 	testCases := map[string]struct {
-		cacheDBBehavior    int
-		cachePathBehavior  int
+		dbBehavior         int
+		dbPathBehavior     int
 		socketPathBehavior int
 	}{
-		"Error_on_existing_cache_path_not_being_a_directory":    {cachePathBehavior: dirIsFile},
-		"Error_on_existing_cache_path_with_invalid_permissions": {cachePathBehavior: hasWrongPermission},
-		"Error_on_missing_parent_cache_directory":               {cachePathBehavior: parentDirDoesNotExists},
+		"Error_on_existing_db_path_not_being_a_directory":    {dbPathBehavior: dirIsFile},
+		"Error_on_existing_db_path_with_invalid_permissions": {dbPathBehavior: hasWrongPermission},
+		"Error_on_missing_parent_db_directory":               {dbPathBehavior: parentDirDoesNotExists},
 
 		"Error_on_grpc_daemon_creation_failure": {socketPathBehavior: dirIsFile},
 
-		"Error_on_manager_creationg_failure": {cacheDBBehavior: hasWrongPermission},
+		"Error_on_manager_creationg_failure": {dbBehavior: hasWrongPermission},
 	}
 
 	for name, tc := range testCases {
@@ -156,13 +157,13 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 			require.NoError(t, err, "Setup: failed to write file")
 
 			var config daemon.DaemonConfig
-			switch tc.cachePathBehavior {
+			switch tc.dbPathBehavior {
 			case dirIsFile:
-				config.Paths.Cache = filePath
+				config.Paths.Database = filePath
 			case hasWrongPermission:
-				config.Paths.Cache = worldAccessDir
+				config.Paths.Database = worldAccessDir
 			case parentDirDoesNotExists:
-				config.Paths.Cache = filepath.Join(shortTmp, "not-exists", "cache")
+				config.Paths.Database = filepath.Join(shortTmp, "not-exists", "db")
 			}
 			switch tc.socketPathBehavior {
 			case dirIsFile:
@@ -170,14 +171,16 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 			default:
 				config.Paths.Socket = filepath.Join(shortTmp, "mysocket")
 			}
-			switch tc.cacheDBBehavior {
+			switch tc.dbBehavior {
 			case hasWrongPermission:
-				config.Paths.Cache = filepath.Join(shortTmp, "cache")
-				err := os.MkdirAll(config.Paths.Cache, 0700)
-				require.NoError(t, err, "Setup: could not create cache directory")
+				config.Paths.Database = filepath.Join(shortTmp, "db")
+				err := os.MkdirAll(config.Paths.Database, 0700)
+				require.NoError(t, err, "Setup: could not create database directory")
+				err = fileutils.Touch(filepath.Join(config.Paths.Database, db.Z_ForTests_DBName()))
+				require.NoError(t, err, "Setup: could not create database")
 				//nolint: gosec // This is a file with invalid permission for tests.
-				err = os.WriteFile(filepath.Join(config.Paths.Cache, cache.Z_ForTests_DBName()), nil, 0644)
-				require.NoError(t, err, "Setup: could not create database with invalid permissions")
+				err = os.Chmod(filepath.Join(config.Paths.Database, db.Z_ForTests_DBName()), 0666)
+				require.NoError(t, err, "Setup: could not set file permissions")
 			}
 
 			a := daemon.NewForTests(t, &config)
@@ -319,7 +322,7 @@ func TestNoConfigSetDefaults(t *testing.T) {
 
 	require.Equal(t, 0, a.Config().Verbosity, "Default Verbosity")
 	require.Equal(t, consts.DefaultBrokersConfPath, a.Config().Paths.BrokersConf, "Default brokers configuration path")
-	require.Equal(t, consts.DefaultCacheDir, a.Config().Paths.Cache, "Default cache directory")
+	require.Equal(t, consts.DefaultDatabaseDir, a.Config().Paths.Database, "Default database directory")
 	require.Equal(t, "", a.Config().Paths.Socket, "No socket address as default")
 }
 

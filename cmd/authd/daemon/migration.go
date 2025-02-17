@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/ubuntu/authd/internal/fileutils"
+	"github.com/ubuntu/authd/internal/users/db"
+	"github.com/ubuntu/authd/internal/users/db/bbolt"
 	"github.com/ubuntu/authd/log"
 )
 
-func migrateOldCacheDir(oldPath, newPath string) error {
+func maybeMigrateOldDBDir(oldPath, newPath string) error {
 	exists, err := fileutils.FileExists(oldPath)
 	if err != nil {
 		// Let's not fail if we can't access the old database dir, but log a warning
@@ -38,4 +41,41 @@ func migrateOldCacheDir(oldPath, newPath string) error {
 	log.Infof(context.Background(), "Migrated database directory from %q to %q", oldPath, newPath)
 
 	return nil
+}
+
+func maybeMigrateBBoltToSQLite(dbDir string) (migrated bool, err error) {
+	bboltPath := filepath.Join(dbDir, bbolt.DBFilename())
+	sqlitePath := filepath.Join(dbDir, db.Filename())
+
+	exists, err := fileutils.FileExists(bboltPath)
+	if err != nil {
+		// Let's not fail if we can't access the old bbolt database, but log a warning
+		log.Warningf(context.Background(), "Error checking for existing bbolt database %q: %v", bboltPath, err)
+		return false, nil
+	}
+	if !exists {
+		// Nothing to migrate
+		return false, nil
+	}
+
+	exists, err = fileutils.FileExists(sqlitePath)
+	if err != nil {
+		return false, fmt.Errorf("error checking for existing SQLite database %q: %w", sqlitePath, err)
+	}
+	if exists {
+		// Both the bbolt and the SQLite databases exist, so we can't migrate
+		log.Warningf(context.Background(), "Both bbolt and SQLite databases exist in %q, can't migrate", dbDir)
+		return false, nil
+	}
+
+	if err := db.MigrateData(dbDir); err != nil {
+		return false, fmt.Errorf("failed to migrate data: %w", err)
+	}
+
+	// Remove the bbolt database
+	if err := bbolt.RemoveDb(dbDir); err != nil {
+		log.Warningf(context.Background(), "Failed to remove bbolt database: %v", err)
+	}
+
+	return true, nil
 }

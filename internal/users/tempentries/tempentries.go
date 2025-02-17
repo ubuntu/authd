@@ -6,13 +6,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 )
 
-// NoDataFoundError is the error returned when no entry is found in the cache.
-type NoDataFoundError = cache.NoDataFoundError
+// NoDataFoundError is the error returned when no entry is found in the database.
+type NoDataFoundError = db.NoDataFoundError
 
 // IDGenerator is the interface that must be implemented by the ID generator.
 type IDGenerator interface {

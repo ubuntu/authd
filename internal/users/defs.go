@@ -1,12 +1,12 @@
 package users
 
 import (
-	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/types"
 )
 
-// userEntryFromUserDB returns a UserEntry from a UserDB.
-func userEntryFromUserDB(u cache.UserDB) types.UserEntry {
+// userEntryFromUserRow returns a UserEntry from a UserRow.
+func userEntryFromUserRow(u db.UserRow) types.UserEntry {
 	return types.UserEntry{
 		Name:  u.Name,
 		UID:   u.UID,
@@ -17,21 +17,21 @@ func userEntryFromUserDB(u cache.UserDB) types.UserEntry {
 	}
 }
 
-// shadowEntryFromUserDB returns a ShadowEntry from a UserDB.
-func shadowEntryFromUserDB(u cache.UserDB) types.ShadowEntry {
+// shadowEntryFromUserRow returns a ShadowEntry from a UserRow.
+func shadowEntryFromUserRow(u db.UserRow) types.ShadowEntry {
 	return types.ShadowEntry{
 		Name:           u.Name,
-		LastPwdChange:  u.LastPwdChange,
-		MaxPwdAge:      u.MaxPwdAge,
-		PwdWarnPeriod:  u.PwdWarnPeriod,
-		PwdInactivity:  u.PwdInactivity,
-		MinPwdAge:      u.MinPwdAge,
-		ExpirationDate: u.ExpirationDate,
+		LastPwdChange:  -1,
+		MaxPwdAge:      -1,
+		PwdWarnPeriod:  -1,
+		PwdInactivity:  -1,
+		MinPwdAge:      -1,
+		ExpirationDate: -1,
 	}
 }
 
-// groupEntryFromGroupDB returns a GroupEntry from a GroupDB.
-func groupEntryFromGroupDB(g cache.GroupDB) types.GroupEntry {
+// groupEntryFromGroupWithMembers returns a GroupEntry from a GroupRow.
+func groupEntryFromGroupWithMembers(g db.GroupWithMembers) types.GroupEntry {
 	return types.GroupEntry{
 		Name:  g.Name,
 		GID:   g.GID,
@@ -39,5 +39,5 @@ func groupEntryFromGroupDB(g cache.GroupDB) types.GroupEntry {
 	}
 }
 
-// NoDataFoundError is the error returned when no entry is found in the cache.
-type NoDataFoundError = cache.NoDataFoundError
+// NoDataFoundError is the error returned when no entry is found in the db.
+type NoDataFoundError = db.NoDataFoundError

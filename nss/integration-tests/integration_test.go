@@ -44,9 +44,9 @@ func TestIntegration(t *testing.T) {
 	})
 
 	tests := map[string]struct {
-		db      string
-		key     string
-		cacheDB string
+		getentDB string
+		key      string
+		dbState  string
 
 		noDaemon           bool
 		currentUserNotRoot bool
@@ -55,51 +55,46 @@ func TestIntegration(t *testing.T) {
 
 		wantStatus int
 	}{
-		"Get_all_entries_from_passwd":                    {db: "passwd"},
-		"Get_all_entries_from_group":                     {db: "group"},
-		"Get_all_entries_from_shadow_if_considered_root": {db: "shadow"},
+		"Get_all_entries_from_passwd":                    {getentDB: "passwd"},
+		"Get_all_entries_from_group":                     {getentDB: "group"},
+		"Get_all_entries_from_shadow_if_considered_root": {getentDB: "shadow"},
 
-		"Get_entry_from_passwd_by_name":                    {db: "passwd", key: "user1"},
-		"Get_entry_from_group_by_name":                     {db: "group", key: "group1"},
-		"Get_entry_from_shadow_by_name_if_considered_root": {db: "shadow", key: "user1"},
+		"Get_entry_from_passwd_by_name":                    {getentDB: "passwd", key: "user1"},
+		"Get_entry_from_group_by_name":                     {getentDB: "group", key: "group1"},
+		"Get_entry_from_shadow_by_name_if_considered_root": {getentDB: "shadow", key: "user1"},
 
-		"Get_entry_from_passwd_by_id": {db: "passwd", key: "1111"},
-		"Get_entry_from_group_by_id":  {db: "group", key: "11111"},
+		"Get_entry_from_passwd_by_id": {getentDB: "passwd", key: "1111"},
+		"Get_entry_from_group_by_id":  {getentDB: "group", key: "11111"},
 
-		"Check_user_with_broker_if_not_found_in_cache": {db: "passwd", key: "user-pre-check", shouldPreCheck: true},
+		"Check_user_with_broker_if_not_found_in_db": {getentDB: "passwd", key: "user-pre-check", shouldPreCheck: true},
 
 		// Even though those are "error" cases, the getent command won't fail when trying to list content of a service.
-		"Returns_empty_when_getting_all_entries_from_shadow_if_regular_user": {db: "shadow", currentUserNotRoot: true},
+		"Returns_empty_when_getting_all_entries_from_shadow_if_regular_user": {getentDB: "shadow", currentUserNotRoot: true},
 
-		"Returns_empty_when_getting_all_entries_from_passwd_and_daemon_is_not_available": {db: "passwd", noDaemon: true},
-		"Returns_empty_when_getting_all_entries_from_group_and_daemon_is_not_available":  {db: "group", noDaemon: true},
-		"Returns_empty_when_getting_all_entries_from_shadow_and_daemon_is_not_available": {db: "shadow", noDaemon: true},
+		"Returns_empty_when_getting_all_entries_from_passwd_and_daemon_is_not_available": {getentDB: "passwd", noDaemon: true},
+		"Returns_empty_when_getting_all_entries_from_group_and_daemon_is_not_available":  {getentDB: "group", noDaemon: true},
+		"Returns_empty_when_getting_all_entries_from_shadow_and_daemon_is_not_available": {getentDB: "shadow", noDaemon: true},
 
 		/* Error cases */
-		// We can't assert on the returned error type since the error returned by getent will always be 2 (i.e. Not Found), even though the library returns other types.
-		"Error_when_getting_all_entries_from_passwd_and_database_is_corrupted": {db: "passwd", cacheDB: "invalid_entry_in_userByID", wantSecondCall: true},
-		"Error_when_getting_all_entries_from_group_and_database_is_corrupted":  {db: "group", cacheDB: "invalid_entry_in_groupByID", wantSecondCall: true},
-		"Error_when_getting_all_entries_from_shadow_and_database_is_corrupted": {db: "shadow", cacheDB: "invalid_entry_in_userByID", wantSecondCall: true},
+		"Error_when_getting_shadow_by_name_if_regular_user": {getentDB: "shadow", key: "user1", currentUserNotRoot: true, wantStatus: codeNotFound},
 
-		"Error_when_getting_shadow_by_name_if_regular_user": {db: "shadow", key: "user1", currentUserNotRoot: true, wantStatus: codeNotFound},
+		"Error_when_getting_passwd_by_name_and_entry_does_not_exist":                        {getentDB: "passwd", key: "doesnotexit", wantStatus: codeNotFound},
+		"Error_when_getting_passwd_by_name_entry_exists_in_broker_but_precheck_is_disabled": {getentDB: "passwd", key: "user-pre-check", wantStatus: codeNotFound},
+		"Error_when_getting_group_by_name_and_entry_does_not_exist":                         {getentDB: "group", key: "doesnotexit", wantStatus: codeNotFound},
+		"Error_when_getting_shadow_by_name_and_entry_does_not_exist":                        {getentDB: "shadow", key: "doesnotexit", wantStatus: codeNotFound},
 
-		"Error_when_getting_passwd_by_name_and_entry_does_not_exist":                        {db: "passwd", key: "doesnotexit", wantStatus: codeNotFound},
-		"Error_when_getting_passwd_by_name_entry_exists_in_broker_but_precheck_is_disabled": {db: "passwd", key: "user-pre-check", wantStatus: codeNotFound},
-		"Error_when_getting_group_by_name_and_entry_does_not_exist":                         {db: "group", key: "doesnotexit", wantStatus: codeNotFound},
-		"Error_when_getting_shadow_by_name_and_entry_does_not_exist":                        {db: "shadow", key: "doesnotexit", wantStatus: codeNotFound},
+		"Error_when_getting_passwd_by_id_and_entry_does_not_exist": {getentDB: "passwd", key: "404", wantStatus: codeNotFound},
+		"Error_when_getting_group_by_id_and_entry_does_not_exist":  {getentDB: "group", key: "404", wantStatus: codeNotFound},
 
-		"Error_when_getting_passwd_by_id_and_entry_does_not_exist": {db: "passwd", key: "404", wantStatus: codeNotFound},
-		"Error_when_getting_group_by_id_and_entry_does_not_exist":  {db: "group", key: "404", wantStatus: codeNotFound},
+		"Error_when_getting_passwd_by_name_and_daemon_is_not_available": {getentDB: "passwd", key: "user1", noDaemon: true, wantStatus: codeNotFound},
+		"Error_when_getting_group_by_name_and_daemon_is_not_available":  {getentDB: "group", key: "group1", noDaemon: true, wantStatus: codeNotFound},
+		"Error_when_getting_shadow_by_name_and_daemon_is_not_available": {getentDB: "shadow", key: "user1", noDaemon: true, wantStatus: codeNotFound},
 
-		"Error_when_getting_passwd_by_name_and_daemon_is_not_available": {db: "passwd", key: "user1", noDaemon: true, wantStatus: codeNotFound},
-		"Error_when_getting_group_by_name_and_daemon_is_not_available":  {db: "group", key: "group1", noDaemon: true, wantStatus: codeNotFound},
-		"Error_when_getting_shadow_by_name_and_daemon_is_not_available": {db: "shadow", key: "user1", noDaemon: true, wantStatus: codeNotFound},
-
-		"Error_when_getting_passwd_by_id_and_daemon_is_not_available": {db: "passwd", key: "1111", noDaemon: true, wantStatus: codeNotFound},
-		"Error_when_getting_group_by_id_and_daemon_is_not_available":  {db: "group", key: "11111", noDaemon: true, wantStatus: codeNotFound},
+		"Error_when_getting_passwd_by_id_and_daemon_is_not_available": {getentDB: "passwd", key: "1111", noDaemon: true, wantStatus: codeNotFound},
+		"Error_when_getting_group_by_id_and_daemon_is_not_available":  {getentDB: "group", key: "11111", noDaemon: true, wantStatus: codeNotFound},
 
 		/* Special cases */
-		"Do_not_query_the_cache_when_user_is_pam_unix_non_existent": {db: "passwd", key: "pam_unix_non_existent:", cacheDB: "pam_unix_non_existent", wantStatus: codeNotFound},
+		"Do_not_query_the_db_when_user_is_pam_unix_non_existent": {getentDB: "passwd", key: "pam_unix_non_existent:", dbState: "pam_unix_non_existent", wantStatus: codeNotFound},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -108,10 +103,10 @@ func TestIntegration(t *testing.T) {
 			socketPath := defaultSocket
 
 			var useAlternativeDaemon bool
-			if tc.cacheDB != "" || tc.currentUserNotRoot {
+			if tc.dbState != "" || tc.currentUserNotRoot {
 				useAlternativeDaemon = true
 			} else {
-				tc.cacheDB = defaultDbState
+				tc.dbState = defaultDbState
 			}
 
 			// We don't check compatibility of arguments, have noDaemon taking precedences to the others.
@@ -132,7 +127,7 @@ func TestIntegration(t *testing.T) {
 					env = append(env, "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
 				}
 				socketPath, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath,
-					testutils.WithPreviousDBState(tc.cacheDB),
+					testutils.WithPreviousDBState(tc.dbState),
 					testutils.WithEnvironment(env...),
 				)
 				t.Cleanup(func() {
@@ -141,7 +136,7 @@ func TestIntegration(t *testing.T) {
 				})
 			}
 
-			cmds := []string{tc.db}
+			cmds := []string{tc.getentDB}
 			if tc.key != "" {
 				cmds = append(cmds, tc.key)
 			}
@@ -149,7 +144,7 @@ func TestIntegration(t *testing.T) {
 			got, status := getentOutputForLib(t, libPath, socketPath, rustCovEnv, tc.shouldPreCheck, cmds...)
 			require.Equal(t, tc.wantStatus, status, "Expected status %d, but got %d", tc.wantStatus, status)
 
-			if tc.shouldPreCheck && tc.db == "passwd" {
+			if tc.shouldPreCheck && tc.getentDB == "passwd" {
 				// When pre-checking, the `getent passwd` output contains a randomly generated UID.
 				// To make the test deterministic, we replace the UID with a placeholder.
 				// The output looks something like this:

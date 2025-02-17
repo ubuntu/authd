@@ -1,4 +1,4 @@
 group1::11111:user1
 group2::22222:user2
 group3::33333:user3
-commongroup::99999:user2,user3
+commongroup::99999:user1,user2,user3

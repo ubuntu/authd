@@ -25,7 +25,7 @@ import (
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
-	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
@@ -148,7 +148,8 @@ func TestGetPreviousBroker(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cacheDir := t.TempDir()
+			dbDir := t.TempDir()
+
 			// We have to replace MOCKBROKERID with our generated broker id.
 			f, err := os.Open(filepath.Join(testutils.TestFamilyPath(t), "get-previous-broker.db"))
 			require.NoError(t, err, "Setup: could not open fixture database file")
@@ -156,10 +157,10 @@ func TestGetPreviousBroker(t *testing.T) {
 			d, err := io.ReadAll(f)
 			require.NoError(t, err, "Setup: could not read fixture database file")
 			d = bytes.ReplaceAll(d, []byte("MOCKBROKERID"), []byte(mockBrokerGeneratedID))
-			err = cache.Z_ForTests_FromYAML(bytes.NewBuffer(d), cacheDir)
-			require.NoError(t, err, "Setup: could not prepare cache database file")
+			err = db.Z_ForTests_CreateDBFromYAMLReader(bytes.NewBuffer(d), dbDir)
+			require.NoError(t, err, "Setup: could not create database from testdata")
 
-			m, err := users.NewManager(users.DefaultConfig, cacheDir)
+			m, err := users.NewManager(users.DefaultConfig, dbDir)
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, tc.currentUserNotRoot)
@@ -456,9 +457,10 @@ func TestIsAuthenticated(t *testing.T) {
 				destCmdsFile = localgroupstestutils.SetupGPasswdMock(t, filepath.Join(testutils.TestFamilyPath(t), tc.localGroupsFile))
 			}
 
-			cacheDir := t.TempDir()
+			dbDir := t.TempDir()
 			if tc.existingDB != "" {
-				cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join(testutils.TestFamilyPath(t), tc.existingDB), cacheDir)
+				err := db.Z_ForTests_CreateDBFromYAML(filepath.Join(testutils.TestFamilyPath(t), tc.existingDB), dbDir)
+				require.NoError(t, err, "Setup: could not create database from testdata")
 			}
 
 			managerOpts := []users.Option{
@@ -468,7 +470,7 @@ func TestIsAuthenticated(t *testing.T) {
 				}),
 			}
 
-			m, err := users.NewManager(users.DefaultConfig, cacheDir, managerOpts...)
+			m, err := users.NewManager(users.DefaultConfig, dbDir, managerOpts...)
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, false) // Allow starting the session (current user considered root)
@@ -532,8 +534,8 @@ func TestIsAuthenticated(t *testing.T) {
 			got = permissions.Z_ForTests_IdempotentPermissionError(got)
 			golden.CheckOrUpdate(t, got, golden.WithPath("IsAuthenticated"))
 
-			// Check that cache has been updated too.
-			gotDB, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			// Check that database has been updated too.
+			gotDB, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			golden.CheckOrUpdate(t, gotDB, golden.WithPath("cache.db"))
 
@@ -579,7 +581,7 @@ func TestIDGeneration(t *testing.T) {
 			require.NoError(t, err, "Setup: could not authenticate user")
 			require.Equal(t, "granted", resp.GetAccess(), "Setup: authentication should be granted")
 
-			gotDB, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			gotDB, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			golden.CheckOrUpdate(t, gotDB, golden.WithPath("cache.db"))
 		})
@@ -609,10 +611,11 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			cacheDir := t.TempDir()
-			cache.Z_ForTests_CreateDBFromYAML(t, filepath.Join(testutils.TestFamilyPath(t), "set-default-broker.db"), cacheDir)
+			dbDir := t.TempDir()
+			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join(testutils.TestFamilyPath(t), "set-default-broker.db"), dbDir)
+			require.NoError(t, err, "Setup: could not create database from testdata")
 
-			m, err := users.NewManager(users.DefaultConfig, cacheDir)
+			m, err := users.NewManager(users.DefaultConfig, dbDir)
 			require.NoError(t, err, "Setup: could not create user manager")
 			t.Cleanup(func() { _ = m.Stop() })
 			pm := newPermissionManager(t, tc.currentUserNotRoot)
@@ -637,8 +640,8 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 			require.NoError(t, err, "GetPreviousBroker should not return an error")
 			require.Equal(t, tc.brokerID, gpbResp.GetPreviousBroker(), "SetDefaultBrokerForUser should set the default broker as expected")
 
-			// Check that cache has been updated too.
-			gotDB, err := cache.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerCache(m))
+			// Check that database has been updated too.
+			gotDB, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			golden.CheckOrUpdate(t, gotDB, golden.WithPath("cache.db"))
 		})
@@ -725,9 +728,9 @@ func initBrokers() (brokerConfigPath string, cleanup func(), err error) {
 	}, nil
 }
 
-// newPAMClient returns a new GRPC PAM client for tests connected to brokerManager with the given cache and
+// newPAMClient returns a new GRPC PAM client for tests connected to brokerManager with the given database and
 // permissionmanager.
-// If the one passed is nil, this function will create the cache and close it upon test teardown.
+// If the one passed is nil, this function will create the database and close it upon test teardown.
 func newPamClient(t *testing.T, m *users.Manager, brokerManager *brokers.Manager, pm *permissions.Manager) (client authd.PAMClient) {
 	t.Helper()
 

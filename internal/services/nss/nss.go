@@ -53,7 +53,7 @@ func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetPasswdByName
 		return nil, noDataFoundErrorToGRPCError(err)
 	}
 
-	// If the user is not found in the local cache, we check if it exists in at least one broker.
+	// If the user is not found in the database, we check if it exists in at least one broker.
 	pwent, err := s.userPreCheck(ctx, req.GetName())
 	if err != nil {
 		return nil, status.Error(codes.NotFound, err.Error())

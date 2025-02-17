@@ -1,4 +1,4 @@
-// Package userstestutils export cache test functionalities used by other packages.
+// Package userstestutils export db test functionalities used by other packages.
 package userstestutils
 
 import (
@@ -6,7 +6,7 @@ import (
 
 	"github.com/ubuntu/authd/internal/testsdetection"
 	"github.com/ubuntu/authd/internal/users"
-	"github.com/ubuntu/authd/internal/users/cache"
+	"github.com/ubuntu/authd/internal/users/db"
 )
 
 func init() {
@@ -15,13 +15,13 @@ func init() {
 }
 
 type manager struct {
-	cache *cache.Cache
+	db *db.Manager
 }
 
-// GetManagerCache returns the cache of the manager.
-func GetManagerCache(m *users.Manager) *cache.Cache {
+// GetManagerDB returns the database of the manager.
+func GetManagerDB(m *users.Manager) *db.Manager {
 	//#nosec:G103 // This is only used in tests.
 	mTest := *(*manager)(unsafe.Pointer(m))
 
-	return mTest.cache
+	return mTest.db
 }
