@@ -196,8 +196,7 @@ func (m *ModuleTransactionDummy) handleBinaryRequest(req pam.ConvRequest) (pam.B
 		return nil, errors.New("no binary handler provided")
 	}
 
-	//nolint:forcetypeassert
-	// req must be a pam.BinaryConvRequester, if that's not the case we should
+	//nolint:forcetypeassert // req must be a pam.BinaryConvRequester, if that's not the case we should
 	// just panic since this code is only expected to run in tests.
 	binReq := req.(pam.BinaryConvRequester)
 
