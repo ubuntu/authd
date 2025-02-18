@@ -468,6 +468,24 @@ func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 	return nil
 }
 
+// DisableUser sets the Disabled field to true for the given user.
+func (m *Manager) DisableUser(username string) error {
+	if err := m.db.UpdateDisabledFieldForUser(username, true); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// EnableUser sets the Disabled field to false for the given user.
+func (m *Manager) EnableUser(username string) error {
+	if err := m.db.UpdateDisabledFieldForUser(username, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // IsUserDisabled returns true if the user with the given user name is disabled, false otherwise.
 func (m *Manager) IsUserDisabled(username string) (bool, error) {
 	u, err := m.db.UserByName(username)
