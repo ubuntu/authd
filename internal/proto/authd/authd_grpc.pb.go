@@ -390,6 +390,8 @@ const (
 	UserService_GetUserByName_FullMethodName  = "/authd.UserService/GetUserByName"
 	UserService_GetUserByID_FullMethodName    = "/authd.UserService/GetUserByID"
 	UserService_ListUsers_FullMethodName      = "/authd.UserService/ListUsers"
+	UserService_DisableUser_FullMethodName    = "/authd.UserService/DisableUser"
+	UserService_EnableUser_FullMethodName     = "/authd.UserService/EnableUser"
 	UserService_GetGroupByName_FullMethodName = "/authd.UserService/GetGroupByName"
 	UserService_GetGroupByID_FullMethodName   = "/authd.UserService/GetGroupByID"
 	UserService_ListGroups_FullMethodName     = "/authd.UserService/ListGroups"
@@ -402,6 +404,8 @@ type UserServiceClient interface {
 	GetUserByName(ctx context.Context, in *GetUserByNameRequest, opts ...grpc.CallOption) (*User, error)
 	GetUserByID(ctx context.Context, in *GetUserByIDRequest, opts ...grpc.CallOption) (*User, error)
 	ListUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Users, error)
+	DisableUser(ctx context.Context, in *DisableUserRequest, opts ...grpc.CallOption) (*Empty, error)
+	EnableUser(ctx context.Context, in *EnableUserRequest, opts ...grpc.CallOption) (*Empty, error)
 	GetGroupByName(ctx context.Context, in *GetGroupByNameRequest, opts ...grpc.CallOption) (*Group, error)
 	GetGroupByID(ctx context.Context, in *GetGroupByIDRequest, opts ...grpc.CallOption) (*Group, error)
 	ListGroups(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Groups, error)
@@ -445,6 +449,26 @@ func (c *userServiceClient) ListUsers(ctx context.Context, in *Empty, opts ...gr
 	return out, nil
 }
 
+func (c *userServiceClient) DisableUser(ctx context.Context, in *DisableUserRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, UserService_DisableUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) EnableUser(ctx context.Context, in *EnableUserRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, UserService_EnableUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *userServiceClient) GetGroupByName(ctx context.Context, in *GetGroupByNameRequest, opts ...grpc.CallOption) (*Group, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Group)
@@ -482,6 +506,8 @@ type UserServiceServer interface {
 	GetUserByName(context.Context, *GetUserByNameRequest) (*User, error)
 	GetUserByID(context.Context, *GetUserByIDRequest) (*User, error)
 	ListUsers(context.Context, *Empty) (*Users, error)
+	DisableUser(context.Context, *DisableUserRequest) (*Empty, error)
+	EnableUser(context.Context, *EnableUserRequest) (*Empty, error)
 	GetGroupByName(context.Context, *GetGroupByNameRequest) (*Group, error)
 	GetGroupByID(context.Context, *GetGroupByIDRequest) (*Group, error)
 	ListGroups(context.Context, *Empty) (*Groups, error)
@@ -503,6 +529,12 @@ func (UnimplementedUserServiceServer) GetUserByID(context.Context, *GetUserByIDR
 }
 func (UnimplementedUserServiceServer) ListUsers(context.Context, *Empty) (*Users, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
+}
+func (UnimplementedUserServiceServer) DisableUser(context.Context, *DisableUserRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisableUser not implemented")
+}
+func (UnimplementedUserServiceServer) EnableUser(context.Context, *EnableUserRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnableUser not implemented")
 }
 func (UnimplementedUserServiceServer) GetGroupByName(context.Context, *GetGroupByNameRequest) (*Group, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGroupByName not implemented")
@@ -588,6 +620,42 @@ func _UserService_ListUsers_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_DisableUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisableUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).DisableUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_DisableUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).DisableUser(ctx, req.(*DisableUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_EnableUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnableUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).EnableUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_EnableUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).EnableUser(ctx, req.(*EnableUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _UserService_GetGroupByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetGroupByNameRequest)
 	if err := dec(in); err != nil {
@@ -660,6 +728,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListUsers",
 			Handler:    _UserService_ListUsers_Handler,
+		},
+		{
+			MethodName: "DisableUser",
+			Handler:    _UserService_DisableUser_Handler,
+		},
+		{
+			MethodName: "EnableUser",
+			Handler:    _UserService_EnableUser_Handler,
 		},
 		{
 			MethodName: "GetGroupByName",
