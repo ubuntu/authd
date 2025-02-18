@@ -116,6 +116,40 @@ func (s Service) ListUsers(ctx context.Context, req *authd.Empty) (*authd.Users,
 	return &res, nil
 }
 
+// DisableUser marks a user as disabled.
+func (s Service) DisableUser(ctx context.Context, req *authd.DisableUserRequest) (*authd.Empty, error) {
+	if err := s.permissionManager.CheckRequestIsFromRoot(ctx); err != nil {
+		return nil, err
+	}
+
+	if req.GetName() == "" {
+		return nil, status.Error(codes.InvalidArgument, "no user name provided")
+	}
+
+	if err := s.userManager.DisableUser(req.GetName()); err != nil {
+		return nil, err
+	}
+
+	return &authd.Empty{}, nil
+}
+
+// EnableUser marks a user as enabled.
+func (s Service) EnableUser(ctx context.Context, req *authd.EnableUserRequest) (*authd.Empty, error) {
+	if err := s.permissionManager.CheckRequestIsFromRoot(ctx); err != nil {
+		return nil, err
+	}
+
+	if req.GetName() == "" {
+		return nil, status.Error(codes.InvalidArgument, "no user name provided")
+	}
+
+	if err := s.userManager.EnableUser(req.GetName()); err != nil {
+		return nil, err
+	}
+
+	return &authd.Empty{}, nil
+}
+
 // GetGroupByName returns the group entry for the given group name.
 func (s Service) GetGroupByName(ctx context.Context, req *authd.GetGroupByNameRequest) (*authd.Group, error) {
 	if req.GetName() == "" {

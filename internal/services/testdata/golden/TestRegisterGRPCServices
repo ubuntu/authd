@@ -27,6 +27,12 @@ authd.PAM:
     metadata: authd.proto
 authd.UserService:
     methods:
+        - name: DisableUser
+          isclientstream: false
+          isserverstream: false
+        - name: EnableUser
+          isclientstream: false
+          isserverstream: false
         - name: GetGroupByID
           isclientstream: false
           isserverstream: false
