@@ -772,6 +772,98 @@ func TestUpdateBrokerForUser(t *testing.T) {
 	}
 }
 
+//nolint:dupl // This is not a duplicate test
+func TestDisableUser(t *testing.T) {
+	tests := map[string]struct {
+		username string
+
+		dbFile string
+
+		wantErr     bool
+		wantErrType error
+	}{
+		"Successfully_disable_user": {},
+
+		"Error_if_user_does_not_exist": {username: "doesnotexist", wantErrType: db.NoDataFoundError{}},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			// We don't care about the output of gpasswd in this test, but we still need to mock it.
+			_ = localgroupstestutils.SetupGroupMock(t, filepath.Join("testdata", "groups", "empty.group"))
+
+			if tc.username == "" {
+				tc.username = "user1"
+			}
+			if tc.dbFile == "" {
+				tc.dbFile = "multiple_users_and_groups"
+			}
+
+			dbDir := t.TempDir()
+			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			require.NoError(t, err, "Setup: could not create database from testdata")
+			m := newManagerForTests(t, dbDir)
+
+			err = m.DisableUser(tc.username)
+
+			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
+			if tc.wantErrType != nil || tc.wantErr {
+				return
+			}
+
+			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
+			require.NoError(t, err, "Created database should be valid yaml content")
+
+			golden.CheckOrUpdate(t, got)
+		})
+	}
+}
+
+//nolint:dupl // This is not a duplicate test
+func TestEnableUser(t *testing.T) {
+	tests := map[string]struct {
+		username string
+
+		dbFile string
+
+		wantErr     bool
+		wantErrType error
+	}{
+		"Successfully_enable_user": {},
+
+		"Error_if_user_does_not_exist": {username: "doesnotexist", wantErrType: db.NoDataFoundError{}},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			// We don't care about the output of gpasswd in this test, but we still need to mock it.
+			_ = localgroupstestutils.SetupGroupMock(t, filepath.Join("testdata", "groups", "empty.group"))
+
+			if tc.username == "" {
+				tc.username = "user1"
+			}
+			if tc.dbFile == "" {
+				tc.dbFile = "disabled_user"
+			}
+
+			dbDir := t.TempDir()
+			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+			require.NoError(t, err, "Setup: could not create database from testdata")
+			m := newManagerForTests(t, dbDir)
+
+			err = m.EnableUser(tc.username)
+
+			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
+			if tc.wantErrType != nil || tc.wantErr {
+				return
+			}
+
+			got, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
+			require.NoError(t, err, "Created database should be valid yaml content")
+
+			golden.CheckOrUpdate(t, got)
+		})
+	}
+}
+
 func TestUserByIDAndName(t *testing.T) {
 	t.Parallel()
 

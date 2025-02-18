@@ -182,3 +182,21 @@ func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 
 	return nil
 }
+
+// UpdateDisabledFieldForUser sets the Disabled field to a given value for a user.
+func (m *Manager) UpdateDisabledFieldForUser(username string, disabled bool) error {
+	query := `UPDATE users SET disabled = ? WHERE name = ?`
+	res, err := m.db.Exec(query, disabled, username)
+	if err != nil {
+		return fmt.Errorf("failed to update disabled field for user: %w", err)
+	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return NewUserNotFoundError(username)
+	}
+
+	return nil
+}
