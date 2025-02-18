@@ -161,6 +161,40 @@ func (s Service) GetShadowEntries(ctx context.Context, req *authd.Empty) (*authd
 	return &r, nil
 }
 
+// DisableUser marks a user as disabled.
+func (s Service) DisableUser(ctx context.Context, req *authd.DisableUserRequest) (*authd.Empty, error) {
+	if err := s.permissionManager.IsRequestFromRoot(ctx); err != nil {
+		return nil, err
+	}
+
+	if req.GetName() == "" {
+		return nil, status.Error(codes.InvalidArgument, "no user name provided")
+	}
+
+	if err := s.userManager.DisableUser(req.GetName()); err != nil {
+		return nil, err
+	}
+
+	return &authd.Empty{}, nil
+}
+
+// EnableUser marks a user as enabled.
+func (s Service) EnableUser(ctx context.Context, req *authd.EnableUserRequest) (*authd.Empty, error) {
+	if err := s.permissionManager.IsRequestFromRoot(ctx); err != nil {
+		return nil, err
+	}
+
+	if req.GetName() == "" {
+		return nil, status.Error(codes.InvalidArgument, "no user name provided")
+	}
+
+	if err := s.userManager.EnableUser(req.GetName()); err != nil {
+		return nil, err
+	}
+
+	return &authd.Empty{}, nil
+}
+
 // userPreCheck checks if the user exists in at least one broker.
 func (s Service) userPreCheck(ctx context.Context, username string) (pwent *authd.PasswdEntry, err error) {
 	// Check if the user exists in at least one broker.
