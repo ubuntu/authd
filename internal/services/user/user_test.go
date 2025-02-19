@@ -212,6 +212,68 @@ func TestListGroups(t *testing.T) {
 	}
 }
 
+func TestDisablePasswd(t *testing.T) {
+	tests := map[string]struct {
+		sourceDB string
+
+		username           string
+		currentUserNotRoot bool
+
+		wantErr bool
+	}{
+		"Successfully_disable_user": {username: "user1"},
+
+		"Error_when_username_is_empty":   {wantErr: true},
+		"Error_when_user_does_not_exist": {username: "doesnotexist", wantErr: true},
+		"Error_when_not_root":            {username: "notroot", currentUserNotRoot: true, wantErr: true},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			client := newUserServiceClient(t, tc.sourceDB)
+
+			_, err := client.DisableUser(context.Background(), &authd.DisableUserRequest{Name: tc.username})
+			if tc.wantErr {
+				require.Error(t, err, "DisablePasswd should return an error, but did not")
+				return
+			}
+			require.NoError(t, err, "DisablePasswd should not return an error, but did")
+		})
+	}
+}
+
+func TestEnableUser(t *testing.T) {
+	tests := map[string]struct {
+		sourceDB string
+
+		username           string
+		currentUserNotRoot bool
+
+		wantErr bool
+	}{
+		"Successfully_enable_user": {username: "user1"},
+
+		"Error_when_username_is_empty":   {wantErr: true},
+		"Error_when_user_does_not_exist": {username: "doesnotexist", wantErr: true},
+		"Error_when_not_root":            {username: "notroot", currentUserNotRoot: true, wantErr: true},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			if tc.sourceDB == "" {
+				tc.sourceDB = "disabled-user.db.yaml"
+			}
+
+			client := newUserServiceClient(t, tc.sourceDB)
+
+			_, err := client.EnableUser(context.Background(), &authd.EnableUserRequest{Name: tc.username})
+			if tc.wantErr {
+				require.Error(t, err, "EnableUser should return an error, but did not")
+				return
+			}
+			require.NoError(t, err, "EnableUser should not return an error, but did")
+		})
+	}
+}
+
 // newUserServiceClient returns a new gRPC client for the CLI service.
 func newUserServiceClient(t *testing.T, dbFile string) (client authd.UserServiceClient) {
 	t.Helper()
