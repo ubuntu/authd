@@ -142,7 +142,7 @@ To configure Entra ID, edit  `/var/snap/authd-msentraid/current/broker.conf`:
 
 ```ini
 [oidc]
-issuer = <ISSUER_URL>
+issuer = https://login.microsoftonline.com/<ISSUER_ID>/v2.0
 client_id = <CLIENT_ID>
 ```
 
