@@ -73,7 +73,7 @@ func New(dbDir string) (*Manager, error) {
 		log.Debugf(context.Background(), "Creating new SQLite database at %v", dbPath)
 		_, err = db.Exec(createSchema)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to create schema: %w", err)
 		}
 	}
 
