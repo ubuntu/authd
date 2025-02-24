@@ -12,6 +12,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers/layouts"
 	authd "github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func TestSendToGdm(t *testing.T) {
@@ -210,7 +211,8 @@ func TestSendData(t *testing.T) {
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
 	testCases := map[string]struct {
-		value *Data
+		value                *Data
+		uncheckedReturnValue bool
 
 		wantReturn                   *Data
 		wantError                    error
@@ -233,6 +235,15 @@ func TestSendData(t *testing.T) {
 			wantConvHandlerNotToBeCalled: true,
 			wantReturn:                   nil,
 			wantError:                    errors.New("unexpected type unknownType"),
+		},
+		"Error_on_empty_returned_data": {
+			value: &Data{
+				Type:  DataType_hello,
+				Hello: &HelloData{Version: 12345},
+			},
+			uncheckedReturnValue: true,
+			wantReturn:           &Data{},
+			wantError:            errors.New("unexpected type unknownType"),
 		},
 		"Error_on_missing_data_return": {
 			value: &Data{
@@ -271,7 +282,12 @@ func TestSendData(t *testing.T) {
 					require.NoError(t, err, "Value to JSON conversion failed")
 					require.Equal(t, valueJSON, req)
 					if tc.wantReturn != nil {
-						json, err := tc.wantReturn.JSON()
+						var json []byte
+						if tc.uncheckedReturnValue {
+							json, err = protojson.Marshal(tc.wantReturn)
+						} else {
+							json, err = tc.wantReturn.JSON()
+						}
 						require.NoError(t, err, "Conversion to JSON failed")
 						msg, err := newJSONProtoMessage(json)
 						require.NoError(t, err, "Proto message conversion failed")
