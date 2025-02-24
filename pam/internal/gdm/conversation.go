@@ -1,7 +1,5 @@
 package gdm
 
-import "C"
-
 import (
 	"context"
 	"errors"

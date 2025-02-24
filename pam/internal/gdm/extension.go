@@ -68,7 +68,7 @@ func AdvertisePamExtensions(extensions []string) {
 	C.gdm_extensions_advertise_supported(&cArray[0], C.size_t(len(extensions)))
 }
 
-type jsonProtoMessage = C.GdmPamExtensionJSONProtocol
+type jsonProtoMessage C.GdmPamExtensionJSONProtocol
 
 func allocateJSONProtoMessage() *jsonProtoMessage {
 	// We do manual memory management here, instead of returning a go-allocated
@@ -100,7 +100,8 @@ func (msg *jsonProtoMessage) init(protoName string, protoVersion uint, jsonValue
 		// them via finalizer functions.
 		cJSON = (*C.char)(C.CBytes(append(jsonValue, 0)))
 	}
-	C.gdm_custom_json_request_init(msg, cProto, C.uint(protoVersion), cJSON)
+	C.gdm_custom_json_request_init((*C.GdmPamExtensionJSONProtocol)(msg),
+		cProto, C.uint(protoVersion), cJSON)
 }
 
 func (msg *jsonProtoMessage) release() {
