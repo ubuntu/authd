@@ -1,0 +1,88 @@
+#!/bin/bash
+
+set -eu
+
+RUNTIME_DIR=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/behave-tests
+
+usage() {
+    cat <<EOF
+Usage: $0 [OPTIONS] [FEATURES]
+
+Run the behave tests.
+
+Options:
+  --force-new-vms   Don't use any existing snapshots of the test VMs and
+                    create new VMs instead.
+  --debug-on-error  Start an interactive debugger on error.
+  --debug           Enable debug logging.
+  --help            Show this help message.
+EOF
+}
+
+POSITIONAL=()
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+    --force-new-vms)
+        FORCE_NEW_VMS=1
+        shift
+        ;;
+    --debug-on-error)
+        BEHAVE_DEBUG_ON_ERROR=1
+        shift
+        ;;
+    --debug)
+        DEBUG=1
+        shift
+        ;;
+    --help)
+        usage
+        exit 0
+        ;;
+    *)
+        POSITIONAL+=("$1")
+        shift
+        ;;
+    esac
+done
+set -- "${POSITIONAL[@]}"  # restore positional parameters
+
+
+# Ensure the test dependencies are installed
+DEPENDENCIES="zbar-tools"
+DEPENDENCIES_TO_INSTALL=()
+for DEPENDENCY in ${DEPENDENCIES}; do
+    if ! dpkg -l "${DEPENDENCY}" > /dev/null; then
+        DEPENDENCIES_TO_INSTALL+=("${DEPENDENCY}")
+    fi
+done
+
+if [ ${#DEPENDENCIES_TO_INSTALL[@]} -gt 0 ]; then
+    sudo apt-get install -y "${DEPENDENCIES_TO_INSTALL[@]}"
+fi
+
+
+BEHAVE_CMD="behave --verbose"
+
+if [ -n "${BEHAVE_DEBUG_ON_ERROR:-}" ]; then
+    BEHAVE_CMD="${BEHAVE_CMD} -D BEHAVE_DEBUG_ON_ERROR --stop"
+fi
+
+if [ -n "${DEBUG:-}" ]; then
+    BEHAVE_CMD="${BEHAVE_CMD} --loglevel DEBUG"
+fi
+
+if [ -n "${FORCE_NEW_VMS:-}" ]; then
+    BEHAVE_CMD="${BEHAVE_CMD} -D FORCE_NEW_VMS"
+fi
+
+# Set the BEHAVE environment variable to signal to our code that it's
+# being run by a behave test.
+export BEHAVE=1
+
+mkdir -p "${RUNTIME_DIR}"
+LOG_FILE=${RUNTIME_DIR}/behave-tests.log
+echo >&2 "Logging to ${LOG_FILE}"
+
+set -x
+#${BEHAVE_CMD} "${SCRIPT_DIR}" "$@" |& tee "${LOG_FILE}"
+script -q --log-out "${LOG_FILE}" -c "${BEHAVE_CMD} $*"
