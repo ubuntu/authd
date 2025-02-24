@@ -1,8 +1,16 @@
 package adapter
 
-// #cgo pkg-config: pwquality
-// #include <stdlib.h>
-// #include <pwquality.h>
+/*
+#cgo pkg-config: pwquality
+#include <stdlib.h>
+#include <pwquality.h>
+
+#cgo nocallback pwquality_check
+#cgo nocallback pwquality_default_settings
+#cgo nocallback pwquality_free_settings
+#cgo nocallback pwquality_read_config
+#cgo nocallback pwquality_strerror
+*/
 import "C"
 
 import (

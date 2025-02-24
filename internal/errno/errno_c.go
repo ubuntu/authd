@@ -5,10 +5,12 @@ package errno
 #include <errno.h>
 #include <string.h>
 
+#cgo nocallback unset_errno
 static void unset_errno(void) {
   errno = 0;
 }
 
+#cgo nocallback get_errno
 static int get_errno(void) {
   return errno;
 }
