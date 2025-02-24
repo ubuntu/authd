@@ -103,7 +103,7 @@ func TestSendToGdm(t *testing.T) {
 	}
 }
 
-func TestSendData(t *testing.T) {
+func TestSendDataPrivate(t *testing.T) {
 	t.Parallel()
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
@@ -198,6 +198,105 @@ func TestSendData(t *testing.T) {
 
 			if tc.wantReturn != nil {
 				require.Equal(t, tc.wantReturn, data)
+				return
+			}
+			require.Equal(t, tc.value, data)
+		})
+	}
+}
+
+func TestSendData(t *testing.T) {
+	t.Parallel()
+	t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+	testCases := map[string]struct {
+		value *Data
+
+		wantReturn                   *Data
+		wantError                    error
+		wantConvHandlerNotToBeCalled bool
+	}{
+		"Can_send_Hello_packet_data": {
+			value: &Data{
+				Type:  DataType_hello,
+				Hello: &HelloData{Version: 12345},
+			},
+			wantReturn: &Data{
+				Type:  DataType_hello,
+				Hello: &HelloData{},
+			},
+		},
+
+		// Error cases
+		"Error_on_empty_data": {
+			value:                        &Data{},
+			wantConvHandlerNotToBeCalled: true,
+			wantReturn:                   nil,
+			wantError:                    errors.New("unexpected type unknownType"),
+		},
+		"Error_on_missing_data_return": {
+			value: &Data{
+				Type: DataType_event,
+				Event: &EventData{
+					Type: EventType_brokerSelected,
+					Data: nil,
+				},
+			},
+
+			wantConvHandlerNotToBeCalled: true,
+			wantError:                    errors.New("missing event data"),
+		},
+		"Error_on_wrong_data": {
+			value: &Data{
+				Type:    DataType_event,
+				Request: &RequestData{},
+			},
+			wantConvHandlerNotToBeCalled: true,
+			wantError:                    errors.New("missing event data"),
+		},
+	}
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			t.Cleanup(pam_test.MaybeDoLeakCheck)
+
+			convFuncCalled := false
+			mtx := pam_test.NewModuleTransactionDummy(pam.BinaryPointerConversationFunc(
+				func(ptr pam.BinaryPointer) (pam.BinaryPointer, error) {
+					convFuncCalled = true
+					require.NotNil(t, ptr, "Binary data must not be nil")
+					req, err := decodeJSONProtoMessage(ptr)
+					require.NoError(t, err, "Incoming message JSON parsing failed")
+					valueJSON, err := tc.value.JSON()
+					require.NoError(t, err, "Value to JSON conversion failed")
+					require.Equal(t, valueJSON, req)
+					if tc.wantReturn != nil {
+						json, err := tc.wantReturn.JSON()
+						require.NoError(t, err, "Conversion to JSON failed")
+						msg, err := newJSONProtoMessage(json)
+						require.NoError(t, err, "Proto message conversion failed")
+						return pam.BinaryPointer(msg), nil
+					}
+					msg, err := newJSONProtoMessage(req)
+					require.NoError(t, err, "Proto message conversion failed")
+					return pam.BinaryPointer(msg), nil
+				}))
+
+			data, err := SendData(mtx, tc.value)
+			require.Equal(t, convFuncCalled, !tc.wantConvHandlerNotToBeCalled,
+				"Conversation handler was not called")
+
+			if tc.wantError != nil {
+				require.Nil(t, data, "Unexpected SendData value: %#v", data)
+				require.ErrorContains(t, err, tc.wantError.Error(),
+					"Mismatching SendData error")
+				return
+			}
+			require.NoError(t, err, "Unexpected SendData error")
+
+			if tc.wantReturn != nil {
+				requireEqualData(t, tc.wantReturn, data,
+					"Unexpected SendData return value")
 				return
 			}
 			require.Equal(t, tc.value, data)
