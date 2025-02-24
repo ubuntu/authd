@@ -12,6 +12,7 @@ package localentries
 #cgo nocallback endgrent
 #cgo nocallback getgrent
 #cgo nocallback getgrnam
+#cgo noescape getgrnam
 #cgo nocallback setgrent
 */
 import "C"

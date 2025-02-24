@@ -6,10 +6,14 @@ package adapter
 #include <pwquality.h>
 
 #cgo nocallback pwquality_check
+#cgo noescape pwquality_check
 #cgo nocallback pwquality_default_settings
 #cgo nocallback pwquality_free_settings
+#cgo noescape pwquality_free_settings
 #cgo nocallback pwquality_read_config
+#cgo noescape pwquality_read_config
 #cgo nocallback pwquality_strerror
+#cgo noescape pwquality_strerror
 */
 import "C"
 
