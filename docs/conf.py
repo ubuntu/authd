@@ -1,6 +1,8 @@
 import datetime
 import ast
 
+import os
+
 # Configuration for the Sphinx documentation builder.
 # All configuration specific to your project should be done in this file.
 #
@@ -83,8 +85,7 @@ ogp_site_name = project
 #
 # TODO: To customise the preview image, update as needed.
 
-ogp_image = \
-    "https://assets.ubuntu.com/v1/253da317-image-document-ubuntudocs.svg"
+ogp_image = "https://assets.ubuntu.com/v1/253da317-image-document-ubuntudocs.svg"
 
 
 # Product favicon; shown in bookmarks, browser tabs, etc.
@@ -92,6 +93,10 @@ ogp_image = \
 # TODO: To customise the favicon, uncomment and update as needed.
 
 # html_favicon = '.sphinx/_static/favicon.png'
+
+# grab some env vars for HTML templating
+docs_language = os.getenv("READTHEDOCS_LANGUAGE")
+docs_version = os.getenv("READTHEDOCS_VERSION")
 
 
 # Dictionary of values to pass into the Sphinx context for all pages:
@@ -121,8 +126,7 @@ html_context = {
     # Your Mattermost channel URL
     #
     # TODO: Change to your Mattermost channel URL or leave empty.
-    "mattermost":
-    "",
+    "mattermost": "",
     # Your Matrix channel URL
     #
     # TODO: Change to your Matrix channel URL or leave empty.
@@ -136,7 +140,7 @@ html_context = {
     "github_url": "https://github.com/ubuntu/authd",
     #
     # Add a feedback button
-    'github_issues': 'enabled',
+    "github_issues": "enabled",
     # Docs branch in the repo; used in links for viewing the source files
     #
     # TODO: To customise the branch, uncomment and update as needed.
@@ -145,10 +149,11 @@ html_context = {
     #
     # TODO: To customise the directory, uncomment and update as needed.
     "github_folder": "/docs/",
-
     # TODO: To enable or disable the Previous / Next buttons at the bottom of pages
     # Valid options: none, prev, next, both
     # "sequential_nav": "both",
+    "docs_language": docs_language,
+    "docs_version": docs_version,
 }
 
 # Project slug; see https://meta.discourse.org/t/what-is-category-slug/87897
@@ -189,10 +194,7 @@ redirects = {}
 #
 # TODO: Remove or adjust the ACME entry after you update the contributing guide
 
-linkcheck_ignore = [
-    "http://127.0.0.1:8000",
-    "https://github.com/canonical/ACME/*"
-]
+linkcheck_ignore = ["http://127.0.0.1:8000", "https://github.com/canonical/ACME/*"]
 
 
 # A regex list of URLs where anchors are ignored by 'make linkcheck'
