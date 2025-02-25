@@ -3,6 +3,13 @@ package gdm
 /*
 // FIXME: Use pkg-config to include extension protocol headers once available
 //#cgo pkg-config: gdm-pam-extensions
+#cgo nocallback gdm_extensions_advertise_supported
+#cgo noescape gdm_extensions_advertise_supported
+#cgo nocallback is_gdm_pam_extension_supported
+#cgo noescape is_gdm_pam_extension_supported
+#cgo nocallback gdm_custom_json_request_init
+#cgo noescape gdm_custom_json_request_init
+
 #include "extension.h"
 */
 import "C"
