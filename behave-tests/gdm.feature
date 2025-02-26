@@ -2,11 +2,15 @@ Feature: authd GDM login
   Test logging in with authd via GDM
 
   Background:
-    Given I started Ubuntu Desktop
-    And I installed the authd package
+    Given I have a Ubuntu Desktop system
+#    And I installed the authd package
+#    And I installed the authd-msentraid snap
+    And I configured authd to use the MS Entra ID broker
+    And I configured the MS Entra ID broker to use the test OIDC app
+    And I rebooted the system
+    And I'm at the GDM login screen
 
   Scenario: First login (MS Entra ID)
-    Given I installed the authd-msentraid snap
     When I click on "Not listed?"
     And I enter the UPN of the test user in the "Username" field
     And I press "Enter"
