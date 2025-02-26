@@ -478,13 +478,22 @@ func TestGdmModel(t *testing.T) {
 					events: []*gdm.EventData{
 						gdm_test.AuthModeSelectedEvent(passwordUILayoutID),
 					},
+				},
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-repeated-password",
+						}}),
+						sendEvent(gdmTestWaitForStage{
+							stage: pam_proto.Stage_authModeSelection,
+						}),
 						sendEvent(gdmTestWaitForStage{
 							stage: pam_proto.Stage_challenge,
+							events: []*gdm.EventData{
+								gdm_test.ChangeStageEvent(pam_proto.Stage_authModeSelection),
+							},
 							commands: []tea.Cmd{
-								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
-									Secret: "gdm-repeated-password",
-								}}),
 								sendEvent(gdmTestWaitForStage{
 									stage: pam_proto.Stage_authModeSelection,
 									events: []*gdm.EventData{
@@ -527,11 +536,20 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_userSelected,
 				gdm.EventType_brokersReceived,
 				gdm.EventType_brokerSelected,
+				gdm.EventType_authModesReceived,
 				gdm.EventType_authModeSelected,
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
-				gdm.EventType_authEvent, // retry
 				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent, // next
+				gdm.EventType_authModesReceived,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_authEvent, // cancel
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent, // retry
 				gdm.EventType_startAuthentication,
@@ -541,6 +559,9 @@ func TestGdmModel(t *testing.T) {
 				{
 					Access: auth.Next,
 					Msg:    "Hi GDM, it's a pleasure to let you change your password!",
+				},
+				{
+					Access: auth.Cancelled,
 				},
 				{
 					Access: auth.Retry,
