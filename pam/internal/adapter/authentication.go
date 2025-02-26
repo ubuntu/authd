@@ -353,11 +353,11 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 				m.errorMsg = authMsg
 
 				// Give the user some time to read the message, if any, using
-				const baseWPM = float64(100)
-				const delay = 1500 * time.Millisecond
+				const baseWPM = float64(120)
+				const delay = 500 * time.Millisecond
 				const extraTime = 1000 * time.Millisecond
 				words := len(strings.Fields(m.errorMsg))
-				readTime := time.Duration(float64(words)/baseWPM*60) * time.Millisecond
+				readTime := time.Duration(float64(words)/baseWPM*60) * time.Second
 				userReadTime := delay + readTime + extraTime
 				return m, tea.Tick(userReadTime, func(t time.Time) tea.Msg {
 					return GetAuthenticationModesRequested{}

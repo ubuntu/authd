@@ -636,9 +636,13 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 	log.Debugf(context.TODO(), "Authentication result on session %s (%s) for user %q: %q - %#v",
 		sessionInfo.sessionMode, sessionID, sessionInfo.username, access, data)
 	if access == auth.Granted && sessionInfo.currentAuthStep < sessionInfo.neededAuthSteps {
+		data = ""
+		if sessionInfo.pwdChange != noReset && sessionInfo.sessionMode == auth.SessionModeLogin {
+			data = fmt.Sprintf(`{"message": "Password reset, %d step(s) missing"}`,
+				sessionInfo.neededAuthSteps-sessionInfo.currentAuthStep)
+		}
 		sessionInfo.currentAuthStep++
 		access = auth.Next
-		data = ""
 	} else if access == auth.Retry {
 		sessionInfo.attemptsPerMode[sessionInfo.currentAuthMode]++
 		if sessionInfo.attemptsPerMode[sessionInfo.currentAuthMode] >= maxAttempts {
