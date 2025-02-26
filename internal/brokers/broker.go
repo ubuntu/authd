@@ -195,7 +195,15 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 			return "", "", err
 		}
 
-	case auth.Cancelled, auth.Next:
+	case auth.Next:
+		if data == "{}" {
+			break
+		}
+		if _, err := unmarshalAndGetKey(data, "message"); err != nil {
+			return "", "", err
+		}
+
+	case auth.Cancelled:
 		if data != "{}" {
 			return "", "", fmt.Errorf("access mode %q should not return any data, got: %v", access, data)
 		}
