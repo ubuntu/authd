@@ -298,7 +298,13 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		if !m.checkStage(pam_proto.Stage_challenge) {
 			return m, nil
 		}
-		return m, m.startChallenge()
+		if m.busy {
+			// We may receive multiple concurrent requests, but due to the sync nature
+			// of this model, we can't just accept them once we've one in progress already
+			log.Debug(context.TODO(), "Challenge already in progress")
+			return m, nil
+		}
+		return m.startAsyncOp(m.startChallenge)
 
 	case newPasswordCheckResult:
 		if msg.msg != "" {
