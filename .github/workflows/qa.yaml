@@ -254,6 +254,7 @@ jobs:
         if: matrix.test == 'race'
         env:
           GO_TESTS_TIMEOUT: 35m
+          AUTHD_TESTS_SLEEP_MULTIPLIER: 3
         run: |
           go test -json -timeout ${GO_TESTS_TIMEOUT} -race ./... | \
             gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.race.log"
@@ -266,6 +267,7 @@ jobs:
           CGO_CFLAGS: "-O0 -g3 -fno-omit-frame-pointer"
           G_DEBUG: "fatal-criticals"
           GO_TESTS_TIMEOUT: 30m
+          AUTHD_TESTS_SLEEP_MULTIPLIER: 1.5
           # Use these flags to give ASAN a better time to unwind the stack trace
           GO_GC_FLAGS: -N -l
         run: |
