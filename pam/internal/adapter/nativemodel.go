@@ -160,21 +160,20 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		m.currentStage = msg.Stage
 
 	case nativeStageChangeRequest:
-		var baseCmd tea.Cmd
 		if m.currentStage != msg.Stage {
-			m.currentStage = msg.Stage
-			baseCmd = sendEvent(ChangeStage(msg))
+			// Stage is not matching yet, ask for stage change first and repeat.
+			return m, tea.Sequence(sendEvent(ChangeStage(msg)), sendEvent(msg))
 		}
 
 		switch m.currentStage {
 		case proto.Stage_userSelection:
-			return m, tea.Sequence(baseCmd, sendEvent(nativeUserSelection{}))
+			return m, sendEvent(nativeUserSelection{})
 		case proto.Stage_brokerSelection:
-			return m, tea.Sequence(baseCmd, sendEvent(nativeBrokerSelection{}))
+			return m, sendEvent(nativeBrokerSelection{})
 		case proto.Stage_authModeSelection:
-			return m, tea.Sequence(baseCmd, sendEvent(nativeAuthSelection{}))
+			return m, sendEvent(nativeAuthSelection{})
 		case proto.Stage_challenge:
-			return m, tea.Sequence(baseCmd, sendEvent(nativeChallengeRequested{}))
+			return m, sendEvent(nativeChallengeRequested{})
 		}
 
 	case nativeAsyncOperationCompleted:
