@@ -637,10 +637,8 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authModeSelected,
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
-				gdm.EventType_authEvent,
 			},
 			wantStage:      pam_proto.Stage_challenge,
-			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Cancelled}},
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"Authenticated_with_preset_PAM_user_and_server_side_broker_and_authMode_selection_and_after_various_retries": {
@@ -866,12 +864,10 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_brokersReceived,
 				gdm.EventType_brokerSelected,
 				gdm.EventType_authModeSelected,
-				gdm.EventType_authEvent,
 			},
 			wantNoGdmEvents: []gdm.EventType{
 				gdm.EventType_authEvent,
 			},
-			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Cancelled}},
 			wantStage:      pam_proto.Stage_authModeSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
@@ -908,9 +904,10 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authModeSelected,
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
+			},
+			wantNoGdmEvents: []gdm.EventType{
 				gdm.EventType_authEvent,
 			},
-			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Cancelled}},
 			wantStage:      pam_proto.Stage_authModeSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
@@ -957,7 +954,6 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Cancelled}},
 			wantStage:      pam_proto.Stage_authModeSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
@@ -1023,7 +1019,6 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantStage: pam_proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
-				{Access: auth.Cancelled},
 				{Access: auth.Granted},
 			},
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
@@ -1088,11 +1083,9 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
-				gdm.EventType_authEvent,
 			},
 			wantStage: pam_proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
-				{Access: auth.Cancelled},
 				{Access: auth.Granted},
 			},
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
@@ -1144,7 +1137,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_changeStage, // -> authMode Selection
 				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> password
+				gdm.RequestType_changeStage, // -> qrcode
 			},
 			wantMessages: []tea.Msg{
 				startAuthentication{},
@@ -1157,7 +1150,6 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authModeSelected,
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
-				gdm.EventType_authEvent,
 				gdm.EventType_authModeSelected,
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
@@ -1165,7 +1157,6 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantStage: pam_proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
-				{Access: auth.Cancelled},
 				{Access: auth.Granted},
 			},
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
@@ -1230,7 +1221,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_changeStage, // -> authMode Selection
 				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> password
+				gdm.RequestType_changeStage, // -> qrcode
 			},
 			wantMessages: []tea.Msg{
 				startAuthentication{},
@@ -1242,7 +1233,6 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_brokersReceived,
 				gdm.EventType_brokerSelected,
 				gdm.EventType_authModeSelected,
-				gdm.EventType_authEvent,
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authModeSelected,
@@ -1253,7 +1243,6 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantStage: pam_proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
-				{Access: auth.Cancelled},
 				{Access: auth.Cancelled},
 				{Access: auth.Granted},
 			},
@@ -1320,7 +1309,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.RequestType_changeStage, // -> authMode Selection
 				gdm.RequestType_changeStage, // -> password
 				gdm.RequestType_changeStage, // -> authMode Selection
-				gdm.RequestType_changeStage, // -> password
+				gdm.RequestType_changeStage, // -> qrcode
 			},
 			wantMessages: []tea.Msg{
 				startAuthentication{},
@@ -1332,18 +1321,18 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_brokersReceived,
 				gdm.EventType_brokerSelected,
 				gdm.EventType_authModeSelected,
+				gdm.EventType_startAuthentication,
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authModeSelected,
-				gdm.EventType_authEvent,
+				gdm.EventType_authEvent, // cancelled
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
-				gdm.EventType_authEvent,
-				gdm.EventType_authEvent,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_authEvent, // granted
 			},
 			wantStage: pam_proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
-				{Access: auth.Cancelled},
 				{Access: auth.Cancelled},
 				{Access: auth.Granted},
 			},
@@ -1397,7 +1386,6 @@ func TestGdmModel(t *testing.T) {
 			wantNoGdmEvents: []gdm.EventType{
 				gdm.EventType_authEvent,
 			},
-			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Cancelled}},
 			wantStage:      pam_proto.Stage_brokerSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
@@ -1461,7 +1449,6 @@ func TestGdmModel(t *testing.T) {
 			wantNoGdmEvents: []gdm.EventType{
 				gdm.EventType_authEvent,
 			},
-			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Cancelled}},
 			wantStage:      pam_proto.Stage_userSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
