@@ -505,7 +505,7 @@ func reformatJSONIndented(t *testing.T, input []byte) []byte {
 	return indented.Bytes()
 }
 
-func requireEqualData(t *testing.T, want *Data, actual *Data) {
+func requireEqualData(t *testing.T, want *Data, actual *Data, args ...any) {
 	t.Helper()
 
 	// We can't compare data values as their content may contain elements
@@ -513,12 +513,12 @@ func requireEqualData(t *testing.T, want *Data, actual *Data) {
 	// So let's compare the data JSON representation instead since that's what
 	// we care about anyways.
 	wantJSON, err := want.JSON()
-	require.NoError(t, err)
+	require.NoError(t, err, "Failed converting want value to JSON: %#v", want)
 	actualJSON, err := actual.JSON()
-	require.NoError(t, err)
+	require.NoError(t, err, "Failed converting actual value to JSON: %#v", actual)
 
 	require.Equal(t, string(reformatJSONIndented(t, wantJSON)),
-		string(reformatJSONIndented(t, actualJSON)))
+		string(reformatJSONIndented(t, actualJSON)), args...)
 }
 
 type invalidRequest struct {
