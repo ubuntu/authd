@@ -30,8 +30,8 @@ type gdmModel struct {
 	// However, after the quit point we should really not interact anymore with
 	// GDM or we'll make it crash (as it doesn't expect any conversation
 	// happening at that point).
-	// So we ue this as a control point, once we've set this to true, no further
-	// conversation with GDM should happen.
+	// So we use this as a control point, once we've set this to true, no
+	// further conversation with GDM should happen.
 	conversationsStopped  bool
 	stoppingConversations bool
 }
