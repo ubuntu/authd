@@ -128,15 +128,18 @@ func (m *gdmTestUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}()
 
 	case *gdmTestWaitForStageDone:
-		msgCommands := tea.Sequence(msg.commands...)
+		// FIXME: We can't just define msgCommands a sub-sequence as we used to
+		// do since that's unreliable, as per a bubbletea bug:
+		//  - https://github.com/charmbracelet/bubbletea/issues/847
+		msgCommands := slices.Clone(msg.commands)
 		if len(msg.events) > 0 {
 			m.gdmHandler.appendPollResultEvents(msg.events...)
 			// If we've events as poll results, let's wait for a polling cycle to complete
-			msgCommands = tea.Sequence(tea.Tick(gdmPollFrequency, func(t time.Time) tea.Msg {
+			msgCommands = append([]tea.Cmd{tea.Tick(gdmPollFrequency, func(t time.Time) tea.Msg {
 				return nil
-			}), msgCommands)
+			})}, msgCommands...)
 		}
-		commands = append(commands, msgCommands)
+		commands = append(commands, msgCommands...)
 
 	case gdmTestSendAuthDataWhenReady:
 		doneMsg := gdmTestWaitForCommandsDone{seq: gdmTestSequentialMessages.Add(1)}
