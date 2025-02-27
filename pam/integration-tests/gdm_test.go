@@ -281,7 +281,6 @@ func TestGdmModule(t *testing.T) {
 				&testPhoneAckUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
-				{Access: auth.Cancelled},
 				{Access: auth.Granted},
 			},
 		},
@@ -516,7 +515,6 @@ func TestGdmModule(t *testing.T) {
 				&testQrcodeUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
-				{Access: auth.Cancelled},
 				{Access: auth.Granted},
 			},
 		},
@@ -581,7 +579,6 @@ func TestGdmModule(t *testing.T) {
 			wantAuthResponses: []*authd.IAResponse{
 				{Access: auth.Cancelled},
 				{Access: auth.Cancelled},
-				{Access: auth.Cancelled},
 				{Access: auth.Granted},
 			},
 		},
@@ -644,7 +641,6 @@ func TestGdmModule(t *testing.T) {
 				testQrcodeWithoutCodeUILayoutData(5),
 			},
 			wantAuthResponses: []*authd.IAResponse{
-				{Access: auth.Cancelled},
 				{Access: auth.Cancelled},
 				{Access: auth.Cancelled},
 				{Access: auth.Granted},
