@@ -327,14 +327,9 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		case auth.Denied:
 			// This is handled by the main authentication model
 			return m, nil
-		case auth.Cancelled:
-			return m, sendEvent(isAuthenticatedCancelled{})
 		default:
 			return m, maybeSendPamError(m.sendError("Access %q is not valid", access))
 		}
-
-	case isAuthenticatedCancelled:
-		return m.goBackCommand()
 	}
 
 	return m, nil
@@ -854,7 +849,6 @@ func (m nativeModel) newPasswordChallenge(previousPassword *string) tea.Cmd {
 func (m nativeModel) goBackCommand() (nativeModel, tea.Cmd) {
 	if m.currentStage >= proto.Stage_challenge && m.uiLayout != nil {
 		m.uiLayout = nil
-		return m, sendEvent(isAuthenticatedCancelled{})
 	}
 	if m.currentStage >= proto.Stage_authModeSelection {
 		m.selectedAuthMode = ""
