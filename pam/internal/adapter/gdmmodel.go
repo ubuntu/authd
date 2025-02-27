@@ -158,11 +158,6 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 				})
 			}
 			log.Infof(context.TODO(), "GDM Stage changed to %s", res.StageChanged.Stage)
-
-			if m.waitingAuth && res.StageChanged.Stage != proto.Stage_challenge {
-				// Maybe this can be sent only if we ever hit the password phase.
-				commands = append(commands, sendEvent(isAuthenticatedCancelled{}))
-			}
 			commands = append(commands, sendEvent(ChangeStage{res.StageChanged.Stage}))
 		}
 	}
@@ -232,10 +227,6 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 		}))
 
 	case startAuthentication:
-		if m.waitingAuth {
-			log.Warning(context.TODO(), "Ignored authentication start request while one is still going")
-			return m, nil
-		}
 		m.waitingAuth = true
 		return m, sendEvent(m.emitEventSync(&gdm.EventData_StartAuthentication{
 			StartAuthentication: &gdm.Events_StartAuthentication{},
@@ -258,7 +249,6 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 		case auth.Granted:
 		case auth.Denied:
 		case auth.Cancelled:
-			return m, sendEvent(isAuthenticatedCancelled{})
 		case auth.Retry:
 		case auth.Next:
 		default:
@@ -277,16 +267,6 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 			AuthEvent: &gdm.Events_AuthEvent{Response: &authd.IAResponse{
 				Access: access,
 				Msg:    authMsg,
-			}},
-		}))
-
-	case isAuthenticatedCancelled:
-		m.waitingAuth = false
-
-		return m, sendEvent(m.emitEventSync(&gdm.EventData_AuthEvent{
-			AuthEvent: &gdm.Events_AuthEvent{Response: &authd.IAResponse{
-				Access: auth.Cancelled,
-				Msg:    msg.msg,
 			}},
 		}))
 
