@@ -18,6 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -2326,7 +2327,8 @@ func TestGdmModel(t *testing.T) {
 					close(waitChan)
 				}()
 				select {
-				case <-time.After(tc.timeout):
+				case <-time.After(time.Duration(testutils.SleepMultiplier() *
+					float64(tc.timeout))):
 					t.Log("Timeout waiting for all the expectancies")
 				case <-waitChan:
 				}
