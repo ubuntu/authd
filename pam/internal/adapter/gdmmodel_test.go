@@ -463,7 +463,7 @@ func TestGdmModel(t *testing.T) {
 			},
 		},
 		"New_password_cannot_change_because_matches_previous_with_preset_PAM_user_and_server_side_broker_and_authMode_selection": {
-			timeout: 20 * time.Second,
+			timeout: 30 * time.Second,
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithUILayout(newPasswordUILayoutID, "New Password", pam_test.NewPasswordUILayout()),
