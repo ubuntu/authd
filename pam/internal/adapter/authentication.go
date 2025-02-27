@@ -397,6 +397,7 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 	m.errorMsg = ""
 
 	if m.clientType != InteractiveTerminal {
+		m.currentModel = &focusTrackerModel{}
 		return tea.Sequence(sendEvent(ChangeStage{pam_proto.Stage_challenge}),
 			sendEvent(startAuthentication{}))
 	}
