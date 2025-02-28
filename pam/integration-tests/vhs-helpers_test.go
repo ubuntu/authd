@@ -183,8 +183,6 @@ func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 		Name: tapeName,
 		Outputs: []string{
 			tapeName + ".txt",
-			// If we don't specify a .gif output, it will still create a default out.gif file.
-			tapeName + ".gif",
 		},
 		Settings: m,
 		Env:      make(map[string]string),

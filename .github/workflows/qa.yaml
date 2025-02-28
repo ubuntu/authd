@@ -17,7 +17,6 @@ env:
 
   test_apt_deps: >-
     cracklib-runtime
-    ffmpeg
     git-delta
     openssh-client
     openssh-server
@@ -177,15 +176,16 @@ jobs:
       - name: Install VHS and ttyd for integration tests
         run: |
           set -eu
-          # We pin this to the last commit in the upstream branch that contains
-          # the Wait feature (https://github.com/charmbracelet/vhs/pull/257), but
-          # we can safely go back to latest once a new version will be released.
-          go install github.com/charmbracelet/vhs@28be2de
+          go install github.com/charmbracelet/vhs@latest
 
           # VHS requires ttyd >= 1.7.2 to work properly.
           wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64
           chmod +x ttyd.x86_64
           sudo mv ttyd.x86_64 /usr/bin/ttyd
+
+          # VHS doesn't really use ffmpeg anymore now, but it still checks for it.
+          # Drop this when https://github.com/charmbracelet/vhs/pull/591 is released.
+          sudo ln -s /usr/bin/true /usr/local/bin/ffmpeg
 
       - name: Install rust
         if: matrix.test != 'asan'
