@@ -154,9 +154,9 @@ var (
 	vhsTypeAndWaitUsername = regexp.MustCompile(`(.*)\bTypeUsername[\t ]+` + vhsQuotedTextMatch)
 	// vhsTypeAndWaitVisiblePrompt adds support for typing some text in an "Echo On" prompt,
 	// waiting for it being printed in the terminal.
-	vhsTypeAndWaitVisiblePrompt = regexp.MustCompile(`(.*)\bTypeInPrompt[\t ]+` + vhsQuotedTextMatch)
+	vhsTypeAndWaitVisiblePrompt = regexp.MustCompile(`(.*)\bTypeInPrompt(\+(Shell|PAM|CLI))?[\t ]+` + vhsQuotedTextMatch)
 	// vhsTypeAndWaitCLIPassword adds support for typing the CLI password, waiting for the expected output.
-	vhsTypeAndWaitCLIPassword = regexp.MustCompile(`(.*)\bTypeCLIPassword[\t ]+` + vhsQuotedTextMatch)
+	vhsTypeAndWaitCLIPassword = regexp.MustCompile(`(.*)\bTypeCLIPassword(())?[\t ]+` + vhsQuotedTextMatch)
 
 	// vhsClearTape clears the tape by clearing the terminal.
 	vhsClearTape = regexp.MustCompile(`\bClearTerminal\b`)
@@ -563,15 +563,21 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 	}
 
 	waitForPromptText := func(matches []string, style pam.Style) {
-		fullMatch, prefix, promptValue := matches[0], matches[1], matches[2]
+		fullMatch, prefix, waitCtx, promptValue := matches[0], matches[1], matches[3], matches[4]
 		visibleValue := promptValue
 		if style == pam.PromptEchoOff {
 			visibleValue = strings.Repeat("*", len(promptValue))
 		}
+		initialWait := `Wait+Screen /\n>[ \t]*\n/`
+		prePromptRegex := `:\n`
+		if waitCtx == "Shell" {
+			initialWait = "Wait"
+			prePromptRegex = `(^|\n)`
+		}
 		commands := []string{
-			`Wait+Screen /\n>[ \t]*\n/`,
+			initialWait,
 			fmt.Sprintf("Type `%s`", promptValue),
-			fmt.Sprintf(`Wait+Suffix /:\n> %s(\n[^>].+)*/`, multiLineValueRegex(visibleValue)),
+			fmt.Sprintf(`Wait+Suffix /%s> %s(\n[^>].+)*/`, prePromptRegex, multiLineValueRegex(visibleValue)),
 		}
 		tapeString = strings.ReplaceAll(tapeString, fullMatch,
 			prefix+strings.Join(commands, "\n"+prefix))
