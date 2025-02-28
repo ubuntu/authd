@@ -15,10 +15,8 @@ env:
     libglib2.0-dev
     libpwquality-dev
 
-  # Drop ffmpeg when https://github.com/charmbracelet/vhs/pull/591 is released.
   test_apt_deps: >-
     cracklib-runtime
-    ffmpeg
     git-delta
     openssh-client
     openssh-server
@@ -184,6 +182,10 @@ jobs:
           wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64
           chmod +x ttyd.x86_64
           sudo mv ttyd.x86_64 /usr/bin/ttyd
+
+          # VHS doesn't really use ffmpeg anymore now, but it still checks for it.
+          # Drop this when https://github.com/charmbracelet/vhs/pull/591 is released.
+          sudo ln -s /usr/bin/true /usr/local/bin/ffmpeg
 
       - name: Install rust
         if: matrix.test != 'asan'
