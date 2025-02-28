@@ -66,22 +66,24 @@ func SendData(pamMTx pam.ModuleTransaction, d *Data) (*Data, error) {
 	}
 
 	gdmData, err := NewDataFromJSON(jsonValue)
+	if err != nil {
+		// TODO: Improve handling of these error messages in gdm model itself.
+		log.Warningf(context.TODO(), "Failed parsing GDM result %q: %v", jsonValue, err)
+		return nil, fmt.Errorf("failed parsing GDM result: %w", err)
+	}
 	// Log unless it's an empty poll, which are so frequently that it would be
 	// too verbose to log them.
 	if gdmData.Type == DataType_pollResponse && len(gdmData.GetPollResponse()) == 0 {
 		jsonValue = nil
 	}
 	if log.IsLevelEnabled(log.DebugLevel) && jsonValue != nil &&
-		gdmData != nil && gdmData.Type == DataType_pollResponse {
+		gdmData.Type == DataType_pollResponse {
 		maskedValue := []byte(`"secret":"**************"`)
 		jsonValue = secretRegex.ReplaceAllLiteral(jsonValue, maskedValue)
 		jsonValue = secretRegexOld.ReplaceAllLiteral(jsonValue, maskedValue)
 	}
 	if jsonValue != nil {
 		log.Debugf(context.TODO(), "Got from GDM: %s", jsonValue)
-	}
-	if err != nil {
-		return nil, err
 	}
 	return gdmData, nil
 }
