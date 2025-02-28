@@ -4,8 +4,7 @@ Enter
 Show
 
 Hide
-Wait
-Type "${AUTHD_TEST_TAPE_COMMAND}"
+TypeInPrompt+Shell "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
 Wait+Screen /Select your provider/
 Wait+Screen /2. ExampleBroker/
