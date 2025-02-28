@@ -26,6 +26,10 @@ Show
 
 Hide
 Enter
+Wait /Password reset, 1 step\(s\) missing/
+Show
+
+Hide
 Wait+CLIPrompt /New password/ /\[ Skip \]/
 Show
 
