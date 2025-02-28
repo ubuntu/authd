@@ -183,7 +183,6 @@ func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 		Name: tapeName,
 		Outputs: []string{
 			tapeName + ".txt",
-			tapeName + ".gif",
 		},
 		Settings: m,
 		Env:      make(map[string]string),

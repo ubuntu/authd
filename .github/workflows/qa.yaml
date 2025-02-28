@@ -15,6 +15,7 @@ env:
     libglib2.0-dev
     libpwquality-dev
 
+  # Drop ffmpeg when https://github.com/charmbracelet/vhs/pull/591 is released.
   test_apt_deps: >-
     cracklib-runtime
     ffmpeg
