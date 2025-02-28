@@ -1,5 +1,5 @@
 Hide
-Type "${AUTHD_TEST_TAPE_COMMAND}"
+TypeInPrompt+Shell "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
 Wait /Username:\n/
 Show
@@ -57,7 +57,7 @@ ClearTerminal
 # Repeat again, to check that we can use still use another new password
 
 Hide
-Type "${AUTHD_TEST_TAPE_COMMAND}"
+TypeInPrompt+Shell "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
 Wait /Username:\n/
 Show
