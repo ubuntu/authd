@@ -539,13 +539,16 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 		// we need to use a regex to match it.
 		const maxLength = 80
 		if len(value) <= maxLength {
-			return regexp.QuoteMeta(value)
+			value = regexp.QuoteMeta(value)
+			// See https://github.com/charmbracelet/vhs/issues/592
+			return strings.ReplaceAll(value, "/", `\x{2F}`)
 		}
 		valueRegex := regexp.QuoteMeta(value[:maxLength])
 		for i := maxLength; i < len(value); i++ {
 			valueRegex += regexp.QuoteMeta(string(value[i])) + `\n?`
 		}
-		return valueRegex
+		// See https://github.com/charmbracelet/vhs/issues/592
+		return strings.ReplaceAll(valueRegex, "/", `\x{2F}`)
 	}
 
 	for _, m := range vhsTypeAndWaitUsername.FindAllStringSubmatch(tapeString, -1) {
