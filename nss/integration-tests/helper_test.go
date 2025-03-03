@@ -34,6 +34,7 @@ func buildRustNSSLib(t *testing.T) (libPath string, rustCovEnv []string) {
 	cmd.Env = append(os.Environ(), rustCovEnv...)
 	cmd.Dir = projectRoot
 
+	t.Log("Building NSS library...", cmd.Args)
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, "Setup: could not build Rust NSS library: %s", out)
 
