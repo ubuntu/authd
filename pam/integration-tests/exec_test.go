@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"syscall"
 	"testing"
 
 	"github.com/godbus/dbus/v5"
@@ -229,6 +230,14 @@ func TestExecModule(t *testing.T) {
 		},
 		"Error_when_client_fails_because_an_unhandled_error": {
 			methodCalls: []cliMethodCall{{m: "SimulateClientError", args: []any{"Client error!"}}},
+			wantError:   pam.ErrSystem,
+		},
+		"Error_when_client_fails_because_a_client_SIGTERM_signal": {
+			methodCalls: []cliMethodCall{{m: "SimulateClientSignal", args: []any{syscall.SIGTERM, true}}},
+			wantError:   pam.ErrSystem,
+		},
+		"Error_when_client_fails_because_a_client_SIGKILL_signal": {
+			methodCalls: []cliMethodCall{{m: "SimulateClientSignal", args: []any{syscall.SIGKILL, true}}},
 			wantError:   pam.ErrSystem,
 		},
 	}
@@ -1005,6 +1014,8 @@ func (cmc cliMethodCall) format() string {
 func getVariant(value any) dbus.Variant {
 	switch v := value.(type) {
 	case pam.Error:
+		return getVariant(int(v))
+	case syscall.Signal:
 		return getVariant(int(v))
 	case nil:
 		return getVariant("<@mv nothing>")
