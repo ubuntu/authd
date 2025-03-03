@@ -4,7 +4,8 @@ from behave.model import Feature
 
 from behave.model_core import Status
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s:%(levelname)s: %(message)s')
 
 # This is not actually the class that behave passes to the functions
 # below, but pretending that it is provides code completion
