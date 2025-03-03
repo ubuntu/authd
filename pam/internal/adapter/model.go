@@ -445,6 +445,7 @@ func (m *UIModel) changeStage(s pam_proto.Stage) tea.Cmd {
 			m.authModeSelectionModel.Blur()
 		case pam_proto.Stage_challenge:
 			m.authenticationModel.Blur()
+			commands = append(commands, m.authenticationModel.Reset())
 		}
 
 		if m.ClientType == Gdm {
@@ -467,7 +468,6 @@ func (m *UIModel) changeStage(s pam_proto.Stage) tea.Cmd {
 		commands = append(commands, endSession(m.client, m.currentSession), m.brokerSelectionModel.Focus())
 
 	case pam_proto.Stage_authModeSelection:
-		commands = append(commands, m.authenticationModel.Reset())
 		commands = append(commands, m.authModeSelectionModel.Focus())
 
 	case pam_proto.Stage_challenge:
