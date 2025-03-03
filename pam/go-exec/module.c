@@ -133,6 +133,9 @@ const char *UBUNTU_AUTHD_PAM_OBJECT_NODE =
   "      <arg type='i' name='status' direction='out'/>"
   "      <arg type='s' name='response' direction='out'/>"
   "    </method>"
+#ifdef AUTHD_TEST_EXEC_MODULE
+  "    <method name='UnhandledMethod' />"
+#endif
   "  </interface>"
   "</node>";
 

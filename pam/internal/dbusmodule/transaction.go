@@ -67,6 +67,11 @@ func NewTransaction(ctx context.Context, address string, o ...TransactionOptions
 	return &Transaction{obj: obj}, cleanup, nil
 }
 
+// BusObject gets the DBus object.
+func (tx *Transaction) BusObject() dbus.BusObject {
+	return tx.obj
+}
+
 // SetData allows to save any value in the module data that is preserved
 // during the whole time the module is loaded.
 func (tx *Transaction) SetData(key string, data any) error {
