@@ -202,6 +202,10 @@ func TestExecModule(t *testing.T) {
 			methodCalls: []cliMethodCall{{m: "ThisMethodDoesNotExist"}},
 			wantError:   pam_test.ErrInvalidMethod,
 		},
+		"Error_when_calling_unknown_dbus_method": {
+			methodCalls: []cliMethodCall{{m: "CallUnhandledMethod"}},
+			wantError:   pam.ErrSystem,
+		},
 		"Error_when_argument_types_do_not_match_arguments": {
 			methodCalls: []cliMethodCall{{m: "SetItem", args: []any{"an-item", "value"}}},
 			wantError:   pam_test.ErrArgumentTypeMismatch,

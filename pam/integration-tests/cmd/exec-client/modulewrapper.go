@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/godbus/dbus/v5"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/authd/pam/internal/dbusmodule"
@@ -21,6 +22,13 @@ type moduleWrapper struct {
 func newModuleWrapper(serverAddress string) (pam.ModuleTransaction, func(), error) {
 	mTx, closeFunc, err := dbusmodule.NewTransaction(context.TODO(), serverAddress)
 	return &moduleWrapper{mTx}, closeFunc, err
+}
+
+// SimulateClientPanic forces the client to panic with the provided text.
+func (m *moduleWrapper) CallUnhandledMethod() error {
+	method := "com.ubuntu.authd.pam.UnhandledMethod"
+	tx, _ := m.ModuleTransaction.(*dbusmodule.Transaction)
+	return tx.BusObject().Call(method, dbus.FlagNoAutoStart).Err
 }
 
 // SimulateClientPanic forces the client to panic with the provided text.
