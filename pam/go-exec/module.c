@@ -405,7 +405,7 @@ typedef struct
 {
   pid_t              child_pid;
   GMainLoop         *main_loop;
-  GDBusConnection ** connection_ptr;
+  GDBusConnection  **connection_ptr;
 } WaitChildThreadData;
 
 static gpointer
@@ -414,6 +414,7 @@ wait_child_thread (gpointer data)
   WaitChildThreadData *thread_data = data;
   pid_t child_pid = thread_data->child_pid;
   int exit_status = PAM_SYSTEM_ERR;
+  GDBusConnection *connection;
 
   while (TRUE)
     {
@@ -438,21 +439,9 @@ wait_child_thread (gpointer data)
         }
     }
 
-  if (thread_data->connection_ptr)
-    {
-      g_autoptr(GDBusConnection) connection = NULL;
-
-#if GLIB_CHECK_VERSION (2, 74, 0)
-      connection = g_atomic_pointer_exchange (thread_data->connection_ptr, NULL);
-#else
-      /* TODO: This is to support CI and old LTS (24.04) */
-      connection = g_atomic_pointer_get (thread_data->connection_ptr);
-      g_atomic_pointer_set (thread_data->connection_ptr, NULL);
-#endif
-
-      if (connection)
-        g_dbus_connection_close (connection, NULL, NULL, NULL);
-    }
+  /* This is safe to do because the main thread is waiting for us at this point */
+  if ((connection = g_atomic_pointer_get (thread_data->connection_ptr)))
+    g_dbus_connection_close (connection, NULL, NULL, NULL);
 
   g_main_loop_quit (thread_data->main_loop);
   g_clear_pointer (&thread_data->main_loop, g_main_loop_unref);
@@ -686,8 +675,6 @@ on_connection_closed (GDBusConnection *connection,
       g_dbus_connection_unregister_object (connection, action_data->object_registered_id);
       action_data->object_registered_id = 0;
     }
-
-  action_data->connection = NULL;
 }
 
 static gboolean
