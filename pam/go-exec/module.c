@@ -296,17 +296,26 @@ static void
 action_module_data_cleanup (ActionData *action_data)
 {
   ModuleData *module_data = action_data->module_data;
+  g_autoptr(GDBusConnection) connection = NULL;
   GDBusServer *server = NULL;
 
   if (module_data && (server = g_atomic_pointer_get (&module_data->server)))
     g_clear_signal_handler (&action_data->connection_new_id, server);
 
-  if (action_data->connection)
+#if GLIB_CHECK_VERSION (2, 74, 0)
+  connection = g_atomic_pointer_exchange (&action_data->connection, NULL);
+#else
+  /* TODO: This is to support old LTS (24.04) */
+  connection = g_atomic_pointer_get (&action_data->connection);
+  g_atomic_pointer_set (&action_data->connection, NULL);
+#endif
+
+  if (connection)
     {
-      g_dbus_connection_unregister_object (action_data->connection,
+      g_dbus_connection_unregister_object (connection,
                                            action_data->object_registered_id);
-      g_clear_signal_handler (&action_data->connection_closed_id, action_data->connection);
-      g_dbus_connection_close (action_data->connection, NULL, NULL, NULL);
+      g_clear_signal_handler (&action_data->connection_closed_id, connection);
+      g_dbus_connection_close (connection, NULL, NULL, NULL);
     }
 
   g_cancellable_cancel (action_data->cancellable);
@@ -314,7 +323,6 @@ action_module_data_cleanup (ActionData *action_data)
   g_log_set_debug_enabled (FALSE);
 
   g_clear_object (&action_data->cancellable);
-  g_clear_object (&action_data->connection);
   g_clear_pointer (&action_data->loop, g_main_loop_unref);
   g_clear_handle_id (&action_data->child_pid, g_spawn_close_pid);
 
@@ -663,12 +671,14 @@ on_connection_closed (GDBusConnection *connection,
                       GError          *error,
                       ActionData      *action_data)
 {
+  GDBusConnection *action_connection = NULL;
   g_debug ("Connection closed %s", g_dbus_connection_get_guid (connection));
 
-  if (!action_data->connection)
+  action_connection = g_atomic_pointer_get (&action_data->connection);
+  if (!action_connection)
     return;
 
-  g_assert (action_data->connection == connection);
+  g_assert (action_connection == connection);
 
   if (action_data->object_registered_id)
     {
@@ -763,10 +773,10 @@ on_new_connection (G_GNUC_UNUSED GDBusServer *server,
                                        &error);
 
   /* Accepts the connection */
-  action_data->connection = g_object_ref (connection);
+  g_atomic_pointer_set (&action_data->connection, g_object_ref (connection));
 
   action_data->connection_closed_id =
-    g_signal_connect (action_data->connection, "closed",
+    g_signal_connect (connection, "closed",
                       G_CALLBACK (on_connection_closed), action_data);
 
   return TRUE;
