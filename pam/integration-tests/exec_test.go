@@ -226,7 +226,7 @@ func TestExecModule(t *testing.T) {
 		},
 		"Error_when_client_fails_panicking": {
 			methodCalls: []cliMethodCall{{m: "SimulateClientPanic", args: []any{"Client panicked! (As expected)"}}},
-			wantError:   pam.ErrSymbol,
+			wantError:   pam.ErrSystem,
 		},
 		"Error_when_client_fails_because_an_unhandled_error": {
 			methodCalls: []cliMethodCall{{m: "SimulateClientError", args: []any{"Client error!"}}},
@@ -238,6 +238,14 @@ func TestExecModule(t *testing.T) {
 		},
 		"Error_when_client_fails_because_a_client_SIGKILL_signal": {
 			methodCalls: []cliMethodCall{{m: "SimulateClientSignal", args: []any{syscall.SIGKILL, true}}},
+			wantError:   pam.ErrSystem,
+		},
+		"Error_when_client_fails_because_a_client_SIGSEGV_signal": {
+			methodCalls: []cliMethodCall{{m: "SimulateClientSignal", args: []any{syscall.SIGSEGV, true}}},
+			wantError:   pam.ErrSystem,
+		},
+		"Error_when_client_fails_because_a_client_SIGABRT_signal": {
+			methodCalls: []cliMethodCall{{m: "SimulateClientSignal", args: []any{syscall.SIGABRT, true}}},
 			wantError:   pam.ErrSystem,
 		},
 	}
