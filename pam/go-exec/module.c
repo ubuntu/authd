@@ -419,6 +419,7 @@ wait_child_thread (gpointer data)
     {
       int status;
       pid_t ret = waitpid (child_pid, &status, 0);
+      int errsv = errno;
 
       g_debug ("Waiting pid %" G_PID_FORMAT " returned %" G_PID_FORMAT ", "
                "exited: %d, signaled: %d", child_pid, ret,
@@ -432,7 +433,7 @@ wait_child_thread (gpointer data)
 
       if (ret < 0)
         {
-          exit_status = -errno;
+          exit_status = -errsv;
           break;
         }
     }
