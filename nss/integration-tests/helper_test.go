@@ -37,7 +37,7 @@ func buildRustNSSLib(t *testing.T) (libPath string, rustCovEnv []string) {
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, "Setup: could not build Rust NSS library: %s", out)
 
-	// When building the crate with dh-cargo, this env is set to indicate which arquitecture the code
+	// When building the crate with dh-cargo, this env is set to indicate which architecture the code
 	// is being compiled to. When it's set, the compiled is stored under target/$(DEB_HOST_RUST_TYPE)/debug,
 	// rather than under target/debug, so we need to append at the end of target to ensure we use
 	// the right path.
