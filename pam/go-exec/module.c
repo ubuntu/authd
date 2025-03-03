@@ -430,13 +430,19 @@ wait_child_thread (gpointer data)
       pid_t ret = waitpid (child_pid, &status, 0);
       int errsv = errno;
 
-      g_debug ("Waiting pid %" G_PID_FORMAT " returned %" G_PID_FORMAT ", "
+      g_debug ("Waiting pid %" G_PID_FORMAT ", returned %" G_PID_FORMAT ", "
                "exited: %d, signaled: %d", child_pid, ret,
                WIFEXITED (status), WIFSIGNALED (status));
 
       if (ret == child_pid && WIFEXITED (status))
         {
           exit_status = WEXITSTATUS (status);
+          break;
+        }
+
+      if (ret == child_pid && WIFSIGNALED (status))
+        {
+          g_debug ("Child stopped because of signal %d", WTERMSIG (status));
           break;
         }
 
