@@ -65,7 +65,7 @@ func getentOutputForLib(t *testing.T, libPath, socketPath string, rustCovEnv []s
 	cmd.Env = append(cmd.Env,
 		"AUTHD_NSS_INFO=stderr",
 		// NSS needs both LD_PRELOAD and LD_LIBRARY_PATH to load the module library
-		fmt.Sprintf("LD_PRELOAD=%s:%s", libPath, os.Getenv("LD_PRELOAD")),
+		fmt.Sprintf("LD_PRELOAD=%s %s", libPath, os.Getenv("LD_PRELOAD")),
 		fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", filepath.Dir(libPath), os.Getenv("LD_LIBRARY_PATH")),
 	)
 	cmd.Env = append(cmd.Env, rustCovEnv...)
