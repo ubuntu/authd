@@ -436,6 +436,17 @@ wait_child_thread (gpointer data)
 
       if (ret == child_pid && WIFEXITED (status))
         {
+          /* Sadly go childs that exits because of SIGABRT or SIGSEGV do not
+           * have a WIFSIGNALED status, but instead exit with 2 exit status.
+           * See: https://pkg.go.dev/runtime
+           * So in such case we just return a generic system error, to be
+           * consistent with signals (plus, we never return pam.ErrSymbol).
+           * This is an upstream bug, but they refuse to fix or allow a
+           * better handling: https://github.com/golang/go/issues/72084
+           */
+          if (WEXITSTATUS (status) == 2)
+            break;
+
           exit_status = WEXITSTATUS (status);
           break;
         }
