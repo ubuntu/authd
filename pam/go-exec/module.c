@@ -133,6 +133,9 @@ const char *UBUNTU_AUTHD_PAM_OBJECT_NODE =
   "      <arg type='i' name='status' direction='out'/>"
   "      <arg type='s' name='response' direction='out'/>"
   "    </method>"
+#ifdef AUTHD_TEST_EXEC_MODULE
+  "    <method name='UnhandledMethod' />"
+#endif
   "  </interface>"
   "</node>";
 
@@ -296,17 +299,26 @@ static void
 action_module_data_cleanup (ActionData *action_data)
 {
   ModuleData *module_data = action_data->module_data;
+  g_autoptr(GDBusConnection) connection = NULL;
   GDBusServer *server = NULL;
 
   if (module_data && (server = g_atomic_pointer_get (&module_data->server)))
     g_clear_signal_handler (&action_data->connection_new_id, server);
 
-  if (action_data->connection)
+#if GLIB_CHECK_VERSION (2, 74, 0)
+  connection = g_atomic_pointer_exchange (&action_data->connection, NULL);
+#else
+  /* TODO: This is to support old LTS (24.04) */
+  connection = g_atomic_pointer_get (&action_data->connection);
+  g_atomic_pointer_set (&action_data->connection, NULL);
+#endif
+
+  if (connection)
     {
-      g_dbus_connection_unregister_object (action_data->connection,
+      g_dbus_connection_unregister_object (connection,
                                            action_data->object_registered_id);
-      g_clear_signal_handler (&action_data->connection_closed_id, action_data->connection);
-      g_dbus_connection_close (action_data->connection, NULL, NULL, NULL);
+      g_clear_signal_handler (&action_data->connection_closed_id, connection);
+      g_dbus_connection_close (connection, NULL, NULL, NULL);
     }
 
   g_cancellable_cancel (action_data->cancellable);
@@ -314,7 +326,6 @@ action_module_data_cleanup (ActionData *action_data)
   g_log_set_debug_enabled (FALSE);
 
   g_clear_object (&action_data->cancellable);
-  g_clear_object (&action_data->connection);
   g_clear_pointer (&action_data->loop, g_main_loop_unref);
   g_clear_handle_id (&action_data->child_pid, g_spawn_close_pid);
 
@@ -405,7 +416,7 @@ typedef struct
 {
   pid_t              child_pid;
   GMainLoop         *main_loop;
-  GDBusConnection ** connection_ptr;
+  GDBusConnection  **connection_ptr;
 } WaitChildThreadData;
 
 static gpointer
@@ -414,44 +425,51 @@ wait_child_thread (gpointer data)
   WaitChildThreadData *thread_data = data;
   pid_t child_pid = thread_data->child_pid;
   int exit_status = PAM_SYSTEM_ERR;
+  GDBusConnection *connection;
 
   while (TRUE)
     {
       int status;
       pid_t ret = waitpid (child_pid, &status, 0);
+      int errsv = errno;
 
-      g_debug ("Waiting pid %" G_PID_FORMAT " returned %" G_PID_FORMAT ", "
+      g_debug ("Waiting pid %" G_PID_FORMAT ", returned %" G_PID_FORMAT ", "
                "exited: %d, signaled: %d", child_pid, ret,
                WIFEXITED (status), WIFSIGNALED (status));
 
       if (ret == child_pid && WIFEXITED (status))
         {
+          /* Sadly go childs that exits because of SIGABRT or SIGSEGV do not
+           * have a WIFSIGNALED status, but instead exit with 2 exit status.
+           * See: https://pkg.go.dev/runtime
+           * So in such case we just return a generic system error, to be
+           * consistent with signals (plus, we never return pam.ErrSymbol).
+           * This is an upstream bug, but they refuse to fix or allow a
+           * better handling: https://github.com/golang/go/issues/72084
+           */
+          if (WEXITSTATUS (status) == 2)
+            break;
+
           exit_status = WEXITSTATUS (status);
+          break;
+        }
+
+      if (ret == child_pid && WIFSIGNALED (status))
+        {
+          g_debug ("Child stopped because of signal %d", WTERMSIG (status));
           break;
         }
 
       if (ret < 0)
         {
-          exit_status = -errno;
+          exit_status = -errsv;
           break;
         }
     }
 
-  if (thread_data->connection_ptr)
-    {
-      g_autoptr(GDBusConnection) connection = NULL;
-
-#if GLIB_CHECK_VERSION (2, 74, 0)
-      connection = g_atomic_pointer_exchange (thread_data->connection_ptr, NULL);
-#else
-      /* TODO: This is to support CI and old LTS (24.04) */
-      connection = g_atomic_pointer_get (thread_data->connection_ptr);
-      g_atomic_pointer_set (thread_data->connection_ptr, NULL);
-#endif
-
-      if (connection)
-        g_dbus_connection_close (connection, NULL, NULL, NULL);
-    }
+  /* This is safe to do because the main thread is waiting for us at this point */
+  if ((connection = g_atomic_pointer_get (thread_data->connection_ptr)))
+    g_dbus_connection_close (connection, NULL, NULL, NULL);
 
   g_main_loop_quit (thread_data->main_loop);
   g_clear_pointer (&thread_data->main_loop, g_main_loop_unref);
@@ -673,20 +691,20 @@ on_connection_closed (GDBusConnection *connection,
                       GError          *error,
                       ActionData      *action_data)
 {
+  GDBusConnection *action_connection = NULL;
   g_debug ("Connection closed %s", g_dbus_connection_get_guid (connection));
 
-  if (!action_data->connection)
+  action_connection = g_atomic_pointer_get (&action_data->connection);
+  if (!action_connection)
     return;
 
-  g_assert (action_data->connection == connection);
+  g_assert (action_connection == connection);
 
   if (action_data->object_registered_id)
     {
       g_dbus_connection_unregister_object (connection, action_data->object_registered_id);
       action_data->object_registered_id = 0;
     }
-
-  action_data->connection = NULL;
 }
 
 static gboolean
@@ -775,10 +793,10 @@ on_new_connection (G_GNUC_UNUSED GDBusServer *server,
                                        &error);
 
   /* Accepts the connection */
-  action_data->connection = g_object_ref (connection);
+  g_atomic_pointer_set (&action_data->connection, g_object_ref (connection));
 
   action_data->connection_closed_id =
-    g_signal_connect (action_data->connection, "closed",
+    g_signal_connect (connection, "closed",
                       G_CALLBACK (on_connection_closed), action_data);
 
   return TRUE;
