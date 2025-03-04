@@ -248,7 +248,10 @@ Wait`,
 		},
 
 		"Error_if_cannot_connect_to_authd": {
-			tape:                "connection_error",
+			tape: "connection_error",
+			tapeVariables: map[string]string{
+				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
+			},
 			socketPath:          "/some-path/not-existent-socket",
 			wantNotLoggedInUser: true,
 		},
@@ -371,13 +374,14 @@ func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) s
 
 	outDir := t.TempDir()
 	pamServiceName := "authd-sshd"
-	moduleControl := "[success=ok new_authtok_reqd=done ignore=2 default=die]"
+	// Keep control values in sync with debian/pam-configs/authd.in.
+	authControl := "[success=ok default=die authinfo_unavail=2 ignore=2]"
 	notifyState := pam_test.ServiceLine{
 		Action: pam_test.Auth, Control: pam_test.Optional, Module: "pam_echo.so",
 		Args: []string{fmt.Sprintf("%s finished for user '%%u'", pam_test.RunnerResultActionAuthenticate.Message(""))},
 	}
 	serviceFile, err := pam_test.CreateService(outDir, pamServiceName, []pam_test.ServiceLine{
-		{Action: pam_test.Auth, Control: pam_test.NewControl(moduleControl), Module: module, Args: moduleArgs},
+		{Action: pam_test.Auth, Control: pam_test.NewControl(authControl), Module: module, Args: moduleArgs},
 		// Success case:
 		notifyState,
 		{Action: pam_test.Auth, Control: pam_test.Sufficient, Module: pam_test.Permit.String()},
