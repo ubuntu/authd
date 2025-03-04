@@ -98,7 +98,7 @@ func New(ctx context.Context, registerGRPCService GRPCServiceRegisterer, args ..
 
 	// Ensure selected socket exists.
 	if _, err := os.Stat(lis.Addr().String()); err != nil {
-		return nil, fmt.Errorf("%s can’t be acccessed: %v", lis.Addr().String(), err)
+		return nil, fmt.Errorf("%s can’t be accessed: %v", lis.Addr().String(), err)
 	}
 
 	return &Daemon{
