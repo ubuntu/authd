@@ -24,6 +24,7 @@ type daemonOptions struct {
 	existentDB string
 	socketPath string
 	pidFile    string
+	outputFile string
 	env        []string
 }
 
@@ -63,6 +64,13 @@ func WithEnvironment(env ...string) DaemonOption {
 func WithPidFile(pidFile string) DaemonOption {
 	return func(o *daemonOptions) {
 		o.pidFile = pidFile
+	}
+}
+
+// WithOutputFile sets the path where the process log will be saved.
+func WithOutputFile(outputFile string) DaemonOption {
+	return func(o *daemonOptions) {
+		o.outputFile = outputFile
 	}
 }
 
@@ -136,6 +144,12 @@ paths:
 		}
 		err = cmd.Wait()
 		out := b.Bytes()
+		if opts.outputFile != "" {
+			t.Log("writing authd log files to", opts.outputFile)
+			if err := os.WriteFile(opts.outputFile, out, 0600); err != nil {
+				t.Logf("TearDown: failed to save output file %q: %v", opts.outputFile, err)
+			}
+		}
 		require.ErrorIs(t, err, context.Canceled, "Setup: daemon stopped unexpectedly: %s", out)
 		if opts.pidFile != "" {
 			defer cancel(nil)
