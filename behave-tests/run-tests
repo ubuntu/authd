@@ -46,6 +46,21 @@ while [ "$#" -gt 0 ]; do
 done
 set -- "${POSITIONAL[@]}"  # restore positional parameters
 
+
+# Ensure the test dependencies are installed
+DEPENDENCIES="zbar-tools"
+DEPENDENCIES_TO_INSTALL=()
+for DEPENDENCY in ${DEPENDENCIES}; do
+    if ! dpkg -l "${DEPENDENCY}" > /dev/null; then
+        DEPENDENCIES_TO_INSTALL+=("${DEPENDENCY}")
+    fi
+done
+
+if [ ${#DEPENDENCIES_TO_INSTALL[@]} -gt 0 ]; then
+    sudo apt-get install -y "${DEPENDENCIES_TO_INSTALL[@]}"
+fi
+
+
 BEHAVE_CMD="behave --verbose"
 
 if [ -n "${BEHAVE_DEBUG_ON_ERROR:-}" ]; then

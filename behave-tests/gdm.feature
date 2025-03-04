@@ -5,21 +5,19 @@ Feature: authd GDM login
     Given I have a Ubuntu Desktop system
 #    And I installed the authd package
 #    And I installed the authd-msentraid snap
-    And I configured authd to use the MS Entra ID broker
-    And I configured the MS Entra ID broker to use the test OIDC app
+#    And I configured authd to use the MS Entra ID broker
+#    And I configured the MS Entra ID broker to use the test OIDC app
 #    And I installed the dogtail-service
-    And I rebooted the system
+#    And I rebooted the system
     And I'm at the GDM login screen
 
   Scenario: First login (MS Entra ID)
-    When I click on "Not listed?"
-    And I enter the UPN of the test user in the "Username" field
-    And I press "Enter"
+    When I enter the username of the test user
     Then I am asked to select the broker
     When I select the "Microsoft Entra ID" broker
     Then I see the message "Scan the QR code or access "https://microsoft.com/devicelogin" and use the provided login code"
-    And I see a QR code
-    And I see a login code
+    And I see a QR code which encodes the URL "https://microsoft.com/devicelogin"
+    And I see a valid Microsoft Entra ID login code
     When I open "https://microsoft.com/devicelogin" on another machine and log in
 #    And I enter the login code "user_code"
 #    And I log in with the username "demo@uaadtest.onmicrosoft.com" and password "password"

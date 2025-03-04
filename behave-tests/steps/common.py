@@ -3,12 +3,16 @@ import logging
 import sys
 import os
 import subprocess
+import tempfile
 import time
 import xml.etree.ElementTree as ET
 
 import libvirt
 import behave.runner
 from behave import *
+
+use_step_matcher("re")
+
 from gi.repository import Gio, GLib
 
 # Add helpers module to the path
@@ -16,6 +20,9 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "helpers"))
 
 import executil
 import accessible
+import msentraid
+from vm import VM
+from screen import Screen
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -24,10 +31,9 @@ use_step_matcher("re")
 MAIN_TEST_VM_NAME = "behave-test-vm"
 MAIN_TEST_VM_DISK_SPACE = "5G"
 BASE_SNAP = "core24"
-WAIT_FOR_VM_STOPPED_TIMEOUT = 30
-WAIT_FOR_VM_RUNNING_TIMEOUT = 30
 SNAPSHOT_INSTALLED_GNOME_SESSION = "installed-gnome-session"
 SNAPSHOT_BASE = "base-snapshot"
+SNAPSHOT_BOOTED_TO_GDM = "booted-to-gdm"
 SSH_PRIVATE_KEYFILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".ssh-key"))
 SSH_PUBLIC_KEYFILE = SSH_PRIVATE_KEYFILE + ".pub"
 RUNTIME_DIR = os.path.join(os.getenv("XDG_RUNTIME_DIR", "/run/user/%d" % os.getuid()), "behave-tests")
@@ -43,64 +49,9 @@ DOGTAIL_SERVICE_NODE_INTERFACE = "com.ubuntu.DesktopQA.Dogtail.Node"
 # TODO: Install the dogtail service from GitHub or PyPI
 DOGTAIL_SERVICE_DIR = os.path.expanduser("~/projects/dogtail-service")
 
-def start_vm(name: str):
-    logging.debug("Starting VM '%s'", name)
-    executil.check_call(["multipass", "start", name])
-    wait_until_vm_is_running(name)
+LIBVIRT_CONNECTION = libvirt.open("qemu:///system")
 
-def stop_vm(name: str):
-    logging.info("Stopping VM '%s'", name)
-    executil.check_call(["multipass", "stop", name])
-    wait_until_vm_is_stopped(name)
-
-def restart_vm(name: str):
-    stop_vm(name)
-    start_vm(name)
-
-def wait_until_vm_is_stopped(name: str):
-    logging.debug("Waiting for VM '%s' to stop", name)
-    start_time = time.monotonic()
-    while time.monotonic() - start_time < WAIT_FOR_VM_STOPPED_TIMEOUT:
-        try:
-            vm_info_json = executil.check_output(["multipass", "info", name, "--format", "json"])
-        except subprocess.CalledProcessError as e:
-            if e.returncode == 2:
-                # The VM does not exist
-                time.sleep(1)
-                continue
-            else:
-                # Unexpected error
-                raise
-
-        vm_info = json.loads(vm_info_json)
-        if vm_info["info"][name]["state"] == "Stopped":
-            return
-
-        time.sleep(1)
-
-    raise TimeoutError("The VM did not stop within the timeout (%d seconds)" % WAIT_FOR_VM_STOPPED_TIMEOUT)
-
-def wait_until_vm_is_running(name: str):
-    start_time = time.monotonic()
-    while time.monotonic() - start_time < WAIT_FOR_VM_RUNNING_TIMEOUT:
-        try:
-            vm_info_json = executil.check_output(["multipass", "info", name, "--format", "json"])
-        except subprocess.CalledProcessError as e:
-            if e.returncode == 2:
-                # The VM does not exist
-                time.sleep(1)
-                continue
-            else:
-                # Unexpected error
-                raise
-
-        vm_info = json.loads(vm_info_json)
-        if vm_info["info"][name]["state"] == "Running":
-            return
-
-        time.sleep(1)
-
-    raise TimeoutError("The VM did not start within the timeout (%d seconds)" % WAIT_FOR_VM_RUNNING_TIMEOUT)
+main_test_vm = VM(LIBVIRT_CONNECTION, MAIN_TEST_VM_NAME)
 
 
 def ensure_ssh_key():
@@ -270,6 +221,65 @@ def is_dogtail_service_active():
     except subprocess.CalledProcessError:
         return False
 
+
+def get_a11y_bus_connection(context: behave.runner.Context):
+    if hasattr(context, "connection"):
+        return context.connection
+
+    gdm_uid = executil.check_output(["multipass", "exec", MAIN_TEST_VM_NAME, "--", "id", "-u", "gdm"]).strip()
+
+    # Wait for the accessibility bus to be available
+    timeout_sec = 30
+    start_time = time.monotonic()
+    while time.monotonic() - start_time < timeout_sec:
+        try:
+            executil.check_call(
+                ["multipass", "exec", MAIN_TEST_VM_NAME, "--", "sudo", "ls", f"/run/user/{gdm_uid}/at-spi/bus"])
+            break
+        except subprocess.CalledProcessError:
+            time.sleep(1)
+
+    # Forward the VSOCK in the VM to the a11y bus
+    VSOCK_PROXY_VM_UNIT_NAME = "vsock-proxy-behave-tests"
+    # Stop the proxy if it is running. We don't care about the exit code, so we use executil.run.
+    executil.run(["multipass", "exec", MAIN_TEST_VM_NAME, "--",
+                    "sudo", "systemctl", "stop", "--force", VSOCK_PROXY_VM_UNIT_NAME], stderr=subprocess.DEVNULL)
+    executil.check_call(["multipass", "exec", MAIN_TEST_VM_NAME, "--",
+                         "sudo", "systemd-run", "--",
+                         "socat", f"VSOCK-LISTEN:{VSOCK_PORT},reuseaddr,fork",
+                                  f"UNIX-CONNECT:/run/user/{gdm_uid}/at-spi/bus"])
+    time.sleep(0.2)
+
+    # Forward /run/user/$UID/behave-tests/behave-test-vm/a11y-bus on the host to the VSOCK
+    a11y_bus_host_path = os.path.join(RUNTIME_DIR, MAIN_TEST_VM_NAME, "a11y-bus")
+    os.makedirs(os.path.dirname(a11y_bus_host_path), exist_ok=True)
+    if os.path.exists(a11y_bus_host_path):
+        os.unlink(a11y_bus_host_path)
+    VSOCK_PROXY_HOST_UNIT_NAME = f"vsock-proxy-{MAIN_TEST_VM_NAME}"
+    # Stop the proxy if it is running. We don't care about the exit code, so we use executil.run.
+    executil.run(["systemctl", "stop", "--force", VSOCK_PROXY_HOST_UNIT_NAME], stderr=subprocess.DEVNULL)
+    executil.check_call(["systemd-run", "--user", "--",
+                         "socat", f"UNIX-LISTEN:{a11y_bus_host_path},fork",
+                                  f"VSOCK-CONNECT:{VSOCK_CID}:{VSOCK_PORT}"])
+    time.sleep(1)
+
+    logging.info("Connecting to bus %s", a11y_bus_host_path)
+    context.connection = Gio.DBusConnection.new_for_address_sync(
+        address=f"unix:path={a11y_bus_host_path}",
+        flags=Gio.DBusConnectionFlags.AUTHENTICATION_CLIENT |
+              Gio.DBusConnectionFlags.MESSAGE_BUS_CONNECTION,
+        # Gio.DBusConnectionFlags.CROSS_NAMESPACE,
+        observer=None,
+        cancellable=None
+    )
+    return context.connection
+
+def get_gnome_shell(context: behave.runner.Context):
+    if hasattr(context, "gnome_shell"):
+        return context.gnome_shell
+    context.gnome_shell = accessible.application_root(get_a11y_bus_connection(context), "gnome-shell")
+    return context.gnome_shell
+
 @given("I have a Ubuntu Desktop system")
 def step_impl(context: behave.runner.Context):
     # Check if we can use a snapshot
@@ -337,6 +347,23 @@ def step_impl(context: behave.runner.Context):
     # executil.check_call(["multipass", "exec", MAIN_TEST_VM_NAME, "--", "sudo", "snap", "install", "--devmode", "--dangerous", "/tmp/" + os.path.basename(snap)])
     # install_dogtail_service
 
+    # Configure authd to use the MS Entra ID broker
+    # TODO: This should not be done here
+    src = "/snap/authd-msentraid/current/conf/authd/msentraid.conf"
+    dest = "/etc/authd/brokers.d/"
+    executil.check_call(
+        ["multipass", "exec", MAIN_TEST_VM_NAME, "--", "sudo", "install", "-D", "--target-directory", dest, src])
+
+    # Configure the MS Entra ID broker to use the test OIDC app
+    # TODO: This should not be done here
+    issuer_id = context.config.userdata["msentraid_issuer_id"]
+    client_id = context.config.userdata["msentraid_client_id"]
+    broker_config_file = "/var/snap/authd-msentraid/current/broker.conf"
+    executil.check_call(["multipass", "exec", MAIN_TEST_VM_NAME, "--",
+                         "sudo", "sed", "-i", "-e", f"s/<ISSUER_ID>/{issuer_id}/", "-e",
+                         f"s/<CLIENT_ID>/{client_id}/",
+                         broker_config_file])
+
     # Install socat
     executil.check_call(["multipass", "exec", MAIN_TEST_VM_NAME, "--", "sudo", "apt", "install", "-y", "socat"])
 
@@ -364,70 +391,10 @@ def step_impl(context: behave.runner.Context):
     executil.check_call(["multipass", "exec", MAIN_TEST_VM_NAME, "--",
                          "sudo", "sh", "-c", f"cat {vm_public_keyfile} >> /root/.ssh/authorized_keys"])
 
-    # Stop the VM
-    stop_vm(MAIN_TEST_VM_NAME)
-
-    # Remove all video devices
-    root = ET.fromstring(domain.XMLDesc())
-    for device in root.findall(".//devices/video"):
-        root.find("devices").remove(device)
-
-    # Attach a virtio video device
-    logging.debug("Attaching a virtio video device")
-    video = ET.Element("video")
-    ET.SubElement(video, "model", type="virtio", primary="yes")
-    root.find("devices").append(video)
-
-    # Remove all graphics devices
-    for device in root.findall(".//devices/graphics"):
-        root.find("devices").remove(device)
-
-    # Attach a Spice display
-    # <graphics type="spice" port="5902" autoport="yes" listen="127.0.0.1">
-    #   <listen type="address" address="127.0.0.1"/>
-    #   <image compression="off"/>
-    #   <gl enable="no"/>
-    # </graphics>
-    logging.debug("Attaching a Spice display")
-    graphics = ET.Element("graphics", type="spice", port="5902", autoport="yes", listen="127.0.0.1")
-    ET.SubElement(graphics, "listen", type="address", address="127.0.0.1")
-    ET.SubElement(graphics, "image", compression="off")
-    ET.SubElement(graphics, "gl", enable="no")
-    root.find("devices").append(graphics)
-
-    # Attach a spice channel
-    # <channel type="spicevmc">
-    #   <target type="virtio" name="com.redhat.spice.0" state="disconnected"/>
-    #   <alias name="channel0"/>
-    #   <address type="virtio-serial" controller="0" bus="0" port="1"/>
-    # </channel>
-    has_spice_channel = False
-    for channel in root.findall(".//devices/channel"):
-        if channel.get("type") == "spicevmc":
-            has_spice_channel = True
-            break
-
-    if not has_spice_channel:
-        logging.debug("Attaching a Spice channel")
-        channel = ET.Element("channel", type="spicevmc")
-        ET.SubElement(channel, "target", type="virtio", name="com.redhat.spice.0", state="disconnected")
-        ET.SubElement(channel, "alias", name="channel0")
-        ET.SubElement(channel, "address", type="virtio-serial", controller="0", bus="0", port="1")
-        root.find("devices").append(channel)
-
-    # Attach a vsock device
-    #  <vsock model='virtio'>
-    #    <cid auto='no' address='3'/>
-    #  </vsock>
-    logging.debug("Attaching a vsock device")
-    vsock = ET.Element("vsock", model="virtio")
-    ET.SubElement(vsock, "cid", auto="no", address="3")
-    root.find("devices").append(vsock)
-
-    # Re-define the domain
-    domain = conn.defineXMLFlags(ET.tostring(root).decode(), libvirt.VIR_DOMAIN_DEFINE_VALIDATE)
-
-    start_vm(MAIN_TEST_VM_NAME)
+    # Define the devices we need in the VM. That requires stopping the VM.
+    main_test_vm.stop()
+    main_test_vm.define_devices()
+    main_test_vm.start()
 
     # Create the snapshot
     create_snapshot(domain, SNAPSHOT_BASE, "Initial snapshot")
@@ -592,72 +559,77 @@ def step_impl(context: behave.runner.Context):
     #     cancellable=None,
     # )
 
-    # Forward the VSOCK in the VM to the a11y bus
-    gdm_uid = executil.check_output(["multipass", "exec", MAIN_TEST_VM_NAME, "--", "id", "-u", "gdm"]).strip()
-    subprocess.Popen(["multipass", "exec", MAIN_TEST_VM_NAME, "--",
-                      "sudo", "socat", f"VSOCK-LISTEN:{VSOCK_PORT},reuseaddr,fork", f"UNIX-CONNECT:/run/user/{gdm_uid}/at-spi2/bus"])
-
-    # Forward /run/user/$UID/behave-tests/behave-test-vm/a11y-bus on the host to the VSOCK
-    a11y_bus_host_path = os.path.join(RUNTIME_DIR, MAIN_TEST_VM_NAME, "a11y-bus")
-    subprocess.Popen(["socat", f"UNIX-LISTEN:{a11y_bus_host_path},fork", f"VSOCK-CONNECT:{VSOCK_CID}:{VSOCK_PORT}"])
-
-    logging.info("Connecting to bus %s", a11y_bus_host_path)
-    connection = Gio.DBusConnection.new_for_address_sync(
-        address=f"unix:path={a11y_bus_host_path}",
-        flags=Gio.DBusConnectionFlags.AUTHENTICATION_CLIENT |
-              Gio.DBusConnectionFlags.MESSAGE_BUS_CONNECTION,
-              # Gio.DBusConnectionFlags.CROSS_NAMESPACE,
-        observer=None,
-        cancellable=None
-    )
-
     # Get the gnome-shell application
-    logging.info("Getting the gnome-shell application")
-    gnome_shell = accessible.application_root(connection, "gnome-shell")
-    logging.info("Gnome shell: %s", gnome_shell.name)
+    gnome_shell = get_gnome_shell(context)
+    logging.info("gnome-shell: %s", gnome_shell)
 
+    # Check if we're at the GDM login screen
+    node = gnome_shell.find_child(name="Login Options", role_name="menu")
+    logging.info("Login Options: %s", node)
 
-@when('I click on "Not listed\?"')
+@when('I enter the username of the test user')
 def step_impl(context: behave.runner.Context):
-    raise NotImplementedError(u'STEP: When I click on "Not listed\?"')
+    test_user_name = context.config.userdata["test_user_name"]
+    gnome_shell = get_gnome_shell(context)
 
+    # The username text entry doesn't have a label or description, but it's the only editable
+    # text entry and it should be focused.
+    text_entry = gnome_shell.find_child(role_name="text", editable=True, focused=True)
+    text_entry.set_text(test_user_name)
+    text_entry.activate()
 
-
-@step('I enter the UPN of the test user in the "Username" field')
+@when('I enter the password of the test user')
 def step_impl(context: behave.runner.Context):
-    raise NotImplementedError(u'STEP: And I enter the UPN of the test user in the "Username" field')
+    test_user_password = context.config.userdata["test_user_password"]
+    gnome_shell = get_gnome_shell(context)
 
-
-@step('I press "Enter"')
-def step_impl(context: behave.runner.Context):
-    raise NotImplementedError(u'STEP: And I press "Enter"')
-
+    # The password text entry doesn't have a label or description, but it's the only editable
+    # text entry and it should be focused.
+    text_entry = gnome_shell.find_child(role_name="text", editable=True, focused=True)
+    text_entry.set_text(test_user_password)
+    text_entry.activate()
 
 @then("I am asked to select the broker")
 def step_impl(context: behave.runner.Context):
-    raise NotImplementedError(u'STEP: Then I am asked to select the broker')
+    gnome_shell = get_gnome_shell(context)
+    gnome_shell.find_child(name="Select a broker", role_name="label")
 
 
-@when('I select the "Microsoft Entra ID" broker')
+@when('I select the "(?P<broker_name>.+)" broker')
+def step_impl(context: behave.runner.Context, broker_name: str):
+    gnome_shell = get_gnome_shell(context)
+    # The push button is the parent of the label with the broker name
+    label = gnome_shell.find_child(name=broker_name, role_name="label")
+    push_button = label.get_parent()
+    # The push button doesn't expose any actions, so we need to make it grab focus and press Enter
+    push_button.grab_focus()
+    main_test_vm_screen.press("Enter")
+
+
+@then('I see the message "(?P<message>.+)"')
+def step_impl(context: behave.runner.Context, message: str):
+    gnome_shell = get_gnome_shell(context)
+    gnome_shell.find_child(name=message, role_name="label")
+
+
+@step('I see a QR code which encodes the URL "(?P<url>.+)"')
+def step_impl(context: behave.runner.Context, url: str):
+    with tempfile.NamedTemporaryFile(prefix="screenshot-", suffix=".png") as f:
+        # Take the screenshot
+        main_test_vm_screen.screenshot(f.name)
+        # Parse the QR code using zbarimg
+        output = executil.check_output(["zbarimg", "-q", "--raw", f.name])
+        assert output.strip() == url
+
+
+@step("I see a valid Microsoft Entra ID login code")
 def step_impl(context: behave.runner.Context):
-    raise NotImplementedError(u'STEP: When I select the "Microsoft Entra ID" broker')
-
-
-@then(
-    'I see the message "Scan the QR code or access "https://microsoft\.com/devicelogin" and use the provided login code"')
-def step_impl(context: behave.runner.Context):
-    raise NotImplementedError(
-        u'STEP: Then I see the message "Scan the QR code or access "https://microsoft.com/devicelogin" and use the provided login code"')
-
-
-@step("I see a QR code")
-def step_impl(context: behave.runner.Context):
-    raise NotImplementedError(u'STEP: And I see a QR code')
-
-
-@step("I see a login code")
-def step_impl(context: behave.runner.Context):
-    raise NotImplementedError(u'STEP: And I see a login code')
+    gnome_shell = get_gnome_shell(context)
+    label = gnome_shell.find_child(name="Login code: ", role_name="label")
+    # The login code is the next sibling of the "Login code: " label
+    login_code_label = label.get_parent().get_children()[1]
+    assert login_code_label.get_role_name() == "label", f"Expected a label, got {login_code_label.get_role_name()}"
+    assert msentraid.is_valid_login_code(login_code_label.name), f"Invalid login code: {login_code_label.name}"
 
 
 @when('I open "https://microsoft\.com/devicelogin" on another machine and log in')

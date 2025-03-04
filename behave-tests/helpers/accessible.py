@@ -67,10 +67,54 @@ class Accessible:
         else:
             self._actions_proxy = None
 
+        if "org.a11y.atspi.Text" in self.interfaces:
+            self._text_proxy = Gio.DBusProxy.new_sync(
+                connection=connection,
+                flags=Gio.DBusProxyFlags.NONE,
+                info=None,
+                name=bus_name,
+                object_path=path,
+                interface_name="org.a11y.atspi.Text",
+                cancellable=None
+            ) # type: Gio.DBusProxy
+        else:
+            self._text_proxy = None
+
+        if "org.a11y.atspi.EditableText" in self.interfaces:
+            self._editable_text_proxy = Gio.DBusProxy.new_sync(
+                connection=connection,
+                flags=Gio.DBusProxyFlags.NONE,
+                info=None,
+                name=bus_name,
+                object_path=path,
+                interface_name="org.a11y.atspi.EditableText",
+                cancellable=None
+            ) # type: Gio.DBusProxy
+        else:
+            self._editable_text_proxy = None
+
+        if "org.a11y.atspi.Component" in self.interfaces:
+            self._component_proxy = Gio.DBusProxy.new_sync(
+                connection=connection,
+                flags=Gio.DBusProxyFlags.NONE,
+                info=None,
+                name=bus_name,
+                object_path=path,
+                interface_name="org.a11y.atspi.Component",
+                cancellable=None
+            ) # type: Gio.DBusProxy
+        else:
+            self._component_proxy = None
+
         _name = self._proxy.get_cached_property("Name")
         self.name = _name.unpack() if _name is not None else None
         _description = self._proxy.get_cached_property("Description")
         self.description = _description.unpack() if _description is not None else None
+        _help_text = self._proxy.get_cached_property("HelpText")
+        self.help_text = _help_text.unpack() if _help_text is not None else None
+
+    def __str__(self):
+        return f"(name={self.name}, description={self.description}, bus_name={self.bus_name}, path={self.path})"
 
     def get_children(self) -> list["Accessible"]:
         children = list()
@@ -83,11 +127,18 @@ class Accessible:
     def get_role_name(self) -> str:
         return self._proxy.call_sync("GetRoleName", None, Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
 
-    def get_description(self) -> str:
-        return self._proxy.get_cached_property("Description").unpack()
+    def get_labels(self) -> list["Accessible"]:
+        relation_set = self._proxy.call_sync(
+            method_name="GetRelationSet",
+            parameters=None,
+            flags=Gio.DBusCallFlags.NONE,
+            timeout_msec=-1,
+            cancellable=None
+        ).unpack()[0]
 
-    def get_help_text(self) -> str:
-        return self._proxy.get_cached_property("HelpText").unpack()
+        for (relation_type, targets) in relation_set:
+            if relation_type == Atspi.RelationType.LABEL_FOR:
+                return [Accessible(self._connection, self.bus_name, path) for path in targets]
 
     def get_actions(self) -> list["Action"]:
         if self._actions_proxy is None:
@@ -97,8 +148,13 @@ class Accessible:
         return [Action(self._connection, self.bus_name, self.path, i) for i in range(num_actions)]
 
     def get_states(self) -> list[str]:
-        # Get states
-        state = self._proxy.call_sync("GetState", None, Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
+        state = self._proxy.call_sync(
+            method_name="GetState",
+            parameters=None,
+            flags=Gio.DBusCallFlags.NONE,
+            timeout_msec=-1,
+            cancellable=None
+        ).unpack()[0]
         # GetState returns an array but it seems like only the first element is ever non-zero
         state = state[0]
 
@@ -114,16 +170,101 @@ class Accessible:
 
         return state_names
 
-    def find_child(self, name: str = None, role_name: str = None, description: str = None) -> "Accessible":
+    def get_parent(self) -> "Accessible":
+        bus_name, path = self._proxy.get_cached_property("Parent").unpack()
+        if path is None:
+            return None
+        return Accessible(self._connection, bus_name, path)
+
+    def find_child(
+            self,
+            name: str = None,
+            role_name: str = None,
+            description: str = None,
+            label: str = None,
+            editable: bool = None,
+            focused: bool = None,
+    ) -> "Accessible":
+        """
+        Recursively searches for a child matching the given criteria.
+        Returns the first match found or None if no match is found.
+        """
+        if editable is not None or focused is not None:
+            states = self.get_states()
+        else:
+            states = []
+
+        if ((name is None or self.name == name) and
+                (role_name is None or self.get_role_name() == role_name) and
+                (description is None or self.description == description) and
+                (label is None or any(label == label.name for label in self.get_labels())) and
+                (editable is None or "editable" in states) and
+                (focused is None or "focused" in states)):
+            logging.debug(f"XXX: Found match: (role_name={role_name}, editable={editable}, focused={focused}) states: {states}, path: {self.path}")
+            return self
+
         for child in self.get_children():
-            if name is not None and child.name != name:
-                continue
-            if role_name is not None and child.get_role_name() != role_name:
-                continue
-            if description is not None and child.get_description() != description:
-                continue
-            return child
+            result = child.find_child(name, role_name, description, label, editable, focused)
+            if result:
+                return result
+
         return None
+
+    def grab_focus(self):
+        success = self._component_proxy.call_sync(
+            method_name="GrabFocus",
+            parameters=None,
+            flags=Gio.DBusCallFlags.NONE,
+            timeout_msec=-1,
+            cancellable=None
+        )
+        if not success:
+            raise Exception(f"Could not grab focus for {self}")
+
+
+    def click(self):
+        self.do_action_named("click")
+
+    def activate(self):
+        self.do_action_named("activate")
+
+    def do_action_named(self, name: str):
+        actions = self.get_actions()
+        for action in actions:
+            if action.get_name() == name:
+                action.do()
+                return
+        raise Exception(f"Could not find action '{name}' for {self}")
+
+    def get_character_count(self) -> int:
+        return self._text_proxy.get_cached_property("CharacterCount").unpack()
+
+    def set_text(self, text: str):
+        success = self._editable_text_proxy.call_sync(
+            method_name="SetTextContents",
+            parameters=GLib.Variant("(s)", (text,)),
+            flags=Gio.DBusCallFlags.NONE,
+            timeout_msec=-1,
+            cancellable=None
+        )
+        if not success:
+            raise Exception(f"Could not set text '{text}' for {self}")
+
+    def get_text(self, start_offset: int = None, end_offset: int = None) -> str:
+        if start_offset is None:
+            start_offset = 0
+        if end_offset is None:
+            end_offset = self.get_character_count()
+
+        logging.debug(f"XXX: Getting text from {start_offset} to {end_offset} for {self}")
+
+        return self._text_proxy.call_sync(
+            method_name="GetText",
+            parameters=GLib.Variant("(ii)", (start_offset, end_offset)),
+            flags=Gio.DBusCallFlags.NONE,
+            timeout_msec=-1,
+            cancellable=None
+        ).unpack()[0]
 
 
 class Action:
@@ -143,6 +284,9 @@ class Action:
             cancellable=None
         )
 
+    def __str__(self):
+        return f"(name={self.get_name()}, bus_name={self.bus_name}, path={self.path}, index={self.index})"
+
     def get_name(self) -> str:
         return self._proxy.call_sync(
             "GetName",
@@ -150,7 +294,7 @@ class Action:
             Gio.DBusCallFlags.NONE,
             -1,
             None
-        ).unpack()[0].upper()
+        ).unpack()[0]
 
     def do(self):
         self._proxy.call_sync(
