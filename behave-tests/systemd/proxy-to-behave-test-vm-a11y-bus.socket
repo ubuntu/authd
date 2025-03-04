@@ -1,0 +1,11 @@
+[Unit]
+Description=Socat relay of a11y bus for behave tests
+
+[Socket]
+ListenStream=%t/behave-tests/behave-test-vm/a11y-bus
+SocketMode=0600
+DirectoryMode=0700
+
+[Install]
+WantedBy=default.target
+
