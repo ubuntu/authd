@@ -3527,6 +3527,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-switching-auth-mode@localhost) Enter your pin code:
 > 4242
 PAM Authenticate() finished for user 'user-integration-pre-check-ssh-authenticate-user-switching-auth-mode'
+PAM AcctMgmt() finished for user 'user-integration-pre-check-ssh-authenticate-user-switching-auth-mode'
 Environment:
   USER=user-integration-pre-check-ssh-authenticate-user-switching-auth-mode
   LOGNAME=user-integration-pre-check-ssh-authenticate-user-switching-auth-mode
