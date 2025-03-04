@@ -34,6 +34,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 (user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group@localhost) Gimme your password:
 >
 PAM Authenticate() finished for user 'user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group'
+PAM AcctMgmt() finished for user 'user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group'
 Environment:
   USER=user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group
   LOGNAME=user-local-groups-integration-pre-check-ssh-authenticate-user-and-add-it-to-local-group

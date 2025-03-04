@@ -376,6 +376,7 @@ func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) s
 	pamServiceName := "authd-sshd"
 	// Keep control values in sync with debian/pam-configs/authd.in.
 	authControl := "[success=ok default=die authinfo_unavail=2 ignore=2]"
+	accountControl := "[default=ignore success=ok]"
 	notifyState := pam_test.ServiceLine{
 		Action: pam_test.Auth, Control: pam_test.Optional, Module: "pam_echo.so",
 		Args: []string{fmt.Sprintf("%s finished for user '%%u'", pam_test.RunnerResultActionAuthenticate.Message(""))},
@@ -391,7 +392,11 @@ func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) s
 		{Action: pam_test.Auth, Control: pam_test.Optional, Module: "pam_echo.so", Args: []string{"SSH PAM user '%u' using local broker"}},
 		{Action: pam_test.Include, Module: "common-auth"},
 
-		{Action: pam_test.Account, Control: pam_test.SufficientRequisite, Module: module, Args: moduleArgs},
+		{Action: pam_test.Account, Control: pam_test.NewControl(accountControl), Module: module, Args: moduleArgs},
+		{
+			Action: pam_test.Account, Control: pam_test.Optional, Module: "pam_echo.so",
+			Args: []string{fmt.Sprintf("%s finished for user '%%u'", pam_test.RunnerResultActionAcctMgmt.Message(""))},
+		},
 		{Action: pam_test.Session, Control: pam_test.Requisite, Module: pam_test.Permit.String()},
 	})
 	require.NoError(t, err, "Setup: Creation of service file %s", pamServiceName)
