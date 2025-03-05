@@ -2,6 +2,11 @@ import logging
 
 import libvirt
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from vm import VM
+
 keymap = {
     "a": 0x1e, "b": 0x30, "c": 0x2e, "d": 0x20, "e": 0x12, "f": 0x21, "g": 0x22, "h": 0x23, "i": 0x17, "j": 0x24,
     "k": 0x25, "l": 0x26, "m": 0x32, "n": 0x31, "o": 0x18, "p": 0x19, "q": 0x10, "r": 0x13, "s": 0x1f, "t": 0x14,
@@ -37,12 +42,11 @@ def keycode(key: str) -> int:
 
 
 class Screen:
-    def __init__(self, domain: libvirt.virDomain):
-        self.domain = domain
-        self.conn = domain._conn
+    def __init__(self, vm: "VM"):
+        self.vm = vm
 
     def press(self, key: str) -> None:
-        self.domain.sendKey(
+        self.vm.domain.sendKey(
             codeset=libvirt.VIR_KEYCODE_SET_LINUX,
             holdtime=40,
             keycodes=[keycode(key)],
@@ -52,8 +56,8 @@ class Screen:
 
     def screenshot(self, filename: str, screen_id=0) -> None:
         with open(filename, "wb") as f:
-            stream = self.conn.newStream()
-            mime_type = self.domain.screenshot(stream, screen_id)
+            stream = self.vm.libvirt_connection.newStream()
+            mime_type = self.vm.domain.screenshot(stream, screen_id)
             logging.debug("XXX: MIME type: %s", mime_type)
             while True:
                 data = stream.recv(1024 * 8)
