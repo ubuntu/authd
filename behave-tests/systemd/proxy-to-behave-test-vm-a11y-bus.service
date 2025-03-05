@@ -1,6 +1,0 @@
-[Unit]
-Description=Socat relay service for behave tests
-
-[Service]
-ExecStart=/usr/bin/socat UNIX-LISTEN:%t/behave-tests/behave-test-vm/a11y-bus,fork VSOCK-CONNECT:3:1
-

@@ -1,5 +1,7 @@
 import json
+import logging
 import subprocess
+import sys
 import time
 from logging import getLogger
 import os
@@ -30,7 +32,7 @@ class VM:
         self.disk_size = disk_size
 
         try:
-            self.domain = libvirt_connection.lookupByName(name)
+            self.domain = libvirt_connection.lookupByName(name)  # type: libvirt.virDomain | None
         except libvirt.libvirtError:
             self.domain = None
 
@@ -49,6 +51,7 @@ class VM:
     def launch(self):
         logger.debug("Launching VM '%s'", self.name)
         executil.check_call(["multipass", "launch", "--name", self.name, "--disk", self.disk_size])
+        sys.exit(0)
         # Ensure that self.domain is set
         self.domain = self.libvirt_connection.lookupByName(self.name)
 
@@ -85,6 +88,7 @@ class VM:
     def wait_until_stopped(self):
         logger.debug("Waiting for VM '%s' to stop", self.name)
         def check_vm_stopped():
+            logger.debug("Checking if VM '%s' is stopped", self.name)
             try:
                 vm_info_json = executil.check_output(["multipass", "info", self.name, "--format", "json"])
             except subprocess.CalledProcessError as e:
@@ -122,6 +126,9 @@ class VM:
 
         raise TimeoutError(f"VM '{self.name}' did not start within the timeout ({WAIT_FOR_VM_RUNNING_TIMEOUT} seconds)")
 
+    def is_running(self) -> bool:
+        return self.domain.isActive()
+
     def has_snapshot(self, snapshot_name) -> bool:
         if not self.domain:
             return False
@@ -136,6 +143,12 @@ class VM:
         logger.debug("Restoring snapshot '%s'", snapshot_name)
         snapshot = self.domain.snapshotLookupByName(snapshot_name)
         self.domain.revertToSnapshot(snapshot)
+
+        if not self.is_running():
+            return
+
+        # Synchronize the time in the VM
+        self.run(["sudo", "systemctl", "restart", "systemd-timesyncd"])
 
     def create_snapshot(self, name: str, description: str):
         self.detach_cloud_init_disk()
@@ -226,7 +239,7 @@ class VM:
         #  </vsock>
         logger.debug("Attaching a vsock device")
         vsock = ET.Element("vsock", model="virtio")
-        ET.SubElement(vsock, "cid", auto="no", address="3")
+        ET.SubElement(vsock, "cid", auto="no", address=str(self.vsock_cid))
         root.find("devices").append(vsock)
 
         # Re-define the domain
@@ -236,7 +249,9 @@ class VM:
         # First, check if multipass knows about the VM
         exists_in_multipass = False
         try:
-            executil.check_call(["multipass", "info", self.name], stderr=subprocess.DEVNULL)
+            executil.check_call(["multipass", "info", self.name],
+                                stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL)
             exists_in_multipass = True
         except subprocess.CalledProcessError:
             pass
@@ -292,6 +307,7 @@ class VM:
 
         # Wait for the accessibility bus to be available
         def check_a11y_bus_available():
+            logging.debug("Checking if the a11y bus is available")
             try:
                 self.check_call(["sudo", "ls", f"/run/user/{gdm_uid}/at-spi/bus"])
             except subprocess.CalledProcessError:
@@ -313,14 +329,18 @@ class VM:
         # Reset the unit if it failed. We don't care about the exit code, so we
         # use executil.run().
         def try_resetting_unit():
-            executil.run(["systemctl", "reset-failed", "--user", host_unit_name], stderr=subprocess.DEVNULL)
-            executil.run(["systemctl", "stop", "--user", host_unit_name], stderr=subprocess.DEVNULL)
+            logger.debug("Trying to reset the unit")
+            executil.run(["systemctl", "--user", "stop", "--force", host_unit_name], stderr=subprocess.DEVNULL)
+            executil.run(["systemctl", "--user", "reset-failed", "--force", host_unit_name], stderr=subprocess.DEVNULL)
             try:
-                executil.run(["systemctl", "status", "--user", "--force", host_unit_name])
+                executil.check_call(["systemctl", "--user", "status", host_unit_name])
                 raise RetriableError("The unit is still running")
-            except subprocess.CalledProcessError:
-                # The unit is not running
-                return
+            except subprocess.CalledProcessError as e:
+                if e.returncode == 4:
+                    # The unit is unknown, which is what we want
+                    return
+                # All other exit codes mean that the unit is still known
+                raise RetriableError("The unit is still known")
         retry(try_resetting_unit, 5, 0.2)
 
         # Run the proxy
