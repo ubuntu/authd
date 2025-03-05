@@ -2,7 +2,7 @@ Feature: authd GDM login
   Test logging in with authd via GDM
 
   Background:
-    Given I have a Ubuntu Desktop system
+    Given I have an Ubuntu Desktop machine
 #    And I installed the authd package
 #    And I installed the authd-msentraid snap
 #    And I configured authd to use the MS Entra ID broker
@@ -10,6 +10,7 @@ Feature: authd GDM login
 #    And I installed the dogtail-service
 #    And I rebooted the system
     And I'm at the GDM login screen
+    And I have a second machine with a web browser
 
   Scenario: First login (MS Entra ID)
     When I enter the username of the test user
@@ -18,7 +19,7 @@ Feature: authd GDM login
     Then I see the message "Scan the QR code or access "https://microsoft.com/devicelogin" and use the provided login code"
     And I see a QR code which encodes the URL "https://microsoft.com/devicelogin"
     And I see a valid Microsoft Entra ID login code
-    When I open "https://microsoft.com/devicelogin" on another machine and log in
+    When I open "https://microsoft.com/devicelogin" on the second machine and log in
 #    And I enter the login code "user_code"
 #    And I log in with the username "demo@uaadtest.onmicrosoft.com" and password "password"
 #    Then I am asked if I am trying to sign in to "Azure OIDC Poc"

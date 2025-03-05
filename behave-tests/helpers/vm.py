@@ -1,41 +1,175 @@
+import json
+import subprocess
+import time
+from logging import getLogger
+import os
+import xml.etree.ElementTree as ET
+
+import libvirt
+from gi.repository import Gio, GLib
 from screen import Screen
+from checkpoint import Checkpoint
+import accessible
 import executil
+from sympy.codegen.ast import stderr
+
+logger = getLogger(os.path.basename(__file__))
 
 WAIT_FOR_VM_STOPPED_TIMEOUT = 30
 WAIT_FOR_VM_RUNNING_TIMEOUT = 30
 
+VSOCK_CID = 3
+VSOCK_PORT = 1
+
+RUNTIME_DIR = os.path.join(os.getenv("XDG_RUNTIME_DIR", "/run/user/%d" % os.getuid()), "behave-tests")
+
 class VM:
-    def __init__(self, libvirt_connection: libvirt.virConnect, vm_name: str):
+    def __init__(self, libvirt_connection: libvirt.virConnect, name: str, disk_size="5G"):
         self.libvirt_connection = libvirt_connection
-        self.vm_name = vm_name
-        self.domain = libvirt_connection.lookupByName(vm_name)
-        self.screen = Screen(self.domain)
+        self.name = name
+        self.disk_size = disk_size
+
+        try:
+            self.domain = libvirt_connection.lookupByName(name)
+        except libvirt.libvirtError:
+            self.domain = None
+
+        self.screen = Screen(self)
+        self.runtime_dir = os.path.join(RUNTIME_DIR, name)
+        self.vsock_port = VSOCK_PORT
+
+        global VSOCK_CID
+        self.vsock_cid = VSOCK_CID
+        # The next VM must use a different CID
+        VSOCK_CID += 1
+
+        self._a11y_bus_proxy = None # type: Gio.DBusProxy | None
+        self._gnome_shell = None # type: accessible.Root | None
+
+    def launch(self):
+        logger.debug("Launching VM '%s'", self.name)
+        executil.check_call(["multipass", "launch", "--name", self.name, "--disk", self.disk_size])
+        # Ensure that self.domain is set
+        self.domain = self.libvirt_connection.lookupByName(self.name)
 
     def start(self):
-        logging.debug("Starting VM '%s'", self.vm_name)
-        executil.check_call(["multipass", "start", self.vm_name])
+        logger.debug("Starting VM '%s'", self.name)
+        executil.check_call(["multipass", "start", self.name])
         self.wait_until_running()
 
     def stop(self):
-        logging.debug("Stopping VM '%s'", self.vm_name)
-        executil.check_call(["multipass", "stop", self.vm_name])
+        logger.debug("Stopping VM '%s'", self.name)
+        executil.check_call(["multipass", "stop", self.name])
         self.wait_until_stopped()
 
     def restart(self):
         self.stop()
         self.start()
 
-    def check_call(self, command: [str]):
-        executil.check_call(["multipass", "exec", self.vm_name, "--"] + command)
+    def run(self, command: [str], *args, **kwargs):
+        return executil.run(["multipass", "exec", self.name, "--"] + command, *args, **kwargs)
 
-    def get_ip(self):
-        pass
+    def check_call(self, command: [str], *args, **kwargs):
+        return executil.check_call(["multipass", "exec", self.name, "--"] + command, *args, **kwargs)
 
-    def get_vsock(self):
-        pass
+    def check_output(self, command: [str], *args, **kwargs) -> str:
+        return executil.check_output(["multipass", "exec", self.name, "--"] + command, *args, **kwargs)
 
-    def get_vsock_port(self):
-        pass
+    def get_ip(self) -> str:
+        vm_info_json = executil.check_output(["multipass", "info", self.name, "--format", "json"])
+        vm_info = json.loads(vm_info_json)
+        logger.debug("VM info: %s", vm_info)
+        ip = vm_info["info"][self.name]["ipv4"][0]
+        return ip
+
+    def wait_until_stopped(self):
+        logger.debug("Waiting for VM '%s' to stop", self.name)
+        def check_vm_stopped():
+            try:
+                vm_info_json = executil.check_output(["multipass", "info", self.name, "--format", "json"])
+            except subprocess.CalledProcessError as e:
+                if e.returncode == 2:
+                    # The VM does not exist
+                    raise RetriableError("The VM does not exist yet")
+                else:
+                    # Unexpected error
+                    raise
+
+            vm_info = json.loads(vm_info_json)
+            if vm_info["info"][self.name]["state"] != "Stopped":
+                raise RetriableError("The VM is not stopped yet")
+        retry(check_vm_stopped, WAIT_FOR_VM_STOPPED_TIMEOUT, 1)
+
+    def wait_until_running(self):
+        start_time = time.monotonic()
+        while time.monotonic() - start_time < WAIT_FOR_VM_RUNNING_TIMEOUT:
+            try:
+                vm_info_json = executil.check_output(["multipass", "info", self.name, "--format", "json"])
+            except subprocess.CalledProcessError as e:
+                if e.returncode == 2:
+                    # The VM does not exist
+                    time.sleep(1)
+                    continue
+                else:
+                    # Unexpected error
+                    raise
+
+            vm_info = json.loads(vm_info_json)
+            if vm_info["info"][self.name]["state"] == "Running":
+                return
+
+            time.sleep(1)
+
+        raise TimeoutError(f"VM '{self.name}' did not start within the timeout ({WAIT_FOR_VM_RUNNING_TIMEOUT} seconds)")
+
+    def has_snapshot(self, snapshot_name) -> bool:
+        if not self.domain:
+            return False
+
+        try:
+            self.domain.snapshotLookupByName(snapshot_name)
+            return True
+        except libvirt.libvirtError:
+            return False
+
+    def restore_snapshot(self, snapshot_name):
+        logger.debug("Restoring snapshot '%s'", snapshot_name)
+        snapshot = self.domain.snapshotLookupByName(snapshot_name)
+        self.domain.revertToSnapshot(snapshot)
+
+    def create_snapshot(self, name: str, description: str):
+        self.detach_cloud_init_disk()
+        xml = self.internal_snapshot_xml(name, description)
+        self.domain.snapshotCreateXML(ET.tostring(xml).decode())
+
+    def internal_snapshot_xml(self, name, description) -> ET.Element:
+        res = ET.Element("domainsnapshot")
+        name_elem = ET.SubElement(res, "name")
+        name_elem.text = name
+        description_elem = ET.SubElement(res, "description")
+        description_elem.text = description
+
+        # Get the disks of the domain
+        disks = self.list_disk_devices()
+
+        disks_elem = ET.SubElement(res, "disks")
+        for dev in disks:
+            ET.SubElement(disks_elem, "disk", name=dev, snapshot="internal")
+
+        return res
+
+    def detach_cloud_init_disk(self):
+        root = ET.fromstring(self.domain.XMLDesc())
+        for disk in root.findall(".//devices/disk"):
+            file = disk.find("source").get("file")
+            if os.path.basename(file) == "cloud-init-config.iso":
+                self.domain.detachDevice(ET.tostring(disk).decode())
+
+    def list_disk_devices(self) -> list:
+        ret = []
+        for e in ET.XML(self.domain.XMLDesc()).findall(".//devices/disk"):
+            ret.append(e.find("target").get("dev"))
+        return ret
 
     def define_devices(self):
         # Remove all video devices
@@ -44,7 +178,7 @@ class VM:
             root.find("devices").remove(device)
 
         # Attach a virtio video device
-        logging.debug("Attaching a virtio video device")
+        logger.debug("Attaching a virtio video device")
         video = ET.Element("video")
         ET.SubElement(video, "model", type="virtio", primary="yes")
         root.find("devices").append(video)
@@ -59,7 +193,7 @@ class VM:
         #   <image compression="off"/>
         #   <gl enable="no"/>
         # </graphics>
-        logging.debug("Attaching a Spice display")
+        logger.debug("Attaching a Spice display")
         graphics = ET.Element("graphics", type="spice", port="5902", autoport="yes", listen="127.0.0.1")
         ET.SubElement(graphics, "listen", type="address", address="127.0.0.1")
         ET.SubElement(graphics, "image", compression="off")
@@ -79,7 +213,7 @@ class VM:
                 break
 
         if not has_spice_channel:
-            logging.debug("Attaching a Spice channel")
+            logger.debug("Attaching a Spice channel")
             channel = ET.Element("channel", type="spicevmc")
             ET.SubElement(channel, "target", type="virtio", name="com.redhat.spice.0", state="disconnected")
             ET.SubElement(channel, "alias", name="channel0")
@@ -90,55 +224,148 @@ class VM:
         #  <vsock model='virtio'>
         #    <cid auto='no' address='3'/>
         #  </vsock>
-        logging.debug("Attaching a vsock device")
+        logger.debug("Attaching a vsock device")
         vsock = ET.Element("vsock", model="virtio")
         ET.SubElement(vsock, "cid", auto="no", address="3")
         root.find("devices").append(vsock)
 
         # Re-define the domain
-        domain = conn.defineXMLFlags(ET.tostring(root).decode(), libvirt.VIR_DOMAIN_DEFINE_VALIDATE)
+        self.domain = self.libvirt_connection.defineXMLFlags(ET.tostring(root).decode(), libvirt.VIR_DOMAIN_DEFINE_VALIDATE)
 
-    def wait_until_stopped(self):
-        logging.debug("Waiting for VM '%s' to stop", name)
-        start_time = time.monotonic()
-        while time.monotonic() - start_time < WAIT_FOR_VM_STOPPED_TIMEOUT:
+    def ensure_is_purged(self):
+        # First, check if multipass knows about the VM
+        exists_in_multipass = False
+        try:
+            executil.check_call(["multipass", "info", self.name], stderr=subprocess.DEVNULL)
+            exists_in_multipass = True
+        except subprocess.CalledProcessError:
+            pass
+
+        # Ensure that the VM is purged both in multipass and libvirt (deleting it in
+        # multipass does not delete it in libvirt)
+        try:
+            executil.check_call(["multipass", "delete", "--purge", self.name])
+        except subprocess.CalledProcessError:
+            if exists_in_multipass:
+                # Purging the VM in multipass failed, but it exists there
+                raise
+
+        # Check if the VM exists in libvirt
+        conn = libvirt.open("qemu:///system")
+        try:
+            domain = conn.lookupByName(self.name)
+        except libvirt.libvirtError:
+            # The domain does not exist
+            return
+
+        # Delete all disks
+        # disks = disk_devices_xml(ET.XML(domain.XMLDesc()))
+        # for disk in disks:
+        #     source = disk.find("./source/@file|./source/@dir|./source/@name|./source/@dev|./source/@volume")
+        #     if source is None:
+        #         continue
+        #
+        #     pool = disk.find("./source/@pool")
+        #     if pool:
+        #         storage_pool = conn.storagePoolLookupByName(pool)
+        #         volume = storage_pool.storageVolLookupByName(source)
+        #     else:
+        #         volume = conn.storageVolLookupByPath(source)
+        #
+        #     if not volume:
+        #         raise ValueError("Volume not found: %s" % source)
+        #
+        #     volume.delete()
+
+        # Undefine the domain
+        domain.undefineFlags(libvirt.VIR_DOMAIN_UNDEFINE_MANAGED_SAVE | \
+                             libvirt.VIR_DOMAIN_UNDEFINE_SNAPSHOTS_METADATA)
+
+    @property
+    def a11y_bus_proxy(self) -> Gio.DBusProxy:
+        if self._a11y_bus_proxy:
+            return self._a11y_bus_proxy
+
+        gdm_uid = self.check_output(["id", "-u", "gdm"]).strip()
+        host_unit_name = f"vsock-proxy-{self.name}"
+        vm_unit_name = "vsock-proxy-behave-tests"
+
+        # Wait for the accessibility bus to be available
+        def check_a11y_bus_available():
             try:
-                vm_info_json = executil.check_output(["multipass", "info", name, "--format", "json"])
-            except subprocess.CalledProcessError as e:
-                if e.returncode == 2:
-                    # The VM does not exist
-                    time.sleep(1)
-                    continue
-                else:
-                    # Unexpected error
-                    raise
+                self.check_call(["sudo", "ls", f"/run/user/{gdm_uid}/at-spi/bus"])
+            except subprocess.CalledProcessError:
+                raise RetriableError("The bus is not available yet")
+        retry(check_a11y_bus_available, 30, 0.2)
 
-            vm_info = json.loads(vm_info_json)
-            if vm_info["info"][name]["state"] == "Stopped":
-                return
+        # Forward the VSOCK in the VM to the a11y bus
+        # Stop the proxy if it is running. We don't care about the exit code, so we use executil.run().
+        self.check_call(["sudo", "systemd-run", "--unit", vm_unit_name, "--",
+                         "socat", f"VSOCK-LISTEN:{self.vsock_port},reuseaddr,fork",
+                         f"UNIX-CONNECT:/run/user/{gdm_uid}/at-spi/bus"])
 
-            time.sleep(1)
+        # Forward the a11y-bus Unix socket on the host to the VSOCK
+        a11y_bus_host_path = os.path.join(self.runtime_dir, "a11y-bus")
+        os.makedirs(os.path.dirname(a11y_bus_host_path), exist_ok=True)
+        if os.path.exists(a11y_bus_host_path):
+            os.unlink(a11y_bus_host_path)
 
-        raise TimeoutError(f"VM '{self.vm_name}' did not stop within the timeout ({WAIT_FOR_VM_STOPPED_TIMEOUT} seconds)")
-
-    def wait_until_running(name: str):
-        start_time = time.monotonic()
-        while time.monotonic() - start_time < WAIT_FOR_VM_RUNNING_TIMEOUT:
+        # Reset the unit if it failed. We don't care about the exit code, so we
+        # use executil.run().
+        def try_resetting_unit():
+            executil.run(["systemctl", "reset-failed", "--user", host_unit_name], stderr=subprocess.DEVNULL)
+            executil.run(["systemctl", "stop", "--user", host_unit_name], stderr=subprocess.DEVNULL)
             try:
-                vm_info_json = executil.check_output(["multipass", "info", name, "--format", "json"])
-            except subprocess.CalledProcessError as e:
-                if e.returncode == 2:
-                    # The VM does not exist
-                    time.sleep(1)
-                    continue
-                else:
-                    # Unexpected error
-                    raise
-
-            vm_info = json.loads(vm_info_json)
-            if vm_info["info"][name]["state"] == "Running":
+                executil.run(["systemctl", "status", "--user", "--force", host_unit_name])
+                raise RetriableError("The unit is still running")
+            except subprocess.CalledProcessError:
+                # The unit is not running
                 return
+        retry(try_resetting_unit, 5, 0.2)
 
-            time.sleep(1)
+        # Run the proxy
+        executil.check_call(["systemd-run", "--user", "--unit", host_unit_name, "--",
+                             "socat", f"UNIX-LISTEN:{a11y_bus_host_path},fork",
+                             f"VSOCK-CONNECT:{self.vsock_cid}:{self.vsock_port}"])
 
-        raise TimeoutError(f"VM '{self.vm_name}' did not start within the timeout ({WAIT_FOR_VM_RUNNING_TIMEOUT} seconds)")
+        logger.info("Connecting to bus %s", a11y_bus_host_path)
+        def try_connecting_to_a11y_bus():
+            try:
+                return Gio.DBusConnection.new_for_address_sync(
+                    address=f"unix:path={a11y_bus_host_path}",
+                    flags=Gio.DBusConnectionFlags.AUTHENTICATION_CLIENT |
+                          Gio.DBusConnectionFlags.MESSAGE_BUS_CONNECTION,
+                    observer=None,
+                    cancellable=None
+                )
+            except GLib.Error as e:
+                if e.code == Gio.IOErrorEnum.NOT_FOUND:
+                    raise RetriableError("The bus is not available yet") from e
+                raise
+        self._a11y_bus_proxy = retry(try_connecting_to_a11y_bus, 5, 0.2,
+                                     "Failed to connect to the a11y bus")
+
+        return self._a11y_bus_proxy
+    
+    @property
+    def gnome_shell(self) -> accessible.Root:
+        if self._gnome_shell:
+            return self._gnome_shell
+        self._gnome_shell = accessible.application_root(self.a11y_bus_proxy, "gnome-shell")
+        return self._gnome_shell
+
+
+class RetriableError(Exception):
+    pass
+
+
+def retry(func, timeout_sec: float, sleep_sec: float, error_msg: str = ""):
+    start_time = time.monotonic()
+    while time.monotonic() - start_time < timeout_sec:
+        try:
+            return func()
+        except RetriableError as e:
+            logger.debug("Exception in retry: %s", e)
+            time.sleep(sleep_sec)
+
+    raise TimeoutError(error_msg + f"(timeout: {timeout_sec} seconds)")
