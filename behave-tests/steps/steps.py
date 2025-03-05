@@ -33,6 +33,8 @@ main_test_vm = VM(LIBVIRT_CONNECTION, MAIN_TEST_VM_NAME, MAIN_TEST_VM_DISK_SPACE
 second_test_vm = VM(LIBVIRT_CONNECTION, SECOND_TEST_VM_NAME, SECOND_TEST_VM_DISK_SPACE)
 assert main_test_vm.vsock_cid != second_test_vm.vsock_cid
 
+login_code = None # type: str|None
+
 @given("I have an Ubuntu Desktop machine")
 def step_impl(context: behave.runner.Context):
     force_new_vms = context.config.userdata.getbool("FORCE_NEW_VMS")
@@ -177,14 +179,18 @@ def step_impl(context: behave.runner.Context, url: str):
 
 @step("I see a valid Microsoft Entra ID login code")
 def step_impl(context: behave.runner.Context):
-    label = main_test_vm.gnome_shell.find_child(name="Login code: ", role_name="label")
     # The login code is the next sibling of the "Login code: " label
-    login_code_label = label.get_parent().get_children()[1]
+    sibling = main_test_vm.gnome_shell.find_child(name="Login code: ", role_name="label")
+    login_code_label = sibling.get_parent().get_children()[1]
     assert login_code_label.get_role_name() == "label", f"Expected a label, got {login_code_label.get_role_name()}"
-    assert msentraid.is_valid_login_code(login_code_label.name), f"Invalid login code: {login_code_label.name}"
+
+    # Save the login code for later
+    global login_code
+    login_code = login_code_label.name
+    assert msentraid.is_valid_login_code(login_code), f"Invalid login code: {login_code}"
 
 
-@when('I open "(?P<url>.+)" on the second machine')
+@when('I open "(?P<url>.+)" on the second machine and log in')
 def step_impl(context: behave.runner.Context, url: str):
     # Open the URL in the browser
     second_test_vm.check_call(["xdg-open", url])

@@ -52,10 +52,14 @@ new_vm = Checkpoint(
 def _prepare_second_vm(vm: "VM", force_new_snapshots=False) -> None:
     new_vm.restore_or_run(vm, force_new_snapshots)
 
-    ### Install packages needed in the second VM ###
-    vm.check_call(["sudo", "apt", "update"])
-    # The second machine needs a web browser
-    vm.check_call(["sudo", "apt", "install", "-y", "firefox"])
+    if not force_new_snapshots and vm.has_snapshot("firefox-installed"):
+        vm.restore_snapshot("firefox-installed")
+    else:
+        ### Install packages needed in the second VM ###
+        vm.check_call(["sudo", "apt", "update"])
+        # The second machine needs a web browser
+        vm.check_call(["sudo", "apt", "install", "-y", "firefox"])
+        vm.create_snapshot("firefox-installed", "Firefox installed")
 
     ### Create a user and log in ###
     username = "user"
@@ -71,15 +75,9 @@ def _prepare_second_vm(vm: "VM", force_new_snapshots=False) -> None:
     # Wait until we're at the GDM login screen
     vm.gnome_shell.find_child(name="Login Options", role_name="menu")
 
-    # Enter the username. The username text entry doesn't have a label or description,
-    # but it's the only editable text entry and the focused one.
-    text_entry = vm.gnome_shell.find_child(
-        role_name="text",
-        editable=True,
-        focused=True,
-    )
-    text_entry.set_text(username)
-    text_entry.activate()
+    user_button = vm.gnome_shell.find_child(role_name="push button", label=username)
+    user_button.grab_focus()
+    vm.screen.press("Enter")
 
     # Enter the password
     password_entry = vm.gnome_shell.find_child(
