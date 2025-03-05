@@ -1,5 +1,4 @@
 import json
-import logging
 import subprocess
 import sys
 import time
@@ -10,10 +9,8 @@ import xml.etree.ElementTree as ET
 import libvirt
 from gi.repository import Gio, GLib
 from screen import Screen
-from checkpoint import Checkpoint
 import accessible
 import executil
-from sympy.codegen.ast import stderr
 
 logger = getLogger(os.path.basename(__file__))
 
@@ -51,7 +48,6 @@ class VM:
     def launch(self):
         logger.debug("Launching VM '%s'", self.name)
         executil.check_call(["multipass", "launch", "--name", self.name, "--disk", self.disk_size])
-        sys.exit(0)
         # Ensure that self.domain is set
         self.domain = self.libvirt_connection.lookupByName(self.name)
 
@@ -81,7 +77,6 @@ class VM:
     def get_ip(self) -> str:
         vm_info_json = executil.check_output(["multipass", "info", self.name, "--format", "json"])
         vm_info = json.loads(vm_info_json)
-        logger.debug("VM info: %s", vm_info)
         ip = vm_info["info"][self.name]["ipv4"][0]
         return ip
 
@@ -140,7 +135,7 @@ class VM:
             return False
 
     def restore_snapshot(self, snapshot_name):
-        logger.debug("Restoring snapshot '%s'", snapshot_name)
+        logger.debug("Restoring snapshot '%s' of VM '%s'", snapshot_name, self.name)
         snapshot = self.domain.snapshotLookupByName(snapshot_name)
         self.domain.revertToSnapshot(snapshot)
 
@@ -191,7 +186,7 @@ class VM:
             root.find("devices").remove(device)
 
         # Attach a virtio video device
-        logger.debug("Attaching a virtio video device")
+        logger.debug("Attaching a virtio video device to VM '%s'", self.name)
         video = ET.Element("video")
         ET.SubElement(video, "model", type="virtio", primary="yes")
         root.find("devices").append(video)
@@ -206,7 +201,7 @@ class VM:
         #   <image compression="off"/>
         #   <gl enable="no"/>
         # </graphics>
-        logger.debug("Attaching a Spice display")
+        logger.debug("Attaching a Spice display to VM '%s'", self.name)
         graphics = ET.Element("graphics", type="spice", port="5902", autoport="yes", listen="127.0.0.1")
         ET.SubElement(graphics, "listen", type="address", address="127.0.0.1")
         ET.SubElement(graphics, "image", compression="off")
@@ -226,7 +221,7 @@ class VM:
                 break
 
         if not has_spice_channel:
-            logger.debug("Attaching a Spice channel")
+            logger.debug("Attaching a Spice channel to VM '%s'", self.name)
             channel = ET.Element("channel", type="spicevmc")
             ET.SubElement(channel, "target", type="virtio", name="com.redhat.spice.0", state="disconnected")
             ET.SubElement(channel, "alias", name="channel0")
@@ -237,7 +232,7 @@ class VM:
         #  <vsock model='virtio'>
         #    <cid auto='no' address='3'/>
         #  </vsock>
-        logger.debug("Attaching a vsock device")
+        logger.debug("Attaching a vsock device to VM '%s'", self.name)
         vsock = ET.Element("vsock", model="virtio")
         ET.SubElement(vsock, "cid", auto="no", address=str(self.vsock_cid))
         root.find("devices").append(vsock)
@@ -307,7 +302,7 @@ class VM:
 
         # Wait for the accessibility bus to be available
         def check_a11y_bus_available():
-            logging.debug("Checking if the a11y bus is available")
+            logger.debug("Checking if the a11y bus is available")
             try:
                 self.check_call(["sudo", "ls", f"/run/user/{gdm_uid}/at-spi/bus"])
             except subprocess.CalledProcessError:

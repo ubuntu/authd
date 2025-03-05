@@ -28,4 +28,3 @@ Feature: authd GDM login
     When I enter a password
     And confirm the password
     Then I am logged in
-
