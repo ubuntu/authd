@@ -3,6 +3,7 @@
 set -eu
 
 SCRIPT_DIR=$(readlink -f "$(dirname "$0")")
+RUNTIME_DIR=${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/behave-tests
 
 usage() {
     cat <<EOF
@@ -79,5 +80,8 @@ fi
 # being run by a behave test.
 export BEHAVE=1
 
+LOG_FILE=${RUNTIME_DIR}/behave-tests.log
+echo >&2 "Logging to ${LOG_FILE}"
+
 set -x
-${BEHAVE_CMD} "${SCRIPT_DIR}" "$@"
+${BEHAVE_CMD} "${SCRIPT_DIR}" "$@" |& tee "${LOG_FILE}"

@@ -23,14 +23,15 @@ use_step_matcher("re")
 
 MAIN_TEST_VM_NAME = "behave-tests-main"
 MAIN_TEST_VM_DISK_SPACE = "5G"
-OTHER_TEST_VM_NAME = "behave-tests-other"
-OTHER_TEST_VM_DISK_SPACE = "5G"
+SECOND_TEST_VM_NAME = "behave-tests-second"
+SECOND_TEST_VM_DISK_SPACE = "10G"
 SNAPSHOT_BASE = "base-snapshot"
 
 LIBVIRT_CONNECTION = libvirt.open("qemu:///system")
 
 main_test_vm = VM(LIBVIRT_CONNECTION, MAIN_TEST_VM_NAME, MAIN_TEST_VM_DISK_SPACE)
-other_test_vm = VM(LIBVIRT_CONNECTION, OTHER_TEST_VM_NAME, OTHER_TEST_VM_DISK_SPACE)
+second_test_vm = VM(LIBVIRT_CONNECTION, SECOND_TEST_VM_NAME, SECOND_TEST_VM_DISK_SPACE)
+assert main_test_vm.vsock_cid != second_test_vm.vsock_cid
 
 @given("I have an Ubuntu Desktop machine")
 def step_impl(context: behave.runner.Context):
@@ -83,7 +84,7 @@ def step_impl(context: behave.runner.Context):
 def step_impl(context: behave.runner.Context):
     force_new_vms = context.config.userdata.getbool("FORCE_NEW_VMS")
     checkpoints.second_vm_prepared.restore_or_run(
-        other_test_vm, force_new_vms,
+        second_test_vm, force_new_vms,
     )
 
 
@@ -183,10 +184,10 @@ def step_impl(context: behave.runner.Context):
     assert msentraid.is_valid_login_code(login_code_label.name), f"Invalid login code: {login_code_label.name}"
 
 
-@when('I open "https://microsoft\.com/devicelogin" on the second machine and log in')
-def step_impl(context: behave.runner.Context):
+@when('I open "(?P<url>.+)" on the second machine')
+def step_impl(context: behave.runner.Context, url: str):
     # Open the URL in the browser
-    other_test_vm.check_call(["xdg-open", "https://microsoft.com/devicelogin"])
+    second_test_vm.check_call(["xdg-open", url])
 
 
 @then("I am prompted to create a local password")

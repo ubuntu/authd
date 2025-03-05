@@ -1,4 +1,3 @@
-from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Optional, Callable
 
 if TYPE_CHECKING:

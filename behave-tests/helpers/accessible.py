@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 
 import gi
 gi.require_version("Atspi", "2.0")
@@ -15,7 +16,7 @@ def bus_names(connection: Gio.DBusConnection):
         object_path="/org/freedesktop/DBus",
         interface_name="org.freedesktop.DBus",
         cancellable=None
-    )
+    ) # type: Gio.DBusProxy
 
     names = proxy.call_sync(
         "ListNames", None, Gio.DBusCallFlags.NONE, -1, None
@@ -38,7 +39,7 @@ class Accessible:
             object_path=path,
             interface_name="org.a11y.atspi.Accessible",
             cancellable=None
-        )  # type: Gio.DBusProxy
+        )  # type: Gio.DBusProxy | None
 
         try:
             self.interfaces = self._proxy.call_sync(
@@ -76,7 +77,7 @@ class Accessible:
                 object_path=path,
                 interface_name="org.a11y.atspi.Text",
                 cancellable=None
-            ) # type: Gio.DBusProxy
+            ) # type: Gio.DBusProxy | None
         else:
             self._text_proxy = None
 
@@ -89,7 +90,7 @@ class Accessible:
                 object_path=path,
                 interface_name="org.a11y.atspi.EditableText",
                 cancellable=None
-            ) # type: Gio.DBusProxy
+            ) # type: Gio.DBusProxy | None
         else:
             self._editable_text_proxy = None
 
@@ -102,7 +103,7 @@ class Accessible:
                 object_path=path,
                 interface_name="org.a11y.atspi.Component",
                 cancellable=None
-            ) # type: Gio.DBusProxy
+            ) # type: Gio.DBusProxy | None
         else:
             self._component_proxy = None
 
@@ -127,7 +128,7 @@ class Accessible:
     def get_role_name(self) -> str:
         return self._proxy.call_sync("GetRoleName", None, Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
 
-    def get_labels(self) -> list["Accessible"]:
+    def get_labels(self) -> list["Accessible"] | None:
         relation_set = self._proxy.call_sync(
             method_name="GetRelationSet",
             parameters=None,
@@ -170,7 +171,7 @@ class Accessible:
 
         return state_names
 
-    def get_parent(self) -> "Accessible":
+    def get_parent(self) -> Optional["Accessible"]:
         bus_name, path = self._proxy.get_cached_property("Parent").unpack()
         if path is None:
             return None
@@ -184,7 +185,7 @@ class Accessible:
             label: str = None,
             editable: bool = None,
             focused: bool = None,
-    ) -> "Accessible":
+    ) -> Optional["Accessible"]:
         """
         Recursively searches for a child matching the given criteria.
         Returns the first match found or None if no match is found.
