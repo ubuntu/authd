@@ -334,7 +334,7 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return m, tea.Sequence(
 			getAuthenticationModes(m.client, m.currentSession.sessionID, m.authModeSelectionModel.SupportedUILayouts()),
-			m.changeStage(pam_proto.Stage_authModeSelection),
+			sendEvent(ChangeStage{pam_proto.Stage_authModeSelection}),
 		)
 
 	case AuthModeSelected:
