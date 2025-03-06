@@ -1202,16 +1202,21 @@ func TestGdmModel(t *testing.T) {
 								gdm_test.AuthModeSelectedEvent(layouts.QrCode),
 							},
 							commands: []tea.Cmd{
-								sendEvent(gdmTestSendAuthDataWhenReady{}),
-								sendEvent(gdmTestWaitForStage{
-									stage: pam_proto.Stage_challenge,
-									events: []*gdm.EventData{
-										gdm_test.ReselectAuthMode(),
+								sendEvent(gdmTestSendAuthDataWhenReadyFull{
+									authData: &authd.IARequest_AuthenticationData_Wait{
+										Wait: layouts.True,
+									},
+									commands: []tea.Cmd{
+										sendEvent(gdmTestAddPollResultEvent{
+											gdm_test.ReselectAuthMode(),
+										}),
+										sendEvent(gdmTestSendAuthDataWhenReady{
+											&authd.IARequest_AuthenticationData_Wait{
+												Wait: layouts.True,
+											},
+										}),
 									},
 								}),
-								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Wait{
-									Wait: layouts.True,
-								}}),
 							},
 						}),
 					},
@@ -1237,6 +1242,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_brokersReceived,
 				gdm.EventType_brokerSelected,
 				gdm.EventType_authModeSelected,
+				gdm.EventType_authEvent,
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authModeSelected,
@@ -1247,6 +1253,7 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantStage: pam_proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
+				{Access: auth.Cancelled},
 				{Access: auth.Cancelled},
 				{Access: auth.Granted},
 			},
@@ -1285,18 +1292,21 @@ func TestGdmModel(t *testing.T) {
 								gdm_test.AuthModeSelectedEvent(layouts.QrCode),
 							},
 							commands: []tea.Cmd{
-								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Wait{
-									Wait: layouts.True,
-								}}),
-								sendEvent(gdmTestWaitForStage{
-									stage: pam_proto.Stage_challenge,
-									events: []*gdm.EventData{
-										gdm_test.ReselectAuthMode(),
+								sendEvent(gdmTestSendAuthDataWhenReadyFull{
+									authData: &authd.IARequest_AuthenticationData_Wait{
+										Wait: layouts.True,
+									},
+									commands: []tea.Cmd{
+										sendEvent(gdmTestAddPollResultEvent{
+											gdm_test.ReselectAuthMode(),
+										}),
+										sendEvent(gdmTestSendAuthDataWhenReady{
+											&authd.IARequest_AuthenticationData_Wait{
+												Wait: layouts.True,
+											},
+										}),
 									},
 								}),
-								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Wait{
-									Wait: layouts.True,
-								}}),
 							},
 						}),
 					},
