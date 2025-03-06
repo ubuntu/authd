@@ -57,7 +57,13 @@ type gdmTestWaitForStage struct {
 type gdmTestCommandsDone gdmTestCommands
 
 type gdmTestSendAuthDataWhenReady struct {
-	item authd.IARequestAuthenticationDataItem
+	authData authd.IARequestAuthenticationDataItem
+}
+
+type gdmTestSendAuthDataWhenReadyFull struct {
+	authData authd.IARequestAuthenticationDataItem
+	commands []tea.Cmd
+	events   []*gdm.EventData
 }
 
 var currentPkg = reflect.TypeOf(gdmTestUIModel{}).PkgPath()
@@ -160,15 +166,30 @@ func (m *gdmTestUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case gdmTestSendAuthDataWhenReady:
 		doneMsg := gdmTestWaitForCommandsDone{seq: gdmTestSequentialMessages.Add(1)}
 		m.wantMessages = append(m.wantMessages, doneMsg)
+		commands = append(commands, sendEvent(gdmTestSendAuthDataWhenReadyFull{authData: msg.authData}))
+		commands = append(commands, sendEvent(doneMsg))
+
+	case gdmTestSendAuthDataWhenReadyFull:
+
+		doneMsg := gdmTestWaitForCommandsDone{seq: gdmTestSequentialMessages.Add(1)}
+		m.wantMessages = append(m.wantMessages, doneMsg)
+
+		nextMsg := &gdmTestCommandsDone{commands: msg.commands, events: msg.events}
+		if len(nextMsg.commands) > 0 || len(nextMsg.events) > 0 {
+			seq := gdmTestSequentialMessages.Add(1)
+			doneCommandsMsg := gdmTestWaitForCommandsDone{seq: seq}
+			nextMsg.commands = append(nextMsg.commands, sendEvent(doneCommandsMsg))
+			m.wantMessages = append(m.wantMessages, doneCommandsMsg)
+		}
 
 		go func() {
 			m.gdmHandler.waitForAuthenticationStarted()
-			if msg.item != nil {
-				m.gdmHandler.appendPollResultEvents(gdm_test.IsAuthenticatedEvent(msg.item))
+			if msg.authData != nil {
+				m.gdmHandler.appendPollResultEvents(gdm_test.IsAuthenticatedEvent(msg.authData))
 			}
 			m.program.Send(tea.Sequence(tea.Tick(gdmPollFrequency, func(t time.Time) tea.Msg {
-				return sendEvent(doneMsg)
-			}), sendEvent(doneMsg))())
+				return nil
+			}), sendEvent(doneMsg), sendEvent(nextMsg))())
 		}()
 
 	case gdmTestWaitForCommandsDone:
