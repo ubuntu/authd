@@ -43,13 +43,18 @@ type gdmTestWaitForCommandsDone struct {
 	seq int64
 }
 
+type gdmTestCommands struct {
+	events   []*gdm.EventData
+	commands []tea.Cmd
+}
+
 type gdmTestWaitForStage struct {
 	stage    proto.Stage
 	events   []*gdm.EventData
 	commands []tea.Cmd
 }
 
-type gdmTestWaitForStageDone gdmTestWaitForStage
+type gdmTestCommandsDone gdmTestCommands
 
 type gdmTestSendAuthDataWhenReady struct {
 	item authd.IARequestAuthenticationDataItem
@@ -108,7 +113,7 @@ func (m *gdmTestUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.gdmHandler.appendPollResultEvents(msg.event)
 
 	case gdmTestWaitForStage:
-		doneMsg := (*gdmTestWaitForStageDone)(&msg)
+		doneMsg := &gdmTestCommandsDone{commands: msg.commands, events: msg.events}
 		if len(doneMsg.commands) > 0 {
 			seq := gdmTestSequentialMessages.Add(1)
 			doneCommandsMsg := gdmTestWaitForCommandsDone{seq: seq}
@@ -132,7 +137,13 @@ func (m *gdmTestUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.program.Send(doneMsg)
 		}()
 
-	case *gdmTestWaitForStageDone:
+	case gdmTestCommands:
+		doneMsg := (*gdmTestCommandsDone)(&msg)
+		m.wantMessages = append(m.wantMessages, doneMsg)
+		commands = append(commands, msg.commands...)
+		commands = append(commands, sendEvent(doneMsg))
+
+	case *gdmTestCommandsDone:
 		// FIXME: We can't just define msgCommands a sub-sequence as we used to
 		// do since that's unreliable, as per a bubbletea bug:
 		//  - https://github.com/charmbracelet/bubbletea/issues/847
