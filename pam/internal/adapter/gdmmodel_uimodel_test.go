@@ -55,6 +55,8 @@ type gdmTestSendAuthDataWhenReady struct {
 	item authd.IARequestAuthenticationDataItem
 }
 
+var currentPkg = reflect.TypeOf(gdmTestUIModel{}).PkgPath()
+
 func (m *gdmTestUIModel) maybeHandleWantMessageUnlocked(msg tea.Msg) {
 	returnErrorMsg, isError := msg.(PamReturnError)
 
@@ -87,7 +89,10 @@ func (m *gdmTestUIModel) maybeHandleWantMessageUnlocked(msg tea.Msg) {
 }
 
 func (m *gdmTestUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	log.Debugf(context.TODO(), "%#v", msg)
+	if log.IsLevelEnabled(log.DebugLevel) &&
+		reflect.TypeOf(msg).PkgPath() == currentPkg {
+		log.Debugf(context.TODO(), "%#v", msg)
+	}
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
