@@ -1104,7 +1104,7 @@ func TestGdmModel(t *testing.T) {
 			},
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithUILayout(layouts.QrCode, "Hello QR!", pam_test.QrCodeUILayout()),
-				pam_test.WithIsAuthenticatedWantWait(time.Millisecond*500),
+				pam_test.WithIsAuthenticatedWantWait(time.Millisecond*1500),
 			),
 			gdmEvents: []*gdm.EventData{
 				gdm_test.SelectUserEvent("gdm-selected-user-broker-and-auth-mode"),
@@ -1161,7 +1161,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authModeSelected,
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
-				gdm.EventType_authEvent,
+				gdm.EventType_authEvent, // granted
 			},
 			wantStage: pam_proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
@@ -1178,7 +1178,7 @@ func TestGdmModel(t *testing.T) {
 			},
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithUILayout(layouts.QrCode, "Hello QR!", pam_test.QrCodeUILayout()),
-				pam_test.WithIsAuthenticatedWantWait(time.Millisecond*500),
+				pam_test.WithIsAuthenticatedWantWait(time.Millisecond*1500),
 			),
 			gdmEvents: []*gdm.EventData{
 				gdm_test.SelectUserEvent("gdm-selected-user-broker-and-auth-mode"),
@@ -1202,16 +1202,21 @@ func TestGdmModel(t *testing.T) {
 								gdm_test.AuthModeSelectedEvent(layouts.QrCode),
 							},
 							commands: []tea.Cmd{
-								sendEvent(gdmTestSendAuthDataWhenReady{}),
-								sendEvent(gdmTestWaitForStage{
-									stage: pam_proto.Stage_challenge,
-									events: []*gdm.EventData{
-										gdm_test.ReselectAuthMode(),
+								sendEvent(gdmTestSendAuthDataWhenReadyFull{
+									authData: &authd.IARequest_AuthenticationData_Wait{
+										Wait: layouts.True,
+									},
+									commands: []tea.Cmd{
+										sendEvent(gdmTestAddPollResultEvent{
+											gdm_test.ReselectAuthMode(),
+										}),
+										sendEvent(gdmTestSendAuthDataWhenReady{
+											&authd.IARequest_AuthenticationData_Wait{
+												Wait: layouts.True,
+											},
+										}),
 									},
 								}),
-								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Wait{
-									Wait: layouts.True,
-								}}),
 							},
 						}),
 					},
@@ -1237,16 +1242,18 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_brokersReceived,
 				gdm.EventType_brokerSelected,
 				gdm.EventType_authModeSelected,
+				gdm.EventType_authEvent,
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authModeSelected,
-				gdm.EventType_authEvent,
+				gdm.EventType_authEvent, // cancelled
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
-				gdm.EventType_authEvent,
+				gdm.EventType_authEvent, // granted
 			},
 			wantStage: pam_proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
+				{Access: auth.Cancelled},
 				{Access: auth.Cancelled},
 				{Access: auth.Granted},
 			},
@@ -1285,18 +1292,21 @@ func TestGdmModel(t *testing.T) {
 								gdm_test.AuthModeSelectedEvent(layouts.QrCode),
 							},
 							commands: []tea.Cmd{
-								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Wait{
-									Wait: layouts.True,
-								}}),
-								sendEvent(gdmTestWaitForStage{
-									stage: pam_proto.Stage_challenge,
-									events: []*gdm.EventData{
-										gdm_test.ReselectAuthMode(),
+								sendEvent(gdmTestSendAuthDataWhenReadyFull{
+									authData: &authd.IARequest_AuthenticationData_Wait{
+										Wait: layouts.True,
+									},
+									commands: []tea.Cmd{
+										sendEvent(gdmTestAddPollResultEvent{
+											gdm_test.ReselectAuthMode(),
+										}),
+										sendEvent(gdmTestSendAuthDataWhenReady{
+											&authd.IARequest_AuthenticationData_Wait{
+												Wait: layouts.True,
+											},
+										}),
 									},
 								}),
-								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Wait{
-									Wait: layouts.True,
-								}}),
 							},
 						}),
 					},
