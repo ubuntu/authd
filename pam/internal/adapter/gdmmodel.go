@@ -238,7 +238,7 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 			StartAuthentication: &gdm.Events_StartAuthentication{},
 		}))
 
-	case reselectAuthMode:
+	case stopAuthentication:
 		m.waitingAuth = false
 
 	case isAuthenticatedResultReceived:

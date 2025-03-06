@@ -195,7 +195,7 @@ func (m *gdmTestUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case gdmTestWaitForCommandsDone:
 		log.Debugf(context.TODO(), "Sequential messages done: %v", msg.seq)
 
-	case isAuthenticatedCancelled:
+	case stopAuthentication:
 		m.gdmHandler.consumeAuthenticationStartedEvents()
 	}
 

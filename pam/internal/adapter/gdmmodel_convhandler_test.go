@@ -290,6 +290,7 @@ func (h *gdmConvHandler) waitForAuthenticationStarted() {
 func (h *gdmConvHandler) consumeAuthenticationStartedEvents() {
 	select {
 	case <-h.startAuthRequested:
+		h.t.Logf("Ignore pending authentication request")
 	default:
 		return
 	}
