@@ -509,7 +509,7 @@ func TestGdmModel(t *testing.T) {
 				},
 			},
 			supportedLayouts: []*authd.UILayout{
-				pam_test.FormUILayout(),
+				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.NewPasswordUILayout(),
 			},
 			wantSelectedBroker: firstBrokerInfo.Id,
@@ -1176,7 +1176,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Authenticated_with_qrcode_after_auth_selection_stage_from_client_after_client_side_broker_and_auth_mode_selection": {
 			supportedLayouts: []*authd.UILayout{
-				pam_test.FormUILayout(),
+				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.QrCodeUILayout(),
 			},
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
@@ -1248,7 +1248,7 @@ func TestGdmModel(t *testing.T) {
 		"Authenticated_with_qrcode_regenerated_after_auth_selection_stage_from_client_after_client_side_broker_and_auth_mode_selection": {
 			timeout: 10 * time.Second,
 			supportedLayouts: []*authd.UILayout{
-				pam_test.FormUILayout(),
+				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.QrCodeUILayout(),
 			},
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
@@ -1335,7 +1335,7 @@ func TestGdmModel(t *testing.T) {
 		"Authenticated_with_qrcode_regenerated_after_wait_started_at_auth_selection_stage_from_client_after_client_side_broker_and_auth_mode_selection": {
 			timeout: 10 * time.Second,
 			supportedLayouts: []*authd.UILayout{
-				pam_test.FormUILayout(),
+				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.QrCodeUILayout(),
 			},
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
@@ -2333,7 +2333,9 @@ func TestGdmModel(t *testing.T) {
 			}
 
 			if tc.supportedLayouts == nil {
-				gdmHandler.supportedLayouts = []*authd.UILayout{pam_test.FormUILayout()}
+				gdmHandler.supportedLayouts = []*authd.UILayout{
+					pam_test.FormUILayout(pam_test.WithWait(true)),
+				}
 			}
 
 			if tc.protoVersion != 0 {
