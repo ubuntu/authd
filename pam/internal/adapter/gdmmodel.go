@@ -222,9 +222,9 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 
 	case startAuthentication:
 		m.waitingAuth = true
-		return m, sendEvent(m.emitEventSync(&gdm.EventData_StartAuthentication{
+		return m, m.emitEvent(&gdm.EventData_StartAuthentication{
 			StartAuthentication: &gdm.Events_StartAuthentication{},
-		}))
+		})
 
 	case stopAuthentication:
 		m.waitingAuth = false
@@ -257,12 +257,12 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 			)
 		}
 
-		return m, sendEvent(m.emitEventSync(&gdm.EventData_AuthEvent{
+		return m, m.emitEvent(&gdm.EventData_AuthEvent{
 			AuthEvent: &gdm.Events_AuthEvent{Response: &authd.IAResponse{
 				Access: access,
 				Msg:    authMsg,
 			}},
-		}))
+		})
 	}
 
 	return m, nil
