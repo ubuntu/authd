@@ -660,6 +660,92 @@ func TestGdmModel(t *testing.T) {
 			wantStage:      pam_proto.Stage_challenge,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
+		"Explicitly_cancelled_for_a_waiting_auth_mode_with_preset_PAM_user_and_server_side_broker_and_authMode_selection": {
+			clientOptions: append(slices.Clone(multiBrokerClientOptions),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
+				pam_test.WithIsAuthenticatedWantWait(time.Millisecond*1500),
+			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
+			messages: []tea.Msg{
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_challenge,
+					commands: []tea.Cmd{
+						sendEvent(gdmTestSendAuthDataWhenReadyFull{
+							authData: &authd.IARequest_AuthenticationData_Wait{
+								Wait: layouts.True,
+							},
+							events: []*gdm.EventData{
+								gdm_test.IsAuthenticatedCancelledEvent(),
+							},
+						}),
+					},
+				},
+			},
+			wantSelectedBroker: firstBrokerInfo.Id,
+			wantGdmRequests: []gdm.RequestType{
+				gdm.RequestType_uiLayoutCapabilities,
+				gdm.RequestType_changeStage, // -> broker Selection
+				gdm.RequestType_changeStage, // -> authMode Selection
+				gdm.RequestType_changeStage, // -> form with wait
+			},
+			wantGdmEvents: []gdm.EventType{
+				gdm.EventType_userSelected,
+				gdm.EventType_brokersReceived,
+				gdm.EventType_brokerSelected,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent,
+			},
+			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Cancelled}},
+			wantStage:      pam_proto.Stage_challenge,
+			wantExitStatus: gdmTestEarlyStopExitStatus,
+		},
+		"Implicitly_cancelled_for_a_waiting_auth_mode_with_preset_PAM_user_and_server_side_broker_and_authMode_selection": {
+			clientOptions: append(slices.Clone(multiBrokerClientOptions),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
+				pam_test.WithIsAuthenticatedWantWait(time.Millisecond*1500),
+			),
+			pamUser: "pam-preset-user-and-daemon-selected-broker",
+			messages: []tea.Msg{
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_challenge,
+					commands: []tea.Cmd{
+						sendEvent(gdmTestSendAuthDataWhenReadyFull{
+							authData: &authd.IARequest_AuthenticationData_Wait{
+								Wait: layouts.True,
+							},
+							events: []*gdm.EventData{
+								gdm_test.ChangeStageEvent(pam_proto.Stage_brokerSelection),
+							},
+							commands: []tea.Cmd{
+								sendEvent(gdmTestWaitForStage{stage: pam_proto.Stage_brokerSelection}),
+							},
+						}),
+					},
+				},
+			},
+			wantSelectedBroker: firstBrokerInfo.Id,
+			wantGdmRequests: []gdm.RequestType{
+				gdm.RequestType_uiLayoutCapabilities,
+				gdm.RequestType_changeStage, // -> broker Selection
+				gdm.RequestType_changeStage, // -> authMode Selection
+				gdm.RequestType_changeStage, // -> form with wait
+				gdm.RequestType_changeStage, // -> broker selection
+			},
+			wantGdmEvents: []gdm.EventType{
+				gdm.EventType_userSelected,
+				gdm.EventType_brokersReceived,
+				gdm.EventType_brokerSelected,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent,
+			},
+			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Cancelled}},
+			wantStage:      pam_proto.Stage_brokerSelection,
+			wantExitStatus: gdmTestEarlyStopExitStatus,
+		},
 		"Authenticated_with_preset_PAM_user_and_server_side_broker_and_authMode_selection_and_after_various_retries": {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
