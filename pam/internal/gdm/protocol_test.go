@@ -654,6 +654,17 @@ func TestSafeString(t *testing.T) {
 			},
 			wantString: `type:authEvent authEvent:{response:{access:"granted" msg:"Hello!"}}`,
 		},
+		"AuthenticatedRequest_with_nil_data_is_fully_stringified": {
+			eventData: &gdm.EventData{
+				Type: gdm.EventType_isAuthenticatedRequested,
+				Data: &gdm.EventData_IsAuthenticatedRequested{
+					IsAuthenticatedRequested: &gdm.Events_IsAuthenticatedRequested{
+						AuthenticationData: nil,
+					},
+				},
+			},
+			wantString: `type:isAuthenticatedRequested isAuthenticatedRequested:{}`,
+		},
 		"AuthenticatedRequest_without_secret_is_fully_stringified": {
 			eventData: &gdm.EventData{
 				Type: gdm.EventType_isAuthenticatedRequested,
