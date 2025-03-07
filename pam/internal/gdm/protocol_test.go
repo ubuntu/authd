@@ -684,21 +684,32 @@ func TestSafeString(t *testing.T) {
 			},
 			wantString: `type:isAuthenticatedRequested isAuthenticatedRequested:{authentication_data:{skip:"skip-value"}}`,
 		},
-		"AuthenticatedRequest_with_secret_is_safely_stringified": {
+		"AuthenticatedRequest_with_nil_data_is_fully_stringified": {
+			eventData: &gdm.EventData{
+				Type: gdm.EventType_isAuthenticatedRequested,
+				Data: &gdm.EventData_IsAuthenticatedRequested{
+					IsAuthenticatedRequested: &gdm.Events_IsAuthenticatedRequested{
+						AuthenticationData: nil,
+					},
+				},
+			},
+			wantString: `type:isAuthenticatedRequested isAuthenticatedRequested:{}`,
+		},
+		"AuthenticatedRequest_without_secret_is_fully_stringified": {
 			eventData: &gdm.EventData{
 				Type: gdm.EventType_isAuthenticatedRequested,
 				Data: &gdm.EventData_IsAuthenticatedRequested{
 					&gdm.Events_IsAuthenticatedRequested{
 						AuthenticationData: &authd.IARequest_AuthenticationData{
-							Item: &authd.IARequest_AuthenticationData_Challenge{
-								Challenge: "SuperSecretValue!#DON'T SHARE!",
+							Item: &authd.IARequest_AuthenticationData_Secret{
+								Secret: "SuperSecretValue!#DON'T SHARE!",
 							},
 						},
 					},
 				},
 			},
-			wantString:     `type:isAuthenticatedRequested isAuthenticatedRequested:{authentication_data:{challenge:"SuperSecretValue!#DON'T SHARE!"}}`,
-			wantSafeString: `type:isAuthenticatedRequested isAuthenticatedRequested:{authentication_data:{challenge:"**************"}}`,
+			wantString:     `type:isAuthenticatedRequested isAuthenticatedRequested:{authentication_data:{secret:"SuperSecretValue!#DON'T SHARE!"}}`,
+			wantSafeString: `type:isAuthenticatedRequested isAuthenticatedRequested:{authentication_data:{secret:"**************"}}`,
 		},
 	}
 
