@@ -58,14 +58,11 @@ class Screen:
         with open(filename, "wb") as f:
             stream = self.vm.libvirt_connection.newStream()
             mime_type = self.vm.domain.screenshot(stream, screen_id)
-            logging.debug("XXX: MIME type: %s", mime_type)
             while True:
-                data = stream.recv(1024 * 8)
+                data = stream.recv(1024 * 64)
                 if data is None or len(data) == 0:
                     break
                 if isinstance(data, int):
                     raise Exception(f"Error while taking screenshot: {data}")
-                logging.debug("XXX: Received %d bytes", len(data))
                 f.write(data)
             stream.finish()
-        logging.debug("XXX: Screenshot saved to %s", filename)

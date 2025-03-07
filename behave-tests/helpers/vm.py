@@ -1,6 +1,5 @@
 import json
 import subprocess
-import sys
 import time
 from logging import getLogger
 import os
@@ -11,6 +10,7 @@ from gi.repository import Gio, GLib
 from screen import Screen
 import accessible
 import executil
+from util import retry, RetriableError
 
 logger = getLogger(os.path.basename(__file__))
 
@@ -18,15 +18,21 @@ WAIT_FOR_VM_STOPPED_TIMEOUT = 30
 WAIT_FOR_VM_RUNNING_TIMEOUT = 30
 
 VSOCK_CID = 3
-VSOCK_PORT = 1
+MIN_A11Y_BUS_PROXY_VSOCK_PORT = 6000
+MAX_A11Y_BUS_PROXY_VSOCK_PORT = 6100
 
 RUNTIME_DIR = os.path.join(os.getenv("XDG_RUNTIME_DIR", "/run/user/%d" % os.getuid()), "behave-tests")
 
 class VM:
-    def __init__(self, libvirt_connection: libvirt.virConnect, name: str, disk_size="5G"):
+    def __init__(self,
+                 libvirt_connection: libvirt.virConnect,
+                 name: str,
+                 disk_size="5G",
+                 memory="2G"):
         self.libvirt_connection = libvirt_connection
         self.name = name
         self.disk_size = disk_size
+        self.memory = memory
 
         try:
             self.domain = libvirt_connection.lookupByName(name)  # type: libvirt.virDomain | None
@@ -35,19 +41,21 @@ class VM:
 
         self.screen = Screen(self)
         self.runtime_dir = os.path.join(RUNTIME_DIR, name)
-        self.vsock_port = VSOCK_PORT
+        self.a11y_bus_user = "gdm" # type: str|None
 
         global VSOCK_CID
         self.vsock_cid = VSOCK_CID
         # The next VM must use a different CID
         VSOCK_CID += 1
 
-        self._a11y_bus_proxy = None # type: Gio.DBusProxy | None
-        self._gnome_shell = None # type: accessible.Root | None
+        self._cache = {}
 
     def launch(self):
         logger.debug("Launching VM '%s'", self.name)
-        executil.check_call(["multipass", "launch", "--name", self.name, "--disk", self.disk_size])
+        executil.check_call(["multipass", "launch",
+                             "--name", self.name,
+                             "--disk", self.disk_size,
+                             "--memory", self.memory])
         # Ensure that self.domain is set
         self.domain = self.libvirt_connection.lookupByName(self.name)
 
@@ -60,6 +68,8 @@ class VM:
         logger.debug("Stopping VM '%s'", self.name)
         executil.check_call(["multipass", "stop", self.name])
         self.wait_until_stopped()
+        # The cached data is no longer valid
+        self._cache = {}
 
     def restart(self):
         self.stop()
@@ -293,42 +303,55 @@ class VM:
 
     @property
     def a11y_bus_proxy(self) -> Gio.DBusProxy:
-        if self._a11y_bus_proxy:
-            return self._a11y_bus_proxy
+        cache_key = f"a11y-bus-proxy-{self.a11y_bus_user}"
+        if cache_key in self._cache:
+            return self._cache[cache_key]
+        self._cache[cache_key] = self._forward_a11y_bus()
+        return self._cache[cache_key]
 
-        gdm_uid = self.check_output(["id", "-u", "gdm"]).strip()
-        host_unit_name = f"vsock-proxy-{self.name}"
-        vm_unit_name = "vsock-proxy-behave-tests"
+    def _forward_a11y_bus(self) -> Gio.DBusProxy:
+        uid = self.check_output(["id", "-u", self.a11y_bus_user]).strip()
+        host_socket_path = os.path.join(self.runtime_dir, f"a11y-bus-{uid}")
+        host_unit_name = f"a11y-bus-proxy-{self.name}-{uid}"
+        vm_unit_name = f"a11y-bus-proxy-{uid}"
+        vsock_port = self.find_free_a11y_bus_proxy_vsock_port()
+        if vsock_port is None:
+            raise RuntimeError("No free vsock port found")
 
         # Wait for the accessibility bus to be available
         def check_a11y_bus_available():
             logger.debug("Checking if the a11y bus is available")
             try:
-                self.check_call(["sudo", "ls", f"/run/user/{gdm_uid}/at-spi/bus"])
+                self.check_call(
+                    ["sudo", "ls", f"/run/user/{uid}/at-spi/bus"])
             except subprocess.CalledProcessError:
                 raise RetriableError("The bus is not available yet")
+
         retry(check_a11y_bus_available, 30, 0.2)
 
-        # Forward the VSOCK in the VM to the a11y bus
-        # Stop the proxy if it is running. We don't care about the exit code, so we use executil.run().
+        # Forward the vsock port in the VM to the a11y bus
         self.check_call(["sudo", "systemd-run", "--unit", vm_unit_name, "--",
-                         "socat", f"VSOCK-LISTEN:{self.vsock_port},reuseaddr,fork",
-                         f"UNIX-CONNECT:/run/user/{gdm_uid}/at-spi/bus"])
+                         "socat",
+                         f"VSOCK-LISTEN:{vsock_port},reuseaddr,fork",
+                         f"UNIX-CONNECT:/run/user/{uid}/at-spi/bus"])
 
-        # Forward the a11y-bus Unix socket on the host to the VSOCK
-        a11y_bus_host_path = os.path.join(self.runtime_dir, "a11y-bus")
-        os.makedirs(os.path.dirname(a11y_bus_host_path), exist_ok=True)
-        if os.path.exists(a11y_bus_host_path):
-            os.unlink(a11y_bus_host_path)
+        # Forward the a11y-bus Unix socket on the host to the vsock port
+        os.makedirs(os.path.dirname(host_socket_path), exist_ok=True)
+        if os.path.exists(host_socket_path):
+            os.unlink(host_socket_path)
 
         # Reset the unit if it failed. We don't care about the exit code, so we
         # use executil.run().
         def try_resetting_unit():
             logger.debug("Trying to reset the unit")
-            executil.run(["systemctl", "--user", "stop", "--force", host_unit_name], stderr=subprocess.DEVNULL)
-            executil.run(["systemctl", "--user", "reset-failed", "--force", host_unit_name], stderr=subprocess.DEVNULL)
+            executil.run(
+                ["systemctl", "--user", "stop", "--force", host_unit_name],
+                stderr=subprocess.DEVNULL)
+            executil.run(["systemctl", "--user", "reset-failed", "--force",
+                          host_unit_name], stderr=subprocess.DEVNULL)
             try:
-                executil.check_call(["systemctl", "--user", "status", host_unit_name])
+                executil.check_call(
+                    ["systemctl", "--user", "status", host_unit_name])
                 raise RetriableError("The unit is still running")
             except subprocess.CalledProcessError as e:
                 if e.returncode == 4:
@@ -336,18 +359,21 @@ class VM:
                     return
                 # All other exit codes mean that the unit is still known
                 raise RetriableError("The unit is still known")
+
         retry(try_resetting_unit, 5, 0.2)
 
         # Run the proxy
-        executil.check_call(["systemd-run", "--user", "--unit", host_unit_name, "--",
-                             "socat", f"UNIX-LISTEN:{a11y_bus_host_path},fork",
-                             f"VSOCK-CONNECT:{self.vsock_cid}:{self.vsock_port}"])
+        executil.check_call(
+            ["systemd-run", "--user", "--unit", host_unit_name, "--",
+             "socat", f"UNIX-LISTEN:{host_socket_path},fork",
+             f"VSOCK-CONNECT:{self.vsock_cid}:{vsock_port}"])
 
-        logger.info("Connecting to bus %s", a11y_bus_host_path)
+        logger.info("Connecting to bus %s", host_socket_path)
+
         def try_connecting_to_a11y_bus():
             try:
                 return Gio.DBusConnection.new_for_address_sync(
-                    address=f"unix:path={a11y_bus_host_path}",
+                    address=f"unix:path={host_socket_path}",
                     flags=Gio.DBusConnectionFlags.AUTHENTICATION_CLIENT |
                           Gio.DBusConnectionFlags.MESSAGE_BUS_CONNECTION,
                     observer=None,
@@ -357,30 +383,31 @@ class VM:
                 if e.code == Gio.IOErrorEnum.NOT_FOUND:
                     raise RetriableError("The bus is not available yet") from e
                 raise
-        self._a11y_bus_proxy = retry(try_connecting_to_a11y_bus, 5, 0.2,
-                                     "Failed to connect to the a11y bus")
 
-        return self._a11y_bus_proxy
-    
+        return retry(try_connecting_to_a11y_bus, 5, 0.2,
+                     "Failed to connect to the a11y bus")
+
+    def find_free_a11y_bus_proxy_vsock_port(self) -> int|None:
+            return self.find_free_vsock_port(MIN_A11Y_BUS_PROXY_VSOCK_PORT, MAX_A11Y_BUS_PROXY_VSOCK_PORT)
+
+    def find_free_vsock_port(self, min_port, max_port) -> int|None:
+        for port in range(min_port, max_port + 1):
+            try:
+                self.check_call(["timeout", "1s", "sudo", "socat", f"VSOCK-LISTEN:{port}", "echo"], stderr=subprocess.DEVNULL)
+            except subprocess.CalledProcessError as e:
+                if e.returncode == 124:
+                    # socat timed out
+                    return port
+
+        return None
+
     @property
     def gnome_shell(self) -> accessible.Root:
-        if self._gnome_shell:
-            return self._gnome_shell
-        self._gnome_shell = accessible.application_root(self.a11y_bus_proxy, "gnome-shell")
-        return self._gnome_shell
+        return self.application("gnome-shell")
 
-
-class RetriableError(Exception):
-    pass
-
-
-def retry(func, timeout_sec: float, sleep_sec: float, error_msg: str = ""):
-    start_time = time.monotonic()
-    while time.monotonic() - start_time < timeout_sec:
-        try:
-            return func()
-        except RetriableError as e:
-            logger.debug("Exception in retry: %s", e)
-            time.sleep(sleep_sec)
-
-    raise TimeoutError(error_msg + f"(timeout: {timeout_sec} seconds)")
+    def application(self, app_name) -> accessible.Root:
+        cache_key = f"application-{app_name}"
+        if cache_key in self._cache:
+            return self._cache[cache_key]
+        self._cache[cache_key] = accessible.application_root(self.a11y_bus_proxy, app_name)
+        return self._cache[cache_key]

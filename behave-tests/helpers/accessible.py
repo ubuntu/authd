@@ -1,6 +1,8 @@
 import logging
 from typing import Optional
 
+import util
+
 import gi
 gi.require_version("Atspi", "2.0")
 from gi.repository import Gio, Atspi, GObject, GLib
@@ -115,7 +117,10 @@ class Accessible:
         self.help_text = _help_text.unpack() if _help_text is not None else None
 
     def __str__(self):
-        return f"(name={self.name}, description={self.description}, bus_name={self.bus_name}, path={self.path})"
+        return f"(name={self.name!r}, role_name={self.get_role_name()!r}, description={self.description!r}, labels={self.get_labels()!r}, role_name={self.get_role_name()!r}, states={self.get_states()!r}, bus_name={self.bus_name!r}, path={self.path!r})"
+
+    def __repr__(self):
+        return str(self)
 
     def get_children(self) -> list["Accessible"]:
         children = list()
@@ -128,7 +133,7 @@ class Accessible:
     def get_role_name(self) -> str:
         return self._proxy.call_sync("GetRoleName", None, Gio.DBusCallFlags.NONE, -1, None).unpack()[0]
 
-    def get_labels(self) -> list["Accessible"] | None:
+    def get_labels(self) -> list["Accessible"]:
         relation_set = self._proxy.call_sync(
             method_name="GetRelationSet",
             parameters=None,
@@ -138,8 +143,9 @@ class Accessible:
         ).unpack()[0]
 
         for (relation_type, targets) in relation_set:
-            if relation_type == Atspi.RelationType.LABEL_FOR:
-                return [Accessible(self._connection, self.bus_name, path) for path in targets]
+            if relation_type == Atspi.RelationType.LABELLED_BY:
+                return [Accessible(self._connection, bus_name, path) for bus_name, path in targets]
+        return []
 
     def get_actions(self) -> list["Action"]:
         if self._actions_proxy is None:
@@ -171,6 +177,9 @@ class Accessible:
 
         return state_names
 
+    def get_focused(self) -> bool:
+        return "focused" in self.get_states()
+
     def get_parent(self) -> Optional["Accessible"]:
         bus_name, path = self._proxy.get_cached_property("Parent").unpack()
         if path is None:
@@ -185,31 +194,70 @@ class Accessible:
             label: str = None,
             editable: bool = None,
             focused: bool = None,
+            retry: bool = False,
+            retry_timeout: float = 5,
+            retry_interval: float = 0.2
+    ) -> "Accessible":
+        """
+        Recursively searches for a child matching the given criteria.
+        Returns the first match found or None if no match is found.
+        """
+        query_description = f"(name={name!r}, description={description!r}, label={label!r}, role_name={role_name!r}, editable={editable!r}, focused={focused!r})"
+
+        def find_child_no_retry():
+            result = self._find_child_recursive(name, role_name, description, label, editable, focused)
+            if not result:
+                raise SearchError(f"Could not find child with {query_description}")
+            return result
+
+        if not retry:
+            return find_child_no_retry()
+
+        def try_find_child():
+            try:
+                return find_child_no_retry()
+            except SearchError as e:
+                raise util.RetriableError(e)
+        return util.retry(try_find_child, retry_timeout, retry_interval, f"Could not find child with {query_description}")
+
+    def _find_child_recursive(
+            self,
+            name: str = None,
+            role_name: str = None,
+            description: str = None,
+            label: str = None,
+            editable: bool = None,
+            focused: bool = None,
     ) -> Optional["Accessible"]:
         """
         Recursively searches for a child matching the given criteria.
         Returns the first match found or None if no match is found.
         """
+        query_description = f"(name={name!r}, description={description!r}, label={label!r}, role_name={role_name!r}, editable={editable!r}, focused={focused!r})"
+
         if editable is not None or focused is not None:
             states = self.get_states()
         else:
             states = []
 
+        logging.debug(f"XXX: Checking if query {query_description} matches {self}")
+
         if ((name is None or self.name == name) and
-                (role_name is None or self.get_role_name() == role_name) and
-                (description is None or self.description == description) and
-                (label is None or any(label == label.name for label in self.get_labels())) and
-                (editable is None or "editable" in states) and
-                (focused is None or "focused" in states)):
-            logging.debug(f"XXX: Found match: (role_name={role_name}, editable={editable}, focused={focused}) states: {states}, path: {self.path}")
+            (role_name is None or self.get_role_name() == role_name) and
+            (description is None or self.description == description) and
+            (label is None or any(label == l.name for l in self.get_labels())) and
+            (editable is None or "editable" in states) and
+            (focused is None or "focused" in states)):
+            logging.debug(f"XXX: Found child with {query_description}: {self}")
             return self
 
         for child in self.get_children():
-            result = child.find_child(name, role_name, description, label, editable, focused)
+            result = child._find_child_recursive(name, role_name, description, label, editable, focused)
             if result:
                 return result
 
         return None
+
 
     def grab_focus(self):
         success = self._component_proxy.call_sync(
@@ -311,7 +359,7 @@ class Root(Accessible):
         super().__init__(connection, bus_name, "/org/a11y/atspi/accessible/root")
 
 
-def application_root(connection: Gio.DBusConnection, name: str) -> Root|None:
+def application_root(connection: Gio.DBusConnection, name: str) -> Root:
     for bus_name in bus_names(connection):
         if not bus_name.startswith(":"):
             # Ignore well-known names, they are not applications
@@ -326,6 +374,7 @@ def application_root(connection: Gio.DBusConnection, name: str) -> Root|None:
                 # so it's not an application root
                 continue
             raise
+    raise SearchError(f"Could not find application root with name '{name}'")
 
 def application_roots(connection: Gio.DBusConnection) -> list[Root]:
     roots = list()
@@ -343,3 +392,7 @@ def application_roots(connection: Gio.DBusConnection) -> list[Root]:
                 continue
             raise
     return roots
+
+
+class SearchError(Exception):
+    pass

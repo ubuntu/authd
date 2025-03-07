@@ -15,6 +15,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "helpers"))
 import checkpoints
 import executil
 import msentraid
+from accessible import Accessible, SearchError
+from util import retry, RetriableError
 from vm import VM
 
 logger = logging.getLogger(os.path.basename(__file__))
@@ -23,14 +25,22 @@ use_step_matcher("re")
 
 MAIN_TEST_VM_NAME = "behave-tests-main"
 MAIN_TEST_VM_DISK_SPACE = "5G"
+MAIN_TEST_VM_MEMORY = "2G"
 SECOND_TEST_VM_NAME = "behave-tests-second"
 SECOND_TEST_VM_DISK_SPACE = "10G"
+SECOND_TEST_VM_MEMORY = "2G"
 SNAPSHOT_BASE = "base-snapshot"
 
 LIBVIRT_CONNECTION = libvirt.open("qemu:///system")
 
-main_test_vm = VM(LIBVIRT_CONNECTION, MAIN_TEST_VM_NAME, MAIN_TEST_VM_DISK_SPACE)
-second_test_vm = VM(LIBVIRT_CONNECTION, SECOND_TEST_VM_NAME, SECOND_TEST_VM_DISK_SPACE)
+main_test_vm = VM(LIBVIRT_CONNECTION,
+                  MAIN_TEST_VM_NAME,
+                  MAIN_TEST_VM_DISK_SPACE,
+                  MAIN_TEST_VM_MEMORY)
+second_test_vm = VM(LIBVIRT_CONNECTION,
+                    SECOND_TEST_VM_NAME,
+                    SECOND_TEST_VM_DISK_SPACE,
+                    SECOND_TEST_VM_MEMORY)
 assert main_test_vm.vsock_cid != second_test_vm.vsock_cid
 
 login_code = None # type: str|None
@@ -132,8 +142,10 @@ def step_impl(context: behave.runner.Context):
 @step("I'm at the GDM login screen")
 def step_impl(context: behave.runner.Context):
     # Check if we're at the GDM login screen
-    node = main_test_vm.gnome_shell.find_child(name="Login Options", role_name="menu")
-    logging.info("Login Options: %s", node)
+    main_test_vm.gnome_shell.find_child(
+        name="Login Options", role_name="menu",
+        retry=True, retry_timeout=30, retry_interval=1,
+    )
 
 
 @when('I enter the username of the test user')
@@ -149,7 +161,7 @@ def step_impl(context: behave.runner.Context):
 
 @then("I am asked to select the broker")
 def step_impl(context: behave.runner.Context):
-    main_test_vm.gnome_shell.find_child(name="Select a broker", role_name="label")
+    main_test_vm.gnome_shell.find_child(name="Select the broker", role_name="label", retry=True)
 
 
 @when('I select the "(?P<broker_name>.+)" broker')
@@ -164,7 +176,7 @@ def step_impl(context: behave.runner.Context, broker_name: str):
 
 @then('I see the message "(?P<message>.+)"')
 def step_impl(context: behave.runner.Context, message: str):
-    main_test_vm.gnome_shell.find_child(name=message, role_name="label")
+    main_test_vm.gnome_shell.find_child(name=message, role_name="label", retry=True)
 
 
 @step('I see a QR code which encodes the URL "(?P<url>.+)"')
@@ -192,8 +204,33 @@ def step_impl(context: behave.runner.Context):
 
 @when('I open "(?P<url>.+)" on the second machine and log in')
 def step_impl(context: behave.runner.Context, url: str):
-    # Open the URL in the browser
-    second_test_vm.check_call(["xdg-open", url])
+    # Use the a11y bus of the logged-in user
+    second_test_vm.a11y_bus_user = checkpoints.SECONDARY_VM_USER
+
+    # Launch Firefox
+    search_entry = second_test_vm.gnome_shell.find_child(editable=True, role_name="text")
+    search_entry.set_text("firefox")
+
+    def find_firefox_push_button() -> Accessible:
+        try:
+            return second_test_vm.gnome_shell.find_child(role_name="push button", label="Firefox")
+        except SearchError:
+            raise RetriableError("Firefox push button not found yet")
+    push_button = retry(find_firefox_push_button, 3, 0.2)
+    push_button.grab_focus()
+    second_test_vm.screen.press("Enter")
+
+    # Wait for Firefox to start
+    def check_firefox_running():
+        try:
+            return second_test_vm.application("Firefox")
+        except SearchError:
+            raise RetriableError("Firefox not running yet")
+    firefox = retry(check_firefox_running, 30, 1)
+
+    address_bar = firefox.find_child("Search or enter address", role_name="entry", editable=True)
+    address_bar.set_text(url)
+    address_bar.activate()
 
 
 @then("I am prompted to create a local password")
@@ -214,3 +251,38 @@ def step_impl(context: behave.runner.Context):
 @then("I am logged in")
 def step_impl(context: behave.runner.Context):
     raise NotImplementedError(u'STEP: Then I am logged in')
+
+
+@step('I enter the login code "user_code"')
+def step_impl(context):
+    """
+    :type context: behave.runner.Context
+    """
+    raise NotImplementedError(u'STEP: And I enter the login code "user_code"')
+
+
+@step(
+    'I log in with the username "demo@uaadtest\.onmicrosoft\.com" and password "password"')
+def step_impl(context):
+    """
+    :type context: behave.runner.Context
+    """
+    raise NotImplementedError(
+        u'STEP: And I log in with the username "demo@uaadtest.onmicrosoft.com" and password "password"')
+
+
+@then('I am asked if I am trying to sign in to "Azure OIDC Poc"')
+def step_impl(context):
+    """
+    :type context: behave.runner.Context
+    """
+    raise NotImplementedError(
+        u'STEP: Then I am asked if I am trying to sign in to "Azure OIDC Poc"')
+
+
+@when('I click "Continue"')
+def step_impl(context):
+    """
+    :type context: behave.runner.Context
+    """
+    raise NotImplementedError(u'STEP: When I click "Continue"')

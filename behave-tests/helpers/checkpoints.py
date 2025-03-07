@@ -8,6 +8,9 @@ if TYPE_CHECKING:
 
 logger = getLogger(__name__)
 
+SECONDARY_VM_USER = "user"
+SECONDARY_VM_PASSWORD = "test"
+
 def _launch_new_vm(vm: "VM", force_new_snapshots=False) -> None:
     vm.ensure_is_purged()
     vm.launch()
@@ -27,7 +30,7 @@ def _launch_new_vm(vm: "VM", force_new_snapshots=False) -> None:
 
     # Install the GNOME desktop
     vm.check_call(["sudo", "apt", "update"])
-    vm.check_call(["sudo", "apt", "install", "-y", "gnome-session"])
+    vm.check_call(["sudo", "apt", "install", "-y", "ubuntu-session"])
 
     # Install socat
     vm.check_call(["sudo", "apt", "install", "-y", "socat"])
@@ -42,6 +45,11 @@ def _launch_new_vm(vm: "VM", force_new_snapshots=False) -> None:
     vm.check_call(["sudo", "sed", "-i", f"s|{old_config}|{new_config}|",
                    "/usr/share/defaults/at-spi2/accessibility.conf"])
 
+    # Set GNOME_ACCESSIBILITY=1 in /etc/environment, which is needed for
+    # Firefox (and maybe other apps) to expose itself on the a11y bus
+    vm.check_call(["sudo", "sh", "-c",
+                   "echo GNOME_ACCESSIBILITY=1 > /etc/environment.d/90-gnome-a11y.conf"])
+
 
 new_vm = Checkpoint(
     "new-vm",
@@ -52,6 +60,7 @@ new_vm = Checkpoint(
 def _prepare_second_vm(vm: "VM", force_new_snapshots=False) -> None:
     new_vm.restore_or_run(vm, force_new_snapshots)
 
+    # TODO: Remove this snapshot
     if not force_new_snapshots and vm.has_snapshot("firefox-installed"):
         vm.restore_snapshot("firefox-installed")
     else:
@@ -61,13 +70,23 @@ def _prepare_second_vm(vm: "VM", force_new_snapshots=False) -> None:
         vm.check_call(["sudo", "apt", "install", "-y", "firefox"])
         vm.create_snapshot("firefox-installed", "Firefox installed")
 
+    # TODO: Remove this, only do it in _launch_new_vm
+    # Set GNOME_ACCESSIBILITY=1 in /etc/environment, which is needed for
+    # Firefox (and maybe other apps) to expose itself on the a11y bus
+    vm.check_call(["sudo", "sh", "-c",
+                   "echo GNOME_ACCESSIBILITY=1 > /etc/environment.d/90-gnome-a11y.conf"])
+
     ### Create a user and log in ###
-    username = "user"
-    password = "test"
+    username = SECONDARY_VM_USER
+    password = SECONDARY_VM_PASSWORD
 
     # Create the user
     vm.check_call(["sudo", "useradd", "-m", username])
     vm.check_call(["sudo", "chpasswd"], input=f"{username}:{password}")
+
+    # Enable accessibility for the user
+    vm.check_call(["sudo", "su", username, "-c",
+                   "gsettings set org.gnome.desktop.interface toolkit-accessibility true"])
 
     # Restart the VM to be able to log in as the new user
     vm.restart()
@@ -81,9 +100,8 @@ def _prepare_second_vm(vm: "VM", force_new_snapshots=False) -> None:
 
     # Enter the password
     password_entry = vm.gnome_shell.find_child(
-        role_name="text",
+        role_name="password text",
         editable=True,
-        focused=True,
     )
     password_entry.set_text(password)
     password_entry.activate()
