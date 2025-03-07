@@ -2422,7 +2422,8 @@ func TestGdmModel(t *testing.T) {
 				receivedEventTypes = append(receivedEventTypes, e.Type)
 			}
 			require.True(t, isSupersetOf(receivedEventTypes, tc.wantGdmEvents),
-				"Required events have not been received: %#v vs %#v", tc.wantGdmEvents, receivedEventTypes)
+				"Required events have not been received: %v vs %v",
+				stringifySlice(tc.wantGdmEvents), stringifySlice(receivedEventTypes))
 
 			require.Empty(t, appState.wantMessages, "Wanted messages have not all been processed")
 
