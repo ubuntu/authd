@@ -354,7 +354,7 @@ func TestDataConversationFunc(t *testing.T) {
 					return nil
 				}
 				invalidData := allocateJSONProtoMessage()
-				invalidData.init("testProto", 20, nil)
+				invalidData.initFull("testProto", 20, nil)
 				return pam.NewBinaryConvRequest(invalidData.encode(),
 					func(ptr pam.BinaryPointer) { (*jsonProtoMessage)(ptr).release() })
 			}(),

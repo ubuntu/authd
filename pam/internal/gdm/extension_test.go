@@ -204,7 +204,13 @@ func TestGdmJSONProtoResponseErrors(t *testing.T) {
 
 			req := allocateJSONProtoMessage()
 			t.Cleanup(req.release)
-			req.init(tc.protoName, tc.protoVersion, tc.jsonValue)
+			if tc.protoName == JSONProtoName && tc.protoVersion == JSONProtoVersion {
+				req.initAuthd(tc.jsonValue)
+				require.True(t, req.isValidAuthd(), "Not valid authd request")
+			} else {
+				req.initFull(tc.protoName, tc.protoVersion, tc.jsonValue)
+				require.False(t, req.isValidAuthd(), "It shouldn't be an authd request")
+			}
 			require.Equal(t, req.protoVersion(), tc.protoVersion)
 			require.Equal(t, req.protoName(), tc.protoName)
 

@@ -101,9 +101,7 @@ type isAuthenticatedResultReceived struct {
 }
 
 // isAuthenticatedCancelled is the event to cancel the auth request.
-type isAuthenticatedCancelled struct {
-	msg string
-}
+type isAuthenticatedCancelled struct{}
 
 // reselectAuthMode signals to restart auth mode selection with the same id (to resend sms or
 // reenable the broker).
@@ -146,6 +144,9 @@ type authTracker struct {
 // wait:true authentication and reset fields.
 type startAuthentication struct{}
 
+// startAuthentication signals that the authentication has been stopped.
+type stopAuthentication struct{}
+
 // errMsgToDisplay signals from an authentication form to display an error message.
 type errMsgToDisplay struct {
 	msg string
@@ -182,7 +183,7 @@ func (m *authenticationModel) cancelIsAuthenticated() tea.Cmd {
 	authTracker := m.authTracker
 	return func() tea.Msg {
 		authTracker.cancelAndWait()
-		return nil
+		return stopAuthentication{}
 	}
 }
 
@@ -397,6 +398,7 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 	m.errorMsg = ""
 
 	if m.clientType != InteractiveTerminal {
+		m.currentModel = &focusTrackerModel{}
 		return tea.Sequence(sendEvent(ChangeStage{pam_proto.Stage_challenge}),
 			sendEvent(startAuthentication{}))
 	}

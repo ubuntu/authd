@@ -139,6 +139,15 @@ func (m nativeModel) changeStage(stage proto.Stage) tea.Cmd {
 	return sendEvent(nativeChangeStage{stage})
 }
 
+func (m nativeModel) checkStage(expected proto.Stage) bool {
+	if m.currentStage != expected {
+		log.Debugf(context.Background(),
+			"Current stage %q is not matching expected %q", m.currentStage, expected)
+		return false
+	}
+	return true
+}
+
 func (m nativeModel) requestStageChange(stage proto.Stage) tea.Cmd {
 	return sendEvent(nativeStageChangeRequest{stage})
 }
@@ -179,7 +188,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		return m, m.requestStageChange(pam_proto.Stage_userSelection)
 
 	case nativeUserSelection:
-		if m.currentStage != proto.Stage_userSelection {
+		if !m.checkStage(proto.Stage_userSelection) {
 			return m, nil
 		}
 		if m.busy {
@@ -227,7 +236,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		})
 
 	case nativeBrokerSelection:
-		if m.currentStage != proto.Stage_brokerSelection {
+		if !m.checkStage(proto.Stage_brokerSelection) {
 			return m, nil
 		}
 		if m.busy {
@@ -251,7 +260,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		return m.startAsyncOp(m.brokerSelection)
 
 	case nativeAuthSelection:
-		if m.currentStage != proto.Stage_authModeSelection {
+		if !m.checkStage(proto.Stage_authModeSelection) {
 			return m, nil
 		}
 		if m.busy {
@@ -286,7 +295,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		return m, m.requestStageChange(pam_proto.Stage_challenge)
 
 	case nativeChallengeRequested:
-		if m.currentStage != pam_proto.Stage_challenge {
+		if !m.checkStage(pam_proto.Stage_challenge) {
 			return m, nil
 		}
 		return m, m.startChallenge()
@@ -319,13 +328,10 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 			// This is handled by the main authentication model
 			return m, nil
 		case auth.Cancelled:
-			return m, sendEvent(isAuthenticatedCancelled{})
+			return m, nil
 		default:
 			return m, maybeSendPamError(m.sendError("Access %q is not valid", access))
 		}
-
-	case isAuthenticatedCancelled:
-		return m.goBackCommand()
 	}
 
 	return m, nil
@@ -845,7 +851,6 @@ func (m nativeModel) newPasswordChallenge(previousPassword *string) tea.Cmd {
 func (m nativeModel) goBackCommand() (nativeModel, tea.Cmd) {
 	if m.currentStage >= proto.Stage_challenge && m.uiLayout != nil {
 		m.uiLayout = nil
-		return m, sendEvent(isAuthenticatedCancelled{})
 	}
 	if m.currentStage >= proto.Stage_authModeSelection {
 		m.selectedAuthMode = ""

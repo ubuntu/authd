@@ -30,8 +30,8 @@ type gdmModel struct {
 	// However, after the quit point we should really not interact anymore with
 	// GDM or we'll make it crash (as it doesn't expect any conversation
 	// happening at that point).
-	// So we ue this as a control point, once we've set this to true, no further
-	// conversation with GDM should happen.
+	// So we use this as a control point, once we've set this to true, no
+	// further conversation with GDM should happen.
 	conversationsStopped bool
 }
 
@@ -155,11 +155,6 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 				})
 			}
 			log.Infof(context.TODO(), "GDM Stage changed to %s", res.StageChanged.Stage)
-
-			if m.waitingAuth && res.StageChanged.Stage != proto.Stage_challenge {
-				// Maybe this can be sent only if we ever hit the password phase.
-				commands = append(commands, sendEvent(isAuthenticatedCancelled{}))
-			}
 			commands = append(commands, sendEvent(ChangeStage{res.StageChanged.Stage}))
 		}
 	}
@@ -226,16 +221,12 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 		}))
 
 	case startAuthentication:
-		if m.waitingAuth {
-			log.Warning(context.TODO(), "Ignored authentication start request while one is still going")
-			return m, nil
-		}
 		m.waitingAuth = true
-		return m, sendEvent(m.emitEventSync(&gdm.EventData_StartAuthentication{
+		return m, m.emitEvent(&gdm.EventData_StartAuthentication{
 			StartAuthentication: &gdm.Events_StartAuthentication{},
-		}))
+		})
 
-	case reselectAuthMode:
+	case stopAuthentication:
 		m.waitingAuth = false
 
 	case isAuthenticatedResultReceived:
@@ -252,7 +243,6 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 		case auth.Granted:
 		case auth.Denied:
 		case auth.Cancelled:
-			return m, sendEvent(isAuthenticatedCancelled{})
 		case auth.Retry:
 		case auth.Next:
 		default:
@@ -267,22 +257,12 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 			)
 		}
 
-		return m, sendEvent(m.emitEventSync(&gdm.EventData_AuthEvent{
+		return m, m.emitEvent(&gdm.EventData_AuthEvent{
 			AuthEvent: &gdm.Events_AuthEvent{Response: &authd.IAResponse{
 				Access: access,
 				Msg:    authMsg,
 			}},
-		}))
-
-	case isAuthenticatedCancelled:
-		m.waitingAuth = false
-
-		return m, sendEvent(m.emitEventSync(&gdm.EventData_AuthEvent{
-			AuthEvent: &gdm.Events_AuthEvent{Response: &authd.IAResponse{
-				Access: auth.Cancelled,
-				Msg:    msg.msg,
-			}},
-		}))
+		})
 	}
 
 	return m, nil
