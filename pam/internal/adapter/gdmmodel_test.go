@@ -2400,15 +2400,19 @@ func TestGdmModel(t *testing.T) {
 				require.Equal(t, tc.wantExitStatus, exitStatus)
 			}
 
-			require.True(t, appState.gdmModel.conversationsStopped)
+			require.True(t, appState.gdmModel.conversationsStopped,
+				"GDM conversation should be stopped")
 
 			for _, req := range tc.wantNoGdmRequests {
-				require.NotContains(t, gdmHandler.handledRequests, req)
+				require.NotContains(t, gdmHandler.handledRequests, req,
+					"GDM requests %v contains unexpected request %q",
+					stringifySlice(gdmHandler.handledRequests), req)
 			}
 
 			if tc.wantStage != gdmTestIgnoreStage {
 				require.Equal(t, tc.wantStage, gdmHandler.currentStage,
-					"GDM Stage does not match with expected one")
+					"GDM Stage %q does not match with expected one %q",
+					tc.wantStage, gdmHandler.currentStage)
 			}
 
 			for _, req := range tc.wantGdmRequests {
@@ -2422,7 +2426,8 @@ func TestGdmModel(t *testing.T) {
 				receivedEventTypes = append(receivedEventTypes, e.Type)
 			}
 			require.True(t, isSupersetOf(receivedEventTypes, tc.wantGdmEvents),
-				"Required events have not been received: %#v vs %#v", tc.wantGdmEvents, receivedEventTypes)
+				"Required events have not been received: %v vs %v",
+				stringifySlice(tc.wantGdmEvents), stringifySlice(receivedEventTypes))
 
 			require.Empty(t, appState.wantMessages, "Wanted messages have not all been processed")
 
