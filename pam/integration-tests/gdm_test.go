@@ -288,7 +288,7 @@ func TestGdmModule(t *testing.T) {
 			pamUserPrefix:   examplebroker.UserIntegrationNeedsResetPrefix,
 			wantAuthModeIDs: []string{passwordAuthID, newPasswordAuthID},
 			supportedLayouts: []*authd.UILayout{
-				pam_test.FormUILayout(),
+				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.NewPasswordUILayout(),
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
@@ -318,7 +318,7 @@ func TestGdmModule(t *testing.T) {
 				newPasswordAuthID,
 			},
 			supportedLayouts: []*authd.UILayout{
-				pam_test.FormUILayout(),
+				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.NewPasswordUILayout(),
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
@@ -386,7 +386,7 @@ func TestGdmModule(t *testing.T) {
 				newPasswordAuthID,
 			},
 			supportedLayouts: []*authd.UILayout{
-				pam_test.FormUILayout(),
+				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.NewPasswordUILayout(),
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
@@ -495,7 +495,7 @@ func TestGdmModule(t *testing.T) {
 		"Authenticates_user_after_switching_to_qrcode": {
 			wantAuthModeIDs: []string{passwordAuthID, qrcodeID},
 			supportedLayouts: []*authd.UILayout{
-				pam_test.FormUILayout(),
+				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.QrCodeUILayout(),
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
@@ -529,7 +529,7 @@ func TestGdmModule(t *testing.T) {
 				qrcodeID,
 			},
 			supportedLayouts: []*authd.UILayout{
-				pam_test.FormUILayout(),
+				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.QrCodeUILayout(pam_test.WithQrCodeCode(layouts.Optional)),
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
@@ -593,7 +593,7 @@ func TestGdmModule(t *testing.T) {
 				qrcodeWithoutCodeID,
 			},
 			supportedLayouts: []*authd.UILayout{
-				pam_test.FormUILayout(),
+				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.QrCodeUILayout(pam_test.WithQrCodeCode("")),
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
@@ -844,7 +844,9 @@ func TestGdmModule(t *testing.T) {
 
 			gh.supportedLayouts = tc.supportedLayouts
 			if tc.supportedLayouts == nil {
-				gh.supportedLayouts = []*authd.UILayout{pam_test.FormUILayout()}
+				gh.supportedLayouts = []*authd.UILayout{
+					pam_test.FormUILayout(pam_test.WithWait(true)),
+				}
 			}
 
 			gh.protoVersion = gdm.ProtoVersion
@@ -971,7 +973,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
 
-	gh.supportedLayouts = []*authd.UILayout{pam_test.FormUILayout()}
+	gh.supportedLayouts = []*authd.UILayout{pam_test.FormUILayout(pam_test.WithWait(true))}
 	gh.protoVersion = gdm.ProtoVersion
 	gh.selectedBrokerName = exampleBrokerName
 	gh.selectedAuthModeIDs = []string{passwordAuthID}
