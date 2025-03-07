@@ -434,9 +434,13 @@ func (dc *DummyClient) IsAuthenticated(ctx context.Context, in *authd.IARequest,
 		select {
 		case <-time.After(time.Duration(testutils.SleepMultiplier() * float64(dc.isAuthenticatedWantWait))):
 		case <-ctx.Done():
+			msg = ""
+			if dc.isAuthenticatedMessage != "" {
+				msg = fmt.Sprintf(`{"message": "Cancelled: %s"}`, dc.isAuthenticatedMessage)
+			}
 			return &authd.IAResponse{
 				Access: auth.Cancelled,
-				Msg:    fmt.Sprintf(`{"message": "Cancelled: %s"}`, dc.isAuthenticatedMessage),
+				Msg:    msg,
 			}, nil
 		}
 		return &authd.IAResponse{
