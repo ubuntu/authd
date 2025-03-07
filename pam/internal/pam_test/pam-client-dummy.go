@@ -18,6 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/log"
 	"golang.org/x/exp/maps"
 	"google.golang.org/grpc"
@@ -431,7 +432,7 @@ func (dc *DummyClient) IsAuthenticated(ctx context.Context, in *authd.IARequest,
 			return nil, errors.New("no wanted wait provided")
 		}
 		select {
-		case <-time.After(dc.isAuthenticatedWantWait):
+		case <-time.After(time.Duration(testutils.SleepMultiplier() * float64(dc.isAuthenticatedWantWait))):
 		case <-ctx.Done():
 			return &authd.IAResponse{
 				Access: auth.Cancelled,
