@@ -42,12 +42,23 @@ const (
 	qrcodeID                 = "qrcodeandcodewithtypo"
 	qrcodeWithoutCodeID      = "qrcodewithtypo"
 	qrcodeWithoutRenderingID = "codewithtypo"
+	totpID                   = "totp"
 )
 
 var testPasswordUILayout = authd.UILayout{
 	Type:    layouts.Form,
 	Label:   ptrValue("Gimme your password"),
 	Entry:   ptrValue(entries.CharsPassword),
+	Button:  ptrValue(""),
+	Code:    ptrValue(""),
+	Content: ptrValue(""),
+	Wait:    ptrValue(""),
+}
+
+var testTOTPWithoutButtonUILayout = authd.UILayout{
+	Type:    layouts.Form,
+	Label:   ptrValue("Enter your one time credential"),
+	Entry:   ptrValue(entries.Chars),
 	Button:  ptrValue(""),
 	Code:    ptrValue(""),
 	Content: ptrValue(""),
@@ -279,6 +290,28 @@ func TestGdmModule(t *testing.T) {
 			wantUILayouts: []*authd.UILayout{
 				&testPasswordUILayout,
 				&testPhoneAckUILayout,
+			},
+			wantAuthResponses: []*authd.IAResponse{
+				{Access: auth.Granted},
+			},
+		},
+		"Authenticates_user_switching_to_totp": {
+			wantAuthModeIDs: []string{passwordAuthID, totpID},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.EventsGroupBegin(),
+					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
+					gdm_test.AuthModeSelectedEvent(totpID),
+					gdm_test.EventsGroupEnd(),
+
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "temporary pass0",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{
+				&testPasswordUILayout,
+				&testTOTPWithoutButtonUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{Access: auth.Granted},
