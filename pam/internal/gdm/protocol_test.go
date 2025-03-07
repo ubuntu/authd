@@ -3,9 +3,13 @@ package gdm_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/brokers/auth"
+	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 )
 
@@ -620,6 +624,109 @@ func TestGdmStructsUnMarshal(t *testing.T) {
 			json, err := gdmData.JSON()
 			require.NoError(t, err)
 			require.Equal(t, tc.JSON, string(reformatJSON(t, json)))
+		})
+	}
+}
+
+func TestSafeString(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		eventData *gdm.EventData
+
+		wantString     string
+		wantSafeString string
+	}{
+		"Empty_gdm_data_is_stringified": {
+			eventData: &gdm.EventData{},
+		},
+		"Non-AuthenticatedRequest_is_fully_stringified": {
+			eventData: &gdm.EventData{
+				Type: gdm.EventType_authEvent,
+				Data: &gdm.EventData_AuthEvent{
+					AuthEvent: &gdm.Events_AuthEvent{
+						Response: &authd.IAResponse{
+							Access: auth.Granted,
+							Msg:    "Hello!",
+						},
+					},
+				},
+			},
+			wantString: `type:authEvent authEvent:{response:{access:"granted" msg:"Hello!"}}`,
+		},
+		"AuthenticatedRequest_with_wait_is_fully_stringified": {
+			eventData: &gdm.EventData{
+				Type: gdm.EventType_isAuthenticatedRequested,
+				Data: &gdm.EventData_IsAuthenticatedRequested{
+					&gdm.Events_IsAuthenticatedRequested{
+						AuthenticationData: &authd.IARequest_AuthenticationData{
+							Item: &authd.IARequest_AuthenticationData_Wait{
+								Wait: "wait-value",
+							},
+						},
+					},
+				},
+			},
+			wantString: `type:isAuthenticatedRequested isAuthenticatedRequested:{authentication_data:{wait:"wait-value"}}`,
+		},
+		"AuthenticatedRequest_with_skip_is_fully_stringified": {
+			eventData: &gdm.EventData{
+				Type: gdm.EventType_isAuthenticatedRequested,
+				Data: &gdm.EventData_IsAuthenticatedRequested{
+					&gdm.Events_IsAuthenticatedRequested{
+						AuthenticationData: &authd.IARequest_AuthenticationData{
+							Item: &authd.IARequest_AuthenticationData_Skip{
+								Skip: "skip-value",
+							},
+						},
+					},
+				},
+			},
+			wantString: `type:isAuthenticatedRequested isAuthenticatedRequested:{authentication_data:{skip:"skip-value"}}`,
+		},
+		"AuthenticatedRequest_with_secret_is_safely_stringified": {
+			eventData: &gdm.EventData{
+				Type: gdm.EventType_isAuthenticatedRequested,
+				Data: &gdm.EventData_IsAuthenticatedRequested{
+					&gdm.Events_IsAuthenticatedRequested{
+						AuthenticationData: &authd.IARequest_AuthenticationData{
+							Item: &authd.IARequest_AuthenticationData_Challenge{
+								Challenge: "SuperSecretValue!#DON'T SHARE!",
+							},
+						},
+					},
+				},
+			},
+			wantString:     `type:isAuthenticatedRequested isAuthenticatedRequested:{authentication_data:{challenge:"SuperSecretValue!#DON'T SHARE!"}}`,
+			wantSafeString: `type:isAuthenticatedRequested isAuthenticatedRequested:{authentication_data:{challenge:"**************"}}`,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(fmt.Sprintf("%s_debug_mode", name), func(t *testing.T) {
+			t.Parallel()
+
+			// String method may add extra white spaces at times, let's ignore them.
+			safeString := strings.ReplaceAll(tc.eventData.SafeString(), "  ", " ")
+			require.Equal(t, tc.wantString, safeString,
+				"SaveString result mismatches expected")
+		})
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			// THIS CANNOT BE PARALLEL!
+			gdm.SetDebuggingSafeEventDataFunc(false)
+			t.Cleanup(func() { gdm.SetDebuggingSafeEventDataFunc(true) })
+
+			if tc.wantSafeString == "" {
+				tc.wantSafeString = tc.wantString
+			}
+
+			// String method may add extra white spaces at times, let's ignore them.
+			safeString := strings.ReplaceAll(tc.eventData.SafeString(), "  ", " ")
+			require.Equal(t, tc.wantSafeString, safeString,
+				"SaveString result mismatches expected")
 		})
 	}
 }
