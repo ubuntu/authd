@@ -1,5 +1,11 @@
 authd.NSS:
     methods:
+        - name: DisableUser
+          isclientstream: false
+          isserverstream: false
+        - name: EnableUser
+          isclientstream: false
+          isserverstream: false
         - name: GetGroupByGID
           isclientstream: false
           isserverstream: false
