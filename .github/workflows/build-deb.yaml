@@ -4,9 +4,17 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - .github/workflows/automatic-doc-checks.yml
+      - .readthedocs.yaml
+      - docs/**
     tags:
       - "*"
   pull_request:
+    paths-ignore:
+      - .github/workflows/automatic-doc-checks.yml
+      - .readthedocs.yaml
+      - docs/**
 
 env:
   UBUNTU_VERSIONS: |
