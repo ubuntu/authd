@@ -1,6 +1,5 @@
 Hide
-Wait
-Type "${AUTHD_TEST_TAPE_COMMAND}"
+TypeInPrompt+Shell "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
 Wait /Username:\n/
 Show
@@ -41,7 +40,7 @@ Show
 ClearTerminal
 
 Hide
-Type "${AUTHD_TEST_TAPE_LOGIN_COMMAND}"
+TypeInPrompt+Shell "${AUTHD_TEST_TAPE_LOGIN_COMMAND}"
 Enter
 Wait /Username:\n/
 Show
