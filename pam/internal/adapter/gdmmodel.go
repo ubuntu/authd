@@ -40,13 +40,13 @@ type gdmPollDone struct{}
 type gdmIsAuthenticatedResultReceived isAuthenticatedResultReceived
 
 // Init initializes the main model orchestrator.
-func (m *gdmModel) Init() tea.Cmd {
+func (m gdmModel) Init() tea.Cmd {
 	return tea.Sequence(m.protoHello(),
 		requestUICapabilities(m.pamMTx),
 		m.pollGdm())
 }
 
-func (m *gdmModel) protoHello() tea.Cmd {
+func (m gdmModel) protoHello() tea.Cmd {
 	reply, err := gdm.SendData(m.pamMTx, &gdm.Data{Type: gdm.DataType_hello})
 	if err != nil {
 		return sendEvent(pamError{
@@ -166,13 +166,13 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 	return tea.Sequence(commands...)
 }
 
-func (m *gdmModel) emitEvent(event gdm.Event) tea.Cmd {
+func (m gdmModel) emitEvent(event gdm.Event) tea.Cmd {
 	return func() tea.Msg {
 		return m.emitEventSync(event)
 	}
 }
 
-func (m *gdmModel) emitEventSync(event gdm.Event) tea.Msg {
+func (m gdmModel) emitEventSync(event gdm.Event) tea.Msg {
 	err := gdm.EmitEvent(m.pamMTx, event)
 	log.Debug(context.TODO(), "EventSend", event, "result", err)
 	if err != nil {
