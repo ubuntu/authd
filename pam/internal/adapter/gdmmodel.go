@@ -36,6 +36,10 @@ type gdmModel struct {
 	stoppingConversations bool
 }
 
+type gdmPollResponse struct {
+	pollResponse []*gdm.EventData
+}
+
 type gdmPollDone struct{}
 
 type gdmIsAuthenticatedResultReceived isAuthenticatedResultReceived
@@ -90,15 +94,24 @@ func requestUICapabilities(mTx pam.ModuleTransaction) tea.Cmd {
 	}
 }
 
-func (m *gdmModel) pollGdm() tea.Cmd {
-	gdmPollResults, err := gdm.SendPoll(m.pamMTx)
-	if err != nil {
-		return sendEvent(pamError{
-			status: pam.ErrSystem,
-			msg:    fmt.Sprintf("Sending GDM poll failed: %v", err),
-		})
+func (m gdmModel) pollGdm() tea.Cmd {
+	if m.conversationsStopped {
+		return nil
 	}
 
+	return func() tea.Msg {
+		gdmPollResults, err := gdm.SendPoll(m.pamMTx)
+		if err != nil {
+			return pamError{
+				status: pam.ErrSystem,
+				msg:    fmt.Sprintf("Sending GDM poll failed: %v", err),
+			}
+		}
+		return gdmPollResponse{gdmPollResults}
+	}
+}
+
+func (m gdmModel) handlePollResponse(gdmPollResults []*gdm.EventData) tea.Cmd {
 	if log.IsLevelEnabled(log.DebugLevel) {
 		for _, result := range gdmPollResults {
 			log.Debugf(context.TODO(), "GDM poll response: %v", result.SafeString())
@@ -188,6 +201,9 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 	}
 
 	switch msg := msg.(type) {
+	case gdmPollResponse:
+		return m, m.handlePollResponse(msg.pollResponse)
+
 	case gdmPollDone:
 		return m, tea.Sequence(
 			tea.Tick(gdmPollFrequency, func(time.Time) tea.Msg { return nil }),
