@@ -118,7 +118,7 @@ func (m gdmModel) handlePollResponse(gdmPollResults []*gdm.EventData) tea.Cmd {
 		}
 	}
 
-	commands := []tea.Cmd{sendEvent(gdmPollDone{})}
+	var commands []tea.Cmd
 
 	for _, result := range gdmPollResults {
 		switch res := result.Data.(type) {
@@ -174,6 +174,8 @@ func (m gdmModel) handlePollResponse(gdmPollResults []*gdm.EventData) tea.Cmd {
 			commands = append(commands, sendEvent(ChangeStage{res.StageChanged.Stage}))
 		}
 	}
+
+	commands = append(commands, sendEvent(gdmPollDone{}))
 	return tea.Sequence(commands...)
 }
 
