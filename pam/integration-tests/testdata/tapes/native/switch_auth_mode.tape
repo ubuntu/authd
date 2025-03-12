@@ -109,7 +109,7 @@ Wait+Prompt /Enter your pin code/
 Show
 
 Hide
-Type "r"
+TypeInPrompt "r"
 Show
 
 Hide
