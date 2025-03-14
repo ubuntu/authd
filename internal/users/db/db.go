@@ -73,6 +73,11 @@ func New(dbDir string) (*Manager, error) {
 		log.Debugf(context.Background(), "Creating new SQLite database at %v", dbPath)
 		_, err = db.Exec(createSchema)
 		if err != nil {
+			// Remove the database file if we failed to create the schema, to avoid that authd tries to use a broken
+			// database on the next start.
+			if removeErr := os.Remove(dbPath); removeErr != nil {
+				log.Warningf(context.Background(), "Failed to remove database file after failed schema creation: %v", removeErr)
+			}
 			return nil, fmt.Errorf("failed to create schema: %w", err)
 		}
 	}
