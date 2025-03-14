@@ -104,7 +104,7 @@ message IARequest {
 
   message AuthenticationData {
     oneof item {
-      string challenge = 1;
+      string secret = 1;
       string wait = 2;
       string skip = 3;
     }

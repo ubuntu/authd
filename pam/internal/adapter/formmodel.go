@@ -88,8 +88,8 @@ func (m formModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch entry := entry.(type) {
 			case *textinputModel:
 				return m, sendEvent(isAuthenticatedRequested{
-					item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: entry.Value(),
+					item: &authd.IARequest_AuthenticationData_Secret{
+						Secret: entry.Value(),
 					},
 				})
 			}
