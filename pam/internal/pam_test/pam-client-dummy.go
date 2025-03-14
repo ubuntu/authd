@@ -421,11 +421,11 @@ func (dc *DummyClient) IsAuthenticated(ctx context.Context, in *authd.IARequest,
 	}
 
 	switch item := in.AuthenticationData.Item.(type) {
-	case *authd.IARequest_AuthenticationData_Challenge:
+	case *authd.IARequest_AuthenticationData_Secret:
 		if dc.isAuthenticatedWantSecret == "" {
 			return nil, errors.New("no wanted secret provided")
 		}
-		return dc.handleChallenge(item.Challenge, msg)
+		return dc.handleChallenge(item.Secret, msg)
 	case *authd.IARequest_AuthenticationData_Wait:
 		if dc.isAuthenticatedWantWait == 0 {
 			return nil, errors.New("no wanted wait provided")
