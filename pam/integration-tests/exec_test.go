@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"syscall"
 	"testing"
 
 	"github.com/godbus/dbus/v5"
@@ -201,6 +202,10 @@ func TestExecModule(t *testing.T) {
 			methodCalls: []cliMethodCall{{m: "ThisMethodDoesNotExist"}},
 			wantError:   pam_test.ErrInvalidMethod,
 		},
+		"Error_when_calling_unknown_dbus_method": {
+			methodCalls: []cliMethodCall{{m: "CallUnhandledMethod"}},
+			wantError:   pam.ErrSystem,
+		},
 		"Error_when_argument_types_do_not_match_arguments": {
 			methodCalls: []cliMethodCall{{m: "SetItem", args: []any{"an-item", "value"}}},
 			wantError:   pam_test.ErrArgumentTypeMismatch,
@@ -225,10 +230,26 @@ func TestExecModule(t *testing.T) {
 		},
 		"Error_when_client_fails_panicking": {
 			methodCalls: []cliMethodCall{{m: "SimulateClientPanic", args: []any{"Client panicked! (As expected)"}}},
-			wantError:   pam.ErrSymbol,
+			wantError:   pam.ErrSystem,
 		},
 		"Error_when_client_fails_because_an_unhandled_error": {
 			methodCalls: []cliMethodCall{{m: "SimulateClientError", args: []any{"Client error!"}}},
+			wantError:   pam.ErrSystem,
+		},
+		"Error_when_client_fails_because_a_client_SIGTERM_signal": {
+			methodCalls: []cliMethodCall{{m: "SimulateClientSignal", args: []any{syscall.SIGTERM, true}}},
+			wantError:   pam.ErrSystem,
+		},
+		"Error_when_client_fails_because_a_client_SIGKILL_signal": {
+			methodCalls: []cliMethodCall{{m: "SimulateClientSignal", args: []any{syscall.SIGKILL, true}}},
+			wantError:   pam.ErrSystem,
+		},
+		"Error_when_client_fails_because_a_client_SIGSEGV_signal": {
+			methodCalls: []cliMethodCall{{m: "SimulateClientSignal", args: []any{syscall.SIGSEGV, true}}},
+			wantError:   pam.ErrSystem,
+		},
+		"Error_when_client_fails_because_a_client_SIGABRT_signal": {
+			methodCalls: []cliMethodCall{{m: "SimulateClientSignal", args: []any{syscall.SIGABRT, true}}},
 			wantError:   pam.ErrSystem,
 		},
 	}
@@ -1005,6 +1026,8 @@ func (cmc cliMethodCall) format() string {
 func getVariant(value any) dbus.Variant {
 	switch v := value.(type) {
 	case pam.Error:
+		return getVariant(int(v))
+	case syscall.Signal:
 		return getVariant(int(v))
 	case nil:
 		return getVariant("<@mv nothing>")
