@@ -215,8 +215,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 			return *m, sendEvent(isAuthenticatedRequestedSend{
 				ctx: msg.ctx,
 				isAuthenticatedRequested: isAuthenticatedRequested{
-					// TODO(UDENG-5844): Rename this to "secret" once all broker installations support the auth data field "secret".
-					item: &authd.IARequest_AuthenticationData_Challenge{Challenge: msg.password},
+					item: &authd.IARequest_AuthenticationData_Secret{Secret: msg.password},
 				},
 			})
 		}
@@ -259,9 +258,9 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		return *m, func() tea.Msg {
 			authTracker.waitAndStart(cancelFunc)
 
-			secret, hasSecret := msg.item.(*authd.IARequest_AuthenticationData_Challenge)
+			secret, hasSecret := msg.item.(*authd.IARequest_AuthenticationData_Secret)
 			if hasSecret && clientType == Gdm && currentLayout == layouts.NewPassword {
-				return newPasswordCheck{ctx: ctx, password: secret.Challenge}
+				return newPasswordCheck{ctx: ctx, password: secret.Secret}
 			}
 
 			return isAuthenticatedRequestedSend{msg, ctx}
@@ -487,20 +486,20 @@ func dataToMsg(data string) (string, error) {
 
 func (authData *isAuthenticatedRequestedSend) encryptSecretIfPresent(publicKey *rsa.PublicKey) (*string, error) {
 	// no password value, pass it as is
-	secret, ok := authData.item.(*authd.IARequest_AuthenticationData_Challenge)
+	secret, ok := authData.item.(*authd.IARequest_AuthenticationData_Secret)
 	if !ok {
 		return nil, nil
 	}
 
-	ciphertext, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, publicKey, []byte(secret.Challenge), nil)
+	ciphertext, err := rsa.EncryptOAEP(sha512.New(), rand.Reader, publicKey, []byte(secret.Secret), nil)
 	if err != nil {
 		return nil, err
 	}
 
 	// encrypt it to base64 and replace the password with it
 	base64Encoded := base64.StdEncoding.EncodeToString(ciphertext)
-	authData.item = &authd.IARequest_AuthenticationData_Challenge{Challenge: base64Encoded}
-	return &secret.Challenge, nil
+	authData.item = &authd.IARequest_AuthenticationData_Secret{Secret: base64Encoded}
+	return &secret.Secret, nil
 }
 
 // wait waits for the current authentication to be completed.

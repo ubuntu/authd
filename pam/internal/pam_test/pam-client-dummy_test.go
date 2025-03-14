@@ -699,8 +699,8 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: encryptAndEncodeSecret(t, &privateKey.PublicKey, "invalid-password"),
+					Item: &authd.IARequest_AuthenticationData_Secret{
+						Secret: encryptAndEncodeSecret(t, &privateKey.PublicKey, "invalid-password"),
 					},
 				},
 			},
@@ -721,8 +721,8 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: encryptAndEncodeSecret(t, &privateKey.PublicKey, "invalid-password"),
+					Item: &authd.IARequest_AuthenticationData_Secret{
+						Secret: encryptAndEncodeSecret(t, &privateKey.PublicKey, "invalid-password"),
 					},
 				},
 			},
@@ -745,8 +745,8 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: encryptAndEncodeSecret(t, &privateKey.PublicKey, "invalid-password"),
+					Item: &authd.IARequest_AuthenticationData_Secret{
+						Secret: encryptAndEncodeSecret(t, &privateKey.PublicKey, "invalid-password"),
 					},
 				},
 			},
@@ -767,8 +767,8 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: encryptAndEncodeSecret(t, &privateKey.PublicKey, "super-secret-password"),
+					Item: &authd.IARequest_AuthenticationData_Secret{
+						Secret: encryptAndEncodeSecret(t, &privateKey.PublicKey, "super-secret-password"),
 					},
 				},
 			},
@@ -789,8 +789,8 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: encryptAndEncodeSecret(t, &privateKey.PublicKey, "super-secret-password"),
+					Item: &authd.IARequest_AuthenticationData_Secret{
+						Secret: encryptAndEncodeSecret(t, &privateKey.PublicKey, "super-secret-password"),
 					},
 				},
 			},
@@ -894,7 +894,7 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{},
+					Item: &authd.IARequest_AuthenticationData_Secret{},
 				},
 			},
 			wantError: errors.New("no wanted secret provided"),
@@ -943,7 +943,7 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{},
+					Item: &authd.IARequest_AuthenticationData_Secret{},
 				},
 			},
 			wantError: errors.New("no secret provided"),
@@ -960,8 +960,8 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "Invalid base64",
+					Item: &authd.IARequest_AuthenticationData_Secret{
+						Secret: "Invalid base64",
 					},
 				},
 			},
@@ -979,8 +979,8 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: base64.StdEncoding.EncodeToString([]byte("Invalid encrypted key")),
+					Item: &authd.IARequest_AuthenticationData_Secret{
+						Secret: base64.StdEncoding.EncodeToString([]byte("Invalid encrypted key")),
 					},
 				},
 			},
@@ -998,8 +998,8 @@ func TestIsAuthenticated(t *testing.T) {
 			args: &authd.IARequest{
 				SessionId: "started-session-id",
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: base64.StdEncoding.EncodeToString([]byte("Invalid encrypted key")),
+					Item: &authd.IARequest_AuthenticationData_Secret{
+						Secret: base64.StdEncoding.EncodeToString([]byte("Invalid encrypted key")),
 					},
 				},
 			},

@@ -147,8 +147,8 @@ func TestGdmModule(t *testing.T) {
 		"Authenticates_user": {
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
 					}),
 				},
 			},
@@ -157,8 +157,8 @@ func TestGdmModule(t *testing.T) {
 			moduleArgs: []string{"connection_timeout=invalid"},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
 					}),
 				},
 			},
@@ -167,8 +167,8 @@ func TestGdmModule(t *testing.T) {
 			pamUser: ptrValue(examplebroker.UserIntegrationAuthModesPrefix + "password-integration-gdm"),
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
 					}),
 				},
 			},
@@ -177,14 +177,14 @@ func TestGdmModule(t *testing.T) {
 			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, passwordAuthID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "not goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "not goodpass",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpasssss",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpasssss",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
 					}),
 				},
 			},
@@ -205,8 +205,8 @@ func TestGdmModule(t *testing.T) {
 			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
 					}),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
 						Wait: layouts.True,
@@ -232,11 +232,11 @@ func TestGdmModule(t *testing.T) {
 			wantAuthModeIDs: []string{passwordAuthID, passwordAuthID, fido1AuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "not goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "not goodpass",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
 					}),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
 						Wait: layouts.True,
@@ -294,11 +294,11 @@ func TestGdmModule(t *testing.T) {
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "authd2404",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "authd2404",
 					}),
 				},
 			},
@@ -325,28 +325,28 @@ func TestGdmModule(t *testing.T) {
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					// Login with password
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
 					}),
 					// Authenticate with fido device
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
 						Wait: layouts.True,
 					}),
 					// Use bad dictionary password
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "password",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "password",
 					}),
 					// Use password not meeting broker criteria
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "noble2404",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "noble2404",
 					}),
 					// Use previous one
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
 					}),
 					// Finally change the password
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "authd2404",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "authd2404",
 					}),
 				},
 			},
@@ -392,23 +392,23 @@ func TestGdmModule(t *testing.T) {
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "authd",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "authd",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "password",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "password",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "newpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "newpass",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "authd2404",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "authd2404",
 					}),
 				},
 			},
@@ -716,23 +716,23 @@ func TestGdmModule(t *testing.T) {
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "not goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "not goodpass",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "another not goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "another not goodpass",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "even more not goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "even more not goodpass",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "not yet goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "not yet goodpass",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "really, it's not a goodpass!",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "really, it's not a goodpass!",
 					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
 					}),
 				},
 			},
@@ -768,8 +768,8 @@ func TestGdmModule(t *testing.T) {
 			pamUser: ptrValue("user-unknown"),
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "",
 					}),
 				},
 			},
@@ -790,8 +790,8 @@ func TestGdmModule(t *testing.T) {
 			wantAuthModeIDs: []string{passwordAuthID, fido1AuthID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "goodpass",
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
 					}),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{}),
 				},
@@ -981,8 +981,8 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	gh.selectedAuthModeIDs = []string{passwordAuthID}
 	gh.eventPollResponses = map[gdm.EventType][]*gdm.EventData{
 		gdm.EventType_startAuthentication: {
-			gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-				Challenge: "goodpass",
+			gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+				Secret: "goodpass",
 			}),
 		},
 	}

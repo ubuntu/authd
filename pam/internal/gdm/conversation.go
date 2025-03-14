@@ -14,9 +14,6 @@ import (
 var conversations atomic.Int32
 var secretRegex = regexp.MustCompile(`"secret"\s*:\s*"(?:[^"\\]|\\.)*"`)
 
-// TODO(UDENG-5844): Remove this once the auth data field has been renamed to "secret".
-var secretRegexOld = regexp.MustCompile(`"challenge"\s*:\s*"(?:[^"\\]|\\.)*"`)
-
 // ConversationInProgress checks if conversations are currently active.
 func ConversationInProgress() bool {
 	return conversations.Load() > 0
@@ -80,7 +77,6 @@ func SendData(pamMTx pam.ModuleTransaction, d *Data) (*Data, error) {
 		gdmData.Type == DataType_pollResponse {
 		maskedValue := []byte(`"secret":"**************"`)
 		jsonValue = secretRegex.ReplaceAllLiteral(jsonValue, maskedValue)
-		jsonValue = secretRegexOld.ReplaceAllLiteral(jsonValue, maskedValue)
 	}
 	if jsonValue != nil {
 		log.Debugf(context.TODO(), "Got from GDM: %s", jsonValue)
