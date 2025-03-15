@@ -8,6 +8,12 @@ package localentries
 #include <pwd.h>
 #include <grp.h>
 #include <errno.h>
+
+#cgo nocallback endgrent
+#cgo nocallback getgrent
+#cgo nocallback getgrnam
+#cgo noescape getgrnam
+#cgo nocallback setgrent
 */
 import "C"
 

@@ -9,6 +9,8 @@ package pam_test
 #include <sanitizer/lsan_interface.h>
 #endif
 
+#cgo nocallback have_asan_support
+
 static inline bool
 have_asan_support (void)
 {
