@@ -44,7 +44,7 @@ const (
 	vhsCommandFinalAuthWaitVariable         = "AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT"
 	vhsCommandFinalChangeAuthokWaitVariable = "AUTHD_TEST_TAPE_COMMAND_PASSWD_FINAL_WAIT"
 
-	vhsQuotedTextMatch = "[\"`]" + `((?:[^"` + "`" + `\\]|\\.)*)` + "[\"`]"
+	vhsQuotedTextMatch = "[\"`](.*)[\"`]"
 	vhsClearCommands   = `Hide
 Type "clear"
 Enter
@@ -154,7 +154,7 @@ var (
 	vhsTypeAndWaitUsername = regexp.MustCompile(`(.*)\bTypeUsername[\t ]+` + vhsQuotedTextMatch)
 	// vhsTypeAndWaitVisiblePrompt adds support for typing some text in an "Echo On" prompt,
 	// waiting for it being printed in the terminal.
-	vhsTypeAndWaitVisiblePrompt = regexp.MustCompile(`(.*)\bTypeInPrompt(\+(Shell|PAM|CLI))?[\t ]+` + vhsQuotedTextMatch)
+	vhsTypeAndWaitVisiblePrompt = regexp.MustCompile(`(.*)\bTypeInPrompt(\+(Shell|PAM|CLI|SH))?[\t ]+` + vhsQuotedTextMatch)
 	// vhsTypeAndWaitCLIPassword adds support for typing the CLI password, waiting for the expected output.
 	vhsTypeAndWaitCLIPassword = regexp.MustCompile(`(.*)\bTypeCLIPassword(())?[\t ]+` + vhsQuotedTextMatch)
 
@@ -570,14 +570,21 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 		}
 		initialWait := `Wait+Screen /\n>[ \t]*\n/`
 		prePromptRegex := `:\n`
-		if waitCtx == "Shell" {
+		psChar := ">"
+		switch waitCtx {
+		case "Shell":
 			initialWait = "Wait"
 			prePromptRegex = `(^|\n)`
+		case "SH":
+			psChar = `\$`
+			initialWait = fmt.Sprintf("Wait /%s/", psChar)
+			prePromptRegex = `(^|\n)`
 		}
+		prePromptRegex += psChar
 		commands := []string{
 			initialWait,
 			fmt.Sprintf("Type `%s`", promptValue),
-			fmt.Sprintf(`Wait+Suffix /%s> %s(\n[^>].+)*/`, prePromptRegex, multiLineValueRegex(visibleValue)),
+			fmt.Sprintf(`Wait+Suffix /%s %s(\n[^>].+)*/`, prePromptRegex, multiLineValueRegex(visibleValue)),
 		}
 		tapeString = strings.ReplaceAll(tapeString, fullMatch,
 			prefix+strings.Join(commands, "\n"+prefix))

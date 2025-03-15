@@ -5,7 +5,6 @@
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
@@ -13,19 +12,6 @@
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose your provider:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-(user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose your provider:
-> 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-(user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Gimme your password:
->
-────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
@@ -36,20 +22,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Gimme your password:
 >
-== Authentication method selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33...
-  6. Use your phone +1...
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-(user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose your authentication method:
->
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
@@ -71,9 +44,8 @@ Enter 'r' to cancel the request and go back to select the authentication method
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose your authentication method:
-> 2
+>
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
@@ -96,18 +68,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Or enter 'r' to go back to choose the provider
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose your authentication method:
 > 2
-== Use a Login code ==
-Enter the code in the login page
-https://ubuntu.com
-       1337
-
-  1. Wait for authentication result
-  2. Regenerate code
-Or enter 'r' to go back to select the authentication method
-(user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose action:
->
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
@@ -139,9 +100,41 @@ https://ubuntu.com
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose action:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-pre-check-ssh-authenticate-user-with-qr-code@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose your authentication method:
+> 2
+== Use a Login code ==
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+  1. Wait for authentication result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+(user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose action:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
@@ -185,7 +178,6 @@ Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
@@ -229,7 +221,6 @@ Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose action:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
@@ -283,7 +274,6 @@ Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
@@ -337,7 +327,6 @@ Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose action:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
@@ -401,7 +390,6 @@ Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
@@ -465,7 +453,6 @@ Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose action:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
@@ -539,7 +526,6 @@ Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local
@@ -613,7 +599,6 @@ Or enter 'r' to go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-with-qr-code@localhost) Choose action:
 > 1
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
 == Provider selection ==
   1. local

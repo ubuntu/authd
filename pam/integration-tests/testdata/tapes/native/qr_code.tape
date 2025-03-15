@@ -2,6 +2,9 @@ Hide
 Wait
 Type "if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi"
 Enter
+Type "clear"
+Enter
+Wait
 Show
 
 Hide

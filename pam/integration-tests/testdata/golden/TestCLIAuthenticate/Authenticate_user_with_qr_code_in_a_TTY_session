@@ -4,12 +4,10 @@
 > 1. local
   2. ExampleBroker
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your authentication method
 
@@ -21,7 +19,6 @@ Gimme your password:
   6. Use a QR code
   7. Authentication code
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Scan the qrcode or enter the code in the login page
 
@@ -63,7 +60,6 @@ Scan the qrcode or enter the code in the login page
 
                         [ Regenerate code ]
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Scan the qrcode or enter the code in the login page
 
@@ -105,7 +101,6 @@ Scan the qrcode or enter the code in the login page
 
                         [ Regenerate code ]
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Scan the qrcode or enter the code in the login page
 
@@ -151,7 +146,6 @@ Scan the qrcode or enter the code in the login page
 
                             [ Regenerate code ]
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Scan the qrcode or enter the code in the login page
 
@@ -193,7 +187,6 @@ Scan the qrcode or enter the code in the login page
 
                         [ Regenerate code ]
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 Scan the qrcode or enter the code in the login page
 
@@ -235,7 +228,6 @@ Scan the qrcode or enter the code in the login page
 
                         [ Regenerate code ]
 ────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 PAM Authenticate()
   User: "user-integration-qr-code-tty-session"

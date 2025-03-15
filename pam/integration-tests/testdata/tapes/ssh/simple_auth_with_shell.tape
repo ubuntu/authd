@@ -17,14 +17,16 @@ Wait /\$\n/
 Show
 
 Hide
-Type "echo $USER"
+TypeInPrompt+SH "echo $USER"
 Enter
-Wait /\$\n/
+Wait /user-integration[\w-]+\n\$\n/
 Show
 
 Hide
-Type '[ -n "${SSH_CONNECTION}" ] && echo "Inside SSH"'
+TypeInPrompt+SH `[ -n "${SSH_CONNECTION}" ] && echo "Inside SSH"`
+Wait+Nth(1) /Inside SSH/
 Enter
+Wait+Nth(2) /Inside SSH/
 Wait /\$\n/
 Show
 
@@ -34,7 +36,7 @@ Wait
 Show
 
 Hide
-Type "echo ${SSH_CONNECTION:-Outside SSH}"
+TypeInPrompt+Shell "echo ${SSH_CONNECTION:-Outside SSH}"
 Enter
 Wait
 Show

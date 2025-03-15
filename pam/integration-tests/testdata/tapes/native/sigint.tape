@@ -19,7 +19,7 @@ Wait+Suffix />[\n]+>/
 Show
 
 Hide
-Type "echo $TERM"
+TypeInPrompt+Shell "echo $TERM"
 Enter
 Wait
 Show
