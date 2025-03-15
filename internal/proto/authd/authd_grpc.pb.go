@@ -395,6 +395,8 @@ const (
 	NSS_GetGroupEntries_FullMethodName  = "/authd.NSS/GetGroupEntries"
 	NSS_GetShadowByName_FullMethodName  = "/authd.NSS/GetShadowByName"
 	NSS_GetShadowEntries_FullMethodName = "/authd.NSS/GetShadowEntries"
+	NSS_DisableUser_FullMethodName      = "/authd.NSS/DisableUser"
+	NSS_EnableUser_FullMethodName       = "/authd.NSS/EnableUser"
 )
 
 // NSSClient is the client API for NSS service.
@@ -409,6 +411,8 @@ type NSSClient interface {
 	GetGroupEntries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GroupEntries, error)
 	GetShadowByName(ctx context.Context, in *GetShadowByNameRequest, opts ...grpc.CallOption) (*ShadowEntry, error)
 	GetShadowEntries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ShadowEntries, error)
+	DisableUser(ctx context.Context, in *DisableUserRequest, opts ...grpc.CallOption) (*Empty, error)
+	EnableUser(ctx context.Context, in *EnableUserRequest, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type nSSClient struct {
@@ -499,6 +503,26 @@ func (c *nSSClient) GetShadowEntries(ctx context.Context, in *Empty, opts ...grp
 	return out, nil
 }
 
+func (c *nSSClient) DisableUser(ctx context.Context, in *DisableUserRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, NSS_DisableUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nSSClient) EnableUser(ctx context.Context, in *EnableUserRequest, opts ...grpc.CallOption) (*Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, NSS_EnableUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NSSServer is the server API for NSS service.
 // All implementations must embed UnimplementedNSSServer
 // for forward compatibility.
@@ -511,6 +535,8 @@ type NSSServer interface {
 	GetGroupEntries(context.Context, *Empty) (*GroupEntries, error)
 	GetShadowByName(context.Context, *GetShadowByNameRequest) (*ShadowEntry, error)
 	GetShadowEntries(context.Context, *Empty) (*ShadowEntries, error)
+	DisableUser(context.Context, *DisableUserRequest) (*Empty, error)
+	EnableUser(context.Context, *EnableUserRequest) (*Empty, error)
 	mustEmbedUnimplementedNSSServer()
 }
 
@@ -544,6 +570,12 @@ func (UnimplementedNSSServer) GetShadowByName(context.Context, *GetShadowByNameR
 }
 func (UnimplementedNSSServer) GetShadowEntries(context.Context, *Empty) (*ShadowEntries, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetShadowEntries not implemented")
+}
+func (UnimplementedNSSServer) DisableUser(context.Context, *DisableUserRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DisableUser not implemented")
+}
+func (UnimplementedNSSServer) EnableUser(context.Context, *EnableUserRequest) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnableUser not implemented")
 }
 func (UnimplementedNSSServer) mustEmbedUnimplementedNSSServer() {}
 func (UnimplementedNSSServer) testEmbeddedByValue()             {}
@@ -710,6 +742,42 @@ func _NSS_GetShadowEntries_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NSS_DisableUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DisableUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NSSServer).DisableUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NSS_DisableUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NSSServer).DisableUser(ctx, req.(*DisableUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _NSS_EnableUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EnableUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NSSServer).EnableUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NSS_EnableUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NSSServer).EnableUser(ctx, req.(*EnableUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NSS_ServiceDesc is the grpc.ServiceDesc for NSS service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -748,6 +816,14 @@ var NSS_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetShadowEntries",
 			Handler:    _NSS_GetShadowEntries_Handler,
+		},
+		{
+			MethodName: "DisableUser",
+			Handler:    _NSS_DisableUser_Handler,
+		},
+		{
+			MethodName: "EnableUser",
+			Handler:    _NSS_EnableUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
