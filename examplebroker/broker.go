@@ -563,8 +563,10 @@ func (b *Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authen
 		authenticationMode.wantedCode += "0"
 		sessionInfo.allModes[authenticationModeName] = authenticationMode
 		sessionInfo.totpSelections++
-		uiLayoutInfo[layouts.Button] = fmt.Sprintf("Resend SMS (%d sent)",
-			sessionInfo.totpSelections)
+		if authenticationModeName == totpWithButtonMode.id {
+			uiLayoutInfo[layouts.Button] = fmt.Sprintf("Resend SMS (%d sent)",
+				sessionInfo.totpSelections)
+		}
 	case phoneAck1Mode.id, phoneAck2Mode.id:
 		// send request to sessionInfo.allModes[authenticationModeName].phone
 	case fidoDeviceMode.id:

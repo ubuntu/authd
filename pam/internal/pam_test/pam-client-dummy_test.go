@@ -645,9 +645,13 @@ func TestSelectAuthenticationModes(t *testing.T) {
 func TestIsAuthenticated(t *testing.T) {
 	t.Parallel()
 
+	cancelledContext, cancel := context.WithCancel(context.TODO())
+	cancel()
+
 	testCases := map[string]struct {
 		client              authd.PAMClient
 		args                *authd.IARequest
+		context             context.Context
 		skipBrokerSelection bool
 
 		wantRet   *authd.IAResponse
@@ -806,6 +810,7 @@ func TestIsAuthenticated(t *testing.T) {
 					Name: "A test broker",
 				}}, nil),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithUILayout("password", "Insert your password or wait", FormUILayout(WithWait(true))),
 				WithIsAuthenticatedWantWait(time.Microsecond*5),
 				WithIsAuthenticatedMessage("Wait done!"),
 			),
@@ -818,6 +823,50 @@ func TestIsAuthenticated(t *testing.T) {
 			wantRet: &authd.IAResponse{
 				Access: auth.Granted,
 				Msg:    `{"message": "Wait done!"}`,
+			},
+		},
+		"Wait_cancel": {
+			client: NewDummyClient(privateKey,
+				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+					Id:   "test-broker",
+					Name: "A test broker",
+				}}, nil),
+				WithUILayout("password", "Insert your password or wait", FormUILayout(WithWait(true))),
+				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithIsAuthenticatedWantWait(time.Second*5),
+			),
+			context: cancelledContext,
+			args: &authd.IARequest{
+				SessionId: "started-session-id",
+				AuthenticationData: &authd.IARequest_AuthenticationData{
+					Item: &authd.IARequest_AuthenticationData_Wait{Wait: layouts.True},
+				},
+			},
+			wantRet: &authd.IAResponse{
+				Access: auth.Cancelled,
+			},
+		},
+		"Wait_cancel_with_message": {
+			client: NewDummyClient(privateKey,
+				WithAvailableBrokers([]*authd.ABResponse_BrokerInfo{{
+					Id:   "test-broker",
+					Name: "A test broker",
+				}}, nil),
+				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
+				WithUILayout("password", "Insert your password or wait", FormUILayout(WithWait(true))),
+				WithIsAuthenticatedWantWait(time.Second*5),
+				WithIsAuthenticatedMessage("oh no!"),
+			),
+			context: cancelledContext,
+			args: &authd.IARequest{
+				SessionId: "started-session-id",
+				AuthenticationData: &authd.IARequest_AuthenticationData{
+					Item: &authd.IARequest_AuthenticationData_Wait{Wait: layouts.True},
+				},
+			},
+			wantRet: &authd.IAResponse{
+				Access: auth.Cancelled,
+				Msg:    `{"message": "Cancelled: oh no!"}`,
 			},
 		},
 		"Skip_with_message": {
@@ -905,6 +954,7 @@ func TestIsAuthenticated(t *testing.T) {
 					Id:   "test-broker",
 					Name: "A test broker",
 				}}, nil),
+				WithUILayout("password", "Insert your password or wait", FormUILayout(WithWait(true))),
 				WithSelectBrokerReturn(&authd.SBResponse{SessionId: "started-session-id"}, nil),
 			),
 			args: &authd.IARequest{
@@ -1015,7 +1065,11 @@ func TestIsAuthenticated(t *testing.T) {
 				require.Equal(t, tc.args.SessionId, sessionID)
 			}
 
-			ret, err := tc.client.IsAuthenticated(context.TODO(), tc.args)
+			context := context.TODO()
+			if tc.context != nil {
+				context = tc.context
+			}
+			ret, err := tc.client.IsAuthenticated(context, tc.args)
 			require.Equal(t, tc.wantError, err)
 			require.Equal(t, tc.wantRet, ret)
 		})

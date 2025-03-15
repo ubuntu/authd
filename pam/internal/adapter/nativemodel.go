@@ -332,6 +332,8 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		case auth.Denied:
 			// This is handled by the main authentication model
 			return m, nil
+		case auth.Cancelled:
+			return m, nil
 		default:
 			return m, maybeSendPamError(m.sendError("Access %q is not valid", access))
 		}
