@@ -19,12 +19,14 @@ Show
 Hide
 Type "goodpass"
 Enter
-Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
+Wait+Nth(1)@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Password reset, 2 step\(s\) missing/
+Wait+Prompt /Plug your fido device and press with your thumb/
 Show
 
 # Wait for MFA auth to happen
 Hide
 Enter
+Wait+Nth(1) /Password reset, 1 step\(s\) missing/
 Wait+Prompt /Choose action/
 Show
 
@@ -40,7 +42,7 @@ Show
 Hide
 Type "goodpass"
 Enter
-Wait+Nth(1)  /The password is the same as the old one/
+Wait+Nth(1) /The password is the same as the old one/
 Wait+Prompt /Enter your new password \(3 days until mandatory\)/
 Show
 
