@@ -3,12 +3,9 @@ package adapter
 import (
 	"context"
 	"fmt"
-	"io"
-	"strconv"
 
-	"github.com/charmbracelet/bubbles/list"
+	tea_list "github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/log"
@@ -17,11 +14,9 @@ import (
 
 // brokerSelectionModel is the model list selection layout to allow authenticating and return a password.
 type brokerSelectionModel struct {
-	list.Model
-	focused bool
+	List
 
-	client     authd.PAMClient
-	clientType PamClientType
+	client authd.PAMClient
 
 	availableBrokers []*authd.ABResponse_BrokerInfo
 }
@@ -50,20 +45,9 @@ func selectBroker(brokerID string) tea.Cmd {
 
 // newBrokerSelectionModel initializes an empty list with default options of brokerSelectionModel.
 func newBrokerSelectionModel(client authd.PAMClient, clientType PamClientType) brokerSelectionModel {
-	l := list.New(nil, itemLayout{}, 80, 24)
-	l.Title = "Select your provider"
-	l.SetShowStatusBar(false)
-	l.SetShowHelp(false)
-	l.DisableQuitKeybindings()
-
-	l.Styles.Title = lipgloss.NewStyle()
-	/*l.Styles.PaginationStyle = paginationStyle
-	l.Styles.HelpStyle = helpStyle*/
-
 	return brokerSelectionModel{
-		Model:      l,
-		client:     client,
-		clientType: clientType,
+		List:   NewList(clientType, "Select your provider"),
+		client: client,
 	}
 }
 
@@ -88,7 +72,7 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 		}
 		m.availableBrokers = msg.brokers
 
-		var allBrokers []list.Item
+		var allBrokers []tea_list.Item
 		for _, b := range m.availableBrokers {
 			allBrokers = append(allBrokers, brokerItem{
 				id:   b.Id,
@@ -104,6 +88,15 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 	case brokerSelectionRequired:
 		log.Debugf(context.TODO(), "%#v", msg)
 		return m, sendEvent(ChangeStage{Stage: proto.Stage_brokerSelection})
+
+	case listItemSelected:
+		if !m.Focused() {
+			return m, nil
+		}
+
+		log.Debugf(context.TODO(), "%#v", msg)
+		broker := convertTo[brokerItem](msg.item)
+		return m, selectBroker(broker.id)
 
 	case brokerSelected:
 		log.Debugf(context.TODO(), "%#v", msg)
@@ -126,70 +119,9 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 		})
 	}
 
-	if m.clientType != InteractiveTerminal {
-		return m, nil
-	}
-
-	// interaction events
-	if !m.focused {
-		return m, nil
-	}
-	switch msg := msg.(type) {
-	// Key presses
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "enter":
-			item := m.SelectedItem()
-			if item == nil {
-				return m, nil
-			}
-			broker := convertTo[brokerItem](item)
-			cmd := selectBroker(broker.id)
-			return m, cmd
-		case "1", "2", "3", "4", "5", "6", "7", "8", "9":
-			// This is necessarily an integer, so above
-			choice, _ := strconv.Atoi(msg.String())
-			items := m.Items()
-			if choice > len(items) {
-				return m, nil
-			}
-			item := items[choice-1]
-			broker := convertTo[brokerItem](item)
-			cmd := selectBroker(broker.id)
-			return m, cmd
-		}
-	}
-
 	var cmd tea.Cmd
-	m.Model, cmd = m.Model.Update(msg)
+	m.List, cmd = m.List.Update(msg)
 	return m, cmd
-}
-
-// View renders a text view of the authentication UI.
-func (m brokerSelectionModel) View() string {
-	if !m.Focused() {
-		return ""
-	}
-
-	return m.Model.View()
-}
-
-// Focus focuses this model. It always returns nil.
-func (m *brokerSelectionModel) Focus() tea.Cmd {
-	log.Debugf(context.TODO(), "%T: Focus", m)
-	m.focused = true
-	return nil
-}
-
-// Focused returns if this model is focused.
-func (m *brokerSelectionModel) Focused() bool {
-	return m.focused
-}
-
-// Blur releases the focus from this model.
-func (m *brokerSelectionModel) Blur() {
-	log.Debugf(context.TODO(), "%T: Blur", m)
-	m.focused = false
 }
 
 // AutoSelectForUser requests if any previous broker was used by this user to automatically selects it.
@@ -213,11 +145,6 @@ func AutoSelectForUser(client authd.PAMClient, username string) tea.Cmd {
 	}
 }
 
-// WillCaptureEscape returns if this broker may capture Esc typing on keyboard.
-func (m brokerSelectionModel) WillCaptureEscape() bool {
-	return m.FilterState() == list.Filtering
-}
-
 // brokerItem is the list item corresponding to a broker.
 type brokerItem struct {
 	id   string
@@ -226,41 +153,6 @@ type brokerItem struct {
 
 // FilterValue allows filtering the list items.
 func (i brokerItem) FilterValue() string { return "" }
-
-// itemLayout is the rendering delegatation of brokerItem and authModeItem.
-type itemLayout struct{}
-
-// Height returns height of the items.
-func (d itemLayout) Height() int { return 1 }
-
-// Spacing returns the spacing needed between the items.
-func (d itemLayout) Spacing() int { return 0 }
-
-// Update triggers the update of each item.
-func (d itemLayout) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
-
-// Render writes to w the rendering of the items based on its selection and type.
-func (d itemLayout) Render(w io.Writer, m list.Model, index int, item list.Item) {
-	var label string
-	switch item := item.(type) {
-	case brokerItem:
-		label = item.name
-	case authModeItem:
-		label = item.label
-	default:
-		log.Errorf(context.TODO(), "Unexpected item element type: %t", item)
-		return
-	}
-
-	line := fmt.Sprintf("%d. %s", index+1, label)
-
-	if index == m.Index() {
-		line = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.AdaptiveColor{Light: "#000000", Dark: "#FFFFFF"}).Render("> " + line)
-	} else {
-		line = lipgloss.NewStyle().PaddingLeft(2).Render(line)
-	}
-	fmt.Fprint(w, line)
-}
 
 // getAvailableBrokers returns available broker list from authd.
 func getAvailableBrokers(client authd.PAMClient) tea.Cmd {
