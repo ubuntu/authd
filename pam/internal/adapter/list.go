@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"sync/atomic"
+	"unicode"
 
 	tea_list "github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -158,7 +160,7 @@ func (m List) View() string {
 		return ""
 	}
 
-	return m.Model.View()
+	return strings.TrimRightFunc(m.Model.View(), unicode.IsSpace)
 }
 
 // Focus focuses this model.

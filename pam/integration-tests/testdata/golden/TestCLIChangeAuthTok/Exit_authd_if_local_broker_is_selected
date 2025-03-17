@@ -14,26 +14,6 @@ Username: user-integration-cli-passwd-exit-authd-if-local-broker-is-selected
   Select your provider
 
 > 1. local
-  2. ExampleBroker
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 PAM Info Message: chauthtok=incomplete
 PAM ChangeAuthTok()
   User: "user-integration-cli-passwd-exit-authd-if-local-broker-is-selected"

@@ -35,26 +35,6 @@ Gimme your password:
   Select your provider
 
 > 1. local
-  2. ExampleBroker
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 PAM Info Message: auth=incomplete
 PAM Authenticate()
   User: "user-integration-switch-broker"
