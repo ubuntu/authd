@@ -179,8 +179,11 @@ func (m *ModuleTransactionDummy) handleStringRequest(req pam.ConvRequest) (pam.S
 	if m.convHandler == nil {
 		return nil, fmt.Errorf("no conversation handler provided for style %v", msgStyle)
 	}
-	reply, err := m.convHandler.RespondPAM(msgStyle,
-		req.(pam.StringConvRequest).Prompt())
+	stringReq, ok := req.(pam.StringConvRequest)
+	if !ok {
+		return nil, fmt.Errorf("conversation request is not a string request")
+	}
+	reply, err := m.convHandler.RespondPAM(msgStyle, stringReq.Prompt())
 	if err != nil {
 		return nil, err
 	}
