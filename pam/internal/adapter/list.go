@@ -179,8 +179,3 @@ func (m *List) Blur() {
 	log.Debugf(context.TODO(), "%T: Blur", m)
 	m.focused = false
 }
-
-// WillCaptureEscape returns if this broker may capture Esc typing on keyboard.
-func (m List) WillCaptureEscape() bool {
-	return m.FilterState() == tea_list.Filtering
-}

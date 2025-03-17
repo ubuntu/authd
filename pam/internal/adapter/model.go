@@ -15,6 +15,7 @@ import (
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/log"
+	"github.com/ubuntu/authd/pam/internal/proto"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -216,21 +217,10 @@ func (m *UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				msg:    "cancel requested",
 			})
 		case "esc":
-			if m.brokerSelectionModel.WillCaptureEscape() || m.authModeSelectionModel.WillCaptureEscape() {
-				break
+			if !m.canGoBack() {
+				return m, nil
 			}
-			var cmd tea.Cmd
-			switch m.currentStage() {
-			case pam_proto.Stage_brokerSelection:
-				if m.userSelectionModel.Enabled() {
-					cmd = m.changeStage(pam_proto.Stage_userSelection)
-				}
-			case pam_proto.Stage_authModeSelection:
-				cmd = m.changeStage(pam_proto.Stage_brokerSelection)
-			case pam_proto.Stage_challenge:
-				cmd = m.changeStage(pam_proto.Stage_authModeSelection)
-			}
-			return m, cmd
+			return m, sendEvent(ChangeStage{m.previousStage()})
 		}
 
 	// Exit cases
@@ -483,6 +473,24 @@ func (m *UIModel) changeStage(s pam_proto.Stage) tea.Cmd {
 	return tea.Sequence(commands...)
 }
 
+func (m UIModel) previousStage() pam_proto.Stage {
+	currentStage := m.currentStage()
+	if currentStage > proto.Stage_authModeSelection && len(m.availableAuthModes()) > 1 {
+		return proto.Stage_authModeSelection
+	}
+	if currentStage > proto.Stage_brokerSelection && len(m.availableBrokers()) > 1 {
+		return proto.Stage_brokerSelection
+	}
+	return proto.Stage_userSelection
+}
+
+func (m UIModel) canGoBack() bool {
+	if m.userSelectionModel.Enabled() {
+		return m.currentStage() > proto.Stage_userSelection
+	}
+	return m.previousStage() > proto.Stage_userSelection
+}
+
 // MsgFilter is the handler for the UI model.
 func (m *UIModel) MsgFilter(model tea.Model, msg tea.Msg) tea.Msg {
 	if m.ClientType != Gdm {
@@ -515,4 +523,9 @@ func (m UIModel) username() string {
 // availableBrokers returns currently available brokers.
 func (m UIModel) availableBrokers() []*authd.ABResponse_BrokerInfo {
 	return m.brokerSelectionModel.availableBrokers
+}
+
+// availableBrokers returns currently available brokers.
+func (m UIModel) availableAuthModes() []*authd.GAMResponse_AuthenticationMode {
+	return m.authModeSelectionModel.availableAuthModes
 }
