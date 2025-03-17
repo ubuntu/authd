@@ -194,6 +194,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		return *m, tea.Sequence(m.cancelIsAuthenticated(), sendEvent(AuthModeSelected{}))
 
 	case newPasswordCheck:
+		log.Debugf(context.TODO(), "%T", msg)
 		currentSecret := m.currentSecret
 		return *m, func() tea.Msg {
 			res := newPasswordCheckResult{ctx: msg.ctx, password: msg.password}
@@ -204,6 +205,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		}
 
 	case newPasswordCheckResult:
+		log.Debugf(msg.ctx, "%T: %s", msg, msg.msg)
 		if m.clientType != Gdm {
 			// This may be handled by the current model, so don't return early.
 			break
