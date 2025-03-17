@@ -137,6 +137,9 @@ service NSS {
 
   rpc GetShadowByName(GetShadowByNameRequest) returns (ShadowEntry);
   rpc GetShadowEntries(Empty) returns (ShadowEntries);
+
+  rpc DisableUser(DisableUserRequest) returns (Empty);
+  rpc EnableUser(EnableUserRequest) returns (Empty);
 }
 
 message GetPasswdByNameRequest{
@@ -194,4 +197,12 @@ message ShadowEntry {
 
 message ShadowEntries {
   repeated ShadowEntry entries = 1;
+}
+
+message DisableUserRequest{
+  string name = 1;
+}
+
+message EnableUserRequest{
+  string name = 1;
 }
