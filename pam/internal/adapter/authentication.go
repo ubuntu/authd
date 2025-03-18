@@ -187,16 +187,16 @@ func (m *authenticationModel) cancelIsAuthenticated() tea.Cmd {
 }
 
 // Update handles events and actions.
-func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel, command tea.Cmd) {
+func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel, command tea.Cmd) {
 	switch msg := msg.(type) {
 	case reselectAuthMode:
 		log.Debugf(context.TODO(), "%#v", msg)
-		return *m, tea.Sequence(m.cancelIsAuthenticated(), sendEvent(AuthModeSelected{}))
+		return m, tea.Sequence(m.cancelIsAuthenticated(), sendEvent(AuthModeSelected{}))
 
 	case newPasswordCheck:
 		log.Debugf(context.TODO(), "%T", msg)
 		currentSecret := m.currentSecret
-		return *m, func() tea.Msg {
+		return m, func() tea.Msg {
 			res := newPasswordCheckResult{ctx: msg.ctx, password: msg.password}
 			if err := checkPasswordQuality(currentSecret, msg.password); err != nil {
 				res.msg = err.Error()
@@ -212,7 +212,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		}
 
 		if msg.msg == "" {
-			return *m, sendEvent(isAuthenticatedRequestedSend{
+			return m, sendEvent(isAuthenticatedRequestedSend{
 				ctx: msg.ctx,
 				isAuthenticatedRequested: isAuthenticatedRequested{
 					// TODO(UDENG-5844): Rename this to "secret" once all broker installations support the auth data field "secret".
@@ -223,13 +223,13 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 
 		errMsg, err := json.Marshal(msg.msg)
 		if err != nil {
-			return *m, sendEvent(pamError{
+			return m, sendEvent(pamError{
 				status: pam.ErrSystem,
 				msg:    fmt.Sprintf("could not encode %q error: %v", msg.msg, err),
 			})
 		}
 
-		return *m, sendEvent(isAuthenticatedResultReceived{
+		return m, sendEvent(isAuthenticatedResultReceived{
 			access: auth.Retry,
 			msg:    fmt.Sprintf(`{"message": %s}`, errMsg),
 		})
@@ -256,7 +256,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		// we've completed the previous one(s).
 		clientType := m.clientType
 		currentLayout := m.currentLayout
-		return *m, func() tea.Msg {
+		return m, func() tea.Msg {
 			authTracker.waitAndStart(cancelFunc)
 
 			secret, hasSecret := msg.item.(*authd.IARequest_AuthenticationData_Challenge)
@@ -272,14 +272,14 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		// no password value, pass it as is
 		plainTextSecret, err := msg.encryptSecretIfPresent(m.encryptionKey)
 		if err != nil {
-			return *m, sendEvent(pamError{status: pam.ErrSystem, msg: fmt.Sprintf("could not encrypt password payload: %v", err)})
+			return m, sendEvent(pamError{status: pam.ErrSystem, msg: fmt.Sprintf("could not encrypt password payload: %v", err)})
 		}
 
-		return *m, sendIsAuthenticated(msg.ctx, m.client, m.currentSessionID, &authd.IARequest_AuthenticationData{Item: msg.item}, plainTextSecret)
+		return m, sendIsAuthenticated(msg.ctx, m.client, m.currentSessionID, &authd.IARequest_AuthenticationData{Item: msg.item}, plainTextSecret)
 
 	case isAuthenticatedCancelled:
 		log.Debugf(context.TODO(), "%#v", msg)
-		return *m, m.cancelIsAuthenticated()
+		return m, m.cancelIsAuthenticated()
 
 	case isAuthenticatedResultReceived:
 		log.Debugf(context.TODO(), "%#v", msg)
@@ -303,43 +303,43 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		case auth.Granted:
 			infoMsg, err := dataToMsg(msg.msg)
 			if err != nil {
-				return *m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+				return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
 			}
-			return *m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID, msg: infoMsg})
+			return m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID, msg: infoMsg})
 
 		case auth.Retry:
 			errorMsg, err := dataToMsg(msg.msg)
 			if err != nil {
-				return *m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+				return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
 			}
 			m.errorMsg = errorMsg
-			return *m, sendEvent(startAuthentication{})
+			return m, sendEvent(startAuthentication{})
 
 		case auth.Denied:
 			errMsg, err := dataToMsg(msg.msg)
 			if err != nil {
-				return *m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+				return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
 			}
 			if errMsg == "" {
 				errMsg = "Access denied"
 			}
-			return *m, sendEvent(pamError{status: pam.ErrAuth, msg: errMsg})
+			return m, sendEvent(pamError{status: pam.ErrAuth, msg: errMsg})
 
 		case auth.Next:
-			return *m, sendEvent(GetAuthenticationModesRequested{})
+			return m, sendEvent(GetAuthenticationModesRequested{})
 
 		case auth.Cancelled:
 			// nothing to do
-			return *m, nil
+			return m, nil
 		}
 
 	case errMsgToDisplay:
 		m.errorMsg = msg.msg
-		return *m, nil
+		return m, nil
 	}
 
 	if m.clientType != InteractiveTerminal {
-		return *m, nil
+		return m, nil
 	}
 
 	if _, ok := msg.(startAuthentication); ok {
@@ -349,7 +349,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 
 	// interaction events
 	if !m.Focused() {
-		return *m, nil
+		return m, nil
 	}
 
 	var cmd tea.Cmd
@@ -358,7 +358,7 @@ func (m *authenticationModel) Update(msg tea.Msg) (authModel authenticationModel
 		model, cmd = m.currentModel.Update(msg)
 		m.currentModel = convertTo[authenticationComponent](model)
 	}
-	return *m, cmd
+	return m, cmd
 }
 
 // Focus focuses this model.

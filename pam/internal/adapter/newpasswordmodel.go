@@ -144,8 +144,18 @@ func (m *newPasswordModel) updateFocusModel(msg tea.Msg) tea.Cmd {
 	if m.focusIndex >= len(m.focusableModels) {
 		return nil
 	}
-	model, cmd := m.focusableModels[m.focusIndex].Update(msg)
+
+	focusedModel := m.focusableModels[m.focusIndex]
+	model, cmd := focusedModel.Update(msg)
 	m.focusableModels[m.focusIndex] = convertTo[authenticationComponent](model)
+
+	focusedInput, ok := focusedModel.(*textinputModel)
+	if !ok {
+		return cmd
+	}
+	if idx := slices.Index(m.passwordEntries, focusedInput); idx >= 0 {
+		m.passwordEntries[idx] = convertTo[*textinputModel](model)
+	}
 
 	return cmd
 }
