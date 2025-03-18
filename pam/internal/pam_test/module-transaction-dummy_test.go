@@ -639,7 +639,9 @@ func (c *multiConvHandler) RespondPAMBinary(ptr pam.BinaryPointer) ([]byte, erro
 	require.NoError(c.t, err)
 	require.Equal(c.t, wantReqBytes, actualReqBytes)
 
-	bytes, err := response.(pam.BinaryConvResponse).Decode(bytesPointerDecoder)
+	binRes, ok := response.(pam.BinaryConvResponse)
+	require.True(c.t, ok)
+	bytes, err := binRes.Decode(bytesPointerDecoder)
 	require.NoError(c.t, err)
 	return bytes, nil
 }
