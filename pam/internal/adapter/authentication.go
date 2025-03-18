@@ -193,9 +193,23 @@ func (m *authenticationModel) cancelIsAuthenticated() tea.Cmd {
 // Update handles events and actions.
 func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel, command tea.Cmd) {
 	switch msg := msg.(type) {
+	case StageChanged:
+		if msg.Stage != pam_proto.Stage_challenge {
+			return m, nil
+		}
+		log.Debugf(context.TODO(), "%#v, in progress %v, focused: %v",
+			msg, m.inProgress, m.Focused())
+		if m.inProgress || !m.Focused() {
+			return m, nil
+		}
+		return m, sendEvent(startAuthentication{})
+
 	case startAuthentication:
 		log.Debugf(context.TODO(), "%#v: current model %v, focused %v",
 			msg, m.currentModel, m.Focused())
+		if !m.Focused() {
+			return m, nil
+		}
 		m.inProgress = true
 
 	case stopAuthentication:
@@ -371,14 +385,15 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 
 // Focus focuses this model.
 func (m authenticationModel) Focus() tea.Cmd {
-	log.Debugf(context.TODO(), "%T: Focus", m)
+	log.Debugf(context.TODO(), "%T: Focus, focused %v", m, m.Focused())
 	if m.currentModel == nil {
 		return nil
 	}
 
-	if !m.inProgress {
-		return tea.Sequence(m.currentModel.Focus(),
-			sendEvent(startAuthentication{}))
+	if m.Focused() {
+		// This is in the case of re-authentication or next, as the stage has
+		// not been changed and we are already focused.
+		return sendEvent(startAuthentication{})
 	}
 
 	return m.currentModel.Focus()

@@ -198,6 +198,9 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 			tea.Tick(gdmPollFrequency, func(time.Time) tea.Msg { return nil }),
 			m.pollGdm())
 
+	case StageChanged:
+		return m, m.changeStage(msg.Stage)
+
 	case userSelected:
 		return m, m.emitEvent(&gdm.EventData_UserSelected{
 			UserSelected: &gdm.Events_UserSelected{UserId: msg.username},
@@ -296,10 +299,6 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 }
 
 func (m gdmModel) changeStage(s proto.Stage) tea.Cmd {
-	if m.conversationsStopped {
-		return nil
-	}
-
 	return func() tea.Msg {
 		_, err := gdm.SendRequest(m.pamMTx, &gdm.RequestData_ChangeStage{
 			ChangeStage: &gdm.Requests_ChangeStage{Stage: s},

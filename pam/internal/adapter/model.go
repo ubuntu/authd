@@ -115,6 +115,9 @@ type ChangeStage struct {
 	Stage pam_proto.Stage
 }
 
+// StageChanged signals that the model just finished a stage change.
+type StageChanged ChangeStage
+
 // NewUIModel creates and initializes the main model orchestrator.
 func NewUIModel(mTx pam.ModuleTransaction, clientType PamClientType, mode authd.SessionMode, conn *grpc.ClientConn, exitStatus *PamReturnStatus) tea.Model {
 	var nssClient authd.NSSClient
@@ -326,6 +329,9 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Debugf(context.TODO(), "%#v", msg)
 		return m, m.changeStage(msg.Stage)
 
+	case StageChanged:
+		log.Debugf(context.TODO(), "%#v", msg)
+
 	case GetAuthenticationModesRequested:
 		log.Debugf(context.TODO(), "%#v", msg)
 		if m.currentSession == nil {
@@ -495,12 +501,7 @@ func (m *uiModel) changeStage(s pam_proto.Stage) tea.Cmd {
 	}
 
 	if currentStage != s {
-		switch m.clientType {
-		case Gdm:
-			commands = append(commands, m.gdmModel.changeStage(s))
-		case Native:
-			commands = append(commands, m.nativeModel.changeStage(s))
-		}
+		commands = append(commands, sendEvent(StageChanged{s}))
 	}
 
 	return tea.Sequence(commands...)
