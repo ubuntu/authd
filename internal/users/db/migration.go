@@ -4,11 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/ubuntu/authd/internal/users/db/bbolt"
+	"github.com/ubuntu/authd/internal/users/localentries"
+	"github.com/ubuntu/authd/internal/userutils"
 	"github.com/ubuntu/authd/log"
 )
+
+var groupFile = localentries.GroupFile
 
 // MigrateFromBBoltToSQLite migrates data from bbolt to SQLite.
 func MigrateFromBBoltToSQLite(dbDir string) error {
@@ -139,11 +144,37 @@ func (m *Manager) migrateFromBBoltToSQLite(dbDir string) (err error) {
 	return nil
 }
 
-var schemaMigrations = map[string]string{
-	"Migrate to lowercase user and group names": `
-	UPDATE users SET name = LOWER(name);
-	UPDATE groups SET name = LOWER(name);
-	`,
+type schemaMigration struct {
+	description string
+	migrate     func(*Manager) error
+}
+
+var schemaMigrations = []schemaMigration{
+	{
+		description: "Migrate to lowercase user and group names",
+		migrate: func(m *Manager) error {
+			users, err := m.AllUsers()
+			if err != nil {
+				return fmt.Errorf("failed to get users from database: %w", err)
+			}
+
+			var oldNames, newNames []string
+			for _, u := range users {
+				oldNames = append(oldNames, u.Name)
+				newNames = append(newNames, strings.ToLower(u.Name))
+			}
+
+			if err := renameUsersInGroupFile(oldNames, newNames); err != nil {
+				return fmt.Errorf("failed to rename users in %s file: %w",
+					groupFile, err)
+			}
+
+			query := `UPDATE users SET name = LOWER(name);
+					  UPDATE groups SET name = LOWER(name);`
+			_, err = m.db.Exec(query)
+			return err
+		},
+	},
 }
 
 func (m *Manager) maybeApplyMigrations() error {
@@ -159,16 +190,15 @@ func (m *Manager) maybeApplyMigrations() error {
 	log.Debugf(context.Background(), "Schema version before migrations: %d", currentVersion)
 
 	v := 0
-	for description, query := range schemaMigrations {
+	for _, migration := range schemaMigrations {
 		v++
 		if currentVersion >= v {
 			continue
 		}
 
-		log.Infof(context.Background(), "Applying schema migration: %s", description)
-		_, err := m.db.Exec(query)
-		if err != nil {
-			return fmt.Errorf("failed to apply schema migration: %w", err)
+		log.Infof(context.Background(), "Applying schema migration: %s", migration.description)
+		if err := migration.migrate(m); err != nil {
+			return fmt.Errorf("error applying schema migration: %w", err)
 		}
 
 		if err := setSchemaVersion(m.db, v); err != nil {
@@ -177,6 +207,60 @@ func (m *Manager) maybeApplyMigrations() error {
 	}
 
 	log.Debugf(context.Background(), "Schema version after migrations: %d", v)
+
+	return nil
+}
+
+// renameUsersInGroupFile renames users in the /etc/group file.
+func renameUsersInGroupFile(oldNames, newNames []string) error {
+	// Note that we can't use gpasswd here because `gpasswd --add` checks for the existence of the user, which causes an
+	// NSS request to be sent to authd, but authd is not ready yet because we are still migrating the database.
+	err := userutils.LockGroupFile()
+	if err != nil {
+		return fmt.Errorf("failed to lock group file: %w", err)
+	}
+	defer func() {
+		if err := userutils.UnlockGroupFile(); err != nil {
+			log.Warningf(context.Background(), "Failed to unlock group file: %v", err)
+		}
+	}()
+
+	content, err := os.ReadFile(groupFile)
+	if err != nil {
+		return fmt.Errorf("error reading %s: %w", groupFile, err)
+	}
+
+	oldLines := strings.Split(string(content), "\n")
+	var newLines []string
+
+	for _, line := range oldLines {
+		if line == "" {
+			continue
+		}
+
+		fields := strings.FieldsFunc(line, func(r rune) bool { return r == ':' })
+		if len(fields) != 4 {
+			return fmt.Errorf("unexpected number of fields in %s line (expected 4, got %d): %s",
+				groupFile, len(fields), line)
+		}
+
+		users := strings.Split(fields[3], ",")
+		for j, user := range users {
+			for k, oldName := range oldNames {
+				if user == oldName {
+					users[j] = newNames[k]
+				}
+			}
+		}
+
+		fields[3] = strings.Join(users, ",")
+		newLines = append(newLines, strings.Join(fields, ":"))
+	}
+
+	//nolint:gosec // G306 /etc/group should indeed have 0644 permissions
+	if err := os.WriteFile(groupFile, []byte(strings.Join(newLines, "\n")), 0644); err != nil {
+		return fmt.Errorf("error writing %s: %w", groupFile, err)
+	}
 
 	return nil
 }
