@@ -127,7 +127,8 @@ func sharedAuthd(t *testing.T) (socketPath string, gpasswdFile string) {
 
 	sa.gPasswdOutputPath = filepath.Join(t.TempDir(), "gpasswd.output")
 	sa.groupsFile = filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-	sa.socketPath, sa.cleanup = runAuthdForTesting(t, sa.gPasswdOutputPath, sa.groupsFile, true)
+	sa.socketPath, sa.cleanup = runAuthdForTesting(t, sa.gPasswdOutputPath,
+		sa.groupsFile, true, testutils.WithSharedDaemon(true))
 	return sa.socketPath, sa.gPasswdOutputPath
 }
 

@@ -3,6 +3,7 @@ package testutils
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -25,6 +26,7 @@ type daemonOptions struct {
 	socketPath string
 	pidFile    string
 	outputFile string
+	shared     bool
 	env        []string
 }
 
@@ -71,6 +73,13 @@ func WithPidFile(pidFile string) DaemonOption {
 func WithOutputFile(outputFile string) DaemonOption {
 	return func(o *daemonOptions) {
 		o.outputFile = outputFile
+	}
+}
+
+// WithSharedDaemon sets whether the daemon is shared between tests.
+func WithSharedDaemon(shared bool) DaemonOption {
+	return func(o *daemonOptions) {
+		o.shared = shared
 	}
 }
 
@@ -142,22 +151,42 @@ paths:
 		if opts.pidFile != "" {
 			processPid <- cmd.Process.Pid
 		}
+
+		// When using a shared daemon we should not use the test parameter from now on
+		// since the test is referring to may not be the one actually running.
+		t := t
+		logger := t.Logf
+		errorIs := func(err, target error, format string, args ...any) {
+			require.ErrorIs(t, err, target, fmt.Sprintf(format, args...))
+		}
+		if opts.shared {
+			// Unset the testing value, since it's wrong to use it from!
+			t = nil
+			logger = func(format string, args ...any) { fmt.Fprintf(os.Stderr, format+"\n", args...) }
+			errorIs = func(err, target error, format string, args ...any) {
+				if errors.Is(err, target) {
+					return
+				}
+				panic(fmt.Sprintf("Error %v is not matching %v: %s", err, target, fmt.Sprintf(format, args...)))
+			}
+		}
+
 		err = cmd.Wait()
 		out := b.Bytes()
 		if opts.outputFile != "" {
-			t.Log("writing authd log files to", opts.outputFile)
+			logger("writing authd log files to %v", opts.outputFile)
 			if err := os.WriteFile(opts.outputFile, out, 0600); err != nil {
-				t.Logf("TearDown: failed to save output file %q: %v", opts.outputFile, err)
+				logger("TearDown: failed to save output file %q: %v", opts.outputFile, err)
 			}
 		}
-		require.ErrorIs(t, err, context.Canceled, "Setup: daemon stopped unexpectedly: %s", out)
+		errorIs(err, context.Canceled, "Setup: daemon stopped unexpectedly: %s", out)
 		if opts.pidFile != "" {
 			defer cancel(nil)
 			if err := os.Remove(opts.pidFile); err != nil {
-				t.Logf("TearDown: failed to remove pid file %q: %v", opts.pidFile, err)
+				logger("TearDown: failed to remove pid file %q: %v", opts.pidFile, err)
 			}
 		}
-		t.Logf("Daemon stopped (%v)\n ##### Output #####\n %s \n ##### END #####", err, out)
+		logger("Daemon stopped (%v)\n ##### Output #####\n %s \n ##### END #####", err, out)
 	}()
 
 	conn, err := grpc.NewClient("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
