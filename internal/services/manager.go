@@ -13,7 +13,6 @@ import (
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/log"
-	"github.com/ubuntu/decorate"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
@@ -30,8 +29,6 @@ type Manager struct {
 
 // NewManager returns a new manager after creating all necessary items for our business logic.
 func NewManager(ctx context.Context, dbDir, brokersConfPath string, configuredBrokers []string, usersConfig users.Config) (m Manager, err error) {
-	defer decorate.OnError(&err /*i18n.G(*/, "can't create authd object") //)
-
 	log.Debug(ctx, "Building authd object")
 
 	brokerManager, err := brokers.NewManager(ctx, brokersConfPath, configuredBrokers)
