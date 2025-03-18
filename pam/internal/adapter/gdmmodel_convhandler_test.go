@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/msteinert/pam/v2"
+	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/authd/pam/internal/gdm"
@@ -73,10 +74,10 @@ func (h *gdmConvHandler) RespondPAM(style pam.Style, prompt string) (string, err
 }
 
 func (h *gdmConvHandler) RespondPAMBinary(ptr pam.BinaryPointer) (pam.BinaryPointer, error) {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-
 	return gdm.DataConversationFunc(func(inData *gdm.Data) (*gdm.Data, error) {
+		h.mu.Lock()
+		defer h.mu.Unlock()
+
 		var json []byte
 
 		if len(h.convError) > 0 {
@@ -243,6 +244,10 @@ func (h *gdmConvHandler) handleEvent(event *gdm.EventData) error {
 		}
 
 	case *gdm.EventData_StartAuthentication:
+		require.Equal(h.t, pam_proto.Stage_challenge, h.currentStage,
+			"Authentication started when we're not in challenge phase but in %s",
+			h.currentStage)
+
 		go func() {
 			// Mark the events received after or while we're returning but not when locked.
 			h.startAuthRequested <- struct{}{}
