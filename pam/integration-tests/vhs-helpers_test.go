@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"errors"
 	"fmt"
 	"maps"
 	"math"
@@ -260,14 +259,13 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 	var raceLog string
 	if testutils.IsRace() {
 		raceLog = filepath.Join(t.TempDir(), "gorace.log")
-		cmd.Env = append(cmd.Env, fmt.Sprintf("GORACE=log_path=%s", raceLog))
-		saveArtifactsForDebugOnCleanup(t, []string{raceLog})
+		cmd.Env = append(cmd.Env, fmt.Sprintf("GORACE=log_path=%s exitcode=0", raceLog))
 	}
 
 	cmd.Args = append(cmd.Args, td.PrepareTape(t, testType, outDir))
 	out, err := cmd.CombinedOutput()
-	if err != nil {
-		checkDataRace(t, raceLog)
+	if raceLog != "" {
+		checkDataRaces(t, raceLog)
 	}
 
 	isSSHError := func(processOut []byte) bool {
@@ -324,17 +322,38 @@ func (td tapeData) Output() string {
 	return txt
 }
 
+func checkDataRaces(t *testing.T, raceLog string) {
+	t.Helper()
+
+	if !testutils.IsRace() {
+		return
+	}
+
+	var raceLogs []string
+	err := filepath.Walk(filepath.Dir(raceLog),
+		func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if !strings.HasPrefix(info.Name(), filepath.Base(raceLog)) {
+				return nil
+			}
+			t.Logf("Found data race %s", info.Name())
+			raceLogs = append(raceLogs, filepath.Join(filepath.Dir(raceLog), info.Name()))
+			return nil
+		})
+
+	require.NoError(t, err, "TearDown: Check for races")
+	saveArtifactsForDebugOnCleanup(t, raceLogs)
+	for _, raceLog := range raceLogs {
+		checkDataRace(t, raceLog)
+	}
+}
+
 func checkDataRace(t *testing.T, raceLog string) {
 	t.Helper()
 
-	if !testutils.IsRace() || raceLog == "" {
-		return
-	}
-
 	content, err := os.ReadFile(raceLog)
-	if err == nil || errors.Is(err, os.ErrNotExist) {
-		return
-	}
 	require.NoError(t, err, "TearDown: Error reading race log %q", raceLog)
 
 	out := string(content)
