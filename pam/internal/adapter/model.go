@@ -455,8 +455,10 @@ func (m uiModel) currentStage() pam_proto.Stage {
 // changeStage returns a command acting to change the current stage and reset any previous views.
 func (m *uiModel) changeStage(s pam_proto.Stage) tea.Cmd {
 	var commands []tea.Cmd
-	if m.currentStage() != s {
-		switch m.currentStage() {
+	currentStage := m.currentStage()
+
+	if currentStage != s {
+		switch currentStage {
 		case pam_proto.Stage_userSelection:
 			m.userSelectionModel.Blur()
 		case pam_proto.Stage_brokerSelection:
@@ -466,14 +468,6 @@ func (m *uiModel) changeStage(s pam_proto.Stage) tea.Cmd {
 		case pam_proto.Stage_challenge:
 			m.authenticationModel.Blur()
 			commands = append(commands, m.authenticationModel.Reset())
-		}
-
-		if m.clientType == Gdm {
-			commands = append(commands, m.gdmModel.changeStage(s))
-		}
-
-		if m.clientType == Native {
-			commands = append(commands, m.nativeModel.changeStage(s))
 		}
 	}
 
@@ -498,6 +492,15 @@ func (m *uiModel) changeStage(s pam_proto.Stage) tea.Cmd {
 			status: pam.ErrSystem,
 			msg:    fmt.Sprintf("unknown PAM stage: %q", s),
 		})
+	}
+
+	if currentStage != s {
+		switch m.clientType {
+		case Gdm:
+			commands = append(commands, m.gdmModel.changeStage(s))
+		case Native:
+			commands = append(commands, m.nativeModel.changeStage(s))
+		}
 	}
 
 	return tea.Sequence(commands...)
