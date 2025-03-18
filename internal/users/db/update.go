@@ -154,6 +154,9 @@ func handleUsersToLocalGroupsUpdate(db queryable, uid uint32, localGroups []stri
 
 // UpdateBrokerForUser updates the last broker the user successfully authenticated with.
 func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
+	// authd uses lowercase usernames
+	username = strings.ToLower(username)
+
 	query := `UPDATE users SET broker_id = ? WHERE name = ?`
 	res, err := m.db.Exec(query, brokerID, username)
 	if err != nil {
