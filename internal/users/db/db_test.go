@@ -28,9 +28,8 @@ func TestNew(t *testing.T) {
 
 		wantErr bool
 	}{
-		"New_without_any_initialized_database":                    {},
-		"New_with_already_existing_database":                      {dbFile: "multiple_users_and_groups"},
-		"New_migrates_database_to_lowercase_user_and_group_names": {dbFile: "one_user_and_group_with_uppercase"},
+		"New_without_any_initialized_database": {},
+		"New_with_already_existing_database":   {dbFile: "multiple_users_and_groups"},
 
 		"Error_on_non_existent_db_dir":                   {dbFile: "-", wantErr: true},
 		"Error_on_corrupted_db_file":                     {corruptedDbFile: true, wantErr: true},
@@ -110,6 +109,42 @@ func TestDatabaseRemovedWhenSchemaCreationFails(t *testing.T) {
 	exists, err := fileutils.FileExists(dbDestPath)
 	require.NoError(t, err, "Failed to check if database file exists")
 	require.False(t, exists, "Database file should not exist after failed schema creation")
+}
+
+func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
+	t.Parallel()
+
+	// Create a database from the testdata
+	dbDir := t.TempDir()
+	dbFile := "one_user_and_group_with_uppercase.db.yaml"
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	// Create a temporary user group file for testing
+	groupsFilePath := filepath.Join(t.TempDir(), "groups")
+	err = os.WriteFile(groupsFilePath, []byte("Group1:x:11111:User1\n"), 0600)
+	require.NoError(t, err, "Setup: could not create group file")
+
+	// Make the db package use the temporary user group file
+	origUserGroupFile := db.UserGroupFile()
+	db.SetUserGroupFile(groupsFilePath)
+	defer db.SetUserGroupFile(origUserGroupFile)
+
+	// Run the migrations
+	m, err := db.New(dbDir)
+	require.NoError(t, err)
+
+	// Check the content of the SQLite database
+	dbContent, err := db.Z_ForTests_DumpNormalizedYAML(m)
+	require.NoError(t, err)
+
+	golden.CheckOrUpdate(t, dbContent, golden.WithPath("db"))
+
+	// Check the content of the user group file
+	userGroupContent, err := os.ReadFile(groupsFilePath)
+	require.NoError(t, err)
+
+	golden.CheckOrUpdate(t, string(userGroupContent), golden.WithPath("groups"))
 }
 
 func TestUpdateUserEntry(t *testing.T) {
