@@ -1,3 +1,5 @@
+// TiCS: disabled // Header files are not built by default.
+
 #include <stdlib.h>
 #include <string.h>
 

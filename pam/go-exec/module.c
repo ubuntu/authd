@@ -1,3 +1,5 @@
+// TiCS: disabled // This file is compiled indirectly through go generate.
+
 /* A simple PAM wrapper for GO based pam modules
  *
  * Copyright (C) 2024 Canonical Ltd.

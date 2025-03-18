@@ -1,3 +1,5 @@
+// TiCS: disabled // This is a test helper.
+
 #define _GNU_SOURCE 1
 #include <assert.h>
 #include <stdlib.h>

@@ -1,3 +1,5 @@
+// TiCS: disabled // This is a test helper.
+
 //go:build pam_tests_exec_client
 
 package main

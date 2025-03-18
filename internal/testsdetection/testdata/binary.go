@@ -1,3 +1,5 @@
+// TiCS: disabled // Should only be built when running integration tests.
+
 package main
 
 import (
