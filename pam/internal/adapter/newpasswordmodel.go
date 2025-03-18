@@ -4,11 +4,9 @@ import (
 	"context"
 	"slices"
 
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
-	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/log"
 )
@@ -33,12 +31,9 @@ func newNewPasswordModel(label, entryType, buttonLabel string) newPasswordModel 
 
 	// TODO: add digits and force validation.
 	for range []int{0, 1} {
-		entry := &textinputModel{Model: textinput.New()}
-		if entryType == entries.CharsPassword {
-			entry.EchoMode = textinput.EchoPassword
-		}
-		passwordEntries = append(passwordEntries, entry)
-		focusableModels = append(focusableModels, entry)
+		entry := newTextInputModel(entryType)
+		passwordEntries = append(passwordEntries, &entry)
+		focusableModels = append(focusableModels, &entry)
 	}
 
 	if buttonLabel != "" {
@@ -61,9 +56,6 @@ func newNewPasswordModel(label, entryType, buttonLabel string) newPasswordModel 
 func (m newPasswordModel) Init() tea.Cmd {
 	var commands []tea.Cmd
 	for _, c := range m.focusableModels {
-		commands = append(commands, c.Init())
-	}
-	for _, c := range m.passwordEntries {
 		commands = append(commands, c.Init())
 	}
 	return tea.Batch(commands...)
