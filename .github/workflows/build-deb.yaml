@@ -113,6 +113,7 @@ jobs:
       run: |
         set -euo pipefail
 
+        # Create or switch to the packaging branch
         if git -C repo fetch --depth=1 origin "${{ env.PACKAGING_BRANCH }}:${{ env.PACKAGING_BRANCH }}"; then
           git -C repo checkout "${{ env.PACKAGING_BRANCH }}"
         else
@@ -125,7 +126,9 @@ jobs:
         mv repo/.git sources/
         cd sources
 
-        # Create a new packaging branch
+        git config --global user.name "Ubuntu Enterprise Desktop"
+        git config --global user.email "ubuntu-devel-discuss@lists.ubuntu.com"
+
         git add --all
         git commit -m "Update ubuntu ${{ matrix.ubuntu-version }} package sources" \
           -m "Use upstream commit ${GITHUB_SHA::7}"
