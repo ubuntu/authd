@@ -136,7 +136,7 @@ func (m *UIModel) Init() tea.Cmd {
 		if m.Conn != nil && isSSHSession(m.PamMTx) {
 			nssClient = authd.NewNSSClient(m.Conn)
 		}
-		m.nativeModel = nativeModel{pamMTx: m.PamMTx, nssClient: nssClient}
+		m.nativeModel = newNativeModel(m.PamMTx, nssClient)
 		cmds = append(cmds, m.nativeModel.Init())
 	}
 
