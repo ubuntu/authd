@@ -115,30 +115,51 @@ type ChangeStage struct {
 	Stage pam_proto.Stage
 }
 
-// Init initializes the main model orchestrator.
-func (m *UIModel) Init() tea.Cmd {
-	var cmds []tea.Cmd
+// NewUIModel creates and initializes the main model orchestrator.
+func NewUIModel(mTx pam.ModuleTransaction, clientType PamClientType, mode authd.SessionMode, conn *grpc.ClientConn, exitStatus *PamReturnStatus) UIModel {
+	var nssClient authd.NSSClient
+	if conn != nil && isSSHSession(mTx) {
+		nssClient = authd.NewNSSClient(conn)
+	}
+
+	m := newUIModelForClients(mTx, clientType, mode, authd.NewPAMClient(conn), nssClient, exitStatus)
+	m.Conn = conn
+	return m
+}
+
+// newUIModelForClients is the internal implementation of [NewUIModel] for testing purposes.
+func newUIModelForClients(mTx pam.ModuleTransaction, clientType PamClientType, mode authd.SessionMode, pamClient authd.PAMClient, nssClient authd.NSSClient, exitStatus *PamReturnStatus) UIModel {
+	m := UIModel{
+		PamMTx:      mTx,
+		ClientType:  clientType,
+		SessionMode: mode,
+		ExitStatus:  exitStatus,
+		client:      pamClient,
+	}
 
 	if m.ExitStatus != nil {
 		*m.ExitStatus = errNoExitStatus
 	}
 
-	if m.Conn != nil {
-		m.client = authd.NewPAMClient(m.Conn)
-	}
-
 	switch m.ClientType {
 	case Gdm:
 		m.gdmModel = gdmModel{pamMTx: m.PamMTx}
-		cmds = append(cmds, m.gdmModel.Init())
 	case Native:
-		var nssClient authd.NSSClient
-		if m.Conn != nil && isSSHSession(m.PamMTx) {
-			nssClient = authd.NewNSSClient(m.Conn)
-		}
 		m.nativeModel = newNativeModel(m.PamMTx, nssClient)
-		cmds = append(cmds, m.nativeModel.Init())
 	}
+
+	m.userSelectionModel = newUserSelectionModel(m.PamMTx, m.ClientType)
+	m.brokerSelectionModel = newBrokerSelectionModel(m.client, m.ClientType)
+	m.authModeSelectionModel = newAuthModeSelectionModel(m.ClientType)
+	m.authenticationModel = newAuthenticationModel(m.client, m.ClientType)
+	m.healthCheckCancel = func() {}
+
+	return m
+}
+
+// Init initializes the main model orchestrator.
+func (m UIModel) Init() tea.Cmd {
+	var cmds []tea.Cmd
 
 	if m.client == nil {
 		return sendEvent(pamError{
@@ -147,23 +168,23 @@ func (m *UIModel) Init() tea.Cmd {
 		})
 	}
 
-	m.userSelectionModel = newUserSelectionModel(m.PamMTx, m.ClientType)
+	switch m.ClientType {
+	case Gdm:
+		cmds = append(cmds, m.gdmModel.Init())
+	case Native:
+		cmds = append(cmds, m.nativeModel.Init())
+	}
+
 	cmds = append(cmds, m.userSelectionModel.Init())
-
-	m.brokerSelectionModel = newBrokerSelectionModel(m.client, m.ClientType)
 	cmds = append(cmds, m.brokerSelectionModel.Init())
-
-	m.authModeSelectionModel = newAuthModeSelectionModel(m.ClientType)
 	cmds = append(cmds, m.authModeSelectionModel.Init())
-
-	m.authenticationModel = newAuthenticationModel(m.client, m.ClientType)
 	cmds = append(cmds, m.authenticationModel.Init())
-
-	m.healthCheckCancel = func() {}
-	cmds = append(cmds, m.startHealthCheck())
+	cmds = append(cmds, sendEvent(initHealthCheck{}))
 
 	return tea.Batch(cmds...)
 }
+
+type initHealthCheck struct{}
 
 func (m *UIModel) startHealthCheck() tea.Cmd {
 	if m.Conn == nil {
@@ -218,58 +239,62 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch msg.String() {
 		case "ctrl+c":
-			return &m, sendEvent(pamError{
+			return m, sendEvent(pamError{
 				status: pam.ErrAbort,
 				msg:    "cancel requested",
 			})
 		case "esc":
 			if !m.canGoBack() {
-				return &m, nil
+				return m, nil
 			}
-			return &m, sendEvent(ChangeStage{m.previousStage()})
+			return m, sendEvent(ChangeStage{m.previousStage()})
 		}
+
+	case initHealthCheck:
+		log.Debugf(context.TODO(), "%#v")
+		return m, m.startHealthCheck()
 
 	// Exit cases
 	case PamReturnStatus:
 		log.Debugf(context.TODO(), "%#v", msg)
 		if m.ExitStatus == nil {
-			return &m, m.quit()
+			return m, m.quit()
 		}
 		*m.ExitStatus = msg
-		return &m, m.quit()
+		return m, m.quit()
 
 	// Events
 	case BrokerListReceived:
 		log.Debugf(context.TODO(), "%#v, brokers: %#v", msg, m.availableBrokers())
 		if m.availableBrokers() == nil {
-			return &m, nil
+			return m, nil
 		}
-		return &m, m.userSelectionModel.SelectUser()
+		return m, m.userSelectionModel.SelectUser()
 
 	case UsernameSelected:
 		log.Debugf(context.TODO(), "%#v, user: %q", msg, m.username())
 		if m.username() == "" {
-			return &m, nil
+			return m, nil
 		}
 
 		// Got user and brokers? Time to auto or manually select.
-		return &m, AutoSelectForUser(m.client, m.username())
+		return m, AutoSelectForUser(m.client, m.username())
 
 	case BrokerSelected:
 		log.Debugf(context.TODO(), "%#v", msg)
 		if m.sessionStartingForBroker == "" {
 			m.sessionStartingForBroker = msg.BrokerID
-			return &m, startBrokerSession(m.client, msg.BrokerID, m.username(), m.SessionMode)
+			return m, startBrokerSession(m.client, msg.BrokerID, m.username(), m.SessionMode)
 		}
 		if m.sessionStartingForBroker != msg.BrokerID {
-			return &m, tea.Sequence(endSession(m.client, m.currentSession), sendEvent(msg))
+			return m, tea.Sequence(endSession(m.client, m.currentSession), sendEvent(msg))
 		}
 	case SessionStarted:
 		log.Debugf(context.TODO(), "%#v", msg)
 		m.sessionStartingForBroker = ""
 		pubASN1, err := base64.StdEncoding.DecodeString(msg.encryptionKey)
 		if err != nil {
-			return &m, sendEvent(pamError{
+			return m, sendEvent(pamError{
 				status: pam.ErrSystem,
 				msg:    fmt.Sprintf("encryption key sent by broker is not a valid base64 encoded string: %v", err),
 			})
@@ -277,14 +302,14 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		pubKey, err := x509.ParsePKIXPublicKey(pubASN1)
 		if err != nil {
-			return &m, sendEvent(pamError{
+			return m, sendEvent(pamError{
 				status: pam.ErrSystem,
 				msg:    fmt.Sprintf("encryption key send by broker is not valid: %v", err),
 			})
 		}
 		rsaPublicKey, ok := pubKey.(*rsa.PublicKey)
 		if !ok {
-			return &m, sendEvent(pamError{
+			return m, sendEvent(pamError{
 				status: pam.ErrSystem,
 				msg:    fmt.Sprintf("expected encryption key sent by broker to be  RSA public key, got %T", pubKey),
 			})
@@ -295,19 +320,19 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			sessionID:     msg.sessionID,
 			encryptionKey: rsaPublicKey,
 		}
-		return &m, sendEvent(GetAuthenticationModesRequested{})
+		return m, sendEvent(GetAuthenticationModesRequested{})
 
 	case ChangeStage:
 		log.Debugf(context.TODO(), "%#v", msg)
-		return &m, m.changeStage(msg.Stage)
+		return m, m.changeStage(msg.Stage)
 
 	case GetAuthenticationModesRequested:
 		log.Debugf(context.TODO(), "%#v", msg)
 		if m.currentSession == nil {
-			return &m, nil
+			return m, nil
 		}
 
-		return &m, tea.Sequence(
+		return m, tea.Sequence(
 			getAuthenticationModes(m.client, m.currentSession.sessionID, m.authModeSelectionModel.SupportedUILayouts()),
 			m.changeStage(pam_proto.Stage_authModeSelection),
 		)
@@ -315,19 +340,19 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case AuthModeSelected:
 		log.Debugf(context.TODO(), "%#v", msg)
 		if m.currentSession == nil {
-			return &m, nil
+			return m, nil
 		}
 		// Reselection/reset of current authentication mode requested (button clicked for instance)
 		if msg.ID == "" {
 			msg.ID = m.authModeSelectionModel.currentAuthModeSelectedID
 		}
 		if msg.ID == "" {
-			return &m, sendEvent(pamError{
+			return m, sendEvent(pamError{
 				status: pam.ErrSystem,
 				msg:    "reselection of current auth mode without current ID",
 			})
 		}
-		return &m, tea.Sequence(
+		return m, tea.Sequence(
 			m.updateClientModel(msg),
 			getLayout(m.client, m.currentSession.sessionID, msg.ID),
 		)
@@ -335,10 +360,10 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case UILayoutReceived:
 		log.Debugf(context.TODO(), "%#v", msg)
 		if m.currentSession == nil {
-			return &m, nil
+			return m, nil
 		}
 
-		return &m, tea.Sequence(
+		return m, tea.Sequence(
 			m.authenticationModel.Compose(
 				m.currentSession.brokerID,
 				m.currentSession.sessionID,
@@ -352,7 +377,7 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Debugf(context.TODO(), "%#v", msg)
 		m.sessionStartingForBroker = ""
 		m.currentSession = nil
-		return &m, nil
+		return m, nil
 	}
 
 	var cmd tea.Cmd
@@ -368,7 +393,7 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	cmds = append(cmds, m.updateClientModel(msg))
 
-	return &m, tea.Batch(cmds...)
+	return m, tea.Batch(cmds...)
 }
 
 func (m *UIModel) updateClientModel(msg tea.Msg) tea.Cmd {

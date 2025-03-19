@@ -95,7 +95,7 @@ func (m *gdmTestUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	commands := []tea.Cmd{}
 
 	uiModel, cmd := m.UIModel.Update(msg)
-	m.UIModel = *convertTo[*UIModel](uiModel)
+	m.UIModel = convertTo[UIModel](uiModel)
 	commands = append(commands, cmd)
 
 	switch msg := msg.(type) {
