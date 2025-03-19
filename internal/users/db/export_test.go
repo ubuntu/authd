@@ -4,3 +4,13 @@ package db
 func (m *Manager) Path() string {
 	return m.path
 }
+
+// GetCreateSchemaQuery exposes the query to create the schema for testing.
+func GetCreateSchemaQuery() string {
+	return createSchema
+}
+
+// SetCreateSchemaQuery sets the query to create the schema for testing.
+func SetCreateSchemaQuery(query string) {
+	createSchema = query
+}
