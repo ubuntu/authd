@@ -100,8 +100,8 @@ jobs:
       run: |
         set -euo pipefail
 
-        apt update -y
-        apt install -y dpkg-dev
+        sudo apt update -y
+        sudo apt install -y dpkg-dev
 
     - name: Checkout code
       uses: actions/checkout@v4
