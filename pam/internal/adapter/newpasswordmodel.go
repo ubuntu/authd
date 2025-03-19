@@ -65,13 +65,11 @@ func (m newPasswordModel) Init() tea.Cmd {
 func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case startAuthentication:
-		m.Clear()
-		return m, m.updateFocusModel(msg)
+		return m, tea.Sequence(m.Clear(), m.updateFocusModel(msg))
 
 	case newPasswordCheckResult:
 		if msg.msg != "" {
-			m.Clear()
-			return m, sendEvent(errMsgToDisplay{msg: msg.msg})
+			return m, tea.Sequence(m.Clear(), sendEvent(errMsgToDisplay{msg: msg.msg}))
 		}
 
 		return m, tea.Batch(sendEvent(errMsgToDisplay{}), m.focusNextField())
@@ -122,8 +120,8 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.focusIndex == 1 {
 					// Check both entries are matching
 					if m.passwordEntries[0].Value() != m.passwordEntries[1].Value() {
-						m.Clear()
-						return m, sendEvent(errMsgToDisplay{msg: "Password entries don't match"})
+						return m, tea.Sequence(m.Clear(),
+							sendEvent(errMsgToDisplay{msg: "Password entries don't match"}))
 					}
 				}
 
@@ -233,8 +231,9 @@ func (m *newPasswordModel) focusPrevField() tea.Cmd {
 	return m.focusField(-1)
 }
 
-func (m *newPasswordModel) Clear() {
+func (m *newPasswordModel) Clear() tea.Cmd {
 	m.focusIndex = 0
+	var cmd tea.Cmd
 	for i, fm := range m.focusableModels {
 		switch entry := fm.(type) {
 		case *textinputModel:
@@ -244,6 +243,7 @@ func (m *newPasswordModel) Clear() {
 			fm.Blur()
 			continue
 		}
-		fm.Focus()
+		cmd = fm.Focus()
 	}
+	return cmd
 }
