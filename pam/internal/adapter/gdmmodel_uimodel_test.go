@@ -94,7 +94,8 @@ func (m *gdmTestUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	commands := []tea.Cmd{}
 
-	_, cmd := m.UIModel.Update(msg)
+	uiModel, cmd := m.UIModel.Update(msg)
+	m.UIModel = *convertTo[*UIModel](uiModel)
 	commands = append(commands, cmd)
 
 	switch msg := msg.(type) {
@@ -174,5 +175,5 @@ func (m *gdmTestUIModel) filterFunc(model tea.Model, msg tea.Msg) tea.Msg {
 		}
 	}
 
-	return m.MsgFilter(model, msg)
+	return m.MsgFilter(&convertTo[*gdmTestUIModel](model).UIModel, msg)
 }
