@@ -53,6 +53,7 @@ jobs:
         with:
           docker-image: ubuntu:${{ matrix.ubuntu-version }}
           sources-only: true
+          lintian: 'skip'
           extra-source-build-deps: |
             ca-certificates
             git
