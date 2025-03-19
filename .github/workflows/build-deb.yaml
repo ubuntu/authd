@@ -119,7 +119,7 @@ jobs:
           git -C repo checkout -b "${{ env.PACKAGING_BRANCH }}"
         fi
 
-        dpkg-source ${{ needs.build-deb-package-sources.outputs.pkg-dsc }} sources
+        dpkg-source -x ${{ needs.build-deb-package-sources.outputs.pkg-dsc }} sources
 
         # Replace the repository content with the package sources
         mv repo/.git sources/
