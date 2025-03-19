@@ -174,7 +174,7 @@ func newAuthenticationModel(client authd.PAMClient, clientType PamClientType) au
 }
 
 // Init initializes authenticationModel.
-func (m *authenticationModel) Init() tea.Cmd {
+func (m authenticationModel) Init() tea.Cmd {
 	return nil
 }
 
