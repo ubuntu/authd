@@ -843,6 +843,9 @@ func (b *Broker) UserPreCheck(ctx context.Context, username string) (string, err
 		strings.Contains(username, fmt.Sprintf("-%s-", UserIntegrationPreCheckValue)) {
 		return userInfoFromName(username), nil
 	}
+
+	exampleUsersMu.Lock()
+	defer exampleUsersMu.Unlock()
 	if _, exists := exampleUsers[username]; !exists {
 		return "", fmt.Errorf("user %q does not exist", username)
 	}
