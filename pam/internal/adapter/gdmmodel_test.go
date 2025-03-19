@@ -2328,7 +2328,7 @@ func TestGdmModel(t *testing.T) {
 				select {
 				case <-time.After(time.Duration(testutils.SleepMultiplier() *
 					float64(tc.timeout))):
-					t.Log("Timeout waiting for all the expectancies")
+					t.Log("Timeout waiting for expected events")
 				case <-waitChan:
 				}
 				t.Log("Waiting for events done...")
