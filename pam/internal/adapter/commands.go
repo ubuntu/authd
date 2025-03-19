@@ -98,7 +98,7 @@ func getLayout(client authd.PAMClient, sessionID, authModeID string) tea.Cmd {
 }
 
 // quit tears down any active session and quit the main loop.
-func (m UIModel) quit() tea.Cmd {
+func (m uiModel) quit() tea.Cmd {
 	if m.currentSession == nil {
 		return sendEvent(tea.QuitMsg{})
 	}

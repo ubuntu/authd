@@ -319,7 +319,7 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 
 	var exitStatus adapter.PamReturnStatus
 	appState := adapter.NewUIModel(mTx, pamClientType, mode, conn, &exitStatus)
-	teaOpts = append(teaOpts, tea.WithFilter(appState.MsgFilter))
+	teaOpts = append(teaOpts, tea.WithFilter(adapter.MsgFilter))
 	p := tea.NewProgram(appState, teaOpts...)
 	if _, err := p.Run(); err != nil {
 		log.Errorf(context.TODO(), "Cancelled authentication: %v", err)

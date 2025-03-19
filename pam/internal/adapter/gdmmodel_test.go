@@ -2245,7 +2245,7 @@ func TestGdmModel(t *testing.T) {
 				Gdm, authd.SessionMode_LOGIN, tc.client, nil, &exitStatus)
 
 			appState := gdmTestUIModel{
-				UIModel:             uiModel,
+				uiModel:             uiModel,
 				gdmHandler:          gdmHandler,
 				wantMessages:        slices.Clone(messagesToWait),
 				wantMessagesHandled: make(chan struct{}),
@@ -2260,7 +2260,7 @@ func TestGdmModel(t *testing.T) {
 			}
 
 			if tc.pamUser != "" {
-				require.NoError(t, uiModel.PamMTx.SetItem(pam.User, tc.pamUser))
+				require.NoError(t, uiModel.pamMTx.SetItem(pam.User, tc.pamUser))
 			}
 			if tc.pamUser != "" && tc.wantUsername == "" {
 				tc.wantUsername = tc.pamUser
@@ -2426,7 +2426,7 @@ func TestGdmModel(t *testing.T) {
 
 			require.Empty(t, appState.wantMessages, "Wanted messages have not all been processed")
 
-			username, err := appState.PamMTx.GetItem(pam.User)
+			username, err := appState.pamMTx.GetItem(pam.User)
 			require.NoError(t, err)
 			require.Equal(t, tc.wantUsername, username)
 			gdm_test.RequireEqualData(t, tc.wantGdmAuthRes, gdmHandler.authEvents)

@@ -32,12 +32,15 @@ type gdmModel struct {
 	// happening at that point).
 	// So we ue this as a control point, once we've set this to true, no further
 	// conversation with GDM should happen.
-	conversationsStopped bool
+	conversationsStopped  bool
+	stoppingConversations bool
 }
 
 type gdmPollDone struct{}
 
 type gdmIsAuthenticatedResultReceived isAuthenticatedResultReceived
+
+type gdmStopConversations struct{}
 
 // Init initializes the main model orchestrator.
 func (m gdmModel) Init() tea.Cmd {
@@ -283,6 +286,10 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 				Msg:    msg.msg,
 			}},
 		}))
+
+	case gdmStopConversations:
+		m.stopConversations()
+		return m, nil
 	}
 
 	return m, nil
@@ -308,7 +315,12 @@ func (m gdmModel) changeStage(s proto.Stage) tea.Cmd {
 	}
 }
 
-func (m gdmModel) stopConversations() gdmModel {
+func (m *gdmModel) stopConversations() {
+	if m.stoppingConversations {
+		return
+	}
+	m.stoppingConversations = true
+
 	// We're about to exit: let's ensure that all the messages have been processed.
 
 	wait := make(chan struct{})
@@ -329,5 +341,4 @@ func (m gdmModel) stopConversations() gdmModel {
 	}
 
 	m.conversationsStopped = true
-	return m
 }
