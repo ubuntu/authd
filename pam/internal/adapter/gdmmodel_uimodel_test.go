@@ -175,5 +175,5 @@ func (m *gdmTestUIModel) filterFunc(model tea.Model, msg tea.Msg) tea.Msg {
 		}
 	}
 
-	return m.MsgFilter(&convertTo[*gdmTestUIModel](model).UIModel, msg)
+	return m.MsgFilter(model, msg)
 }

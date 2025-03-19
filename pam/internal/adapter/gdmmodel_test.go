@@ -2251,6 +2251,9 @@ func TestGdmModel(t *testing.T) {
 				wantMessagesHandled: make(chan struct{}),
 			}
 
+			var exitStatus PamReturnStatus
+			appState.ExitStatus.Store(&exitStatus)
+
 			if tc.supportedLayouts == nil {
 				gdmHandler.supportedLayouts = []*authd.UILayout{pam_test.FormUILayout()}
 			}
@@ -2387,17 +2390,17 @@ func TestGdmModel(t *testing.T) {
 			if tc.wantExitStatus.Message() == gdmTestIgnoredMessage {
 				switch wantRet := tc.wantExitStatus.(type) {
 				case PamReturnError:
-					exitErr, ok := appState.ExitStatus().(PamReturnError)
+					exitErr, ok := exitStatus.(PamReturnError)
 					require.True(t, ok, "exit status should be an error")
 					require.Equal(t, wantRet.Status(), exitErr.Status())
 				case PamSuccess:
-					_, ok := appState.ExitStatus().(PamSuccess)
+					_, ok := exitStatus.(PamSuccess)
 					require.True(t, ok, "exit status should be a success")
 				default:
 					t.Fatalf("Unexpected exit status: %v", wantRet)
 				}
 			} else {
-				require.Equal(t, tc.wantExitStatus, appState.ExitStatus())
+				require.Equal(t, tc.wantExitStatus, exitStatus)
 			}
 
 			require.True(t, appState.gdmModel.conversationsStopped)

@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -69,7 +70,9 @@ type UIModel struct {
 	gdmModel               gdmModel
 	nativeModel            nativeModel
 
-	exitStatus PamReturnStatus
+	// ExitStatus is a pointer to the [PamReturnStatus] value where the
+	// exit status will be written to.
+	ExitStatus atomic.Pointer[PamReturnStatus]
 }
 
 /* global events */
@@ -116,6 +119,10 @@ type ChangeStage struct {
 // Init initializes the main model orchestrator.
 func (m *UIModel) Init() tea.Cmd {
 	var cmds []tea.Cmd
+
+	if es := m.ExitStatus.Load(); es != nil {
+		*es = errNoExitStatus
+	}
 
 	if m.Conn != nil {
 		m.client = authd.NewPAMClient(m.Conn)
@@ -226,11 +233,11 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Exit cases
 	case PamReturnStatus:
 		log.Debugf(context.TODO(), "%#v", msg)
-		if m.exitStatus != nil {
-			// Nothing to do, we're already exiting...
-			return &m, nil
+		es := m.ExitStatus.Load()
+		if es == nil {
+			return &m, m.quit()
 		}
-		m.exitStatus = msg
+		*es = msg
 		return &m, m.quit()
 
 	// Events
@@ -503,22 +510,10 @@ func (m *UIModel) MsgFilter(model tea.Model, msg tea.Msg) tea.Msg {
 		m.gdmModel = m.gdmModel.stopConversations()
 	}
 
-	// The model we've been updated so far is a copy of the one passed to the
-	// program, so sync the exit state value on exit.
-	m.exitStatus = convertTo[*UIModel](model).ExitStatus()
-
 	return msg
 }
 
 var errNoExitStatus = pamError{status: pam.ErrSystem, msg: "model did not return anything"}
-
-// ExitStatus exposes the [PamReturnStatus] externally.
-func (m UIModel) ExitStatus() PamReturnStatus {
-	if m.exitStatus == nil {
-		return errNoExitStatus
-	}
-	return m.exitStatus
-}
 
 // username returns currently selected user name.
 func (m UIModel) username() string {

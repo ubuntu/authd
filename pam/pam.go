@@ -320,6 +320,9 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		SessionMode: mode,
 	}
 
+	var exitStatus adapter.PamReturnStatus
+	appState.ExitStatus.Store(&exitStatus)
+
 	if err := mTx.SetData(authenticationBrokerIDKey, nil); err != nil {
 		return err
 	}
@@ -331,9 +334,9 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		return pam.ErrAbort
 	}
 
-	sendReturnMessageToPam(mTx, appState.ExitStatus())
+	sendReturnMessageToPam(mTx, exitStatus)
 
-	switch exitStatus := appState.ExitStatus().(type) {
+	switch exitStatus := exitStatus.(type) {
 	case adapter.PamSuccess:
 		if err := mTx.SetData(authenticationBrokerIDKey, exitStatus.BrokerID); err != nil {
 			return err
