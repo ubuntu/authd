@@ -1,14 +1,14 @@
 users:
-    - name: TestIDGeneration_separator_success
+    - name: testidgeneration_separator_success
       uid: 1111
       gid: 1111
       gecos: gecos for success
       dir: /home/success
       shell: /bin/sh/success
 groups:
-    - name: TestIDGeneration_separator_success
+    - name: testidgeneration_separator_success
       gid: 1111
-      ugid: TestIDGeneration_separator_success
+      ugid: testidgeneration_separator_success
     - name: group-success
       gid: 2222
       ugid: ugid-success
@@ -17,3 +17,4 @@ users_to_groups:
       gid: 1111
     - uid: 1111
       gid: 2222
+schema_version: 1

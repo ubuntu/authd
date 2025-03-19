@@ -91,6 +91,42 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
+	t.Parallel()
+
+	// Create a database from the testdata
+	dbDir := t.TempDir()
+	dbFile := "one_user_and_group_with_uppercase.db.yaml"
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	// Create a temporary user group file for testing
+	groupsFilePath := filepath.Join(t.TempDir(), "groups")
+	err = os.WriteFile(groupsFilePath, []byte("Group1:x:11111:User1\n"), 0600)
+	require.NoError(t, err, "Setup: could not create group file")
+
+	// Make the db package use the temporary user group file
+	origUserGroupFile := db.UserGroupFile()
+	db.SetUserGroupFile(groupsFilePath)
+	defer db.SetUserGroupFile(origUserGroupFile)
+
+	// Run the migrations
+	m, err := db.New(dbDir)
+	require.NoError(t, err)
+
+	// Check the content of the SQLite database
+	dbContent, err := db.Z_ForTests_DumpNormalizedYAML(m)
+	require.NoError(t, err)
+
+	golden.CheckOrUpdate(t, dbContent, golden.WithPath("db"))
+
+	// Check the content of the user group file
+	userGroupContent, err := os.ReadFile(groupsFilePath)
+	require.NoError(t, err)
+
+	golden.CheckOrUpdate(t, string(userGroupContent), golden.WithPath("groups"))
+}
+
 func TestUpdateUserEntry(t *testing.T) {
 	t.Parallel()
 
@@ -126,6 +162,13 @@ func TestUpdateUserEntry(t *testing.T) {
 		"user1-without-gecos": {
 			Name:  "user1",
 			UID:   1111,
+			Dir:   "/home/user1",
+			Shell: "/bin/bash",
+		},
+		"user1-with-capitalization": {
+			Name:  "User1",
+			UID:   1111,
+			Gecos: "User1 gecos\nOn multiple lines",
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
 		},
@@ -165,6 +208,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Update_user_by_changing_attributes":                      {userCase: "user1-new-attributes", dbFile: "one_user_and_group"},
 		"Update_user_does_not_change_homedir_if_it_exists":        {userCase: "user1-new-homedir", dbFile: "one_user_and_group"},
 		"Update_user_by_removing_optional_gecos_field_if_not_set": {userCase: "user1-without-gecos", dbFile: "one_user_and_group"},
+		"Updating_user_with_different_capitalization":             {userCase: "user1-with-capitalization", dbFile: "one_user_and_group"},
 
 		// Group updates
 		"Update_user_by_adding_a_new_group":         {groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group"},
