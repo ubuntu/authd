@@ -1,0 +1,13 @@
+[package]
+authors = ["Microsoft"]
+description = "Import lib for Windows"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+name = "windows_x86_64_msvc"
+repository = "https://github.com/microsoft/windows-rs"
+rust-version = "1.56"
+version = "0.52.5"
+
+[package.metadata.docs.rs]
+default-target = "x86_64-pc-windows-msvc"
+targets = []
