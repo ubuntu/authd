@@ -134,7 +134,7 @@ jobs:
         git add --all
         git commit -m "Update ubuntu ${{ matrix.ubuntu-version }} package sources" \
           -m "Use upstream commit ${GITHUB_SHA::7}"
-        git push origin
+        git push origin "${{ env.PACKAGING_BRANCH }}:${{ env.PACKAGING_BRANCH }}"
 
   build-deb-package-binaries:
     name: Build ubuntu packages binaries
