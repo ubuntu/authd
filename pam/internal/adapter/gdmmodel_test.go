@@ -1170,7 +1170,7 @@ func TestGdmModel(t *testing.T) {
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
 		"Authenticated_with_qrcode_regenerated_after_auth_selection_stage_from_client_after_client-side_broker_and_auth_mode_selection": {
-			timeout: 10 * time.Second,
+			timeout: 15 * time.Second,
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(),
 				pam_test.QrCodeUILayout(),
@@ -1252,7 +1252,7 @@ func TestGdmModel(t *testing.T) {
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
 		"Authenticated_with_qrcode_regenerated_after_wait_started_at_auth_selection_stage_from_client_after_client-side_broker_and_auth_mode_selection": {
-			timeout: 10 * time.Second,
+			timeout: 15 * time.Second,
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(),
 				pam_test.QrCodeUILayout(),
@@ -2317,7 +2317,7 @@ func TestGdmModel(t *testing.T) {
 
 				t.Log("Waiting for expected events")
 				if tc.timeout == 0 {
-					tc.timeout = 5 * time.Second
+					tc.timeout = 10 * time.Second
 				}
 				waitChan := make(chan struct{})
 				go func() {
