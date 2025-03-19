@@ -1,3 +1,5 @@
+// TiCS: disabled // This is a helper file to generate the pam module easily in debug mode.
+
 //go:build generate && !pam_module_generation && pam_debug
 
 //go:generate go generate -C internal/proto

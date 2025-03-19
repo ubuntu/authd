@@ -1,3 +1,5 @@
+// TiCS: disabled // Should only be built when building authd with the examplebroker enabled for tests.
+
 //go:build withexamplebroker
 
 package services
