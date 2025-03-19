@@ -2239,10 +2239,13 @@ func TestGdmModel(t *testing.T) {
 				wantEvents:           tc.wantGdmEvents,
 				wantRequests:         tc.wantGdmRequests,
 			}
+
+			var exitStatus PamReturnStatus
 			uiModel := UIModel{
 				PamMTx:     pam_test.NewModuleTransactionDummy(gdmHandler),
 				ClientType: Gdm,
 				client:     tc.client,
+				ExitStatus: &exitStatus,
 			}
 			appState := gdmTestUIModel{
 				UIModel:             uiModel,
@@ -2250,9 +2253,6 @@ func TestGdmModel(t *testing.T) {
 				wantMessages:        slices.Clone(messagesToWait),
 				wantMessagesHandled: make(chan struct{}),
 			}
-
-			var exitStatus PamReturnStatus
-			appState.ExitStatus.Store(&exitStatus)
 
 			if tc.supportedLayouts == nil {
 				gdmHandler.supportedLayouts = []*authd.UILayout{pam_test.FormUILayout()}

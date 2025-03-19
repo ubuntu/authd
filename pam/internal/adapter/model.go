@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"strings"
-	"sync/atomic"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -72,7 +71,7 @@ type UIModel struct {
 
 	// ExitStatus is a pointer to the [PamReturnStatus] value where the
 	// exit status will be written to.
-	ExitStatus atomic.Pointer[PamReturnStatus]
+	ExitStatus *PamReturnStatus
 }
 
 /* global events */
@@ -120,8 +119,8 @@ type ChangeStage struct {
 func (m *UIModel) Init() tea.Cmd {
 	var cmds []tea.Cmd
 
-	if es := m.ExitStatus.Load(); es != nil {
-		*es = errNoExitStatus
+	if m.ExitStatus != nil {
+		*m.ExitStatus = errNoExitStatus
 	}
 
 	if m.Conn != nil {
@@ -233,11 +232,10 @@ func (m UIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	// Exit cases
 	case PamReturnStatus:
 		log.Debugf(context.TODO(), "%#v", msg)
-		es := m.ExitStatus.Load()
-		if es == nil {
+		if m.ExitStatus == nil {
 			return &m, m.quit()
 		}
-		*es = msg
+		*m.ExitStatus = msg
 		return &m, m.quit()
 
 	// Events

@@ -362,7 +362,7 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 }
 
 // Focus focuses this model.
-func (m *authenticationModel) Focus() tea.Cmd {
+func (m authenticationModel) Focus() tea.Cmd {
 	log.Debugf(context.TODO(), "%T: Focus", m)
 	if m.currentModel == nil {
 		return nil
@@ -372,7 +372,7 @@ func (m *authenticationModel) Focus() tea.Cmd {
 }
 
 // Focused returns if this model is focused.
-func (m *authenticationModel) Focused() bool {
+func (m authenticationModel) Focused() bool {
 	if m.currentModel == nil {
 		return false
 	}

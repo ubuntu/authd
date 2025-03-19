@@ -313,15 +313,14 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 	}
 	defer closeConn()
 
+	var exitStatus adapter.PamReturnStatus
 	appState := adapter.UIModel{
 		PamMTx:      mTx,
 		Conn:        conn,
 		ClientType:  pamClientType,
 		SessionMode: mode,
+		ExitStatus:  &exitStatus,
 	}
-
-	var exitStatus adapter.PamReturnStatus
-	appState.ExitStatus.Store(&exitStatus)
 
 	if err := mTx.SetData(authenticationBrokerIDKey, nil); err != nil {
 		return err
