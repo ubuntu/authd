@@ -361,17 +361,6 @@ func checkDataRace(t *testing.T, raceLog string) {
 		return
 	}
 
-	if strings.Contains(out, "bubbles/cursor.(*Model).BlinkCmd.func1") {
-		// FIXME: This is a well known race of bubble tea:
-		// https://github.com/charmbracelet/bubbletea/issues/909
-		// We can't do much here, as the workaround will likely affect the
-		// GUI behavior, but we ignore this since it's definitely not our bug.
-
-		// TODO: In case other races are detected, we should still fail here.
-		t.Skipf("This is a very well known bubble tea bug (#909), ignoring it:\n%s", out)
-		return
-	}
-
 	t.Fatalf("Got a GO Race on vhs child:\n%s", out)
 }
 
