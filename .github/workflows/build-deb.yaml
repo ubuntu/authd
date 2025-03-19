@@ -71,6 +71,8 @@ jobs:
     needs:
       - define-versions
       - build-deb-package-sources
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
