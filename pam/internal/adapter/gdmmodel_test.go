@@ -1477,6 +1477,9 @@ func TestGdmModel(t *testing.T) {
 							events: []*gdm.EventData{
 								gdm_test.ChangeStageEvent(pam_proto.Stage_brokerSelection),
 							},
+							commands: []tea.Cmd{
+								sendEvent(gdmTestWaitForStage{stage: pam_proto.Stage_brokerSelection}),
+							},
 						}),
 					},
 				},
