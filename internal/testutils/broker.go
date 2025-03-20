@@ -294,7 +294,11 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 
 	case "IA_next_with_data":
 		access = authNext
-		data = `{"message": "there should not be a message here"}`
+		data = `{"message": "It's fine to show a message here"}`
+
+	case "IA_next_with_invalid_data":
+		access = authNext
+		data = `{"msg": "there should not be a message here"}`
 
 	case "IA_cancelled_with_data":
 		access = authCancelled
