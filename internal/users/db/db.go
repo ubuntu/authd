@@ -58,10 +58,17 @@ func New(dbDir string) (*Manager, error) {
 		return nil, err
 	}
 
-	db, err := sql.Open("sqlite3", dbPath)
+	// Use cache=shared to avoid the "database is locked" error as documented in the FAQ:
+	// https://github.com/mattn/go-sqlite3?tab=readme-ov-file#faq
+	dataSourceName := fmt.Sprintf("file:%s?cache=shared", dbPath)
+	db, err := sql.Open("sqlite3", dataSourceName)
 	if err != nil {
 		return nil, err
 	}
+
+	// Set database connections to 1 to avoid the "database is locked" error as documented in the FAQ:
+	// https://github.com/mattn/go-sqlite3?tab=readme-ov-file#faq
+	db.SetMaxOpenConns(1)
 
 	// Enable foreign key support (this needs to be done for each connection, so we can't do it in the schema).
 	_, err = db.Exec("PRAGMA foreign_keys = ON;")
