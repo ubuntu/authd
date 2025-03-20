@@ -2532,7 +2532,7 @@ func TestGdmModel(t *testing.T) {
 			if tc.wantStage != gdmTestIgnoreStage {
 				require.Equal(t, tc.wantStage, gdmHandler.currentStage,
 					"GDM Stage %q does not match with expected one %q",
-					tc.wantStage, gdmHandler.currentStage)
+					gdmHandler.currentStage, tc.wantStage)
 			}
 
 			for _, req := range tc.wantGdmRequests {
