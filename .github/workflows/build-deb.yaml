@@ -40,7 +40,9 @@ jobs:
         ubuntu-version: ${{ fromJSON(needs.define-versions.outputs.ubuntu-versions) }}
     outputs:
       run-id: ${{ github.run_id }}
-      pkg-src-changes: ${{ env.PKG_SOURCE_CHANGES }}
+      # FIXME: Use dynamic outputs when possible: https://github.com/actions/runner/pull/2477
+      pkg-src-changes-devel: ${{ steps.outputs.outputs.pkg-src-changes-devel }}
+      pkg-src-changes-noble: ${{ steps.outputs.outputs.pkg-src-changes-noble }}
 
     steps:
       - name: Checkout authd code
@@ -60,6 +62,14 @@ jobs:
                 cargo-vendor-filterer@${{ env.CARGO_VENDOR_FILTERER_VERSION }}
               command -v cargo-vendor-filterer
             fi
+
+        # FIXME: Use dynamic outputs when possible: https://github.com/actions/runner/pull/2477
+      - name: Generate outputs
+        id: outputs
+        run: |
+          (
+            echo "pkg-src-changes-${{ matrix.ubuntu-version }}=${{ env.PKG_SOURCE_CHANGES }}"
+          ) >> "${GITHUB_OUTPUT}"
 
   check-modified-files:
     name: Check modified files
@@ -123,6 +133,22 @@ jobs:
        github.event_name == 'release' }}
 
     steps:
+    # FIXME: Use dynamic outputs when possible: https://github.com/actions/runner/pull/2477
+    - name: Setup job variables
+      run: |
+        set -exuo pipefail
+
+        json_output='${{ toJSON(needs.build-deb-package.outputs) }}'
+        for var in $(echo "${json_output}" | jq -r 'keys | .[]'); do
+          if  [[ "${var}" != *"-${{ matrix.ubuntu-version }}" ]]; then
+            continue;
+          fi
+
+          v=$(echo "${json_output}" | jq -r ".\"${var}\"")
+          var="${var%-${{ matrix.ubuntu-version }}}"
+          echo "${var//-/_}=${v}" >> "${GITHUB_ENV}"
+        done
+
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
@@ -133,4 +159,4 @@ jobs:
       uses: canonical/desktop-engineering/gh-actions/common/run-autopkgtest@main
       with:
         lxd-image: ubuntu:${{ matrix.ubuntu-version }}
-        source-changes: ${{ needs.build-deb-package.outputs.pkg-src-changes }}
+        source-changes: ${{ env.pkg_src_changes }}
