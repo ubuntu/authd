@@ -80,8 +80,9 @@ var errGoBack = errors.New("request to go back")
 var errEmptyResponse = errors.New("empty response received")
 var errNotAnInteger = errors.New("parsed value is not an integer")
 
-// Init initializes the main model orchestrator.
-func (m *nativeModel) Init() tea.Cmd {
+func newNativeModel(mTx pam.ModuleTransaction, nssClient authd.NSSClient) nativeModel {
+	m := nativeModel{pamMTx: mTx, nssClient: nssClient}
+
 	var err error
 	m.serviceName, err = m.pamMTx.GetItem(pam.Service)
 	if err != nil {
@@ -89,6 +90,12 @@ func (m *nativeModel) Init() tea.Cmd {
 	}
 
 	m.interactive = isSSHSession(m.pamMTx) || IsTerminalTTY(m.pamMTx)
+
+	return m
+}
+
+// Init initializes the native model orchestrator.
+func (m nativeModel) Init() tea.Cmd {
 	rendersQrCode := m.isQrcodeRenderingSupported()
 	supportsQrCode := m.serviceName != polkitServiceName
 

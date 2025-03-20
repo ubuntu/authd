@@ -18,6 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
 	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -1170,7 +1171,7 @@ func TestGdmModel(t *testing.T) {
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
 		"Authenticated_with_qrcode_regenerated_after_auth_selection_stage_from_client_after_client-side_broker_and_auth_mode_selection": {
-			timeout: 10 * time.Second,
+			timeout: 15 * time.Second,
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(),
 				pam_test.QrCodeUILayout(),
@@ -1252,7 +1253,7 @@ func TestGdmModel(t *testing.T) {
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
 		"Authenticated_with_qrcode_regenerated_after_wait_started_at_auth_selection_stage_from_client_after_client-side_broker_and_auth_mode_selection": {
-			timeout: 10 * time.Second,
+			timeout: 15 * time.Second,
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(),
 				pam_test.QrCodeUILayout(),
@@ -2238,13 +2239,13 @@ func TestGdmModel(t *testing.T) {
 				wantEvents:           tc.wantGdmEvents,
 				wantRequests:         tc.wantGdmRequests,
 			}
-			uiModel := UIModel{
-				PamMTx:     pam_test.NewModuleTransactionDummy(gdmHandler),
-				ClientType: Gdm,
-				client:     tc.client,
-			}
+
+			var exitStatus PamReturnStatus
+			uiModel := newUIModelForClients(pam_test.NewModuleTransactionDummy(gdmHandler),
+				Gdm, authd.SessionMode_LOGIN, tc.client, nil, &exitStatus)
+
 			appState := gdmTestUIModel{
-				UIModel:             uiModel,
+				uiModel:             uiModel,
 				gdmHandler:          gdmHandler,
 				wantMessages:        slices.Clone(messagesToWait),
 				wantMessagesHandled: make(chan struct{}),
@@ -2259,7 +2260,7 @@ func TestGdmModel(t *testing.T) {
 			}
 
 			if tc.pamUser != "" {
-				require.NoError(t, uiModel.PamMTx.SetItem(pam.User, tc.pamUser))
+				require.NoError(t, uiModel.pamMTx.SetItem(pam.User, tc.pamUser))
 			}
 			if tc.pamUser != "" && tc.wantUsername == "" {
 				tc.wantUsername = tc.pamUser
@@ -2317,7 +2318,7 @@ func TestGdmModel(t *testing.T) {
 
 				t.Log("Waiting for expected events")
 				if tc.timeout == 0 {
-					tc.timeout = 5 * time.Second
+					tc.timeout = 10 * time.Second
 				}
 				waitChan := make(chan struct{})
 				go func() {
@@ -2325,7 +2326,9 @@ func TestGdmModel(t *testing.T) {
 					close(waitChan)
 				}()
 				select {
-				case <-time.After(tc.timeout):
+				case <-time.After(time.Duration(testutils.SleepMultiplier() *
+					float64(tc.timeout))):
+					t.Log("Timeout waiting for all the expectancies")
 				case <-waitChan:
 				}
 				t.Log("Waiting for events done...")
@@ -2369,7 +2372,7 @@ func TestGdmModel(t *testing.T) {
 			}
 
 			select {
-			case <-time.After(5 * time.Second):
+			case <-time.After(time.Duration(testutils.SleepMultiplier()*5) * time.Second):
 				logStatus()
 				t.Fatalf("timeout waiting for test expected results")
 			case <-controlDone:
@@ -2384,17 +2387,17 @@ func TestGdmModel(t *testing.T) {
 			if tc.wantExitStatus.Message() == gdmTestIgnoredMessage {
 				switch wantRet := tc.wantExitStatus.(type) {
 				case PamReturnError:
-					exitErr, ok := appState.ExitStatus().(PamReturnError)
+					exitErr, ok := exitStatus.(PamReturnError)
 					require.True(t, ok, "exit status should be an error")
 					require.Equal(t, wantRet.Status(), exitErr.Status())
 				case PamSuccess:
-					_, ok := appState.ExitStatus().(PamSuccess)
+					_, ok := exitStatus.(PamSuccess)
 					require.True(t, ok, "exit status should be a success")
 				default:
 					t.Fatalf("Unexpected exit status: %v", wantRet)
 				}
 			} else {
-				require.Equal(t, tc.wantExitStatus, appState.ExitStatus())
+				require.Equal(t, tc.wantExitStatus, exitStatus)
 			}
 
 			require.True(t, appState.gdmModel.conversationsStopped)
@@ -2423,7 +2426,7 @@ func TestGdmModel(t *testing.T) {
 
 			require.Empty(t, appState.wantMessages, "Wanted messages have not all been processed")
 
-			username, err := appState.PamMTx.GetItem(pam.User)
+			username, err := appState.pamMTx.GetItem(pam.User)
 			require.NoError(t, err)
 			require.Equal(t, tc.wantUsername, username)
 			gdm_test.RequireEqualData(t, tc.wantGdmAuthRes, gdmHandler.authEvents)

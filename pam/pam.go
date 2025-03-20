@@ -313,27 +313,22 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 	}
 	defer closeConn()
 
-	appState := adapter.UIModel{
-		PamMTx:      mTx,
-		Conn:        conn,
-		ClientType:  pamClientType,
-		SessionMode: mode,
-	}
-
 	if err := mTx.SetData(authenticationBrokerIDKey, nil); err != nil {
 		return err
 	}
 
-	teaOpts = append(teaOpts, tea.WithFilter(appState.MsgFilter))
-	p := tea.NewProgram(&appState, teaOpts...)
+	var exitStatus adapter.PamReturnStatus
+	appState := adapter.NewUIModel(mTx, pamClientType, mode, conn, &exitStatus)
+	teaOpts = append(teaOpts, tea.WithFilter(adapter.MsgFilter))
+	p := tea.NewProgram(appState, teaOpts...)
 	if _, err := p.Run(); err != nil {
 		log.Errorf(context.TODO(), "Cancelled authentication: %v", err)
 		return pam.ErrAbort
 	}
 
-	sendReturnMessageToPam(mTx, appState.ExitStatus())
+	sendReturnMessageToPam(mTx, exitStatus)
 
-	switch exitStatus := appState.ExitStatus().(type) {
+	switch exitStatus := exitStatus.(type) {
 	case adapter.PamSuccess:
 		if err := mTx.SetData(authenticationBrokerIDKey, exitStatus.BrokerID); err != nil {
 			return err
