@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/log"
@@ -89,6 +90,25 @@ func TestNew(t *testing.T) {
 			require.Equal(t, fs.FileMode(0600), perm, "Database permission should be 0600")
 		})
 	}
+}
+
+func TestDatabaseRemovedWhenSchemaCreationFails(t *testing.T) {
+	// Don't run this test in parallel because it writes a global variable (via db.SetCreateSchemaQuery)
+	origQuery := db.GetCreateSchemaQuery()
+	db.SetCreateSchemaQuery("invalid query")
+	t.Cleanup(func() {
+		db.SetCreateSchemaQuery(origQuery)
+	})
+
+	dbDir := t.TempDir()
+	dbDestPath := filepath.Join(dbDir, db.Z_ForTests_DBName())
+
+	_, err := db.New(dbDir)
+	require.Error(t, err, "New should return an error when schema creation fails")
+
+	exists, err := fileutils.FileExists(dbDestPath)
+	require.NoError(t, err, "Failed to check if database file exists")
+	require.False(t, exists, "Database file should not exist after failed schema creation")
 }
 
 func TestUpdateUserEntry(t *testing.T) {
