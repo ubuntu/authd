@@ -4,11 +4,9 @@ import (
 	"context"
 	"slices"
 
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/ubuntu/authd/internal/brokers/layouts"
-	"github.com/ubuntu/authd/internal/brokers/layouts/entries"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/log"
 )
@@ -33,12 +31,9 @@ func newNewPasswordModel(label, entryType, buttonLabel string) newPasswordModel 
 
 	// TODO: add digits and force validation.
 	for range []int{0, 1} {
-		entry := &textinputModel{Model: textinput.New()}
-		if entryType == entries.CharsPassword {
-			entry.EchoMode = textinput.EchoPassword
-		}
-		passwordEntries = append(passwordEntries, entry)
-		focusableModels = append(focusableModels, entry)
+		entry := newTextInputModel(entryType)
+		passwordEntries = append(passwordEntries, &entry)
+		focusableModels = append(focusableModels, &entry)
 	}
 
 	if buttonLabel != "" {
@@ -63,9 +58,6 @@ func (m newPasswordModel) Init() tea.Cmd {
 	for _, c := range m.focusableModels {
 		commands = append(commands, c.Init())
 	}
-	for _, c := range m.passwordEntries {
-		commands = append(commands, c.Init())
-	}
 	return tea.Batch(commands...)
 }
 
@@ -73,13 +65,11 @@ func (m newPasswordModel) Init() tea.Cmd {
 func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case startAuthentication:
-		m.Clear()
-		return m, m.updateFocusModel(msg)
+		return m, tea.Sequence(m.Clear(), m.updateFocusModel(msg))
 
 	case newPasswordCheckResult:
 		if msg.msg != "" {
-			m.Clear()
-			return m, sendEvent(errMsgToDisplay{msg: msg.msg})
+			return m, tea.Sequence(m.Clear(), sendEvent(errMsgToDisplay{msg: msg.msg}))
 		}
 
 		return m, tea.Batch(sendEvent(errMsgToDisplay{}), m.focusNextField())
@@ -130,8 +120,8 @@ func (m newPasswordModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.focusIndex == 1 {
 					// Check both entries are matching
 					if m.passwordEntries[0].Value() != m.passwordEntries[1].Value() {
-						m.Clear()
-						return m, sendEvent(errMsgToDisplay{msg: "Password entries don't match"})
+						return m, tea.Sequence(m.Clear(),
+							sendEvent(errMsgToDisplay{msg: "Password entries don't match"}))
 					}
 				}
 
@@ -152,8 +142,18 @@ func (m *newPasswordModel) updateFocusModel(msg tea.Msg) tea.Cmd {
 	if m.focusIndex >= len(m.focusableModels) {
 		return nil
 	}
-	model, cmd := m.focusableModels[m.focusIndex].Update(msg)
+
+	focusedModel := m.focusableModels[m.focusIndex]
+	model, cmd := focusedModel.Update(msg)
 	m.focusableModels[m.focusIndex] = convertTo[authenticationComponent](model)
+
+	focusedInput, ok := focusedModel.(*textinputModel)
+	if !ok {
+		return cmd
+	}
+	if idx := slices.Index(m.passwordEntries, focusedInput); idx >= 0 {
+		m.passwordEntries[idx] = convertTo[*textinputModel](model)
+	}
 
 	return cmd
 }
@@ -231,8 +231,9 @@ func (m *newPasswordModel) focusPrevField() tea.Cmd {
 	return m.focusField(-1)
 }
 
-func (m *newPasswordModel) Clear() {
+func (m *newPasswordModel) Clear() tea.Cmd {
 	m.focusIndex = 0
+	var cmd tea.Cmd
 	for i, fm := range m.focusableModels {
 		switch entry := fm.(type) {
 		case *textinputModel:
@@ -242,6 +243,7 @@ func (m *newPasswordModel) Clear() {
 			fm.Blur()
 			continue
 		}
-		fm.Focus()
+		cmd = fm.Focus()
 	}
+	return cmd
 }

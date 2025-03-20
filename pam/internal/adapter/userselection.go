@@ -58,7 +58,7 @@ func newUserSelectionModel(pamMTx pam.ModuleTransaction, clientType PamClientTyp
 }
 
 // Init initializes userSelectionModel.
-func (m *userSelectionModel) Init() tea.Cmd {
+func (m userSelectionModel) Init() tea.Cmd {
 	return nil
 }
 

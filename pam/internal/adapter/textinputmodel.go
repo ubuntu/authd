@@ -23,13 +23,13 @@ func newTextInputModel(entryType string) textinputModel {
 }
 
 // Init initializes textinputModel.
-func (m *textinputModel) Init() tea.Cmd {
+func (m textinputModel) Init() tea.Cmd {
 	return nil
 }
 
 // Update handles events and actions.
-func (m *textinputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m textinputModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	m.Model, cmd = m.Model.Update(msg)
-	return m, cmd
+	return &m, cmd
 }

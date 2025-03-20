@@ -57,7 +57,7 @@ func newAuthModeSelectionModel(clientType PamClientType) authModeSelectionModel 
 }
 
 // Init initializes authModeSelectionModel.
-func (m *authModeSelectionModel) Init() tea.Cmd {
+func (m authModeSelectionModel) Init() tea.Cmd {
 	if m.clientType != InteractiveTerminal {
 		// This is handled by the GDM or Native model!
 		return nil

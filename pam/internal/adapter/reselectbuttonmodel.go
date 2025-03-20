@@ -25,7 +25,7 @@ func (b authReselectButtonModel) Init() tea.Cmd {
 }
 
 // Update handles events and actions.
-func (b *authReselectButtonModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (b authReselectButtonModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case buttonSelectionEvent:
 		log.Debugf(context.TODO(), "%#v: %#v", b, msg)
