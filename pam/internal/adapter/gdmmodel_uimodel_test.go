@@ -18,9 +18,9 @@ import (
 
 var gdmTestSequentialMessages atomic.Int64
 
-// gdmTestUIModel is an override of [UIModel] used for testing the module with gdm.
+// gdmTestUIModel is an override of [uiModel] used for testing the module with gdm.
 type gdmTestUIModel struct {
-	UIModel
+	uiModel
 
 	mu sync.Mutex
 
@@ -94,7 +94,8 @@ func (m *gdmTestUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	commands := []tea.Cmd{}
 
-	_, cmd := m.UIModel.Update(msg)
+	um, cmd := m.uiModel.Update(msg)
+	m.uiModel = convertTo[uiModel](um)
 	commands = append(commands, cmd)
 
 	switch msg := msg.(type) {
@@ -174,5 +175,5 @@ func (m *gdmTestUIModel) filterFunc(model tea.Model, msg tea.Msg) tea.Msg {
 		}
 	}
 
-	return m.MsgFilter(model, msg)
+	return MsgFilter(m.uiModel, msg)
 }

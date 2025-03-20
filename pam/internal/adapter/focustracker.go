@@ -12,17 +12,17 @@ type focusTrackerModel struct {
 }
 
 // Init initializes the model.
-func (m *focusTrackerModel) Init() tea.Cmd {
+func (m focusTrackerModel) Init() tea.Cmd {
 	return nil
 }
 
 // Update handles events and actions.
-func (m *focusTrackerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	return convertTo[tea.Model](m), nil
+func (m focusTrackerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	return m, nil
 }
 
 // View renders the model.
-func (m *focusTrackerModel) View() string {
+func (m focusTrackerModel) View() string {
 	return ""
 }
 
@@ -34,7 +34,7 @@ func (m *focusTrackerModel) Focus() tea.Cmd {
 }
 
 // Focused returns whether the model is focused.
-func (m *focusTrackerModel) Focused() bool {
+func (m focusTrackerModel) Focused() bool {
 	return m.focused
 }
 

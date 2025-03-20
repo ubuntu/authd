@@ -69,7 +69,8 @@ func (m qrcodeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	model, cmd := m.buttonModel.Update(msg)
-	m.buttonModel = convertTo[*authReselectButtonModel](model)
+	buttonModel := convertTo[authReselectButtonModel](model)
+	m.buttonModel = &buttonModel
 
 	return m, cmd
 }

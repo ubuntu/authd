@@ -52,12 +52,18 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
+
 	env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile)
 	if currentUserAsRoot {
 		env = append(env, authdCurrentUserRootEnvVariableContent)
 	}
 	args = append(args, testutils.WithEnvironment(env...))
+
+	outputFile := filepath.Join(t.TempDir(), "authd.log")
+	args = append(args, testutils.WithOutputFile(outputFile))
+
 	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, args...)
+	saveArtifactsForDebugOnCleanup(t, []string{outputFile})
 	return socketPath, func() {
 		cancel()
 		<-stopped
@@ -121,7 +127,8 @@ func sharedAuthd(t *testing.T) (socketPath string, gpasswdFile string) {
 
 	sa.gPasswdOutputPath = filepath.Join(t.TempDir(), "gpasswd.output")
 	sa.groupsFile = filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-	sa.socketPath, sa.cleanup = runAuthdForTesting(t, sa.gPasswdOutputPath, sa.groupsFile, true)
+	sa.socketPath, sa.cleanup = runAuthdForTesting(t, sa.gPasswdOutputPath,
+		sa.groupsFile, true, testutils.WithSharedDaemon(true))
 	return sa.socketPath, sa.gPasswdOutputPath
 }
 
