@@ -1,0 +1,19 @@
+error[E0658]: yield syntax is experimental
+ --> tests/ui/yield_in_async.rs:6:13
+  |
+6 |             yield 123;
+  |             ^^^^^^^^^
+  |
+  = note: see issue #43122 <https://github.com/rust-lang/rust/issues/43122> for more information
+
+error[E0727]: `async` generators are not yet supported
+ --> tests/ui/yield_in_async.rs:6:13
+  |
+6 |             yield 123;
+  |             ^^^^^^^^^
+
+error[E0308]: mismatched types
+ --> tests/ui/yield_in_async.rs:6:19
+  |
+6 |             yield 123;
+  |                   ^^^ expected `()`, found integer
