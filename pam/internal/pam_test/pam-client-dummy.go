@@ -434,9 +434,13 @@ func (dc *DummyClient) IsAuthenticated(ctx context.Context, in *authd.IARequest,
 		select {
 		case <-time.After(time.Duration(testutils.SleepMultiplier() * float64(dc.isAuthenticatedWantWait))):
 		case <-ctx.Done():
+			msg = ""
+			if dc.isAuthenticatedMessage != "" {
+				msg = fmt.Sprintf(`{"message": "Cancelled: %s"}`, dc.isAuthenticatedMessage)
+			}
 			return &authd.IAResponse{
 				Access: auth.Cancelled,
-				Msg:    fmt.Sprintf(`{"message": "Cancelled: %s"}`, dc.isAuthenticatedMessage),
+				Msg:    msg,
 			}, nil
 		}
 		return &authd.IAResponse{
@@ -563,25 +567,40 @@ func (dc *DummyClient) SelectedLang() string {
 	return dc.selectedLang
 }
 
+// UIOptions is the function signature used to tweak the [FormUILayout].
+type UIOptions func(*authd.UILayout)
+
+// WithButton is an option for [FormUILayout] to set the button parameter.
+func WithButton(label string) func(l *authd.UILayout) {
+	return func(l *authd.UILayout) { l.Button = &label }
+}
+
+// WithWait is an option for [FormUILayout] to enable wait in FormUI UI.
+func WithWait(hasWait bool) func(l *authd.UILayout) {
+	wait := (*string)(nil)
+	if hasWait {
+		wait = &layouts.OptionalWithBooleans
+	}
+	return func(l *authd.UILayout) { l.Wait = wait }
+}
+
 // FormUILayout returns an [authd.UILayout] for forms.
-func FormUILayout() *authd.UILayout {
-	required, optional := layouts.Required, layouts.Optional
-	optionalWithBooleans := layouts.OptionalWithBooleans
+func FormUILayout(opts ...UIOptions) *authd.UILayout {
+	required := layouts.Optional
 	supportedEntries := layouts.OptionalItems(
 		entries.Chars,
 		entries.CharsPassword,
 	)
-	return &authd.UILayout{
-		Type:   layouts.Form,
-		Label:  &required,
-		Entry:  &supportedEntries,
-		Wait:   &optionalWithBooleans,
-		Button: &optional,
+	uiLayout := &authd.UILayout{
+		Type:  layouts.Form,
+		Label: &required,
+		Entry: &supportedEntries,
 	}
+	for _, f := range opts {
+		f(uiLayout)
+	}
+	return uiLayout
 }
-
-// QrCodeOptions is the function signature used to tweak the qrcode.
-type QrCodeOptions func(*authd.UILayout)
 
 // WithQrCodeCode is an option for [QrCodeUILayout] to set the code parameter in QrCode UI.
 func WithQrCodeCode(code string) func(l *authd.UILayout) {
@@ -594,7 +613,7 @@ func WithQrCodeRenders(renders *bool) func(l *authd.UILayout) {
 }
 
 // QrCodeUILayout returns an [authd.UILayout] for qr code.
-func QrCodeUILayout(opts ...QrCodeOptions) *authd.UILayout {
+func QrCodeUILayout(opts ...UIOptions) *authd.UILayout {
 	required, optional := layouts.Required, layouts.Optional
 	rendersQrCode := true
 

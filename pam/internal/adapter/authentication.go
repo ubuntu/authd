@@ -101,9 +101,7 @@ type isAuthenticatedResultReceived struct {
 }
 
 // isAuthenticatedCancelled is the event to cancel the auth request.
-type isAuthenticatedCancelled struct {
-	msg string
-}
+type isAuthenticatedCancelled struct{}
 
 // reselectAuthMode signals to restart auth mode selection with the same id (to resend sms or
 // reenable the broker).
@@ -124,6 +122,7 @@ type authenticationModel struct {
 	client     authd.PAMClient
 	clientType PamClientType
 
+	inProgress       bool
 	currentModel     authenticationComponent
 	currentSessionID string
 	currentBrokerID  string
@@ -145,6 +144,9 @@ type authTracker struct {
 // startAuthentication signals that the authentication model can start
 // wait:true authentication and reset fields.
 type startAuthentication struct{}
+
+// startAuthentication signals that the authentication has been stopped.
+type stopAuthentication struct{}
 
 // errMsgToDisplay signals from an authentication form to display an error message.
 type errMsgToDisplay struct {
@@ -182,13 +184,37 @@ func (m *authenticationModel) cancelIsAuthenticated() tea.Cmd {
 	authTracker := m.authTracker
 	return func() tea.Msg {
 		authTracker.cancelAndWait()
-		return nil
+		return stopAuthentication{}
 	}
 }
 
 // Update handles events and actions.
 func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel, command tea.Cmd) {
 	switch msg := msg.(type) {
+	case StageChanged:
+		if msg.Stage != pam_proto.Stage_challenge {
+			return m, nil
+		}
+		log.Debugf(context.TODO(), "%#v, in progress %v, focused: %v",
+			msg, m.inProgress, m.Focused())
+		if m.inProgress || !m.Focused() {
+			return m, nil
+		}
+		return m, sendEvent(startAuthentication{})
+
+	case startAuthentication:
+		log.Debugf(context.TODO(), "%#v: current model %v, focused %v",
+			msg, m.currentModel, m.Focused())
+		if !m.Focused() {
+			return m, nil
+		}
+		m.inProgress = true
+
+	case stopAuthentication:
+		log.Debugf(context.TODO(), "%#v: current model %v, focused %v",
+			msg, m.currentModel, m.Focused())
+		m.inProgress = false
+
 	case reselectAuthMode:
 		log.Debugf(context.TODO(), "%#v", msg)
 		return m, tea.Sequence(m.cancelIsAuthenticated(), sendEvent(AuthModeSelected{}))
@@ -341,11 +367,6 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 		return m, nil
 	}
 
-	if _, ok := msg.(startAuthentication); ok {
-		log.Debugf(context.TODO(), "%T: %#v: current model %v, focused %v",
-			m, msg, m.currentModel, m.Focused())
-	}
-
 	// interaction events
 	if !m.Focused() {
 		return m, nil
@@ -362,9 +383,15 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 
 // Focus focuses this model.
 func (m authenticationModel) Focus() tea.Cmd {
-	log.Debugf(context.TODO(), "%T: Focus", m)
+	log.Debugf(context.TODO(), "%T: Focus, focused %v", m, m.Focused())
 	if m.currentModel == nil {
 		return nil
+	}
+
+	if m.Focused() {
+		// This is in the case of re-authentication or next, as the stage has
+		// not been changed and we are already focused.
+		return sendEvent(startAuthentication{})
 	}
 
 	return m.currentModel.Focus()
@@ -399,8 +426,7 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 
 	if m.clientType != InteractiveTerminal {
 		m.currentModel = &focusTrackerModel{}
-		return tea.Sequence(sendEvent(ChangeStage{pam_proto.Stage_challenge}),
-			sendEvent(startAuthentication{}))
+		return sendEvent(ChangeStage{pam_proto.Stage_challenge})
 	}
 
 	switch layout.Type {
@@ -429,13 +455,12 @@ func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey 
 
 	return tea.Sequence(
 		m.currentModel.Init(),
-		sendEvent(ChangeStage{pam_proto.Stage_challenge}),
-		sendEvent(startAuthentication{}))
+		sendEvent(ChangeStage{pam_proto.Stage_challenge}))
 }
 
 // View renders a text view of the authentication UI.
 func (m authenticationModel) View() string {
-	if m.currentModel == nil {
+	if !m.inProgress {
 		return ""
 	}
 	if !m.Focused() {
@@ -456,6 +481,7 @@ func (m authenticationModel) View() string {
 // Resets zeroes any internal state on the authenticationModel.
 func (m *authenticationModel) Reset() tea.Cmd {
 	log.Debugf(context.TODO(), "%T: Reset", m)
+	m.inProgress = false
 	m.currentModel = nil
 	m.currentSessionID = ""
 	m.currentBrokerID = ""

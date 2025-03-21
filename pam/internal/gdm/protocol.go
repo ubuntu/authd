@@ -181,8 +181,11 @@ func stringifyEventDataFiltered(ed *EventData) string {
 		return ed.String()
 	}
 
-	item := authReq.IsAuthenticatedRequested.GetAuthenticationData().Item
-	if _, ok = item.(*authd.IARequest_AuthenticationData_Secret); !ok {
+	authData := authReq.IsAuthenticatedRequested.GetAuthenticationData()
+	if authData == nil {
+		return ed.String()
+	}
+	if _, ok = authData.Item.(*authd.IARequest_AuthenticationData_Secret); !ok {
 		return ed.String()
 	}
 

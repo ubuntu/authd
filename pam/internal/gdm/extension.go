@@ -3,6 +3,7 @@ package gdm
 /*
 // FIXME: Use pkg-config to include extension protocol headers once available
 //#cgo pkg-config: gdm-pam-extensions
+#cgo CFLAGS: -Wno-stringop-overread
 #include "extension.h"
 */
 import "C"
@@ -19,12 +20,15 @@ import (
 const (
 	// PamExtensionCustomJSON is the gdm PAM extension for passing string values.
 	PamExtensionCustomJSON = C.GDM_PAM_EXTENSION_CUSTOM_JSON
-	// JSONProtoName is the gdm private string protocol name.
-	JSONProtoName = "com.ubuntu.authd.gdm"
 	// JSONProtoVersion is the gdm private string protocol version.
-	JSONProtoVersion = uint(1)
+	JSONProtoVersion = uint(C.JSON_PROTO_VERSION)
 
 	jsonProtoMessageSize = C.GDM_PAM_EXTENSION_CUSTOM_JSON_SIZE
+)
+
+var (
+	// JSONProtoName is the gdm private string protocol name.
+	JSONProtoName = C.GoString(C.JSON_PROTO_NAME)
 )
 
 // ErrProtoNotSupported is an error used when protocol/version is not supported.
@@ -84,13 +88,11 @@ func newJSONProtoMessage(jsonValue []byte) (*jsonProtoMessage, error) {
 		return nil, err
 	}
 	msg := allocateJSONProtoMessage()
-	msg.init(JSONProtoName, JSONProtoVersion, jsonValue)
+	msg.initAuthd(jsonValue)
 	return msg, nil
 }
 
-func (msg *jsonProtoMessage) init(protoName string, protoVersion uint, jsonValue []byte) {
-	cProto := C.CString(protoName)
-	defer C.free(unsafe.Pointer(cProto))
+func (msg *jsonProtoMessage) initAuthd(jsonValue []byte) {
 	cJSON := (*C.char)(nil)
 	if jsonValue != nil {
 		// We don't use string() here to avoid an extra copy, so we need to
@@ -99,6 +101,17 @@ func (msg *jsonProtoMessage) init(protoName string, protoVersion uint, jsonValue
 		// owned by the jsonProtoMessage now. So it's up to it to release
 		// them via finalizer functions.
 		cJSON = (*C.char)(C.CBytes(append(jsonValue, 0)))
+	}
+	C.gdm_custom_json_request_init_authd((*C.GdmPamExtensionJSONProtocol)(msg),
+		cJSON)
+}
+
+func (msg *jsonProtoMessage) initFull(protoName string, protoVersion uint, jsonValue []byte) {
+	cProto := C.CString(protoName)
+	defer C.free(unsafe.Pointer(cProto))
+	cJSON := (*C.char)(nil)
+	if jsonValue != nil {
+		cJSON = C.CString(string(jsonValue))
 	}
 	C.gdm_custom_json_request_init((*C.GdmPamExtensionJSONProtocol)(msg),
 		cProto, C.uint(protoVersion), cJSON)
@@ -119,6 +132,11 @@ func (msg *jsonProtoMessage) protoName() string {
 
 func (msg *jsonProtoMessage) protoVersion() uint {
 	return uint(msg.version)
+}
+
+func (msg *jsonProtoMessage) isValidAuthd() bool {
+	return bool(C.gdm_custom_json_request_is_valid_authd(
+		(*C.GdmPamExtensionJSONProtocol)(msg)))
 }
 
 func (msg *jsonProtoMessage) JSON() ([]byte, error) {
@@ -154,8 +172,7 @@ func NewBinaryJSONProtoRequest(data []byte) (*pam.BinaryConvRequest, error) {
 func decodeJSONProtoMessage(response pam.BinaryPointer) ([]byte, error) {
 	reply := (*jsonProtoMessage)(response)
 
-	if reply.protoName() != JSONProtoName ||
-		reply.protoVersion() != JSONProtoVersion {
+	if !reply.isValidAuthd() {
 		return nil, fmt.Errorf("%w: got %s v%d, expected %s v%d", ErrProtoNotSupported,
 			reply.protoName(), reply.protoVersion(), JSONProtoName, JSONProtoVersion)
 	}
