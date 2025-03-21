@@ -263,6 +263,10 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.exitStatus == nil {
 			return m, m.quit()
 		}
+		if *m.exitStatus != errNoExitStatus {
+			// Nothing to do, we're already exiting...
+			return m, nil
+		}
 		*m.exitStatus = msg
 		return m, m.quit()
 

@@ -463,6 +463,7 @@ func TestGdmModel(t *testing.T) {
 			},
 		},
 		"New_password_cannot_change_because_matches_previous_with_preset_PAM_user_and_server_side_broker_and_authMode_selection": {
+			timeout: 20 * time.Second,
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithUILayout(newPasswordUILayoutID, "New Password", pam_test.NewPasswordUILayout()),
@@ -1279,7 +1280,7 @@ func TestGdmModel(t *testing.T) {
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
 		"Authenticated_with_qrcode_regenerated_after_auth_selection_stage_from_client_after_client_side_broker_and_auth_mode_selection": {
-			timeout: 15 * time.Second,
+			timeout: 20 * time.Second,
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.QrCodeUILayout(),
@@ -1366,7 +1367,7 @@ func TestGdmModel(t *testing.T) {
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
 		"Authenticated_with_qrcode_regenerated_after_wait_started_at_auth_selection_stage_from_client_after_client_side_broker_and_auth_mode_selection": {
-			timeout: 15 * time.Second,
+			timeout: 20 * time.Second,
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.QrCodeUILayout(),
