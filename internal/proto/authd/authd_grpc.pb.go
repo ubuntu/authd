@@ -753,3 +753,143 @@ var NSS_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "authd.proto",
 }
+
+const (
+	CLI_ListUsers_FullMethodName  = "/authd.CLI/ListUsers"
+	CLI_ListGroups_FullMethodName = "/authd.CLI/ListGroups"
+)
+
+// CLIClient is the client API for CLI service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type CLIClient interface {
+	ListUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Users, error)
+	ListGroups(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Groups, error)
+}
+
+type cLIClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewCLIClient(cc grpc.ClientConnInterface) CLIClient {
+	return &cLIClient{cc}
+}
+
+func (c *cLIClient) ListUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Users, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Users)
+	err := c.cc.Invoke(ctx, CLI_ListUsers_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *cLIClient) ListGroups(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Groups, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Groups)
+	err := c.cc.Invoke(ctx, CLI_ListGroups_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CLIServer is the server API for CLI service.
+// All implementations must embed UnimplementedCLIServer
+// for forward compatibility.
+type CLIServer interface {
+	ListUsers(context.Context, *Empty) (*Users, error)
+	ListGroups(context.Context, *Empty) (*Groups, error)
+	mustEmbedUnimplementedCLIServer()
+}
+
+// UnimplementedCLIServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedCLIServer struct{}
+
+func (UnimplementedCLIServer) ListUsers(context.Context, *Empty) (*Users, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
+}
+func (UnimplementedCLIServer) ListGroups(context.Context, *Empty) (*Groups, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListGroups not implemented")
+}
+func (UnimplementedCLIServer) mustEmbedUnimplementedCLIServer() {}
+func (UnimplementedCLIServer) testEmbeddedByValue()             {}
+
+// UnsafeCLIServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CLIServer will
+// result in compilation errors.
+type UnsafeCLIServer interface {
+	mustEmbedUnimplementedCLIServer()
+}
+
+func RegisterCLIServer(s grpc.ServiceRegistrar, srv CLIServer) {
+	// If the following call pancis, it indicates UnimplementedCLIServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&CLI_ServiceDesc, srv)
+}
+
+func _CLI_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CLIServer).ListUsers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CLI_ListUsers_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CLIServer).ListUsers(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CLI_ListGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CLIServer).ListGroups(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CLI_ListGroups_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CLIServer).ListGroups(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// CLI_ServiceDesc is the grpc.ServiceDesc for CLI service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var CLI_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "authd.CLI",
+	HandlerType: (*CLIServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ListUsers",
+			Handler:    _CLI_ListUsers_Handler,
+		},
+		{
+			MethodName: "ListGroups",
+			Handler:    _CLI_ListGroups_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "authd.proto",
+}
