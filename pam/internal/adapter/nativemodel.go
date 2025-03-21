@@ -52,9 +52,6 @@ const (
 	inputPromptStyleMultiLine
 )
 
-// nativeChangeStage is the internal event to notify that a stage change has happened.
-type nativeChangeStage ChangeStage
-
 // nativeStageChangeRequest is the internal event to request that a stage change.
 type nativeStageChangeRequest ChangeStage
 
@@ -142,10 +139,6 @@ func (m nativeModel) Init() tea.Cmd {
 	}
 }
 
-func (m nativeModel) changeStage(stage proto.Stage) tea.Cmd {
-	return sendEvent(nativeChangeStage{stage})
-}
-
 func (m nativeModel) checkStage(expected proto.Stage) bool {
 	if m.currentStage != expected {
 		log.Debugf(context.Background(),
@@ -163,7 +156,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 	log.Debugf(context.TODO(), "Native model update: %#v", msg)
 
 	switch msg := msg.(type) {
-	case nativeChangeStage:
+	case StageChanged:
 		m.currentStage = msg.Stage
 
 	case nativeStageChangeRequest:
@@ -338,6 +331,8 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 			return m, maybeSendPamError(m.sendError(authMsg))
 		case auth.Denied:
 			// This is handled by the main authentication model
+			return m, nil
+		case auth.Cancelled:
 			return m, nil
 		default:
 			return m, maybeSendPamError(m.sendError("Access %q is not valid", access))

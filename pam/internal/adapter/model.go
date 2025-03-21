@@ -115,6 +115,9 @@ type ChangeStage struct {
 	Stage pam_proto.Stage
 }
 
+// StageChanged signals that the model just finished a stage change.
+type StageChanged ChangeStage
+
 // NewUIModel creates and initializes the main model orchestrator.
 func NewUIModel(mTx pam.ModuleTransaction, clientType PamClientType, mode authd.SessionMode, conn *grpc.ClientConn, exitStatus *PamReturnStatus) tea.Model {
 	var nssClient authd.NSSClient
@@ -326,6 +329,9 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		log.Debugf(context.TODO(), "%#v", msg)
 		return m, m.changeStage(msg.Stage)
 
+	case StageChanged:
+		log.Debugf(context.TODO(), "%#v", msg)
+
 	case GetAuthenticationModesRequested:
 		log.Debugf(context.TODO(), "%#v", msg)
 		if m.currentSession == nil {
@@ -334,7 +340,7 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return m, tea.Sequence(
 			getAuthenticationModes(m.client, m.currentSession.sessionID, m.authModeSelectionModel.SupportedUILayouts()),
-			m.changeStage(pam_proto.Stage_authModeSelection),
+			sendEvent(ChangeStage{pam_proto.Stage_authModeSelection}),
 		)
 
 	case AuthModeSelected:
@@ -455,8 +461,10 @@ func (m uiModel) currentStage() pam_proto.Stage {
 // changeStage returns a command acting to change the current stage and reset any previous views.
 func (m *uiModel) changeStage(s pam_proto.Stage) tea.Cmd {
 	var commands []tea.Cmd
-	if m.currentStage() != s {
-		switch m.currentStage() {
+	currentStage := m.currentStage()
+
+	if currentStage != s {
+		switch currentStage {
 		case pam_proto.Stage_userSelection:
 			m.userSelectionModel.Blur()
 		case pam_proto.Stage_brokerSelection:
@@ -466,14 +474,6 @@ func (m *uiModel) changeStage(s pam_proto.Stage) tea.Cmd {
 		case pam_proto.Stage_challenge:
 			m.authenticationModel.Blur()
 			commands = append(commands, m.authenticationModel.Reset())
-		}
-
-		if m.clientType == Gdm {
-			commands = append(commands, m.gdmModel.changeStage(s))
-		}
-
-		if m.clientType == Native {
-			commands = append(commands, m.nativeModel.changeStage(s))
 		}
 	}
 
@@ -498,6 +498,10 @@ func (m *uiModel) changeStage(s pam_proto.Stage) tea.Cmd {
 			status: pam.ErrSystem,
 			msg:    fmt.Sprintf("unknown PAM stage: %q", s),
 		})
+	}
+
+	if currentStage != s {
+		commands = append(commands, sendEvent(StageChanged{s}))
 	}
 
 	return tea.Sequence(commands...)
