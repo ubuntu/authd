@@ -656,7 +656,7 @@ func (b *Broker) sleepDuration(in time.Duration) time.Duration {
 
 func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionInfo, authData map[string]string) (access, data string) {
 	// Decrypt secret if present.
-	secret, err := decodeRawSecret(b.privateKey, authData["challenge"])
+	secret, err := decodeRawSecret(b.privateKey, authData["secret"])
 	if err != nil {
 		return auth.Retry, fmt.Sprintf(`{"message": "could not decode secret: %v"}`, err)
 	}

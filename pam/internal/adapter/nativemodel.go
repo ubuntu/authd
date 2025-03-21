@@ -672,7 +672,7 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 	}
 
 	return sendEvent(isAuthenticatedRequested{
-		item: &authd.IARequest_AuthenticationData_Challenge{Challenge: secret},
+		item: &authd.IARequest_AuthenticationData_Secret{Secret: secret},
 	})
 }
 
@@ -854,7 +854,7 @@ func (m nativeModel) newPasswordChallenge(previousPassword *string) tea.Cmd {
 		return m.newPasswordChallenge(nil)
 	}
 	return sendEvent(isAuthenticatedRequested{
-		item: &authd.IARequest_AuthenticationData_Challenge{Challenge: password},
+		item: &authd.IARequest_AuthenticationData_Secret{Secret: password},
 	})
 }
 

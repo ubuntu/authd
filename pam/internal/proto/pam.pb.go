@@ -31,7 +31,7 @@ const (
 	Stage_brokerSelection Stage = 1
 	// Stage_authModeSelection is to select an authentication mode.
 	Stage_authModeSelection Stage = 2
-	// Stage_challenge let's the user entering a challenge or waiting from authentication from the broker.
+	// Stage_challenge lets the user enter a secret or wait for authentication from the broker.
 	Stage_challenge Stage = 3
 )
 
