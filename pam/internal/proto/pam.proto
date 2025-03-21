@@ -11,6 +11,6 @@ enum Stage {
     brokerSelection = 1;
     // Stage_authModeSelection is to select an authentication mode.
     authModeSelection = 2;
-    // Stage_challenge let's the user entering a challenge or waiting from authentication from the broker.
+    // Stage_challenge lets the user enter a secret or wait for authentication from the broker.
     challenge = 3;
 }

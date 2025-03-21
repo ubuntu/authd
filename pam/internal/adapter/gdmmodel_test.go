@@ -236,8 +236,8 @@ func TestGdmModel(t *testing.T) {
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-good-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-good-password",
 						}}),
 					},
 				},
@@ -275,8 +275,8 @@ func TestGdmModel(t *testing.T) {
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-good-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-good-password",
 						}}),
 					},
 				},
@@ -319,8 +319,8 @@ func TestGdmModel(t *testing.T) {
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-good-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-good-password",
 						}}),
 					},
 				},
@@ -363,8 +363,8 @@ func TestGdmModel(t *testing.T) {
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-good-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-good-password",
 						}}),
 					},
 				},
@@ -409,14 +409,14 @@ func TestGdmModel(t *testing.T) {
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "newpass",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "newpass",
 						}}),
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "password",
 						}}),
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-good-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-good-password",
 						}}),
 					},
 				},
@@ -482,8 +482,8 @@ func TestGdmModel(t *testing.T) {
 						sendEvent(gdmTestWaitForStage{
 							stage: pam_proto.Stage_challenge,
 							commands: []tea.Cmd{
-								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-									Challenge: "gdm-repeated-password",
+								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+									Secret: "gdm-repeated-password",
 								}}),
 								sendEvent(gdmTestWaitForStage{
 									stage: pam_proto.Stage_authModeSelection,
@@ -495,8 +495,8 @@ func TestGdmModel(t *testing.T) {
 											stage: pam_proto.Stage_challenge,
 											commands: []tea.Cmd{
 												sendEvent(gdmTestSendAuthDataWhenReady{
-													&authd.IARequest_AuthenticationData_Challenge{
-														Challenge: "gdm-repeated-password",
+													&authd.IARequest_AuthenticationData_Secret{
+														Secret: "gdm-repeated-password",
 													},
 												}),
 											},
@@ -553,8 +553,8 @@ func TestGdmModel(t *testing.T) {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password")),
 			gdmEvents: []*gdm.EventData{
-				gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
-					Challenge: "gdm-good-password",
+				gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+					Secret: "gdm-good-password",
 				}),
 			},
 			wantGdmRequests: []gdm.RequestType{
@@ -586,8 +586,8 @@ func TestGdmModel(t *testing.T) {
 			),
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-					Challenge: "gdm-any-password",
+				gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+					Secret: "gdm-any-password",
 				}},
 			},
 			wantSelectedBroker: firstBrokerInfo.Id,
@@ -654,11 +654,11 @@ func TestGdmModel(t *testing.T) {
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-bad-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-bad-password",
 						}}),
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-good-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-good-password",
 						}}),
 					},
 				},
@@ -706,8 +706,8 @@ func TestGdmModel(t *testing.T) {
 						gdm_test.SelectBrokerEvent(secondBrokerInfo.Id),
 					},
 					commands: []tea.Cmd{
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-good-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-good-password",
 						}}),
 					},
 				},
@@ -751,11 +751,11 @@ func TestGdmModel(t *testing.T) {
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-bad-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-bad-password",
 						}}),
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-good-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-good-password",
 						}}),
 					},
 				},
@@ -806,8 +806,8 @@ func TestGdmModel(t *testing.T) {
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
-				gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-					Challenge: "gdm-some-password",
+				gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+					Secret: "gdm-some-password",
 				}},
 			},
 			wantUsername:       "gdm-selected-user-broker-and-auth-mode",
@@ -987,8 +987,8 @@ func TestGdmModel(t *testing.T) {
 								gdm_test.AuthModeSelectedEvent(passwordUILayoutID),
 							},
 							commands: []tea.Cmd{
-								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-									Challenge: "gdm-good-password",
+								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+									Secret: "gdm-good-password",
 								}}),
 							},
 						}),
@@ -1055,8 +1055,8 @@ func TestGdmModel(t *testing.T) {
 								gdm_test.AuthModeSelectedEvent("pincode"),
 							},
 							commands: []tea.Cmd{
-								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-									Challenge: "1234",
+								sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+									Secret: "1234",
 								}}),
 							},
 						}),
@@ -1794,8 +1794,8 @@ func TestGdmModel(t *testing.T) {
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
-				gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-					Challenge: "gdm-password",
+				gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+					Secret: "gdm-password",
 				}},
 			},
 			wantSelectedBroker: firstBrokerInfo.Id,
@@ -1829,8 +1829,8 @@ func TestGdmModel(t *testing.T) {
 			),
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-					Challenge: "gdm-good-password",
+				gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+					Secret: "gdm-good-password",
 				}},
 			},
 			wantSelectedBroker: firstBrokerInfo.Id,
@@ -1870,8 +1870,8 @@ func TestGdmModel(t *testing.T) {
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_authModeSelection,
 					commands: []tea.Cmd{
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-wrong-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-wrong-password",
 						}}),
 					},
 				},
@@ -1917,8 +1917,8 @@ func TestGdmModel(t *testing.T) {
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-wrong-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-wrong-password",
 						}}),
 					},
 				},
@@ -1957,11 +1957,11 @@ func TestGdmModel(t *testing.T) {
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-wrong-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-wrong-password",
 						}}),
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-another-wrong-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-another-wrong-password",
 						}}),
 					},
 				},
@@ -2003,8 +2003,8 @@ func TestGdmModel(t *testing.T) {
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-some-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-some-password",
 						}}),
 					},
 				},
@@ -2048,8 +2048,8 @@ func TestGdmModel(t *testing.T) {
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
 					commands: []tea.Cmd{
-						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
-							Challenge: "gdm-some-password",
+						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+							Secret: "gdm-some-password",
 						}}),
 					},
 				},
