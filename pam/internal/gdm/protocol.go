@@ -182,7 +182,7 @@ func stringifyEventDataFiltered(ed *EventData) string {
 	}
 
 	item := authReq.IsAuthenticatedRequested.GetAuthenticationData().Item
-	if _, ok = item.(*authd.IARequest_AuthenticationData_Challenge); !ok {
+	if _, ok = item.(*authd.IARequest_AuthenticationData_Secret); !ok {
 		return ed.String()
 	}
 
@@ -191,8 +191,8 @@ func stringifyEventDataFiltered(ed *EventData) string {
 		Data: &EventData_IsAuthenticatedRequested{
 			IsAuthenticatedRequested: &Events_IsAuthenticatedRequested{
 				AuthenticationData: &authd.IARequest_AuthenticationData{
-					Item: &authd.IARequest_AuthenticationData_Challenge{
-						Challenge: "**************",
+					Item: &authd.IARequest_AuthenticationData_Secret{
+						Secret: "**************",
 					},
 				},
 			},
