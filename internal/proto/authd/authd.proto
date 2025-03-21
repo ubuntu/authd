@@ -195,3 +195,31 @@ message ShadowEntry {
 message ShadowEntries {
   repeated ShadowEntry entries = 1;
 }
+
+service UserService {
+  rpc ListUsers(Empty) returns (Users);
+  rpc ListGroups(Empty) returns (Groups);
+}
+
+message User {
+  string name = 1;
+  uint32 uid = 2;
+  uint32 gid = 3;
+  string gecos = 4;
+  string homedir = 5;
+  string shell = 6;
+}
+
+message Users {
+  repeated User users = 1;
+}
+
+message Group {
+  string name = 1;
+  uint32 gid = 2;
+  repeated string members = 3;
+}
+
+message Groups {
+  repeated Group groups = 1;
+}
