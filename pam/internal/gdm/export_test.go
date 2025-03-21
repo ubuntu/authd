@@ -5,3 +5,12 @@ func init() {
 	validateJSONFunc = validateJSONDebug
 	stringifyEventDataFunc = stringifyEventDataDebug
 }
+
+func SetDebuggingSafeEventDataFunc(toggle bool) {
+	if toggle {
+		stringifyEventDataFunc = stringifyEventDataDebug
+		return
+	}
+
+	stringifyEventDataFunc = stringifyEventDataFiltered
+}

@@ -19,6 +19,7 @@ type authModeSelectionModel struct {
 
 	supportedUILayouts        []*authd.UILayout
 	availableAuthModes        []*authd.GAMResponse_AuthenticationMode
+	autoSelectedAuthModeID    string
 	currentAuthModeSelectedID string
 }
 
@@ -102,6 +103,19 @@ func (m authModeSelectionModel) Init() tea.Cmd {
 // Update handles events and actions.
 func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
+	case listFocused:
+		if m.id != msg.id {
+			return m, nil
+		}
+
+		log.Debugf(context.TODO(), "%#v, autoselect: %q", msg, m.autoSelectedAuthModeID)
+
+		if m.autoSelectedAuthModeID != "" {
+			authMode := m.autoSelectedAuthModeID
+			m.autoSelectedAuthModeID = ""
+			return m, selectAuthMode(authMode)
+		}
+
 	case supportedUILayoutsReceived:
 		log.Debugf(context.TODO(), "%#v", msg)
 		if len(msg.layouts) == 0 {
@@ -118,24 +132,27 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 		m.availableAuthModes = msg.authModes
 
 		var allAuthModes []tea_list.Item
-		var firstAuthModeID string
 		for _, a := range m.availableAuthModes {
-			if firstAuthModeID == "" {
-				firstAuthModeID = a.Id
-			}
 			allAuthModes = append(allAuthModes, authModeItem{
 				id:    a.Id,
 				label: a.Label,
 			})
 		}
 
-		cmds := []tea.Cmd{m.SetItems(allAuthModes)}
-		// Autoselect first auth mode if any.
-		if firstAuthModeID != "" {
-			cmds = append(cmds, selectAuthMode(firstAuthModeID))
+		cmd := m.SetItems(allAuthModes)
+
+		// Autoselect first auth mode if any, as soon as we've the focus.
+		if len(m.availableAuthModes) == 0 {
+			return m, cmd
 		}
 
-		return m, tea.Sequence(cmds...)
+		firstAuthModeID := m.availableAuthModes[0].Id
+		if !m.Focused() {
+			m.autoSelectedAuthModeID = firstAuthModeID
+			return m, cmd
+		}
+
+		return m, tea.Sequence(cmd, selectAuthMode(firstAuthModeID))
 
 	case listItemSelected:
 		if !m.Focused() {
@@ -229,6 +246,7 @@ func getAuthenticationModes(client authd.PAMClient, sessionID string, uiLayouts 
 func (m *authModeSelectionModel) Reset() {
 	log.Debugf(context.TODO(), "%T: Reset", m)
 	m.currentAuthModeSelectedID = ""
+	m.autoSelectedAuthModeID = ""
 }
 
 // SupportedUILayouts returns safely currently loaded supported ui layouts.

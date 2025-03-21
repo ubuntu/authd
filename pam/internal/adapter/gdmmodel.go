@@ -30,10 +30,14 @@ type gdmModel struct {
 	// However, after the quit point we should really not interact anymore with
 	// GDM or we'll make it crash (as it doesn't expect any conversation
 	// happening at that point).
-	// So we ue this as a control point, once we've set this to true, no further
-	// conversation with GDM should happen.
+	// So we use this as a control point, once we've set this to true, no
+	// further conversation with GDM should happen.
 	conversationsStopped  bool
 	stoppingConversations bool
+}
+
+type gdmPollResponse struct {
+	pollResponse []*gdm.EventData
 }
 
 type gdmPollDone struct{}
@@ -90,22 +94,31 @@ func requestUICapabilities(mTx pam.ModuleTransaction) tea.Cmd {
 	}
 }
 
-func (m *gdmModel) pollGdm() tea.Cmd {
-	gdmPollResults, err := gdm.SendPoll(m.pamMTx)
-	if err != nil {
-		return sendEvent(pamError{
-			status: pam.ErrSystem,
-			msg:    fmt.Sprintf("Sending GDM poll failed: %v", err),
-		})
+func (m gdmModel) pollGdm() tea.Cmd {
+	if m.conversationsStopped {
+		return nil
 	}
 
+	return func() tea.Msg {
+		gdmPollResults, err := gdm.SendPoll(m.pamMTx)
+		if err != nil {
+			return pamError{
+				status: pam.ErrSystem,
+				msg:    fmt.Sprintf("Sending GDM poll failed: %v", err),
+			}
+		}
+		return gdmPollResponse{gdmPollResults}
+	}
+}
+
+func (m gdmModel) handlePollResponse(gdmPollResults []*gdm.EventData) tea.Cmd {
 	if log.IsLevelEnabled(log.DebugLevel) {
 		for _, result := range gdmPollResults {
 			log.Debugf(context.TODO(), "GDM poll response: %v", result.SafeString())
 		}
 	}
 
-	commands := []tea.Cmd{sendEvent(gdmPollDone{})}
+	var commands []tea.Cmd
 
 	for _, result := range gdmPollResults {
 		switch res := result.Data.(type) {
@@ -158,14 +171,11 @@ func (m *gdmModel) pollGdm() tea.Cmd {
 				})
 			}
 			log.Infof(context.TODO(), "GDM Stage changed to %s", res.StageChanged.Stage)
-
-			if m.waitingAuth && res.StageChanged.Stage != proto.Stage_challenge {
-				// Maybe this can be sent only if we ever hit the password phase.
-				commands = append(commands, sendEvent(isAuthenticatedCancelled{}))
-			}
 			commands = append(commands, sendEvent(ChangeStage{res.StageChanged.Stage}))
 		}
 	}
+
+	commands = append(commands, sendEvent(gdmPollDone{}))
 	return tea.Sequence(commands...)
 }
 
@@ -193,10 +203,16 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 	}
 
 	switch msg := msg.(type) {
+	case gdmPollResponse:
+		return m, m.handlePollResponse(msg.pollResponse)
+
 	case gdmPollDone:
 		return m, tea.Sequence(
 			tea.Tick(gdmPollFrequency, func(time.Time) tea.Msg { return nil }),
 			m.pollGdm())
+
+	case StageChanged:
+		return m, m.changeStage(msg.Stage)
 
 	case userSelected:
 		return m, m.emitEvent(&gdm.EventData_UserSelected{
@@ -229,16 +245,12 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 		}))
 
 	case startAuthentication:
-		if m.waitingAuth {
-			log.Warning(context.TODO(), "Ignored authentication start request while one is still going")
-			return m, nil
-		}
 		m.waitingAuth = true
-		return m, sendEvent(m.emitEventSync(&gdm.EventData_StartAuthentication{
+		return m, m.emitEvent(&gdm.EventData_StartAuthentication{
 			StartAuthentication: &gdm.Events_StartAuthentication{},
-		}))
+		})
 
-	case reselectAuthMode:
+	case stopAuthentication:
 		m.waitingAuth = false
 
 	case isAuthenticatedResultReceived:
@@ -255,7 +267,6 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 		case auth.Granted:
 		case auth.Denied:
 		case auth.Cancelled:
-			return m, sendEvent(isAuthenticatedCancelled{})
 		case auth.Retry:
 		case auth.Next:
 		default:
@@ -270,22 +281,12 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 			)
 		}
 
-		return m, sendEvent(m.emitEventSync(&gdm.EventData_AuthEvent{
+		return m, m.emitEvent(&gdm.EventData_AuthEvent{
 			AuthEvent: &gdm.Events_AuthEvent{Response: &authd.IAResponse{
 				Access: access,
 				Msg:    authMsg,
 			}},
-		}))
-
-	case isAuthenticatedCancelled:
-		m.waitingAuth = false
-
-		return m, sendEvent(m.emitEventSync(&gdm.EventData_AuthEvent{
-			AuthEvent: &gdm.Events_AuthEvent{Response: &authd.IAResponse{
-				Access: auth.Cancelled,
-				Msg:    msg.msg,
-			}},
-		}))
+		})
 
 	case gdmStopConversations:
 		m.stopConversations()
@@ -296,10 +297,6 @@ func (m gdmModel) Update(msg tea.Msg) (gdmModel, tea.Cmd) {
 }
 
 func (m gdmModel) changeStage(s proto.Stage) tea.Cmd {
-	if m.conversationsStopped {
-		return nil
-	}
-
 	return func() tea.Msg {
 		_, err := gdm.SendRequest(m.pamMTx, &gdm.RequestData_ChangeStage{
 			ChangeStage: &gdm.Requests_ChangeStage{Stage: s},

@@ -43,17 +43,30 @@ type gdmTestWaitForCommandsDone struct {
 	seq int64
 }
 
+type gdmTestCommands struct {
+	events   []*gdm.EventData
+	commands []tea.Cmd
+}
+
 type gdmTestWaitForStage struct {
 	stage    proto.Stage
 	events   []*gdm.EventData
 	commands []tea.Cmd
 }
 
-type gdmTestWaitForStageDone gdmTestWaitForStage
+type gdmTestCommandsDone gdmTestCommands
 
 type gdmTestSendAuthDataWhenReady struct {
-	item authd.IARequestAuthenticationDataItem
+	authData authd.IARequestAuthenticationDataItem
 }
+
+type gdmTestSendAuthDataWhenReadyFull struct {
+	authData authd.IARequestAuthenticationDataItem
+	commands []tea.Cmd
+	events   []*gdm.EventData
+}
+
+var currentPkg = reflect.TypeOf(gdmTestUIModel{}).PkgPath()
 
 func (m *gdmTestUIModel) maybeHandleWantMessageUnlocked(msg tea.Msg) {
 	returnErrorMsg, isError := msg.(PamReturnError)
@@ -87,7 +100,10 @@ func (m *gdmTestUIModel) maybeHandleWantMessageUnlocked(msg tea.Msg) {
 }
 
 func (m *gdmTestUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	log.Debugf(context.TODO(), "%#v", msg)
+	if log.IsLevelEnabled(log.DebugLevel) &&
+		reflect.TypeOf(msg).PkgPath() == currentPkg {
+		log.Debugf(context.TODO(), "%#v", msg)
+	}
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -103,7 +119,7 @@ func (m *gdmTestUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.gdmHandler.appendPollResultEvents(msg.event)
 
 	case gdmTestWaitForStage:
-		doneMsg := (*gdmTestWaitForStageDone)(&msg)
+		doneMsg := &gdmTestCommandsDone{commands: msg.commands, events: msg.events}
 		if len(doneMsg.commands) > 0 {
 			seq := gdmTestSequentialMessages.Add(1)
 			doneCommandsMsg := gdmTestWaitForCommandsDone{seq: seq}
@@ -127,35 +143,59 @@ func (m *gdmTestUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.program.Send(doneMsg)
 		}()
 
-	case *gdmTestWaitForStageDone:
-		msgCommands := tea.Sequence(msg.commands...)
+	case gdmTestCommands:
+		doneMsg := (*gdmTestCommandsDone)(&msg)
+		m.wantMessages = append(m.wantMessages, doneMsg)
+		commands = append(commands, msg.commands...)
+		commands = append(commands, sendEvent(doneMsg))
+
+	case *gdmTestCommandsDone:
+		// FIXME: We can't just define msgCommands a sub-sequence as we used to
+		// do since that's unreliable, as per a bubbletea bug:
+		//  - https://github.com/charmbracelet/bubbletea/issues/847
+		msgCommands := slices.Clone(msg.commands)
 		if len(msg.events) > 0 {
 			m.gdmHandler.appendPollResultEvents(msg.events...)
 			// If we've events as poll results, let's wait for a polling cycle to complete
-			msgCommands = tea.Sequence(tea.Tick(gdmPollFrequency, func(t time.Time) tea.Msg {
+			msgCommands = append([]tea.Cmd{tea.Tick(gdmPollFrequency, func(t time.Time) tea.Msg {
 				return nil
-			}), msgCommands)
+			})}, msgCommands...)
 		}
-		commands = append(commands, msgCommands)
+		commands = append(commands, msgCommands...)
 
 	case gdmTestSendAuthDataWhenReady:
 		doneMsg := gdmTestWaitForCommandsDone{seq: gdmTestSequentialMessages.Add(1)}
 		m.wantMessages = append(m.wantMessages, doneMsg)
+		commands = append(commands, sendEvent(gdmTestSendAuthDataWhenReadyFull{authData: msg.authData}))
+		commands = append(commands, sendEvent(doneMsg))
+
+	case gdmTestSendAuthDataWhenReadyFull:
+
+		doneMsg := gdmTestWaitForCommandsDone{seq: gdmTestSequentialMessages.Add(1)}
+		m.wantMessages = append(m.wantMessages, doneMsg)
+
+		nextMsg := &gdmTestCommandsDone{commands: msg.commands, events: msg.events}
+		if len(nextMsg.commands) > 0 || len(nextMsg.events) > 0 {
+			seq := gdmTestSequentialMessages.Add(1)
+			doneCommandsMsg := gdmTestWaitForCommandsDone{seq: seq}
+			nextMsg.commands = append(nextMsg.commands, sendEvent(doneCommandsMsg))
+			m.wantMessages = append(m.wantMessages, doneCommandsMsg)
+		}
 
 		go func() {
 			m.gdmHandler.waitForAuthenticationStarted()
-			if msg.item != nil {
-				m.gdmHandler.appendPollResultEvents(gdm_test.IsAuthenticatedEvent(msg.item))
+			if msg.authData != nil {
+				m.gdmHandler.appendPollResultEvents(gdm_test.IsAuthenticatedEvent(msg.authData))
 			}
 			m.program.Send(tea.Sequence(tea.Tick(gdmPollFrequency, func(t time.Time) tea.Msg {
-				return sendEvent(doneMsg)
-			}), sendEvent(doneMsg))())
+				return nil
+			}), sendEvent(doneMsg), sendEvent(nextMsg))())
 		}()
 
 	case gdmTestWaitForCommandsDone:
 		log.Debugf(context.TODO(), "Sequential messages done: %v", msg.seq)
 
-	case isAuthenticatedCancelled:
+	case stopAuthentication:
 		m.gdmHandler.consumeAuthenticationStartedEvents()
 	}
 

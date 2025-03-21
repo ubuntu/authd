@@ -142,6 +142,10 @@ func (m qrcodeModel) Blur() {
 
 // Focused returns whether this model is focused.
 func (m qrcodeModel) Focused() bool {
-	// This is always considered focused.
-	return true
+	if m.buttonModel == nil {
+		// This is always considered focused.
+		return true
+	}
+
+	return m.buttonModel.Focused()
 }
