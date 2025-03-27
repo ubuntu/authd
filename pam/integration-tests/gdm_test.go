@@ -559,7 +559,6 @@ func TestGdmModule(t *testing.T) {
 				qrcodeID,
 				qrcodeID,
 				qrcodeID,
-				qrcodeID,
 			},
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(pam_test.WithWait(true)),
@@ -607,7 +606,6 @@ func TestGdmModule(t *testing.T) {
 				testQrcodeUILayoutData(2),
 				testQrcodeUILayoutData(3),
 				testQrcodeUILayoutData(4),
-				testQrcodeUILayoutData(5),
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{Access: auth.Cancelled},
@@ -618,7 +616,6 @@ func TestGdmModule(t *testing.T) {
 		"Authenticates_user_after_regenerating_the_qrcode_without_code_field": {
 			wantAuthModeIDs: []string{
 				passwordAuthID,
-				qrcodeWithoutCodeID,
 				qrcodeWithoutCodeID,
 				qrcodeWithoutCodeID,
 				qrcodeWithoutCodeID,
@@ -671,7 +668,6 @@ func TestGdmModule(t *testing.T) {
 				testQrcodeWithoutCodeUILayoutData(2),
 				testQrcodeWithoutCodeUILayoutData(3),
 				testQrcodeWithoutCodeUILayoutData(4),
-				testQrcodeWithoutCodeUILayoutData(5),
 			},
 			wantAuthResponses: []*authd.IAResponse{
 				{Access: auth.Cancelled},
@@ -741,7 +737,6 @@ func TestGdmModule(t *testing.T) {
 				passwordAuthID,
 				passwordAuthID,
 				passwordAuthID,
-				passwordAuthID,
 			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
@@ -802,6 +797,7 @@ func TestGdmModule(t *testing.T) {
 					}),
 				},
 			},
+			wantAuthModeIDs: []string{passwordAuthID},
 			wantPamErrorMessages: []string{
 				"user not found",
 			},
@@ -893,6 +889,9 @@ func TestGdmModule(t *testing.T) {
 			}
 
 			gh.selectedAuthModeIDs = tc.wantAuthModeIDs
+			if gh.selectedAuthModeIDs == nil && tc.wantError != nil {
+				gh.selectedAuthModeIDs = []string{}
+			}
 			if gh.selectedAuthModeIDs == nil {
 				gh.selectedAuthModeIDs = []string{passwordAuthID}
 			}
@@ -938,6 +937,11 @@ func TestGdmModule(t *testing.T) {
 
 			require.ErrorIs(t, gh.tx.AcctMgmt(pamFlags), tc.wantAcctMgmtErr,
 				"Account Management PAM Error messages do not match")
+
+			require.Empty(t, gh.selectedAuthModeIDs,
+				"Some Authentication Modes IDs have not been selected")
+			require.Empty(t, gh.selectedUILayouts,
+				"Some UI Layouts have not been selected")
 
 			if tc.wantError != nil {
 				requirePreviousBrokerForUser(t, socketPath, "", pamUser)

@@ -6,7 +6,7 @@ toolchain go1.23.5
 
 require (
 	github.com/golang/protobuf v1.5.4
-	github.com/golangci/golangci-lint v1.64.7
+	github.com/golangci/golangci-lint v1.64.8
 	github.com/msteinert/pam/v2 v2.0.0-00010101000000-000000000000
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1
 )
