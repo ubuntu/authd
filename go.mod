@@ -19,7 +19,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/cobra v1.9.1
-	github.com/spf13/viper v1.20.0
+	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	github.com/ubuntu/decorate v0.0.0-20230606064312-bc4ac83958d6
 	go.etcd.io/bbolt v1.4.0
@@ -27,7 +27,7 @@ require (
 	golang.org/x/sys v0.31.0
 	golang.org/x/term v0.30.0
 	google.golang.org/grpc v1.71.0
-	google.golang.org/protobuf v1.36.5
+	google.golang.org/protobuf v1.36.6
 	gopkg.in/ini.v1 v1.67.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorbe.io/go/osrelease v0.3.0
