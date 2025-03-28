@@ -50,7 +50,48 @@ func CanRunRustTests(coverageWanted bool) (err error) {
 	return nil
 }
 
-// TrackRustCoverage returns environment variables and target directory so that following commands
+// BuildRustNSSLib builds the NSS library and links the compiled file to libPath.
+func BuildRustNSSLib(t *testing.T) (libPath string, rustCovEnv []string) {
+	t.Helper()
+
+	projectRoot := ProjectRoot()
+
+	cargo := os.Getenv("CARGO_PATH")
+	if cargo == "" {
+		cargo = "cargo"
+	}
+
+	var target string
+	rustDir := filepath.Join(projectRoot, "nss")
+	rustCovEnv, target = trackRustCoverage(t, rustDir)
+
+	// Builds the nss library.
+	// #nosec:G204 - we control the command arguments in tests
+	cmd := exec.Command(cargo, "build", "--verbose", "--all-features", "--target-dir", target)
+	cmd.Env = append(os.Environ(), rustCovEnv...)
+	cmd.Dir = projectRoot
+
+	t.Log("Building NSS library...", cmd.Args)
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, "Setup: could not build Rust NSS library: %s", out)
+
+	// When building the crate with dh-cargo, this env is set to indicate which architecture the code
+	// is being compiled to. When it's set, the compiled is stored under target/$(DEB_HOST_RUST_TYPE)/debug,
+	// rather than under target/debug, so we need to append at the end of target to ensure we use
+	// the right path.
+	// If the env is not set, the target stays the same.
+	target = filepath.Join(target, os.Getenv("DEB_HOST_RUST_TYPE"))
+
+	// Creates a symlink for the compiled library with the expected versioned name.
+	libPath = filepath.Join(target, "libnss_authd.so.2")
+	if err = os.Symlink(filepath.Join(target, "debug", "libnss_authd.so"), libPath); err != nil {
+		require.ErrorIs(t, err, os.ErrExist, "Setup: failed to create versioned link to the library")
+	}
+
+	return libPath, rustCovEnv
+}
+
+// trackRustCoverage returns environment variables and target directory so that following commands
 // runs with code coverage enabled.
 // Note that for developping purposes and avoiding keeping building the rust program dependencies,
 // TEST_RUST_TARGET environment variable can be set to an absolute path to keep iterative
@@ -58,7 +99,7 @@ func CanRunRustTests(coverageWanted bool) (err error) {
 // This then allow coverage to run in parallel, as each subprocess will have its own environment.
 // You will need to call MergeCoverages() after m.Run().
 // If code coverage is not enabled, it still returns an empty slice, but the target can be used.
-func TrackRustCoverage(t *testing.T, src string) (env []string, target string) {
+func trackRustCoverage(t *testing.T, src string) (env []string, target string) {
 	t.Helper()
 
 	target = os.Getenv("TEST_RUST_TARGET")

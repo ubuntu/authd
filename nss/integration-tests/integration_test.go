@@ -22,7 +22,7 @@ func TestIntegration(t *testing.T) {
 	// codeNotFound is the expected exit code for the getent subprocess in case of errors.
 	const codeNotFound int = 2
 
-	libPath, rustCovEnv := buildRustNSSLib(t)
+	libPath, rustCovEnv := testutils.BuildRustNSSLib(t)
 
 	// Create a default daemon to use for most test cases.
 	defaultSocket := filepath.Join(os.TempDir(), "nss-integration-tests.sock")
