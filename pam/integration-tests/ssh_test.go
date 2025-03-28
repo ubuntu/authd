@@ -68,6 +68,17 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	execModule := buildExecModuleWithCFlags(t, []string{"-std=c11"}, true)
 	execChild := buildPAMExecChild(t)
 
+	mkHomeDirHelper, err := exec.LookPath("mkhomedir_helper")
+	require.NoError(t, err, "Setup: mkhomedir_helper not found")
+	pamMkHomeDirModule := buildCPAMModule(t,
+		[]string{"./pam/integration-tests/pam_mkhomedir/pam_mkhomedir.c"},
+		nil,
+		[]string{
+			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS",
+			fmt.Sprintf("-DMKHOMEDIR_HELPER=%q", mkHomeDirHelper),
+		},
+		"pam_mkhomedir_test.so", true)
+
 	var sshdEnv []string
 	var nssLibrary string
 	var sshdPreloadLibraries []string
@@ -108,7 +119,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	var defaultSSHDPort, defaultUserHome, defaultSocketPath, defaultGPasswdOutput string
 	if sharedSSHd {
 		defaultSocketPath, defaultGPasswdOutput = sharedAuthd(t)
-		serviceFile := createSshdServiceFile(t, execModule, execChild, defaultSocketPath)
+		serviceFile := createSshdServiceFile(t, execModule, execChild, pamMkHomeDirModule, defaultSocketPath)
 		sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocketPath))
 		defaultSSHDPort, defaultUserHome = startSSHdForTest(t, serviceFile, sshdHostKey,
 			"authd-test-user-sshd-accept-all", sshdPreloadLibraries, sshdEnv, true, false)
@@ -321,7 +332,8 @@ Wait`,
 					sshdEnv = slices.Clone(sshdEnv)
 					sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", socketPath))
 				}
-				serviceFile := createSshdServiceFile(t, execModule, execChild, socketPath)
+				serviceFile := createSshdServiceFile(t, execModule, execChild,
+					pamMkHomeDirModule, socketPath)
 				sshdPort, userHome = startSSHdForTest(t, serviceFile, sshdHostKey, user,
 					sshdPreloadLibraries, sshdEnv, tc.daemonizeSSHd, tc.interactiveShell)
 			}
@@ -374,7 +386,7 @@ func sanitizeGoldenFile(t *testing.T, td tapeData, outDir string) string {
 	return sshHostPortRegex.ReplaceAllLiteralString(golden, "${SSH_HOST} port ${SSH_PORT}")
 }
 
-func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) string {
+func createSshdServiceFile(t *testing.T, module, execChild, mkHomeModule, socketPath string) string {
 	t.Helper()
 
 	moduleArgs := []string{
@@ -425,6 +437,7 @@ func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) s
 			Action: pam_test.Account, Control: pam_test.Optional, Module: "pam_echo.so",
 			Args: []string{fmt.Sprintf("%s finished for user '%%u'", pam_test.RunnerResultActionAcctMgmt.Message(""))},
 		},
+		{Action: pam_test.Session, Control: pam_test.Optional, Module: mkHomeModule, Args: []string{"debug"}},
 		{Action: pam_test.Session, Control: pam_test.Requisite, Module: pam_test.Permit.String()},
 	})
 	require.NoError(t, err, "Setup: Creation of service file %s", pamServiceName)
