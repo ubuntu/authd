@@ -62,7 +62,7 @@ is_valid_test_user (const char *name)
     return false;
 
   /* Here we accept all the users supported by the example broker */
-  if (strncmp (name, "user", 4) == 0)
+  if (strncmp (name, "user", 4) == 0 && strlen (name) > 4)
     return true;
 
   /* Further special case for the 'r' user */
