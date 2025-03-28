@@ -15,12 +15,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func getCargoPath() (path string, isNightly bool, err error) {
+	cargo := os.Getenv("CARGO_PATH")
+	if cargo == "" {
+		cargo = "cargo"
+	}
+
+	//nolint:gosec // G204 we define the parameters here.
+	v, err := exec.Command(cargo, "--version").CombinedOutput()
+	if err != nil {
+		return "", false, fmt.Errorf("cargo can't be executed: %w", err)
+	}
+
+	// Only nightly has code coverage enabled
+	return cargo, strings.Contains(string(v), "nightly"), nil
+}
+
 // CanRunRustTests returns if we can run rust tests via cargo on this machine.
 // It checks for code coverage report if supported.
 func CanRunRustTests(coverageWanted bool) (err error) {
-	d, err := exec.Command("cargo", "--version").CombinedOutput()
+	_, isNightly, err := getCargoPath()
 	if err != nil {
-		return fmt.Errorf("cargo can't be executed: %w", err)
+		return err
 	}
 
 	if !coverageWanted {
@@ -28,8 +44,7 @@ func CanRunRustTests(coverageWanted bool) (err error) {
 	}
 
 	// Only nightly has code coverage enabled
-	supportCoverage := strings.Contains(string(d), "nightly")
-	if !supportCoverage {
+	if !isNightly {
 		return errors.New("coverage is requested but your cargo/rust version does not support it (needs nightly)")
 	}
 
@@ -50,25 +65,72 @@ func CanRunRustTests(coverageWanted bool) (err error) {
 	return nil
 }
 
-// TrackRustCoverage returns environment variables and target directory so that following commands
-// runs with code coverage enabled.
-// Note that for developping purposes and avoiding keeping building the rust program dependencies,
-// TEST_RUST_TARGET environment variable can be set to an absolute path to keep iterative
-// build artifacts.
-// This then allow coverage to run in parallel, as each subprocess will have its own environment.
-// You will need to call MergeCoverages() after m.Run().
-// If code coverage is not enabled, it still returns an empty slice, but the target can be used.
-func TrackRustCoverage(t *testing.T, src string) (env []string, target string) {
+// BuildRustNSSLib builds the NSS library and links the compiled file to libPath.
+func BuildRustNSSLib(t *testing.T, disableCoverage bool, features ...string) (libPath string, rustCovEnv []string) {
 	t.Helper()
 
-	target = os.Getenv("TEST_RUST_TARGET")
+	projectRoot := ProjectRoot()
+
+	cargo, isNightly, err := getCargoPath()
+	require.NoError(t, err, "Setup: looking for cargo")
+
+	// Note that for developing purposes and avoiding keeping building the rust program dependencies,
+	// TEST_RUST_TARGET environment variable can be set to an absolute path to keep iterative
+	// build artifacts.
+	target := os.Getenv("TEST_RUST_TARGET")
 	if target == "" {
 		target = t.TempDir()
 	}
 
+	rustDir := filepath.Join(projectRoot, "nss")
+	if !disableCoverage {
+		rustCovEnv = trackRustCoverage(t, target, rustDir)
+	}
+
+	features = append([]string{"integration_tests", "custom_socket"}, features...)
+
+	// Builds the nss library.
+	// #nosec:G204 - we control the command arguments in tests
+	cmd := exec.Command(cargo, "build", "--verbose",
+		"--features", strings.Join(features, ","), "--target-dir", target)
+	cmd.Env = append(os.Environ(), rustCovEnv...)
+	cmd.Dir = projectRoot
+
+	if isNightly && IsAsan() {
+		cmd.Env = append(cmd.Env, "RUSTFLAGS=-Zsanitizer=address")
+	}
+
+	t.Log("Building NSS library...", cmd.Args)
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, "Setup: could not build Rust NSS library: %s", out)
+
+	// When building the crate with dh-cargo, this env is set to indicate which architecture the code
+	// is being compiled to. When it's set, the compiled is stored under target/$(DEB_HOST_RUST_TYPE)/debug,
+	// rather than under target/debug, so we need to append at the end of target to ensure we use
+	// the right path.
+	// If the env is not set, the target stays the same.
+	target = filepath.Join(target, os.Getenv("DEB_HOST_RUST_TYPE"))
+
+	// Creates a symlink for the compiled library with the expected versioned name.
+	libPath = filepath.Join(target, "libnss_authd.so.2")
+	if err = os.Symlink(filepath.Join(target, "debug", "libnss_authd.so"), libPath); err != nil {
+		require.ErrorIs(t, err, os.ErrExist, "Setup: failed to create versioned link to the library")
+	}
+
+	return libPath, rustCovEnv
+}
+
+// trackRustCoverage returns environment variables  so that following commands
+// runs with code coverage enabled.
+// This then allow coverage to run in parallel, as each subprocess will have its own environment.
+// You will need to call MergeCoverages() after m.Run().
+// If code coverage is not enabled, it still returns an empty slice.
+func trackRustCoverage(t *testing.T, target, src string) []string {
+	t.Helper()
+
 	coverDir := CoverDirForTests()
 	if coverDir == "" {
-		return nil, target
+		return nil
 	}
 	coverDir = filepath.Join(coverDir, "rust-cov")
 
@@ -108,7 +170,7 @@ func TrackRustCoverage(t *testing.T, src string) (env []string, target string) {
 	return []string{
 		"RUSTFLAGS=-C instrument-coverage",
 		"LLVM_PROFILE_FILE=" + filepath.Join(coverDir, "rust-%p-%m.profraw"),
-	}, target
+	}
 }
 
 // scan iterates over children files and folders elements recursively.

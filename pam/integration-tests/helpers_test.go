@@ -62,6 +62,11 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 	outputFile := filepath.Join(t.TempDir(), "authd.log")
 	args = append(args, testutils.WithOutputFile(outputFile))
 
+	homeBaseDir := filepath.Join(t.TempDir(), "homes")
+	err := os.MkdirAll(homeBaseDir, 0700)
+	require.NoError(t, err, "Setup: Creating home base dir %q", homeBaseDir)
+	args = append(args, testutils.WithHomeBaseDir(homeBaseDir))
+
 	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, args...)
 	saveArtifactsForDebugOnCleanup(t, []string{outputFile})
 	return socketPath, func() {

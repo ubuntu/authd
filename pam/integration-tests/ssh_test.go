@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -66,9 +67,41 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 
 	execModule := buildExecModuleWithCFlags(t, []string{"-std=c11"}, true)
 	execChild := buildPAMExecChild(t)
+
+	mkHomeDirHelper, err := exec.LookPath("mkhomedir_helper")
+	require.NoError(t, err, "Setup: mkhomedir_helper not found")
+	pamMkHomeDirModule := buildCPAMModule(t,
+		[]string{"./pam/integration-tests/pam_mkhomedir/pam_mkhomedir.c"},
+		nil,
+		[]string{
+			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS",
+			fmt.Sprintf("-DMKHOMEDIR_HELPER=%q", mkHomeDirHelper),
+		},
+		"pam_mkhomedir_test.so", true)
+
+	var sshdEnv []string
+	var nssLibrary string
+	var sshdPreloadLibraries []string
+	var sshdPreloaderCFlags []string
+	err = testutils.CanRunRustTests(false)
+	if os.Getenv("AUTHD_TESTS_SSH_USE_DUMMY_NSS") == "" && err == nil {
+		nssLibrary, sshdEnv = testutils.BuildRustNSSLib(t, true)
+		sshdPreloadLibraries = append(sshdPreloadLibraries, nssLibrary)
+		sshdPreloaderCFlags = append(sshdPreloaderCFlags,
+			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS")
+		sshdEnv = append(sshdEnv,
+			"AUTHD_NSS_INFO=stderr",
+			fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", filepath.Dir(nssLibrary),
+				os.Getenv("LD_LIBRARY_PATH")),
+		)
+	} else if err != nil {
+		t.Logf("Using the dummy library to implement NSS: %v", err)
+	}
+
 	sshdPreloadLibrary := buildCModule(t, []string{
 		filepath.Join(currentDir, "/sshd_preloader/sshd_preloader.c"),
-	}, nil, nil, nil, "sshd_preloader", true)
+	}, nil, sshdPreloaderCFlags, nil, "sshd_preloader", true)
+	sshdPreloadLibraries = append(sshdPreloadLibraries, sshdPreloadLibrary)
 
 	sshdHostKey := filepath.Join(t.TempDir(), "ssh_host_ed25519_key")
 	//#nosec:G204 - we control the command arguments in tests
@@ -86,9 +119,10 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	var defaultSSHDPort, defaultUserHome, defaultSocketPath, defaultGPasswdOutput string
 	if sharedSSHd {
 		defaultSocketPath, defaultGPasswdOutput = sharedAuthd(t)
-		serviceFile := createSshdServiceFile(t, execModule, execChild, defaultSocketPath)
+		serviceFile := createSshdServiceFile(t, execModule, execChild, pamMkHomeDirModule, defaultSocketPath)
+		sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocketPath))
 		defaultSSHDPort, defaultUserHome = startSSHdForTest(t, serviceFile, sshdHostKey,
-			"authd-test-user-sshd-accept-all", sshdPreloadLibrary, true, false)
+			"authd-test-user-sshd-accept-all", sshdPreloadLibraries, sshdEnv, true, false)
 	}
 
 	sshEnvVariablesRegex = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`)
@@ -248,7 +282,10 @@ Wait`,
 		},
 
 		"Error_if_cannot_connect_to_authd": {
-			tape:                "connection_error",
+			tape: "connection_error",
+			tapeVariables: map[string]string{
+				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
+			},
 			socketPath:          "/some-path/not-existent-socket",
 			wantNotLoggedInUser: true,
 		},
@@ -290,9 +327,15 @@ Wait`,
 			sshdPort := defaultSSHDPort
 			userHome := defaultUserHome
 			if !sharedSSHd || tc.wantLocalGroups || tc.interactiveShell || tc.socketPath != "" {
-				serviceFile := createSshdServiceFile(t, execModule, execChild, socketPath)
+				sshdEnv := sshdEnv
+				if nssLibrary != "" {
+					sshdEnv = slices.Clone(sshdEnv)
+					sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", socketPath))
+				}
+				serviceFile := createSshdServiceFile(t, execModule, execChild,
+					pamMkHomeDirModule, socketPath)
 				sshdPort, userHome = startSSHdForTest(t, serviceFile, sshdHostKey, user,
-					sshdPreloadLibrary, tc.daemonizeSSHd, tc.interactiveShell)
+					sshdPreloadLibraries, sshdEnv, tc.daemonizeSSHd, tc.interactiveShell)
 			}
 
 			knownHost := filepath.Join(t.TempDir(), "known_hosts")
@@ -343,7 +386,7 @@ func sanitizeGoldenFile(t *testing.T, td tapeData, outDir string) string {
 	return sshHostPortRegex.ReplaceAllLiteralString(golden, "${SSH_HOST} port ${SSH_PORT}")
 }
 
-func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) string {
+func createSshdServiceFile(t *testing.T, module, execChild, mkHomeModule, socketPath string) string {
 	t.Helper()
 
 	moduleArgs := []string{
@@ -371,13 +414,15 @@ func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) s
 
 	outDir := t.TempDir()
 	pamServiceName := "authd-sshd"
-	moduleControl := "[success=ok new_authtok_reqd=done ignore=2 default=die]"
+	// Keep control values in sync with debian/pam-configs/authd.in.
+	authControl := "[success=ok default=die authinfo_unavail=2 ignore=2]"
+	accountControl := "[default=ignore success=ok]"
 	notifyState := pam_test.ServiceLine{
 		Action: pam_test.Auth, Control: pam_test.Optional, Module: "pam_echo.so",
 		Args: []string{fmt.Sprintf("%s finished for user '%%u'", pam_test.RunnerResultActionAuthenticate.Message(""))},
 	}
 	serviceFile, err := pam_test.CreateService(outDir, pamServiceName, []pam_test.ServiceLine{
-		{Action: pam_test.Auth, Control: pam_test.NewControl(moduleControl), Module: module, Args: moduleArgs},
+		{Action: pam_test.Auth, Control: pam_test.NewControl(authControl), Module: module, Args: moduleArgs},
 		// Success case:
 		notifyState,
 		{Action: pam_test.Auth, Control: pam_test.Sufficient, Module: pam_test.Permit.String()},
@@ -387,7 +432,12 @@ func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) s
 		{Action: pam_test.Auth, Control: pam_test.Optional, Module: "pam_echo.so", Args: []string{"SSH PAM user '%u' using local broker"}},
 		{Action: pam_test.Include, Module: "common-auth"},
 
-		{Action: pam_test.Account, Control: pam_test.SufficientRequisite, Module: module, Args: moduleArgs},
+		{Action: pam_test.Account, Control: pam_test.NewControl(accountControl), Module: module, Args: moduleArgs},
+		{
+			Action: pam_test.Account, Control: pam_test.Optional, Module: "pam_echo.so",
+			Args: []string{fmt.Sprintf("%s finished for user '%%u'", pam_test.RunnerResultActionAcctMgmt.Message(""))},
+		},
+		{Action: pam_test.Session, Control: pam_test.Optional, Module: mkHomeModule, Args: []string{"debug"}},
 		{Action: pam_test.Session, Control: pam_test.Requisite, Module: pam_test.Permit.String()},
 	})
 	require.NoError(t, err, "Setup: Creation of service file %s", pamServiceName)
@@ -396,7 +446,7 @@ func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) s
 	return serviceFile
 }
 
-func startSSHdForTest(t *testing.T, serviceFile, hostKey, user, preloadLibrary string, daemonize bool, interactiveShell bool) (string, string) {
+func startSSHdForTest(t *testing.T, serviceFile, hostKey, user string, preloadLibraries []string, env []string, daemonize bool, interactiveShell bool) (string, string) {
 	t.Helper()
 
 	sshdConnectCommand := fmt.Sprintf(
@@ -412,13 +462,13 @@ func startSSHdForTest(t *testing.T, serviceFile, hostKey, user, preloadLibrary s
 	}
 
 	userHome := t.TempDir()
-	sshdPort := startSSHd(t, hostKey, sshdConnectCommand, []string{
+	sshdPort := startSSHd(t, hostKey, sshdConnectCommand, append([]string{
 		fmt.Sprintf("HOME=%s", userHome),
-		fmt.Sprintf("LD_PRELOAD=%s", preloadLibrary),
+		fmt.Sprintf("LD_PRELOAD=%s", strings.Join(preloadLibraries, " ")),
 		fmt.Sprintf("AUTHD_TEST_SSH_USER=%s", user),
 		fmt.Sprintf("AUTHD_TEST_SSH_HOME=%s", userHome),
 		fmt.Sprintf("AUTHD_TEST_SSH_PAM_SERVICE=%s", serviceFile),
-	}, daemonize)
+	}, env...), daemonize)
 
 	return sshdPort, userHome
 }
@@ -518,6 +568,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	t.Log("Launching sshd with", sshd.Env, sshd.Args)
 	err = sshd.Start()
 	require.NoError(t, err, "Setup: Impossible to start sshd")
+	sshdPid := sshd.Process.Pid
 
 	t.Cleanup(func() {
 		if testing.Verbose() || !t.Failed() {
@@ -551,9 +602,9 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 			}
 			t.Fatal("SSHd didn't finish in time!")
 		case state := <-sshdExited:
+			t.Logf("SSHd %v stopped (%s)!", sshdPid, state)
 			if !testing.Verbose() {
-				t.Logf("SSHd stopped (%s)\n ##### STDERR #####\n %s \n ##### END #####",
-					state, sshdStderr.String())
+				t.Logf("##### STDERR #####\n %s \n ##### END #####", sshdStderr.String())
 			}
 			expectedExitCode := 255
 			if daemonize {
@@ -567,7 +618,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 		// Sadly we can't wait for SSHd to be ready using net.Dial, since that will make sshd
 		// (when in debug mode) not to accept further connections from the actual test, but we
 		// can assume we're good.
-		t.Logf("SSHd started with pid %d and listening on port %s", sshd.Process.Pid, sshdPort)
+		t.Logf("SSHd started with pid %d and listening on port %s", sshdPid, sshdPort)
 		return sshdPort
 	}
 
@@ -636,7 +687,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	require.NoError(t, err, "Setup: Reading SSHd pid file failed")
 
 	t.Logf("SSHd started with pid %d (%s) and listening on port %s",
-		sshd.Process.Pid, strings.TrimSpace(string(pidFileContent)), sshdPort)
+		sshdPid, strings.TrimSpace(string(pidFileContent)), sshdPort)
 
 	return sshdPort
 }
