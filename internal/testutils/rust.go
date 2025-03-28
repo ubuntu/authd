@@ -15,12 +15,28 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func getCargoPath() (path string, isNightly bool, err error) {
+	cargo := os.Getenv("CARGO_PATH")
+	if cargo == "" {
+		cargo = "cargo"
+	}
+
+	//nolint:gosec // G204 we define the parameters here.
+	v, err := exec.Command(cargo, "--version").CombinedOutput()
+	if err != nil {
+		return "", false, fmt.Errorf("cargo can't be executed: %w", err)
+	}
+
+	// Only nightly has code coverage enabled
+	return cargo, strings.Contains(string(v), "nightly"), nil
+}
+
 // CanRunRustTests returns if we can run rust tests via cargo on this machine.
 // It checks for code coverage report if supported.
 func CanRunRustTests(coverageWanted bool) (err error) {
-	d, err := exec.Command("cargo", "--version").CombinedOutput()
+	_, isNightly, err := getCargoPath()
 	if err != nil {
-		return fmt.Errorf("cargo can't be executed: %w", err)
+		return err
 	}
 
 	if !coverageWanted {
@@ -28,8 +44,7 @@ func CanRunRustTests(coverageWanted bool) (err error) {
 	}
 
 	// Only nightly has code coverage enabled
-	supportCoverage := strings.Contains(string(d), "nightly")
-	if !supportCoverage {
+	if !isNightly {
 		return errors.New("coverage is requested but your cargo/rust version does not support it (needs nightly)")
 	}
 
@@ -56,10 +71,8 @@ func BuildRustNSSLib(t *testing.T) (libPath string, rustCovEnv []string) {
 
 	projectRoot := ProjectRoot()
 
-	cargo := os.Getenv("CARGO_PATH")
-	if cargo == "" {
-		cargo = "cargo"
-	}
+	cargo, isNightly, err := getCargoPath()
+	require.NoError(t, err, "Setup: looking for cargo")
 
 	var target string
 	rustDir := filepath.Join(projectRoot, "nss")
@@ -70,6 +83,10 @@ func BuildRustNSSLib(t *testing.T) (libPath string, rustCovEnv []string) {
 	cmd := exec.Command(cargo, "build", "--verbose", "--all-features", "--target-dir", target)
 	cmd.Env = append(os.Environ(), rustCovEnv...)
 	cmd.Dir = projectRoot
+
+	if isNightly && IsAsan() {
+		cmd.Env = append(cmd.Env, "RUSTFLAGS=-Zsanitizer=address")
+	}
 
 	t.Log("Building NSS library...", cmd.Args)
 	out, err := cmd.CombinedOutput()
