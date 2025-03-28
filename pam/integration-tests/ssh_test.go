@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -66,9 +67,31 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 
 	execModule := buildExecModuleWithCFlags(t, []string{"-std=c11"}, true)
 	execChild := buildPAMExecChild(t)
+
+	var sshdEnv []string
+	var nssLibrary string
+	var sshdPreloadLibraries []string
+	var sshdPreloaderCFlags []string
+	err = testutils.CanRunRustTests(testutils.CoverDirForTests() != "")
+	if os.Getenv("AUTHD_TESTS_SSH_USE_DUMMY_NSS") == "" && err == nil {
+		nssLibrary, sshdEnv = testutils.BuildRustNSSLib(t)
+		sshdPreloadLibraries = append(sshdPreloadLibraries, nssLibrary)
+		sshdPreloaderCFlags = append(sshdPreloaderCFlags,
+			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS")
+		sshdEnv = append(sshdEnv,
+			"AUTHD_NSS_INFO=stderr",
+			"AUTHD_NSS_SHOULD_PRE_CHECK=true",
+			fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", filepath.Dir(nssLibrary),
+				os.Getenv("LD_LIBRARY_PATH")),
+		)
+	} else if err != nil {
+		t.Logf("Using the dummy library to implement NSS: %v", err)
+	}
+
 	sshdPreloadLibrary := buildCModule(t, []string{
 		filepath.Join(currentDir, "/sshd_preloader/sshd_preloader.c"),
-	}, nil, nil, nil, "sshd_preloader", true)
+	}, nil, sshdPreloaderCFlags, nil, "sshd_preloader", true)
+	sshdPreloadLibraries = append(sshdPreloadLibraries, sshdPreloadLibrary)
 
 	sshdHostKey := filepath.Join(t.TempDir(), "ssh_host_ed25519_key")
 	//#nosec:G204 - we control the command arguments in tests
@@ -87,8 +110,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	if sharedSSHd {
 		defaultSocketPath, defaultGPasswdOutput = sharedAuthd(t)
 		serviceFile := createSshdServiceFile(t, execModule, execChild, defaultSocketPath)
+		sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocketPath))
 		defaultSSHDPort, defaultUserHome = startSSHdForTest(t, serviceFile, sshdHostKey,
-			"authd-test-user-sshd-accept-all", sshdPreloadLibrary, true, false)
+			"authd-test-user-sshd-accept-all", sshdPreloadLibraries, sshdEnv, true, false)
 	}
 
 	sshEnvVariablesRegex = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`)
@@ -293,9 +317,14 @@ Wait`,
 			sshdPort := defaultSSHDPort
 			userHome := defaultUserHome
 			if !sharedSSHd || tc.wantLocalGroups || tc.interactiveShell || tc.socketPath != "" {
+				sshdEnv := sshdEnv
+				if nssLibrary != "" {
+					sshdEnv = slices.Clone(sshdEnv)
+					sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", socketPath))
+				}
 				serviceFile := createSshdServiceFile(t, execModule, execChild, socketPath)
 				sshdPort, userHome = startSSHdForTest(t, serviceFile, sshdHostKey, user,
-					sshdPreloadLibrary, tc.daemonizeSSHd, tc.interactiveShell)
+					sshdPreloadLibraries, sshdEnv, tc.daemonizeSSHd, tc.interactiveShell)
 			}
 
 			knownHost := filepath.Join(t.TempDir(), "known_hosts")
@@ -405,7 +434,7 @@ func createSshdServiceFile(t *testing.T, module, execChild, socketPath string) s
 	return serviceFile
 }
 
-func startSSHdForTest(t *testing.T, serviceFile, hostKey, user, preloadLibrary string, daemonize bool, interactiveShell bool) (string, string) {
+func startSSHdForTest(t *testing.T, serviceFile, hostKey, user string, preloadLibraries []string, env []string, daemonize bool, interactiveShell bool) (string, string) {
 	t.Helper()
 
 	sshdConnectCommand := fmt.Sprintf(
@@ -421,13 +450,13 @@ func startSSHdForTest(t *testing.T, serviceFile, hostKey, user, preloadLibrary s
 	}
 
 	userHome := t.TempDir()
-	sshdPort := startSSHd(t, hostKey, sshdConnectCommand, []string{
+	sshdPort := startSSHd(t, hostKey, sshdConnectCommand, append([]string{
 		fmt.Sprintf("HOME=%s", userHome),
-		fmt.Sprintf("LD_PRELOAD=%s", preloadLibrary),
+		fmt.Sprintf("LD_PRELOAD=%s", strings.Join(preloadLibraries, ":")),
 		fmt.Sprintf("AUTHD_TEST_SSH_USER=%s", user),
 		fmt.Sprintf("AUTHD_TEST_SSH_HOME=%s", userHome),
 		fmt.Sprintf("AUTHD_TEST_SSH_PAM_SERVICE=%s", serviceFile),
-	}, daemonize)
+	}, env...), daemonize)
 
 	return sshdPort, userHome
 }
