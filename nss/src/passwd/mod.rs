@@ -152,7 +152,7 @@ static SSHD_BINARY_PATH: &str = "/usr/sbin/sshd";
 /// should_pre_check returns true if the current process is a child of sshd.
 #[allow(unreachable_code)] // This function body is overridden in integration tests, so we need to ignore the warning.
 fn should_pre_check() -> bool {
-    #[cfg(feature = "integration_tests")]
+    #[cfg(feature = "should_pre_check_env")]
     return std::env::var("AUTHD_NSS_SHOULD_PRE_CHECK").is_ok();
 
     let parent = procfs::process::Process::new(std::os::unix::process::parent_id() as i32);

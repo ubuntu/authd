@@ -66,7 +66,7 @@ func CanRunRustTests(coverageWanted bool) (err error) {
 }
 
 // BuildRustNSSLib builds the NSS library and links the compiled file to libPath.
-func BuildRustNSSLib(t *testing.T) (libPath string, rustCovEnv []string) {
+func BuildRustNSSLib(t *testing.T, features ...string) (libPath string, rustCovEnv []string) {
 	t.Helper()
 
 	projectRoot := ProjectRoot()
@@ -78,9 +78,12 @@ func BuildRustNSSLib(t *testing.T) (libPath string, rustCovEnv []string) {
 	rustDir := filepath.Join(projectRoot, "nss")
 	rustCovEnv, target = trackRustCoverage(t, rustDir)
 
+	features = append([]string{"integration_tests", "custom_socket"}, features...)
+
 	// Builds the nss library.
 	// #nosec:G204 - we control the command arguments in tests
-	cmd := exec.Command(cargo, "build", "--verbose", "--all-features", "--target-dir", target)
+	cmd := exec.Command(cargo, "build", "--verbose",
+		"--features", strings.Join(features, ","), "--target-dir", target)
 	cmd.Env = append(os.Environ(), rustCovEnv...)
 	cmd.Dir = projectRoot
 
