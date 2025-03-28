@@ -14,6 +14,7 @@ name = "nss_authd"
 # Allows to override the socket path used to connect to the grpc server, through the AUTHD_NSS_SOCKET env variable.
 custom_socket = []
 integration_tests = []
+should_pre_check_env = []
 
 [dependencies]
 libnss = "0.9.0"
