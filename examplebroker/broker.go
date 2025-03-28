@@ -18,6 +18,7 @@ import (
 	"maps"
 	"math"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -46,6 +47,11 @@ const (
 const (
 	optionalResetMode  = "optionalreset"
 	mandatoryResetMode = "mandatoryreset"
+)
+
+var (
+	homeBaseDir     string
+	homeBaseDirOnce sync.Once
 )
 
 type authMode struct {
@@ -928,6 +934,13 @@ func userInfoFromName(name string) string {
 		UGID string
 	}
 
+	homeBaseDirOnce.Do(func() {
+		homeBaseDir = os.Getenv("AUTHD_EXAMPLE_BROKER_HOME_BASE_DIR")
+		if homeBaseDir == "" {
+			homeBaseDir = "/home"
+		}
+	})
+
 	user := struct {
 		Name   string
 		UUID   string
@@ -938,7 +951,7 @@ func userInfoFromName(name string) string {
 	}{
 		Name:   name,
 		UUID:   "uuid-" + name,
-		Dir:    "/home/" + name,
+		Dir:    filepath.Join(homeBaseDir, name),
 		Shell:  "/bin/sh",
 		Groups: []groupJSONInfo{{Name: "group-" + name, UGID: "ugid-" + name}},
 		Gecos:  "gecos for " + name,

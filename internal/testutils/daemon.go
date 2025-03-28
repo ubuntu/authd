@@ -57,7 +57,7 @@ func WithSocketPath(path string) DaemonOption {
 // WithEnvironment overrides the default environment of the daemon.
 func WithEnvironment(env ...string) DaemonOption {
 	return func(o *daemonOptions) {
-		o.env = env
+		o.env = append(o.env, env...)
 	}
 }
 
@@ -80,6 +80,13 @@ func WithOutputFile(outputFile string) DaemonOption {
 func WithSharedDaemon(shared bool) DaemonOption {
 	return func(o *daemonOptions) {
 		o.shared = shared
+	}
+}
+
+// WithHomeBaseDir sets the base path for the user home directories.
+func WithHomeBaseDir(baseDir string) DaemonOption {
+	return func(o *daemonOptions) {
+		o.env = append(o.env, fmt.Sprintf("AUTHD_EXAMPLE_BROKER_HOME_BASE_DIR=%s", baseDir))
 	}
 }
 
