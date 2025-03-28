@@ -527,6 +527,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	t.Log("Launching sshd with", sshd.Env, sshd.Args)
 	err = sshd.Start()
 	require.NoError(t, err, "Setup: Impossible to start sshd")
+	sshdPid := sshd.Process.Pid
 
 	t.Cleanup(func() {
 		if testing.Verbose() || !t.Failed() {
@@ -560,9 +561,9 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 			}
 			t.Fatal("SSHd didn't finish in time!")
 		case state := <-sshdExited:
+			t.Logf("SSHd %v stopped (%s)!", sshdPid, state)
 			if !testing.Verbose() {
-				t.Logf("SSHd stopped (%s)\n ##### STDERR #####\n %s \n ##### END #####",
-					state, sshdStderr.String())
+				t.Logf("##### STDERR #####\n %s \n ##### END #####", sshdStderr.String())
 			}
 			expectedExitCode := 255
 			if daemonize {
@@ -576,7 +577,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 		// Sadly we can't wait for SSHd to be ready using net.Dial, since that will make sshd
 		// (when in debug mode) not to accept further connections from the actual test, but we
 		// can assume we're good.
-		t.Logf("SSHd started with pid %d and listening on port %s", sshd.Process.Pid, sshdPort)
+		t.Logf("SSHd started with pid %d and listening on port %s", sshdPid, sshdPort)
 		return sshdPort
 	}
 
@@ -645,7 +646,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	require.NoError(t, err, "Setup: Reading SSHd pid file failed")
 
 	t.Logf("SSHd started with pid %d (%s) and listening on port %s",
-		sshd.Process.Pid, strings.TrimSpace(string(pidFileContent)), sshdPort)
+		sshdPid, strings.TrimSpace(string(pidFileContent)), sshdPort)
 
 	return sshdPort
 }
