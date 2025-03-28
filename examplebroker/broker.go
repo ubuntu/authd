@@ -939,7 +939,7 @@ func userInfoFromName(name string) string {
 		Name:   name,
 		UUID:   "uuid-" + name,
 		Dir:    "/home/" + name,
-		Shell:  "/usr/bin/bash",
+		Shell:  "/bin/sh",
 		Groups: []groupJSONInfo{{Name: "group-" + name, UGID: "ugid-" + name}},
 		Gecos:  "gecos for " + name,
 	}
