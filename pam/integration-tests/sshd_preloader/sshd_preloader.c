@@ -24,15 +24,13 @@ static struct passwd passwd_entities[512];
 __attribute__((constructor))
 void constructor (void)
 {
-  fprintf (stderr, "sshd_preloader: Library loaded (parent pid: %d)!\n",
-           getpid ());
+  fprintf (stderr, "sshd_preloader [%d]: Library loaded\n", getpid ());
 }
 
 __attribute__((destructor))
 void destructor (void)
 {
-  fprintf (stderr, "sshd_preloader: Library unloaded (parent pid: %d)!\n",
-           getpid ());
+  fprintf (stderr, "sshd_preloader [%d]: Library unloaded\n", getpid ());
 }
 
 static const char *
@@ -135,8 +133,9 @@ fopen (const char *pathname, const char *mode)
   if (strcmp (pathname, "/etc/pam.d/" AUTHD_DEFAULT_SSH_PAM_SERVICE_NAME) == 0 ||
       strcmp (pathname, "/usr/lib/pam.d/" AUTHD_DEFAULT_SSH_PAM_SERVICE_NAME) == 0)
     {
-      fprintf (stderr, "sshd_preloader: Trying to open '%s', "
-               "but redirecting instead to '%s'\n", pathname, service_path);
+      fprintf (stderr, "sshd_preloader [%d]: Trying to open '%s', "
+               "but redirecting instead to '%s'\n",
+               getpid (), pathname, service_path);
       pathname = service_path;
     }
 
