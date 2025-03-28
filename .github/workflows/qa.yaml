@@ -335,7 +335,7 @@ jobs:
         if: matrix.test == 'coverage'
         uses: codecov/codecov-action@v5
         with:
-          files: ${{ env.COVERAGE_DIR }}/Cobertura.xml, ${{ env.COVERAGE_DIR }}/Cobertura_C.xml
+          directory: ${{ env.COVERAGE_DIR }}
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload coverage artifacts
