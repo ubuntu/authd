@@ -83,9 +83,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	var nssLibrary string
 	var sshdPreloadLibraries []string
 	var sshdPreloaderCFlags []string
-	err = testutils.CanRunRustTests(testutils.CoverDirForTests() != "")
+	err = testutils.CanRunRustTests(false)
 	if os.Getenv("AUTHD_TESTS_SSH_USE_DUMMY_NSS") == "" && err == nil {
-		nssLibrary, sshdEnv = testutils.BuildRustNSSLib(t)
+		nssLibrary, sshdEnv = testutils.BuildRustNSSLib(t, true)
 		sshdPreloadLibraries = append(sshdPreloadLibraries, nssLibrary)
 		sshdPreloaderCFlags = append(sshdPreloaderCFlags,
 			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS")

@@ -66,7 +66,7 @@ func CanRunRustTests(coverageWanted bool) (err error) {
 }
 
 // BuildRustNSSLib builds the NSS library and links the compiled file to libPath.
-func BuildRustNSSLib(t *testing.T, features ...string) (libPath string, rustCovEnv []string) {
+func BuildRustNSSLib(t *testing.T, disableCoverage bool, features ...string) (libPath string, rustCovEnv []string) {
 	t.Helper()
 
 	projectRoot := ProjectRoot()
@@ -74,9 +74,18 @@ func BuildRustNSSLib(t *testing.T, features ...string) (libPath string, rustCovE
 	cargo, isNightly, err := getCargoPath()
 	require.NoError(t, err, "Setup: looking for cargo")
 
-	var target string
+	// Note that for developing purposes and avoiding keeping building the rust program dependencies,
+	// TEST_RUST_TARGET environment variable can be set to an absolute path to keep iterative
+	// build artifacts.
+	target := os.Getenv("TEST_RUST_TARGET")
+	if target == "" {
+		target = t.TempDir()
+	}
+
 	rustDir := filepath.Join(projectRoot, "nss")
-	rustCovEnv, target = trackRustCoverage(t, rustDir)
+	if !disableCoverage {
+		rustCovEnv = trackRustCoverage(t, target, rustDir)
+	}
 
 	features = append([]string{"integration_tests", "custom_socket"}, features...)
 
@@ -111,25 +120,17 @@ func BuildRustNSSLib(t *testing.T, features ...string) (libPath string, rustCovE
 	return libPath, rustCovEnv
 }
 
-// trackRustCoverage returns environment variables and target directory so that following commands
+// trackRustCoverage returns environment variables  so that following commands
 // runs with code coverage enabled.
-// Note that for developping purposes and avoiding keeping building the rust program dependencies,
-// TEST_RUST_TARGET environment variable can be set to an absolute path to keep iterative
-// build artifacts.
 // This then allow coverage to run in parallel, as each subprocess will have its own environment.
 // You will need to call MergeCoverages() after m.Run().
-// If code coverage is not enabled, it still returns an empty slice, but the target can be used.
-func trackRustCoverage(t *testing.T, src string) (env []string, target string) {
+// If code coverage is not enabled, it still returns an empty slice.
+func trackRustCoverage(t *testing.T, target, src string) []string {
 	t.Helper()
-
-	target = os.Getenv("TEST_RUST_TARGET")
-	if target == "" {
-		target = t.TempDir()
-	}
 
 	coverDir := CoverDirForTests()
 	if coverDir == "" {
-		return nil, target
+		return nil
 	}
 	coverDir = filepath.Join(coverDir, "rust-cov")
 
@@ -169,7 +170,7 @@ func trackRustCoverage(t *testing.T, src string) (env []string, target string) {
 	return []string{
 		"RUSTFLAGS=-C instrument-coverage",
 		"LLVM_PROFILE_FILE=" + filepath.Join(coverDir, "rust-%p-%m.profraw"),
-	}, target
+	}
 }
 
 // scan iterates over children files and folders elements recursively.
