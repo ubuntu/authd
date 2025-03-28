@@ -20,8 +20,15 @@ mod logs;
 
 mod client;
 
+#[cfg(not(feature = "integration_tests"))]
 const CONNECTION_TIMEOUT: Duration = Duration::from_secs(1);
+#[cfg(not(feature = "integration_tests"))]
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(5);
+
+#[cfg(feature = "integration_tests")]
+const CONNECTION_TIMEOUT: Duration = Duration::from_secs(5);
+#[cfg(feature = "integration_tests")]
+const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// socket_path returns the socket path to connect to the gRPC server.
 ///
