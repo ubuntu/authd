@@ -134,16 +134,15 @@ getpwnam (const char *name)
       passwd_entity->pw_shell = AUTHD_TEST_SHELL;
       passwd_entity->pw_gecos = AUTHD_TEST_GECOS;
       passwd_entity->pw_name = (char *) name;
+      passwd_entity->pw_dir = (char *) get_home_path ();
     }
 
   /* We're simulating to be the same user running the test but with another
-   * name and HOME directory, so that we won't touch the user settings, but
-   * it's still enough to trick sshd.
+   * name, so that we won't touch the user settings, but it's still enough to
+   * trick sshd.
    */
   passwd_entity->pw_uid = getuid ();
   passwd_entity->pw_gid = getgid ();
-
-  passwd_entity->pw_dir = (char *) get_home_path ();
 
   fprintf (stderr, "sshd_preloader [%d]: Simulating to be fake user %s (%d:%d)\n",
            getpid (), passwd_entity->pw_name, passwd_entity->pw_uid,
