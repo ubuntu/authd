@@ -62,6 +62,12 @@ func TestNativeAuthenticate(t *testing.T) {
 				PamUser: examplebroker.UserIntegrationAuthModesPrefix + "password-integration-native",
 			},
 		},
+		"Authenticate_user_with_different_capitalization": {
+			tape: "simple_auth",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationCaseInsensitivePrefix + "native",
+			},
+		},
 		"Authenticate_user_with_mfa": {
 			tape:         "mfa_auth",
 			tapeSettings: []tapeSetting{{vhsHeight, 1200}},

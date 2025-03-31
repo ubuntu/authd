@@ -50,4 +50,7 @@ const (
 	// UserIntegrationAuthModesPrefix is the prefix for an user listing for supported auth modes.
 	// The modes can be exposed as list, in the form: `user-auth-modes-id1,id2,id3-integration-whatever`.
 	UserIntegrationAuthModesPrefix = "user-auth-modes-"
+	// UserIntegrationCaseInsensitivePrefix is the prefix for users that are case-insensitive.
+	// Note that to simplify the logic only the part after the prefix can be case-insensitive.
+	UserIntegrationCaseInsensitivePrefix = "user-case-insensitive-"
 )

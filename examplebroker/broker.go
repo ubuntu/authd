@@ -337,6 +337,14 @@ func (b *Broker) NewSession(ctx context.Context, username, lang, mode string) (s
 		}
 	}
 
+	if strings.HasPrefix(username, UserIntegrationCaseInsensitivePrefix) {
+		username = strings.ToLower(username)
+		info.username = username
+		if _, ok := exampleUsers[username]; !ok {
+			exampleUsers[username] = userInfoBroker{Password: "goodpass"}
+		}
+	}
+
 	if info.sessionMode == auth.SessionModeChangePassword {
 		info.neededAuthSteps++
 		info.pwdChange = mustReset
@@ -926,6 +934,10 @@ func userInfoFromName(name string) string {
 	type groupJSONInfo struct {
 		Name string
 		UGID string
+	}
+
+	if strings.HasPrefix(name, UserIntegrationCaseInsensitivePrefix) {
+		name = strings.ToLower(name)
 	}
 
 	user := struct {
