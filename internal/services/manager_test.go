@@ -105,9 +105,9 @@ func TestAccessAuthorization(t *testing.T) {
 	_, err = pamClient.AvailableBrokers(context.Background(), &authd.Empty{})
 	require.Error(t, err, "PAM calls are not allowed to any random user")
 
-	// Global authorization for NSS is always granted for non root user.
-	nssClient := authd.NewNSSClient(conn)
-	_, err = nssClient.GetPasswdByName(context.Background(), &authd.GetPasswdByNameRequest{Name: ""})
+	// Global authorization for the user service is always granted for non root user.
+	userServiceClient := authd.NewUserServiceClient(conn)
+	_, err = userServiceClient.GetUserByName(context.Background(), &authd.GetUserByNameRequest{Name: ""})
 	require.Error(t, err, "Expected a gRPC error from the server")
 
 	err = conn.Close()

@@ -24,8 +24,8 @@ import (
 )
 
 type nativeModel struct {
-	pamMTx    pam.ModuleTransaction
-	nssClient authd.NSSClient
+	pamMTx            pam.ModuleTransaction
+	userServiceClient authd.UserServiceClient
 
 	availableBrokers []*authd.ABResponse_BrokerInfo
 	authModes        []*authd.GAMResponse_AuthenticationMode
@@ -77,8 +77,8 @@ var errGoBack = errors.New("request to go back")
 var errEmptyResponse = errors.New("empty response received")
 var errNotAnInteger = errors.New("parsed value is not an integer")
 
-func newNativeModel(mTx pam.ModuleTransaction, nssClient authd.NSSClient) nativeModel {
-	m := nativeModel{pamMTx: mTx, nssClient: nssClient}
+func newNativeModel(mTx pam.ModuleTransaction, userServiceClient authd.UserServiceClient) nativeModel {
+	m := nativeModel{pamMTx: mTx, userServiceClient: userServiceClient}
 
 	var err error
 	m.serviceName, err = m.pamMTx.GetItem(pam.Service)
@@ -493,15 +493,15 @@ func (m nativeModel) userSelection() tea.Cmd {
 }
 
 func (m nativeModel) maybePreCheckUser(user string, nextCmd tea.Cmd) tea.Cmd {
-	if m.nssClient == nil {
+	if m.userServiceClient == nil {
 		return nextCmd
 	}
 
-	// When the NSS client is defined (i.e. under SSH for now) we want also
+	// When the user service client is defined (i.e. under SSH for now) we want also
 	// repeat the user pre-check, to ensure that the user is handled by at least
 	// one broker, or we may end up leaking such infos.
 	// We don't care about the content, we only care if the user is known by some broker.
-	_, err := m.nssClient.GetPasswdByName(context.TODO(), &authd.GetPasswdByNameRequest{
+	_, err := m.userServiceClient.GetUserByName(context.TODO(), &authd.GetUserByNameRequest{
 		Name:           user,
 		ShouldPreCheck: true,
 	})

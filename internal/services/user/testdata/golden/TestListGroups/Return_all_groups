@@ -3,16 +3,20 @@ groups:
       gid: 11111
       members:
         - user1
+      passwd: ""
     - name: group2
       gid: 22222
       members:
         - user2
+      passwd: ""
     - name: group3
       gid: 33333
       members:
         - user3
+      passwd: ""
     - name: commongroup
       gid: 99999
       members:
         - user2
         - user3
+      passwd: ""

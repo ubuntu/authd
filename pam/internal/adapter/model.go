@@ -120,18 +120,18 @@ type StageChanged ChangeStage
 
 // NewUIModel creates and initializes the main model orchestrator.
 func NewUIModel(mTx pam.ModuleTransaction, clientType PamClientType, mode authd.SessionMode, conn *grpc.ClientConn, exitStatus *PamReturnStatus) tea.Model {
-	var nssClient authd.NSSClient
+	var userServiceClient authd.UserServiceClient
 	if conn != nil && isSSHSession(mTx) {
-		nssClient = authd.NewNSSClient(conn)
+		userServiceClient = authd.NewUserServiceClient(conn)
 	}
 
-	m := newUIModelForClients(mTx, clientType, mode, authd.NewPAMClient(conn), nssClient, exitStatus)
+	m := newUIModelForClients(mTx, clientType, mode, authd.NewPAMClient(conn), userServiceClient, exitStatus)
 	m.conn = conn
 	return m
 }
 
 // newUIModelForClients is the internal implementation of [NewUIModel] for testing purposes.
-func newUIModelForClients(mTx pam.ModuleTransaction, clientType PamClientType, mode authd.SessionMode, pamClient authd.PAMClient, nssClient authd.NSSClient, exitStatus *PamReturnStatus) uiModel {
+func newUIModelForClients(mTx pam.ModuleTransaction, clientType PamClientType, mode authd.SessionMode, pamClient authd.PAMClient, userServiceClient authd.UserServiceClient, exitStatus *PamReturnStatus) uiModel {
 	m := uiModel{
 		pamMTx:      mTx,
 		clientType:  clientType,
@@ -148,7 +148,7 @@ func newUIModelForClients(mTx pam.ModuleTransaction, clientType PamClientType, m
 	case Gdm:
 		m.gdmModel = gdmModel{pamMTx: m.pamMTx}
 	case Native:
-		m.nativeModel = newNativeModel(m.pamMTx, nssClient)
+		m.nativeModel = newNativeModel(m.pamMTx, userServiceClient)
 	}
 
 	m.userSelectionModel = newUserSelectionModel(m.pamMTx, m.clientType)
