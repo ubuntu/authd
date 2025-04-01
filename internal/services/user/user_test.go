@@ -2,20 +2,25 @@ package user_test
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/services/user"
+	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/db"
+	"github.com/ubuntu/authd/internal/users/idgenerator"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
+	"github.com/ubuntu/authd/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -25,15 +30,135 @@ import (
 func TestNewService(t *testing.T) {
 	t.Parallel()
 
-	ctx := context.Background()
-	userManager := &users.Manager{}
+	m, err := users.NewManager(users.DefaultConfig, t.TempDir())
+	require.NoError(t, err, "Setup: could not create user manager")
+	t.Cleanup(func() { _ = m.Stop() })
 
-	s := user.NewService(ctx, userManager)
+	b, err := brokers.NewManager(context.Background(), t.TempDir(), nil)
+	require.NoError(t, err, "Setup: could not create broker manager")
 
-	require.NotNil(t, s, "NewService should return a non-nil Service")
+	pm := permissions.New()
+	s := user.NewService(context.Background(), m, b, &pm)
+
+	require.NotNil(t, s, "NewService should return a service")
 }
 
-//nolint:dupl // This is not a duplicate test
+func TestGetUserByName(t *testing.T) {
+	tests := map[string]struct {
+		username string
+
+		dbFile         string
+		shouldPreCheck bool
+
+		wantErr          bool
+		wantErrNotExists bool
+	}{
+		"Return_existing_user":                               {username: "user1"},
+		"Return existing user with different capitalization": {username: "USER1"},
+
+		"Precheck_user_if_not_in_db": {username: "user-pre-check", shouldPreCheck: true},
+		"Prechecked_user_with_upper_cases_in_username_has_same_id_as_lower_case": {username: "User-Pre-Check", shouldPreCheck: true},
+
+		"Error_with_typed_GRPC_notfound_code_on_unexisting_user": {username: "does-not-exists", wantErr: true, wantErrNotExists: true},
+		"Error_on_missing_name":                                  {wantErr: true},
+
+		"Error_if_user_not_in_db_and_precheck_is_disabled": {username: "user-pre-check", wantErr: true, wantErrNotExists: true},
+		"Error_if_user_not_in_db_and_precheck_fails":       {username: "does-not-exist", dbFile: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			// We don't care about gpasswd output here as it's already covered in the db unit tests.
+			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+
+			client := newUserServiceClient(t, tc.dbFile)
+
+			got, err := client.GetUserByName(context.Background(), &authd.GetUserByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
+			requireExpectedResult(t, "GetUserByName", got, err, tc.wantErr, tc.wantErrNotExists)
+		})
+	}
+}
+
+func TestGetUserByID(t *testing.T) {
+	tests := map[string]struct {
+		uid uint32
+
+		dbFile string
+
+		wantErr          bool
+		wantErrNotExists bool
+	}{
+		"Return_existing_user": {uid: 1111},
+
+		"Error_with_typed_GRPC_notfound_code_on_unexisting_user": {uid: 4242, wantErr: true, wantErrNotExists: true},
+		"Error_on_missing_uid": {wantErr: true},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			// We don't care about gpasswd output here as it's already covered in the db unit tests.
+			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+
+			client := newUserServiceClient(t, tc.dbFile)
+
+			got, err := client.GetUserByID(context.Background(), &authd.GetUserByIDRequest{Id: tc.uid})
+			requireExpectedResult(t, "GetUserByID", got, err, tc.wantErr, tc.wantErrNotExists)
+		})
+	}
+}
+
+func TestGetGroupByName(t *testing.T) {
+	tests := map[string]struct {
+		groupname string
+
+		dbFile string
+
+		wantErr          bool
+		wantErrNotExists bool
+	}{
+		"Return_existing_group": {groupname: "group1"},
+
+		"Error_with_typed_GRPC_notfound_code_on_unexisting_user": {groupname: "does-not-exists", wantErr: true, wantErrNotExists: true},
+		"Error_on_missing_name":                                  {wantErr: true},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			// We don't care about gpasswd output here as it's already covered in the db unit tests.
+			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+
+			client := newUserServiceClient(t, tc.dbFile)
+
+			got, err := client.GetGroupByName(context.Background(), &authd.GetGroupByNameRequest{Name: tc.groupname})
+			requireExpectedResult(t, "GetGroupByName", got, err, tc.wantErr, tc.wantErrNotExists)
+		})
+	}
+}
+
+func TestGetGroupByID(t *testing.T) {
+	tests := map[string]struct {
+		gid uint32
+
+		dbFile string
+
+		wantErr          bool
+		wantErrNotExists bool
+	}{
+		"Return_existing_group": {gid: 11111},
+
+		"Error_with_typed_GRPC_notfound_code_on_unexisting_user": {gid: 4242, wantErr: true, wantErrNotExists: true},
+		"Error_on_missing_uid": {wantErr: true},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			// We don't care about gpasswd output here as it's already covered in the db unit tests.
+			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+
+			client := newUserServiceClient(t, tc.dbFile)
+
+			got, err := client.GetGroupByID(context.Background(), &authd.GetGroupByIDRequest{Id: tc.gid})
+			requireExpectedResult(t, "GetGroupByID", got, err, tc.wantErr, tc.wantErrNotExists)
+		})
+	}
+}
+
 func TestListUsers(t *testing.T) {
 	tests := map[string]struct {
 		dbFile string
@@ -55,20 +180,11 @@ func TestListUsers(t *testing.T) {
 			client := newUserServiceClient(t, tc.dbFile)
 
 			resp, err := client.ListUsers(context.Background(), &authd.Empty{})
-			if tc.wantErr {
-				require.Error(t, err, "ListUsers should return an error")
-				s, ok := status.FromError(err)
-				require.True(t, ok, "ListUsers should return a gRPC error")
-				require.NotEqual(t, codes.NotFound, s.Code(), "ListUsers should not return NotFound error even with empty list")
-				return
-			}
-
-			golden.CheckOrUpdateYAML(t, resp)
+			requireExpectedListResult(t, "ListUsers", resp.GetUsers(), err, tc.wantErr)
 		})
 	}
 }
 
-//nolint:dupl // This is not a duplicate test
 func TestListGroups(t *testing.T) {
 	tests := map[string]struct {
 		dbFile string
@@ -125,12 +241,12 @@ func newUserServiceClient(t *testing.T, dbFile string) (client authd.UserService
 		require.NoError(t, err, "Setup: could not create database from testdata")
 	}
 
-	userManager, err := users.NewManager(users.DefaultConfig, dbDir)
-	require.NoError(t, err, "Setup: could not create users manager")
+	userManager := newUserManagerForTests(t, dbFile)
+	brokerManager := newBrokersManagerForTests(t)
+	permissionsManager := permissions.New(permissions.Z_ForTests_WithCurrentUserAsRoot())
+	service := user.NewService(context.Background(), userManager, brokerManager, &permissionsManager)
 
-	service := user.NewService(context.Background(), userManager)
-
-	grpcServer := grpc.NewServer(permissions.WithUnixPeerCreds(), grpc.UnaryInterceptor(errmessages.RedactErrorInterceptor))
+	grpcServer := grpc.NewServer(permissions.WithUnixPeerCreds(), grpc.ChainUnaryInterceptor(enableCheckGlobalAccess(service), errmessages.RedactErrorInterceptor))
 	authd.RegisterUserServiceServer(grpcServer, service)
 	done := make(chan struct{})
 	go func() {
@@ -148,4 +264,106 @@ func newUserServiceClient(t *testing.T, dbFile string) (client authd.UserService
 	t.Cleanup(func() { _ = conn.Close() }) // We don't care about the error on cleanup
 
 	return authd.NewUserServiceClient(conn)
+}
+
+func enableCheckGlobalAccess(s user.Service) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		if err := s.CheckGlobalAccess(ctx, info.FullMethod); err != nil {
+			return nil, err
+		}
+
+		return handler(ctx, req)
+	}
+}
+
+// newUserManagerForTests returns a user manager object cleaned up with the test ends.
+func newUserManagerForTests(t *testing.T, dbFile string) *users.Manager {
+	t.Helper()
+
+	dbDir := t.TempDir()
+	if dbFile == "" {
+		dbFile = "default.db.yaml"
+	}
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	managerOpts := []users.Option{
+		users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+			UIDsToGenerate: []uint32{1234},
+			GIDsToGenerate: []uint32{1234},
+		}),
+	}
+
+	m, err := users.NewManager(users.DefaultConfig, dbDir, managerOpts...)
+	require.NoError(t, err, "Setup: could not create user manager")
+
+	t.Cleanup(func() { _ = m.Stop() })
+	return m
+}
+
+// newBrokersManagerForTests returns a new broker manager with a broker mock for tests, it's cleaned when the test ends.
+func newBrokersManagerForTests(t *testing.T) *brokers.Manager {
+	t.Helper()
+
+	cfg, cleanup, err := testutils.StartBusBrokerMock(t.TempDir(), "BrokerMock")
+	require.NoError(t, err, "Setup: could not start bus broker mock")
+	t.Cleanup(cleanup)
+
+	m, err := brokers.NewManager(context.Background(), filepath.Dir(cfg), nil)
+	require.NoError(t, err, "Setup: could not create broker manager")
+	t.Cleanup(m.Stop)
+
+	return m
+}
+
+// requireExpectedResult asserts expected results from a get request and checks or updates the golden file.
+func requireExpectedResult[T authd.User | authd.Group](t *testing.T, funcName string, got *T, err error, wantErr, wantErrNotExists bool) {
+	t.Helper()
+
+	if wantErr {
+		require.Error(t, err, fmt.Sprintf("%s should return an error but did not", funcName))
+		s, ok := status.FromError(err)
+		require.True(t, ok, "The error is always a gRPC error")
+		if wantErrNotExists {
+			require.Equal(t, codes.NotFound.String(), s.Code().String())
+		}
+		return
+	}
+	require.NoError(t, err, fmt.Sprintf("%s should not return an error, but did", funcName))
+
+	golden.CheckOrUpdateYAML(t, got)
+}
+
+// requireExpectedResult asserts expected results from a list request and checks or updates the golden file.
+func requireExpectedListResult[T authd.User | authd.Group](t *testing.T, funcName string, got []*T, err error, wantErr bool) {
+	t.Helper()
+
+	if wantErr {
+		require.Error(t, err, fmt.Sprintf("%s should return an error but did not", funcName))
+		s, ok := status.FromError(err)
+		require.True(t, ok, "The error is always a gRPC error")
+		require.NotEqual(t, codes.NotFound, s.Code(), fmt.Sprintf("%s should never return NotFound error even with empty list", funcName))
+		return
+	}
+	require.NoError(t, err, fmt.Sprintf("%s should not return an error, but did", funcName))
+
+	golden.CheckOrUpdateYAML(t, got)
+}
+
+func TestMain(m *testing.M) {
+	// Needed to skip the test setup when running the gpasswd mock.
+	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
+		os.Exit(m.Run())
+	}
+
+	log.SetLevel(log.DebugLevel)
+
+	cleanup, err := testutils.StartSystemBusMock()
+	if err != nil {
+		fmt.Println("Error starting system bus mock:", err)
+		os.Exit(1)
+	}
+	defer cleanup()
+
+	m.Run()
 }

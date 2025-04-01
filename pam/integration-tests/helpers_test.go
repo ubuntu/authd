@@ -407,43 +407,42 @@ func nssTestEnv(t *testing.T, nssLibrary, authdSocket string) []string {
 	return append(baseEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", authdSocket))
 }
 
-func requireNSSUser(t *testing.T, client authd.NSSClient, user string) *authd.PasswdEntry {
+func requireAuthdUser(t *testing.T, client authd.UserServiceClient, user string) *authd.User {
 	t.Helper()
 
-	userPasswd, err := client.GetPasswdByName(context.Background(),
-		&authd.GetPasswdByNameRequest{Name: user, ShouldPreCheck: false})
+	authdUser, err := client.GetUserByName(context.Background(),
+		&authd.GetUserByNameRequest{Name: user, ShouldPreCheck: false})
 	require.NoError(t, err, "User %q is expected to exist", user)
-	require.NotNil(t, userPasswd, "User %q is expected to be not nil", user)
+	require.NotNil(t, authdUser, "User %q is expected to be not nil", user)
 
-	require.Equal(t, strings.ToLower(user), userPasswd.Name, "Passwd user does not match")
-	require.Equal(t, "/bin/sh", userPasswd.Shell, "Unexpected Shell for user %q", user)
-	require.NotZero(t, userPasswd.Uid, "Unexpected UID for user %q", user)
-	require.NotZero(t, userPasswd.Gid, "Unexpected GID for user %q", user)
-	require.NotEmpty(t, userPasswd.Homedir, "Unexpected HOME for user %q", user)
-	require.NotEmpty(t, userPasswd.Passwd, "Unexpected Passwd for user %q", user)
-	require.NotEmpty(t, userPasswd.Gecos, "Unexpected Gecos for user %q", user)
+	require.Equal(t, strings.ToLower(user), authdUser.Name, "Passwd user does not match")
+	require.Equal(t, "/bin/sh", authdUser.Shell, "Unexpected Shell for user %q", user)
+	require.NotZero(t, authdUser.Uid, "Unexpected UID for user %q", user)
+	require.NotZero(t, authdUser.Gid, "Unexpected GID for user %q", user)
+	require.NotEmpty(t, authdUser.Homedir, "Unexpected HOME for user %q", user)
+	require.NotEmpty(t, authdUser.Gecos, "Unexpected Gecos for user %q", user)
 
-	p, err := client.GetPasswdByUID(context.Background(),
-		&authd.GetByIDRequest{Id: userPasswd.Uid})
-	require.NoError(t, err, "User %q is expected to exist as id %v", userPasswd.Uid)
-	require.Equal(t, userPasswd, p, "User by ID does not match")
+	p, err := client.GetUserByID(context.Background(),
+		&authd.GetUserByIDRequest{Id: authdUser.Uid})
+	require.NoError(t, err, "User %q is expected to exist as id %v", authdUser.Uid)
+	require.Equal(t, authdUser, p, "User by ID does not match")
 
-	return userPasswd
+	return authdUser
 }
 
-func requireNoNSSUser(t *testing.T, client authd.NSSClient, user string) {
+func requireNoAuthdUser(t *testing.T, client authd.UserServiceClient, user string) {
 	t.Helper()
 
-	_, err := client.GetPasswdByName(context.Background(),
-		&authd.GetPasswdByNameRequest{Name: user, ShouldPreCheck: false})
+	_, err := client.GetUserByName(context.Background(),
+		&authd.GetUserByNameRequest{Name: user, ShouldPreCheck: false})
 	require.Error(t, err, "User %q is not expected to exist")
 }
 
-func requireNSSGroup(t *testing.T, client authd.NSSClient, gid uint32) *authd.GroupEntry {
+func requireAuthdGroup(t *testing.T, client authd.UserServiceClient, gid uint32) *authd.Group {
 	t.Helper()
 
-	group, err := client.GetGroupByGID(context.Background(),
-		&authd.GetByIDRequest{Id: gid})
+	group, err := client.GetGroupByID(context.Background(),
+		&authd.GetGroupByIDRequest{Id: gid})
 	require.NoError(t, err, "Group %v is expected to exist", gid)
 	require.NotNil(t, group, "Group %v is expected to be not nil", gid)
 
@@ -476,32 +475,32 @@ func getEntOutput(t *testing.T, nssLibrary, authdSocket, db, key string) string 
 	return o
 }
 
-func requireGetEntOutputEqualsPasswd(t *testing.T, getentOutput string, userPasswd *authd.PasswdEntry) {
+func requireGetEntOutputEqualsUser(t *testing.T, getentOutput string, user *authd.User) {
 	t.Helper()
 
 	require.Equal(t, []string{
-		userPasswd.Name,
-		userPasswd.Passwd,
-		fmt.Sprint(userPasswd.Uid),
-		fmt.Sprint(userPasswd.Gid),
-		userPasswd.Gecos,
-		userPasswd.Homedir,
-		userPasswd.Shell,
+		user.Name,
+		"x",
+		fmt.Sprint(user.Uid),
+		fmt.Sprint(user.Gid),
+		user.Gecos,
+		user.Homedir,
+		user.Shell,
 	}, strings.Split(getentOutput, ":"), "Unexpected getent output: %s", getentOutput)
 }
 
-func requireGetEntEqualsPasswd(t *testing.T, nssLibrary, authdSocket, user string, userPasswd *authd.PasswdEntry) {
+func requireGetEntEqualsUser(t *testing.T, nssLibrary, authdSocket, userName string, user *authd.User) {
 	t.Helper()
 
-	requireGetEntOutputEqualsPasswd(t,
-		getEntOutput(t, nssLibrary, authdSocket, "passwd", user), userPasswd)
+	requireGetEntOutputEqualsUser(t,
+		getEntOutput(t, nssLibrary, authdSocket, "passwd", userName), user)
 
-	requireGetEntOutputEqualsPasswd(t,
-		getEntOutput(t, nssLibrary, authdSocket, "passwd", fmt.Sprint(userPasswd.Uid)),
-		userPasswd)
+	requireGetEntOutputEqualsUser(t,
+		getEntOutput(t, nssLibrary, authdSocket, "passwd", fmt.Sprint(user.Uid)),
+		user)
 }
 
-func requireGetEntOutputEqualsGroup(t *testing.T, getentOutput string, group *authd.GroupEntry) {
+func requireGetEntOutputEqualsGroup(t *testing.T, getentOutput string, group *authd.Group) {
 	t.Helper()
 
 	require.Equal(t, []string{
@@ -512,7 +511,7 @@ func requireGetEntOutputEqualsGroup(t *testing.T, getentOutput string, group *au
 	}, strings.Split(getentOutput, ":"), "Unexpected getent output: %s", getentOutput)
 }
 
-func requireGetEntEqualsGroup(t *testing.T, nssLibrary, authdSocket, name string, group *authd.GroupEntry) {
+func requireGetEntEqualsGroup(t *testing.T, nssLibrary, authdSocket, name string, group *authd.Group) {
 	t.Helper()
 
 	requireGetEntOutputEqualsGroup(t,

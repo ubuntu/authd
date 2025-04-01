@@ -49,21 +49,20 @@ func TestIntegration(t *testing.T) {
 		key      string
 		dbState  string
 
-		noDaemon           bool
-		currentUserNotRoot bool
-		wantSecondCall     bool
-		shouldPreCheck     bool
+		noDaemon       bool
+		wantSecondCall bool
+		shouldPreCheck bool
 
 		wantStatus int
 	}{
-		"Get_all_entries_from_passwd":                    {getentDB: "passwd"},
-		"Get_all_entries_from_group":                     {getentDB: "group"},
-		"Get_all_entries_from_shadow_if_considered_root": {getentDB: "shadow"},
+		"Get_all_entries_from_passwd": {getentDB: "passwd"},
+		"Get_all_entries_from_group":  {getentDB: "group"},
+		"Get_all_entries_from_shadow": {getentDB: "shadow"},
 
-		"Get_entry_from_passwd_by_name":                    {getentDB: "passwd", key: "user1"},
-		"Get_entry_from_passwd_by_name_in_upper_case":      {getentDB: "passwd", key: "USER1"},
-		"Get_entry_from_group_by_name":                     {getentDB: "group", key: "group1"},
-		"Get_entry_from_shadow_by_name_if_considered_root": {getentDB: "shadow", key: "user1"},
+		"Get_entry_from_passwd_by_name":               {getentDB: "passwd", key: "user1"},
+		"Get_entry_from_passwd_by_name_in_upper_case": {getentDB: "passwd", key: "USER1"},
+		"Get_entry_from_group_by_name":                {getentDB: "group", key: "group1"},
+		"Get_entry_from_shadow_by_name":               {getentDB: "shadow", key: "user1"},
 
 		"Get_entry_from_passwd_by_id": {getentDB: "passwd", key: "1111"},
 		"Get_entry_from_group_by_id":  {getentDB: "group", key: "11111"},
@@ -72,15 +71,11 @@ func TestIntegration(t *testing.T) {
 		"Check_user_with_broker_if_not_found_in_db_in_upper_case": {getentDB: "passwd", key: strings.ToUpper(examplebroker.UserIntegrationPreCheckPrefix + "simple"), shouldPreCheck: true},
 
 		// Even though those are "error" cases, the getent command won't fail when trying to list content of a service.
-		"Returns_empty_when_getting_all_entries_from_shadow_if_regular_user": {getentDB: "shadow", currentUserNotRoot: true},
-
 		"Returns_empty_when_getting_all_entries_from_passwd_and_daemon_is_not_available": {getentDB: "passwd", noDaemon: true},
 		"Returns_empty_when_getting_all_entries_from_group_and_daemon_is_not_available":  {getentDB: "group", noDaemon: true},
 		"Returns_empty_when_getting_all_entries_from_shadow_and_daemon_is_not_available": {getentDB: "shadow", noDaemon: true},
 
 		/* Error cases */
-		"Error_when_getting_shadow_by_name_if_regular_user": {getentDB: "shadow", key: "user1", currentUserNotRoot: true, wantStatus: codeNotFound},
-
 		"Error_when_getting_passwd_by_name_and_entry_does_not_exist":                        {getentDB: "passwd", key: "doesnotexit", wantStatus: codeNotFound},
 		"Error_when_getting_passwd_by_name_entry_exists_in_broker_but_precheck_is_disabled": {getentDB: "passwd", key: examplebroker.UserIntegrationPreCheckPrefix + "simple", wantStatus: codeNotFound},
 		"Error_when_getting_group_by_name_and_entry_does_not_exist":                         {getentDB: "group", key: "doesnotexit", wantStatus: codeNotFound},
@@ -106,7 +101,7 @@ func TestIntegration(t *testing.T) {
 			socketPath := defaultSocket
 
 			var useAlternativeDaemon bool
-			if tc.dbState != "" || tc.currentUserNotRoot {
+			if tc.dbState != "" {
 				useAlternativeDaemon = true
 			} else {
 				tc.dbState = defaultDbState
@@ -126,9 +121,6 @@ func TestIntegration(t *testing.T) {
 				var daemonStopped chan struct{}
 				ctx, cancel := context.WithCancel(context.Background())
 				env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, outPath, groupsFilePath)
-				if !tc.currentUserNotRoot {
-					env = append(env, "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
-				}
 				socketPath, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath,
 					testutils.WithPreviousDBState(tc.dbState),
 					testutils.WithEnvironment(env...),

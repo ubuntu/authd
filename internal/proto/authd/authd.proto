@@ -126,79 +126,30 @@ message ESRequest {
   string session_id = 1;
 }
 
-service NSS {
-  rpc GetPasswdByName(GetPasswdByNameRequest) returns (PasswdEntry);
-  rpc GetPasswdByUID(GetByIDRequest) returns (PasswdEntry);
-  rpc GetPasswdEntries(Empty) returns (PasswdEntries);
-
-  rpc GetGroupByName(GetGroupByNameRequest) returns (GroupEntry);
-  rpc GetGroupByGID(GetByIDRequest) returns (GroupEntry);
-  rpc GetGroupEntries(Empty) returns (GroupEntries);
-
-  rpc GetShadowByName(GetShadowByNameRequest) returns (ShadowEntry);
-  rpc GetShadowEntries(Empty) returns (ShadowEntries);
+service UserService {
+  rpc GetUserByName(GetUserByNameRequest) returns (User);
+  rpc GetUserByID(GetUserByIDRequest) returns (User);
+  rpc ListUsers(Empty) returns (Users);
+  rpc GetGroupByName(GetGroupByNameRequest) returns (Group);
+  rpc GetGroupByID(GetGroupByIDRequest) returns (Group);
+  rpc ListGroups(Empty) returns (Groups);
 }
 
-message GetPasswdByNameRequest{
+message GetUserByNameRequest{
   string name = 1;
   bool shouldPreCheck = 2;
+}
+
+message GetUserByIDRequest{
+  uint32 id = 1;
 }
 
 message GetGroupByNameRequest{
   string name = 1;
 }
 
-message GetShadowByNameRequest{
-  string name = 1;
-}
-
-message GetByIDRequest{
+message GetGroupByIDRequest{
   uint32 id = 1;
-}
-
-message PasswdEntry {
-  string name = 1;
-  string passwd = 2;
-  uint32 uid = 3;
-  uint32 gid = 4;
-  string gecos = 5;
-  string homedir = 6;
-  string shell = 7;
-}
-
-message PasswdEntries {
-  repeated PasswdEntry entries = 1;
-}
-
-message GroupEntry {
-  string name = 1;
-  string passwd = 2;
-  uint32 gid = 3;
-  repeated string members = 4;
-}
-
-message GroupEntries {
-  repeated GroupEntry entries = 1;
-}
-
-message ShadowEntry {
-  string name = 1;
-  string passwd = 2;
-  int32 last_change = 3;
-  int32 change_min_days = 4;
-  int32 change_max_days = 5;
-  int32 change_warn_days = 6;
-  int32 change_inactive_days = 7;
-  int32 expire_date = 8;
-}
-
-message ShadowEntries {
-  repeated ShadowEntry entries = 1;
-}
-
-service UserService {
-  rpc ListUsers(Empty) returns (Users);
-  rpc ListGroups(Empty) returns (Groups);
 }
 
 message User {
@@ -218,6 +169,8 @@ message Group {
   string name = 1;
   uint32 gid = 2;
   repeated string members = 3;
+  // TODO: Rename this to tmpID
+  string passwd = 4;
 }
 
 message Groups {
