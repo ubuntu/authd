@@ -37,19 +37,21 @@ func TestCLIAuthenticate(t *testing.T) {
 		stopDaemonAfter    time.Duration
 	}{
 		"Authenticate_user_successfully": {
-			tape:          "simple_auth",
-			tapeVariables: map[string]string{vhsTapeUserVariable: "user1"},
+			tape: "simple_auth",
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: vhsTestUserName(t, "simple"),
+			},
 		},
 		"Authenticate_user_successfully_with_preset_user": {
 			tape: "simple_auth_with_preset_user",
 			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "simple-preset",
+				PamUser: vhsTestUserName(t, "preset"),
 			},
 		},
 		"Authenticate_user_successfully_with_invalid_connection_timeout": {
 			tape: "simple_auth",
 			tapeVariables: map[string]string{
-				vhsTapeUserVariable: "user-integration-invalid-timeout",
+				vhsTapeUserVariable: vhsTestUserName(t, "invalid-timeout"),
 			},
 			clientOptions: clientOptions{PamTimeout: "invalid"},
 		},
