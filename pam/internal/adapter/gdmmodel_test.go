@@ -2355,11 +2355,24 @@ func TestGdmModel(t *testing.T) {
 			},
 		},
 		"Error_on_selecting_user_name_after_PAM_provided_already_one": {
+			clientOptions: append(slices.Clone(singleBrokerClientOptions),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil)),
 			pamUser: "gdm-pam-preset-user",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
-					return userSelected{username: "another-selected-user"}
-				}))(),
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_challenge,
+					events: []*gdm.EventData{
+						gdm_test.ChangeStageEvent(pam_proto.Stage_userSelection),
+					},
+					commands: []tea.Cmd{
+						sendEvent(gdmTestWaitForStage{
+							stage: pam_proto.Stage_userSelection,
+							events: []*gdm.EventData{
+								gdm_test.SelectUserEvent("another-selected-user"),
+							},
+						}),
+					},
+				},
 			},
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -2377,10 +2390,9 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_brokerSelected,
 				gdm.EventType_authModesReceived,
 				gdm.EventType_authModeSelected,
-				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantStage: pam_proto.Stage_brokerSelection,
+			wantStage: pam_proto.Stage_userSelection,
 			wantExitStatus: pamError{
 				status: pam.ErrPermDenied,
 				msg:    `Changing username "gdm-pam-preset-user" to "another-selected-user" is not allowed`,
