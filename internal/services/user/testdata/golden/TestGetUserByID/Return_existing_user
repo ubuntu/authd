@@ -1,5 +1,4 @@
 name: user1
-passwd: x
 uid: 1111
 gid: 11111
 gecos: |-

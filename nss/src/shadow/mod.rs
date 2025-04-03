@@ -5,11 +5,11 @@ use tokio::runtime::Builder;
 use tonic::Request;
 
 use crate::client::{self, authd};
-use authd::ShadowEntry;
+use authd::User;
 
-pub struct AuthdShadow;
+pub struct AuthdShadowHooks;
 
-impl ShadowHooks for AuthdShadow {
+impl ShadowHooks for AuthdShadowHooks {
     /// get_all_entries returns all shadow entries.
     fn get_all_entries() -> Response<Vec<Shadow>> {
         get_all_entries()
@@ -42,8 +42,8 @@ fn get_all_entries() -> Response<Vec<Shadow>> {
 
         let mut req = Request::new(authd::Empty {});
         req.set_timeout(REQUEST_TIMEOUT);
-        match client.get_shadow_entries(req).await {
-            Ok(r) => Response::Success(shadow_entries_to_shadows(r.into_inner().entries)),
+        match client.list_users(req).await {
+            Ok(r) => Response::Success(users_to_shadow_entries(r.into_inner().users)),
             Err(e) => {
                 info!("error when listing shadow: {}", e.code());
                 super::grpc_status_to_nss_response(e)
@@ -71,12 +71,15 @@ fn get_entry_by_name(name: String) -> Response<Shadow> {
             }
         };
 
-        let mut req = Request::new(authd::GetShadowByNameRequest { name: name.clone() });
+        let mut req = Request::new(authd::GetUserByNameRequest {
+            name,
+            should_pre_check: false,
+        });
         req.set_timeout(REQUEST_TIMEOUT);
-        match client.get_shadow_by_name(req).await {
-            Ok(r) => Response::Success(shadow_entry_to_shadow(r.into_inner())),
+        match client.get_user_by_name(req).await {
+            Ok(r) => Response::Success(shadow_entry(r.into_inner().name)),
             Err(e) => {
-                info!("error when getting shadow by name '{}': {}", name, e.code());
+                info!("error when getting shadow entry: {}", e.code());
                 super::grpc_status_to_nss_response(e)
             }
         }
@@ -84,21 +87,24 @@ fn get_entry_by_name(name: String) -> Response<Shadow> {
 }
 
 /// shadow_entries_to_shadows converts a vector of shadow entries to a vector of shadows.
-fn shadow_entry_to_shadow(entry: ShadowEntry) -> Shadow {
+fn shadow_entry(name: String) -> Shadow {
     Shadow {
-        name: entry.name,
-        passwd: entry.passwd,
-        last_change: entry.last_change as isize,
-        change_min_days: entry.change_min_days as isize,
-        change_max_days: entry.change_max_days as isize,
-        change_warn_days: entry.change_warn_days as isize,
-        change_inactive_days: entry.change_inactive_days as isize,
-        expire_date: entry.expire_date as isize,
+        name,
+        passwd: "x".to_owned(),
+        last_change: -1,
+        change_min_days: -1,
+        change_max_days: -1,
+        change_warn_days: -1,
+        change_inactive_days: -1,
+        expire_date: -1,
         reserved: usize::MAX,
     }
 }
 
 /// shadow_entries_to_shadows converts a vector of shadow entries to a vector of shadows.
-fn shadow_entries_to_shadows(entries: Vec<ShadowEntry>) -> Vec<Shadow> {
-    entries.into_iter().map(shadow_entry_to_shadow).collect()
+fn users_to_shadow_entries(names: Vec<User>) -> Vec<Shadow> {
+    names
+        .into_iter()
+        .map(|user| shadow_entry(user.name))
+        .collect()
 }
