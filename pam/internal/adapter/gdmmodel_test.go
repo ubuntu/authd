@@ -263,6 +263,62 @@ func TestGdmModel(t *testing.T) {
 			wantStage:      pam_proto.Stage_challenge,
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
+		"Authenticated_with_preset_PAM_user_updated_and_server_side_broker_and_authMode_selection": {
+			clientOptions: append(slices.Clone(singleBrokerClientOptions),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
+				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password")),
+			pamUser: "GDM@PAM-CASE-INDEPENDENT-PRESET-USER",
+			messages: []tea.Msg{
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_challenge,
+					events: []*gdm.EventData{
+						gdm_test.ChangeStageEvent(pam_proto.Stage_userSelection),
+					},
+					commands: []tea.Cmd{
+						sendEvent(gdmTestWaitForStage{
+							stage: pam_proto.Stage_userSelection,
+							events: []*gdm.EventData{
+								gdm_test.SelectUserEvent("gdm@pam-case-independent-preset-user"),
+							},
+							commands: []tea.Cmd{
+								sendEvent(gdmTestWaitForStage{
+									stage: pam_proto.Stage_challenge,
+									commands: []tea.Cmd{
+										sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+											Secret: "gdm-good-password",
+										}}),
+									},
+								}),
+							},
+						}),
+					},
+				},
+			},
+			wantMessages: []tea.Msg{
+				userSelected{"GDM@PAM-CASE-INDEPENDENT-PRESET-USER"},
+				userSelected{"gdm@pam-case-independent-preset-user"},
+			},
+			wantSelectedBroker: firstBrokerInfo.Id,
+			wantGdmRequests: []gdm.RequestType{
+				gdm.RequestType_uiLayoutCapabilities,
+				gdm.RequestType_changeStage, // -> broker Selection
+				gdm.RequestType_changeStage, // -> authMode Selection
+				gdm.RequestType_changeStage, // -> password
+			},
+			wantGdmEvents: []gdm.EventType{
+				gdm.EventType_userSelected, // First selection, done from PAM.
+				gdm.EventType_userSelected, // Second injected (and accepted) selection.
+				gdm.EventType_brokersReceived,
+				gdm.EventType_brokerSelected,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent,
+			},
+			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Granted}},
+			wantStage:      pam_proto.Stage_challenge,
+			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
+		},
 		"Authenticated_with_message_with_preset_PAM_user_and_server_side_broker_and_authMode_selection": {
 			clientOptions: append(slices.Clone(multiBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
