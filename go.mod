@@ -2,7 +2,7 @@ module github.com/ubuntu/authd
 
 go 1.23.0
 
-toolchain go1.23.6
+toolchain go1.24.1
 
 require (
 	github.com/charmbracelet/bubbles v0.20.0
@@ -12,7 +12,7 @@ require (
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/godbus/dbus/v5 v5.1.0
 	github.com/google/uuid v1.6.0
-	github.com/mattn/go-sqlite3 v1.14.24
+	github.com/mattn/go-sqlite3 v1.14.27
 	github.com/msteinert/pam/v2 v2.0.0
 	github.com/muesli/termenv v0.16.0
 	github.com/otiai10/copy v1.14.1
@@ -26,7 +26,7 @@ require (
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9
 	golang.org/x/sys v0.31.0
 	golang.org/x/term v0.30.0
-	google.golang.org/grpc v1.71.0
+	google.golang.org/grpc v1.71.1
 	google.golang.org/protobuf v1.36.6
 	gopkg.in/ini.v1 v1.67.0
 	gopkg.in/yaml.v3 v3.0.1
