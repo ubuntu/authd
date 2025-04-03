@@ -16,12 +16,14 @@ import (
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
+const nativeTapeBaseCommand = "./pam_authd %s socket=${%s} force_native_client=true"
+
 func TestNativeAuthenticate(t *testing.T) {
 	t.Parallel()
 
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
-	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s} force_native_client=true",
+	tapeCommand := fmt.Sprintf(nativeTapeBaseCommand, pam_test.RunnerActionLogin,
 		vhsTapeSocketVariable)
 
 	tests := map[string]struct {
@@ -41,11 +43,24 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Authenticate_user_successfully": {
 			tape: "simple_auth",
 		},
+		"Authenticate_user_successfully_with_upper_case": {
+			tape: "simple_auth",
+			clientOptions: clientOptions{
+				PamUser: strings.ToUpper(vhsTestUserName(t, "upper-case")),
+			},
+		},
 		"Authenticate_user_successfully_with_user_selection": {
 			tape:          "simple_auth_with_user_selection",
 			userSelection: true,
 			tapeVariables: map[string]string{
 				vhsTapeUserVariable: examplebroker.UserIntegrationPrefix + "native-user-selection",
+			},
+		},
+		"Authenticate_user_successfully_using_upper_case_with_user_selection": {
+			tape:          "simple_auth_with_user_selection",
+			userSelection: true,
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: strings.ToUpper(vhsTestUserName(t, "selection-upper-case")),
 			},
 		},
 		"Authenticate_user_successfully_with_invalid_connection_timeout": {
@@ -151,6 +166,20 @@ func TestNativeAuthenticate(t *testing.T) {
 			tapeSettings: []tapeSetting{{vhsHeight, 550}},
 			clientOptions: clientOptions{
 				PamUser: examplebroker.UserIntegrationNeedsResetPrefix + "mandatory",
+			},
+		},
+		"Authenticate_user_and_reset_password_with_case_insensitive_user_selection": {
+			tape:          "mandatory_password_reset_case_insensitive",
+			tapeSettings:  []tapeSetting{{vhsHeight, 600}},
+			userSelection: true,
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: vhsTestUserNameFull(t,
+					examplebroker.UserIntegrationNeedsResetPrefix, "case-insensitive"),
+				"AUTHD_TEST_TAPE_UPPER_CASE_USERNAME": strings.ToUpper(
+					vhsTestUserNameFull(t,
+						examplebroker.UserIntegrationNeedsResetPrefix, "Case-INSENSITIVE")),
+				"AUTHD_TEST_TAPE_MIXED_CASE_USERNAME": vhsTestUserNameFull(t,
+					examplebroker.UserIntegrationNeedsResetPrefix, "Case-INSENSITIVE"),
 			},
 		},
 		"Authenticate_user_with_mfa_and_reset_password_while_enforcing_policy": {
@@ -381,8 +410,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
 
-	const tapeBaseCommand = "./pam_authd %s socket=${%s} force_native_client=true"
-	tapeCommand := fmt.Sprintf(tapeBaseCommand, pam_test.RunnerActionPasswd,
+	tapeCommand := fmt.Sprintf(nativeTapeBaseCommand, pam_test.RunnerActionPasswd,
 		vhsTapeSocketVariable)
 
 	tests := map[string]struct {
@@ -394,11 +422,21 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		skipRunnerCheck    bool
 	}{
 		"Change_password_successfully_and_authenticate_with_new_one": {
-			tape:         "passwd_simple",
-			tapeSettings: []tapeSetting{{vhsHeight, 600}},
+			tape: "passwd_simple",
 			tapeVariables: map[string]string{
 				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(
-					tapeBaseCommand, pam_test.RunnerActionLogin, vhsTapeSocketVariable),
+					nativeTapeBaseCommand, pam_test.RunnerActionLogin, vhsTapeSocketVariable),
+				vhsTapeUserVariable:              vhsTestUserName(t, "simple"),
+				"AUTHD_TEST_TAPE_LOGIN_USERNAME": vhsTestUserName(t, "simple"),
+			},
+		},
+		"Change_password_successfully_and_authenticate_with_new_one_with_different_case": {
+			tape: "passwd_simple",
+			tapeVariables: map[string]string{
+				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(
+					nativeTapeBaseCommand, pam_test.RunnerActionLogin, vhsTapeSocketVariable),
+				vhsTapeUserVariable:              vhsTestUserName(t, "case-insensitive"),
+				"AUTHD_TEST_TAPE_LOGIN_USERNAME": vhsTestUserName(t, "case-insensitive"),
 			},
 		},
 		"Change_passwd_after_MFA_auth": {

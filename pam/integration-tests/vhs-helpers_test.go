@@ -666,6 +666,9 @@ func requireRunnerResultForUser(t *testing.T, sessionMode authd.SessionMode, use
 	goldenLines := strings.Split(goldenContent, "\n")
 	goldenContent = strings.Join(goldenLines[max(0, len(goldenLines)-50):], "\n")
 
+	// authd uses lowercase usernames
+	user = strings.ToLower(user)
+
 	require.Contains(t, goldenContent, pam_test.RunnerAction(sessionMode).Result().Message(user),
 		"Golden file does not include required value, consider increasing the terminal size:\n%s",
 		goldenContent)
