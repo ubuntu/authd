@@ -378,8 +378,8 @@ func TestNativeAuthenticate(t *testing.T) {
 func TestNativeChangeAuthTok(t *testing.T) {
 	t.Parallel()
 
-	outDir := t.TempDir()
-	cliEnv := preparePamRunnerTest(t, outDir)
+	clientPath := t.TempDir()
+	cliEnv := preparePamRunnerTest(t, clientPath)
 
 	const vhsTapeSocketVariable = "AUTHD_TEST_AUTHTOK_SOCK"
 	const tapeBaseCommand = "./pam_authd %s socket=${%s} force_native_client=true"
@@ -450,6 +450,11 @@ func TestNativeChangeAuthTok(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+
+			outDir := t.TempDir()
+			err := os.Symlink(filepath.Join(clientPath, "pam_authd"),
+				filepath.Join(outDir, "pam_authd"))
+			require.NoError(t, err, "Setup: symlinking the pam client")
 
 			var socketPath string
 			if tc.currentUserNotRoot {
