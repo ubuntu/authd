@@ -2,7 +2,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_build::configure()
         .build_server(false)
         .protoc_arg("--experimental_allow_proto3_optional")
-        .compile(&["../internal/proto/authd/authd.proto"], &["../"])?;
+        .compile_protos(&["../internal/proto/authd/authd.proto"], &["../"])?;
 
     #[cfg(feature = "integration_tests")]
     cc::Build::new()
