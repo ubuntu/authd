@@ -237,3 +237,30 @@ client machines, which leads to permission issues.
 To avoid these issues, you can use ID mapping. For more information, see
 * [Using authd with NFS](../howto/use-with-nfs)
 * [Using authd with Samba](../howto/use-with-samba)
+
+## Recovery mode for failed login
+
+If authd or the broker are missing, corrupted or broken in any way, a user may
+be prevented from logging in.
+
+To get access to the system for modifying configurations and installations in
+such cases, there are two main options:
+
+1. Log in as another root user to access the system and fix the problem
+2. Boot into recovery mode to fix the problem
+
+The steps required for entering recovery mode are included below.
+
+### Boot into recovery mode
+
+If it is not possible to log in with any root user account, the user can still
+boot into recovery mode:
+
+1. Reboot the device
+2. During the reboot, press and hold <kbd>ESC</kbd> (UEFI) or <kbd>SHIFT</kbd> (BIOS) 
+3. When the Grub menu appears select `advanced options for Ubuntu` 
+4. Choose `recovery mode` for your specific kernel version
+5. Select `drop to root shell prompt`
+6. Once in the root shell, run `mount -o remount,rw /` to enable read/write access
+
+The user then has access to the root filesystem and can proceed with debugging.
