@@ -230,8 +230,8 @@ func TestCLIAuthenticate(t *testing.T) {
 func TestCLIChangeAuthTok(t *testing.T) {
 	t.Parallel()
 
-	outDir := t.TempDir()
-	cliEnv := preparePamRunnerTest(t, outDir)
+	clientPath := t.TempDir()
+	cliEnv := preparePamRunnerTest(t, clientPath)
 
 	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
 	const tapeBaseCommand = "./pam_authd %s socket=${%s}"
@@ -297,6 +297,11 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+
+			outDir := t.TempDir()
+			err := os.Symlink(filepath.Join(clientPath, "pam_authd"),
+				filepath.Join(outDir, "pam_authd"))
+			require.NoError(t, err, "Setup: symlinking the pam client")
 
 			var socketPath string
 			if tc.currentUserNotRoot {
