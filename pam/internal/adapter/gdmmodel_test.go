@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -193,7 +194,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Challenge_stage_caused_by_client_side_broker_and_authMode_selection": {
 			gdmEvents: []*gdm.EventData{
-				gdm_test.SelectUserEvent("gdm-selected-user-and-broker"),
+				gdm_test.SelectUserEvent("GDM-SELECTED-USER-AND-BROKER"),
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
@@ -231,7 +232,7 @@ func TestGdmModel(t *testing.T) {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password")),
-			pamUser: "pam-preset-user-and-daemon-selected-broker",
+			pamUser: "pam-PRESET-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
@@ -2559,8 +2560,11 @@ func TestGdmModel(t *testing.T) {
 			require.Empty(t, appState.wantMessages, "Wanted messages have not all been processed")
 
 			username, err := appState.pamMTx.GetItem(pam.User)
-			require.NoError(t, err)
-			require.Equal(t, tc.wantUsername, username)
+			require.NoError(t, err, "Failed to get the PAM user name")
+			// authd uses lowercase usernames
+			require.Equal(t, strings.ToLower(tc.wantUsername), username,
+				"User name does not match")
+
 			gdm_test.RequireEqualData(t, tc.wantGdmAuthRes, gdmHandler.authEvents)
 
 			if r, ok := tc.wantExitStatus.(PamReturnError); ok {
