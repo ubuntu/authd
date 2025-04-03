@@ -131,8 +131,8 @@ To configure Google IAM, edit  `/var/snap/authd-google/current/broker.conf`:
 issuer = https://accounts.google.com
 client_id = <CLIENT_ID>
 client_secret = <CLIENT_SECRET>
+force_provider_authentication = false
 ```
-
 ::::
 
 ::::{tab-item} Microsoft Entra ID
@@ -144,10 +144,28 @@ To configure Entra ID, edit  `/var/snap/authd-msentraid/current/broker.conf`:
 [oidc]
 issuer = https://login.microsoftonline.com/<ISSUER_ID>/v2.0
 client_id = <CLIENT_ID>
+force_provider_authentication = false
 ```
-
 ::::
 :::::
+
+## Enable forced authentication
+
+By default, authentication with the identity provider only happens
+if the provider is reachable during login.
+
+If you want to force authentication, even when the provider is unreachable,
+enable it as follows:
+
+```ini
+[oidc]
+...
+force_provider_authentication = true
+```
+
+```{warning}
+In some cases, this may prevent login, such as when there are network issues.
+```
 
 ## Configure allowed users
 
