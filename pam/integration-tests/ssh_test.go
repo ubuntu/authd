@@ -79,17 +79,19 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 		"pam_mkhomedir_test.so", true)
 
-	var sshdEnv []string
+	var nssEnv []string
 	var nssLibrary string
 	var sshdPreloadLibraries []string
+	var authdPreloadLibraries []string
 	var sshdPreloaderCFlags []string
 	err = testutils.CanRunRustTests(false)
 	if os.Getenv("AUTHD_TESTS_SSH_USE_DUMMY_NSS") == "" && err == nil {
-		nssLibrary, sshdEnv = testutils.BuildRustNSSLib(t, true)
+		nssLibrary, nssEnv = testutils.BuildRustNSSLib(t, true)
 		sshdPreloadLibraries = append(sshdPreloadLibraries, nssLibrary)
+		authdPreloadLibraries = append(authdPreloadLibraries, nssLibrary)
 		sshdPreloaderCFlags = append(sshdPreloaderCFlags,
 			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS")
-		sshdEnv = append(sshdEnv,
+		nssEnv = append(nssEnv,
 			"AUTHD_NSS_INFO=stderr",
 			fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", filepath.Dir(nssLibrary),
 				os.Getenv("LD_LIBRARY_PATH")),
@@ -116,10 +118,12 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	const tapeCommand = "ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}"
 	defaultTapeSettings := []tapeSetting{{vhsHeight, 1000}, {vhsWidth, 1500}}
 
+	var sshdEnv []string
 	var defaultSSHDPort, defaultUserHome, defaultSocketPath, defaultGPasswdOutput string
 	if sharedSSHd {
 		defaultSocketPath, defaultGPasswdOutput = sharedAuthd(t)
 		serviceFile := createSshdServiceFile(t, execModule, execChild, pamMkHomeDirModule, defaultSocketPath)
+		sshdEnv = append(sshdEnv, nssEnv...)
 		sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocketPath))
 		defaultSSHDPort, defaultUserHome = startSSHdForTest(t, serviceFile, sshdHostKey,
 			"authd-test-user-sshd-accept-all", sshdPreloadLibraries, sshdEnv, true, false)
@@ -299,15 +303,43 @@ Wait`,
 
 			socketPath := defaultSocketPath
 			gpasswdOutput := defaultGPasswdOutput
+
+			var authdEnv []string
+			var authdSocketLink string
+			if nssLibrary != "" {
+				authdEnv = slices.Clone(nssEnv)
+
+				// Chicken-egg problem here: we need to start authd with the
+				// AUTHD_NSS_SOCKET env set, but its content is not yet known to
+				// us, so let's pass to it a path that we'll eventually symlink to
+				// the real socket path, once we've one.
+				socketDir, err := os.MkdirTemp("", "authd-sockets")
+				require.NoError(t, err, "Setup: failed to create socket dir")
+				authdSocketLink = filepath.Join(socketDir, "authd.sock")
+				t.Cleanup(func() { _ = os.RemoveAll(socketDir) })
+				authdEnv = append(authdEnv, "AUTHD_NSS_SOCKET="+authdSocketLink)
+				if testutils.IsAsan() {
+					asanPath, err := exec.Command("gcc", "-print-file-name=libasan.so").CombinedOutput()
+					require.NoError(t, err, "Setup: Looking for ASAN lib path")
+					authdPreloadLibraries = append([]string{strings.TrimSpace(string(asanPath))},
+						authdPreloadLibraries...)
+				}
+
+				authdEnv = append(authdEnv, fmt.Sprintf("LD_PRELOAD=%s",
+					strings.Join(authdPreloadLibraries, ":")))
+			}
+
 			if tc.wantLocalGroups {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
-				socketPath = runAuthd(t, gpasswdOutput, groupsFile, true)
+				socketPath = runAuthd(t, gpasswdOutput, groupsFile, true,
+					testutils.WithEnvironment(authdEnv...))
 			} else if !sharedSSHd {
-				socketPath, gpasswdOutput = sharedAuthd(t)
+				socketPath, gpasswdOutput = sharedAuthd(t,
+					testutils.WithEnvironment(authdEnv...))
 			}
 			if tc.socketPath != "" {
 				socketPath = tc.socketPath
@@ -330,7 +362,12 @@ Wait`,
 				sshdEnv := sshdEnv
 				if nssLibrary != "" {
 					sshdEnv = slices.Clone(sshdEnv)
+					sshdEnv = append(sshdEnv, nssEnv...)
 					sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", socketPath))
+
+					// Let's give authd access to its own NSS module via the socket.
+					err := os.Symlink(socketPath, authdSocketLink)
+					require.NoError(t, err, "Setup: symlinking the authd socket")
 				}
 				serviceFile := createSshdServiceFile(t, execModule, execChild,
 					pamMkHomeDirModule, socketPath)

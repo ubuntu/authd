@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -82,7 +83,7 @@ func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot 
 	return socketPath
 }
 
-func sharedAuthd(t *testing.T) (socketPath string, gpasswdFile string) {
+func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath string, gpasswdFile string) {
 	t.Helper()
 
 	useSharedInstance := testutils.IsRace()
@@ -93,7 +94,7 @@ func sharedAuthd(t *testing.T) (socketPath string, gpasswdFile string) {
 	if !useSharedInstance {
 		gPasswd := filepath.Join(t.TempDir(), "gpasswd.output")
 		groups := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-		socket, cleanup := runAuthdForTesting(t, gPasswd, groups, true)
+		socket, cleanup := runAuthdForTesting(t, gPasswd, groups, true, args...)
 		t.Cleanup(cleanup)
 		return socket, gPasswd
 	}
@@ -130,10 +131,11 @@ func sharedAuthd(t *testing.T) (socketPath string, gpasswdFile string) {
 		return sa.socketPath, sa.gPasswdOutputPath
 	}
 
+	args = append(slices.Clone(args), testutils.WithSharedDaemon(true))
 	sa.gPasswdOutputPath = filepath.Join(t.TempDir(), "gpasswd.output")
 	sa.groupsFile = filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 	sa.socketPath, sa.cleanup = runAuthdForTesting(t, sa.gPasswdOutputPath,
-		sa.groupsFile, true, testutils.WithSharedDaemon(true))
+		sa.groupsFile, true, args...)
 	return sa.socketPath, sa.gPasswdOutputPath
 }
 
