@@ -261,6 +261,5 @@ boot into recovery mode:
 3. When the Grub menu appears select `advanced options for Ubuntu` 
 4. Choose `recovery mode` for your specific kernel version
 5. Select `drop to root shell prompt`
-6. Once in the root shell, run `mount -o remount,rw /` to enable read/write access
 
 The user then has access to the root filesystem and can proceed with debugging.
