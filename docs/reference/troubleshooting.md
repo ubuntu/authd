@@ -246,15 +246,16 @@ be prevented from logging in.
 To get access to the system for modifying configurations and installations in
 such cases, there are two main options:
 
-1. Log in as another root user to access the system and fix the problem
 2. Boot into recovery mode to fix the problem
+1. Log in as root user or another local user with administrator privileges
 
 The steps required for entering recovery mode are included below.
 
 ### Boot into recovery mode
 
-If it is not possible to log in with any root user account, the user can still
-boot into recovery mode:
+If it is not possible to log in with the root user account or another local
+user account with administrator privileges, the user can boot into recovery
+mode:
 
 1. Reboot the device
 2. During the reboot, press and hold <kbd>ESC</kbd> (UEFI) or <kbd>SHIFT</kbd> (BIOS) 
