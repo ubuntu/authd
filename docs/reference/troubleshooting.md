@@ -258,8 +258,8 @@ user account with administrator privileges, the user can boot into recovery
 mode:
 
 1. Reboot the device
-2. During the reboot, press and hold <kbd>ESC</kbd> (UEFI) or <kbd>SHIFT</kbd> (BIOS) 
 3. When the Grub menu appears select `advanced options for Ubuntu` 
+2. During the reboot, press and hold the right <kbd>SHIFT</kbd> key
 4. Choose `recovery mode` for your specific kernel version
 5. Select `drop to root shell prompt`
 
