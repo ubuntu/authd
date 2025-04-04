@@ -114,6 +114,9 @@ fn get_entry_by_name(name: String) -> Response<Passwd> {
             return Response::NotFound;
         }
 
+        #[cfg(feature = "integration_tests")]
+        info!("Get entry by name '{}' (pre-check: {})", name, should_pre_check());
+
         let mut req = Request::new(authd::GetPasswdByNameRequest {
             name: name.clone(),
             should_pre_check: should_pre_check(),
@@ -160,7 +163,12 @@ fn is_proc_matching(pid: u32, name: &str) -> bool {
         return false;
     }
 
-    matches!(exe.unwrap(), s if s == PathBuf::from(name))
+    let unwrapped_exe = exe.unwrap();
+
+    #[cfg(feature = "integration_tests")]
+    info!("Pre-check test: process '{}'", unwrapped_exe.display());
+
+    matches!(unwrapped_exe, s if s == PathBuf::from(name))
 }
 
 /// should_pre_check returns true if the current process sshd or a child of sshd.
