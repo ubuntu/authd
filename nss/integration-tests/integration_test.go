@@ -60,6 +60,7 @@ func TestIntegration(t *testing.T) {
 		"Get_all_entries_from_shadow_if_considered_root": {getentDB: "shadow"},
 
 		"Get_entry_from_passwd_by_name":                    {getentDB: "passwd", key: "user1"},
+		"Get_entry_from_passwd_by_name_in_upper_case":      {getentDB: "passwd", key: "USER1"},
 		"Get_entry_from_group_by_name":                     {getentDB: "group", key: "group1"},
 		"Get_entry_from_shadow_by_name_if_considered_root": {getentDB: "shadow", key: "user1"},
 
