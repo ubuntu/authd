@@ -68,7 +68,8 @@ func TestIntegration(t *testing.T) {
 		"Get_entry_from_passwd_by_id": {getentDB: "passwd", key: "1111"},
 		"Get_entry_from_group_by_id":  {getentDB: "group", key: "11111"},
 
-		"Check_user_with_broker_if_not_found_in_db": {getentDB: "passwd", key: examplebroker.UserIntegrationPreCheckPrefix + "simple", shouldPreCheck: true},
+		"Check_user_with_broker_if_not_found_in_db":               {getentDB: "passwd", key: examplebroker.UserIntegrationPreCheckPrefix + "simple", shouldPreCheck: true},
+		"Check_user_with_broker_if_not_found_in_db_in_upper_case": {getentDB: "passwd", key: strings.ToUpper(examplebroker.UserIntegrationPreCheckPrefix + "simple"), shouldPreCheck: true},
 
 		// Even though those are "error" cases, the getent command won't fail when trying to list content of a service.
 		"Returns_empty_when_getting_all_entries_from_shadow_if_regular_user": {getentDB: "shadow", currentUserNotRoot: true},
