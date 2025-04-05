@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
@@ -67,7 +68,7 @@ func TestIntegration(t *testing.T) {
 		"Get_entry_from_passwd_by_id": {getentDB: "passwd", key: "1111"},
 		"Get_entry_from_group_by_id":  {getentDB: "group", key: "11111"},
 
-		"Check_user_with_broker_if_not_found_in_db": {getentDB: "passwd", key: "user-pre-check", shouldPreCheck: true},
+		"Check_user_with_broker_if_not_found_in_db": {getentDB: "passwd", key: examplebroker.UserIntegrationPreCheckPrefix + "simple", shouldPreCheck: true},
 
 		// Even though those are "error" cases, the getent command won't fail when trying to list content of a service.
 		"Returns_empty_when_getting_all_entries_from_shadow_if_regular_user": {getentDB: "shadow", currentUserNotRoot: true},
@@ -80,7 +81,7 @@ func TestIntegration(t *testing.T) {
 		"Error_when_getting_shadow_by_name_if_regular_user": {getentDB: "shadow", key: "user1", currentUserNotRoot: true, wantStatus: codeNotFound},
 
 		"Error_when_getting_passwd_by_name_and_entry_does_not_exist":                        {getentDB: "passwd", key: "doesnotexit", wantStatus: codeNotFound},
-		"Error_when_getting_passwd_by_name_entry_exists_in_broker_but_precheck_is_disabled": {getentDB: "passwd", key: "user-pre-check", wantStatus: codeNotFound},
+		"Error_when_getting_passwd_by_name_entry_exists_in_broker_but_precheck_is_disabled": {getentDB: "passwd", key: examplebroker.UserIntegrationPreCheckPrefix + "simple", wantStatus: codeNotFound},
 		"Error_when_getting_group_by_name_and_entry_does_not_exist":                         {getentDB: "group", key: "doesnotexit", wantStatus: codeNotFound},
 		"Error_when_getting_shadow_by_name_and_entry_does_not_exist":                        {getentDB: "shadow", key: "doesnotexit", wantStatus: codeNotFound},
 
