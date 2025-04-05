@@ -147,6 +147,18 @@ getpwnam (const char *name)
     }
 #endif /* AUTHD_TESTS_SSH_USE_AUTHD_NSS */
 
+  for (size_t i = atomic_load (&last_entity_idx); i != 0; --i)
+    {
+      passwd_entity = &passwd_entities[i].parent;
+
+      if (!passwd_entity->pw_name || strcmp (passwd_entity->pw_name, name) != 0)
+        continue;
+
+      fprintf (stderr, "sshd_preloader[%d]: Recycling fake entity for user %s\n",
+               getpid (), name);
+      return passwd_entity;
+    }
+
   entity_idx = atomic_fetch_add_explicit (&last_entity_idx, 1,
                                           memory_order_relaxed);
   assert (entity_idx < SIZE_OF_ARRAY (passwd_entities));
