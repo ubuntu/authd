@@ -8,11 +8,11 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <dlfcn.h>
 #include <string.h>
 #include <pwd.h>
 #include <limits.h>
+#include <sys/types.h>
 
 #define AUTHD_TEST_SHELL "/bin/sh"
 #define AUTHD_TEST_GECOS ""
@@ -24,15 +24,13 @@ static struct passwd passwd_entities[512];
 __attribute__((constructor))
 void constructor (void)
 {
-  fprintf (stderr, "sshd_preloader: Library loaded (parent pid: %d)!\n",
-           getpid ());
+  fprintf (stderr, "sshd_preloader [%d]: Library loaded\n", getpid ());
 }
 
 __attribute__((destructor))
 void destructor (void)
 {
-  fprintf (stderr, "sshd_preloader: Library unloaded (parent pid: %d)!\n",
-           getpid ());
+  fprintf (stderr, "sshd_preloader [%d]: Library unloaded\n", getpid ());
 }
 
 static const char *
@@ -44,6 +42,16 @@ get_home_path (void)
     return "/not-existing-home";
 
   return home_path;
+}
+
+static bool
+is_supported_test_fake_user (const char *name)
+{
+  /* Further special case for the 'r' user */
+  if (strcmp (name, "r") == 0)
+    return true;
+
+  return false;
 }
 
 static bool
@@ -64,14 +72,10 @@ is_valid_test_user (const char *name)
     return false;
 
   /* Here we accept all the users supported by the example broker */
-  if (strncmp (name, "user", 4) == 0)
+  if (strncmp (name, "user", 4) == 0 && strlen (name) > 4)
     return true;
 
-  /* Further special case for the 'r' user */
-  if (strcmp (name, "r") == 0)
-    return true;
-
-  return false;
+  return is_supported_test_fake_user (name);
 }
 
 /*
@@ -85,35 +89,64 @@ is_valid_test_user (const char *name)
 struct passwd *
 getpwnam (const char *name)
 {
+  static struct passwd * (*orig_getpwnam) (const char *name) = NULL;
+  struct passwd *passwd_entity = NULL;
   static atomic_int last_entity_idx;
-  struct passwd *passwd_entity;
   int entity_idx;
 
-  if (!is_valid_test_user (name))
+  if (orig_getpwnam == NULL)
     {
-      struct passwd * (*orig_getpwnam) (const char *name);
-
       orig_getpwnam = dlsym (RTLD_NEXT, "getpwnam");
-      return orig_getpwnam (name);
+      assert (orig_getpwnam);
     }
 
-  fprintf (stderr, "sshd_preloader: Simulating to be user %s\n", name);
+  if (!is_valid_test_user (name))
+    return orig_getpwnam (name);
+
+#ifdef AUTHD_TESTS_SSH_USE_AUTHD_NSS
+  if ((passwd_entity = orig_getpwnam (name)))
+    {
+      fprintf (stderr, "sshd_preloader[%d]: Simulating to be the broker user %s (%d:%d)\n",
+               getpid (), passwd_entity->pw_name, passwd_entity->pw_uid,
+               passwd_entity->pw_gid);
+    }
+  else if (!is_supported_test_fake_user (name))
+    {
+      fprintf (stderr, "sshd_preloader[%d]: User %s is not handled by authd brokers\n",
+               getpid (), name);
+      return NULL;
+    }
+#endif /* AUTHD_TESTS_SSH_USE_AUTHD_NSS */
 
   entity_idx = atomic_fetch_add_explicit (&last_entity_idx, 1,
                                           memory_order_relaxed);
   assert (entity_idx < sizeof (passwd_entities) / sizeof (*passwd_entities));
+
+  if (passwd_entity)
+    passwd_entities[entity_idx] = *passwd_entity;
+
   passwd_entity = &passwd_entities[entity_idx];
-  passwd_entity->pw_shell = AUTHD_TEST_SHELL;
-  passwd_entity->pw_gecos = AUTHD_TEST_GECOS;
+  assert (passwd_entity->pw_name == NULL ||
+          strcmp (passwd_entity->pw_name, name) == 0);
+
+  if (passwd_entity->pw_name == NULL)
+    {
+      passwd_entity->pw_shell = AUTHD_TEST_SHELL;
+      passwd_entity->pw_gecos = AUTHD_TEST_GECOS;
+      passwd_entity->pw_name = (char *) name;
+      passwd_entity->pw_dir = (char *) get_home_path ();
+    }
 
   /* We're simulating to be the same user running the test but with another
-   * name and HOME directory, so that we won't touch the user settings, but
-   * it's still enough to trick sshd.
+   * name, so that we won't touch the user settings, but it's still enough to
+   * trick sshd.
    */
   passwd_entity->pw_uid = getuid ();
   passwd_entity->pw_gid = getgid ();
-  passwd_entity->pw_name = (char *) name;
-  passwd_entity->pw_dir = (char *) get_home_path ();
+
+  fprintf (stderr, "sshd_preloader [%d]: Simulating to be fake user %s (%d:%d)\n",
+           getpid (), passwd_entity->pw_name, passwd_entity->pw_uid,
+           passwd_entity->pw_gid);
 
   return passwd_entity;
 }
@@ -135,8 +168,9 @@ fopen (const char *pathname, const char *mode)
   if (strcmp (pathname, "/etc/pam.d/" AUTHD_DEFAULT_SSH_PAM_SERVICE_NAME) == 0 ||
       strcmp (pathname, "/usr/lib/pam.d/" AUTHD_DEFAULT_SSH_PAM_SERVICE_NAME) == 0)
     {
-      fprintf (stderr, "sshd_preloader: Trying to open '%s', "
-               "but redirecting instead to '%s'\n", pathname, service_path);
+      fprintf (stderr, "sshd_preloader [%d]: Trying to open '%s', "
+               "but redirecting instead to '%s'\n",
+               getpid (), pathname, service_path);
       pathname = service_path;
     }
 

@@ -18,8 +18,6 @@ import (
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
-var daemonPath string
-
 func TestCLIAuthenticate(t *testing.T) {
 	t.Parallel()
 
