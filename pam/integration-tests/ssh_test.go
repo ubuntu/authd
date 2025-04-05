@@ -155,6 +155,11 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tape:             "simple_auth_with_shell",
 			interactiveShell: true,
 		},
+		"Authenticate_user_successfully_with_upper_case": {
+			tape: "simple_auth",
+			user: strings.ToUpper(vhsTestUserNameFull(t,
+				examplebroker.UserIntegrationPreCheckPrefix, "upper-case")),
+		},
 		"Authenticate_user_with_mfa": {
 			tape:         "mfa_auth",
 			tapeSettings: []tapeSetting{{vhsHeight, 1500}},
@@ -415,8 +420,8 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			td.RunVhs(t, vhsTestTypeSSH, outDir, nil)
 			got := sanitizeGoldenFile(t, td, outDir)
 			golden.CheckOrUpdate(t, got)
-			userEnv := fmt.Sprintf("USER=%s", user)
 
+			userEnv := fmt.Sprintf("USER=%s", strings.ToLower(user))
 			if tc.wantNotLoggedInUser {
 				require.NotContains(t, got, userEnv, "Should not have a logged in user")
 
@@ -439,7 +444,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 						userHome = userPasswd.Homedir
 
 						requireGetEntEqualsPasswd(t, nssLibrary, socketPath, user, userPasswd)
-						requireGetEntEqualsGroup(t, nssLibrary, socketPath, user, group)
+						requireGetEntEqualsGroup(t, nssLibrary, socketPath, group.Name, group)
 					}
 				}
 
