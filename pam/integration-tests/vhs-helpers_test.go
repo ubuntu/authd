@@ -542,7 +542,7 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 	for k, v := range variables {
 		variable := fmt.Sprintf("${%s}", k)
 		require.Contains(t, tapeString, variable,
-			"Setup: Tape does not contain %q", variable)
+			"Setup: Tape does not contain %q\n%s", variable, tapeString)
 		tapeString = strings.ReplaceAll(tapeString, variable, v)
 	}
 

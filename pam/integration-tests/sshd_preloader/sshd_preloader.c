@@ -125,7 +125,12 @@ getpwnam (const char *name)
     }
 
   if (!is_valid_test_user (name))
-    return orig_getpwnam (name);
+    {
+      fprintf (stderr, "sshd_preloader[%d]: User %s is not a test user\n",
+               getpid (), name);
+
+      return orig_getpwnam (name);
+    }
 
 #ifdef AUTHD_TESTS_SSH_USE_AUTHD_NSS
   if ((passwd_entity = orig_getpwnam (name)))

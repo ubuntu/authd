@@ -115,7 +115,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	require.NoError(t, err, "Setup: Can't read sshd host public key")
 	saveArtifactsForDebugOnCleanup(t, []string{sshdHostKey + ".pub"})
 
-	const tapeCommand = "ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}"
+	const pamSSHUserEnv = "AUTHD_PAM_SSH_USER"
+	const baseTapeCommand = "ssh ${%s}@localhost ${AUTHD_PAM_SSH_ARGS}"
+	tapeCommand := fmt.Sprintf(baseTapeCommand, pamSSHUserEnv)
 	defaultTapeSettings := []tapeSetting{{vhsHeight, 1000}, {vhsWidth, 1500}}
 
 	var sshdEnv []string
@@ -191,6 +193,22 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		"Authenticate_user_and_reset_password_while_enforcing_policy": {
 			tape:       "mandatory_password_reset",
 			userPrefix: examplebroker.UserIntegrationNeedsResetPrefix,
+		},
+		"Authenticate_user_and_reset_password_with_case_insensitive_user_selection": {
+			tape: "mandatory_password_reset_case_insensitive",
+			user: strings.ToUpper(vhsTestUserNameFull(t,
+				examplebroker.UserIntegrationNeedsResetPrefix+
+					examplebroker.UserIntegrationPreCheckValue, "case-insensitive")),
+			daemonizeSSHd: true,
+			tapeVariables: map[string]string{
+				"AUTHD_TEST_TAPE_SSH_USER_VAR": pamSSHUserEnv,
+				"AUTHD_TEST_TAPE_LOWER_CASE_USERNAME": vhsTestUserNameFull(t,
+					examplebroker.UserIntegrationNeedsResetPrefix+
+						examplebroker.UserIntegrationPreCheckValue, "case-insensitive"),
+				"AUTHD_TEST_TAPE_MIXED_CASE_USERNAME": vhsTestUserNameFull(t,
+					examplebroker.UserIntegrationNeedsResetPrefix+
+						examplebroker.UserIntegrationPreCheckValue, "Case-INSENSITIVE"),
+			},
 		},
 		"Authenticate_user_with_mfa_and_reset_password_while_enforcing_policy": {
 			tape:         "mfa_reset_pwquality_auth",
@@ -414,7 +432,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			td.Command = tapeCommand
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.Env["HOME"] = t.TempDir()
-			td.Env["AUTHD_PAM_SSH_USER"] = user
+			td.Env[pamSSHUserEnv] = user
 			td.Env["AUTHD_PAM_SSH_ARGS"] = strings.Join([]string{
 				"-p", sshdPort,
 				"-F", os.DevNull,
