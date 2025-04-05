@@ -1,7 +1,7 @@
-name: User-Pre-Check
+name: user-pre-check
 passwd: x
 uid: 1234
 gid: 0
-gecos: gecos for User-Pre-Check
-homedir: /home/User-Pre-Check
-shell: /bin/sh/User-Pre-Check
+gecos: gecos for user-pre-check
+homedir: /home/user-pre-check
+shell: /bin/sh/user-pre-check
