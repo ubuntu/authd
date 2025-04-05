@@ -46,7 +46,7 @@ Wait /Username:\n/
 Show
 
 Hide
-TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
+TypeUsername "${AUTHD_TEST_TAPE_LOGIN_USERNAME}"
 Enter
 Wait+Prompt /Gimme your password/
 Show
