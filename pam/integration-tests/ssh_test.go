@@ -151,6 +151,10 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		"Authenticate_user_successfully": {
 			tape: "simple_auth",
 		},
+		"Authenticate_user_successfully_if_already_registered": {
+			user: "user-ssh",
+			tape: "simple_auth",
+		},
 		"Authenticate_user_successfully_and_enters_shell": {
 			tape:             "simple_auth_with_shell",
 			interactiveShell: true,
@@ -159,6 +163,10 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tape: "simple_auth",
 			user: strings.ToUpper(vhsTestUserNameFull(t,
 				examplebroker.UserIntegrationPreCheckPrefix, "upper-case")),
+		},
+		"Authenticate_user_successfully_if_already_registered_with_upper_case": {
+			user: "USER-SSH2",
+			tape: "simple_auth",
 		},
 		"Authenticate_user_with_mfa": {
 			tape:         "mfa_auth",
