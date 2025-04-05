@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -23,10 +24,15 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/examplebroker"
+	"github.com/ubuntu/authd/internal/grpcutils"
+	"github.com/ubuntu/authd/internal/proto/authd"
+	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 var (
@@ -82,20 +88,14 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	var nssEnv []string
 	var nssLibrary string
 	var sshdPreloadLibraries []string
-	var authdPreloadLibraries []string
 	var sshdPreloaderCFlags []string
 	err = testutils.CanRunRustTests(false)
 	if os.Getenv("AUTHD_TESTS_SSH_USE_DUMMY_NSS") == "" && err == nil {
 		nssLibrary, nssEnv = testutils.BuildRustNSSLib(t, true)
 		sshdPreloadLibraries = append(sshdPreloadLibraries, nssLibrary)
-		authdPreloadLibraries = append(authdPreloadLibraries, nssLibrary)
 		sshdPreloaderCFlags = append(sshdPreloaderCFlags,
 			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS")
-		nssEnv = append(nssEnv,
-			"AUTHD_NSS_INFO=stderr",
-			fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", filepath.Dir(nssLibrary),
-				os.Getenv("LD_LIBRARY_PATH")),
-		)
+		nssEnv = append(nssEnv, nssTestEnvBase(t, nssLibrary)...)
 	} else if err != nil {
 		t.Logf("Using the dummy library to implement NSS: %v", err)
 	}
@@ -138,6 +138,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		tapeVariables map[string]string
 
 		user             string
+		isLocalUser      bool
 		userPrefix       string
 		pamServiceName   string
 		socketPath       string
@@ -227,6 +228,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		"Autoselect_local_broker_for_local_user": {
 			tape:                "local_user_preset",
 			user:                "root",
+			isLocalUser:         true,
 			wantNotLoggedInUser: true,
 			tapeSettings: []tapeSetting{
 				{vhsHeight, 200},
@@ -317,16 +319,8 @@ Wait`,
 				require.NoError(t, err, "Setup: failed to create socket dir")
 				authdSocketLink = filepath.Join(socketDir, "authd.sock")
 				t.Cleanup(func() { _ = os.RemoveAll(socketDir) })
-				authdEnv = append(authdEnv, "AUTHD_NSS_SOCKET="+authdSocketLink)
-				if testutils.IsAsan() {
-					asanPath, err := exec.Command("gcc", "-print-file-name=libasan.so").CombinedOutput()
-					require.NoError(t, err, "Setup: Looking for ASAN lib path")
-					authdPreloadLibraries = append([]string{strings.TrimSpace(string(asanPath))},
-						authdPreloadLibraries...)
-				}
 
-				authdEnv = append(authdEnv, fmt.Sprintf("LD_PRELOAD=%s",
-					strings.Join(authdPreloadLibraries, ":")))
+				authdEnv = append(authdEnv, nssTestEnv(t, nssLibrary, authdSocketLink)...)
 			}
 
 			if tc.wantLocalGroups {
@@ -356,6 +350,21 @@ Wait`,
 				user = vhsTestUserNameFull(t, tc.userPrefix, "ssh")
 			}
 
+			var nssClient authd.NSSClient
+			if tc.socketPath == "" {
+				conn, err := grpc.NewClient("unix://"+socketPath,
+					grpc.WithTransportCredentials(insecure.NewCredentials()),
+					grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
+				require.NoError(t, err, "Setup: could not dial the server")
+				t.Cleanup(func() { conn.Close() })
+
+				require.NoError(t, grpcutils.WaitForConnection(context.TODO(), conn,
+					sleepDuration(5*time.Second)))
+
+				nssClient = authd.NewNSSClient(conn)
+				requireNoNSSUser(t, nssClient, user)
+			}
+
 			sshdPort := defaultSSHDPort
 			userHome := defaultUserHome
 			if !sharedSSHd || tc.wantLocalGroups || tc.interactiveShell || tc.socketPath != "" {
@@ -381,7 +390,7 @@ Wait`,
 			}
 
 			knownHost := filepath.Join(t.TempDir(), "known_hosts")
-			err := os.WriteFile(knownHost, []byte(
+			err = os.WriteFile(knownHost, []byte(
 				fmt.Sprintf("[localhost]:%s %s", sshdPort, pubKey),
 			), 0600)
 			require.NoError(t, err, "Setup: can't create known hosts file")
@@ -390,7 +399,7 @@ Wait`,
 			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
 			td.Command = tapeCommand
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
-			td.Env["HOME"] = userHome
+			td.Env["HOME"] = t.TempDir()
 			td.Env["AUTHD_PAM_SSH_USER"] = user
 			td.Env["AUTHD_PAM_SSH_ARGS"] = strings.Join([]string{
 				"-p", sshdPort,
@@ -406,10 +415,32 @@ Wait`,
 			got := sanitizeGoldenFile(t, td, outDir)
 			golden.CheckOrUpdate(t, got)
 			userEnv := fmt.Sprintf("USER=%s", user)
+
 			if tc.wantNotLoggedInUser {
 				require.NotContains(t, got, userEnv, "Should not have a logged in user")
+
+				if nssClient != nil {
+					requireNoNSSUser(t, nssClient, user)
+				}
+				if nssLibrary != "" {
+					requireGetEntExists(t, nssLibrary, socketPath, user, tc.isLocalUser)
+				}
 			} else {
 				require.Contains(t, got, userEnv, "Logged in user does not matches")
+
+				if nssClient != nil {
+					userPasswd := requireNSSUser(t, nssClient, user)
+					group := requireNSSGroup(t, nssClient, userPasswd.Gid)
+					require.Contains(t, group.Members, userPasswd.Name,
+						"Group lacks of the expected user")
+
+					if nssLibrary != "" {
+						userHome = userPasswd.Homedir
+
+						requireGetEntEqualsPasswd(t, nssLibrary, socketPath, user, userPasswd)
+						requireGetEntEqualsGroup(t, nssLibrary, socketPath, user, group)
+					}
+				}
 
 				stat, err := os.Stat(userHome)
 				require.NoError(t, err, "Error checking for %q", userHome)

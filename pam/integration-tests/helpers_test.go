@@ -359,3 +359,166 @@ func getUbuntuVersion(t *testing.T) int {
 	require.NoError(t, err, "Can't parse version ID: %q", osrelease.Release.ID)
 	return v
 }
+
+func nssTestEnvBase(t *testing.T, nssLibrary string) []string {
+	t.Helper()
+
+	require.NotEmpty(t, nssLibrary, "Setup: NSS Library is unset")
+	return []string{
+		"AUTHD_NSS_INFO=stderr",
+		fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", filepath.Dir(nssLibrary),
+			os.Getenv("LD_LIBRARY_PATH")),
+	}
+}
+
+func nssTestEnv(t *testing.T, nssLibrary, authdSocket string) []string {
+	t.Helper()
+
+	baseEnv := nssTestEnvBase(t, nssLibrary)
+
+	var preloadLibraries []string
+	if testutils.IsAsan() {
+		asanPath, err := exec.Command("gcc", "-print-file-name=libasan.so").Output()
+		require.NoError(t, err, "Setup: Looking for ASAN lib path")
+		preloadLibraries = []string{strings.TrimSpace(string(asanPath))}
+	}
+	preloadLibraries = append(preloadLibraries, nssLibrary)
+	baseEnv = append(baseEnv, fmt.Sprintf("LD_PRELOAD=%s",
+		strings.Join(preloadLibraries, ":")))
+
+	if authdSocket == "" {
+		return baseEnv
+	}
+
+	return append(baseEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", authdSocket))
+}
+
+func requireNSSUser(t *testing.T, client authd.NSSClient, user string) *authd.PasswdEntry {
+	t.Helper()
+
+	userPasswd, err := client.GetPasswdByName(context.Background(),
+		&authd.GetPasswdByNameRequest{Name: user, ShouldPreCheck: false})
+	require.NoError(t, err, "User %q is expected to exist", user)
+	require.NotNil(t, userPasswd, "User %q is expected to be not nil", user)
+
+	require.Equal(t, user, userPasswd.Name, "Passwd user does not match")
+	require.Equal(t, "/bin/sh", userPasswd.Shell, "Unexpected Shell for user %q", user)
+	require.NotZero(t, userPasswd.Uid, "Unexpected UID for user %q", user)
+	require.NotZero(t, userPasswd.Gid, "Unexpected GID for user %q", user)
+	require.NotEmpty(t, userPasswd.Homedir, "Unexpected HOME for user %q", user)
+	require.NotEmpty(t, userPasswd.Passwd, "Unexpected Passwd for user %q", user)
+	require.NotEmpty(t, userPasswd.Gecos, "Unexpected Gecos for user %q", user)
+
+	p, err := client.GetPasswdByUID(context.Background(),
+		&authd.GetByIDRequest{Id: userPasswd.Uid})
+	require.NoError(t, err, "User %q is expected to exist as id %v", userPasswd.Uid)
+	require.Equal(t, userPasswd, p, "User by ID does not match")
+
+	return userPasswd
+}
+
+func requireNoNSSUser(t *testing.T, client authd.NSSClient, user string) {
+	t.Helper()
+
+	_, err := client.GetPasswdByName(context.Background(),
+		&authd.GetPasswdByNameRequest{Name: user, ShouldPreCheck: false})
+	require.Error(t, err, "User %q is not expected to exist")
+}
+
+func requireNSSGroup(t *testing.T, client authd.NSSClient, gid uint32) *authd.GroupEntry {
+	t.Helper()
+
+	group, err := client.GetGroupByGID(context.Background(),
+		&authd.GetByIDRequest{Id: gid})
+	require.NoError(t, err, "Group %v is expected to exist", gid)
+	require.NotNil(t, group, "Group %v is expected to be not nil", gid)
+
+	require.Equal(t, gid, group.Gid, group.Name, "Group ID does not match")
+	require.NotEmpty(t, group.Name, "Group does not match")
+	require.NotEmpty(t, group.Gid, "Unexpected GID for group %q", group.Name)
+	require.NotEmpty(t, group.Members, "Unexpected Members for user %q", group.Name)
+
+	g, err := client.GetGroupByName(context.Background(),
+		&authd.GetGroupByNameRequest{Name: group.Name})
+	require.NoError(t, err, "Group %q is expected to exist", group.Name)
+	require.Equal(t, group, g, "Group by name %q does not match", group.Name)
+
+	return group
+}
+
+func getEntOutput(t *testing.T, nssLibrary, authdSocket, db, key string) string {
+	t.Helper()
+
+	// #nosec:G204 - we control the command arguments in tests
+	cmd := exec.Command("getent", db, key)
+	cmd.Env = nssTestEnv(t, nssLibrary, authdSocket)
+
+	out, err := cmd.Output()
+	require.NoError(t, err, "getent %s should not fail for key %q\n%s", db, key)
+
+	o := strings.TrimSpace(string(out))
+	t.Log(strings.Join(cmd.Args, " "), "returned:", o)
+
+	return o
+}
+
+func requireGetEntOutputEqualsPasswd(t *testing.T, getentOutput string, userPasswd *authd.PasswdEntry) {
+	t.Helper()
+
+	require.Equal(t, []string{
+		userPasswd.Name,
+		userPasswd.Passwd,
+		fmt.Sprint(userPasswd.Uid),
+		fmt.Sprint(userPasswd.Gid),
+		userPasswd.Gecos,
+		userPasswd.Homedir,
+		userPasswd.Shell,
+	}, strings.Split(getentOutput, ":"), "Unexpected getent output: %s", getentOutput)
+}
+
+func requireGetEntEqualsPasswd(t *testing.T, nssLibrary, authdSocket, user string, userPasswd *authd.PasswdEntry) {
+	t.Helper()
+
+	requireGetEntOutputEqualsPasswd(t,
+		getEntOutput(t, nssLibrary, authdSocket, "passwd", user), userPasswd)
+
+	requireGetEntOutputEqualsPasswd(t,
+		getEntOutput(t, nssLibrary, authdSocket, "passwd", fmt.Sprint(userPasswd.Uid)),
+		userPasswd)
+}
+
+func requireGetEntOutputEqualsGroup(t *testing.T, getentOutput string, group *authd.GroupEntry) {
+	t.Helper()
+
+	require.Equal(t, []string{
+		group.Name,
+		group.Passwd,
+		fmt.Sprint(group.Gid),
+		strings.Join(group.Members, ","),
+	}, strings.Split(getentOutput, ":"), "Unexpected getent output: %s", getentOutput)
+}
+
+func requireGetEntEqualsGroup(t *testing.T, nssLibrary, authdSocket, name string, group *authd.GroupEntry) {
+	t.Helper()
+
+	requireGetEntOutputEqualsGroup(t,
+		getEntOutput(t, nssLibrary, authdSocket, "group", name), group)
+
+	requireGetEntOutputEqualsGroup(t,
+		getEntOutput(t, nssLibrary, authdSocket, "group", fmt.Sprint(group.Gid)), group)
+}
+
+func requireGetEntExists(t *testing.T, nssLibrary, authdSocket, user string, exists bool) {
+	t.Helper()
+
+	// #nosec:G204 - we control the command arguments in tests
+	cmd := exec.Command("getent", "passwd", user)
+	cmd.Env = nssTestEnv(t, nssLibrary, authdSocket)
+	out, err := cmd.CombinedOutput()
+
+	if !exists {
+		require.Error(t, err, "getent should fail for user %q\n%s", user, out)
+		return
+	}
+	require.NoError(t, err, "getent should not fail for user %q\n%s", user, out)
+}
