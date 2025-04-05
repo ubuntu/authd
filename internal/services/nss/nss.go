@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/proto/authd"
@@ -40,11 +41,12 @@ func NewService(ctx context.Context, userManager *users.Manager, brokerManager *
 
 // GetPasswdByName returns the passwd entry for the given username.
 func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetPasswdByNameRequest) (*authd.PasswdEntry, error) {
-	if req.GetName() == "" {
+	name := req.GetName()
+	if name == "" {
 		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
 
-	u, err := s.userManager.UserByName(req.GetName())
+	u, err := s.userManager.UserByName(name)
 	if err == nil {
 		return nssPasswdFromUsersPasswd(u), nil
 	}
@@ -55,7 +57,7 @@ func (s Service) GetPasswdByName(ctx context.Context, req *authd.GetPasswdByName
 	}
 
 	// If the user is not found in the database, we check if it exists in at least one broker.
-	pwent, err := s.userPreCheck(ctx, req.GetName())
+	pwent, err := s.userPreCheck(ctx, name)
 	if err != nil {
 		log.Debugf(context.Background(), "GetPasswdByName: %v", err)
 		return nil, status.Error(codes.NotFound, err.Error())
@@ -165,6 +167,9 @@ func (s Service) GetShadowEntries(ctx context.Context, req *authd.Empty) (*authd
 
 // userPreCheck checks if the user exists in at least one broker.
 func (s Service) userPreCheck(ctx context.Context, username string) (pwent *authd.PasswdEntry, err error) {
+	// authd uses lowercase usernames.
+	username = strings.ToLower(username)
+
 	// Check if the user exists in at least one broker.
 	var userinfo string
 	for _, b := range s.brokerManager.AvailableBrokers() {
