@@ -12,6 +12,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/term"
 	"github.com/msteinert/pam/v2"
+	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/log"
 )
 
@@ -146,6 +147,20 @@ func defaultSafeMessageFormatter(msg tea.Msg) string {
 	case newPasswordCheckResult:
 		return fmt.Sprintf("%#v",
 			newPasswordCheckResult{password: "***********", msg: msg.msg, ctx: msg.ctx})
+	case isAuthenticatedRequested:
+		switch item := msg.item.(type) {
+		case *authd.IARequest_AuthenticationData_Secret:
+			return fmt.Sprintf(`%T{%T{Secret:"***********"}}`, msg, item)
+		case *authd.IARequest_AuthenticationData_Wait:
+			return fmt.Sprintf("%T{%T{Wait:%q}}", msg, item, item.Wait)
+		case *authd.IARequest_AuthenticationData_Skip:
+			return fmt.Sprintf("%T{%T{Skip:%q}}", msg, item, item.Skip)
+		default:
+			return fmt.Sprintf("%T{%T{}}", msg, item)
+		}
+	case isAuthenticatedRequestedSend:
+		return fmt.Sprintf("%T{%s}", msg,
+			defaultSafeMessageFormatter(msg.isAuthenticatedRequested))
 	case tea.KeyMsg:
 		if msg.Type != tea.KeyRunes {
 			return fmt.Sprintf("%T{%s}", msg, msg)
@@ -163,6 +178,16 @@ func testMessageFormatter(msg tea.Msg) string {
 	switch msg := msg.(type) {
 	case newPasswordCheck:
 	case newPasswordCheckResult:
+	case isAuthenticatedRequested:
+		switch item := msg.item.(type) {
+		case *authd.IARequest_AuthenticationData_Secret:
+			return fmt.Sprintf(`%T{%T{Secret:%q}}`, msg, item, item.Secret)
+		default:
+			return defaultSafeMessageFormatter(msg)
+		}
+	case isAuthenticatedRequestedSend:
+		return fmt.Sprintf("%T{%s}", msg,
+			testMessageFormatter(msg.isAuthenticatedRequested))
 	case tea.KeyMsg:
 		return fmt.Sprintf("%T{%s}", msg, msg)
 	default:
