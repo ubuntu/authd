@@ -3527,6 +3527,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-switching-auth-mode-on-shared-sshd@localhost) Enter your pin code:
 > 4242
 PAM Authenticate() finished for user 'user-integration-pre-check-ssh-authenticate-user-switching-auth-mode-on-shared-sshd'
+PAM AcctMgmt() finished for user 'user-integration-pre-check-ssh-authenticate-user-switching-auth-mode-on-shared-sshd'
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
   LOGNAME=user-integration-pre-check-ssh-authenticate-user-switching-auth-mode-on-shared-sshd

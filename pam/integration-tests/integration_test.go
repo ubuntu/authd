@@ -10,6 +10,8 @@ import (
 
 const authdCurrentUserRootEnvVariableContent = "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1"
 
+var daemonPath string
+
 func TestMain(m *testing.M) {
 	// Needed to skip the test setup when running the gpasswd mock.
 	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
