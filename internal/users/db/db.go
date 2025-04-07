@@ -14,13 +14,13 @@ import (
 
 	// sqlite3 driver.
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/users/db/bbolt"
 	"github.com/ubuntu/authd/log"
 )
 
 var (
-	filename = "authd.sqlite3"
 	//go:embed sql/create_schema.sql
 	createSchema string
 )
@@ -41,7 +41,7 @@ type queryable interface {
 
 // New creates a new database manager by creating or opening the underlying database.
 func New(dbDir string) (*Manager, error) {
-	dbPath := filepath.Join(dbDir, filename)
+	dbPath := filepath.Join(dbDir, consts.DefaultDatabaseFileName)
 
 	exists, err := fileutils.FileExists(dbPath)
 	if err != nil {
@@ -246,14 +246,9 @@ func (m *Manager) Close() error {
 	return m.db.Close()
 }
 
-// Filename returns the name of the database file.
-func Filename() string {
-	return filename
-}
-
 // RemoveDB removes the database file.
 func RemoveDB(dbDir string) error {
-	return os.Remove(filepath.Join(dbDir, filename))
+	return os.Remove(filepath.Join(dbDir, consts.DefaultDatabaseFileName))
 }
 
 // NoDataFoundError is returned when we didn’t find a matching entry.
