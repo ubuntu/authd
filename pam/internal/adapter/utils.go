@@ -161,6 +161,14 @@ func defaultSafeMessageFormatter(msg tea.Msg) string {
 	case isAuthenticatedRequestedSend:
 		return fmt.Sprintf("%T{%s}", msg,
 			defaultSafeMessageFormatter(msg.isAuthenticatedRequested))
+	case UILayoutReceived:
+		return fmt.Sprintf("%T{%#v}", msg, msg.layout)
+	case ChangeStage:
+		return fmt.Sprintf("%T{Stage:%q}", msg, msg.Stage)
+	case StageChanged:
+		return fmt.Sprintf("%T{Stage:%q}", msg, msg.Stage)
+	case nativeStageChangeRequest:
+		return fmt.Sprintf("%T{Stage:%q}", msg, msg.Stage)
 	case tea.KeyMsg:
 		if msg.Type != tea.KeyRunes {
 			return fmt.Sprintf("%T{%s}", msg, msg)
