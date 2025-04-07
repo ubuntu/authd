@@ -141,7 +141,10 @@ func (gh *gdmTestModuleHandler) getPollResponses(events []*gdm.EventData) []*gdm
 	require.NotEqual(gh.t, events[0].Type, gdm_test.EventsGroupEnd().Type,
 		"Unsupported event type")
 
-	pollEvents := gh.tunePollEvents(events[0:numEvents])
+	var pollEvents []*gdm.EventData
+	if events[0].Type != gdm_test.IgnoredEvent().Type {
+		pollEvents = gh.tunePollEvents(events[0:numEvents])
+	}
 	events = slices.Delete(events, 0, numEvents)
 	gh.pollResponses = append(gh.pollResponses, pollEvents...)
 	return events

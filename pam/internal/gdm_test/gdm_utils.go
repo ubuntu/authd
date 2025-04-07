@@ -49,6 +49,13 @@ func EventsGroupEnd() *gdm.EventData {
 	}
 }
 
+// IgnoredEvent allows to ignore an event.
+func IgnoredEvent() *gdm.EventData {
+	return &gdm.EventData{
+		Type: gdm.EventType(-1002),
+	}
+}
+
 // SelectUserEvent generates a SelectUser event.
 func SelectUserEvent(username string) *gdm.EventData {
 	return &gdm.EventData{
