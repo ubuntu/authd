@@ -149,12 +149,12 @@ force_provider_authentication = false
 ::::
 :::::
 
-## Enable forced authentication
+## Force online authentication with remote identity provider
 
-By default, authentication with the identity provider only happens
-if the provider is reachable during login.
+By default, authentication with the remote identity provider only happens
+if the user is online and the provider is reachable during login.
 
-If you want to force authentication, even when the provider is unreachable,
+If you want to force remote authentication, even when the provider is unreachable,
 enable it as follows:
 
 ```ini
