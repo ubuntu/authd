@@ -296,6 +296,31 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
+		"Authenticates_user_switching_to_phone_ack_from_auth_mode_selection_stage": {
+			wantAuthModeIDs: []string{passwordAuthID, phoneAck1ID},
+			stagePollResponses: map[proto.Stage][]*gdm.EventData{
+				proto.Stage_authModeSelection: {
+					gdm_test.IgnoredEvent(), // Password is auto-selected.
+					gdm_test.AuthModeSelectedEvent(phoneAck1ID),
+				},
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
+
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: layouts.True,
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{
+				&testPasswordUILayout,
+				&testPhoneAckUILayout,
+			},
+			wantAuthResponses: []*authd.IAResponse{
+				{Access: auth.Granted},
+			},
+		},
 		"Authenticates_user_switching_to_totp_from_challenge_stage": {
 			wantAuthModeIDs: []string{passwordAuthID, totpID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
@@ -304,6 +329,31 @@ func TestGdmModule(t *testing.T) {
 					gdm_test.IsAuthenticatedCancelledEvent(),
 					gdm_test.AuthModeSelectedEvent(totpID),
 					gdm_test.EventsGroupEnd(),
+
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "temporary pass0",
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{
+				&testPasswordUILayout,
+				&testTOTPWithoutButtonUILayout,
+			},
+			wantAuthResponses: []*authd.IAResponse{
+				{Access: auth.Granted},
+			},
+		},
+		"Authenticates_user_switching_to_totp_from_auth_mode_selection_stage": {
+			wantAuthModeIDs: []string{passwordAuthID, totpID},
+			stagePollResponses: map[proto.Stage][]*gdm.EventData{
+				proto.Stage_authModeSelection: {
+					gdm_test.IgnoredEvent(), // Password is auto-selected.
+					gdm_test.AuthModeSelectedEvent(totpID),
+				},
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
 
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
 						Secret: "temporary pass0",
@@ -552,6 +602,35 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
+		"Authenticates_user_after_switching_to_qrcode_from_auth_mode_selection_stage": {
+			wantAuthModeIDs: []string{passwordAuthID, qrcodeID},
+			supportedLayouts: []*authd.UILayout{
+				pam_test.FormUILayout(pam_test.WithWait(true)),
+				pam_test.QrCodeUILayout(),
+			},
+			stagePollResponses: map[proto.Stage][]*gdm.EventData{
+				proto.Stage_authModeSelection: {
+					gdm_test.IgnoredEvent(), // Password is auto-selected.
+					gdm_test.AuthModeSelectedEvent(qrcodeID),
+				},
+			},
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
+
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Wait{
+						Wait: layouts.True,
+					}),
+				},
+			},
+			wantUILayouts: []*authd.UILayout{
+				&testPasswordUILayout,
+				&testQrcodeUILayout,
+			},
+			wantAuthResponses: []*authd.IAResponse{
+				{Access: auth.Granted},
+			},
+		},
 		"Authenticates_user_after_regenerating_the_qrcode_with_optional_code_field": {
 			wantAuthModeIDs: []string{
 				passwordAuthID,
@@ -565,12 +644,15 @@ func TestGdmModule(t *testing.T) {
 				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.QrCodeUILayout(pam_test.WithQrCodeCode(layouts.Optional)),
 			},
+			stagePollResponses: map[proto.Stage][]*gdm.EventData{
+				proto.Stage_authModeSelection: {
+					gdm_test.IgnoredEvent(), // Password is auto-selected.
+					gdm_test.AuthModeSelectedEvent(qrcodeID),
+				},
+			},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
-					gdm_test.EventsGroupBegin(),
-					gdm_test.IsAuthenticatedCancelledEvent(),
-					gdm_test.AuthModeSelectedEvent(qrcodeID),
-					gdm_test.EventsGroupEnd(),
+					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
 
 					// Start authentication and regenerate the qrcode (1)
 					gdm_test.EventsGroupBegin(),
