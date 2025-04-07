@@ -7,6 +7,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/authd/pam/internal/proto"
 )
@@ -43,6 +44,58 @@ func TestDebugMessageFormatter(t *testing.T) {
 		"Key_modifier_message": {
 			msg:            tea.KeyMsg{Type: tea.KeyTab, Runes: []rune{'p', 'a', 's', 's'}},
 			wantSafeString: `tea.KeyMsg{tab}`,
+		},
+		"isAuthenticatedRequested_empty": {
+			msg:            isAuthenticatedRequested{},
+			wantSafeString: `adapter.isAuthenticatedRequested{<nil>{}}`,
+		},
+		"isAuthenticatedRequested_with_secret": {
+			msg: isAuthenticatedRequested{
+				item: &authd.IARequest_AuthenticationData_Secret{Secret: "super-secret!"},
+			},
+			wantSafeString:  `adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Secret{Secret:"***********"}}`,
+			wantDebugString: `adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Secret{Secret:"super-secret!"}}`,
+		},
+		"isAuthenticatedRequested_with_wait": {
+			msg: isAuthenticatedRequested{
+				item: &authd.IARequest_AuthenticationData_Wait{Wait: "wait!"},
+			},
+			wantSafeString: `adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Wait{Wait:"wait!"}}`,
+		},
+		"isAuthenticatedRequested_with_skip": {
+			msg: isAuthenticatedRequested{
+				item: &authd.IARequest_AuthenticationData_Skip{Skip: "skip!"},
+			},
+			wantSafeString: `adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Skip{Skip:"skip!"}}`,
+		},
+		"isAuthenticatedRequestedSend_empty": {
+			msg:            isAuthenticatedRequestedSend{},
+			wantSafeString: `adapter.isAuthenticatedRequestedSend{adapter.isAuthenticatedRequested{<nil>{}}}`,
+		},
+		"isAuthenticatedRequestedSend_with_secret": {
+			msg: isAuthenticatedRequestedSend{
+				isAuthenticatedRequested: isAuthenticatedRequested{
+					item: &authd.IARequest_AuthenticationData_Secret{Secret: "super-secret!"},
+				},
+			},
+			wantSafeString:  `adapter.isAuthenticatedRequestedSend{adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Secret{Secret:"***********"}}}`,
+			wantDebugString: `adapter.isAuthenticatedRequestedSend{adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Secret{Secret:"super-secret!"}}}`,
+		},
+		"isAuthenticatedRequestedSend_with_wait": {
+			msg: isAuthenticatedRequestedSend{
+				isAuthenticatedRequested: isAuthenticatedRequested{
+					item: &authd.IARequest_AuthenticationData_Wait{Wait: "wait!"},
+				},
+			},
+			wantSafeString: `adapter.isAuthenticatedRequestedSend{adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Wait{Wait:"wait!"}}}`,
+		},
+		"isAuthenticatedRequestedSend_with_skip": {
+			msg: isAuthenticatedRequestedSend{
+				isAuthenticatedRequested: isAuthenticatedRequested{
+					item: &authd.IARequest_AuthenticationData_Skip{Skip: "skip!"},
+				},
+			},
+			wantSafeString: `adapter.isAuthenticatedRequestedSend{adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Skip{Skip:"skip!"}}}`,
 		},
 	}
 
@@ -133,6 +186,58 @@ func TestSafeMessageDebug(t *testing.T) {
 		"Key_modifier_message": {
 			msg:            tea.KeyMsg{Type: tea.KeyTab, Runes: []rune{'p', 'a', 's', 's'}},
 			wantSafeString: `tea.KeyMsg{tab}`,
+		},
+		"isAuthenticatedRequested_empty": {
+			msg:            isAuthenticatedRequested{},
+			wantSafeString: `adapter.isAuthenticatedRequested{<nil>{}}`,
+		},
+		"isAuthenticatedRequested_with_secret": {
+			msg: isAuthenticatedRequested{
+				item: &authd.IARequest_AuthenticationData_Secret{Secret: "super-secret!"},
+			},
+			wantSafeString:  `adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Secret{Secret:"***********"}}`,
+			wantDebugString: `adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Secret{Secret:"super-secret!"}}`,
+		},
+		"isAuthenticatedRequested_with_wait": {
+			msg: isAuthenticatedRequested{
+				item: &authd.IARequest_AuthenticationData_Wait{Wait: "wait!"},
+			},
+			wantSafeString: `adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Wait{Wait:"wait!"}}`,
+		},
+		"isAuthenticatedRequested_with_skip": {
+			msg: isAuthenticatedRequested{
+				item: &authd.IARequest_AuthenticationData_Skip{Skip: "skip!"},
+			},
+			wantSafeString: `adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Skip{Skip:"skip!"}}`,
+		},
+		"isAuthenticatedRequestedSend_empty": {
+			msg:            isAuthenticatedRequestedSend{},
+			wantSafeString: `adapter.isAuthenticatedRequestedSend{adapter.isAuthenticatedRequested{<nil>{}}}`,
+		},
+		"isAuthenticatedRequestedSend_with_secret": {
+			msg: isAuthenticatedRequestedSend{
+				isAuthenticatedRequested: isAuthenticatedRequested{
+					item: &authd.IARequest_AuthenticationData_Secret{Secret: "super-secret!"},
+				},
+			},
+			wantSafeString:  `adapter.isAuthenticatedRequestedSend{adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Secret{Secret:"***********"}}}`,
+			wantDebugString: `adapter.isAuthenticatedRequestedSend{adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Secret{Secret:"super-secret!"}}}`,
+		},
+		"isAuthenticatedRequestedSend_with_wait": {
+			msg: isAuthenticatedRequestedSend{
+				isAuthenticatedRequested: isAuthenticatedRequested{
+					item: &authd.IARequest_AuthenticationData_Wait{Wait: "wait!"},
+				},
+			},
+			wantSafeString: `adapter.isAuthenticatedRequestedSend{adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Wait{Wait:"wait!"}}}`,
+		},
+		"isAuthenticatedRequestedSend_with_skip": {
+			msg: isAuthenticatedRequestedSend{
+				isAuthenticatedRequested: isAuthenticatedRequested{
+					item: &authd.IARequest_AuthenticationData_Skip{Skip: "skip!"},
+				},
+			},
+			wantSafeString: `adapter.isAuthenticatedRequestedSend{adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Skip{Skip:"skip!"}}}`,
 		},
 	}
 
