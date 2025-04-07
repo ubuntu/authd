@@ -20,6 +20,7 @@ import (
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
+	"github.com/ubuntu/authd/pam/internal/proto"
 )
 
 func enableGdmExtension() {
@@ -144,6 +145,7 @@ func TestGdmModule(t *testing.T) {
 		protoVersion       uint32
 		brokerName         string
 		eventPollResponses map[gdm.EventType][]*gdm.EventData
+		stagePollResponses map[proto.Stage][]*gdm.EventData
 		moduleArgs         []string
 
 		wantError            error
@@ -869,6 +871,7 @@ func TestGdmModule(t *testing.T) {
 				}
 			})
 			gh.eventPollResponses = tc.eventPollResponses
+			gh.stagePollResponses = tc.stagePollResponses
 
 			gh.supportedLayouts = tc.supportedLayouts
 			if tc.supportedLayouts == nil {

@@ -41,6 +41,7 @@ type gdmTestModuleHandler struct {
 	brokerInfo         *authd.ABResponse_BrokerInfo
 
 	eventPollResponses map[gdm.EventType][]*gdm.EventData
+	stagePollResponses map[proto.Stage][]*gdm.EventData
 
 	pamInfoMessages  []string
 	pamErrorMessages []string
@@ -256,10 +257,19 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 		gh.currentStage = req.ChangeStage.Stage
 		log.Debugf(context.TODO(), "Switching to stage %d", gh.currentStage)
 
+		defer func() {
+			events, ok := gh.stagePollResponses[gh.currentStage]
+			if !ok {
+				return
+			}
+			gh.stagePollResponses[gh.currentStage] = gh.getPollResponses(events)
+		}()
+
 		switch req.ChangeStage.Stage {
 		case proto.Stage_brokerSelection:
 			gh.authModes = nil
 			gh.brokerInfo = nil
+			gh.currentUILayout = nil
 
 			err := gh.queueSelectBrokerEvent()
 			if err != nil && len(gh.brokersInfos) > 0 {
