@@ -34,6 +34,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd@localhost) Gimme your password:
 >
 PAM Authenticate() finished for user 'user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd'
+PAM AcctMgmt() finished for user 'user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd'
  SSHD: Connected to ssh via authd module! [TestSSHAuthenticate]
   HOME=${AUTHD_TEST_HOME}
   LOGNAME=user-integration-pre-check-ssh-authenticate-user-successfully-on-shared-sshd

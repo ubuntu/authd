@@ -314,6 +314,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 (user-integration-pre-check-ssh-authenticate-user-with-form-mode-with-button@localhost) Enter your one time credential:
 > temporary pass00
 PAM Authenticate() finished for user 'user-integration-pre-check-ssh-authenticate-user-with-form-mode-with-button'
+PAM AcctMgmt() finished for user 'user-integration-pre-check-ssh-authenticate-user-with-form-mode-with-button'
 Environment:
   USER=user-integration-pre-check-ssh-authenticate-user-with-form-mode-with-button
   LOGNAME=user-integration-pre-check-ssh-authenticate-user-with-form-mode-with-button

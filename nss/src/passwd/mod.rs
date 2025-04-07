@@ -114,6 +114,9 @@ fn get_entry_by_name(name: String) -> Response<Passwd> {
             return Response::NotFound;
         }
 
+        #[cfg(feature = "integration_tests")]
+        info!("Get entry by name '{}' (pre-check: {})", name, should_pre_check());
+
         let mut req = Request::new(authd::GetPasswdByNameRequest {
             name: name.clone(),
             should_pre_check: should_pre_check(),
@@ -149,21 +152,35 @@ fn passwd_entries_to_passwds(entries: Vec<PasswdEntry>) -> Vec<Passwd> {
 
 static SSHD_BINARY_PATH: &str = "/usr/sbin/sshd";
 
-/// should_pre_check returns true if the current process is a child of sshd.
+fn is_proc_matching(pid: u32, name: &str) -> bool {
+    let proc = procfs::process::Process::new(pid as i32);
+    if proc.is_err() {
+        return false;
+    }
+
+    let exe = proc.unwrap().exe();
+    if exe.is_err() {
+        return false;
+    }
+
+    let unwrapped_exe = exe.unwrap();
+
+    #[cfg(feature = "integration_tests")]
+    info!("Pre-check test: process '{}'", unwrapped_exe.display());
+
+    matches!(unwrapped_exe, s if s == PathBuf::from(name))
+}
+
+/// should_pre_check returns true if the current process sshd or a child of sshd.
 #[allow(unreachable_code)] // This function body is overridden in integration tests, so we need to ignore the warning.
 fn should_pre_check() -> bool {
-    #[cfg(feature = "integration_tests")]
+    #[cfg(feature = "should_pre_check_env")]
     return std::env::var("AUTHD_NSS_SHOULD_PRE_CHECK").is_ok();
 
-    let parent = procfs::process::Process::new(std::os::unix::process::parent_id() as i32);
-    if parent.is_err() {
-        return false;
+    let pid = std::process::id();
+    if is_proc_matching(pid, SSHD_BINARY_PATH) {
+        return true;
     }
 
-    let executable_path = parent.unwrap().exe();
-    if executable_path.is_err() {
-        return false;
-    }
-
-    PathBuf::from(SSHD_BINARY_PATH) == executable_path.unwrap()
+    is_proc_matching(std::os::unix::process::parent_id(), SSHD_BINARY_PATH)
 }
