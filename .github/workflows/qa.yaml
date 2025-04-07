@@ -83,7 +83,7 @@ jobs:
           sudo apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}}
       - uses: actions/checkout@v4
       - name: Rust code sanity check
-        uses: canonical/desktop-engineering/gh-actions/rust/code-sanity@main
+        uses: canonical/desktop-engineering/gh-actions/rust/code-sanity@fix-rustfmt-check
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
