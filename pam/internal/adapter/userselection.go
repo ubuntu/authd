@@ -78,7 +78,7 @@ func (m userSelectionModel) SelectUser() tea.Cmd {
 func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case userSelected:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		currentUser, err := m.pamMTx.GetItem(pam.User)
 		if cmd := maybeSendPamError(err); cmd != nil {
 			return m, cmd
@@ -106,7 +106,7 @@ func (m userSelectionModel) Update(msg tea.Msg) (userSelectionModel, tea.Cmd) {
 		return m, sendEvent(UsernameSelected{})
 
 	case userRequired:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		m.enabled = true
 		return m, sendEvent(ChangeStage{Stage: proto.Stage_userSelection})
 	}
