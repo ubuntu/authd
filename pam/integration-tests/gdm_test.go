@@ -20,7 +20,6 @@ import (
 	"github.com/ubuntu/authd/pam/internal/gdm"
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
-	"github.com/ubuntu/authd/pam/internal/proto"
 )
 
 func enableGdmExtension() {
@@ -273,12 +272,12 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
-		"Authenticates_user_switching_to_phone_ack": {
+		"Authenticates_user_switching_to_phone_ack_from_challenge_stage": {
 			wantAuthModeIDs: []string{passwordAuthID, phoneAck1ID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.EventsGroupBegin(),
-					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
+					gdm_test.IsAuthenticatedCancelledEvent(),
 					gdm_test.AuthModeSelectedEvent(phoneAck1ID),
 					gdm_test.EventsGroupEnd(),
 
@@ -295,12 +294,12 @@ func TestGdmModule(t *testing.T) {
 				{Access: auth.Granted},
 			},
 		},
-		"Authenticates_user_switching_to_totp": {
+		"Authenticates_user_switching_to_totp_from_challenge_stage": {
 			wantAuthModeIDs: []string{passwordAuthID, totpID},
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.EventsGroupBegin(),
-					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
+					gdm_test.IsAuthenticatedCancelledEvent(),
 					gdm_test.AuthModeSelectedEvent(totpID),
 					gdm_test.EventsGroupEnd(),
 
@@ -525,7 +524,7 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantUILayouts: []*authd.UILayout{&testQrcodeUILayout},
 		},
-		"Authenticates_user_after_switching_to_qrcode": {
+		"Authenticates_user_after_switching_to_qrcode_from_challenge_stage": {
 			wantAuthModeIDs: []string{passwordAuthID, qrcodeID},
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(pam_test.WithWait(true)),
@@ -534,7 +533,7 @@ func TestGdmModule(t *testing.T) {
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.EventsGroupBegin(),
-					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
+					gdm_test.IsAuthenticatedCancelledEvent(),
 					gdm_test.AuthModeSelectedEvent(qrcodeID),
 					gdm_test.EventsGroupEnd(),
 
@@ -567,7 +566,7 @@ func TestGdmModule(t *testing.T) {
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.EventsGroupBegin(),
-					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
+					gdm_test.IsAuthenticatedCancelledEvent(),
 					gdm_test.AuthModeSelectedEvent(qrcodeID),
 					gdm_test.EventsGroupEnd(),
 
@@ -629,7 +628,7 @@ func TestGdmModule(t *testing.T) {
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.EventsGroupBegin(),
-					gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
+					gdm_test.IsAuthenticatedCancelledEvent(),
 					gdm_test.AuthModeSelectedEvent(qrcodeWithoutCodeID),
 					gdm_test.EventsGroupEnd(),
 
