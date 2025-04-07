@@ -153,7 +153,19 @@ func (m nativeModel) requestStageChange(stage proto.Stage) tea.Cmd {
 }
 
 func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
-	log.Debugf(context.TODO(), "Native model update: %#v", msg)
+	if log.IsLevelEnabled(log.DebugLevel) {
+		const prefix = "Native model update"
+		switch msg := msg.(type) {
+		case newPasswordCheck:
+			log.Debugf(context.TODO(), "%s: %#v", prefix,
+				newPasswordCheck{password: "***********", ctx: msg.ctx})
+		case newPasswordCheckResult:
+			log.Debugf(context.TODO(), "%s: %#v", prefix,
+				newPasswordCheckResult{password: "***********", msg: msg.msg, ctx: msg.ctx})
+		default:
+			log.Debugf(context.TODO(), "%s: %#v", prefix, msg)
+		}
+	}
 
 	switch msg := msg.(type) {
 	case StageChanged:
