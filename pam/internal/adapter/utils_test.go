@@ -24,7 +24,15 @@ func TestDebugMessageFormatter(t *testing.T) {
 		"Empty_msg": {},
 		"StageChanged_message": {
 			msg:            StageChanged{proto.Stage_brokerSelection},
-			wantSafeString: "adapter.StageChanged{Stage:1}",
+			wantSafeString: `adapter.StageChanged{Stage:"brokerSelection"}`,
+		},
+		"ChangeStage_message": {
+			msg:            ChangeStage{Stage: proto.Stage_authModeSelection},
+			wantSafeString: `adapter.ChangeStage{Stage:"authModeSelection"}`,
+		},
+		"nativeStageChangeRequest_message": {
+			msg:            ChangeStage{Stage: proto.Stage_authModeSelection},
+			wantSafeString: `adapter.ChangeStage{Stage:"authModeSelection"}`,
 		},
 		"New_password_check": {
 			msg:             newPasswordCheck{password: "Super secret password!"},
@@ -137,7 +145,7 @@ func TestSafeMessageDebug(t *testing.T) {
 		},
 		"StageChanged_message": {
 			msg:            StageChanged{proto.Stage_brokerSelection},
-			wantSafeString: "adapter.StageChanged{Stage:1}",
+			wantSafeString: `adapter.StageChanged{Stage:"brokerSelection"}`,
 		},
 		"startAuthentication_message_with_prefix": {
 			msg:            startAuthentication{},
