@@ -24,6 +24,9 @@ const (
 	// DefaultDatabaseDir is the default directory for the database.
 	DefaultDatabaseDir = "/var/lib/authd/"
 
+	// DefaultDatabaseFileName is the default file name for the database.
+	DefaultDatabaseFileName = "authd.sqlite3"
+
 	// ServiceName is the authd service name for health check purposes.
 	ServiceName = "com.ubuntu.authd"
 )

@@ -64,7 +64,7 @@ func handleUserUpdate(db queryable, u UserRow) error {
 		u.Dir = existingUser.Dir
 	}
 
-	log.Debug(context.Background(), fmt.Sprintf("Updating entry of user %q (UID: %d)", u.Name, u.UID))
+	log.Debugf(context.Background(), "Updating entry of user %q (UID: %d)", u.Name, u.UID)
 	return insertOrUpdateUserByID(db, u)
 }
 
@@ -85,7 +85,7 @@ func handleGroupsUpdate(db queryable, groups []GroupRow) error {
 			return fmt.Errorf("GID for group %q already in use by a different group", group.Name)
 		}
 
-		log.Debug(context.Background(), fmt.Sprintf("Updating entry of group %q (%+v)", group.Name, group))
+		log.Debugf(context.Background(), "Updating entry of group %q (%+v)", group.Name, group)
 		if err := insertOrUpdateGroupByID(db, group); err != nil {
 			return err
 		}
