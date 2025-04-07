@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
@@ -48,7 +49,7 @@ var (
 	sharedAuthdInstance = authdInstance{}
 )
 
-func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) (
+func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, isSharedDaemon bool, args ...testutils.DaemonOption) (
 	socketPath string, waitFunc func()) {
 	t.Helper()
 
@@ -68,6 +69,12 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 	require.NoError(t, err, "Setup: Creating home base dir %q", homeBaseDir)
 	args = append(args, testutils.WithHomeBaseDir(homeBaseDir))
 
+	if !isSharedDaemon {
+		database := filepath.Join(t.TempDir(), "db", consts.DefaultDatabaseFileName)
+		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
+		saveArtifactsForDebugOnCleanup(t, []string{outputFile})
+	}
+
 	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, args...)
 	saveArtifactsForDebugOnCleanup(t, []string{outputFile})
 	return socketPath, func() {
@@ -79,7 +86,7 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) string {
 	t.Helper()
 
-	socketPath, _ := runAuthdForTesting(t, gpasswdOutput, groupsFile, currentUserAsRoot, args...)
+	socketPath, _ := runAuthdForTesting(t, gpasswdOutput, groupsFile, currentUserAsRoot, false, args...)
 	return socketPath
 }
 
@@ -94,7 +101,7 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 	if !useSharedInstance {
 		gPasswd := filepath.Join(t.TempDir(), "gpasswd.output")
 		groups := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-		socket, cleanup := runAuthdForTesting(t, gPasswd, groups, true, args...)
+		socket, cleanup := runAuthdForTesting(t, gPasswd, groups, true, useSharedInstance, args...)
 		t.Cleanup(cleanup)
 		return socket, gPasswd
 	}
@@ -135,7 +142,7 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 	sa.gPasswdOutputPath = filepath.Join(t.TempDir(), "gpasswd.output")
 	sa.groupsFile = filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 	sa.socketPath, sa.cleanup = runAuthdForTesting(t, sa.gPasswdOutputPath,
-		sa.groupsFile, true, args...)
+		sa.groupsFile, true, useSharedInstance, args...)
 	return sa.socketPath, sa.gPasswdOutputPath
 }
 
