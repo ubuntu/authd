@@ -633,6 +633,8 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 	}()
 
 	access, data = b.handleIsAuthenticated(ctx, sessionInfo, authData)
+	log.Debugf(context.TODO(), "Authentication result on session %s (%s) for user %q: %q - %#v",
+		sessionInfo.sessionMode, sessionID, sessionInfo.username, access, data)
 	if access == auth.Granted && sessionInfo.currentAuthStep < sessionInfo.neededAuthSteps {
 		sessionInfo.currentAuthStep++
 		access = auth.Next
@@ -764,6 +766,7 @@ func (b *Broker) handleIsAuthenticated(ctx context.Context, sessionInfo sessionI
 			return auth.Retry, fmt.Sprintf(`{"message": "new password does not match criteria: must be '%s'"}`, expectedSecret)
 		}
 		exampleUsersMu.Lock()
+		log.Debugf(context.TODO(), "Password for user %q changed to %q", sessionInfo.username, secret)
 		exampleUsers[sessionInfo.username] = userInfoBroker{Password: secret}
 		exampleUsersMu.Unlock()
 
