@@ -39,7 +39,7 @@ func TestCLIAuthenticate(t *testing.T) {
 	}{
 		"Authenticate_user_successfully": {
 			tape:          "simple_auth",
-			tapeVariables: map[string]string{"AUTHD_SIMPLE_AUTH_TAPE_USER": "user1"},
+			tapeVariables: map[string]string{vhsTapeUserVariable: "user1"},
 		},
 		"Authenticate_user_successfully_with_preset_user": {
 			tape: "simple_auth_with_preset_user",
@@ -50,14 +50,14 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Authenticate_user_successfully_with_invalid_connection_timeout": {
 			tape: "simple_auth",
 			tapeVariables: map[string]string{
-				"AUTHD_SIMPLE_AUTH_TAPE_USER": "user-integration-invalid-timeout",
+				vhsTapeUserVariable: "user-integration-invalid-timeout",
 			},
 			clientOptions: clientOptions{PamTimeout: "invalid"},
 		},
 		"Authenticate_user_successfully_with_password_only_supported_method": {
 			tape: "simple_auth",
 			tapeVariables: map[string]string{
-				"AUTHD_SIMPLE_AUTH_TAPE_USER": examplebroker.UserIntegrationAuthModesPrefix + "password-integration-cli",
+				vhsTapeUserVariable: examplebroker.UserIntegrationAuthModesPrefix + "password-integration-cli",
 			},
 		},
 		"Authenticate_user_successfully_after_trying_empty_user": {

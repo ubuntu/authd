@@ -1209,6 +1209,7 @@ func TestGdmModel(t *testing.T) {
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
 		"Authenticated_with_qrcode_after_auth_selection_stage_from_client_after_client_side_broker_and_auth_mode_selection": {
+			timeout: 20 * time.Second,
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(pam_test.WithWait(true)),
 				pam_test.QrCodeUILayout(),
