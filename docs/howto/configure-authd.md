@@ -149,10 +149,10 @@ force_provider_authentication = false
 ::::
 :::::
 
-## Force online authentication with remote identity provider
+## Force remote authentication with the identity provider
 
-By default, authentication with the remote identity provider only happens
-if the user is online and the provider is reachable during login.
+By default, remote authentication with the identity provider only happens
+if there is a working internet connection and the provider is reachable during login.
 
 If you want to force remote authentication, even when the provider is unreachable,
 enable it as follows:
