@@ -390,7 +390,7 @@ Wait`,
 			}
 
 			knownHost := filepath.Join(t.TempDir(), "known_hosts")
-			err = os.WriteFile(knownHost, []byte(
+			err := os.WriteFile(knownHost, []byte(
 				fmt.Sprintf("[localhost]:%s %s", sshdPort, pubKey),
 			), 0600)
 			require.NoError(t, err, "Setup: can't create known hosts file")
