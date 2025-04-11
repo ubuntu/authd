@@ -1,14 +1,14 @@
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
   Select your provider
 
 > 1. local
   2. ExampleBroker
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
   Select your authentication method
 
 > 1. Password authentication
@@ -19,7 +19,7 @@ Gimme your password:
   6. Use a QR code
   7. Authentication code
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Scan the qrcode or enter the code in the login page
 
 █████████████████████████████████
@@ -44,7 +44,7 @@ Scan the qrcode or enter the code in the login page
 
         [ Regenerate code ]
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Scan the qrcode or enter the code in the login page
 
 █████████████████████████████████
@@ -69,7 +69,7 @@ Scan the qrcode or enter the code in the login page
 
         [ Regenerate code ]
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Scan the qrcode or enter the code in the login page
 
 █████████████████████████████████████
@@ -96,7 +96,7 @@ Scan the qrcode or enter the code in the login page
 
           [ Regenerate code ]
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Scan the qrcode or enter the code in the login page
 
 █████████████████████████████████
@@ -121,7 +121,7 @@ Scan the qrcode or enter the code in the login page
 
         [ Regenerate code ]
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Scan the qrcode or enter the code in the login page
 
 █████████████████████████████████
@@ -146,7 +146,7 @@ Scan the qrcode or enter the code in the login page
 
         [ Regenerate code ]
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 PAM Authenticate()
   User: "user-integration-qr-code"
   Result: success

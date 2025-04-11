@@ -1,15 +1,15 @@
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 Username:
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 Username:
 Username:
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 Username:
 Username: user-integration-native-user-selection
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 Username:
 Username: user-integration-native-user-selection
 == Provider selection ==
@@ -19,7 +19,7 @@ Or enter 'r' to go back to user selection
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 Username:
 Username: user-integration-native-user-selection
 == Provider selection ==
@@ -29,7 +29,7 @@ Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 Username:
 Username: user-integration-native-user-selection
 == Provider selection ==
@@ -43,7 +43,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 Username:
 Username: user-integration-native-user-selection
 == Provider selection ==

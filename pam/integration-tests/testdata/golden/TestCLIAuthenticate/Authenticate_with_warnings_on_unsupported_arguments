@@ -1,24 +1,24 @@
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo bar
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} invalid_flag=foo bar
 Username: user name
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo bar
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} invalid_flag=foo bar
 Username: user2
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo bar
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} invalid_flag=foo bar
   Select your provider
 
 > 1. local
   2. ExampleBroker
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo bar
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} invalid_flag=foo bar
 Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo bar
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} invalid_flag=foo bar
 Gimme your password:
 > ********
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} invalid_flag=foo bar
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} invalid_flag=foo bar
 PAM Authenticate()
   User: "user2"
   Result: success

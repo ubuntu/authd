@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/db"
@@ -41,7 +42,7 @@ func TestNew(t *testing.T) {
 			t.Parallel()
 
 			dbDir := t.TempDir()
-			dbDestPath := filepath.Join(dbDir, db.Z_ForTests_DBName())
+			dbDestPath := filepath.Join(dbDir, consts.DefaultDatabaseFileName)
 
 			var m *db.Manager
 
@@ -101,7 +102,7 @@ func TestDatabaseRemovedWhenSchemaCreationFails(t *testing.T) {
 	})
 
 	dbDir := t.TempDir()
-	dbDestPath := filepath.Join(dbDir, db.Z_ForTests_DBName())
+	dbDestPath := filepath.Join(dbDir, consts.DefaultDatabaseFileName)
 
 	_, err := db.New(dbDir)
 	require.Error(t, err, "New should return an error when schema creation fails")

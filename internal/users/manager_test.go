@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/db"
@@ -54,7 +55,7 @@ func TestNewManager(t *testing.T) {
 				require.NoError(t, err, "Setup: could not create database from testdata")
 			}
 			if tc.corruptedDbFile {
-				err := os.WriteFile(filepath.Join(dbDir, db.Z_ForTests_DBName()), []byte("Corrupted db"), 0600)
+				err := os.WriteFile(filepath.Join(dbDir, consts.DefaultDatabaseFileName), []byte("Corrupted db"), 0600)
 				require.NoError(t, err, "Setup: Can't update the file with invalid db content")
 			}
 

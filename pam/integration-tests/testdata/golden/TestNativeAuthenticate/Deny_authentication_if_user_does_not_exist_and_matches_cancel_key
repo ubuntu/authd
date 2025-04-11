@@ -1,10 +1,10 @@
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 Username:
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 Username: r
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 Username: r
 == Provider selection ==
   1. local
@@ -13,7 +13,7 @@ Or enter 'r' to go back to user selection
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 Username: r
 == Provider selection ==
   1. local
@@ -22,7 +22,7 @@ Or enter 'r' to go back to user selection
 Choose your provider:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 Username: r
 == Provider selection ==
   1. local
@@ -35,7 +35,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 Username: r
 == Provider selection ==
   1. local

@@ -1,29 +1,18 @@
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-Choose your provider:
-> 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -33,20 +22,8 @@ Choose your provider:
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection ==
-  1. Password authentication
-  2. Send URL to user-integration-switch-mode-native@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33...
-  5. Use your phone +1...
-  6. Pin code
-  7. Use a QR code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -67,9 +44,9 @@ Gimme your password:
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 2
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -91,13 +68,8 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 2
-== Send URL to user-integration-switch-mode-native@gmail.com ==
-Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
- back to select the authentication method
-Click on the link received at user-integration-switch-mode-native@gmail.com or enter the code:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -123,9 +95,9 @@ Choose your authentication method:
 Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
  back to select the authentication method
 Click on the link received at user-integration-switch-mode-native@gmail.com or enter the code:
-> r
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -152,20 +124,8 @@ Leave the input field empty to wait for the alternative authentication method or
  back to select the authentication method
 Click on the link received at user-integration-switch-mode-native@gmail.com or enter the code:
 > r
-== Authentication method selection ==
-  1. Password authentication
-  2. Send URL to user-integration-switch-mode-native@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33...
-  5. Use your phone +1...
-  6. Pin code
-  7. Use a QR code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -203,9 +163,9 @@ Click on the link received at user-integration-switch-mode-native@gmail.com or e
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 3
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -244,13 +204,8 @@ Click on the link received at user-integration-switch-mode-native@gmail.com or e
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 3
-== Use your fido device foo ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-Plug your fido device and press with your thumb:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -293,9 +248,9 @@ Choose your authentication method:
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Plug your fido device and press with your thumb:
-> r
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -339,20 +294,8 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 od
 Plug your fido device and press with your thumb:
 > r
-== Authentication method selection ==
-  1. Password authentication
-  2. Send URL to user-integration-switch-mode-native@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33...
-  5. Use your phone +1...
-  6. Pin code
-  7. Use a QR code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -407,9 +350,9 @@ Plug your fido device and press with your thumb:
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 4
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -465,13 +408,8 @@ Plug your fido device and press with your thumb:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 4
-== Use your phone +33... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-Unlock your phone +33... or accept request on web interface:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -531,9 +469,9 @@ Choose your authentication method:
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Unlock your phone +33... or accept request on web interface:
-> r
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -594,20 +532,8 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 od
 Unlock your phone +33... or accept request on web interface:
 > r
-== Authentication method selection ==
-  1. Password authentication
-  2. Send URL to user-integration-switch-mode-native@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33...
-  5. Use your phone +1...
-  6. Pin code
-  7. Use a QR code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -679,9 +605,9 @@ Unlock your phone +33... or accept request on web interface:
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 5
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -754,13 +680,8 @@ Unlock your phone +33... or accept request on web interface:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 5
-== Use your phone +1... ==
-Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
-od
-Unlock your phone +1... or accept request on web interface:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -837,9 +758,9 @@ Choose your authentication method:
 Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
 od
 Unlock your phone +1... or accept request on web interface:
-> r
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -917,20 +838,8 @@ Press Enter to wait for authentication or enter 'r' to go back to select the aut
 od
 Unlock your phone +1... or accept request on web interface:
 > r
-== Authentication method selection ==
-  1. Password authentication
-  2. Send URL to user-integration-switch-mode-native@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33...
-  5. Use your phone +1...
-  6. Pin code
-  7. Use a QR code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -1019,9 +928,9 @@ Unlock your phone +1... or accept request on web interface:
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 6
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -1111,12 +1020,8 @@ Unlock your phone +1... or accept request on web interface:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 6
-== Pin code ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Enter your pin code:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -1209,9 +1114,9 @@ Choose your authentication method:
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Enter your pin code:
-> r
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -1305,20 +1210,8 @@ Choose your authentication method:
 Enter 'r' to cancel the request and go back to select the authentication method
 Enter your pin code:
 > r
-== Authentication method selection ==
-  1. Password authentication
-  2. Send URL to user-integration-switch-mode-native@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33...
-  5. Use your phone +1...
-  6. Pin code
-  7. Use a QR code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -1423,9 +1316,9 @@ Enter your pin code:
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 7
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -1531,35 +1424,8 @@ Enter your pin code:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 7
-== Use a QR code ==
-Scan the qrcode or enter the code in the login page
-█████████████████████████████████
-█████████████████████████████████
-████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
-████ █   █ █▀▄██ ▄▄▄██ █   █ ████
-████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
-████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
-████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
-█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
-████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
-████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
-███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
-████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
-████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
-████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
-████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
-█████████████████████████████████
-▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-       https://ubuntu.com
-              1337
-
-  1. Wait for authentication result
-  2. Regenerate code
-Or enter 'r' to go back to select the authentication method
-Choose action:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -1691,9 +1557,9 @@ Scan the qrcode or enter the code in the login page
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
-> r
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -1826,20 +1692,8 @@ Scan the qrcode or enter the code in the login page
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > r
-== Authentication method selection ==
-  1. Password authentication
-  2. Send URL to user-integration-switch-mode-native@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33...
-  5. Use your phone +1...
-  6. Pin code
-  7. Use a QR code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -1983,9 +1837,9 @@ Choose action:
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 8
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -2130,14 +1984,8 @@ Choose action:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 8
-== Authentication code ==
-  1. Proceed with Authentication code
-  2. Resend SMS (1 sent)
-Or enter 'r' to go back to select the authentication method
-Choose action:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -2287,9 +2135,9 @@ Choose your authentication method:
   2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 Choose action:
-> r
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -2440,20 +2288,8 @@ Choose your authentication method:
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > r
-== Authentication method selection ==
-  1. Password authentication
-  2. Send URL to user-integration-switch-mode-native@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33...
-  5. Use your phone +1...
-  6. Pin code
-  7. Use a QR code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -2615,9 +2451,9 @@ Choose action:
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> invalid-selection
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -2780,11 +2616,8 @@ Choose action:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > invalid-selection
-PAM Error Message: Unsupported input
-Choose your authentication method:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -2949,9 +2782,9 @@ Choose your authentication method:
 > invalid-selection
 PAM Error Message: Unsupported input
 Choose your authentication method:
-> -1
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -3117,21 +2950,8 @@ Choose your authentication method:
 PAM Error Message: Unsupported input
 Choose your authentication method:
 > -1
-PAM Error Message: Invalid selection
-== Authentication method selection ==
-  1. Password authentication
-  2. Send URL to user-integration-switch-mode-native@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33...
-  5. Use your phone +1...
-  6. Pin code
-  7. Use a QR code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -3309,9 +3129,9 @@ PAM Error Message: Invalid selection
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 6
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -3490,12 +3310,192 @@ PAM Error Message: Invalid selection
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 6
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode-native@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Send URL to user-integration-switch-mode-native@gmail.com ==
+Leave the input field empty to wait for the alternative authentication method or enter 'r' to go
+ back to select the authentication method
+Click on the link received at user-integration-switch-mode-native@gmail.com or enter the code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode-native@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 3
+== Use your fido device foo ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Plug your fido device and press with your thumb:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode-native@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 4
+== Use your phone +33... ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +33... or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode-native@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 5
+== Use your phone +1... ==
+Press Enter to wait for authentication or enter 'r' to go back to select the authentication meth
+od
+Unlock your phone +1... or accept request on web interface:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode-native@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
+== Pin code ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Enter your pin code:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode-native@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 7
+== Use a QR code ==
+Scan the qrcode or enter the code in the login page
+█████████████████████████████████
+█████████████████████████████████
+████ ▄▄▄▄▄ █  ▀▀█▄██ █ ▄▄▄▄▄ ████
+████ █   █ █▀▄██ ▄▄▄██ █   █ ████
+████ █▄▄▄█ ██▄ █ ▄ ▄▄█ █▄▄▄█ ████
+████▄▄▄▄▄▄▄█ ▀▄▀▄▀ ▀▄█▄▄▄▄▄▄▄████
+████▄█ ▄█ ▄ ▀█▄▀▀▄▄█ █▄▀█▄█ ▄████
+█████▀█▀▄ ▄ ▄▀█▀▀▀ ▀█▄▀▄▄▀▀██████
+████▄  █▀█▄▄▄██ █▀█▀█▄   █▄▄ ████
+████▀▄  ▀▄▄█ ▄▄█ ▀▄▀▀ ▀▀ █▄▄▀████
+███████▄▄█▄█  ▀▄▀▀█▀ ▄▄▄ ▄ ▄ ████
+████ ▄▄▄▄▄ █  █▄ ██▀ █▄█ █▄  ████
+████ █   █ █▀▄ ▄  ▀▀▄  ▄  ▀▀▀████
+████ █▄▄▄█ █▄█▄▄▄▄█ █  █ █ ▄█████
+████▄▄▄▄▄▄▄█▄█▄█▄█▄████▄▄▄▄▄▄████
+█████████████████████████████████
+▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+       https://ubuntu.com
+              1337
+
+  1. Wait for authentication result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode-native@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+== Authentication code ==
+  1. Proceed with Authentication code
+  2. Resend SMS (1 sent)
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> r
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode-native@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> invalid-selection
+PAM Error Message: Unsupported input
+Choose your authentication method:
+> -1
+PAM Error Message: Invalid selection
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-switch-mode-native@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 6
 == Pin code ==
 Enter 'r' to cancel the request and go back to select the authentication method
 Enter your pin code:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -3679,7 +3679,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Enter your pin code:
 > 4242
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker

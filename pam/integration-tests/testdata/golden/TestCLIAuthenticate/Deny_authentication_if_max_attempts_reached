@@ -1,64 +1,64 @@
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Username: user name
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Username: user-integration-max-attempts
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
   Select your provider
 
 > 1. local
   2. ExampleBroker
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 > *********
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password:
->
-invalid password 'wrongpass', should be 'goodpass'
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Gimme your password:
-> *********
-invalid password 'wrongpass', should be 'goodpass'
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 >
 invalid password 'wrongpass', should be 'goodpass'
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 > *********
 invalid password 'wrongpass', should be 'goodpass'
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 >
 invalid password 'wrongpass', should be 'goodpass'
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 > *********
 invalid password 'wrongpass', should be 'goodpass'
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 >
 invalid password 'wrongpass', should be 'goodpass'
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 > *********
 invalid password 'wrongpass', should be 'goodpass'
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
+Gimme your password:
+>
+invalid password 'wrongpass', should be 'goodpass'
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
+Gimme your password:
+> *********
+invalid password 'wrongpass', should be 'goodpass'
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 PAM Error Message: invalid password 'wrongpass', should be 'goodpass'
 PAM Authenticate()
   User: "user-integration-max-attempts"

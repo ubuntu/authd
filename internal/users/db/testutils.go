@@ -79,14 +79,6 @@ func Z_ForTests_DumpNormalizedYAML(c *Manager) (string, error) {
 	return string(yamlData), nil
 }
 
-// Z_ForTests_DBName returns the name of the database.
-//
-// nolint:revive,nolintlint // We want to use underscores in the function name here.
-func Z_ForTests_DBName() string {
-	testsdetection.MustBeTesting()
-	return filename
-}
-
 // Z_ForTests_CreateDBFromYAML creates the bbolt database inside destDir and loads the src file content into it.
 //
 // nolint:revive,nolintlint // We want to use underscores in the function name here.
