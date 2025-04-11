@@ -34,18 +34,21 @@ func main() {
 		log.Fatalf("Error: bwrap not found in PATH: %v", err)
 	}
 
-	args := []string{
+	bwrapArgs := []string{
 		bwrapPath,
-		"--unshare-user",
-		"--uid", "0",
 		"--ro-bind", "/", "/",
 		"--bind", filepath.Dir(groupFile), "/etc",
 		"--ro-bind", "/etc/passwd", "/etc/passwd",
-		"gpasswd",
 	}
 
+	if os.Geteuid() != 0 {
+		bwrapArgs = append(bwrapArgs, "--unshare-user", "--uid", "0")
+	}
+
+	bwrapArgs = append(bwrapArgs, "gpasswd")
+
 	// Add the gpasswd command arguments
-	args = append(args, os.Args[1:]...)
+	args := append(bwrapArgs, os.Args[1:]...)
 
 	log.Printf("Executing command: %s", strings.Join(args, " "))
 	//nolint:gosec // G204 there is no security issue with the arguments passed to syscall.Exec

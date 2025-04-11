@@ -1,17 +1,35 @@
 package userutils_test
 
 import (
+	"context"
 	"os"
 	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/userutils"
+	"github.com/ubuntu/authd/log"
 )
+
+var useSudo bool
 
 //go:generate go build -o testhelpers/gpasswd ./testhelpers/gpasswd.go
 
 func TestLockAndUnlockGroupFile(t *testing.T) {
+	// This test requires either root privileges, unprivileged user namespaces, or being
+	// able to run sudo without user interaction.
+	if os.Geteuid() == 0 {
+		log.Info(context.Background(), "Running as EUID 0")
+	} else if canUseUnprivilegedUserNamespaces() {
+		log.Info(context.Background(), "Can use unprivileged user namespaces")
+	} else if canUseSudoNonInteractively() {
+		log.Info(context.Background(), "Can use sudo non-interactively")
+		useSudo = true
+	} else {
+		t.Skip("Skipping test: requires root privileges or unprivileged user namespaces")
+	}
+
 	// Ensure the helper binary is built before running the test
 	cmd := exec.Command("go", "generate")
 	cmd.Stdout = os.Stdout
@@ -61,8 +79,42 @@ func TestLockAndUnlockGroupFile(t *testing.T) {
 	require.NoError(t, err, string(output))
 }
 
+func canUseUnprivilegedUserNamespaces() bool {
+	cmd := exec.Command("bwrap", "--ro-bind", "/", "/", "--unshare-user", "--uid", "0", "/bin/true")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		log.Warningf(context.Background(), "Can't use unprivileged user namespaces: %v", err)
+		return false
+	}
+
+	return true
+}
+
+func canUseSudoNonInteractively() bool {
+	cmd := exec.Command("sudo", "-Nnv")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		log.Warningf(context.Background(), "Can't use sudo non-interactively: %v", err)
+		return false
+	}
+
+	return true
+}
+
 func runGPasswd(groupFile string, args ...string) ([]byte, error) {
-	cmd := exec.Command("testhelpers/gpasswd", args...)
-	cmd.Env = append(os.Environ(), "GROUP_FILE="+groupFile)
+	args = append([]string{
+		"env", "GROUP_FILE=" + groupFile,
+		"testhelpers/gpasswd",
+	}, args...)
+
+	if useSudo {
+		args = append([]string{"sudo"}, args...)
+	}
+
+	log.Infof(context.Background(), "Running command: %s", strings.Join(args, " "))
+	//nolint:gosec // G204 It's fine to pass variables to exec.Command here
+	cmd := exec.Command(args[0], args[1:]...)
 	return cmd.CombinedOutput()
 }
