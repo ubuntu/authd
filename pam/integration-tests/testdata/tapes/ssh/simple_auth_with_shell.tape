@@ -13,7 +13,7 @@ Show
 Hide
 Type "goodpass"
 Enter
-Wait /\$\n/
+Wait@${AUTHD_WAIT_DEFAULT}*3 /\$\n/
 Show
 
 Hide

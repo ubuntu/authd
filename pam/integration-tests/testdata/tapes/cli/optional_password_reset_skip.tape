@@ -25,7 +25,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt /New password/ /\[ Skip \]/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]/
 Show
 
 Hide

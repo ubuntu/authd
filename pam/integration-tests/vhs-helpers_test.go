@@ -53,6 +53,8 @@ Show`
 	vhsFrameSeparator       = '─'
 	vhsFrameSeparatorLength = 80
 
+	authdWaitDefault = "AUTHD_WAIT_DEFAULT"
+
 	authdSleepDefault                 = "AUTHD_SLEEP_DEFAULT"
 	authdSleepLong                    = "AUTHD_SLEEP_LONG"
 	authdSleepExampleBrokerMfaWait    = "AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT"
@@ -100,6 +102,7 @@ func (tt vhsTestType) tapesPath(t *testing.T) string {
 
 var (
 	defaultSleepValues = map[string]time.Duration{
+		authdWaitDefault:  10 * time.Second,
 		authdSleepDefault: 100 * time.Millisecond,
 		authdSleepLong:    1 * time.Second,
 		// Keep these in sync with example broker default wait times
@@ -111,8 +114,8 @@ var (
 
 	defaultConnectionTimeout = sleepDuration(3*time.Second) / time.Millisecond
 
-	vhsSleepRegex = regexp.MustCompile(
-		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?(.*)$`)
+	vhsSleepOrWaitRegex = regexp.MustCompile(
+		`(?m)\$\{?(AUTHD_(?:SLEEP|WAIT)_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?(.*)$`)
 
 	vhsEmptyTrailingLinesRegex = regexp.MustCompile(`(?m)\s+\z`)
 	vhsUnixTargetRegex         = regexp.MustCompile(fmt.Sprintf(`unix://%s/(\S*)\b`,
@@ -172,7 +175,7 @@ func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 		vhsPadding:     0,
 		vhsMargin:      0,
 		vhsShell:       "bash",
-		vhsWaitTimeout: 10 * time.Second,
+		vhsWaitTimeout: defaultSleepValues[authdWaitDefault],
 		vhsTypingSpeed: 5 * time.Millisecond,
 	}
 	for _, s := range settings {
@@ -480,7 +483,7 @@ func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath st
 func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testType vhsTestType) string {
 	t.Helper()
 
-	for _, m := range vhsSleepRegex.FindAllStringSubmatch(tapeString, -1) {
+	for _, m := range vhsSleepOrWaitRegex.FindAllStringSubmatch(tapeString, -1) {
 		fullMatch, sleepKind, op, arg, rest := m[0], m[1], m[3], m[4], m[5]
 		sleep, ok := defaultSleepValues[sleepKind]
 		require.True(t, ok, "Setup: unknown sleep kind: %q", sleepKind)
@@ -629,20 +632,28 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 }
 
 func finalWaitCommands(testType vhsTestType, sessionMode authd.SessionMode) string {
-	if testType == vhsTestTypeSSH {
-		return `Wait+Suffix /Connection to localhost closed\.\n>/`
-	}
+	finalWaitDuration := sleepDuration(defaultSleepValues[authdWaitDefault])
+	var firstResult, secondResult pam_test.RunnerResultAction
+	switch testType {
+	case vhsTestTypeSSH:
+		finalWaitDuration = sshDefaultFinalWaitTimeout
+		firstResult = pam_test.RunnerResultActionAuthenticate
+		secondResult = pam_test.RunnerResultActionAcctMgmt
 
-	firstResult := pam_test.RunnerResultActionAuthenticate
-	if sessionMode == authd.SessionMode_CHANGE_PASSWORD {
-		firstResult = pam_test.RunnerResultActionChangeAuthTok
+	default:
+		firstResult = pam_test.RunnerResultActionAuthenticate
+		if sessionMode == authd.SessionMode_CHANGE_PASSWORD {
+			firstResult = pam_test.RunnerResultActionChangeAuthTok
+		}
+		secondResult = pam_test.RunnerResultActionAcctMgmt
 	}
 
 	return fmt.Sprintf(`Wait+Screen /%s[^\n]*/
 Wait+Screen /%s[^\n]*/
-Wait`,
+Wait@%dms`,
 		regexp.QuoteMeta(firstResult.String()),
-		regexp.QuoteMeta(pam_test.RunnerResultActionAcctMgmt.String()),
+		regexp.QuoteMeta(secondResult.String()),
+		sleepDuration(finalWaitDuration).Milliseconds(),
 	)
 }
 
