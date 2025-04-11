@@ -114,8 +114,8 @@ var (
 
 	defaultConnectionTimeout = sleepDuration(3*time.Second) / time.Millisecond
 
-	vhsSleepRegex = regexp.MustCompile(
-		`(?m)\$\{?(AUTHD_SLEEP_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?(.*)$`)
+	vhsSleepOrWaitRegex = regexp.MustCompile(
+		`(?m)\$\{?(AUTHD_(?:SLEEP|WAIT)_[A-Z_]+)\}?(\s?([*/]+)\s?([\d.]+))?(.*)$`)
 
 	vhsEmptyTrailingLinesRegex = regexp.MustCompile(`(?m)\s+\z`)
 	vhsUnixTargetRegex         = regexp.MustCompile(fmt.Sprintf(`unix://%s/(\S*)\b`,
@@ -483,7 +483,7 @@ func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath st
 func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testType vhsTestType) string {
 	t.Helper()
 
-	for _, m := range vhsSleepRegex.FindAllStringSubmatch(tapeString, -1) {
+	for _, m := range vhsSleepOrWaitRegex.FindAllStringSubmatch(tapeString, -1) {
 		fullMatch, sleepKind, op, arg, rest := m[0], m[1], m[3], m[4], m[5]
 		sleep, ok := defaultSleepValues[sleepKind]
 		require.True(t, ok, "Setup: unknown sleep kind: %q", sleepKind)

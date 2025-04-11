@@ -40,7 +40,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt /New password/ /\[ Skip \]/ /The password is the same as the old one/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]/ /The password is the same as the old one/
 Show
 
 Hide
@@ -49,7 +49,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt /New password/ /\[ Skip \]\nThe password fails the dictionary check[^\n]+/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]\nThe password fails the dictionary check[^\n]+/
 Show
 
 Hide
@@ -58,7 +58,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt /New password/ /\[ Skip \]\nThe password is the same as the old one/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]\nThe password is the same as the old one/
 Show
 
 Hide
@@ -67,7 +67,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt /New password/ /\[ Skip \]\nThe password is shorter than \d+ characters/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]\nThe password is shorter than \d+ characters/
 Show
 
 Hide
@@ -76,7 +76,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt /Confirm password/ /\[ Skip \]/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /Confirm password/ /\[ Skip \]/
 Show
 
 Hide
