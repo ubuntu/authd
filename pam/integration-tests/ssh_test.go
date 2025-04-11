@@ -5,7 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -17,7 +16,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall"
 	"testing"
 	"time"
@@ -38,6 +36,8 @@ import (
 var (
 	sshEnvVariablesRegex *regexp.Regexp
 	sshHostPortRegex     *regexp.Regexp
+
+	sshDefaultFinalWaitTimeout = sleepDuration(3 * defaultSleepValues[authdWaitDefault])
 )
 
 func TestSSHAuthenticate(t *testing.T) {
@@ -242,8 +242,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tape:                "max_attempts",
 			wantNotLoggedInUser: true,
 			tapeVariables: map[string]string{
-				vhsCommandFinalAuthWaitVariable: `Wait+Screen /Too many authentication failures/
-Wait`,
+				vhsCommandFinalAuthWaitVariable: fmt.Sprintf(
+					`Wait+Screen /Too many authentication failures/
+Wait@%dms`, sshDefaultFinalWaitTimeout),
 			},
 		},
 		"Deny_authentication_if_user_does_not_exist": {
@@ -594,37 +595,6 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 	return sshd, pidFile, logFile
 }
 
-// safeBuffer is used to buffer the sshd output, since we may read this from
-// cleanup sub-functions (that run as different goroutines than the command's exec)
-// we need to use locked read/writes on bytes.Buffer to avoid read/write races when
-// running the tests in race mode.
-// We only override the methods we require in the tests.
-type safeBuffer struct {
-	bytes.Buffer
-	mu sync.RWMutex
-}
-
-func (sb *safeBuffer) Write(p []byte) (n int, err error) {
-	sb.mu.Lock()
-	defer sb.mu.Unlock()
-
-	return sb.Buffer.Write(p)
-}
-
-func (sb *safeBuffer) ReadFrom(r io.Reader) (n int64, err error) {
-	sb.mu.Lock()
-	defer sb.mu.Unlock()
-
-	return sb.Buffer.ReadFrom(r)
-}
-
-func (sb *safeBuffer) String() string {
-	sb.mu.RLock()
-	defer sb.mu.RUnlock()
-
-	return sb.Buffer.String()
-}
-
 func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemonize bool) string {
 	t.Helper()
 
@@ -636,7 +606,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	server.Close()
 
 	sshd, sshdPidFile, sshdLogFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env, daemonize)
-	sshdStderr := safeBuffer{}
+	sshdStderr := bytes.Buffer{}
 	sshd.Stderr = &sshdStderr
 	if testing.Verbose() {
 		sshd.Stdout = os.Stdout
@@ -653,7 +623,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 			return
 		}
 		sshdLog := filepath.Join(t.TempDir(), "sshd.log")
-		require.NoError(t, os.WriteFile(sshdLog, []byte(sshdStderr.String()), 0600),
+		require.NoError(t, os.WriteFile(sshdLog, sshdStderr.Bytes(), 0600),
 			"TearDown: Saving sshd log")
 		saveArtifactsForDebug(t, []string{sshdLog})
 	})

@@ -24,7 +24,7 @@ Show
 
 Hide
 Type "7"
-Wait+CLIPrompt /Enter your one time credential/ /\[ Resend SMS \(1 sent\) \]/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /Enter your one time credential/ /\[ Resend SMS \(1 sent\) \]/
 Show
 
 Hide
@@ -47,7 +47,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt /Enter your one time credential/ /\[ Resend SMS \(1 sent\) \]/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /Enter your one time credential/ /\[ Resend SMS \(1 sent\) \]/
 Show
 
 Hide
