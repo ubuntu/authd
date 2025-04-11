@@ -2,7 +2,7 @@
 Username: user name
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
-Username: user-integration-invalid-timeout
+Username: user-integration-invalid-timeout-testcliauthenticate
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
   Select your provider
@@ -20,10 +20,10 @@ Gimme your password:
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
 PAM Authenticate()
-  User: "user-integration-invalid-timeout"
+  User: "user-integration-invalid-timeout-testcliauthenticate"
   Result: success
 PAM AcctMgmt()
-  User: "user-integration-invalid-timeout"
+  User: "user-integration-invalid-timeout-testcliauthenticate"
   Result: success
 >
 ────────────────────────────────────────────────────────────────────────────────

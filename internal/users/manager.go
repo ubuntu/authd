@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/user"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -112,6 +113,11 @@ func (m *Manager) Stop() error {
 func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	defer decorate.OnError(&err, "failed to update user %q", u.Name)
 
+	log.Debugf(context.TODO(), "Updating user %q", u.Name)
+
+	// authd uses lowercase usernames
+	u.Name = strings.ToLower(u.Name)
+
 	if u.Name == "" {
 		return errors.New("empty username")
 	}
@@ -169,6 +175,9 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			localGroups = append(localGroups, g.Name)
 			continue
 		}
+
+		// authd groups are lowercase
+		g.Name = strings.ToLower(g.Name)
 
 		// It's not a local group, so before storing it in the database, check if a group with the same name already
 		// exists.

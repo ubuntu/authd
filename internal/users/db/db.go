@@ -15,14 +15,14 @@ import (
 	// sqlite3 driver.
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/ubuntu/authd/internal/fileutils"
-	"github.com/ubuntu/authd/internal/users/db/bbolt"
 	"github.com/ubuntu/authd/log"
 )
 
 var (
 	filename = "authd.sqlite3"
 	//go:embed sql/create_schema.sql
-	createSchema string
+	createSchemaQuery string
+	schemaVersion     = len(schemaMigrations)
 )
 
 // Manager is an abstraction to interact with the database.
@@ -78,8 +78,7 @@ func New(dbDir string) (*Manager, error) {
 
 	if !exists {
 		log.Debugf(context.Background(), "Creating new SQLite database at %v", dbPath)
-		_, err = db.Exec(createSchema)
-		if err != nil {
+		if err := createSchema(db); err != nil {
 			// Remove the database file if we failed to create the schema, to avoid that authd tries to use a broken
 			// database on the next start.
 			if removeErr := os.Remove(dbPath); removeErr != nil {
@@ -89,7 +88,55 @@ func New(dbDir string) (*Manager, error) {
 		}
 	}
 
-	return &Manager{db: db, path: dbPath, mu: sync.RWMutex{}}, nil
+	m := &Manager{db: db, path: dbPath, mu: sync.RWMutex{}}
+	err = m.maybeApplyMigrations()
+	if err != nil {
+		return nil, err
+	}
+
+	return m, nil
+}
+
+func createSchema(db *sql.DB) error {
+	// Start a transaction to create the schema and set the schema version in a single transaction
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
+	}
+
+	// Ensure the transaction is committed or rolled back
+	defer func() {
+		err = commitOrRollBackTransaction(err, tx)
+	}()
+
+	if _, err := tx.Exec(createSchemaQuery); err != nil {
+		return err
+	}
+
+	// Set the initial schema version
+	query := `INSERT INTO schema_version (version) VALUES (?)`
+	if _, err := tx.Exec(query, schemaVersion); err != nil {
+		return fmt.Errorf("failed to set schema version: %w", err)
+	}
+
+	return nil
+}
+
+func getSchemaVersion(db *sql.DB) (int, error) {
+	var version int
+	query := "SELECT version FROM schema_version ORDER BY version DESC LIMIT 1"
+	err := db.QueryRow(query).Scan(&version)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get schema version: %w", err)
+	}
+
+	return version, nil
+}
+
+func setSchemaVersion(db *sql.DB, version int) error {
+	query := `UPDATE schema_version SET version = ?`
+	_, err := db.Exec(query, version)
+	return err
 }
 
 // checkOwnerAndPermissions checks if the database file has secure owner and permissions.
@@ -114,129 +161,6 @@ func checkOwnerAndPermissions(path string) error {
 		return fmt.Errorf("insecure file permissions for %s: %o", path, perm)
 	}
 
-	return nil
-}
-
-// MigrateData migrates data from bbolt to SQLite.
-func MigrateData(dbDir string) error {
-	m, err := New(dbDir)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		err := m.Close()
-		if err != nil {
-			log.Warningf(context.Background(), "Failed to close database after migration: %v", err)
-		}
-	}()
-
-	return m.migrateData(dbDir)
-}
-
-func (m *Manager) migrateData(dbDir string) (err error) {
-	log.Infof(context.Background(), "Migrating data from bbolt to SQLite")
-
-	// Open the bbolt database.
-	bboltDB, err := bbolt.New(dbDir)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		err := bboltDB.Close()
-		if err != nil {
-			log.Warningf(context.Background(), "Failed to close bbolt database: %v", err)
-		}
-	}()
-
-	// Use transaction to ensure that all data is migrated or none at all
-	tx, err := m.db.Begin()
-	if err != nil {
-		return fmt.Errorf("failed to start transaction: %w", err)
-	}
-
-	// Ensure the transaction is committed or rolled back
-	defer func() {
-		err = commitOrRollBackTransaction(err, tx)
-	}()
-
-	// Migrate users
-	bboltUsers, err := bboltDB.AllUsers()
-	if err != nil {
-		return err
-	}
-
-	for _, u := range bboltUsers {
-		brokerID, err := bboltDB.BrokerForUser(u.Name)
-		if err != nil {
-			return err
-		}
-
-		user := UserRow{
-			Name:     u.Name,
-			UID:      u.UID,
-			GID:      u.GID,
-			Gecos:    u.Gecos,
-			Dir:      u.Dir,
-			Shell:    u.Shell,
-			BrokerID: brokerID,
-		}
-
-		log.Debugf(context.Background(), "Migrating user %v", user.Name)
-		if err := insertUser(tx, user); err != nil {
-			return err
-		}
-	}
-
-	// Migrate groups
-	bboltGroups, err := bboltDB.AllGroups()
-	if err != nil {
-		return err
-	}
-
-	for _, g := range bboltGroups {
-		group := GroupRow{Name: g.Name, GID: g.GID, UGID: g.UGID}
-
-		log.Debugf(context.Background(), "Migrating group %v", group.Name)
-		if err := insertGroup(tx, group); err != nil {
-			return err
-		}
-	}
-
-	// Add users to groups
-	for _, u := range bboltUsers {
-		groups, err := bboltDB.UserGroups(u.UID)
-		if errors.Is(err, bbolt.NoDataFoundError{}) {
-			continue
-		}
-		if err != nil {
-			return err
-		}
-
-		for _, g := range groups {
-			if err := addUserToGroup(tx, u.UID, g.GID); err != nil {
-				return err
-			}
-		}
-	}
-
-	// Add user to local groups
-	for _, u := range bboltUsers {
-		localGroups, err := bboltDB.UserLocalGroups(u.UID)
-		if errors.Is(err, bbolt.NoDataFoundError{}) {
-			continue
-		}
-		if err != nil {
-			return err
-		}
-
-		for _, g := range localGroups {
-			if err := addUserToLocalGroup(tx, u.UID, g); err != nil {
-				return err
-			}
-		}
-	}
-
-	log.Debug(context.Background(), "Done migrating data from bbolt to SQLite")
 	return nil
 }
 
