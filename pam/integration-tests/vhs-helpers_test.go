@@ -629,20 +629,25 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 }
 
 func finalWaitCommands(testType vhsTestType, sessionMode authd.SessionMode) string {
-	if testType == vhsTestTypeSSH {
-		return `Wait+Suffix /Connection to localhost closed\.\n>/`
-	}
+	var firstResult, secondResult pam_test.RunnerResultAction
+	switch testType {
+	case vhsTestTypeSSH:
+		firstResult = pam_test.RunnerResultActionAuthenticate
+		secondResult = pam_test.RunnerResultActionAcctMgmt
 
-	firstResult := pam_test.RunnerResultActionAuthenticate
-	if sessionMode == authd.SessionMode_CHANGE_PASSWORD {
-		firstResult = pam_test.RunnerResultActionChangeAuthTok
+	default:
+		firstResult = pam_test.RunnerResultActionAuthenticate
+		if sessionMode == authd.SessionMode_CHANGE_PASSWORD {
+			firstResult = pam_test.RunnerResultActionChangeAuthTok
+		}
+		secondResult = pam_test.RunnerResultActionAcctMgmt
 	}
 
 	return fmt.Sprintf(`Wait+Screen /%s[^\n]*/
 Wait+Screen /%s[^\n]*/
 Wait`,
 		regexp.QuoteMeta(firstResult.String()),
-		regexp.QuoteMeta(pam_test.RunnerResultActionAcctMgmt.String()),
+		regexp.QuoteMeta(secondResult.String()),
 	)
 }
 
