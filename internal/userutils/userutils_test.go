@@ -34,7 +34,10 @@ func TestLockAndUnlockGroupFile(t *testing.T) {
 	tempDir := t.TempDir()
 	gpasswdHelperPath = tempDir + "/gpasswd"
 	//nolint:gosec // G204 It's fine to pass a variable to exec.Command here
-	cmd := exec.Command("go", "build", "-o", gpasswdHelperPath, "./testhelpers/gpasswd.go")
+	cmd := exec.Command("go", "build",
+		"-o", gpasswdHelperPath,
+		"-tags", "userutils_testhelpers",
+		"./testhelpers/gpasswd.go")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()

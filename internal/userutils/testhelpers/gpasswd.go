@@ -5,6 +5,9 @@
 //     bind-mounted to /etc/group.
 //
 // The group file must be named "group".
+
+//go:build userutils_testhelpers
+
 package main
 
 import (
