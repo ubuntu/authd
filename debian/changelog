@@ -1,8 +1,8 @@
-authd (0.4.1+git250411+452+5afa74e8) noble; urgency=medium
+authd (0.4.1+git250411+482+3385af3b) noble; urgency=medium
 
-  * Github build. Run id: 14406425320. Run number: 452.
+  * Github build. Run id: 14413669705. Run number: 482.
 
- -- Marco <marco.trevisan@canonical.com>  Fri, 11 Apr 2025 15:19:15 +0000
+ -- Marco <marco.trevisan@canonical.com>  Fri, 11 Apr 2025 23:26:24 +0000
 
 authd (0.4.1) plucky; urgency=medium
 
