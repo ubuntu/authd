@@ -36,6 +36,8 @@ import (
 var (
 	sshEnvVariablesRegex *regexp.Regexp
 	sshHostPortRegex     *regexp.Regexp
+
+	sshDefaultFinalWaitTimeout = sleepDuration(3 * defaultSleepValues[authdWaitDefault])
 )
 
 func TestSSHAuthenticate(t *testing.T) {
@@ -240,8 +242,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tape:                "max_attempts",
 			wantNotLoggedInUser: true,
 			tapeVariables: map[string]string{
-				vhsCommandFinalAuthWaitVariable: `Wait+Screen /Too many authentication failures/
-Wait`,
+				vhsCommandFinalAuthWaitVariable: fmt.Sprintf(
+					`Wait+Screen /Too many authentication failures/
+Wait@%dms`, sshDefaultFinalWaitTimeout),
 			},
 		},
 		"Deny_authentication_if_user_does_not_exist": {

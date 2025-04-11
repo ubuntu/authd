@@ -53,6 +53,8 @@ Show`
 	vhsFrameSeparator       = '─'
 	vhsFrameSeparatorLength = 80
 
+	authdWaitDefault = "AUTHD_WAIT_DEFAULT"
+
 	authdSleepDefault                 = "AUTHD_SLEEP_DEFAULT"
 	authdSleepLong                    = "AUTHD_SLEEP_LONG"
 	authdSleepExampleBrokerMfaWait    = "AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT"
@@ -100,6 +102,7 @@ func (tt vhsTestType) tapesPath(t *testing.T) string {
 
 var (
 	defaultSleepValues = map[string]time.Duration{
+		authdWaitDefault:  10 * time.Second,
 		authdSleepDefault: 100 * time.Millisecond,
 		authdSleepLong:    1 * time.Second,
 		// Keep these in sync with example broker default wait times
@@ -172,7 +175,7 @@ func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 		vhsPadding:     0,
 		vhsMargin:      0,
 		vhsShell:       "bash",
-		vhsWaitTimeout: 10 * time.Second,
+		vhsWaitTimeout: defaultSleepValues[authdWaitDefault],
 		vhsTypingSpeed: 5 * time.Millisecond,
 	}
 	for _, s := range settings {
@@ -629,9 +632,11 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 }
 
 func finalWaitCommands(testType vhsTestType, sessionMode authd.SessionMode) string {
+	finalWaitDuration := sleepDuration(defaultSleepValues[authdWaitDefault])
 	var firstResult, secondResult pam_test.RunnerResultAction
 	switch testType {
 	case vhsTestTypeSSH:
+		finalWaitDuration = sshDefaultFinalWaitTimeout
 		firstResult = pam_test.RunnerResultActionAuthenticate
 		secondResult = pam_test.RunnerResultActionAcctMgmt
 
@@ -645,9 +650,10 @@ func finalWaitCommands(testType vhsTestType, sessionMode authd.SessionMode) stri
 
 	return fmt.Sprintf(`Wait+Screen /%s[^\n]*/
 Wait+Screen /%s[^\n]*/
-Wait`,
+Wait@%dms`,
 		regexp.QuoteMeta(firstResult.String()),
 		regexp.QuoteMeta(secondResult.String()),
+		sleepDuration(finalWaitDuration).Milliseconds(),
 	)
 }
 
