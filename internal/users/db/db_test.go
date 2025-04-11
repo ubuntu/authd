@@ -12,6 +12,7 @@ import (
 	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/db"
+	"github.com/ubuntu/authd/internal/userutils"
 	"github.com/ubuntu/authd/log"
 )
 
@@ -125,10 +126,15 @@ func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
 	err = os.WriteFile(groupsFilePath, []byte("Group1:x:11111:User1\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
-	// Make the db package use the temporary user group file
-	origUserGroupFile := db.GroupFile()
+	// Make the db package use the temporary group file
+	origGroupFile := db.GroupFile()
 	db.SetGroupFile(groupsFilePath)
-	defer db.SetGroupFile(origUserGroupFile)
+	defer db.SetGroupFile(origGroupFile)
+
+	// Make the userutils package use the temporary group file
+	require.Equal(t, origGroupFile, userutils.GroupFile)
+	userutils.GroupFile = groupsFilePath
+	defer func() { userutils.GroupFile = origGroupFile }()
 
 	// Run the migrations
 	m, err := db.New(dbDir)

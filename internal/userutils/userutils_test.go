@@ -49,7 +49,9 @@ func TestLockAndUnlockGroupFile(t *testing.T) {
 	require.NoError(t, err)
 
 	// Set the group file to the temporary file
-	userutils.SetGroupFile(groupFile)
+	origGroupFile := userutils.GroupFile
+	userutils.GroupFile = groupFile
+	defer func() { userutils.GroupFile = origGroupFile }()
 
 	// Try using gpasswd to modify the group file. This should succeed, because
 	// the group file is not locked.
