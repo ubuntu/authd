@@ -216,6 +216,20 @@ jobs:
           echo AUTHD_TEST_ARTIFACTS_PATH="${artifacts_dir}" >> $GITHUB_ENV
 
           echo ASAN_OPTIONS="log_path=${artifacts_dir}/asan.log:print_stats=true" >> $GITHUB_ENV
+
+      - name: Install coverage collection dependencies
+        if: matrix.test == 'coverage'
+        run: |
+          set -eu
+
+          # Dependendencies for C coverage collection
+          sudo apt install -y gcovr
+
+          # Dependendencies for Go coverage collection
+          go install github.com/AlekSi/gocov-xml@latest
+          go install github.com/axw/gocov/gocov@latest
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+
       - name: Run tests (with coverage collection)
         if: matrix.test == 'coverage'
         env:
@@ -224,10 +238,10 @@ jobs:
           set -euo pipefail
 
           # The coverage is not written if the output directory does not exist, so we need to create it.
-          cov_dir="$(pwd)/coverage"
-          cod_cov_dir="$(pwd)/coverage/codecov"
-          raw_cov_dir="${cov_dir}/raw"
-          mkdir -p "${raw_cov_dir}" "${cod_cov_dir}"
+          cov_dir=${PWD}/coverage
+          codecov_dir=${cov_dir}/codecov
+          raw_cov_dir=${cov_dir}/raw
+          mkdir -p "${raw_cov_dir}" "${codecov_dir}"
 
           # Print executed commands to ease debugging
           set -x
@@ -245,10 +259,21 @@ jobs:
           cat "${raw_cov_dir}/rust-cov/rust2go_coverage" >>"${cov_dir}/coverage.out"
 
           # Filter out the testutils package and the pb.go file
-          grep -v -e "testutils" -e "pb.go" "${cov_dir}/coverage.out" >"${cod_cov_dir}/coverage.out.filtered"
+          grep -v -e "testutils" -e "pb.go" -e "testsdetection" "${cov_dir}/coverage.out" >"${cov_dir}/coverage.out.filtered"
 
-          # Move gcov output to coverage dir
-          mv "${raw_cov_dir}"/*.gcov "${cod_cov_dir}"
+          # Generate the Cobertura report for Go and Rust
+          gocov convert "${cov_dir}/coverage.out.filtered" | gocov-xml > "${cov_dir}/coverage.xml"
+          reportgenerator -reports:"${cov_dir}/coverage.xml" -targetdir:"${cov_dir}" -reporttypes:Cobertura
+
+          # Generate the Cobertura report for C
+          gcovr --cobertura "${cov_dir}/Cobertura_C.xml" "${raw_cov_dir}"
+
+          # Merge Cobertura reports into a single one
+          reportgenerator -reports:"${cov_dir}/Cobertura.xml;${cov_dir}/Cobertura_C.xml" \
+            -targetdir:"${codecov_dir}" -reporttypes:Cobertura
+
+          # Store the coverage directory for the next steps
+          echo COVERAGE_DIR="${codecov_dir}" >> ${GITHUB_ENV}
 
       - name: Run tests (with race detector)
         if: matrix.test == 'race'
@@ -314,8 +339,16 @@ jobs:
         if: matrix.test == 'coverage'
         uses: codecov/codecov-action@v5
         with:
-          directory: ./coverage/codecov
+          directory: ${{ env.COVERAGE_DIR }}
+          files: ${{ env.COVERAGE_DIR }}/Cobertura.xml
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload coverage artifacts
+        if: matrix.test == 'coverage' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage.zip
+          path: ${{ env.COVERAGE_DIR }}
 
       - name: Upload test artifacts
         if: always()

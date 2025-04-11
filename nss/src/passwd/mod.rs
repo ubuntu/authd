@@ -115,7 +115,11 @@ fn get_entry_by_name(name: String) -> Response<Passwd> {
         }
 
         #[cfg(feature = "integration_tests")]
-        info!("Get entry by name '{}' (pre-check: {})", name, should_pre_check());
+        info!(
+            "Get entry by name '{}' (pre-check: {})",
+            name,
+            should_pre_check()
+        );
 
         let mut req = Request::new(authd::GetPasswdByNameRequest {
             name: name.clone(),

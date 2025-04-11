@@ -41,6 +41,7 @@ type gdmTestModuleHandler struct {
 	brokerInfo         *authd.ABResponse_BrokerInfo
 
 	eventPollResponses map[gdm.EventType][]*gdm.EventData
+	stagePollResponses map[proto.Stage][]*gdm.EventData
 
 	pamInfoMessages  []string
 	pamErrorMessages []string
@@ -120,24 +121,43 @@ func (gh *gdmTestModuleHandler) queueSelectBrokerEvent() error {
 	return nil
 }
 
+func (gh *gdmTestModuleHandler) getPollResponses(events []*gdm.EventData) []*gdm.EventData {
+	if len(events) == 0 {
+		return nil
+	}
+
+	numEvents := 1
+	if events[0].Type == gdm_test.EventsGroupBegin().Type {
+		numEvents = slices.IndexFunc(events, func(ev *gdm.EventData) bool {
+			return ev.Type == gdm_test.EventsGroupEnd().Type
+		})
+		require.Greater(gh.t, numEvents, 1, "No valid events group found")
+		events = slices.Delete(events, numEvents, numEvents+1)
+		events = slices.Delete(events, 0, 1)
+		numEvents--
+	}
+
+	require.NotEqual(gh.t, events[0].Type, gdm_test.EventsGroupBegin().Type,
+		"Unsupported event type")
+	require.NotEqual(gh.t, events[0].Type, gdm_test.EventsGroupEnd().Type,
+		"Unsupported event type")
+
+	var pollEvents []*gdm.EventData
+	if events[0].Type != gdm_test.IgnoredEvent().Type {
+		pollEvents = gh.tunePollEvents(events[0:numEvents])
+	}
+	events = slices.Delete(events, 0, numEvents)
+	gh.pollResponses = append(gh.pollResponses, pollEvents...)
+	return events
+}
+
 func (gh *gdmTestModuleHandler) exampleHandleEvent(event *gdm.EventData) error {
 	defer func() {
 		events, ok := gh.eventPollResponses[event.Type]
-		if ok && len(events) > 0 {
-			numEvents := 1
-			if events[0].Type == gdm_test.EventsGroupBegin().Type {
-				numEvents = slices.IndexFunc(events, func(ev *gdm.EventData) bool {
-					return ev.Type == gdm_test.EventsGroupEnd().Type
-				})
-				require.Greater(gh.t, numEvents, 1, "No valid events group found")
-				events = slices.Delete(events, numEvents, numEvents+1)
-				events = slices.Delete(events, 0, 1)
-				numEvents--
-			}
-			pollEvents := gh.tunePollEvents(events[0:numEvents])
-			gh.eventPollResponses[event.Type] = slices.Delete(events, 0, numEvents)
-			gh.pollResponses = append(gh.pollResponses, pollEvents...)
+		if !ok {
+			return
 		}
+		gh.eventPollResponses[event.Type] = gh.getPollResponses(events)
 	}()
 
 	switch ev := event.Data.(type) {
@@ -237,10 +257,19 @@ func (gh *gdmTestModuleHandler) exampleHandleAuthDRequest(gdmData *gdm.Data) (*g
 		gh.currentStage = req.ChangeStage.Stage
 		log.Debugf(context.TODO(), "Switching to stage %d", gh.currentStage)
 
+		defer func() {
+			events, ok := gh.stagePollResponses[gh.currentStage]
+			if !ok {
+				return
+			}
+			gh.stagePollResponses[gh.currentStage] = gh.getPollResponses(events)
+		}()
+
 		switch req.ChangeStage.Stage {
 		case proto.Stage_brokerSelection:
 			gh.authModes = nil
 			gh.brokerInfo = nil
+			gh.currentUILayout = nil
 
 			err := gh.queueSelectBrokerEvent()
 			if err != nil && len(gh.brokersInfos) > 0 {
@@ -279,10 +308,10 @@ func (gh *gdmTestModuleHandler) RespondPAMBinary(ptr pam.BinaryPointer) (pam.Bin
 			return outData, err
 		}
 		json, err := inData.JSON()
-		require.NoError(gh.t, err, "Binary conversation: Invalid JSON received as input data")
+		require.NoError(gh.t, err, "Binary conversation: Invalid JSON received as input data: %v", inData)
 		gh.t.Log("->", string(json))
 		json, err = outData.JSON()
-		require.NoError(gh.t, err, "Binary conversation: Can't convert output data to JSON")
+		require.NoError(gh.t, err, "Binary conversation: Can't convert output data to JSON: %v", outData)
 		gh.t.Log("<-", string(json))
 		return outData, nil
 	}).RespondPAMBinary(ptr)

@@ -8,6 +8,7 @@ DBus
 entra
 filesystem
 fstab
+ESC
 GDM
 GIDs
 gRPC
@@ -41,6 +42,7 @@ styleguide
 sudo
 TPM
 ubuntu
+UEFI
 UID
 UIDs
 unix
