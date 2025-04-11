@@ -272,10 +272,10 @@ func artifactsPath(t *testing.T) string {
 	authdArtifactsDirSync.Do(func() {
 		defer func() { t.Logf("Saving test artifacts at %s", authdArtifactsDir) }()
 
-		authdArtifactsAlwaysSave = os.Getenv("AUTHD_TEST_ARTIFACTS_ALWAYS_SAVE") != ""
+		authdArtifactsAlwaysSave = os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") != ""
 
 		// We need to copy the artifacts to another directory, since the test directory will be cleaned up.
-		authdArtifactsDir = os.Getenv("AUTHD_TEST_ARTIFACTS_PATH")
+		authdArtifactsDir = os.Getenv("AUTHD_TESTS_ARTIFACTS_PATH")
 		if authdArtifactsDir != "" {
 			if err := os.MkdirAll(authdArtifactsDir, 0750); err != nil && !os.IsExist(err) {
 				require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
