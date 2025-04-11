@@ -13,8 +13,8 @@ import (
 )
 
 var useSudo bool
-
-//go:generate go build -o testhelpers/gpasswd ./testhelpers/gpasswd.go
+var gpasswdHelperPath string
+var groupFile string
 
 func TestLockAndUnlockGroupFile(t *testing.T) {
 	// This test requires either root privileges, unprivileged user namespaces, or being
@@ -30,29 +30,30 @@ func TestLockAndUnlockGroupFile(t *testing.T) {
 		t.Skip("Skipping test: requires root privileges or unprivileged user namespaces")
 	}
 
-	// Ensure the helper binary is built before running the test
-	cmd := exec.Command("go", "generate")
+	// Build the helper binary
+	tempDir := t.TempDir()
+	gpasswdHelperPath = tempDir + "/gpasswd"
+	//nolint:gosec // G204 It's fine to pass a variable to exec.Command here
+	cmd := exec.Command("go", "build", "-o", gpasswdHelperPath, "./testhelpers/gpasswd.go")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
 	require.NoError(t, err)
 
 	// Create a temporary group file
-	tempGroupFile := t.TempDir() + "/group"
+	groupFile = t.TempDir() + "/group"
 	require.NoError(t, err)
 	// Create the temporary group file
 	//nolint:gosec // G306 The group file is expected to have permissions 0644
-	err = os.WriteFile(tempGroupFile, []byte("testgroup:x:1001:testuser"), 0644)
+	err = os.WriteFile(groupFile, []byte("testgroup:x:1001:testuser"), 0644)
 	require.NoError(t, err)
 
 	// Set the group file to the temporary file
-	origGroupFile := userutils.GroupFile
-	userutils.GroupFile = tempGroupFile
-	defer func() { userutils.GroupFile = origGroupFile }()
+	userutils.GroupFile = groupFile
 
 	// Try using gpasswd to modify the group file. This should succeed, because
 	// the group file is not locked.
-	output, err := runGPasswd(tempGroupFile, "--add", "root", "testgroup")
+	output, err := runGPasswd("--add", "root", "testgroup")
 	require.NoError(t, err, string(output))
 
 	// Lock the group file
@@ -61,7 +62,7 @@ func TestLockAndUnlockGroupFile(t *testing.T) {
 
 	// Try using gpasswd to modify the group file. This should fail, because
 	// the group file is locked.
-	output, err = runGPasswd(tempGroupFile, "--delete", "root", "testgroup")
+	output, err = runGPasswd("--delete", "root", "testgroup")
 	require.Error(t, err, string(output))
 	require.Contains(t, string(output), "gpasswd: cannot lock /etc/group")
 
@@ -75,7 +76,7 @@ func TestLockAndUnlockGroupFile(t *testing.T) {
 
 	// Try using gpasswd to modify the group file again. This should succeed,
 	// because the group file is unlocked.
-	output, err = runGPasswd(tempGroupFile, "--delete", "root", "testgroup")
+	output, err = runGPasswd("--delete", "root", "testgroup")
 	require.NoError(t, err, string(output))
 }
 
@@ -103,10 +104,10 @@ func canUseSudoNonInteractively() bool {
 	return true
 }
 
-func runGPasswd(groupFile string, args ...string) ([]byte, error) {
+func runGPasswd(args ...string) ([]byte, error) {
 	args = append([]string{
 		"env", "GROUP_FILE=" + groupFile,
-		"testhelpers/gpasswd",
+		gpasswdHelperPath,
 	}, args...)
 
 	if useSudo {
