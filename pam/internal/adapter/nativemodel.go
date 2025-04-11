@@ -153,7 +153,7 @@ func (m nativeModel) requestStageChange(stage proto.Stage) tea.Cmd {
 }
 
 func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
-	log.Debugf(context.TODO(), "Native model update: %#v", msg)
+	safeMessageDebug("Native model update: %#v", msg)
 
 	switch msg := msg.(type) {
 	case StageChanged:
