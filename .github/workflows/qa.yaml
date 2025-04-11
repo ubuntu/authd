@@ -213,7 +213,7 @@ jobs:
           set -eu
 
           artifacts_dir=$(mktemp -d --tmpdir authd-test-artifacts-XXXXXX)
-          echo AUTHD_TEST_ARTIFACTS_PATH="${artifacts_dir}" >> $GITHUB_ENV
+          echo AUTHD_TESTS_ARTIFACTS_PATH="${artifacts_dir}" >> $GITHUB_ENV
 
           echo ASAN_OPTIONS="log_path=${artifacts_dir}/asan.log:print_stats=true" >> $GITHUB_ENV
 
@@ -250,7 +250,7 @@ jobs:
           # we need to override it using the test.gocoverdir flag instead.
           #TODO: Update when https://go-review.googlesource.com/c/go/+/456595 is merged.
           go test -json -timeout ${GO_TESTS_TIMEOUT} -cover -covermode=set ./... -coverpkg=./... -shuffle=on -args -test.gocoverdir="${raw_cov_dir}" | \
-            gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.cover.log"
+            gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.log"
 
           # Convert the raw coverage data into textfmt so we can merge the Rust one into it
           go tool covdata textfmt -i="${raw_cov_dir}" -o="${cov_dir}/coverage.out"
@@ -282,7 +282,7 @@ jobs:
           AUTHD_TESTS_SLEEP_MULTIPLIER: 3
         run: |
           go test -json -timeout ${GO_TESTS_TIMEOUT} -race ./... | \
-            gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.race.log"
+            gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.race.log"
 
       - name: Run PAM tests (with Address Sanitizer)
         if: matrix.test == 'asan'
@@ -300,9 +300,9 @@ jobs:
           set -x
 
           go test -C ./pam/internal -json -asan -gcflags=all="${GO_GC_FLAGS}" -timeout ${GO_TESTS_TIMEOUT} ./... | \
-            gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.pam-internal-asan.log" || exit_code=$?
+            gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.pam-internal-asan.log" || exit_code=$?
           if [ -n "${exit_code:-}" ]; then
-            cat "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log* || true
+            cat "${AUTHD_TESTS_ARTIFACTS_PATH}"/asan.log* || true
             exit ${exit_code}
           fi
 
@@ -312,7 +312,7 @@ jobs:
           go tool test2json -p pam/integrations-test ./integration-tests.test \
             -test.v=test2json \
             -test.timeout ${GO_TESTS_TIMEOUT} | \
-          gotestfmt --logfile "${AUTHD_TEST_ARTIFACTS_PATH}/gotestfmt.pam-integration-tests-asan.log" || \
+          gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.pam-integration-tests-asan.log" || \
           exit_code=$?
           popd
 
@@ -320,7 +320,7 @@ jobs:
           set +x
 
           # We're logging to a file, and this is useful for having artifacts, but we still may want to see it in logs:
-          for f in "${AUTHD_TEST_ARTIFACTS_PATH}"/asan.log*; do
+          for f in "${AUTHD_TESTS_ARTIFACTS_PATH}"/asan.log*; do
             if ! [ -e "${f}" ]; then
               continue
             fi
@@ -355,4 +355,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: authd-${{ github.job }}-${{ matrix.test }}-artifacts-${{ github.run_attempt }}
-          path: ${{ env.AUTHD_TEST_ARTIFACTS_PATH }}
+          path: ${{ env.AUTHD_TESTS_ARTIFACTS_PATH }}
