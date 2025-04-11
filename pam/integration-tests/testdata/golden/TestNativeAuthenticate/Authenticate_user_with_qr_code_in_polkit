@@ -1,4 +1,4 @@
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -6,7 +6,7 @@ Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -14,19 +14,7 @@ Choose your provider:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-Choose your provider:
-> 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
-────────────────────────────────────────────────────────────────────────────────
-> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -36,21 +24,9 @@ Choose your provider:
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection ==
-  1. Password authentication
-  2. Use a Login code
-  3. Send URL to user-integration-native-authenticate-user-with-qr-code-in-polkit@gmail.com
-  4. Use your fido device foo
-  5. Use your phone +33...
-  6. Use your phone +1...
-  7. Pin code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
->
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -71,10 +47,10 @@ Gimme your password:
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 2
+>
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -96,19 +72,9 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 2
-== Use a Login code ==
-Enter the code in the login page
-https://ubuntu.com
-       1337
-
-  1. Wait for authentication result
-  2. Regenerate code
-Or enter 'r' to go back to select the authentication method
-Choose action:
->
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -139,10 +105,10 @@ https://ubuntu.com
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
-> 2
+>
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -174,19 +140,9 @@ https://ubuntu.com
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Use a Login code ==
-Enter the code in the login page
-https://ubuntu.fr/
-       1338
-
-  1. Wait for authentication result
-  2. Regenerate code
-Or enter 'r' to go back to select the authentication method
-Choose action:
->
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -227,10 +183,10 @@ https://ubuntu.fr/
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
-> 2
+>
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -272,19 +228,9 @@ https://ubuntu.fr/
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Use a Login code ==
-Enter the code in the login page
-https://ubuntuforum-br.org/
-           1339
-
-  1. Wait for authentication result
-  2. Regenerate code
-Or enter 'r' to go back to select the authentication method
-Choose action:
->
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -335,10 +281,10 @@ https://ubuntuforum-br.org/
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
-> 2
+>
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -390,19 +336,9 @@ https://ubuntuforum-br.org/
 Or enter 'r' to go back to select the authentication method
 Choose action:
 > 2
-== Use a Login code ==
-Enter the code in the login page
-https://www.ubuntu-it.org/
-           1340
-
-  1. Wait for authentication result
-  2. Regenerate code
-Or enter 'r' to go back to select the authentication method
-Choose action:
->
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -463,10 +399,74 @@ https://www.ubuntu-it.org/
   2. Regenerate code
 Or enter 'r' to go back to select the authentication method
 Choose action:
+>
+────────────────────────────────────────────────────────────────────────────────
+> if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Use a Login code
+  3. Send URL to user-integration-native-authenticate-user-with-qr-code-in-polkit@gmail.com
+  4. Use your fido device foo
+  5. Use your phone +33...
+  6. Use your phone +1...
+  7. Pin code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 2
+== Use a Login code ==
+Enter the code in the login page
+https://ubuntu.com
+       1337
+
+  1. Wait for authentication result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+== Use a Login code ==
+Enter the code in the login page
+https://ubuntu.fr/
+       1338
+
+  1. Wait for authentication result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+== Use a Login code ==
+Enter the code in the login page
+https://ubuntuforum-br.org/
+           1339
+
+  1. Wait for authentication result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
+> 2
+== Use a Login code ==
+Enter the code in the login page
+https://www.ubuntu-it.org/
+           1340
+
+  1. Wait for authentication result
+  2. Regenerate code
+Or enter 'r' to go back to select the authentication method
+Choose action:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -540,7 +540,7 @@ Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -614,7 +614,7 @@ Choose action:
 > 1
 ────────────────────────────────────────────────────────────────────────────────
 > if [ -v AUTHD_PAM_CLI_TERM ]; then export TERM=${AUTHD_PAM_CLI_TERM}; fi
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_LOGIN_SOCK} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker

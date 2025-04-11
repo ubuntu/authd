@@ -1,16 +1,16 @@
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Username: user name
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Username: user-unexistent
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
   Select your provider
 
 > 1. local
   2. ExampleBroker
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
   Select your provider
 
   1. local
