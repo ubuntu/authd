@@ -1,5 +1,4 @@
 name: User-Pre-Check
-passwd: x
 uid: 1234
 gid: 0
 gecos: gecos for User-Pre-Check

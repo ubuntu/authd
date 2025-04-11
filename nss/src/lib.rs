@@ -4,17 +4,17 @@ use std::time::Duration;
 use libnss::{interop::Response, libnss_group_hooks, libnss_passwd_hooks, libnss_shadow_hooks};
 
 mod passwd;
-use passwd::AuthdPasswd;
-libnss_passwd_hooks!(authd, AuthdPasswd);
+use passwd::AuthdPasswdHooks;
+libnss_passwd_hooks!(authd, AuthdPasswdHooks);
 
 mod group;
-use group::AuthdGroup;
-libnss_group_hooks!(authd, AuthdGroup);
+use group::AuthdGroupHooks;
+libnss_group_hooks!(authd, AuthdGroupHooks);
 
 mod shadow;
-use shadow::AuthdShadow;
+use shadow::AuthdShadowHooks;
 use tonic::{Code, Status};
-libnss_shadow_hooks!(authd, AuthdShadow);
+libnss_shadow_hooks!(authd, AuthdShadowHooks);
 
 mod logs;
 

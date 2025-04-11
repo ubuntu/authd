@@ -350,7 +350,7 @@ Wait`,
 				user = vhsTestUserNameFull(t, tc.userPrefix, "ssh")
 			}
 
-			var nssClient authd.NSSClient
+			var userClient authd.UserServiceClient
 			if tc.socketPath == "" {
 				conn, err := grpc.NewClient("unix://"+socketPath,
 					grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -361,8 +361,8 @@ Wait`,
 				require.NoError(t, grpcutils.WaitForConnection(context.TODO(), conn,
 					sleepDuration(5*time.Second)))
 
-				nssClient = authd.NewNSSClient(conn)
-				requireNoNSSUser(t, nssClient, user)
+				userClient = authd.NewUserServiceClient(conn)
+				requireNoAuthdUser(t, userClient, user)
 			}
 
 			sshdPort := defaultSSHDPort
@@ -419,8 +419,8 @@ Wait`,
 			if tc.wantNotLoggedInUser {
 				require.NotContains(t, got, userEnv, "Should not have a logged in user")
 
-				if nssClient != nil {
-					requireNoNSSUser(t, nssClient, user)
+				if userClient != nil {
+					requireNoAuthdUser(t, userClient, user)
 				}
 				if nssLibrary != "" {
 					requireGetEntExists(t, nssLibrary, socketPath, user, tc.isLocalUser)
@@ -428,16 +428,16 @@ Wait`,
 			} else {
 				require.Contains(t, got, userEnv, "Logged in user does not matches")
 
-				if nssClient != nil {
-					userPasswd := requireNSSUser(t, nssClient, user)
-					group := requireNSSGroup(t, nssClient, userPasswd.Gid)
-					require.Contains(t, group.Members, userPasswd.Name,
+				if userClient != nil {
+					authdUser := requireAuthdUser(t, userClient, user)
+					group := requireAuthdGroup(t, userClient, authdUser.Gid)
+					require.Contains(t, group.Members, authdUser.Name,
 						"Group lacks of the expected user")
 
 					if nssLibrary != "" {
-						userHome = userPasswd.Homedir
+						userHome = authdUser.Homedir
 
-						requireGetEntEqualsPasswd(t, nssLibrary, socketPath, user, userPasswd)
+						requireGetEntEqualsPasswd(t, nssLibrary, socketPath, user, authdUser)
 						requireGetEntEqualsGroup(t, nssLibrary, socketPath, user, group)
 					}
 				}
