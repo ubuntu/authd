@@ -1,29 +1,18 @@
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
 Choose your provider:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
-== Provider selection ==
-  1. local
-  2. ExampleBroker
-Choose your provider:
-> 2
-== Password authentication ==
-Enter 'r' to cancel the request and go back to select the authentication method
-Gimme your password:
->
-────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -33,20 +22,8 @@ Choose your provider:
 Enter 'r' to cancel the request and go back to select the authentication method
 Gimme your password:
 >
-== Authentication method selection ==
-  1. Password authentication
-  2. Send URL to user-integration-native-authenticate-user-with-form-mode-with-button@gmail.com
-  3. Use your fido device foo
-  4. Use your phone +33...
-  5. Use your phone +1...
-  6. Pin code
-  7. Use a QR code
-  8. Authentication code
-Or enter 'r' to go back to choose the provider
-Choose your authentication method:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -67,9 +44,9 @@ Gimme your password:
   8. Authentication code
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
-> 8
+>
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -91,14 +68,8 @@ Gimme your password:
 Or enter 'r' to go back to choose the provider
 Choose your authentication method:
 > 8
-== Authentication code ==
-  1. Proceed with Authentication code
-  2. Resend SMS (1 sent)
-Or enter 'r' to go back to select the authentication method
-Choose action:
->
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -125,9 +96,38 @@ Choose your authentication method:
   2. Resend SMS (1 sent)
 Or enter 'r' to go back to select the authentication method
 Choose action:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+== Authentication method selection ==
+  1. Password authentication
+  2. Send URL to user-integration-native-authenticate-user-with-form-mode-with-button@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Pin code
+  7. Use a QR code
+  8. Authentication code
+Or enter 'r' to go back to choose the provider
+Choose your authentication method:
+> 8
+== Authentication code ==
+  1. Proceed with Authentication code
+  2. Resend SMS (1 sent)
+Or enter 'r' to go back to select the authentication method
+Choose action:
 > 2
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -162,7 +162,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -197,7 +197,7 @@ Or enter 'r' to go back to select the authentication method
 Choose action:
 > 1
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -236,7 +236,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Enter your one time credential:
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
@@ -275,7 +275,7 @@ Enter 'r' to cancel the request and go back to select the authentication method
 Enter your one time credential:
 > temporary pass00
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 == Provider selection ==
   1. local
   2. ExampleBroker
