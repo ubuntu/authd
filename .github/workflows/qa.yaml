@@ -24,6 +24,7 @@ env:
     libpwquality-dev
 
   test_apt_deps: >-
+    bubblewrap
     cracklib-runtime
     git-delta
     openssh-client
