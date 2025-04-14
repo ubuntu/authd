@@ -25,12 +25,20 @@ Show
 
 Hide
 Enter
-Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
+Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /Password reset, 2 step\(s\) missing/
+Show
+
+Hide
+Wait /Plug your fido device and press with your thumb/
+Show
+
+Hide
+Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /Password reset, 1 step\(s\) missing/
 Show
 
 # Wait for MFA auth to happen
 Hide
-Wait+Screen @${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /Enter your new password \(3 days until mandatory\)\n/
+Wait+Screen /Enter your new password \(3 days until mandatory\)\n/
 Wait+CLIPrompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /New password/ /\[ Skip \]/
 Show
 
