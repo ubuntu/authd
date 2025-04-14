@@ -387,7 +387,7 @@ func TestGdmModule(t *testing.T) {
 			},
 			wantUILayouts: []*authd.UILayout{&testPasswordUILayout, &testNewPasswordUILayout},
 			wantAuthResponses: []*authd.IAResponse{
-				{Access: auth.Next},
+				{Access: auth.Next, Msg: "Password reset, 1 step(s) missing"},
 				{Access: auth.Granted},
 			},
 		},
@@ -442,8 +442,8 @@ func TestGdmModule(t *testing.T) {
 				&testNewPasswordUILayout,
 			},
 			wantAuthResponses: []*authd.IAResponse{
-				{Access: auth.Next},
-				{Access: auth.Next},
+				{Access: auth.Next, Msg: "Password reset, 2 step(s) missing"},
+				{Access: auth.Next, Msg: "Password reset, 1 step(s) missing"},
 				{
 					Access: auth.Retry,
 					Msg:    "The password fails the dictionary check - it is based on a dictionary word",
@@ -499,6 +499,7 @@ func TestGdmModule(t *testing.T) {
 			wantAuthResponses: []*authd.IAResponse{
 				{
 					Access: auth.Next,
+					Msg:    "Password reset, 1 step(s) missing",
 				},
 				{
 					Access: auth.Retry,

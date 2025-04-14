@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -324,33 +325,44 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 			m.authTracker.reset()
 		}()
 
+		var authMsg string
+		if msg.access != auth.Cancelled {
+			msg, err := dataToMsg(msg.msg)
+			if err != nil {
+				return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+			}
+			authMsg = msg
+		}
+
 		switch msg.access {
 		case auth.Granted:
-			infoMsg, err := dataToMsg(msg.msg)
-			if err != nil {
-				return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
-			}
-			return m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID, msg: infoMsg})
+			return m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID, msg: authMsg})
 
 		case auth.Retry:
-			errorMsg, err := dataToMsg(msg.msg)
-			if err != nil {
-				return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
-			}
-			m.errorMsg = errorMsg
+			m.errorMsg = authMsg
 			return m, sendEvent(startAuthentication{})
 
 		case auth.Denied:
-			errMsg, err := dataToMsg(msg.msg)
-			if err != nil {
-				return m, sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+			if authMsg == "" {
+				authMsg = "Access denied"
 			}
-			if errMsg == "" {
-				errMsg = "Access denied"
-			}
-			return m, sendEvent(pamError{status: pam.ErrAuth, msg: errMsg})
+			return m, sendEvent(pamError{status: pam.ErrAuth, msg: authMsg})
 
 		case auth.Next:
+			if authMsg != "" {
+				m.errorMsg = authMsg
+
+				// Give the user some time to read the message, if any, using
+				const baseWPM = float64(120)
+				const delay = 500 * time.Millisecond
+				const extraTime = 1000 * time.Millisecond
+				words := len(strings.Fields(m.errorMsg))
+				readTime := time.Duration(float64(words)/baseWPM*60) * time.Second
+				userReadTime := delay + readTime + extraTime
+				return m, tea.Tick(userReadTime, func(t time.Time) tea.Msg {
+					return GetAuthenticationModesRequested{}
+				})
+			}
 			return m, sendEvent(GetAuthenticationModesRequested{})
 
 		case auth.Cancelled:
