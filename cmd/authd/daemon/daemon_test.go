@@ -16,7 +16,6 @@ import (
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/testutils"
-	"github.com/ubuntu/authd/internal/users/db"
 )
 
 func TestHelp(t *testing.T) {
@@ -176,10 +175,10 @@ func TestAppRunFailsOnComponentsCreationAndQuit(t *testing.T) {
 				config.Paths.Database = filepath.Join(shortTmp, "db")
 				err := os.MkdirAll(config.Paths.Database, 0700)
 				require.NoError(t, err, "Setup: could not create database directory")
-				err = fileutils.Touch(filepath.Join(config.Paths.Database, db.Z_ForTests_DBName()))
+				err = fileutils.Touch(filepath.Join(config.Paths.Database, consts.DefaultDatabaseFileName))
 				require.NoError(t, err, "Setup: could not create database")
 				//nolint: gosec // This is a file with invalid permission for tests.
-				err = os.Chmod(filepath.Join(config.Paths.Database, db.Z_ForTests_DBName()), 0666)
+				err = os.Chmod(filepath.Join(config.Paths.Database, consts.DefaultDatabaseFileName), 0666)
 				require.NoError(t, err, "Setup: could not set file permissions")
 			}
 

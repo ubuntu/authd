@@ -1,7 +1,7 @@
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Username: user name
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK}
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 PAM Error Message: unix:///authd/test_socket.sock stopped serving
 PAM Authenticate()
   User: "<unset>"
