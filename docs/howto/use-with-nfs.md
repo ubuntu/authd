@@ -301,3 +301,7 @@ follow these steps:
    ```bash
    sudo rm -f /etc/krb5.keytab /tmp/krb5*
    ```
+
+## Additional resources
+
+For a complete guide to set up NFS on your client and server, see [Network File System (NFS)](https://documentation.ubuntu.com/server/how-to/networking/install-nfs/).
