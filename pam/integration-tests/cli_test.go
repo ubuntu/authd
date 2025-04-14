@@ -23,8 +23,7 @@ func TestCLIAuthenticate(t *testing.T) {
 
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
-	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
-	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s}", socketPathEnv)
+	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s}", vhsTapeSocketVariable)
 
 	tests := map[string]struct {
 		tape          string
@@ -213,7 +212,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Command = tapeCommand
 			td.Variables = tc.tapeVariables
-			td.Env[socketPathEnv] = socketPath
+			td.Env[vhsTapeSocketVariable] = socketPath
 			td.Env["AUTHD_TEST_PID_FILE"] = pidFile
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
@@ -233,9 +232,8 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	outDir := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, outDir)
 
-	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
 	const tapeBaseCommand = "./pam_authd %s socket=${%s}"
-	tapeCommand := fmt.Sprintf(tapeBaseCommand, pam_test.RunnerActionPasswd, socketPathEnv)
+	tapeCommand := fmt.Sprintf(tapeBaseCommand, pam_test.RunnerActionPasswd, vhsTapeSocketVariable)
 
 	tests := map[string]struct {
 		tape          string
@@ -248,7 +246,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			tape: "passwd_simple",
 			tapeVariables: map[string]string{
 				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(
-					tapeBaseCommand, pam_test.RunnerActionLogin, socketPathEnv),
+					tapeBaseCommand, pam_test.RunnerActionLogin, vhsTapeSocketVariable),
 			},
 		},
 		"Change_passwd_after_MFA_auth": {
@@ -317,7 +315,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Command = tapeCommand
 			td.Variables = tc.tapeVariables
-			td.Env[socketPathEnv] = socketPath
+			td.Env[vhsTapeSocketVariable] = socketPath
 			td.AddClientOptions(t, clientOptions{})
 			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)

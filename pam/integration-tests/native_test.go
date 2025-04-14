@@ -21,9 +21,8 @@ func TestNativeAuthenticate(t *testing.T) {
 
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
-	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK"
 	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s} force_native_client=true",
-		socketPathEnv)
+		vhsTapeSocketVariable)
 
 	tests := map[string]struct {
 		tape          string
@@ -358,7 +357,7 @@ func TestNativeAuthenticate(t *testing.T) {
 
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Command = tc.tapeCommand
-			td.Env[socketPathEnv] = socketPath
+			td.Env[vhsTapeSocketVariable] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.Env["AUTHD_TEST_PID_FILE"] = pidFile
 			td.Variables = tc.tapeVariables
@@ -382,9 +381,9 @@ func TestNativeChangeAuthTok(t *testing.T) {
 	outDir := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, outDir)
 
-	const socketPathEnv = "AUTHD_TESTS_CLI_AUTHTOK_TESTS_SOCK"
+	const vhsTapeSocketVariable = "AUTHD_TEST_AUTHTOK_SOCK"
 	const tapeBaseCommand = "./pam_authd %s socket=${%s} force_native_client=true"
-	tapeCommand := fmt.Sprintf(tapeBaseCommand, pam_test.RunnerActionPasswd, socketPathEnv)
+	tapeCommand := fmt.Sprintf(tapeBaseCommand, pam_test.RunnerActionPasswd, vhsTapeSocketVariable)
 
 	tests := map[string]struct {
 		tape          string
@@ -399,7 +398,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			tapeSettings: []tapeSetting{{vhsHeight, 600}},
 			tapeVariables: map[string]string{
 				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(
-					tapeBaseCommand, pam_test.RunnerActionLogin, socketPathEnv),
+					tapeBaseCommand, pam_test.RunnerActionLogin, vhsTapeSocketVariable),
 			},
 		},
 		"Change_passwd_after_MFA_auth": {
@@ -471,7 +470,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			td := newTapeData(tc.tape, tc.tapeSettings...)
 			td.Command = tapeCommand
 			td.Variables = tc.tapeVariables
-			td.Env[socketPathEnv] = socketPath
+			td.Env[vhsTapeSocketVariable] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.AddClientOptions(t, clientOptions{})
 			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
