@@ -1,4 +1,4 @@
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 PAM Error Message: could not get current available brokers: permission denied: this action is on
 ly allowed for root users. Current user is XXXX
 PAM Authenticate()
@@ -12,7 +12,7 @@ PAM AcctMgmt()
     The return value should be ignored by PAM dispatch
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 PAM Error Message: could not get current available brokers: permission denied: this action is on
 ly allowed for root users. Current user is XXXX
 PAM Authenticate()

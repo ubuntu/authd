@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/db"
@@ -160,7 +161,7 @@ func TestMaybeMigrateBBoltToSQLite(t *testing.T) {
 			}
 
 			if tc.sqliteExists {
-				err := fileutils.Touch(filepath.Join(dbDir, db.Filename()))
+				err := fileutils.Touch(filepath.Join(dbDir, consts.DefaultDatabaseFileName))
 				require.NoError(t, err, "failed to create sqlite file")
 			}
 

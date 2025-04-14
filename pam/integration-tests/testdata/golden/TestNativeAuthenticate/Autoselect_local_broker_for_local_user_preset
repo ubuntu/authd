@@ -1,4 +1,4 @@
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 auth=incomplete
 PAM Authenticate()
   User: "root"
@@ -10,7 +10,7 @@ PAM AcctMgmt()
     Critical error - immediate abort
 >
 ────────────────────────────────────────────────────────────────────────────────
-> ./pam_authd login socket=${AUTHD_TESTS_CLI_AUTHENTICATE_TESTS_SOCK} force_native_client=true
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
 auth=incomplete
 PAM Authenticate()
   User: "root"

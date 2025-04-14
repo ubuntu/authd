@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
@@ -30,9 +31,10 @@ import (
 )
 
 var (
-	authdTestSessionTime  = time.Now()
-	authdArtifactsDir     string
-	authdArtifactsDirSync sync.Once
+	authdTestSessionTime     = time.Now()
+	authdArtifactsDir        string
+	authdArtifactsAlwaysSave bool
+	authdArtifactsDirSync    sync.Once
 )
 
 type authdInstance struct {
@@ -48,7 +50,7 @@ var (
 	sharedAuthdInstance = authdInstance{}
 )
 
-func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) (
+func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, isSharedDaemon bool, args ...testutils.DaemonOption) (
 	socketPath string, waitFunc func()) {
 	t.Helper()
 
@@ -68,6 +70,16 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 	require.NoError(t, err, "Setup: Creating home base dir %q", homeBaseDir)
 	args = append(args, testutils.WithHomeBaseDir(homeBaseDir))
 
+	if !isSharedDaemon {
+		database := filepath.Join(t.TempDir(), "db", consts.DefaultDatabaseFileName)
+		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
+		saveArtifactsForDebugOnCleanup(t, []string{outputFile})
+	}
+	if isSharedDaemon && authdArtifactsAlwaysSave {
+		database := filepath.Join(authdArtifactsDir, "db", consts.DefaultDatabaseFileName)
+		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
+	}
+
 	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, args...)
 	saveArtifactsForDebugOnCleanup(t, []string{outputFile})
 	return socketPath, func() {
@@ -79,7 +91,7 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) string {
 	t.Helper()
 
-	socketPath, _ := runAuthdForTesting(t, gpasswdOutput, groupsFile, currentUserAsRoot, args...)
+	socketPath, _ := runAuthdForTesting(t, gpasswdOutput, groupsFile, currentUserAsRoot, false, args...)
 	return socketPath
 }
 
@@ -94,7 +106,7 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 	if !useSharedInstance {
 		gPasswd := filepath.Join(t.TempDir(), "gpasswd.output")
 		groups := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-		socket, cleanup := runAuthdForTesting(t, gPasswd, groups, true, args...)
+		socket, cleanup := runAuthdForTesting(t, gPasswd, groups, true, useSharedInstance, args...)
 		t.Cleanup(cleanup)
 		return socket, gPasswd
 	}
@@ -135,7 +147,7 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 	sa.gPasswdOutputPath = filepath.Join(t.TempDir(), "gpasswd.output")
 	sa.groupsFile = filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 	sa.socketPath, sa.cleanup = runAuthdForTesting(t, sa.gPasswdOutputPath,
-		sa.groupsFile, true, args...)
+		sa.groupsFile, true, useSharedInstance, args...)
 	return sa.socketPath, sa.gPasswdOutputPath
 }
 
@@ -260,8 +272,10 @@ func artifactsPath(t *testing.T) string {
 	authdArtifactsDirSync.Do(func() {
 		defer func() { t.Logf("Saving test artifacts at %s", authdArtifactsDir) }()
 
+		authdArtifactsAlwaysSave = os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") != ""
+
 		// We need to copy the artifacts to another directory, since the test directory will be cleaned up.
-		authdArtifactsDir = os.Getenv("AUTHD_TEST_ARTIFACTS_PATH")
+		authdArtifactsDir = os.Getenv("AUTHD_TESTS_ARTIFACTS_PATH")
 		if authdArtifactsDir != "" {
 			if err := os.MkdirAll(authdArtifactsDir, 0750); err != nil && !os.IsExist(err) {
 				require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
@@ -285,7 +299,7 @@ func artifactsPath(t *testing.T) string {
 // saveArtifactsForDebug saves the specified artifacts to a temporary directory if the test failed.
 func saveArtifactsForDebug(t *testing.T, artifacts []string) {
 	t.Helper()
-	if !t.Failed() {
+	if !t.Failed() && !authdArtifactsAlwaysSave {
 		return
 	}
 
