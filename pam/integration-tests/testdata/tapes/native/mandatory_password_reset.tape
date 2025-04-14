@@ -16,6 +16,7 @@ Show
 Hide
 Type "goodpass"
 Enter
+Wait+Nth(1) /Password reset, 1 step\(s\) missing/
 Wait+Prompt /Enter your new password/
 Show
 

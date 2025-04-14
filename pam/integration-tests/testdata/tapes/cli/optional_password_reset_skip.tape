@@ -25,6 +25,10 @@ Show
 
 Hide
 Enter
+Wait /Password reset, 1 step\(s\) missing/
+Show
+
+Hide
 Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]/
 Show
 
