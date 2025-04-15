@@ -304,4 +304,4 @@ follow these steps:
 
 ## Additional resources
 
-For a complete guide to set up NFS on your client and server, see [Network File System (NFS)](https://documentation.ubuntu.com/server/how-to/networking/install-nfs/).
+For a complete guide to setting up NFS on your client and server, see [Network File System (NFS)](https://documentation.ubuntu.com/server/how-to/networking/install-nfs/) in the Ubuntu Server documentation.
