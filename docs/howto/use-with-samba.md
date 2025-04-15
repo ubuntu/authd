@@ -254,3 +254,4 @@ shared directory on the server from a client machine.
 ## Additional resources
 
 For a complete guide to setting up Samba on your client and server, see [Samba](https://documentation.ubuntu.com/server/how-to/samba/) in the Ubuntu Server documentation.
+
