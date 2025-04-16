@@ -266,6 +266,9 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 		newLines = append(newLines, strings.Join(fields, ":"))
 	}
 
+	// Add final new line to the group file.
+	newLines = append(newLines, "")
+
 	backupPath := groupFileBackupPath()
 	backupDone := true
 	oldBackup := ""
