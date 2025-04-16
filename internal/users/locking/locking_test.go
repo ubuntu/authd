@@ -30,15 +30,24 @@ func TestUsersLockingInBubbleWrap(t *testing.T) {
 	testsListStr := strings.TrimSpace(string(testsList))
 	require.NotEmpty(t, testsListStr, "Setup: test not found", testsListStr)
 
+	lockerBinary := compileLockerBinary(t)
+
 	for _, name := range strings.Split(testsListStr, "\n") {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+
+			var testEnv []string
 
 			// Create a temporary folder for tests.
 			testDataPath := t.TempDir()
 			testBinary := filepath.Join(testDataPath, filepath.Base(mainTestBinary))
 			err := fileutils.CopyFile(mainTestBinary, testBinary)
 			require.NoError(t, err, "Setup: Copying test binary to local test path")
+
+			testLockerBinary := filepath.Join(testDataPath, filepath.Base(lockerBinary))
+			err = fileutils.CopyFile(lockerBinary, testLockerBinary)
+			require.NoError(t, err, "Setup: Copying locker binary to local test path")
+			testEnv = append(testEnv, "AUTHD_TESTS_PASSWD_LOCKER_UTILITY="+testLockerBinary)
 
 			nameRegex := fmt.Sprintf("^%s$", regexp.QuoteMeta(name))
 			//nolint:gosec // G204 we define the parameters here.
@@ -56,7 +65,7 @@ func TestUsersLockingInBubbleWrap(t *testing.T) {
 			if c := testutils.CoverDirForTests(); c != "" {
 				testCommand = append(testCommand, fmt.Sprintf("-test.gocoverdir=%s", c))
 			}
-			out, err := testutils.RunInBubbleWrap(t, testDataPath,
+			out, err := testutils.RunInBubbleWrapWithEnv(t, testDataPath, testEnv,
 				testCommand...)
 			require.NoError(t, err, "Running test: %s\n%s", name, out)
 		})
@@ -88,6 +97,22 @@ func compileTestBinary(t *testing.T) string {
 	require.NoError(t, err, "Setup: Cannot compile test file: %s", compileOut)
 
 	return testBinary
+}
+
+func compileLockerBinary(t *testing.T) string {
+	t.Helper()
+
+	testLocker := filepath.Join(t.TempDir(), "test-locker")
+	cmd := exec.Command("go", "build", "-C", "testlocker")
+	cmd.Args = append(cmd.Args, []string{
+		"-tags", "test_locker", "-o", testLocker,
+	}...)
+
+	t.Logf("Compiling locker binary: %s", strings.Join(cmd.Args, " "))
+	compileOut, err := cmd.CombinedOutput()
+	require.NoError(t, err, "Setup: Cannot compile locker file: %s", compileOut)
+
+	return testLocker
 }
 
 func TestUsersLockingOverride(t *testing.T) {
