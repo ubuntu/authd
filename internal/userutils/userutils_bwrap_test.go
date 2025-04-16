@@ -41,11 +41,6 @@ func TestLockAndUnlockGroupFile(t *testing.T) {
 	require.Error(t, err, output)
 	require.Contains(t, output, "gpasswd: cannot lock /etc/group")
 
-	// Try locking the group file again. This should fail, because the group
-	// file is already locked.
-	err = userutils.LockGroupFile()
-	require.Error(t, err)
-
 	// Reading is allowed when locked.
 	output, err = runCmd(t, "getent", "group", "testgroup")
 	require.NoError(t, err, "Output: %s", output)
@@ -83,6 +78,26 @@ testgroup:x:1001:testuser`
 	output, err := runCmd(t, "getent", "group")
 	require.NoError(t, err, "Reading should be allowed")
 	require.Equal(t, groupContents, output)
+}
+
+func TestLockAndLockAgainGroupFile(t *testing.T) {
+	require.Zero(t, os.Geteuid(), "Not root")
+
+	err := userutils.LockGroupFile()
+	require.NoError(t, err, "Locking once it is allowed")
+
+	err = userutils.LockGroupFile()
+	require.Error(t, err, "Locking again should not be allowed")
+
+	err = userutils.UnlockGroupFile()
+	require.NoError(t, err, "Unlocking should be allowed")
+}
+
+func TestUnlockUnlocked(t *testing.T) {
+	require.Zero(t, os.Geteuid(), "Not root")
+
+	err := userutils.UnlockGroupFile()
+	require.Error(t, err, "Unlocking unlocked should not be allowed")
 }
 
 func runCmd(t *testing.T, command string, args ...string) (string, error) {
