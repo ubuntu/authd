@@ -85,6 +85,26 @@ testgroup:x:1001:testuser`
 	require.Equal(t, groupContents, output)
 }
 
+func TestLockAndLockAgainGroupFile(t *testing.T) {
+	require.Zero(t, os.Geteuid(), "Not root")
+
+	err := userutils.LockGroupFile()
+	require.NoError(t, err, "Locking once it is allowed")
+
+	err = userutils.LockGroupFile()
+	require.Error(t, err, "Locking again should not be allowed")
+
+	err = userutils.UnlockGroupFile()
+	require.NoError(t, err, "Unlocking should be allowed")
+}
+
+func TestUnlockUnlocked(t *testing.T) {
+	require.Zero(t, os.Geteuid(), "Not root")
+
+	err := userutils.UnlockGroupFile()
+	require.Error(t, err, "Unlocking unlocked should not be allowed")
+}
+
 func runCmd(t *testing.T, command string, args ...string) (string, error) {
 	t.Helper()
 
