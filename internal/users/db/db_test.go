@@ -130,10 +130,9 @@ func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
 	db.SetGroupFile(groupsFilePath)
 	defer db.SetGroupFile(origGroupFile)
 
-	// Make the userutils package use the temporary group file
-	require.Equal(t, origGroupFile, userutils.GroupFile)
-	userutils.GroupFile = groupsFilePath
-	defer func() { userutils.GroupFile = origGroupFile }()
+	// Make the userutils package to use test locking for the group file
+	userutils.OverrideShadowPasswordLocking()
+	t.Cleanup(userutils.RestoreShadowPasswordLocking)
 
 	// Run the migrations
 	m, err := db.New(dbDir)

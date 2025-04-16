@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/userutils"
 )
 
 func TestUserUtilsInBubbleWrap(t *testing.T) {
@@ -84,4 +85,23 @@ func compileTestBinary(t *testing.T) string {
 	require.NoError(t, err, "Setup: Cannot compile test file: %s", compileOut)
 
 	return testBinary
+}
+
+func TestUserUtilsPasswordLockingOverride(t *testing.T) {
+	// This cannot be parallel.
+
+	userutils.OverrideShadowPasswordLocking()
+	t.Cleanup(userutils.RestoreShadowPasswordLocking)
+
+	err := userutils.WriteLockShadowPassword()
+	require.NoError(t, err, "Locking should be allowed")
+
+	err = userutils.WriteLockShadowPassword()
+	require.ErrorIs(t, err, userutils.ErrLock, "Locking again should not be allowed")
+
+	err = userutils.WriteUnlockShadowPassword()
+	require.NoError(t, err, "Unlocking should be allowed")
+
+	err = userutils.WriteUnlockShadowPassword()
+	require.ErrorIs(t, err, userutils.ErrUnlock, "Unlocking unlocked should not be allowed")
 }
