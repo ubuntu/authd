@@ -114,8 +114,6 @@ func TestDatabaseRemovedWhenSchemaCreationFails(t *testing.T) {
 }
 
 func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
-	t.Parallel()
-
 	// Create a database from the testdata
 	dbDir := t.TempDir()
 	dbFile := "one_user_and_group_with_uppercase.db.yaml"
