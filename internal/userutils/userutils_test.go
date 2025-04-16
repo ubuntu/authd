@@ -1,124 +1,90 @@
+//go:build !bubblewrap_test
+
 package userutils_test
 
 import (
-	"context"
-	"os"
+	"fmt"
 	"os/exec"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/userutils"
-	"github.com/ubuntu/authd/log"
+	"github.com/ubuntu/authd/internal/fileutils"
+	"github.com/ubuntu/authd/internal/testutils"
 )
 
-var useSudo bool
-var gpasswdHelperPath string
-var groupFile string
+func TestUserUtilsInBubbleWrap(t *testing.T) {
+	t.Parallel()
 
-func TestLockAndUnlockGroupFile(t *testing.T) {
-	// This test requires either root privileges, unprivileged user namespaces, or being
-	// able to run sudo without user interaction.
-	if os.Geteuid() == 0 {
-		log.Info(context.Background(), "Running as EUID 0")
-	} else if canUseUnprivilegedUserNamespaces() {
-		log.Info(context.Background(), "Can use unprivileged user namespaces")
-	} else if canUseSudoNonInteractively() {
-		log.Info(context.Background(), "Can use sudo non-interactively")
-		useSudo = true
-	} else {
-		t.Skip("Skipping test: requires root privileges or unprivileged user namespaces")
+	testutils.SkipIfCannotRunBubbleWrap(t)
+
+	// Create a binary for the bubbletea tests.
+	mainTestBinary := compileTestBinary(t)
+
+	//nolint:gosec // G204 we define the parameters here.
+	testsList, err := exec.Command(mainTestBinary, "-test.list", ".*").CombinedOutput()
+	require.NoError(t, err, "Setup: Checking for test: %s", testsList)
+	testsListStr := strings.TrimSpace(string(testsList))
+	require.NotEmpty(t, testsListStr, "Setup: test not found", testsListStr)
+
+	for _, name := range strings.Split(testsListStr, "\n") {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			// Create a temporary folder for tests.
+			testDataPath := t.TempDir()
+			testBinary := filepath.Join(testDataPath, filepath.Base(mainTestBinary))
+			err := fileutils.CopyFile(mainTestBinary, testBinary)
+			require.NoError(t, err, "Setup: Copying test binary to local test path")
+
+			nameRegex := fmt.Sprintf("^%s$", regexp.QuoteMeta(name))
+			//nolint:gosec // G204 we define the parameters here.
+			testsList, err := exec.Command(testBinary, "-test.list", nameRegex).CombinedOutput()
+			require.NoError(t, err, "Setup: Checking for test: %s", testsList)
+			testsListStr := strings.TrimSpace(string(testsList))
+			require.NotEmpty(t, testsListStr, "Setup: %q test not found", name)
+			require.Len(t, strings.Split(testsListStr, "\n"), 1,
+				"Setup: Too many tests defined for %s", testsListStr)
+
+			testCommand := []string{testBinary, "-test.run", nameRegex}
+			if testutils.IsVerbose() {
+				testCommand = append(testCommand, "-test.v")
+			}
+			if c := testutils.CoverDirForTests(); c != "" {
+				testCommand = append(testCommand, fmt.Sprintf("-test.gocoverdir=%s", c))
+			}
+			out, err := testutils.RunInBubbleWrap(t, testDataPath,
+				testCommand...)
+			require.NoError(t, err, "Running test: %s\n%s", name, out)
+		})
 	}
-
-	// Build the helper binary
-	tempDir := t.TempDir()
-	gpasswdHelperPath = tempDir + "/gpasswd"
-	//nolint:gosec // G204 It's fine to pass a variable to exec.Command here
-	cmd := exec.Command("go", "build",
-		"-o", gpasswdHelperPath,
-		"-tags", "userutils_testhelpers",
-		"./testhelpers/gpasswd.go")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err := cmd.Run()
-	require.NoError(t, err)
-
-	// Create a temporary group file
-	groupFile = t.TempDir() + "/group"
-	require.NoError(t, err)
-	// Create the temporary group file
-	//nolint:gosec // G306 The group file is expected to have permissions 0644
-	err = os.WriteFile(groupFile, []byte("testgroup:x:1001:testuser"), 0644)
-	require.NoError(t, err)
-
-	// Set the group file to the temporary file
-	userutils.GroupFile = groupFile
-
-	// Try using gpasswd to modify the group file. This should succeed, because
-	// the group file is not locked.
-	output, err := runGPasswd("--add", "root", "testgroup")
-	require.NoError(t, err, string(output))
-
-	// Lock the group file
-	err = userutils.LockGroupFile()
-	require.NoError(t, err)
-
-	// Try using gpasswd to modify the group file. This should fail, because
-	// the group file is locked.
-	output, err = runGPasswd("--delete", "root", "testgroup")
-	require.Error(t, err, string(output))
-	require.Contains(t, string(output), "gpasswd: cannot lock /etc/group")
-
-	// Try locking the group file again. This should fail, because the group file is already locked.
-	err = userutils.LockGroupFile()
-	require.Error(t, err)
-
-	// Unlock the group file
-	err = userutils.UnlockGroupFile()
-	require.NoError(t, err)
-
-	// Try using gpasswd to modify the group file again. This should succeed,
-	// because the group file is unlocked.
-	output, err = runGPasswd("--delete", "root", "testgroup")
-	require.NoError(t, err, string(output))
 }
 
-func canUseUnprivilegedUserNamespaces() bool {
-	cmd := exec.Command("bwrap", "--ro-bind", "/", "/", "--unshare-user", "--uid", "0", "/bin/true")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		log.Warningf(context.Background(), "Can't use unprivileged user namespaces: %v", err)
-		return false
+func compileTestBinary(t *testing.T) string {
+	t.Helper()
+
+	cmd := exec.Command("go", "test")
+	// These are positional arguments.
+	if testutils.CoverDirForTests() != "" {
+		cmd.Args = append(cmd.Args, "-cover")
+	}
+	if testutils.IsAsan() {
+		cmd.Args = append(cmd.Args, "-asan")
+	}
+	if testutils.IsRace() {
+		cmd.Args = append(cmd.Args, "-race")
 	}
 
-	return true
-}
+	testBinary := filepath.Join(t.TempDir(), "test-binary")
+	cmd.Args = append(cmd.Args, []string{
+		"-tags", "bubblewrap_test", "-c", "-o", testBinary,
+	}...)
 
-func canUseSudoNonInteractively() bool {
-	cmd := exec.Command("sudo", "-Nnv")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		log.Warningf(context.Background(), "Can't use sudo non-interactively: %v", err)
-		return false
-	}
+	t.Logf("Compiling test binary: %s", strings.Join(cmd.Args, " "))
+	compileOut, err := cmd.CombinedOutput()
+	require.NoError(t, err, "Setup: Cannot compile test file: %s", compileOut)
 
-	return true
-}
-
-func runGPasswd(args ...string) ([]byte, error) {
-	args = append([]string{
-		"env", "GROUP_FILE=" + groupFile,
-		gpasswdHelperPath,
-	}, args...)
-
-	if useSudo {
-		args = append([]string{"sudo"}, args...)
-	}
-
-	log.Infof(context.Background(), "Running command: %s", strings.Join(args, " "))
-	//nolint:gosec // G204 It's fine to pass variables to exec.Command here
-	cmd := exec.Command(args[0], args[1:]...)
-	return cmd.CombinedOutput()
+	return testBinary
 }
