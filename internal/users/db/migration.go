@@ -5,13 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/users/db/bbolt"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/userutils"
 	"github.com/ubuntu/authd/log"
 )
+
+var groupFile = localentries.GroupFile
 
 // MigrateFromBBoltToSQLite migrates data from bbolt to SQLite.
 func MigrateFromBBoltToSQLite(dbDir string) error {
@@ -164,7 +168,7 @@ var schemaMigrations = []schemaMigration{
 
 			if err := renameUsersInGroupFile(oldNames, newNames); err != nil {
 				return fmt.Errorf("failed to rename users in %s file: %w",
-					localentries.GroupFile, err)
+					groupFile, err)
 			}
 
 			query := `UPDATE users SET name = LOWER(name);
@@ -209,8 +213,15 @@ func (m *Manager) maybeApplyMigrations() error {
 	return nil
 }
 
+func groupFileBackupPath() string {
+	return fmt.Sprintf("%s-", groupFile)
+}
+
 // renameUsersInGroupFile renames users in the /etc/group file.
 func renameUsersInGroupFile(oldNames, newNames []string) error {
+	log.Debugf(context.Background(), "Renaming users in %q: %v -> %v", groupFile,
+		oldNames, newNames)
+
 	// Note that we can't use gpasswd here because `gpasswd --add` checks for the existence of the user, which causes an
 	// NSS request to be sent to authd, but authd is not ready yet because we are still migrating the database.
 	err := userutils.WriteLockShadowPassword()
@@ -223,9 +234,9 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 		}
 	}()
 
-	content, err := os.ReadFile(localentries.GroupFile)
+	content, err := os.ReadFile(groupFile)
 	if err != nil {
-		return fmt.Errorf("error reading %s: %w", localentries.GroupFile, err)
+		return fmt.Errorf("error reading %s: %w", groupFile, err)
 	}
 
 	oldLines := strings.Split(string(content), "\n")
@@ -239,7 +250,7 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 		fields := strings.FieldsFunc(line, func(r rune) bool { return r == ':' })
 		if len(fields) != 4 {
 			return fmt.Errorf("unexpected number of fields in %s line (expected 4, got %d): %s",
-				localentries.GroupFile, len(fields), line)
+				groupFile, len(fields), line)
 		}
 
 		users := strings.Split(fields[3], ",")
@@ -255,9 +266,47 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 		newLines = append(newLines, strings.Join(fields, ":"))
 	}
 
+	backupPath := groupFileBackupPath()
+	backupDone := true
+	oldBackup := ""
+
+	if tmpDir, err := os.MkdirTemp(os.TempDir(), "authd-migration-backup"); err == nil {
+		b := filepath.Join(tmpDir, filepath.Base(backupPath))
+		err := fileutils.Copy(backupPath, b)
+		if err == nil {
+			oldBackup = b
+		}
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			log.Warningf(context.Background(), "Failed to create backup of %q: %v", backupPath, err)
+		}
+		defer os.Remove(oldBackup)
+	}
+
+	if err := os.Remove(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
+		log.Warningf(context.Background(), "Failed to remove group file backup: %v", err)
+	}
+	if err := os.Rename(groupFile, backupPath); err != nil {
+		log.Warningf(context.Background(), "Failed make a backup for the group file: %v", err)
+
+		if oldBackup != "" {
+			// Backup of current group file failed, let's restore the old backup.
+			_ = os.Rename(oldBackup, backupPath)
+		}
+		backupDone = false
+	}
+
 	//nolint:gosec // G306 /etc/group should indeed have 0644 permissions
-	if err := os.WriteFile(localentries.GroupFile, []byte(strings.Join(newLines, "\n")), 0644); err != nil {
-		return fmt.Errorf("error writing %s: %w", localentries.GroupFile, err)
+	if err := os.WriteFile(groupFile, []byte(strings.Join(newLines, "\n")), 0644); err != nil {
+		retErr := fmt.Errorf("error writing %s: %w", groupFile, err)
+		if !backupDone {
+			return retErr
+		}
+
+		if err := os.Rename(backupPath, groupFile); err != nil {
+			log.Errorf(context.Background(), "Failed to restore the backup for the group file: %v", err)
+		}
+
+		return retErr
 	}
 
 	return nil
