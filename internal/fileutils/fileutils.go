@@ -39,3 +39,29 @@ func Touch(path string) error {
 	}
 	return file.Close()
 }
+
+// CopyFile copies a file from a source to a destination path, preserving the file mode.
+func CopyFile(srcPath, destPath string) error {
+	src, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	fileInfo, err := src.Stat()
+	if err != nil {
+		return err
+	}
+
+	dst, err := os.OpenFile(destPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fileInfo.Mode())
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, src); err != nil {
+		return err
+	}
+
+	return dst.Sync()
+}
