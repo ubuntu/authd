@@ -257,6 +257,9 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 		newLines = append(newLines, strings.Join(fields, ":"))
 	}
 
+	// Add final new line to the group file.
+	newLines = append(newLines, "")
+
 	//nolint:gosec // G306 /etc/group should indeed have 0644 permissions
 	if err := os.WriteFile(groupFile, []byte(strings.Join(newLines, "\n")), 0644); err != nil {
 		return fmt.Errorf("error writing %s: %w", groupFile, err)
