@@ -39,3 +39,32 @@ func Touch(path string) error {
 	}
 	return file.Close()
 }
+
+// Copy copies a file from a source to a destination path, preserving the file mode.
+func Copy(srcPath, destPath string) error {
+	src, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	dst, err := os.Create(destPath)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, src); err != nil {
+		return err
+	}
+
+	if err := dst.Sync(); err != nil {
+		return err
+	}
+
+	i, err := os.Stat(srcPath)
+	if err != nil {
+		return err
+	}
+	return os.Chmod(destPath, i.Mode())
+}
