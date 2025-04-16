@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/users/db/bbolt"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
@@ -211,8 +214,15 @@ func (m *Manager) maybeApplyMigrations() error {
 	return nil
 }
 
+func groupFileBackupPath() string {
+	return fmt.Sprintf("%s-", groupFile)
+}
+
 // renameUsersInGroupFile renames users in the /etc/group file.
 func renameUsersInGroupFile(oldNames, newNames []string) error {
+	log.Debugf(context.Background(), "Renaming users in %q: %v -> %v", groupFile,
+		oldNames, newNames)
+
 	// Note that we can't use gpasswd here because `gpasswd --add` checks for the existence of the user, which causes an
 	// NSS request to be sent to authd, but authd is not ready yet because we are still migrating the database.
 	err := userslocking.WriteLock()
@@ -259,6 +269,44 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 
 	// Add final new line to the group file.
 	newLines = append(newLines, "")
+
+	backupPath := groupFileBackupPath()
+	oldBackup := ""
+
+	if tmpDir, err := os.MkdirTemp(os.TempDir(), "authd-migration-backup"); err == nil {
+		defer os.Remove(tmpDir)
+
+		b := filepath.Join(tmpDir, filepath.Base(backupPath))
+		err := fileutils.CopyFile(backupPath, b)
+		if err == nil {
+			oldBackup = b
+			defer os.Remove(oldBackup)
+		}
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			log.Warningf(context.Background(), "Failed to create backup of %q: %v",
+				backupPath, err)
+		}
+	}
+
+	if err := os.Remove(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
+		log.Warningf(context.Background(), "Failed to remove group file backup: %v", err)
+	}
+
+	backupAction := os.Rename
+	if fi, _ := os.Lstat(groupFile); fi != nil && fi.Mode()&fs.ModeSymlink != 0 {
+		backupAction = fileutils.CopyFile
+	}
+	if err := backupAction(groupFile, backupPath); err != nil {
+		log.Warningf(context.Background(), "Failed make a backup for the group file: %v", err)
+
+		if oldBackup != "" {
+			// Backup of current group file failed, let's restore the old backup.
+			if err := os.Rename(oldBackup, backupPath); err != nil {
+				log.Warningf(context.Background(), "Failed restoring %q to %q: %v",
+					oldBackup, backupPath, err)
+			}
+		}
+	}
 
 	//nolint:gosec // G306 /etc/group should indeed have 0644 permissions
 	if err := os.WriteFile(groupFile, []byte(strings.Join(newLines, "\n")), 0644); err != nil {

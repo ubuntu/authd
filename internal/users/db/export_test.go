@@ -10,6 +10,11 @@ func GroupFile() string {
 	return groupFile
 }
 
+// GroupFileBackupPath exposes the path to the group file backup for testing.
+func GroupFileBackupPath() string {
+	return groupFileBackupPath()
+}
+
 // SetGroupFile sets the path to the group file for testing.
 func SetGroupFile(path string) {
 	groupFile = path
