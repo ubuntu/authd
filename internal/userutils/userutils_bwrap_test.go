@@ -3,11 +3,13 @@
 package userutils_test
 
 import (
+	"context"
 	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -160,6 +162,141 @@ func TestUnlockUnlocked(t *testing.T) {
 
 	err := userutils.WriteUnlockShadowPassword()
 	require.ErrorIs(t, err, userutils.ErrUnlock, "Unlocking unlocked should not be allowed")
+}
+
+func TestLockingLockedDatabase(t *testing.T) {
+	require.Zero(t, os.Geteuid(), "Not root")
+
+	testLockerUtility := os.Getenv("AUTHD_TESTS_PASSWD_LOCKER_UTILITY")
+	require.NotEmpty(t, testLockerUtility, "Setup: Locker utility unset")
+
+	groupFile := filepath.Join("/etc", "group")
+	groupContents := "testgroup:x:1001:testuser"
+
+	//nolint:gosec // G306 The group file is expected to have permissions 0644
+	err := os.WriteFile(groupFile, []byte(groupContents), 0644)
+	require.NoError(t, err, "Writing group file")
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cmd := exec.CommandContext(ctx, testLockerUtility)
+	t.Logf("Running command: %s", cmd.Args)
+
+	lockerExited := make(chan error)
+	writeLockExited := make(chan error)
+	t.Cleanup(func() {
+		cancel()
+		syscall.Kill(cmd.Process.Pid, syscall.SIGKILL)
+		require.Error(t, <-lockerExited, "Stopping locking process")
+		require.NoError(t, <-writeLockExited, "Final locking")
+		require.NoError(t, userutils.WriteUnlockShadowPassword(), "Final unlocking")
+	})
+
+	go func() {
+		lockerExited <- cmd.Run()
+	}()
+
+	select {
+	case <-time.After(sleepDuration(1 * time.Second)):
+		t.Cleanup(func() { cmd.Process.Kill() })
+		// If we're time-outing: it's fine, it means the test-locker process is running
+	case err := <-lockerExited:
+		require.NoError(t, err, "test locker should have not failed")
+	}
+
+	gPasswdExited := make(chan error)
+	go func() {
+		_, err := runGPasswd(t, "--add", "root", "testgroup")
+		gPasswdExited <- err
+	}()
+
+	select {
+	case <-time.After(sleepDuration(3 * time.Second)):
+		// If we're time-outing: it's fine, it means we were locked!
+	case err := <-gPasswdExited:
+		require.ErrorIs(t, err, userutils.ErrLock, "GPasswd should fail")
+	}
+
+	go func() {
+		writeLockExited <- userutils.WriteLockShadowPassword()
+	}()
+
+	select {
+	case <-time.After(sleepDuration(3 * time.Second)):
+		// If we're time-outing: it's fine, it means the test-locker process is
+		// still running and holding the lock.
+	case err := <-writeLockExited:
+		require.ErrorIs(t, err, userutils.ErrLock, "Locking should not work")
+	}
+}
+
+func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
+	require.Zero(t, os.Geteuid(), "Not root")
+
+	testLockerUtility := os.Getenv("AUTHD_TESTS_PASSWD_LOCKER_UTILITY")
+	require.NotEmpty(t, testLockerUtility, "Setup: Locker utility unset")
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	lockerCmd := exec.CommandContext(ctx, testLockerUtility)
+	t.Logf("Running command: %s", lockerCmd.Args)
+
+	lockerExited := make(chan error)
+	go func() {
+		lockerExited <- lockerCmd.Run()
+	}()
+
+	select {
+	case <-time.After(sleepDuration(1 * time.Second)):
+		// If we're time-outing: it's fine, it means the test-locker process is
+		// still running and holding the lock.
+		t.Cleanup(func() { lockerCmd.Process.Kill() })
+	case err := <-lockerExited:
+		require.NoError(t, err, "test locker should have not failed")
+	}
+
+	writeLockExited := make(chan error)
+	go func() {
+		writeLockExited <- userutils.WriteLockShadowPassword()
+	}()
+
+	select {
+	case <-time.After(sleepDuration(3 * time.Second)):
+		// If we're time-outing: it's fine, it means the test-locker process is
+		// still running and holding the lock.
+	case err := <-writeLockExited:
+		require.ErrorIs(t, err, userutils.ErrLock, "Locking should not work")
+	}
+
+	writeUnLockExited := make(chan error)
+	go func() {
+		writeUnLockExited <- userutils.WriteUnlockShadowPassword()
+	}()
+
+	select {
+	case <-time.After(sleepDuration(1 * time.Second)):
+		// If we're time-outing: it's fine, it means the test-locker process is
+		// still running and holding the lock.
+	case err := <-writeUnLockExited:
+		require.ErrorIs(t, err, userutils.ErrUnlock, "Locking should not work")
+	}
+
+	t.Log("Killing locking process")
+	cancel()
+	syscall.Kill(lockerCmd.Process.Pid, syscall.SIGKILL)
+	// Do not wait for the locker being exited yet, so that we can ensure that
+	// our function call wait is over.
+
+	t.Log("We should get the lock now!")
+	err := <-writeLockExited
+	require.NoError(t, err, "We should have the lock now")
+
+	t.Log("Ensure locking process has been stopped!")
+	err = <-lockerExited
+	require.Error(t, err, "Locker should exit with failure")
+
+	err = <-writeUnLockExited
+	// err = userutils.WriteUnlockShadowPassword()
+	require.NoError(t, err, "We should be able to unlock now")
 }
 
 func runCmd(t *testing.T, command string, args ...string) (string, error) {

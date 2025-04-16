@@ -55,15 +55,22 @@ func CanRunBubbleWrapTest(t *testing.T) {
 	t.Skip("Skipping test: requires root privileges or unprivileged user namespaces")
 }
 
+// RunInBubbleWrapWithEnv runs the passed commands in bubble wrap sandbox with env variables.
+func RunInBubbleWrapWithEnv(t *testing.T, testDataPath string, env []string, args ...string) (string, error) {
+	t.Helper()
+
+	CanRunBubbleWrapTest(t)
+	return runInBubbleWrap(t, bubbleWrapNeedsSudo, testDataPath, env, args...)
+}
+
 // RunInBubbleWrap runs the passed commands in bubble wrap sandbox.
 func RunInBubbleWrap(t *testing.T, testDataPath string, args ...string) (string, error) {
 	t.Helper()
 
-	CanRunBubbleWrapTest(t)
-	return runInBubbleWrap(t, bubbleWrapNeedsSudo, testDataPath, args...)
+	return RunInBubbleWrapWithEnv(t, testDataPath, nil, args...)
 }
 
-func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, args ...string) (string, error) {
+func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []string, args ...string) (string, error) {
 	t.Helper()
 
 	var envArgs []string
@@ -77,6 +84,7 @@ func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, args ...s
 	if e := CoverDirEnv(); e != "" {
 		envArgs = append(envArgs, e)
 	}
+	envArgs = append(envArgs, env...)
 	envArgs = append(envArgs, buildBubbleWrapRunnerOnce(t))
 
 	args = append(envArgs, args...)
@@ -149,7 +157,7 @@ func buildBubbleWrapRunnerOnce(t *testing.T) string {
 func canUseUnprivilegedUserNamespaces(t *testing.T) bool {
 	t.Helper()
 
-	if out, err := runInBubbleWrap(t, false, t.TempDir(), "/bin/true"); err != nil {
+	if out, err := runInBubbleWrap(t, false, t.TempDir(), nil, "/bin/true"); err != nil {
 		t.Logf("Can't use unprivileged user namespaces: %v\n%s", err, out)
 		return false
 	}
@@ -166,7 +174,7 @@ func canUseSudoNonInteractively(t *testing.T) bool {
 		return false
 	}
 
-	if out, err := runInBubbleWrap(t, true, "/bin/true"); err != nil {
+	if out, err := runInBubbleWrap(t, true, t.TempDir(), nil, "/bin/true"); err != nil {
 		t.Logf("Can't use user namespaces: %v\n%s", err, out)
 		return false
 	}
