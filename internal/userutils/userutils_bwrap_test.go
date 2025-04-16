@@ -19,7 +19,7 @@ func TestLockAndUnlockGroupFile(t *testing.T) {
 	groupFile := filepath.Join("/etc", "group")
 	newGroupContents := "testgroup:x:1001:testuser"
 	//nolint:gosec // G306 The group file is expected to have permissions 0644
-	err := os.WriteFile(groupFile, []byte(newGroupContents), 0644)
+	err := os.WriteFile(groupFile, []byte("root:x:0:\n"+newGroupContents), 0644)
 	require.NoError(t, err)
 
 	// Try using gpasswd to modify the group file. This should succeed, because
@@ -30,6 +30,10 @@ func TestLockAndUnlockGroupFile(t *testing.T) {
 	// Lock the group file
 	err = userutils.LockGroupFile()
 	require.NoError(t, err)
+
+	output, err = runCmd(t, "getent", "group", "testgroup")
+	require.NoError(t, err, "Output: %s", output)
+	require.Equal(t, output, newGroupContents+",root", "Group not found")
 
 	// Try using gpasswd to modify the group file. This should fail, because
 	// the group file is locked.
@@ -42,6 +46,11 @@ func TestLockAndUnlockGroupFile(t *testing.T) {
 	err = userutils.LockGroupFile()
 	require.Error(t, err)
 
+	// Reading is allowed when locked.
+	output, err = runCmd(t, "getent", "group", "testgroup")
+	require.NoError(t, err, "Output: %s", output)
+	require.Equal(t, output, newGroupContents+",root", "Group not found")
+
 	// Unlock the group file
 	err = userutils.UnlockGroupFile()
 	require.NoError(t, err)
@@ -50,6 +59,30 @@ func TestLockAndUnlockGroupFile(t *testing.T) {
 	// because the group file is unlocked.
 	output, err = runGPasswd(t, "--delete", "root", "testgroup")
 	require.NoError(t, err, "Output: %s", output)
+
+	output, err = runCmd(t, "getent", "group", "testgroup")
+	require.NoError(t, err, "Output: %s", output)
+	require.Equal(t, output, newGroupContents, "Group not found")
+}
+
+func TestReadWhileLocked(t *testing.T) {
+	require.Zero(t, os.Geteuid(), "Not root")
+
+	groupFile := filepath.Join("/etc", "group")
+	groupContents := `root:x:0:
+testgroup:x:1001:testuser`
+
+	//nolint:gosec // G306 The group file is expected to have permissions 0644
+	err := os.WriteFile(groupFile, []byte(groupContents), 0644)
+	require.NoError(t, err)
+
+	err = userutils.LockGroupFile()
+	require.NoError(t, err, "Locking once it is allowed")
+	t.Cleanup(func() { userutils.UnlockGroupFile() })
+
+	output, err := runCmd(t, "getent", "group")
+	require.NoError(t, err, "Reading should be allowed")
+	require.Equal(t, groupContents, output)
 }
 
 func runCmd(t *testing.T, command string, args ...string) (string, error) {
