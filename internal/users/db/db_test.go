@@ -13,7 +13,7 @@ import (
 	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/db"
-	"github.com/ubuntu/authd/internal/userutils"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/log"
 )
 
@@ -130,10 +130,9 @@ func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
 	db.SetGroupFile(groupsFilePath)
 	defer db.SetGroupFile(origGroupFile)
 
-	// Make the userutils package use the temporary group file
-	require.Equal(t, origGroupFile, userutils.GroupFile)
-	userutils.GroupFile = groupsFilePath
-	defer func() { userutils.GroupFile = origGroupFile }()
+	// Make the userslocking package to use test locking for the group file
+	userslocking.Z_ForTests_OverrideLocking()
+	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
 
 	// Run the migrations
 	m, err := db.New(dbDir)

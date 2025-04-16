@@ -1,6 +1,6 @@
 //go:build !bubblewrap_test
 
-package userutils_test
+package userslocking_test
 
 import (
 	"fmt"
@@ -13,9 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/testutils"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
 )
 
-func TestUserUtilsInBubbleWrap(t *testing.T) {
+func TestUsersLockingInBubbleWrap(t *testing.T) {
 	t.Parallel()
 
 	testutils.SkipIfCannotRunBubbleWrap(t)
@@ -87,4 +88,23 @@ func compileTestBinary(t *testing.T) string {
 	require.NoError(t, err, "Setup: Cannot compile test file: %s", compileOut)
 
 	return testBinary
+}
+
+func TestUsersLockingOverride(t *testing.T) {
+	// This cannot be parallel.
+
+	userslocking.Z_ForTests_OverrideLocking()
+	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+
+	err := userslocking.WriteLock()
+	require.NoError(t, err, "Locking should be allowed")
+
+	err = userslocking.WriteLock()
+	require.ErrorIs(t, err, userslocking.ErrLock, "Locking again should not be allowed")
+
+	err = userslocking.WriteUnlock()
+	require.NoError(t, err, "Unlocking should be allowed")
+
+	err = userslocking.WriteUnlock()
+	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
 }
