@@ -30,7 +30,7 @@ Create the directory that will contain the declaration files of the broker(s):
 sudo mkdir -p /etc/authd/brokers.d/
 ```
 
-Then copy the the `.conf` file from your chosen broker snap package:
+Then copy the `.conf` file from your chosen broker snap package:
 
 :::::{tab-set}
 :sync-group: broker
