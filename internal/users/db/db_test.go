@@ -144,6 +144,13 @@ func TestUpdateUserEntry(t *testing.T) {
 			Dir:   "/new/home/user1",
 			Shell: "/bin/bash",
 		},
+		"user1-new-shell": {
+			Name:  "user1",
+			UID:   1111,
+			Gecos: "User1 gecos\nOn multiple lines",
+			Dir:   "/new/home/user1",
+			Shell: "/new/shell",
+		},
 		"user1-without-gecos": {
 			Name:  "user1",
 			UID:   1111,
@@ -185,6 +192,7 @@ func TestUpdateUserEntry(t *testing.T) {
 		// User and Group updates
 		"Update_user_by_changing_attributes":                      {userCase: "user1-new-attributes", dbFile: "one_user_and_group"},
 		"Update_user_does_not_change_homedir_if_it_exists":        {userCase: "user1-new-homedir", dbFile: "one_user_and_group"},
+		"Update_user_does_not_change_shell_if_it_exists":          {userCase: "user1-new-shell", dbFile: "one_user_and_group"},
 		"Update_user_by_removing_optional_gecos_field_if_not_set": {userCase: "user1-without-gecos", dbFile: "one_user_and_group"},
 
 		// Group updates
