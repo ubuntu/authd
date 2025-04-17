@@ -104,7 +104,6 @@ Then you need to restart the service with `sudo systemctl restart gdm`.
 
 #### authd broker service
 
-
 To increase the verbosity of the broker service, edit the service file:
 
 ::::{tab-set}
@@ -225,7 +224,54 @@ If using an edge release, you can read the
 [latest development version of the documentation](https://canonical-authd.readthedocs-hosted.com/en/latest/)
 ```
 
-## Common issues and limitations
+## Common issues
+
+### Only the first logged-in user can get access to a machine
+
+This is the expected behavior.
+
+By default, the first logged-in user is defined as the "owner" and only the
+owner can log in.
+
+For other users to gain access after authentication, they must be added to
+`allowed_users` in the `broker.conf` file.
+This is outlined in the [guide for configuring authd](ref::config-allowed-users).
+
+See below the relevant line in the configuration, showing both the owner and
+an additional user:
+
+```ini
+[users]
+allowed_users = OWNER,additionaluser1@example.com
+```
+
+If an administrator is the first to log in to a machine and becomes the owner,
+they can ensure that the next user to log in becomes the owner by removing the
+`20-owner-autoregistration.conf` file:
+
+::::{tab-set}
+:sync-group: broker
+
+:::{tab-item} Google IAM
+:sync: google
+
+```shell
+sudo rm /var/snap/authd-google/current/broker.conf.d/20-owner-autoregistration.conf
+```
+:::
+
+:::{tab-item} MS Entra ID
+:sync: msentraid
+
+```shell
+sudo rm /var/snap/authd-msentraid/current/broker.conf.d/20-owner-autoregistration.conf
+```
+:::
+::::
+
+
+This file is generated when a user logs in and becomes the owner. If it is
+removed, it will be regenerated on the next successful login.
 
 ### File ownership on shared network resources (e.g. NFS, Samba)
 
