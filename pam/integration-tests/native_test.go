@@ -381,9 +381,9 @@ func TestNativeChangeAuthTok(t *testing.T) {
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
 
-	const vhsTapeSocketVariable = "AUTHD_TEST_AUTHTOK_SOCK"
 	const tapeBaseCommand = "./pam_authd %s socket=${%s} force_native_client=true"
-	tapeCommand := fmt.Sprintf(tapeBaseCommand, pam_test.RunnerActionPasswd, vhsTapeSocketVariable)
+	tapeCommand := fmt.Sprintf(tapeBaseCommand, pam_test.RunnerActionPasswd,
+		vhsTapeSocketVariable)
 
 	tests := map[string]struct {
 		tape          string
