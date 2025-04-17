@@ -9,6 +9,19 @@ myst:
 This guide shows how to configure identity brokers to support authentication of
 Ubuntu devices with authd and your chosen cloud provider.
 
+```{admonition} Logging in multiple users with authd
+:class: tip
+By default, the first user to authenticate and log in to a machine becomes the
+"owner" and only they are allowed to log in.
+
+For other authenticated users to log in, they must first be added as an
+"allowed user".
+
+The steps you need to follow when allowing more users are outlined in
+[configure allowed users](ref::config-allowed-users) on the current page.
+
+```
+
 ## Broker discovery
 
 Create the directory that will contain the declaration files of the broker(s):
@@ -17,7 +30,7 @@ Create the directory that will contain the declaration files of the broker(s):
 sudo mkdir -p /etc/authd/brokers.d/
 ```
 
-Then copy the the `.conf` file from your chosen broker snap package:
+Then copy the `.conf` file from your chosen broker snap package:
 
 :::::{tab-set}
 :sync-group: broker
@@ -167,6 +180,7 @@ force_provider_authentication = true
 In some cases, this may prevent login, such as when there are network issues.
 ```
 
+(ref::config-allowed-users)=
 ## Configure allowed users
 
 The users who are allowed to log in (after successfully authenticating via the
