@@ -1,0 +1,23 @@
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
+Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
+Gimme your password:
+> ********
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
+PAM Authenticate()
+  User: "user-integration-preset-upper-case-testcliauthenticate"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-preset-upper-case-testcliauthenticate"
+  Result: success
+>
+────────────────────────────────────────────────────────────────────────────────

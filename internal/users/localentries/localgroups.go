@@ -17,8 +17,11 @@ import (
 	"github.com/ubuntu/decorate"
 )
 
+// GroupFile is the default local group file.
+const GroupFile = "/etc/group"
+
 var defaultOptions = options{
-	groupPath:    "/etc/group",
+	groupPath:    GroupFile,
 	gpasswdCmd:   []string{"gpasswd"},
 	getUsersFunc: getPasswdUsernames,
 }
@@ -58,6 +61,7 @@ func Update(username string, newGroups []string, oldGroups []string, args ...Opt
 	groupsToRemove = sliceutils.Intersection(groupsToRemove, currentGroups)
 	log.Debugf(context.TODO(), "Removing from local groups: %v", groupsToRemove)
 
+	// Do all this in a goroutine as we don't want to hang.
 	for _, g := range groupsToRemove {
 		args := opts.gpasswdCmd[1:]
 		args = append(args, "--delete", username, g)

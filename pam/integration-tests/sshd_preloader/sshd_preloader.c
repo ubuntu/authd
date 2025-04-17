@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <dlfcn.h>
 #include <string.h>
+#include <ctype.h>
 #include <pwd.h>
 #include <limits.h>
 #include <sys/types.h>
@@ -19,7 +20,15 @@
 #define AUTHD_DEFAULT_SSH_PAM_SERVICE_NAME "sshd"
 #define AUTHD_SPECIAL_USER_ACCEPT_ALL "authd-test-user-sshd-accept-all"
 
-static struct passwd passwd_entities[512];
+#define SIZE_OF_ARRAY(a) (sizeof ((a)) / sizeof (*(a)))
+
+typedef struct {
+  struct passwd parent;
+
+  char *authd_name;
+} MockPasswd;
+
+static MockPasswd passwd_entities[512];
 
 __attribute__((constructor))
 void constructor (void)
@@ -30,6 +39,9 @@ void constructor (void)
 __attribute__((destructor))
 void destructor (void)
 {
+  for (size_t i = 0; i < SIZE_OF_ARRAY (passwd_entities); ++i)
+    free (passwd_entities[i].authd_name);
+
   fprintf (stderr, "sshd_preloader [%d]: Library unloaded\n", getpid ());
 }
 
@@ -65,17 +77,29 @@ is_valid_test_user (const char *name)
   if (test_user == NULL || *test_user == '\0')
     return false;
 
-  if (strcmp (test_user, name) == 0)
+  if (strcasecmp (test_user, name) == 0)
     return true;
 
-  if (strcmp (test_user, AUTHD_SPECIAL_USER_ACCEPT_ALL) != 0)
+  if (strcasecmp (test_user, AUTHD_SPECIAL_USER_ACCEPT_ALL) != 0)
     return false;
 
   /* Here we accept all the users supported by the example broker */
-  if (strncmp (name, "user", 4) == 0 && strlen (name) > 4)
+  if (strncasecmp (name, "user", 4) == 0 && strlen (name) > 4)
     return true;
 
   return is_supported_test_fake_user (name);
+}
+
+static bool
+is_lower_case (const char *str)
+{
+  for (size_t i = 0; str[i]; ++i)
+    {
+      if (isalpha (str[i]) && !islower (str[i]))
+        return false;
+    }
+
+  return true;
 }
 
 /*
@@ -101,7 +125,12 @@ getpwnam (const char *name)
     }
 
   if (!is_valid_test_user (name))
-    return orig_getpwnam (name);
+    {
+      fprintf (stderr, "sshd_preloader[%d]: User %s is not a test user\n",
+               getpid (), name);
+
+      return orig_getpwnam (name);
+    }
 
 #ifdef AUTHD_TESTS_SSH_USE_AUTHD_NSS
   if ((passwd_entity = orig_getpwnam (name)))
@@ -118,16 +147,28 @@ getpwnam (const char *name)
     }
 #endif /* AUTHD_TESTS_SSH_USE_AUTHD_NSS */
 
+  for (size_t i = atomic_load (&last_entity_idx); i != 0; --i)
+    {
+      passwd_entity = &passwd_entities[i].parent;
+
+      if (!passwd_entity->pw_name || strcmp (passwd_entity->pw_name, name) != 0)
+        continue;
+
+      fprintf (stderr, "sshd_preloader[%d]: Recycling fake entity for user %s\n",
+               getpid (), name);
+      return passwd_entity;
+    }
+
   entity_idx = atomic_fetch_add_explicit (&last_entity_idx, 1,
                                           memory_order_relaxed);
-  assert (entity_idx < sizeof (passwd_entities) / sizeof (*passwd_entities));
+  assert (entity_idx < SIZE_OF_ARRAY (passwd_entities));
 
   if (passwd_entity)
-    passwd_entities[entity_idx] = *passwd_entity;
+    passwd_entities[entity_idx].parent = *passwd_entity;
 
-  passwd_entity = &passwd_entities[entity_idx];
+  passwd_entity = &passwd_entities[entity_idx].parent;
   assert (passwd_entity->pw_name == NULL ||
-          strcmp (passwd_entity->pw_name, name) == 0);
+          strcasecmp (passwd_entity->pw_name, name) == 0);
 
   if (passwd_entity->pw_name == NULL)
     {
@@ -135,6 +176,21 @@ getpwnam (const char *name)
       passwd_entity->pw_gecos = AUTHD_TEST_GECOS;
       passwd_entity->pw_name = (char *) name;
       passwd_entity->pw_dir = (char *) get_home_path ();
+    }
+
+  if (!is_lower_case (name))
+    {
+      /* authd uses lower-case user names */
+      MockPasswd *mock_passwd = (MockPasswd *) passwd_entity;
+      char *n = strdup (name);
+
+      for (size_t i = 0; n[i]; ++i)
+        n[i] = tolower (n[i]);
+
+      mock_passwd->authd_name = n;
+      name = mock_passwd->authd_name;
+      fprintf (stderr, "sshd_preloader [%d]: User converted to %s\n",
+               getpid (), name);
     }
 
   /* We're simulating to be the same user running the test but with another

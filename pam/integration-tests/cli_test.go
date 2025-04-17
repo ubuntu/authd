@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,12 +19,15 @@ import (
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
 
+const cliTapeBaseCommand = "./pam_authd %s socket=${%s}"
+
 func TestCLIAuthenticate(t *testing.T) {
 	t.Parallel()
 
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
-	tapeCommand := fmt.Sprintf("./pam_authd login socket=${%s}", vhsTapeSocketVariable)
+	tapeCommand := fmt.Sprintf(cliTapeBaseCommand, pam_test.RunnerActionLogin,
+		vhsTapeSocketVariable)
 
 	tests := map[string]struct {
 		tape          string
@@ -37,19 +41,33 @@ func TestCLIAuthenticate(t *testing.T) {
 		stopDaemonAfter    time.Duration
 	}{
 		"Authenticate_user_successfully": {
-			tape:          "simple_auth",
-			tapeVariables: map[string]string{vhsTapeUserVariable: "user1"},
+			tape: "simple_auth",
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: vhsTestUserName(t, "simple"),
+			},
+		},
+		"Authenticate_user_successfully_with_upper_case": {
+			tape: "simple_auth",
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: vhsTestUserName(t, "upper-case"),
+			},
 		},
 		"Authenticate_user_successfully_with_preset_user": {
 			tape: "simple_auth_with_preset_user",
 			clientOptions: clientOptions{
-				PamUser: examplebroker.UserIntegrationPrefix + "simple-preset",
+				PamUser: vhsTestUserName(t, "preset"),
+			},
+		},
+		"Authenticate_user_successfully_with_upper_case_preset_user": {
+			tape: "simple_auth_with_preset_user",
+			clientOptions: clientOptions{
+				PamUser: strings.ToUpper(vhsTestUserName(t, "preset-upper-case")),
 			},
 		},
 		"Authenticate_user_successfully_with_invalid_connection_timeout": {
 			tape: "simple_auth",
 			tapeVariables: map[string]string{
-				vhsTapeUserVariable: "user-integration-invalid-timeout",
+				vhsTapeUserVariable: vhsTestUserName(t, "invalid-timeout"),
 			},
 			clientOptions: clientOptions{PamTimeout: "invalid"},
 		},
@@ -107,6 +125,18 @@ func TestCLIAuthenticate(t *testing.T) {
 		},
 		"Authenticate_user_and_reset_password_while_enforcing_policy": {
 			tape: "mandatory_password_reset",
+		},
+		"Authenticate_user_and_reset_password_with_case_insensitive_user_selection": {
+			tape: "mandatory_password_reset_case_insensitive",
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: vhsTestUserNameFull(t,
+					examplebroker.UserIntegrationNeedsResetPrefix, "case-insensitive"),
+				"AUTHD_TEST_TAPE_UPPER_CASE_USERNAME": strings.ToUpper(
+					vhsTestUserNameFull(t,
+						examplebroker.UserIntegrationNeedsResetPrefix, "Case-INSENSITIVE")),
+				"AUTHD_TEST_TAPE_MIXED_CASE_USERNAME": vhsTestUserNameFull(t,
+					examplebroker.UserIntegrationNeedsResetPrefix, "Case-INSENSITIVE"),
+			},
 		},
 		"Authenticate_user_with_mfa_and_reset_password_while_enforcing_policy": {
 			tape: "mfa_reset_pwquality_auth",
@@ -229,11 +259,11 @@ func TestCLIAuthenticate(t *testing.T) {
 func TestCLIChangeAuthTok(t *testing.T) {
 	t.Parallel()
 
-	outDir := t.TempDir()
-	cliEnv := preparePamRunnerTest(t, outDir)
+	clientPath := t.TempDir()
+	cliEnv := preparePamRunnerTest(t, clientPath)
 
-	const tapeBaseCommand = "./pam_authd %s socket=${%s}"
-	tapeCommand := fmt.Sprintf(tapeBaseCommand, pam_test.RunnerActionPasswd, vhsTapeSocketVariable)
+	tapeCommand := fmt.Sprintf(cliTapeBaseCommand, pam_test.RunnerActionPasswd,
+		vhsTapeSocketVariable)
 
 	tests := map[string]struct {
 		tape          string
@@ -246,7 +276,18 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			tape: "passwd_simple",
 			tapeVariables: map[string]string{
 				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(
-					tapeBaseCommand, pam_test.RunnerActionLogin, vhsTapeSocketVariable),
+					cliTapeBaseCommand, pam_test.RunnerActionLogin, vhsTapeSocketVariable),
+				vhsTapeUserVariable:              vhsTestUserName(t, "simple"),
+				"AUTHD_TEST_TAPE_LOGIN_USERNAME": vhsTestUserName(t, "simple"),
+			},
+		},
+		"Change_password_successfully_and_authenticate_with_new_one_with_different_case": {
+			tape: "passwd_simple",
+			tapeVariables: map[string]string{
+				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(
+					cliTapeBaseCommand, pam_test.RunnerActionLogin, vhsTapeSocketVariable),
+				vhsTapeUserVariable:              strings.ToUpper(vhsTestUserName(t, "case-insensitive")),
+				"AUTHD_TEST_TAPE_LOGIN_USERNAME": vhsTestUserName(t, "case-insensitive"),
 			},
 		},
 		"Change_passwd_after_MFA_auth": {
@@ -295,6 +336,11 @@ func TestCLIChangeAuthTok(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
+
+			outDir := t.TempDir()
+			err := os.Symlink(filepath.Join(clientPath, "pam_authd"),
+				filepath.Join(outDir, "pam_authd"))
+			require.NoError(t, err, "Setup: symlinking the pam client")
 
 			var socketPath string
 			if tc.currentUserNotRoot {

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/ubuntu/authd/log"
 	"go.etcd.io/bbolt"
@@ -16,6 +17,9 @@ import (
 func (c *Database) UpdateUserEntry(user UserDB, authdGroups []GroupDB, localGroups []string) error {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
+
+	// authd uses lowercase usernames
+	user.Name = strings.ToLower(user.Name)
 
 	err := c.db.Update(func(tx *bbolt.Tx) error {
 		buckets, err := getAllBuckets(tx)

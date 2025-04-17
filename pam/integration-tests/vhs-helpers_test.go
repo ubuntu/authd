@@ -542,7 +542,7 @@ func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testTyp
 	for k, v := range variables {
 		variable := fmt.Sprintf("${%s}", k)
 		require.Contains(t, tapeString, variable,
-			"Setup: Tape does not contain %q", variable)
+			"Setup: Tape does not contain %q\n%s", variable, tapeString)
 		tapeString = strings.ReplaceAll(tapeString, variable, v)
 	}
 
@@ -665,6 +665,9 @@ func requireRunnerResultForUser(t *testing.T, sessionMode authd.SessionMode, use
 	// the result is printed, while printing the full output on failure is too much.
 	goldenLines := strings.Split(goldenContent, "\n")
 	goldenContent = strings.Join(goldenLines[max(0, len(goldenLines)-50):], "\n")
+
+	// authd uses lowercase usernames
+	user = strings.ToLower(user)
 
 	require.Contains(t, goldenContent, pam_test.RunnerAction(sessionMode).Result().Message(user),
 		"Golden file does not include required value, consider increasing the terminal size:\n%s",

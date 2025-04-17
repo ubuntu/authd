@@ -415,7 +415,7 @@ func requireNSSUser(t *testing.T, client authd.NSSClient, user string) *authd.Pa
 	require.NoError(t, err, "User %q is expected to exist", user)
 	require.NotNil(t, userPasswd, "User %q is expected to be not nil", user)
 
-	require.Equal(t, user, userPasswd.Name, "Passwd user does not match")
+	require.Equal(t, strings.ToLower(user), userPasswd.Name, "Passwd user does not match")
 	require.Equal(t, "/bin/sh", userPasswd.Shell, "Unexpected Shell for user %q", user)
 	require.NotZero(t, userPasswd.Uid, "Unexpected UID for user %q", user)
 	require.NotZero(t, userPasswd.Gid, "Unexpected GID for user %q", user)
