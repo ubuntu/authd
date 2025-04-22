@@ -16,6 +16,10 @@ import (
 var (
 	writeLockImpl   = writeLock
 	writeUnlockImpl = writeUnlock
+
+	// maxWait is the maximum wait time for a lock to happen.
+	// We mimic the libc behavior, in case we don't get SIGALRM'ed.
+	maxWait = 16 * time.Second
 )
 
 var (
@@ -47,7 +51,7 @@ func WriteLock() error {
 	// because alarms are handled by go runtime, so do it manually here by
 	// failing if "lock not obtained within 15 seconds" as per lckpwdf.3.
 	// Keep this in sync with what lckpwdf does, adding an extra second.
-	case <-time.After(16 * time.Second):
+	case <-time.After(maxWait):
 		return ErrLockTimeout
 	case err := <-done:
 		return err

@@ -3,12 +3,14 @@
 package userslocking_test
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/fileutils"
@@ -125,6 +127,36 @@ func TestUsersLockingOverride(t *testing.T) {
 
 	err = userslocking.WriteLock()
 	require.ErrorIs(t, err, userslocking.ErrLock, "Locking again should not be allowed")
+
+	err = userslocking.WriteUnlock()
+	require.NoError(t, err, "Unlocking should be allowed")
+
+	err = userslocking.WriteUnlock()
+	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
+}
+
+func TestUsersLockingOverrideAsLockedExternally(t *testing.T) {
+	// This cannot be parallel.
+	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, context.Background())
+
+	lockingExited := make(chan error)
+	go func() {
+		lockingExited <- userslocking.WriteLock()
+	}()
+
+	select {
+	case <-time.After(1 * time.Second):
+		// If we're time-outing: it's fine, it means we were locked!
+	case err := <-lockingExited:
+		t.Errorf("We should have not been exited, but we did with error %v", err)
+		t.FailNow()
+	}
+
+	err := userslocking.WriteUnlock()
+	require.NoError(t, err, "Unlocking should be allowed")
+
+	err = <-lockingExited
+	require.NoError(t, err, "Previous concurrent locking should have been allowed now")
 
 	err = userslocking.WriteUnlock()
 	require.NoError(t, err, "Unlocking should be allowed")

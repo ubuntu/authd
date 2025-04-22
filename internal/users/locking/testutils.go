@@ -3,14 +3,23 @@ package userslocking
 import (
 	"context"
 	"fmt"
+	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 
+	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testsdetection"
 	"github.com/ubuntu/authd/log"
 )
 
-var overrideLocked atomic.Bool
+var (
+	overrideLocked atomic.Bool
+
+	overriddenMu              sync.Mutex
+	overriddenWriteLockImpl   []func() error
+	overriddenWriteUnlockImpl []func() error
+)
 
 // Z_ForTests_OverrideLocking is a function to override the locking functions
 // for testing purposes.
@@ -21,6 +30,10 @@ var overrideLocked atomic.Bool
 func Z_ForTests_OverrideLocking() {
 	testsdetection.MustBeTesting()
 
+	overriddenMu.Lock()
+	defer overriddenMu.Unlock()
+
+	overriddenWriteLockImpl = append(overriddenWriteLockImpl, writeLockImpl)
 	writeLockImpl = func() error {
 		if !overrideLocked.CompareAndSwap(false, true) {
 			return fmt.Errorf("%w: already locked!", ErrLock)
@@ -30,6 +43,7 @@ func Z_ForTests_OverrideLocking() {
 		return nil
 	}
 
+	overriddenWriteUnlockImpl = append(overriddenWriteUnlockImpl, writeUnlockImpl)
 	writeUnlockImpl = func() error {
 		if !overrideLocked.CompareAndSwap(true, false) {
 			return fmt.Errorf("%w: already unlocked!", ErrUnlock)
@@ -55,13 +69,100 @@ func Z_ForTests_OverrideLockingWithCleanup(t *testing.T) {
 	t.Cleanup(Z_ForTests_RestoreLocking)
 }
 
+// Z_ForTests_OverrideLockingAsLockedExternally is a function to
+// override the locking functions for testing purposes.
+// It simulates the real behavior but without actual file locking.
+// This locks the database when called, the lock can be both removed using
+// [WriteUnlock] or cancelling the context. It also implicitly calls
+// [Z_ForTests_RestoreLocking] once the test is completed.
+//
+// nolint:revive,nolintlint // We want to use underscores in the function name here.
+func Z_ForTests_OverrideLockingAsLockedExternally(t *testing.T, ctx context.Context) {
+	t.Helper()
+
+	testsdetection.MustBeTesting()
+
+	overriddenMu.Lock()
+	defer overriddenMu.Unlock()
+
+	t.Cleanup(Z_ForTests_RestoreLocking)
+
+	lockCtx, lockCancel := context.WithCancel(context.Background())
+	lockCancel()
+
+	overriddenWriteLockImpl = append(overriddenWriteLockImpl, writeLockImpl)
+	writeLockImpl = func() error {
+		for {
+			select {
+			case <-lockCtx.Done():
+			case <-time.After(maxWait):
+				return ErrLockTimeout
+			}
+
+			if overrideLocked.CompareAndSwap(false, true) {
+				log.Debug(ctx, "TestOverrideExternallyLocked: Local entries locked!")
+				lockCtx, lockCancel = context.WithCancel(context.Background())
+				break
+			}
+		}
+		return nil
+	}
+
+	overriddenWriteUnlockImpl = append(overriddenWriteUnlockImpl, writeUnlockImpl)
+	writeUnlockImpl = func() error {
+		if !overrideLocked.CompareAndSwap(true, false) {
+			return ErrUnlock
+		}
+
+		log.Debug(ctx, "TestOverrideExternallyLocked: Local entries unlocked!")
+		lockCancel()
+		return nil
+	}
+
+	done := atomic.Bool{}
+	writeUnlockImpl := writeUnlockImpl
+	cleanup := func() {
+		if !done.CompareAndSwap(false, true) {
+			return
+		}
+		if !overrideLocked.Load() {
+			return
+		}
+		err := writeUnlockImpl()
+		require.NoError(t, err, "Unlocking should be allowed")
+	}
+
+	t.Cleanup(cleanup)
+
+	err := writeLockImpl()
+	require.NoError(t, err, "Locking should be allowed")
+
+	go func() {
+		<-ctx.Done()
+		cleanup()
+	}()
+}
+
 // Z_ForTests_RestoreLocking restores the locking overridden done by
-// [Z_ForTests_OverrideLocking].
+// [Z_ForTests_OverrideLocking] or [Z_ForTests_OverrideLockingAsLockedExternally].
 //
 // nolint:revive,nolintlint // We want to use underscores in the function name here.
 func Z_ForTests_RestoreLocking() {
 	testsdetection.MustBeTesting()
 
-	writeLockImpl = writeLock
-	writeUnlockImpl = writeUnlock
+	if overrideLocked.Load() {
+		panic("Lock has not been released before restoring!")
+	}
+
+	overriddenMu.Lock()
+	defer overriddenMu.Unlock()
+
+	popLast := func(l []func() error) ([]func() error, func() error) {
+		n := len(l) - 1
+		v, l := l[n], l[:n]
+		return l, v
+	}
+
+	overriddenWriteLockImpl, writeLockImpl = popLast(overriddenWriteLockImpl)
+	overriddenWriteUnlockImpl, writeUnlockImpl = popLast(overriddenWriteUnlockImpl)
 }
