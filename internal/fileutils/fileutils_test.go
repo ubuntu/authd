@@ -14,7 +14,6 @@ func TestFileExists(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		name            string
 		fileExists      bool
 		parentDirIsFile bool
 
@@ -27,8 +26,8 @@ func TestFileExists(t *testing.T) {
 
 		"Error_when_parent_directory_is_a_file": {parentDirIsFile: true, wantError: true},
 	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			tempDir := t.TempDir()
@@ -109,7 +108,6 @@ func TestTouch(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		name               string
 		fileExists         bool
 		fileIsDir          bool
 		parentDoesNotExist bool
@@ -123,8 +121,8 @@ func TestTouch(t *testing.T) {
 		"Returns_error_when_parent_directory_does_not_exist": {parentDoesNotExist: true, wantError: true},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
 			tempDir := t.TempDir()
