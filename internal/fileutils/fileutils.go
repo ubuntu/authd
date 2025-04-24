@@ -3,8 +3,10 @@ package fileutils
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 )
 
 // FileExists checks if a file exists at the given path.
@@ -64,4 +66,33 @@ func CopyFile(srcPath, destPath string) error {
 	}
 
 	return dst.Sync()
+}
+
+// SymlinkResolutionError is the error returned when symlink resolution fails.
+type SymlinkResolutionError struct {
+	msg string
+	err error
+}
+
+func (e SymlinkResolutionError) Error() string {
+	return fmt.Sprintf("%s: %v", e.msg, e.err)
+}
+
+func (e SymlinkResolutionError) Unwrap() error {
+	return e.err
+}
+
+// Lrename renames a file or directory, resolving symlinks in the destination path.
+// If the symlink resolution fails, it returns a SymlinkResolutionError.
+func Lrename(oldPath, newPath string) error {
+	// Resolve the destination path if it's a symlink.
+	fi, err := os.Lstat(newPath)
+	if err == nil && fi.Mode()&os.ModeSymlink != 0 {
+		newPath, err = filepath.EvalSymlinks(newPath)
+		if err != nil {
+			return SymlinkResolutionError{msg: "failed to resolve symlinks in Lrename", err: err}
+		}
+	}
+
+	return os.Rename(oldPath, newPath)
 }

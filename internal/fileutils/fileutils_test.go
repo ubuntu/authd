@@ -3,6 +3,7 @@ package fileutils_test
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/google/uuid"
@@ -243,6 +244,109 @@ func TestCopyFile(t *testing.T) {
 			copyContent, err := os.ReadFile(destPath)
 			require.NoError(t, err, "ReadFile %q should not return an error", destPath)
 			require.Equal(t, wantContent, string(copyContent), "File contents does not match")
+		})
+	}
+}
+
+func TestLrename(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		sourceDoesNotExist     bool
+		destIsFile             bool
+		destIsSymlink          bool
+		destIsDanglingSymlink  bool
+		destIsDir              bool
+		destIsUnreadable       bool
+		destParentDoesNotExist bool
+
+		wantError     bool
+		wantErrorType reflect.Type
+	}{
+		"Successfully_rename_file_if_destination_does_not_exist": {},
+		"Successfully_rename_file_if_destination_is_a_file":      {destIsFile: true},
+		"Successfully_rename_file_if_destination_is_a_symlink":   {destIsSymlink: true},
+		"Successfully_rename_file_if_destination_is_unreadable":  {destIsFile: true, destIsUnreadable: true},
+
+		"Error_when_source_does_not_exist":                       {sourceDoesNotExist: true, wantError: true},
+		"Error_when_destination_is_a_directory":                  {destIsDir: true, wantError: true},
+		"Error_when_destination_parent_directory_does_not_exist": {destParentDoesNotExist: true, wantError: true},
+		"Error_when_destination_is_a_dangling_symlink":           {destIsDanglingSymlink: true, wantErrorType: reflect.TypeOf((*fileutils.SymlinkResolutionError)(nil))},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			tempDir := t.TempDir()
+			srcPath := filepath.Join(tempDir, "source")
+			destPath := filepath.Join(tempDir, "dest")
+
+			if !tc.sourceDoesNotExist {
+				err := os.WriteFile(srcPath, []byte("test content"), 0o600)
+				require.NoError(t, err, "WriteFile should not return an error")
+			}
+
+			if tc.destIsFile {
+				err := os.WriteFile(destPath, []byte("existing content"), 0o600)
+				require.NoError(t, err, "WriteFile should not return an error")
+			}
+
+			if tc.destIsSymlink {
+				symlinkTarget := filepath.Join(tempDir, "symlink_target")
+				err := os.WriteFile(symlinkTarget, []byte("symlink content"), 0o600)
+				require.NoError(t, err, "WriteFile should not return an error")
+
+				err = os.Symlink(symlinkTarget, destPath)
+				require.NoError(t, err, "Symlink should not return an error")
+			}
+
+			if tc.destIsDanglingSymlink {
+				err := os.Symlink("nonexistent_target", destPath)
+				require.NoError(t, err, "Symlink should not return an error")
+			}
+
+			if tc.destIsDir {
+				err := os.Mkdir(destPath, 0o700)
+				require.NoError(t, err, "Mkdir should not return an error")
+			}
+
+			if tc.destIsUnreadable {
+				err := os.Chmod(destPath, 0o000)
+				require.NoError(t, err, "Chmod should not return an error")
+				// Restore permissions after test
+				defer func() {
+					//nolint:gosec // G302 Permissions 0700 are not insecure for a directory
+					err := os.Chmod(destPath, 0700)
+					require.NoError(t, err, "Chmod should not return an error")
+				}()
+			}
+
+			if tc.destParentDoesNotExist {
+				destPath = filepath.Join(tempDir, "nonexistent", "dest")
+			}
+
+			err := fileutils.Lrename(srcPath, destPath)
+			if tc.wantErrorType != nil {
+				target := reflect.New(tc.wantErrorType.Elem()).Interface()
+				require.ErrorAs(t, err, target, "Error should be of type %T but is of type %T", target, err)
+				return
+			}
+			if tc.wantError {
+				require.Error(t, err, "Lrename should return an error")
+				return
+			}
+			require.NoError(t, err, "Lrename should not return an error")
+
+			// Verify the source no longer exists
+			exists, err := fileutils.FileExists(srcPath)
+			require.NoError(t, err, "FileExists should not return an error")
+			require.False(t, exists, "Source file should no longer exist")
+
+			// Verify the destination exists
+			exists, err = fileutils.FileExists(destPath)
+			require.NoError(t, err, "FileExists should not return an error")
+			require.True(t, exists, "Destination file should exist")
 		})
 	}
 }
