@@ -87,11 +87,13 @@ func (e SymlinkResolutionError) Unwrap() error {
 func Lrename(oldPath, newPath string) error {
 	// Resolve the destination path if it's a symlink.
 	fi, err := os.Lstat(newPath)
-	if err == nil && fi.Mode()&os.ModeSymlink != 0 {
-		newPath, err = filepath.EvalSymlinks(newPath)
-		if err != nil {
-			return SymlinkResolutionError{msg: "failed to resolve symlinks in Lrename", err: err}
-		}
+	if err != nil || fi.Mode()&os.ModeSymlink == 0 {
+		return os.Rename(oldPath, newPath)
+	}
+
+	newPath, err = filepath.EvalSymlinks(newPath)
+	if err != nil {
+		return SymlinkResolutionError{msg: "failed to resolve symlinks in Lrename", err: err}
 	}
 
 	return os.Rename(oldPath, newPath)
