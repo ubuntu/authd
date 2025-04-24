@@ -305,7 +305,7 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 
 		if oldBackup != "" {
 			// Backup of current group file failed, let's restore the old backup.
-			if err := os.Rename(oldBackup, backupPath); err != nil {
+			if err := fileutils.Lrename(oldBackup, backupPath); err != nil {
 				log.Warningf(context.Background(), "Failed restoring %q to %q: %v",
 					oldBackup, backupPath, err)
 			}
@@ -318,7 +318,7 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 		return fmt.Errorf("error writing %s: %w", tempPath, err)
 	}
 
-	if err := os.Rename(tempPath, groupFile); err != nil {
+	if err := fileutils.Lrename(tempPath, groupFile); err != nil {
 		return fmt.Errorf("error renaming %s to %s: %w", tempPath, groupFile, err)
 	}
 

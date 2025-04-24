@@ -191,6 +191,11 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedGroupFile(t *testing.
 
 	golden.CheckOrUpdate(t, dbContent, golden.WithPath("db"))
 
+	// Check the group file is still a symlink
+	groupsLink, err := os.Readlink(groupsFilePath)
+	require.Equal(t, realGroupsPath, groupsLink)
+	require.NoError(t, err)
+
 	// Check the content of the user group file
 	userGroupContent, err := os.ReadFile(realGroupsPath)
 	require.NoError(t, err)
