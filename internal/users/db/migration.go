@@ -214,6 +214,10 @@ func (m *Manager) maybeApplyMigrations() error {
 	return nil
 }
 
+func groupFileTemporaryPath() string {
+	return fmt.Sprintf("%s+", groupFile)
+}
+
 func groupFileBackupPath() string {
 	return fmt.Sprintf("%s-", groupFile)
 }
@@ -308,9 +312,14 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 		}
 	}
 
+	tempPath := groupFileTemporaryPath()
 	//nolint:gosec // G306 /etc/group should indeed have 0644 permissions
-	if err := os.WriteFile(groupFile, []byte(strings.Join(newLines, "\n")), 0644); err != nil {
-		return fmt.Errorf("error writing %s: %w", groupFile, err)
+	if err := os.WriteFile(tempPath, []byte(strings.Join(newLines, "\n")), 0644); err != nil {
+		return fmt.Errorf("error writing %s: %w", tempPath, err)
+	}
+
+	if err := os.Rename(tempPath, groupFile); err != nil {
+		return fmt.Errorf("error renaming %s to %s: %w", tempPath, groupFile, err)
 	}
 
 	return nil
