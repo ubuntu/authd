@@ -1,47 +1,48 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use proc_macro2::{Delimiter, Group, Span, TokenStream};
-use quote::{format_ident, quote, quote_spanned, ToTokens};
+use quote::{ToTokens as _, format_ident, quote, quote_spanned};
 use syn::{
-    parse_quote, punctuated::Punctuated, token, visit_mut::VisitMut, Attribute, Data, DataEnum,
-    DeriveInput, Error, Field, Fields, FieldsNamed, FieldsUnnamed, Generics, Ident, Index,
+    Attribute, Error, Field, Fields, FieldsNamed, FieldsUnnamed, Generics, Ident, Index, Item,
     Lifetime, LifetimeParam, Meta, Result, Token, Type, Variant, Visibility, WhereClause,
+    parse_quote, punctuated::Punctuated, token, visit_mut::VisitMut as _,
 };
 
 use super::{
-    args::{parse_args, Args, ProjReplace, UnpinImpl},
     PIN,
+    args::{Args, ProjReplace, UnpinImpl, parse_args},
 };
 use crate::utils::{
-    determine_lifetime_name, determine_visibility, insert_lifetime_and_bound, ReplaceReceiver,
-    SliceExt, Variants,
+    ReplaceReceiver, SliceExt as _, Variants, determine_lifetime_name, determine_visibility,
+    insert_lifetime_and_bound,
 };
 
 pub(super) fn parse_derive(input: TokenStream) -> Result<TokenStream> {
-    let mut input: DeriveInput = syn::parse2(input)?;
+    let mut input: Item = syn::parse2(input)?;
 
     let mut cx;
     let mut generate = GenerateTokens::default();
 
-    let ident = &input.ident;
-    let ty_generics = input.generics.split_for_impl().1;
-    let self_ty = parse_quote!(#ident #ty_generics);
-    let mut visitor = ReplaceReceiver(&self_ty);
-    visitor.visit_generics_mut(&mut input.generics);
-    visitor.visit_data_mut(&mut input.data);
-
-    match &input.data {
-        Data::Struct(data) => {
-            cx = Context::new(&input.attrs, &input.vis, ident, &mut input.generics, Struct)?;
-            parse_struct(&mut cx, &data.fields, &mut generate)?;
+    match &mut input {
+        Item::Struct(input) => {
+            let ident = &input.ident;
+            let ty_generics = input.generics.split_for_impl().1;
+            let self_ty = parse_quote!(#ident #ty_generics);
+            let mut visitor = ReplaceReceiver(&self_ty);
+            visitor.visit_item_struct_mut(input);
+            cx = Context::new(&input.attrs, &input.vis, &input.ident, &mut input.generics, Struct)?;
+            parse_struct(&mut cx, &input.fields, &mut generate)?;
         }
-        Data::Enum(data) => {
-            cx = Context::new(&input.attrs, &input.vis, ident, &mut input.generics, Enum)?;
-            parse_enum(&mut cx, data, &mut generate)?;
+        Item::Enum(input) => {
+            let ident = &input.ident;
+            let ty_generics = input.generics.split_for_impl().1;
+            let self_ty = parse_quote!(#ident #ty_generics);
+            let mut visitor = ReplaceReceiver(&self_ty);
+            visitor.visit_item_enum_mut(input);
+            cx = Context::new(&input.attrs, &input.vis, &input.ident, &mut input.generics, Enum)?;
+            parse_enum(&mut cx, input.brace_token, &input.variants, &mut generate)?;
         }
-        Data::Union(_) => {
-            bail!(input, "#[pin_project] attribute may only be used on structs or enums");
-        }
+        _ => bail!(input, "#[pin_project] attribute may only be used on structs or enums"),
     }
 
     Ok(generate.into_tokens(&cx))
@@ -85,11 +86,16 @@ impl GenerateTokens {
             // - https://github.com/rust-lang/rust/issues/63281
             // - https://github.com/taiki-e/pin-project/pull/53#issuecomment-525906867
             // - https://github.com/taiki-e/pin-project/pull/70
-            #allowed_lints
-            #[allow(unused_qualifications)]
-            #[allow(clippy::semicolon_if_nothing_returned)]
-            #[allow(clippy::use_self)]
-            #[allow(clippy::used_underscore_binding)]
+            #[allow(
+                unused_qualifications,
+                #allowed_lints
+                clippy::elidable_lifetime_names,
+                clippy::missing_const_for_fn,
+                clippy::needless_lifetimes,
+                clippy::semicolon_if_nothing_returned,
+                clippy::use_self,
+                clippy::used_underscore_binding
+            )]
             const _: () = {
                 #[allow(unused_extern_crates)]
                 extern crate pin_project as _pin_project;
@@ -105,53 +111,59 @@ impl GenerateTokens {
 /// Returns attributes that should be applied to all generated code.
 fn global_allowed_lints() -> TokenStream {
     quote! {
-        #[allow(box_pointers)] // This lint warns use of the `Box` type.
-        #[allow(deprecated)]
-        #[allow(explicit_outlives_requirements)] // https://github.com/rust-lang/rust/issues/60993
-        #[allow(single_use_lifetimes)] // https://github.com/rust-lang/rust/issues/55058
-        #[allow(unreachable_pub)] // This lint warns `pub` field in private struct.
-        #[allow(unused_tuple_struct_fields)]
+        deprecated,
+        explicit_outlives_requirements, // https://github.com/rust-lang/rust/issues/60993
+        single_use_lifetimes, // https://github.com/rust-lang/rust/issues/55058
+        unreachable_pub, // This lint warns `pub` field in private struct.
+        unused_tuple_struct_fields,
         // This lint warns of `clippy::*` generated by external macros.
         // We allow this lint for compatibility with older compilers.
-        #[allow(clippy::unknown_clippy_lints)]
-        #[allow(clippy::pattern_type_mismatch)]
-        #[allow(clippy::redundant_pub_crate)] // This lint warns `pub(crate)` field in private struct.
-        #[allow(clippy::type_repetition_in_bounds)] // https://github.com/rust-lang/rust-clippy/issues/4326
+        clippy::unknown_clippy_lints,
+        clippy::absolute_paths,
+        clippy::min_ident_chars,
+        clippy::pattern_type_mismatch,
+        clippy::pub_with_shorthand,
+        clippy::redundant_pub_crate, // This lint warns `pub(crate)` field in private struct.
+        clippy::single_char_lifetime_names,
+        clippy::type_repetition_in_bounds, // https://github.com/rust-lang/rust-clippy/issues/4326
     }
 }
 
 /// Returns attributes used on projected types.
 fn proj_allowed_lints(cx: &Context<'_>) -> (TokenStream, TokenStream, TokenStream) {
-    let large_enum_variant = if cx.kind == Enum {
-        Some(quote! {
-            #[allow(variant_size_differences)]
-            #[allow(clippy::large_enum_variant)]
-        })
-    } else {
-        None
-    };
     let global_allowed_lints = global_allowed_lints();
     let proj_mut_allowed_lints = if cx.project { Some(&global_allowed_lints) } else { None };
     let proj_mut = quote! {
-        #proj_mut_allowed_lints
-        #[allow(dead_code)] // This lint warns unused fields/variants.
-        #[allow(clippy::mut_mut)] // This lint warns `&mut &mut <ty>`.
-        #[allow(clippy::missing_docs_in_private_items)]
+        #[allow(
+            dead_code, // This lint warns unused fields/variants.
+            #proj_mut_allowed_lints
+            clippy::missing_docs_in_private_items,
+            clippy::mut_mut // This lint warns `&mut &mut <ty>`.
+        )]
     };
     let proj_ref_allowed_lints = if cx.project_ref { Some(&global_allowed_lints) } else { None };
     let proj_ref = quote! {
-        #proj_ref_allowed_lints
-        #[allow(dead_code)] // This lint warns unused fields/variants.
-        #[allow(clippy::ref_option_ref)] // This lint warns `&Option<&<ty>>`.
-        #[allow(clippy::missing_docs_in_private_items)]
+        #[allow(
+            dead_code, // This lint warns unused fields/variants.
+            #proj_ref_allowed_lints
+            clippy::missing_docs_in_private_items,
+            clippy::ref_option_ref // This lint warns `&Option<&<ty>>`.
+        )]
     };
     let proj_own_allowed_lints =
         if cx.project_replace.ident().is_some() { Some(&global_allowed_lints) } else { None };
+    let variant_size_differences = if cx.kind == Enum {
+        Some(quote! { variant_size_differences, clippy::large_enum_variant, })
+    } else {
+        None
+    };
     let proj_own = quote! {
-        #proj_own_allowed_lints
-        #[allow(dead_code)] // This lint warns unused fields/variants.
-        #[allow(clippy::missing_docs_in_private_items)]
-        #large_enum_variant
+        #[allow(
+            dead_code, // This lint warns unused fields/variants.
+            #proj_own_allowed_lints
+            #variant_size_differences
+            clippy::missing_docs_in_private_items
+        )]
     };
     (proj_mut, proj_ref, proj_own)
 }
@@ -245,8 +257,7 @@ enum TypeKind {
     Enum,
     Struct,
 }
-
-use TypeKind::{Enum, Struct};
+use self::TypeKind::{Enum, Struct};
 
 struct OriginalType<'a> {
     /// Attributes of the original type.
@@ -416,7 +427,8 @@ fn parse_struct<'a>(
 
 fn parse_enum<'a>(
     cx: &mut Context<'a>,
-    DataEnum { brace_token, variants, .. }: &'a DataEnum,
+    brace_token: token::Brace,
+    variants: &'a Punctuated<Variant, Token![,]>,
     generate: &mut GenerateTokens,
 ) -> Result<()> {
     if let ProjReplace::Unnamed { span } = &cx.project_replace {
@@ -433,7 +445,7 @@ fn parse_enum<'a>(
     // Do this first for a better error message.
     ensure_not_packed(&cx.orig, None)?;
 
-    validate_enum(*brace_token, variants)?;
+    validate_enum(brace_token, variants)?;
 
     let ProjectedVariants {
         proj_variants,
@@ -690,7 +702,9 @@ fn make_unpin_impl(cx: &Context<'_>) -> TokenStream {
 
             // Make the error message highlight `UnsafeUnpin` argument.
             proj_generics.make_where_clause().predicates.push(parse_quote_spanned! { span =>
-                _pin_project::__private::Wrapper<#lifetime, Self>: _pin_project::UnsafeUnpin
+                _pin_project::__private::PinnedFieldsOf<
+                    _pin_project::__private::Wrapper<#lifetime, Self>
+                >: _pin_project::UnsafeUnpin
             });
 
             let (impl_generics, _, where_clause) = proj_generics.split_for_impl();
@@ -708,13 +722,15 @@ fn make_unpin_impl(cx: &Context<'_>) -> TokenStream {
             let orig_ident = cx.orig.ident;
             let lifetime = &cx.proj.lifetime;
 
+            // TODO: Using `<unsized type>: Sized` here allow emulating real negative_impls...
+            // https://github.com/taiki-e/pin-project/issues/340#issuecomment-2428002670
             proj_generics.make_where_clause().predicates.push(parse_quote! {
-                _pin_project::__private::Wrapper<
+                _pin_project::__private::PinnedFieldsOf<_pin_project::__private::Wrapper<
                     #lifetime, _pin_project::__private::PhantomPinned
-                >: _pin_project::__private::Unpin
+                >>: _pin_project::__private::Unpin
             });
 
-            let (proj_impl_generics, _, proj_where_clause) = proj_generics.split_for_impl();
+            let (impl_generics, _, where_clause) = proj_generics.split_for_impl();
             let ty_generics = cx.orig.generics.split_for_impl().1;
 
             // For interoperability with `forbid(unsafe_code)`, `unsafe` token should be
@@ -722,9 +738,8 @@ fn make_unpin_impl(cx: &Context<'_>) -> TokenStream {
             let unsafety = <Token![unsafe]>::default();
             quote_spanned! { span =>
                 #[doc(hidden)]
-                impl #proj_impl_generics _pin_project::__private::Unpin
-                    for #orig_ident #ty_generics
-                #proj_where_clause
+                impl #impl_generics _pin_project::__private::Unpin for #orig_ident #ty_generics
+                #where_clause
                 {
                 }
 
@@ -735,15 +750,14 @@ fn make_unpin_impl(cx: &Context<'_>) -> TokenStream {
                 // impl, they'll get a "conflicting implementations of trait" error when
                 // coherence checks are run.
                 #[doc(hidden)]
-                #unsafety impl #proj_impl_generics _pin_project::UnsafeUnpin
-                    for #orig_ident #ty_generics
-                #proj_where_clause
+                #unsafety impl #impl_generics _pin_project::UnsafeUnpin for #orig_ident #ty_generics
+                #where_clause
                 {
                 }
             }
         }
         UnpinImpl::Default => {
-            let mut full_where_clause = cx.orig.generics.where_clause.clone().unwrap();
+            let mut impl_where_clause = cx.orig.generics.where_clause.clone().unwrap();
 
             // Generate a field in our new struct for every
             // pinned field in the original type.
@@ -786,11 +800,12 @@ fn make_unpin_impl(cx: &Context<'_>) -> TokenStream {
             let lifetime = &cx.proj.lifetime;
             let type_params = cx.orig.generics.type_params().map(|t| &t.ident);
             let proj_generics = &cx.proj.generics;
-            let (proj_impl_generics, proj_ty_generics, _) = proj_generics.split_for_impl();
-            let (_, ty_generics, where_clause) = cx.orig.generics.split_for_impl();
+            let (impl_generics, proj_ty_generics, _) = proj_generics.split_for_impl();
+            let (_, ty_generics, ty_where_clause) = cx.orig.generics.split_for_impl();
 
-            full_where_clause.predicates.push(parse_quote! {
-                #struct_ident #proj_ty_generics: _pin_project::__private::Unpin
+            impl_where_clause.predicates.push(parse_quote! {
+                _pin_project::__private::PinnedFieldsOf<#struct_ident #proj_ty_generics>:
+                    _pin_project::__private::Unpin
             });
 
             quote! {
@@ -804,8 +819,8 @@ fn make_unpin_impl(cx: &Context<'_>) -> TokenStream {
                 // `__UnpinStruct` type must also be public.
                 // However, we ensure that the user can never actually reference
                 // this 'public' type by creating this type in the inside of `const`.
-                #[allow(missing_debug_implementations)]
-                #vis struct #struct_ident #proj_generics #where_clause {
+                #[allow(missing_debug_implementations, unnameable_types)]
+                #vis struct #struct_ident #proj_generics #ty_where_clause {
                     __pin_project_use_generics: _pin_project::__private::AlwaysUnpin<
                         #lifetime, (#(_pin_project::__private::PhantomData<#type_params>),*)
                     >,
@@ -814,9 +829,8 @@ fn make_unpin_impl(cx: &Context<'_>) -> TokenStream {
                     #(#lifetime_fields,)*
                 }
 
-                impl #proj_impl_generics _pin_project::__private::Unpin
-                    for #orig_ident #ty_generics
-                #full_where_clause
+                impl #impl_generics _pin_project::__private::Unpin for #orig_ident #ty_generics
+                #impl_where_clause
                 {
                 }
 
@@ -827,9 +841,8 @@ fn make_unpin_impl(cx: &Context<'_>) -> TokenStream {
                 // impl, they'll get a "conflicting implementations of trait" error when
                 // coherence checks are run.
                 #[doc(hidden)]
-                unsafe impl #proj_impl_generics _pin_project::UnsafeUnpin
-                    for #orig_ident #ty_generics
-                #full_where_clause
+                unsafe impl #impl_generics _pin_project::UnsafeUnpin for #orig_ident #ty_generics
+                #impl_where_clause
                 {
                 }
             }
@@ -837,6 +850,7 @@ fn make_unpin_impl(cx: &Context<'_>) -> TokenStream {
     }
 }
 
+#[allow(clippy::doc_overindented_list_items)]
 /// Creates `Drop` implementation for the original type.
 ///
 /// The kind of `Drop` impl generated depends on `pinned_drop` field:
@@ -889,7 +903,7 @@ fn make_drop_impl(cx: &Context<'_>) -> TokenStream {
         quote! {
             // There are two possible cases:
             // 1. The user type does not implement Drop. In this case,
-            // the first blanked impl will not apply to it. This code
+            // the first blanket impl will not apply to it. This code
             // will compile, as there is only one impl of MustNotImplDrop for the user type
             // 2. The user type does impl Drop. This will make the blanket impl applicable,
             // which will then conflict with the explicit MustNotImplDrop impl below.
@@ -960,7 +974,6 @@ fn make_proj_impl(
     });
     let mut project_ref = Some(quote! {
         #allow_dead_code
-        #[allow(clippy::missing_const_for_fn)]
         #[inline]
         #vis fn project_ref<#lifetime>(
             self: _pin_project::__private::Pin<&#lifetime Self>,
@@ -973,14 +986,14 @@ fn make_proj_impl(
     let mut project_replace = cx.project_replace.span().map(|span| {
         // It is enough to only set the span of the signature.
         let sig = quote_spanned! { span =>
-            #allow_dead_code
-            #[inline]
             #vis fn project_replace(
                 self: _pin_project::__private::Pin<&mut Self>,
                 __replacement: Self,
             ) -> #proj_own_ident #orig_ty_generics
         };
         quote! {
+            #allow_dead_code
+            #[inline]
             #sig {
                 unsafe {
                     let __self_ptr: *mut Self = self.get_unchecked_mut();

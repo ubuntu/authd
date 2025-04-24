@@ -1,22 +1,5 @@
 //! axum is a web application framework that focuses on ergonomics and modularity.
 //!
-//! # Table of contents
-//!
-//! - [High-level features](#high-level-features)
-//! - [Compatibility](#compatibility)
-//! - [Example](#example)
-//! - [Routing](#routing)
-//! - [Handlers](#handlers)
-//! - [Extractors](#extractors)
-//! - [Responses](#responses)
-//! - [Error handling](#error-handling)
-//! - [Middleware](#middleware)
-//! - [Sharing state with handlers](#sharing-state-with-handlers)
-//! - [Building integrations for axum](#building-integrations-for-axum)
-//! - [Required dependencies](#required-dependencies)
-//! - [Examples](#examples)
-//! - [Feature flags](#feature-flags)
-//!
 //! # High-level features
 //!
 //! - Route requests to handlers with a macro-free API.
@@ -63,7 +46,7 @@
 //!
 //! # Routing
 //!
-//! [`Router`] is used to set up which paths goes to which services:
+//! [`Router`] is used to set up which paths go to which services:
 //!
 //! ```rust
 //! use axum::{Router, routing::get};
@@ -268,7 +251,7 @@
 //!         }),
 //!     )
 //!     .route(
-//!         "/users/:id",
+//!         "/users/{id}",
 //!         get({
 //!             let shared_state = Arc::clone(&shared_state);
 //!             move |path| get_user(path, shared_state)
@@ -292,6 +275,67 @@
 //!
 //! The downside to this approach is that it's a little more verbose than using
 //! [`State`] or extensions.
+//!
+//! ## Using [tokio's `task_local` macro](https://docs.rs/tokio/1/tokio/macro.task_local.html):
+//!
+//! This allows to share state with `IntoResponse` implementations.
+//!
+//! ```rust,no_run
+//! use axum::{
+//!     extract::Request,
+//!     http::{header, StatusCode},
+//!     middleware::{self, Next},
+//!     response::{IntoResponse, Response},
+//!     routing::get,
+//!     Router,
+//! };
+//! use tokio::task_local;
+//!
+//! #[derive(Clone)]
+//! struct CurrentUser {
+//!     name: String,
+//! }
+//! task_local! {
+//!     pub static USER: CurrentUser;
+//! }
+//!
+//! async fn auth(req: Request, next: Next) -> Result<Response, StatusCode> {
+//!     let auth_header = req
+//!         .headers()
+//!         .get(header::AUTHORIZATION)
+//!         .and_then(|header| header.to_str().ok())
+//!         .ok_or(StatusCode::UNAUTHORIZED)?;
+//!     if let Some(current_user) = authorize_current_user(auth_header).await {
+//!         // State is setup here in the middleware
+//!         Ok(USER.scope(current_user, next.run(req)).await)
+//!     } else {
+//!         Err(StatusCode::UNAUTHORIZED)
+//!     }
+//! }
+//! async fn authorize_current_user(auth_token: &str) -> Option<CurrentUser> {
+//!     Some(CurrentUser {
+//!         name: auth_token.to_string(),
+//!     })
+//! }
+//!
+//! struct UserResponse;
+//!
+//! impl IntoResponse for UserResponse {
+//!     fn into_response(self) -> Response {
+//!         // State is accessed here in the IntoResponse implementation
+//!         let current_user = USER.with(|u| u.clone());
+//!         (StatusCode::OK, current_user.name).into_response()
+//!     }
+//! }
+//!
+//! async fn handler() -> UserResponse {
+//!     UserResponse
+//! }
+//!
+//! let app: Router = Router::new()
+//!     .route("/", get(handler))
+//!     .route_layer(middleware::from_fn(auth));
+//! ```
 //!
 //! # Building integrations for axum
 //!
@@ -376,43 +420,6 @@
 //! [`axum-core`]: http://crates.io/crates/axum-core
 //! [`State`]: crate::extract::State
 
-#![warn(
-    clippy::all,
-    clippy::todo,
-    clippy::empty_enum,
-    clippy::enum_glob_use,
-    clippy::mem_forget,
-    clippy::unused_self,
-    clippy::filter_map_next,
-    clippy::needless_continue,
-    clippy::needless_borrow,
-    clippy::match_wildcard_for_single_variants,
-    clippy::if_let_mutex,
-    clippy::mismatched_target_os,
-    clippy::await_holding_lock,
-    clippy::match_on_vec_items,
-    clippy::imprecise_flops,
-    clippy::suboptimal_flops,
-    clippy::lossy_float_literal,
-    clippy::rest_pat_in_fully_bound_structs,
-    clippy::fn_params_excessive_bools,
-    clippy::exit,
-    clippy::inefficient_to_string,
-    clippy::linkedlist,
-    clippy::macro_use_imports,
-    clippy::option_option,
-    clippy::verbose_file_reads,
-    clippy::unnested_or_patterns,
-    clippy::str_to_string,
-    rust_2018_idioms,
-    future_incompatible,
-    nonstandard_style,
-    missing_debug_implementations,
-    missing_docs
-)]
-#![deny(unreachable_pub)]
-#![allow(elided_lifetimes_in_paths, clippy::type_complexity)]
-#![forbid(unsafe_code)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 #![cfg_attr(test, allow(clippy::float_cmp))]
 #![cfg_attr(not(test), warn(clippy::print_stdout, clippy::dbg_macro))]
@@ -439,11 +446,10 @@ pub mod routing;
 #[cfg(all(feature = "tokio", any(feature = "http1", feature = "http2")))]
 pub mod serve;
 
-#[cfg(test)]
-mod test_helpers;
+#[cfg(any(test, feature = "__private"))]
+#[allow(missing_docs, missing_debug_implementations, clippy::print_stdout)]
+pub mod test_helpers;
 
-#[doc(no_inline)]
-pub use async_trait::async_trait;
 #[doc(no_inline)]
 pub use http;
 
@@ -463,7 +469,7 @@ pub use self::form::Form;
 pub use axum_core::{BoxError, Error, RequestExt, RequestPartsExt};
 
 #[cfg(feature = "macros")]
-pub use axum_macros::debug_handler;
+pub use axum_macros::{debug_handler, debug_middleware};
 
 #[cfg(all(feature = "tokio", any(feature = "http1", feature = "http2")))]
 #[doc(inline)]

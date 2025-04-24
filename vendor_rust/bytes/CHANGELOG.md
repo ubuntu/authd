@@ -1,3 +1,56 @@
+# 1.10.1 (March 5th, 2025)
+
+### Fixed
+
+- Fix memory leak when using `to_vec` with `Bytes::from_owner` (#773)
+
+# 1.10.0 (February 3rd, 2025)
+
+### Added
+
+- Add feature to support platforms without atomic CAS (#467)
+- `try_get_*` methods for `Buf` trait (#753)
+- Implement `Buf::chunks_vectored` for `Take` (#617)
+- Implement `Buf::chunks_vectored` for `VecDeque<u8>` (#708)
+
+### Fixed
+
+- Remove incorrect guarantee for `chunks_vectored` (#754)
+- Ensure that tests pass under `panic=abort` (#749)
+
+# 1.9.0 (November 27, 2024)
+
+### Added
+
+- Add `Bytes::from_owner` to enable externally-allocated memory (#742)
+
+### Documented
+
+- Fix typo in Buf::chunk() comment (#744)
+
+### Internal changes
+
+- Replace BufMut::put with BufMut::put_slice in Writer impl (#745)
+- Rename hex_impl! to fmt_impl! and reuse it for fmt::Debug (#743)
+
+# 1.8.0 (October 21, 2024)
+
+- Guarantee address in `split_off`/`split_to` for empty slices (#740)
+
+# 1.7.2 (September 17, 2024)
+
+### Fixed
+
+- Fix default impl of `Buf::{get_int, get_int_le}` (#732)
+
+### Documented
+
+- Fix double spaces in comments and doc comments (#731)
+
+### Internal changes
+
+- Ensure BytesMut::advance reduces capacity (#728)
+
 # 1.7.1 (August 1, 2024)
 
 This release reverts the following change due to a regression:

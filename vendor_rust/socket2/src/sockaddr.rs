@@ -258,7 +258,7 @@ impl SockAddr {
     /// Returns the initialised storage bytes.
     fn as_bytes(&self) -> &[u8] {
         // SAFETY: `self.storage` is a C struct which can always be treated a
-        // slice of bytes. Futhermore we ensure we don't read any unitialised
+        // slice of bytes. Furthermore, we ensure we don't read any unitialised
         // bytes by using `self.len`.
         unsafe { std::slice::from_raw_parts(self.as_ptr().cast(), self.len as usize) }
     }
@@ -291,6 +291,7 @@ impl From<SocketAddrV4> for SockAddr {
             target_os = "haiku",
             target_os = "hermit",
             target_os = "ios",
+            target_os = "visionos",
             target_os = "macos",
             target_os = "netbsd",
             target_os = "nto",
@@ -334,6 +335,7 @@ impl From<SocketAddrV6> for SockAddr {
             target_os = "haiku",
             target_os = "hermit",
             target_os = "ios",
+            target_os = "visionos",
             target_os = "macos",
             target_os = "netbsd",
             target_os = "nto",
@@ -358,6 +360,7 @@ impl fmt::Debug for SockAddr {
             target_os = "haiku",
             target_os = "hermit",
             target_os = "ios",
+            target_os = "visionos",
             target_os = "macos",
             target_os = "netbsd",
             target_os = "nto",

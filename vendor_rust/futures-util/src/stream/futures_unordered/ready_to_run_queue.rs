@@ -27,6 +27,8 @@ pub(super) struct ReadyToRunQueue<Fut> {
 /// An MPSC queue into which the tasks containing the futures are inserted
 /// whenever the future inside is scheduled for polling.
 impl<Fut> ReadyToRunQueue<Fut> {
+    // FIXME: this takes raw pointer without safety conditions.
+
     /// The enqueue function from the 1024cores intrusive MPSC queue algorithm.
     pub(super) fn enqueue(&self, task: *const Task<Fut>) {
         unsafe {
@@ -47,39 +49,41 @@ impl<Fut> ReadyToRunQueue<Fut> {
     /// Note that this is unsafe as it required mutual exclusion (only one
     /// thread can call this) to be guaranteed elsewhere.
     pub(super) unsafe fn dequeue(&self) -> Dequeue<Fut> {
-        let mut tail = *self.tail.get();
-        let mut next = (*tail).next_ready_to_run.load(Acquire);
+        unsafe {
+            let mut tail = *self.tail.get();
+            let mut next = (*tail).next_ready_to_run.load(Acquire);
 
-        if tail == self.stub() {
-            if next.is_null() {
-                return Dequeue::Empty;
+            if tail == self.stub() {
+                if next.is_null() {
+                    return Dequeue::Empty;
+                }
+
+                *self.tail.get() = next;
+                tail = next;
+                next = (*next).next_ready_to_run.load(Acquire);
             }
 
-            *self.tail.get() = next;
-            tail = next;
-            next = (*next).next_ready_to_run.load(Acquire);
+            if !next.is_null() {
+                *self.tail.get() = next;
+                debug_assert!(tail != self.stub());
+                return Dequeue::Data(tail);
+            }
+
+            if self.head.load(Acquire) as *const _ != tail {
+                return Dequeue::Inconsistent;
+            }
+
+            self.enqueue(self.stub());
+
+            next = (*tail).next_ready_to_run.load(Acquire);
+
+            if !next.is_null() {
+                *self.tail.get() = next;
+                return Dequeue::Data(tail);
+            }
+
+            Dequeue::Inconsistent
         }
-
-        if !next.is_null() {
-            *self.tail.get() = next;
-            debug_assert!(tail != self.stub());
-            return Dequeue::Data(tail);
-        }
-
-        if self.head.load(Acquire) as *const _ != tail {
-            return Dequeue::Inconsistent;
-        }
-
-        self.enqueue(self.stub());
-
-        next = (*tail).next_ready_to_run.load(Acquire);
-
-        if !next.is_null() {
-            *self.tail.get() = next;
-            return Dequeue::Data(tail);
-        }
-
-        Dequeue::Inconsistent
     }
 
     pub(super) fn stub(&self) -> *const Task<Fut> {

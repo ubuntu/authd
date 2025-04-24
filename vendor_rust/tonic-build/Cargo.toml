@@ -11,14 +11,20 @@
 
 [package]
 edition = "2021"
+rust-version = "1.75"
 name = "tonic-build"
-version = "0.11.0"
+version = "0.13.0"
 authors = ["Lucio Franco <luciofranco14@gmail.com>"]
+build = false
+autolib = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 description = """
 Codegen module of `tonic` gRPC implementation.
 """
 homepage = "https://github.com/hyperium/tonic"
-documentation = "https://docs.rs/tonic-build/0.11.0"
 readme = "README.md"
 keywords = [
     "rpc",
@@ -34,8 +40,31 @@ categories = [
 license = "MIT"
 repository = "https://github.com/hyperium/tonic"
 
+[package.metadata.cargo_check_external_types]
+allowed_external_types = [
+    "proc_macro2::*",
+    "prost_build::*",
+    "prost_types::*",
+]
+
 [package.metadata.docs.rs]
 all-features = true
+
+[features]
+cleanup-markdown = ["prost-build?/cleanup-markdown"]
+default = [
+    "transport",
+    "prost",
+]
+prost = [
+    "prost-build",
+    "dep:prost-types",
+]
+transport = []
+
+[lib]
+name = "tonic_build"
+path = "src/lib.rs"
 
 [dependencies.prettyplease]
 version = "0.2"
@@ -44,7 +73,11 @@ version = "0.2"
 version = "1.0"
 
 [dependencies.prost-build]
-version = "0.12"
+version = "0.13"
+optional = true
+
+[dependencies.prost-types]
+version = "0.13"
 optional = true
 
 [dependencies.quote]
@@ -53,14 +86,11 @@ version = "1.0"
 [dependencies.syn]
 version = "2.0"
 
-[features]
-cleanup-markdown = [
-    "prost",
-    "prost-build/cleanup-markdown",
-]
-default = [
-    "transport",
-    "prost",
-]
-prost = ["prost-build"]
-transport = []
+[lints.rust]
+missing_debug_implementations = "warn"
+missing_docs = "warn"
+rust_2018_idioms = "warn"
+unreachable_pub = "warn"
+
+[lints.rustdoc]
+broken_intra_doc_links = "deny"

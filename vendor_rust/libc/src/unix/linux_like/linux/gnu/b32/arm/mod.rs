@@ -1,7 +1,6 @@
 use crate::prelude::*;
 use crate::{off64_t, off_t};
 
-pub type c_char = u8;
 pub type wchar_t = u32;
 
 s! {
@@ -62,7 +61,7 @@ s! {
     pub struct stat64 {
         pub st_dev: crate::dev_t,
         __pad1: c_uint,
-        __st_ino: crate::ino_t,
+        __st_ino: c_ulong,
         pub st_mode: crate::mode_t,
         pub st_nlink: crate::nlink_t,
         pub st_uid: crate::uid_t,
@@ -136,7 +135,7 @@ s! {
         __glibc_reserved2: c_ulong,
         pub msg_ctime: crate::time_t,
         __glibc_reserved3: c_ulong,
-        __msg_cbytes: c_ulong,
+        pub __msg_cbytes: c_ulong,
         pub msg_qnum: crate::msgqnum_t,
         pub msg_qbytes: crate::msglen_t,
         pub msg_lspid: crate::pid_t,
@@ -398,7 +397,13 @@ pub const MCL_ONFAULT: c_int = 0x0004;
 pub const POLLWRNORM: c_short = 0x100;
 pub const POLLWRBAND: c_short = 0x200;
 
-pub const F_GETLK: c_int = 5;
+cfg_if! {
+    if #[cfg(gnu_file_offset_bits64)] {
+        pub const F_GETLK: c_int = 12;
+    } else {
+        pub const F_GETLK: c_int = 5;
+    }
+}
 pub const F_GETOWN: c_int = 9;
 pub const F_SETOWN: c_int = 8;
 

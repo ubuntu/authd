@@ -200,13 +200,13 @@ async fn doesnt_panic_if_used_with_nested_router() {
     async fn handler() {}
 
     let routes_static =
-        Router::new().nest_service("/", crate::routing::get_service(handler.into_service()));
+        Router::new().nest_service("/foo", crate::routing::get_service(handler.into_service()));
 
     let routes_all = Router::new().fallback_service(routes_static);
 
     let client = TestClient::new(routes_all);
 
-    let res = client.get("/foobar").await;
+    let res = client.get("/foo/bar").await;
     assert_eq!(res.status(), StatusCode::OK);
 }
 
@@ -327,4 +327,67 @@ async fn merge_router_with_fallback_into_empty() {
     let res = client.get("/does-not-exist").await;
     assert_eq!(res.status(), StatusCode::NOT_FOUND);
     assert_eq!(res.text().await, "outer");
+}
+
+#[crate::test]
+async fn mna_fallback_with_existing_fallback() {
+    let app = Router::new()
+        .route(
+            "/",
+            get(|| async { "test" }).fallback(|| async { "index fallback" }),
+        )
+        .route("/path", get(|| async { "path" }))
+        .method_not_allowed_fallback(|| async { "method not allowed fallback" });
+
+    let client = TestClient::new(app);
+    let index_fallback = client.post("/").await;
+    let method_not_allowed_fallback = client.post("/path").await;
+
+    assert_eq!(index_fallback.text().await, "index fallback");
+    assert_eq!(
+        method_not_allowed_fallback.text().await,
+        "method not allowed fallback"
+    );
+}
+
+#[crate::test]
+async fn mna_fallback_with_state() {
+    let app = Router::new()
+        .route("/", get(|| async { "index" }))
+        .method_not_allowed_fallback(|State(state): State<&'static str>| async move { state })
+        .with_state("state");
+
+    let client = TestClient::new(app);
+    let res = client.post("/").await;
+    assert_eq!(res.text().await, "state");
+}
+
+#[crate::test]
+async fn mna_fallback_with_unused_state() {
+    let app = Router::new()
+        .route("/", get(|| async { "index" }))
+        .with_state(())
+        .method_not_allowed_fallback(|| async move { "bla" });
+
+    let client = TestClient::new(app);
+    let res = client.post("/").await;
+    assert_eq!(res.text().await, "bla");
+}
+
+#[crate::test]
+async fn state_isnt_cloned_too_much_with_fallback() {
+    let state = CountingCloneableState::new();
+
+    let app = Router::new()
+        .fallback(|_: State<CountingCloneableState>| async {})
+        .with_state(state.clone());
+
+    let client = TestClient::new(app);
+
+    // ignore clones made during setup
+    state.setup_done();
+
+    client.get("/does-not-exist").await;
+
+    assert_eq!(state.count(), 3);
 }

@@ -130,7 +130,7 @@ use std::task::{Context, Poll};
 /// }
 ///
 /// impl<T> Timeout<T> {
-///     pub fn new(inner: T, timeout: Duration) -> Timeout<T> {
+///     pub const fn new(inner: T, timeout: Duration) -> Timeout<T> {
 ///         Timeout {
 ///             inner,
 ///             timeout
@@ -204,7 +204,7 @@ use std::task::{Context, Poll};
 /// pub struct TimeoutLayer(Duration);
 ///
 /// impl TimeoutLayer {
-///     pub fn new(delay: Duration) -> Self {
+///     pub const fn new(delay: Duration) -> Self {
 ///         TimeoutLayer(delay)
 ///     }
 /// }
@@ -260,7 +260,7 @@ use std::task::{Context, Poll};
 ///     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
 ///
 ///     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-///         Poll::Ready(Ok(()))
+///         self.inner.poll_ready(cx)
 ///     }
 ///
 ///     fn call(&mut self, req: R) -> Self::Future {
@@ -295,7 +295,7 @@ use std::task::{Context, Poll};
 ///     type Future = Pin<Box<dyn Future<Output = Result<Self::Response, Self::Error>>>>;
 ///
 ///     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-///         Poll::Ready(Ok(()))
+///         self.inner.poll_ready(cx)
 ///     }
 ///
 ///     fn call(&mut self, req: R) -> Self::Future {
@@ -351,6 +351,7 @@ pub trait Service<Request> {
     ///
     /// Implementations are permitted to panic if `call` is invoked without
     /// obtaining `Poll::Ready(Ok(()))` from `poll_ready`.
+    #[must_use = "futures do nothing unless you `.await` or poll them"]
     fn call(&mut self, req: Request) -> Self::Future;
 }
 

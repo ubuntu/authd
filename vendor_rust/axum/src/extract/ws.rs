@@ -5,12 +5,12 @@
 //! ```
 //! use axum::{
 //!     extract::ws::{WebSocketUpgrade, WebSocket},
-//!     routing::get,
+//!     routing::any,
 //!     response::{IntoResponse, Response},
 //!     Router,
 //! };
 //!
-//! let app = Router::new().route("/ws", get(handler));
+//! let app = Router::new().route("/ws", any(handler));
 //!
 //! async fn handler(ws: WebSocketUpgrade) -> Response {
 //!     ws.on_upgrade(handle_socket)
@@ -40,7 +40,7 @@
 //! use axum::{
 //!     extract::{ws::{WebSocketUpgrade, WebSocket}, State},
 //!     response::Response,
-//!     routing::get,
+//!     routing::any,
 //!     Router,
 //! };
 //!
@@ -58,7 +58,7 @@
 //! }
 //!
 //! let app = Router::new()
-//!     .route("/ws", get(handler))
+//!     .route("/ws", any(handler))
 //!     .with_state(AppState { /* ... */ });
 //! # let _: Router = app;
 //! ```
@@ -93,7 +93,6 @@
 use self::rejection::*;
 use super::FromRequestParts;
 use crate::{body::Bytes, response::Response, Error};
-use async_trait::async_trait;
 use axum_core::body::Body;
 use futures_util::{
     sink::{Sink, SinkExt},
@@ -102,7 +101,7 @@ use futures_util::{
 use http::{
     header::{self, HeaderMap, HeaderName, HeaderValue},
     request::Parts,
-    Method, StatusCode,
+    Method, StatusCode, Version,
 };
 use hyper_util::rt::TokioIo;
 use sha1::{Digest, Sha1};
@@ -110,7 +109,7 @@ use std::{
     borrow::Cow,
     future::Future,
     pin::Pin,
-    task::{Context, Poll},
+    task::{ready, Context, Poll},
 };
 use tokio_tungstenite::{
     tungstenite::{
@@ -122,17 +121,20 @@ use tokio_tungstenite::{
 
 /// Extractor for establishing WebSocket connections.
 ///
-/// Note: This extractor requires the request method to be `GET` so it should
-/// always be used with [`get`](crate::routing::get). Requests with other methods will be
-/// rejected.
+/// For HTTP/1.1 requests, this extractor requires the request method to be `GET`;
+/// in later versions, `CONNECT` is used instead.
+/// To support both, it should be used with [`any`](crate::routing::any).
 ///
 /// See the [module docs](self) for an example.
+///
+/// [`MethodFilter`]: crate::routing::MethodFilter
 #[cfg_attr(docsrs, doc(cfg(feature = "ws")))]
 pub struct WebSocketUpgrade<F = DefaultOnFailedUpgrade> {
     config: WebSocketConfig,
     /// The chosen protocol sent in the `Sec-WebSocket-Protocol` header of the response.
     protocol: Option<HeaderValue>,
-    sec_websocket_key: HeaderValue,
+    /// `None` if HTTP/2+ WebSockets are used.
+    sec_websocket_key: Option<HeaderValue>,
     on_upgrade: hyper::upgrade::OnUpgrade,
     on_failed_upgrade: F,
     sec_websocket_protocol: Option<HeaderValue>,
@@ -150,6 +152,12 @@ impl<F> std::fmt::Debug for WebSocketUpgrade<F> {
 }
 
 impl<F> WebSocketUpgrade<F> {
+    /// Read buffer capacity. The default value is 128KiB
+    pub fn read_buffer_size(mut self, size: usize) -> Self {
+        self.config.read_buffer_size = size;
+        self
+    }
+
     /// The target minimum size of the write buffer to reach before writing the data
     /// to the underlying stream.
     ///
@@ -213,12 +221,12 @@ impl<F> WebSocketUpgrade<F> {
     /// ```
     /// use axum::{
     ///     extract::ws::{WebSocketUpgrade, WebSocket},
-    ///     routing::get,
+    ///     routing::any,
     ///     response::{IntoResponse, Response},
     ///     Router,
     /// };
     ///
-    /// let app = Router::new().route("/ws", get(handler));
+    /// let app = Router::new().route("/ws", any(handler));
     ///
     /// async fn handler(ws: WebSocketUpgrade) -> Response {
     ///     ws.protocols(["graphql-ws", "graphql-transport-ws"])
@@ -330,25 +338,38 @@ impl<F> WebSocketUpgrade<F> {
             callback(socket).await;
         });
 
-        #[allow(clippy::declare_interior_mutable_const)]
-        const UPGRADE: HeaderValue = HeaderValue::from_static("upgrade");
-        #[allow(clippy::declare_interior_mutable_const)]
-        const WEBSOCKET: HeaderValue = HeaderValue::from_static("websocket");
+        let mut response = if let Some(sec_websocket_key) = &self.sec_websocket_key {
+            // If `sec_websocket_key` was `Some`, we are using HTTP/1.1.
 
-        let mut builder = Response::builder()
-            .status(StatusCode::SWITCHING_PROTOCOLS)
-            .header(header::CONNECTION, UPGRADE)
-            .header(header::UPGRADE, WEBSOCKET)
-            .header(
-                header::SEC_WEBSOCKET_ACCEPT,
-                sign(self.sec_websocket_key.as_bytes()),
-            );
+            #[allow(clippy::declare_interior_mutable_const)]
+            const UPGRADE: HeaderValue = HeaderValue::from_static("upgrade");
+            #[allow(clippy::declare_interior_mutable_const)]
+            const WEBSOCKET: HeaderValue = HeaderValue::from_static("websocket");
+
+            Response::builder()
+                .status(StatusCode::SWITCHING_PROTOCOLS)
+                .header(header::CONNECTION, UPGRADE)
+                .header(header::UPGRADE, WEBSOCKET)
+                .header(
+                    header::SEC_WEBSOCKET_ACCEPT,
+                    sign(sec_websocket_key.as_bytes()),
+                )
+                .body(Body::empty())
+                .unwrap()
+        } else {
+            // Otherwise, we are HTTP/2+. As established in RFC 9113 section 8.5, we just respond
+            // with a 2XX with an empty body:
+            // <https://datatracker.ietf.org/doc/html/rfc9113#name-the-connect-method>.
+            Response::new(Body::empty())
+        };
 
         if let Some(protocol) = self.protocol {
-            builder = builder.header(header::SEC_WEBSOCKET_PROTOCOL, protocol);
+            response
+                .headers_mut()
+                .insert(header::SEC_WEBSOCKET_PROTOCOL, protocol);
         }
 
-        builder.body(Body::empty()).unwrap()
+        response
     }
 }
 
@@ -381,7 +402,6 @@ impl OnFailedUpgrade for DefaultOnFailedUpgrade {
     fn call(self, _error: Error) {}
 }
 
-#[async_trait]
 impl<S> FromRequestParts<S> for WebSocketUpgrade<DefaultOnFailedUpgrade>
 where
     S: Send + Sync,
@@ -389,27 +409,48 @@ where
     type Rejection = WebSocketUpgradeRejection;
 
     async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        if parts.method != Method::GET {
-            return Err(MethodNotGet.into());
-        }
+        let sec_websocket_key = if parts.version <= Version::HTTP_11 {
+            if parts.method != Method::GET {
+                return Err(MethodNotGet.into());
+            }
 
-        if !header_contains(&parts.headers, header::CONNECTION, "upgrade") {
-            return Err(InvalidConnectionHeader.into());
-        }
+            if !header_contains(&parts.headers, header::CONNECTION, "upgrade") {
+                return Err(InvalidConnectionHeader.into());
+            }
 
-        if !header_eq(&parts.headers, header::UPGRADE, "websocket") {
-            return Err(InvalidUpgradeHeader.into());
-        }
+            if !header_eq(&parts.headers, header::UPGRADE, "websocket") {
+                return Err(InvalidUpgradeHeader.into());
+            }
+
+            Some(
+                parts
+                    .headers
+                    .get(header::SEC_WEBSOCKET_KEY)
+                    .ok_or(WebSocketKeyHeaderMissing)?
+                    .clone(),
+            )
+        } else {
+            if parts.method != Method::CONNECT {
+                return Err(MethodNotConnect.into());
+            }
+
+            // if this feature flag is disabled, we won’t be receiving an HTTP/2 request to begin
+            // with.
+            #[cfg(feature = "http2")]
+            if parts
+                .extensions
+                .get::<hyper::ext::Protocol>()
+                .map_or(true, |p| p.as_str() != "websocket")
+            {
+                return Err(InvalidProtocolPseudoheader.into());
+            }
+
+            None
+        };
 
         if !header_eq(&parts.headers, header::SEC_WEBSOCKET_VERSION, "13") {
             return Err(InvalidWebSocketVersionHeader.into());
         }
-
-        let sec_websocket_key = parts
-            .headers
-            .get(header::SEC_WEBSOCKET_KEY)
-            .ok_or(WebSocketKeyHeaderMissing)?
-            .clone();
 
         let on_upgrade = parts
             .extensions
@@ -476,11 +517,6 @@ impl WebSocket {
             .map_err(Error::new)
     }
 
-    /// Gracefully close this WebSocket.
-    pub async fn close(mut self) -> Result<(), Error> {
-        self.inner.close(None).await.map_err(Error::new)
-    }
-
     /// Return the selected WebSocket subprotocol, if one has been chosen.
     pub fn protocol(&self) -> Option<&HeaderValue> {
         self.protocol.as_ref()
@@ -492,7 +528,7 @@ impl Stream for WebSocket {
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         loop {
-            match futures_util::ready!(self.inner.poll_next_unpin(cx)) {
+            match ready!(self.inner.poll_next_unpin(cx)) {
                 Some(Ok(msg)) => {
                     if let Some(msg) = Message::from_tungstenite(msg) {
                         return Poll::Ready(Some(Ok(msg)));
@@ -527,16 +563,131 @@ impl Sink<Message> for WebSocket {
     }
 }
 
+/// UTF-8 wrapper for [Bytes].
+///
+/// An [Utf8Bytes] is always guaranteed to contain valid UTF-8.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct Utf8Bytes(ts::Utf8Bytes);
+
+impl Utf8Bytes {
+    /// Creates from a static str.
+    #[inline]
+    pub const fn from_static(str: &'static str) -> Self {
+        Self(ts::Utf8Bytes::from_static(str))
+    }
+
+    /// Returns as a string slice.
+    #[inline]
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+
+    fn into_tungstenite(self) -> ts::Utf8Bytes {
+        self.0
+    }
+}
+
+impl std::ops::Deref for Utf8Bytes {
+    type Target = str;
+
+    /// ```
+    /// /// Example fn that takes a str slice
+    /// fn a(s: &str) {}
+    ///
+    /// let data = axum::extract::ws::Utf8Bytes::from_static("foo123");
+    ///
+    /// // auto-deref as arg
+    /// a(&data);
+    ///
+    /// // deref to str methods
+    /// assert_eq!(data.len(), 6);
+    /// ```
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        self.as_str()
+    }
+}
+
+impl std::fmt::Display for Utf8Bytes {
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl TryFrom<Bytes> for Utf8Bytes {
+    type Error = std::str::Utf8Error;
+
+    #[inline]
+    fn try_from(bytes: Bytes) -> Result<Self, Self::Error> {
+        Ok(Self(bytes.try_into()?))
+    }
+}
+
+impl TryFrom<Vec<u8>> for Utf8Bytes {
+    type Error = std::str::Utf8Error;
+
+    #[inline]
+    fn try_from(v: Vec<u8>) -> Result<Self, Self::Error> {
+        Ok(Self(v.try_into()?))
+    }
+}
+
+impl From<String> for Utf8Bytes {
+    #[inline]
+    fn from(s: String) -> Self {
+        Self(s.into())
+    }
+}
+
+impl From<&str> for Utf8Bytes {
+    #[inline]
+    fn from(s: &str) -> Self {
+        Self(s.into())
+    }
+}
+
+impl From<&String> for Utf8Bytes {
+    #[inline]
+    fn from(s: &String) -> Self {
+        Self(s.into())
+    }
+}
+
+impl From<Utf8Bytes> for Bytes {
+    #[inline]
+    fn from(Utf8Bytes(bytes): Utf8Bytes) -> Self {
+        bytes.into()
+    }
+}
+
+impl<T> PartialEq<T> for Utf8Bytes
+where
+    for<'a> &'a str: PartialEq<T>,
+{
+    /// ```
+    /// let payload = axum::extract::ws::Utf8Bytes::from_static("foo123");
+    /// assert_eq!(payload, "foo123");
+    /// assert_eq!(payload, "foo123".to_string());
+    /// assert_eq!(payload, &"foo123".to_string());
+    /// assert_eq!(payload, std::borrow::Cow::from("foo123"));
+    /// ```
+    #[inline]
+    fn eq(&self, other: &T) -> bool {
+        self.as_str() == *other
+    }
+}
+
 /// Status code used to indicate why an endpoint is closing the WebSocket connection.
 pub type CloseCode = u16;
 
 /// A struct representing the close command.
 #[derive(Debug, Clone, Eq, PartialEq)]
-pub struct CloseFrame<'t> {
+pub struct CloseFrame {
     /// The reason as a code.
     pub code: CloseCode,
     /// The reason as text string.
-    pub reason: Cow<'t, str>,
+    pub reason: Utf8Bytes,
 }
 
 /// A WebSocket message.
@@ -565,16 +716,16 @@ pub struct CloseFrame<'t> {
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum Message {
     /// A text WebSocket message
-    Text(String),
+    Text(Utf8Bytes),
     /// A binary WebSocket message
-    Binary(Vec<u8>),
+    Binary(Bytes),
     /// A ping message with the specified payload
     ///
     /// The payload here must have a length less than 125 bytes.
     ///
     /// Ping messages will be automatically responded to by the server, so you do not have to worry
     /// about dealing with them yourself.
-    Ping(Vec<u8>),
+    Ping(Bytes),
     /// A pong message with the specified payload
     ///
     /// The payload here must have a length less than 125 bytes.
@@ -582,21 +733,39 @@ pub enum Message {
     /// Pong messages will be automatically sent to the client if a ping message is received, so
     /// you do not have to worry about constructing them yourself unless you want to implement a
     /// [unidirectional heartbeat](https://tools.ietf.org/html/rfc6455#section-5.5.3).
-    Pong(Vec<u8>),
+    Pong(Bytes),
     /// A close message with the optional close frame.
-    Close(Option<CloseFrame<'static>>),
+    ///
+    /// You may "uncleanly" close a WebSocket connection at any time
+    /// by simply dropping the [`WebSocket`].
+    /// However, you may also use the graceful closing protocol, in which
+    /// 1. peer A sends a close frame, and does not send any further messages;
+    /// 2. peer B responds with a close frame, and does not send any further messages;
+    /// 3. peer A processes the remaining messages sent by peer B, before finally
+    /// 4. both peers close the connection.
+    ///
+    /// After sending a close frame,
+    /// you may still read messages,
+    /// but attempts to send another message will error.
+    /// After receiving a close frame,
+    /// axum will automatically respond with a close frame if necessary
+    /// (you do not have to deal with this yourself).
+    /// Since no further messages will be received,
+    /// you may either do nothing
+    /// or explicitly drop the connection.
+    Close(Option<CloseFrame>),
 }
 
 impl Message {
     fn into_tungstenite(self) -> ts::Message {
         match self {
-            Self::Text(text) => ts::Message::Text(text),
+            Self::Text(text) => ts::Message::Text(text.into_tungstenite()),
             Self::Binary(binary) => ts::Message::Binary(binary),
             Self::Ping(ping) => ts::Message::Ping(ping),
             Self::Pong(pong) => ts::Message::Pong(pong),
             Self::Close(Some(close)) => ts::Message::Close(Some(ts::protocol::CloseFrame {
                 code: ts::protocol::frame::coding::CloseCode::from(close.code),
-                reason: close.reason,
+                reason: close.reason.into_tungstenite(),
             })),
             Self::Close(None) => ts::Message::Close(None),
         }
@@ -604,13 +773,13 @@ impl Message {
 
     fn from_tungstenite(message: ts::Message) -> Option<Self> {
         match message {
-            ts::Message::Text(text) => Some(Self::Text(text)),
+            ts::Message::Text(text) => Some(Self::Text(Utf8Bytes(text))),
             ts::Message::Binary(binary) => Some(Self::Binary(binary)),
             ts::Message::Ping(ping) => Some(Self::Ping(ping)),
             ts::Message::Pong(pong) => Some(Self::Pong(pong)),
             ts::Message::Close(Some(close)) => Some(Self::Close(Some(CloseFrame {
                 code: close.code.into(),
-                reason: close.reason,
+                reason: Utf8Bytes(close.reason),
             }))),
             ts::Message::Close(None) => Some(Self::Close(None)),
             // we can ignore `Frame` frames as recommended by the tungstenite maintainers
@@ -620,24 +789,24 @@ impl Message {
     }
 
     /// Consume the WebSocket and return it as binary data.
-    pub fn into_data(self) -> Vec<u8> {
+    pub fn into_data(self) -> Bytes {
         match self {
-            Self::Text(string) => string.into_bytes(),
+            Self::Text(string) => Bytes::from(string),
             Self::Binary(data) | Self::Ping(data) | Self::Pong(data) => data,
-            Self::Close(None) => Vec::new(),
-            Self::Close(Some(frame)) => frame.reason.into_owned().into_bytes(),
+            Self::Close(None) => Bytes::new(),
+            Self::Close(Some(frame)) => Bytes::from(frame.reason),
         }
     }
 
-    /// Attempt to consume the WebSocket message and convert it to a String.
-    pub fn into_text(self) -> Result<String, Error> {
+    /// Attempt to consume the WebSocket message and convert it to a Utf8Bytes.
+    pub fn into_text(self) -> Result<Utf8Bytes, Error> {
         match self {
             Self::Text(string) => Ok(string),
-            Self::Binary(data) | Self::Ping(data) | Self::Pong(data) => Ok(String::from_utf8(data)
-                .map_err(|err| err.utf8_error())
-                .map_err(Error::new)?),
-            Self::Close(None) => Ok(String::new()),
-            Self::Close(Some(frame)) => Ok(frame.reason.into_owned()),
+            Self::Binary(data) | Self::Ping(data) | Self::Pong(data) => {
+                Ok(Utf8Bytes::try_from(data).map_err(Error::new)?)
+            }
+            Self::Close(None) => Ok(Utf8Bytes::default()),
+            Self::Close(Some(frame)) => Ok(frame.reason),
         }
     }
 
@@ -645,7 +814,7 @@ impl Message {
     /// this will try to convert binary data to utf8.
     pub fn to_text(&self) -> Result<&str, Error> {
         match *self {
-            Self::Text(ref string) => Ok(string),
+            Self::Text(ref string) => Ok(string.as_str()),
             Self::Binary(ref data) | Self::Ping(ref data) | Self::Pong(ref data) => {
                 Ok(std::str::from_utf8(data).map_err(Error::new)?)
             }
@@ -653,11 +822,27 @@ impl Message {
             Self::Close(Some(ref frame)) => Ok(&frame.reason),
         }
     }
+
+    /// Create a new text WebSocket message from a stringable.
+    pub fn text<S>(string: S) -> Message
+    where
+        S: Into<Utf8Bytes>,
+    {
+        Message::Text(string.into())
+    }
+
+    /// Create a new binary WebSocket message by converting to `Bytes`.
+    pub fn binary<B>(bin: B) -> Message
+    where
+        B: Into<Bytes>,
+    {
+        Message::Binary(bin.into())
+    }
 }
 
 impl From<String> for Message {
     fn from(string: String) -> Self {
-        Message::Text(string)
+        Message::Text(string.into())
     }
 }
 
@@ -669,19 +854,25 @@ impl<'s> From<&'s str> for Message {
 
 impl<'b> From<&'b [u8]> for Message {
     fn from(data: &'b [u8]) -> Self {
-        Message::Binary(data.into())
+        Message::Binary(Bytes::copy_from_slice(data))
+    }
+}
+
+impl From<Bytes> for Message {
+    fn from(data: Bytes) -> Self {
+        Message::Binary(data)
     }
 }
 
 impl From<Vec<u8>> for Message {
     fn from(data: Vec<u8>) -> Self {
-        Message::Binary(data)
+        Message::Binary(data.into())
     }
 }
 
 impl From<Message> for Vec<u8> {
     fn from(msg: Message) -> Self {
-        msg.into_data()
+        msg.into_data().to_vec()
     }
 }
 
@@ -709,6 +900,13 @@ pub mod rejection {
     }
 
     define_rejection! {
+        #[status = METHOD_NOT_ALLOWED]
+        #[body = "Request method must be `CONNECT`"]
+        /// Rejection type for [`WebSocketUpgrade`](super::WebSocketUpgrade).
+        pub struct MethodNotConnect;
+    }
+
+    define_rejection! {
         #[status = BAD_REQUEST]
         #[body = "Connection header did not include 'upgrade'"]
         /// Rejection type for [`WebSocketUpgrade`](super::WebSocketUpgrade).
@@ -720,6 +918,13 @@ pub mod rejection {
         #[body = "`Upgrade` header did not include 'websocket'"]
         /// Rejection type for [`WebSocketUpgrade`](super::WebSocketUpgrade).
         pub struct InvalidUpgradeHeader;
+    }
+
+    define_rejection! {
+        #[status = BAD_REQUEST]
+        #[body = "`:protocol` pseudo-header did not include 'websocket'"]
+        /// Rejection type for [`WebSocketUpgrade`](super::WebSocketUpgrade).
+        pub struct InvalidProtocolPseudoheader;
     }
 
     define_rejection! {
@@ -757,8 +962,10 @@ pub mod rejection {
         /// extractor can fail.
         pub enum WebSocketUpgradeRejection {
             MethodNotGet,
+            MethodNotConnect,
             InvalidConnectionHeader,
             InvalidUpgradeHeader,
+            InvalidProtocolPseudoheader,
             InvalidWebSocketVersionHeader,
             WebSocketKeyHeaderMissing,
             ConnectionNotUpgradable,
@@ -783,8 +990,9 @@ pub mod close_code {
     pub const PROTOCOL: u16 = 1002;
 
     /// Indicates that an endpoint is terminating the connection because it has received a type of
-    /// data it cannot accept (e.g., an endpoint that understands only text data MAY send this if
-    /// it receives a binary message).
+    /// data that it cannot accept.
+    ///
+    /// For example, an endpoint MAY send this if it understands only text data, but receives a binary message.
     pub const UNSUPPORTED: u16 = 1003;
 
     /// Indicates that no status code was included in a closing frame.
@@ -794,12 +1002,15 @@ pub mod close_code {
     pub const ABNORMAL: u16 = 1006;
 
     /// Indicates that an endpoint is terminating the connection because it has received data
-    /// within a message that was not consistent with the type of the message (e.g., non-UTF-8
-    /// RFC3629 data within a text message).
+    /// within a message that was not consistent with the type of the message.
+    ///
+    /// For example, an endpoint received non-UTF-8 RFC3629 data within a text message.
     pub const INVALID: u16 = 1007;
 
     /// Indicates that an endpoint is terminating the connection because it has received a message
-    /// that violates its policy. This is a generic status code that can be returned when there is
+    /// that violates its policy.
+    ///
+    /// This is a generic status code that can be returned when there is
     /// no other more suitable status code (e.g., `UNSUPPORTED` or `SIZE`) or if there is a need to
     /// hide specific details about the policy.
     pub const POLICY: u16 = 1008;
@@ -808,10 +1019,13 @@ pub mod close_code {
     /// that is too big for it to process.
     pub const SIZE: u16 = 1009;
 
-    /// Indicates that an endpoint (client) is terminating the connection because it has expected
-    /// the server to negotiate one or more extension, but the server didn't return them in the
-    /// response message of the WebSocket handshake. The list of extensions that are needed should
-    /// be given as the reason for closing. Note that this status code is not used by the server,
+    /// Indicates that an endpoint (client) is terminating the connection because the server
+    /// did not respond to extension negotiation correctly.
+    ///
+    /// Specifically, the client has expected the server to negotiate one or more extension(s),
+    /// but the server didn't return them in the response message of the WebSocket handshake.
+    /// The list of extensions that are needed should be given as the reason for closing.
+    /// Note that this status code is not used by the server,
     /// because it can fail the WebSocket handshake instead.
     pub const EXTENSION: u16 = 1010;
 
@@ -833,14 +1047,18 @@ mod tests {
     use std::future::ready;
 
     use super::*;
-    use crate::{routing::get, test_helpers::spawn_service, Router};
+    use crate::{routing::any, test_helpers::spawn_service, Router};
     use http::{Request, Version};
+    use http_body_util::BodyExt as _;
+    use hyper_util::rt::TokioExecutor;
+    use tokio::io::{AsyncRead, AsyncWrite};
+    use tokio::net::TcpStream;
     use tokio_tungstenite::tungstenite;
     use tower::ServiceExt;
 
     #[crate::test]
     async fn rejects_http_1_0_requests() {
-        let svc = get(|ws: Result<WebSocketUpgrade, WebSocketUpgradeRejection>| {
+        let svc = any(|ws: Result<WebSocketUpgrade, WebSocketUpgradeRejection>| {
             let rejection = ws.unwrap_err();
             assert!(matches!(
                 rejection,
@@ -869,7 +1087,7 @@ mod tests {
         async fn handler(ws: WebSocketUpgrade) -> Response {
             ws.on_upgrade(|_| async {})
         }
-        let _: Router = Router::new().route("/", get(handler));
+        let _: Router = Router::new().route("/", any(handler));
     }
 
     #[allow(dead_code)]
@@ -878,16 +1096,63 @@ mod tests {
             ws.on_failed_upgrade(|_error: Error| println!("oops!"))
                 .on_upgrade(|_| async {})
         }
-        let _: Router = Router::new().route("/", get(handler));
+        let _: Router = Router::new().route("/", any(handler));
     }
 
     #[crate::test]
     async fn integration_test() {
-        let app = Router::new().route(
-            "/echo",
-            get(|ws: WebSocketUpgrade| ready(ws.on_upgrade(handle_socket))),
-        );
+        let addr = spawn_service(echo_app());
+        let uri = format!("ws://{addr}/echo").try_into().unwrap();
+        let req = tungstenite::client::ClientRequestBuilder::new(uri)
+            .with_sub_protocol(TEST_ECHO_APP_REQ_SUBPROTO);
+        let (socket, response) = tokio_tungstenite::connect_async(req).await.unwrap();
+        test_echo_app(socket, response.headers()).await;
+    }
 
+    #[crate::test]
+    #[cfg(feature = "http2")]
+    async fn http2() {
+        let addr = spawn_service(echo_app());
+        let io = TokioIo::new(TcpStream::connect(addr).await.unwrap());
+        let (mut send_request, conn) =
+            hyper::client::conn::http2::Builder::new(TokioExecutor::new())
+                .handshake(io)
+                .await
+                .unwrap();
+
+        // Wait a little for the SETTINGS frame to go through…
+        for _ in 0..10 {
+            tokio::task::yield_now().await;
+        }
+        assert!(conn.is_extended_connect_protocol_enabled());
+        tokio::spawn(async {
+            conn.await.unwrap();
+        });
+
+        let req = Request::builder()
+            .method(Method::CONNECT)
+            .extension(hyper::ext::Protocol::from_static("websocket"))
+            .uri("/echo")
+            .header("sec-websocket-version", "13")
+            .header("sec-websocket-protocol", TEST_ECHO_APP_REQ_SUBPROTO)
+            .header("Host", "server.example.com")
+            .body(Body::empty())
+            .unwrap();
+
+        let mut response = send_request.send_request(req).await.unwrap();
+        let status = response.status();
+        if status != 200 {
+            let body = response.into_body().collect().await.unwrap().to_bytes();
+            let body = std::str::from_utf8(&body).unwrap();
+            panic!("response status was {status}: {body}");
+        }
+        let upgraded = hyper::upgrade::on(&mut response).await.unwrap();
+        let upgraded = TokioIo::new(upgraded);
+        let socket = WebSocketStream::from_raw_socket(upgraded, protocol::Role::Client, None).await;
+        test_echo_app(socket, response.headers()).await;
+    }
+
+    fn echo_app() -> Router {
         async fn handle_socket(mut socket: WebSocket) {
             while let Some(Ok(msg)) = socket.recv().await {
                 match msg {
@@ -903,24 +1168,34 @@ mod tests {
             }
         }
 
-        let addr = spawn_service(app);
-        let (mut socket, _response) = tokio_tungstenite::connect_async(format!("ws://{addr}/echo"))
-            .await
-            .unwrap();
+        Router::new().route(
+            "/echo",
+            any(|ws: WebSocketUpgrade| {
+                ready(ws.protocols(["echo2", "echo"]).on_upgrade(handle_socket))
+            }),
+        )
+    }
 
-        let input = tungstenite::Message::Text("foobar".to_owned());
+    const TEST_ECHO_APP_REQ_SUBPROTO: &str = "echo3, echo";
+    async fn test_echo_app<S: AsyncRead + AsyncWrite + Unpin>(
+        mut socket: WebSocketStream<S>,
+        headers: &http::HeaderMap,
+    ) {
+        assert_eq!(headers[http::header::SEC_WEBSOCKET_PROTOCOL], "echo");
+
+        let input = tungstenite::Message::Text(tungstenite::Utf8Bytes::from_static("foobar"));
         socket.send(input.clone()).await.unwrap();
         let output = socket.next().await.unwrap().unwrap();
         assert_eq!(input, output);
 
         socket
-            .send(tungstenite::Message::Ping("ping".to_owned().into_bytes()))
+            .send(tungstenite::Message::Ping(Bytes::from_static(b"ping")))
             .await
             .unwrap();
         let output = socket.next().await.unwrap().unwrap();
         assert_eq!(
             output,
-            tungstenite::Message::Pong("ping".to_owned().into_bytes())
+            tungstenite::Message::Pong(Bytes::from_static(b"ping"))
         );
     }
 }

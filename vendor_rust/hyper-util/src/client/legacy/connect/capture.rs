@@ -19,6 +19,8 @@ pub struct CaptureConnection {
 /// [`capture_connection`] allows a caller to capture the returned [`Connected`] structure as soon
 /// as the connection is established.
 ///
+/// [`Connection`]: crate::client::legacy::connect::Connection
+///
 /// *Note*: If establishing a connection fails, [`CaptureConnection::connection_metadata`] will always return none.
 ///
 /// # Examples

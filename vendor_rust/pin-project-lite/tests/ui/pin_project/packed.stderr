@@ -5,8 +5,7 @@ error[E0793]: reference to packed field is unaligned
 6  | |     #[repr(packed, C)]
 7  | |     struct Packed {
 8  | |         #[pin]
-9  | |         field: u16,
-10 | |     }
+...  |
 11 | | }
    | |_^
    |
@@ -22,8 +21,7 @@ error[E0793]: reference to packed field is unaligned
 6  | |     #[repr(packed, C)]
 7  | |     struct Packed {
 8  | |         #[pin]
-9  | |         field: u16,
-10 | |     }
+...  |
 11 | | }
    | |_^
    |
@@ -39,8 +37,7 @@ error[E0793]: reference to packed field is unaligned
 6  | |     #[repr(packed, C)]
 7  | |     struct Packed {
 8  | |         #[pin]
-9  | |         field: u16,
-10 | |     }
+...  |
 11 | | }
    | |_^
    |
@@ -56,8 +53,7 @@ error[E0793]: reference to packed field is unaligned
 14 | |     #[repr(packed(2))]
 15 | |     struct PackedN {
 16 | |         #[pin]
-17 | |         field: u32,
-18 | |     }
+...  |
 19 | | }
    | |_^
    |
@@ -73,8 +69,7 @@ error[E0793]: reference to packed field is unaligned
 14 | |     #[repr(packed(2))]
 15 | |     struct PackedN {
 16 | |         #[pin]
-17 | |         field: u32,
-18 | |     }
+...  |
 19 | | }
    | |_^
    |
@@ -90,8 +85,7 @@ error[E0793]: reference to packed field is unaligned
 14 | |     #[repr(packed(2))]
 15 | |     struct PackedN {
 16 | |         #[pin]
-17 | |         field: u32,
-18 | |     }
+...  |
 19 | | }
    | |_^
    |

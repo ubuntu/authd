@@ -78,6 +78,16 @@ struct Config {
     recv_buffer_size: Option<usize>,
     #[cfg(any(target_os = "android", target_os = "fuchsia", target_os = "linux"))]
     interface: Option<String>,
+    #[cfg(any(
+        target_os = "illumos",
+        target_os = "ios",
+        target_os = "macos",
+        target_os = "solaris",
+        target_os = "tvos",
+        target_os = "visionos",
+        target_os = "watchos",
+    ))]
+    interface: Option<std::ffi::CString>,
     #[cfg(any(target_os = "android", target_os = "fuchsia", target_os = "linux"))]
     tcp_user_timeout: Option<Duration>,
 }
@@ -111,45 +121,89 @@ impl TcpKeepaliveConfig {
         }
     }
 
-    #[cfg(not(any(
-        target_os = "aix",
-        target_os = "openbsd",
-        target_os = "redox",
-        target_os = "solaris"
-    )))]
+    #[cfg(
+        // See https://docs.rs/socket2/0.5.8/src/socket2/lib.rs.html#511-525
+        any(
+            target_os = "android",
+            target_os = "dragonfly",
+            target_os = "freebsd",
+            target_os = "fuchsia",
+            target_os = "illumos",
+            target_os = "ios",
+            target_os = "visionos",
+            target_os = "linux",
+            target_os = "macos",
+            target_os = "netbsd",
+            target_os = "tvos",
+            target_os = "watchos",
+            target_os = "windows",
+        )
+    )]
     fn ka_with_interval(ka: TcpKeepalive, interval: Duration, dirty: &mut bool) -> TcpKeepalive {
         *dirty = true;
         ka.with_interval(interval)
     }
 
-    #[cfg(any(
-        target_os = "aix",
-        target_os = "openbsd",
-        target_os = "redox",
-        target_os = "solaris"
+    #[cfg(not(
+         // See https://docs.rs/socket2/0.5.8/src/socket2/lib.rs.html#511-525
+        any(
+            target_os = "android",
+            target_os = "dragonfly",
+            target_os = "freebsd",
+            target_os = "fuchsia",
+            target_os = "illumos",
+            target_os = "ios",
+            target_os = "visionos",
+            target_os = "linux",
+            target_os = "macos",
+            target_os = "netbsd",
+            target_os = "tvos",
+            target_os = "watchos",
+            target_os = "windows",
+        )
     ))]
     fn ka_with_interval(ka: TcpKeepalive, _: Duration, _: &mut bool) -> TcpKeepalive {
         ka // no-op as keepalive interval is not supported on this platform
     }
 
-    #[cfg(not(any(
-        target_os = "aix",
-        target_os = "openbsd",
-        target_os = "redox",
-        target_os = "solaris",
-        target_os = "windows"
-    )))]
+    #[cfg(
+        // See https://docs.rs/socket2/0.5.8/src/socket2/lib.rs.html#557-570
+        any(
+            target_os = "android",
+            target_os = "dragonfly",
+            target_os = "freebsd",
+            target_os = "fuchsia",
+            target_os = "illumos",
+            target_os = "ios",
+            target_os = "visionos",
+            target_os = "linux",
+            target_os = "macos",
+            target_os = "netbsd",
+            target_os = "tvos",
+            target_os = "watchos",
+        )
+    )]
     fn ka_with_retries(ka: TcpKeepalive, retries: u32, dirty: &mut bool) -> TcpKeepalive {
         *dirty = true;
         ka.with_retries(retries)
     }
 
-    #[cfg(any(
-        target_os = "aix",
-        target_os = "openbsd",
-        target_os = "redox",
-        target_os = "solaris",
-        target_os = "windows"
+    #[cfg(not(
+        // See https://docs.rs/socket2/0.5.8/src/socket2/lib.rs.html#557-570
+        any(
+            target_os = "android",
+            target_os = "dragonfly",
+            target_os = "freebsd",
+            target_os = "fuchsia",
+            target_os = "illumos",
+            target_os = "ios",
+            target_os = "visionos",
+            target_os = "linux",
+            target_os = "macos",
+            target_os = "netbsd",
+            target_os = "tvos",
+            target_os = "watchos",
+        )
     ))]
     fn ka_with_retries(ka: TcpKeepalive, _: u32, _: &mut bool) -> TcpKeepalive {
         ka // no-op as keepalive retries is not supported on this platform
@@ -168,7 +222,7 @@ impl HttpConnector {
 impl<R> HttpConnector<R> {
     /// Construct a new HttpConnector.
     ///
-    /// Takes a [`Resolver`](crate::client::connect::dns#resolvers-are-services) to handle DNS lookups.
+    /// Takes a [`Resolver`](crate::client::legacy::connect::dns#resolvers-are-services) to handle DNS lookups.
     pub fn new_with_resolver(resolver: R) -> HttpConnector<R> {
         HttpConnector {
             config: Arc::new(Config {
@@ -182,7 +236,18 @@ impl<R> HttpConnector<R> {
                 reuse_address: false,
                 send_buffer_size: None,
                 recv_buffer_size: None,
-                #[cfg(any(target_os = "android", target_os = "fuchsia", target_os = "linux"))]
+                #[cfg(any(
+                    target_os = "android",
+                    target_os = "fuchsia",
+                    target_os = "illumos",
+                    target_os = "ios",
+                    target_os = "linux",
+                    target_os = "macos",
+                    target_os = "solaris",
+                    target_os = "tvos",
+                    target_os = "visionos",
+                    target_os = "watchos",
+                ))]
                 interface: None,
                 #[cfg(any(target_os = "android", target_os = "fuchsia", target_os = "linux"))]
                 tcp_user_timeout: None,
@@ -309,22 +374,55 @@ impl<R> HttpConnector<R> {
         self
     }
 
-    /// Sets the value for the `SO_BINDTODEVICE` option on this socket.
+    /// Sets the name of the interface to bind sockets produced by this
+    /// connector.
+    ///
+    /// On Linux, this sets the `SO_BINDTODEVICE` option on this socket (see
+    /// [`man 7 socket`] for details). On macOS (and macOS-derived systems like
+    /// iOS), illumos, and Solaris, this will instead use the `IP_BOUND_IF`
+    /// socket option (see [`man 7p ip`]).
     ///
     /// If a socket is bound to an interface, only packets received from that particular
     /// interface are processed by the socket. Note that this only works for some socket
-    /// types, particularly AF_INET sockets.
+    /// types, particularly `AF_INET`` sockets.
     ///
     /// On Linux it can be used to specify a [VRF], but the binary needs
     /// to either have `CAP_NET_RAW` or to be run as root.
     ///
-    /// This function is only available on Android、Fuchsia and Linux.
+    /// This function is only available on the following operating systems:
+    /// - Linux, including Android
+    /// - Fuchsia
+    /// - illumos and Solaris
+    /// - macOS, iOS, visionOS, watchOS, and tvOS
     ///
     /// [VRF]: https://www.kernel.org/doc/Documentation/networking/vrf.txt
-    #[cfg(any(target_os = "android", target_os = "fuchsia", target_os = "linux"))]
+    /// [`man 7 socket`] https://man7.org/linux/man-pages/man7/socket.7.html
+    /// [`man 7p ip`]: https://docs.oracle.com/cd/E86824_01/html/E54777/ip-7p.html
+    #[cfg(any(
+        target_os = "android",
+        target_os = "fuchsia",
+        target_os = "illumos",
+        target_os = "ios",
+        target_os = "linux",
+        target_os = "macos",
+        target_os = "solaris",
+        target_os = "tvos",
+        target_os = "visionos",
+        target_os = "watchos",
+    ))]
     #[inline]
     pub fn set_interface<S: Into<String>>(&mut self, interface: S) -> &mut Self {
-        self.config_mut().interface = Some(interface.into());
+        let interface = interface.into();
+        #[cfg(any(target_os = "android", target_os = "fuchsia", target_os = "linux"))]
+        {
+            self.config_mut().interface = Some(interface);
+        }
+        #[cfg(not(any(target_os = "android", target_os = "fuchsia", target_os = "linux")))]
+        {
+            let interface = std::ffi::CString::new(interface)
+                .expect("interface name should not have nulls in it");
+            self.config_mut().interface = Some(interface);
+        }
         self
     }
 
@@ -475,6 +573,20 @@ impl Connection for TcpStream {
         } else {
             connected
         }
+    }
+}
+
+#[cfg(unix)]
+impl Connection for tokio::net::UnixStream {
+    fn connected(&self) -> Connected {
+        Connected::new()
+    }
+}
+
+#[cfg(windows)]
+impl Connection for tokio::net::windows::named_pipe::NamedPipeClient {
+    fn connected(&self) -> Connected {
+        Connected::new()
     }
 }
 
@@ -731,12 +843,57 @@ fn connect(
         }
     }
 
-    #[cfg(any(target_os = "android", target_os = "fuchsia", target_os = "linux"))]
     // That this only works for some socket types, particularly AF_INET sockets.
+    #[cfg(any(
+        target_os = "android",
+        target_os = "fuchsia",
+        target_os = "illumos",
+        target_os = "ios",
+        target_os = "linux",
+        target_os = "macos",
+        target_os = "solaris",
+        target_os = "tvos",
+        target_os = "visionos",
+        target_os = "watchos",
+    ))]
     if let Some(interface) = &config.interface {
+        // On Linux-like systems, set the interface to bind using
+        // `SO_BINDTODEVICE`.
+        #[cfg(any(target_os = "android", target_os = "fuchsia", target_os = "linux"))]
         socket
             .bind_device(Some(interface.as_bytes()))
             .map_err(ConnectError::m("tcp bind interface error"))?;
+
+        // On macOS-like and Solaris-like systems, we instead use `IP_BOUND_IF`.
+        // This socket option desires an integer index for the interface, so we
+        // must first determine the index of the requested interface name using
+        // `if_nametoindex`.
+        #[cfg(any(
+            target_os = "illumos",
+            target_os = "ios",
+            target_os = "macos",
+            target_os = "solaris",
+            target_os = "tvos",
+            target_os = "visionos",
+            target_os = "watchos",
+        ))]
+        {
+            let idx = unsafe { libc::if_nametoindex(interface.as_ptr()) };
+            let idx = std::num::NonZeroU32::new(idx).ok_or_else(|| {
+                // If the index is 0, check errno and return an I/O error.
+                ConnectError::new(
+                    "error converting interface name to index",
+                    io::Error::last_os_error(),
+                )
+            })?;
+            // Different setsockopt calls are necessary depending on whether the
+            // address is IPv4 or IPv6.
+            match addr {
+                SocketAddr::V4(_) => socket.bind_device_by_index_v4(Some(idx)),
+                SocketAddr::V6(_) => socket.bind_device_by_index_v6(Some(idx)),
+            }
+            .map_err(ConnectError::m("tcp bind interface error"))?;
+        }
     }
 
     #[cfg(any(target_os = "android", target_os = "fuchsia", target_os = "linux"))]
@@ -1154,6 +1311,16 @@ mod tests {
                             target_os = "android",
                             target_os = "fuchsia",
                             target_os = "linux"
+                        ))]
+                        interface: None,
+                        #[cfg(any(
+                            target_os = "illumos",
+                            target_os = "ios",
+                            target_os = "macos",
+                            target_os = "solaris",
+                            target_os = "tvos",
+                            target_os = "visionos",
+                            target_os = "watchos",
                         ))]
                         interface: None,
                         #[cfg(any(

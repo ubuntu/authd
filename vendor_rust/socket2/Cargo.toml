@@ -13,11 +13,12 @@
 edition = "2021"
 rust-version = "1.63"
 name = "socket2"
-version = "0.5.7"
+version = "0.5.9"
 authors = [
     "Alex Crichton <alex@alexcrichton.com>",
     "Thomas de Zeeuw <thomasdezeeuw@gmail.com>",
 ]
+build = false
 include = [
     "Cargo.toml",
     "LICENSE-APACHE",
@@ -25,6 +26,11 @@ include = [
     "README.md",
     "src/**/*.rs",
 ]
+autolib = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 description = """
 Utilities for handling networking sockets with a maximal amount of configuration
 possible intended.
@@ -73,8 +79,12 @@ features = ["all"]
 [features]
 all = []
 
+[lib]
+name = "socket2"
+path = "src/lib.rs"
+
 [target."cfg(unix)".dependencies.libc]
-version = "0.2.150"
+version = "0.2.171"
 
 [target."cfg(windows)".dependencies.windows-sys]
 version = "0.52"

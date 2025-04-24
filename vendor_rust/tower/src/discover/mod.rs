@@ -33,7 +33,6 @@
 //!
 //! [`TryStream`]: https://docs.rs/futures/latest/futures/stream/trait.TryStream.html
 
-mod error;
 mod list;
 
 pub use self::list::ServiceList;
@@ -98,7 +97,7 @@ where
 }
 
 /// A change in the service set.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Change<K, V> {
     /// A new service identified by key `K` was identified.
     Insert(K, V),

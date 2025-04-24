@@ -12,8 +12,13 @@
 [package]
 edition = "2018"
 name = "hyper-timeout"
-version = "0.5.1"
+version = "0.5.2"
 authors = ["Herman J. Radtke III <herman@hermanradtke.com>"]
+build = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 description = "A connect, read and write timeout aware connector to be used with hyper Client."
 homepage = "https://github.com/hjr3/hyper-timeout"
 documentation = "https://github.com/hjr3/hyper-timeout"
@@ -21,11 +26,23 @@ readme = "README.md"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/hjr3/hyper-timeout"
 
+[lib]
+name = "hyper_timeout"
+path = "src/lib.rs"
+
+[[example]]
+name = "client"
+path = "examples/client.rs"
+
+[[test]]
+name = "client_upload"
+path = "tests/client_upload.rs"
+
 [dependencies.hyper]
 version = "1.1"
 
 [dependencies.hyper-util]
-version = "0.1"
+version = "0.1.10"
 features = [
     "client-legacy",
     "http1",
@@ -49,6 +66,15 @@ features = ["http1"]
 
 [dev-dependencies.hyper-tls]
 version = "0.6"
+
+[dev-dependencies.hyper-util]
+version = "0.1.10"
+features = [
+    "client-legacy",
+    "http1",
+    "server",
+    "server-graceful",
+]
 
 [dev-dependencies.tokio]
 version = "1.35"

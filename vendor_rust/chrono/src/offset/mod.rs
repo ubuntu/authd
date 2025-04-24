@@ -20,9 +20,9 @@
 
 use core::fmt;
 
-use crate::format::{parse, ParseResult, Parsed, StrftimeItems};
-use crate::naive::{NaiveDate, NaiveDateTime, NaiveTime};
 use crate::Weekday;
+use crate::format::{ParseResult, Parsed, StrftimeItems, parse};
+use crate::naive::{NaiveDate, NaiveDateTime, NaiveTime};
 #[allow(deprecated)]
 use crate::{Date, DateTime};
 
@@ -89,7 +89,7 @@ impl<T> MappedLocalTime<T> {
         }
     }
 
-    /// Returns the earliest possible result of a the time zone mapping.
+    /// Returns the earliest possible result of the time zone mapping.
     ///
     /// # Errors
     ///
@@ -102,7 +102,7 @@ impl<T> MappedLocalTime<T> {
         }
     }
 
-    /// Returns the latest possible result of a the time zone mapping.
+    /// Returns the latest possible result of the time zone mapping.
     ///
     /// # Errors
     ///
@@ -674,9 +674,9 @@ mod tests {
 
     #[test]
     fn test_nanos_never_panics() {
-        Utc.timestamp_nanos(i64::max_value());
+        Utc.timestamp_nanos(i64::MAX);
         Utc.timestamp_nanos(i64::default());
-        Utc.timestamp_nanos(i64::min_value());
+        Utc.timestamp_nanos(i64::MIN);
     }
 
     #[test]

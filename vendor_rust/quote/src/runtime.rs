@@ -102,7 +102,7 @@ pub mod ext {
         fn quote_into_iter(&'q self) -> (Self::Iter, HasIter);
     }
 
-    impl<'q, 'a, T: RepAsIteratorExt<'q> + ?Sized> RepAsIteratorExt<'q> for &'a T {
+    impl<'q, T: RepAsIteratorExt<'q> + ?Sized> RepAsIteratorExt<'q> for &T {
         type Iter = T::Iter;
 
         fn quote_into_iter(&'q self) -> (Self::Iter, HasIter) {
@@ -110,7 +110,7 @@ pub mod ext {
         }
     }
 
-    impl<'q, 'a, T: RepAsIteratorExt<'q> + ?Sized> RepAsIteratorExt<'q> for &'a mut T {
+    impl<'q, T: RepAsIteratorExt<'q> + ?Sized> RepAsIteratorExt<'q> for &mut T {
         type Iter = T::Iter;
 
         fn quote_into_iter(&'q self) -> (Self::Iter, HasIter) {
@@ -119,6 +119,14 @@ pub mod ext {
     }
 
     impl<'q, T: 'q> RepAsIteratorExt<'q> for [T] {
+        type Iter = slice::Iter<'q, T>;
+
+        fn quote_into_iter(&'q self) -> (Self::Iter, HasIter) {
+            (self.iter(), HasIter)
+        }
+    }
+
+    impl<'q, T: 'q, const N: usize> RepAsIteratorExt<'q> for [T; N] {
         type Iter = slice::Iter<'q, T>;
 
         fn quote_into_iter(&'q self) -> (Self::Iter, HasIter) {
@@ -297,68 +305,22 @@ pub fn push_ident_spanned(tokens: &mut TokenStream, span: Span, s: &str) {
 
 #[doc(hidden)]
 pub fn push_lifetime(tokens: &mut TokenStream, lifetime: &str) {
-    struct Lifetime<'a> {
-        name: &'a str,
-        state: u8,
-    }
-
-    impl<'a> Iterator for Lifetime<'a> {
-        type Item = TokenTree;
-
-        fn next(&mut self) -> Option<Self::Item> {
-            match self.state {
-                0 => {
-                    self.state = 1;
-                    Some(TokenTree::Punct(Punct::new('\'', Spacing::Joint)))
-                }
-                1 => {
-                    self.state = 2;
-                    Some(TokenTree::Ident(Ident::new(self.name, Span::call_site())))
-                }
-                _ => None,
-            }
-        }
-    }
-
-    tokens.extend(Lifetime {
-        name: &lifetime[1..],
-        state: 0,
-    });
+    tokens.extend([
+        TokenTree::Punct(Punct::new('\'', Spacing::Joint)),
+        TokenTree::Ident(Ident::new(&lifetime[1..], Span::call_site())),
+    ]);
 }
 
 #[doc(hidden)]
 pub fn push_lifetime_spanned(tokens: &mut TokenStream, span: Span, lifetime: &str) {
-    struct Lifetime<'a> {
-        name: &'a str,
-        span: Span,
-        state: u8,
-    }
-
-    impl<'a> Iterator for Lifetime<'a> {
-        type Item = TokenTree;
-
-        fn next(&mut self) -> Option<Self::Item> {
-            match self.state {
-                0 => {
-                    self.state = 1;
-                    let mut apostrophe = Punct::new('\'', Spacing::Joint);
-                    apostrophe.set_span(self.span);
-                    Some(TokenTree::Punct(apostrophe))
-                }
-                1 => {
-                    self.state = 2;
-                    Some(TokenTree::Ident(Ident::new(self.name, self.span)))
-                }
-                _ => None,
-            }
-        }
-    }
-
-    tokens.extend(Lifetime {
-        name: &lifetime[1..],
-        span,
-        state: 0,
-    });
+    tokens.extend([
+        TokenTree::Punct({
+            let mut apostrophe = Punct::new('\'', Spacing::Joint);
+            apostrophe.set_span(span);
+            apostrophe
+        }),
+        TokenTree::Ident(Ident::new(&lifetime[1..], span)),
+    ]);
 }
 
 macro_rules! push_punct {

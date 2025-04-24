@@ -82,7 +82,7 @@ const POLLING: usize = 1;
 const COMPLETE: usize = 2;
 const POISONED: usize = 3;
 
-const NULL_WAKER_KEY: usize = usize::max_value();
+const NULL_WAKER_KEY: usize = usize::MAX;
 
 impl<Fut: Future> Shared<Fut> {
     pub(super) fn new(future: Fut) -> Self {
@@ -192,8 +192,8 @@ where
     /// Safety: callers must first ensure that `self.inner.state`
     /// is `COMPLETE`
     unsafe fn output(&self) -> &Fut::Output {
-        match &*self.future_or_output.get() {
-            FutureOrOutput::Output(ref item) => item,
+        match unsafe { &*self.future_or_output.get() } {
+            FutureOrOutput::Output(item) => item,
             FutureOrOutput::Future(_) => unreachable!(),
         }
     }
@@ -235,7 +235,7 @@ where
                 FutureOrOutput::Output(item) => item,
                 FutureOrOutput::Future(_) => unreachable!(),
             },
-            Err(inner) => inner.output().clone(),
+            Err(inner) => unsafe { inner.output().clone() },
         }
     }
 }

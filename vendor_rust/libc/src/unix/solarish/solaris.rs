@@ -1,7 +1,7 @@
 use crate::prelude::*;
 use crate::{
-    exit_status, off_t, NET_MAC_AWARE, NET_MAC_AWARE_INHERIT, PRIV_AWARE_RESET, PRIV_DEBUG,
-    PRIV_PFEXEC, PRIV_XPOLICY,
+    exit_status, off_t, termios, NET_MAC_AWARE, NET_MAC_AWARE_INHERIT, PRIV_AWARE_RESET,
+    PRIV_DEBUG, PRIV_PFEXEC, PRIV_XPOLICY,
 };
 
 pub type door_attr_t = c_uint;
@@ -161,6 +161,14 @@ cfg_if! {
     }
 }
 
+// FIXME(solaris): O_DIRECT and SIGINFO are NOT available on Solaris.
+// But in past they were defined here and thus other crates expected them.
+// Latest version v0.29.0 of Nix crate still expects this. Since last
+// version of Nix crate is almost one year ago let's define these two
+// temporarily before new Nix version is released.
+pub const O_DIRECT: c_int = 0x2000000;
+pub const SIGINFO: c_int = 41;
+
 pub const _UTMP_USER_LEN: usize = 32;
 pub const _UTMP_LINE_LEN: usize = 32;
 pub const _UTMP_ID_LEN: usize = 4;
@@ -188,6 +196,8 @@ pub const PRIV_PROC_TPD: c_uint = 0x0400;
 pub const PRIV_TPD_UNSAFE: c_uint = 0x0800;
 pub const PRIV_PROC_TPD_RESET: c_uint = 0x1000;
 pub const PRIV_TPD_KILLABLE: c_uint = 0x2000;
+
+pub const POSIX_SPAWN_SETSID: c_short = 0x400;
 
 pub const PRIV_USER: c_uint = PRIV_DEBUG
     | PRIV_PROC_SENSITIVE
@@ -232,4 +242,19 @@ extern "C" {
     pub fn pthread_getattr_np(thread: crate::pthread_t, attr: *mut crate::pthread_attr_t) -> c_int;
 
     pub fn euidaccess(path: *const c_char, amode: c_int) -> c_int;
+
+    pub fn openpty(
+        amain: *mut c_int,
+        asubord: *mut c_int,
+        name: *mut c_char,
+        termp: *mut termios,
+        winp: *mut crate::winsize,
+    ) -> c_int;
+
+    pub fn forkpty(
+        amain: *mut c_int,
+        name: *mut c_char,
+        termp: *mut termios,
+        winp: *mut crate::winsize,
+    ) -> crate::pid_t;
 }

@@ -64,8 +64,9 @@ use crate::runtime::scheduler::multi_thread_alt::{
 };
 use crate::runtime::scheduler::{self, inject, Lock};
 use crate::runtime::task::{OwnedTasks, TaskHarnessScheduleHooks};
-use crate::runtime::{blocking, coop, driver, task, Config, SchedulerMetrics, WorkerMetrics};
+use crate::runtime::{blocking, driver, task, Config, SchedulerMetrics, WorkerMetrics};
 use crate::runtime::{context, TaskHooks};
+use crate::task::coop;
 use crate::util::atomic_cell::AtomicCell;
 use crate::util::rand::{FastRand, RngSeedGenerator};
 
@@ -303,10 +304,7 @@ pub(super) fn create(
     let (inject, inject_synced) = inject::Shared::new();
 
     let handle = Arc::new(Handle {
-        task_hooks: TaskHooks {
-            task_spawn_callback: config.before_spawn.clone(),
-            task_terminate_callback: config.after_termination.clone(),
-        },
+        task_hooks: TaskHooks::from_config(&config),
         shared: Shared {
             remotes: remotes.into_boxed_slice(),
             inject,

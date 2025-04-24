@@ -131,7 +131,15 @@ to_tokens! {
 to_tokens! {
     pub(crate) enum YearRepr {
         Full,
+        Century,
         LastTwo,
+    }
+}
+
+to_tokens! {
+    pub(crate) enum YearRange {
+        Standard,
+        Extended,
     }
 }
 
@@ -139,6 +147,7 @@ to_tokens! {
     pub(crate) struct Year {
         pub(crate) padding: Padding,
         pub(crate) repr: YearRepr,
+        pub(crate) range: YearRange,
         pub(crate) iso_week_based: bool,
         pub(crate) sign_is_mandatory: bool,
     }

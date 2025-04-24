@@ -21,7 +21,7 @@ use super::{Decoder, Encode, EncodedBuf, Encoder, Http1Transaction, ParseContext
 use crate::body::DecodedLength;
 #[cfg(feature = "server")]
 use crate::common::time::Time;
-use crate::headers::connection_keep_alive;
+use crate::headers;
 use crate::proto::{BodyLength, MessageHead};
 #[cfg(feature = "server")]
 use crate::rt::Sleep;
@@ -73,7 +73,7 @@ where
                 preserve_header_order: false,
                 title_case_headers: false,
                 h09_responses: false,
-                #[cfg(feature = "ffi")]
+                #[cfg(feature = "client")]
                 on_informational: None,
                 notify_read: false,
                 reading: Reading::Init,
@@ -115,7 +115,6 @@ where
         self.io.set_write_strategy_flatten();
     }
 
-    #[cfg(feature = "client")]
     pub(crate) fn set_h1_parser_config(&mut self, parser_config: ParserConfig) {
         self.state.h1_parser_config = parser_config;
     }
@@ -150,6 +149,11 @@ where
     #[cfg(feature = "server")]
     pub(crate) fn set_allow_half_close(&mut self) {
         self.state.allow_half_close = true;
+    }
+
+    #[cfg(feature = "server")]
+    pub(crate) fn disable_date_header(&mut self) {
+        self.state.date_header = false;
     }
 
     pub(crate) fn into_inner(self) -> (I, Bytes) {
@@ -241,7 +245,7 @@ where
                 #[cfg(feature = "ffi")]
                 preserve_header_order: self.state.preserve_header_order,
                 h09_responses: self.state.h09_responses,
-                #[cfg(feature = "ffi")]
+                #[cfg(feature = "client")]
                 on_informational: &mut self.state.on_informational,
             },
         ) {
@@ -281,7 +285,7 @@ where
         self.state.h09_responses = false;
 
         // Drop any OnInformational callbacks, we're done there!
-        #[cfg(feature = "ffi")]
+        #[cfg(feature = "client")]
         {
             self.state.on_informational = None;
         }
@@ -631,10 +635,10 @@ where
                 debug_assert!(head.headers.is_empty());
                 self.state.cached_headers = Some(head.headers);
 
-                #[cfg(feature = "ffi")]
+                #[cfg(feature = "client")]
                 {
                     self.state.on_informational =
-                        head.extensions.remove::<crate::ffi::OnInformational>();
+                        head.extensions.remove::<crate::ext::OnInformational>();
                 }
 
                 Some(encoder)
@@ -652,7 +656,7 @@ where
         let outgoing_is_keep_alive = head
             .headers
             .get(CONNECTION)
-            .map_or(false, connection_keep_alive);
+            .map_or(false, headers::connection_keep_alive);
 
         if !outgoing_is_keep_alive {
             match head.version {
@@ -675,12 +679,21 @@ where
     // If we know the remote speaks an older version, we try to fix up any messages
     // to work with our older peer.
     fn enforce_version(&mut self, head: &mut MessageHead<T::Outgoing>) {
-        if let Version::HTTP_10 = self.state.version {
-            // Fixes response or connection when keep-alive header is not present
-            self.fix_keep_alive(head);
-            // If the remote only knows HTTP/1.0, we should force ourselves
-            // to do only speak HTTP/1.0 as well.
-            head.version = Version::HTTP_10;
+        match self.state.version {
+            Version::HTTP_10 => {
+                // Fixes response or connection when keep-alive header is not present
+                self.fix_keep_alive(head);
+                // If the remote only knows HTTP/1.0, we should force ourselves
+                // to do only speak HTTP/1.0 as well.
+                head.version = Version::HTTP_10;
+            }
+            Version::HTTP_11 => {
+                if let KA::Disabled = self.state.keep_alive.status() {
+                    head.headers
+                        .insert(CONNECTION, HeaderValue::from_static("close"));
+                }
+            }
+            _ => (),
         }
         // If the remote speaks HTTP/1.1, then it *should* be fine with
         // both HTTP/1.0 and HTTP/1.1 from us. So again, we just let
@@ -929,8 +942,8 @@ struct State {
     /// If set, called with each 1xx informational response received for
     /// the current request. MUST be unset after a non-1xx response is
     /// received.
-    #[cfg(feature = "ffi")]
-    on_informational: Option<crate::ffi::OnInformational>,
+    #[cfg(feature = "client")]
+    on_informational: Option<crate::ext::OnInformational>,
     /// Set to true when the Dispatcher should poll read operations
     /// again. See the `maybe_notify` method for more.
     notify_read: bool,
@@ -1107,6 +1120,14 @@ impl State {
         // should try the poll loop one more time, so as to poll the
         // pending requests stream.
         if !T::should_read_first() {
+            self.notify_read = true;
+        }
+
+        #[cfg(feature = "server")]
+        if self.h1_header_read_timeout.is_some() {
+            // Next read will start and poll the header read timeout,
+            // so we can close the connection if another header isn't
+            // received in a timely manner.
             self.notify_read = true;
         }
     }

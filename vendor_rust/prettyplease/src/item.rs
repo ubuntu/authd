@@ -1,5 +1,7 @@
 use crate::algorithm::Printer;
+use crate::fixup::FixupContext;
 use crate::iter::IterDelimited;
+use crate::mac;
 use crate::path::PathKind;
 use crate::INDENT;
 use proc_macro2::TokenStream;
@@ -47,7 +49,7 @@ impl Printer {
         self.ty(&item.ty);
         self.word(" = ");
         self.neverbreak();
-        self.expr(&item.expr);
+        self.expr(&item.expr, FixupContext::NONE);
         self.word(";");
         self.end();
         self.hardbreak();
@@ -91,13 +93,17 @@ impl Printer {
         self.outer_attrs(&item.attrs);
         self.cbox(INDENT);
         self.visibility(&item.vis);
-        self.signature(&item.sig);
+        self.signature(
+            &item.sig,
+            #[cfg(feature = "verbatim")]
+            &verbatim::Safety::Disallowed,
+        );
         self.where_clause_for_body(&item.sig.generics.where_clause);
         self.word("{");
         self.hardbreak_if_nonempty();
         self.inner_attrs(&item.attrs);
-        for stmt in &item.block.stmts {
-            self.stmt(stmt);
+        for stmt in item.block.stmts.iter().delimited() {
+            self.stmt(&stmt, stmt.is_last);
         }
         self.offset(-INDENT);
         self.end();
@@ -164,7 +170,7 @@ impl Printer {
 
     fn item_macro(&mut self, item: &ItemMacro) {
         self.outer_attrs(&item.attrs);
-        let semicolon = true;
+        let semicolon = mac::requires_semi(&item.mac.delimiter);
         self.mac(&item.mac, item.ident.as_ref(), semicolon);
         self.hardbreak();
     }
@@ -206,7 +212,7 @@ impl Printer {
         self.ty(&item.ty);
         self.word(" = ");
         self.neverbreak();
-        self.expr(&item.expr);
+        self.expr(&item.expr, FixupContext::NONE);
         self.word(";");
         self.end();
         self.hardbreak();
@@ -794,7 +800,11 @@ impl Printer {
         self.outer_attrs(&foreign_item.attrs);
         self.cbox(INDENT);
         self.visibility(&foreign_item.vis);
-        self.signature(&foreign_item.sig);
+        self.signature(
+            &foreign_item.sig,
+            #[cfg(feature = "verbatim")]
+            &verbatim::Safety::Disallowed,
+        );
         self.where_clause_semi(&foreign_item.sig.generics.where_clause);
         self.end();
         self.hardbreak();
@@ -828,7 +838,7 @@ impl Printer {
 
     fn foreign_item_macro(&mut self, foreign_item: &ForeignItemMacro) {
         self.outer_attrs(&foreign_item.attrs);
-        let semicolon = true;
+        let semicolon = mac::requires_semi(&foreign_item.mac.delimiter);
         self.mac(&foreign_item.mac, None, semicolon);
         self.hardbreak();
     }
@@ -844,8 +854,10 @@ impl Printer {
     #[cfg(feature = "verbatim")]
     fn foreign_item_verbatim(&mut self, tokens: &TokenStream) {
         use syn::parse::{Parse, ParseStream, Result};
-        use syn::{Attribute, Token, Visibility};
-        use verbatim::{FlexibleItemFn, FlexibleItemStatic, FlexibleItemType, WhereClauseLocation};
+        use syn::{Abi, Attribute, Token, Visibility};
+        use verbatim::{
+            kw, FlexibleItemFn, FlexibleItemStatic, FlexibleItemType, WhereClauseLocation,
+        };
 
         enum ForeignItemVerbatim {
             Empty,
@@ -853,6 +865,16 @@ impl Printer {
             FnFlexible(FlexibleItemFn),
             StaticFlexible(FlexibleItemStatic),
             TypeFlexible(FlexibleItemType),
+        }
+
+        fn peek_signature(input: ParseStream) -> bool {
+            let fork = input.fork();
+            fork.parse::<Option<Token![const]>>().is_ok()
+                && fork.parse::<Option<Token![async]>>().is_ok()
+                && ((fork.peek(kw::safe) && fork.parse::<kw::safe>().is_ok())
+                    || fork.parse::<Option<Token![unsafe]>>().is_ok())
+                && fork.parse::<Option<Abi>>().is_ok()
+                && fork.peek(Token![fn])
         }
 
         impl Parse for ForeignItemVerbatim {
@@ -869,15 +891,13 @@ impl Printer {
                 let defaultness = false;
 
                 let lookahead = input.lookahead1();
-                if lookahead.peek(Token![const])
-                    || lookahead.peek(Token![async])
-                    || lookahead.peek(Token![unsafe])
-                    || lookahead.peek(Token![extern])
-                    || lookahead.peek(Token![fn])
-                {
+                if lookahead.peek(Token![fn]) || peek_signature(input) {
                     let flexible_item = FlexibleItemFn::parse(attrs, vis, defaultness, input)?;
                     Ok(ForeignItemVerbatim::FnFlexible(flexible_item))
-                } else if lookahead.peek(Token![static]) {
+                } else if lookahead.peek(Token![static])
+                    || ((input.peek(Token![unsafe]) || input.peek(kw::safe))
+                        && input.peek2(Token![static]))
+                {
                     let flexible_item = FlexibleItemStatic::parse(attrs, vis, input)?;
                     Ok(ForeignItemVerbatim::StaticFlexible(flexible_item))
                 } else if lookahead.peek(Token![type]) {
@@ -943,7 +963,7 @@ impl Printer {
         if let Some((_eq_token, default)) = &trait_item.default {
             self.word(" = ");
             self.neverbreak();
-            self.expr(default);
+            self.expr(default, FixupContext::NONE);
         }
         self.word(";");
         self.end();
@@ -953,14 +973,18 @@ impl Printer {
     fn trait_item_fn(&mut self, trait_item: &TraitItemFn) {
         self.outer_attrs(&trait_item.attrs);
         self.cbox(INDENT);
-        self.signature(&trait_item.sig);
+        self.signature(
+            &trait_item.sig,
+            #[cfg(feature = "verbatim")]
+            &verbatim::Safety::Disallowed,
+        );
         if let Some(block) = &trait_item.default {
             self.where_clause_for_body(&trait_item.sig.generics.where_clause);
             self.word("{");
             self.hardbreak_if_nonempty();
             self.inner_attrs(&trait_item.attrs);
-            for stmt in &block.stmts {
-                self.stmt(stmt);
+            for stmt in block.stmts.iter().delimited() {
+                self.stmt(&stmt, stmt.is_last);
             }
             self.offset(-INDENT);
             self.end();
@@ -1001,7 +1025,7 @@ impl Printer {
 
     fn trait_item_macro(&mut self, trait_item: &TraitItemMacro) {
         self.outer_attrs(&trait_item.attrs);
-        let semicolon = true;
+        let semicolon = mac::requires_semi(&trait_item.mac.delimiter);
         self.mac(&trait_item.mac, None, semicolon);
         self.hardbreak();
     }
@@ -1136,7 +1160,7 @@ impl Printer {
         self.ty(&impl_item.ty);
         self.word(" = ");
         self.neverbreak();
-        self.expr(&impl_item.expr);
+        self.expr(&impl_item.expr, FixupContext::NONE);
         self.word(";");
         self.end();
         self.hardbreak();
@@ -1149,13 +1173,17 @@ impl Printer {
         if impl_item.defaultness.is_some() {
             self.word("default ");
         }
-        self.signature(&impl_item.sig);
+        self.signature(
+            &impl_item.sig,
+            #[cfg(feature = "verbatim")]
+            &verbatim::Safety::Disallowed,
+        );
         self.where_clause_for_body(&impl_item.sig.generics.where_clause);
         self.word("{");
         self.hardbreak_if_nonempty();
         self.inner_attrs(&impl_item.attrs);
-        for stmt in &impl_item.block.stmts {
-            self.stmt(stmt);
+        for stmt in impl_item.block.stmts.iter().delimited() {
+            self.stmt(&stmt, stmt.is_last);
         }
         self.offset(-INDENT);
         self.end();
@@ -1185,7 +1213,7 @@ impl Printer {
 
     fn impl_item_macro(&mut self, impl_item: &ImplItemMacro) {
         self.outer_attrs(&impl_item.attrs);
-        let semicolon = true;
+        let semicolon = mac::requires_semi(&impl_item.mac.delimiter);
         self.mac(&impl_item.mac, None, semicolon);
         self.hardbreak();
     }
@@ -1277,15 +1305,32 @@ impl Printer {
         }
     }
 
-    fn signature(&mut self, signature: &Signature) {
+    fn signature(
+        &mut self,
+        signature: &Signature,
+        #[cfg(feature = "verbatim")] safety: &verbatim::Safety,
+    ) {
         if signature.constness.is_some() {
             self.word("const ");
         }
         if signature.asyncness.is_some() {
             self.word("async ");
         }
-        if signature.unsafety.is_some() {
-            self.word("unsafe ");
+        #[cfg(feature = "verbatim")]
+        {
+            if let verbatim::Safety::Disallowed = safety {
+                if signature.unsafety.is_some() {
+                    self.word("unsafe ");
+                }
+            } else {
+                self.safety(safety);
+            }
+        }
+        #[cfg(not(feature = "verbatim"))]
+        {
+            if signature.unsafety.is_some() {
+                self.word("unsafe ");
+            }
         }
         if let Some(abi) = &signature.abi {
             self.abi(abi);
@@ -1378,14 +1423,19 @@ impl Printer {
 #[cfg(feature = "verbatim")]
 mod verbatim {
     use crate::algorithm::Printer;
+    use crate::fixup::FixupContext;
     use crate::iter::IterDelimited;
     use crate::INDENT;
     use syn::ext::IdentExt;
-    use syn::parse::{ParseStream, Result};
+    use syn::parse::{Parse, ParseStream, Result};
     use syn::{
         braced, token, Attribute, Block, Expr, Generics, Ident, Signature, StaticMutability, Stmt,
         Token, Type, TypeParamBound, Visibility, WhereClause,
     };
+
+    pub mod kw {
+        syn::custom_keyword!(safe);
+    }
 
     pub struct FlexibleItemConst {
         pub attrs: Vec<Attribute>,
@@ -1401,6 +1451,7 @@ mod verbatim {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
         pub defaultness: bool,
+        pub safety: Safety,
         pub sig: Signature,
         pub body: Option<Vec<Stmt>>,
     }
@@ -1408,6 +1459,7 @@ mod verbatim {
     pub struct FlexibleItemStatic {
         pub attrs: Vec<Attribute>,
         pub vis: Visibility,
+        pub safety: Safety,
         pub mutability: StaticMutability,
         pub ident: Ident,
         pub ty: Option<Type>,
@@ -1423,6 +1475,13 @@ mod verbatim {
         pub bounds: Vec<TypeParamBound>,
         pub definition: Option<Type>,
         pub where_clause_after_eq: Option<WhereClause>,
+    }
+
+    pub enum Safety {
+        Unsafe,
+        Safe,
+        Default,
+        Disallowed,
     }
 
     pub enum WhereClauseLocation {
@@ -1474,7 +1533,16 @@ mod verbatim {
             defaultness: bool,
             input: ParseStream,
         ) -> Result<Self> {
-            let sig: Signature = input.parse()?;
+            let constness: Option<Token![const]> = input.parse()?;
+            let asyncness: Option<Token![async]> = input.parse()?;
+            let safety: Safety = input.parse()?;
+
+            let lookahead = input.lookahead1();
+            let sig: Signature = if lookahead.peek(Token![extern]) || lookahead.peek(Token![fn]) {
+                input.parse()?
+            } else {
+                return Err(lookahead.error());
+            };
 
             let lookahead = input.lookahead1();
             let body = if lookahead.peek(Token![;]) {
@@ -1493,7 +1561,13 @@ mod verbatim {
                 attrs,
                 vis,
                 defaultness,
-                sig,
+                safety,
+                sig: Signature {
+                    constness,
+                    asyncness,
+                    unsafety: None,
+                    ..sig
+                },
                 body,
             })
         }
@@ -1501,6 +1575,7 @@ mod verbatim {
 
     impl FlexibleItemStatic {
         pub fn parse(attrs: Vec<Attribute>, vis: Visibility, input: ParseStream) -> Result<Self> {
+            let safety: Safety = input.parse()?;
             input.parse::<Token![static]>()?;
             let mutability: StaticMutability = input.parse()?;
             let ident = input.parse()?;
@@ -1530,6 +1605,7 @@ mod verbatim {
             Ok(FlexibleItemStatic {
                 attrs,
                 vis,
+                safety,
                 mutability,
                 ident,
                 ty,
@@ -1601,6 +1677,20 @@ mod verbatim {
         }
     }
 
+    impl Parse for Safety {
+        fn parse(input: ParseStream) -> Result<Self> {
+            if input.peek(Token![unsafe]) {
+                input.parse::<Token![unsafe]>()?;
+                Ok(Safety::Unsafe)
+            } else if input.peek(kw::safe) {
+                input.parse::<kw::safe>()?;
+                Ok(Safety::Safe)
+            } else {
+                Ok(Safety::Default)
+            }
+        }
+    }
+
     impl Printer {
         pub fn flexible_item_const(&mut self, item: &FlexibleItemConst) {
             self.outer_attrs(&item.attrs);
@@ -1620,7 +1710,7 @@ mod verbatim {
                 self.word(" = ");
                 self.neverbreak();
                 self.ibox(-INDENT);
-                self.expr(value);
+                self.expr(value, FixupContext::NONE);
                 self.end();
             }
             self.where_clause_oneline_semi(&item.generics.where_clause);
@@ -1635,14 +1725,14 @@ mod verbatim {
             if item.defaultness {
                 self.word("default ");
             }
-            self.signature(&item.sig);
+            self.signature(&item.sig, &item.safety);
             if let Some(body) = &item.body {
                 self.where_clause_for_body(&item.sig.generics.where_clause);
                 self.word("{");
                 self.hardbreak_if_nonempty();
                 self.inner_attrs(&item.attrs);
-                for stmt in body {
-                    self.stmt(stmt);
+                for stmt in body.iter().delimited() {
+                    self.stmt(&stmt, stmt.is_last);
                 }
                 self.offset(-INDENT);
                 self.end();
@@ -1658,6 +1748,7 @@ mod verbatim {
             self.outer_attrs(&item.attrs);
             self.cbox(0);
             self.visibility(&item.vis);
+            self.safety(&item.safety);
             self.word("static ");
             self.static_mutability(&item.mutability);
             self.ident(&item.ident);
@@ -1668,7 +1759,7 @@ mod verbatim {
             if let Some(expr) = &item.expr {
                 self.word(" = ");
                 self.neverbreak();
-                self.expr(expr);
+                self.expr(expr, FixupContext::NONE);
             }
             self.word(";");
             self.end();
@@ -1707,6 +1798,15 @@ mod verbatim {
             }
             self.end();
             self.hardbreak();
+        }
+
+        pub fn safety(&mut self, safety: &Safety) {
+            match safety {
+                Safety::Unsafe => self.word("unsafe "),
+                Safety::Safe => self.word("safe "),
+                Safety::Default => {}
+                Safety::Disallowed => unreachable!(),
+            }
         }
     }
 }

@@ -1,4 +1,4 @@
-use super::future::ResponseFuture;
+use super::{future::ResponseFuture, SpawnReadyLayer};
 use crate::{util::ServiceExt, BoxError};
 use futures_core::ready;
 use futures_util::future::TryFutureExt;
@@ -26,10 +26,15 @@ enum Inner<S> {
 
 impl<S> SpawnReady<S> {
     /// Creates a new [`SpawnReady`] wrapping `service`.
-    pub fn new(service: S) -> Self {
+    pub const fn new(service: S) -> Self {
         Self {
             inner: Inner::Service(Some(service)),
         }
+    }
+
+    /// Creates a layer that wraps services with [`SpawnReady`].
+    pub fn layer() -> SpawnReadyLayer {
+        SpawnReadyLayer::default()
     }
 }
 

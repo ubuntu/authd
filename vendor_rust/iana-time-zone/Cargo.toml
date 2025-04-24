@@ -10,14 +10,21 @@
 # See Cargo.toml.orig for the original contents.
 
 [package]
-edition = "2018"
+edition = "2021"
+rust-version = "1.62.0"
 name = "iana-time-zone"
-version = "0.1.60"
+version = "0.1.63"
 authors = [
     "Andrew Straw <strawman@astraw.com>",
     "René Kijewski <rene.kijewski@fu-berlin.de>",
     "Ryan Lopopolo <rjl@hyperbo.la>",
 ]
+build = false
+autolib = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 description = "get the IANA time zone for the current system"
 readme = "README.md"
 keywords = [
@@ -35,23 +42,52 @@ repository = "https://github.com/strawlab/iana-time-zone"
 [features]
 fallback = []
 
-[target."cfg(any(target_os = \"macos\", target_os = \"ios\"))".dependencies.core-foundation-sys]
-version = "0.8.3"
+[lib]
+name = "iana_time_zone"
+path = "src/lib.rs"
 
-[target."cfg(target_arch = \"wasm32\")".dependencies.js-sys]
-version = "0.3.50"
+[[example]]
+name = "get_timezone"
+path = "examples/get_timezone.rs"
 
-[target."cfg(target_arch = \"wasm32\")".dependencies.wasm-bindgen]
-version = "0.2.70"
+[[example]]
+name = "get_timezone_loop"
+path = "examples/get_timezone_loop.rs"
 
-[target."cfg(target_arch = \"wasm32\")".dev-dependencies.wasm-bindgen-test]
-version = "0.3"
+[[example]]
+name = "stress-test"
+path = "examples/stress-test.rs"
 
-[target."cfg(target_os = \"android\")".dependencies.android_system_properties]
+[dev-dependencies.chrono-tz]
+version = "0.10.1"
+
+[dev-dependencies.getrandom]
+version = "0.2.1"
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies.js-sys]
+version = "0.3.66"
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies.log]
+version = "0.4.14"
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies.wasm-bindgen]
+version = "0.2.89"
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies.getrandom]
+version = "0.2.1"
+features = ["js"]
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies.wasm-bindgen-test]
+version = "0.3.46"
+
+[target.'cfg(target_os = "android")'.dependencies.android_system_properties]
 version = "0.1.5"
 
-[target."cfg(target_os = \"haiku\")".dependencies.iana-time-zone-haiku]
+[target.'cfg(target_os = "haiku")'.dependencies.iana-time-zone-haiku]
 version = "0.1.1"
 
-[target."cfg(target_os = \"windows\")".dependencies.windows-core]
-version = ">=0.50, <=0.52"
+[target.'cfg(target_os = "windows")'.dependencies.windows-core]
+version = ">=0.56, <=0.61"
+
+[target.'cfg(target_vendor = "apple")'.dependencies.core-foundation-sys]
+version = "0.8.6"

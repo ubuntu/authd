@@ -23,17 +23,18 @@
 //! ```
 //!
 //! ```text
-//! error[E0038]: the trait `Trait` cannot be made into an object
+//! error[E0038]: the trait `Trait` is not dyn compatible
 //!  --> src/main.rs:5:22
 //!   |
 //! 5 | pub fn make() -> Box<dyn Trait> {
-//!   |                      ^^^^^^^^^ `Trait` cannot be made into an object
+//!   |                      ^^^^^^^^^ `Trait` is not dyn compatible
 //!   |
-//! note: for a trait to be "object safe" it needs to allow building a vtable to allow the call to be resolvable dynamically; for more information visit <https://doc.rust-lang.org/reference/items/traits.html#object-safety>
+//! note: for a trait to be dyn compatible it needs to allow building a vtable
+//!       for more information, visit <https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility>
 //!  --> src/main.rs:2:14
 //!   |
 //! 1 | pub trait Trait {
-//!   |           ----- this trait cannot be made into an object...
+//!   |           ----- this trait is not dyn compatible...
 //! 2 |     async fn f(&self);
 //!   |              ^ ...because method `f` is `async`
 //!   = help: consider moving `f` to another trait
@@ -212,122 +213,22 @@
 //!     async fn test(elided: Elided<'_>) {}
 //! }
 //! ```
-//!
-//! <br><br>
-//!
-//! # Dyn traits
-//!
-//! Traits with async methods can be used as trait objects as long as they meet
-//! the usual requirements for dyn -- no methods with type parameters, no self
-//! by value, no associated types, etc.
-//!
-//! ```
-//! # use async_trait::async_trait;
-//! #
-//! #[async_trait]
-//! pub trait ObjectSafe {
-//!     async fn f(&self);
-//!     async fn g(&mut self);
-//! }
-//!
-//! # const IGNORE: &str = stringify! {
-//! impl ObjectSafe for MyType {...}
-//!
-//! let value: MyType = ...;
-//! # };
-//! #
-//! # struct MyType;
-//! #
-//! # #[async_trait]
-//! # impl ObjectSafe for MyType {
-//! #     async fn f(&self) {}
-//! #     async fn g(&mut self) {}
-//! # }
-//! #
-//! # let value: MyType = MyType;
-//! let object = &value as &dyn ObjectSafe;  // make trait object
-//! ```
-//!
-//! The one wrinkle is in traits that provide default implementations of async
-//! methods. In order for the default implementation to produce a future that is
-//! Send, the async_trait macro must emit a bound of `Self: Sync` on trait
-//! methods that take `&self` and a bound `Self: Send` on trait methods that
-//! take `&mut self`. An example of the former is visible in the expanded code
-//! in the explanation section above.
-//!
-//! If you make a trait with async methods that have default implementations,
-//! everything will work except that the trait cannot be used as a trait object.
-//! Creating a value of type `&dyn Trait` will produce an error that looks like
-//! this:
-//!
-//! ```text
-//! error: the trait `Test` cannot be made into an object
-//!  --> src/main.rs:8:5
-//!   |
-//! 8 |     async fn cannot_dyn(&self) {}
-//!   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//! ```
-//!
-//! For traits that need to be object safe and need to have default
-//! implementations for some async methods, there are two resolutions. Either
-//! you can add Send and/or Sync as supertraits (Send if there are `&mut self`
-//! methods with default implementations, Sync if there are `&self` methods with
-//! default implementations) to constrain all implementors of the trait such that
-//! the default implementations are applicable to them:
-//!
-//! ```
-//! # use async_trait::async_trait;
-//! #
-//! #[async_trait]
-//! pub trait ObjectSafe: Sync {  // added supertrait
-//!     async fn can_dyn(&self) {}
-//! }
-//! #
-//! # struct MyType;
-//! #
-//! # #[async_trait]
-//! # impl ObjectSafe for MyType {}
-//! #
-//! # let value = MyType;
-//!
-//! let object = &value as &dyn ObjectSafe;
-//! ```
-//!
-//! or you can strike the problematic methods from your trait object by
-//! bounding them with `Self: Sized`:
-//!
-//! ```
-//! # use async_trait::async_trait;
-//! #
-//! #[async_trait]
-//! pub trait ObjectSafe {
-//!     async fn cannot_dyn(&self) where Self: Sized {}
-//!
-//!     // presumably other methods
-//! }
-//! #
-//! # struct MyType;
-//! #
-//! # #[async_trait]
-//! # impl ObjectSafe for MyType {}
-//! #
-//! # let value = MyType;
-//!
-//! let object = &value as &dyn ObjectSafe;
-//! ```
 
-#![doc(html_root_url = "https://docs.rs/async-trait/0.1.80")]
+#![doc(html_root_url = "https://docs.rs/async-trait/0.1.88")]
 #![allow(
     clippy::default_trait_access,
     clippy::doc_markdown,
+    clippy::elidable_lifetime_names,
     clippy::explicit_auto_deref,
     clippy::if_not_else,
     clippy::items_after_statements,
     clippy::match_like_matches_macro,
     clippy::module_name_repetitions,
+    clippy::needless_lifetimes,
     clippy::shadow_unrelated,
     clippy::similar_names,
-    clippy::too_many_lines
+    clippy::too_many_lines,
+    clippy::trivially_copy_pass_by_ref
 )]
 
 extern crate proc_macro;

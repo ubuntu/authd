@@ -4,7 +4,7 @@
 
 [![Build status](https://github.com/tokio-rs/axum/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/tokio-rs/axum/actions/workflows/CI.yml)
 [![Crates.io](https://img.shields.io/crates/v/axum)](https://crates.io/crates/axum)
-[![Documentation](https://docs.rs/axum/badge.svg)](https://docs.rs/axum)
+[![Documentation](https://docs.rs/axum/badge.svg)][docs]
 
 More information about this crate can be found in the [crate documentation][docs].
 
@@ -104,7 +104,7 @@ This crate uses `#![forbid(unsafe_code)]` to ensure everything is implemented in
 
 ## Minimum supported Rust version
 
-axum's MSRV is 1.66.
+axum's MSRV is 1.75.
 
 ## Examples
 

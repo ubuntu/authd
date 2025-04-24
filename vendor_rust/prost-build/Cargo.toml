@@ -11,30 +11,46 @@
 
 [package]
 edition = "2021"
-rust-version = "1.70"
+rust-version = "1.71.1"
 name = "prost-build"
-version = "0.12.6"
+version = "0.13.5"
 authors = [
     "Dan Burkert <dan@danburkert.com>",
     "Lucio Franco <luciofranco14@gmail.com>",
     "Casper Meijn <casper@meijn.net>",
     "Tokio Contributors <team@tokio.rs>",
 ]
+build = false
+autolib = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 description = "Generate Prost annotated Rust types from Protocol Buffers files."
-documentation = "https://docs.rs/prost-build"
 readme = "README.md"
 license = "Apache-2.0"
 repository = "https://github.com/tokio-rs/prost"
 
-[dependencies.bytes]
-version = "1"
-default-features = false
+[features]
+cleanup-markdown = [
+    "dep:pulldown-cmark",
+    "dep:pulldown-cmark-to-cmark",
+]
+default = ["format"]
+format = [
+    "dep:prettyplease",
+    "dep:syn",
+]
+
+[lib]
+name = "prost_build"
+path = "src/lib.rs"
 
 [dependencies.heck]
 version = ">=0.4, <=0.5"
 
 [dependencies.itertools]
-version = ">=0.10, <=0.12"
+version = ">=0.10, <=0.14"
 features = ["use_alloc"]
 default-features = false
 
@@ -49,7 +65,7 @@ default-features = false
 version = "1.17.1"
 
 [dependencies.petgraph]
-version = "0.6"
+version = ">=0.6, <=0.7"
 default-features = false
 
 [dependencies.prettyplease]
@@ -57,20 +73,20 @@ version = "0.2"
 optional = true
 
 [dependencies.prost]
-version = "0.12.6"
+version = "0.13.5"
 default-features = false
 
 [dependencies.prost-types]
-version = "0.12.6"
+version = "0.13.5"
 default-features = false
 
 [dependencies.pulldown-cmark]
-version = "0.9.1"
+version = "0.12"
 optional = true
 default-features = false
 
 [dependencies.pulldown-cmark-to-cmark]
-version = "10.0.1"
+version = ">=16, <=20"
 optional = true
 
 [dependencies.regex]
@@ -90,16 +106,5 @@ optional = true
 version = "3"
 
 [dev-dependencies.env_logger]
-version = "0.10"
+version = "0.11"
 default-features = false
-
-[features]
-cleanup-markdown = [
-    "dep:pulldown-cmark",
-    "dep:pulldown-cmark-to-cmark",
-]
-default = ["format"]
-format = [
-    "dep:prettyplease",
-    "dep:syn",
-]

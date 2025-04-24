@@ -12,9 +12,14 @@
 [package]
 edition = "2018"
 name = "httparse"
-version = "1.8.0"
+version = "1.10.1"
 authors = ["Sean McArthur <sean@seanmonstar.com>"]
 build = "build.rs"
+autolib = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 description = "A tiny, safe, speedy, zero-copy HTTP/1.x parser."
 documentation = "https://docs.rs/httparse"
 readme = "README.md"
@@ -29,24 +34,44 @@ categories = [
     "parser-implementations",
     "web-programming",
 ]
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/seanmonstar/httparse"
 
-[profile.bench]
-opt-level = 3
-lto = true
-codegen-units = 1
+[features]
+default = ["std"]
+std = []
 
 [lib]
+name = "httparse"
+path = "src/lib.rs"
 bench = false
+
+[[test]]
+name = "uri"
+path = "tests/uri.rs"
 
 [[bench]]
 name = "parse"
+path = "benches/parse.rs"
 harness = false
 
 [dev-dependencies.criterion]
 version = "0.3.5"
 
-[features]
-default = ["std"]
-std = []
+[dev-dependencies.rand]
+version = "0.8.5"
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+priority = 0
+check-cfg = [
+    "cfg(httparse_simd)",
+    "cfg(httparse_simd_target_feature_avx2)",
+    "cfg(httparse_simd_target_feature_sse42)",
+    "cfg(httparse_simd_neon_intrinsics)",
+]
+
+[profile.bench]
+opt-level = 3
+lto = true
+codegen-units = 1

@@ -88,6 +88,14 @@ pub struct Builder {
     /// To run before each task is spawned.
     pub(super) before_spawn: Option<TaskCallback>,
 
+    /// To run before each poll
+    #[cfg(tokio_unstable)]
+    pub(super) before_poll: Option<TaskCallback>,
+
+    /// To run after each poll
+    #[cfg(tokio_unstable)]
+    pub(super) after_poll: Option<TaskCallback>,
+
     /// To run after each task is terminated.
     pub(super) after_termination: Option<TaskCallback>,
 
@@ -305,6 +313,11 @@ impl Builder {
 
             before_spawn: None,
             after_termination: None,
+
+            #[cfg(tokio_unstable)]
+            before_poll: None,
+            #[cfg(tokio_unstable)]
+            after_poll: None,
 
             keep_alive: None,
 
@@ -740,6 +753,92 @@ impl Builder {
         F: Fn(&TaskMeta<'_>) + Send + Sync + 'static,
     {
         self.before_spawn = Some(std::sync::Arc::new(f));
+        self
+    }
+
+    /// Executes function `f` just before a task is polled
+    ///
+    /// `f` is called within the Tokio context, so functions like
+    /// [`tokio::spawn`](crate::spawn) can be called, and may result in this callback being
+    /// invoked immediately.
+    ///
+    /// **Note**: This is an [unstable API][unstable]. The public API of this type
+    /// may break in 1.x releases. See [the documentation on unstable
+    /// features][unstable] for details.
+    ///
+    /// [unstable]: crate#unstable-features
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::sync::{atomic::AtomicUsize, Arc};
+    /// # use tokio::task::yield_now;
+    /// # pub fn main() {
+    /// let poll_start_counter = Arc::new(AtomicUsize::new(0));
+    /// let poll_start = poll_start_counter.clone();
+    /// let rt = tokio::runtime::Builder::new_multi_thread()
+    ///     .enable_all()
+    ///     .on_before_task_poll(move |meta| {
+    ///         println!("task {} is about to be polled", meta.id())
+    ///     })
+    ///     .build()
+    ///     .unwrap();
+    /// let task = rt.spawn(async {
+    ///     yield_now().await;
+    /// });
+    /// let _ = rt.block_on(task);
+    ///
+    /// # }
+    /// ```
+    #[cfg(tokio_unstable)]
+    pub fn on_before_task_poll<F>(&mut self, f: F) -> &mut Self
+    where
+        F: Fn(&TaskMeta<'_>) + Send + Sync + 'static,
+    {
+        self.before_poll = Some(std::sync::Arc::new(f));
+        self
+    }
+
+    /// Executes function `f` just after a task is polled
+    ///
+    /// `f` is called within the Tokio context, so functions like
+    /// [`tokio::spawn`](crate::spawn) can be called, and may result in this callback being
+    /// invoked immediately.
+    ///
+    /// **Note**: This is an [unstable API][unstable]. The public API of this type
+    /// may break in 1.x releases. See [the documentation on unstable
+    /// features][unstable] for details.
+    ///
+    /// [unstable]: crate#unstable-features
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use std::sync::{atomic::AtomicUsize, Arc};
+    /// # use tokio::task::yield_now;
+    /// # pub fn main() {
+    /// let poll_stop_counter = Arc::new(AtomicUsize::new(0));
+    /// let poll_stop = poll_stop_counter.clone();
+    /// let rt = tokio::runtime::Builder::new_multi_thread()
+    ///     .enable_all()
+    ///     .on_after_task_poll(move |meta| {
+    ///         println!("task {} completed polling", meta.id());
+    ///     })
+    ///     .build()
+    ///     .unwrap();
+    /// let task = rt.spawn(async {
+    ///     yield_now().await;
+    /// });
+    /// let _ = rt.block_on(task);
+    ///
+    /// # }
+    /// ```
+    #[cfg(tokio_unstable)]
+    pub fn on_after_task_poll<F>(&mut self, f: F) -> &mut Self
+    where
+        F: Fn(&TaskMeta<'_>) + Send + Sync + 'static,
+    {
+        self.after_poll = Some(std::sync::Arc::new(f));
         self
     }
 
@@ -1410,6 +1509,10 @@ impl Builder {
                 before_park: self.before_park.clone(),
                 after_unpark: self.after_unpark.clone(),
                 before_spawn: self.before_spawn.clone(),
+                #[cfg(tokio_unstable)]
+                before_poll: self.before_poll.clone(),
+                #[cfg(tokio_unstable)]
+                after_poll: self.after_poll.clone(),
                 after_termination: self.after_termination.clone(),
                 global_queue_interval: self.global_queue_interval,
                 event_interval: self.event_interval,
@@ -1537,13 +1640,13 @@ cfg_rt_multi_thread! {
             use crate::runtime::{Config, runtime::Scheduler};
             use crate::runtime::scheduler::{self, MultiThread};
 
-            let core_threads = self.worker_threads.unwrap_or_else(num_cpus);
+            let worker_threads = self.worker_threads.unwrap_or_else(num_cpus);
 
-            let (driver, driver_handle) = driver::Driver::new(self.get_cfg(core_threads))?;
+            let (driver, driver_handle) = driver::Driver::new(self.get_cfg(worker_threads))?;
 
             // Create the blocking pool
             let blocking_pool =
-                blocking::create_blocking_pool(self, self.max_blocking_threads + core_threads);
+                blocking::create_blocking_pool(self, self.max_blocking_threads + worker_threads);
             let blocking_spawner = blocking_pool.spawner().clone();
 
             // Generate a rng seed for this runtime.
@@ -1551,7 +1654,7 @@ cfg_rt_multi_thread! {
             let seed_generator_2 = self.seed_generator.next_generator();
 
             let (scheduler, handle, launch) = MultiThread::new(
-                core_threads,
+                worker_threads,
                 driver,
                 driver_handle,
                 blocking_spawner,
@@ -1560,6 +1663,10 @@ cfg_rt_multi_thread! {
                     before_park: self.before_park.clone(),
                     after_unpark: self.after_unpark.clone(),
                     before_spawn: self.before_spawn.clone(),
+                    #[cfg(tokio_unstable)]
+                    before_poll: self.before_poll.clone(),
+                    #[cfg(tokio_unstable)]
+                    after_poll: self.after_poll.clone(),
                     after_termination: self.after_termination.clone(),
                     global_queue_interval: self.global_queue_interval,
                     event_interval: self.event_interval,
@@ -1587,12 +1694,12 @@ cfg_rt_multi_thread! {
                 use crate::runtime::{Config, runtime::Scheduler};
                 use crate::runtime::scheduler::MultiThreadAlt;
 
-                let core_threads = self.worker_threads.unwrap_or_else(num_cpus);
-                let (driver, driver_handle) = driver::Driver::new(self.get_cfg(core_threads))?;
+                let worker_threads = self.worker_threads.unwrap_or_else(num_cpus);
+                let (driver, driver_handle) = driver::Driver::new(self.get_cfg(worker_threads))?;
 
                 // Create the blocking pool
                 let blocking_pool =
-                    blocking::create_blocking_pool(self, self.max_blocking_threads + core_threads);
+                    blocking::create_blocking_pool(self, self.max_blocking_threads + worker_threads);
                 let blocking_spawner = blocking_pool.spawner().clone();
 
                 // Generate a rng seed for this runtime.
@@ -1600,7 +1707,7 @@ cfg_rt_multi_thread! {
                 let seed_generator_2 = self.seed_generator.next_generator();
 
                 let (scheduler, handle) = MultiThreadAlt::new(
-                    core_threads,
+                    worker_threads,
                     driver,
                     driver_handle,
                     blocking_spawner,
@@ -1610,6 +1717,10 @@ cfg_rt_multi_thread! {
                         after_unpark: self.after_unpark.clone(),
                         before_spawn: self.before_spawn.clone(),
                         after_termination: self.after_termination.clone(),
+                        #[cfg(tokio_unstable)]
+                        before_poll: self.before_poll.clone(),
+                        #[cfg(tokio_unstable)]
+                        after_poll: self.after_poll.clone(),
                         global_queue_interval: self.global_queue_interval,
                         event_interval: self.event_interval,
                         local_queue_capacity: self.local_queue_capacity,

@@ -12,7 +12,7 @@
 [package]
 edition = "2021"
 name = "matchit"
-version = "0.7.3"
+version = "0.8.4"
 authors = ["Ibraheem Ahmed <ibraheem@ibraheem.ca>"]
 description = "A high performance, zero-copy URL router."
 readme = "README.md"

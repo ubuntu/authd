@@ -67,6 +67,13 @@ pub trait VisitMut {
     }
     #[cfg(any(feature = "derive", feature = "full"))]
     #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
+    fn visit_attributes_mut(&mut self, i: &mut Vec<crate::Attribute>) {
+        for attr in i {
+            self.visit_attribute_mut(attr);
+        }
+    }
+    #[cfg(any(feature = "derive", feature = "full"))]
+    #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
     fn visit_bare_fn_arg_mut(&mut self, i: &mut crate::BareFnArg) {
         visit_bare_fn_arg_mut(self, i);
     }
@@ -89,6 +96,11 @@ pub trait VisitMut {
     #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
     fn visit_bound_lifetimes_mut(&mut self, i: &mut crate::BoundLifetimes) {
         visit_bound_lifetimes_mut(self, i);
+    }
+    #[cfg(feature = "full")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+    fn visit_captured_param_mut(&mut self, i: &mut crate::CapturedParam) {
+        visit_captured_param_mut(self, i);
     }
     #[cfg(any(feature = "derive", feature = "full"))]
     #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
@@ -265,6 +277,11 @@ pub trait VisitMut {
     fn visit_expr_range_mut(&mut self, i: &mut crate::ExprRange) {
         visit_expr_range_mut(self, i);
     }
+    #[cfg(feature = "full")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+    fn visit_expr_raw_addr_mut(&mut self, i: &mut crate::ExprRawAddr) {
+        visit_expr_raw_addr_mut(self, i);
+    }
     #[cfg(any(feature = "derive", feature = "full"))]
     #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
     fn visit_expr_reference_mut(&mut self, i: &mut crate::ExprReference) {
@@ -295,8 +312,8 @@ pub trait VisitMut {
     fn visit_expr_try_block_mut(&mut self, i: &mut crate::ExprTryBlock) {
         visit_expr_try_block_mut(self, i);
     }
-    #[cfg(feature = "full")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+    #[cfg(any(feature = "derive", feature = "full"))]
+    #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
     fn visit_expr_tuple_mut(&mut self, i: &mut crate::ExprTuple) {
         visit_expr_tuple_mut(self, i);
     }
@@ -686,6 +703,16 @@ pub trait VisitMut {
     fn visit_path_segment_mut(&mut self, i: &mut crate::PathSegment) {
         visit_path_segment_mut(self, i);
     }
+    #[cfg(feature = "full")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+    fn visit_pointer_mutability_mut(&mut self, i: &mut crate::PointerMutability) {
+        visit_pointer_mutability_mut(self, i);
+    }
+    #[cfg(feature = "full")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+    fn visit_precise_capture_mut(&mut self, i: &mut crate::PreciseCapture) {
+        visit_precise_capture_mut(self, i);
+    }
     #[cfg(any(feature = "derive", feature = "full"))]
     #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
     fn visit_predicate_lifetime_mut(&mut self, i: &mut crate::PredicateLifetime) {
@@ -721,9 +748,7 @@ pub trait VisitMut {
     fn visit_signature_mut(&mut self, i: &mut crate::Signature) {
         visit_signature_mut(self, i);
     }
-    fn visit_span_mut(&mut self, i: &mut proc_macro2::Span) {
-        visit_span_mut(self, i);
-    }
+    fn visit_span_mut(&mut self, i: &mut proc_macro2::Span) {}
     #[cfg(feature = "full")]
     #[cfg_attr(docsrs, doc(cfg(feature = "full")))]
     fn visit_static_mutability_mut(&mut self, i: &mut crate::StaticMutability) {
@@ -739,6 +764,7 @@ pub trait VisitMut {
     fn visit_stmt_macro_mut(&mut self, i: &mut crate::StmtMacro) {
         visit_stmt_macro_mut(self, i);
     }
+    fn visit_token_stream_mut(&mut self, i: &mut proc_macro2::TokenStream) {}
     #[cfg(any(feature = "derive", feature = "full"))]
     #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
     fn visit_trait_bound_mut(&mut self, i: &mut crate::TraitBound) {
@@ -959,9 +985,7 @@ pub fn visit_arm_mut<V>(v: &mut V, node: &mut crate::Arm)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_pat_mut(&mut node.pat);
     if let Some(it) = &mut node.guard {
         skip!((it).0);
@@ -1027,9 +1051,7 @@ pub fn visit_bare_fn_arg_mut<V>(v: &mut V, node: &mut crate::BareFnArg)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.name {
         v.visit_ident_mut(&mut (it).0);
         skip!((it).1);
@@ -1042,9 +1064,7 @@ pub fn visit_bare_variadic_mut<V>(v: &mut V, node: &mut crate::BareVariadic)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.name {
         v.visit_ident_mut(&mut (it).0);
         skip!((it).1);
@@ -1170,15 +1190,28 @@ where
     }
     skip!(node.gt_token);
 }
+#[cfg(feature = "full")]
+#[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+pub fn visit_captured_param_mut<V>(v: &mut V, node: &mut crate::CapturedParam)
+where
+    V: VisitMut + ?Sized,
+{
+    match node {
+        crate::CapturedParam::Lifetime(_binding_0) => {
+            v.visit_lifetime_mut(_binding_0);
+        }
+        crate::CapturedParam::Ident(_binding_0) => {
+            v.visit_ident_mut(_binding_0);
+        }
+    }
+}
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
 pub fn visit_const_param_mut<V>(v: &mut V, node: &mut crate::ConstParam)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.const_token);
     v.visit_ident_mut(&mut node.ident);
     skip!(node.colon_token);
@@ -1260,9 +1293,7 @@ pub fn visit_derive_input_mut<V>(v: &mut V, node: &mut crate::DeriveInput)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     v.visit_ident_mut(&mut node.ident);
     v.visit_generics_mut(&mut node.generics);
@@ -1356,6 +1387,9 @@ where
         crate::Expr::Range(_binding_0) => {
             full!(v.visit_expr_range_mut(_binding_0));
         }
+        crate::Expr::RawAddr(_binding_0) => {
+            full!(v.visit_expr_raw_addr_mut(_binding_0));
+        }
         crate::Expr::Reference(_binding_0) => {
             v.visit_expr_reference_mut(_binding_0);
         }
@@ -1375,7 +1409,7 @@ where
             full!(v.visit_expr_try_block_mut(_binding_0));
         }
         crate::Expr::Tuple(_binding_0) => {
-            full!(v.visit_expr_tuple_mut(_binding_0));
+            v.visit_expr_tuple_mut(_binding_0);
         }
         crate::Expr::Unary(_binding_0) => {
             v.visit_expr_unary_mut(_binding_0);
@@ -1384,7 +1418,7 @@ where
             full!(v.visit_expr_unsafe_mut(_binding_0));
         }
         crate::Expr::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream_mut(_binding_0);
         }
         crate::Expr::While(_binding_0) => {
             full!(v.visit_expr_while_mut(_binding_0));
@@ -1400,9 +1434,7 @@ pub fn visit_expr_array_mut<V>(v: &mut V, node: &mut crate::ExprArray)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.bracket_token);
     for mut el in Punctuated::pairs_mut(&mut node.elems) {
         let it = el.value_mut();
@@ -1415,9 +1447,7 @@ pub fn visit_expr_assign_mut<V>(v: &mut V, node: &mut crate::ExprAssign)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_expr_mut(&mut *node.left);
     skip!(node.eq_token);
     v.visit_expr_mut(&mut *node.right);
@@ -1428,9 +1458,7 @@ pub fn visit_expr_async_mut<V>(v: &mut V, node: &mut crate::ExprAsync)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.async_token);
     skip!(node.capture);
     v.visit_block_mut(&mut node.block);
@@ -1441,9 +1469,7 @@ pub fn visit_expr_await_mut<V>(v: &mut V, node: &mut crate::ExprAwait)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_expr_mut(&mut *node.base);
     skip!(node.dot_token);
     skip!(node.await_token);
@@ -1454,9 +1480,7 @@ pub fn visit_expr_binary_mut<V>(v: &mut V, node: &mut crate::ExprBinary)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_expr_mut(&mut *node.left);
     v.visit_bin_op_mut(&mut node.op);
     v.visit_expr_mut(&mut *node.right);
@@ -1467,9 +1491,7 @@ pub fn visit_expr_block_mut<V>(v: &mut V, node: &mut crate::ExprBlock)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.label {
         v.visit_label_mut(it);
     }
@@ -1481,9 +1503,7 @@ pub fn visit_expr_break_mut<V>(v: &mut V, node: &mut crate::ExprBreak)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.break_token);
     if let Some(it) = &mut node.label {
         v.visit_lifetime_mut(it);
@@ -1498,9 +1518,7 @@ pub fn visit_expr_call_mut<V>(v: &mut V, node: &mut crate::ExprCall)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_expr_mut(&mut *node.func);
     skip!(node.paren_token);
     for mut el in Punctuated::pairs_mut(&mut node.args) {
@@ -1514,9 +1532,7 @@ pub fn visit_expr_cast_mut<V>(v: &mut V, node: &mut crate::ExprCast)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_expr_mut(&mut *node.expr);
     skip!(node.as_token);
     v.visit_type_mut(&mut *node.ty);
@@ -1527,9 +1543,7 @@ pub fn visit_expr_closure_mut<V>(v: &mut V, node: &mut crate::ExprClosure)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.lifetimes {
         v.visit_bound_lifetimes_mut(it);
     }
@@ -1552,9 +1566,7 @@ pub fn visit_expr_const_mut<V>(v: &mut V, node: &mut crate::ExprConst)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.const_token);
     v.visit_block_mut(&mut node.block);
 }
@@ -1564,9 +1576,7 @@ pub fn visit_expr_continue_mut<V>(v: &mut V, node: &mut crate::ExprContinue)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.continue_token);
     if let Some(it) = &mut node.label {
         v.visit_lifetime_mut(it);
@@ -1578,9 +1588,7 @@ pub fn visit_expr_field_mut<V>(v: &mut V, node: &mut crate::ExprField)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_expr_mut(&mut *node.base);
     skip!(node.dot_token);
     v.visit_member_mut(&mut node.member);
@@ -1591,9 +1599,7 @@ pub fn visit_expr_for_loop_mut<V>(v: &mut V, node: &mut crate::ExprForLoop)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.label {
         v.visit_label_mut(it);
     }
@@ -1609,9 +1615,7 @@ pub fn visit_expr_group_mut<V>(v: &mut V, node: &mut crate::ExprGroup)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.group_token);
     v.visit_expr_mut(&mut *node.expr);
 }
@@ -1621,9 +1625,7 @@ pub fn visit_expr_if_mut<V>(v: &mut V, node: &mut crate::ExprIf)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.if_token);
     v.visit_expr_mut(&mut *node.cond);
     v.visit_block_mut(&mut node.then_branch);
@@ -1638,9 +1640,7 @@ pub fn visit_expr_index_mut<V>(v: &mut V, node: &mut crate::ExprIndex)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_expr_mut(&mut *node.expr);
     skip!(node.bracket_token);
     v.visit_expr_mut(&mut *node.index);
@@ -1651,9 +1651,7 @@ pub fn visit_expr_infer_mut<V>(v: &mut V, node: &mut crate::ExprInfer)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.underscore_token);
 }
 #[cfg(feature = "full")]
@@ -1662,9 +1660,7 @@ pub fn visit_expr_let_mut<V>(v: &mut V, node: &mut crate::ExprLet)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.let_token);
     v.visit_pat_mut(&mut *node.pat);
     skip!(node.eq_token);
@@ -1676,9 +1672,7 @@ pub fn visit_expr_lit_mut<V>(v: &mut V, node: &mut crate::ExprLit)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_lit_mut(&mut node.lit);
 }
 #[cfg(feature = "full")]
@@ -1687,9 +1681,7 @@ pub fn visit_expr_loop_mut<V>(v: &mut V, node: &mut crate::ExprLoop)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.label {
         v.visit_label_mut(it);
     }
@@ -1702,9 +1694,7 @@ pub fn visit_expr_macro_mut<V>(v: &mut V, node: &mut crate::ExprMacro)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_macro_mut(&mut node.mac);
 }
 #[cfg(feature = "full")]
@@ -1713,9 +1703,7 @@ pub fn visit_expr_match_mut<V>(v: &mut V, node: &mut crate::ExprMatch)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.match_token);
     v.visit_expr_mut(&mut *node.expr);
     skip!(node.brace_token);
@@ -1729,9 +1717,7 @@ pub fn visit_expr_method_call_mut<V>(v: &mut V, node: &mut crate::ExprMethodCall
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_expr_mut(&mut *node.receiver);
     skip!(node.dot_token);
     v.visit_ident_mut(&mut node.method);
@@ -1750,9 +1736,7 @@ pub fn visit_expr_paren_mut<V>(v: &mut V, node: &mut crate::ExprParen)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.paren_token);
     v.visit_expr_mut(&mut *node.expr);
 }
@@ -1762,9 +1746,7 @@ pub fn visit_expr_path_mut<V>(v: &mut V, node: &mut crate::ExprPath)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.qself {
         v.visit_qself_mut(it);
     }
@@ -1776,9 +1758,7 @@ pub fn visit_expr_range_mut<V>(v: &mut V, node: &mut crate::ExprRange)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.start {
         v.visit_expr_mut(&mut **it);
     }
@@ -1787,15 +1767,25 @@ where
         v.visit_expr_mut(&mut **it);
     }
 }
+#[cfg(feature = "full")]
+#[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+pub fn visit_expr_raw_addr_mut<V>(v: &mut V, node: &mut crate::ExprRawAddr)
+where
+    V: VisitMut + ?Sized,
+{
+    v.visit_attributes_mut(&mut node.attrs);
+    skip!(node.and_token);
+    skip!(node.raw);
+    v.visit_pointer_mutability_mut(&mut node.mutability);
+    v.visit_expr_mut(&mut *node.expr);
+}
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
 pub fn visit_expr_reference_mut<V>(v: &mut V, node: &mut crate::ExprReference)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.and_token);
     skip!(node.mutability);
     v.visit_expr_mut(&mut *node.expr);
@@ -1806,9 +1796,7 @@ pub fn visit_expr_repeat_mut<V>(v: &mut V, node: &mut crate::ExprRepeat)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.bracket_token);
     v.visit_expr_mut(&mut *node.expr);
     skip!(node.semi_token);
@@ -1820,9 +1808,7 @@ pub fn visit_expr_return_mut<V>(v: &mut V, node: &mut crate::ExprReturn)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.return_token);
     if let Some(it) = &mut node.expr {
         v.visit_expr_mut(&mut **it);
@@ -1834,9 +1820,7 @@ pub fn visit_expr_struct_mut<V>(v: &mut V, node: &mut crate::ExprStruct)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.qself {
         v.visit_qself_mut(it);
     }
@@ -1857,9 +1841,7 @@ pub fn visit_expr_try_mut<V>(v: &mut V, node: &mut crate::ExprTry)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_expr_mut(&mut *node.expr);
     skip!(node.question_token);
 }
@@ -1869,21 +1851,17 @@ pub fn visit_expr_try_block_mut<V>(v: &mut V, node: &mut crate::ExprTryBlock)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.try_token);
     v.visit_block_mut(&mut node.block);
 }
-#[cfg(feature = "full")]
-#[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
 pub fn visit_expr_tuple_mut<V>(v: &mut V, node: &mut crate::ExprTuple)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.paren_token);
     for mut el in Punctuated::pairs_mut(&mut node.elems) {
         let it = el.value_mut();
@@ -1896,9 +1874,7 @@ pub fn visit_expr_unary_mut<V>(v: &mut V, node: &mut crate::ExprUnary)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_un_op_mut(&mut node.op);
     v.visit_expr_mut(&mut *node.expr);
 }
@@ -1908,9 +1884,7 @@ pub fn visit_expr_unsafe_mut<V>(v: &mut V, node: &mut crate::ExprUnsafe)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.unsafe_token);
     v.visit_block_mut(&mut node.block);
 }
@@ -1920,9 +1894,7 @@ pub fn visit_expr_while_mut<V>(v: &mut V, node: &mut crate::ExprWhile)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.label {
         v.visit_label_mut(it);
     }
@@ -1936,9 +1908,7 @@ pub fn visit_expr_yield_mut<V>(v: &mut V, node: &mut crate::ExprYield)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.yield_token);
     if let Some(it) = &mut node.expr {
         v.visit_expr_mut(&mut **it);
@@ -1950,9 +1920,7 @@ pub fn visit_field_mut<V>(v: &mut V, node: &mut crate::Field)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     v.visit_field_mutability_mut(&mut node.mutability);
     if let Some(it) = &mut node.ident {
@@ -1977,9 +1945,7 @@ pub fn visit_field_pat_mut<V>(v: &mut V, node: &mut crate::FieldPat)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_member_mut(&mut node.member);
     skip!(node.colon_token);
     v.visit_pat_mut(&mut *node.pat);
@@ -1990,9 +1956,7 @@ pub fn visit_field_value_mut<V>(v: &mut V, node: &mut crate::FieldValue)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_member_mut(&mut node.member);
     skip!(node.colon_token);
     v.visit_expr_mut(&mut node.expr);
@@ -2044,9 +2008,7 @@ where
     V: VisitMut + ?Sized,
 {
     skip!(node.shebang);
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     for it in &mut node.items {
         v.visit_item_mut(it);
     }
@@ -2086,7 +2048,7 @@ where
             v.visit_foreign_item_macro_mut(_binding_0);
         }
         crate::ForeignItem::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream_mut(_binding_0);
         }
     }
 }
@@ -2096,9 +2058,7 @@ pub fn visit_foreign_item_fn_mut<V>(v: &mut V, node: &mut crate::ForeignItemFn)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     v.visit_signature_mut(&mut node.sig);
     skip!(node.semi_token);
@@ -2109,9 +2069,7 @@ pub fn visit_foreign_item_macro_mut<V>(v: &mut V, node: &mut crate::ForeignItemM
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_macro_mut(&mut node.mac);
     skip!(node.semi_token);
 }
@@ -2121,9 +2079,7 @@ pub fn visit_foreign_item_static_mut<V>(v: &mut V, node: &mut crate::ForeignItem
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.static_token);
     v.visit_static_mutability_mut(&mut node.mutability);
@@ -2138,9 +2094,7 @@ pub fn visit_foreign_item_type_mut<V>(v: &mut V, node: &mut crate::ForeignItemTy
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.type_token);
     v.visit_ident_mut(&mut node.ident);
@@ -2236,7 +2190,7 @@ where
             v.visit_impl_item_macro_mut(_binding_0);
         }
         crate::ImplItem::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream_mut(_binding_0);
         }
     }
 }
@@ -2246,9 +2200,7 @@ pub fn visit_impl_item_const_mut<V>(v: &mut V, node: &mut crate::ImplItemConst)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.defaultness);
     skip!(node.const_token);
@@ -2266,9 +2218,7 @@ pub fn visit_impl_item_fn_mut<V>(v: &mut V, node: &mut crate::ImplItemFn)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.defaultness);
     v.visit_signature_mut(&mut node.sig);
@@ -2280,9 +2230,7 @@ pub fn visit_impl_item_macro_mut<V>(v: &mut V, node: &mut crate::ImplItemMacro)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_macro_mut(&mut node.mac);
     skip!(node.semi_token);
 }
@@ -2292,9 +2240,7 @@ pub fn visit_impl_item_type_mut<V>(v: &mut V, node: &mut crate::ImplItemType)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.defaultness);
     skip!(node.type_token);
@@ -2374,7 +2320,7 @@ where
             v.visit_item_use_mut(_binding_0);
         }
         crate::Item::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream_mut(_binding_0);
         }
     }
 }
@@ -2384,9 +2330,7 @@ pub fn visit_item_const_mut<V>(v: &mut V, node: &mut crate::ItemConst)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.const_token);
     v.visit_ident_mut(&mut node.ident);
@@ -2403,9 +2347,7 @@ pub fn visit_item_enum_mut<V>(v: &mut V, node: &mut crate::ItemEnum)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.enum_token);
     v.visit_ident_mut(&mut node.ident);
@@ -2422,9 +2364,7 @@ pub fn visit_item_extern_crate_mut<V>(v: &mut V, node: &mut crate::ItemExternCra
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.extern_token);
     skip!(node.crate_token);
@@ -2441,9 +2381,7 @@ pub fn visit_item_fn_mut<V>(v: &mut V, node: &mut crate::ItemFn)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     v.visit_signature_mut(&mut node.sig);
     v.visit_block_mut(&mut *node.block);
@@ -2454,9 +2392,7 @@ pub fn visit_item_foreign_mod_mut<V>(v: &mut V, node: &mut crate::ItemForeignMod
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.unsafety);
     v.visit_abi_mut(&mut node.abi);
     skip!(node.brace_token);
@@ -2470,9 +2406,7 @@ pub fn visit_item_impl_mut<V>(v: &mut V, node: &mut crate::ItemImpl)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.defaultness);
     skip!(node.unsafety);
     skip!(node.impl_token);
@@ -2494,9 +2428,7 @@ pub fn visit_item_macro_mut<V>(v: &mut V, node: &mut crate::ItemMacro)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.ident {
         v.visit_ident_mut(it);
     }
@@ -2509,9 +2441,7 @@ pub fn visit_item_mod_mut<V>(v: &mut V, node: &mut crate::ItemMod)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.unsafety);
     skip!(node.mod_token);
@@ -2530,9 +2460,7 @@ pub fn visit_item_static_mut<V>(v: &mut V, node: &mut crate::ItemStatic)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.static_token);
     v.visit_static_mutability_mut(&mut node.mutability);
@@ -2549,9 +2477,7 @@ pub fn visit_item_struct_mut<V>(v: &mut V, node: &mut crate::ItemStruct)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.struct_token);
     v.visit_ident_mut(&mut node.ident);
@@ -2565,9 +2491,7 @@ pub fn visit_item_trait_mut<V>(v: &mut V, node: &mut crate::ItemTrait)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.unsafety);
     skip!(node.auto_token);
@@ -2593,9 +2517,7 @@ pub fn visit_item_trait_alias_mut<V>(v: &mut V, node: &mut crate::ItemTraitAlias
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.trait_token);
     v.visit_ident_mut(&mut node.ident);
@@ -2613,9 +2535,7 @@ pub fn visit_item_type_mut<V>(v: &mut V, node: &mut crate::ItemType)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.type_token);
     v.visit_ident_mut(&mut node.ident);
@@ -2630,9 +2550,7 @@ pub fn visit_item_union_mut<V>(v: &mut V, node: &mut crate::ItemUnion)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.union_token);
     v.visit_ident_mut(&mut node.ident);
@@ -2645,9 +2563,7 @@ pub fn visit_item_use_mut<V>(v: &mut V, node: &mut crate::ItemUse)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_visibility_mut(&mut node.vis);
     skip!(node.use_token);
     skip!(node.leading_colon);
@@ -2676,9 +2592,7 @@ pub fn visit_lifetime_param_mut<V>(v: &mut V, node: &mut crate::LifetimeParam)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_lifetime_mut(&mut node.lifetime);
     skip!(node.colon_token);
     for mut el in Punctuated::pairs_mut(&mut node.bounds) {
@@ -2761,9 +2675,7 @@ pub fn visit_local_mut<V>(v: &mut V, node: &mut crate::Local)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.let_token);
     v.visit_pat_mut(&mut node.pat);
     if let Some(it) = &mut node.init {
@@ -2793,7 +2705,7 @@ where
     v.visit_path_mut(&mut node.path);
     skip!(node.bang_token);
     v.visit_macro_delimiter_mut(&mut node.delimiter);
-    skip!(node.tokens);
+    v.visit_token_stream_mut(&mut node.tokens);
 }
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
@@ -2854,7 +2766,7 @@ where
 {
     v.visit_path_mut(&mut node.path);
     v.visit_macro_delimiter_mut(&mut node.delimiter);
-    skip!(node.tokens);
+    v.visit_token_stream_mut(&mut node.tokens);
 }
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
@@ -2935,7 +2847,7 @@ where
             v.visit_pat_type_mut(_binding_0);
         }
         crate::Pat::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream_mut(_binding_0);
         }
         crate::Pat::Wild(_binding_0) => {
             v.visit_pat_wild_mut(_binding_0);
@@ -2948,9 +2860,7 @@ pub fn visit_pat_ident_mut<V>(v: &mut V, node: &mut crate::PatIdent)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.by_ref);
     skip!(node.mutability);
     v.visit_ident_mut(&mut node.ident);
@@ -2965,9 +2875,7 @@ pub fn visit_pat_or_mut<V>(v: &mut V, node: &mut crate::PatOr)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.leading_vert);
     for mut el in Punctuated::pairs_mut(&mut node.cases) {
         let it = el.value_mut();
@@ -2980,9 +2888,7 @@ pub fn visit_pat_paren_mut<V>(v: &mut V, node: &mut crate::PatParen)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.paren_token);
     v.visit_pat_mut(&mut *node.pat);
 }
@@ -2992,9 +2898,7 @@ pub fn visit_pat_reference_mut<V>(v: &mut V, node: &mut crate::PatReference)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.and_token);
     skip!(node.mutability);
     v.visit_pat_mut(&mut *node.pat);
@@ -3005,9 +2909,7 @@ pub fn visit_pat_rest_mut<V>(v: &mut V, node: &mut crate::PatRest)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.dot2_token);
 }
 #[cfg(feature = "full")]
@@ -3016,9 +2918,7 @@ pub fn visit_pat_slice_mut<V>(v: &mut V, node: &mut crate::PatSlice)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.bracket_token);
     for mut el in Punctuated::pairs_mut(&mut node.elems) {
         let it = el.value_mut();
@@ -3031,9 +2931,7 @@ pub fn visit_pat_struct_mut<V>(v: &mut V, node: &mut crate::PatStruct)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.qself {
         v.visit_qself_mut(it);
     }
@@ -3053,9 +2951,7 @@ pub fn visit_pat_tuple_mut<V>(v: &mut V, node: &mut crate::PatTuple)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.paren_token);
     for mut el in Punctuated::pairs_mut(&mut node.elems) {
         let it = el.value_mut();
@@ -3068,9 +2964,7 @@ pub fn visit_pat_tuple_struct_mut<V>(v: &mut V, node: &mut crate::PatTupleStruct
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.qself {
         v.visit_qself_mut(it);
     }
@@ -3087,9 +2981,7 @@ pub fn visit_pat_type_mut<V>(v: &mut V, node: &mut crate::PatType)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_pat_mut(&mut *node.pat);
     skip!(node.colon_token);
     v.visit_type_mut(&mut *node.ty);
@@ -3100,9 +2992,7 @@ pub fn visit_pat_wild_mut<V>(v: &mut V, node: &mut crate::PatWild)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.underscore_token);
 }
 #[cfg(any(feature = "derive", feature = "full"))]
@@ -3141,6 +3031,35 @@ where
 {
     v.visit_ident_mut(&mut node.ident);
     v.visit_path_arguments_mut(&mut node.arguments);
+}
+#[cfg(feature = "full")]
+#[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+pub fn visit_pointer_mutability_mut<V>(v: &mut V, node: &mut crate::PointerMutability)
+where
+    V: VisitMut + ?Sized,
+{
+    match node {
+        crate::PointerMutability::Const(_binding_0) => {
+            skip!(_binding_0);
+        }
+        crate::PointerMutability::Mut(_binding_0) => {
+            skip!(_binding_0);
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+pub fn visit_precise_capture_mut<V>(v: &mut V, node: &mut crate::PreciseCapture)
+where
+    V: VisitMut + ?Sized,
+{
+    skip!(node.use_token);
+    skip!(node.lt_token);
+    for mut el in Punctuated::pairs_mut(&mut node.params) {
+        let it = el.value_mut();
+        v.visit_captured_param_mut(it);
+    }
+    skip!(node.gt_token);
 }
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
@@ -3204,9 +3123,7 @@ pub fn visit_receiver_mut<V>(v: &mut V, node: &mut crate::Receiver)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.reference {
         skip!((it).0);
         if let Some(it) = &mut (it).1 {
@@ -3302,9 +3219,7 @@ pub fn visit_stmt_macro_mut<V>(v: &mut V, node: &mut crate::StmtMacro)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_macro_mut(&mut node.mac);
     skip!(node.semi_token);
 }
@@ -3354,7 +3269,7 @@ where
             v.visit_trait_item_macro_mut(_binding_0);
         }
         crate::TraitItem::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream_mut(_binding_0);
         }
     }
 }
@@ -3364,9 +3279,7 @@ pub fn visit_trait_item_const_mut<V>(v: &mut V, node: &mut crate::TraitItemConst
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.const_token);
     v.visit_ident_mut(&mut node.ident);
     v.visit_generics_mut(&mut node.generics);
@@ -3384,9 +3297,7 @@ pub fn visit_trait_item_fn_mut<V>(v: &mut V, node: &mut crate::TraitItemFn)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_signature_mut(&mut node.sig);
     if let Some(it) = &mut node.default {
         v.visit_block_mut(it);
@@ -3399,9 +3310,7 @@ pub fn visit_trait_item_macro_mut<V>(v: &mut V, node: &mut crate::TraitItemMacro
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_macro_mut(&mut node.mac);
     skip!(node.semi_token);
 }
@@ -3411,9 +3320,7 @@ pub fn visit_trait_item_type_mut<V>(v: &mut V, node: &mut crate::TraitItemType)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     skip!(node.type_token);
     v.visit_ident_mut(&mut node.ident);
     v.visit_generics_mut(&mut node.generics);
@@ -3478,7 +3385,7 @@ where
             v.visit_type_tuple_mut(_binding_0);
         }
         crate::Type::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream_mut(_binding_0);
         }
     }
 }
@@ -3568,9 +3475,7 @@ pub fn visit_type_param_mut<V>(v: &mut V, node: &mut crate::TypeParam)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_ident_mut(&mut node.ident);
     skip!(node.colon_token);
     for mut el in Punctuated::pairs_mut(&mut node.bounds) {
@@ -3595,8 +3500,11 @@ where
         crate::TypeParamBound::Lifetime(_binding_0) => {
             v.visit_lifetime_mut(_binding_0);
         }
+        crate::TypeParamBound::PreciseCapture(_binding_0) => {
+            full!(v.visit_precise_capture_mut(_binding_0));
+        }
         crate::TypeParamBound::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream_mut(_binding_0);
         }
     }
 }
@@ -3773,9 +3681,7 @@ pub fn visit_variadic_mut<V>(v: &mut V, node: &mut crate::Variadic)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     if let Some(it) = &mut node.pat {
         v.visit_pat_mut(&mut *(it).0);
         skip!((it).1);
@@ -3789,9 +3695,7 @@ pub fn visit_variant_mut<V>(v: &mut V, node: &mut crate::Variant)
 where
     V: VisitMut + ?Sized,
 {
-    for it in &mut node.attrs {
-        v.visit_attribute_mut(it);
-    }
+    v.visit_attributes_mut(&mut node.attrs);
     v.visit_ident_mut(&mut node.ident);
     v.visit_fields_mut(&mut node.fields);
     if let Some(it) = &mut node.discriminant {

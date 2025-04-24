@@ -19,7 +19,7 @@
 //! The `tracing` crate provides the APIs necessary for instrumenting libraries
 //! and applications to emit trace data.
 //!
-//! *Compiler support: [requires `rustc` 1.56+][msrv]*
+//! *Compiler support: [requires `rustc` 1.63+][msrv]*
 //!
 //! [msrv]: #supported-rust-versions
 //! # Core Concepts
@@ -173,7 +173,7 @@
 //! For functions which don't have built-in tracing support and can't have
 //! the `#[instrument]` attribute applied (such as from an external crate),
 //! the [`Span` struct][`Span`] has a [`in_scope()` method][`in_scope`]
-//! which can be used to easily wrap synchonous code in a span.
+//! which can be used to easily wrap synchronous code in a span.
 //!
 //! For example:
 //! ```rust
@@ -756,6 +756,7 @@
 //!  - [`reqwest-tracing`] provides a middleware to trace [`reqwest`] HTTP requests.
 //!  - [`tracing-cloudwatch`] provides a layer that sends events to AWS CloudWatch Logs.
 //!  - [`clippy-tracing`] provides a tool to add, remove and check for `tracing::instrument`.
+//!  - [`json-subscriber`] provides a subscriber for emitting JSON logs. The output can be customized much more than with [`tracing-subscriber`]'s JSON output.
 //!
 //! If you're the maintainer of a `tracing` ecosystem crate not listed above,
 //! please let us know! We'd love to add your project to the list!
@@ -799,6 +800,7 @@
 //! [`reqwest`]: https://crates.io/crates/reqwest
 //! [`tracing-cloudwatch`]: https://crates.io/crates/tracing-cloudwatch
 //! [`clippy-tracing`]: https://crates.io/crates/clippy-tracing
+//! [`json-subscriber`]: https://crates.io/crates/json-subscriber
 //!
 //! <pre class="ignore" style="white-space:normal;font:inherit;">
 //!     <strong>Note</strong>: Some of these ecosystem crates are currently
@@ -871,7 +873,7 @@
 //! ## Supported Rust Versions
 //!
 //! Tracing is built against the latest stable release. The minimum supported
-//! version is 1.56. The current Tracing version is not guaranteed to build on
+//! version is 1.63. The current Tracing version is not guaranteed to build on
 //! Rust versions earlier than the minimum supported version.
 //!
 //! Tracing follows the same compiler support policies as the rest of the Tokio
@@ -929,7 +931,8 @@
     overflowing_literals,
     path_statements,
     patterns_in_fns_without_body,
-    private_in_public,
+    private_interfaces,
+    private_bounds,
     unconditional_recursion,
     unused,
     unused_allocation,
@@ -984,7 +987,10 @@ pub mod subscriber;
 pub mod __macro_support {
     pub use crate::callsite::Callsite;
     use crate::{subscriber::Interest, Metadata};
-    pub use core::concat;
+    // Re-export the `core` functions that are used in macros. This allows
+    // a crate to be named `core` and avoid name clashes.
+    // See here: https://github.com/tokio-rs/tracing/issues/2761
+    pub use core::{concat, file, format_args, iter::Iterator, line, option::Option};
 
     /// Callsite implementation used by macro-generated code.
     ///

@@ -13,7 +13,7 @@ Implementation of [Unicode Standard Annex #31][tr31] for determining which
 
 This crate is a better optimized implementation of the older `unicode-xid`
 crate. This crate uses less static storage, and is able to classify both ASCII
-and non-ASCII codepoints with better performance, 2&ndash;10&times; faster than
+and non-ASCII codepoints with better performance, 2&ndash;6&times; faster than
 `unicode-xid`.
 
 <br>
@@ -41,11 +41,11 @@ different ratios of ASCII to non-ASCII codepoints in the input data.
 
 | | static storage | 0% nonascii | 1% | 10% | 100% nonascii |
 |---|---|---|---|---|---|
-| **`unicode-ident`** | 10.1 K | 0.96 ns | 0.95 ns | 1.09 ns | 1.55 ns |
-| **`unicode-xid`** | 11.5 K | 1.88 ns | 2.14 ns | 3.48 ns | 15.63 ns |
-| **`ucd-trie`** | 10.2 K | 1.29 ns | 1.28 ns | 1.36 ns | 2.15 ns |
-| **`fst`** | 139 K | 55.1 ns | 54.9 ns | 53.2 ns | 28.5 ns |
-| **`roaring`** | 66.1 K | 2.78 ns | 3.09 ns | 3.37 ns | 4.70 ns |
+| **`unicode-ident`** | 10.4 K | 1.03 ns | 1.02 ns | 1.11 ns | 1.66 ns |
+| **`unicode-xid`** | 11.8 K | 2.57 ns | 2.74 ns | 3.20 ns | 9.35 ns |
+| **`ucd-trie`** | 10.3 K | 1.27 ns | 1.27 ns | 1.41 ns | 2.53 ns |
+| **`fst`** | 144 K | 49.3 ns | 49.1 ns | 47.1 ns | 27.9 ns |
+| **`roaring`** | 66.1 K | 4.10 ns | 4.05 ns | 4.02 ns | 5.12 ns |
 
 Source code for the benchmark is provided in the *bench* directory of this repo
 and may be repeated by running `cargo criterion`.
@@ -84,7 +84,7 @@ lines on average. Each cache line fits only 8 table entries. Additionally, the
 branching performed during the binary search is probably mostly unpredictable to
 the branch predictor.
 
-Overall, the crate ends up being about 10&times; slower on non-ASCII input
+Overall, the crate ends up being about 6&times; slower on non-ASCII input
 compared to the fastest crate.
 
 A potential improvement would be to pack the table entries more compactly.
@@ -264,8 +264,7 @@ is_xid_start:
 ## License
 
 Use of the Unicode Character Database, as this crate does, is governed by the <a
-href="LICENSE-UNICODE">Unicode License Agreement &ndash; Data Files and Software
-(2016)</a>.
+href="LICENSE-UNICODE">Unicode license</a>.
 
 All intellectual property within this crate that is **not generated** using the
 Unicode Character Database as input is licensed under either of <a

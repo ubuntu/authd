@@ -17,7 +17,7 @@ use crate::bytes::Vtable;
 #[allow(unused)]
 use crate::loom::sync::atomic::AtomicMut;
 use crate::loom::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
-use crate::{offset_from, Buf, BufMut, Bytes};
+use crate::{offset_from, Buf, BufMut, Bytes, TryGetError};
 
 /// A unique reference to a contiguous slice of memory.
 ///
@@ -291,7 +291,9 @@ impl BytesMut {
     /// Splits the bytes into two at the given index.
     ///
     /// Afterwards `self` contains elements `[0, at)`, and the returned
-    /// `BytesMut` contains elements `[at, capacity)`.
+    /// `BytesMut` contains elements `[at, capacity)`. It's guaranteed that the
+    /// memory does not move, that is, the address of `self` does not change,
+    /// and the address of the returned slice is `at` bytes after that.
     ///
     /// This is an `O(1)` operation that just increases the reference count
     /// and sets a few indices.
@@ -1176,7 +1178,10 @@ unsafe impl BufMut for BytesMut {
     unsafe fn advance_mut(&mut self, cnt: usize) {
         let remaining = self.cap - self.len();
         if cnt > remaining {
-            super::panic_advance(cnt, remaining);
+            super::panic_advance(&TryGetError {
+                requested: cnt,
+                available: remaining,
+            });
         }
         // Addition won't overflow since it is at most `self.cap`.
         self.len = self.len() + cnt;

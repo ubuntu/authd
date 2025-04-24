@@ -43,6 +43,13 @@ should only be used when the compiler supports it.
 
 ## Release Notes
 
+- 1.4.0 (2024-09-26)
+
+  - Add `emit_possibility` for Rust 1.80's [checked cfgs], and call that
+    automatically for methods that conditionally `emit`, by @Techcable.
+
+[checked cfgs]: https://blog.rust-lang.org/2024/05/06/check-cfg.html
+
 - 1.3.0 (2024-05-03)
 
   - Add `probe_raw` for direct control of the code that will be test-compiled.

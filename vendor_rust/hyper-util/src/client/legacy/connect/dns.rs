@@ -2,8 +2,7 @@
 //!
 //! This module contains:
 //!
-//! - A [`GaiResolver`](GaiResolver) that is the default resolver for the
-//!   `HttpConnector`.
+//! - A [`GaiResolver`] that is the default resolver for the `HttpConnector`.
 //! - The `Name` type used as an argument to custom resolvers.
 //!
 //! # Resolvers are `Service`s

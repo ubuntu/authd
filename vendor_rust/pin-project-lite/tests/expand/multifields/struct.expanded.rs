@@ -6,31 +6,47 @@ struct Struct<T, U> {
     unpinned2: U,
 }
 #[doc(hidden)]
-#[allow(dead_code)]
-#[allow(single_use_lifetimes)]
-#[allow(clippy::mut_mut)]
-#[allow(clippy::redundant_pub_crate)]
-#[allow(clippy::type_repetition_in_bounds)]
+#[allow(
+    dead_code,
+    single_use_lifetimes,
+    clippy::unknown_clippy_lints,
+    clippy::absolute_paths,
+    clippy::min_ident_chars,
+    clippy::mut_mut,
+    clippy::redundant_pub_crate,
+    clippy::single_char_lifetime_names,
+    clippy::type_repetition_in_bounds
+)]
 struct StructProjReplace<T, U> {
     pinned1: ::pin_project_lite::__private::PhantomData<T>,
     pinned2: ::pin_project_lite::__private::PhantomData<T>,
     unpinned1: U,
     unpinned2: U,
 }
-#[allow(explicit_outlives_requirements)]
-#[allow(single_use_lifetimes)]
-#[allow(clippy::unknown_clippy_lints)]
-#[allow(clippy::redundant_pub_crate)]
-#[allow(clippy::used_underscore_binding)]
+#[allow(
+    explicit_outlives_requirements,
+    single_use_lifetimes,
+    clippy::unknown_clippy_lints,
+    clippy::absolute_paths,
+    clippy::min_ident_chars,
+    clippy::redundant_pub_crate,
+    clippy::single_char_lifetime_names,
+    clippy::used_underscore_binding
+)]
 const _: () = {
     #[doc(hidden)]
-    #[allow(dead_code)]
-    #[allow(single_use_lifetimes)]
-    #[allow(clippy::unknown_clippy_lints)]
-    #[allow(clippy::mut_mut)]
-    #[allow(clippy::redundant_pub_crate)]
-    #[allow(clippy::ref_option_ref)]
-    #[allow(clippy::type_repetition_in_bounds)]
+    #[allow(
+        dead_code,
+        single_use_lifetimes,
+        clippy::unknown_clippy_lints,
+        clippy::absolute_paths,
+        clippy::min_ident_chars,
+        clippy::mut_mut,
+        clippy::redundant_pub_crate,
+        clippy::ref_option_ref,
+        clippy::single_char_lifetime_names,
+        clippy::type_repetition_in_bounds
+    )]
     struct Projection<'__pin, T, U>
     where
         Struct<T, U>: '__pin,
@@ -41,13 +57,18 @@ const _: () = {
         unpinned2: &'__pin mut (U),
     }
     #[doc(hidden)]
-    #[allow(dead_code)]
-    #[allow(single_use_lifetimes)]
-    #[allow(clippy::unknown_clippy_lints)]
-    #[allow(clippy::mut_mut)]
-    #[allow(clippy::redundant_pub_crate)]
-    #[allow(clippy::ref_option_ref)]
-    #[allow(clippy::type_repetition_in_bounds)]
+    #[allow(
+        dead_code,
+        single_use_lifetimes,
+        clippy::unknown_clippy_lints,
+        clippy::absolute_paths,
+        clippy::min_ident_chars,
+        clippy::mut_mut,
+        clippy::redundant_pub_crate,
+        clippy::ref_option_ref,
+        clippy::single_char_lifetime_names,
+        clippy::type_repetition_in_bounds
+    )]
     struct ProjectionRef<'__pin, T, U>
     where
         Struct<T, U>: '__pin,
@@ -134,7 +155,9 @@ const _: () = {
     }
     impl<'__pin, T, U> ::pin_project_lite::__private::Unpin for Struct<T, U>
     where
-        __Origin<'__pin, T, U>: ::pin_project_lite::__private::Unpin,
+        ::pin_project_lite::__private::PinnedFieldsOf<
+            __Origin<'__pin, T, U>,
+        >: ::pin_project_lite::__private::Unpin,
     {}
     trait MustNotImplDrop {}
     #[allow(clippy::drop_bounds, drop_bounds)]

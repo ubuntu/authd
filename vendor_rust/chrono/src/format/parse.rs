@@ -6,12 +6,11 @@
 
 use core::borrow::Borrow;
 use core::str;
-use core::usize;
 
 use super::scan;
+use super::{BAD_FORMAT, INVALID, OUT_OF_RANGE, TOO_LONG, TOO_SHORT};
 use super::{Fixed, InternalFixed, InternalInternal, Item, Numeric, Pad, Parsed};
 use super::{ParseError, ParseResult};
-use super::{BAD_FORMAT, INVALID, OUT_OF_RANGE, TOO_LONG, TOO_SHORT};
 use crate::{DateTime, FixedOffset, Weekday};
 
 fn set_weekday_with_num_days_from_sunday(p: &mut Parsed, v: i64) -> ParseResult<()> {
@@ -344,6 +343,7 @@ where
                     IsoYear => (4, true, Parsed::set_isoyear),
                     IsoYearDiv100 => (2, false, Parsed::set_isoyear_div_100),
                     IsoYearMod100 => (2, false, Parsed::set_isoyear_mod_100),
+                    Quarter => (1, false, Parsed::set_quarter),
                     Month => (2, false, Parsed::set_month),
                     Day => (2, false, Parsed::set_day),
                     WeekFromSun => (2, false, Parsed::set_week_from_sun),
@@ -509,7 +509,7 @@ where
 }
 
 /// Accepts a relaxed form of RFC3339.
-/// A space or a 'T' are acepted as the separator between the date and time
+/// A space or a 'T' are accepted as the separator between the date and time
 /// parts. Additional spaces are allowed between each component.
 ///
 /// All of these examples are equivalent:
@@ -641,15 +641,17 @@ mod tests {
         // most unicode whitespace characters
         parses(
             "\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{3000}",
-            &[Space("\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{3000}")]
+            &[Space(
+                "\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{3000}",
+            )],
         );
         // most unicode whitespace characters
         parses(
             "\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{3000}",
             &[
                 Space("\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}"),
-                Space("\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{3000}")
-            ]
+                Space("\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{3000}"),
+            ],
         );
         check("a", &[Space("")], Err(TOO_LONG));
         check("a", &[Space(" ")], Err(TOO_LONG));
@@ -818,9 +820,16 @@ mod tests {
             parsed!(year_div_100: 12, year_mod_100: 34, isoyear_div_100: 56, isoyear_mod_100: 78),
         );
         check(
-            "1 2 3 4 5",
-            &[num(Month), num(Day), num(WeekFromSun), num(NumDaysFromSun), num(IsoWeek)],
-            parsed!(month: 1, day: 2, week_from_sun: 3, weekday: Weekday::Thu, isoweek: 5),
+            "1 1 2 3 4 5",
+            &[
+                num(Quarter),
+                num(Month),
+                num(Day),
+                num(WeekFromSun),
+                num(NumDaysFromSun),
+                num(IsoWeek),
+            ],
+            parsed!(quarter: 1, month: 1, day: 2, week_from_sun: 3, weekday: Weekday::Thu, isoweek: 5),
         );
         check(
             "6 7 89 01",
@@ -1836,8 +1845,10 @@ mod tests {
 
     #[test]
     fn test_issue_1010() {
-        let dt = crate::NaiveDateTime::parse_from_str("\u{c}SUN\u{e}\u{3000}\0m@J\u{3000}\0\u{3000}\0m\u{c}!\u{c}\u{b}\u{c}\u{c}\u{c}\u{c}%A\u{c}\u{b}\0SU\u{c}\u{c}",
-        "\u{c}\u{c}%A\u{c}\u{b}\0SUN\u{c}\u{c}\u{c}SUNN\u{c}\u{c}\u{c}SUN\u{c}\u{c}!\u{c}\u{b}\u{c}\u{c}\u{c}\u{c}%A\u{c}\u{b}%a");
+        let dt = crate::NaiveDateTime::parse_from_str(
+            "\u{c}SUN\u{e}\u{3000}\0m@J\u{3000}\0\u{3000}\0m\u{c}!\u{c}\u{b}\u{c}\u{c}\u{c}\u{c}%A\u{c}\u{b}\0SU\u{c}\u{c}",
+            "\u{c}\u{c}%A\u{c}\u{b}\0SUN\u{c}\u{c}\u{c}SUNN\u{c}\u{c}\u{c}SUN\u{c}\u{c}!\u{c}\u{b}\u{c}\u{c}\u{c}\u{c}%A\u{c}\u{b}%a",
+        );
         assert_eq!(dt, Err(ParseError(ParseErrorKind::Invalid)));
     }
 }

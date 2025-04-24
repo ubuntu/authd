@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.63"
 name = "h2"
-version = "0.4.6"
+version = "0.4.9"
 authors = [
     "Carl Lerche <me@carllerche.com>",
     "Sean McArthur <sean@seanmonstar.com>",
@@ -23,6 +23,7 @@ exclude = [
     "fixtures/**",
     "ci/**",
 ]
+autolib = false
 autobins = false
 autoexamples = false
 autotests = false
@@ -45,6 +46,10 @@ repository = "https://github.com/hyperium/h2"
 
 [package.metadata.docs.rs]
 features = ["stream"]
+
+[features]
+stream = []
+unstable = []
 
 [lib]
 name = "h2"
@@ -147,10 +152,6 @@ version = "2.3.2"
 
 [dev-dependencies.webpki-roots]
 version = "0.26"
-
-[features]
-stream = []
-unstable = []
 
 [lints.rust.unexpected_cfgs]
 level = "warn"

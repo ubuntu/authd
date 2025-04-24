@@ -8,8 +8,11 @@ use crate::{
     routing::url_params::UrlParams,
     util::PercentDecodedStr,
 };
-use async_trait::async_trait;
-use axum_core::response::{IntoResponse, Response};
+use axum_core::{
+    extract::OptionalFromRequestParts,
+    response::{IntoResponse, Response},
+    RequestPartsExt as _,
+};
 use http::{request::Parts, StatusCode};
 use serde::de::DeserializeOwned;
 use std::{fmt, sync::Arc};
@@ -20,6 +23,12 @@ use std::{fmt, sync::Arc};
 /// Any percent encoded parameters will be automatically decoded. The decoded
 /// parameters must be valid UTF-8, otherwise `Path` will fail and return a `400
 /// Bad Request` response.
+///
+/// # `Option<Path<T>>` behavior
+///
+/// You can use `Option<Path<T>>` as an extractor to allow the same handler to
+/// be used in a route with parameters that deserialize to `T`, and another
+/// route with no parameters at all.
 ///
 /// # Example
 ///
@@ -44,7 +53,7 @@ use std::{fmt, sync::Arc};
 ///     // ...
 /// }
 ///
-/// let app = Router::new().route("/users/:user_id/team/:team_id", get(users_teams_show));
+/// let app = Router::new().route("/users/{user_id}/team/{team_id}", get(users_teams_show));
 /// # let _: Router = app;
 /// ```
 ///
@@ -62,7 +71,7 @@ use std::{fmt, sync::Arc};
 ///     // ...
 /// }
 ///
-/// let app = Router::new().route("/users/:user_id", get(user_info));
+/// let app = Router::new().route("/users/{user_id}", get(user_info));
 /// # let _: Router = app;
 /// ```
 ///
@@ -99,7 +108,7 @@ use std::{fmt, sync::Arc};
 /// }
 ///
 /// let app = Router::new().route(
-///     "/users/:user_id/team/:team_id",
+///     "/users/{user_id}/team/{team_id}",
 ///     get(users_teams_show).post(users_teams_create),
 /// );
 /// # let _: Router = app;
@@ -128,7 +137,7 @@ use std::{fmt, sync::Arc};
 /// }
 ///
 /// let app = Router::new()
-///     .route("/users/:user_id/team/:team_id", get(params_map).post(params_vec));
+///     .route("/users/{user_id}/team/{team_id}", get(params_map).post(params_vec));
 /// # let _: Router = app;
 /// ```
 ///
@@ -145,7 +154,6 @@ pub struct Path<T>(pub T);
 
 axum_core::__impl_deref!(Path);
 
-#[async_trait]
 impl<T, S> FromRequestParts<S> for Path<T>
 where
     T: DeserializeOwned + Send,
@@ -175,6 +183,29 @@ where
                 PathRejection::FailedToDeserializePathParams(FailedToDeserializePathParams(err))
             })
             .map(Path)
+    }
+}
+
+impl<T, S> OptionalFromRequestParts<S> for Path<T>
+where
+    T: DeserializeOwned + Send + 'static,
+    S: Send + Sync,
+{
+    type Rejection = PathRejection;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        _state: &S,
+    ) -> Result<Option<Self>, Self::Rejection> {
+        match parts.extract::<Self>().await {
+            Ok(Self(params)) => Ok(Some(Self(params))),
+            Err(PathRejection::FailedToDeserializePathParams(e))
+                if matches!(e.kind(), ErrorKind::WrongNumberOfParameters { got: 0, .. }) =>
+            {
+                Ok(None)
+            }
+            Err(e) => Err(e),
+        }
     }
 }
 
@@ -305,6 +336,16 @@ pub enum ErrorKind {
         name: &'static str,
     },
 
+    /// Failed to deserialize the value with a custom deserialization error.
+    DeserializeError {
+        /// The key at which the invalid value was located.
+        key: String,
+        /// The value that failed to deserialize.
+        value: String,
+        /// The deserializaation failure message.
+        message: String,
+    },
+
     /// Catch-all variant for errors that don't fit any other variant.
     Message(String),
 }
@@ -333,20 +374,25 @@ impl fmt::Display for ErrorKind {
                 expected_type,
             } => write!(
                 f,
-                "Cannot parse `{key}` with value `{value:?}` to a `{expected_type}`"
+                "Cannot parse `{key}` with value `{value}` to a `{expected_type}`"
             ),
             ErrorKind::ParseError {
                 value,
                 expected_type,
-            } => write!(f, "Cannot parse `{value:?}` to a `{expected_type}`"),
+            } => write!(f, "Cannot parse `{value}` to a `{expected_type}`"),
             ErrorKind::ParseErrorAtIndex {
                 index,
                 value,
                 expected_type,
             } => write!(
                 f,
-                "Cannot parse value at index {index} with value `{value:?}` to a `{expected_type}`"
+                "Cannot parse value at index {index} with value `{value}` to a `{expected_type}`"
             ),
+            ErrorKind::DeserializeError {
+                key,
+                value,
+                message,
+            } => write!(f, "Cannot parse `{key}` with value `{value}`: {message}"),
         }
     }
 }
@@ -371,6 +417,7 @@ impl FailedToDeserializePathParams {
     pub fn body_text(&self) -> String {
         match self.0.kind {
             ErrorKind::Message(_)
+            | ErrorKind::DeserializeError { .. }
             | ErrorKind::InvalidUtf8InPathParam { .. }
             | ErrorKind::ParseError { .. }
             | ErrorKind::ParseErrorAtIndex { .. }
@@ -385,6 +432,7 @@ impl FailedToDeserializePathParams {
     pub fn status(&self) -> StatusCode {
         match self.0.kind {
             ErrorKind::Message(_)
+            | ErrorKind::DeserializeError { .. }
             | ErrorKind::InvalidUtf8InPathParam { .. }
             | ErrorKind::ParseError { .. }
             | ErrorKind::ParseErrorAtIndex { .. }
@@ -440,13 +488,12 @@ impl std::error::Error for FailedToDeserializePathParams {}
 ///     }
 /// }
 ///
-/// let app = Router::new().route("/users/:user_id/team/:team_id", get(users_teams_show));
+/// let app = Router::new().route("/users/{user_id}/team/{team_id}", get(users_teams_show));
 /// # let _: Router = app;
 /// ```
 #[derive(Debug)]
 pub struct RawPathParams(Vec<(Arc<str>, PercentDecodedStr)>);
 
-#[async_trait]
 impl<S> FromRequestParts<S> for RawPathParams
 where
     S: Send + Sync,
@@ -551,7 +598,7 @@ mod tests {
     #[crate::test]
     async fn extracting_url_params() {
         let app = Router::new().route(
-            "/users/:id",
+            "/users/{id}",
             get(|Path(id): Path<i32>| async move {
                 assert_eq!(id, 42);
             })
@@ -571,7 +618,7 @@ mod tests {
 
     #[crate::test]
     async fn extracting_url_params_multiple_times() {
-        let app = Router::new().route("/users/:id", get(|_: Path<i32>, _: Path<String>| async {}));
+        let app = Router::new().route("/users/{id}", get(|_: Path<i32>, _: Path<String>| async {}));
 
         let client = TestClient::new(app);
 
@@ -582,7 +629,7 @@ mod tests {
     #[crate::test]
     async fn percent_decoding() {
         let app = Router::new().route(
-            "/:key",
+            "/{key}",
             get(|Path(param): Path<String>| async move { param }),
         );
 
@@ -597,11 +644,11 @@ mod tests {
     async fn supports_128_bit_numbers() {
         let app = Router::new()
             .route(
-                "/i/:key",
+                "/i/{key}",
                 get(|Path(param): Path<i128>| async move { param.to_string() }),
             )
             .route(
-                "/u/:key",
+                "/u/{key}",
                 get(|Path(param): Path<u128>| async move { param.to_string() }),
             );
 
@@ -618,11 +665,11 @@ mod tests {
     async fn wildcard() {
         let app = Router::new()
             .route(
-                "/foo/*rest",
+                "/foo/{*rest}",
                 get(|Path(param): Path<String>| async move { param }),
             )
             .route(
-                "/bar/*rest",
+                "/bar/{*rest}",
                 get(|Path(params): Path<HashMap<String, String>>| async move {
                     params.get("rest").unwrap().clone()
                 }),
@@ -639,7 +686,7 @@ mod tests {
 
     #[crate::test]
     async fn captures_dont_match_empty_path() {
-        let app = Router::new().route("/:key", get(|| async {}));
+        let app = Router::new().route("/{key}", get(|| async {}));
 
         let client = TestClient::new(app);
 
@@ -653,7 +700,7 @@ mod tests {
     #[crate::test]
     async fn captures_match_empty_inner_segments() {
         let app = Router::new().route(
-            "/:key/method",
+            "/{key}/method",
             get(|Path(param): Path<String>| async move { param.to_string() }),
         );
 
@@ -669,7 +716,7 @@ mod tests {
     #[crate::test]
     async fn captures_match_empty_inner_segments_near_end() {
         let app = Router::new().route(
-            "/method/:key/",
+            "/method/{key}/",
             get(|Path(param): Path<String>| async move { param.to_string() }),
         );
 
@@ -688,7 +735,7 @@ mod tests {
     #[crate::test]
     async fn captures_match_empty_trailing_segment() {
         let app = Router::new().route(
-            "/method/:key",
+            "/method/{key}",
             get(|Path(param): Path<String>| async move { param.to_string() }),
         );
 
@@ -720,7 +767,10 @@ mod tests {
             }
         }
 
-        let app = Router::new().route("/:key", get(|param: Path<Param>| async move { param.0 .0 }));
+        let app = Router::new().route(
+            "/{key}",
+            get(|param: Path<Param>| async move { param.0 .0 }),
+        );
 
         let client = TestClient::new(app);
 
@@ -734,7 +784,7 @@ mod tests {
 
     #[crate::test]
     async fn two_path_extractors() {
-        let app = Router::new().route("/:a/:b", get(|_: Path<String>, _: Path<String>| async {}));
+        let app = Router::new().route("/{a}/{b}", get(|_: Path<String>, _: Path<String>| async {}));
 
         let client = TestClient::new(app);
 
@@ -748,9 +798,39 @@ mod tests {
     }
 
     #[crate::test]
+    async fn tuple_param_matches_exactly() {
+        #[allow(dead_code)]
+        #[derive(Deserialize)]
+        struct Tuple(String, String);
+
+        let app = Router::new()
+            .route(
+                "/foo/{a}/{b}/{c}",
+                get(|_: Path<(String, String)>| async {}),
+            )
+            .route("/bar/{a}/{b}/{c}", get(|_: Path<Tuple>| async {}));
+
+        let client = TestClient::new(app);
+
+        let res = client.get("/foo/a/b/c").await;
+        assert_eq!(res.status(), StatusCode::INTERNAL_SERVER_ERROR);
+        assert_eq!(
+            res.text().await,
+            "Wrong number of path arguments for `Path`. Expected 2 but got 3",
+        );
+
+        let res = client.get("/bar/a/b/c").await;
+        assert_eq!(res.status(), StatusCode::INTERNAL_SERVER_ERROR);
+        assert_eq!(
+            res.text().await,
+            "Wrong number of path arguments for `Path`. Expected 2 but got 3",
+        );
+    }
+
+    #[crate::test]
     async fn deserialize_into_vec_of_tuples() {
         let app = Router::new().route(
-            "/:a/:b",
+            "/{a}/{b}",
             get(|Path(params): Path<Vec<(String, String)>>| async move {
                 assert_eq!(
                     params,
@@ -781,31 +861,31 @@ mod tests {
 
         let app = Router::new()
             .route(
-                "/single/:a",
+                "/single/{a}",
                 get(|Path(a): Path<Date>| async move { format!("single: {a}") }),
             )
             .route(
-                "/tuple/:a/:b/:c",
+                "/tuple/{a}/{b}/{c}",
                 get(|Path((a, b, c)): Path<(Date, Date, Date)>| async move {
                     format!("tuple: {a} {b} {c}")
                 }),
             )
             .route(
-                "/vec/:a/:b/:c",
+                "/vec/{a}/{b}/{c}",
                 get(|Path(vec): Path<Vec<Date>>| async move {
                     let [a, b, c]: [Date; 3] = vec.try_into().unwrap();
                     format!("vec: {a} {b} {c}")
                 }),
             )
             .route(
-                "/vec_pairs/:a/:b/:c",
+                "/vec_pairs/{a}/{b}/{c}",
                 get(|Path(vec): Path<Vec<(String, Date)>>| async move {
                     let [(_, a), (_, b), (_, c)]: [(String, Date); 3] = vec.try_into().unwrap();
                     format!("vec_pairs: {a} {b} {c}")
                 }),
             )
             .route(
-                "/map/:a/:b/:c",
+                "/map/{a}/{b}/{c}",
                 get(|Path(mut map): Path<HashMap<String, Date>>| async move {
                     let a = map.remove("a").unwrap();
                     let b = map.remove("b").unwrap();
@@ -814,7 +894,7 @@ mod tests {
                 }),
             )
             .route(
-                "/struct/:a/:b/:c",
+                "/struct/{a}/{b}/{c}",
                 get(|Path(params): Path<Params>| async move {
                     format!("struct: {} {} {}", params.a, params.b, params.c)
                 }),
@@ -851,8 +931,8 @@ mod tests {
         use serde_json::Value;
 
         let app = Router::new()
-            .route("/one/:a", get(|_: Path<(Value, Value)>| async {}))
-            .route("/two/:a/:b", get(|_: Path<Value>| async {}));
+            .route("/one/{a}", get(|_: Path<(Value, Value)>| async {}))
+            .route("/two/{a}/{b}", get(|_: Path<Value>| async {}));
 
         let client = TestClient::new(app);
 
@@ -872,7 +952,7 @@ mod tests {
     #[crate::test]
     async fn raw_path_params() {
         let app = Router::new().route(
-            "/:a/:b/:c",
+            "/{a}/{b}/{c}",
             get(|params: RawPathParams| async move {
                 params
                     .into_iter()
@@ -886,5 +966,65 @@ mod tests {
         let res = client.get("/foo/bar/baz").await;
         let body = res.text().await;
         assert_eq!(body, "a=foo b=bar c=baz");
+    }
+
+    #[crate::test]
+    async fn deserialize_error_single_value() {
+        let app = Router::new().route(
+            "/resources/{res}",
+            get(|res: Path<uuid::Uuid>| async move {
+                let _res = res;
+            }),
+        );
+
+        let client = TestClient::new(app);
+        let response = client.get("/resources/123123-123-123123").await;
+        let body = response.text().await;
+        assert_eq!(
+            body,
+            "Invalid URL: Cannot parse `res` with value `123123-123-123123`: UUID parsing failed: invalid group count: expected 5, found 3"
+        );
+    }
+
+    #[crate::test]
+    async fn deserialize_error_multi_value() {
+        let app = Router::new().route(
+            "/resources/{res}/sub/{sub}",
+            get(
+                |Path((res, sub)): Path<(uuid::Uuid, uuid::Uuid)>| async move {
+                    let _res = res;
+                    let _sub = sub;
+                },
+            ),
+        );
+
+        let client = TestClient::new(app);
+        let response = client.get("/resources/456456-123-456456/sub/123").await;
+        let body = response.text().await;
+        assert_eq!(
+            body,
+            "Invalid URL: Cannot parse `res` with value `456456-123-456456`: UUID parsing failed: invalid group count: expected 5, found 3"
+        );
+    }
+
+    #[crate::test]
+    async fn regression_3038() {
+        #[derive(Deserialize)]
+        #[allow(dead_code)]
+        struct MoreChars {
+            first_two: [char; 2],
+            second_two: [char; 2],
+            crate_name: String,
+        }
+
+        let app = Router::new().route(
+            "/{first_two}/{second_two}/{crate_name}",
+            get(|Path(_): Path<MoreChars>| async move {}),
+        );
+
+        let client = TestClient::new(app);
+        let res = client.get("/te/st/_thing").await;
+        let body = res.text().await;
+        assert_eq!(body, "Invalid URL: array types are not supported");
     }
 }

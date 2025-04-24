@@ -1,4 +1,6 @@
-use std::hash::Hash;
+use core::hash::Hash;
+use std::format;
+use std::prelude::rust_2021::*;
 
 use crate::{
     IntErrorKind, OptionRangedI128, OptionRangedI16, OptionRangedI32, OptionRangedI64,
@@ -98,7 +100,7 @@ macro_rules! tests {
             $t::<5, 10>::MIN.hash(&mut hasher);
             assert_eq!(
                 $t::<5, 10>::MIN.cmp(&$t::<5, 10>::MAX),
-                std::cmp::Ordering::Less
+                core::cmp::Ordering::Less
             );
 
             assert_eq!($opt::<5, 10>::None.clone(), $opt::<5, 10>::None);
@@ -145,6 +147,18 @@ macro_rules! tests {
         #[test]
         fn is_none() {$(
             assert!($opt::<5, 10>::None.is_none());
+        )*}
+
+        #[test]
+        fn is_some_by_ref() {$(
+            let value = $opt::<5, 10>::Some($t::<5, 10>::MAX);
+            assert!($opt::is_some(&value));
+        )*}
+
+        #[test]
+        fn is_none_by_ref() {$(
+            let value = $opt::<5, 10>::None;
+            assert!($opt::is_none(&value));
         )*}
 
         #[test]
@@ -514,7 +528,7 @@ macro_rules! tests {
 
         #[test]
         fn borrow() {
-            use std::borrow::Borrow;
+            use core::borrow::Borrow;
             $(
             assert_eq!(Borrow::<$inner>::borrow(&$t::<5, 10>::MIN), &5);
             assert_eq!(Borrow::<$inner>::borrow(&$t::<5, 10>::MAX), &10);
@@ -548,23 +562,23 @@ macro_rules! tests {
             let five = $opt::Some($t::<5, 10>::MIN);
             let ten = $opt::Some($t::<5, 10>::MAX);
 
-            assert_eq!(none.cmp(&none), std::cmp::Ordering::Equal);
-            assert_eq!(five.cmp(&five), std::cmp::Ordering::Equal);
-            assert_eq!(ten.cmp(&ten), std::cmp::Ordering::Equal);
-            assert_eq!(none.cmp(&five), std::cmp::Ordering::Less);
-            assert_eq!(five.cmp(&ten), std::cmp::Ordering::Less);
-            assert_eq!(none.cmp(&ten), std::cmp::Ordering::Less);
-            assert_eq!(ten.cmp(&none), std::cmp::Ordering::Greater);
+            assert_eq!(none.cmp(&none), core::cmp::Ordering::Equal);
+            assert_eq!(five.cmp(&five), core::cmp::Ordering::Equal);
+            assert_eq!(ten.cmp(&ten), core::cmp::Ordering::Equal);
+            assert_eq!(none.cmp(&five), core::cmp::Ordering::Less);
+            assert_eq!(five.cmp(&ten), core::cmp::Ordering::Less);
+            assert_eq!(none.cmp(&ten), core::cmp::Ordering::Less);
+            assert_eq!(ten.cmp(&none), core::cmp::Ordering::Greater);
 
             let none = $opt::<0, 10>::None;
             let zero = $opt::Some($t::<0, 10>::MIN);
             let ten = $opt::Some($t::<0, 10>::MAX);
 
-            assert_eq!(none.partial_cmp(&none), Some(std::cmp::Ordering::Equal));
-            assert_eq!(none.partial_cmp(&zero), Some(std::cmp::Ordering::Less));
-            assert_eq!(zero.partial_cmp(&ten), Some(std::cmp::Ordering::Less));
-            assert_eq!(none.partial_cmp(&ten), Some(std::cmp::Ordering::Less));
-            assert_eq!(ten.partial_cmp(&none), Some(std::cmp::Ordering::Greater));
+            assert_eq!(none.partial_cmp(&none), Some(core::cmp::Ordering::Equal));
+            assert_eq!(none.partial_cmp(&zero), Some(core::cmp::Ordering::Less));
+            assert_eq!(zero.partial_cmp(&ten), Some(core::cmp::Ordering::Less));
+            assert_eq!(none.partial_cmp(&ten), Some(core::cmp::Ordering::Less));
+            assert_eq!(ten.partial_cmp(&none), Some(core::cmp::Ordering::Greater));
         )*}
 
         #[test]
@@ -631,14 +645,28 @@ macro_rules! tests {
             Ok(())
         }
 
-        #[cfg(feature = "rand")]
+        #[cfg(feature = "rand08")]
         #[test]
-        fn rand() {$(
-            let rand_val: $t<5, 10> = rand::random();
+        fn rand08() {$(
+            let rand_val: $t<5, 10> = rand08::random();
             assert!(rand_val >= $t::<5, 10>::MIN);
             assert!(rand_val <= $t::<5, 10>::MAX);
 
-            let rand: $opt<5, 10> = rand::random();
+            let rand: $opt<5, 10> = rand08::random();
+            if let Some(rand) = rand.get() {
+                assert!(rand >= $t::<5, 10>::MIN);
+                assert!(rand <= $t::<5, 10>::MAX);
+            }
+        )*}
+
+        #[cfg(feature = "rand09")]
+        #[test]
+        fn rand09() {$(
+            let rand_val: $t<5, 10> = rand09::random();
+            assert!(rand_val >= $t::<5, 10>::MIN);
+            assert!(rand_val <= $t::<5, 10>::MAX);
+
+            let rand: $opt<5, 10> = rand09::random();
             if let Some(rand) = rand.get() {
                 assert!(rand >= $t::<5, 10>::MIN);
                 assert!(rand <= $t::<5, 10>::MAX);

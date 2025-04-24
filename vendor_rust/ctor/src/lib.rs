@@ -16,17 +16,7 @@
 
 #[doc(hidden)]
 #[allow(unused)]
-pub mod __support {
-    pub use crate::__ctor_entry as ctor_entry;
-    pub use crate::__ctor_link_section as ctor_link_section;
-    pub use crate::__ctor_link_section_attr as ctor_link_section_attr;
-    pub use crate::__ctor_parse as ctor_parse;
-    pub use crate::__dtor_entry as dtor_entry;
-    pub use crate::__dtor_parse as dtor_parse;
-    pub use crate::__if_has_feature as if_has_feature;
-    pub use crate::__if_unsafe as if_unsafe;
-    pub use crate::__unify_features as unify_features;
-}
+pub use macros::__support;
 
 mod macros;
 
@@ -60,6 +50,7 @@ pub mod declarative {
     #[doc(inline)]
     pub use crate::__support::ctor_parse as ctor;
     #[doc(inline)]
+    #[cfg(feature = "dtor")]
     pub use crate::__support::dtor_parse as dtor;
 }
 
@@ -88,8 +79,11 @@ pub mod declarative {
 ///    containing the support macros. If you re-export `ctor` items as part of
 ///    your crate, you can use this to redirect the macro's output to the
 ///    correct crate.
-///  - `used(linker)`: Use the linker to load the constructor.
+///  - `used(linker)`: (Advanced) Mark the function as being used in the link
+///    phase.
 ///  - `link_section = "section"`: The section to place the constructor in.
+///  - `anonymous`: Do not give the constructor a name in the generated code
+///    (allows for multiple constructors with the same name).
 ///
 /// # Examples
 ///
@@ -236,23 +230,13 @@ pub mod declarative {
 /// }
 /// # }
 /// ```
+#[doc(inline)]
+#[cfg(feature = "proc_macro")]
 pub use ctor_proc_macro::ctor;
 
-/// Marks a function as a library/executable destructor. This uses OS-specific
-/// linker sections to call a specific function at termination time.
+/// Re-exported `#[dtor]` proc-macro from `dtor` crate.
 ///
-/// Multiple shutdown functions are supported, but the invocation order is not
-/// guaranteed.
-///
-/// ```rust
-/// # #![cfg_attr(feature="used_linker", feature(used_with_arg))]
-/// # extern crate ctor;
-/// # use ctor::*;
-/// # fn main() {}
-///
-/// #[dtor]
-/// fn shutdown() {
-///   /* ... */
-/// }
-/// ```
-pub use ctor_proc_macro::dtor;
+/// See [`::dtor`] for more details.
+#[doc(inline)]
+#[cfg(feature = "dtor")]
+pub use dtor::__dtor_from_ctor as dtor;

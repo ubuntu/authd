@@ -2,7 +2,7 @@
 
 #[cfg(feature = "formatting")]
 use alloc::string::String;
-use core::num::NonZeroI32;
+use core::num::{NonZeroI32, NonZeroU8};
 use core::ops::{Add, Sub};
 use core::time::Duration as StdDuration;
 use core::{cmp, fmt};
@@ -19,12 +19,12 @@ use crate::ext::DigitCount;
 #[cfg(feature = "formatting")]
 use crate::formatting::Formattable;
 use crate::internal_macros::{
-    cascade, const_try, const_try_opt, div_floor, ensure_ranged, expect_opt, impl_add_assign,
+    const_try, const_try_opt, div_floor, ensure_ranged, expect_opt, impl_add_assign,
     impl_sub_assign,
 };
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
-use crate::util::{days_in_year, days_in_year_month, is_leap_year, weeks_in_year};
+use crate::util::{days_in_year, is_leap_year, weeks_in_year};
 use crate::{error, Duration, Month, PrimitiveDateTime, Time, Weekday};
 
 type Year = RangedI32<MIN_YEAR, MAX_YEAR>;
@@ -49,10 +49,10 @@ pub(crate) const MAX_YEAR: i32 = if cfg!(feature = "large-dates") {
 /// and introduces some ambiguities when parsing.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Date {
-    /// Bitpacked field containing both the year and ordinal.
-    // |     xx     | xxxxxxxxxxxxxxxxxxxxx | xxxxxxxxx |
-    // |   2 bits   |        21 bits        |  9 bits   |
-    // | unassigned |         year          |  ordinal  |
+    /// Bitpacked field containing the year, ordinal, and whether the year is a leap year.
+    // |     x      | xxxxxxxxxxxxxxxxxxxxx |       x       | xxxxxxxxx |
+    // |   1 bit    |        21 bits        |     1 bit     |  9 bits   |
+    // | unassigned |         year          | is leap year? |  ordinal  |
     // The year is 15 bits when `large-dates` is not enabled.
     value: NonZeroI32,
 }
@@ -73,25 +73,41 @@ impl Date {
     pub const MAX: Self =
         unsafe { Self::__from_ordinal_date_unchecked(MAX_YEAR, days_in_year(MAX_YEAR)) };
 
-    // region: constructors
+    /// Construct a `Date` from its internal representation, the validity of which must be
+    /// guaranteed by the caller.
+    ///
+    /// # Safety
+    ///
+    /// - `ordinal` must be non-zero and at most the number of days in `year`
+    /// - `is_leap_year` must be `true` if and only if `year` is a leap year
+    const unsafe fn from_parts(year: i32, is_leap_year: bool, ordinal: u16) -> Self {
+        debug_assert!(year >= MIN_YEAR);
+        debug_assert!(year <= MAX_YEAR);
+        debug_assert!(ordinal != 0);
+        debug_assert!(ordinal <= days_in_year(year));
+        debug_assert!(crate::util::is_leap_year(year) == is_leap_year);
+
+        Self {
+            // Safety: `ordinal` is not zero.
+            value: unsafe {
+                NonZeroI32::new_unchecked(
+                    (year << 10) | ((is_leap_year as i32) << 9) | ordinal as i32,
+                )
+            },
+        }
+    }
+
     /// Construct a `Date` from the year and ordinal values, the validity of which must be
     /// guaranteed by the caller.
     ///
     /// # Safety
     ///
-    /// `ordinal` must not be zero. `year` should be in the range `MIN_YEAR..=MAX_YEAR`, but this
-    /// is not a safety invariant.
+    /// `ordinal` must be non-zero and at most the number of days in `year`. `year` should be in the
+    /// range `MIN_YEAR..=MAX_YEAR`, but this is not a safety invariant.
     #[doc(hidden)]
     pub const unsafe fn __from_ordinal_date_unchecked(year: i32, ordinal: u16) -> Self {
-        debug_assert!(year >= MIN_YEAR);
-        debug_assert!(year <= MAX_YEAR);
-        debug_assert!(ordinal != 0);
-        debug_assert!(ordinal <= days_in_year(year));
-
-        Self {
-            // Safety: The caller must guarantee that `ordinal` is not zero.
-            value: unsafe { NonZeroI32::new_unchecked((year << 9) | ordinal as i32) },
-        }
+        // Safety: The caller must guarantee that `ordinal` is not zero.
+        unsafe { Self::from_parts(year, is_leap_year(year), ordinal) }
     }
 
     /// Attempt to create a `Date` from the year, month, and day.
@@ -120,14 +136,14 @@ impl Date {
         ensure_ranged!(Year: year);
         match day {
             1..=28 => {}
-            29..=31 if day <= days_in_year_month(year, month) => {}
+            29..=31 if day <= month.length(year) => {}
             _ => {
                 return Err(error::ComponentRange {
                     name: "day",
                     minimum: 1,
-                    maximum: days_in_year_month(year, month) as _,
-                    value: day as _,
-                    conditional_range: true,
+                    maximum: month.length(year) as i64,
+                    value: day as i64,
+                    conditional_message: Some("for the given month and year"),
                 });
             }
         }
@@ -163,9 +179,9 @@ impl Date {
                 return Err(error::ComponentRange {
                     name: "ordinal",
                     minimum: 1,
-                    maximum: days_in_year(year) as _,
-                    value: ordinal as _,
-                    conditional_range: true,
+                    maximum: days_in_year(year) as i64,
+                    value: ordinal as i64,
+                    conditional_message: Some("for the given year"),
                 });
             }
         }
@@ -200,9 +216,9 @@ impl Date {
                 return Err(error::ComponentRange {
                     name: "week",
                     minimum: 1,
-                    maximum: weeks_in_year(year) as _,
-                    value: week as _,
-                    conditional_range: true,
+                    maximum: weeks_in_year(year) as i64,
+                    value: week as i64,
+                    conditional_message: Some("for the given year"),
                 });
             }
         }
@@ -236,7 +252,7 @@ impl Date {
             }
         } else {
             // Safety: `ordinal` is not zero.
-            unsafe { Self::__from_ordinal_date_unchecked(year, ordinal as _) }
+            unsafe { Self::__from_ordinal_date_unchecked(year, ordinal as u16) }
         })
     }
 
@@ -249,69 +265,78 @@ impl Date {
     /// # use time::Date;
     /// # use time_macros::date;
     /// assert_eq!(Date::from_julian_day(0), Ok(date!(-4713 - 11 - 24)));
-    /// assert_eq!(Date::from_julian_day(2_451_545), Ok(date!(2000 - 01 - 01)));
-    /// assert_eq!(Date::from_julian_day(2_458_485), Ok(date!(2019 - 01 - 01)));
-    /// assert_eq!(Date::from_julian_day(2_458_849), Ok(date!(2019 - 12 - 31)));
+    /// assert_eq!(Date::from_julian_day(2_451_545), Ok(date!(2000-01-01)));
+    /// assert_eq!(Date::from_julian_day(2_458_485), Ok(date!(2019-01-01)));
+    /// assert_eq!(Date::from_julian_day(2_458_849), Ok(date!(2019-12-31)));
     /// ```
     #[doc(alias = "from_julian_date")]
     pub const fn from_julian_day(julian_day: i32) -> Result<Self, error::ComponentRange> {
         type JulianDay = RangedI32<{ Date::MIN.to_julian_day() }, { Date::MAX.to_julian_day() }>;
         ensure_ranged!(JulianDay: julian_day);
-        Ok(Self::from_julian_day_unchecked(julian_day))
+        // Safety: The Julian day number is in range.
+        Ok(unsafe { Self::from_julian_day_unchecked(julian_day) })
     }
 
     /// Create a `Date` from the Julian day.
     ///
-    /// This does not check the validity of the provided Julian day, and as such may result in an
-    /// internally invalid value.
-    #[doc(alias = "from_julian_date_unchecked")]
-    pub(crate) const fn from_julian_day_unchecked(julian_day: i32) -> Self {
+    /// # Safety
+    ///
+    /// The provided Julian day number must be between `Date::MIN.to_julian_day()` and
+    /// `Date::MAX.to_julian_day()` inclusive.
+    pub(crate) const unsafe fn from_julian_day_unchecked(julian_day: i32) -> Self {
         debug_assert!(julian_day >= Self::MIN.to_julian_day());
         debug_assert!(julian_day <= Self::MAX.to_julian_day());
 
-        // To avoid a potential overflow, the value may need to be widened for some arithmetic.
+        const S: i32 = 2_500;
+        const K: i32 = 719_468 + 146_097 * S;
+        const L: i32 = 400 * S;
 
-        let z = julian_day - 1_721_119;
-        let (mut year, mut ordinal) = if julian_day < -19_752_948 || julian_day > 23_195_514 {
-            let g = 100 * z as i64 - 25;
-            let a = (g / 3_652_425) as i32;
-            let b = a - a / 4;
-            let year = div_floor!(100 * b as i64 + g, 36525) as i32;
-            let ordinal = (b + z - div_floor!(36525 * year as i64, 100) as i32) as _;
-            (year, ordinal)
+        let julian_day = julian_day - 2_440_588;
+        let n = (julian_day + K) as u32;
+
+        let n_1 = 4 * n + 3;
+        let c = n_1 / 146_097;
+        let n_c = n_1 % 146_097 / 4;
+
+        let n_2 = 4 * n_c + 3;
+        let p_2 = 2_939_745 * n_2 as u64;
+        let z = (p_2 >> 32) as u32;
+        let n_y = p_2 as u32 / 2_939_745 / 4;
+        let y = 100 * c + z;
+
+        let j = n_y >= 306;
+        let y_g = y as i32 - L + j as i32;
+
+        let is_leap_year = is_leap_year(y_g);
+        let ordinal = if j {
+            n_y - 305
         } else {
-            let g = 100 * z - 25;
-            let a = g / 3_652_425;
-            let b = a - a / 4;
-            let year = div_floor!(100 * b + g, 36525);
-            let ordinal = (b + z - div_floor!(36525 * year, 100)) as _;
-            (year, ordinal)
+            n_y + 60 + is_leap_year as u32
         };
 
-        if is_leap_year(year) {
-            ordinal += 60;
-            cascade!(ordinal in 1..367 => year);
-        } else {
-            ordinal += 59;
-            cascade!(ordinal in 1..366 => year);
-        }
-
-        // Safety: `ordinal` is not zero.
-        unsafe { Self::__from_ordinal_date_unchecked(year, ordinal) }
+        // Safety: `ordinal` is not zero and `is_leap_year` is correct, so long as the Julian day
+        // number is in range.
+        unsafe { Self::from_parts(y_g, is_leap_year, ordinal as u16) }
     }
-    // endregion constructors
 
-    // region: getters
+    /// Whether `is_leap_year(self.year())` is `true`.
+    ///
+    /// This method is optimized to take advantage of the fact that the value is pre-computed upon
+    /// construction and stored in the bitpacked struct.
+    const fn is_in_leap_year(self) -> bool {
+        (self.value.get() >> 9) & 1 == 1
+    }
+
     /// Get the year of the date.
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).year(), 2019);
-    /// assert_eq!(date!(2019 - 12 - 31).year(), 2019);
-    /// assert_eq!(date!(2020 - 01 - 01).year(), 2020);
+    /// assert_eq!(date!(2019-01-01).year(), 2019);
+    /// assert_eq!(date!(2019-12-31).year(), 2019);
+    /// assert_eq!(date!(2020-01-01).year(), 2020);
     /// ```
     pub const fn year(self) -> i32 {
-        self.value.get() >> 9
+        self.value.get() >> 10
     }
 
     /// Get the month.
@@ -319,11 +344,29 @@ impl Date {
     /// ```rust
     /// # use time::Month;
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).month(), Month::January);
-    /// assert_eq!(date!(2019 - 12 - 31).month(), Month::December);
+    /// assert_eq!(date!(2019-01-01).month(), Month::January);
+    /// assert_eq!(date!(2019-12-31).month(), Month::December);
     /// ```
     pub const fn month(self) -> Month {
-        self.month_day().0
+        let ordinal = self.ordinal() as u32;
+        let jan_feb_len = 59 + self.is_in_leap_year() as u32;
+
+        let (month_adj, ordinal_adj) = if ordinal <= jan_feb_len {
+            (0, 0)
+        } else {
+            (2, jan_feb_len)
+        };
+
+        let ordinal = ordinal - ordinal_adj;
+        let month = ((ordinal * 268 + 8031) >> 13) + month_adj;
+
+        // Safety: `month` is guaranteed to be between 1 and 12 inclusive.
+        unsafe {
+            match Month::from_number(NonZeroU8::new_unchecked(month as u8)) {
+                Ok(month) => month,
+                Err(_) => core::hint::unreachable_unchecked(),
+            }
+        }
     }
 
     /// Get the day of the month.
@@ -332,52 +375,23 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).day(), 1);
-    /// assert_eq!(date!(2019 - 12 - 31).day(), 31);
+    /// assert_eq!(date!(2019-01-01).day(), 1);
+    /// assert_eq!(date!(2019-12-31).day(), 31);
     /// ```
     pub const fn day(self) -> u8 {
-        self.month_day().1
-    }
+        let ordinal = self.ordinal() as u32;
+        let jan_feb_len = 59 + self.is_in_leap_year() as u32;
 
-    /// Get the month and day. This is more efficient than fetching the components individually.
-    // For whatever reason, rustc has difficulty optimizing this function. It's significantly faster
-    // to write the statements out by hand.
-    pub(crate) const fn month_day(self) -> (Month, u8) {
-        /// The number of days up to and including the given month. Common years
-        /// are first, followed by leap years.
-        const CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP: [[u16; 11]; 2] = [
-            [31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334],
-            [31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335],
-        ];
-
-        let days = CUMULATIVE_DAYS_IN_MONTH_COMMON_LEAP[is_leap_year(self.year()) as usize];
-        let ordinal = self.ordinal();
-
-        if ordinal > days[10] {
-            (Month::December, (ordinal - days[10]) as _)
-        } else if ordinal > days[9] {
-            (Month::November, (ordinal - days[9]) as _)
-        } else if ordinal > days[8] {
-            (Month::October, (ordinal - days[8]) as _)
-        } else if ordinal > days[7] {
-            (Month::September, (ordinal - days[7]) as _)
-        } else if ordinal > days[6] {
-            (Month::August, (ordinal - days[6]) as _)
-        } else if ordinal > days[5] {
-            (Month::July, (ordinal - days[5]) as _)
-        } else if ordinal > days[4] {
-            (Month::June, (ordinal - days[4]) as _)
-        } else if ordinal > days[3] {
-            (Month::May, (ordinal - days[3]) as _)
-        } else if ordinal > days[2] {
-            (Month::April, (ordinal - days[2]) as _)
-        } else if ordinal > days[1] {
-            (Month::March, (ordinal - days[1]) as _)
-        } else if ordinal > days[0] {
-            (Month::February, (ordinal - days[0]) as _)
+        let ordinal_adj = if ordinal <= jan_feb_len {
+            0
         } else {
-            (Month::January, ordinal as _)
-        }
+            jan_feb_len
+        };
+
+        let ordinal = ordinal - ordinal_adj;
+        let month = (ordinal * 268 + 8031) >> 13;
+        let days_in_preceding_months = (month * 3917 - 3866) >> 7;
+        (ordinal - days_in_preceding_months) as u8
     }
 
     /// Get the day of the year.
@@ -386,18 +400,18 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).ordinal(), 1);
-    /// assert_eq!(date!(2019 - 12 - 31).ordinal(), 365);
+    /// assert_eq!(date!(2019-01-01).ordinal(), 1);
+    /// assert_eq!(date!(2019-12-31).ordinal(), 365);
     /// ```
     pub const fn ordinal(self) -> u16 {
-        (self.value.get() & 0x1FF) as _
+        (self.value.get() & 0x1FF) as u16
     }
 
     /// Get the ISO 8601 year and week number.
     pub(crate) const fn iso_year_week(self) -> (i32, u8) {
         let (year, ordinal) = self.to_ordinal_date();
 
-        match ((ordinal + 10 - self.weekday().number_from_monday() as u16) / 7) as _ {
+        match ((ordinal + 10 - self.weekday().number_from_monday() as u16) / 7) as u8 {
             0 => (year - 1, weeks_in_year(year - 1)),
             53 if weeks_in_year(year) == 52 => (year + 1, 1),
             week => (year, week),
@@ -410,11 +424,11 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).iso_week(), 1);
-    /// assert_eq!(date!(2019 - 10 - 04).iso_week(), 40);
-    /// assert_eq!(date!(2020 - 01 - 01).iso_week(), 1);
-    /// assert_eq!(date!(2020 - 12 - 31).iso_week(), 53);
-    /// assert_eq!(date!(2021 - 01 - 01).iso_week(), 53);
+    /// assert_eq!(date!(2019-01-01).iso_week(), 1);
+    /// assert_eq!(date!(2019-10-04).iso_week(), 40);
+    /// assert_eq!(date!(2020-01-01).iso_week(), 1);
+    /// assert_eq!(date!(2020-12-31).iso_week(), 53);
+    /// assert_eq!(date!(2021-01-01).iso_week(), 53);
     /// ```
     pub const fn iso_week(self) -> u8 {
         self.iso_year_week().1
@@ -426,13 +440,13 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).sunday_based_week(), 0);
-    /// assert_eq!(date!(2020 - 01 - 01).sunday_based_week(), 0);
-    /// assert_eq!(date!(2020 - 12 - 31).sunday_based_week(), 52);
-    /// assert_eq!(date!(2021 - 01 - 01).sunday_based_week(), 0);
+    /// assert_eq!(date!(2019-01-01).sunday_based_week(), 0);
+    /// assert_eq!(date!(2020-01-01).sunday_based_week(), 0);
+    /// assert_eq!(date!(2020-12-31).sunday_based_week(), 52);
+    /// assert_eq!(date!(2021-01-01).sunday_based_week(), 0);
     /// ```
     pub const fn sunday_based_week(self) -> u8 {
-        ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as _
+        ((self.ordinal() as i16 - self.weekday().number_days_from_sunday() as i16 + 6) / 7) as u8
     }
 
     /// Get the week number where week 1 begins on the first Monday.
@@ -441,13 +455,13 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).monday_based_week(), 0);
-    /// assert_eq!(date!(2020 - 01 - 01).monday_based_week(), 0);
-    /// assert_eq!(date!(2020 - 12 - 31).monday_based_week(), 52);
-    /// assert_eq!(date!(2021 - 01 - 01).monday_based_week(), 0);
+    /// assert_eq!(date!(2019-01-01).monday_based_week(), 0);
+    /// assert_eq!(date!(2020-01-01).monday_based_week(), 0);
+    /// assert_eq!(date!(2020-12-31).monday_based_week(), 52);
+    /// assert_eq!(date!(2021-01-01).monday_based_week(), 0);
     /// ```
     pub const fn monday_based_week(self) -> u8 {
-        ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as _
+        ((self.ordinal() as i16 - self.weekday().number_days_from_monday() as i16 + 6) / 7) as u8
     }
 
     /// Get the year, month, and day.
@@ -456,20 +470,45 @@ impl Date {
     /// # use time::Month;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2019 - 01 - 01).to_calendar_date(),
+    ///     date!(2019-01-01).to_calendar_date(),
     ///     (2019, Month::January, 1)
     /// );
     /// ```
     pub const fn to_calendar_date(self) -> (i32, Month, u8) {
-        let (month, day) = self.month_day();
-        (self.year(), month, day)
+        let (year, ordinal) = self.to_ordinal_date();
+        let ordinal = ordinal as u32;
+        let jan_feb_len = 59 + self.is_in_leap_year() as u32;
+
+        let (month_adj, ordinal_adj) = if ordinal <= jan_feb_len {
+            (0, 0)
+        } else {
+            (2, jan_feb_len)
+        };
+
+        let ordinal = ordinal - ordinal_adj;
+        let month = (ordinal * 268 + 8031) >> 13;
+        let days_in_preceding_months = (month * 3917 - 3866) >> 7;
+        let day = ordinal - days_in_preceding_months;
+        let month = month + month_adj;
+
+        (
+            year,
+            // Safety: `month` is guaranteed to be between 1 and 12 inclusive.
+            unsafe {
+                match Month::from_number(NonZeroU8::new_unchecked(month as u8)) {
+                    Ok(month) => month,
+                    Err(_) => core::hint::unreachable_unchecked(),
+                }
+            },
+            day as u8,
+        )
     }
 
     /// Get the year and ordinal day number.
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).to_ordinal_date(), (2019, 1));
+    /// assert_eq!(date!(2019-01-01).to_ordinal_date(), (2019, 1));
     /// ```
     pub const fn to_ordinal_date(self) -> (i32, u16) {
         (self.year(), self.ordinal())
@@ -480,23 +519,17 @@ impl Date {
     /// ```rust
     /// # use time::Weekday::*;
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).to_iso_week_date(), (2019, 1, Tuesday));
-    /// assert_eq!(date!(2019 - 10 - 04).to_iso_week_date(), (2019, 40, Friday));
-    /// assert_eq!(
-    ///     date!(2020 - 01 - 01).to_iso_week_date(),
-    ///     (2020, 1, Wednesday)
-    /// );
-    /// assert_eq!(
-    ///     date!(2020 - 12 - 31).to_iso_week_date(),
-    ///     (2020, 53, Thursday)
-    /// );
-    /// assert_eq!(date!(2021 - 01 - 01).to_iso_week_date(), (2020, 53, Friday));
+    /// assert_eq!(date!(2019-01-01).to_iso_week_date(), (2019, 1, Tuesday));
+    /// assert_eq!(date!(2019-10-04).to_iso_week_date(), (2019, 40, Friday));
+    /// assert_eq!(date!(2020-01-01).to_iso_week_date(), (2020, 1, Wednesday));
+    /// assert_eq!(date!(2020-12-31).to_iso_week_date(), (2020, 53, Thursday));
+    /// assert_eq!(date!(2021-01-01).to_iso_week_date(), (2020, 53, Friday));
     /// ```
     pub const fn to_iso_week_date(self) -> (i32, u8, Weekday) {
         let (year, ordinal) = self.to_ordinal_date();
         let weekday = self.weekday();
 
-        match ((ordinal + 10 - self.weekday().number_from_monday() as u16) / 7) as _ {
+        match ((ordinal + 10 - weekday.number_from_monday() as u16) / 7) as u8 {
             0 => (year - 1, weeks_in_year(year - 1), weekday),
             53 if weeks_in_year(year) == 52 => (year + 1, 1, weekday),
             week => (year, week, weekday),
@@ -508,18 +541,18 @@ impl Date {
     /// ```rust
     /// # use time::Weekday::*;
     /// # use time_macros::date;
-    /// assert_eq!(date!(2019 - 01 - 01).weekday(), Tuesday);
-    /// assert_eq!(date!(2019 - 02 - 01).weekday(), Friday);
-    /// assert_eq!(date!(2019 - 03 - 01).weekday(), Friday);
-    /// assert_eq!(date!(2019 - 04 - 01).weekday(), Monday);
-    /// assert_eq!(date!(2019 - 05 - 01).weekday(), Wednesday);
-    /// assert_eq!(date!(2019 - 06 - 01).weekday(), Saturday);
-    /// assert_eq!(date!(2019 - 07 - 01).weekday(), Monday);
-    /// assert_eq!(date!(2019 - 08 - 01).weekday(), Thursday);
-    /// assert_eq!(date!(2019 - 09 - 01).weekday(), Sunday);
-    /// assert_eq!(date!(2019 - 10 - 01).weekday(), Tuesday);
-    /// assert_eq!(date!(2019 - 11 - 01).weekday(), Friday);
-    /// assert_eq!(date!(2019 - 12 - 01).weekday(), Sunday);
+    /// assert_eq!(date!(2019-01-01).weekday(), Tuesday);
+    /// assert_eq!(date!(2019-02-01).weekday(), Friday);
+    /// assert_eq!(date!(2019-03-01).weekday(), Friday);
+    /// assert_eq!(date!(2019-04-01).weekday(), Monday);
+    /// assert_eq!(date!(2019-05-01).weekday(), Wednesday);
+    /// assert_eq!(date!(2019-06-01).weekday(), Saturday);
+    /// assert_eq!(date!(2019-07-01).weekday(), Monday);
+    /// assert_eq!(date!(2019-08-01).weekday(), Thursday);
+    /// assert_eq!(date!(2019-09-01).weekday(), Sunday);
+    /// assert_eq!(date!(2019-10-01).weekday(), Tuesday);
+    /// assert_eq!(date!(2019-11-01).weekday(), Friday);
+    /// assert_eq!(date!(2019-12-01).weekday(), Sunday);
     /// ```
     pub const fn weekday(self) -> Weekday {
         match self.to_julian_day() % 7 {
@@ -541,22 +574,13 @@ impl Date {
     /// ```rust
     /// # use time::Date;
     /// # use time_macros::date;
-    /// assert_eq!(
-    ///     date!(2019 - 01 - 01).next_day(),
-    ///     Some(date!(2019 - 01 - 02))
-    /// );
-    /// assert_eq!(
-    ///     date!(2019 - 01 - 31).next_day(),
-    ///     Some(date!(2019 - 02 - 01))
-    /// );
-    /// assert_eq!(
-    ///     date!(2019 - 12 - 31).next_day(),
-    ///     Some(date!(2020 - 01 - 01))
-    /// );
+    /// assert_eq!(date!(2019-01-01).next_day(), Some(date!(2019-01-02)));
+    /// assert_eq!(date!(2019-01-31).next_day(), Some(date!(2019-02-01)));
+    /// assert_eq!(date!(2019-12-31).next_day(), Some(date!(2020-01-01)));
     /// assert_eq!(Date::MAX.next_day(), None);
     /// ```
     pub const fn next_day(self) -> Option<Self> {
-        if self.ordinal() == 366 || (self.ordinal() == 365 && !is_leap_year(self.year())) {
+        if self.ordinal() == 366 || (self.ordinal() == 365 && !self.is_in_leap_year()) {
             if self.value.get() == Self::MAX.value.get() {
                 None
             } else {
@@ -576,18 +600,9 @@ impl Date {
     /// ```rust
     /// # use time::Date;
     /// # use time_macros::date;
-    /// assert_eq!(
-    ///     date!(2019 - 01 - 02).previous_day(),
-    ///     Some(date!(2019 - 01 - 01))
-    /// );
-    /// assert_eq!(
-    ///     date!(2019 - 02 - 01).previous_day(),
-    ///     Some(date!(2019 - 01 - 31))
-    /// );
-    /// assert_eq!(
-    ///     date!(2020 - 01 - 01).previous_day(),
-    ///     Some(date!(2019 - 12 - 31))
-    /// );
+    /// assert_eq!(date!(2019-01-02).previous_day(), Some(date!(2019-01-01)));
+    /// assert_eq!(date!(2019-02-01).previous_day(), Some(date!(2019-01-31)));
+    /// assert_eq!(date!(2020-01-01).previous_day(), Some(date!(2019-12-31)));
     /// assert_eq!(Date::MIN.previous_day(), None);
     /// ```
     pub const fn previous_day(self) -> Option<Self> {
@@ -616,12 +631,12 @@ impl Date {
     /// # use time::Weekday;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2023 - 06 - 28).next_occurrence(Weekday::Monday),
-    ///     date!(2023 - 07 - 03)
+    ///     date!(2023-06-28).next_occurrence(Weekday::Monday),
+    ///     date!(2023-07-03)
     /// );
     /// assert_eq!(
-    ///     date!(2023 - 06 - 19).next_occurrence(Weekday::Monday),
-    ///     date!(2023 - 06 - 26)
+    ///     date!(2023-06-19).next_occurrence(Weekday::Monday),
+    ///     date!(2023-06-26)
     /// );
     /// ```
     pub const fn next_occurrence(self, weekday: Weekday) -> Self {
@@ -641,12 +656,12 @@ impl Date {
     /// # use time::Weekday;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2023 - 06 - 28).prev_occurrence(Weekday::Monday),
-    ///     date!(2023 - 06 - 26)
+    ///     date!(2023-06-28).prev_occurrence(Weekday::Monday),
+    ///     date!(2023-06-26)
     /// );
     /// assert_eq!(
-    ///     date!(2023 - 06 - 19).prev_occurrence(Weekday::Monday),
-    ///     date!(2023 - 06 - 12)
+    ///     date!(2023-06-19).prev_occurrence(Weekday::Monday),
+    ///     date!(2023-06-12)
     /// );
     /// ```
     pub const fn prev_occurrence(self, weekday: Weekday) -> Self {
@@ -666,12 +681,12 @@ impl Date {
     /// # use time::Weekday;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2023 - 06 - 25).nth_next_occurrence(Weekday::Monday, 5),
-    ///     date!(2023 - 07 - 24)
+    ///     date!(2023-06-25).nth_next_occurrence(Weekday::Monday, 5),
+    ///     date!(2023-07-24)
     /// );
     /// assert_eq!(
-    ///     date!(2023 - 06 - 26).nth_next_occurrence(Weekday::Monday, 5),
-    ///     date!(2023 - 07 - 31)
+    ///     date!(2023-06-26).nth_next_occurrence(Weekday::Monday, 5),
+    ///     date!(2023-07-31)
     /// );
     /// ```
     pub const fn nth_next_occurrence(self, weekday: Weekday, n: u8) -> Self {
@@ -691,12 +706,12 @@ impl Date {
     /// # use time::Weekday;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2023 - 06 - 27).nth_prev_occurrence(Weekday::Monday, 3),
-    ///     date!(2023 - 06 - 12)
+    ///     date!(2023-06-27).nth_prev_occurrence(Weekday::Monday, 3),
+    ///     date!(2023-06-12)
     /// );
     /// assert_eq!(
-    ///     date!(2023 - 06 - 26).nth_prev_occurrence(Weekday::Monday, 3),
-    ///     date!(2023 - 06 - 05)
+    ///     date!(2023-06-26).nth_prev_occurrence(Weekday::Monday, 3),
+    ///     date!(2023-06-05)
     /// );
     /// ```
     pub const fn nth_prev_occurrence(self, weekday: Weekday, n: u8) -> Self {
@@ -708,27 +723,25 @@ impl Date {
 
     /// Get the Julian day for the date.
     ///
-    /// The algorithm to perform this conversion is derived from one provided by Peter Baum; it is
-    /// freely available [here](https://www.researchgate.net/publication/316558298_Date_Algorithms).
-    ///
     /// ```rust
     /// # use time_macros::date;
     /// assert_eq!(date!(-4713 - 11 - 24).to_julian_day(), 0);
-    /// assert_eq!(date!(2000 - 01 - 01).to_julian_day(), 2_451_545);
-    /// assert_eq!(date!(2019 - 01 - 01).to_julian_day(), 2_458_485);
-    /// assert_eq!(date!(2019 - 12 - 31).to_julian_day(), 2_458_849);
+    /// assert_eq!(date!(2000-01-01).to_julian_day(), 2_451_545);
+    /// assert_eq!(date!(2019-01-01).to_julian_day(), 2_458_485);
+    /// assert_eq!(date!(2019-12-31).to_julian_day(), 2_458_849);
     /// ```
     pub const fn to_julian_day(self) -> i32 {
-        let year = self.year() - 1;
-        let ordinal = self.ordinal() as i32;
+        let (year, ordinal) = self.to_ordinal_date();
 
-        ordinal + 365 * year + div_floor!(year, 4) - div_floor!(year, 100)
-            + div_floor!(year, 400)
-            + 1_721_425
+        // The algorithm requires a non-negative year. Add the lowest value to make it so. This is
+        // adjusted for at the end with the final subtraction.
+        let adj_year = year + 999_999;
+        let century = adj_year / 100;
+
+        let days_before_year = (1461 * adj_year as i64 / 4) as i32 - century + century / 4;
+        days_before_year + ordinal as i32 - 363_521_075
     }
-    // endregion getters
 
-    // region: checked arithmetic
     /// Computes `self + duration`, returning `None` if an overflow occurred.
     ///
     /// ```rust
@@ -737,8 +750,8 @@ impl Date {
     /// assert_eq!(Date::MAX.checked_add(1.days()), None);
     /// assert_eq!(Date::MIN.checked_add((-2).days()), None);
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_add(2.days()),
-    ///     Some(date!(2021 - 01 - 02))
+    ///     date!(2020-12-31).checked_add(2.days()),
+    ///     Some(date!(2021-01-02))
     /// );
     /// ```
     ///
@@ -752,12 +765,12 @@ impl Date {
     /// assert_eq!(Date::MAX.checked_add(23.hours()), Some(Date::MAX));
     /// assert_eq!(Date::MIN.checked_add((-23).hours()), Some(Date::MIN));
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_add(23.hours()),
-    ///     Some(date!(2020 - 12 - 31))
+    ///     date!(2020-12-31).checked_add(23.hours()),
+    ///     Some(date!(2020-12-31))
     /// );
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_add(47.hours()),
-    ///     Some(date!(2021 - 01 - 01))
+    ///     date!(2020-12-31).checked_add(47.hours()),
+    ///     Some(date!(2021-01-01))
     /// );
     /// ```
     pub const fn checked_add(self, duration: Duration) -> Option<Self> {
@@ -766,7 +779,7 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days as _));
+        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days as i32));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
@@ -781,8 +794,8 @@ impl Date {
     /// # use time_macros::date;
     /// assert_eq!(Date::MAX.checked_add_std(1.std_days()), None);
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_add_std(2.std_days()),
-    ///     Some(date!(2021 - 01 - 02))
+    ///     date!(2020-12-31).checked_add_std(2.std_days()),
+    ///     Some(date!(2021-01-02))
     /// );
     /// ```
     ///
@@ -795,12 +808,12 @@ impl Date {
     /// # use time_macros::date;
     /// assert_eq!(Date::MAX.checked_add_std(23.std_hours()), Some(Date::MAX));
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_add_std(23.std_hours()),
-    ///     Some(date!(2020 - 12 - 31))
+    ///     date!(2020-12-31).checked_add_std(23.std_hours()),
+    ///     Some(date!(2020-12-31))
     /// );
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_add_std(47.std_hours()),
-    ///     Some(date!(2021 - 01 - 01))
+    ///     date!(2020-12-31).checked_add_std(47.std_hours()),
+    ///     Some(date!(2021-01-01))
     /// );
     /// ```
     pub const fn checked_add_std(self, duration: StdDuration) -> Option<Self> {
@@ -809,7 +822,7 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days as _));
+        let julian_day = const_try_opt!(self.to_julian_day().checked_add(whole_days as i32));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
@@ -825,8 +838,8 @@ impl Date {
     /// assert_eq!(Date::MAX.checked_sub((-2).days()), None);
     /// assert_eq!(Date::MIN.checked_sub(1.days()), None);
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_sub(2.days()),
-    ///     Some(date!(2020 - 12 - 29))
+    ///     date!(2020-12-31).checked_sub(2.days()),
+    ///     Some(date!(2020-12-29))
     /// );
     /// ```
     ///
@@ -840,12 +853,12 @@ impl Date {
     /// assert_eq!(Date::MAX.checked_sub((-23).hours()), Some(Date::MAX));
     /// assert_eq!(Date::MIN.checked_sub(23.hours()), Some(Date::MIN));
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_sub(23.hours()),
-    ///     Some(date!(2020 - 12 - 31))
+    ///     date!(2020-12-31).checked_sub(23.hours()),
+    ///     Some(date!(2020-12-31))
     /// );
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_sub(47.hours()),
-    ///     Some(date!(2020 - 12 - 30))
+    ///     date!(2020-12-31).checked_sub(47.hours()),
+    ///     Some(date!(2020-12-30))
     /// );
     /// ```
     pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
@@ -854,7 +867,7 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days as _));
+        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days as i32));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
@@ -869,8 +882,8 @@ impl Date {
     /// # use time_macros::date;
     /// assert_eq!(Date::MIN.checked_sub_std(1.std_days()), None);
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_sub_std(2.std_days()),
-    ///     Some(date!(2020 - 12 - 29))
+    ///     date!(2020-12-31).checked_sub_std(2.std_days()),
+    ///     Some(date!(2020-12-29))
     /// );
     /// ```
     ///
@@ -883,12 +896,12 @@ impl Date {
     /// # use time_macros::date;
     /// assert_eq!(Date::MIN.checked_sub_std(23.std_hours()), Some(Date::MIN));
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_sub_std(23.std_hours()),
-    ///     Some(date!(2020 - 12 - 31))
+    ///     date!(2020-12-31).checked_sub_std(23.std_hours()),
+    ///     Some(date!(2020-12-31))
     /// );
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).checked_sub_std(47.std_hours()),
-    ///     Some(date!(2020 - 12 - 30))
+    ///     date!(2020-12-31).checked_sub_std(47.std_hours()),
+    ///     Some(date!(2020-12-30))
     /// );
     /// ```
     pub const fn checked_sub_std(self, duration: StdDuration) -> Option<Self> {
@@ -897,7 +910,7 @@ impl Date {
             return None;
         }
 
-        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days as _));
+        let julian_day = const_try_opt!(self.to_julian_day().checked_sub(whole_days as i32));
         if let Ok(date) = Self::from_julian_day(julian_day) {
             Some(date)
         } else {
@@ -964,9 +977,7 @@ impl Date {
         const_try_opt!(self.checked_prev_occurrence(weekday))
             .checked_sub(Duration::weeks(n as i64 - 1))
     }
-    // endregion: checked arithmetic
 
-    // region: saturating arithmetic
     /// Computes `self + duration`, saturating value on overflow.
     ///
     /// ```rust
@@ -975,8 +986,8 @@ impl Date {
     /// assert_eq!(Date::MAX.saturating_add(1.days()), Date::MAX);
     /// assert_eq!(Date::MIN.saturating_add((-2).days()), Date::MIN);
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).saturating_add(2.days()),
-    ///     date!(2021 - 01 - 02)
+    ///     date!(2020-12-31).saturating_add(2.days()),
+    ///     date!(2021-01-02)
     /// );
     /// ```
     ///
@@ -988,12 +999,12 @@ impl Date {
     /// # use time::ext::NumericalDuration;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).saturating_add(23.hours()),
-    ///     date!(2020 - 12 - 31)
+    ///     date!(2020-12-31).saturating_add(23.hours()),
+    ///     date!(2020-12-31)
     /// );
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).saturating_add(47.hours()),
-    ///     date!(2021 - 01 - 01)
+    ///     date!(2020-12-31).saturating_add(47.hours()),
+    ///     date!(2021-01-01)
     /// );
     /// ```
     pub const fn saturating_add(self, duration: Duration) -> Self {
@@ -1015,8 +1026,8 @@ impl Date {
     /// assert_eq!(Date::MAX.saturating_sub((-2).days()), Date::MAX);
     /// assert_eq!(Date::MIN.saturating_sub(1.days()), Date::MIN);
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).saturating_sub(2.days()),
-    ///     date!(2020 - 12 - 29)
+    ///     date!(2020-12-31).saturating_sub(2.days()),
+    ///     date!(2020-12-29)
     /// );
     /// ```
     ///
@@ -1028,12 +1039,12 @@ impl Date {
     /// # use time::ext::NumericalDuration;
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).saturating_sub(23.hours()),
-    ///     date!(2020 - 12 - 31)
+    ///     date!(2020-12-31).saturating_sub(23.hours()),
+    ///     date!(2020-12-31)
     /// );
     /// assert_eq!(
-    ///     date!(2020 - 12 - 31).saturating_sub(47.hours()),
-    ///     date!(2020 - 12 - 30)
+    ///     date!(2020-12-31).saturating_sub(47.hours()),
+    ///     date!(2020-12-30)
     /// );
     /// ```
     pub const fn saturating_sub(self, duration: Duration) -> Self {
@@ -1046,19 +1057,17 @@ impl Date {
             Self::MIN
         }
     }
-    // region: saturating arithmetic
 
-    // region: replacement
     /// Replace the year. The month and day will be unchanged.
     ///
     /// ```rust
     /// # use time_macros::date;
     /// assert_eq!(
-    ///     date!(2022 - 02 - 18).replace_year(2019),
-    ///     Ok(date!(2019 - 02 - 18))
+    ///     date!(2022-02-18).replace_year(2019),
+    ///     Ok(date!(2019-02-18))
     /// );
-    /// assert!(date!(2022 - 02 - 18).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
-    /// assert!(date!(2022 - 02 - 18).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
+    /// assert!(date!(2022-02-18).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
+    /// assert!(date!(2022-02-18).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
     /// ```
     #[must_use = "This method does not mutate the original `Date`."]
     pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
@@ -1072,7 +1081,7 @@ impl Date {
             return Ok(unsafe { Self::__from_ordinal_date_unchecked(year, ordinal) });
         }
 
-        match (is_leap_year(self.year()), is_leap_year(year)) {
+        match (self.is_in_leap_year(), is_leap_year(year)) {
             (false, false) | (true, true) => {
                 // Safety: `ordinal` is not zero.
                 Ok(unsafe { Self::__from_ordinal_date_unchecked(year, ordinal) })
@@ -1083,7 +1092,7 @@ impl Date {
                 value: 29,
                 minimum: 1,
                 maximum: 28,
-                conditional_range: true,
+                conditional_message: Some("for the given month and year"),
             }),
             // We're going from a common year to a leap year. Shift dates in March and later by
             // one day.
@@ -1102,14 +1111,12 @@ impl Date {
     /// # use time_macros::date;
     /// # use time::Month;
     /// assert_eq!(
-    ///     date!(2022 - 02 - 18).replace_month(Month::January),
-    ///     Ok(date!(2022 - 01 - 18))
+    ///     date!(2022-02-18).replace_month(Month::January),
+    ///     Ok(date!(2022-01-18))
     /// );
-    /// assert!(
-    ///     date!(2022 - 01 - 30)
-    ///         .replace_month(Month::February)
-    ///         .is_err()
-    /// ); // 30 isn't a valid day in February
+    /// assert!(date!(2022-01-30)
+    ///     .replace_month(Month::February)
+    ///     .is_err()); // 30 isn't a valid day in February
     /// ```
     #[must_use = "This method does not mutate the original `Date`."]
     pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
@@ -1121,25 +1128,22 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(
-    ///     date!(2022 - 02 - 18).replace_day(1),
-    ///     Ok(date!(2022 - 02 - 01))
-    /// );
-    /// assert!(date!(2022 - 02 - 18).replace_day(0).is_err()); // 0 isn't a valid day
-    /// assert!(date!(2022 - 02 - 18).replace_day(30).is_err()); // 30 isn't a valid day in February
+    /// assert_eq!(date!(2022-02-18).replace_day(1), Ok(date!(2022-02-01)));
+    /// assert!(date!(2022-02-18).replace_day(0).is_err()); // 0 isn't a valid day
+    /// assert!(date!(2022-02-18).replace_day(30).is_err()); // 30 isn't a valid day in February
     /// ```
     #[must_use = "This method does not mutate the original `Date`."]
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
         match day {
             1..=28 => {}
-            29..=31 if day <= days_in_year_month(self.year(), self.month()) => {}
+            29..=31 if day <= self.month().length(self.year()) => {}
             _ => {
                 return Err(error::ComponentRange {
                     name: "day",
                     minimum: 1,
-                    maximum: days_in_year_month(self.year(), self.month()) as _,
-                    value: day as _,
-                    conditional_range: true,
+                    maximum: self.month().length(self.year()) as i64,
+                    value: day as i64,
+                    conditional_message: Some("for the given month and year"),
                 });
             }
         }
@@ -1148,7 +1152,7 @@ impl Date {
         Ok(unsafe {
             Self::__from_ordinal_date_unchecked(
                 self.year(),
-                (self.ordinal() as i16 - self.day() as i16 + day as i16) as _,
+                (self.ordinal() as i16 - self.day() as i16 + day as i16) as u16,
             )
         })
     }
@@ -1157,22 +1161,22 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert_eq!(date!(2022 - 049).replace_ordinal(1), Ok(date!(2022 - 001)));
-    /// assert!(date!(2022 - 049).replace_ordinal(0).is_err()); // 0 isn't a valid ordinal
-    /// assert!(date!(2022 - 049).replace_ordinal(366).is_err()); // 2022 isn't a leap year
+    /// assert_eq!(date!(2022-049).replace_ordinal(1), Ok(date!(2022-001)));
+    /// assert!(date!(2022-049).replace_ordinal(0).is_err()); // 0 isn't a valid ordinal
+    /// assert!(date!(2022-049).replace_ordinal(366).is_err()); // 2022 isn't a leap year
     /// ````
     #[must_use = "This method does not mutate the original `Date`."]
     pub const fn replace_ordinal(self, ordinal: u16) -> Result<Self, error::ComponentRange> {
         match ordinal {
             1..=365 => {}
-            366 if is_leap_year(self.year()) => {}
+            366 if self.is_in_leap_year() => {}
             _ => {
                 return Err(error::ComponentRange {
                     name: "ordinal",
                     minimum: 1,
-                    maximum: days_in_year(self.year()) as _,
-                    value: ordinal as _,
-                    conditional_range: true,
+                    maximum: days_in_year(self.year()) as i64,
+                    value: ordinal as i64,
+                    conditional_message: Some("for the given year"),
                 });
             }
         }
@@ -1180,10 +1184,8 @@ impl Date {
         // Safety: `ordinal` is in range.
         Ok(unsafe { Self::__from_ordinal_date_unchecked(self.year(), ordinal) })
     }
-    // endregion replacement
 }
 
-// region: attach time
 /// Methods to add a [`Time`] component, resulting in a [`PrimitiveDateTime`].
 impl Date {
     /// Create a [`PrimitiveDateTime`] using the existing date. The [`Time`] component will be set
@@ -1214,8 +1216,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970 - 01 - 01).with_hms(0, 0, 0).is_ok());
-    /// assert!(date!(1970 - 01 - 01).with_hms(24, 0, 0).is_err());
+    /// assert!(date!(1970-01-01).with_hms(0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).with_hms(24, 0, 0).is_err());
     /// ```
     pub const fn with_hms(
         self,
@@ -1233,8 +1235,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970 - 01 - 01).with_hms_milli(0, 0, 0, 0).is_ok());
-    /// assert!(date!(1970 - 01 - 01).with_hms_milli(24, 0, 0, 0).is_err());
+    /// assert!(date!(1970-01-01).with_hms_milli(0, 0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).with_hms_milli(24, 0, 0, 0).is_err());
     /// ```
     pub const fn with_hms_milli(
         self,
@@ -1253,8 +1255,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970 - 01 - 01).with_hms_micro(0, 0, 0, 0).is_ok());
-    /// assert!(date!(1970 - 01 - 01).with_hms_micro(24, 0, 0, 0).is_err());
+    /// assert!(date!(1970-01-01).with_hms_micro(0, 0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).with_hms_micro(24, 0, 0, 0).is_err());
     /// ```
     pub const fn with_hms_micro(
         self,
@@ -1273,8 +1275,8 @@ impl Date {
     ///
     /// ```rust
     /// # use time_macros::date;
-    /// assert!(date!(1970 - 01 - 01).with_hms_nano(0, 0, 0, 0).is_ok());
-    /// assert!(date!(1970 - 01 - 01).with_hms_nano(24, 0, 0, 0).is_err());
+    /// assert!(date!(1970-01-01).with_hms_nano(0, 0, 0, 0).is_ok());
+    /// assert!(date!(1970-01-01).with_hms_nano(24, 0, 0, 0).is_err());
     /// ```
     pub const fn with_hms_nano(
         self,
@@ -1289,15 +1291,13 @@ impl Date {
         ))
     }
 }
-// endregion attach time
 
-// region: formatting & parsing
 #[cfg(feature = "formatting")]
 impl Date {
     /// Format the `Date` using the provided [format description](crate::format_description).
     pub fn format_into(
         self,
-        output: &mut impl io::Write,
+        output: &mut (impl io::Write + ?Sized),
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
         format.format_into(output, Some(self), None, None)
@@ -1309,7 +1309,7 @@ impl Date {
     /// # use time::{format_description};
     /// # use time_macros::date;
     /// let format = format_description::parse("[year]-[month]-[day]")?;
-    /// assert_eq!(date!(2020 - 01 - 02).format(&format)?, "2020-01-02");
+    /// assert_eq!(date!(2020-01-02).format(&format)?, "2020-01-02");
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn format(self, format: &(impl Formattable + ?Sized)) -> Result<String, error::Format> {
@@ -1326,7 +1326,7 @@ impl Date {
     /// # use time::Date;
     /// # use time_macros::{date, format_description};
     /// let format = format_description!("[year]-[month]-[day]");
-    /// assert_eq!(Date::parse("2020-01-02", &format)?, date!(2020 - 01 - 02));
+    /// assert_eq!(Date::parse("2020-01-02", &format)?, date!(2020-01-02));
     /// # Ok::<_, time::Error>(())
     /// ```
     pub fn parse(
@@ -1428,9 +1428,7 @@ impl fmt::Debug for Date {
         fmt::Display::fmt(self, f)
     }
 }
-// endregion formatting & parsing
 
-// region: trait impls
 impl Add<Duration> for Date {
     type Output = Self;
 
@@ -1490,4 +1488,3 @@ impl Sub for Date {
         Duration::days((self.to_julian_day() - other.to_julian_day()).extend())
     }
 }
-// endregion trait impls

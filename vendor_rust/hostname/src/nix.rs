@@ -69,7 +69,7 @@ pub fn set(hostname: &OsStr) -> io::Result<()> {
     #[allow(clippy::unnecessary_cast)]
     // Cast is needed for the `libc::c_int` type
     if hostname.len() > hostname_len_t::MAX as usize {
-        return Err(io::Error::new(io::ErrorKind::Other, "hostname too long"));
+        return Err(io::Error::other("hostname too long"));
     }
 
     let size = hostname.len() as hostname_len_t;

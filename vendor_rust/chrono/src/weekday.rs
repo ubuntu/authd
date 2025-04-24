@@ -161,17 +161,13 @@ impl Weekday {
     pub const fn days_since(&self, other: Weekday) -> u32 {
         let lhs = *self as u32;
         let rhs = other as u32;
-        if lhs < rhs {
-            7 + lhs - rhs
-        } else {
-            lhs - rhs
-        }
+        if lhs < rhs { 7 + lhs - rhs } else { lhs - rhs }
     }
 }
 
 impl fmt::Display for Weekday {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(match *self {
+        f.pad(match *self {
             Weekday::Mon => "Mon",
             Weekday::Tue => "Tue",
             Weekday::Wed => "Wed",
@@ -276,7 +272,7 @@ mod weekday_serde {
 
     struct WeekdayVisitor;
 
-    impl<'de> de::Visitor<'de> for WeekdayVisitor {
+    impl de::Visitor<'_> for WeekdayVisitor {
         type Value = Weekday;
 
         fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -332,10 +328,20 @@ mod tests {
     }
 
     #[test]
+    fn test_formatting_alignment() {
+        // No exhaustive testing here as we just delegate the
+        // implementation to Formatter::pad. Just some basic smoke
+        // testing to ensure that it's in fact being done.
+        assert_eq!(format!("{:x>7}", Weekday::Mon), "xxxxMon");
+        assert_eq!(format!("{:^7}", Weekday::Mon), "  Mon  ");
+        assert_eq!(format!("{:Z<7}", Weekday::Mon), "MonZZZZ");
+    }
+
+    #[test]
     #[cfg(feature = "serde")]
     fn test_serde_serialize() {
-        use serde_json::to_string;
         use Weekday::*;
+        use serde_json::to_string;
 
         let cases: Vec<(Weekday, &str)> = vec![
             (Mon, "\"Mon\""),
@@ -356,8 +362,8 @@ mod tests {
     #[test]
     #[cfg(feature = "serde")]
     fn test_serde_deserialize() {
-        use serde_json::from_str;
         use Weekday::*;
+        use serde_json::from_str;
 
         let cases: Vec<(&str, Weekday)> = vec![
             ("\"mon\"", Mon),

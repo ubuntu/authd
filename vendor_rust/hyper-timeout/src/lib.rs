@@ -27,6 +27,8 @@ pub struct TimeoutConnector<T> {
     read_timeout: Option<Duration>,
     /// Amount of time to wait writing request
     write_timeout: Option<Duration>,
+    /// If true, resets the reader timeout whenever a write occures
+    reset_reader_on_write: bool,
 }
 
 impl<T> TimeoutConnector<T>
@@ -43,6 +45,7 @@ where
             connect_timeout: None,
             read_timeout: None,
             write_timeout: None,
+            reset_reader_on_write: false,
         }
     }
 }
@@ -67,6 +70,7 @@ where
         let connect_timeout = self.connect_timeout;
         let read_timeout = self.read_timeout;
         let write_timeout = self.write_timeout;
+        let reset_reader_on_write = self.reset_reader_on_write;
         let connecting = self.connector.call(dst);
 
         let fut = async move {
@@ -86,6 +90,7 @@ where
             };
             stream.set_read_timeout(read_timeout);
             stream.set_write_timeout(write_timeout);
+            stream.set_reset_reader_on_write(reset_reader_on_write);
             Ok(Box::pin(stream))
         };
 
@@ -116,6 +121,15 @@ impl<T> TimeoutConnector<T> {
     #[inline]
     pub fn set_write_timeout(&mut self, val: Option<Duration>) {
         self.write_timeout = val;
+    }
+
+    /// Reset on the reader timeout on write
+    ///
+    /// This will reset the reader timeout when a write is done through the
+    /// the TimeoutReader. This is useful when you don't want to trigger
+    /// a reader timeout while writes are still be accepted.
+    pub fn set_reset_reader_on_write(&mut self, reset: bool) {
+        self.reset_reader_on_write = reset;
     }
 }
 

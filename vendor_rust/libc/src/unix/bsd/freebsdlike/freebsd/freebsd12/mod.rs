@@ -59,9 +59,8 @@ s! {
         // This is normally "struct vnode".
         /// Pointer to executable file.
         pub ki_textvp: *mut c_void,
-        // This is normally "struct filedesc".
         /// Pointer to open file info.
-        pub ki_fd: *mut c_void,
+        pub ki_fd: *mut crate::filedesc,
         // This is normally "struct vmspace".
         /// Pointer to kernel vmspace struct.
         pub ki_vmspace: *mut c_void,
@@ -496,14 +495,12 @@ safe_f! {
         dev |= ((minor & 0xffff00ff) as dev_t) << 0;
         dev
     }
-}
 
-f! {
-    pub fn major(dev: crate::dev_t) -> c_int {
+    pub {const} fn major(dev: crate::dev_t) -> c_int {
         (((dev >> 32) & 0xffffff00) | ((dev >> 8) & 0xff)) as c_int
     }
 
-    pub fn minor(dev: crate::dev_t) -> c_int {
+    pub {const} fn minor(dev: crate::dev_t) -> c_int {
         (((dev >> 24) & 0xff00) | (dev & 0xffff00ff)) as c_int
     }
 }

@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.63] - 2025-03-31
+### Changes
+- Bump MSRV (minimum supported rust version) to 1.62 ([#131](https://github.com/strawlab/iana-time-zone/pull/131))
+- Bump `windows-core` to `0.56-0.61` range ([#131](https://github.com/strawlab/iana-time-zone/pull/131), [#133](https://github.com/strawlab/iana-time-zone/pull/133))
+
+## [0.1.62] - 2025-03-24
+### Changed
+- Bump MSRV (minimum supported rust version) to 1.61 ([#157](https://github.com/strawlab/iana-time-zone/pull/157))
+- Update to rust edition 2021 ([#161](https://github.com/strawlab/iana-time-zone/pull/161))
+- Address high and medium severity zizmor findings ([#163](https://github.com/strawlab/iana-time-zone/pull/163))
+
+### Added
+- Added support for tvOS, watchOS and visionOS ([#146](https://github.com/strawlab/iana-time-zone/pull/146)).
+- implement OpenHarmony support ([#150](https://github.com/strawlab/iana-time-zone/pull/150))
+
+## [0.1.61] - 2024-09-16
+### Changed
+
+- Depend on wasm-bindgen 0.2.89 or higher ([#134](https://github.com/strawlab/iana-time-zone/pull/134))
+- Do not use wasm_bindgen in wasm32-unknown-emscripten environment ([#130](https://github.com/strawlab/iana-time-zone/pull/130))
+
 ## [0.1.60] - 2024-02-03
 ### Changed
 - correct `windows-core` dependency version ([#127](https://github.com/strawlab/iana-time-zone/pull/127))
@@ -266,6 +287,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Implement for Linux, Windows, MacOS
 
+[0.1.63]: https://github.com/strawlab/iana-time-zone/releases/tag/v0.1.63
+[0.1.62]: https://github.com/strawlab/iana-time-zone/releases/tag/v0.1.62
+[0.1.61]: https://github.com/strawlab/iana-time-zone/releases/tag/v0.1.61
 [0.1.60]: https://github.com/strawlab/iana-time-zone/releases/tag/v0.1.60
 [0.1.59]: https://github.com/strawlab/iana-time-zone/releases/tag/v0.1.59
 [0.1.58]: https://github.com/strawlab/iana-time-zone/releases/tag/v0.1.58

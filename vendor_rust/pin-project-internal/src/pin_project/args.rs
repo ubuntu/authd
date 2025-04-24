@@ -3,13 +3,13 @@
 use proc_macro2::{Span, TokenStream};
 use quote::quote;
 use syn::{
-    parse::{Parse, ParseStream},
-    spanned::Spanned,
     Attribute, Error, Ident, Result, Token,
+    parse::{Parse, ParseStream},
+    spanned::Spanned as _,
 };
 
 use super::PIN;
-use crate::utils::{ParseBufferExt, SliceExt};
+use crate::utils::{ParseBufferExt as _, SliceExt as _};
 
 pub(super) fn parse_args(attrs: &[Attribute]) -> Result<Args> {
     // `(__private(<args>))` -> `<args>`
@@ -245,10 +245,6 @@ impl ProjReplace {
     }
 
     pub(super) fn ident(&self) -> Option<&Ident> {
-        if let Self::Named { ident, .. } = self {
-            Some(ident)
-        } else {
-            None
-        }
+        if let Self::Named { ident, .. } = self { Some(ident) } else { None }
     }
 }

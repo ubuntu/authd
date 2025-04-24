@@ -15,6 +15,7 @@ use prost::Message;
 use prost_types::{FileDescriptorProto, FileDescriptorSet};
 
 use crate::code_generator::CodeGenerator;
+use crate::context::Context;
 use crate::extern_paths::ExternPaths;
 use crate::message_graph::MessageGraph;
 use crate::path::PathMap;
@@ -44,9 +45,11 @@ pub struct Config {
     pub(crate) enable_type_names: bool,
     pub(crate) type_name_domains: PathMap<String>,
     pub(crate) protoc_args: Vec<OsString>,
+    pub(crate) protoc_executable: PathBuf,
     pub(crate) disable_comments: PathMap<()>,
     pub(crate) skip_debug: PathMap<()>,
     pub(crate) skip_protoc_run: bool,
+    pub(crate) skip_source_info: bool,
     pub(crate) include_file: Option<PathBuf>,
     pub(crate) prost_path: Option<String>,
     #[cfg(feature = "format")]
@@ -120,7 +123,7 @@ impl Config {
         self
     }
 
-    /// Configure the code generator to generate Rust [`bytes::Bytes`][1] fields for Protobuf
+    /// Configure the code generator to generate Rust [`bytes::Bytes`](prost::bytes::Bytes) fields for Protobuf
     /// [`bytes`][2] type fields.
     ///
     /// # Arguments
@@ -165,7 +168,6 @@ impl Config {
     /// config.bytes(&["my_bytes_field", ".foo.bar"]);
     /// ```
     ///
-    /// [1]: https://docs.rs/bytes/latest/bytes/struct.Bytes.html
     /// [2]: https://developers.google.com/protocol-buffers/docs/proto3#scalar
     /// [3]: https://doc.rust-lang.org/std/vec/struct.Vec.html
     pub fn bytes<I, S>(&mut self, paths: I) -> &mut Self
@@ -186,11 +188,11 @@ impl Config {
     /// # Arguments
     ///
     /// **`path`** - a path matching any number of fields. These fields get the attribute.
-    /// For details about matching fields see [`btree_map`](#method.btree_map).
+    /// For details about matching fields see [`btree_map`](Self::btree_map).
     ///
     /// **`attribute`** - an arbitrary string that'll be placed before each matched field. The
     /// expected usage are additional attributes, usually in concert with whole-type
-    /// attributes set with [`type_attribute`](method.type_attribute), but it is not
+    /// attributes set with [`type_attribute`](Self::type_attribute), but it is not
     /// checked and anything can be put there.
     ///
     /// Note that the calls to this method are cumulative ‒ if multiple paths from multiple calls
@@ -219,7 +221,7 @@ impl Config {
     /// # Arguments
     ///
     /// **`paths`** - a path matching any number of types. It works the same way as in
-    /// [`btree_map`](#method.btree_map), just with the field name omitted.
+    /// [`btree_map`](Self::btree_map), just with the field name omitted.
     ///
     /// **`attribute`** - an arbitrary string to be placed before each matched type. The
     /// expected usage are additional attributes, but anything is allowed.
@@ -229,7 +231,7 @@ impl Config {
     /// it.
     ///
     /// For things like serde it might be needed to combine with [field
-    /// attributes](#method.field_attribute).
+    /// attributes](Self::field_attribute).
     ///
     /// # Examples
     ///
@@ -268,7 +270,7 @@ impl Config {
     /// # Arguments
     ///
     /// **`paths`** - a path matching any number of types. It works the same way as in
-    /// [`btree_map`](#method.btree_map), just with the field name omitted.
+    /// [`btree_map`](Self::btree_map), just with the field name omitted.
     ///
     /// **`attribute`** - an arbitrary string to be placed before each matched type. The
     /// expected usage are additional attributes, but anything is allowed.
@@ -278,7 +280,7 @@ impl Config {
     /// it.
     ///
     /// For things like serde it might be needed to combine with [field
-    /// attributes](#method.field_attribute).
+    /// attributes](Self::field_attribute).
     ///
     /// # Examples
     ///
@@ -307,7 +309,7 @@ impl Config {
     /// # Arguments
     ///
     /// **`paths`** - a path matching any number of types. It works the same way as in
-    /// [`btree_map`](#method.btree_map), just with the field name omitted.
+    /// [`btree_map`](Self::btree_map), just with the field name omitted.
     ///
     /// **`attribute`** - an arbitrary string to be placed before each matched type. The
     /// expected usage are additional attributes, but anything is allowed.
@@ -317,7 +319,7 @@ impl Config {
     /// it.
     ///
     /// For things like serde it might be needed to combine with [field
-    /// attributes](#method.field_attribute).
+    /// attributes](Self::field_attribute).
     ///
     /// # Examples
     ///
@@ -356,7 +358,7 @@ impl Config {
     /// # Arguments
     ///
     /// **`path`** - a path matching any number of fields. These fields get the attribute.
-    /// For details about matching fields see [`btree_map`](#method.btree_map).
+    /// For details about matching fields see [`btree_map`](Self::btree_map).
     ///
     /// # Examples
     ///
@@ -597,6 +599,27 @@ impl Config {
         self
     }
 
+    /// Configures the code generator to remove surrounding comments and documentation.
+    ///
+    /// If enabled, this will cause `protoc` to not be passed the `--include_source_info` argument.
+    /// Typically, `--include_source_info` is passed by default, but it results in larger
+    /// [`FileDescriptorSet`s](https://github.com/protocolbuffers/protobuf/blob/cff254d32f850ba8186227ce6775b3f01a1f8cf8/src/google/protobuf/descriptor.proto#L54-L66) that include information about the
+    /// original location of each declaration in the source file as well as surrounding
+    /// comments and documentation.
+    ///
+    /// In `build.rs`:
+    ///
+    /// ```rust
+    /// # let mut config = prost_build::Config::new();
+    /// config.file_descriptor_set_path("path/from/build/system")
+    ///     .skip_source_info()
+    ///     .compile_protos(&["src/items.proto"], &["src/"]);
+    /// ```
+    pub fn skip_source_info(&mut self) -> &mut Self {
+        self.skip_source_info = true;
+        self
+    }
+
     /// Configures the code generator to not strip the enum name from variant names.
     ///
     /// Protobuf enum definitions commonly include the enum name as a prefix of every variant name.
@@ -644,7 +667,7 @@ impl Config {
     /// # Domains
     ///
     /// **`paths`** - a path matching any number of types. It works the same way as in
-    /// [`btree_map`](#method.btree_map), just with the field name omitted.
+    /// [`btree_map`](Self::btree_map), just with the field name omitted.
     ///
     /// **`domain`** - an arbitrary string to be used as a prefix for type URLs.
     ///
@@ -700,6 +723,30 @@ impl Config {
         S: AsRef<OsStr>,
     {
         self.protoc_args.push(arg.as_ref().to_owned());
+        self
+    }
+
+    /// Set the path to `protoc` executable to be used by `prost-build`
+    ///
+    /// Use the provided path to find `protoc`. This can either be a file name which is
+    /// searched for in the `PATH` or an aboslute path to use a specific executable.
+    ///
+    /// # Example `build.rs`
+    ///
+    /// ```rust,no_run
+    /// # use std::io::Result;
+    /// fn main() -> Result<()> {
+    ///   let mut prost_build = prost_build::Config::new();
+    ///   prost_build.protoc_executable("protoc-27.1");
+    ///   prost_build.compile_protos(&["src/frontend.proto", "src/backend.proto"], &["src"])?;
+    ///   Ok(())
+    /// }
+    /// ```
+    pub fn protoc_executable<S>(&mut self, executable: S) -> &mut Self
+    where
+        S: Into<PathBuf>,
+    {
+        self.protoc_executable = executable.into();
         self
     }
 
@@ -806,66 +853,62 @@ impl Config {
                 .expect("every module should have a filename");
             let output_path = target.join(file_name);
 
-            let previous_content = fs::read(&output_path);
-
-            if previous_content
-                .map(|previous_content| previous_content == content.as_bytes())
-                .unwrap_or(false)
-            {
-                trace!("unchanged: {:?}", file_name);
-            } else {
-                trace!("writing: {:?}", file_name);
-                fs::write(output_path, content)?;
-            }
+            write_file_if_changed(&output_path, content.as_bytes())?;
         }
 
         if let Some(ref include_file) = self.include_file {
-            trace!("Writing include file: {:?}", target.join(include_file));
-            let mut file = fs::File::create(target.join(include_file))?;
-            self.write_line(&mut file, 0, "// This file is @generated by prost-build.")?;
+            let path = target.join(include_file);
+            trace!("Writing include file: {}", path.display());
+            let mut buffer = Vec::new();
+            self.write_line(&mut buffer, 0, "// This file is @generated by prost-build.")?;
             self.write_includes(
                 modules.keys().collect(),
-                &mut file,
+                &mut buffer,
                 if target_is_env { None } else { Some(&target) },
                 &file_names,
             )?;
-            file.flush()?;
+
+            write_file_if_changed(&path, &buffer)?;
         }
 
         Ok(())
     }
 
-    /// Compile `.proto` files into Rust files during a Cargo build with additional code generator
-    /// configuration options.
-    ///
-    /// This method is like the `prost_build::compile_protos` function, with the added ability to
-    /// specify non-default code generation options. See that function for more information about
-    /// the arguments and generated outputs.
-    ///
-    /// The `protos` and `includes` arguments are ignored if `skip_protoc_run` is specified.
+    /// Loads `.proto` files as a [`FileDescriptorSet`]. This allows inspection of the descriptors
+    /// before calling [`Config::compile_fds`]. This could be used to change [`Config`]
+    /// attributes after introspecting what is actually present in the `.proto` files.
     ///
     /// # Example `build.rs`
     ///
     /// ```rust,no_run
-    /// # use std::io::Result;
-    /// fn main() -> Result<()> {
-    ///   let mut prost_build = prost_build::Config::new();
-    ///   prost_build.btree_map(&["."]);
-    ///   prost_build.compile_protos(&["src/frontend.proto", "src/backend.proto"], &["src"])?;
-    ///   Ok(())
+    /// # use prost_types::FileDescriptorSet;
+    /// # use prost_build::Config;
+    /// fn main() -> std::io::Result<()> {
+    ///   let mut config = Config::new();
+    ///   let file_descriptor_set = config.load_fds(&["src/frontend.proto", "src/backend.proto"], &["src"])?;
+    ///
+    ///   // Add custom attributes to messages that are service inputs or outputs.
+    ///   for file in &file_descriptor_set.file {
+    ///       for service in &file.service {
+    ///           for method in &service.method {
+    ///               if let Some(input) = &method.input_type {
+    ///                   config.message_attribute(input, "#[derive(custom_proto::Input)]");
+    ///               }
+    ///               if let Some(output) = &method.output_type {
+    ///                   config.message_attribute(output, "#[derive(custom_proto::Output)]");
+    ///               }
+    ///           }
+    ///       }
+    ///   }
+    ///
+    ///   config.compile_fds(file_descriptor_set)
     /// }
     /// ```
-    pub fn compile_protos(
+    pub fn load_fds(
         &mut self,
         protos: &[impl AsRef<Path>],
         includes: &[impl AsRef<Path>],
-    ) -> Result<()> {
-        // TODO: This should probably emit 'rerun-if-changed=PATH' directives for cargo, however
-        // according to [1] if any are output then those paths replace the default crate root,
-        // which is undesirable. Figure out how to do it in an additive way; perhaps gcc-rs has
-        // this figured out.
-        // [1]: http://doc.crates.io/build-script.html#outputs-of-the-build-script
-
+    ) -> Result<FileDescriptorSet> {
         let tmp;
         let file_descriptor_set_path = if let Some(path) = &self.file_descriptor_set_path {
             path.clone()
@@ -881,13 +924,12 @@ impl Config {
         };
 
         if !self.skip_protoc_run {
-            let protoc = protoc_from_env();
-
-            let mut cmd = Command::new(protoc.clone());
-            cmd.arg("--include_imports")
-                .arg("--include_source_info")
-                .arg("-o")
-                .arg(&file_descriptor_set_path);
+            let mut cmd = Command::new(&self.protoc_executable);
+            cmd.arg("--include_imports");
+            if !self.skip_source_info {
+                cmd.arg("--include_source_info");
+            }
+            cmd.arg("-o").arg(&file_descriptor_set_path);
 
             for include in includes {
                 if include.as_ref().exists() {
@@ -923,7 +965,7 @@ impl Config {
             )),
             Err(err) => return Err(Error::new(
                 err.kind(),
-                format!("failed to invoke protoc (hint: https://docs.rs/prost-build/#sourcing-protoc): (path: {:?}): {}", &protoc, err),
+                format!("failed to invoke protoc (hint: https://docs.rs/prost-build/#sourcing-protoc): (path: {}): {}", &self.protoc_executable.display(), err),
             )),
             Ok(output) => output,
         };
@@ -940,8 +982,9 @@ impl Config {
             Error::new(
                 e.kind(),
                 format!(
-                    "unable to open file_descriptor_set_path: {:?}, OS: {}",
-                    &file_descriptor_set_path, e
+                    "unable to open file_descriptor_set_path: {}, OS: {}",
+                    file_descriptor_set_path.display(),
+                    e
                 ),
             )
         })?;
@@ -951,6 +994,42 @@ impl Config {
                 format!("invalid FileDescriptorSet: {}", error),
             )
         })?;
+
+        Ok(file_descriptor_set)
+    }
+
+    /// Compile `.proto` files into Rust files during a Cargo build with additional code generator
+    /// configuration options.
+    ///
+    /// This method is like the `prost_build::compile_protos` function, with the added ability to
+    /// specify non-default code generation options. See that function for more information about
+    /// the arguments and generated outputs.
+    ///
+    /// The `protos` and `includes` arguments are ignored if `skip_protoc_run` is specified.
+    ///
+    /// # Example `build.rs`
+    ///
+    /// ```rust,no_run
+    /// # use std::io::Result;
+    /// fn main() -> Result<()> {
+    ///   let mut prost_build = prost_build::Config::new();
+    ///   prost_build.btree_map(&["."]);
+    ///   prost_build.compile_protos(&["src/frontend.proto", "src/backend.proto"], &["src"])?;
+    ///   Ok(())
+    /// }
+    /// ```
+    pub fn compile_protos(
+        &mut self,
+        protos: &[impl AsRef<Path>],
+        includes: &[impl AsRef<Path>],
+    ) -> Result<()> {
+        // TODO: This should probably emit 'rerun-if-changed=PATH' directives for cargo, however
+        // according to [1] if any are output then those paths replace the default crate root,
+        // which is undesirable. Figure out how to do it in an additive way; perhaps gcc-rs has
+        // this figured out.
+        // [1]: http://doc.crates.io/build-script.html#outputs-of-the-build-script
+
+        let file_descriptor_set = self.load_fds(protos, includes)?;
 
         self.compile_fds(file_descriptor_set)
     }
@@ -1015,7 +1094,7 @@ impl Config {
     ///
     /// This is generally used when control over the output should not be managed by Prost,
     /// such as in a flow for a `protoc` code generating plugin. When compiling as part of a
-    /// `build.rs` file, instead use [`compile_protos()`].
+    /// `build.rs` file, instead use [`Self::compile_protos()`].
     pub fn generate(
         &mut self,
         requests: Vec<(Module, FileDescriptorProto)>,
@@ -1023,10 +1102,10 @@ impl Config {
         let mut modules = HashMap::new();
         let mut packages = HashMap::new();
 
-        let message_graph = MessageGraph::new(requests.iter().map(|x| &x.1))
-            .map_err(|error| Error::new(ErrorKind::InvalidInput, error))?;
+        let message_graph = MessageGraph::new(requests.iter().map(|x| &x.1));
         let extern_paths = ExternPaths::new(&self.extern_paths, self.prost_types)
             .map_err(|error| Error::new(ErrorKind::InvalidInput, error))?;
+        let mut context = Context::new(self, message_graph, extern_paths);
 
         for (request_module, request_fd) in requests {
             // Only record packages that have services
@@ -1036,14 +1115,14 @@ impl Config {
             let buf = modules
                 .entry(request_module.clone())
                 .or_insert_with(String::new);
-            CodeGenerator::generate(self, &message_graph, &extern_paths, request_fd, buf);
+            CodeGenerator::generate(&mut context, request_fd, buf);
             if buf.is_empty() {
                 // Did not generate any code, remove from list to avoid inclusion in include file or output file list
                 modules.remove(&request_module);
             }
         }
 
-        if let Some(ref mut service_generator) = self.service_generator {
+        if let Some(service_generator) = context.service_generator_mut() {
             for (module, package) in packages {
                 let buf = modules.get_mut(&module).unwrap();
                 service_generator.finalize_package(&package, buf);
@@ -1072,6 +1151,26 @@ impl Config {
     }
 }
 
+/// Write a slice as the entire contents of a file.
+///
+/// This function will create a file if it does not exist,
+/// and will entirely replace its contents if it does. When
+/// the contents is already correct, it doesn't touch to the file.
+fn write_file_if_changed(path: &Path, content: &[u8]) -> std::io::Result<()> {
+    let previous_content = fs::read(path);
+
+    if previous_content
+        .map(|previous_content| previous_content == content)
+        .unwrap_or(false)
+    {
+        trace!("unchanged: {}", path.display());
+        Ok(())
+    } else {
+        trace!("writing: {}", path.display());
+        fs::write(path, content)
+    }
+}
+
 impl default::Default for Config {
     fn default() -> Config {
         Config {
@@ -1092,9 +1191,11 @@ impl default::Default for Config {
             enable_type_names: false,
             type_name_domains: PathMap::default(),
             protoc_args: Vec::new(),
+            protoc_executable: protoc_from_env(),
             disable_comments: PathMap::default(),
             skip_debug: PathMap::default(),
             skip_protoc_run: false,
+            skip_source_info: false,
             include_file: None,
             prost_path: None,
             #[cfg(feature = "format")]
@@ -1159,16 +1260,113 @@ pub fn protoc_include_from_env() -> Option<PathBuf> {
 
     if !protoc_include.exists() {
         panic!(
-            "PROTOC_INCLUDE environment variable points to non-existent directory ({:?})",
-            protoc_include
+            "PROTOC_INCLUDE environment variable points to non-existent directory ({})",
+            protoc_include.display()
         );
     }
     if !protoc_include.is_dir() {
         panic!(
-            "PROTOC_INCLUDE environment variable points to a non-directory file ({:?})",
-            protoc_include
+            "PROTOC_INCLUDE environment variable points to a non-directory file ({})",
+            protoc_include.display()
         );
     }
 
     Some(protoc_include)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    macro_rules! assert_starts_with {
+        ($left:expr, $right:expr) => {
+            match (&$left, &$right) {
+                (left_val, right_val) => {
+                    if !(left_val.starts_with(right_val)) {
+                        panic!(
+                            "assertion 'starts_with` failed:\nleft: {}\nright: {}",
+                            left_val, right_val
+                        )
+                    }
+                }
+            }
+        };
+    }
+
+    #[test]
+    fn test_error_protoc_not_found() {
+        let mut config = Config::new();
+        config.protoc_executable("path-does-not-exist");
+
+        let err = config.load_fds(&[""], &[""]).unwrap_err();
+        assert_eq!(err.to_string(), error_message_protoc_not_found())
+    }
+
+    #[test]
+    fn test_error_protoc_not_executable() {
+        let mut config = Config::new();
+        config.protoc_executable("src/lib.rs");
+
+        let err = config.load_fds(&[""], &[""]).unwrap_err();
+        assert_starts_with!(err.to_string(), "failed to invoke protoc (hint: https://docs.rs/prost-build/#sourcing-protoc): (path: src/lib.rs): ")
+    }
+
+    #[test]
+    fn test_error_incorrect_skip_protoc_run() {
+        let mut config = Config::new();
+        config.skip_protoc_run();
+
+        let err = config.load_fds(&[""], &[""]).unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "file_descriptor_set_path is required with skip_protoc_run"
+        )
+    }
+
+    #[test]
+    fn test_error_protoc_failed() {
+        let mut config = Config::new();
+
+        let err = config.load_fds(&[""], &[""]).unwrap_err();
+        assert_starts_with!(
+            err.to_string(),
+            "protoc failed: You seem to have passed an empty string as one of the arguments to "
+        )
+    }
+
+    #[test]
+    fn test_error_non_existing_file_descriptor_set() {
+        let mut config = Config::new();
+        config.skip_protoc_run();
+        config.file_descriptor_set_path("path-does-not-exist");
+
+        let err = config.load_fds(&[""], &[""]).unwrap_err();
+        assert_starts_with!(
+            err.to_string(),
+            "unable to open file_descriptor_set_path: path-does-not-exist, OS: "
+        )
+    }
+
+    #[test]
+    fn test_error_text_incorrect_file_descriptor_set() {
+        let mut config = Config::new();
+        config.skip_protoc_run();
+        config.file_descriptor_set_path("src/lib.rs");
+
+        let err = config.load_fds(&[""], &[""]).unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "invalid FileDescriptorSet: failed to decode Protobuf message: unexpected end group tag"
+        )
+    }
+
+    #[test]
+    fn test_error_unset_out_dir() {
+        let mut config = Config::new();
+
+        let err = config
+            .compile_fds(FileDescriptorSet::default())
+            .unwrap_err();
+        assert_eq!(err.to_string(), "OUT_DIR environment variable is not set")
+    }
 }

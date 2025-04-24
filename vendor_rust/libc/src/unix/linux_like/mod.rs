@@ -161,7 +161,7 @@ s! {
         pub ifa_flags: c_uint,
         pub ifa_addr: *mut crate::sockaddr,
         pub ifa_netmask: *mut crate::sockaddr,
-        pub ifa_ifu: *mut crate::sockaddr, // FIXME This should be a union
+        pub ifa_ifu: *mut crate::sockaddr, // FIXME(union) This should be a union
         pub ifa_data: *mut c_void,
     }
 
@@ -342,7 +342,7 @@ cfg_if! {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 f.debug_struct("sockaddr_un")
                     .field("sun_family", &self.sun_family)
-                    // FIXME: .field("sun_path", &self.sun_path)
+                    // FIXME(debug): .field("sun_path", &self.sun_path)
                     .finish()
             }
         }
@@ -371,7 +371,7 @@ cfg_if! {
                 f.debug_struct("sockaddr_storage")
                     .field("ss_family", &self.ss_family)
                     .field("__ss_align", &self.__ss_align)
-                    // FIXME: .field("__ss_pad2", &self.__ss_pad2)
+                    // FIXME(debug): .field("__ss_pad2", &self.__ss_pad2)
                     .finish()
             }
         }
@@ -422,12 +422,12 @@ cfg_if! {
         impl fmt::Debug for utsname {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
                 f.debug_struct("utsname")
-                    // FIXME: .field("sysname", &self.sysname)
-                    // FIXME: .field("nodename", &self.nodename)
-                    // FIXME: .field("release", &self.release)
-                    // FIXME: .field("version", &self.version)
-                    // FIXME: .field("machine", &self.machine)
-                    // FIXME: .field("domainname", &self.domainname)
+                    // FIXME(debug): .field("sysname", &self.sysname)
+                    // FIXME(debug): .field("nodename", &self.nodename)
+                    // FIXME(debug): .field("release", &self.release)
+                    // FIXME(debug): .field("version", &self.version)
+                    // FIXME(debug): .field("machine", &self.machine)
+                    // FIXME(debug): .field("domainname", &self.domainname)
                     .finish()
             }
         }
@@ -1289,6 +1289,25 @@ pub const PIPE_BUF: usize = 4096;
 
 pub const SI_LOAD_SHIFT: c_uint = 16;
 
+// si_code values
+pub const SI_USER: c_int = 0;
+pub const SI_KERNEL: c_int = 0x80;
+pub const SI_QUEUE: c_int = -1;
+cfg_if! {
+    if #[cfg(not(any(target_arch = "mips", target_arch = "mips32r6")))] {
+        pub const SI_TIMER: c_int = -2;
+        pub const SI_MESGQ: c_int = -3;
+        pub const SI_ASYNCIO: c_int = -4;
+    } else {
+        pub const SI_TIMER: c_int = -3;
+        pub const SI_MESGQ: c_int = -4;
+        pub const SI_ASYNCIO: c_int = -2;
+    }
+}
+pub const SI_SIGIO: c_int = -5;
+pub const SI_TKILL: c_int = -6;
+pub const SI_ASYNCNL: c_int = -60;
+
 // si_code values for SIGBUS signal
 pub const BUS_ADRALN: c_int = 1;
 pub const BUS_ADRERR: c_int = 2;
@@ -1296,6 +1315,13 @@ pub const BUS_OBJERR: c_int = 3;
 // Linux-specific si_code values for SIGBUS signal
 pub const BUS_MCEERR_AR: c_int = 4;
 pub const BUS_MCEERR_AO: c_int = 5;
+
+// si_code values for SIGTRAP
+pub const TRAP_BRKPT: c_int = 1;
+pub const TRAP_TRACE: c_int = 2;
+pub const TRAP_BRANCH: c_int = 3;
+pub const TRAP_HWBKPT: c_int = 4;
+pub const TRAP_UNK: c_int = 5;
 
 // si_code values for SIGCHLD signal
 pub const CLD_EXITED: c_int = 1;
@@ -1605,6 +1631,73 @@ cfg_if! {
     }
 }
 
+// https://github.com/search?q=repo%3Atorvalds%2Flinux+%22%23define+_IOC_NONE%22&type=code
+cfg_if! {
+    if #[cfg(any(
+        target_os = "linux",
+        target_os = "android",
+        target_os = "l4re"
+    ))] {
+        const _IOC_NRBITS: u32 = 8;
+        const _IOC_TYPEBITS: u32 = 8;
+
+        cfg_if! {
+            if #[cfg(any(
+                any(target_arch = "powerpc", target_arch = "powerpc64"),
+                any(target_arch = "sparc", target_arch = "sparc64"),
+                any(target_arch = "mips", target_arch = "mips64"),
+            ))] {
+                // https://github.com/torvalds/linux/blob/b311c1b497e51a628aa89e7cb954481e5f9dced2/arch/powerpc/include/uapi/asm/ioctl.h
+                // https://github.com/torvalds/linux/blob/b311c1b497e51a628aa89e7cb954481e5f9dced2/arch/sparc/include/uapi/asm/ioctl.h
+                // https://github.com/torvalds/linux/blob/b311c1b497e51a628aa89e7cb954481e5f9dced2/arch/mips/include/uapi/asm/ioctl.h
+
+                const _IOC_SIZEBITS: u32 = 13;
+                const _IOC_DIRBITS: u32 = 3;
+
+                const _IOC_NONE: u32 = 1;
+                const _IOC_READ: u32 = 2;
+                const _IOC_WRITE: u32 = 4;
+            } else {
+                // https://github.com/torvalds/linux/blob/b311c1b497e51a628aa89e7cb954481e5f9dced2/include/uapi/asm-generic/ioctl.h
+
+                const _IOC_SIZEBITS: u32 = 14;
+                const _IOC_DIRBITS: u32 = 2;
+
+                const _IOC_NONE: u32 = 0;
+                const _IOC_WRITE: u32 = 1;
+                const _IOC_READ: u32 = 2;
+            }
+        }
+        const _IOC_NRMASK: u32 = (1 << _IOC_NRBITS) - 1;
+        const _IOC_TYPEMASK: u32 = (1 << _IOC_TYPEBITS) - 1;
+        const _IOC_SIZEMASK: u32 = (1 << _IOC_SIZEBITS) - 1;
+        const _IOC_DIRMASK: u32 = (1 << _IOC_DIRBITS) - 1;
+
+        const _IOC_NRSHIFT: u32 = 0;
+        const _IOC_TYPESHIFT: u32 = _IOC_NRSHIFT + _IOC_NRBITS;
+        const _IOC_SIZESHIFT: u32 = _IOC_TYPESHIFT + _IOC_TYPEBITS;
+        const _IOC_DIRSHIFT: u32 = _IOC_SIZESHIFT + _IOC_SIZEBITS;
+
+        // adapted from https://github.com/torvalds/linux/blob/8a696a29c6905594e4abf78eaafcb62165ac61f1/rust/kernel/ioctl.rs
+
+        /// Build an ioctl number, analogous to the C macro of the same name.
+        const fn _IOC(dir: u32, ty: u32, nr: u32, size: usize) -> u32 {
+            // FIXME(ctest) the `garando_syntax` crate (used by ctest in the CI test suite)
+            // cannot currently parse these `debug_assert!`s
+            //
+            // debug_assert!(dir <= _IOC_DIRMASK);
+            // debug_assert!(ty <= _IOC_TYPEMASK);
+            // debug_assert!(nr <= _IOC_NRMASK);
+            // debug_assert!(size <= (_IOC_SIZEMASK as usize));
+
+            (dir << _IOC_DIRSHIFT)
+                | (ty << _IOC_TYPESHIFT)
+                | (nr << _IOC_NRSHIFT)
+                | ((size as u32) << _IOC_SIZESHIFT)
+        }
+    }
+}
+
 const_fn! {
     {const} fn CMSG_ALIGN(len: usize) -> usize {
         len + mem::size_of::<usize>() - 1 & !(mem::size_of::<usize>() - 1)
@@ -1730,11 +1823,7 @@ safe_f! {
 
     #[allow(ellipsis_inclusive_range_patterns)]
     pub {const} fn KERNEL_VERSION(a: u32, b: u32, c: u32) -> u32 {
-        ((a << 16) + (b << 8))
-            + match c {
-                0..=255 => c,
-                _ => 255,
-            }
+        ((a << 16) + (b << 8)) + if c > 255 { 255 } else { c }
     }
 }
 
@@ -1762,12 +1851,20 @@ extern "C" {
         stackaddr: *mut *mut c_void,
         stacksize: *mut size_t,
     ) -> c_int;
+    pub fn pthread_attr_setstack(
+        attr: *mut crate::pthread_attr_t,
+        stackaddr: *mut c_void,
+        stacksize: size_t,
+    ) -> c_int;
     pub fn memalign(align: size_t, size: size_t) -> *mut c_void;
     pub fn setgroups(ngroups: size_t, ptr: *const crate::gid_t) -> c_int;
     pub fn pipe2(fds: *mut c_int, flags: c_int) -> c_int;
+    #[cfg_attr(gnu_file_offset_bits64, link_name = "statfs64")]
     pub fn statfs(path: *const c_char, buf: *mut statfs) -> c_int;
+    #[cfg_attr(gnu_file_offset_bits64, link_name = "fstatfs64")]
     pub fn fstatfs(fd: c_int, buf: *mut statfs) -> c_int;
     pub fn memrchr(cx: *const c_void, c: c_int, n: size_t) -> *mut c_void;
+    #[cfg_attr(gnu_file_offset_bits64, link_name = "posix_fadvise64")]
     pub fn posix_fadvise(fd: c_int, offset: off_t, len: off_t, advise: c_int) -> c_int;
     pub fn futimens(fd: c_int, times: *const crate::timespec) -> c_int;
     pub fn utimensat(
@@ -1873,8 +1970,13 @@ extern "C" {
     ) -> size_t;
     pub fn strptime(s: *const c_char, format: *const c_char, tm: *mut crate::tm) -> *mut c_char;
 
+    #[cfg_attr(gnu_file_offset_bits64, link_name = "mkostemp64")]
     pub fn mkostemp(template: *mut c_char, flags: c_int) -> c_int;
+    #[cfg_attr(gnu_file_offset_bits64, link_name = "mkostemps64")]
     pub fn mkostemps(template: *mut c_char, suffixlen: c_int, flags: c_int) -> c_int;
+
+    pub fn getdomainname(name: *mut c_char, len: size_t) -> c_int;
+    pub fn setdomainname(name: *const c_char, len: size_t) -> c_int;
 }
 
 // LFS64 extensions

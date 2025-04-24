@@ -517,6 +517,11 @@ s! {
         pub ifr6_prefixlen: u32,
         pub ifr6_ifindex: c_int,
     }
+
+    pub struct if_nameindex {
+        pub if_index: c_uint,
+        pub if_name: *mut c_char,
+    }
 }
 
 s_no_extra_traits! {
@@ -699,7 +704,7 @@ cfg_if! {
                     .field("d_off", &self.d_off)
                     .field("d_reclen", &self.d_reclen)
                     .field("d_type", &self.d_type)
-                    // FIXME: .field("d_name", &self.d_name)
+                    // FIXME(debug): .field("d_name", &self.d_name)
                     .finish()
             }
         }
@@ -737,7 +742,7 @@ cfg_if! {
                     .field("d_off", &self.d_off)
                     .field("d_reclen", &self.d_reclen)
                     .field("d_type", &self.d_type)
-                    // FIXME: .field("d_name", &self.d_name)
+                    // FIXME(debug): .field("d_name", &self.d_name)
                     .finish()
             }
         }
@@ -809,7 +814,7 @@ cfg_if! {
                 f.debug_struct("lastlog")
                     .field("ll_time", &self.ll_time)
                     .field("ll_line", &self.ll_line)
-                    // FIXME: .field("ll_host", &self.ll_host)
+                    // FIXME(debug): .field("ll_host", &self.ll_host)
                     .finish()
             }
         }
@@ -860,7 +865,7 @@ cfg_if! {
                     .field("ut_line", &self.ut_line)
                     .field("ut_id", &self.ut_id)
                     .field("ut_user", &self.ut_user)
-                    // FIXME: .field("ut_host", &self.ut_host)
+                    // FIXME(debug): .field("ut_host", &self.ut_host)
                     .field("ut_exit", &self.ut_exit)
                     .field("ut_session", &self.ut_session)
                     .field("ut_tv", &self.ut_tv)
@@ -1300,6 +1305,7 @@ pub const F_TLOCK: c_int = 2;
 pub const F_ULOCK: c_int = 0;
 
 pub const F_SEAL_FUTURE_WRITE: c_int = 0x0010;
+pub const F_SEAL_EXEC: c_int = 0x0020;
 
 pub const IFF_LOWER_UP: c_int = 0x10000;
 pub const IFF_DORMANT: c_int = 0x20000;
@@ -1474,6 +1480,7 @@ pub const SOCK_STREAM: c_int = 1;
 pub const SOCK_DGRAM: c_int = 2;
 pub const SOCK_SEQPACKET: c_int = 5;
 pub const SOCK_DCCP: c_int = 6;
+#[deprecated(since = "0.2.70", note = "AF_PACKET must be used instead")]
 pub const SOCK_PACKET: c_int = 10;
 
 pub const IPPROTO_MAX: c_int = 256;
@@ -1548,6 +1555,7 @@ pub const SO_PEEK_OFF: c_int = 42;
 pub const SO_BUSY_POLL: c_int = 46;
 pub const SCM_TIMESTAMPING_OPT_STATS: c_int = 54;
 pub const SCM_TIMESTAMPING_PKTINFO: c_int = 58;
+pub const SO_BINDTOIFINDEX: c_int = 62;
 pub const SO_TIMESTAMP_NEW: c_int = 63;
 pub const SO_TIMESTAMPNS_NEW: c_int = 64;
 pub const SO_TIMESTAMPING_NEW: c_int = 65;
@@ -1978,6 +1986,12 @@ pub const NLM_F_EXCL: c_int = 0x200;
 pub const NLM_F_CREATE: c_int = 0x400;
 pub const NLM_F_APPEND: c_int = 0x800;
 
+pub const NLM_F_NONREC: c_int = 0x100;
+pub const NLM_F_BULK: c_int = 0x200;
+
+pub const NLM_F_CAPPED: c_int = 0x100;
+pub const NLM_F_ACK_TLVS: c_int = 0x200;
+
 pub const NLMSG_NOOP: c_int = 0x1;
 pub const NLMSG_ERROR: c_int = 0x2;
 pub const NLMSG_DONE: c_int = 0x3;
@@ -2187,18 +2201,22 @@ pub const GRND_NONBLOCK: c_uint = 0x0001;
 pub const GRND_RANDOM: c_uint = 0x0002;
 pub const GRND_INSECURE: c_uint = 0x0004;
 
+// <linux/seccomp.h>
 pub const SECCOMP_MODE_DISABLED: c_uint = 0;
 pub const SECCOMP_MODE_STRICT: c_uint = 1;
 pub const SECCOMP_MODE_FILTER: c_uint = 2;
 
-pub const SECCOMP_FILTER_FLAG_TSYNC: c_ulong = 1;
-pub const SECCOMP_FILTER_FLAG_LOG: c_ulong = 2;
-pub const SECCOMP_FILTER_FLAG_SPEC_ALLOW: c_ulong = 4;
-pub const SECCOMP_FILTER_FLAG_NEW_LISTENER: c_ulong = 8;
+pub const SECCOMP_SET_MODE_STRICT: c_uint = 0;
+pub const SECCOMP_SET_MODE_FILTER: c_uint = 1;
+pub const SECCOMP_GET_ACTION_AVAIL: c_uint = 2;
+pub const SECCOMP_GET_NOTIF_SIZES: c_uint = 3;
 
-pub const SECCOMP_RET_ACTION_FULL: c_uint = 0xffff0000;
-pub const SECCOMP_RET_ACTION: c_uint = 0x7fff0000;
-pub const SECCOMP_RET_DATA: c_uint = 0x0000ffff;
+pub const SECCOMP_FILTER_FLAG_TSYNC: c_ulong = 1 << 0;
+pub const SECCOMP_FILTER_FLAG_LOG: c_ulong = 1 << 1;
+pub const SECCOMP_FILTER_FLAG_SPEC_ALLOW: c_ulong = 1 << 2;
+pub const SECCOMP_FILTER_FLAG_NEW_LISTENER: c_ulong = 1 << 3;
+pub const SECCOMP_FILTER_FLAG_TSYNC_ESRCH: c_ulong = 1 << 4;
+pub const SECCOMP_FILTER_FLAG_WAIT_KILLABLE_RECV: c_ulong = 1 << 5;
 
 pub const SECCOMP_RET_KILL_PROCESS: c_uint = 0x80000000;
 pub const SECCOMP_RET_KILL_THREAD: c_uint = 0x00000000;
@@ -2209,6 +2227,15 @@ pub const SECCOMP_RET_USER_NOTIF: c_uint = 0x7fc00000;
 pub const SECCOMP_RET_TRACE: c_uint = 0x7ff00000;
 pub const SECCOMP_RET_LOG: c_uint = 0x7ffc0000;
 pub const SECCOMP_RET_ALLOW: c_uint = 0x7fff0000;
+
+pub const SECCOMP_RET_ACTION_FULL: c_uint = 0xffff0000;
+pub const SECCOMP_RET_ACTION: c_uint = 0x7fff0000;
+pub const SECCOMP_RET_DATA: c_uint = 0x0000ffff;
+
+pub const SECCOMP_USER_NOTIF_FLAG_CONTINUE: c_ulong = 1;
+
+pub const SECCOMP_ADDFD_FLAG_SETFD: c_ulong = 1;
+pub const SECCOMP_ADDFD_FLAG_SEND: c_ulong = 2;
 
 pub const NLA_F_NESTED: c_int = 1 << 15;
 pub const NLA_F_NET_BYTEORDER: c_int = 1 << 14;
@@ -2654,6 +2681,7 @@ pub const IFF_ATTACH_QUEUE: c_int = 0x0200;
 pub const IFF_DETACH_QUEUE: c_int = 0x0400;
 pub const IFF_PERSIST: c_int = 0x0800;
 pub const IFF_NOFILTER: c_int = 0x1000;
+pub const TUN_TX_TIMESTAMP: c_int = 1;
 // Features for GSO (TUNSETOFFLOAD)
 pub const TUN_F_CSUM: c_uint = 0x01;
 pub const TUN_F_TSO4: c_uint = 0x02;
@@ -2662,6 +2690,40 @@ pub const TUN_F_TSO_ECN: c_uint = 0x08;
 pub const TUN_F_UFO: c_uint = 0x10;
 pub const TUN_F_USO4: c_uint = 0x20;
 pub const TUN_F_USO6: c_uint = 0x40;
+// Protocol info prepended to the packets (when IFF_NO_PI is not set)
+pub const TUN_PKT_STRIP: c_int = 0x0001;
+// Accept all multicast packets
+pub const TUN_FLT_ALLMULTI: c_int = 0x0001;
+// Ioctl operation codes
+const T_TYPE: u32 = b'T' as u32;
+pub const TUNSETNOCSUM: c_int = _IOW::<c_int>(T_TYPE, 200);
+pub const TUNSETDEBUG: c_int = _IOW::<c_int>(T_TYPE, 201);
+pub const TUNSETIFF: c_int = _IOW::<c_int>(T_TYPE, 202);
+pub const TUNSETPERSIST: c_int = _IOW::<c_int>(T_TYPE, 203);
+pub const TUNSETOWNER: c_int = _IOW::<c_int>(T_TYPE, 204);
+pub const TUNSETLINK: c_int = _IOW::<c_int>(T_TYPE, 205);
+pub const TUNSETGROUP: c_int = _IOW::<c_int>(T_TYPE, 206);
+pub const TUNGETFEATURES: c_int = _IOR::<c_int>(T_TYPE, 207);
+pub const TUNSETOFFLOAD: c_int = _IOW::<c_int>(T_TYPE, 208);
+pub const TUNSETTXFILTER: c_int = _IOW::<c_int>(T_TYPE, 209);
+pub const TUNGETIFF: c_int = _IOR::<c_int>(T_TYPE, 210);
+pub const TUNGETSNDBUF: c_int = _IOR::<c_int>(T_TYPE, 211);
+pub const TUNSETSNDBUF: c_int = _IOW::<c_int>(T_TYPE, 212);
+pub const TUNATTACHFILTER: c_int =  _IOW::<sock_fprog>(T_TYPE, 213);
+pub const TUNDETACHFILTER: c_int = _IOW::<sock_fprog>(T_TYPE, 214);
+pub const TUNGETVNETHDRSZ: c_int = _IOR::<c_int>(T_TYPE, 215);
+pub const TUNSETVNETHDRSZ: c_int = _IOW::<c_int>(T_TYPE, 216);
+pub const TUNSETQUEUE: c_int = _IOW::<c_int>(T_TYPE, 217);
+pub const TUNSETIFINDEX: c_int = _IOW::<c_int>(T_TYPE, 218);
+pub const TUNGETFILTER: c_int = _IOR::<sock_fprog>(T_TYPE, 219);
+pub const TUNSETVNETLE: c_int = _IOW::<c_int>(T_TYPE, 220);
+pub const TUNGETVNETLE: c_int = _IOR::<c_int>(T_TYPE, 221);
+pub const TUNSETVNETBE: c_int = _IOW::<c_int>(T_TYPE, 222);
+pub const TUNGETVNETBE: c_int = _IOR::<c_int>(T_TYPE, 223);
+pub const TUNSETSTEERINGEBPF: c_int = _IOR::<c_int>(T_TYPE, 224);
+pub const TUNSETFILTEREBPF: c_int = _IOR::<c_int>(T_TYPE, 225);
+pub const TUNSETCARRIER: c_int = _IOW::<c_int>(T_TYPE, 226);
+pub const TUNGETDEVNETNS: c_int = _IO(T_TYPE, 227);
 
 // start android/platform/bionic/libc/kernel/uapi/linux/if_ether.h
 // from https://android.googlesource.com/platform/bionic/+/HEAD/libc/kernel/uapi/linux/if_ether.h
@@ -2942,6 +3004,9 @@ pub const SOF_TIMESTAMPING_OPT_TSONLY: c_uint = 1 << 11;
 pub const SOF_TIMESTAMPING_OPT_STATS: c_uint = 1 << 12;
 pub const SOF_TIMESTAMPING_OPT_PKTINFO: c_uint = 1 << 13;
 pub const SOF_TIMESTAMPING_OPT_TX_SWHW: c_uint = 1 << 14;
+pub const SOF_TIMESTAMPING_BIND_PHC: c_uint = 1 << 15;
+pub const SOF_TIMESTAMPING_OPT_ID_TCP: c_uint = 1 << 16;
+pub const SOF_TIMESTAMPING_OPT_RX_FILTER: c_uint = 1 << 17;
 
 #[deprecated(
     since = "0.2.55",
@@ -3568,6 +3633,10 @@ pub const AT_RSEQ_ALIGN: c_ulong = 28;
 pub const AT_EXECFN: c_ulong = 31;
 pub const AT_MINSIGSTKSZ: c_ulong = 51;
 
+// siginfo.h
+pub const SI_DETHREAD: c_int = -7;
+pub const TRAP_PERF: c_int = 6;
+
 // Most `*_SUPER_MAGIC` constants are defined at the `linux_like` level; the
 // following are only available on newer Linux versions than the versions
 // currently used in CI in some configurations, so we define them here.
@@ -3639,12 +3708,6 @@ f! {
         set1.__bits == set2.__bits
     }
 
-    pub fn major(dev: crate::dev_t) -> c_int {
-        ((dev >> 8) & 0xfff) as c_int
-    }
-    pub fn minor(dev: crate::dev_t) -> c_int {
-        ((dev & 0xff) | ((dev >> 12) & 0xfff00)) as c_int
-    }
     pub fn NLA_ALIGN(len: c_int) -> c_int {
         return ((len) + NLA_ALIGNTO - 1) & !(NLA_ALIGNTO - 1);
     }
@@ -3659,6 +3722,14 @@ safe_f! {
         let ma = ma as crate::dev_t;
         let mi = mi as crate::dev_t;
         ((ma & 0xfff) << 8) | (mi & 0xff) | ((mi & 0xfff00) << 12)
+    }
+
+    pub {const} fn major(dev: crate::dev_t) -> c_int {
+        ((dev >> 8) & 0xfff) as c_int
+    }
+
+    pub {const} fn minor(dev: crate::dev_t) -> c_int {
+        ((dev & 0xff) | ((dev >> 12) & 0xfff00)) as c_int
     }
 }
 
@@ -4050,6 +4121,8 @@ extern "C" {
 
     pub fn gettid() -> crate::pid_t;
 
+    pub fn getauxval(type_: c_ulong) -> c_ulong;
+
     /// Only available in API Version 28+
     pub fn getrandom(buf: *mut c_void, buflen: size_t, flags: c_uint) -> ssize_t;
     pub fn getentropy(buf: *mut c_void, buflen: size_t) -> c_int;
@@ -4126,6 +4199,9 @@ extern "C" {
         newpath: *const c_char,
         flags: c_uint,
     ) -> c_int;
+
+    pub fn if_nameindex() -> *mut if_nameindex;
+    pub fn if_freenameindex(ptr: *mut if_nameindex);
 }
 
 cfg_if! {
@@ -4222,4 +4298,24 @@ impl siginfo_t {
     pub unsafe fn si_stime(&self) -> c_long {
         self.sifields().sigchld.si_stime
     }
+}
+
+/// Build an ioctl number for an argumentless ioctl.
+pub const fn _IO(ty: u32, nr: u32) -> c_int {
+    super::_IOC(super::_IOC_NONE, ty, nr, 0) as c_int
+}
+
+/// Build an ioctl number for an read-only ioctl.
+pub const fn _IOR<T>(ty: u32, nr: u32) -> c_int {
+    super::_IOC(super::_IOC_READ, ty, nr, mem::size_of::<T>())  as c_int
+}
+
+/// Build an ioctl number for an write-only ioctl.
+pub const fn _IOW<T>(ty: u32, nr: u32) -> c_int {
+    super::_IOC(super::_IOC_WRITE, ty, nr, mem::size_of::<T>())  as c_int
+}
+
+/// Build an ioctl number for a read-write ioctl.
+pub const fn _IOWR<T>(ty: u32, nr: u32) -> c_int {
+    super::_IOC(super::_IOC_READ | super::_IOC_WRITE, ty, nr, mem::size_of::<T>())  as c_int
 }

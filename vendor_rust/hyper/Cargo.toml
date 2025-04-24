@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.63"
 name = "hyper"
-version = "1.4.1"
+version = "1.6.0"
 authors = ["Sean McArthur <sean@seanmonstar.com>"]
 build = false
 include = [
@@ -21,11 +21,12 @@ include = [
     "LICENSE",
     "src/**/*",
 ]
+autolib = false
 autobins = false
 autoexamples = false
 autotests = false
 autobenches = false
-description = "A fast and correct HTTP library."
+description = "A protective and efficient HTTP library for all."
 homepage = "https://hyper.rs"
 documentation = "https://docs.rs/hyper"
 readme = "README.md"
@@ -41,6 +42,13 @@ categories = [
 ]
 license = "MIT"
 repository = "https://github.com/hyperium/hyper"
+
+[package.metadata.capi.header]
+generation = false
+subdirectory = false
+
+[[package.metadata.capi.install.include.asset]]
+from = "capi/include/hyper.h"
 
 [package.metadata.docs.rs]
 features = [
@@ -58,13 +66,42 @@ rustdoc-args = [
 [package.metadata.playground]
 features = ["full"]
 
-[profile.bench]
-codegen-units = 1
-incremental = false
-
-[profile.release]
-codegen-units = 1
-incremental = false
+[features]
+capi = []
+client = [
+    "dep:want",
+    "dep:pin-project-lite",
+    "dep:smallvec",
+]
+default = []
+ffi = [
+    "dep:http-body-util",
+    "futures-util?/alloc",
+]
+full = [
+    "client",
+    "http1",
+    "http2",
+    "server",
+]
+http1 = [
+    "dep:futures-channel",
+    "dep:futures-util",
+    "dep:httparse",
+    "dep:itoa",
+]
+http2 = [
+    "dep:futures-channel",
+    "dep:futures-util",
+    "dep:h2",
+]
+nightly = []
+server = [
+    "dep:httpdate",
+    "dep:pin-project-lite",
+    "dep:smallvec",
+]
+tracing = ["dep:tracing"]
 
 [lib]
 name = "hyper"
@@ -97,7 +134,7 @@ version = "0.1"
 optional = true
 
 [dependencies.httparse]
-version = "1.8"
+version = "1.9"
 optional = true
 
 [dependencies.httpdate]
@@ -106,10 +143,6 @@ optional = true
 
 [dependencies.itoa]
 version = "1"
-optional = true
-
-[dependencies.libc]
-version = "0.2"
 optional = true
 
 [dependencies.pin-project-lite]
@@ -156,6 +189,9 @@ default-features = false
 [dev-dependencies.http-body-util]
 version = "0.1"
 
+[dev-dependencies.pin-project-lite]
+version = "0.2.4"
+
 [dev-dependencies.pretty_env_logger]
 version = "0.5"
 
@@ -190,43 +226,6 @@ version = "0.4"
 [dev-dependencies.tokio-util]
 version = "0.7.10"
 
-[features]
-client = [
-    "dep:want",
-    "dep:pin-project-lite",
-    "dep:smallvec",
-]
-default = []
-ffi = [
-    "dep:libc",
-    "dep:http-body-util",
-    "futures-util?/alloc",
-]
-full = [
-    "client",
-    "http1",
-    "http2",
-    "server",
-]
-http1 = [
-    "dep:futures-channel",
-    "dep:futures-util",
-    "dep:httparse",
-    "dep:itoa",
-]
-http2 = [
-    "dep:futures-channel",
-    "dep:futures-util",
-    "dep:h2",
-]
-nightly = []
-server = [
-    "dep:httpdate",
-    "dep:pin-project-lite",
-    "dep:smallvec",
-]
-tracing = ["dep:tracing"]
-
 [lints.rust.unexpected_cfgs]
 level = "warn"
 priority = 0
@@ -234,3 +233,11 @@ check-cfg = [
     "cfg(hyper_unstable_tracing)",
     "cfg(hyper_unstable_ffi)",
 ]
+
+[profile.bench]
+codegen-units = 1
+incremental = false
+
+[profile.release]
+codegen-units = 1
+incremental = false

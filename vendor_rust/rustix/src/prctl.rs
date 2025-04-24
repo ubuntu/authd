@@ -2,8 +2,8 @@
 
 #![allow(unsafe_code)]
 
-use crate::backend::c::{c_int, c_void};
 use crate::backend::prctl::syscalls;
+use crate::ffi::{c_int, c_void};
 use crate::io;
 use crate::utils::as_mut_ptr;
 use bitflags::bitflags;
@@ -11,7 +11,7 @@ use core::mem::MaybeUninit;
 use core::ptr::null_mut;
 
 bitflags! {
-    /// `PR_PAC_AP*`.
+    /// `PR_PAC_AP*`
     #[repr(transparent)]
     #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
     pub struct PointerAuthenticationKeys: u32 {

@@ -2,8 +2,9 @@
 
 mod conn;
 mod incoming;
+mod io_stream;
 mod service;
-#[cfg(feature = "tls")]
+#[cfg(feature = "_tls-any")]
 mod tls;
 #[cfg(unix)]
 mod unix;
@@ -11,7 +12,11 @@ mod unix;
 use tokio_stream::StreamExt as _;
 use tracing::{debug, trace};
 
-use crate::service::Routes;
+#[cfg(feature = "router")]
+use crate::{server::NamedService, service::Routes};
+
+#[cfg(feature = "router")]
+use std::convert::Infallible;
 
 pub use conn::{Connected, TcpConnectInfo};
 use hyper_util::{
@@ -19,13 +24,13 @@ use hyper_util::{
     server::conn::auto::{Builder as ConnectionBuilder, HttpServerConnExec},
     service::TowerToHyperService,
 };
-#[cfg(feature = "tls")]
+#[cfg(feature = "_tls-any")]
 pub use tls::ServerTlsConfig;
 
-#[cfg(feature = "tls")]
+#[cfg(feature = "_tls-any")]
 pub use conn::TlsConnectInfo;
 
-#[cfg(feature = "tls")]
+#[cfg(feature = "_tls-any")]
 use self::service::TlsAcceptor;
 
 #[cfg(unix)]
@@ -33,21 +38,19 @@ pub use unix::UdsConnectInfo;
 
 pub use incoming::TcpIncoming;
 
-#[cfg(feature = "tls")]
+#[cfg(feature = "_tls-any")]
 use crate::transport::Error;
 
-use self::service::{RecoverError, ServerIo};
+use self::service::{ConnectInfoLayer, ServerIo};
 use super::service::GrpcTimeout;
-use crate::body::{boxed, BoxBody};
-use crate::server::NamedService;
+use crate::body::Body;
+use crate::service::RecoverErrorLayer;
 use bytes::Bytes;
 use http::{Request, Response};
 use http_body_util::BodyExt;
 use hyper::{body::Incoming, service::Service as HyperService};
 use pin_project::pin_project;
-use std::future::pending;
 use std::{
-    convert::Infallible,
     fmt,
     future::{self, poll_fn, Future},
     marker::PhantomData,
@@ -58,20 +61,19 @@ use std::{
     time::Duration,
 };
 use tokio::io::{AsyncRead, AsyncWrite};
-use tokio::time::sleep;
 use tokio_stream::Stream;
 use tower::{
     layer::util::{Identity, Stack},
     layer::Layer,
     limit::concurrency::ConcurrencyLimitLayer,
-    util::{BoxCloneService, Either},
+    util::BoxCloneService,
     Service, ServiceBuilder, ServiceExt,
 };
 
-type BoxService = tower::util::BoxCloneService<Request<BoxBody>, Response<BoxBody>, crate::Error>;
+type BoxService = tower::util::BoxCloneService<Request<Body>, Response<Body>, crate::BoxError>;
 type TraceInterceptor = Arc<dyn Fn(&http::Request<()>) -> tracing::Span + Send + Sync + 'static>;
 
-const DEFAULT_HTTP2_KEEPALIVE_TIMEOUT_SECS: u64 = 20;
+const DEFAULT_HTTP2_KEEPALIVE_TIMEOUT: Duration = Duration::from_secs(20);
 
 /// A default batteries included `transport` server.
 ///
@@ -86,7 +88,7 @@ pub struct Server<L = Identity> {
     trace_interceptor: Option<TraceInterceptor>,
     concurrency_limit: Option<usize>,
     timeout: Option<Duration>,
-    #[cfg(feature = "tls")]
+    #[cfg(feature = "_tls-any")]
     tls: Option<TlsAcceptor>,
     init_stream_window_size: Option<u32>,
     init_connection_window_size: Option<u32>,
@@ -94,7 +96,7 @@ pub struct Server<L = Identity> {
     tcp_keepalive: Option<Duration>,
     tcp_nodelay: bool,
     http2_keepalive_interval: Option<Duration>,
-    http2_keepalive_timeout: Option<Duration>,
+    http2_keepalive_timeout: Duration,
     http2_adaptive_window: Option<bool>,
     http2_max_pending_accept_reset_streams: Option<usize>,
     http2_max_header_list_size: Option<u32>,
@@ -110,7 +112,7 @@ impl Default for Server<Identity> {
             trace_interceptor: None,
             concurrency_limit: None,
             timeout: None,
-            #[cfg(feature = "tls")]
+            #[cfg(feature = "_tls-any")]
             tls: None,
             init_stream_window_size: None,
             init_connection_window_size: None,
@@ -118,7 +120,7 @@ impl Default for Server<Identity> {
             tcp_keepalive: None,
             tcp_nodelay: false,
             http2_keepalive_interval: None,
-            http2_keepalive_timeout: None,
+            http2_keepalive_timeout: DEFAULT_HTTP2_KEEPALIVE_TIMEOUT,
             http2_adaptive_window: None,
             http2_max_pending_accept_reset_streams: None,
             http2_max_header_list_size: None,
@@ -131,14 +133,11 @@ impl Default for Server<Identity> {
 }
 
 /// A stack based [`Service`] router.
+#[cfg(feature = "router")]
 #[derive(Debug)]
 pub struct Router<L = Identity> {
     server: Server<L>,
     routes: Routes,
-}
-
-impl<S: NamedService, T> NamedService for Either<S, T> {
-    const NAME: &'static str = S::NAME;
 }
 
 impl Server {
@@ -154,7 +153,7 @@ impl Server {
 
 impl<L> Server<L> {
     /// Configure TLS for this server.
-    #[cfg(feature = "tls")]
+    #[cfg(feature = "_tls-any")]
     pub fn tls_config(self, tls_config: ServerTlsConfig) -> Result<Self, Error> {
         Ok(Server {
             tls: Some(tls_config.tls_acceptor().map_err(Error::from_source)?),
@@ -284,11 +283,11 @@ impl<L> Server<L> {
     /// Default is 20 seconds.
     ///
     #[must_use]
-    pub fn http2_keepalive_timeout(self, http2_keepalive_timeout: Option<Duration>) -> Self {
-        Server {
-            http2_keepalive_timeout,
-            ..self
+    pub fn http2_keepalive_timeout(mut self, http2_keepalive_timeout: Option<Duration>) -> Self {
+        if let Some(timeout) = http2_keepalive_timeout {
+            self.http2_keepalive_timeout = timeout;
         }
+        self
     }
 
     /// Sets whether to use an adaptive flow control. Defaults to false.
@@ -396,13 +395,16 @@ impl<L> Server<L> {
     ///
     /// This will clone the `Server` builder and create a router that will
     /// route around different services.
+    #[cfg(feature = "router")]
     pub fn add_service<S>(&mut self, svc: S) -> Router<L>
     where
-        S: Service<Request<BoxBody>, Response = Response<BoxBody>, Error = Infallible>
+        S: Service<Request<Body>, Error = Infallible>
             + NamedService
             + Clone
             + Send
+            + Sync
             + 'static,
+        S::Response: axum::response::IntoResponse,
         S::Future: Send + 'static,
         L: Clone,
     {
@@ -417,13 +419,16 @@ impl<L> Server<L> {
     /// # Note
     /// Even when the argument given is `None` this will capture *all* requests to this service name.
     /// As a result, one cannot use this to toggle between two identically named implementations.
+    #[cfg(feature = "router")]
     pub fn add_optional_service<S>(&mut self, svc: Option<S>) -> Router<L>
     where
-        S: Service<Request<BoxBody>, Response = Response<BoxBody>, Error = Infallible>
+        S: Service<Request<Body>, Error = Infallible>
             + NamedService
             + Clone
             + Send
+            + Sync
             + 'static,
+        S::Response: axum::response::IntoResponse,
         S::Future: Send + 'static,
         L: Clone,
     {
@@ -435,6 +440,7 @@ impl<L> Server<L> {
     ///
     /// This will clone the `Server` builder and create a router that will
     /// route around different services that were already added to the provided `routes`.
+    #[cfg(feature = "router")]
     pub fn add_routes(&mut self, routes: Routes) -> Router<L>
     where
         L: Clone,
@@ -469,7 +475,7 @@ impl<L> Server<L> {
     /// # use tower_service::Service;
     /// use tower::ServiceBuilder;
     /// use std::time::Duration;
-    /// use tonic::{Request, Status, service::interceptor};
+    /// use tonic::{Request, Status, service::InterceptorLayer};
     ///
     /// fn auth_interceptor(request: Request<()>) -> Result<Request<()>, Status> {
     ///     if valid_credentials(&request) {
@@ -491,8 +497,8 @@ impl<L> Server<L> {
     /// let layer = ServiceBuilder::new()
     ///     .load_shed()
     ///     .timeout(Duration::from_secs(30))
-    ///     .layer(interceptor(auth_interceptor))
-    ///     .layer(interceptor(some_other_interceptor))
+    ///     .layer(InterceptorLayer::new(auth_interceptor))
+    ///     .layer(InterceptorLayer::new(some_other_interceptor))
     ///     .into_inner();
     ///
     /// Server::builder().layer(layer);
@@ -509,7 +515,7 @@ impl<L> Server<L> {
             trace_interceptor: self.trace_interceptor,
             concurrency_limit: self.concurrency_limit,
             timeout: self.timeout,
-            #[cfg(feature = "tls")]
+            #[cfg(feature = "_tls-any")]
             tls: self.tls,
             init_stream_window_size: self.init_stream_window_size,
             init_connection_window_size: self.init_connection_window_size,
@@ -527,7 +533,96 @@ impl<L> Server<L> {
         }
     }
 
-    pub(crate) async fn serve_with_shutdown<S, I, F, IO, IE, ResBody>(
+    fn bind_incoming(&self, addr: SocketAddr) -> Result<TcpIncoming, super::Error> {
+        Ok(TcpIncoming::bind(addr)
+            .map_err(super::Error::from_source)?
+            .with_nodelay(Some(self.tcp_nodelay))
+            .with_keepalive(self.tcp_keepalive))
+    }
+
+    /// Serve the service.
+    pub async fn serve<S, ResBody>(self, addr: SocketAddr, svc: S) -> Result<(), super::Error>
+    where
+        L: Layer<S>,
+        L::Service: Service<Request<Body>, Response = Response<ResBody>> + Clone + Send + 'static,
+        <<L as Layer<S>>::Service as Service<Request<Body>>>::Future: Send,
+        <<L as Layer<S>>::Service as Service<Request<Body>>>::Error:
+            Into<crate::BoxError> + Send + 'static,
+        ResBody: http_body::Body<Data = Bytes> + Send + 'static,
+        ResBody::Error: Into<crate::BoxError>,
+    {
+        let incoming = self.bind_incoming(addr)?;
+        self.serve_with_incoming(svc, incoming).await
+    }
+
+    /// Serve the service with the shutdown signal.
+    pub async fn serve_with_shutdown<S, F, ResBody>(
+        self,
+        addr: SocketAddr,
+        svc: S,
+        signal: F,
+    ) -> Result<(), super::Error>
+    where
+        L: Layer<S>,
+        L::Service: Service<Request<Body>, Response = Response<ResBody>> + Clone + Send + 'static,
+        <<L as Layer<S>>::Service as Service<Request<Body>>>::Future: Send,
+        <<L as Layer<S>>::Service as Service<Request<Body>>>::Error:
+            Into<crate::BoxError> + Send + 'static,
+        F: Future<Output = ()>,
+        ResBody: http_body::Body<Data = Bytes> + Send + 'static,
+        ResBody::Error: Into<crate::BoxError>,
+    {
+        let incoming = self.bind_incoming(addr)?;
+        self.serve_with_incoming_shutdown(svc, incoming, signal)
+            .await
+    }
+
+    /// Serve the service on the provided incoming stream.
+    pub async fn serve_with_incoming<S, I, IO, IE, ResBody>(
+        self,
+        svc: S,
+        incoming: I,
+    ) -> Result<(), super::Error>
+    where
+        L: Layer<S>,
+        L::Service: Service<Request<Body>, Response = Response<ResBody>> + Clone + Send + 'static,
+        <<L as Layer<S>>::Service as Service<Request<Body>>>::Future: Send,
+        <<L as Layer<S>>::Service as Service<Request<Body>>>::Error:
+            Into<crate::BoxError> + Send + 'static,
+        I: Stream<Item = Result<IO, IE>>,
+        IO: AsyncRead + AsyncWrite + Connected + Unpin + Send + 'static,
+        IE: Into<crate::BoxError>,
+        ResBody: http_body::Body<Data = Bytes> + Send + 'static,
+        ResBody::Error: Into<crate::BoxError>,
+    {
+        self.serve_internal(svc, incoming, Option::<future::Ready<()>>::None)
+            .await
+    }
+
+    /// Serve the service with the signal on the provided incoming stream.
+    pub async fn serve_with_incoming_shutdown<S, I, F, IO, IE, ResBody>(
+        self,
+        svc: S,
+        incoming: I,
+        signal: F,
+    ) -> Result<(), super::Error>
+    where
+        L: Layer<S>,
+        L::Service: Service<Request<Body>, Response = Response<ResBody>> + Clone + Send + 'static,
+        <<L as Layer<S>>::Service as Service<Request<Body>>>::Future: Send,
+        <<L as Layer<S>>::Service as Service<Request<Body>>>::Error:
+            Into<crate::BoxError> + Send + 'static,
+        I: Stream<Item = Result<IO, IE>>,
+        IO: AsyncRead + AsyncWrite + Connected + Unpin + Send + 'static,
+        IE: Into<crate::BoxError>,
+        F: Future<Output = ()>,
+        ResBody: http_body::Body<Data = Bytes> + Send + 'static,
+        ResBody::Error: Into<crate::BoxError>,
+    {
+        self.serve_internal(svc, incoming, Some(signal)).await
+    }
+
+    async fn serve_internal<S, I, F, IO, IE, ResBody>(
         self,
         svc: S,
         incoming: I,
@@ -535,18 +630,16 @@ impl<L> Server<L> {
     ) -> Result<(), super::Error>
     where
         L: Layer<S>,
-        L::Service:
-            Service<Request<BoxBody>, Response = Response<ResBody>> + Clone + Send + 'static,
-        <<L as Layer<S>>::Service as Service<Request<BoxBody>>>::Future: Send + 'static,
-        <<L as Layer<S>>::Service as Service<Request<BoxBody>>>::Error:
-            Into<crate::Error> + Send + 'static,
+        L::Service: Service<Request<Body>, Response = Response<ResBody>> + Clone + Send + 'static,
+        <<L as Layer<S>>::Service as Service<Request<Body>>>::Future: Send,
+        <<L as Layer<S>>::Service as Service<Request<Body>>>::Error:
+            Into<crate::BoxError> + Send + 'static,
         I: Stream<Item = Result<IO, IE>>,
         IO: AsyncRead + AsyncWrite + Connected + Unpin + Send + 'static,
-        IO::ConnectInfo: Clone + Send + Sync + 'static,
-        IE: Into<crate::Error>,
+        IE: Into<crate::BoxError>,
         F: Future<Output = ()>,
         ResBody: http_body::Body<Data = Bytes> + Send + 'static,
-        ResBody::Error: Into<crate::Error>,
+        ResBody::Error: Into<crate::BoxError>,
     {
         let trace_interceptor = self.trace_interceptor.clone();
         let concurrency_limit = self.concurrency_limit;
@@ -559,18 +652,16 @@ impl<L> Server<L> {
         let http2_only = !self.accept_http1;
 
         let http2_keepalive_interval = self.http2_keepalive_interval;
-        let http2_keepalive_timeout = self
-            .http2_keepalive_timeout
-            .unwrap_or_else(|| Duration::new(DEFAULT_HTTP2_KEEPALIVE_TIMEOUT_SECS, 0));
+        let http2_keepalive_timeout = self.http2_keepalive_timeout;
         let http2_adaptive_window = self.http2_adaptive_window;
         let http2_max_pending_accept_reset_streams = self.http2_max_pending_accept_reset_streams;
         let max_connection_age = self.max_connection_age;
 
         let svc = self.service_builder.service(svc);
 
-        let incoming = incoming::tcp_incoming(
+        let incoming = io_stream::ServerIoStream::new(
             incoming,
-            #[cfg(feature = "tls")]
+            #[cfg(feature = "_tls-any")]
             self.tls,
         );
         let mut svc = MakeSvc {
@@ -644,7 +735,7 @@ impl<L> Server<L> {
                         .map_err(super::Error::from_source)?;
 
                     let hyper_io = TokioIo::new(io);
-                    let hyper_svc = TowerToHyperService::new(req_svc.map_request(|req: Request<Incoming>| req.map(boxed)));
+                    let hyper_svc = TowerToHyperService::new(req_svc.map_request(|req: Request<Incoming>| req.map(Body::new)));
 
                     serve_connection(hyper_io, hyper_svc, server.clone(), graceful.then(|| signal_rx.clone()), max_connection_age);
                 }
@@ -693,8 +784,7 @@ fn serve_connection<B, IO, S, E>(
 
             let mut conn = pin!(builder.serve_connection(hyper_io, hyper_svc));
 
-            let sleep = sleep_or_pending(max_connection_age);
-            tokio::pin!(sleep);
+            let mut sleep = pin!(sleep_or_pending(max_connection_age));
 
             loop {
                 tokio::select! {
@@ -722,26 +812,30 @@ fn serve_connection<B, IO, S, E>(
 
 async fn sleep_or_pending(wait_for: Option<Duration>) {
     match wait_for {
-        Some(wait) => sleep(wait).await,
-        None => pending().await,
+        Some(wait) => tokio::time::sleep(wait).await,
+        None => future::pending().await,
     };
 }
 
+#[cfg(feature = "router")]
 impl<L> Router<L> {
     pub(crate) fn new(server: Server<L>, routes: Routes) -> Self {
         Self { server, routes }
     }
 }
 
+#[cfg(feature = "router")]
 impl<L> Router<L> {
     /// Add a new service to this router.
     pub fn add_service<S>(mut self, svc: S) -> Self
     where
-        S: Service<Request<BoxBody>, Response = Response<BoxBody>, Error = Infallible>
+        S: Service<Request<Body>, Error = Infallible>
             + NamedService
             + Clone
             + Send
+            + Sync
             + 'static,
+        S::Response: axum::response::IntoResponse,
         S::Future: Send + 'static,
     {
         self.routes = self.routes.add_service(svc);
@@ -753,26 +847,21 @@ impl<L> Router<L> {
     /// # Note
     /// Even when the argument given is `None` this will capture *all* requests to this service name.
     /// As a result, one cannot use this to toggle between two identically named implementations.
-    #[allow(clippy::type_complexity)]
     pub fn add_optional_service<S>(mut self, svc: Option<S>) -> Self
     where
-        S: Service<Request<BoxBody>, Response = Response<BoxBody>, Error = Infallible>
+        S: Service<Request<Body>, Error = Infallible>
             + NamedService
             + Clone
             + Send
+            + Sync
             + 'static,
+        S::Response: axum::response::IntoResponse,
         S::Future: Send + 'static,
     {
         if let Some(svc) = svc {
             self.routes = self.routes.add_service(svc);
         }
         self
-    }
-
-    /// Convert this tonic `Router` into an axum `Router` consuming the tonic one.
-    #[deprecated(since = "0.12.2", note = "Use `Routes::into_axum_router` instead.")]
-    pub fn into_router(self) -> axum::Router {
-        self.routes.into_axum_router()
     }
 
     /// Consume this [`Server`] creating a future that will execute the server
@@ -783,23 +872,14 @@ impl<L> Router<L> {
     pub async fn serve<ResBody>(self, addr: SocketAddr) -> Result<(), super::Error>
     where
         L: Layer<Routes> + Clone,
-        L::Service:
-            Service<Request<BoxBody>, Response = Response<ResBody>> + Clone + Send + 'static,
-        <<L as Layer<Routes>>::Service as Service<Request<BoxBody>>>::Future: Send + 'static,
-        <<L as Layer<Routes>>::Service as Service<Request<BoxBody>>>::Error:
-            Into<crate::Error> + Send,
+        L::Service: Service<Request<Body>, Response = Response<ResBody>> + Clone + Send + 'static,
+        <<L as Layer<Routes>>::Service as Service<Request<Body>>>::Future: Send,
+        <<L as Layer<Routes>>::Service as Service<Request<Body>>>::Error:
+            Into<crate::BoxError> + Send,
         ResBody: http_body::Body<Data = Bytes> + Send + 'static,
-        ResBody::Error: Into<crate::Error>,
+        ResBody::Error: Into<crate::BoxError>,
     {
-        let incoming = TcpIncoming::new(addr, self.server.tcp_nodelay, self.server.tcp_keepalive)
-            .map_err(super::Error::from_source)?;
-        self.server
-            .serve_with_shutdown::<_, _, future::Ready<()>, _, _, ResBody>(
-                self.routes.prepare(),
-                incoming,
-                None,
-            )
-            .await
+        self.server.serve(addr, self.routes.prepare()).await
     }
 
     /// Consume this [`Server`] creating a future that will execute the server
@@ -815,18 +895,15 @@ impl<L> Router<L> {
     ) -> Result<(), super::Error>
     where
         L: Layer<Routes>,
-        L::Service:
-            Service<Request<BoxBody>, Response = Response<ResBody>> + Clone + Send + 'static,
-        <<L as Layer<Routes>>::Service as Service<Request<BoxBody>>>::Future: Send + 'static,
-        <<L as Layer<Routes>>::Service as Service<Request<BoxBody>>>::Error:
-            Into<crate::Error> + Send,
+        L::Service: Service<Request<Body>, Response = Response<ResBody>> + Clone + Send + 'static,
+        <<L as Layer<Routes>>::Service as Service<Request<Body>>>::Future: Send,
+        <<L as Layer<Routes>>::Service as Service<Request<Body>>>::Error:
+            Into<crate::BoxError> + Send,
         ResBody: http_body::Body<Data = Bytes> + Send + 'static,
-        ResBody::Error: Into<crate::Error>,
+        ResBody::Error: Into<crate::BoxError>,
     {
-        let incoming = TcpIncoming::new(addr, self.server.tcp_nodelay, self.server.tcp_keepalive)
-            .map_err(super::Error::from_source)?;
         self.server
-            .serve_with_shutdown(self.routes.prepare(), incoming, Some(signal))
+            .serve_with_shutdown(addr, self.routes.prepare(), signal)
             .await
     }
 
@@ -843,23 +920,18 @@ impl<L> Router<L> {
     where
         I: Stream<Item = Result<IO, IE>>,
         IO: AsyncRead + AsyncWrite + Connected + Unpin + Send + 'static,
-        IO::ConnectInfo: Clone + Send + Sync + 'static,
-        IE: Into<crate::Error>,
+        IE: Into<crate::BoxError>,
         L: Layer<Routes>,
-        L::Service:
-            Service<Request<BoxBody>, Response = Response<ResBody>> + Clone + Send + 'static,
-        <<L as Layer<Routes>>::Service as Service<Request<BoxBody>>>::Future: Send + 'static,
-        <<L as Layer<Routes>>::Service as Service<Request<BoxBody>>>::Error:
-            Into<crate::Error> + Send,
+
+        L::Service: Service<Request<Body>, Response = Response<ResBody>> + Clone + Send + 'static,
+        <<L as Layer<Routes>>::Service as Service<Request<Body>>>::Future: Send,
+        <<L as Layer<Routes>>::Service as Service<Request<Body>>>::Error:
+            Into<crate::BoxError> + Send,
         ResBody: http_body::Body<Data = Bytes> + Send + 'static,
-        ResBody::Error: Into<crate::Error>,
+        ResBody::Error: Into<crate::BoxError>,
     {
         self.server
-            .serve_with_shutdown::<_, _, future::Ready<()>, _, _, ResBody>(
-                self.routes.prepare(),
-                incoming,
-                None,
-            )
+            .serve_with_incoming(self.routes.prepare(), incoming)
             .await
     }
 
@@ -879,36 +951,19 @@ impl<L> Router<L> {
     where
         I: Stream<Item = Result<IO, IE>>,
         IO: AsyncRead + AsyncWrite + Connected + Unpin + Send + 'static,
-        IO::ConnectInfo: Clone + Send + Sync + 'static,
-        IE: Into<crate::Error>,
+        IE: Into<crate::BoxError>,
         F: Future<Output = ()>,
         L: Layer<Routes>,
-        L::Service:
-            Service<Request<BoxBody>, Response = Response<ResBody>> + Clone + Send + 'static,
-        <<L as Layer<Routes>>::Service as Service<Request<BoxBody>>>::Future: Send + 'static,
-        <<L as Layer<Routes>>::Service as Service<Request<BoxBody>>>::Error:
-            Into<crate::Error> + Send,
+        L::Service: Service<Request<Body>, Response = Response<ResBody>> + Clone + Send + 'static,
+        <<L as Layer<Routes>>::Service as Service<Request<Body>>>::Future: Send,
+        <<L as Layer<Routes>>::Service as Service<Request<Body>>>::Error:
+            Into<crate::BoxError> + Send,
         ResBody: http_body::Body<Data = Bytes> + Send + 'static,
-        ResBody::Error: Into<crate::Error>,
+        ResBody::Error: Into<crate::BoxError>,
     {
         self.server
-            .serve_with_shutdown(self.routes.prepare(), incoming, Some(signal))
+            .serve_with_incoming_shutdown(self.routes.prepare(), incoming, signal)
             .await
-    }
-
-    /// Create a tower service out of a router.
-    pub fn into_service<ResBody>(self) -> L::Service
-    where
-        L: Layer<Routes>,
-        L::Service:
-            Service<Request<BoxBody>, Response = Response<ResBody>> + Clone + Send + 'static,
-        <<L as Layer<Routes>>::Service as Service<Request<BoxBody>>>::Future: Send + 'static,
-        <<L as Layer<Routes>>::Service as Service<Request<BoxBody>>>::Error:
-            Into<crate::Error> + Send,
-        ResBody: http_body::Body<Data = Bytes> + Send + 'static,
-        ResBody::Error: Into<crate::Error>,
-    {
-        self.server.service_builder.service(self.routes.prepare())
     }
 }
 
@@ -924,22 +979,22 @@ struct Svc<S> {
     trace_interceptor: Option<TraceInterceptor>,
 }
 
-impl<S, ResBody> Service<Request<BoxBody>> for Svc<S>
+impl<S, ResBody> Service<Request<Body>> for Svc<S>
 where
-    S: Service<Request<BoxBody>, Response = Response<ResBody>>,
-    S::Error: Into<crate::Error>,
+    S: Service<Request<Body>, Response = Response<ResBody>>,
+    S::Error: Into<crate::BoxError>,
     ResBody: http_body::Body<Data = Bytes> + Send + 'static,
-    ResBody::Error: Into<crate::Error>,
+    ResBody::Error: Into<crate::BoxError>,
 {
-    type Response = Response<BoxBody>;
-    type Error = crate::Error;
+    type Response = Response<Body>;
+    type Error = crate::BoxError;
     type Future = SvcFuture<S::Future>;
 
     fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
         self.inner.poll_ready(cx).map_err(Into::into)
     }
 
-    fn call(&mut self, mut req: Request<BoxBody>) -> Self::Future {
+    fn call(&mut self, mut req: Request<Body>) -> Self::Future {
         let span = if let Some(trace_interceptor) = &self.trace_interceptor {
             let (parts, body) = req.into_parts();
             let bodyless_request = Request::from_parts(parts, ());
@@ -971,18 +1026,18 @@ struct SvcFuture<F> {
 impl<F, E, ResBody> Future for SvcFuture<F>
 where
     F: Future<Output = Result<Response<ResBody>, E>>,
-    E: Into<crate::Error>,
+    E: Into<crate::BoxError>,
     ResBody: http_body::Body<Data = Bytes> + Send + 'static,
-    ResBody::Error: Into<crate::Error>,
+    ResBody::Error: Into<crate::BoxError>,
 {
-    type Output = Result<Response<BoxBody>, crate::Error>;
+    type Output = Result<Response<Body>, crate::BoxError>;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let this = self.project();
         let _guard = this.span.enter();
 
         let response: Response<ResBody> = ready!(this.inner.poll(cx)).map_err(Into::into)?;
-        let response = response.map(|body| boxed(body.map_err(Into::into)));
+        let response = response.map(|body| Body::new(body.map_err(Into::into)));
         Poll::Ready(Ok(response))
     }
 }
@@ -1004,15 +1059,15 @@ struct MakeSvc<S, IO> {
 
 impl<S, ResBody, IO> Service<&ServerIo<IO>> for MakeSvc<S, IO>
 where
-    IO: Connected,
-    S: Service<Request<BoxBody>, Response = Response<ResBody>> + Clone + Send + 'static,
-    S::Future: Send + 'static,
-    S::Error: Into<crate::Error> + Send,
+    IO: Connected + 'static,
+    S: Service<Request<Body>, Response = Response<ResBody>> + Clone + Send + 'static,
+    S::Future: Send,
+    S::Error: Into<crate::BoxError> + Send,
     ResBody: http_body::Body<Data = Bytes> + Send + 'static,
-    ResBody::Error: Into<crate::Error>,
+    ResBody::Error: Into<crate::BoxError>,
 {
     type Response = BoxService;
-    type Error = crate::Error;
+    type Error = crate::BoxError;
     type Future = future::Ready<Result<Self::Response, Self::Error>>;
 
     fn poll_ready(&mut self, _cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
@@ -1028,36 +1083,14 @@ where
         let trace_interceptor = self.trace_interceptor.clone();
 
         let svc = ServiceBuilder::new()
-            .layer_fn(RecoverError::new)
+            .layer(RecoverErrorLayer::new())
             .option_layer(concurrency_limit.map(ConcurrencyLimitLayer::new))
             .layer_fn(|s| GrpcTimeout::new(s, timeout))
             .service(svc);
 
         let svc = ServiceBuilder::new()
             .layer(BoxCloneService::layer())
-            .map_request(move |mut request: Request<BoxBody>| {
-                match &conn_info {
-                    tower::util::Either::A(inner) => {
-                        request.extensions_mut().insert(inner.clone());
-                    }
-                    tower::util::Either::B(inner) => {
-                        #[cfg(feature = "tls")]
-                        {
-                            request.extensions_mut().insert(inner.clone());
-                            request.extensions_mut().insert(inner.get_ref().clone());
-                        }
-
-                        #[cfg(not(feature = "tls"))]
-                        {
-                            // just a type check to make sure we didn't forget to
-                            // insert this into the extensions
-                            let _: &() = inner;
-                        }
-                    }
-                }
-
-                request
-            })
+            .layer(ConnectInfoLayer::new(conn_info.clone()))
             .service(Svc {
                 inner: svc,
                 trace_interceptor,

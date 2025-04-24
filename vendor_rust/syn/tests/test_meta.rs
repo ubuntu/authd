@@ -1,4 +1,6 @@
 #![allow(
+    clippy::elidable_lifetime_names,
+    clippy::needless_lifetimes,
     clippy::shadow_unrelated,
     clippy::too_many_lines,
     clippy::uninlined_format_args
@@ -13,7 +15,7 @@ use syn::{Meta, MetaList, MetaNameValue};
 fn test_parse_meta_item_word() {
     let input = "hello";
 
-    snapshot!(input as Meta, @r###"
+    snapshot!(input as Meta, @r#"
     Meta::Path {
         segments: [
             PathSegment {
@@ -21,7 +23,7 @@ fn test_parse_meta_item_word() {
             },
         ],
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -29,7 +31,7 @@ fn test_parse_meta_name_value() {
     let input = "foo = 5";
     let (inner, meta) = (input, input);
 
-    snapshot!(inner as MetaNameValue, @r###"
+    snapshot!(inner as MetaNameValue, @r#"
     MetaNameValue {
         path: Path {
             segments: [
@@ -42,9 +44,9 @@ fn test_parse_meta_name_value() {
             lit: 5,
         },
     }
-    "###);
+    "#);
 
-    snapshot!(meta as Meta, @r###"
+    snapshot!(meta as Meta, @r#"
     Meta::NameValue {
         path: Path {
             segments: [
@@ -57,7 +59,7 @@ fn test_parse_meta_name_value() {
             lit: 5,
         },
     }
-    "###);
+    "#);
 
     assert_eq!(meta, Meta::NameValue(inner));
 }
@@ -67,7 +69,7 @@ fn test_parse_meta_item_list_lit() {
     let input = "foo(5)";
     let (inner, meta) = (input, input);
 
-    snapshot!(inner as MetaList, @r###"
+    snapshot!(inner as MetaList, @r#"
     MetaList {
         path: Path {
             segments: [
@@ -79,9 +81,9 @@ fn test_parse_meta_item_list_lit() {
         delimiter: MacroDelimiter::Paren,
         tokens: TokenStream(`5`),
     }
-    "###);
+    "#);
 
-    snapshot!(meta as Meta, @r###"
+    snapshot!(meta as Meta, @r#"
     Meta::List {
         path: Path {
             segments: [
@@ -93,7 +95,7 @@ fn test_parse_meta_item_list_lit() {
         delimiter: MacroDelimiter::Paren,
         tokens: TokenStream(`5`),
     }
-    "###);
+    "#);
 
     assert_eq!(meta, Meta::List(inner));
 }
@@ -103,7 +105,7 @@ fn test_parse_meta_item_multiple() {
     let input = "foo(word, name = 5, list(name2 = 6), word2)";
     let (inner, meta) = (input, input);
 
-    snapshot!(inner as MetaList, @r###"
+    snapshot!(inner as MetaList, @r#"
     MetaList {
         path: Path {
             segments: [
@@ -115,9 +117,9 @@ fn test_parse_meta_item_multiple() {
         delimiter: MacroDelimiter::Paren,
         tokens: TokenStream(`word , name = 5 , list (name2 = 6) , word2`),
     }
-    "###);
+    "#);
 
-    snapshot!(meta as Meta, @r###"
+    snapshot!(meta as Meta, @r#"
     Meta::List {
         path: Path {
             segments: [
@@ -129,7 +131,7 @@ fn test_parse_meta_item_multiple() {
         delimiter: MacroDelimiter::Paren,
         tokens: TokenStream(`word , name = 5 , list (name2 = 6) , word2`),
     }
-    "###);
+    "#);
 
     assert_eq!(meta, Meta::List(inner));
 }
@@ -137,7 +139,7 @@ fn test_parse_meta_item_multiple() {
 #[test]
 fn test_parse_path() {
     let input = "::serde::Serialize";
-    snapshot!(input as Meta, @r###"
+    snapshot!(input as Meta, @r#"
     Meta::Path {
         leading_colon: Some,
         segments: [
@@ -150,5 +152,5 @@ fn test_parse_path() {
             },
         ],
     }
-    "###);
+    "#);
 }

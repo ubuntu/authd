@@ -40,7 +40,15 @@ rustc-dep-of-std = ["dep:core", "dep:alloc", "dep:compiler_builtins"]
 std = ["fallible-iterator?/std", "stable_deref_trait?/std"]
 write = ["dep:indexmap"]
 
+[lib]
+name = "gimli"
+path = "src/lib.rs"
+
 [package]
+autobenches = false
+autobins = false
+autoexamples = false
+autotests = false
 categories = ["development-tools::debugging", "development-tools::profiling", "parser-implementations"]
 description = "A library for reading and writing the DWARF debugging format."
 documentation = "https://docs.rs/gimli"
@@ -49,11 +57,11 @@ include = ["/CHANGELOG.md", "/Cargo.toml", "/LICENSE-APACHE", "/LICENSE-MIT", "/
 keywords = ["DWARF", "debug", "ELF", "eh_frame"]
 license = "MIT OR Apache-2.0"
 name = "gimli"
-readme = "./README.md"
+readme = "README.md"
 repository = "https://github.com/gimli-rs/gimli"
 resolver = "2"
 rust-version = "1.60"
-version = "0.28.1"
+version = "0.31.1"
 
 [profile.bench]
 codegen-units = 1

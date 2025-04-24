@@ -103,7 +103,7 @@ impl Comments {
         let mut chars = sanitized_line.chars();
         chars
             .next()
-            .map_or(false, |c| c != ' ' || chars.next() == Some(' '))
+            .is_some_and(|c| c != ' ' || chars.next() == Some(' '))
     }
 
     /// Sanitizes the line for rustdoc by performing the following operations:
@@ -202,9 +202,6 @@ where
                 match event {
                     Event::Start(Tag::CodeBlock(kind)) => {
                         Event::Start(Tag::CodeBlock(map_codeblock(kind)))
-                    }
-                    Event::End(Tag::CodeBlock(kind)) => {
-                        Event::End(Tag::CodeBlock(map_codeblock(kind)))
                     }
                     e => e,
                 }

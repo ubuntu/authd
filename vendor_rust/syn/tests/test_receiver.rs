@@ -1,4 +1,8 @@
-#![allow(clippy::uninlined_format_args)]
+#![allow(
+    clippy::elidable_lifetime_names,
+    clippy::needless_lifetimes,
+    clippy::uninlined_format_args
+)]
 
 #[macro_use]
 mod macros;
@@ -10,7 +14,7 @@ fn test_by_value() {
     let TraitItemFn { sig, .. } = parse_quote! {
         fn by_value(self: Self);
     };
-    snapshot!(&sig.inputs[0], @r###"
+    snapshot!(&sig.inputs[0], @r#"
     FnArg::Receiver(Receiver {
         colon_token: Some,
         ty: Type::Path {
@@ -23,7 +27,7 @@ fn test_by_value() {
             },
         },
     })
-    "###);
+    "#);
 }
 
 #[test]
@@ -31,7 +35,7 @@ fn test_by_mut_value() {
     let TraitItemFn { sig, .. } = parse_quote! {
         fn by_mut(mut self: Self);
     };
-    snapshot!(&sig.inputs[0], @r###"
+    snapshot!(&sig.inputs[0], @r#"
     FnArg::Receiver(Receiver {
         mutability: Some,
         colon_token: Some,
@@ -45,7 +49,7 @@ fn test_by_mut_value() {
             },
         },
     })
-    "###);
+    "#);
 }
 
 #[test]
@@ -53,7 +57,7 @@ fn test_by_ref() {
     let TraitItemFn { sig, .. } = parse_quote! {
         fn by_ref(self: &Self);
     };
-    snapshot!(&sig.inputs[0], @r###"
+    snapshot!(&sig.inputs[0], @r#"
     FnArg::Receiver(Receiver {
         colon_token: Some,
         ty: Type::Reference {
@@ -68,7 +72,7 @@ fn test_by_ref() {
             },
         },
     })
-    "###);
+    "#);
 }
 
 #[test]
@@ -76,7 +80,7 @@ fn test_by_box() {
     let TraitItemFn { sig, .. } = parse_quote! {
         fn by_box(self: Box<Self>);
     };
-    snapshot!(&sig.inputs[0], @r###"
+    snapshot!(&sig.inputs[0], @r#"
     FnArg::Receiver(Receiver {
         colon_token: Some,
         ty: Type::Path {
@@ -102,7 +106,7 @@ fn test_by_box() {
             },
         },
     })
-    "###);
+    "#);
 }
 
 #[test]
@@ -110,7 +114,7 @@ fn test_by_pin() {
     let TraitItemFn { sig, .. } = parse_quote! {
         fn by_pin(self: Pin<Self>);
     };
-    snapshot!(&sig.inputs[0], @r###"
+    snapshot!(&sig.inputs[0], @r#"
     FnArg::Receiver(Receiver {
         colon_token: Some,
         ty: Type::Path {
@@ -136,7 +140,7 @@ fn test_by_pin() {
             },
         },
     })
-    "###);
+    "#);
 }
 
 #[test]
@@ -144,7 +148,7 @@ fn test_explicit_type() {
     let TraitItemFn { sig, .. } = parse_quote! {
         fn explicit_type(self: Pin<MyType>);
     };
-    snapshot!(&sig.inputs[0], @r###"
+    snapshot!(&sig.inputs[0], @r#"
     FnArg::Receiver(Receiver {
         colon_token: Some,
         ty: Type::Path {
@@ -170,7 +174,7 @@ fn test_explicit_type() {
             },
         },
     })
-    "###);
+    "#);
 }
 
 #[test]
@@ -178,7 +182,7 @@ fn test_value_shorthand() {
     let TraitItemFn { sig, .. } = parse_quote! {
         fn value_shorthand(self);
     };
-    snapshot!(&sig.inputs[0], @r###"
+    snapshot!(&sig.inputs[0], @r#"
     FnArg::Receiver(Receiver {
         ty: Type::Path {
             path: Path {
@@ -190,7 +194,7 @@ fn test_value_shorthand() {
             },
         },
     })
-    "###);
+    "#);
 }
 
 #[test]
@@ -198,7 +202,7 @@ fn test_mut_value_shorthand() {
     let TraitItemFn { sig, .. } = parse_quote! {
         fn mut_value_shorthand(mut self);
     };
-    snapshot!(&sig.inputs[0], @r###"
+    snapshot!(&sig.inputs[0], @r#"
     FnArg::Receiver(Receiver {
         mutability: Some,
         ty: Type::Path {
@@ -211,7 +215,7 @@ fn test_mut_value_shorthand() {
             },
         },
     })
-    "###);
+    "#);
 }
 
 #[test]
@@ -219,7 +223,7 @@ fn test_ref_shorthand() {
     let TraitItemFn { sig, .. } = parse_quote! {
         fn ref_shorthand(&self);
     };
-    snapshot!(&sig.inputs[0], @r###"
+    snapshot!(&sig.inputs[0], @r#"
     FnArg::Receiver(Receiver {
         reference: Some(None),
         ty: Type::Reference {
@@ -234,7 +238,7 @@ fn test_ref_shorthand() {
             },
         },
     })
-    "###);
+    "#);
 }
 
 #[test]
@@ -242,7 +246,7 @@ fn test_ref_shorthand_with_lifetime() {
     let TraitItemFn { sig, .. } = parse_quote! {
         fn ref_shorthand(&'a self);
     };
-    snapshot!(&sig.inputs[0], @r###"
+    snapshot!(&sig.inputs[0], @r#"
     FnArg::Receiver(Receiver {
         reference: Some(Some(Lifetime {
             ident: "a",
@@ -262,7 +266,7 @@ fn test_ref_shorthand_with_lifetime() {
             },
         },
     })
-    "###);
+    "#);
 }
 
 #[test]
@@ -270,7 +274,7 @@ fn test_ref_mut_shorthand() {
     let TraitItemFn { sig, .. } = parse_quote! {
         fn ref_mut_shorthand(&mut self);
     };
-    snapshot!(&sig.inputs[0], @r###"
+    snapshot!(&sig.inputs[0], @r#"
     FnArg::Receiver(Receiver {
         reference: Some(None),
         mutability: Some,
@@ -287,7 +291,7 @@ fn test_ref_mut_shorthand() {
             },
         },
     })
-    "###);
+    "#);
 }
 
 #[test]
@@ -295,7 +299,7 @@ fn test_ref_mut_shorthand_with_lifetime() {
     let TraitItemFn { sig, .. } = parse_quote! {
         fn ref_mut_shorthand(&'a mut self);
     };
-    snapshot!(&sig.inputs[0], @r###"
+    snapshot!(&sig.inputs[0], @r#"
     FnArg::Receiver(Receiver {
         reference: Some(Some(Lifetime {
             ident: "a",
@@ -317,5 +321,5 @@ fn test_ref_mut_shorthand_with_lifetime() {
             },
         },
     })
-    "###);
+    "#);
 }

@@ -11,18 +11,18 @@ use std::iter::Peekable;
 ///
 /// This is implemented by peeking adaptors like peekable and put back,
 /// but also by a few iterators that can be peeked natively, like the slice’s
-/// by reference iterator (`std::slice::Iter`).
+/// by reference iterator ([`std::slice::Iter`]).
 pub trait PeekingNext: Iterator {
     /// Pass a reference to the next iterator element to the closure `accept`;
-    /// if `accept` returns true, return it as the next element,
-    /// else None.
+    /// if `accept` returns `true`, return it as the next element,
+    /// else `None`.
     fn peeking_next<F>(&mut self, accept: F) -> Option<Self::Item>
     where
         Self: Sized,
         F: FnOnce(&Self::Item) -> bool;
 }
 
-impl<'a, I> PeekingNext for &'a mut I
+impl<I> PeekingNext for &mut I
 where
     I: PeekingNext,
 {
@@ -133,7 +133,7 @@ where
     PeekingTakeWhile { iter, f }
 }
 
-impl<'a, I, F> Iterator for PeekingTakeWhile<'a, I, F>
+impl<I, F> Iterator for PeekingTakeWhile<'_, I, F>
 where
     I: PeekingNext,
     F: FnMut(&I::Item) -> bool,
@@ -148,7 +148,7 @@ where
     }
 }
 
-impl<'a, I, F> PeekingNext for PeekingTakeWhile<'a, I, F>
+impl<I, F> PeekingNext for PeekingTakeWhile<'_, I, F>
 where
     I: PeekingNext,
     F: FnMut(&I::Item) -> bool,

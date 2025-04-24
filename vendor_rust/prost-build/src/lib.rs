@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/prost-build/0.12.6")]
+#![doc(html_root_url = "https://docs.rs/prost-build/0.13.5")]
 #![allow(clippy::option_as_ref_deref, clippy::format_push_string)]
 
 //! `prost-build` compiles `.proto` files into Rust.
@@ -8,23 +8,18 @@
 //!
 //! ## Example
 //!
-//! Let's create a small crate, `snazzy`, that defines a collection of
+//! Let's create a small library crate, `snazzy`, that defines a collection of
 //! snazzy new items in a protobuf file.
 //!
 //! ```bash
-//! $ cargo new snazzy && cd snazzy
+//! $ cargo new --lib snazzy && cd snazzy
 //! ```
 //!
-//! First, add `prost-build`, `prost` and its public dependencies to `Cargo.toml`
-//! (see [crates.io](https://crates.io/crates/prost) for the current versions):
+//! First, add `prost-build` and `prost` as dependencies to `Cargo.toml`:
 //!
-//! ```toml
-//! [dependencies]
-//! bytes = <bytes-version>
-//! prost = <prost-version>
-//!
-//! [build-dependencies]
-//! prost-build = { version = <prost-version> }
+//! ```bash
+//! $ cargo add --build prost-build
+//! $ cargo add prost
 //! ```
 //!
 //! Next, add `src/items.proto` to the project:
@@ -36,13 +31,16 @@
 //!
 //! // A snazzy new shirt!
 //! message Shirt {
+//!     // Label sizes
 //!     enum Size {
 //!         SMALL = 0;
 //!         MEDIUM = 1;
 //!         LARGE = 2;
 //!     }
 //!
+//!     // The base color
 //!     string color = 1;
+//!     // The size as stated on the label
 //!     Size size = 2;
 //! }
 //! ```
@@ -71,6 +69,7 @@
 //!
 //! use snazzy::items;
 //!
+//! /// Returns a large shirt of the specified color
 //! pub fn create_large_shirt(color: String) -> items::Shirt {
 //!     let mut shirt = items::Shirt::default();
 //!     shirt.color = color;
@@ -101,7 +100,14 @@
 //! ## Sourcing `protoc`
 //!
 //! `prost-build` depends on the Protocol Buffers compiler, `protoc`, to parse `.proto` files into
-//! a representation that can be transformed into Rust. If set, `prost-build` uses the `PROTOC`
+//! a representation that can be transformed into Rust.
+//!
+//! The easiest way for `prost-build` to find `protoc` is to install it in your `PATH`.
+//! This can be done by following the [`protoc` install instructions]. `prost-build` will search
+//! the current path for `protoc` or `protoc.exe`.
+//!
+//! When `protoc` is installed in a different location, set `PROTOC` to the path of the executable.
+//! If set, `prost-build` uses the `PROTOC`
 //! for locating `protoc`. For example, on a macOS system where Protobuf is installed
 //! with Homebrew, set the environment variables to:
 //!
@@ -109,15 +115,13 @@
 //! PROTOC=/usr/local/bin/protoc
 //! ```
 //!
-//! and in a typical Linux installation:
+//! Alternatively, the path to `protoc` execuatable can be explicitly set
+//! via [`Config::protoc_executable()`].
 //!
-//! ```bash
-//! PROTOC=/usr/bin/protoc
-//! ```
-//!
-//! If no `PROTOC` environment variable is set then `prost-build` will search the
-//! current path for `protoc` or `protoc.exe`. If `prost-build` can not find `protoc`
+//! If `prost-build` can not find `protoc`
 //! via these methods the `compile_protos` method will fail.
+//!
+//! [`protoc` install instructions]: https://github.com/protocolbuffers/protobuf#protocol-compiler-installation
 //!
 //! ### Compiling `protoc` from source
 //!
@@ -143,6 +147,7 @@ mod collections;
 pub(crate) use collections::{BytesType, MapType};
 
 mod code_generator;
+mod context;
 mod extern_paths;
 mod ident;
 mod message_graph;
@@ -178,7 +183,7 @@ pub trait ServiceGenerator {
     /// Finalizes the generation process.
     ///
     /// In case there's something that needs to be output at the end of the generation process, it
-    /// goes here. Similar to [`generate`](#method.generate), the output should be appended to
+    /// goes here. Similar to [`generate`](Self::generate), the output should be appended to
     /// `buf`.
     ///
     /// An example can be a module or other thing that needs to appear just once, not for each
@@ -192,7 +197,7 @@ pub trait ServiceGenerator {
 
     /// Finalizes the generation process for an entire protobuf package.
     ///
-    /// This differs from [`finalize`](#method.finalize) by where (and how often) it is called
+    /// This differs from [`finalize`](Self::finalize) by where (and how often) it is called
     /// during the service generator life cycle. This method is called once per protobuf package,
     /// making it ideal for grouping services within a single package spread across multiple
     /// `.proto` files.
@@ -257,8 +262,6 @@ pub fn compile_protos(protos: &[impl AsRef<Path>], includes: &[impl AsRef<Path>]
 /// This function can be combined with a crate like [`protox`] which outputs a
 /// [`FileDescriptorSet`] and is a pure Rust implementation of `protoc`.
 ///
-/// [`protox`]: https://github.com/andrewhickman/protox
-///
 /// # Example
 /// ```rust,no_run
 /// # use prost_types::FileDescriptorSet;
@@ -269,6 +272,10 @@ pub fn compile_protos(protos: &[impl AsRef<Path>], includes: &[impl AsRef<Path>]
 ///   prost_build::compile_fds(file_descriptor_set)
 /// }
 /// ```
+///
+/// [`protox`]: https://github.com/andrewhickman/protox
+/// [1]: https://doc.rust-lang.org/std/macro.include.html
+/// [2]: http://doc.crates.io/build-script.html#case-study-code-generation
 pub fn compile_fds(fds: FileDescriptorSet) -> Result<()> {
     Config::new().compile_fds(fds)
 }
@@ -281,6 +288,32 @@ mod tests {
     use std::rc::Rc;
 
     use super::*;
+
+    macro_rules! assert_eq_fixture_file {
+        ($expected_path:expr, $actual_path:expr) => {{
+            let actual = std::fs::read_to_string($actual_path).unwrap();
+
+            // Normalizes windows and Linux-style EOL
+            let actual = actual.replace("\r\n", "\n");
+
+            assert_eq_fixture_contents!($expected_path, actual);
+        }};
+    }
+
+    macro_rules! assert_eq_fixture_contents {
+        ($expected_path:expr, $actual:expr) => {{
+            let expected = std::fs::read_to_string($expected_path).unwrap();
+
+            // Normalizes windows and Linux-style EOL
+            let expected = expected.replace("\r\n", "\n");
+
+            if expected != $actual {
+                std::fs::write($expected_path, &$actual).unwrap();
+            }
+
+            assert_eq!(expected, $actual);
+        }};
+    }
 
     /// An example service generator that generates a trait with methods corresponding to the
     /// service methods.
@@ -390,29 +423,43 @@ mod tests {
         let _ = env_logger::try_init();
         let tempdir = tempfile::tempdir().unwrap();
 
-        Config::new()
+        let mut config = Config::new();
+        config
             .out_dir(tempdir.path())
+            // Add attributes to all messages and enums
             .message_attribute(".", "#[derive(derive_builder::Builder)]")
-            .enum_attribute(".", "#[some_enum_attr(u8)]")
-            .compile_protos(
+            .enum_attribute(".", "#[some_enum_attr(u8)]");
+
+        let fds = config
+            .load_fds(
                 &["src/fixtures/helloworld/hello.proto"],
                 &["src/fixtures/helloworld"],
             )
             .unwrap();
 
-        let out_file = tempdir.path().join("helloworld.rs");
-        #[cfg(feature = "format")]
-        let expected_content =
-            read_all_content("src/fixtures/helloworld/_expected_helloworld_formatted.rs")
-                .replace("\r\n", "\n");
-        #[cfg(not(feature = "format"))]
-        let expected_content = read_all_content("src/fixtures/helloworld/_expected_helloworld.rs")
-            .replace("\r\n", "\n");
-        let content = read_all_content(out_file).replace("\r\n", "\n");
-        assert_eq!(
-            expected_content, content,
-            "Unexpected content: \n{}",
-            content
+        // Add custom attributes to messages that are service inputs or outputs.
+        for file in &fds.file {
+            for service in &file.service {
+                for method in &service.method {
+                    if let Some(input) = &method.input_type {
+                        config.message_attribute(input, "#[derive(custom_proto::Input)]");
+                    }
+                    if let Some(output) = &method.output_type {
+                        config.message_attribute(output, "#[derive(custom_proto::Output)]");
+                    }
+                }
+            }
+        }
+
+        config.compile_fds(fds).unwrap();
+
+        assert_eq_fixture_file!(
+            if cfg!(feature = "format") {
+                "src/fixtures/helloworld/_expected_helloworld_formatted.rs"
+            } else {
+                "src/fixtures/helloworld/_expected_helloworld.rs"
+            },
+            tempdir.path().join("helloworld.rs")
         );
     }
 
@@ -444,12 +491,10 @@ mod tests {
             assert!(!contents.is_empty());
         } else {
             // The file wasn't generated so the result include file should not reference it
-            let expected = read_all_content("src/fixtures/imports_empty/_expected_include.rs");
-            let actual = read_all_content(tempdir.path().join(Path::new(include_file)));
-            // Normalizes windows and Linux-style EOL
-            let expected = expected.replace("\r\n", "\n");
-            let actual = actual.replace("\r\n", "\n");
-            assert_eq!(expected, actual);
+            assert_eq_fixture_file!(
+                "src/fixtures/imports_empty/_expected_include.rs",
+                tempdir.path().join(Path::new(include_file))
+            );
         }
     }
 
@@ -468,24 +513,13 @@ mod tests {
             )
             .unwrap();
 
-        let out_file = tempdir.path().join("field_attributes.rs");
-
-        let content = read_all_content(out_file).replace("\r\n", "\n");
-
-        #[cfg(feature = "format")]
-        let expected_content = read_all_content(
-            "src/fixtures/field_attributes/_expected_field_attributes_formatted.rs",
-        )
-        .replace("\r\n", "\n");
-        #[cfg(not(feature = "format"))]
-        let expected_content =
-            read_all_content("src/fixtures/field_attributes/_expected_field_attributes.rs")
-                .replace("\r\n", "\n");
-
-        assert_eq!(
-            expected_content, content,
-            "Unexpected content: \n{}",
-            content
+        assert_eq_fixture_file!(
+            if cfg!(feature = "format") {
+                "src/fixtures/field_attributes/_expected_field_attributes_formatted.rs"
+            } else {
+                "src/fixtures/field_attributes/_expected_field_attributes.rs"
+            },
+            tempdir.path().join("field_attributes.rs")
         );
     }
 
@@ -516,21 +550,11 @@ mod tests {
                 )
                 .unwrap();
 
-            let expected = read_all_content("src/fixtures/alphabet/_expected_include.rs");
-            let actual = read_all_content(tempdir.path().join(Path::new(include_file)));
-            // Normalizes windows and Linux-style EOL
-            let expected = expected.replace("\r\n", "\n");
-            let actual = actual.replace("\r\n", "\n");
-
-            assert_eq!(expected, actual);
+            assert_eq_fixture_file!(
+                "src/fixtures/alphabet/_expected_include.rs",
+                tempdir.path().join(Path::new(include_file))
+            );
         }
-    }
-
-    fn read_all_content(filepath: impl AsRef<Path>) -> String {
-        let mut f = File::open(filepath).unwrap();
-        let mut content = String::new();
-        f.read_to_string(&mut content).unwrap();
-        content
     }
 
     #[test]
@@ -555,9 +579,7 @@ mod tests {
             .default_package_filename("_.default")
             .write_includes(modules.iter().collect(), &mut buf, None, &file_names)
             .unwrap();
-        let expected =
-            read_all_content("src/fixtures/write_includes/_.includes.rs").replace("\r\n", "\n");
         let actual = String::from_utf8(buf).unwrap();
-        assert_eq!(expected, actual);
+        assert_eq_fixture_contents!("src/fixtures/write_includes/_.includes.rs", actual);
     }
 }

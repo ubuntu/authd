@@ -18,7 +18,7 @@ Macro attributes for application-level tracing.
 [crates-badge]: https://img.shields.io/crates/v/tracing-attributes.svg
 [crates-url]: https://crates.io/crates/tracing-attributes
 [docs-badge]: https://docs.rs/tracing-attributes/badge.svg
-[docs-url]: https://docs.rs/tracing-attributes/0.1.26
+[docs-url]: https://docs.rs/tracing-attributes/0.1.28
 [docs-master-badge]: https://img.shields.io/badge/docs-master-blue
 [docs-master-url]: https://tracing-rs.netlify.com/tracing_attributes
 [mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
@@ -37,7 +37,7 @@ structured, event-based diagnostic information. This crate provides the
 
 Note that this macro is also re-exported by the main `tracing` crate.
 
-*Compiler support: [requires `rustc` 1.56+][msrv]*
+*Compiler support: [requires `rustc` 1.63+][msrv]*
 
 [msrv]: #supported-rust-versions
 
@@ -47,7 +47,7 @@ First, add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-tracing-attributes = "0.1.26"
+tracing-attributes = "0.1.28"
 ```
 
 
@@ -69,7 +69,7 @@ pub fn my_function(my_arg: usize) {
 ## Supported Rust Versions
 
 Tracing is built against the latest stable release. The minimum supported
-version is 1.56. The current Tracing version is not guaranteed to build on Rust
+version is 1.63. The current Tracing version is not guaranteed to build on Rust
 versions earlier than the minimum supported version.
 
 Tracing follows the same compiler support policies as the rest of the Tokio

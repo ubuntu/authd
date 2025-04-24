@@ -4,13 +4,18 @@ struct Struct<T, U> {
     unpinned: U,
 }
 #[doc(hidden)]
-#[allow(dead_code)]
-#[allow(single_use_lifetimes)]
-#[allow(clippy::unknown_clippy_lints)]
-#[allow(clippy::mut_mut)]
-#[allow(clippy::redundant_pub_crate)]
-#[allow(clippy::ref_option_ref)]
-#[allow(clippy::type_repetition_in_bounds)]
+#[allow(
+    dead_code,
+    single_use_lifetimes,
+    clippy::unknown_clippy_lints,
+    clippy::absolute_paths,
+    clippy::min_ident_chars,
+    clippy::mut_mut,
+    clippy::redundant_pub_crate,
+    clippy::ref_option_ref,
+    clippy::single_char_lifetime_names,
+    clippy::type_repetition_in_bounds
+)]
 struct StructProj<'__pin, T, U>
 where
     Struct<T, U>: '__pin,
@@ -19,13 +24,18 @@ where
     unpinned: &'__pin mut (U),
 }
 #[doc(hidden)]
-#[allow(dead_code)]
-#[allow(single_use_lifetimes)]
-#[allow(clippy::unknown_clippy_lints)]
-#[allow(clippy::mut_mut)]
-#[allow(clippy::redundant_pub_crate)]
-#[allow(clippy::ref_option_ref)]
-#[allow(clippy::type_repetition_in_bounds)]
+#[allow(
+    dead_code,
+    single_use_lifetimes,
+    clippy::unknown_clippy_lints,
+    clippy::absolute_paths,
+    clippy::min_ident_chars,
+    clippy::mut_mut,
+    clippy::redundant_pub_crate,
+    clippy::ref_option_ref,
+    clippy::single_char_lifetime_names,
+    clippy::type_repetition_in_bounds
+)]
 struct StructProjRef<'__pin, T, U>
 where
     Struct<T, U>: '__pin,
@@ -33,11 +43,16 @@ where
     pinned: ::pin_project_lite::__private::Pin<&'__pin (T)>,
     unpinned: &'__pin (U),
 }
-#[allow(explicit_outlives_requirements)]
-#[allow(single_use_lifetimes)]
-#[allow(clippy::unknown_clippy_lints)]
-#[allow(clippy::redundant_pub_crate)]
-#[allow(clippy::used_underscore_binding)]
+#[allow(
+    explicit_outlives_requirements,
+    single_use_lifetimes,
+    clippy::unknown_clippy_lints,
+    clippy::absolute_paths,
+    clippy::min_ident_chars,
+    clippy::redundant_pub_crate,
+    clippy::single_char_lifetime_names,
+    clippy::used_underscore_binding
+)]
 const _: () = {
     impl<T, U> Struct<T, U> {
         #[doc(hidden)]
@@ -71,8 +86,8 @@ const _: () = {
     impl<'__pin, T, U> ::pin_project_lite::__private::Unpin for Struct<T, U>
     where
         (
-            ::core::marker::PhantomData<&'__pin ()>,
-            ::core::marker::PhantomPinned,
+            ::pin_project_lite::__private::PhantomData<&'__pin ()>,
+            ::pin_project_lite::__private::PhantomPinned,
         ): ::pin_project_lite::__private::Unpin,
     {}
     trait MustNotImplDrop {}

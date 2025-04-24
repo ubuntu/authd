@@ -13,12 +13,18 @@
 edition = "2018"
 rust-version = "1.37"
 name = "pin-project-lite"
-version = "0.2.14"
+version = "0.2.16"
+build = false
 exclude = [
     "/.*",
     "/tools",
     "/DEVELOPMENT.md",
 ]
+autolib = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 description = """
 A lightweight version of pin-project written with declarative macros.
 """
@@ -42,7 +48,29 @@ allowed_external_types = []
 targets = ["x86_64-unknown-linux-gnu"]
 
 [lib]
+name = "pin_project_lite"
+path = "src/lib.rs"
 doc-scrape-examples = false
+
+[[test]]
+name = "compiletest"
+path = "tests/compiletest.rs"
+
+[[test]]
+name = "drop_order"
+path = "tests/drop_order.rs"
+
+[[test]]
+name = "expandtest"
+path = "tests/expandtest.rs"
+
+[[test]]
+name = "proper_unpin"
+path = "tests/proper_unpin.rs"
+
+[[test]]
+name = "test"
+path = "tests/test.rs"
 
 [dev-dependencies.rustversion]
 version = "1"
@@ -53,6 +81,7 @@ version = "1"
 [lints.clippy]
 all = "warn"
 as_ptr_cast_mut = "warn"
+as_underscore = "warn"
 default_union_representation = "warn"
 inline_asm_x86_att_syntax = "warn"
 pedantic = "warn"
@@ -68,6 +97,10 @@ priority = 1
 level = "allow"
 priority = 1
 
+[lints.clippy.cast_lossless]
+level = "allow"
+priority = 1
+
 [lints.clippy.declare_interior_mutable_const]
 level = "allow"
 priority = 1
@@ -77,6 +110,14 @@ level = "allow"
 priority = 1
 
 [lints.clippy.float_cmp]
+level = "allow"
+priority = 1
+
+[lints.clippy.incompatible_msrv]
+level = "allow"
+priority = 1
+
+[lints.clippy.lint_groups_priority]
 level = "allow"
 priority = 1
 
@@ -93,6 +134,18 @@ level = "allow"
 priority = 1
 
 [lints.clippy.module_name_repetitions]
+level = "allow"
+priority = 1
+
+[lints.clippy.naive_bytecount]
+level = "allow"
+priority = 1
+
+[lints.clippy.nonminimal_bool]
+level = "allow"
+priority = 1
+
+[lints.clippy.range_plus_one]
 level = "allow"
 priority = 1
 
@@ -128,10 +181,20 @@ priority = 1
 level = "allow"
 priority = 1
 
+[lints.clippy.unreadable_literal]
+level = "allow"
+priority = 1
+
 [lints.rust]
+deprecated_safe = "warn"
 improper_ctypes = "warn"
 improper_ctypes_definitions = "warn"
 non_ascii_idents = "warn"
 rust_2018_idioms = "warn"
 single_use_lifetimes = "warn"
 unreachable_pub = "warn"
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+priority = 0
+check-cfg = []

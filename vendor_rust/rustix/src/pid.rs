@@ -2,17 +2,18 @@
 
 #![allow(unsafe_code)]
 
-use crate::backend::c;
 use core::num::NonZeroI32;
 
 /// A process identifier as a raw integer.
-pub type RawPid = c::pid_t;
+pub type RawPid = i32;
 
 /// `pid_t`—A non-zero Unix process ID.
 ///
 /// This is a pid, and not a pidfd. It is not a file descriptor, and the
 /// process it refers to could disappear at any time and be replaced by
 /// another, unrelated, process.
+///
+/// On Linux, `Pid` values are also used to identify threads.
 #[repr(transparent)]
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 pub struct Pid(NonZeroI32);
@@ -37,11 +38,9 @@ impl Pid {
     /// [pidfd]: https://man7.org/linux/man-pages/man2/pidfd_open.2.html
     #[inline]
     pub const fn from_raw(raw: RawPid) -> Option<Self> {
-        if raw > 0 {
-            // SAFETY: We just checked that `raw > 0`.
-            unsafe { Some(Self::from_raw_unchecked(raw)) }
-        } else {
-            None
+        match NonZeroI32::new(raw) {
+            Some(non_zero) => Some(Self(non_zero)),
+            None => None,
         }
     }
 
@@ -74,31 +73,39 @@ impl Pid {
 
     /// Converts an `Option<Pid>` into a `RawPid`.
     #[inline]
-    pub fn as_raw(pid: Option<Self>) -> RawPid {
-        pid.map_or(0, |pid| pid.0.get())
+    pub const fn as_raw(pid: Option<Self>) -> RawPid {
+        match pid {
+            Some(pid) => pid.0.get(),
+            None => 0,
+        }
     }
 
-    /// Test whether this pid represents the init process (pid 1).
+    /// Test whether this pid represents the init process ([`Pid::INIT`]).
     #[inline]
     pub const fn is_init(self) -> bool {
         self.0.get() == Self::INIT.0.get()
     }
 }
 
-#[test]
-fn test_sizes() {
-    use core::mem::transmute;
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    assert_eq_size!(RawPid, NonZeroI32);
-    assert_eq_size!(RawPid, Pid);
-    assert_eq_size!(RawPid, Option<Pid>);
+    #[test]
+    fn test_sizes() {
+        use core::mem::transmute;
 
-    // Rustix doesn't depend on `Option<Pid>` matching the ABI of a raw integer
-    // for correctness, but it should work nonetheless.
-    const_assert_eq!(0 as RawPid, unsafe {
-        transmute::<Option<Pid>, RawPid>(None)
-    });
-    const_assert_eq!(4567 as RawPid, unsafe {
-        transmute::<Option<Pid>, RawPid>(Some(Pid::from_raw_unchecked(4567)))
-    });
+        assert_eq_size!(RawPid, NonZeroI32);
+        assert_eq_size!(RawPid, Pid);
+        assert_eq_size!(RawPid, Option<Pid>);
+
+        // Rustix doesn't depend on `Option<Pid>` matching the ABI of a raw integer
+        // for correctness, but it should work nonetheless.
+        const_assert_eq!(0 as RawPid, unsafe {
+            transmute::<Option<Pid>, RawPid>(None)
+        });
+        const_assert_eq!(4567 as RawPid, unsafe {
+            transmute::<Option<Pid>, RawPid>(Some(Pid::from_raw_unchecked(4567)))
+        });
+    }
 }

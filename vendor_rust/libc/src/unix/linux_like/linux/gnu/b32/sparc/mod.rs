@@ -3,7 +3,6 @@
 use crate::prelude::*;
 use crate::{off64_t, off_t};
 
-pub type c_char = i8;
 pub type wchar_t = i32;
 
 s! {
@@ -27,7 +26,8 @@ s! {
 
         pub f_namelen: crate::__fsword_t,
         pub f_frsize: crate::__fsword_t,
-        f_spare: [crate::__fsword_t; 5],
+        pub f_flags: crate::__fsword_t,
+        f_spare: [crate::__fsword_t; 4],
     }
 
     pub struct siginfo_t {
@@ -61,6 +61,30 @@ s! {
         pub ss_size: size_t,
     }
 
+    pub struct stat {
+        pub st_dev: crate::dev_t,
+        #[cfg(not(gnu_file_offset_bits64))]
+        __pad1: c_ushort,
+        pub st_ino: crate::ino_t,
+        pub st_mode: crate::mode_t,
+        pub st_nlink: crate::nlink_t,
+        pub st_uid: crate::uid_t,
+        pub st_gid: crate::gid_t,
+        pub st_rdev: crate::dev_t,
+        __pad2: c_ushort,
+        pub st_size: off_t,
+        pub st_blksize: crate::blksize_t,
+        pub st_blocks: crate::blkcnt_t,
+        pub st_atime: crate::time_t,
+        pub st_atime_nsec: c_long,
+        pub st_mtime: crate::time_t,
+        pub st_mtime_nsec: c_long,
+        pub st_ctime: crate::time_t,
+        pub st_ctime_nsec: c_long,
+        __glibc_reserved4: c_ulong,
+        __glibc_reserved5: c_ulong,
+    }
+
     pub struct stat64 {
         pub st_dev: crate::dev_t,
         pub st_ino: crate::ino64_t,
@@ -79,7 +103,8 @@ s! {
         pub st_mtime_nsec: c_long,
         pub st_ctime: crate::time_t,
         pub st_ctime_nsec: c_long,
-        __reserved: [c_long; 2],
+        __glibc_reserved4: c_ulong,
+        __glibc_reserved5: c_ulong,
     }
 
     pub struct statfs64 {
@@ -107,6 +132,7 @@ s! {
         pub f_ffree: u64,
         pub f_favail: u64,
         pub f_fsid: c_ulong,
+        __f_unused: c_int,
         pub f_flag: c_ulong,
         pub f_namemax: c_ulong,
         __f_spare: [c_int; 6],
@@ -150,7 +176,7 @@ s! {
         pub msg_rtime: crate::time_t,
         __pad3: c_uint,
         pub msg_ctime: crate::time_t,
-        __msg_cbytes: c_ushort,
+        pub __msg_cbytes: c_ushort,
         pub msg_qnum: crate::msgqnum_t,
         pub msg_qbytes: crate::msglen_t,
         pub msg_lspid: crate::pid_t,
@@ -618,6 +644,7 @@ pub const SYS_flistxattr: c_long = 180;
 pub const SYS_removexattr: c_long = 181;
 pub const SYS_lremovexattr: c_long = 182;
 pub const SYS_sigpending: c_long = 183;
+#[deprecated(since = "0.2.70", note = "Functional up to 2.6 kernel")]
 pub const SYS_query_module: c_long = 184;
 pub const SYS_setpgid: c_long = 185;
 pub const SYS_fremovexattr: c_long = 186;
@@ -655,8 +682,10 @@ pub const SYS_clone: c_long = 217;
 pub const SYS_ioprio_get: c_long = 218;
 pub const SYS_adjtimex: c_long = 219;
 pub const SYS_sigprocmask: c_long = 220;
+#[deprecated(since = "0.2.70", note = "Functional up to 2.6 kernel")]
 pub const SYS_create_module: c_long = 221;
 pub const SYS_delete_module: c_long = 222;
+#[deprecated(since = "0.2.70", note = "Functional up to 2.6 kernel")]
 pub const SYS_get_kernel_syms: c_long = 223;
 pub const SYS_getpgid: c_long = 224;
 pub const SYS_bdflush: c_long = 225;

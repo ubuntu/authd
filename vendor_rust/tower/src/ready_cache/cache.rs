@@ -31,7 +31,7 @@ use tracing::{debug, trace};
 /// in the ready set. The `ReadyCache::check_*` functions can be used to ensure
 /// that a service is ready before dispatching a request.
 ///
-/// The ready set can hold services for an abitrarily long time. During this
+/// The ready set can hold services for an arbitrarily long time. During this
 /// time, the runtime may process events that invalidate that ready state (for
 /// instance, if a keepalive detects a lost connection). In such cases, callers
 /// should use [`ReadyCache::check_ready`] (or [`ReadyCache::check_ready_index`])
@@ -42,7 +42,7 @@ use tracing::{debug, trace};
 /// the _pending_ set to be driven to readiness again.
 ///
 /// When `ReadyCache::check_ready*` returns `false`, it indicates that the
-/// specified service is _not_ ready. If an error is returned, this indicats that
+/// specified service is _not_ ready. If an error is returned, this indicates that
 /// the server failed and has been removed from the cache entirely.
 ///
 /// [`ReadyCache::evict`] can be used to remove a service from the cache (by key),
@@ -193,8 +193,18 @@ where
     }
 
     /// Obtains a mutable reference to a service in the ready set by index.
-    pub fn get_ready_index_mut(&mut self, idx: usize) -> Option<(&mut K, &mut S)> {
+    pub fn get_ready_index_mut(&mut self, idx: usize) -> Option<(&K, &mut S)> {
         self.ready.get_index_mut(idx).map(|(k, v)| (k, &mut v.0))
+    }
+
+    /// Returns an iterator over the ready keys and services.
+    pub fn iter_ready(&self) -> impl Iterator<Item = (&K, &S)> {
+        self.ready.iter().map(|(k, s)| (k, &s.0))
+    }
+
+    /// Returns a mutable iterator over the ready keys and services.
+    pub fn iter_ready_mut(&mut self) -> impl Iterator<Item = (&K, &mut S)> {
+        self.ready.iter_mut().map(|(k, s)| (k, &mut s.0))
     }
 
     /// Evicts an item from the cache.

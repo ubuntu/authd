@@ -4,11 +4,21 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org).
 
+Releases may yanked if there is a security bug, a soundness bug, or a regression.
+
 <!--
 Note: In this file, do not use the hard wrap in the middle of a sentence for compatibility with GitHub comment style markdown rendering.
 -->
 
 ## [Unreleased]
+
+## [0.2.16] - 2025-01-06
+
+- Suppress `clippy::absolute_paths`, `clippy::min_ident_chars`, and `clippy::single_char_lifetime_names` lints in generated code.
+
+## [0.2.15] - 2024-10-24
+
+- Work around an issue on negative_impls that allows unsound overlapping `Unpin` implementations. ([#84](https://github.com/taiki-e/pin-project-lite/pull/84))
 
 ## [0.2.14] - 2024-03-29
 
@@ -216,7 +226,9 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/pin-project-lite/compare/v0.2.14...HEAD
+[Unreleased]: https://github.com/taiki-e/pin-project-lite/compare/v0.2.16...HEAD
+[0.2.16]: https://github.com/taiki-e/pin-project-lite/compare/v0.2.15...v0.2.16
+[0.2.15]: https://github.com/taiki-e/pin-project-lite/compare/v0.2.14...v0.2.15
 [0.2.14]: https://github.com/taiki-e/pin-project-lite/compare/v0.2.13...v0.2.14
 [0.2.13]: https://github.com/taiki-e/pin-project-lite/compare/v0.2.12...v0.2.13
 [0.2.12]: https://github.com/taiki-e/pin-project-lite/compare/v0.2.11...v0.2.12

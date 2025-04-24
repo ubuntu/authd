@@ -455,6 +455,7 @@ pub struct TcpKeepalive {
 
 impl TcpKeepalive {
     /// Returns a new, empty set of TCP keepalive parameters.
+    #[allow(clippy::new_without_default)]
     pub const fn new() -> TcpKeepalive {
         TcpKeepalive {
             time: None,
@@ -514,6 +515,7 @@ impl TcpKeepalive {
         target_os = "fuchsia",
         target_os = "illumos",
         target_os = "ios",
+        target_os = "visionos",
         target_os = "linux",
         target_os = "macos",
         target_os = "netbsd",
@@ -530,6 +532,7 @@ impl TcpKeepalive {
             target_os = "fuchsia",
             target_os = "illumos",
             target_os = "ios",
+            target_os = "visionos",
             target_os = "linux",
             target_os = "macos",
             target_os = "netbsd",
@@ -558,6 +561,7 @@ impl TcpKeepalive {
             target_os = "fuchsia",
             target_os = "illumos",
             target_os = "ios",
+            target_os = "visionos",
             target_os = "linux",
             target_os = "macos",
             target_os = "netbsd",
@@ -576,6 +580,7 @@ impl TcpKeepalive {
                 target_os = "fuchsia",
                 target_os = "illumos",
                 target_os = "ios",
+                target_os = "visionos",
                 target_os = "linux",
                 target_os = "macos",
                 target_os = "netbsd",

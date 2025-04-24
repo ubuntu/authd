@@ -11,10 +11,15 @@
 
 [package]
 edition = "2018"
-rust-version = "1.56.0"
+rust-version = "1.63.0"
 name = "tracing-core"
-version = "0.1.32"
+version = "0.1.33"
 authors = ["Tokio Contributors <team@tokio.rs>"]
+build = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 description = """
 Core primitives for application-level tracing.
 """
@@ -32,6 +37,7 @@ categories = [
 ]
 license = "MIT"
 repository = "https://github.com/tokio-rs/tracing"
+resolver = "2"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -46,6 +52,30 @@ rustdoc-args = [
     "tracing_unstable",
 ]
 
+[lib]
+name = "tracing_core"
+path = "src/lib.rs"
+
+[[test]]
+name = "dispatch"
+path = "tests/dispatch.rs"
+
+[[test]]
+name = "global_dispatch"
+path = "tests/global_dispatch.rs"
+
+[[test]]
+name = "local_dispatch_before_init"
+path = "tests/local_dispatch_before_init.rs"
+
+[[test]]
+name = "macros"
+path = "tests/macros.rs"
+
+[[test]]
+name = "missed_register_callsite"
+path = "tests/missed_register_callsite.rs"
+
 [dependencies.once_cell]
 version = "1.13.0"
 optional = true
@@ -53,7 +83,7 @@ optional = true
 [features]
 default = [
     "std",
-    "valuable/std",
+    "valuable?/std",
 ]
 std = ["once_cell"]
 
@@ -64,3 +94,11 @@ default-features = false
 
 [badges.maintenance]
 status = "actively-developed"
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+priority = 0
+check-cfg = [
+    "cfg(flaky_tests)",
+    "cfg(tracing_unstable)",
+]

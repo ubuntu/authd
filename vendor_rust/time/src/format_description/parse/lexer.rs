@@ -2,7 +2,7 @@
 
 use core::iter;
 
-use super::{unused, Error, Location, Spanned, SpannedValue};
+use super::{attach_location, unused, Error, Location, Spanned, SpannedValue};
 
 /// An iterator over the lexed tokens.
 pub(super) struct Lexed<I: Iterator> {
@@ -124,23 +124,8 @@ pub(super) enum BracketKind {
 
 /// Indicates whether the component is whitespace or not.
 pub(super) enum ComponentKind {
-    #[allow(clippy::missing_docs_in_private_items)]
     Whitespace,
-    #[allow(clippy::missing_docs_in_private_items)]
     NotWhitespace,
-}
-
-/// Attach [`Location`] information to each byte in the iterator.
-fn attach_location<'item>(
-    iter: impl Iterator<Item = &'item u8>,
-) -> impl Iterator<Item = (&'item u8, Location)> {
-    let mut byte_pos = 0;
-
-    iter.map(move |byte| {
-        let location = Location { byte: byte_pos };
-        byte_pos += 1;
-        (byte, location)
-    })
 }
 
 /// Parse the string into a series of [`Token`]s.
@@ -195,7 +180,7 @@ pub(super) fn lex<const VERSION: usize>(
                             _inner: unused(loc.error("invalid escape sequence")),
                             public: crate::error::InvalidFormatDescription::Expected {
                                 what: "valid escape sequence",
-                                index: loc.byte as _,
+                                index: loc.byte as usize,
                             },
                         }));
                     }
@@ -204,7 +189,7 @@ pub(super) fn lex<const VERSION: usize>(
                             _inner: unused(backslash_loc.error("unexpected end of input")),
                             public: crate::error::InvalidFormatDescription::Expected {
                                 what: "valid escape sequence",
-                                index: backslash_loc.byte as _,
+                                index: backslash_loc.byte as usize,
                             },
                         }));
                     }

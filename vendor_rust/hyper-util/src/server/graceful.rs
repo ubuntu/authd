@@ -155,7 +155,7 @@ where
 }
 
 #[cfg(feature = "server-auto")]
-impl<'a, I, B, S, E> GracefulConnection for crate::server::conn::auto::Connection<'a, I, S, E>
+impl<I, B, S, E> GracefulConnection for crate::server::conn::auto::Connection<'_, I, S, E>
 where
     S: hyper::service::Service<http::Request<hyper::body::Incoming>, Response = http::Response<B>>,
     S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
@@ -173,8 +173,8 @@ where
 }
 
 #[cfg(feature = "server-auto")]
-impl<'a, I, B, S, E> GracefulConnection
-    for crate::server::conn::auto::UpgradeableConnection<'a, I, S, E>
+impl<I, B, S, E> GracefulConnection
+    for crate::server::conn::auto::UpgradeableConnection<'_, I, S, E>
 where
     S: hyper::service::Service<http::Request<hyper::body::Incoming>, Response = http::Response<B>>,
     S::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
@@ -229,7 +229,7 @@ mod private {
     }
 
     #[cfg(feature = "server-auto")]
-    impl<'a, I, B, S, E> Sealed for crate::server::conn::auto::Connection<'a, I, S, E>
+    impl<I, B, S, E> Sealed for crate::server::conn::auto::Connection<'_, I, S, E>
     where
         S: hyper::service::Service<
             http::Request<hyper::body::Incoming>,
@@ -245,7 +245,7 @@ mod private {
     }
 
     #[cfg(feature = "server-auto")]
-    impl<'a, I, B, S, E> Sealed for crate::server::conn::auto::UpgradeableConnection<'a, I, S, E>
+    impl<I, B, S, E> Sealed for crate::server::conn::auto::UpgradeableConnection<'_, I, S, E>
     where
         S: hyper::service::Service<
             http::Request<hyper::body::Incoming>,

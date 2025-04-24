@@ -63,7 +63,7 @@ pin_project! {
     ///     reqs.unbounded_send("three").unwrap();
     ///     drop(reqs);
     ///
-    ///     // We then loop over the response Strem that we get back from call_all.
+    ///     // We then loop over the response `Stream` that we get back from call_all.
     ///     let mut i = 0usize;
     ///     while let Some(rsp) = rsps.next().await {
     ///         // Each response is a Result (we could also have used TryStream::try_next)
@@ -98,7 +98,6 @@ pin_project! {
 impl<Svc, S> CallAll<Svc, S>
 where
     Svc: Service<S::Item>,
-    Svc::Error: Into<crate::BoxError>,
     S: Stream,
 {
     /// Create new [`CallAll`] combinator.
@@ -154,10 +153,9 @@ where
 impl<Svc, S> Stream for CallAll<Svc, S>
 where
     Svc: Service<S::Item>,
-    Svc::Error: Into<crate::BoxError>,
     S: Stream,
 {
-    type Item = Result<Svc::Response, crate::BoxError>;
+    type Item = Result<Svc::Response, Svc::Error>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         self.project().inner.poll_next(cx)
@@ -170,7 +168,7 @@ impl<F: Future> common::Drive<F> for FuturesOrdered<F> {
     }
 
     fn push(&mut self, future: F) {
-        FuturesOrdered::push(self, future)
+        FuturesOrdered::push_back(self, future)
     }
 
     fn poll(&mut self, cx: &mut Context<'_>) -> Poll<Option<F::Output>> {

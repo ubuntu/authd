@@ -1,5 +1,5 @@
 use crate::metadata::MetadataMap;
-use crate::{body::BoxBody, metadata::GRPC_CONTENT_TYPE};
+use crate::metadata::GRPC_CONTENT_TYPE;
 use base64::Engine as _;
 use bytes::Bytes;
 use http::{
@@ -14,6 +14,7 @@ const ENCODING_SET: &AsciiSet = &CONTROLS
     .add(b' ')
     .add(b'"')
     .add(b'#')
+    .add(b'%')
     .add(b'<')
     .add(b'>')
     .add(b'`')
@@ -438,51 +439,46 @@ impl Status {
 
     /// Extract a `Status` from a hyper `HeaderMap`.
     pub fn from_header_map(header_map: &HeaderMap) -> Option<Status> {
-        header_map.get(Self::GRPC_STATUS).map(|code| {
-            let code = Code::from_bytes(code.as_ref());
-            let error_message = header_map
-                .get(Self::GRPC_MESSAGE)
-                .map(|header| {
-                    percent_decode(header.as_bytes())
-                        .decode_utf8()
-                        .map(|cow| cow.to_string())
-                })
-                .unwrap_or_else(|| Ok(String::new()));
+        let code = Code::from_bytes(header_map.get(Self::GRPC_STATUS)?.as_ref());
 
-            let details = header_map
-                .get(Self::GRPC_STATUS_DETAILS)
-                .map(|h| {
-                    crate::util::base64::STANDARD
-                        .decode(h.as_bytes())
-                        .expect("Invalid status header, expected base64 encoded value")
-                })
-                .map(Bytes::from)
-                .unwrap_or_default();
+        let error_message = match header_map.get(Self::GRPC_MESSAGE) {
+            Some(header) => percent_decode(header.as_bytes())
+                .decode_utf8()
+                .map(|cow| cow.to_string()),
+            None => Ok(String::new()),
+        };
 
-            let mut other_headers = header_map.clone();
-            other_headers.remove(Self::GRPC_STATUS);
-            other_headers.remove(Self::GRPC_MESSAGE);
-            other_headers.remove(Self::GRPC_STATUS_DETAILS);
+        let details = match header_map.get(Self::GRPC_STATUS_DETAILS) {
+            Some(header) => crate::util::base64::STANDARD
+                .decode(header.as_bytes())
+                .expect("Invalid status header, expected base64 encoded value")
+                .into(),
+            None => Bytes::new(),
+        };
 
-            match error_message {
-                Ok(message) => Status {
-                    code,
-                    message,
-                    details,
-                    metadata: MetadataMap::from_headers(other_headers),
-                    source: None,
-                },
-                Err(err) => {
-                    warn!("Error deserializing status message header: {}", err);
-                    Status {
-                        code: Code::Unknown,
-                        message: format!("Error deserializing status message header: {}", err),
-                        details,
-                        metadata: MetadataMap::from_headers(other_headers),
-                        source: None,
-                    }
-                }
+        let other_headers = {
+            let mut header_map = header_map.clone();
+            header_map.remove(Self::GRPC_STATUS);
+            header_map.remove(Self::GRPC_MESSAGE);
+            header_map.remove(Self::GRPC_STATUS_DETAILS);
+            header_map
+        };
+
+        let (code, message) = match error_message {
+            Ok(message) => (code, message),
+            Err(e) => {
+                let error_message = format!("Error deserializing status message header: {e}");
+                warn!(error_message);
+                (Code::Unknown, error_message)
             }
+        };
+
+        Some(Status {
+            code,
+            message,
+            details,
+            metadata: MetadataMap::from_headers(other_headers),
+            source: None,
         })
     }
 
@@ -579,8 +575,8 @@ impl Status {
     }
 
     /// Build an `http::Response` from the given `Status`.
-    pub fn into_http(self) -> http::Response<BoxBody> {
-        let mut response = http::Response::new(crate::body::empty_body());
+    pub fn into_http<B: Default>(self) -> http::Response<B> {
+        let mut response = http::Response::new(B::default());
         response
             .headers_mut()
             .insert(http::header::CONTENT_TYPE, GRPC_CONTENT_TYPE);
@@ -783,8 +779,28 @@ impl Code {
     /// Get the `Code` that represents the integer, if known.
     ///
     /// If not known, returns `Code::Unknown` (surprise!).
-    pub fn from_i32(i: i32) -> Code {
-        Code::from(i)
+    pub const fn from_i32(i: i32) -> Code {
+        match i {
+            0 => Code::Ok,
+            1 => Code::Cancelled,
+            2 => Code::Unknown,
+            3 => Code::InvalidArgument,
+            4 => Code::DeadlineExceeded,
+            5 => Code::NotFound,
+            6 => Code::AlreadyExists,
+            7 => Code::PermissionDenied,
+            8 => Code::ResourceExhausted,
+            9 => Code::FailedPrecondition,
+            10 => Code::Aborted,
+            11 => Code::OutOfRange,
+            12 => Code::Unimplemented,
+            13 => Code::Internal,
+            14 => Code::Unavailable,
+            15 => Code::DataLoss,
+            16 => Code::Unauthenticated,
+
+            _ => Code::Unknown,
+        }
     }
 
     /// Convert the string representation of a `Code` (as stored, for example, in the `grpc-status`
@@ -849,27 +865,7 @@ impl Code {
 
 impl From<i32> for Code {
     fn from(i: i32) -> Self {
-        match i {
-            0 => Code::Ok,
-            1 => Code::Cancelled,
-            2 => Code::Unknown,
-            3 => Code::InvalidArgument,
-            4 => Code::DeadlineExceeded,
-            5 => Code::NotFound,
-            6 => Code::AlreadyExists,
-            7 => Code::PermissionDenied,
-            8 => Code::ResourceExhausted,
-            9 => Code::FailedPrecondition,
-            10 => Code::Aborted,
-            11 => Code::OutOfRange,
-            12 => Code::Unimplemented,
-            13 => Code::Internal,
-            14 => Code::Unavailable,
-            15 => Code::DataLoss,
-            16 => Code::Unauthenticated,
-
-            _ => Code::Unknown,
-        }
+        Code::from_i32(i)
     }
 }
 
@@ -883,10 +879,10 @@ impl From<Code> for i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Error;
+    use crate::BoxError;
 
     #[derive(Debug)]
-    struct Nested(Error);
+    struct Nested(BoxError);
 
     impl fmt::Display for Nested {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -911,7 +907,7 @@ mod tests {
 
     #[test]
     fn from_error_unknown() {
-        let orig: Error = "peek-a-boo".into();
+        let orig: BoxError = "peek-a-boo".into();
         let found = Status::from_error(orig);
 
         assert_eq!(found.code(), Code::Unknown);
