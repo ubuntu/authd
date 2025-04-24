@@ -82,6 +82,11 @@ func (e SymlinkResolutionError) Unwrap() error {
 	return e.err
 }
 
+// Is makes this error insensitive to the internal values.
+func (e SymlinkResolutionError) Is(target error) bool {
+	return target == SymlinkResolutionError{}
+}
+
 // Lrename renames a file or directory, resolving symlinks in the destination path.
 // If the symlink resolution fails, it returns a SymlinkResolutionError.
 func Lrename(oldPath, newPath string) error {
