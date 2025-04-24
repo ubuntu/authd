@@ -280,6 +280,7 @@ jobs:
         env:
           GO_TESTS_TIMEOUT: 35m
           AUTHD_TESTS_SLEEP_MULTIPLIER: 3
+          GORACE: log_path=${{ env.AUTHD_TESTS_ARTIFACTS_PATH }}/gorace.log
         run: |
           go test -json -timeout ${GO_TESTS_TIMEOUT} -race ./... | \
             gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.race.log"
