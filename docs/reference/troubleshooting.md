@@ -170,6 +170,38 @@ You will then need to restart the service with:
 :::
 ::::
 
+## Switch authd to the edge PPA
+
+Maybe your issue is already fixed! You can try switching to the [edge PPA](https://launchpad.net/~ubuntu-enterprise-desktop/+archive/ubuntu/authd-edge), which contains the
+latest fixes and features for authd, in addition to its GNOME Shell (GDM)
+counterpart.
+
+```{warning}
+Do not use the edge PPA in a production system, because it may apply changes to
+the authd database in a non-reversible way, which can make it difficult to roll
+back to the stable version of authd.
+```
+
+```shell
+sudo add-apt-repository ppa:ubuntu-enterprise-desktop/authd-edge
+sudo apt update
+sudo apt install authd gnome-shell
+```
+
+Keep in mind that this version is not tested and may be incompatible with the current released version of the brokers.
+
+To switch back to the stable version of authd:
+
+```shell
+sudo apt install ppa-purge
+sudo ppa-purge ppa:ubuntu-enterprise-desktop/authd-edge
+```
+
+```{note}
+If using an edge release, you can read the
+[latest development version of the documentation](https://canonical-authd.readthedocs-hosted.com/en/latest/)
+```
+
 ## Switch the snap to the edge channel
 
 Maybe your issue is already fixed! You should try switching to the edge channel of the broker snap. You can easily do that with:
