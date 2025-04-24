@@ -33,10 +33,16 @@ std = []
 
 [lib]
 bench = false
+name = "bumpalo"
 path = "src/lib.rs"
 
 [package]
 authors = ["Nick Fitzgerald <fitzgen@gmail.com>"]
+autobenches = false
+autobins = false
+autoexamples = false
+autolib = false
+autotests = false
 categories = ["memory-management", "rust-patterns", "no-std"]
 description = "A fast bump allocation arena for Rust."
 documentation = "https://docs.rs/bumpalo"
@@ -46,8 +52,8 @@ license = "MIT OR Apache-2.0"
 name = "bumpalo"
 readme = "README.md"
 repository = "https://github.com/fitzgen/bumpalo"
-rust-version = "1.73.0"
-version = "3.16.0"
+rust-version = "1.71.1"
+version = "3.17.0"
 
 [package.metadata.docs.rs]
 all-features = true

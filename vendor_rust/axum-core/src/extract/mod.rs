@@ -2,22 +2,27 @@
 //!
 //! See [`axum::extract`] for more details.
 //!
-//! [`axum::extract`]: https://docs.rs/axum/0.7/axum/extract/index.html
+//! [`axum::extract`]: https://docs.rs/axum/0.8/axum/extract/index.html
 
 use crate::{body::Body, response::IntoResponse};
-use async_trait::async_trait;
 use http::request::Parts;
 use std::convert::Infallible;
+use std::future::Future;
 
 pub mod rejection;
 
 mod default_body_limit;
 mod from_ref;
+mod option;
 mod request_parts;
 mod tuple;
 
 pub(crate) use self::default_body_limit::DefaultBodyLimitKind;
-pub use self::{default_body_limit::DefaultBodyLimit, from_ref::FromRef};
+pub use self::{
+    default_body_limit::DefaultBodyLimit,
+    from_ref::FromRef,
+    option::{OptionalFromRequest, OptionalFromRequestParts},
+};
 
 /// Type alias for [`http::Request`] whose body type defaults to [`Body`], the most common body
 /// type used with axum.
@@ -41,12 +46,11 @@ mod private {
 ///
 /// See [`axum::extract`] for more general docs about extractors.
 ///
-/// [`axum::extract`]: https://docs.rs/axum/0.7/axum/extract/index.html
-#[async_trait]
-#[cfg_attr(
-    nightly_error_messages,
+/// [`axum::extract`]: https://docs.rs/axum/0.8/axum/extract/index.html
+#[rustversion::attr(
+    since(1.78),
     diagnostic::on_unimplemented(
-        note = "Function argument is not a valid axum extractor. \nSee `https://docs.rs/axum/0.7/axum/extract/index.html` for details",
+        note = "Function argument is not a valid axum extractor. \nSee `https://docs.rs/axum/0.8/axum/extract/index.html` for details",
     )
 )]
 pub trait FromRequestParts<S>: Sized {
@@ -55,7 +59,10 @@ pub trait FromRequestParts<S>: Sized {
     type Rejection: IntoResponse;
 
     /// Perform the extraction.
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection>;
+    fn from_request_parts(
+        parts: &mut Parts,
+        state: &S,
+    ) -> impl Future<Output = Result<Self, Self::Rejection>> + Send;
 }
 
 /// Types that can be created from requests.
@@ -68,12 +75,11 @@ pub trait FromRequestParts<S>: Sized {
 ///
 /// See [`axum::extract`] for more general docs about extractors.
 ///
-/// [`axum::extract`]: https://docs.rs/axum/0.7/axum/extract/index.html
-#[async_trait]
-#[cfg_attr(
-    nightly_error_messages,
+/// [`axum::extract`]: https://docs.rs/axum/0.8/axum/extract/index.html
+#[rustversion::attr(
+    since(1.78),
     diagnostic::on_unimplemented(
-        note = "Function argument is not a valid axum extractor. \nSee `https://docs.rs/axum/0.7/axum/extract/index.html` for details",
+        note = "Function argument is not a valid axum extractor. \nSee `https://docs.rs/axum/0.8/axum/extract/index.html` for details",
     )
 )]
 pub trait FromRequest<S, M = private::ViaRequest>: Sized {
@@ -82,10 +88,12 @@ pub trait FromRequest<S, M = private::ViaRequest>: Sized {
     type Rejection: IntoResponse;
 
     /// Perform the extraction.
-    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection>;
+    fn from_request(
+        req: Request,
+        state: &S,
+    ) -> impl Future<Output = Result<Self, Self::Rejection>> + Send;
 }
 
-#[async_trait]
 impl<S, T> FromRequest<S, private::ViaParts> for T
 where
     S: Send + Sync,
@@ -93,42 +101,15 @@ where
 {
     type Rejection = <Self as FromRequestParts<S>>::Rejection;
 
-    async fn from_request(req: Request, state: &S) -> Result<Self, Self::Rejection> {
-        let (mut parts, _) = req.into_parts();
-        Self::from_request_parts(&mut parts, state).await
-    }
-}
-
-#[async_trait]
-impl<S, T> FromRequestParts<S> for Option<T>
-where
-    T: FromRequestParts<S>,
-    S: Send + Sync,
-{
-    type Rejection = Infallible;
-
-    async fn from_request_parts(
-        parts: &mut Parts,
+    fn from_request(
+        req: Request,
         state: &S,
-    ) -> Result<Option<T>, Self::Rejection> {
-        Ok(T::from_request_parts(parts, state).await.ok())
+    ) -> impl Future<Output = Result<Self, Self::Rejection>> {
+        let (mut parts, _) = req.into_parts();
+        async move { Self::from_request_parts(&mut parts, state).await }
     }
 }
 
-#[async_trait]
-impl<S, T> FromRequest<S> for Option<T>
-where
-    T: FromRequest<S>,
-    S: Send + Sync,
-{
-    type Rejection = Infallible;
-
-    async fn from_request(req: Request, state: &S) -> Result<Option<T>, Self::Rejection> {
-        Ok(T::from_request(req, state).await.ok())
-    }
-}
-
-#[async_trait]
 impl<S, T> FromRequestParts<S> for Result<T, T::Rejection>
 where
     T: FromRequestParts<S>,
@@ -141,7 +122,6 @@ where
     }
 }
 
-#[async_trait]
 impl<S, T> FromRequest<S> for Result<T, T::Rejection>
 where
     T: FromRequest<S>,

@@ -856,8 +856,11 @@ pub(crate) mod parsing {
         value, Lit, LitBool, LitByte, LitByteStr, LitCStr, LitChar, LitFloat, LitFloatRepr, LitInt,
         LitIntRepr, LitStr,
     };
-    use crate::parse::{Parse, ParseStream};
-    use proc_macro2::{Literal, Punct};
+    use crate::parse::{Parse, ParseStream, Unexpected};
+    use crate::token::{self, Token};
+    use proc_macro2::{Literal, Punct, Span};
+    use std::cell::Cell;
+    use std::rc::Rc;
 
     #[cfg_attr(docsrs, doc(cfg(feature = "parsing")))]
     impl Parse for Lit {
@@ -1017,6 +1020,42 @@ pub(crate) mod parsing {
             }
         }
     }
+
+    fn peek_impl(cursor: Cursor, peek: fn(ParseStream) -> bool) -> bool {
+        let scope = Span::call_site();
+        let unexpected = Rc::new(Cell::new(Unexpected::None));
+        let buffer = crate::parse::new_parse_buffer(scope, cursor, unexpected);
+        peek(&buffer)
+    }
+
+    macro_rules! impl_token {
+        ($display:literal $name:ty) => {
+            impl Token for $name {
+                fn peek(cursor: Cursor) -> bool {
+                    fn peek(input: ParseStream) -> bool {
+                        <$name as Parse>::parse(input).is_ok()
+                    }
+                    peek_impl(cursor, peek)
+                }
+
+                fn display() -> &'static str {
+                    $display
+                }
+            }
+
+            impl token::private::Sealed for $name {}
+        };
+    }
+
+    impl_token!("literal" Lit);
+    impl_token!("string literal" LitStr);
+    impl_token!("byte string literal" LitByteStr);
+    impl_token!("C-string literal" LitCStr);
+    impl_token!("byte literal" LitByte);
+    impl_token!("character literal" LitChar);
+    impl_token!("integer literal" LitInt);
+    impl_token!("floating point literal" LitFloat);
+    impl_token!("boolean literal" LitBool);
 }
 
 #[cfg(feature = "printing")]
@@ -1242,9 +1281,6 @@ mod value {
         }
     }
 
-    // Clippy false positive
-    // https://github.com/rust-lang-nursery/rust-clippy/issues/2329
-    #[allow(clippy::needless_continue)]
     fn parse_lit_str_cooked(mut s: &str) -> (Box<str>, Box<str>) {
         assert_eq!(byte(s, 0), b'"');
         s = &s[1..];
@@ -1337,9 +1373,6 @@ mod value {
         }
     }
 
-    // Clippy false positive
-    // https://github.com/rust-lang-nursery/rust-clippy/issues/2329
-    #[allow(clippy::needless_continue)]
     fn parse_lit_byte_str_cooked(mut s: &str) -> (Vec<u8>, Box<str>) {
         assert_eq!(byte(s, 0), b'b');
         assert_eq!(byte(s, 1), b'"');
@@ -1416,9 +1449,6 @@ mod value {
         }
     }
 
-    // Clippy false positive
-    // https://github.com/rust-lang-nursery/rust-clippy/issues/2329
-    #[allow(clippy::needless_continue)]
     fn parse_lit_c_str_cooked(mut s: &str) -> (CString, Box<str>) {
         assert_eq!(byte(s, 0), b'c');
         assert_eq!(byte(s, 1), b'"');
@@ -1498,7 +1528,7 @@ mod value {
         assert_eq!(byte(s, 1), b'\'');
 
         // We're going to want to have slices which don't respect codepoint boundaries.
-        let mut v = s[2..].as_bytes();
+        let mut v = &s.as_bytes()[2..];
 
         let b = match byte(v, 0) {
             b'\\' => {

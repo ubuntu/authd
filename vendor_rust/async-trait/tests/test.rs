@@ -4,11 +4,13 @@
 )]
 #![deny(rust_2021_compatibility, unused_qualifications)]
 #![allow(
+    clippy::elidable_lifetime_names,
     clippy::incompatible_msrv, // https://github.com/rust-lang/rust-clippy/issues/12257
     clippy::let_underscore_untyped,
     clippy::let_unit_value,
     clippy::missing_panics_doc,
     clippy::missing_safety_doc,
+    clippy::needless_lifetimes,
     clippy::needless_return,
     clippy::non_minimal_cfg,
     clippy::trivially_copy_pass_by_ref,
@@ -106,48 +108,48 @@ pub async fn test() {
     s.calls_mut().await;
 }
 
-pub async fn test_object_safe_without_default() {
+pub async fn test_dyn_compatible_without_default() {
     #[async_trait]
-    trait ObjectSafe {
+    trait DynCompatible {
         async fn f(&self);
     }
 
     #[async_trait]
-    impl ObjectSafe for Struct {
+    impl DynCompatible for Struct {
         async fn f(&self) {}
     }
 
-    let object = &Struct as &dyn ObjectSafe;
+    let object = &Struct as &dyn DynCompatible;
     object.f().await;
 }
 
-pub async fn test_object_safe_with_default() {
+pub async fn test_dyn_compatible_with_default() {
     #[async_trait]
-    trait ObjectSafe: Sync {
+    trait DynCompatible: Sync {
         async fn f(&self) {}
     }
 
     #[async_trait]
-    impl ObjectSafe for Struct {
+    impl DynCompatible for Struct {
         async fn f(&self) {}
     }
 
-    let object = &Struct as &dyn ObjectSafe;
+    let object = &Struct as &dyn DynCompatible;
     object.f().await;
 }
 
-pub async fn test_object_no_send() {
+pub async fn test_dyn_compatible_no_send() {
     #[async_trait(?Send)]
-    trait ObjectSafe: Sync {
+    trait DynCompatible: Sync {
         async fn f(&self) {}
     }
 
     #[async_trait(?Send)]
-    impl ObjectSafe for Struct {
+    impl DynCompatible for Struct {
         async fn f(&self) {}
     }
 
-    let object = &Struct as &dyn ObjectSafe;
+    let object = &Struct as &dyn DynCompatible;
     object.f().await;
 }
 
@@ -336,7 +338,7 @@ pub mod issue17 {
     }
 
     pub struct Struct {
-        string: String,
+        pub string: String,
     }
 
     #[async_trait]
@@ -1380,7 +1382,6 @@ pub mod issue161 {
 }
 
 // https://github.com/dtolnay/async-trait/issues/169
-#[deny(where_clauses_object_safety)]
 pub mod issue169 {
     use async_trait::async_trait;
 
@@ -1639,6 +1640,89 @@ pub mod issue266 {
             loop {
                 std::thread::sleep(std::time::Duration::from_millis(1));
             }
+        }
+    }
+}
+
+// https://github.com/dtolnay/async-trait/issues/277
+pub mod issue277 {
+    use async_trait::async_trait;
+
+    #[async_trait]
+    pub trait Trait {
+        async fn f(&self);
+    }
+
+    #[async_trait]
+    impl Trait for () {
+        async fn f(mut self: &Self) {
+            g(&mut self);
+        }
+    }
+
+    fn g(_: &mut &()) {}
+}
+
+// https://github.com/dtolnay/async-trait/issues/281
+#[rustversion::since(1.75)]
+pub mod issue281 {
+    use async_trait::async_trait;
+
+    #[async_trait]
+    pub trait Trait {
+        type Error;
+        async fn method(&self) -> Result<impl AsRef<str> + Send + Sync, Self::Error>;
+    }
+
+    pub struct T;
+
+    #[async_trait]
+    impl Trait for T {
+        type Error = ();
+        async fn method(&self) -> Result<impl AsRef<str> + Send + Sync, Self::Error> {
+            Ok("Hello World")
+        }
+    }
+}
+
+// https://github.com/dtolnay/async-trait/issues/283
+pub mod issue283 {
+    use async_trait::async_trait;
+
+    #[async_trait]
+    pub trait Trait {
+        async fn a();
+    }
+
+    pub trait Bound {
+        fn b();
+    }
+
+    #[async_trait]
+    impl<T: Bound> Trait for T {
+        async fn a() {
+            Self::b();
+        }
+    }
+}
+
+// https://github.com/dtolnay/async-trait/issues/288
+pub mod issue288 {
+    use async_trait::async_trait;
+
+    #[async_trait]
+    pub trait Trait {
+        async fn f<#[cfg(any())] T: Send>(#[cfg(any())] t: T);
+        async fn g<#[cfg(all())] T: Send>(#[cfg(all())] t: T);
+    }
+
+    pub struct Struct;
+
+    #[async_trait]
+    impl Trait for Struct {
+        async fn f<#[cfg(any())] T: Send>(#[cfg(any())] t: T) {}
+        async fn g<#[cfg(all())] T: Send>(#[cfg(all())] t: T) {
+            let _ = t;
         }
     }
 }

@@ -2,6 +2,8 @@ extern crate autocfg;
 
 use std::env;
 
+mod support;
+
 /// Tests that autocfg uses the RUSTC_WRAPPER and/or RUSTC_WORKSPACE_WRAPPER
 /// environment variables when running rustc.
 #[test]
@@ -15,9 +17,7 @@ fn test_wrappers() {
         }
     }
 
-    // Use the same path as this test binary.
-    let dir = env::current_exe().unwrap().parent().unwrap().to_path_buf();
-    env::set_var("OUT_DIR", &format!("{}", dir.display()));
+    let out = support::out_dir();
 
     // This is used as a heuristic to detect rust-lang/cargo#9601.
     env::set_var("CARGO_ENCODED_RUSTFLAGS", "");
@@ -30,7 +30,7 @@ fn test_wrappers() {
             set("RUSTC_WRAPPER", rustc);
             set("RUSTC_WORKSPACE_WRAPPER", workspace);
 
-            let ac = autocfg::AutoCfg::new().unwrap();
+            let ac = autocfg::AutoCfg::with_dir(out.as_ref()).unwrap();
             if rustc == Some(false) || workspace == Some(false) {
                 // Everything should fail with bad wrappers.
                 assert!(!ac.probe_type("usize"));
@@ -48,7 +48,7 @@ fn test_wrappers() {
     // by using something that doesn't pass through at all.
     env::set_var("RUSTC_WRAPPER", "./tests/wrap_ignored");
     env::set_var("RUSTC_WORKSPACE_WRAPPER", "/bin/false");
-    let ac = autocfg::AutoCfg::new().unwrap();
+    let ac = autocfg::AutoCfg::with_dir(out.as_ref()).unwrap();
     assert!(ac.probe_type("mesize")); // anything goes!
 
     // Make sure we also got the version from that wrapper.

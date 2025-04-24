@@ -20,7 +20,8 @@
 //!
 //! fn main() {
 //! #   // Normally, cargo will set `OUT_DIR` for build scripts.
-//! #   std::env::set_var("OUT_DIR", "target");
+//! #   let exe = std::env::current_exe().unwrap();
+//! #   std::env::set_var("OUT_DIR", exe.parent().unwrap());
 //!     let ac = autocfg::new();
 //!     ac.emit_has_type("i128");
 //!
@@ -91,6 +92,7 @@ pub struct AutoCfg {
     target: Option<OsString>,
     no_std: bool,
     rustflags: Vec<String>,
+    uuid: u64,
 }
 
 /// Writes a config flag for rustc on standard out.
@@ -98,6 +100,12 @@ pub struct AutoCfg {
 /// This looks like: `cargo:rustc-cfg=CFG`
 ///
 /// Cargo will use this in arguments to rustc, like `--cfg CFG`.
+///
+/// This does not automatically call [`emit_possibility`]
+/// so the compiler my generate an [`unexpected_cfgs` warning][check-cfg-flags].
+/// However, all the builtin emit methods on [`AutoCfg`] call [`emit_possibility`] automatically.
+///
+/// [check-cfg-flags]: https://blog.rust-lang.org/2024/05/06/check-cfg.html
 pub fn emit(cfg: &str) {
     println!("cargo:rustc-cfg={}", cfg);
 }
@@ -121,6 +129,25 @@ pub fn rerun_path(path: &str) {
 /// versions of cargo will simply ignore the directive.
 pub fn rerun_env(var: &str) {
     println!("cargo:rerun-if-env-changed={}", var);
+}
+
+/// Indicates to rustc that a config flag should not generate an [`unexpected_cfgs` warning][check-cfg-flags]
+///
+/// This looks like `cargo:rustc-check-cfg=cfg(VAR)`
+///
+/// As of rust 1.80, the compiler does [automatic checking of cfgs at compile time][check-cfg-flags].
+/// All custom configuration flags must be known to rustc, or they will generate a warning.
+/// This is done automatically when calling the builtin emit methods on [`AutoCfg`],
+/// but not when calling [`autocfg::emit`](crate::emit) directly.
+///
+/// Versions before rust 1.80 will simply ignore this directive.
+///
+/// This function indicates to the compiler that the config flag never has a value.
+/// If this is not desired, see [the blog post][check-cfg].
+///
+/// [check-cfg-flags]: https://blog.rust-lang.org/2024/05/06/check-cfg.html
+pub fn emit_possibility(cfg: &str) {
+    println!("cargo:rustc-check-cfg=cfg({})", cfg);
 }
 
 /// Creates a new `AutoCfg` instance.
@@ -176,6 +203,7 @@ impl AutoCfg {
             rustc_version: rustc_version,
             target: target,
             no_std: false,
+            uuid: new_uuid(),
         };
 
         // Sanity check with and without `std`.
@@ -227,21 +255,27 @@ impl AutoCfg {
     /// Sets a `cfg` value of the form `rustc_major_minor`, like `rustc_1_29`,
     /// if the current `rustc` is at least that version.
     pub fn emit_rustc_version(&self, major: usize, minor: usize) {
+        let cfg_flag = format!("rustc_{}_{}", major, minor);
+        emit_possibility(&cfg_flag);
         if self.probe_rustc_version(major, minor) {
-            emit(&format!("rustc_{}_{}", major, minor));
+            emit(&cfg_flag);
         }
     }
 
-    fn probe_fmt<'a>(&self, source: Arguments<'a>) -> Result<(), Error> {
+    /// Returns a new (hopefully unique) crate name for probes.
+    fn new_crate_name(&self) -> String {
         #[allow(deprecated)]
         static ID: AtomicUsize = ATOMIC_USIZE_INIT;
 
         let id = ID.fetch_add(1, Ordering::Relaxed);
+        format!("autocfg_{:016x}_{}", self.uuid, id)
+    }
 
+    fn probe_fmt<'a>(&self, source: Arguments<'a>) -> Result<(), Error> {
         let mut command = self.rustc.command();
         command
             .arg("--crate-name")
-            .arg(format!("probe{}", id))
+            .arg(self.new_crate_name())
             .arg("--crate-type=lib")
             .arg("--out-dir")
             .arg(&self.out_dir)
@@ -291,7 +325,8 @@ impl AutoCfg {
     /// ```
     /// # extern crate autocfg;
     /// # // Normally, cargo will set `OUT_DIR` for build scripts.
-    /// # std::env::set_var("OUT_DIR", "target");
+    /// # let exe = std::env::current_exe().unwrap();
+    /// # std::env::set_var("OUT_DIR", exe.parent().unwrap());
     /// let ac = autocfg::new();
     /// assert!(ac.probe_raw("#![no_builtins]").is_ok());
     /// ```
@@ -306,7 +341,8 @@ impl AutoCfg {
     /// ```
     /// # extern crate autocfg;
     /// # // Normally, cargo will set `OUT_DIR` for build scripts.
-    /// # std::env::set_var("OUT_DIR", "target");
+    /// # let exe = std::env::current_exe().unwrap();
+    /// # std::env::set_var("OUT_DIR", exe.parent().unwrap());
     /// let ac = autocfg::new();
     /// let code = r#"
     ///     #![feature(slice_group_by)]
@@ -336,8 +372,10 @@ impl AutoCfg {
 
     /// Emits a config value `has_CRATE` if `probe_sysroot_crate` returns true.
     pub fn emit_sysroot_crate(&self, name: &str) {
+        let cfg_flag = format!("has_{}", mangle(name));
+        emit_possibility(&cfg_flag);
         if self.probe_sysroot_crate(name) {
-            emit(&format!("has_{}", mangle(name)));
+            emit(&cfg_flag);
         }
     }
 
@@ -357,13 +395,12 @@ impl AutoCfg {
     /// Any non-identifier characters in the `path` will be replaced with
     /// `_` in the generated config value.
     pub fn emit_has_path(&self, path: &str) {
-        if self.probe_path(path) {
-            emit(&format!("has_{}", mangle(path)));
-        }
+        self.emit_path_cfg(path, &format!("has_{}", mangle(path)));
     }
 
     /// Emits the given `cfg` value if `probe_path` returns true.
     pub fn emit_path_cfg(&self, path: &str, cfg: &str) {
+        emit_possibility(cfg);
         if self.probe_path(path) {
             emit(cfg);
         }
@@ -385,13 +422,12 @@ impl AutoCfg {
     /// Any non-identifier characters in the trait `name` will be replaced with
     /// `_` in the generated config value.
     pub fn emit_has_trait(&self, name: &str) {
-        if self.probe_trait(name) {
-            emit(&format!("has_{}", mangle(name)));
-        }
+        self.emit_trait_cfg(name, &format!("has_{}", mangle(name)));
     }
 
     /// Emits the given `cfg` value if `probe_trait` returns true.
     pub fn emit_trait_cfg(&self, name: &str, cfg: &str) {
+        emit_possibility(cfg);
         if self.probe_trait(name) {
             emit(cfg);
         }
@@ -413,13 +449,12 @@ impl AutoCfg {
     /// Any non-identifier characters in the type `name` will be replaced with
     /// `_` in the generated config value.
     pub fn emit_has_type(&self, name: &str) {
-        if self.probe_type(name) {
-            emit(&format!("has_{}", mangle(name)));
-        }
+        self.emit_type_cfg(name, &format!("has_{}", mangle(name)));
     }
 
     /// Emits the given `cfg` value if `probe_type` returns true.
     pub fn emit_type_cfg(&self, name: &str, cfg: &str) {
+        emit_possibility(cfg);
         if self.probe_type(name) {
             emit(cfg);
         }
@@ -438,6 +473,7 @@ impl AutoCfg {
 
     /// Emits the given `cfg` value if `probe_expression` returns true.
     pub fn emit_expression_cfg(&self, expr: &str, cfg: &str) {
+        emit_possibility(cfg);
         if self.probe_expression(expr) {
             emit(cfg);
         }
@@ -456,6 +492,7 @@ impl AutoCfg {
 
     /// Emits the given `cfg` value if `probe_constant` returns true.
     pub fn emit_constant_cfg(&self, expr: &str, cfg: &str) {
+        emit_possibility(cfg);
         if self.probe_constant(expr) {
             emit(cfg);
         }
@@ -532,4 +569,22 @@ fn rustflags(target: &Option<OsString>, dir: &Path) -> Vec<String> {
     }
 
     Vec::new()
+}
+
+/// Generates a numeric ID to use in probe crate names.
+///
+/// This attempts to be random, within the constraints of Rust 1.0 and no dependencies.
+fn new_uuid() -> u64 {
+    const FNV_OFFSET_BASIS: u64 = 0xcbf2_9ce4_8422_2325;
+    const FNV_PRIME: u64 = 0x100_0000_01b3;
+
+    // This set should have an actual random hasher.
+    let set: std::collections::HashSet<u64> = (0..256).collect();
+
+    // Feed the `HashSet`-shuffled order into FNV-1a.
+    let mut hash: u64 = FNV_OFFSET_BASIS;
+    for x in set {
+        hash = (hash ^ x).wrapping_mul(FNV_PRIME);
+    }
+    hash
 }

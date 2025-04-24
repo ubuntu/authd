@@ -131,6 +131,7 @@ where
 /// Csr creation error: edges were not in sorted order.
 #[derive(Clone, Debug)]
 pub struct EdgesNotSorted {
+    #[allow(unused)]
     first_error: (usize, usize),
 }
 
@@ -410,13 +411,13 @@ pub struct EdgeReference<'a, E: 'a, Ty, Ix: 'a = DefaultIx> {
     ty: PhantomData<Ty>,
 }
 
-impl<'a, E, Ty, Ix: Copy> Clone for EdgeReference<'a, E, Ty, Ix> {
+impl<E, Ty, Ix: Copy> Clone for EdgeReference<'_, E, Ty, Ix> {
     fn clone(&self) -> Self {
         *self
     }
 }
 
-impl<'a, E, Ty, Ix: Copy> Copy for EdgeReference<'a, E, Ty, Ix> {}
+impl<E, Ty, Ix: Copy> Copy for EdgeReference<'_, E, Ty, Ix> {}
 
 impl<'a, Ty, E, Ix> EdgeReference<'a, E, Ty, Ix>
 where
@@ -431,7 +432,7 @@ where
     }
 }
 
-impl<'a, E, Ty, Ix> EdgeRef for EdgeReference<'a, E, Ty, Ix>
+impl<E, Ty, Ix> EdgeRef for EdgeReference<'_, E, Ty, Ix>
 where
     Ty: EdgeType,
     Ix: IndexType,
@@ -593,7 +594,7 @@ pub struct Neighbors<'a, Ix: 'a = DefaultIx> {
     iter: SliceIter<'a, NodeIndex<Ix>>,
 }
 
-impl<'a, Ix> Iterator for Neighbors<'a, Ix>
+impl<Ix> Iterator for Neighbors<'_, Ix>
 where
     Ix: IndexType,
 {
@@ -695,7 +696,7 @@ where
     }
 }
 
-impl<'a, N, E, Ty, Ix> IntoNodeIdentifiers for &'a Csr<N, E, Ty, Ix>
+impl<N, E, Ty, Ix> IntoNodeIdentifiers for &Csr<N, E, Ty, Ix>
 where
     Ty: EdgeType,
     Ix: IndexType,
@@ -775,7 +776,7 @@ where
     }
 }
 
-impl<'a, N, Ix> DoubleEndedIterator for NodeReferences<'a, N, Ix>
+impl<N, Ix> DoubleEndedIterator for NodeReferences<'_, N, Ix>
 where
     Ix: IndexType,
 {
@@ -786,11 +787,11 @@ where
     }
 }
 
-impl<'a, N, Ix> ExactSizeIterator for NodeReferences<'a, N, Ix> where Ix: IndexType {}
+impl<N, Ix> ExactSizeIterator for NodeReferences<'_, N, Ix> where Ix: IndexType {}
 
 /// The adjacency matrix for **Csr** is a bitmap that's computed by
 /// `.adjacency_matrix()`.
-impl<'a, N, E, Ty, Ix> GetAdjacencyMatrix for &'a Csr<N, E, Ty, Ix>
+impl<N, E, Ty, Ix> GetAdjacencyMatrix for &Csr<N, E, Ty, Ix>
 where
     Ix: IndexType,
     Ty: EdgeType,
@@ -801,17 +802,19 @@ where
         let n = self.node_count();
         let mut matrix = FixedBitSet::with_capacity(n * n);
         for edge in self.edge_references() {
-            let i = edge.source().index() * n + edge.target().index();
+            let i = n * edge.source().index() + edge.target().index();
             matrix.put(i);
 
-            let j = edge.source().index() + n * edge.target().index();
-            matrix.put(j);
+            if !self.is_directed() {
+                let j = edge.source().index() + n * edge.target().index();
+                matrix.put(j);
+            }
         }
         matrix
     }
 
     fn is_adjacent(&self, matrix: &FixedBitSet, a: NodeIndex<Ix>, b: NodeIndex<Ix>) -> bool {
-        let n = self.edge_count();
+        let n = self.node_count();
         let index = n * a.index() + b.index();
         matrix.contains(index)
     }
@@ -928,7 +931,7 @@ mod tests {
         .unwrap();
         println!("{:?}", m);
         let mut dfs = Dfs::new(&m, 0);
-        while let Some(_) = dfs.next(&m) {}
+        while dfs.next(&m).is_some() {}
         for i in 0..m.node_count() - 2 {
             assert!(dfs.discovered.is_visited(&i), "visited {}", i)
         }
@@ -940,7 +943,7 @@ mod tests {
 
         dfs.reset(&m);
         dfs.move_to(0);
-        while let Some(_) = dfs.next(&m) {}
+        while dfs.next(&m).is_some() {}
 
         for i in 0..m.node_count() {
             assert!(dfs.discovered[i], "visited {}", i)

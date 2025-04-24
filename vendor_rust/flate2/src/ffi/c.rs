@@ -8,7 +8,7 @@ use std::ptr;
 use super::*;
 use crate::mem;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct ErrorMessage(Option<&'static str>);
 
 impl ErrorMessage {
@@ -50,27 +50,38 @@ impl Default for StreamWrapper {
                 reserved: 0,
                 opaque: ptr::null_mut(),
                 state: ptr::null_mut(),
-                #[cfg(all(
-                    feature = "any_zlib",
-                    not(any(feature = "cloudflare-zlib-sys", feature = "libz-rs-sys"))
+
+                #[cfg(any(
+                    // zlib-ng
+                    feature = "zlib-ng",
+                    // libz-sys
+                    all(not(feature = "cloudflare_zlib"), not(feature = "zlib-ng"), not(feature = "zlib-rs"))
                 ))]
                 zalloc: allocator::zalloc,
-                #[cfg(all(
-                    feature = "any_zlib",
-                    not(any(feature = "cloudflare-zlib-sys", feature = "libz-rs-sys"))
+                #[cfg(any(
+                    // zlib-ng
+                    feature = "zlib-ng",
+                    // libz-sys
+                    all(not(feature = "cloudflare_zlib"), not(feature = "zlib-ng"), not(feature = "zlib-rs"))
                 ))]
                 zfree: allocator::zfree,
 
-                #[cfg(all(feature = "any_zlib", feature = "cloudflare-zlib-sys"))]
+                #[cfg(
+                    // cloudflare-zlib
+                    all(feature = "cloudflare_zlib", not(feature = "zlib-rs"), not(feature = "zlib-ng")),
+                )]
                 zalloc: Some(allocator::zalloc),
-                #[cfg(all(feature = "any_zlib", feature = "cloudflare-zlib-sys"))]
+                #[cfg(
+                    // cloudflare-zlib
+                    all(feature = "cloudflare_zlib", not(feature = "zlib-rs"), not(feature = "zlib-ng")),
+                )]
                 zfree: Some(allocator::zfree),
 
                 // for zlib-rs, it is most efficient to have it provide the allocator.
                 // The libz-rs-sys dependency is configured to use the rust system allocator
-                #[cfg(all(feature = "any_zlib", feature = "libz-rs-sys"))]
+                #[cfg(all(feature = "zlib-rs", not(feature = "zlib-ng")))]
                 zalloc: None,
-                #[cfg(all(feature = "any_zlib", feature = "libz-rs-sys"))]
+                #[cfg(all(feature = "zlib-rs", not(feature = "zlib-ng")))]
                 zfree: None,
             })),
         }
@@ -87,7 +98,14 @@ impl Drop for StreamWrapper {
     }
 }
 
-#[cfg(all(feature = "any_zlib", not(feature = "libz-rs-sys")))]
+#[cfg(any(
+    // zlib-ng
+    feature = "zlib-ng",
+    // cloudflare-zlib
+    all(feature = "cloudflare_zlib", not(feature = "zlib-rs"), not(feature = "zlib-ng")),
+    // libz-sys
+    all(not(feature = "cloudflare_zlib"), not(feature = "zlib-ng"), not(feature = "zlib-rs")),
+))]
 mod allocator {
     use super::*;
 
@@ -263,7 +281,9 @@ impl InflateBackend for Inflate {
             (*raw).avail_out = 0;
 
             match rc {
-                MZ_DATA_ERROR | MZ_STREAM_ERROR => mem::decompress_failed(self.inner.msg()),
+                MZ_DATA_ERROR | MZ_STREAM_ERROR | MZ_MEM_ERROR => {
+                    mem::decompress_failed(self.inner.msg())
+                }
                 MZ_OK => Ok(Status::Ok),
                 MZ_BUF_ERROR => Ok(Status::BufError),
                 MZ_STREAM_END => Ok(Status::StreamEnd),
@@ -403,17 +423,19 @@ mod c_backend {
     #[cfg(feature = "zlib-ng")]
     use libz_ng_sys as libz;
 
-    #[cfg(all(not(feature = "zlib-ng"), feature = "zlib-rs"))]
+    #[cfg(all(feature = "zlib-rs", not(feature = "zlib-ng")))]
     use libz_rs_sys as libz;
 
-    #[cfg(all(not(feature = "zlib-ng"), feature = "cloudflare_zlib"))]
+    #[cfg(
+        // cloudflare-zlib
+        all(feature = "cloudflare_zlib", not(feature = "zlib-rs"), not(feature = "zlib-ng")),
+    )]
     use cloudflare_zlib_sys as libz;
 
-    #[cfg(all(
-        not(feature = "cloudflare_zlib"),
-        not(feature = "zlib-ng"),
-        not(feature = "zlib-rs")
-    ))]
+    #[cfg(
+        // libz-sys
+        all(not(feature = "cloudflare_zlib"), not(feature = "zlib-ng"), not(feature = "zlib-rs")),
+    )]
     use libz_sys as libz;
 
     pub use libz::deflate as mz_deflate;
@@ -431,6 +453,7 @@ mod c_backend {
     pub use libz::Z_DEFLATED as MZ_DEFLATED;
     pub use libz::Z_FINISH as MZ_FINISH;
     pub use libz::Z_FULL_FLUSH as MZ_FULL_FLUSH;
+    pub use libz::Z_MEM_ERROR as MZ_MEM_ERROR;
     pub use libz::Z_NEED_DICT as MZ_NEED_DICT;
     pub use libz::Z_NO_FLUSH as MZ_NO_FLUSH;
     pub use libz::Z_OK as MZ_OK;
@@ -444,7 +467,7 @@ mod c_backend {
     #[cfg(feature = "zlib-ng")]
     const ZLIB_VERSION: &'static str = "2.1.0.devel\0";
     #[cfg(all(not(feature = "zlib-ng"), feature = "zlib-rs"))]
-    const ZLIB_VERSION: &'static str = "0.1.0\0";
+    const ZLIB_VERSION: &'static str = "1.3.0-zlib-rs-0.5.0\0";
     #[cfg(not(any(feature = "zlib-ng", feature = "zlib-rs")))]
     const ZLIB_VERSION: &'static str = "1.2.8\0";
 

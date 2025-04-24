@@ -1,3 +1,91 @@
+# 0.7.15 (April 23rd, 2025)
+
+### Fixed
+
+- task: properly handle removed entries in `JoinMap` ([#7264])
+
+### Updated
+
+- deps: update hashbrown to 0.15 ([#7219])
+
+### Documented
+
+- task: explicitly state that `TaskTracker` does not abort tasks on Drop ([#7223])
+
+[#7219]: https://github.com/tokio-rs/tokio/pull/7219
+[#7223]: https://github.com/tokio-rs/tokio/pull/7223
+[#7264]: https://github.com/tokio-rs/tokio/pull/7264
+
+# 0.7.14 (March 12th, 2025)
+
+### Added
+
+- io: add `get_ref` and `get_mut` for `SyncIoBridge` ([#7128])
+- io: add `read_exact_arc` ([#7165])
+- sync: add `CancellationToken::run_until_cancelled_owned` ([#7081])
+
+### Changed
+
+- codec: optimize buffer reserve for `AnyDelimiterCodec::encode` ([#7188])
+- either: enable `Either` to use underlying `AsyncWrite` implementation ([#7025])
+
+### Fixed
+
+- codec: fix typo in API docs ([#7044])
+- util: fix example in `StreamReader` docs ([#7167])
+
+### Documented
+
+- io: add docs for `SyncIoBridge` with examples and alternatives ([#6815])
+
+### Internal
+
+- io: clean up buffer casts ([#7142])
+- task: run `spawn_pinned` tests with miri ([#7023])
+
+[#6815]: https://github.com/tokio-rs/tokio/pull/6815
+[#7023]: https://github.com/tokio-rs/tokio/pull/7023
+[#7025]: https://github.com/tokio-rs/tokio/pull/7025
+[#7044]: https://github.com/tokio-rs/tokio/pull/7044
+[#7081]: https://github.com/tokio-rs/tokio/pull/7081
+[#7128]: https://github.com/tokio-rs/tokio/pull/7128
+[#7142]: https://github.com/tokio-rs/tokio/pull/7142
+[#7165]: https://github.com/tokio-rs/tokio/pull/7165
+[#7167]: https://github.com/tokio-rs/tokio/pull/7167
+[#7188]: https://github.com/tokio-rs/tokio/pull/7188
+
+# 0.7.13 (December 4th, 2024)
+
+### Fixed
+
+- codec: fix incorrect handling of invalid utf-8 in `LinesCodec::decode_eof` ([#7011])
+
+[#7011]: https://github.com/tokio-rs/tokio/pull/7011
+
+# 0.7.12 (September 5th, 2024)
+
+This release bumps the MSRV to 1.70. ([#6645])
+
+### Added
+- sync: Add `run_until_cancelled` to `tokio_util::sync::CancellationToken` ([#6618])
+- task: add `AbortOnDropHandle` type ([#6786])
+
+### Changed
+- deps: no default features for hashbrown ([#6541])
+- time: wake `DelayQueue` when removing last item ([#6752])
+- deps: enable the full feature when compiled for the playground ([#6818])
+
+### Documented
+- task: fix typo in `TaskTracker` docs ([#6792])
+
+[#6645]: https://github.com/tokio-rs/tokio/pull/6645
+[#6541]: https://github.com/tokio-rs/tokio/pull/6541
+[#6618]: https://github.com/tokio-rs/tokio/pull/6618
+[#6752]: https://github.com/tokio-rs/tokio/pull/6752
+[#6786]: https://github.com/tokio-rs/tokio/pull/6786
+[#6792]: https://github.com/tokio-rs/tokio/pull/6792
+[#6818]: https://github.com/tokio-rs/tokio/pull/6818
+
 # 0.7.11 (May 4th, 2024)
 
 This release updates the MSRV to 1.63. ([#6126])
@@ -103,7 +191,7 @@ This release contains one performance improvement:
 [#5630]: https://github.com/tokio-rs/tokio/pull/5630
 [#5632]: https://github.com/tokio-rs/tokio/pull/5632
 
-# 0.7.7 (February 12, 2023)
+# 0.7.7 (February 12th, 2023)
 
 This release reverts the removal of the `Encoder` bound on the `FramedParts`
 constructor from [#5280] since it turned out to be a breaking change. ([#5450])

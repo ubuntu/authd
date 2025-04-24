@@ -13,12 +13,18 @@
 edition = "2018"
 rust-version = "1.49.0"
 name = "http"
-version = "1.1.0"
+version = "1.3.1"
 authors = [
     "Alex Crichton <alex@alexcrichton.com>",
     "Carl Lerche <me@carllerche.com>",
     "Sean McArthur <sean@seanmonstar.com>",
 ]
+build = false
+autolib = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 description = """
 A set of types for representing HTTP requests and responses.
 """
@@ -28,6 +34,26 @@ keywords = ["http"]
 categories = ["web-programming"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/hyperium/http"
+
+[features]
+default = ["std"]
+std = []
+
+[lib]
+name = "http"
+path = "src/lib.rs"
+
+[[test]]
+name = "header_map"
+path = "tests/header_map.rs"
+
+[[test]]
+name = "header_map_fuzz"
+path = "tests/header_map_fuzz.rs"
+
+[[test]]
+name = "status_code"
+path = "tests/status_code.rs"
 
 [dependencies.bytes]
 version = "1"
@@ -52,7 +78,3 @@ version = "1.0"
 
 [dev-dependencies.serde_json]
 version = "1.0"
-
-[features]
-default = ["std"]
-std = []

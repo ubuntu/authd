@@ -1044,6 +1044,7 @@ fn oob_index() {
     let a = gr.add_node(0);
     let b = gr.add_node(1);
     gr.remove_node(a);
+    #[allow(clippy::no_effect)]
     gr[b];
 }
 
@@ -1760,7 +1761,7 @@ fn neighbors_selfloops() {
     assert_eq!(&seen_undir, &undir_edges);
 }
 
-fn degree<'a, G>(g: G, node: G::NodeId) -> usize
+fn degree<G>(g: G, node: G::NodeId) -> usize
 where
     G: IntoNeighbors,
     G::NodeId: PartialEq,
@@ -1841,6 +1842,7 @@ fn neighbor_order() {
 fn dot() {
     // test alternate formatting
     #[derive(Debug)]
+    #[allow(unused)]
     struct Record {
         a: i32,
         b: &'static str,

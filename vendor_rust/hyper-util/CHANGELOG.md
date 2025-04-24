@@ -1,3 +1,15 @@
+# 0.1.11 (2025-03-31)
+
+- Add `tracing` crate feature with support in `TokioExecutor`.
+- Add `HttpConnector::interface()` support for macOS and Solarish systems.
+- Add `rt::WithHyperIo` and `rt::WithTokioIo` combinators.
+- Add `auto_date_header()` for auto server builder.
+- Add `max_local_error_reset_streams()` for auto server builder.
+- Add `ignore_invalid_headers()` for auto server builder.
+- Add methods to determine if auto server is configured for HTTP/1 or HTTP/2.
+- Implement `Connection` for `UnixStream` and `NamedPipeClient`.
+- Fix HTTP/2 websocket requests sent through `legacy::Client`.
+
 # 0.1.10 (2024-10-28)
 
 - Add `http2_max_header_list_size(num)` option to legacy client builder.

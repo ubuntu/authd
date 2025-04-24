@@ -3,10 +3,11 @@
 [![crates.io](https://img.shields.io/crates/v/pin-project?style=flat-square&logo=rust)](https://crates.io/crates/pin-project)
 [![docs.rs](https://img.shields.io/badge/docs.rs-pin--project-blue?style=flat-square&logo=docs.rs)](https://docs.rs/pin-project)
 [![license](https://img.shields.io/badge/license-Apache--2.0_OR_MIT-blue?style=flat-square)](#license)
-[![rust version](https://img.shields.io/badge/rustc-1.56+-blue?style=flat-square&logo=rust)](https://www.rust-lang.org)
+[![msrv](https://img.shields.io/badge/msrv-1.56-blue?style=flat-square&logo=rust)](https://www.rust-lang.org)
 [![github actions](https://img.shields.io/github/actions/workflow/status/taiki-e/pin-project/ci.yml?branch=main&style=flat-square&logo=github)](https://github.com/taiki-e/pin-project/actions)
 
-<!-- tidy:crate-doc:start -->
+<!-- tidy:sync-markdown-to-rustdoc:start:src/lib.rs -->
+
 A crate for safe and ergonomic [pin-projection].
 
 ## Usage
@@ -17,8 +18,6 @@ Add this to your `Cargo.toml`:
 [dependencies]
 pin-project = "1"
 ```
-
-*Compiler support: requires rustc 1.56+*
 
 ## Examples
 
@@ -91,9 +90,9 @@ see [examples] directory for more examples and generated code.
 [pin-projection]: https://doc.rust-lang.org/std/pin/index.html#projections-and-structural-pinning
 [struct-default-expanded]: https://github.com/taiki-e/pin-project/blob/HEAD/examples/struct-default-expanded.rs
 
-<!-- tidy:crate-doc:end -->
+<!-- tidy:sync-markdown-to-rustdoc:end -->
 
-[`pin_project`]: https://docs.rs/pin-project/1/pin_project/attr.pin_project.html
+[`pin_project`]: https://docs.rs/pin-project/latest/pin_project/attr.pin_project.html
 
 ## License
 

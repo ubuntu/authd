@@ -5,19 +5,24 @@ enum Enum<T, U> {
     Tuple(#[pin] T, U),
     Unit,
 }
-#[allow(box_pointers)]
-#[allow(deprecated)]
-#[allow(explicit_outlives_requirements)]
-#[allow(single_use_lifetimes)]
-#[allow(unreachable_pub)]
-#[allow(unused_tuple_struct_fields)]
-#[allow(clippy::unknown_clippy_lints)]
-#[allow(clippy::pattern_type_mismatch)]
-#[allow(clippy::redundant_pub_crate)]
-#[allow(clippy::type_repetition_in_bounds)]
-#[allow(dead_code)]
-#[allow(clippy::mut_mut)]
-#[allow(clippy::missing_docs_in_private_items)]
+#[allow(
+    dead_code,
+    deprecated,
+    explicit_outlives_requirements,
+    single_use_lifetimes,
+    unreachable_pub,
+    unused_tuple_struct_fields,
+    clippy::unknown_clippy_lints,
+    clippy::absolute_paths,
+    clippy::min_ident_chars,
+    clippy::pattern_type_mismatch,
+    clippy::pub_with_shorthand,
+    clippy::redundant_pub_crate,
+    clippy::single_char_lifetime_names,
+    clippy::type_repetition_in_bounds,
+    clippy::missing_docs_in_private_items,
+    clippy::mut_mut
+)]
 enum EnumProj<'pin, T, U>
 where
     Enum<T, U>: 'pin,
@@ -29,19 +34,24 @@ where
     Tuple(::pin_project::__private::Pin<&'pin mut (T)>, &'pin mut (U)),
     Unit,
 }
-#[allow(box_pointers)]
-#[allow(deprecated)]
-#[allow(explicit_outlives_requirements)]
-#[allow(single_use_lifetimes)]
-#[allow(unreachable_pub)]
-#[allow(unused_tuple_struct_fields)]
-#[allow(clippy::unknown_clippy_lints)]
-#[allow(clippy::pattern_type_mismatch)]
-#[allow(clippy::redundant_pub_crate)]
-#[allow(clippy::type_repetition_in_bounds)]
-#[allow(dead_code)]
-#[allow(clippy::ref_option_ref)]
-#[allow(clippy::missing_docs_in_private_items)]
+#[allow(
+    dead_code,
+    deprecated,
+    explicit_outlives_requirements,
+    single_use_lifetimes,
+    unreachable_pub,
+    unused_tuple_struct_fields,
+    clippy::unknown_clippy_lints,
+    clippy::absolute_paths,
+    clippy::min_ident_chars,
+    clippy::pattern_type_mismatch,
+    clippy::pub_with_shorthand,
+    clippy::redundant_pub_crate,
+    clippy::single_char_lifetime_names,
+    clippy::type_repetition_in_bounds,
+    clippy::missing_docs_in_private_items,
+    clippy::ref_option_ref
+)]
 enum EnumProjRef<'pin, T, U>
 where
     Enum<T, U>: 'pin,
@@ -50,20 +60,28 @@ where
     Tuple(::pin_project::__private::Pin<&'pin (T)>, &'pin (U)),
     Unit,
 }
-#[allow(box_pointers)]
-#[allow(deprecated)]
-#[allow(explicit_outlives_requirements)]
-#[allow(single_use_lifetimes)]
-#[allow(unreachable_pub)]
-#[allow(unused_tuple_struct_fields)]
-#[allow(clippy::unknown_clippy_lints)]
-#[allow(clippy::pattern_type_mismatch)]
-#[allow(clippy::redundant_pub_crate)]
-#[allow(clippy::type_repetition_in_bounds)]
-#[allow(unused_qualifications)]
-#[allow(clippy::semicolon_if_nothing_returned)]
-#[allow(clippy::use_self)]
-#[allow(clippy::used_underscore_binding)]
+#[allow(
+    unused_qualifications,
+    deprecated,
+    explicit_outlives_requirements,
+    single_use_lifetimes,
+    unreachable_pub,
+    unused_tuple_struct_fields,
+    clippy::unknown_clippy_lints,
+    clippy::absolute_paths,
+    clippy::min_ident_chars,
+    clippy::pattern_type_mismatch,
+    clippy::pub_with_shorthand,
+    clippy::redundant_pub_crate,
+    clippy::single_char_lifetime_names,
+    clippy::type_repetition_in_bounds,
+    clippy::elidable_lifetime_names,
+    clippy::missing_const_for_fn,
+    clippy::needless_lifetimes,
+    clippy::semicolon_if_nothing_returned,
+    clippy::use_self,
+    clippy::used_underscore_binding
+)]
 const _: () = {
     #[allow(unused_extern_crates)]
     extern crate pin_project as _pin_project;
@@ -92,7 +110,6 @@ const _: () = {
             }
         }
         #[allow(dead_code)]
-        #[allow(clippy::missing_const_for_fn)]
         #[inline]
         fn project_ref<'pin>(
             self: _pin_project::__private::Pin<&'pin Self>,
@@ -118,7 +135,9 @@ const _: () = {
     }
     impl<'pin, T, U> _pin_project::__private::Unpin for Enum<T, U>
     where
-        _pin_project::__private::Wrapper<'pin, Self>: _pin_project::UnsafeUnpin,
+        _pin_project::__private::PinnedFieldsOf<
+            _pin_project::__private::Wrapper<'pin, Self>,
+        >: _pin_project::UnsafeUnpin,
     {}
     trait EnumMustNotImplDrop {}
     #[allow(clippy::drop_bounds, drop_bounds)]

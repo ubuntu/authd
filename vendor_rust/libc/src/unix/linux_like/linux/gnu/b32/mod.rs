@@ -3,8 +3,6 @@
 use crate::prelude::*;
 use crate::pthread_mutex_t;
 
-pub type c_long = i32;
-pub type c_ulong = u32;
 pub type clock_t = i32;
 
 pub type shmatt_t = c_ulong;
@@ -22,17 +20,33 @@ cfg_if! {
     if #[cfg(target_arch = "riscv32")] {
         pub type time_t = i64;
         pub type suseconds_t = i64;
-        pub type ino_t = u64;
+        type __ino_t = c_ulong;
+        type __ino64_t = u64;
+        pub type ino_t = __ino64_t;
         pub type off_t = i64;
         pub type blkcnt_t = i64;
         pub type fsblkcnt_t = u64;
         pub type fsfilcnt_t = u64;
         pub type rlim_t = u64;
         pub type blksize_t = i64;
+    } else if #[cfg(gnu_file_offset_bits64)] {
+        pub type time_t = i32;
+        pub type suseconds_t = i32;
+        type __ino_t = c_ulong;
+        type __ino64_t = u64;
+        pub type ino_t = __ino64_t;
+        pub type off_t = i64;
+        pub type blkcnt_t = i64;
+        pub type fsblkcnt_t = u64;
+        pub type fsfilcnt_t = u64;
+        pub type rlim_t = u64;
+        pub type blksize_t = i32;
     } else {
         pub type time_t = i32;
         pub type suseconds_t = i32;
-        pub type ino_t = u32;
+        type __ino_t = c_ulong;
+        type __ino64_t = u64;
+        pub type ino_t = __ino_t;
         pub type off_t = i32;
         pub type blkcnt_t = i32;
         pub type fsblkcnt_t = c_ulong;
@@ -42,55 +56,57 @@ cfg_if! {
     }
 }
 
-s! {
-    pub struct stat {
-        #[cfg(not(any(target_arch = "mips", target_arch = "mips32r6")))]
-        pub st_dev: crate::dev_t,
-        #[cfg(any(target_arch = "mips", target_arch = "mips32r6"))]
-        pub st_dev: c_ulong,
+cfg_if! {
+    if #[cfg(not(any(
+        target_arch = "mips",
+        target_arch = "mips32r6",
+        target_arch = "powerpc",
+        target_arch = "sparc"
+    )))] {
+        s! {
+            pub struct stat {
+                pub st_dev: crate::dev_t,
 
-        #[cfg(not(any(target_arch = "mips", target_arch = "mips32r6")))]
-        __pad1: c_short,
-        #[cfg(any(target_arch = "mips", target_arch = "mips32r6"))]
-        st_pad1: [c_long; 3],
-        pub st_ino: crate::ino_t,
-        pub st_mode: crate::mode_t,
-        pub st_nlink: crate::nlink_t,
-        pub st_uid: crate::uid_t,
-        pub st_gid: crate::gid_t,
-        #[cfg(not(any(target_arch = "mips", target_arch = "mips32r6")))]
-        pub st_rdev: crate::dev_t,
-        #[cfg(any(target_arch = "mips", target_arch = "mips32r6"))]
-        pub st_rdev: c_ulong,
-        #[cfg(not(any(target_arch = "mips", target_arch = "mips32r6")))]
-        __pad2: c_short,
-        #[cfg(any(target_arch = "mips", target_arch = "mips32r6"))]
-        st_pad2: [c_long; 2],
-        pub st_size: off_t,
-        #[cfg(any(target_arch = "mips", target_arch = "mips32r6"))]
-        st_pad3: c_long,
-        #[cfg(not(any(target_arch = "mips", target_arch = "mips32r6")))]
-        pub st_blksize: crate::blksize_t,
-        #[cfg(not(any(target_arch = "mips", target_arch = "mips32r6")))]
-        pub st_blocks: crate::blkcnt_t,
-        pub st_atime: crate::time_t,
-        pub st_atime_nsec: c_long,
-        pub st_mtime: crate::time_t,
-        pub st_mtime_nsec: c_long,
-        pub st_ctime: crate::time_t,
-        pub st_ctime_nsec: c_long,
-        #[cfg(not(any(target_arch = "mips", target_arch = "mips32r6")))]
-        __unused4: c_long,
-        #[cfg(not(any(target_arch = "mips", target_arch = "mips32r6")))]
-        __unused5: c_long,
-        #[cfg(any(target_arch = "mips", target_arch = "mips32r6"))]
-        pub st_blksize: crate::blksize_t,
-        #[cfg(any(target_arch = "mips", target_arch = "mips32r6"))]
-        pub st_blocks: crate::blkcnt_t,
-        #[cfg(any(target_arch = "mips", target_arch = "mips32r6"))]
-        st_pad5: [c_long; 14],
+                __pad1: c_uint,
+
+                #[cfg(not(gnu_file_offset_bits64))]
+                pub st_ino: crate::ino_t,
+                #[cfg(all(gnu_file_offset_bits64))]
+                __st_ino: __ino_t,
+
+                pub st_mode: crate::mode_t,
+                pub st_nlink: crate::nlink_t,
+                pub st_uid: crate::uid_t,
+                pub st_gid: crate::gid_t,
+
+                pub st_rdev: crate::dev_t,
+
+                __pad2: c_uint,
+
+                pub st_size: off_t,
+
+                pub st_blksize: crate::blksize_t,
+                pub st_blocks: crate::blkcnt_t,
+
+                pub st_atime: crate::time_t,
+                pub st_atime_nsec: c_long,
+                pub st_mtime: crate::time_t,
+                pub st_mtime_nsec: c_long,
+                pub st_ctime: crate::time_t,
+                pub st_ctime_nsec: c_long,
+
+                #[cfg(not(gnu_file_offset_bits64))]
+                __glibc_reserved4: c_long,
+                #[cfg(not(gnu_file_offset_bits64))]
+                __glibc_reserved5: c_long,
+                #[cfg(gnu_file_offset_bits64)]
+                pub st_ino: crate::ino_t,
+            }
+        }
     }
+}
 
+s! {
     pub struct statvfs {
         pub f_bsize: c_ulong,
         pub f_frsize: c_ulong,
@@ -187,9 +203,6 @@ cfg_if! {
 
         pub const PTRACE_DETACH: c_uint = 11;
 
-        pub const F_SETLK: c_int = 8;
-        pub const F_SETLKW: c_int = 9;
-
         pub const F_RDLCK: c_int = 1;
         pub const F_WRLCK: c_int = 2;
         pub const F_UNLCK: c_int = 3;
@@ -233,9 +246,6 @@ cfg_if! {
 
         pub const PTRACE_DETACH: c_uint = 17;
 
-        pub const F_SETLK: c_int = 6;
-        pub const F_SETLKW: c_int = 7;
-
         pub const F_RDLCK: c_int = 0;
         pub const F_WRLCK: c_int = 1;
         pub const F_UNLCK: c_int = 2;
@@ -269,6 +279,24 @@ cfg_if! {
         pub const EPOLL_CLOEXEC: c_int = 0x80000;
 
         pub const EFD_CLOEXEC: c_int = 0x80000;
+    }
+}
+cfg_if! {
+    if #[cfg(target_arch = "sparc")] {
+        pub const F_SETLK: c_int = 8;
+        pub const F_SETLKW: c_int = 9;
+    } else if #[cfg(all(
+        gnu_file_offset_bits64,
+        any(target_arch = "mips", target_arch = "mips32r6")
+    ))] {
+        pub const F_SETLK: c_int = 34;
+        pub const F_SETLKW: c_int = 35;
+    } else if #[cfg(gnu_file_offset_bits64)] {
+        pub const F_SETLK: c_int = 13;
+        pub const F_SETLKW: c_int = 14;
+    } else {
+        pub const F_SETLK: c_int = 6;
+        pub const F_SETLKW: c_int = 7;
     }
 }
 

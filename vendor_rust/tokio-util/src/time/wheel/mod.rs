@@ -7,7 +7,6 @@ pub(crate) use self::stack::Stack;
 
 use std::borrow::Borrow;
 use std::fmt::Debug;
-use std::usize;
 
 /// Timing wheel implementation.
 ///
@@ -35,7 +34,7 @@ pub(crate) struct Wheel<T> {
     /// * ~ 4 min slots / ~ 4 hr range
     /// * ~ 4 hr slots / ~ 12 day range
     /// * ~ 12 day slots / ~ 2 yr range
-    levels: Vec<Level<T>>,
+    levels: Box<[Level<T>]>,
 }
 
 /// Number of levels. Each level has 64 slots. By using 6 levels with 64 slots
@@ -281,13 +280,7 @@ mod test {
     #[test]
     fn test_level_for() {
         for pos in 0..64 {
-            assert_eq!(
-                0,
-                level_for(0, pos),
-                "level_for({}) -- binary = {:b}",
-                pos,
-                pos
-            );
+            assert_eq!(0, level_for(0, pos), "level_for({pos}) -- binary = {pos:b}");
         }
 
         for level in 1..5 {
@@ -296,9 +289,7 @@ mod test {
                 assert_eq!(
                     level,
                     level_for(0, a as u64),
-                    "level_for({}) -- binary = {:b}",
-                    a,
-                    a
+                    "level_for({a}) -- binary = {a:b}"
                 );
 
                 if pos > level {
@@ -306,9 +297,7 @@ mod test {
                     assert_eq!(
                         level,
                         level_for(0, a as u64),
-                        "level_for({}) -- binary = {:b}",
-                        a,
-                        a
+                        "level_for({a}) -- binary = {a:b}"
                     );
                 }
 
@@ -317,9 +306,7 @@ mod test {
                     assert_eq!(
                         level,
                         level_for(0, a as u64),
-                        "level_for({}) -- binary = {:b}",
-                        a,
-                        a
+                        "level_for({a}) -- binary = {a:b}"
                     );
                 }
             }

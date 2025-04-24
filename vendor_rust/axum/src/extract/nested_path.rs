@@ -4,7 +4,6 @@ use std::{
 };
 
 use crate::extract::Request;
-use async_trait::async_trait;
 use axum_core::extract::FromRequestParts;
 use http::request::Parts;
 use tower_layer::{layer_fn, Layer};
@@ -28,7 +27,7 @@ use super::rejection::NestedPathRejection;
 /// let api = Router::new().route(
 ///     "/users",
 ///     get(|path: NestedPath| async move {
-///         // `path` will be "/api" because thats what this
+///         // `path` will be "/api" because that's what this
 ///         // router is nested at when we build `app`
 ///         let path = path.as_str();
 ///     })
@@ -47,7 +46,6 @@ impl NestedPath {
     }
 }
 
-#[async_trait]
 impl<S> FromRequestParts<S> for NestedPath
 where
     S: Send + Sync,
@@ -190,42 +188,6 @@ mod tests {
         let client = TestClient::new(app);
 
         let res = client.get("/api/v2/users").await;
-        assert_eq!(res.status(), StatusCode::OK);
-    }
-
-    #[crate::test]
-    async fn nested_at_root() {
-        let api = Router::new().route(
-            "/users",
-            get(|nested_path: NestedPath| {
-                assert_eq!(nested_path.as_str(), "/");
-                async {}
-            }),
-        );
-
-        let app = Router::new().nest("/", api);
-
-        let client = TestClient::new(app);
-
-        let res = client.get("/users").await;
-        assert_eq!(res.status(), StatusCode::OK);
-    }
-
-    #[crate::test]
-    async fn deeply_nested_from_root() {
-        let api = Router::new().route(
-            "/users",
-            get(|nested_path: NestedPath| {
-                assert_eq!(nested_path.as_str(), "/api");
-                async {}
-            }),
-        );
-
-        let app = Router::new().nest("/", Router::new().nest("/api", api));
-
-        let client = TestClient::new(app);
-
-        let res = client.get("/api/users").await;
         assert_eq!(res.status(), StatusCode::OK);
     }
 

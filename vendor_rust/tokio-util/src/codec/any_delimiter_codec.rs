@@ -2,7 +2,7 @@ use crate::codec::decoder::Decoder;
 use crate::codec::encoder::Encoder;
 
 use bytes::{Buf, BufMut, Bytes, BytesMut};
-use std::{cmp, fmt, io, str, usize};
+use std::{cmp, fmt, io, str};
 
 const DEFAULT_SEEK_DELIMITERS: &[u8] = b",;\n\r";
 const DEFAULT_SEQUENCE_WRITER: &[u8] = b",";
@@ -217,7 +217,7 @@ where
 
     fn encode(&mut self, chunk: T, buf: &mut BytesMut) -> Result<(), AnyDelimiterCodecError> {
         let chunk = chunk.as_ref();
-        buf.reserve(chunk.len() + 1);
+        buf.reserve(chunk.len() + self.sequence_writer.len());
         buf.put(chunk.as_bytes());
         buf.put(self.sequence_writer.as_ref());
 
@@ -249,7 +249,7 @@ impl fmt::Display for AnyDelimiterCodecError {
             AnyDelimiterCodecError::MaxChunkLengthExceeded => {
                 write!(f, "max chunk length exceeded")
             }
-            AnyDelimiterCodecError::Io(e) => write!(f, "{}", e),
+            AnyDelimiterCodecError::Io(e) => write!(f, "{e}"),
         }
     }
 }

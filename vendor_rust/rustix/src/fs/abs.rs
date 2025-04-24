@@ -1,12 +1,13 @@
 //! POSIX-style filesystem functions which operate on bare paths.
 
 use crate::fd::OwnedFd;
-#[cfg(not(any(target_os = "espidf", target_os = "vita")))]
+#[cfg(not(any(target_os = "espidf", target_os = "horizon", target_os = "vita")))]
 use crate::fs::Access;
 #[cfg(not(any(
     solarish,
     target_os = "espidf",
     target_os = "haiku",
+    target_os = "horizon",
     target_os = "netbsd",
     target_os = "nto",
     target_os = "redox",
@@ -108,6 +109,7 @@ pub fn lstat<P: path::Arg>(path: P) -> io::Result<Stat> {
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9799919799/functions/readlink.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/readlink.2.html
 #[cfg(feature = "alloc")]
+#[cfg_attr(docsrs, doc(cfg(feature = "alloc")))]
 #[inline]
 pub fn readlink<P: path::Arg, B: Into<Vec<u8>>>(path: P, reuse: B) -> io::Result<CString> {
     path.into_with_c_str(|path| _readlink(path, reuse.into()))
@@ -237,7 +239,7 @@ pub fn mkdir<P: path::Arg>(path: P, mode: Mode) -> io::Result<()> {
 ///
 /// [POSIX]: https://pubs.opengroup.org/onlinepubs/9799919799/functions/access.html
 /// [Linux]: https://man7.org/linux/man-pages/man2/access.2.html
-#[cfg(not(any(target_os = "espidf", target_os = "vita")))]
+#[cfg(not(any(target_os = "espidf", target_os = "horizon", target_os = "vita")))]
 #[inline]
 pub fn access<P: path::Arg>(path: P, access: Access) -> io::Result<()> {
     path.into_with_c_str(|path| backend::fs::syscalls::access(path, access))
@@ -256,6 +258,7 @@ pub fn access<P: path::Arg>(path: P, access: Access) -> io::Result<()> {
     solarish,
     target_os = "espidf",
     target_os = "haiku",
+    target_os = "horizon",
     target_os = "netbsd",
     target_os = "nto",
     target_os = "redox",

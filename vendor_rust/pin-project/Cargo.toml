@@ -13,12 +13,18 @@
 edition = "2021"
 rust-version = "1.56"
 name = "pin-project"
-version = "1.1.5"
+version = "1.1.10"
+build = false
 exclude = [
     "/.*",
     "/tools",
     "/DEVELOPMENT.md",
 ]
+autolib = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 description = """
 A crate for safe and ergonomic pin-projection.
 """
@@ -43,10 +49,96 @@ allowed_external_types = ["pin_project_internal::*"]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [lib]
+name = "pin_project"
+path = "src/lib.rs"
 doc-scrape-examples = false
 
+[[example]]
+name = "enum-default"
+path = "examples/enum-default.rs"
+
+[[example]]
+name = "enum-default-expanded"
+path = "examples/enum-default-expanded.rs"
+
+[[example]]
+name = "not_unpin"
+path = "examples/not_unpin.rs"
+
+[[example]]
+name = "not_unpin-expanded"
+path = "examples/not_unpin-expanded.rs"
+
+[[example]]
+name = "pinned_drop"
+path = "examples/pinned_drop.rs"
+
+[[example]]
+name = "pinned_drop-expanded"
+path = "examples/pinned_drop-expanded.rs"
+
+[[example]]
+name = "project_replace"
+path = "examples/project_replace.rs"
+
+[[example]]
+name = "project_replace-expanded"
+path = "examples/project_replace-expanded.rs"
+
+[[example]]
+name = "struct-default"
+path = "examples/struct-default.rs"
+
+[[example]]
+name = "struct-default-expanded"
+path = "examples/struct-default-expanded.rs"
+
+[[example]]
+name = "unsafe_unpin"
+path = "examples/unsafe_unpin.rs"
+
+[[example]]
+name = "unsafe_unpin-expanded"
+path = "examples/unsafe_unpin-expanded.rs"
+
+[[test]]
+name = "cfg"
+path = "tests/cfg.rs"
+
+[[test]]
+name = "compiletest"
+path = "tests/compiletest.rs"
+
+[[test]]
+name = "drop_order"
+path = "tests/drop_order.rs"
+
+[[test]]
+name = "expandtest"
+path = "tests/expandtest.rs"
+
+[[test]]
+name = "pin_project"
+path = "tests/pin_project.rs"
+
+[[test]]
+name = "pinned_drop"
+path = "tests/pinned_drop.rs"
+
+[[test]]
+name = "proper_unpin"
+path = "tests/proper_unpin.rs"
+
+[[test]]
+name = "repr_packed"
+path = "tests/repr_packed.rs"
+
+[[test]]
+name = "unsafe_unpin"
+path = "tests/unsafe_unpin.rs"
+
 [dependencies.pin-project-internal]
-version = "=1.1.5"
+version = "=1.1.10"
 
 [dev-dependencies.rustversion]
 version = "1"
@@ -57,18 +149,24 @@ version = "1"
 [lints.clippy]
 all = "warn"
 as_ptr_cast_mut = "warn"
+as_underscore = "warn"
 default_union_representation = "warn"
 inline_asm_x86_att_syntax = "warn"
 pedantic = "warn"
 trailing_empty_array = "warn"
 transmute_undefined_repr = "warn"
 undocumented_unsafe_blocks = "warn"
+unused_trait_names = "warn"
 
 [lints.clippy.bool_assert_comparison]
 level = "allow"
 priority = 1
 
 [lints.clippy.borrow_as_ptr]
+level = "allow"
+priority = 1
+
+[lints.clippy.cast_lossless]
 level = "allow"
 priority = 1
 
@@ -81,6 +179,14 @@ level = "allow"
 priority = 1
 
 [lints.clippy.float_cmp]
+level = "allow"
+priority = 1
+
+[lints.clippy.incompatible_msrv]
+level = "allow"
+priority = 1
+
+[lints.clippy.lint_groups_priority]
 level = "allow"
 priority = 1
 
@@ -97,6 +203,18 @@ level = "allow"
 priority = 1
 
 [lints.clippy.module_name_repetitions]
+level = "allow"
+priority = 1
+
+[lints.clippy.naive_bytecount]
+level = "allow"
+priority = 1
+
+[lints.clippy.nonminimal_bool]
+level = "allow"
+priority = 1
+
+[lints.clippy.range_plus_one]
 level = "allow"
 priority = 1
 
@@ -132,10 +250,21 @@ priority = 1
 level = "allow"
 priority = 1
 
+[lints.clippy.unreadable_literal]
+level = "allow"
+priority = 1
+
 [lints.rust]
+deprecated_safe = "warn"
 improper_ctypes = "warn"
 improper_ctypes_definitions = "warn"
 non_ascii_idents = "warn"
 rust_2018_idioms = "warn"
 single_use_lifetimes = "warn"
+unnameable_types = "warn"
 unreachable_pub = "warn"
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+priority = 0
+check-cfg = []

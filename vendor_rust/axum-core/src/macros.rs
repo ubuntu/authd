@@ -1,4 +1,5 @@
 /// Private API.
+#[cfg(feature = "tracing")]
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __log_rejection {
@@ -7,18 +8,28 @@ macro_rules! __log_rejection {
         body_text = $body_text:expr,
         status = $status:expr,
     ) => {
-        #[cfg(feature = "tracing")]
         {
-            tracing::event!(
+            $crate::__private::tracing::event!(
                 target: "axum::rejection",
-                tracing::Level::TRACE,
+                $crate::__private::tracing::Level::TRACE,
                 status = $status.as_u16(),
                 body = $body_text,
-                rejection_type = std::any::type_name::<$ty>(),
+                rejection_type = ::std::any::type_name::<$ty>(),
                 "rejecting request",
             );
         }
     };
+}
+
+#[cfg(not(feature = "tracing"))]
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __log_rejection {
+    (
+        rejection_type = $ty:ident,
+        body_text = $body_text:expr,
+        status = $status:expr,
+    ) => {};
 }
 
 /// Private API.
@@ -27,7 +38,7 @@ macro_rules! __log_rejection {
 macro_rules! __define_rejection {
     (
         #[status = $status:ident]
-        #[body = $body:expr]
+        #[body = $body:literal]
         $(#[$m:meta])*
         pub struct $name:ident;
     ) => {
@@ -36,26 +47,28 @@ macro_rules! __define_rejection {
         #[non_exhaustive]
         pub struct $name;
 
-        impl $crate::response::IntoResponse for $name {
-            fn into_response(self) -> $crate::response::Response {
-                $crate::__log_rejection!(
-                    rejection_type = $name,
-                    body_text = $body,
-                    status = http::StatusCode::$status,
-                );
-                (self.status(), $body).into_response()
-            }
-        }
-
         impl $name {
             /// Get the response body text used for this rejection.
             pub fn body_text(&self) -> String {
-                $body.into()
+                self.to_string()
             }
 
             /// Get the status code used for this rejection.
             pub fn status(&self) -> http::StatusCode {
                 http::StatusCode::$status
+            }
+        }
+
+        impl $crate::response::IntoResponse for $name {
+            fn into_response(self) -> $crate::response::Response {
+                let status = self.status();
+
+                $crate::__log_rejection!(
+                    rejection_type = $name,
+                    body_text = $body,
+                    status = status,
+                );
+                (status, $body).into_response()
             }
         }
 
@@ -76,7 +89,7 @@ macro_rules! __define_rejection {
 
     (
         #[status = $status:ident]
-        #[body = $body:expr]
+        #[body = $body:literal]
         $(#[$m:meta])*
         pub struct $name:ident (Error);
     ) => {
@@ -91,23 +104,10 @@ macro_rules! __define_rejection {
             {
                 Self($crate::Error::new(err))
             }
-        }
 
-        impl $crate::response::IntoResponse for $name {
-            fn into_response(self) -> $crate::response::Response {
-                $crate::__log_rejection!(
-                    rejection_type = $name,
-                    body_text = self.body_text(),
-                    status = http::StatusCode::$status,
-                );
-                (self.status(), self.body_text()).into_response()
-            }
-        }
-
-        impl $name {
             /// Get the response body text used for this rejection.
             pub fn body_text(&self) -> String {
-                format!(concat!($body, ": {}"), self.0).into()
+                self.to_string()
             }
 
             /// Get the status code used for this rejection.
@@ -116,9 +116,25 @@ macro_rules! __define_rejection {
             }
         }
 
+        impl $crate::response::IntoResponse for $name {
+            fn into_response(self) -> $crate::response::Response {
+                let status = self.status();
+                let body_text = self.body_text();
+
+                $crate::__log_rejection!(
+                    rejection_type = $name,
+                    body_text = body_text,
+                    status = status,
+                );
+                (status, body_text).into_response()
+            }
+        }
+
         impl std::fmt::Display for $name {
             fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", $body)
+                f.write_str($body)?;
+                f.write_str(": ")?;
+                self.0.fmt(f)
             }
         }
 
@@ -303,8 +319,6 @@ mod composite_rejection_tests {
 
     #[allow(dead_code, unreachable_pub)]
     mod defs {
-        use crate::{__composite_rejection, __define_rejection};
-
         __define_rejection! {
             #[status = BAD_REQUEST]
             #[body = "error message 1"]

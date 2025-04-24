@@ -14,22 +14,22 @@ use core::{fmt, hash, str};
 #[cfg(feature = "std")]
 use std::time::{SystemTime, UNIX_EPOCH};
 
+#[allow(deprecated)]
+use crate::Date;
 #[cfg(all(feature = "unstable-locales", feature = "alloc"))]
 use crate::format::Locale;
-use crate::format::{
-    parse, parse_and_remainder, parse_rfc3339, Fixed, Item, ParseError, ParseResult, Parsed,
-    StrftimeItems, TOO_LONG,
-};
 #[cfg(feature = "alloc")]
-use crate::format::{write_rfc2822, write_rfc3339, DelayedFormat, SecondsFormat};
+use crate::format::{DelayedFormat, SecondsFormat, write_rfc2822, write_rfc3339};
+use crate::format::{
+    Fixed, Item, ParseError, ParseResult, Parsed, StrftimeItems, TOO_LONG, parse,
+    parse_and_remainder, parse_rfc3339,
+};
 use crate::naive::{Days, IsoWeek, NaiveDate, NaiveDateTime, NaiveTime};
 #[cfg(feature = "clock")]
 use crate::offset::Local;
 use crate::offset::{FixedOffset, LocalResult, Offset, TimeZone, Utc};
-#[allow(deprecated)]
-use crate::Date;
-use crate::{expect, try_opt};
 use crate::{Datelike, Months, TimeDelta, Timelike, Weekday};
+use crate::{expect, try_opt};
 
 #[cfg(any(feature = "rkyv", feature = "rkyv-16", feature = "rkyv-32", feature = "rkyv-64"))]
 use rkyv::{Archive, Deserialize, Serialize};
@@ -594,7 +594,7 @@ impl<Tz: TimeZone> DateTime<Tz> {
     ///
     /// # Errors
     ///
-    /// Returns `None` if `base < self`.
+    /// Returns `None` if `base > self`.
     #[must_use]
     pub fn years_since(&self, base: Self) -> Option<u32> {
         let mut years = self.year() - base.year();
@@ -822,7 +822,7 @@ impl DateTime<Utc> {
         Self::from_timestamp(secs, nsecs)
     }
 
-    /// Creates a new [`DateTime<Utc>`] from the number of non-leap microseconds
+    /// Creates a new [`DateTime<Utc>`] from the number of non-leap nanoseconds
     /// since January 1, 1970 0:00:00.000 UTC (aka "UNIX timestamp").
     ///
     /// This is guaranteed to round-trip with [`timestamp_nanos`](DateTime::timestamp_nanos).
@@ -1027,7 +1027,7 @@ impl DateTime<FixedOffset> {
     /// for a version that does not require a timezone in the to-be-parsed str. The returned
     /// [`DateTime`] value will have a [`FixedOffset`] reflecting the parsed timezone.
     ///
-    /// See the [`format::strftime` module](./format/strftime/index.html) for supported format
+    /// See the [`format::strftime` module](crate::format::strftime) for supported format
     /// sequences.
     ///
     /// # Example
@@ -1727,7 +1727,7 @@ impl<Tz: TimeZone> Sub<&DateTime<Tz>> for DateTime<Tz> {
 /// - The local time at the resulting date does not exist or is ambiguous, for example during a
 ///   daylight saving time transition.
 ///
-/// Strongly consider using `DateTime<Tz>::checked_sub_days` to get an `Option` instead.
+/// Strongly consider using `DateTime<Tz>::checked_add_days` to get an `Option` instead.
 impl<Tz: TimeZone> Add<Days> for DateTime<Tz> {
     type Output = DateTime<Tz>;
 
@@ -1849,11 +1849,7 @@ impl From<SystemTime> for DateTime<Utc> {
                 // unlikely but should be handled
                 let dur = e.duration();
                 let (sec, nsec) = (dur.as_secs() as i64, dur.subsec_nanos());
-                if nsec == 0 {
-                    (-sec, 0)
-                } else {
-                    (-sec - 1, 1_000_000_000 - nsec)
-                }
+                if nsec == 0 { (-sec, 0) } else { (-sec - 1, 1_000_000_000 - nsec) }
             }
         };
         Utc.timestamp_opt(sec, nsec).unwrap()

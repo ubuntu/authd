@@ -32,7 +32,11 @@ s! {
         __error_code: c_int,
         __return_value: ssize_t,
         pub aio_offset: off_t,
-        #[cfg(all(not(target_arch = "x86_64"), target_pointer_width = "32"))]
+        #[cfg(all(
+            not(gnu_file_offset_bits64),
+            not(target_arch = "x86_64"),
+            target_pointer_width = "32"
+        ))]
         __unused1: [c_char; 4],
         __glibc_reserved: [c_char; 32],
     }
@@ -328,82 +332,11 @@ s! {
         pub u: __c_anonymous_ptrace_syscall_info_data,
     }
 
-    // linux/if_xdp.h
-
-    pub struct sockaddr_xdp {
-        pub sxdp_family: crate::__u16,
-        pub sxdp_flags: crate::__u16,
-        pub sxdp_ifindex: crate::__u32,
-        pub sxdp_queue_id: crate::__u32,
-        pub sxdp_shared_umem_fd: crate::__u32,
-    }
-
-    pub struct xdp_ring_offset {
-        pub producer: crate::__u64,
-        pub consumer: crate::__u64,
-        pub desc: crate::__u64,
-        pub flags: crate::__u64,
-    }
-
-    pub struct xdp_mmap_offsets {
-        pub rx: xdp_ring_offset,
-        pub tx: xdp_ring_offset,
-        pub fr: xdp_ring_offset,
-        pub cr: xdp_ring_offset,
-    }
-
-    pub struct xdp_ring_offset_v1 {
-        pub producer: crate::__u64,
-        pub consumer: crate::__u64,
-        pub desc: crate::__u64,
-    }
-
-    pub struct xdp_mmap_offsets_v1 {
-        pub rx: xdp_ring_offset_v1,
-        pub tx: xdp_ring_offset_v1,
-        pub fr: xdp_ring_offset_v1,
-        pub cr: xdp_ring_offset_v1,
-    }
-
-    pub struct xdp_umem_reg {
-        pub addr: crate::__u64,
+    pub struct ptrace_sud_config {
+        pub mode: crate::__u64,
+        pub selector: crate::__u64,
+        pub offset: crate::__u64,
         pub len: crate::__u64,
-        pub chunk_size: crate::__u32,
-        pub headroom: crate::__u32,
-        pub flags: crate::__u32,
-        pub tx_metadata_len: crate::__u32,
-    }
-
-    pub struct xdp_umem_reg_v1 {
-        pub addr: crate::__u64,
-        pub len: crate::__u64,
-        pub chunk_size: crate::__u32,
-        pub headroom: crate::__u32,
-    }
-
-    pub struct xdp_statistics {
-        pub rx_dropped: crate::__u64,
-        pub rx_invalid_descs: crate::__u64,
-        pub tx_invalid_descs: crate::__u64,
-        pub rx_ring_full: crate::__u64,
-        pub rx_fill_ring_empty_descs: crate::__u64,
-        pub tx_ring_empty_descs: crate::__u64,
-    }
-
-    pub struct xdp_statistics_v1 {
-        pub rx_dropped: crate::__u64,
-        pub rx_invalid_descs: crate::__u64,
-        pub tx_invalid_descs: crate::__u64,
-    }
-
-    pub struct xdp_options {
-        pub flags: crate::__u32,
-    }
-
-    pub struct xdp_desc {
-        pub addr: crate::__u64,
-        pub len: crate::__u32,
-        pub options: crate::__u32,
     }
 
     pub struct iocb {
@@ -484,6 +417,24 @@ s! {
         __size: [c_char; 16],
         #[cfg(target_pointer_width = "64")]
         __size: [c_char; 32],
+    }
+
+    pub struct mbstate_t {
+        __count: c_int,
+        __wchb: [c_char; 4],
+    }
+
+    pub struct fpos64_t {
+        __pos: off64_t,
+        __state: crate::mbstate_t,
+    }
+
+    pub struct fpos_t {
+        #[cfg(not(gnu_file_offset_bits64))]
+        __pos: off_t,
+        #[cfg(gnu_file_offset_bits64)]
+        __pos: off64_t,
+        __state: crate::mbstate_t,
     }
 }
 
@@ -661,7 +612,7 @@ cfg_if! {
                     .field("ut_line", &self.ut_line)
                     .field("ut_id", &self.ut_id)
                     .field("ut_user", &self.ut_user)
-                    // FIXME: .field("ut_host", &self.ut_host)
+                    // FIXME(debug): .field("ut_host", &self.ut_host)
                     .field("ut_exit", &self.ut_exit)
                     .field("ut_session", &self.ut_session)
                     .field("ut_tv", &self.ut_tv)
@@ -809,7 +760,6 @@ pub const SOL_RDS: c_int = 276;
 pub const SOL_IUCV: c_int = 277;
 pub const SOL_CAIF: c_int = 278;
 pub const SOL_NFC: c_int = 280;
-pub const SOL_XDP: c_int = 283;
 
 pub const MSG_TRYHARD: c_int = 4;
 
@@ -842,6 +792,7 @@ pub const ENOTSUP: c_int = EOPNOTSUPP;
 
 pub const SOCK_SEQPACKET: c_int = 5;
 pub const SOCK_DCCP: c_int = 6;
+#[deprecated(since = "0.2.70", note = "AF_PACKET must be used instead")]
 pub const SOCK_PACKET: c_int = 10;
 
 pub const AF_IB: c_int = 27;
@@ -989,6 +940,8 @@ pub const PTRACE_SYSCALL_INFO_NONE: crate::__u8 = 0;
 pub const PTRACE_SYSCALL_INFO_ENTRY: crate::__u8 = 1;
 pub const PTRACE_SYSCALL_INFO_EXIT: crate::__u8 = 2;
 pub const PTRACE_SYSCALL_INFO_SECCOMP: crate::__u8 = 3;
+pub const PTRACE_SET_SYSCALL_USER_DISPATCH_CONFIG: crate::__u8 = 0x4210;
+pub const PTRACE_GET_SYSCALL_USER_DISPATCH_CONFIG: crate::__u8 = 0x4211;
 
 // linux/fs.h
 
@@ -1041,38 +994,6 @@ pub const GENL_UNS_ADMIN_PERM: c_int = 0x10;
 
 pub const GENL_ID_VFS_DQUOT: c_int = crate::NLMSG_MIN_TYPE + 1;
 pub const GENL_ID_PMCRAID: c_int = crate::NLMSG_MIN_TYPE + 2;
-
-// linux/if_xdp.h
-pub const XDP_SHARED_UMEM: crate::__u16 = 1 << 0;
-pub const XDP_COPY: crate::__u16 = 1 << 1;
-pub const XDP_ZEROCOPY: crate::__u16 = 1 << 2;
-pub const XDP_USE_NEED_WAKEUP: crate::__u16 = 1 << 3;
-pub const XDP_USE_SG: crate::__u16 = 1 << 4;
-
-pub const XDP_UMEM_UNALIGNED_CHUNK_FLAG: crate::__u32 = 1 << 0;
-
-pub const XDP_RING_NEED_WAKEUP: crate::__u32 = 1 << 0;
-
-pub const XDP_MMAP_OFFSETS: c_int = 1;
-pub const XDP_RX_RING: c_int = 2;
-pub const XDP_TX_RING: c_int = 3;
-pub const XDP_UMEM_REG: c_int = 4;
-pub const XDP_UMEM_FILL_RING: c_int = 5;
-pub const XDP_UMEM_COMPLETION_RING: c_int = 6;
-pub const XDP_STATISTICS: c_int = 7;
-pub const XDP_OPTIONS: c_int = 8;
-
-pub const XDP_OPTIONS_ZEROCOPY: crate::__u32 = 1 << 0;
-
-pub const XDP_PGOFF_RX_RING: off_t = 0;
-pub const XDP_PGOFF_TX_RING: off_t = 0x80000000;
-pub const XDP_UMEM_PGOFF_FILL_RING: c_ulonglong = 0x100000000;
-pub const XDP_UMEM_PGOFF_COMPLETION_RING: c_ulonglong = 0x180000000;
-
-pub const XSK_UNALIGNED_BUF_OFFSET_SHIFT: c_int = 48;
-pub const XSK_UNALIGNED_BUF_ADDR_MASK: c_ulonglong = (1 << XSK_UNALIGNED_BUF_OFFSET_SHIFT) - 1;
-
-pub const XDP_PKT_CONTD: crate::__u32 = 1 << 0;
 
 pub const ELFOSABI_ARM_AEABI: u8 = 64;
 
@@ -1310,8 +1231,11 @@ extern "C" {
     pub fn getrlimit64(resource: crate::__rlimit_resource_t, rlim: *mut crate::rlimit64) -> c_int;
     pub fn setrlimit64(resource: crate::__rlimit_resource_t, rlim: *const crate::rlimit64)
         -> c_int;
+    #[cfg_attr(gnu_file_offset_bits64, link_name = "getrlimit64")]
     pub fn getrlimit(resource: crate::__rlimit_resource_t, rlim: *mut crate::rlimit) -> c_int;
+    #[cfg_attr(gnu_file_offset_bits64, link_name = "setrlimit64")]
     pub fn setrlimit(resource: crate::__rlimit_resource_t, rlim: *const crate::rlimit) -> c_int;
+    #[cfg_attr(gnu_file_offset_bits64, link_name = "prlimit64")]
     pub fn prlimit(
         pid: crate::pid_t,
         resource: crate::__rlimit_resource_t,
@@ -1352,6 +1276,7 @@ extern "C" {
         dirfd: c_int,
         path: *const c_char,
     ) -> c_int;
+    #[cfg_attr(gnu_file_offset_bits64, link_name = "preadv64v2")]
     pub fn preadv2(
         fd: c_int,
         iov: *const crate::iovec,
@@ -1359,6 +1284,7 @@ extern "C" {
         offset: off_t,
         flags: c_int,
     ) -> ssize_t;
+    #[cfg_attr(gnu_file_offset_bits64, link_name = "pwritev64v2")]
     pub fn pwritev2(
         fd: c_int,
         iov: *const crate::iovec,

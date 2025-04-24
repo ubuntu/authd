@@ -205,6 +205,8 @@ pub const POSIX_FADV_WILLNEED: c_int = 3;
 pub const POSIX_FADV_DONTNEED: c_int = 4;
 pub const POSIX_FADV_NOREUSE: c_int = 5;
 
+pub const POSIX_SPAWN_SETSID: c_short = 0x40;
+
 pub const SIGINFO: c_int = 41;
 
 pub const O_DIRECT: c_int = 0x2000000;
@@ -284,6 +286,12 @@ pub const B4000000: crate::speed_t = 31;
 // sys/systeminfo.h
 pub const SI_ADDRESS_WIDTH: c_int = 520;
 
+// sys/timerfd.h
+pub const TFD_CLOEXEC: i32 = 0o2000000;
+pub const TFD_NONBLOCK: i32 = 0o4000;
+pub const TFD_TIMER_ABSTIME: i32 = 1 << 0;
+pub const TFD_TIMER_CANCEL_ON_SET: i32 = 1 << 1;
+
 extern "C" {
     pub fn eventfd(init: c_uint, flags: c_int) -> c_int;
 
@@ -335,6 +343,11 @@ extern "C" {
     pub fn pwritev(fd: c_int, iov: *const crate::iovec, iovcnt: c_int, offset: off_t) -> ssize_t;
     pub fn getpagesizes2(pagesize: *mut size_t, nelem: c_int) -> c_int;
 
+    pub fn posix_spawn_file_actions_addfchdir_np(
+        file_actions: *mut crate::posix_spawn_file_actions_t,
+        fd: c_int,
+    ) -> c_int;
+
     pub fn ptsname_r(fildes: c_int, name: *mut c_char, namelen: size_t) -> c_int;
 
     pub fn syncfs(fd: c_int) -> c_int;
@@ -345,5 +358,14 @@ extern "C" {
         s2: *const c_char,
         n: size_t,
         loc: crate::locale_t,
+    ) -> c_int;
+
+    pub fn timerfd_create(clockid: c_int, flags: c_int) -> c_int;
+    pub fn timerfd_gettime(fd: c_int, curr_value: *mut crate::itimerspec) -> c_int;
+    pub fn timerfd_settime(
+        fd: c_int,
+        flags: c_int,
+        new_value: *const crate::itimerspec,
+        old_value: *mut crate::itimerspec,
     ) -> c_int;
 }

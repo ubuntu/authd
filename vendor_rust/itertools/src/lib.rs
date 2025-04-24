@@ -1,6 +1,7 @@
-#![warn(missing_docs)]
+#![warn(missing_docs, clippy::default_numeric_fallback)]
 #![crate_name = "itertools"]
 #![cfg_attr(not(feature = "use_std"), no_std)]
+#![doc(test(attr(deny(warnings), allow(deprecated, unstable_name_collisions))))]
 
 //! Extra iterator adaptors, functions and macros.
 //!
@@ -8,6 +9,7 @@
 //! the [`Itertools`] trait:
 //!
 //! ```
+//! # #[allow(unused_imports)]
 //! use itertools::Itertools;
 //! ```
 //!
@@ -29,6 +31,7 @@
 //!
 //! for elt in interleave(&[1, 2, 3], &[2, 3, 4]) {
 //!     /* loop body */
+//!     # let _ = elt;
 //! }
 //! ```
 //!
@@ -37,12 +40,16 @@
 //! - `use_std`
 //!   - Enabled by default.
 //!   - Disable to compile itertools using `#![no_std]`. This disables
-//!     any items that depend on collections (like `group_by`, `unique`,
+//!     any item that depend on allocations (see the `use_alloc` feature)
+//!     and hash maps (like `unique`, `counts`, `into_grouping_map` and more).
+//! - `use_alloc`
+//!   - Enabled by default.
+//!   - Enables any item that depend on allocations (like `chunk_by`,
 //!     `kmerge`, `join` and many more).
 //!
 //! ## Rust Version
 //!
-//! This version of itertools requires Rust 1.43.1 or later.
+//! This version of itertools requires Rust 1.63.0 or later.
 
 #[cfg(not(feature = "use_std"))]
 extern crate core as std;
@@ -51,7 +58,7 @@ extern crate core as std;
 extern crate alloc;
 
 #[cfg(feature = "use_alloc")]
-use alloc::{string::String, vec::Vec};
+use alloc::{collections::VecDeque, string::String, vec::Vec};
 
 pub use either::Either;
 
@@ -67,6 +74,8 @@ use std::fmt::Write;
 #[cfg(feature = "use_std")]
 use std::hash::Hash;
 use std::iter::{once, IntoIterator};
+#[cfg(feature = "use_alloc")]
+type VecDequeIntoIter<T> = alloc::collections::vec_deque::IntoIter<T>;
 #[cfg(feature = "use_alloc")]
 type VecIntoIter<T> = alloc::vec::IntoIter<T>;
 use std::iter::FromIterator;
@@ -87,10 +96,8 @@ pub mod structs {
         FilterOk, Interleave, InterleaveShortest, MapInto, MapOk, Positions, Product, PutBack,
         TakeWhileRef, TupleCombinations, Update, WhileSome,
     };
-    #[allow(deprecated)]
-    pub use crate::adaptors::{MapResults, Step};
     #[cfg(feature = "use_alloc")]
-    pub use crate::combinations::Combinations;
+    pub use crate::combinations::{ArrayCombinations, Combinations};
     #[cfg(feature = "use_alloc")]
     pub use crate::combinations_with_replacement::CombinationsWithReplacement;
     pub use crate::cons_tuples_impl::ConsTuples;
@@ -99,8 +106,11 @@ pub mod structs {
     pub use crate::exactly_one_err::ExactlyOneError;
     pub use crate::flatten_ok::FlattenOk;
     pub use crate::format::{Format, FormatWith};
+    #[allow(deprecated)]
     #[cfg(feature = "use_alloc")]
-    pub use crate::groupbylazy::{Chunk, Chunks, Group, GroupBy, Groups, IntoChunks};
+    pub use crate::groupbylazy::GroupBy;
+    #[cfg(feature = "use_alloc")]
+    pub use crate::groupbylazy::{Chunk, ChunkBy, Chunks, Group, Groups, IntoChunks};
     #[cfg(feature = "use_std")]
     pub use crate::grouping_map::{GroupingMap, GroupingMapBy};
     pub use crate::intersperse::{Intersperse, IntersperseWith};
@@ -124,7 +134,7 @@ pub mod structs {
     pub use crate::rciter_impl::RcIter;
     pub use crate::repeatn::RepeatN;
     #[allow(deprecated)]
-    pub use crate::sources::{Iterate, RepeatCall, Unfold};
+    pub use crate::sources::{Iterate, Unfold};
     pub use crate::take_while_inclusive::TakeWhileInclusive;
     #[cfg(feature = "use_alloc")]
     pub use crate::tee::Tee;
@@ -139,6 +149,7 @@ pub mod structs {
 
 /// Traits helpful for using certain `Itertools` methods in generic contexts.
 pub mod traits {
+    pub use crate::iter_index::IteratorIndex;
     pub use crate::tuple_impl::HomogeneousTuple;
 }
 
@@ -153,7 +164,7 @@ pub use crate::peeking_take_while::PeekingNext;
 pub use crate::process_results_impl::process_results;
 pub use crate::repeatn::repeat_n;
 #[allow(deprecated)]
-pub use crate::sources::{iterate, repeat_call, unfold};
+pub use crate::sources::{iterate, unfold};
 #[allow(deprecated)]
 pub use crate::structs::*;
 pub use crate::unziptuple::{multiunzip, MultiUnzip};
@@ -187,6 +198,7 @@ mod groupbylazy;
 #[cfg(feature = "use_std")]
 mod grouping_map;
 mod intersperse;
+mod iter_index;
 #[cfg(feature = "use_alloc")]
 mod k_smallest;
 #[cfg(feature = "use_alloc")]
@@ -197,6 +209,7 @@ mod merge_join;
 mod minmax;
 #[cfg(feature = "use_alloc")]
 mod multipeek_impl;
+mod next_array;
 mod pad_tail;
 #[cfg(feature = "use_alloc")]
 mod peek_nth;
@@ -239,6 +252,7 @@ mod ziptuple;
 /// // from (0, 0, 0), (0, 0, 1), .., (0, 1, 0), (0, 1, 1), .. etc until (3, 3, 3)
 /// for (i, j, k) in iproduct!(0..4, 0..4, 0..4) {
 ///    // ..
+///    # let _ = (i, j, k);
 /// }
 /// # }
 /// ```
@@ -249,13 +263,22 @@ macro_rules! iproduct {
     (@flatten $I:expr, $J:expr, $($K:expr,)*) => (
         $crate::iproduct!(@flatten $crate::cons_tuples($crate::iproduct!($I, $J)), $($K,)*)
     );
-    ($I:expr) => (
-        $crate::__std_iter::IntoIterator::into_iter($I)
+    () => (
+        $crate::__std_iter::once(())
     );
-    ($I:expr, $J:expr) => (
-        $crate::Itertools::cartesian_product($crate::iproduct!($I), $crate::iproduct!($J))
+    ($I:expr $(,)?) => (
+        $crate::__std_iter::Iterator::map(
+            $crate::__std_iter::IntoIterator::into_iter($I),
+            |elt| (elt,)
+        )
     );
-    ($I:expr, $J:expr, $($K:expr),+) => (
+    ($I:expr, $J:expr $(,)?) => (
+        $crate::Itertools::cartesian_product(
+            $crate::__std_iter::IntoIterator::into_iter($I),
+            $crate::__std_iter::IntoIterator::into_iter($J),
+        )
+    );
+    ($I:expr, $J:expr, $($K:expr),+ $(,)?) => (
         $crate::iproduct!(@flatten $crate::iproduct!($I, $J), $($K,)+)
     );
 }
@@ -315,19 +338,24 @@ macro_rules! izip {
 
     // binary
     ($first:expr, $second:expr $(,)*) => {
-        $crate::izip!($first)
-            .zip($second)
+        $crate::__std_iter::Iterator::zip(
+            $crate::__std_iter::IntoIterator::into_iter($first),
+            $second,
+        )
     };
 
     // n-ary where n > 2
     ( $first:expr $( , $rest:expr )* $(,)* ) => {
-        $crate::izip!($first)
+        {
+            let iter = $crate::__std_iter::IntoIterator::into_iter($first);
             $(
-                .zip($rest)
+                let iter = $crate::__std_iter::Iterator::zip(iter, $rest);
             )*
-            .map(
+            $crate::__std_iter::Iterator::map(
+                iter,
                 $crate::izip!(@closure a => (a) $( , $rest )*)
             )
+        }
     };
 }
 
@@ -352,16 +380,16 @@ macro_rules! izip {
 ///
 /// Invocations of `chain!` with one argument expand to [`arg.into_iter()`](IntoIterator):
 /// ```
-/// use std::{ops::Range, slice};
+/// use std::ops::Range;
 /// use itertools::chain;
-/// let _: <Range<_> as IntoIterator>::IntoIter = chain!((2..6),); // trailing comma optional!
+/// let _: <Range<_> as IntoIterator>::IntoIter = chain!(2..6,); // trailing comma optional!
 /// let _:     <&[_] as IntoIterator>::IntoIter = chain!(&[2, 3, 4]);
 /// ```
 ///
 /// Invocations of `chain!` with multiple arguments [`.into_iter()`](IntoIterator) each
 /// argument, and then [`chain`] them together:
 /// ```
-/// use std::{iter::*, ops::Range, slice};
+/// use std::{iter::*, slice};
 /// use itertools::{assert_equal, chain};
 ///
 /// // e.g., this:
@@ -378,16 +406,16 @@ macro_rules! izip {
 /// ```
 macro_rules! chain {
     () => {
-        core::iter::empty()
+        $crate::__std_iter::empty()
     };
     ($first:expr $(, $rest:expr )* $(,)?) => {
         {
-            let iter = core::iter::IntoIterator::into_iter($first);
+            let iter = $crate::__std_iter::IntoIterator::into_iter($first);
             $(
                 let iter =
-                    core::iter::Iterator::chain(
+                    $crate::__std_iter::Iterator::chain(
                         iter,
-                        core::iter::IntoIterator::into_iter($rest));
+                        $crate::__std_iter::IntoIterator::into_iter($rest));
             )*
             iter
         }
@@ -400,13 +428,13 @@ macro_rules! chain {
 /// This trait defines a number of methods. They are divided into two groups:
 ///
 /// * *Adaptors* take an iterator and parameter as input, and return
-/// a new iterator value. These are listed first in the trait. An example
-/// of an adaptor is [`.interleave()`](Itertools::interleave)
+///   a new iterator value. These are listed first in the trait. An example
+///   of an adaptor is [`.interleave()`](Itertools::interleave)
 ///
 /// * *Regular methods* are those that don't return iterators and instead
-/// return a regular value of some other kind.
-/// [`.next_tuple()`](Itertools::next_tuple) is an example and the first regular
-/// method in the list.
+///   return a regular value of some other kind.
+///   [`.next_tuple()`](Itertools::next_tuple) is an example and the first regular
+///   method in the list.
 pub trait Itertools: Iterator {
     // adaptors
 
@@ -489,6 +517,56 @@ pub trait Itertools: Iterator {
         F: FnMut() -> Self::Item,
     {
         intersperse::intersperse_with(self, element)
+    }
+
+    /// Returns an iterator over a subsection of the iterator.
+    ///
+    /// Works similarly to [`slice::get`](https://doc.rust-lang.org/std/primitive.slice.html#method.get).
+    ///
+    /// **Panics** for ranges `..=usize::MAX` and `0..=usize::MAX`.
+    ///
+    /// It's a generalisation of [`Iterator::take`] and [`Iterator::skip`],
+    /// and uses these under the hood.
+    /// Therefore, the resulting iterator is:
+    /// - [`ExactSizeIterator`] if the adapted iterator is [`ExactSizeIterator`].
+    /// - [`DoubleEndedIterator`] if the adapted iterator is [`DoubleEndedIterator`] and [`ExactSizeIterator`].
+    ///
+    /// # Unspecified Behavior
+    /// The result of indexing with an exhausted [`core::ops::RangeInclusive`] is unspecified.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let vec = vec![3, 1, 4, 1, 5];
+    ///
+    /// let mut range: Vec<_> =
+    ///         vec.iter().get(1..=3).copied().collect();
+    /// assert_eq!(&range, &[1, 4, 1]);
+    ///
+    /// // It works with other types of ranges, too
+    /// range = vec.iter().get(..2).copied().collect();
+    /// assert_eq!(&range, &[3, 1]);
+    ///
+    /// range = vec.iter().get(0..1).copied().collect();
+    /// assert_eq!(&range, &[3]);
+    ///
+    /// range = vec.iter().get(2..).copied().collect();
+    /// assert_eq!(&range, &[4, 1, 5]);
+    ///
+    /// range = vec.iter().get(..=2).copied().collect();
+    /// assert_eq!(&range, &[3, 1, 4]);
+    ///
+    /// range = vec.iter().get(..).copied().collect();
+    /// assert_eq!(range, vec);
+    /// ```
+    fn get<R>(self, index: R) -> R::Output
+    where
+        Self: Sized,
+        R: traits::IteratorIndex<Self>,
+    {
+        iter_index::get(self, index)
     }
 
     /// Create an iterator which iterates over both this and the specified
@@ -575,10 +653,10 @@ pub trait Itertools: Iterator {
     /// Consecutive elements that map to the same key (“runs”), are assigned
     /// to the same group.
     ///
-    /// `GroupBy` is the storage for the lazy grouping operation.
+    /// `ChunkBy` is the storage for the lazy grouping operation.
     ///
     /// If the groups are consumed in order, or if each group's iterator is
-    /// dropped without keeping it around, then `GroupBy` uses no
+    /// dropped without keeping it around, then `ChunkBy` uses no
     /// allocations.  It needs allocations only if several group iterators
     /// are alive at the same time.
     ///
@@ -593,20 +671,20 @@ pub trait Itertools: Iterator {
     /// ```
     /// use itertools::Itertools;
     ///
-    /// // group data into runs of larger than zero or not.
+    /// // chunk data into runs of larger than zero or not.
     /// let data = vec![1, 3, -2, -2, 1, 0, 1, 2];
-    /// // groups:     |---->|------>|--------->|
+    /// // chunks:     |---->|------>|--------->|
     ///
-    /// // Note: The `&` is significant here, `GroupBy` is iterable
+    /// // Note: The `&` is significant here, `ChunkBy` is iterable
     /// // only by reference. You can also call `.into_iter()` explicitly.
     /// let mut data_grouped = Vec::new();
-    /// for (key, group) in &data.into_iter().group_by(|elt| *elt >= 0) {
-    ///     data_grouped.push((key, group.collect()));
+    /// for (key, chunk) in &data.into_iter().chunk_by(|elt| *elt >= 0) {
+    ///     data_grouped.push((key, chunk.collect()));
     /// }
     /// assert_eq!(data_grouped, vec![(true, vec![1, 3]), (false, vec![-2, -2]), (true, vec![1, 0, 1, 2])]);
     /// ```
     #[cfg(feature = "use_alloc")]
-    fn group_by<K, F>(self, key: F) -> GroupBy<K, Self, F>
+    fn chunk_by<K, F>(self, key: F) -> ChunkBy<K, Self, F>
     where
         Self: Sized,
         F: FnMut(&Self::Item) -> K,
@@ -615,13 +693,25 @@ pub trait Itertools: Iterator {
         groupbylazy::new(self, key)
     }
 
+    /// See [`.chunk_by()`](Itertools::chunk_by).
+    #[deprecated(note = "Use .chunk_by() instead", since = "0.13.0")]
+    #[cfg(feature = "use_alloc")]
+    fn group_by<K, F>(self, key: F) -> ChunkBy<K, Self, F>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item) -> K,
+        K: PartialEq,
+    {
+        self.chunk_by(key)
+    }
+
     /// Return an *iterable* that can chunk the iterator.
     ///
     /// Yield subiterators (chunks) that each yield a fixed number elements,
     /// determined by `size`. The last chunk will be shorter if there aren't
     /// enough elements.
     ///
-    /// `IntoChunks` is based on `GroupBy`: it is iterable (implements
+    /// `IntoChunks` is based on `ChunkBy`: it is iterable (implements
     /// `IntoIterator`, **not** `Iterator`), and it only buffers if several
     /// chunk iterators are alive at the same time.
     ///
@@ -793,31 +883,6 @@ pub trait Itertools: Iterator {
         tee::new(self)
     }
 
-    /// Return an iterator adaptor that steps `n` elements in the base iterator
-    /// for each iteration.
-    ///
-    /// The iterator steps by yielding the next element from the base iterator,
-    /// then skipping forward `n - 1` elements.
-    ///
-    /// Iterator element type is `Self::Item`.
-    ///
-    /// **Panics** if the step is 0.
-    ///
-    /// ```
-    /// use itertools::Itertools;
-    ///
-    /// let it = (0..8).step(3);
-    /// itertools::assert_equal(it, vec![0, 3, 6]);
-    /// ```
-    #[deprecated(note = "Use std .step_by() instead", since = "0.8.0")]
-    #[allow(deprecated)]
-    fn step(self, n: usize) -> Step<Self>
-    where
-        Self: Sized,
-    {
-        adaptors::step(self, n)
-    }
-
     /// Convert each item of the iterator using the [`Into`] trait.
     ///
     /// ```rust
@@ -831,16 +896,6 @@ pub trait Itertools: Iterator {
         Self::Item: Into<R>,
     {
         adaptors::map_into(self)
-    }
-
-    /// See [`.map_ok()`](Itertools::map_ok).
-    #[deprecated(note = "Use .map_ok() instead", since = "0.10.0")]
-    fn map_results<F, T, U, E>(self, f: F) -> MapOk<Self, F>
-    where
-        Self: Iterator<Item = Result<T, E>> + Sized,
-        F: FnMut(T) -> U,
-    {
-        self.map_ok(f)
     }
 
     /// Return an iterator adaptor that applies the provided closure
@@ -1001,7 +1056,6 @@ pub trait Itertools: Iterator {
     /// let it = a.merge_by(b, |x, y| x.1 <= y.1);
     /// itertools::assert_equal(it, vec![(0, 'a'), (0, 'b'), (1, 'c'), (1, 'd')]);
     /// ```
-
     fn merge_by<J, F>(self, other: J, is_first: F) -> MergeBy<Self, J::IntoIter, F>
     where
         Self: Sized,
@@ -1037,7 +1091,9 @@ pub trait Itertools: Iterator {
     /// let b = (0..10).step_by(3);
     ///
     /// itertools::assert_equal(
-    ///     a.merge_join_by(b, |i, j| i.cmp(j)),
+    ///     // This performs a diff in the style of the Unix command comm(1),
+    ///     // generalized to arbitrary types rather than text.
+    ///     a.merge_join_by(b, Ord::cmp),
     ///     vec![Both(0, 0), Left(2), Right(3), Left(4), Both(6, 6), Left(1), Right(9)]
     /// );
     /// ```
@@ -1069,6 +1125,7 @@ pub trait Itertools: Iterator {
     /// );
     /// ```
     #[inline]
+    #[doc(alias = "comm")]
     fn merge_join_by<J, F, T>(self, other: J, cmp_fn: F) -> MergeJoinBy<Self, J::IntoIter, F>
     where
         J: IntoIterator,
@@ -1162,9 +1219,10 @@ pub trait Itertools: Iterator {
     /// the product of iterators yielding multiple types, use the
     /// [`iproduct`] macro instead.
     ///
-    ///
     /// The iterator element type is `Vec<T>`, where `T` is the iterator element
     /// of the subiterators.
+    ///
+    /// Note that the iterator is fused.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1179,6 +1237,16 @@ pub trait Itertools: Iterator {
     /// assert_eq!(multi_prod.next(), Some(vec![1, 3, 4]));
     /// assert_eq!(multi_prod.next(), Some(vec![1, 3, 5]));
     /// assert_eq!(multi_prod.next(), None);
+    /// ```
+    ///
+    /// If the adapted iterator is empty, the result is an iterator yielding a single empty vector.
+    /// This is known as the [nullary cartesian product](https://en.wikipedia.org/wiki/Empty_product#Nullary_Cartesian_product).
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    /// let mut nullary_cartesian_product = (0..0).map(|i| (i * 2)..(i * 2 + 2)).multi_cartesian_product();
+    /// assert_eq!(nullary_cartesian_product.next(), Some(vec![]));
+    /// assert_eq!(nullary_cartesian_product.next(), None);
     /// ```
     #[cfg(feature = "use_alloc")]
     fn multi_cartesian_product(self) -> MultiProduct<<Self::Item as IntoIterator>::IntoIter>
@@ -1529,6 +1597,7 @@ pub trait Itertools: Iterator {
     ///     .collect();
     /// let expected: Vec<_> = vec![1, 2, 3].into_iter().map(NoCloneImpl).collect();
     /// assert_eq!(filtered, expected);
+    #[doc(alias = "take_until")]
     fn take_while_inclusive<F>(self, accept: F) -> TakeWhileInclusive<Self, F>
     where
         Self: Sized,
@@ -1564,6 +1633,11 @@ pub trait Itertools: Iterator {
     /// Iterator element can be any homogeneous tuple of type `Self::Item` with
     /// size up to 12.
     ///
+    /// # Guarantees
+    ///
+    /// If the adapted iterator is deterministic,
+    /// this iterator adapter yields items in a reliable order.
+    ///
     /// ```
     /// use itertools::Itertools;
     ///
@@ -1591,11 +1665,6 @@ pub trait Itertools: Iterator {
     /// let it: TupleCombinations<Range<u32>, (u32, u32, u32)> = (1..5).tuple_combinations();
     /// itertools::assert_equal(it, vec![(1, 2, 3), (1, 2, 4), (1, 3, 4), (2, 3, 4)]);
     /// ```
-    ///
-    /// # Guarantees
-    ///
-    /// If the adapted iterator is deterministic,
-    /// this iterator adapter yields items in a reliable order.
     fn tuple_combinations<T>(self) -> TupleCombinations<Self, T>
     where
         Self: Sized + Clone,
@@ -1605,11 +1674,63 @@ pub trait Itertools: Iterator {
         adaptors::tuple_combinations(self)
     }
 
+    /// Return an iterator adaptor that iterates over the combinations of the
+    /// elements from an iterator.
+    ///
+    /// Iterator element type is [Self::Item; K]. The iterator produces a new
+    /// array per iteration, and clones the iterator elements.
+    ///
+    /// # Guarantees
+    ///
+    /// If the adapted iterator is deterministic,
+    /// this iterator adapter yields items in a reliable order.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut v = Vec::new();
+    /// for [a, b] in (1..5).array_combinations() {
+    ///     v.push([a, b]);
+    /// }
+    /// assert_eq!(v, vec![[1, 2], [1, 3], [1, 4], [2, 3], [2, 4], [3, 4]]);
+    ///
+    /// let mut it = (1..5).array_combinations();
+    /// assert_eq!(Some([1, 2, 3]), it.next());
+    /// assert_eq!(Some([1, 2, 4]), it.next());
+    /// assert_eq!(Some([1, 3, 4]), it.next());
+    /// assert_eq!(Some([2, 3, 4]), it.next());
+    /// assert_eq!(None, it.next());
+    ///
+    /// // this requires a type hint
+    /// let it = (1..5).array_combinations::<3>();
+    /// itertools::assert_equal(it, vec![[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]);
+    ///
+    /// // you can also specify the complete type
+    /// use itertools::ArrayCombinations;
+    /// use std::ops::Range;
+    ///
+    /// let it: ArrayCombinations<Range<u32>, 3> = (1..5).array_combinations();
+    /// itertools::assert_equal(it, vec![[1, 2, 3], [1, 2, 4], [1, 3, 4], [2, 3, 4]]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn array_combinations<const K: usize>(self) -> ArrayCombinations<Self, K>
+    where
+        Self: Sized + Clone,
+        Self::Item: Clone,
+    {
+        combinations::array_combinations(self)
+    }
+
     /// Return an iterator adaptor that iterates over the `k`-length combinations of
     /// the elements from an iterator.
     ///
-    /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new Vec per iteration,
+    /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new `Vec` per iteration,
     /// and clones the iterator elements.
+    ///
+    /// # Guarantees
+    ///
+    /// If the adapted iterator is deterministic,
+    /// this iterator adapter yields items in a reliable order.
     ///
     /// ```
     /// use itertools::Itertools;
@@ -1634,11 +1755,6 @@ pub trait Itertools: Iterator {
     ///     vec![2, 2],
     /// ]);
     /// ```
-    ///
-    /// # Guarantees
-    ///
-    /// If the adapted iterator is deterministic,
-    /// this iterator adapter yields items in a reliable order.
     #[cfg(feature = "use_alloc")]
     fn combinations(self, k: usize) -> Combinations<Self>
     where
@@ -1651,7 +1767,7 @@ pub trait Itertools: Iterator {
     /// Return an iterator that iterates over the `k`-length combinations of
     /// the elements from an iterator, with replacement.
     ///
-    /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new Vec per iteration,
+    /// Iterator element type is `Vec<Self::Item>`. The iterator produces a new `Vec` per iteration,
     /// and clones the iterator elements.
     ///
     /// ```
@@ -1680,7 +1796,7 @@ pub trait Itertools: Iterator {
     /// elements from an iterator.
     ///
     /// Iterator element type is `Vec<Self::Item>` with length `k`. The iterator
-    /// produces a new Vec per iteration, and clones the iterator elements.
+    /// produces a new `Vec` per iteration, and clones the iterator elements.
     ///
     /// If `k` is greater than the length of the input iterator, the resultant
     /// iterator adaptor will be empty.
@@ -1841,7 +1957,7 @@ pub trait Itertools: Iterator {
     /// use itertools::Itertools;
     ///
     /// let input = vec![vec![1], vec![3, 2, 1]];
-    /// let it = input.into_iter().update(|mut v| v.push(0));
+    /// let it = input.into_iter().update(|v| v.push(0));
     /// itertools::assert_equal(it, vec![vec![1, 0], vec![3, 2, 1, 0]]);
     /// ```
     fn update<F>(self, updater: F) -> Update<Self, F>
@@ -1853,6 +1969,50 @@ pub trait Itertools: Iterator {
     }
 
     // non-adaptor methods
+    /// Advances the iterator and returns the next items grouped in an array of
+    /// a specific size.
+    ///
+    /// If there are enough elements to be grouped in an array, then the array
+    /// is returned inside `Some`, otherwise `None` is returned.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let mut iter = 1..5;
+    ///
+    /// assert_eq!(Some([1, 2]), iter.next_array());
+    /// ```
+    fn next_array<const N: usize>(&mut self) -> Option<[Self::Item; N]>
+    where
+        Self: Sized,
+    {
+        next_array::next_array(self)
+    }
+
+    /// Collects all items from the iterator into an array of a specific size.
+    ///
+    /// If the number of elements inside the iterator is **exactly** equal to
+    /// the array size, then the array is returned inside `Some`, otherwise
+    /// `None` is returned.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// let iter = 1..3;
+    ///
+    /// if let Some([x, y]) = iter.collect_array() {
+    ///     assert_eq!([x, y], [1, 2])
+    /// } else {
+    ///     panic!("Expected two elements")
+    /// }
+    /// ```
+    fn collect_array<const N: usize>(mut self) -> Option<[Self::Item; N]>
+    where
+        Self: Sized,
+    {
+        self.next_array().filter(|_| self.next().is_none())
+    }
+
     /// Advances the iterator and returns the next items grouped in a tuple of
     /// a specific size (up to 12).
     ///
@@ -1933,6 +2093,15 @@ pub trait Itertools: Iterator {
     /// assert_eq!(numbers.iter().find_or_last(|&&x| x > 5), Some(&4));
     /// assert_eq!(numbers.iter().find_or_last(|&&x| x > 2), Some(&3));
     /// assert_eq!(std::iter::empty::<i32>().find_or_last(|&x| x > 5), None);
+    ///
+    /// // An iterator of Results can return the first Ok or the last Err:
+    /// let input = vec![Err(()), Ok(11), Err(()), Ok(22)];
+    /// assert_eq!(input.into_iter().find_or_last(Result::is_ok), Some(Ok(11)));
+    ///
+    /// let input: Vec<Result<(), i32>> = vec![Err(11), Err(22)];
+    /// assert_eq!(input.into_iter().find_or_last(Result::is_ok), Some(Err(22)));
+    ///
+    /// assert_eq!(std::iter::empty::<Result<(), i32>>().find_or_last(Result::is_ok), None);
     /// ```
     fn find_or_last<P>(mut self, mut predicate: P) -> Option<Self::Item>
     where
@@ -1961,6 +2130,15 @@ pub trait Itertools: Iterator {
     /// assert_eq!(numbers.iter().find_or_first(|&&x| x > 5), Some(&1));
     /// assert_eq!(numbers.iter().find_or_first(|&&x| x > 2), Some(&3));
     /// assert_eq!(std::iter::empty::<i32>().find_or_first(|&x| x > 5), None);
+    ///
+    /// // An iterator of Results can return the first Ok or the first Err:
+    /// let input = vec![Err(()), Ok(11), Err(()), Ok(22)];
+    /// assert_eq!(input.into_iter().find_or_first(Result::is_ok), Some(Ok(11)));
+    ///
+    /// let input: Vec<Result<(), i32>> = vec![Err(11), Err(22)];
+    /// assert_eq!(input.into_iter().find_or_first(Result::is_ok), Some(Err(11)));
+    ///
+    /// assert_eq!(std::iter::empty::<Result<(), i32>>().find_or_first(Result::is_ok), None);
     /// ```
     fn find_or_first<P>(mut self, mut predicate: P) -> Option<Self::Item>
     where
@@ -2003,7 +2181,7 @@ pub trait Itertools: Iterator {
     where
         Self: Sized,
         Self::Item: Borrow<Q>,
-        Q: PartialEq,
+        Q: PartialEq + ?Sized,
     {
         self.any(|x| x.borrow() == query)
     }
@@ -2095,13 +2273,13 @@ pub trait Itertools: Iterator {
     /// Consume the first `n` elements from the iterator eagerly,
     /// and return the same iterator again.
     ///
-    /// It works similarly to *.skip(* `n` *)* except it is eager and
+    /// It works similarly to `.skip(n)` except it is eager and
     /// preserves the iterator type.
     ///
     /// ```
     /// use itertools::Itertools;
     ///
-    /// let mut iter = "αβγ".chars().dropping(2);
+    /// let iter = "αβγ".chars().dropping(2);
     /// itertools::assert_equal(iter, "γ".chars());
     /// ```
     ///
@@ -2140,32 +2318,6 @@ pub trait Itertools: Iterator {
             (&mut self).rev().nth(n - 1);
         }
         self
-    }
-
-    /// Run the closure `f` eagerly on each element of the iterator.
-    ///
-    /// Consumes the iterator until its end.
-    ///
-    /// ```
-    /// use std::sync::mpsc::channel;
-    /// use itertools::Itertools;
-    ///
-    /// let (tx, rx) = channel();
-    ///
-    /// // use .foreach() to apply a function to each value -- sending it
-    /// (0..5).map(|x| x * 2 + 1).foreach(|x| { tx.send(x).unwrap(); } );
-    ///
-    /// drop(tx);
-    ///
-    /// itertools::assert_equal(rx.iter(), vec![1, 3, 5, 7, 9]);
-    /// ```
-    #[deprecated(note = "Use .for_each() instead", since = "0.8.0")]
-    fn foreach<F>(self, f: F)
-    where
-        F: FnMut(Self::Item),
-        Self: Sized,
-    {
-        self.for_each(f);
     }
 
     /// Combine all an iterator's elements into one element by using [`Extend`].
@@ -2211,14 +2363,17 @@ pub trait Itertools: Iterator {
     ///
     /// fn process_dir_entries(entries: &[fs::DirEntry]) {
     ///     // ...
+    ///     # let _ = entries;
     /// }
     ///
-    /// fn do_stuff() -> std::io::Result<()> {
+    /// fn do_stuff() -> io::Result<()> {
     ///     let entries: Vec<_> = fs::read_dir(".")?.try_collect()?;
     ///     process_dir_entries(&entries);
     ///
     ///     Ok(())
     /// }
+    ///
+    /// # let _ = do_stuff;
     /// ```
     fn try_collect<T, U, E>(self) -> Result<U, E>
     where
@@ -2249,18 +2404,13 @@ pub trait Itertools: Iterator {
         Self: Iterator<Item = &'a mut A>,
         J: IntoIterator<Item = A>,
     {
-        let mut count = 0;
-        for elt in from {
-            match self.next() {
-                None => break,
-                Some(ptr) => *ptr = elt,
-            }
-            count += 1;
-        }
-        count
+        from.into_iter()
+            .zip(self)
+            .map(|(new, old)| *old = new)
+            .count()
     }
 
-    /// Combine all iterator elements into one String, separated by `sep`.
+    /// Combine all iterator elements into one `String`, separated by `sep`.
     ///
     /// Use the `Display` implementation of each element.
     ///
@@ -2353,16 +2503,6 @@ pub trait Itertools: Iterator {
         format::new_format(self, sep, format)
     }
 
-    /// See [`.fold_ok()`](Itertools::fold_ok).
-    #[deprecated(note = "Use .fold_ok() instead", since = "0.10.0")]
-    fn fold_results<A, E, B, F>(&mut self, start: B, f: F) -> Result<B, E>
-    where
-        Self: Iterator<Item = Result<A, E>>,
-        F: FnMut(B, A) -> B,
-    {
-        self.fold_ok(start, f)
-    }
-
     /// Fold `Result` values from an iterator.
     ///
     /// Only `Ok` values are folded. If no error is encountered, the folded
@@ -2384,6 +2524,7 @@ pub trait Itertools: Iterator {
     /// accum = f(accum, 1);
     /// accum = f(accum, 2);
     /// accum = f(accum, 3);
+    /// # let _ = accum;
     /// ```
     ///
     /// With a `start` value of 0 and an addition as folding function,
@@ -2466,7 +2607,10 @@ pub trait Itertools: Iterator {
     /// assert_eq!((0..10).fold1(|x, y| x + y).unwrap_or(0), 45);
     /// assert_eq!((0..0).fold1(|x, y| x * y), None);
     /// ```
-    #[deprecated(since = "0.10.2", note = "Use `Iterator::reduce` instead")]
+    #[deprecated(
+        note = "Use [`Iterator::reduce`](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.reduce) instead",
+        since = "0.10.2"
+    )]
     fn fold1<F>(mut self, f: F) -> Option<Self::Item>
     where
         F: FnMut(Self::Item, Self::Item) -> Self::Item,
@@ -2505,36 +2649,66 @@ pub trait Itertools: Iterator {
     ///
     /// If `f` is associative you should also decide carefully:
     ///
-    /// - if `f` is a trivial operation like `u32::wrapping_add`, prefer the normal
-    /// [`Iterator::reduce`] instead since it will most likely result in the generation of simpler
-    /// code because the compiler is able to optimize it
-    /// - otherwise if `f` is non-trivial like `format!`, you should use `tree_fold1` since it
-    /// reduces the number of operations from `O(n)` to `O(ln(n))`
+    /// For an iterator producing `n` elements, both [`Iterator::reduce`] and `tree_reduce` will
+    /// call `f` `n - 1` times. However, `tree_reduce` will call `f` on earlier intermediate
+    /// results, which is beneficial for `f` that allocate and produce longer results for longer
+    /// arguments. For example if `f` combines arguments using `format!`, then `tree_reduce` will
+    /// operate on average on shorter arguments resulting in less bytes being allocated overall.
     ///
-    /// Here "non-trivial" means:
+    /// Moreover, the output of `tree_reduce` is preferable to that of [`Iterator::reduce`] in
+    /// certain cases. For example, building a binary search tree using `tree_reduce` will result in
+    /// a balanced tree with height `O(ln(n))`, while [`Iterator::reduce`] will output a tree with
+    /// height `O(n)`, essentially a linked list.
     ///
-    /// - any allocating operation
-    /// - any function that is a composition of many operations
+    /// If `f` does not benefit from such a reordering, like `u32::wrapping_add`, prefer the
+    /// normal [`Iterator::reduce`] instead since it will most likely result in the generation of
+    /// simpler code because the compiler is able to optimize it.
     ///
     /// ```
     /// use itertools::Itertools;
     ///
+    /// let f = |a: String, b: String| {
+    ///     format!("f({a}, {b})")
+    /// };
+    ///
     /// // The same tree as above
-    /// let num_strings = (1..8).map(|x| x.to_string());
-    /// assert_eq!(num_strings.tree_fold1(|x, y| format!("f({}, {})", x, y)),
-    ///     Some(String::from("f(f(f(1, 2), f(3, 4)), f(f(5, 6), 7))")));
+    /// assert_eq!((1..8).map(|x| x.to_string()).tree_reduce(f),
+    ///            Some(String::from("f(f(f(1, 2), f(3, 4)), f(f(5, 6), 7))")));
     ///
-    /// // Like fold1, an empty iterator produces None
-    /// assert_eq!((0..0).tree_fold1(|x, y| x * y), None);
+    /// // Like reduce, an empty iterator produces None
+    /// assert_eq!((0..0).tree_reduce(|x, y| x * y), None);
     ///
-    /// // tree_fold1 matches fold1 for associative operations...
-    /// assert_eq!((0..10).tree_fold1(|x, y| x + y),
-    ///     (0..10).fold1(|x, y| x + y));
+    /// // tree_reduce matches reduce for associative operations...
+    /// assert_eq!((0..10).tree_reduce(|x, y| x + y),
+    ///     (0..10).reduce(|x, y| x + y));
+    ///
     /// // ...but not for non-associative ones
-    /// assert_ne!((0..10).tree_fold1(|x, y| x - y),
-    ///     (0..10).fold1(|x, y| x - y));
+    /// assert_ne!((0..10).tree_reduce(|x, y| x - y),
+    ///     (0..10).reduce(|x, y| x - y));
+    ///
+    /// let mut total_len_reduce = 0;
+    /// let reduce_res = (1..100).map(|x| x.to_string())
+    ///     .reduce(|a, b| {
+    ///         let r = f(a, b);
+    ///         total_len_reduce += r.len();
+    ///         r
+    ///     })
+    ///     .unwrap();
+    ///
+    /// let mut total_len_tree_reduce = 0;
+    /// let tree_reduce_res = (1..100).map(|x| x.to_string())
+    ///     .tree_reduce(|a, b| {
+    ///         let r = f(a, b);
+    ///         total_len_tree_reduce += r.len();
+    ///         r
+    ///     })
+    ///     .unwrap();
+    ///
+    /// assert_eq!(total_len_reduce, 33299);
+    /// assert_eq!(total_len_tree_reduce, 4228);
+    /// assert_eq!(reduce_res.len(), tree_reduce_res.len());
     /// ```
-    fn tree_fold1<F>(mut self, mut f: F) -> Option<Self::Item>
+    fn tree_reduce<F>(mut self, mut f: F) -> Option<Self::Item>
     where
         F: FnMut(Self::Item, Self::Item) -> Self::Item,
         Self: Sized,
@@ -2547,7 +2721,7 @@ pub trait Itertools: Iterator {
             FF: FnMut(T, T) -> T,
         {
             // This function could be replaced with `it.next().ok_or(None)`,
-            // but half the useful tree_fold1 work is combining adjacent items,
+            // but half the useful tree_reduce work is combining adjacent items,
             // so put that in a form that LLVM is more likely to optimize well.
 
             let a = if let Some(v) = it.next() {
@@ -2591,10 +2765,20 @@ pub trait Itertools: Iterator {
             Ok(x)
         }
 
-        match inner(usize::max_value(), &mut self, &mut f) {
+        match inner(usize::MAX, &mut self, &mut f) {
             Err(x) => x,
             _ => unreachable!(),
         }
+    }
+
+    /// See [`.tree_reduce()`](Itertools::tree_reduce).
+    #[deprecated(note = "Use .tree_reduce() instead", since = "0.13.0")]
+    fn tree_fold1<F>(self, f: F) -> Option<Self::Item>
+    where
+        F: FnMut(Self::Item, Self::Item) -> Self::Item,
+        Self: Sized,
+    {
+        self.tree_reduce(f)
     }
 
     /// An iterator method that applies a function, producing a single, final value.
@@ -2996,9 +3180,436 @@ pub trait Itertools: Iterator {
         Self: Sized,
         Self::Item: Ord,
     {
-        crate::k_smallest::k_smallest(self, k)
-            .into_sorted_vec()
-            .into_iter()
+        // The stdlib heap has optimised handling of "holes", which is not included in our heap implementation in k_smallest_general.
+        // While the difference is unlikely to have practical impact unless `Self::Item` is very large, this method uses the stdlib structure
+        // to maintain performance compared to previous versions of the crate.
+        use alloc::collections::BinaryHeap;
+
+        if k == 0 {
+            self.last();
+            return Vec::new().into_iter();
+        }
+        if k == 1 {
+            return self.min().into_iter().collect_vec().into_iter();
+        }
+
+        let mut iter = self.fuse();
+        let mut heap: BinaryHeap<_> = iter.by_ref().take(k).collect();
+
+        iter.for_each(|i| {
+            debug_assert_eq!(heap.len(), k);
+            // Equivalent to heap.push(min(i, heap.pop())) but more efficient.
+            // This should be done with a single `.peek_mut().unwrap()` but
+            //  `PeekMut` sifts-down unconditionally on Rust 1.46.0 and prior.
+            if *heap.peek().unwrap() > i {
+                *heap.peek_mut().unwrap() = i;
+            }
+        });
+
+        heap.into_sorted_vec().into_iter()
+    }
+
+    /// Sort the k smallest elements into a new iterator using the provided comparison.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// This corresponds to `self.sorted_by(cmp).take(k)` in the same way that
+    /// [`k_smallest`](Itertools::k_smallest) corresponds to `self.sorted().take(k)`,
+    /// in both semantics and complexity.
+    ///
+    /// Particularly, a custom heap implementation ensures the comparison is not cloned.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_smallest = numbers
+    ///     .into_iter()
+    ///     .k_smallest_by(5, |a, b| (a % 7).cmp(&(b % 7)).then(a.cmp(b)));
+    ///
+    /// itertools::assert_equal(five_smallest, vec![0, 7, 14, 1, 8]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_smallest_by<F>(self, k: usize, cmp: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item, &Self::Item) -> Ordering,
+    {
+        k_smallest::k_smallest_general(self, k, cmp).into_iter()
+    }
+
+    /// Return the elements producing the k smallest outputs of the provided function.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// This corresponds to `self.sorted_by_key(key).take(k)` in the same way that
+    /// [`k_smallest`](Itertools::k_smallest) corresponds to `self.sorted().take(k)`,
+    /// in both semantics and complexity.
+    ///
+    /// Particularly, a custom heap implementation ensures the comparison is not cloned.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_smallest = numbers
+    ///     .into_iter()
+    ///     .k_smallest_by_key(5, |n| (n % 7, *n));
+    ///
+    /// itertools::assert_equal(five_smallest, vec![0, 7, 14, 1, 8]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_smallest_by_key<F, K>(self, k: usize, key: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item) -> K,
+        K: Ord,
+    {
+        self.k_smallest_by(k, k_smallest::key_to_cmp(key))
+    }
+
+    /// Sort the k smallest elements into a new iterator, in ascending order, relaxing the amount of memory required.
+    ///
+    /// **Note:** This consumes the entire iterator, and returns the result
+    /// as a new iterator that owns its elements.  If the input contains
+    /// less than k elements, the result is equivalent to `self.sorted()`.
+    ///
+    /// This is guaranteed to use `2 * k * sizeof(Self::Item) + O(1)` memory
+    /// and `O(n + k log k)` time, with `n` the number of elements in the input,
+    /// meaning it uses more memory than the minimum obtained by [`k_smallest`](Itertools::k_smallest)
+    /// but achieves linear time in the number of elements.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// **Note:** This is functionally-equivalent to `self.sorted().take(k)`
+    /// but much more efficient.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_smallest = numbers
+    ///     .into_iter()
+    ///     .k_smallest_relaxed(5);
+    ///
+    /// itertools::assert_equal(five_smallest, 0..5);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_smallest_relaxed(self, k: usize) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        Self::Item: Ord,
+    {
+        self.k_smallest_relaxed_by(k, Ord::cmp)
+    }
+
+    /// Sort the k smallest elements into a new iterator using the provided comparison, relaxing the amount of memory required.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// This corresponds to `self.sorted_by(cmp).take(k)` in the same way that
+    /// [`k_smallest_relaxed`](Itertools::k_smallest_relaxed) corresponds to `self.sorted().take(k)`,
+    /// in both semantics and complexity.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_smallest = numbers
+    ///     .into_iter()
+    ///     .k_smallest_relaxed_by(5, |a, b| (a % 7).cmp(&(b % 7)).then(a.cmp(b)));
+    ///
+    /// itertools::assert_equal(five_smallest, vec![0, 7, 14, 1, 8]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_smallest_relaxed_by<F>(self, k: usize, cmp: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item, &Self::Item) -> Ordering,
+    {
+        k_smallest::k_smallest_relaxed_general(self, k, cmp).into_iter()
+    }
+
+    /// Return the elements producing the k smallest outputs of the provided function, relaxing the amount of memory required.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// This corresponds to `self.sorted_by_key(key).take(k)` in the same way that
+    /// [`k_smallest_relaxed`](Itertools::k_smallest_relaxed) corresponds to `self.sorted().take(k)`,
+    /// in both semantics and complexity.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_smallest = numbers
+    ///     .into_iter()
+    ///     .k_smallest_relaxed_by_key(5, |n| (n % 7, *n));
+    ///
+    /// itertools::assert_equal(five_smallest, vec![0, 7, 14, 1, 8]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_smallest_relaxed_by_key<F, K>(self, k: usize, key: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item) -> K,
+        K: Ord,
+    {
+        self.k_smallest_relaxed_by(k, k_smallest::key_to_cmp(key))
+    }
+
+    /// Sort the k largest elements into a new iterator, in descending order.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// It is semantically equivalent to [`k_smallest`](Itertools::k_smallest)
+    /// with a reversed `Ord`.
+    /// However, this is implemented with a custom binary heap which does not
+    /// have the same performance characteristics for very large `Self::Item`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_largest = numbers
+    ///     .into_iter()
+    ///     .k_largest(5);
+    ///
+    /// itertools::assert_equal(five_largest, vec![14, 13, 12, 11, 10]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_largest(self, k: usize) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        Self::Item: Ord,
+    {
+        self.k_largest_by(k, Self::Item::cmp)
+    }
+
+    /// Sort the k largest elements into a new iterator using the provided comparison.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// Functionally equivalent to [`k_smallest_by`](Itertools::k_smallest_by)
+    /// with a reversed `Ord`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_largest = numbers
+    ///     .into_iter()
+    ///     .k_largest_by(5, |a, b| (a % 7).cmp(&(b % 7)).then(a.cmp(b)));
+    ///
+    /// itertools::assert_equal(five_largest, vec![13, 6, 12, 5, 11]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_largest_by<F>(self, k: usize, mut cmp: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item, &Self::Item) -> Ordering,
+    {
+        self.k_smallest_by(k, move |a, b| cmp(b, a))
+    }
+
+    /// Return the elements producing the k largest outputs of the provided function.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// Functionally equivalent to [`k_smallest_by_key`](Itertools::k_smallest_by_key)
+    /// with a reversed `Ord`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_largest = numbers
+    ///     .into_iter()
+    ///     .k_largest_by_key(5, |n| (n % 7, *n));
+    ///
+    /// itertools::assert_equal(five_largest, vec![13, 6, 12, 5, 11]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_largest_by_key<F, K>(self, k: usize, key: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item) -> K,
+        K: Ord,
+    {
+        self.k_largest_by(k, k_smallest::key_to_cmp(key))
+    }
+
+    /// Sort the k largest elements into a new iterator, in descending order, relaxing the amount of memory required.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// It is semantically equivalent to [`k_smallest_relaxed`](Itertools::k_smallest_relaxed)
+    /// with a reversed `Ord`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_largest = numbers
+    ///     .into_iter()
+    ///     .k_largest_relaxed(5);
+    ///
+    /// itertools::assert_equal(five_largest, vec![14, 13, 12, 11, 10]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_largest_relaxed(self, k: usize) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        Self::Item: Ord,
+    {
+        self.k_largest_relaxed_by(k, Self::Item::cmp)
+    }
+
+    /// Sort the k largest elements into a new iterator using the provided comparison, relaxing the amount of memory required.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// Functionally equivalent to [`k_smallest_relaxed_by`](Itertools::k_smallest_relaxed_by)
+    /// with a reversed `Ord`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_largest = numbers
+    ///     .into_iter()
+    ///     .k_largest_relaxed_by(5, |a, b| (a % 7).cmp(&(b % 7)).then(a.cmp(b)));
+    ///
+    /// itertools::assert_equal(five_largest, vec![13, 6, 12, 5, 11]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_largest_relaxed_by<F>(self, k: usize, mut cmp: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item, &Self::Item) -> Ordering,
+    {
+        self.k_smallest_relaxed_by(k, move |a, b| cmp(b, a))
+    }
+
+    /// Return the elements producing the k largest outputs of the provided function, relaxing the amount of memory required.
+    ///
+    /// The sorted iterator, if directly collected to a `Vec`, is converted
+    /// without any extra copying or allocation cost.
+    ///
+    /// Functionally equivalent to [`k_smallest_relaxed_by_key`](Itertools::k_smallest_relaxed_by_key)
+    /// with a reversed `Ord`.
+    ///
+    /// ```
+    /// use itertools::Itertools;
+    ///
+    /// // A random permutation of 0..15
+    /// let numbers = vec![6, 9, 1, 14, 0, 4, 8, 7, 11, 2, 10, 3, 13, 12, 5];
+    ///
+    /// let five_largest = numbers
+    ///     .into_iter()
+    ///     .k_largest_relaxed_by_key(5, |n| (n % 7, *n));
+    ///
+    /// itertools::assert_equal(five_largest, vec![13, 6, 12, 5, 11]);
+    /// ```
+    #[cfg(feature = "use_alloc")]
+    fn k_largest_relaxed_by_key<F, K>(self, k: usize, key: F) -> VecIntoIter<Self::Item>
+    where
+        Self: Sized,
+        F: FnMut(&Self::Item) -> K,
+        K: Ord,
+    {
+        self.k_largest_relaxed_by(k, k_smallest::key_to_cmp(key))
+    }
+
+    /// Consumes the iterator and return an iterator of the last `n` elements.
+    ///
+    /// The iterator, if directly collected to a `VecDeque`, is converted
+    /// without any extra copying or allocation cost.
+    /// If directly collected to a `Vec`, it may need some data movement
+    /// but no re-allocation.
+    ///
+    /// ```
+    /// use itertools::{assert_equal, Itertools};
+    ///
+    /// let v = vec![5, 9, 8, 4, 2, 12, 0];
+    /// assert_equal(v.iter().tail(3), &[2, 12, 0]);
+    /// assert_equal(v.iter().tail(10), &v);
+    ///
+    /// assert_equal(v.iter().tail(1), v.iter().last());
+    ///
+    /// assert_equal((0..100).tail(10), 90..100);
+    ///
+    /// assert_equal((0..100).filter(|x| x % 3 == 0).tail(10), (72..100).step_by(3));
+    /// ```
+    ///
+    /// For double ended iterators without side-effects, you might prefer
+    /// `.rev().take(n).rev()` to have a similar result (lazy and non-allocating)
+    /// without consuming the entire iterator.
+    #[cfg(feature = "use_alloc")]
+    fn tail(self, n: usize) -> VecDequeIntoIter<Self::Item>
+    where
+        Self: Sized,
+    {
+        match n {
+            0 => {
+                self.last();
+                VecDeque::new()
+            }
+            1 => self.last().into_iter().collect(),
+            _ => {
+                // Skip the starting part of the iterator if possible.
+                let (low, _) = self.size_hint();
+                let mut iter = self.fuse().skip(low.saturating_sub(n));
+                // TODO: If VecDeque has a more efficient method than
+                // `.pop_front();.push_back(val)` in the future then maybe revisit this.
+                let mut data: Vec<_> = iter.by_ref().take(n).collect();
+                // Update `data` cyclically.
+                let idx = iter.fold(0, |i, val| {
+                    debug_assert_eq!(data.len(), n);
+                    data[i] = val;
+                    if i + 1 == n {
+                        0
+                    } else {
+                        i + 1
+                    }
+                });
+                // Respect the insertion order, efficiently.
+                let mut data = VecDeque::from(data);
+                data.rotate_left(idx);
+                data
+            }
+        }
+        .into_iter()
     }
 
     /// Collect all iterator elements into one of two
@@ -3092,8 +3703,8 @@ pub trait Itertools: Iterator {
         group_map::into_group_map(self)
     }
 
-    /// Return an `Iterator` on a `HashMap`. Keys mapped to `Vec`s of values. The key is specified
-    /// in the closure.
+    /// Return a `HashMap` of keys mapped to `Vec`s of values. The key is specified
+    /// in the closure. The values are taken from the input iterator.
     ///
     /// Essentially a shorthand for `.into_grouping_map_by(f).collect::<Vec<_>>()`.
     ///
@@ -3105,7 +3716,7 @@ pub trait Itertools: Iterator {
     /// let lookup: HashMap<u32,Vec<(u32, u32)>> =
     ///     data.clone().into_iter().into_group_map_by(|a| a.0);
     ///
-    /// assert_eq!(lookup[&0], vec![(0,10),(0,20)]);
+    /// assert_eq!(lookup[&0], vec![(0,10), (0,20)]);
     /// assert_eq!(lookup.get(&1), None);
     /// assert_eq!(lookup[&2], vec![(2,12), (2,42)]);
     /// assert_eq!(lookup[&3], vec![(3,13), (3,33)]);
@@ -3124,7 +3735,7 @@ pub trait Itertools: Iterator {
     where
         Self: Iterator<Item = V> + Sized,
         K: Hash + Eq,
-        F: Fn(&V) -> K,
+        F: FnMut(&V) -> K,
     {
         group_map::into_group_map_by(self, f)
     }
@@ -3162,7 +3773,7 @@ pub trait Itertools: Iterator {
         K: Hash + Eq,
         F: FnMut(&V) -> K,
     {
-        grouping_map::new(grouping_map::MapForGrouping::new(self, key_mapper))
+        grouping_map::new(grouping_map::new_map_for_grouping(self, key_mapper))
     }
 
     /// Return all minimum elements of an iterator.
@@ -3798,7 +4409,7 @@ pub trait Itertools: Iterator {
         }
     }
 
-    /// If the iterator yields no elements, Ok(None) will be returned. If the iterator yields
+    /// If the iterator yields no elements, `Ok(None)` will be returned. If the iterator yields
     /// exactly one element, that element will be returned, otherwise an error will be returned
     /// containing an iterator that has the same output as the input iterator.
     ///
@@ -3860,7 +4471,7 @@ pub trait Itertools: Iterator {
     /// # Examples
     /// ```
     /// # use itertools::Itertools;
-    /// let counts = [1, 1, 1, 3, 3, 5].into_iter().counts();
+    /// let counts = [1, 1, 1, 3, 3, 5].iter().counts();
     /// assert_eq!(counts[&1], 3);
     /// assert_eq!(counts[&3], 2);
     /// assert_eq!(counts[&5], 1);
@@ -3886,6 +4497,7 @@ pub trait Itertools: Iterator {
     /// # use itertools::Itertools;
     /// struct Character {
     ///   first_name: &'static str,
+    ///   # #[allow(dead_code)]
     ///   last_name:  &'static str,
     /// }
     ///
@@ -3921,7 +4533,7 @@ pub trait Itertools: Iterator {
 
     /// Converts an iterator of tuples into a tuple of containers.
     ///
-    /// `unzip()` consumes an entire iterator of n-ary tuples, producing `n` collections, one for each
+    /// It consumes an entire iterator of n-ary tuples, producing `n` collections, one for each
     /// column.
     ///
     /// This function is, in some sense, the opposite of [`multizip`].
@@ -3996,13 +4608,14 @@ where
 /// semantics as [`equal(a, b)`](equal).
 ///
 /// **Panics** on assertion failure with a message that shows the
-/// two iteration elements.
+/// two different elements and the iteration index.
 ///
 /// ```should_panic
 /// # use itertools::assert_equal;
 /// assert_equal("exceed".split('c'), "excess".split('c'));
 /// // ^PANIC: panicked at 'Failed assertion Some("eed") == Some("ess") for iteration 1'.
 /// ```
+#[track_caller]
 pub fn assert_equal<I, J>(a: I, b: J)
 where
     I: IntoIterator,
@@ -4012,7 +4625,7 @@ where
 {
     let mut ia = a.into_iter();
     let mut ib = b.into_iter();
-    let mut i = 0;
+    let mut i: usize = 0;
     loop {
         match (ia.next(), ib.next()) {
             (None, None) => return,

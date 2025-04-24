@@ -11,13 +11,15 @@
 
 [package]
 edition = "2021"
-rust-version = "1.67"
+rust-version = "1.74"
 name = "hostname"
-version = "0.4.0"
-authors = [
-    "fengcen <fengcen.love@gmail.com>",
-    "svartalf <self@svartalf.info>",
-]
+version = "0.4.1"
+build = false
+autolib = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 description = "Cross-platform system's host name functions"
 readme = "README.md"
 keywords = [
@@ -39,22 +41,40 @@ rustdoc-args = [
     "docsrs",
 ]
 
-[dependencies.cfg-if]
-version = "^1.0"
-
-[dev-dependencies.version-sync]
-version = "0.9"
-
 [features]
 default = []
 set = []
 
-[target."cfg(any(unix, target_os = \"redox\"))".dependencies.libc]
-version = "^0.2"
+[lib]
+name = "hostname"
+path = "src/lib.rs"
 
-[target."cfg(target_os = \"windows\")".dependencies.windows]
-version = "^0.52"
-features = [
-    "Win32_Foundation",
-    "Win32_System_SystemInformation",
-]
+[[example]]
+name = "hostname"
+path = "examples/hostname.rs"
+
+[[test]]
+name = "codegen"
+path = "tests/codegen.rs"
+
+[[test]]
+name = "version"
+path = "tests/version.rs"
+
+[dependencies.cfg-if]
+version = "1"
+
+[dev-dependencies.version-sync]
+version = "0.9"
+
+[target.'cfg(any(unix, target_os = "redox"))'.dependencies.libc]
+version = "0.2"
+
+[target.'cfg(target_os = "windows")'.dependencies.windows-link]
+version = "0.1.1"
+
+[target.'cfg(target_os = "windows")'.dev-dependencies.similar-asserts]
+version = "1.6.1"
+
+[target.'cfg(target_os = "windows")'.dev-dependencies.windows-bindgen]
+version = "0.61"

@@ -3,7 +3,7 @@
 [![Latest Version](https://img.shields.io/crates/v/hostname.svg)](https://crates.io/crates/hostname)
 [![Latest Version](https://docs.rs/hostname/badge.svg)](https://docs.rs/hostname)
 [![Build Status](https://github.com/svartalf/hostname/actions/workflows/ci.yml/badge.svg)](https://github.com/svartalf/hostname/actions)
-![Minimum rustc version](https://img.shields.io/badge/rustc-1.67+-green.svg)
+![Minimum rustc version](https://img.shields.io/badge/rustc-1.71+-green.svg)
 ![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Crates.io](https://img.shields.io/crates/d/hostname)
 
@@ -11,13 +11,13 @@
 
 ## Supported platforms
 
- * [POSIX-compliant](https://en.wikipedia.org/wiki/POSIX#POSIX-oriented_operating_systems) systems\
-   (Linux, macOS, Android, FreeBSD, OpenBSD, NetBSD, Solaris, Redox, and so on)
- * Windows
+-   [POSIX-compliant](https://en.wikipedia.org/wiki/POSIX#POSIX-oriented_operating_systems) systems\
+    (Linux, macOS, Android, FreeBSD, OpenBSD, NetBSD, Solaris, Redox, and so on)
+-   Windows
 
 ## Rust version requirements
 
-Since version `0.4.0` this crate requires Rust version `1.67.0` or greater.
+Since version `0.4.0` this crate requires Rust version `1.74` or greater.
 
 This version is explicitly tested in CI
 and may be bumped in any major or minor release as needed.\

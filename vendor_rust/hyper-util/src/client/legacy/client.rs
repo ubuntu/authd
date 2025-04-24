@@ -316,7 +316,7 @@ where
             } else {
                 origin_form(req.uri_mut());
             }
-        } else if req.method() == Method::CONNECT {
+        } else if req.method() == Method::CONNECT && !pooled.is_http2() {
             authority_form(req.uri_mut());
         }
 
@@ -342,17 +342,6 @@ where
         // If the Connector included 'extra' info, add to Response...
         if let Some(extra) = &pooled.conn_info.extra {
             extra.set(res.extensions_mut());
-        }
-
-        // As of futures@0.1.21, there is a race condition in the mpsc
-        // channel, such that sending when the receiver is closing can
-        // result in the message being stuck inside the queue. It won't
-        // ever notify until the Sender side is dropped.
-        //
-        // To counteract this, we must check if our senders 'want' channel
-        // has been closed after having tried to send. If so, error out...
-        if pooled.is_closed() {
-            return Ok(res);
         }
 
         // If pooled is HTTP/2, we can toss this reference immediately.
@@ -767,15 +756,6 @@ impl<B> PoolClient<B> {
             PoolTx::Http1(ref tx) => tx.is_ready(),
             #[cfg(feature = "http2")]
             PoolTx::Http2(ref tx) => tx.is_ready(),
-        }
-    }
-
-    fn is_closed(&self) -> bool {
-        match self.tx {
-            #[cfg(feature = "http1")]
-            PoolTx::Http1(ref tx) => tx.is_closed(),
-            #[cfg(feature = "http2")]
-            PoolTx::Http2(ref tx) => tx.is_closed(),
         }
     }
 }

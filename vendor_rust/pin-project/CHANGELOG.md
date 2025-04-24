@@ -4,11 +4,35 @@ All notable changes to this project will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org).
 
+Releases may yanked if there is a security bug, a soundness bug, or a regression.
+
 <!--
 Note: In this file, do not use the hard wrap in the middle of a sentence for compatibility with GitHub comment style markdown rendering.
 -->
 
 ## [Unreleased]
+
+## [1.1.10] - 2025-03-03
+
+- Suppress `clippy::elidable_lifetime_names` lint in generated code.
+
+## [1.1.9] - 2025-02-03
+
+- Suppress `clippy::missing_const_for_fn` lint in generated code.
+
+## [1.1.8] - 2025-01-06
+
+- Suppress `unnameable_types`, `clippy::absolute_paths`, `clippy::min_ident_chars`, `clippy::pub_with_shorthand`, `clippy::single_call_fn`, `clippy::single_char_lifetime_names` lints in generated code.
+
+## [1.1.7] - 2024-10-24
+
+- Work around an issue on negative_impls that allows unsound overlapping `Unpin` implementations. ([#357](https://github.com/taiki-e/pin-project/pull/357))
+
+## [1.1.6] - 2024-10-05
+
+- Suppress `clippy::needless_lifetimes` lint in generated code.
+
+- Disable `derive` feature of `syn` dependency.
 
 ## [1.1.5] - 2024-03-05
 
@@ -704,7 +728,12 @@ See also [tracking issue for 0.4 release](https://github.com/taiki-e/pin-project
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/pin-project/compare/v1.1.5...HEAD
+[Unreleased]: https://github.com/taiki-e/pin-project/compare/v1.1.10...HEAD
+[1.1.10]: https://github.com/taiki-e/pin-project/compare/v1.1.9...v1.1.10
+[1.1.9]: https://github.com/taiki-e/pin-project/compare/v1.1.8...v1.1.9
+[1.1.8]: https://github.com/taiki-e/pin-project/compare/v1.1.7...v1.1.8
+[1.1.7]: https://github.com/taiki-e/pin-project/compare/v1.1.6...v1.1.7
+[1.1.6]: https://github.com/taiki-e/pin-project/compare/v1.1.5...v1.1.6
 [1.1.5]: https://github.com/taiki-e/pin-project/compare/v1.1.4...v1.1.5
 [1.1.4]: https://github.com/taiki-e/pin-project/compare/v1.1.3...v1.1.4
 [1.1.3]: https://github.com/taiki-e/pin-project/compare/v1.1.2...v1.1.3

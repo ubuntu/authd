@@ -4,13 +4,18 @@ enum Enum<T, U> {
     Unit,
 }
 #[doc(hidden)]
-#[allow(dead_code)]
-#[allow(single_use_lifetimes)]
-#[allow(clippy::unknown_clippy_lints)]
-#[allow(clippy::mut_mut)]
-#[allow(clippy::redundant_pub_crate)]
-#[allow(clippy::ref_option_ref)]
-#[allow(clippy::type_repetition_in_bounds)]
+#[allow(
+    dead_code,
+    single_use_lifetimes,
+    clippy::unknown_clippy_lints,
+    clippy::absolute_paths,
+    clippy::min_ident_chars,
+    clippy::mut_mut,
+    clippy::redundant_pub_crate,
+    clippy::ref_option_ref,
+    clippy::single_char_lifetime_names,
+    clippy::type_repetition_in_bounds
+)]
 enum EnumProj<'__pin, T, U>
 where
     Enum<T, U>: '__pin,
@@ -22,13 +27,18 @@ where
     Unit,
 }
 #[doc(hidden)]
-#[allow(dead_code)]
-#[allow(single_use_lifetimes)]
-#[allow(clippy::unknown_clippy_lints)]
-#[allow(clippy::mut_mut)]
-#[allow(clippy::redundant_pub_crate)]
-#[allow(clippy::ref_option_ref)]
-#[allow(clippy::type_repetition_in_bounds)]
+#[allow(
+    dead_code,
+    single_use_lifetimes,
+    clippy::unknown_clippy_lints,
+    clippy::absolute_paths,
+    clippy::min_ident_chars,
+    clippy::mut_mut,
+    clippy::redundant_pub_crate,
+    clippy::ref_option_ref,
+    clippy::single_char_lifetime_names,
+    clippy::type_repetition_in_bounds
+)]
 enum EnumProjRef<'__pin, T, U>
 where
     Enum<T, U>: '__pin,
@@ -40,18 +50,29 @@ where
     Unit,
 }
 #[doc(hidden)]
-#[allow(dead_code)]
-#[allow(single_use_lifetimes)]
-#[allow(clippy::mut_mut)]
-#[allow(clippy::redundant_pub_crate)]
-#[allow(clippy::type_repetition_in_bounds)]
+#[allow(
+    dead_code,
+    single_use_lifetimes,
+    clippy::unknown_clippy_lints,
+    clippy::absolute_paths,
+    clippy::min_ident_chars,
+    clippy::mut_mut,
+    clippy::redundant_pub_crate,
+    clippy::single_char_lifetime_names,
+    clippy::type_repetition_in_bounds
+)]
 enum EnumProjReplace<T, U> {
     Struct { pinned: ::pin_project_lite::__private::PhantomData<T>, unpinned: U },
     Unit,
 }
-#[allow(single_use_lifetimes)]
-#[allow(clippy::unknown_clippy_lints)]
-#[allow(clippy::used_underscore_binding)]
+#[allow(
+    single_use_lifetimes,
+    clippy::unknown_clippy_lints,
+    clippy::absolute_paths,
+    clippy::min_ident_chars,
+    clippy::single_char_lifetime_names,
+    clippy::used_underscore_binding
+)]
 const _: () = {
     impl<T, U> Enum<T, U> {
         #[doc(hidden)]
@@ -133,7 +154,9 @@ const _: () = {
     }
     impl<'__pin, T, U> ::pin_project_lite::__private::Unpin for Enum<T, U>
     where
-        __Origin<'__pin, T, U>: ::pin_project_lite::__private::Unpin,
+        ::pin_project_lite::__private::PinnedFieldsOf<
+            __Origin<'__pin, T, U>,
+        >: ::pin_project_lite::__private::Unpin,
     {}
     trait MustNotImplDrop {}
     #[allow(clippy::drop_bounds, drop_bounds)]

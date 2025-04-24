@@ -12,7 +12,7 @@ use syn::visit_mut::{self, VisitMut};
 use syn::{
     parse_quote, parse_quote_spanned, Attribute, Block, FnArg, GenericArgument, GenericParam,
     Generics, Ident, ImplItem, Lifetime, LifetimeParam, Pat, PatIdent, PathArguments, Receiver,
-    ReturnType, Signature, Token, TraitItem, Type, TypePath, WhereClause,
+    ReturnType, Signature, Token, TraitItem, Type, TypeInfer, TypePath, WhereClause,
 };
 
 impl ToTokens for Item {
@@ -99,7 +99,7 @@ pub fn expand(input: &mut Item, is_local: bool) {
                     ImplItem::Fn(method) if method.sig.asyncness.is_some() => {
                         let sig = &mut method.sig;
                         let block = &mut method.block;
-                        let has_self = has_self_in_sig(sig) || has_self_in_block(block);
+                        let has_self = has_self_in_sig(sig);
                         transform_block(context, sig, block);
                         transform_sig(context, sig, has_self, false, is_local);
                         method.attrs.push(lint_suppress_with_body());
@@ -125,9 +125,11 @@ pub fn expand(input: &mut Item, is_local: bool) {
 fn lint_suppress_with_body() -> Attribute {
     parse_quote! {
         #[allow(
+            elided_named_lifetimes,
             clippy::async_yields_async,
             clippy::diverging_sub_expression,
             clippy::let_unit_value,
+            clippy::needless_arbitrary_self_type,
             clippy::no_effect_underscore_binding,
             clippy::shadow_same,
             clippy::type_complexity,
@@ -140,6 +142,7 @@ fn lint_suppress_with_body() -> Attribute {
 fn lint_suppress_without_body() -> Attribute {
     parse_quote! {
         #[allow(
+            elided_named_lifetimes,
             clippy::type_complexity,
             clippy::type_repetition_in_bounds
         )]
@@ -169,8 +172,8 @@ fn transform_sig(
     sig.fn_token.span = sig.asyncness.take().unwrap().span;
 
     let (ret_arrow, ret) = match &sig.output {
-        ReturnType::Default => (Token![->](Span::call_site()), quote!(())),
-        ReturnType::Type(arrow, ret) => (*arrow, quote!(#ret)),
+        ReturnType::Default => (quote!(->), quote!(())),
+        ReturnType::Type(arrow, ret) => (quote!(#arrow), quote!(#ret)),
     };
 
     let mut lifetimes = CollectLifetimes::new();
@@ -189,10 +192,14 @@ fn transform_sig(
                     Some(colon_token) => colon_token.span,
                     None => param_name.span(),
                 };
-                let bounds = mem::replace(&mut param.bounds, Punctuated::new());
-                where_clause_or_default(&mut sig.generics.where_clause)
-                    .predicates
-                    .push(parse_quote_spanned!(span=> #param_name: 'async_trait + #bounds));
+                if param.attrs.is_empty() {
+                    let bounds = mem::take(&mut param.bounds);
+                    where_clause_or_default(&mut sig.generics.where_clause)
+                        .predicates
+                        .push(parse_quote_spanned!(span=> #param_name: 'async_trait + #bounds));
+                } else {
+                    param.bounds.push(parse_quote!('async_trait));
+                }
             }
             GenericParam::Lifetime(param) => {
                 let param_name = &param.lifetime;
@@ -200,10 +207,14 @@ fn transform_sig(
                     Some(colon_token) => colon_token.span,
                     None => param_name.span(),
                 };
-                let bounds = mem::replace(&mut param.bounds, Punctuated::new());
-                where_clause_or_default(&mut sig.generics.where_clause)
-                    .predicates
-                    .push(parse_quote_spanned!(span=> #param: 'async_trait + #bounds));
+                if param.attrs.is_empty() {
+                    let bounds = mem::take(&mut param.bounds);
+                    where_clause_or_default(&mut sig.generics.where_clause)
+                        .predicates
+                        .push(parse_quote_spanned!(span=> #param: 'async_trait + #bounds));
+                } else {
+                    param.bounds.push(parse_quote!('async_trait));
+                }
             }
             GenericParam::Const(_) => {}
         }
@@ -407,6 +418,8 @@ fn transform_block(context: Context, sig: &mut Signature, block: &mut Block) {
                     quote!(#(#decls)* { #(#stmts)* })
                 }
             } else {
+                let mut ret = ret.clone();
+                replace_impl_trait_with_infer(&mut ret);
                 quote! {
                     if let ::core::option::Option::Some(__ret) = ::core::option::Option::None::<#ret> {
                         #[allow(unreachable_code)]
@@ -471,4 +484,21 @@ fn where_clause_or_default(clause: &mut Option<WhereClause>) -> &mut WhereClause
         where_token: Default::default(),
         predicates: Punctuated::new(),
     })
+}
+
+fn replace_impl_trait_with_infer(ty: &mut Type) {
+    struct ReplaceImplTraitWithInfer;
+
+    impl VisitMut for ReplaceImplTraitWithInfer {
+        fn visit_type_mut(&mut self, ty: &mut Type) {
+            if let Type::ImplTrait(impl_trait) = ty {
+                *ty = Type::Infer(TypeInfer {
+                    underscore_token: Token![_](impl_trait.impl_token.span),
+                });
+            }
+            visit_mut::visit_type_mut(self, ty);
+        }
+    }
+
+    ReplaceImplTraitWithInfer.visit_type_mut(ty);
 }

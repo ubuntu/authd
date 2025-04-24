@@ -2,6 +2,8 @@ extern crate autocfg;
 
 use std::env;
 
+mod support;
+
 /// Tests that we can control the use of `#![no_std]`.
 #[test]
 fn no_std() {
@@ -10,10 +12,9 @@ fn no_std() {
     env::remove_var("TARGET");
 
     // Use the same path as this test binary.
-    let dir = env::current_exe().unwrap().parent().unwrap().to_path_buf();
-    env::set_var("OUT_DIR", &format!("{}", dir.display()));
+    let out = support::out_dir();
 
-    let mut ac = autocfg::AutoCfg::new().unwrap();
+    let mut ac = autocfg::AutoCfg::with_dir(out.as_ref()).unwrap();
     assert!(!ac.no_std());
     assert!(ac.probe_path("std::mem"));
 

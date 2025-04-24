@@ -11,14 +11,19 @@
 
 [package]
 edition = "2018"
-rust-version = "1.56.0"
+rust-version = "1.63.0"
 name = "tracing-attributes"
-version = "0.1.27"
+version = "0.1.28"
 authors = [
     "Tokio Contributors <team@tokio.rs>",
     "Eliza Weisman <eliza@buoyant.io>",
     "David Barsky <dbarsky@amazon.com>",
 ]
+build = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 description = """
 Procedural macro attributes for automatically instrumenting functions.
 """
@@ -38,9 +43,60 @@ categories = [
 ]
 license = "MIT"
 repository = "https://github.com/tokio-rs/tracing"
+resolver = "2"
 
 [lib]
+name = "tracing_attributes"
+path = "src/lib.rs"
 proc-macro = true
+
+[[test]]
+name = "async_fn"
+path = "tests/async_fn.rs"
+
+[[test]]
+name = "destructuring"
+path = "tests/destructuring.rs"
+
+[[test]]
+name = "err"
+path = "tests/err.rs"
+
+[[test]]
+name = "fields"
+path = "tests/fields.rs"
+
+[[test]]
+name = "follows_from"
+path = "tests/follows_from.rs"
+
+[[test]]
+name = "instrument"
+path = "tests/instrument.rs"
+
+[[test]]
+name = "levels"
+path = "tests/levels.rs"
+
+[[test]]
+name = "names"
+path = "tests/names.rs"
+
+[[test]]
+name = "parents"
+path = "tests/parents.rs"
+
+[[test]]
+name = "ret"
+path = "tests/ret.rs"
+
+[[test]]
+name = "targets"
+path = "tests/targets.rs"
+
+[[test]]
+name = "ui"
+path = "tests/ui.rs"
 
 [dependencies.proc-macro2]
 version = "1.0.60"
@@ -85,3 +141,11 @@ async-await = []
 
 [badges.maintenance]
 status = "experimental"
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+priority = 0
+check-cfg = [
+    "cfg(flaky_tests)",
+    "cfg(tracing_unstable)",
+]

@@ -1,5 +1,5 @@
 use std::env::var;
-use std::io::Write;
+use std::io::Write as _;
 
 /// The directory for inline asm.
 const ASM_PATH: &str = "src/backend/linux_raw/arch";
@@ -71,6 +71,7 @@ fn main() {
         use_feature_or_nothing("core_ffi_c");
         use_feature_or_nothing("alloc_c_string");
         use_feature_or_nothing("alloc_ffi");
+        use_feature_or_nothing("error_in_core");
     }
 
     // Feature needed for testing.
@@ -81,6 +82,7 @@ fn main() {
     // WASI support can utilize wasi_ext if present.
     if os == "wasi" {
         use_feature_or_nothing("wasi_ext");
+        use_feature_or_nothing("wasip2");
     }
 
     // If the libc backend is requested, or if we're not on a platform for
@@ -95,7 +97,10 @@ fn main() {
         || !inline_asm_name_present
         || is_unsupported_abi
         || miri
-        || ((arch == "powerpc64" || arch == "s390x" || arch.starts_with("mips"))
+        || ((arch == "powerpc"
+            || arch == "powerpc64"
+            || arch == "s390x"
+            || arch.starts_with("mips"))
             && !rustix_use_experimental_asm);
     if libc {
         // Use the libc backend.
@@ -147,14 +152,14 @@ fn main() {
     // These platforms have a 32-bit `time_t`.
     if libc
         && (arch == "arm"
+            || arch == "powerpc"
             || arch == "mips"
             || arch == "sparc"
             || arch == "x86"
-            || (arch == "wasm32" && os == "emscripten")
             || (arch == "aarch64" && os == "linux" && abi == Ok("ilp32".to_string())))
         && (apple
             || os == "android"
-            || os == "emscripten"
+            || (os == "freebsd" && arch == "x86")
             || os == "haiku"
             || env == "gnu"
             || (env == "musl" && arch == "x86")

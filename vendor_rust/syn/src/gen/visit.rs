@@ -89,6 +89,11 @@ pub trait Visit<'ast> {
     fn visit_bound_lifetimes(&mut self, i: &'ast crate::BoundLifetimes) {
         visit_bound_lifetimes(self, i);
     }
+    #[cfg(feature = "full")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+    fn visit_captured_param(&mut self, i: &'ast crate::CapturedParam) {
+        visit_captured_param(self, i);
+    }
     #[cfg(any(feature = "derive", feature = "full"))]
     #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
     fn visit_const_param(&mut self, i: &'ast crate::ConstParam) {
@@ -264,6 +269,11 @@ pub trait Visit<'ast> {
     fn visit_expr_range(&mut self, i: &'ast crate::ExprRange) {
         visit_expr_range(self, i);
     }
+    #[cfg(feature = "full")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+    fn visit_expr_raw_addr(&mut self, i: &'ast crate::ExprRawAddr) {
+        visit_expr_raw_addr(self, i);
+    }
     #[cfg(any(feature = "derive", feature = "full"))]
     #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
     fn visit_expr_reference(&mut self, i: &'ast crate::ExprReference) {
@@ -294,8 +304,8 @@ pub trait Visit<'ast> {
     fn visit_expr_try_block(&mut self, i: &'ast crate::ExprTryBlock) {
         visit_expr_try_block(self, i);
     }
-    #[cfg(feature = "full")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+    #[cfg(any(feature = "derive", feature = "full"))]
+    #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
     fn visit_expr_tuple(&mut self, i: &'ast crate::ExprTuple) {
         visit_expr_tuple(self, i);
     }
@@ -685,6 +695,16 @@ pub trait Visit<'ast> {
     fn visit_path_segment(&mut self, i: &'ast crate::PathSegment) {
         visit_path_segment(self, i);
     }
+    #[cfg(feature = "full")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+    fn visit_pointer_mutability(&mut self, i: &'ast crate::PointerMutability) {
+        visit_pointer_mutability(self, i);
+    }
+    #[cfg(feature = "full")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+    fn visit_precise_capture(&mut self, i: &'ast crate::PreciseCapture) {
+        visit_precise_capture(self, i);
+    }
     #[cfg(any(feature = "derive", feature = "full"))]
     #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
     fn visit_predicate_lifetime(&mut self, i: &'ast crate::PredicateLifetime) {
@@ -720,9 +740,7 @@ pub trait Visit<'ast> {
     fn visit_signature(&mut self, i: &'ast crate::Signature) {
         visit_signature(self, i);
     }
-    fn visit_span(&mut self, i: &proc_macro2::Span) {
-        visit_span(self, i);
-    }
+    fn visit_span(&mut self, i: &proc_macro2::Span) {}
     #[cfg(feature = "full")]
     #[cfg_attr(docsrs, doc(cfg(feature = "full")))]
     fn visit_static_mutability(&mut self, i: &'ast crate::StaticMutability) {
@@ -738,6 +756,7 @@ pub trait Visit<'ast> {
     fn visit_stmt_macro(&mut self, i: &'ast crate::StmtMacro) {
         visit_stmt_macro(self, i);
     }
+    fn visit_token_stream(&mut self, i: &'ast proc_macro2::TokenStream) {}
     #[cfg(any(feature = "derive", feature = "full"))]
     #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
     fn visit_trait_bound(&mut self, i: &'ast crate::TraitBound) {
@@ -1169,6 +1188,21 @@ where
     }
     skip!(node.gt_token);
 }
+#[cfg(feature = "full")]
+#[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+pub fn visit_captured_param<'ast, V>(v: &mut V, node: &'ast crate::CapturedParam)
+where
+    V: Visit<'ast> + ?Sized,
+{
+    match node {
+        crate::CapturedParam::Lifetime(_binding_0) => {
+            v.visit_lifetime(_binding_0);
+        }
+        crate::CapturedParam::Ident(_binding_0) => {
+            v.visit_ident(_binding_0);
+        }
+    }
+}
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
 pub fn visit_const_param<'ast, V>(v: &mut V, node: &'ast crate::ConstParam)
@@ -1355,6 +1389,9 @@ where
         crate::Expr::Range(_binding_0) => {
             full!(v.visit_expr_range(_binding_0));
         }
+        crate::Expr::RawAddr(_binding_0) => {
+            full!(v.visit_expr_raw_addr(_binding_0));
+        }
         crate::Expr::Reference(_binding_0) => {
             v.visit_expr_reference(_binding_0);
         }
@@ -1374,7 +1411,7 @@ where
             full!(v.visit_expr_try_block(_binding_0));
         }
         crate::Expr::Tuple(_binding_0) => {
-            full!(v.visit_expr_tuple(_binding_0));
+            v.visit_expr_tuple(_binding_0);
         }
         crate::Expr::Unary(_binding_0) => {
             v.visit_expr_unary(_binding_0);
@@ -1383,7 +1420,7 @@ where
             full!(v.visit_expr_unsafe(_binding_0));
         }
         crate::Expr::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream(_binding_0);
         }
         crate::Expr::While(_binding_0) => {
             full!(v.visit_expr_while(_binding_0));
@@ -1786,6 +1823,20 @@ where
         v.visit_expr(&**it);
     }
 }
+#[cfg(feature = "full")]
+#[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+pub fn visit_expr_raw_addr<'ast, V>(v: &mut V, node: &'ast crate::ExprRawAddr)
+where
+    V: Visit<'ast> + ?Sized,
+{
+    for it in &node.attrs {
+        v.visit_attribute(it);
+    }
+    skip!(node.and_token);
+    skip!(node.raw);
+    v.visit_pointer_mutability(&node.mutability);
+    v.visit_expr(&*node.expr);
+}
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
 pub fn visit_expr_reference<'ast, V>(v: &mut V, node: &'ast crate::ExprReference)
@@ -1874,8 +1925,8 @@ where
     skip!(node.try_token);
     v.visit_block(&node.block);
 }
-#[cfg(feature = "full")]
-#[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+#[cfg(any(feature = "derive", feature = "full"))]
+#[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
 pub fn visit_expr_tuple<'ast, V>(v: &mut V, node: &'ast crate::ExprTuple)
 where
     V: Visit<'ast> + ?Sized,
@@ -2085,7 +2136,7 @@ where
             v.visit_foreign_item_macro(_binding_0);
         }
         crate::ForeignItem::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream(_binding_0);
         }
     }
 }
@@ -2236,7 +2287,7 @@ where
             v.visit_impl_item_macro(_binding_0);
         }
         crate::ImplItem::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream(_binding_0);
         }
     }
 }
@@ -2374,7 +2425,7 @@ where
             v.visit_item_use(_binding_0);
         }
         crate::Item::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream(_binding_0);
         }
     }
 }
@@ -2793,7 +2844,7 @@ where
     v.visit_path(&node.path);
     skip!(node.bang_token);
     v.visit_macro_delimiter(&node.delimiter);
-    skip!(node.tokens);
+    v.visit_token_stream(&node.tokens);
 }
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
@@ -2854,7 +2905,7 @@ where
 {
     v.visit_path(&node.path);
     v.visit_macro_delimiter(&node.delimiter);
-    skip!(node.tokens);
+    v.visit_token_stream(&node.tokens);
 }
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
@@ -2935,7 +2986,7 @@ where
             v.visit_pat_type(_binding_0);
         }
         crate::Pat::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream(_binding_0);
         }
         crate::Pat::Wild(_binding_0) => {
             v.visit_pat_wild(_binding_0);
@@ -3141,6 +3192,35 @@ where
 {
     v.visit_ident(&node.ident);
     v.visit_path_arguments(&node.arguments);
+}
+#[cfg(feature = "full")]
+#[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+pub fn visit_pointer_mutability<'ast, V>(v: &mut V, node: &'ast crate::PointerMutability)
+where
+    V: Visit<'ast> + ?Sized,
+{
+    match node {
+        crate::PointerMutability::Const(_binding_0) => {
+            skip!(_binding_0);
+        }
+        crate::PointerMutability::Mut(_binding_0) => {
+            skip!(_binding_0);
+        }
+    }
+}
+#[cfg(feature = "full")]
+#[cfg_attr(docsrs, doc(cfg(feature = "full")))]
+pub fn visit_precise_capture<'ast, V>(v: &mut V, node: &'ast crate::PreciseCapture)
+where
+    V: Visit<'ast> + ?Sized,
+{
+    skip!(node.use_token);
+    skip!(node.lt_token);
+    for el in Punctuated::pairs(&node.params) {
+        let it = el.value();
+        v.visit_captured_param(it);
+    }
+    skip!(node.gt_token);
 }
 #[cfg(any(feature = "derive", feature = "full"))]
 #[cfg_attr(docsrs, doc(cfg(any(feature = "derive", feature = "full"))))]
@@ -3357,7 +3437,7 @@ where
             v.visit_trait_item_macro(_binding_0);
         }
         crate::TraitItem::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream(_binding_0);
         }
     }
 }
@@ -3481,7 +3561,7 @@ where
             v.visit_type_tuple(_binding_0);
         }
         crate::Type::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream(_binding_0);
         }
     }
 }
@@ -3598,8 +3678,11 @@ where
         crate::TypeParamBound::Lifetime(_binding_0) => {
             v.visit_lifetime(_binding_0);
         }
+        crate::TypeParamBound::PreciseCapture(_binding_0) => {
+            full!(v.visit_precise_capture(_binding_0));
+        }
         crate::TypeParamBound::Verbatim(_binding_0) => {
-            skip!(_binding_0);
+            v.visit_token_stream(_binding_0);
         }
     }
 }

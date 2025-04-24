@@ -1,4 +1,8 @@
-#![allow(clippy::uninlined_format_args)]
+#![allow(
+    clippy::elidable_lifetime_names,
+    clippy::needless_lifetimes,
+    clippy::uninlined_format_args
+)]
 
 #[macro_use]
 mod macros;
@@ -18,7 +22,7 @@ fn test_macro_variable_attr() {
         TokenTree::Group(Group::new(Delimiter::Brace, TokenStream::new())),
     ]);
 
-    snapshot!(tokens as Item, @r###"
+    snapshot!(tokens as Item, @r#"
     Item::Fn {
         attrs: [
             Attribute {
@@ -42,7 +46,7 @@ fn test_macro_variable_attr() {
             stmts: [],
         },
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -54,12 +58,12 @@ fn test_negative_impl() {
     let tokens = quote! {
         impl ! {}
     };
-    snapshot!(tokens as Item, @r###"
+    snapshot!(tokens as Item, @r#"
     Item::Impl {
         generics: Generics,
         self_ty: Type::Never,
     }
-    "###);
+    "#);
 
     #[cfg(any())]
     #[rustfmt::skip]
@@ -67,19 +71,19 @@ fn test_negative_impl() {
     let tokens = quote! {
         impl !Trait {}
     };
-    snapshot!(tokens as Item, @r###"
+    snapshot!(tokens as Item, @r#"
     Item::Impl {
         generics: Generics,
         self_ty: Type::Verbatim(`! Trait`),
     }
-    "###);
+    "#);
 
     #[cfg(any())]
     impl !Trait for T {}
     let tokens = quote! {
         impl !Trait for T {}
     };
-    snapshot!(tokens as Item, @r###"
+    snapshot!(tokens as Item, @r#"
     Item::Impl {
         generics: Generics,
         trait_: Some((
@@ -102,7 +106,7 @@ fn test_negative_impl() {
             },
         },
     }
-    "###);
+    "#);
 
     #[cfg(any())]
     #[rustfmt::skip]
@@ -110,12 +114,12 @@ fn test_negative_impl() {
     let tokens = quote! {
         impl !! {}
     };
-    snapshot!(tokens as Item, @r###"
+    snapshot!(tokens as Item, @r#"
     Item::Impl {
         generics: Generics,
         self_ty: Type::Verbatim(`! !`),
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -129,7 +133,7 @@ fn test_macro_variable_impl() {
         TokenTree::Group(Group::new(Delimiter::Brace, TokenStream::new())),
     ]);
 
-    snapshot!(tokens as Item, @r###"
+    snapshot!(tokens as Item, @r#"
     Item::Impl {
         generics: Generics,
         trait_: Some((
@@ -154,7 +158,7 @@ fn test_macro_variable_impl() {
             },
         },
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -163,7 +167,7 @@ fn test_supertraits() {
 
     #[rustfmt::skip]
     let tokens = quote!(trait Trait where {});
-    snapshot!(tokens as ItemTrait, @r###"
+    snapshot!(tokens as ItemTrait, @r#"
     ItemTrait {
         vis: Visibility::Inherited,
         ident: "Trait",
@@ -171,11 +175,11 @@ fn test_supertraits() {
             where_clause: Some(WhereClause),
         },
     }
-    "###);
+    "#);
 
     #[rustfmt::skip]
     let tokens = quote!(trait Trait: where {});
-    snapshot!(tokens as ItemTrait, @r###"
+    snapshot!(tokens as ItemTrait, @r#"
     ItemTrait {
         vis: Visibility::Inherited,
         ident: "Trait",
@@ -184,11 +188,11 @@ fn test_supertraits() {
         },
         colon_token: Some,
     }
-    "###);
+    "#);
 
     #[rustfmt::skip]
     let tokens = quote!(trait Trait: Sized where {});
-    snapshot!(tokens as ItemTrait, @r###"
+    snapshot!(tokens as ItemTrait, @r#"
     ItemTrait {
         vis: Visibility::Inherited,
         ident: "Trait",
@@ -208,11 +212,11 @@ fn test_supertraits() {
             }),
         ],
     }
-    "###);
+    "#);
 
     #[rustfmt::skip]
     let tokens = quote!(trait Trait: Sized + where {});
-    snapshot!(tokens as ItemTrait, @r###"
+    snapshot!(tokens as ItemTrait, @r#"
     ItemTrait {
         vis: Visibility::Inherited,
         ident: "Trait",
@@ -233,7 +237,7 @@ fn test_supertraits() {
             Token![+],
         ],
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -245,7 +249,7 @@ fn test_type_empty_bounds() {
         }
     };
 
-    snapshot!(tokens as ItemTrait, @r###"
+    snapshot!(tokens as ItemTrait, @r#"
     ItemTrait {
         vis: Visibility::Inherited,
         ident: "Foo",
@@ -258,7 +262,7 @@ fn test_type_empty_bounds() {
             },
         ],
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -277,7 +281,7 @@ fn test_impl_type_parameter_defaults() {
     let tokens = quote! {
         impl<T = ()> () {}
     };
-    snapshot!(tokens as Item, @r###"
+    snapshot!(tokens as Item, @r#"
     Item::Impl {
         generics: Generics {
             lt_token: Some,
@@ -292,7 +296,7 @@ fn test_impl_type_parameter_defaults() {
         },
         self_ty: Type::Tuple,
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -301,7 +305,7 @@ fn test_impl_trait_trailing_plus() {
         fn f() -> impl Sized + {}
     };
 
-    snapshot!(tokens as Item, @r###"
+    snapshot!(tokens as Item, @r#"
     Item::Fn {
         vis: Visibility::Inherited,
         sig: Signature {
@@ -328,5 +332,5 @@ fn test_impl_trait_trailing_plus() {
             stmts: [],
         },
     }
-    "###);
+    "#);
 }

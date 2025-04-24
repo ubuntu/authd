@@ -10,9 +10,9 @@
 # See Cargo.toml.orig for the original contents.
 
 [package]
-edition = "2018"
+edition = "2021"
 name = "ctor-proc-macro"
-version = "0.0.4"
+version = "0.0.5"
 authors = ["Matt Mastracci <matthew@mastracci.com>"]
 build = false
 autolib = false
@@ -24,12 +24,9 @@ description = "proc-macro support for the ctor crate"
 readme = "README.md"
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/mmastrac/rust-ctor"
-resolver = "2"
 
 [features]
-__warn_on_missing_unsafe = []
 default = []
-used_linker = []
 
 [lib]
 name = "ctor_proc_macro"

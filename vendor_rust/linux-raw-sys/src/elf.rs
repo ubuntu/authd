@@ -1,4 +1,11 @@
 //! The ELF ABI. 🧝
+//!
+//! This module is not as comprehensive as bindgened [`elf_uapi`] and provides only types for target
+//! pointer width: instead of [`elf32_phdr`] and [`elf64_phdr`] there's only [`Elf_Phdr`].
+//!
+//! [`elf_uapi`]: super::elf_uapi
+//! [`elf32_phdr`]: super::elf_uapi::elf32_phdr
+//! [`elf64_phdr`]: super::elf_uapi::elf64_phdr
 
 pub const SELFMAG: usize = 4;
 pub const ELFMAG: [u8; SELFMAG] = [0x7f, b'E', b'L', b'F'];
@@ -46,6 +53,7 @@ pub const DT_REL: usize = 17;
 pub const DT_RELSZ: usize = 18;
 pub const DT_RELENT: usize = 19;
 pub const DT_SYMENT: usize = 11;
+pub const DT_GNU_HASH: usize = 0x6fff_fef5;
 pub const DT_VERSYM: usize = 0x6fff_fff0;
 pub const DT_VERDEF: usize = 0x6fff_fffc;
 pub const STB_WEAK: u8 = 2;
@@ -60,8 +68,12 @@ pub const STV_DEFAULT: u8 = 0;
 pub const EM_CURRENT: u16 = 40; // EM_ARM
 #[cfg(target_arch = "x86")]
 pub const EM_CURRENT: u16 = 3; // EM_386
+#[cfg(target_arch = "powerpc")]
+pub const EM_CURRENT: u16 = 20; // EM_PPC
 #[cfg(target_arch = "powerpc64")]
 pub const EM_CURRENT: u16 = 21; // EM_PPC64
+#[cfg(target_arch = "s390x")]
+pub const EM_CURRENT: u16 = 22; // EM_S390
 #[cfg(any(
     target_arch = "mips",
     target_arch = "mips32r6",

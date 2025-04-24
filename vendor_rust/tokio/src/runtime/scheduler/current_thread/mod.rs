@@ -145,6 +145,10 @@ impl CurrentThread {
             task_hooks: TaskHooks {
                 task_spawn_callback: config.before_spawn.clone(),
                 task_terminate_callback: config.after_termination.clone(),
+                #[cfg(tokio_unstable)]
+                before_poll_callback: config.before_poll.clone(),
+                #[cfg(tokio_unstable)]
+                after_poll_callback: config.after_poll.clone(),
             },
             shared: Shared {
                 inject: Inject::new(),
@@ -361,7 +365,7 @@ impl Context {
     /// thread-local context.
     fn run_task<R>(&self, mut core: Box<Core>, f: impl FnOnce() -> R) -> (Box<Core>, R) {
         core.metrics.start_poll();
-        let mut ret = self.enter(core, || crate::runtime::coop::budget(f));
+        let mut ret = self.enter(core, || crate::task::coop::budget(f));
         ret.0.metrics.end_poll();
         ret
     }
@@ -726,7 +730,7 @@ impl CoreGuard<'_> {
 
                 if handle.reset_woken() {
                     let (c, res) = context.enter(core, || {
-                        crate::runtime::coop::budget(|| future.as_mut().poll(&mut cx))
+                        crate::task::coop::budget(|| future.as_mut().poll(&mut cx))
                     });
 
                     core = c;
@@ -766,8 +770,17 @@ impl CoreGuard<'_> {
 
                     let task = context.handle.shared.owned.assert_owner(task);
 
+                    #[cfg(tokio_unstable)]
+                    let task_id = task.task_id();
+
                     let (c, ()) = context.run_task(core, || {
+                        #[cfg(tokio_unstable)]
+                        context.handle.task_hooks.poll_start_callback(task_id);
+
                         task.run();
+
+                        #[cfg(tokio_unstable)]
+                        context.handle.task_hooks.poll_stop_callback(task_id);
                     });
 
                     core = c;

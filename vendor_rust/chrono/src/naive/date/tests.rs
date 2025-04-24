@@ -1,5 +1,5 @@
-use super::{Days, Months, NaiveDate, MAX_YEAR, MIN_YEAR};
-use crate::naive::internals::{YearFlags, A, AG, B, BA, C, CB, D, DC, E, ED, F, FE, G, GF};
+use super::{Days, MAX_YEAR, MIN_YEAR, Months, NaiveDate};
+use crate::naive::internals::{A, AG, B, BA, C, CB, D, DC, E, ED, F, FE, G, GF, YearFlags};
 use crate::{Datelike, TimeDelta, Weekday};
 
 // as it is hard to verify year flags in `NaiveDate::MIN` and `NaiveDate::MAX`,
@@ -181,7 +181,7 @@ fn test_date_from_yo() {
     assert_eq!(from_yo(2012, 300), Some(ymd(2012, 10, 26)));
     assert_eq!(from_yo(2012, 366), Some(ymd(2012, 12, 31)));
     assert_eq!(from_yo(2012, 367), None);
-    assert_eq!(from_yo(2012, 1 << 28 | 60), None);
+    assert_eq!(from_yo(2012, (1 << 28) | 60), None);
 
     assert_eq!(from_yo(2014, 0), None);
     assert_eq!(from_yo(2014, 1), Some(ymd(2014, 1, 1)));
@@ -406,7 +406,7 @@ fn test_date_with_ordinal() {
     assert_eq!(d.with_ordinal(61), Some(NaiveDate::from_ymd_opt(2000, 3, 1).unwrap()));
     assert_eq!(d.with_ordinal(366), Some(NaiveDate::from_ymd_opt(2000, 12, 31).unwrap()));
     assert_eq!(d.with_ordinal(367), None);
-    assert_eq!(d.with_ordinal(1 << 28 | 60), None);
+    assert_eq!(d.with_ordinal((1 << 28) | 60), None);
     let d = NaiveDate::from_ymd_opt(1999, 5, 5).unwrap();
     assert_eq!(d.with_ordinal(366), None);
     assert_eq!(d.with_ordinal(u32::MAX), None);
@@ -471,14 +471,14 @@ fn test_date_checked_add_signed() {
         ymd(MAX_YEAR, 12, 31),
     );
     check(ymd(0, 1, 1), TimeDelta::try_days(MAX_DAYS_FROM_YEAR_0 as i64 + 1).unwrap(), None);
-    check(ymd(0, 1, 1), TimeDelta::max_value(), None);
+    check(ymd(0, 1, 1), TimeDelta::MAX, None);
     check(
         ymd(0, 1, 1),
         TimeDelta::try_days(MIN_DAYS_FROM_YEAR_0 as i64).unwrap(),
         ymd(MIN_YEAR, 1, 1),
     );
     check(ymd(0, 1, 1), TimeDelta::try_days(MIN_DAYS_FROM_YEAR_0 as i64 - 1).unwrap(), None);
-    check(ymd(0, 1, 1), TimeDelta::min_value(), None);
+    check(ymd(0, 1, 1), TimeDelta::MIN, None);
 }
 
 #[test]
@@ -666,13 +666,15 @@ fn test_date_parse_from_str() {
         Ok(ymd(2014, 5, 7))
     ); // ignore time and offset
     assert_eq!(
-        NaiveDate::parse_from_str("2015-W06-1=2015-033", "%G-W%V-%u = %Y-%j"),
+        NaiveDate::parse_from_str("2015-W06-1=2015-033 Q1", "%G-W%V-%u = %Y-%j Q%q"),
         Ok(ymd(2015, 2, 2))
     );
     assert_eq!(NaiveDate::parse_from_str("Fri, 09 Aug 13", "%a, %d %b %y"), Ok(ymd(2013, 8, 9)));
     assert!(NaiveDate::parse_from_str("Sat, 09 Aug 2013", "%a, %d %b %Y").is_err());
     assert!(NaiveDate::parse_from_str("2014-57", "%Y-%m-%d").is_err());
     assert!(NaiveDate::parse_from_str("2014", "%Y").is_err()); // insufficient
+
+    assert!(NaiveDate::parse_from_str("2014-5-7 Q3", "%Y-%m-%d Q%q").is_err()); // mismatched quarter
 
     assert_eq!(
         NaiveDate::parse_from_str("2020-01-0", "%Y-%W-%w").ok(),

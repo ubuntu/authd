@@ -139,6 +139,12 @@ pub fn shuffle<T>(slice: &mut [T]) {
     with_rng(|r| r.shuffle(slice))
 }
 
+/// Fill a byte slice with random data.
+#[inline]
+pub fn fill(slice: &mut [u8]) {
+    with_rng(|r| r.fill(slice))
+}
+
 macro_rules! integer {
     ($t:tt, $doc:tt) => {
         #[doc = $doc]
@@ -175,8 +181,8 @@ pub fn f64() -> f64 {
     with_rng(|r| r.f64())
 }
 
-/// Collects `amount` values at random from the iterator into a vector.
-pub fn choose_multiple<T: Iterator>(source: T, amount: usize) -> Vec<T::Item> {
+/// Collects `amount` values at random from the iterable into a vector.
+pub fn choose_multiple<I: IntoIterator>(source: I, amount: usize) -> Vec<I::Item> {
     with_rng(|rng| rng.choose_multiple(source, amount))
 }
 

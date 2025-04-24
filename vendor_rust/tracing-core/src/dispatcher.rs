@@ -123,6 +123,8 @@
 //! currently default `Dispatch`. This is used primarily by `tracing`
 //! instrumentation.
 //!
+use core::ptr::addr_of;
+
 use crate::{
     callsite, span,
     subscriber::{self, NoSubscriber, Subscriber},
@@ -143,12 +145,6 @@ use crate::stdlib::{
     cell::{Cell, Ref, RefCell},
     error,
 };
-
-#[cfg(feature = "alloc")]
-use alloc::sync::{Arc, Weak};
-
-#[cfg(feature = "alloc")]
-use core::ops::Deref;
 
 /// `Dispatch` trace data to a [`Subscriber`].
 #[derive(Clone)]
@@ -187,9 +183,11 @@ enum Kind<T> {
 
 #[cfg(feature = "std")]
 thread_local! {
-    static CURRENT_STATE: State = State {
-        default: RefCell::new(None),
-        can_enter: Cell::new(true),
+    static CURRENT_STATE: State = const {
+        State {
+            default: RefCell::new(None),
+            can_enter: Cell::new(true),
+        }
     };
 }
 
@@ -455,7 +453,7 @@ fn get_global() -> &'static Dispatch {
     unsafe {
         // This is safe given the invariant that setting the global dispatcher
         // also sets `GLOBAL_INIT` to `INITIALIZED`.
-        &GLOBAL_DISPATCH
+        &*addr_of!(GLOBAL_DISPATCH)
     }
 }
 

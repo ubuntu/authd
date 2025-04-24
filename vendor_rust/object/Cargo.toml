@@ -23,9 +23,9 @@ version = "1"
 
 [dependencies.hashbrown]
 default-features = false
-features = ["ahash"]
+features = ["default-hasher"]
 optional = true
-version = "0.14.0"
+version = "0.15.0"
 
 [dependencies.indexmap]
 default-features = false
@@ -38,20 +38,23 @@ version = "2.4.1"
 
 [dependencies.ruzstd]
 optional = true
-version = "0.5.0"
+version = "0.7.0"
 
 [dependencies.wasmparser]
+default-features = false
 optional = true
-version = "0.118.0"
+version = "0.222.0"
 
 [features]
-all = ["read", "write", "std", "compression", "wasm"]
+all = ["read", "write", "build", "std", "compression", "wasm"]
 archive = []
+build = ["build_core", "write_std", "elf"]
+build_core = ["read_core", "write_core"]
 cargo-all = []
 coff = []
 compression = ["dep:flate2", "dep:ruzstd", "std"]
 default = ["read", "compression"]
-doc = ["read_core", "write_std", "std", "compression", "archive", "coff", "elf", "macho", "pe", "wasm", "xcoff"]
+doc = ["read_core", "write_std", "build_core", "std", "compression", "archive", "coff", "elf", "macho", "pe", "wasm", "xcoff"]
 elf = []
 macho = []
 pe = ["coff"]
@@ -68,18 +71,27 @@ write_core = ["dep:crc32fast", "dep:indexmap", "dep:hashbrown"]
 write_std = ["write_core", "std", "indexmap?/std", "crc32fast?/std"]
 xcoff = []
 
+[lib]
+name = "object"
+path = "src/lib.rs"
+
 [package]
+autobenches = false
+autobins = false
+autoexamples = false
+autolib = false
+autotests = false
 description = "A unified interface for reading and writing object file formats."
 edition = "2018"
-exclude = ["/.github", "/testfiles"]
+include = ["/build.rs", "/Cargo.toml", "/CHANGELOG.md", "/README.md", "/LICENSE-APACHE", "/LICENSE-MIT", "/src", "/tests"]
 keywords = ["object", "elf", "mach-o", "pe", "coff"]
 license = "Apache-2.0 OR MIT"
 name = "object"
 readme = "README.md"
 repository = "https://github.com/gimli-rs/object"
 resolver = "2"
-rust-version = "1.60"
-version = "0.32.2"
+rust-version = "1.65"
+version = "0.36.7"
 
 [package.metadata.docs.rs]
 features = ["doc"]

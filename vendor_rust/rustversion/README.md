@@ -38,7 +38,7 @@ rustversion = "1.0"
   —<br>
   True on any nightly compiler or dev build.
 
-- <b>`#[rustversion::nightly(2019-01-01)]`</b>
+- <b>`#[rustversion::nightly(2025-01-01)]`</b>
   —<br>
   True on exactly one nightly.
 
@@ -47,7 +47,7 @@ rustversion = "1.0"
   True on that stable release and any later compiler, including beta and
   nightly.
 
-- <b>`#[rustversion::since(2019-01-01)]`</b>
+- <b>`#[rustversion::since(2025-01-01)]`</b>
   —<br>
   True on that nightly and all newer ones.
 
@@ -72,6 +72,11 @@ rustversion = "1.0"
 - <b>`#[rustversion::attr(`</b><i>selector</i><b>`, `</b><i>attribute</i><b>`)]`</b>
   —<br>
   For conditional inclusion of attributes; analogous to `cfg_attr`.
+
+- <b>`rustversion::cfg!(`</b><i>selector</i><b>`)`</b>
+  —<br>
+  An expression form of any of the above attributes; for example
+  *if rustversion::cfg!(any(stable, beta)) { ... }*.
 
 <br>
 
@@ -119,6 +124,29 @@ use std::time::Duration;
 fn duration_as_days(dur: Duration) -> u64 {
     dur.as_secs() / 60 / 60 / 24
 }
+```
+
+Emitting Cargo cfg directives from a build script. Note that this requires
+listing `rustversion` under `[build-dependencies]` in Cargo.toml, not
+`[dependencies]`.
+
+```rust
+// build.rs
+
+fn main() {
+    if rustversion::cfg!(since(1.36)) {
+        println!("cargo:rustc-cfg=no_std");
+    }
+}
+```
+
+```rust
+// src/lib.rs
+
+#![cfg_attr(no_std, no_std)]
+
+#[cfg(no_std)]
+extern crate alloc;
 ```
 
 <br>

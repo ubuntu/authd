@@ -136,6 +136,34 @@ fn shift_insert() {
 }
 
 #[test]
+fn insert_sorted_bad() {
+    let mut map = IndexMap::new();
+    map.insert(10, ());
+    for i in 0..10 {
+        map.insert(i, ());
+    }
+
+    // The binary search will want to insert this at the end (index == len()),
+    // but that's only possible for *new* inserts. It should still be handled
+    // without panicking though, and in this case it's simple enough that we
+    // know the exact result. (But don't read this as an API guarantee!)
+    assert_eq!(map.first(), Some((&10, &())));
+    map.insert_sorted(10, ());
+    assert_eq!(map.last(), Some((&10, &())));
+    assert!(map.keys().copied().eq(0..=10));
+
+    // Other out-of-order entries can also "insert" to a binary-searched
+    // position, moving in either direction.
+    map.move_index(5, 0);
+    map.move_index(6, 10);
+    assert_eq!(map.first(), Some((&5, &())));
+    assert_eq!(map.last(), Some((&6, &())));
+    map.insert_sorted(5, ()); // moves back up
+    map.insert_sorted(6, ()); // moves back down
+    assert!(map.keys().copied().eq(0..=10));
+}
+
+#[test]
 fn grow() {
     let insert = [0, 4, 2, 12, 8, 7, 11];
     let not_present = [1, 3, 6, 9, 10];
@@ -391,6 +419,8 @@ fn get_index_entry() {
     let mut map = IndexMap::new();
 
     assert!(map.get_index_entry(0).is_none());
+    assert!(map.first_entry().is_none());
+    assert!(map.last_entry().is_none());
 
     map.insert(0, "0");
     map.insert(1, "1");
@@ -414,6 +444,43 @@ fn get_index_entry() {
     }
 
     assert_eq!(*map.get(&3).unwrap(), "4");
+
+    {
+        let e = map.first_entry().unwrap();
+        assert_eq!(*e.key(), 0);
+        assert_eq!(*e.get(), "0");
+    }
+
+    {
+        let e = map.last_entry().unwrap();
+        assert_eq!(*e.key(), 2);
+        assert_eq!(*e.get(), "2");
+    }
+}
+
+#[test]
+fn from_entries() {
+    let mut map = IndexMap::from([(1, "1"), (2, "2"), (3, "3")]);
+
+    {
+        let e = match map.entry(1) {
+            Entry::Occupied(e) => IndexedEntry::from(e),
+            Entry::Vacant(_) => panic!(),
+        };
+        assert_eq!(e.index(), 0);
+        assert_eq!(*e.key(), 1);
+        assert_eq!(*e.get(), "1");
+    }
+
+    {
+        let e = match map.get_index_entry(1) {
+            Some(e) => OccupiedEntry::from(e),
+            None => panic!(),
+        };
+        assert_eq!(e.index(), 1);
+        assert_eq!(*e.key(), 2);
+        assert_eq!(*e.get(), "2");
+    }
 }
 
 #[test]
@@ -475,6 +542,26 @@ fn into_values() {
 }
 
 #[test]
+fn drain_range() {
+    // Test the various heuristics of `erase_indices`
+    for range in [
+        0..0,   // nothing erased
+        10..90, // reinsert the few kept (..10 and 90..)
+        80..90, // update the few to adjust (80..)
+        20..30, // sweep everything
+    ] {
+        let mut vec = Vec::from_iter(0..100);
+        let mut map: IndexMap<i32, ()> = (0..100).map(|i| (i, ())).collect();
+        drop(vec.drain(range.clone()));
+        drop(map.drain(range));
+        assert!(vec.iter().eq(map.keys()));
+        for (i, x) in vec.iter().enumerate() {
+            assert_eq!(map.get_index_of(x), Some(i));
+        }
+    }
+}
+
+#[test]
 #[cfg(feature = "std")]
 fn from_array() {
     let map = IndexMap::from([(1, 2), (3, 4)]);
@@ -497,6 +584,7 @@ fn iter_default() {
     }
     assert_default::<Iter<'static, K, V>>();
     assert_default::<IterMut<'static, K, V>>();
+    assert_default::<IterMut2<'static, K, V>>();
     assert_default::<IntoIter<K, V>>();
     assert_default::<Keys<'static, K, V>>();
     assert_default::<IntoKeys<K, V>>();
@@ -724,4 +812,197 @@ fn test_partition_point() {
     assert_eq!(b.partition_point(|_, &x| x < 6), 4);
     assert_eq!(b.partition_point(|_, &x| x < 7), 4);
     assert_eq!(b.partition_point(|_, &x| x < 8), 5);
+}
+
+macro_rules! move_index_oob {
+    ($test:ident, $from:expr, $to:expr) => {
+        #[test]
+        #[should_panic(expected = "index out of bounds")]
+        fn $test() {
+            let mut map: IndexMap<i32, ()> = (0..10).map(|k| (k, ())).collect();
+            map.move_index($from, $to);
+        }
+    };
+}
+move_index_oob!(test_move_index_out_of_bounds_0_10, 0, 10);
+move_index_oob!(test_move_index_out_of_bounds_0_max, 0, usize::MAX);
+move_index_oob!(test_move_index_out_of_bounds_10_0, 10, 0);
+move_index_oob!(test_move_index_out_of_bounds_max_0, usize::MAX, 0);
+
+#[test]
+fn disjoint_mut_empty_map() {
+    let mut map: IndexMap<u32, u32> = IndexMap::default();
+    assert_eq!(
+        map.get_disjoint_mut([&0, &1, &2, &3]),
+        [None, None, None, None]
+    );
+}
+
+#[test]
+fn disjoint_mut_empty_param() {
+    let mut map: IndexMap<u32, u32> = IndexMap::default();
+    map.insert(1, 10);
+    assert_eq!(map.get_disjoint_mut([] as [&u32; 0]), []);
+}
+
+#[test]
+fn disjoint_mut_single_fail() {
+    let mut map: IndexMap<u32, u32> = IndexMap::default();
+    map.insert(1, 10);
+    assert_eq!(map.get_disjoint_mut([&0]), [None]);
+}
+
+#[test]
+fn disjoint_mut_single_success() {
+    let mut map: IndexMap<u32, u32> = IndexMap::default();
+    map.insert(1, 10);
+    assert_eq!(map.get_disjoint_mut([&1]), [Some(&mut 10)]);
+}
+
+#[test]
+fn disjoint_mut_multi_success() {
+    let mut map: IndexMap<u32, u32> = IndexMap::default();
+    map.insert(1, 100);
+    map.insert(2, 200);
+    map.insert(3, 300);
+    map.insert(4, 400);
+    assert_eq!(
+        map.get_disjoint_mut([&1, &2]),
+        [Some(&mut 100), Some(&mut 200)]
+    );
+    assert_eq!(
+        map.get_disjoint_mut([&1, &3]),
+        [Some(&mut 100), Some(&mut 300)]
+    );
+    assert_eq!(
+        map.get_disjoint_mut([&3, &1, &4, &2]),
+        [
+            Some(&mut 300),
+            Some(&mut 100),
+            Some(&mut 400),
+            Some(&mut 200)
+        ]
+    );
+}
+
+#[test]
+fn disjoint_mut_multi_success_unsized_key() {
+    let mut map: IndexMap<&'static str, u32> = IndexMap::default();
+    map.insert("1", 100);
+    map.insert("2", 200);
+    map.insert("3", 300);
+    map.insert("4", 400);
+
+    assert_eq!(
+        map.get_disjoint_mut(["1", "2"]),
+        [Some(&mut 100), Some(&mut 200)]
+    );
+    assert_eq!(
+        map.get_disjoint_mut(["1", "3"]),
+        [Some(&mut 100), Some(&mut 300)]
+    );
+    assert_eq!(
+        map.get_disjoint_mut(["3", "1", "4", "2"]),
+        [
+            Some(&mut 300),
+            Some(&mut 100),
+            Some(&mut 400),
+            Some(&mut 200)
+        ]
+    );
+}
+
+#[test]
+fn disjoint_mut_multi_success_borrow_key() {
+    let mut map: IndexMap<String, u32> = IndexMap::default();
+    map.insert("1".into(), 100);
+    map.insert("2".into(), 200);
+    map.insert("3".into(), 300);
+    map.insert("4".into(), 400);
+
+    assert_eq!(
+        map.get_disjoint_mut(["1", "2"]),
+        [Some(&mut 100), Some(&mut 200)]
+    );
+    assert_eq!(
+        map.get_disjoint_mut(["1", "3"]),
+        [Some(&mut 100), Some(&mut 300)]
+    );
+    assert_eq!(
+        map.get_disjoint_mut(["3", "1", "4", "2"]),
+        [
+            Some(&mut 300),
+            Some(&mut 100),
+            Some(&mut 400),
+            Some(&mut 200)
+        ]
+    );
+}
+
+#[test]
+fn disjoint_mut_multi_fail_missing() {
+    let mut map: IndexMap<u32, u32> = IndexMap::default();
+    map.insert(1, 100);
+    map.insert(2, 200);
+    map.insert(3, 300);
+    map.insert(4, 400);
+
+    assert_eq!(map.get_disjoint_mut([&1, &5]), [Some(&mut 100), None]);
+    assert_eq!(map.get_disjoint_mut([&5, &6]), [None, None]);
+    assert_eq!(
+        map.get_disjoint_mut([&1, &5, &4]),
+        [Some(&mut 100), None, Some(&mut 400)]
+    );
+}
+
+#[test]
+#[should_panic]
+fn disjoint_mut_multi_fail_duplicate_panic() {
+    let mut map: IndexMap<u32, u32> = IndexMap::default();
+    map.insert(1, 100);
+    map.get_disjoint_mut([&1, &2, &1]);
+}
+
+#[test]
+fn disjoint_indices_mut_fail_oob() {
+    let mut map: IndexMap<u32, u32> = IndexMap::default();
+    map.insert(1, 10);
+    map.insert(321, 20);
+    assert_eq!(
+        map.get_disjoint_indices_mut([1, 3]),
+        Err(crate::GetDisjointMutError::IndexOutOfBounds)
+    );
+}
+
+#[test]
+fn disjoint_indices_mut_empty() {
+    let mut map: IndexMap<u32, u32> = IndexMap::default();
+    map.insert(1, 10);
+    map.insert(321, 20);
+    assert_eq!(map.get_disjoint_indices_mut([]), Ok([]));
+}
+
+#[test]
+fn disjoint_indices_mut_success() {
+    let mut map: IndexMap<u32, u32> = IndexMap::default();
+    map.insert(1, 10);
+    map.insert(321, 20);
+    assert_eq!(map.get_disjoint_indices_mut([0]), Ok([(&1, &mut 10)]));
+
+    assert_eq!(map.get_disjoint_indices_mut([1]), Ok([(&321, &mut 20)]));
+    assert_eq!(
+        map.get_disjoint_indices_mut([0, 1]),
+        Ok([(&1, &mut 10), (&321, &mut 20)])
+    );
+}
+
+#[test]
+fn disjoint_indices_mut_fail_duplicate() {
+    let mut map: IndexMap<u32, u32> = IndexMap::default();
+    map.insert(1, 10);
+    map.insert(321, 20);
+    assert_eq!(
+        map.get_disjoint_indices_mut([1, 0, 1]),
+        Err(crate::GetDisjointMutError::OverlappingIndices)
+    );
 }

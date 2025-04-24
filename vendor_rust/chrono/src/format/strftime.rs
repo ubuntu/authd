@@ -15,6 +15,7 @@ The following specifiers are available both to formatting and parsing.
 | `%C`  | `20`     | The proleptic Gregorian year divided by 100, zero-padded to 2 digits. [^1] |
 | `%y`  | `01`     | The proleptic Gregorian year modulo 100, zero-padded to 2 digits. [^1]     |
 |       |          |                                                                            |
+| `%q`  | `1`      | Quarter of year (1-4)                                                      |
 | `%m`  | `07`     | Month number (01--12), zero-padded to 2 digits.                            |
 | `%b`  | `Jul`    | Abbreviated month name. Always 3 letters.                                  |
 | `%B`  | `July`   | Full month name. Also accepts corresponding abbreviation in parsing.       |
@@ -99,6 +100,8 @@ Notes:
 
 [^1]: `%C`, `%y`:
    This is floor division, so 100 BCE (year number -99) will print `-1` and `99` respectively.
+   For `%y`, values greater or equal to 70 are interpreted as being in the 20th century,
+   values smaller than 70 in the 21st century.
 
 [^2]: `%U`:
    Week 1 starts with the first Sunday in that year.
@@ -159,12 +162,12 @@ Notes:
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-use super::{fixed, internal_fixed, num, num0, nums};
-#[cfg(feature = "unstable-locales")]
-use super::{locales, Locale};
-use super::{Fixed, InternalInternal, Item, Numeric, Pad};
 #[cfg(any(feature = "alloc", feature = "std"))]
-use super::{ParseError, BAD_FORMAT};
+use super::{BAD_FORMAT, ParseError};
+use super::{Fixed, InternalInternal, Item, Numeric, Pad};
+#[cfg(feature = "unstable-locales")]
+use super::{Locale, locales};
+use super::{fixed, internal_fixed, num, num0, nums};
 #[cfg(all(feature = "alloc", not(feature = "std"), not(test)))]
 use alloc::vec::Vec;
 
@@ -536,6 +539,7 @@ impl<'a> StrftimeItems<'a> {
                     'm' => num0(Month),
                     'n' => Space("\n"),
                     'p' => fixed(Fixed::UpperAmPm),
+                    'q' => num(Quarter),
                     #[cfg(not(feature = "unstable-locales"))]
                     'r' => queue_from_slice!(T_FMT_AMPM),
                     #[cfg(feature = "unstable-locales")]
@@ -684,8 +688,8 @@ mod tests {
     use crate::format::Item::{self, Literal, Space};
     #[cfg(feature = "unstable-locales")]
     use crate::format::Locale;
-    use crate::format::{fixed, internal_fixed, num, num0, nums};
     use crate::format::{Fixed, InternalInternal, Numeric::*};
+    use crate::format::{fixed, internal_fixed, num, num0, nums};
     #[cfg(feature = "alloc")]
     use crate::{DateTime, FixedOffset, NaiveDate, TimeZone, Timelike, Utc};
 
@@ -864,6 +868,7 @@ mod tests {
         assert_eq!(dt.format("%Y").to_string(), "2001");
         assert_eq!(dt.format("%C").to_string(), "20");
         assert_eq!(dt.format("%y").to_string(), "01");
+        assert_eq!(dt.format("%q").to_string(), "3");
         assert_eq!(dt.format("%m").to_string(), "07");
         assert_eq!(dt.format("%b").to_string(), "Jul");
         assert_eq!(dt.format("%B").to_string(), "July");

@@ -1,5 +1,62 @@
 # Changelog
 
+## 3.19.1
+
+- Don't unlink temporary files immediately on Windows (fixes #339). Unfortunately, this seemed to corrupt the file object (possibly a Windows kernel bug) in rare cases and isn't strictly speaking necessary.
+
+## 3.19.0
+
+- Remove direct dependency on `cfg-if`. It's still in the tree, but we didn't really need to use it in this crate.
+- Add an unstable feature (`unstable-windows-keep-open-tempfile`) to test a potential fix to #339.
+
+## 3.18.0
+
+- Update `rustix` to 1.0.0.
+- Make `NamedTempFile::persist_noclobber` atomic on Apple operating systems. It's now atomic on MacOS, Windows, and Linux (depending on the OS version and filesystem used).
+
+## 3.17.1
+
+- Fix build with `windows-sys` 0.52. Unfortunately, we have no CI for older `windows-sys` versions at the moment...
+
+## 3.17.0
+
+- Make sure to use absolute paths in when creating unnamed temporary files (avoids a small race in the "immediate unlink" logic) and in `Builder::make_in` (when creating temporary files of arbitrary types).
+- Prevent a theoretical crash that could (maybe) happen when a temporary file is created from a drop function run in a TLS destructor. Nobody has actually reported a case of this happening in practice and I have been unable to create this scenario in a test.
+- When reseeding with `getrandom`, use platform (e.g., CPU) specific randomness sources where possible.
+- Clarify some documentation.
+- Unlink unnamed temporary files on windows _immediately_ when possible instead of waiting for the handle to be closed. We open files with "Unix" semantics, so this is generally possible.
+
+## 3.16.0
+
+- Update `getrandom` to `0.3.0` (thanks to @paolobarbolini).
+- Allow `windows-sys` versions `0.59.x` in addition to `0.59.0` (thanks @ErichDonGubler).
+- Improved security documentation (thanks to @n0toose for collaborating with me on this).
+
+## 3.15.0
+
+Re-seed the per-thread RNG from system randomness when we repeatedly fail to create temporary files (#314). This resolves a potential DoS vector (#178) while avoiding `getrandom` in the common case where it's necessary. The feature is optional but enabled by default via the `getrandom` feature.
+
+For libc-free builds, you'll either need to disable this feature or opt-in to a different [`getrandom` backend](https://github.com/rust-random/getrandom?tab=readme-ov-file#opt-in-backends).
+
+## 3.14.0
+
+- Make the wasip2 target work (requires tempfile's "nightly" feature to be enabled). [#305](https://github.com/Stebalien/tempfile/pull/305).
+- Allow older windows-sys versions [#304](https://github.com/Stebalien/tempfile/pull/304).
+
+## 3.13.0
+
+- Add `with_suffix` constructors for easily creating new temporary files with a specific suffix (e.g., a specific file extension). Thanks to @Borgerr.
+- Update dependencies (fastrand & rustix).
+
+## 3.12.0
+
+- Add a `keep(keep: bool)` function to builder that suppresses delete-on-drop behavior (thanks to @RalfJung).
+- Update `windows-sys` from 0.52 to 0.59.
+
+## 3.11.0
+
+- Add the ability to override the default temporary directory. This API shouldn't be used in general, but there are some cases where it's unavoidable.
+
 ## 3.10.1
 
 - Handle potential integer overflows in 32-bit systems when seeking/truncating "spooled" temporary files past 4GiB (2³²).

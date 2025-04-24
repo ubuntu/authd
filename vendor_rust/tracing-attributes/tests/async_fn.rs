@@ -1,9 +1,10 @@
-use tracing_mock::*;
-
 use std::convert::Infallible;
 use std::{future::Future, pin::Pin, sync::Arc};
+
 use tracing::subscriber::with_default;
 use tracing_attributes::instrument;
+use tracing_mock::{expect, subscriber};
+use tracing_test::{block_on_future, PollN};
 
 #[instrument]
 async fn test_async_fn(polls: usize) -> Result<(), ()> {
@@ -30,6 +31,9 @@ async fn test_ret_impl_trait_err(n: i32) -> Result<impl Iterator<Item = i32>, &'
 
 #[instrument]
 async fn test_async_fn_empty() {}
+
+#[instrument]
+async unsafe fn test_async_unsafe_fn_empty() {}
 
 // Reproduces a compile error when an instrumented function body contains inner
 // attributes (https://github.com/tokio-rs/tracing/issues/2294).
@@ -196,8 +200,8 @@ fn async_fn_with_async_trait() {
     let (subscriber, handle) = subscriber::mock()
         .new_span(
             span.clone()
-                .with_field(expect::field("self"))
-                .with_field(expect::field("v")),
+                .with_fields(expect::field("self"))
+                .with_fields(expect::field("v")),
         )
         .enter(span.clone())
         .new_span(span3.clone())
@@ -207,7 +211,7 @@ fn async_fn_with_async_trait() {
         .enter(span3.clone())
         .exit(span3.clone())
         .drop_span(span3)
-        .new_span(span2.clone().with_field(expect::field("self")))
+        .new_span(span2.clone().with_fields(expect::field("self")))
         .enter(span2.clone())
         .event(expect::event().with_fields(expect::field("val").with_value(&5u64)))
         .exit(span2.clone())
@@ -257,7 +261,7 @@ fn async_fn_with_async_trait_and_fields_expressions() {
     let span = expect::span().named("call");
     let (subscriber, handle) = subscriber::mock()
         .new_span(
-            span.clone().with_field(
+            span.clone().with_fields(
                 expect::field("_v")
                     .with_value(&5usize)
                     .and(expect::field("test").with_value(&tracing::field::debug(10)))
@@ -327,7 +331,7 @@ fn async_fn_with_async_trait_and_fields_expressions_with_generic_parameter() {
     let span4 = expect::span().named("sync_fun");
     let (subscriber, handle) = subscriber::mock()
         /*.new_span(span.clone()
-            .with_field(
+            .with_fields(
                 expect::field("Self").with_value(&"TestImpler")))
         .enter(span.clone())
         .exit(span.clone())
@@ -335,13 +339,13 @@ fn async_fn_with_async_trait_and_fields_expressions_with_generic_parameter() {
         .new_span(
             span2
                 .clone()
-                .with_field(expect::field("Self").with_value(&std::any::type_name::<TestImpl>())),
+                .with_fields(expect::field("Self").with_value(&std::any::type_name::<TestImpl>())),
         )
         .enter(span2.clone())
         .new_span(
             span4
                 .clone()
-                .with_field(expect::field("Self").with_value(&std::any::type_name::<TestImpl>())),
+                .with_fields(expect::field("Self").with_value(&std::any::type_name::<TestImpl>())),
         )
         .enter(span4.clone())
         .exit(span4.clone())
@@ -354,7 +358,7 @@ fn async_fn_with_async_trait_and_fields_expressions_with_generic_parameter() {
         .new_span(
             span3
                 .clone()
-                .with_field(expect::field("Self").with_value(&std::any::type_name::<TestImpl>())),
+                .with_fields(expect::field("Self").with_value(&std::any::type_name::<TestImpl>())),
         )
         .enter(span3.clone())
         .exit(span3.clone())

@@ -6,7 +6,7 @@
 //!
 //! Note that this macro is also re-exported by the main `tracing` crate.
 //!
-//! *Compiler support: [requires `rustc` 1.56+][msrv]*
+//! *Compiler support: [requires `rustc` 1.63+][msrv]*
 //!
 //! [msrv]: #supported-rust-versions
 //!
@@ -41,7 +41,7 @@
 //! ## Supported Rust Versions
 //!
 //! Tracing is built against the latest stable release. The minimum supported
-//! version is 1.56. The current Tracing version is not guaranteed to build on
+//! version is 1.63. The current Tracing version is not guaranteed to build on
 //! Rust versions earlier than the minimum supported version.
 //!
 //! Tracing follows the same compiler support policies as the rest of the Tokio
@@ -70,7 +70,8 @@
     overflowing_literals,
     path_statements,
     patterns_in_fns_without_body,
-    private_in_public,
+    private_interfaces,
+    private_bounds,
     unconditional_recursion,
     unused_allocation,
     unused_comparisons,
@@ -96,10 +97,10 @@ mod expand;
 /// By default, all arguments to the function are included as fields on the
 /// span. Arguments that are `tracing` [primitive types] implementing the
 /// [`Value` trait] will be recorded as fields of that type. Types which do
-/// not implement `Value` will be recorded using [`std::fmt::Debug`].
+/// not implement `Value` will be recorded using [`fmt::Debug`].
 ///
 /// [primitive types]: https://docs.rs/tracing/latest/tracing/field/trait.Value.html#foreign-impls
-/// [`Value` trait]: https://docs.rs/tracing/latest/tracing/field/trait.Value.html.
+/// [`Value` trait]: https://docs.rs/tracing/latest/tracing/field/trait.Value.html
 ///
 /// # Overriding Span Attributes
 ///

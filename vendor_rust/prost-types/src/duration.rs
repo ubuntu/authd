@@ -58,6 +58,17 @@ impl Duration {
         // debug_assert!(self.seconds >= -315_576_000_000 && self.seconds <= 315_576_000_000,
         //               "invalid duration: {:?}", self);
     }
+
+    /// Returns a normalized copy of the duration to a canonical format.
+    ///
+    /// Based on [`google::protobuf::util::CreateNormalized`][1].
+    ///
+    /// [1]: https://github.com/google/protobuf/blob/v3.3.2/src/google/protobuf/util/time_util.cc#L79-L100
+    pub fn normalized(&self) -> Self {
+        let mut result = *self;
+        result.normalize();
+        result
+    }
 }
 
 impl Name for Duration {
@@ -77,9 +88,8 @@ impl TryFrom<time::Duration> for Duration {
         let seconds = i64::try_from(duration.as_secs()).map_err(|_| DurationError::OutOfRange)?;
         let nanos = duration.subsec_nanos() as i32;
 
-        let mut duration = Duration { seconds, nanos };
-        duration.normalize();
-        Ok(duration)
+        let duration = Duration { seconds, nanos };
+        Ok(duration.normalized())
     }
 }
 
@@ -105,9 +115,8 @@ impl TryFrom<Duration> for time::Duration {
 
 impl fmt::Display for Duration {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut d = self.clone();
-        d.normalize();
-        if self.seconds < 0 && self.nanos < 0 {
+        let d = self.normalized();
+        if self.seconds < 0 || self.nanos < 0 {
             write!(f, "-")?;
         }
         write!(f, "{}", d.seconds.abs())?;
@@ -127,7 +136,6 @@ impl fmt::Display for Duration {
 }
 
 /// A duration handling error.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Debug, PartialEq)]
 #[non_exhaustive]
 pub enum DurationError {
@@ -174,68 +182,163 @@ impl FromStr for Duration {
         datetime::parse_duration(s).ok_or(DurationError::ParseFailure)
     }
 }
+
+#[cfg(kani)]
+mod proofs {
+    use super::*;
+
+    #[cfg(feature = "std")]
+    #[kani::proof]
+    fn check_duration_roundtrip() {
+        let seconds = kani::any();
+        let nanos = kani::any();
+        kani::assume(nanos < 1_000_000_000);
+        let std_duration = std::time::Duration::new(seconds, nanos);
+        let Ok(prost_duration) = Duration::try_from(std_duration) else {
+            // Test case not valid: duration out of range
+            return;
+        };
+        assert_eq!(
+            time::Duration::try_from(prost_duration).unwrap(),
+            std_duration
+        );
+
+        if std_duration != time::Duration::default() {
+            let neg_prost_duration = Duration {
+                seconds: -prost_duration.seconds,
+                nanos: -prost_duration.nanos,
+            };
+
+            assert!(matches!(
+                time::Duration::try_from(neg_prost_duration),
+                Err(DurationError::NegativeDuration(d)) if d == std_duration,
+            ))
+        }
+    }
+
+    #[cfg(feature = "std")]
+    #[kani::proof]
+    fn check_duration_roundtrip_nanos() {
+        let seconds = 0;
+        let nanos = kani::any();
+        let std_duration = std::time::Duration::new(seconds, nanos);
+        let Ok(prost_duration) = Duration::try_from(std_duration) else {
+            // Test case not valid: duration out of range
+            return;
+        };
+        assert_eq!(
+            time::Duration::try_from(prost_duration).unwrap(),
+            std_duration
+        );
+
+        if std_duration != time::Duration::default() {
+            let neg_prost_duration = Duration {
+                seconds: -prost_duration.seconds,
+                nanos: -prost_duration.nanos,
+            };
+
+            assert!(matches!(
+                time::Duration::try_from(neg_prost_duration),
+                Err(DurationError::NegativeDuration(d)) if d == std_duration,
+            ))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[cfg(feature = "std")]
-    use proptest::prelude::*;
+    #[test]
+    fn test_duration_from_str() {
+        assert_eq!(
+            Duration::from_str("0s"),
+            Ok(Duration {
+                seconds: 0,
+                nanos: 0
+            })
+        );
+        assert_eq!(
+            Duration::from_str("123s"),
+            Ok(Duration {
+                seconds: 123,
+                nanos: 0
+            })
+        );
+        assert_eq!(
+            Duration::from_str("0.123s"),
+            Ok(Duration {
+                seconds: 0,
+                nanos: 123_000_000
+            })
+        );
+        assert_eq!(
+            Duration::from_str("-123s"),
+            Ok(Duration {
+                seconds: -123,
+                nanos: 0
+            })
+        );
+        assert_eq!(
+            Duration::from_str("-0.123s"),
+            Ok(Duration {
+                seconds: 0,
+                nanos: -123_000_000
+            })
+        );
+        assert_eq!(
+            Duration::from_str("22041211.6666666666666s"),
+            Ok(Duration {
+                seconds: 22041211,
+                nanos: 666_666_666
+            })
+        );
+    }
 
     #[cfg(feature = "std")]
-    proptest! {
-        #[test]
-        fn check_duration_roundtrip(
-            seconds in u64::arbitrary(),
-            nanos in 0u32..1_000_000_000u32,
-        ) {
-            let std_duration = time::Duration::new(seconds, nanos);
-            let prost_duration = match Duration::try_from(std_duration) {
-                Ok(duration) => duration,
-                Err(_) => return Err(TestCaseError::reject("duration out of range")),
-            };
-            prop_assert_eq!(time::Duration::try_from(prost_duration.clone()).unwrap(), std_duration);
-
-            if std_duration != time::Duration::default() {
-                let neg_prost_duration = Duration {
-                    seconds: -prost_duration.seconds,
-                    nanos: -prost_duration.nanos,
-                };
-
-                prop_assert!(
-                    matches!(
-                        time::Duration::try_from(neg_prost_duration),
-                        Err(DurationError::NegativeDuration(d)) if d == std_duration,
-                    )
-                )
+    #[test]
+    fn test_format_duration() {
+        assert_eq!(
+            "0s",
+            Duration {
+                seconds: 0,
+                nanos: 0
             }
-        }
-
-        #[test]
-        fn check_duration_roundtrip_nanos(
-            nanos in u32::arbitrary(),
-        ) {
-            let seconds = 0;
-            let std_duration = std::time::Duration::new(seconds, nanos);
-            let prost_duration = match Duration::try_from(std_duration) {
-                Ok(duration) => duration,
-                Err(_) => return Err(TestCaseError::reject("duration out of range")),
-            };
-            prop_assert_eq!(time::Duration::try_from(prost_duration.clone()).unwrap(), std_duration);
-
-            if std_duration != time::Duration::default() {
-                let neg_prost_duration = Duration {
-                    seconds: -prost_duration.seconds,
-                    nanos: -prost_duration.nanos,
-                };
-
-                prop_assert!(
-                    matches!(
-                        time::Duration::try_from(neg_prost_duration),
-                        Err(DurationError::NegativeDuration(d)) if d == std_duration,
-                    )
-                )
+            .to_string()
+        );
+        assert_eq!(
+            "123s",
+            Duration {
+                seconds: 123,
+                nanos: 0
             }
-        }
+            .to_string()
+        );
+        assert_eq!(
+            "0.123s",
+            Duration {
+                seconds: 0,
+                nanos: 123_000_000
+            }
+            .to_string()
+        );
+        assert_eq!(
+            "-123s",
+            Duration {
+                seconds: -123,
+                nanos: 0
+            }
+            .to_string()
+        );
+        assert_eq!(
+            "-0.123s",
+            Duration {
+                seconds: 0,
+                nanos: -123_000_000
+            }
+            .to_string()
+        );
     }
 
     #[cfg(feature = "std")]
@@ -313,14 +416,13 @@ mod tests {
         ];
 
         for case in cases.iter() {
-            let mut test_duration = Duration {
+            let test_duration = Duration {
                 seconds: case.1,
                 nanos: case.2,
             };
-            test_duration.normalize();
 
             assert_eq!(
-                test_duration,
+                test_duration.normalized(),
                 Duration {
                     seconds: case.3,
                     nanos: case.4,

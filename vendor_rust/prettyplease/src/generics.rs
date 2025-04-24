@@ -5,9 +5,9 @@ use crate::INDENT;
 use proc_macro2::TokenStream;
 use std::ptr;
 use syn::{
-    BoundLifetimes, ConstParam, GenericParam, Generics, LifetimeParam, PredicateLifetime,
-    PredicateType, TraitBound, TraitBoundModifier, TypeParam, TypeParamBound, WhereClause,
-    WherePredicate,
+    BoundLifetimes, CapturedParam, ConstParam, Expr, GenericParam, Generics, LifetimeParam,
+    PreciseCapture, PredicateLifetime, PredicateType, TraitBound, TraitBoundModifier, TypeParam,
+    TypeParamBound, WhereClause, WherePredicate,
 };
 
 impl Printer {
@@ -109,6 +109,9 @@ impl Printer {
                 self.trait_bound(trait_bound, tilde_const);
             }
             TypeParamBound::Lifetime(lifetime) => self.lifetime(lifetime),
+            TypeParamBound::PreciseCapture(precise_capture) => {
+                self.precise_capture(precise_capture);
+            }
             TypeParamBound::Verbatim(bound) => self.type_param_bound_verbatim(bound),
             _ => unimplemented!("unknown TypeParamBound"),
         }
@@ -206,7 +209,7 @@ impl Printer {
         self.ty(&const_param.ty);
         if let Some(default) = &const_param.default {
             self.word(" = ");
-            self.expr(default);
+            self.const_argument(default);
         }
     }
 
@@ -333,5 +336,48 @@ impl Printer {
             self.lifetime(&lifetime);
         }
         self.end();
+    }
+
+    fn precise_capture(&mut self, precise_capture: &PreciseCapture) {
+        self.word("use<");
+        for capture in precise_capture.params.iter().delimited() {
+            self.captured_param(&capture);
+            if !capture.is_last {
+                self.word(", ");
+            }
+        }
+        self.word(">");
+    }
+
+    fn captured_param(&mut self, capture: &CapturedParam) {
+        match capture {
+            #![cfg_attr(all(test, exhaustive), deny(non_exhaustive_omitted_patterns))]
+            CapturedParam::Lifetime(lifetime) => self.lifetime(lifetime),
+            CapturedParam::Ident(ident) => self.ident(ident),
+            _ => unimplemented!("unknown CapturedParam"),
+        }
+    }
+
+    pub fn const_argument(&mut self, expr: &Expr) {
+        match expr {
+            #![cfg_attr(all(test, exhaustive), allow(non_exhaustive_omitted_patterns))]
+            Expr::Lit(expr) => self.expr_lit(expr),
+
+            Expr::Path(expr)
+                if expr.attrs.is_empty()
+                    && expr.qself.is_none()
+                    && expr.path.get_ident().is_some() =>
+            {
+                self.expr_path(expr);
+            }
+
+            Expr::Block(expr) => self.expr_block(expr),
+
+            _ => {
+                self.cbox(INDENT);
+                self.expr_as_small_block(expr, 0);
+                self.end();
+            }
+        }
     }
 }

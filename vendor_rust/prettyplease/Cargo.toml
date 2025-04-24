@@ -11,13 +11,14 @@
 
 [package]
 edition = "2021"
-rust-version = "1.60"
+rust-version = "1.62"
 name = "prettyplease"
-version = "0.2.20"
+version = "0.2.32"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 build = "build.rs"
 links = "prettyplease02"
 exclude = ["cargo-expand"]
+autolib = false
 autobins = false
 autoexamples = false
 autotests = false
@@ -31,27 +32,38 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/dtolnay/prettyplease"
 
 [package.metadata.docs.rs]
-rustdoc-args = ["--generate-link-to-definition"]
+rustdoc-args = [
+    "--generate-link-to-definition",
+    "--extern-html-root-url=core=https://doc.rust-lang.org",
+    "--extern-html-root-url=alloc=https://doc.rust-lang.org",
+    "--extern-html-root-url=std=https://doc.rust-lang.org",
+]
 targets = ["x86_64-unknown-linux-gnu"]
 
 [package.metadata.playground]
 features = ["verbatim"]
 
+[features]
+verbatim = ["syn/parsing"]
+
 [lib]
 name = "prettyplease"
 path = "src/lib.rs"
-doc-scrape-examples = false
 
 [[test]]
 name = "test"
 path = "tests/test.rs"
+
+[[test]]
+name = "test_precedence"
+path = "tests/test_precedence.rs"
 
 [dependencies.proc-macro2]
 version = "1.0.80"
 default-features = false
 
 [dependencies.syn]
-version = "2.0.59"
+version = "2.0.96"
 features = ["full"]
 default-features = false
 
@@ -67,9 +79,12 @@ version = "1.0.35"
 default-features = false
 
 [dev-dependencies.syn]
-version = "2.0.59"
-features = ["parsing"]
+version = "2.0.96"
+features = [
+    "clone-impls",
+    "extra-traits",
+    "parsing",
+    "printing",
+    "visit-mut",
+]
 default-features = false
-
-[features]
-verbatim = ["syn/parsing"]

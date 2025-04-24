@@ -41,7 +41,7 @@
 //!
 //! - `serde`
 //!
-//!   Enables [serde](https://docs.rs/serde) support for all types except [`Instant`].
+//!   Enables [serde](https://docs.rs/serde) support for all types.
 //!
 //! - `serde-human-readable` (_implicitly enables `serde`, `formatting`, and `parsing`_)
 //!
@@ -58,7 +58,7 @@
 //!
 //! - `quickcheck` (_implicitly enables `alloc`_)
 //!
-//!   Enables [quickcheck](https://docs.rs/quickcheck) support for all types except [`Instant`].
+//!   Enables [quickcheck](https://docs.rs/quickcheck) support for all types.
 //!
 //! - `wasm-bindgen`
 //!
@@ -67,7 +67,7 @@
 //!   well as obtaining the UTC offset from JavaScript.
 
 #![doc(html_playground_url = "https://play.rust-lang.org")]
-#![cfg_attr(__time_03_docs, feature(doc_auto_cfg, doc_notable_trait))]
+#![cfg_attr(docsrs, feature(doc_auto_cfg, doc_notable_trait))]
 #![no_std]
 #![doc(html_favicon_url = "https://avatars0.githubusercontent.com/u/55999857")]
 #![doc(html_logo_url = "https://avatars0.githubusercontent.com/u/55999857")]
@@ -88,9 +88,11 @@ pub mod ext;
 pub mod format_description;
 #[cfg(feature = "formatting")]
 pub mod formatting;
+mod hint;
 #[cfg(feature = "std")]
 mod instant;
 mod internal_macros;
+mod interop;
 #[cfg(feature = "macros")]
 pub mod macros;
 mod month;
@@ -103,12 +105,12 @@ mod quickcheck;
 #[cfg(feature = "rand")]
 mod rand;
 #[cfg(feature = "serde")]
-#[allow(missing_copy_implementations, missing_debug_implementations)]
 pub mod serde;
 mod sys;
 #[cfg(test)]
 mod tests;
 mod time;
+mod utc_date_time;
 mod utc_offset;
 pub mod util;
 mod weekday;
@@ -118,6 +120,7 @@ pub use time_core::convert;
 pub use crate::date::Date;
 pub use crate::duration::Duration;
 pub use crate::error::Error;
+#[doc(hidden)]
 #[cfg(feature = "std")]
 #[allow(deprecated)]
 pub use crate::instant::Instant;
@@ -125,6 +128,7 @@ pub use crate::month::Month;
 pub use crate::offset_date_time::OffsetDateTime;
 pub use crate::primitive_date_time::PrimitiveDateTime;
 pub use crate::time::Time;
+pub use crate::utc_date_time::UtcDateTime;
 pub use crate::utc_offset::UtcOffset;
 pub use crate::weekday::Weekday;
 
@@ -137,4 +141,13 @@ pub type Result<T> = core::result::Result<T, Error>;
 #[track_caller]
 const fn expect_failed(message: &str) -> ! {
     panic!("{}", message)
+}
+
+/// Returns the size of the pointed-to value in bytes.
+///
+/// This is a `const fn` in the standard library starting in Rust 1.85. When MSRV is at least that,
+/// this can be removed.
+#[allow(unused_qualifications)] // added to prelude after MSRV
+const fn size_of_val<T>(_: &T) -> usize {
+    core::mem::size_of::<T>()
 }

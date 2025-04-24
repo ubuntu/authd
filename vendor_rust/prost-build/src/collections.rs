@@ -13,10 +13,10 @@ pub(crate) enum MapType {
 #[non_exhaustive]
 #[derive(Default, Clone, Copy, Debug, PartialEq)]
 pub(crate) enum BytesType {
-    /// The [`alloc::collections::Vec::<u8>`] type.
+    /// The [`prost::alloc::vec::Vec<u8>`] type.
     #[default]
     Vec,
-    /// The [`bytes::Bytes`] type.
+    /// The [`bytes::Bytes`](prost::bytes::Bytes) type.
     Bytes,
 }
 

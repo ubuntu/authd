@@ -1,8 +1,8 @@
-authd (0.4.1+git250424+516+8f5a9245) plucky; urgency=medium
+authd (0.4.1+git250424+522+6a914c7f) plucky; urgency=medium
 
-  * Github build. Run id: 14631522889. Run number: 516.
+  * Github build. Run id: 14632363350. Run number: 522.
 
- -- Marco <marco@ubuntu.com>  Thu, 24 Apr 2025 01:36:53 +0000
+ -- Marco <marco@ubuntu.com>  Thu, 24 Apr 2025 02:52:46 +0000
 
 authd (0.4.1) plucky; urgency=medium
 

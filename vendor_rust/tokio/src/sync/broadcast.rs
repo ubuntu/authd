@@ -119,7 +119,7 @@
 use crate::loom::cell::UnsafeCell;
 use crate::loom::sync::atomic::{AtomicBool, AtomicUsize};
 use crate::loom::sync::{Arc, Mutex, MutexGuard};
-use crate::runtime::coop::cooperative;
+use crate::task::coop::cooperative;
 use crate::util::linked_list::{self, GuardedLinkedList, LinkedList};
 use crate::util::WakeList;
 
@@ -128,7 +128,7 @@ use std::future::Future;
 use std::marker::PhantomPinned;
 use std::pin::Pin;
 use std::ptr::NonNull;
-use std::sync::atomic::Ordering::{Acquire, Relaxed, Release, SeqCst};
+use std::sync::atomic::Ordering::{AcqRel, Acquire, Relaxed, Release, SeqCst};
 use std::task::{ready, Context, Poll, Waker};
 
 /// Sending-half of the [`broadcast`] channel.
@@ -163,6 +163,40 @@ use std::task::{ready, Context, Poll, Waker};
 ///
 /// [`broadcast`]: crate::sync::broadcast
 pub struct Sender<T> {
+    shared: Arc<Shared<T>>,
+}
+
+/// A sender that does not prevent the channel from being closed.
+///
+/// If all [`Sender`] instances of a channel were dropped and only `WeakSender`
+/// instances remain, the channel is closed.
+///
+/// In order to send messages, the `WeakSender` needs to be upgraded using
+/// [`WeakSender::upgrade`], which returns `Option<Sender>`. It returns `None`
+/// if all `Sender`s have been dropped, and otherwise it returns a `Sender`.
+///
+/// [`Sender`]: Sender
+/// [`WeakSender::upgrade`]: WeakSender::upgrade
+///
+/// # Examples
+///
+/// ```
+/// use tokio::sync::broadcast::channel;
+///
+/// #[tokio::main]
+/// async fn main() {
+///     let (tx, _rx) = channel::<i32>(15);
+///     let tx_weak = tx.downgrade();
+///
+///     // Upgrading will succeed because `tx` still exists.
+///     assert!(tx_weak.upgrade().is_some());
+///
+///     // If we drop `tx`, then it will fail.
+///     drop(tx);
+///     assert!(tx_weak.clone().upgrade().is_none());
+/// }
+/// ```
+pub struct WeakSender<T> {
     shared: Arc<Shared<T>>,
 }
 
@@ -301,6 +335,8 @@ pub mod error {
 
 use self::error::{RecvError, SendError, TryRecvError};
 
+use super::Notify;
+
 /// Data shared between senders and receivers.
 struct Shared<T> {
     /// slots in the channel.
@@ -314,6 +350,12 @@ struct Shared<T> {
 
     /// Number of outstanding Sender handles.
     num_tx: AtomicUsize,
+
+    /// Number of outstanding weak Sender handles.
+    num_weak_tx: AtomicUsize,
+
+    /// Notify when the last subscribed [`Receiver`] drops.
+    notify_last_rx_drop: Notify,
 }
 
 /// Next position to write a value.
@@ -526,6 +568,8 @@ impl<T> Sender<T> {
                 waiters: LinkedList::new(),
             }),
             num_tx: AtomicUsize::new(1),
+            num_weak_tx: AtomicUsize::new(0),
+            notify_last_rx_drop: Notify::new(),
         });
 
         Sender { shared }
@@ -646,6 +690,18 @@ impl<T> Sender<T> {
     pub fn subscribe(&self) -> Receiver<T> {
         let shared = self.shared.clone();
         new_receiver(shared)
+    }
+
+    /// Converts the `Sender` to a [`WeakSender`] that does not count
+    /// towards RAII semantics, i.e. if all `Sender` instances of the
+    /// channel were dropped and only `WeakSender` instances remain,
+    /// the channel is closed.
+    #[must_use = "Downgrade creates a WeakSender without destroying the original non-weak sender."]
+    pub fn downgrade(&self) -> WeakSender<T> {
+        self.shared.num_weak_tx.fetch_add(1, Relaxed);
+        WeakSender {
+            shared: self.shared.clone(),
+        }
     }
 
     /// Returns the number of queued values.
@@ -803,11 +859,62 @@ impl<T> Sender<T> {
         Arc::ptr_eq(&self.shared, &other.shared)
     }
 
+    /// A future which completes when the number of [Receiver]s subscribed to this `Sender` reaches
+    /// zero.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use futures::FutureExt;
+    /// use tokio::sync::broadcast;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let (tx, mut rx1) = broadcast::channel::<u32>(16);
+    ///     let mut rx2 = tx.subscribe();
+    ///
+    ///     let _ = tx.send(10);
+    ///
+    ///     assert_eq!(rx1.recv().await.unwrap(), 10);
+    ///     drop(rx1);
+    ///     assert!(tx.closed().now_or_never().is_none());
+    ///
+    ///     assert_eq!(rx2.recv().await.unwrap(), 10);
+    ///     drop(rx2);
+    ///     assert!(tx.closed().now_or_never().is_some());
+    /// }
+    /// ```
+    pub async fn closed(&self) {
+        loop {
+            let notified = self.shared.notify_last_rx_drop.notified();
+
+            {
+                // Ensure the lock drops if the channel isn't closed
+                let tail = self.shared.tail.lock();
+                if tail.closed {
+                    return;
+                }
+            }
+
+            notified.await;
+        }
+    }
+
     fn close_channel(&self) {
         let mut tail = self.shared.tail.lock();
         tail.closed = true;
 
         self.shared.notify_rx(tail);
+    }
+
+    /// Returns the number of [`Sender`] handles.
+    pub fn strong_count(&self) -> usize {
+        self.shared.num_tx.load(Acquire)
+    }
+
+    /// Returns the number of [`WeakSender`] handles.
+    pub fn weak_count(&self) -> usize {
+        self.shared.num_weak_tx.load(Acquire)
     }
 }
 
@@ -817,8 +924,14 @@ fn new_receiver<T>(shared: Arc<Shared<T>>) -> Receiver<T> {
 
     assert!(tail.rx_cnt != MAX_RECEIVERS, "max receivers");
 
-    tail.rx_cnt = tail.rx_cnt.checked_add(1).expect("overflow");
+    if tail.rx_cnt == 0 {
+        // Potentially need to re-open the channel, if a new receiver has been added between calls
+        // to poll(). Note that we use rx_cnt == 0 instead of is_closed since is_closed also
+        // applies if the sender has been dropped
+        tail.closed = false;
+    }
 
+    tail.rx_cnt = tail.rx_cnt.checked_add(1).expect("overflow");
     let next = tail.pos;
 
     drop(tail);
@@ -943,7 +1056,7 @@ impl<T> Shared<T> {
 impl<T> Clone for Sender<T> {
     fn clone(&self) -> Sender<T> {
         let shared = self.shared.clone();
-        shared.num_tx.fetch_add(1, SeqCst);
+        shared.num_tx.fetch_add(1, Relaxed);
 
         Sender { shared }
     }
@@ -951,9 +1064,65 @@ impl<T> Clone for Sender<T> {
 
 impl<T> Drop for Sender<T> {
     fn drop(&mut self) {
-        if 1 == self.shared.num_tx.fetch_sub(1, SeqCst) {
+        if 1 == self.shared.num_tx.fetch_sub(1, AcqRel) {
             self.close_channel();
         }
+    }
+}
+
+impl<T> WeakSender<T> {
+    /// Tries to convert a `WeakSender` into a [`Sender`].
+    ///
+    /// This will return `Some` if there are other `Sender` instances alive and
+    /// the channel wasn't previously dropped, otherwise `None` is returned.
+    #[must_use]
+    pub fn upgrade(&self) -> Option<Sender<T>> {
+        let mut tx_count = self.shared.num_tx.load(Acquire);
+
+        loop {
+            if tx_count == 0 {
+                // channel is closed so this WeakSender can not be upgraded
+                return None;
+            }
+
+            match self
+                .shared
+                .num_tx
+                .compare_exchange_weak(tx_count, tx_count + 1, Relaxed, Acquire)
+            {
+                Ok(_) => {
+                    return Some(Sender {
+                        shared: self.shared.clone(),
+                    })
+                }
+                Err(prev_count) => tx_count = prev_count,
+            }
+        }
+    }
+
+    /// Returns the number of [`Sender`] handles.
+    pub fn strong_count(&self) -> usize {
+        self.shared.num_tx.load(Acquire)
+    }
+
+    /// Returns the number of [`WeakSender`] handles.
+    pub fn weak_count(&self) -> usize {
+        self.shared.num_weak_tx.load(Acquire)
+    }
+}
+
+impl<T> Clone for WeakSender<T> {
+    fn clone(&self) -> WeakSender<T> {
+        let shared = self.shared.clone();
+        shared.num_weak_tx.fetch_add(1, Relaxed);
+
+        Self { shared }
+    }
+}
+
+impl<T> Drop for WeakSender<T> {
+    fn drop(&mut self) {
+        self.shared.num_weak_tx.fetch_sub(1, AcqRel);
     }
 }
 
@@ -1158,6 +1327,42 @@ impl<T> Receiver<T> {
 
         Ok(RecvGuard { slot })
     }
+
+    /// Returns the number of [`Sender`] handles.
+    pub fn sender_strong_count(&self) -> usize {
+        self.shared.num_tx.load(Acquire)
+    }
+
+    /// Returns the number of [`WeakSender`] handles.
+    pub fn sender_weak_count(&self) -> usize {
+        self.shared.num_weak_tx.load(Acquire)
+    }
+
+    /// Checks if a channel is closed.
+    ///
+    /// This method returns `true` if the channel has been closed. The channel is closed
+    /// when all [`Sender`] have been dropped.
+    ///
+    /// [`Sender`]: crate::sync::broadcast::Sender
+    ///
+    /// # Examples
+    /// ```
+    /// use tokio::sync::broadcast;
+    ///
+    /// #[tokio::main]
+    /// async fn main() {
+    ///     let (tx, rx) = broadcast::channel::<()>(10);
+    ///     assert!(!rx.is_closed());
+    ///
+    ///     drop(tx);
+    ///
+    ///     assert!(rx.is_closed());
+    /// }
+    /// ```
+    pub fn is_closed(&self) -> bool {
+        // Channel is closed when there are no strong senders left active
+        self.shared.num_tx.load(Acquire) == 0
+    }
 }
 
 impl<T: Clone> Receiver<T> {
@@ -1344,6 +1549,12 @@ impl<T> Drop for Receiver<T> {
 
         tail.rx_cnt -= 1;
         let until = tail.pos;
+        let remaining_rx = tail.rx_cnt;
+
+        if remaining_rx == 0 {
+            self.shared.notify_last_rx_drop.notify_waiters();
+            tail.closed = true;
+        }
 
         drop(tail);
 
@@ -1472,6 +1683,12 @@ unsafe impl linked_list::Link for Waiter {
 impl<T> fmt::Debug for Sender<T> {
     fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(fmt, "broadcast::Sender")
+    }
+}
+
+impl<T> fmt::Debug for WeakSender<T> {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(fmt, "broadcast::WeakSender")
     }
 }
 

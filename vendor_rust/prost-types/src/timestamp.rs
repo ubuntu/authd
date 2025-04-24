@@ -50,7 +50,7 @@ impl Timestamp {
     ///
     /// [1]: https://github.com/google/protobuf/blob/v3.3.2/src/google/protobuf/util/time_util.cc#L59-L77
     pub fn try_normalize(mut self) -> Result<Timestamp, Timestamp> {
-        let before = self.clone();
+        let before = self;
         self.normalize();
         // If the seconds value has changed, and is either i64::MIN or i64::MAX, then the timestamp
         // normalization overflowed.
@@ -60,6 +60,17 @@ impl Timestamp {
         } else {
             Ok(self)
         }
+    }
+
+    /// Return a normalized copy of the timestamp to a canonical format.
+    ///
+    /// Based on [`google::protobuf::util::CreateNormalized`][1].
+    ///
+    /// [1]: https://github.com/google/protobuf/blob/v3.3.2/src/google/protobuf/util/time_util.cc#L59-L77
+    pub fn normalized(&self) -> Self {
+        let mut result = *self;
+        result.normalize();
+        result
     }
 
     /// Creates a new `Timestamp` at the start of the provided UTC date.
@@ -99,11 +110,7 @@ impl Timestamp {
             nanos,
         };
 
-        if date_time.is_valid() {
-            Ok(Timestamp::from(date_time))
-        } else {
-            Err(TimestampError::InvalidDateTime)
-        }
+        Timestamp::try_from(date_time)
     }
 }
 
@@ -153,7 +160,6 @@ impl From<std::time::SystemTime> for Timestamp {
 }
 
 /// A timestamp handling error.
-#[allow(clippy::derive_partial_eq_without_eq)]
 #[derive(Debug, PartialEq)]
 #[non_exhaustive]
 pub enum TimestampError {
@@ -201,7 +207,7 @@ impl TryFrom<Timestamp> for std::time::SystemTime {
     type Error = TimestampError;
 
     fn try_from(mut timestamp: Timestamp) -> Result<std::time::SystemTime, Self::Error> {
-        let orig_timestamp = timestamp.clone();
+        let orig_timestamp = timestamp;
         timestamp.normalize();
 
         let system_time = if timestamp.seconds >= 0 {
@@ -211,8 +217,7 @@ impl TryFrom<Timestamp> for std::time::SystemTime {
                 timestamp
                     .seconds
                     .checked_neg()
-                    .ok_or_else(|| TimestampError::OutOfSystemRange(timestamp.clone()))?
-                    as u64,
+                    .ok_or(TimestampError::OutOfSystemRange(timestamp))? as u64,
             ))
         };
 
@@ -234,9 +239,30 @@ impl FromStr for Timestamp {
 
 impl fmt::Display for Timestamp {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        datetime::DateTime::from(self.clone()).fmt(f)
+        datetime::DateTime::from(*self).fmt(f)
     }
 }
+
+#[cfg(kani)]
+mod proofs {
+    use super::*;
+
+    #[cfg(feature = "std")]
+    #[kani::proof]
+    #[kani::unwind(3)]
+    fn check_timestamp_roundtrip_via_system_time() {
+        let seconds = kani::any();
+        let nanos = kani::any();
+
+        let mut timestamp = Timestamp { seconds, nanos };
+        timestamp.normalize();
+
+        if let Ok(system_time) = std::time::SystemTime::try_from(timestamp) {
+            assert_eq!(Timestamp::from(system_time), timestamp);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -253,18 +279,6 @@ mod tests {
             system_time in SystemTime::arbitrary(),
         ) {
             prop_assert_eq!(SystemTime::try_from(Timestamp::from(system_time)).unwrap(), system_time);
-        }
-
-        #[test]
-        fn check_timestamp_roundtrip_via_system_time(
-            seconds in i64::arbitrary(),
-            nanos in i32::arbitrary(),
-        ) {
-            let mut timestamp = Timestamp { seconds, nanos };
-            timestamp.normalize();
-            if let Ok(system_time) = SystemTime::try_from(timestamp.clone()) {
-                prop_assert_eq!(Timestamp::from(system_time), timestamp);
-            }
         }
     }
 
@@ -396,14 +410,13 @@ mod tests {
         ];
 
         for case in cases.iter() {
-            let mut test_timestamp = crate::Timestamp {
+            let test_timestamp = crate::Timestamp {
                 seconds: case.1,
                 nanos: case.2,
             };
-            test_timestamp.normalize();
 
             assert_eq!(
-                test_timestamp,
+                test_timestamp.normalized(),
                 crate::Timestamp {
                     seconds: case.3,
                     nanos: case.4,
@@ -412,5 +425,21 @@ mod tests {
                 case.0,
             );
         }
+    }
+
+    #[cfg(feature = "arbitrary")]
+    #[test]
+    fn check_timestamp_implements_arbitrary() {
+        use arbitrary::{Arbitrary, Unstructured};
+
+        let mut unstructured = Unstructured::new(&[]);
+
+        assert_eq!(
+            Timestamp::arbitrary(&mut unstructured),
+            Ok(Timestamp {
+                seconds: 0,
+                nanos: 0
+            })
+        );
     }
 }

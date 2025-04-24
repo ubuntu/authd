@@ -1,6 +1,6 @@
 use crate::extract::Request;
 use crate::extract::{rejection::*, FromRequest};
-use async_trait::async_trait;
+use axum_core::extract::OptionalFromRequest;
 use axum_core::response::{IntoResponse, Response};
 use bytes::{BufMut, Bytes, BytesMut};
 use http::{
@@ -17,8 +17,7 @@ use serde::{de::DeserializeOwned, Serialize};
 ///
 /// - The request doesn't have a `Content-Type: application/json` (or similar) header.
 /// - The body doesn't contain syntactically valid JSON.
-/// - The body contains syntactically valid JSON, but it couldn't be deserialized into the target
-/// type.
+/// - The body contains syntactically valid JSON, but it couldn't be deserialized into the target type.
 /// - Buffering the request body fails.
 ///
 /// ⚠️ Since parsing JSON requires consuming the request body, the `Json` extractor must be
@@ -56,6 +55,11 @@ use serde::{de::DeserializeOwned, Serialize};
 /// When used as a response, it can serialize any type that implements [`serde::Serialize`] to
 /// `JSON`, and will automatically set `Content-Type: application/json` header.
 ///
+/// If the [`Serialize`] implementation decides to fail
+/// or if a map with non-string keys is used,
+/// a 500 response will be issued
+/// whose body is the error message in UTF-8.
+///
 /// # Response example
 ///
 /// ```
@@ -84,7 +88,7 @@ use serde::{de::DeserializeOwned, Serialize};
 ///     # unimplemented!()
 /// }
 ///
-/// let app = Router::new().route("/users/:id", get(get_user));
+/// let app = Router::new().route("/users/{id}", get(get_user));
 /// # let _: Router = app;
 /// ```
 #[derive(Debug, Clone, Copy, Default)]
@@ -92,7 +96,6 @@ use serde::{de::DeserializeOwned, Serialize};
 #[must_use]
 pub struct Json<T>(pub T);
 
-#[async_trait]
 impl<T, S> FromRequest<S> for Json<T>
 where
     T: DeserializeOwned,
@@ -106,6 +109,28 @@ where
             Self::from_bytes(&bytes)
         } else {
             Err(MissingJsonContentType.into())
+        }
+    }
+}
+
+impl<T, S> OptionalFromRequest<S> for Json<T>
+where
+    T: DeserializeOwned,
+    S: Send + Sync,
+{
+    type Rejection = JsonRejection;
+
+    async fn from_request(req: Request, state: &S) -> Result<Option<Self>, Self::Rejection> {
+        let headers = req.headers();
+        if headers.get(header::CONTENT_TYPE).is_some() {
+            if json_content_type(headers) {
+                let bytes = Bytes::from_request(req, state).await?;
+                Ok(Some(Self::from_bytes(&bytes)?))
+            } else {
+                Err(MissingJsonContentType.into())
+            }
+        } else {
+            Ok(None)
         }
     }
 }
@@ -130,7 +155,7 @@ fn json_content_type(headers: &HeaderMap) -> bool {
     };
 
     let is_json_content_type = mime.type_() == "application"
-        && (mime.subtype() == "json" || mime.suffix().map_or(false, |name| name == "json"));
+        && (mime.subtype() == "json" || mime.suffix().is_some_and(|name| name == "json"));
 
     is_json_content_type
 }

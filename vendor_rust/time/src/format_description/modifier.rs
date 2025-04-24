@@ -2,7 +2,6 @@
 
 use core::num::NonZeroU16;
 
-// region: date modifiers
 /// Day of the month.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -101,8 +100,25 @@ pub struct WeekNumber {
 pub enum YearRepr {
     /// The full value of the year.
     Full,
+    /// All digits except the last two. Includes the sign, if any.
+    Century,
     /// Only the last two digits of the year.
     LastTwo,
+}
+
+/// The range of years that are supported.
+///
+/// This modifier has no effect when the year repr is [`LastTwo`](YearRepr::LastTwo).
+#[non_exhaustive]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum YearRange {
+    /// Years between -9999 and 9999 are supported.
+    Standard,
+    /// Years between -999_999 and 999_999 are supported, with the sign being required if the year
+    /// contains more than four digits.
+    ///
+    /// If the `large-dates` feature is not enabled, this variant is equivalent to `Standard`.
+    Extended,
 }
 
 /// Year of the date.
@@ -113,14 +129,14 @@ pub struct Year {
     pub padding: Padding,
     /// What kind of representation should be used?
     pub repr: YearRepr,
+    /// What range of years is supported?
+    pub range: YearRange,
     /// Whether the value is based on the ISO week number or the Gregorian calendar.
     pub iso_week_based: bool,
     /// Whether the `+` sign is present when a positive year contains fewer than five digits.
     pub sign_is_mandatory: bool,
 }
-// endregion date modifiers
 
-// region: time modifiers
 /// Hour of the day.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -193,9 +209,7 @@ pub struct Subsecond {
     /// How many digits are present in the component?
     pub digits: SubsecondDigits,
 }
-// endregion time modifiers
 
-// region: offset modifiers
 /// Hour of the UTC offset.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -221,7 +235,6 @@ pub struct OffsetSecond {
     /// The padding to obtain the minimum width.
     pub padding: Padding,
 }
-// endregion offset modifiers
 
 /// Type of padding to ensure a minimum width.
 #[non_exhaustive]
@@ -361,12 +374,15 @@ impl_const_default! {
     };
     /// Creates a modifier that indicates the value uses the [`Full`](Self::Full) representation.
     YearRepr => Self::Full;
+    /// Creates a modifier that indicates the value uses the [`Extended`](Self::Extended) range.
+    YearRange => Self::Extended;
     /// Creates a modifier that indicates the value uses the [`Full`](YearRepr::Full)
     /// representation, is [padded with zeroes](Padding::Zero), uses the Gregorian calendar as its
     /// base, and only includes the year's sign if necessary.
     @pub Year => Self {
         padding: Padding::Zero,
         repr: YearRepr::Full,
+        range: YearRange::Extended,
         iso_week_based: false,
         sign_is_mandatory: false,
     };

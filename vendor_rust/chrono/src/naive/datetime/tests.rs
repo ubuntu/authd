@@ -36,13 +36,13 @@ fn test_datetime_add() {
         Some((NaiveDate::MAX.year(), 12, 31, 23, 59, 59)),
     );
     check((0, 1, 1, 0, 0, 0), max_days_from_year_0 + seconds(86_400), None);
-    check((0, 1, 1, 0, 0, 0), TimeDelta::max_value(), None);
+    check((0, 1, 1, 0, 0, 0), TimeDelta::MAX, None);
 
     let min_days_from_year_0 =
         NaiveDate::MIN.signed_duration_since(NaiveDate::from_ymd_opt(0, 1, 1).unwrap());
     check((0, 1, 1, 0, 0, 0), min_days_from_year_0, Some((NaiveDate::MIN.year(), 1, 1, 0, 0, 0)));
     check((0, 1, 1, 0, 0, 0), min_days_from_year_0 - seconds(1), None);
-    check((0, 1, 1, 0, 0, 0), TimeDelta::min_value(), None);
+    check((0, 1, 1, 0, 0, 0), TimeDelta::MIN, None);
 }
 
 #[test]
@@ -199,12 +199,11 @@ fn test_datetime_parse_from_str() {
         NaiveDateTime::parse_from_str("Fri, 09 Aug 2013 23:54:35 GMT", "%a, %d %b %Y %H:%M:%S GMT"),
         Ok(ymdhms(2013, 8, 9, 23, 54, 35))
     );
-    assert!(NaiveDateTime::parse_from_str(
-        "Sat, 09 Aug 2013 23:54:35 GMT",
-        "%a, %d %b %Y %H:%M:%S GMT"
-    )
-    .is_err());
-    assert!(NaiveDateTime::parse_from_str("2014-5-7 12:3456", "%Y-%m-%d %H:%M:%S").is_err());
+    assert!(
+        NaiveDateTime::parse_from_str("Sat, 09 Aug 2013 23:54:35 GMT", "%a, %d %b %Y %H:%M:%S GMT")
+            .is_err()
+    );
+    assert!(NaiveDateTime::parse_from_str("2014-5-7 Q2 12:3456", "%Y-%m-%d Q%q %H:%M:%S").is_err());
     assert!(NaiveDateTime::parse_from_str("12:34:56", "%H:%M:%S").is_err()); // insufficient
     assert_eq!(
         NaiveDateTime::parse_from_str("1441497364", "%s"),

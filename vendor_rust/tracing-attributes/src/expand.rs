@@ -92,7 +92,7 @@ pub(crate) fn gen_function<'a, B: ToTokens + 'a>(
 
     quote!(
         #(#outer_attrs) *
-        #vis #constness #unsafety #asyncness #abi fn #ident<#gen_params>(#params) #output
+        #vis #constness #asyncness #unsafety #abi fn #ident<#gen_params>(#params) #output
         #where_clause
         {
             #(#inner_attrs) *
@@ -277,7 +277,8 @@ fn gen_block<B: ToTokens>(
         let mk_fut = match (err_event, ret_event) {
             (Some(err_event), Some(ret_event)) => quote_spanned!(block.span()=>
                 async move {
-                    match async move #block.await {
+                    let __match_scrutinee = async move #block.await;
+                    match  __match_scrutinee {
                         #[allow(clippy::unit_arg)]
                         Ok(x) => {
                             #ret_event;
@@ -422,10 +423,13 @@ impl RecordType {
         "i32",
         "u64",
         "i64",
+        "u128",
+        "i128",
         "f32",
         "f64",
         "usize",
         "isize",
+        "String",
         "NonZeroU8",
         "NonZeroI8",
         "NonZeroU16",
@@ -434,6 +438,8 @@ impl RecordType {
         "NonZeroI32",
         "NonZeroU64",
         "NonZeroI64",
+        "NonZeroU128",
+        "NonZeroI128",
         "NonZeroUsize",
         "NonZeroIsize",
         "Wrapping",

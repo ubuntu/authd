@@ -26,8 +26,6 @@ pub type cpulevel_t = c_int;
 pub type cpuwhich_t = c_int;
 
 pub type mqd_t = *mut c_void;
-pub type posix_spawnattr_t = *mut c_void;
-pub type posix_spawn_file_actions_t = *mut c_void;
 
 pub type pthread_spinlock_t = *mut __c_anonymous_pthread_spinlock;
 pub type pthread_barrierattr_t = *mut __c_anonymous_pthread_barrierattr;
@@ -288,6 +286,22 @@ s! {
         pub sem_num: c_ushort,
         pub sem_op: c_short,
         pub sem_flg: c_short,
+    }
+
+    pub struct input_event {
+        pub time: crate::timeval,
+        pub type_: crate::u_short,
+        pub code: crate::u_short,
+        pub value: i32,
+    }
+
+    pub struct input_absinfo {
+        pub value: i32,
+        pub minimum: i32,
+        pub maximum: i32,
+        pub fuzz: i32,
+        pub flat: i32,
+        pub resolution: i32,
     }
 
     pub struct msqid_ds {
@@ -1343,6 +1357,47 @@ s! {
         pub strchange_instrms: u16,
         pub strchange_outstrms: u16,
     }
+
+    pub struct filedesc {
+        pub fd_files: *mut fdescenttbl,
+        pub fd_map: *mut c_ulong,
+        pub fd_freefile: c_int,
+        pub fd_refcnt: c_int,
+        pub fd_holdcnt: c_int,
+        fd_sx: sx,
+        fd_kqlist: kqlist,
+        pub fd_holdleaderscount: c_int,
+        pub fd_holdleaderswakeup: c_int,
+    }
+
+    pub struct fdescenttbl {
+        pub fdt_nfiles: c_int,
+        fdt_ofiles: [*mut c_void; 0],
+    }
+
+    // FIXME: Should be private.
+    #[doc(hidden)]
+    pub struct sx {
+        lock_object: lock_object,
+        sx_lock: crate::uintptr_t,
+    }
+
+    // FIXME: Should be private.
+    #[doc(hidden)]
+    pub struct lock_object {
+        lo_name: *const c_char,
+        lo_flags: c_uint,
+        lo_data: c_uint,
+        // This is normally `struct  witness`.
+        lo_witness: *mut c_void,
+    }
+
+    // FIXME: Should be private.
+    #[doc(hidden)]
+    pub struct kqlist {
+        tqh_first: *mut c_void,
+        tqh_last: *mut *mut c_void,
+    }
 }
 
 s_no_extra_traits! {
@@ -1623,7 +1678,7 @@ s_no_extra_traits! {
         pub kf_flags: c_int,
         _kf_pad0: c_int,
         pub kf_offset: i64,
-        _priv: [u8; 304], // FIXME: this is really a giant union
+        _priv: [u8; 304], // FIXME(freebsd): this is really a giant union
         pub kf_status: u16,
         _kf_pad1: u16,
         _kf_ispare0: c_int,
@@ -1674,8 +1729,8 @@ cfg_if! {
                     .field("ut_pid", &self.ut_pid)
                     .field("ut_user", &self.ut_user)
                     .field("ut_line", &self.ut_line)
-                    // FIXME: .field("ut_host", &self.ut_host)
-                    // FIXME: .field("__ut_spare", &self.__ut_spare)
+                    // FIXME(debug): .field("ut_host", &self.ut_host)
+                    // FIXME(debug): .field("__ut_spare", &self.__ut_spare)
                     .finish()
             }
         }
@@ -1762,7 +1817,7 @@ cfg_if! {
                     .field("sdl_nlen", &self.sdl_nlen)
                     .field("sdl_alen", &self.sdl_alen)
                     .field("sdl_slen", &self.sdl_slen)
-                    // FIXME: .field("sdl_data", &self.sdl_data)
+                    // FIXME(debug): .field("sdl_data", &self.sdl_data)
                     .finish()
             }
         }
@@ -2270,7 +2325,7 @@ cfg_if! {
                 f.debug_struct("sctp_gen_error_cause")
                     .field("code", &{ self.code })
                     .field("length", &{ self.length })
-                    // FIXME: .field("info", &{self.info})
+                    // FIXME(debug): .field("info", &{self.info})
                     .finish()
             }
         }
@@ -2342,7 +2397,7 @@ cfg_if! {
                 f.debug_struct("sctp_error_missing_param")
                     .field("cause", &{ self.cause })
                     .field("num_missing_params", &{ self.num_missing_params })
-                    // FIXME: .field("tpe", &{self.tpe})
+                    // FIXME(debug): .field("tpe", &{self.tpe})
                     .finish()
             }
         }
@@ -3757,7 +3812,9 @@ pub const TCP_PERF_INFO: c_int = 78;
 pub const TCP_LRD: c_int = 79;
 pub const TCP_KEEPINIT: c_int = 128;
 pub const TCP_FASTOPEN: c_int = 1025;
+#[deprecated(since = "0.2.171", note = "removed in FreeBSD 15")]
 pub const TCP_PCAP_OUT: c_int = 2048;
+#[deprecated(since = "0.2.171", note = "removed in FreeBSD 15")]
 pub const TCP_PCAP_IN: c_int = 4096;
 pub const TCP_FUNCTION_BLK: c_int = 8192;
 pub const TCP_FUNCTION_ALIAS: c_int = 8193;
@@ -3950,14 +4007,6 @@ pub const PD_ALLOWED_AT_FORK: c_int = PD_DAEMON | PD_CLOEXEC;
 pub const RTP_PRIO_REALTIME: c_ushort = 2;
 pub const RTP_PRIO_NORMAL: c_ushort = 3;
 pub const RTP_PRIO_IDLE: c_ushort = 4;
-
-// DIFF(main): changed to `c_short` in f62eb023ab
-pub const POSIX_SPAWN_RESETIDS: c_int = 0x01;
-pub const POSIX_SPAWN_SETPGROUP: c_int = 0x02;
-pub const POSIX_SPAWN_SETSCHEDPARAM: c_int = 0x04;
-pub const POSIX_SPAWN_SETSCHEDULER: c_int = 0x08;
-pub const POSIX_SPAWN_SETSIGDEF: c_int = 0x10;
-pub const POSIX_SPAWN_SETSIGMASK: c_int = 0x20;
 
 // Flags for chflags(2)
 pub const UF_SYSTEM: c_ulong = 0x00000080;
@@ -5169,9 +5218,6 @@ extern "C" {
         sevp: *mut sigevent,
     ) -> c_int;
 
-    pub fn mkostemp(template: *mut c_char, flags: c_int) -> c_int;
-    pub fn mkostemps(template: *mut c_char, suffixlen: c_int, flags: c_int) -> c_int;
-
     pub fn getutxuser(user: *const c_char) -> *mut utmpx;
     pub fn setutxdb(_type: c_int, file: *const c_char) -> c_int;
 
@@ -5204,80 +5250,6 @@ extern "C" {
     pub fn pdkill(fd: c_int, signum: c_int) -> c_int;
 
     pub fn rtprio_thread(function: c_int, lwpid: crate::lwpid_t, rtp: *mut super::rtprio) -> c_int;
-
-    pub fn posix_spawn(
-        pid: *mut crate::pid_t,
-        path: *const c_char,
-        file_actions: *const crate::posix_spawn_file_actions_t,
-        attrp: *const crate::posix_spawnattr_t,
-        argv: *const *mut c_char,
-        envp: *const *mut c_char,
-    ) -> c_int;
-    pub fn posix_spawnp(
-        pid: *mut crate::pid_t,
-        file: *const c_char,
-        file_actions: *const crate::posix_spawn_file_actions_t,
-        attrp: *const crate::posix_spawnattr_t,
-        argv: *const *mut c_char,
-        envp: *const *mut c_char,
-    ) -> c_int;
-    pub fn posix_spawnattr_init(attr: *mut posix_spawnattr_t) -> c_int;
-    pub fn posix_spawnattr_destroy(attr: *mut posix_spawnattr_t) -> c_int;
-    pub fn posix_spawnattr_getsigdefault(
-        attr: *const posix_spawnattr_t,
-        default: *mut crate::sigset_t,
-    ) -> c_int;
-    pub fn posix_spawnattr_setsigdefault(
-        attr: *mut posix_spawnattr_t,
-        default: *const crate::sigset_t,
-    ) -> c_int;
-    pub fn posix_spawnattr_getsigmask(
-        attr: *const posix_spawnattr_t,
-        default: *mut crate::sigset_t,
-    ) -> c_int;
-    pub fn posix_spawnattr_setsigmask(
-        attr: *mut posix_spawnattr_t,
-        default: *const crate::sigset_t,
-    ) -> c_int;
-    pub fn posix_spawnattr_getflags(attr: *const posix_spawnattr_t, flags: *mut c_short) -> c_int;
-    pub fn posix_spawnattr_setflags(attr: *mut posix_spawnattr_t, flags: c_short) -> c_int;
-    pub fn posix_spawnattr_getpgroup(
-        attr: *const posix_spawnattr_t,
-        flags: *mut crate::pid_t,
-    ) -> c_int;
-    pub fn posix_spawnattr_setpgroup(attr: *mut posix_spawnattr_t, flags: crate::pid_t) -> c_int;
-    pub fn posix_spawnattr_getschedpolicy(
-        attr: *const posix_spawnattr_t,
-        flags: *mut c_int,
-    ) -> c_int;
-    pub fn posix_spawnattr_setschedpolicy(attr: *mut posix_spawnattr_t, flags: c_int) -> c_int;
-    pub fn posix_spawnattr_getschedparam(
-        attr: *const posix_spawnattr_t,
-        param: *mut crate::sched_param,
-    ) -> c_int;
-    pub fn posix_spawnattr_setschedparam(
-        attr: *mut posix_spawnattr_t,
-        param: *const crate::sched_param,
-    ) -> c_int;
-
-    pub fn posix_spawn_file_actions_init(actions: *mut posix_spawn_file_actions_t) -> c_int;
-    pub fn posix_spawn_file_actions_destroy(actions: *mut posix_spawn_file_actions_t) -> c_int;
-    pub fn posix_spawn_file_actions_addopen(
-        actions: *mut posix_spawn_file_actions_t,
-        fd: c_int,
-        path: *const c_char,
-        oflag: c_int,
-        mode: crate::mode_t,
-    ) -> c_int;
-    pub fn posix_spawn_file_actions_addclose(
-        actions: *mut posix_spawn_file_actions_t,
-        fd: c_int,
-    ) -> c_int;
-    pub fn posix_spawn_file_actions_adddup2(
-        actions: *mut posix_spawn_file_actions_t,
-        fd: c_int,
-        newfd: c_int,
-    ) -> c_int;
 
     pub fn uuidgen(store: *mut uuid, count: c_int) -> c_int;
 
@@ -5673,7 +5645,7 @@ extern "C" {
     pub fn pidfile_close(path: *mut crate::pidfh) -> c_int;
     pub fn pidfile_remove(path: *mut crate::pidfh) -> c_int;
     pub fn pidfile_fileno(path: *const crate::pidfh) -> c_int;
-    // FIXME: pidfile_signal in due time (both manpage present and updated image snapshot)
+    // FIXME(freebsd): pidfile_signal in due time (both manpage present and updated image snapshot)
 }
 
 #[link(name = "procstat")]

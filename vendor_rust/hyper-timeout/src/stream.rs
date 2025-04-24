@@ -65,6 +65,20 @@ impl TimeoutState {
     }
 
     #[inline]
+    fn restart(self: Pin<&mut Self>) {
+        let this = self.project();
+
+        if *this.active {
+            let timeout = match this.timeout {
+                Some(timeout) => *timeout,
+                None => return,
+            };
+
+            this.cur.reset(Instant::now() + timeout);
+        }
+    }
+
+    #[inline]
     fn poll_check(self: Pin<&mut Self>, cx: &mut Context) -> io::Result<()> {
         let mut this = self.project();
 
@@ -93,6 +107,7 @@ pin_project! {
         reader: R,
         #[pin]
         state: TimeoutState,
+        reset_on_write: bool,
     }
 }
 
@@ -107,6 +122,7 @@ where
         TimeoutReader {
             reader,
             state: TimeoutState::new(),
+            reset_on_write: false,
         }
     }
 
@@ -152,6 +168,20 @@ where
     }
 }
 
+impl<R> TimeoutReader<R>
+where
+    R: Read + Write,
+{
+    /// Reset on the reader timeout on write
+    ///
+    /// This will reset the reader timeout when a write is done through the
+    /// the TimeoutReader. This is useful when you don't want to trigger
+    /// a reader timeout while writes are still be accepted.
+    pub fn set_reset_on_write(&mut self, reset: bool) {
+        self.reset_on_write = reset
+    }
+}
+
 impl<R> Read for TimeoutReader<R>
 where
     R: Read,
@@ -180,15 +210,30 @@ where
         cx: &mut Context,
         buf: &[u8],
     ) -> Poll<Result<usize, io::Error>> {
-        self.project().reader.poll_write(cx, buf)
+        let this = self.project();
+        let r = this.reader.poll_write(cx, buf);
+        if *this.reset_on_write && r.is_ready() {
+            this.state.restart();
+        }
+        r
     }
 
     fn poll_flush(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), io::Error>> {
-        self.project().reader.poll_flush(cx)
+        let this = self.project();
+        let r = this.reader.poll_flush(cx);
+        if *this.reset_on_write && r.is_ready() {
+            this.state.restart();
+        }
+        r
     }
 
     fn poll_shutdown(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Result<(), io::Error>> {
-        self.project().reader.poll_shutdown(cx)
+        let this = self.project();
+        let r = this.reader.poll_shutdown(cx);
+        if *this.reset_on_write && r.is_ready() {
+            this.state.restart();
+        }
+        r
     }
 
     fn poll_write_vectored(
@@ -196,7 +241,12 @@ where
         cx: &mut Context,
         bufs: &[io::IoSlice],
     ) -> Poll<io::Result<usize>> {
-        self.project().reader.poll_write_vectored(cx, bufs)
+        let this = self.project();
+        let r = this.reader.poll_write_vectored(cx, bufs);
+        if *this.reset_on_write && r.is_ready() {
+            this.state.restart();
+        }
+        r
     }
 
     fn is_write_vectored(&self) -> bool {
@@ -408,6 +458,15 @@ where
             .set_timeout_pinned(timeout)
     }
 
+    /// Reset on the reader timeout on write
+    ///
+    /// This will reset the reader timeout when a write is done through the
+    /// the TimeoutReader. This is useful when you don't want to trigger
+    /// a reader timeout while writes are still be accepted.
+    pub fn set_reset_reader_on_write(&mut self, reset: bool) {
+        self.stream.set_reset_on_write(reset);
+    }
+
     /// Returns a shared reference to the inner stream.
     pub fn get_ref(&self) -> &S {
         self.stream.get_ref().get_ref()
@@ -507,6 +566,7 @@ pin_project! {
 ///
 /// The returned future will resolve to both the I/O stream and the buffer
 /// as well as the number of bytes read once the read operation is completed.
+#[cfg(test)]
 fn read<'a, R>(reader: &'a mut R, buf: &'a mut [u8]) -> ReadFut<'a, R>
 where
     R: Read + Unpin + ?Sized,
@@ -528,6 +588,7 @@ where
     }
 }
 
+#[cfg(test)]
 trait ReadExt: Read {
     /// Pulls some bytes from this source into the specified buffer,
     /// returning how many bytes were read.
@@ -549,6 +610,7 @@ pin_project! {
 
 /// Tries to write some bytes from the given `buf` to the writer in an
 /// asynchronous manner, returning a future.
+#[cfg(test)]
 fn write<'a, W>(writer: &'a mut W, buf: &'a [u8]) -> WriteFut<'a, W>
 where
     W: Write + Unpin + ?Sized,
@@ -568,6 +630,7 @@ where
     }
 }
 
+#[cfg(test)]
 trait WriteExt: Write {
     /// Writes a buffer into this writer, returning how many bytes were
     /// written.
@@ -579,6 +642,7 @@ trait WriteExt: Write {
     }
 }
 
+#[cfg(test)]
 impl<R> ReadExt for Pin<&mut TimeoutReader<R>>
 where
     R: Read,
@@ -588,6 +652,7 @@ where
     }
 }
 
+#[cfg(test)]
 impl<W> WriteExt for Pin<&mut TimeoutWriter<W>>
 where
     W: Write,
@@ -597,6 +662,7 @@ where
     }
 }
 
+#[cfg(test)]
 impl<S> ReadExt for Pin<&mut TimeoutStream<S>>
 where
     S: Read + Write,
@@ -606,6 +672,7 @@ where
     }
 }
 
+#[cfg(test)]
 impl<S> WriteExt for Pin<&mut TimeoutStream<S>>
 where
     S: Read + Write,

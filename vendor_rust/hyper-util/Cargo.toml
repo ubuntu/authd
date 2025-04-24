@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.63"
 name = "hyper-util"
-version = "0.1.10"
+version = "0.1.11"
 authors = ["Sean McArthur <sean@seanmonstar.com>"]
 build = false
 autolib = false
@@ -44,6 +44,55 @@ rustdoc-args = [
     "--cfg",
     "docsrs",
 ]
+
+[features]
+__internal_happy_eyeballs_tests = []
+client = [
+    "hyper/client",
+    "dep:tracing",
+    "dep:futures-channel",
+    "dep:tower-service",
+]
+client-legacy = [
+    "client",
+    "dep:socket2",
+    "tokio/sync",
+    "dep:libc",
+]
+default = []
+full = [
+    "client",
+    "client-legacy",
+    "server",
+    "server-auto",
+    "server-graceful",
+    "service",
+    "http1",
+    "http2",
+    "tokio",
+    "tracing",
+]
+http1 = ["hyper/http1"]
+http2 = ["hyper/http2"]
+server = ["hyper/server"]
+server-auto = [
+    "server",
+    "http1",
+    "http2",
+]
+server-graceful = [
+    "server",
+    "tokio/sync",
+    "futures-util/alloc",
+]
+service = ["dep:tower-service"]
+tokio = [
+    "dep:tokio",
+    "tokio/net",
+    "tokio/rt",
+    "tokio/time",
+]
+tracing = ["dep:tracing"]
 
 [lib]
 name = "hyper_util"
@@ -98,13 +147,17 @@ version = "1.0"
 version = "1.0.0"
 
 [dependencies.hyper]
-version = "1.4.0"
+version = "1.6.0"
+
+[dependencies.libc]
+version = "0.2"
+optional = true
 
 [dependencies.pin-project-lite]
 version = "0.2.4"
 
 [dependencies.socket2]
-version = "0.5"
+version = "0.5.9"
 features = ["all"]
 optional = true
 
@@ -146,52 +199,6 @@ features = [
 
 [dev-dependencies.tokio-test]
 version = "0.4"
-
-[features]
-__internal_happy_eyeballs_tests = []
-client = [
-    "hyper/client",
-    "dep:tracing",
-    "dep:futures-channel",
-    "dep:tower-service",
-]
-client-legacy = [
-    "client",
-    "dep:socket2",
-    "tokio/sync",
-]
-default = []
-full = [
-    "client",
-    "client-legacy",
-    "server",
-    "server-auto",
-    "server-graceful",
-    "service",
-    "http1",
-    "http2",
-    "tokio",
-]
-http1 = ["hyper/http1"]
-http2 = ["hyper/http2"]
-server = ["hyper/server"]
-server-auto = [
-    "server",
-    "http1",
-    "http2",
-]
-server-graceful = [
-    "server",
-    "tokio/sync",
-    "futures-util/alloc",
-]
-service = ["dep:tower-service"]
-tokio = [
-    "dep:tokio",
-    "tokio/net",
-    "tokio/rt",
-    "tokio/time",
-]
 
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dev-dependencies.pnet_datalink]
 version = "0.35.0"

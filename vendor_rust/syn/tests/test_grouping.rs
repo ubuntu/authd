@@ -1,4 +1,8 @@
-#![allow(clippy::uninlined_format_args)]
+#![allow(
+    clippy::elidable_lifetime_names,
+    clippy::needless_lifetimes,
+    clippy::uninlined_format_args
+)]
 
 #[macro_use]
 mod macros;
@@ -25,7 +29,7 @@ fn test_grouping() {
 
     assert_eq!(tokens.to_string(), "1i32 + 2i32 + 3i32 * 4i32");
 
-    snapshot!(tokens as Expr, @r###"
+    snapshot!(tokens as Expr, @r#"
     Expr::Binary {
         left: Expr::Lit {
             lit: 1i32,
@@ -49,5 +53,5 @@ fn test_grouping() {
             },
         },
     }
-    "###);
+    "#);
 }

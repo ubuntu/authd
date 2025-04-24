@@ -16,7 +16,9 @@ use crate::formatting::Formattable;
 use crate::internal_macros::{const_try, const_try_opt};
 #[cfg(feature = "parsing")]
 use crate::parsing::Parsable;
-use crate::{error, util, Date, Duration, Month, OffsetDateTime, Time, UtcOffset, Weekday};
+use crate::{
+    error, util, Date, Duration, Month, OffsetDateTime, Time, UtcDateTime, UtcOffset, Weekday,
+};
 
 /// Combined date and time.
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -104,7 +106,6 @@ impl PrimitiveDateTime {
         Self { date, time }
     }
 
-    // region: component getters
     /// Get the [`Date`] component of the `PrimitiveDateTime`.
     ///
     /// ```rust
@@ -124,9 +125,7 @@ impl PrimitiveDateTime {
     pub const fn time(self) -> Time {
         self.time
     }
-    // endregion component getters
 
-    // region: date getters
     /// Get the year of the date.
     ///
     /// ```rust
@@ -314,9 +313,7 @@ impl PrimitiveDateTime {
     pub const fn to_julian_day(self) -> i32 {
         self.date().to_julian_day()
     }
-    // endregion date getters
 
-    // region: time getters
     /// Get the clock hour, minute, and second.
     ///
     /// ```rust
@@ -453,9 +450,7 @@ impl PrimitiveDateTime {
     pub const fn nanosecond(self) -> u32 {
         self.time().nanosecond()
     }
-    // endregion time getters
 
-    // region: attach offset
     /// Assuming that the existing `PrimitiveDateTime` represents a moment in the provided
     /// [`UtcOffset`], return an [`OffsetDateTime`].
     ///
@@ -488,12 +483,27 @@ impl PrimitiveDateTime {
     ///     1_546_300_800,
     /// );
     /// ```
+    ///
+    /// **Note**: You may want a [`UtcDateTime`] instead, which can be obtained with the
+    /// [`PrimitiveDateTime::as_utc`] method.
     pub const fn assume_utc(self) -> OffsetDateTime {
         self.assume_offset(UtcOffset::UTC)
     }
-    // endregion attach offset
 
-    // region: checked arithmetic
+    /// Assuming that the existing `PrimitiveDateTime` represents a moment in UTC, return a
+    /// [`UtcDateTime`].
+    ///
+    /// ```rust
+    /// # use time_macros::datetime;
+    /// assert_eq!(
+    ///     datetime!(2019-01-01 0:00).as_utc().unix_timestamp(),
+    ///     1_546_300_800,
+    /// );
+    /// ```
+    pub const fn as_utc(self) -> UtcDateTime {
+        UtcDateTime::from_primitive(self)
+    }
+
     /// Computes `self + duration`, returning `None` if an overflow occurred.
     ///
     /// ```
@@ -506,8 +516,8 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime.checked_add(1.days()), None);
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30).checked_add(27.hours()),
-    ///     Some(datetime!(2019 - 11 - 26 18:30))
+    ///     datetime!(2019-11-25 15:30).checked_add(27.hours()),
+    ///     Some(datetime!(2019-11-26 18:30))
     /// );
     /// ```
     pub const fn checked_add(self, duration: Duration) -> Option<Self> {
@@ -536,8 +546,8 @@ impl PrimitiveDateTime {
     /// assert_eq!(datetime.checked_sub((-1).days()), None);
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30).checked_sub(27.hours()),
-    ///     Some(datetime!(2019 - 11 - 24 12:30))
+    ///     datetime!(2019-11-25 15:30).checked_sub(27.hours()),
+    ///     Some(datetime!(2019-11-24 12:30))
     /// );
     /// ```
     pub const fn checked_sub(self, duration: Duration) -> Option<Self> {
@@ -553,9 +563,7 @@ impl PrimitiveDateTime {
             time,
         })
     }
-    // endregion: checked arithmetic
 
-    // region: saturating arithmetic
     /// Computes `self + duration`, saturating value on overflow.
     ///
     /// ```
@@ -572,8 +580,8 @@ impl PrimitiveDateTime {
     /// );
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30).saturating_add(27.hours()),
-    ///     datetime!(2019 - 11 - 26 18:30)
+    ///     datetime!(2019-11-25 15:30).saturating_add(27.hours()),
+    ///     datetime!(2019-11-26 18:30)
     /// );
     /// ```
     pub const fn saturating_add(self, duration: Duration) -> Self {
@@ -602,8 +610,8 @@ impl PrimitiveDateTime {
     /// );
     ///
     /// assert_eq!(
-    ///     datetime!(2019 - 11 - 25 15:30).saturating_sub(27.hours()),
-    ///     datetime!(2019 - 11 - 24 12:30)
+    ///     datetime!(2019-11-25 15:30).saturating_sub(27.hours()),
+    ///     datetime!(2019-11-24 12:30)
     /// );
     /// ```
     pub const fn saturating_sub(self, duration: Duration) -> Self {
@@ -615,10 +623,8 @@ impl PrimitiveDateTime {
             Self::MIN
         }
     }
-    // endregion: saturating arithmetic
 }
 
-// region: replacement
 /// Methods that replace part of the `PrimitiveDateTime`.
 impl PrimitiveDateTime {
     /// Replace the time, preserving the date.
@@ -660,11 +666,11 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 12:00).replace_year(2019),
-    ///     Ok(datetime!(2019 - 02 - 18 12:00))
+    ///     datetime!(2022-02-18 12:00).replace_year(2019),
+    ///     Ok(datetime!(2019-02-18 12:00))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 12:00).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
-    /// assert!(datetime!(2022 - 02 - 18 12:00).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
+    /// assert!(datetime!(2022-02-18 12:00).replace_year(-1_000_000_000).is_err()); // -1_000_000_000 isn't a valid year
+    /// assert!(datetime!(2022-02-18 12:00).replace_year(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid year
     /// ```
     #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_year(self, year: i32) -> Result<Self, error::ComponentRange> {
@@ -680,10 +686,10 @@ impl PrimitiveDateTime {
     /// # use time_macros::datetime;
     /// # use time::Month;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 12:00).replace_month(Month::January),
-    ///     Ok(datetime!(2022 - 01 - 18 12:00))
+    ///     datetime!(2022-02-18 12:00).replace_month(Month::January),
+    ///     Ok(datetime!(2022-01-18 12:00))
     /// );
-    /// assert!(datetime!(2022 - 01 - 30 12:00).replace_month(Month::February).is_err()); // 30 isn't a valid day in February
+    /// assert!(datetime!(2022-01-30 12:00).replace_month(Month::February).is_err()); // 30 isn't a valid day in February
     /// ```
     #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_month(self, month: Month) -> Result<Self, error::ComponentRange> {
@@ -698,11 +704,11 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 12:00).replace_day(1),
-    ///     Ok(datetime!(2022 - 02 - 01 12:00))
+    ///     datetime!(2022-02-18 12:00).replace_day(1),
+    ///     Ok(datetime!(2022-02-01 12:00))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 12:00).replace_day(0).is_err()); // 00 isn't a valid day
-    /// assert!(datetime!(2022 - 02 - 18 12:00).replace_day(30).is_err()); // 30 isn't a valid day in February
+    /// assert!(datetime!(2022-02-18 12:00).replace_day(0).is_err()); // 00 isn't a valid day
+    /// assert!(datetime!(2022-02-18 12:00).replace_day(30).is_err()); // 30 isn't a valid day in February
     /// ```
     #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_day(self, day: u8) -> Result<Self, error::ComponentRange> {
@@ -733,10 +739,10 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_hour(7),
-    ///     Ok(datetime!(2022 - 02 - 18 07:02:03.004_005_006))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006).replace_hour(7),
+    ///     Ok(datetime!(2022-02-18 07:02:03.004_005_006))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_hour(24).is_err()); // 24 isn't a valid hour
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006).replace_hour(24).is_err()); // 24 isn't a valid hour
     /// ```
     #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_hour(self, hour: u8) -> Result<Self, error::ComponentRange> {
@@ -751,10 +757,10 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_minute(7),
-    ///     Ok(datetime!(2022 - 02 - 18 01:07:03.004_005_006))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006).replace_minute(7),
+    ///     Ok(datetime!(2022-02-18 01:07:03.004_005_006))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_minute(60).is_err()); // 60 isn't a valid minute
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006).replace_minute(60).is_err()); // 60 isn't a valid minute
     /// ```
     #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_minute(self, minute: u8) -> Result<Self, error::ComponentRange> {
@@ -769,10 +775,10 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_second(7),
-    ///     Ok(datetime!(2022 - 02 - 18 01:02:07.004_005_006))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006).replace_second(7),
+    ///     Ok(datetime!(2022-02-18 01:02:07.004_005_006))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_second(60).is_err()); // 60 isn't a valid second
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006).replace_second(60).is_err()); // 60 isn't a valid second
     /// ```
     #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_second(self, second: u8) -> Result<Self, error::ComponentRange> {
@@ -787,10 +793,10 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_millisecond(7),
-    ///     Ok(datetime!(2022 - 02 - 18 01:02:03.007))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006).replace_millisecond(7),
+    ///     Ok(datetime!(2022-02-18 01:02:03.007))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006).replace_millisecond(1_000).is_err()); // 1_000 isn't a valid millisecond
     /// ```
     #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_millisecond(
@@ -808,10 +814,10 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_microsecond(7_008),
-    ///     Ok(datetime!(2022 - 02 - 18 01:02:03.007_008))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006).replace_microsecond(7_008),
+    ///     Ok(datetime!(2022-02-18 01:02:03.007_008))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006).replace_microsecond(1_000_000).is_err()); // 1_000_000 isn't a valid microsecond
     /// ```
     #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_microsecond(
@@ -829,10 +835,10 @@ impl PrimitiveDateTime {
     /// ```rust
     /// # use time_macros::datetime;
     /// assert_eq!(
-    ///     datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_nanosecond(7_008_009),
-    ///     Ok(datetime!(2022 - 02 - 18 01:02:03.007_008_009))
+    ///     datetime!(2022-02-18 01:02:03.004_005_006).replace_nanosecond(7_008_009),
+    ///     Ok(datetime!(2022-02-18 01:02:03.007_008_009))
     /// );
-    /// assert!(datetime!(2022 - 02 - 18 01:02:03.004_005_006).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
+    /// assert!(datetime!(2022-02-18 01:02:03.004_005_006).replace_nanosecond(1_000_000_000).is_err()); // 1_000_000_000 isn't a valid nanosecond
     /// ```
     #[must_use = "This method does not mutate the original `PrimitiveDateTime`."]
     pub const fn replace_nanosecond(self, nanosecond: u32) -> Result<Self, error::ComponentRange> {
@@ -842,16 +848,14 @@ impl PrimitiveDateTime {
         })
     }
 }
-// endregion replacement
 
-// region: formatting & parsing
 #[cfg(feature = "formatting")]
 impl PrimitiveDateTime {
     /// Format the `PrimitiveDateTime` using the provided [format
     /// description](crate::format_description).
     pub fn format_into(
         self,
-        output: &mut impl io::Write,
+        output: &mut (impl io::Write + ?Sized),
         format: &(impl Formattable + ?Sized),
     ) -> Result<usize, error::Format> {
         format.format_into(output, Some(self.date), Some(self.time), None)
@@ -929,9 +933,7 @@ impl fmt::Debug for PrimitiveDateTime {
         fmt::Display::fmt(self, f)
     }
 }
-// endregion formatting & parsing
 
-// region: trait impls
 impl Add<Duration> for PrimitiveDateTime {
     type Output = Self;
 
@@ -1046,4 +1048,3 @@ impl Sub for PrimitiveDateTime {
         (self.date - rhs.date) + (self.time - rhs.time)
     }
 }
-// endregion trait impls

@@ -17,20 +17,18 @@
 //! backends, controlled through this crate's features:
 //!
 //! * `default`, or `rust_backend` - this implementation uses the `miniz_oxide`
-//!   crate which is a port of `miniz.c` (below) to Rust. This feature does not
-//!   require a C compiler and only requires Rust code.
+//!   crate which is a port of `miniz.c` to Rust. This feature does not
+//!   require a C compiler, and only uses safe Rust code.
 //!
-//! * `zlib` - this feature will enable linking against the `libz` library, typically found on most
-//!   Linux systems by default. If the library isn't found to already be on the system it will be
-//!   compiled from source (this is a C library).
+//! * `zlib-rs` - this implementation utilizes the `zlib-rs` crate, a Rust rewrite of zlib.
+//!   This backend is the fastest, at the cost of some `unsafe` Rust code.
 //!
-//! There's various tradeoffs associated with each implementation, but in general you probably
-//! won't have to tweak the defaults. The default choice is selected to avoid the need for a C
-//! compiler at build time. `zlib-ng-compat` is useful if you're using zlib for compatibility but
-//! want performance via zlib-ng's zlib-compat mode. `zlib` is useful if something else in your
-//! dependencies links the original zlib so you cannot use zlib-ng-compat. The compression ratios
-//! and performance of each of these feature should be roughly comparable, but you'll likely want
-//! to run your own tests if you're curious about the performance.
+//! Several backends implemented in C are also available.
+//! These are useful in case you are already using a specific C implementation
+//! and need the result of compression to be bit-identical.
+//! See the crate's README for details on the available C backends.
+//!
+//! The `zlib-rs` backend typically outperforms all the C implementations.
 //!
 //! # Organization
 //!
@@ -77,7 +75,7 @@
 //!
 //! The [`MultiGzDecoder`] on the other hand will decode all members of a `gzip` file
 //! into one consecutive stream of bytes, which hides the underlying *members* entirely.
-//! If a file contains contains non-gzip data after the gzip data, MultiGzDecoder will
+//! If a file contains non-gzip data after the gzip data, MultiGzDecoder will
 //! emit an error after decoding the gzip data. This behavior matches the `gzip`,
 //! `gunzip`, and `zcat` command line tools.
 //!
@@ -192,6 +190,18 @@ impl Compression {
     ///
     /// The integer here is typically on a scale of 0-9 where 0 means "no
     /// compression" and 9 means "take as long as you'd like".
+    ///
+    /// ### Backend differences
+    ///
+    /// The [`miniz_oxide`](https://crates.io/crates/miniz_oxide) backend for flate2
+    /// does not support level 0 or `Compression::none()`. Instead it interprets them
+    /// as the default compression level, which is quite slow.
+    /// `Compression::fast()` should be used instead.
+    ///
+    /// `miniz_oxide` also supports a non-compliant compression level 10.
+    /// It is even slower and may result in higher compression, but
+    /// **only miniz_oxide will be able to read the data** compressed with level 10.
+    /// Do **not** use level 10 if you need other software to be able to read it!
     pub const fn new(level: u32) -> Compression {
         Compression(level)
     }
@@ -213,7 +223,7 @@ impl Compression {
     }
 
     /// Returns an integer representing the compression level, typically on a
-    /// scale of 0-9
+    /// scale of 0-9. See [`new`](Self::new) for details about compression levels.
     pub fn level(&self) -> u32 {
         self.0
     }
@@ -230,5 +240,5 @@ fn random_bytes() -> impl Iterator<Item = u8> {
     use rand::Rng;
     use std::iter;
 
-    iter::repeat(()).map(|_| rand::thread_rng().gen())
+    iter::repeat(()).map(|_| rand::rng().random())
 }

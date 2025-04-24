@@ -1,7 +1,10 @@
 #![cfg(all(unix, feature = "clock", feature = "std"))]
 
-use chrono::{Datelike, Days, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Timelike};
 use std::{path, process, thread};
+
+#[cfg(target_os = "linux")]
+use chrono::Days;
+use chrono::{Datelike, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Timelike};
 
 fn verify_against_date_command_local(path: &'static str, dt: NaiveDateTime) {
     let output = process::Command::new(path)
@@ -107,7 +110,7 @@ fn try_verify_against_date_command() {
 #[cfg(target_os = "linux")]
 fn verify_against_date_command_format_local(path: &'static str, dt: NaiveDateTime) {
     let required_format =
-        "d%d D%D F%F H%H I%I j%j k%k l%l m%m M%M S%S T%T u%u U%U w%w W%W X%X y%y Y%Y z%:z";
+        "d%d D%D F%F H%H I%I j%j k%k l%l m%m M%M q%q S%S T%T u%u U%U w%w W%W X%X y%y Y%Y z%:z";
     // a%a - depends from localization
     // A%A - depends from localization
     // b%b - depends from localization
@@ -141,8 +144,8 @@ fn verify_against_date_command_format_local(path: &'static str, dt: NaiveDateTim
     let ldt = Local
         .from_local_datetime(&date.and_hms_opt(dt.hour(), dt.minute(), dt.second()).unwrap())
         .unwrap();
-    let formated_date = format!("{}\n", ldt.format(required_format));
-    assert_eq!(date_command_str, formated_date);
+    let formatted_date = format!("{}\n", ldt.format(required_format));
+    assert_eq!(date_command_str, formatted_date);
 }
 
 #[test]

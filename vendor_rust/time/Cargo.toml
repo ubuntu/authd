@@ -11,18 +11,24 @@
 
 [package]
 edition = "2021"
-rust-version = "1.67.0"
+rust-version = "1.67.1"
 name = "time"
-version = "0.3.36"
+version = "0.3.41"
 authors = [
     "Jacob Pratt <open-source@jhpratt.dev>",
     "Time contributors",
 ]
+build = false
 include = [
     "src/**/*",
     "LICENSE-*",
     "README.md",
 ]
+autolib = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 description = "Date and time library. Fully interoperable with the standard library. Mostly compatible with #![no_std]."
 homepage = "https://time-rs.github.io"
 readme = "README.md"
@@ -43,93 +49,8 @@ repository = "https://github.com/time-rs/time"
 
 [package.metadata.docs.rs]
 all-features = true
-rustdoc-args = [
-    "--cfg",
-    "__time_03_docs",
-    "--generate-link-to-definition",
-]
+rustdoc-args = ["--generate-link-to-definition"]
 targets = ["x86_64-unknown-linux-gnu"]
-
-[lib]
-bench = false
-
-[[test]]
-name = "tests"
-path = "../tests/main.rs"
-
-[[bench]]
-name = "benchmarks"
-path = "../benchmarks/main.rs"
-harness = false
-
-[dependencies.deranged]
-version = "0.3.9"
-features = ["powerfmt"]
-default-features = false
-
-[dependencies.itoa]
-version = "1.0.1"
-optional = true
-
-[dependencies.num-conv]
-version = "0.1.0"
-
-[dependencies.powerfmt]
-version = "0.2.0"
-default-features = false
-
-[dependencies.quickcheck]
-version = "1.0.3"
-optional = true
-default-features = false
-
-[dependencies.rand]
-version = "0.8.4"
-optional = true
-default-features = false
-
-[dependencies.serde]
-version = "1.0.184"
-optional = true
-default-features = false
-
-[dependencies.time-core]
-version = "=0.1.2"
-
-[dependencies.time-macros]
-version = "=0.2.18"
-optional = true
-
-[dev-dependencies.num-conv]
-version = "0.1.0"
-
-[dev-dependencies.quickcheck_macros]
-version = "1.0.0"
-
-[dev-dependencies.rand]
-version = "0.8.4"
-default-features = false
-
-[dev-dependencies.rstest]
-version = "0.18.2"
-default-features = false
-
-[dev-dependencies.rstest_reuse]
-version = "0.6.0"
-
-[dev-dependencies.serde]
-version = "1.0.184"
-features = ["derive"]
-default-features = false
-
-[dev-dependencies.serde_json]
-version = "1.0.68"
-
-[dev-dependencies.serde_test]
-version = "1.0.126"
-
-[dev-dependencies.time-macros]
-version = "=0.2.18"
 
 [features]
 alloc = ["serde?/alloc"]
@@ -177,10 +98,84 @@ std = [
 ]
 wasm-bindgen = ["dep:js-sys"]
 
-[target."cfg(__ui_tests)".dev-dependencies.trybuild]
+[lib]
+name = "time"
+path = "src/lib.rs"
+bench = false
+
+[dependencies.deranged]
+version = "0.4.0"
+features = ["powerfmt"]
+default-features = false
+
+[dependencies.itoa]
+version = "1.0.1"
+optional = true
+
+[dependencies.num-conv]
+version = "0.1.0"
+
+[dependencies.powerfmt]
+version = "0.2.0"
+default-features = false
+
+[dependencies.quickcheck]
+version = "1.0.3"
+optional = true
+default-features = false
+
+[dependencies.rand]
+version = "0.8.4"
+optional = true
+default-features = false
+
+[dependencies.serde]
+version = "1.0.184"
+optional = true
+default-features = false
+
+[dependencies.time-core]
+version = "=0.1.4"
+
+[dependencies.time-macros]
+version = "=0.2.22"
+optional = true
+
+[dev-dependencies.num-conv]
+version = "0.1.0"
+
+[dev-dependencies.quickcheck_macros]
+version = "1.0.0"
+
+[dev-dependencies.rand]
+version = "0.8.4"
+default-features = false
+
+[dev-dependencies.rstest]
+version = "0.23.0"
+default-features = false
+
+[dev-dependencies.rstest_reuse]
+version = "0.7.0"
+
+[dev-dependencies.serde]
+version = "1.0.184"
+features = ["derive"]
+default-features = false
+
+[dev-dependencies.serde_json]
 version = "1.0.68"
 
-[target."cfg(all(target_family = \"wasm\", not(any(target_os = \"emscripten\", target_os = \"wasi\"))))".dependencies.js-sys]
+[dev-dependencies.serde_test]
+version = "1.0.126"
+
+[dev-dependencies.time-macros]
+version = "=0.2.22"
+
+[target."cfg(__ui_tests)".dev-dependencies.trybuild]
+version = "1.0.102"
+
+[target.'cfg(all(target_family = "wasm", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies.js-sys]
 version = "0.3.58"
 optional = true
 
@@ -188,17 +183,17 @@ optional = true
 version = "0.5.1"
 default-features = false
 
-[target."cfg(target_family = \"unix\")".dependencies.libc]
+[target.'cfg(target_family = "unix")'.dependencies.libc]
 version = "0.2.98"
 optional = true
 
-[target."cfg(target_family = \"unix\")".dependencies.num_threads]
+[target.'cfg(target_family = "unix")'.dependencies.num_threads]
 version = "0.1.2"
 optional = true
 
 [lints.clippy]
-all = "warn"
 alloc-instead-of-core = "deny"
+as-underscore = "warn"
 dbg-macro = "warn"
 decimal-literal-representation = "warn"
 explicit-auto-deref = "warn"
@@ -206,7 +201,6 @@ get-unwrap = "warn"
 manual-let-else = "warn"
 missing-docs-in-private-items = "warn"
 missing-enforced-import-renames = "warn"
-nursery = "warn"
 obfuscated-if-else = "warn"
 print-stdout = "warn"
 semicolon-outside-block = "warn"
@@ -220,6 +214,14 @@ unwrap-in-result = "warn"
 unwrap-used = "warn"
 use-debug = "warn"
 
+[lints.clippy.all]
+level = "warn"
+priority = -1
+
+[lints.clippy.nursery]
+level = "warn"
+priority = -1
+
 [lints.clippy.option-if-let-else]
 level = "allow"
 priority = 1
@@ -228,10 +230,15 @@ priority = 1
 level = "allow"
 priority = 1
 
+[lints.clippy.uninhabited-references]
+level = "allow"
+priority = 1
+
 [lints.rust]
 ambiguous-glob-reexports = "deny"
 clashing-extern-declarations = "deny"
 const-item-mutation = "deny"
+dangling-pointers-from-temporaries = "deny"
 deref-nullptr = "deny"
 drop-bounds = "deny"
 future-incompatible = "deny"
@@ -258,7 +265,6 @@ opaque-hidden-inferred-bound = "deny"
 overlapping-range-endpoints = "deny"
 single-use-lifetimes = "warn"
 suspicious-double-ref-op = "deny"
-temporary-cstring-as-ptr = "deny"
 trivial-casts = "warn"
 trivial-numeric-casts = "warn"
 unconditional-recursion = "deny"
@@ -266,15 +272,26 @@ unnameable-test-items = "deny"
 unreachable-pub = "warn"
 unsafe-op-in-unsafe-fn = "deny"
 unstable-syntax-pre-expansion = "deny"
-unused = "warn"
 unused-import-braces = "warn"
 unused-lifetimes = "warn"
 unused-qualifications = "warn"
 variant-size-differences = "warn"
 
+[lints.rust.unexpected_cfgs]
+level = "deny"
+priority = 0
+check-cfg = [
+    "cfg(__ui_tests)",
+    "cfg(bench)",
+]
+
 [lints.rust.unstable-name-collisions]
-level = "warn"
+level = "allow"
 priority = 1
+
+[lints.rust.unused]
+level = "warn"
+priority = -1
 
 [lints.rustdoc]
 private-doc-tests = "warn"

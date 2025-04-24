@@ -1265,10 +1265,7 @@ impl<B> StreamRef<B> {
 
         let mut stream = me.store.resolve(self.opaque.key);
 
-        me.actions
-            .send
-            .poll_reset(cx, &mut stream, mode)
-            .map_err(From::from)
+        me.actions.send.poll_reset(cx, &mut stream, mode)
     }
 
     pub fn clone_to_opaque(&self) -> OpaqueStreamRef {
@@ -1576,6 +1573,9 @@ impl Actions {
                 // Reset the stream.
                 self.send
                     .send_reset(reason, initiator, buffer, stream, counts, &mut self.task);
+                self.recv.enqueue_reset_expiration(stream, counts);
+                // if a RecvStream is parked, ensure it's notified
+                stream.notify_recv();
                 Ok(())
             } else {
                 tracing::warn!(

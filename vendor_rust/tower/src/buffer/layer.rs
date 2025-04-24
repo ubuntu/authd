@@ -33,7 +33,7 @@ impl<Request> BufferLayer<Request> {
     /// [`Poll::Ready`]: std::task::Poll::Ready
     /// [`call`]: crate::Service::call
     /// [`poll_ready`]: crate::Service::poll_ready
-    pub fn new(bound: usize) -> Self {
+    pub const fn new(bound: usize) -> Self {
         BufferLayer {
             bound,
             _p: PhantomData,
@@ -48,7 +48,7 @@ where
     S::Error: Into<crate::BoxError> + Send + Sync,
     Request: Send + 'static,
 {
-    type Service = Buffer<S, Request>;
+    type Service = Buffer<Request, S::Future>;
 
     fn layer(&self, service: S) -> Self::Service {
         Buffer::new(service, self.bound)

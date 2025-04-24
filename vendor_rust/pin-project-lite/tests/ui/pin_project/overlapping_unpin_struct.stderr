@@ -2,7 +2,7 @@ error[E0277]: `PhantomPinned` cannot be unpinned
   --> tests/ui/pin_project/overlapping_unpin_struct.rs:21:16
    |
 21 |     is_unpin::<Foo<PhantomPinned>>(); //~ ERROR E0277
-   |                ^^^^^^^^^^^^^^^^^^ within `_::__Origin<'_, PhantomPinned>`, the trait `Unpin` is not implemented for `PhantomPinned`, which is required by `Foo<PhantomPinned>: Unpin`
+   |                ^^^^^^^^^^^^^^^^^^ within `_::__Origin<'_, PhantomPinned>`, the trait `Unpin` is not implemented for `PhantomPinned`
    |
    = note: consider using the `pin!` macro
            consider using `Box::pin` if you need to access the pinned value outside of the current scope

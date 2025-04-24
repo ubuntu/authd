@@ -63,10 +63,9 @@ use crate::runtime::scheduler::multi_thread::{
 };
 use crate::runtime::scheduler::{inject, Defer, Lock};
 use crate::runtime::task::{OwnedTasks, TaskHarnessScheduleHooks};
-use crate::runtime::{
-    blocking, coop, driver, scheduler, task, Config, SchedulerMetrics, WorkerMetrics,
-};
+use crate::runtime::{blocking, driver, scheduler, task, Config, SchedulerMetrics, WorkerMetrics};
 use crate::runtime::{context, TaskHooks};
+use crate::task::coop;
 use crate::util::atomic_cell::AtomicCell;
 use crate::util::rand::{FastRand, RngSeedGenerator};
 
@@ -282,10 +281,7 @@ pub(super) fn create(
 
     let remotes_len = remotes.len();
     let handle = Arc::new(Handle {
-        task_hooks: TaskHooks {
-            task_spawn_callback: config.before_spawn.clone(),
-            task_terminate_callback: config.after_termination.clone(),
-        },
+        task_hooks: TaskHooks::from_config(&config),
         shared: Shared {
             remotes: remotes.into_boxed_slice(),
             inject,
@@ -574,6 +570,9 @@ impl Context {
     }
 
     fn run_task(&self, task: Notified, mut core: Box<Core>) -> RunResult {
+        #[cfg(tokio_unstable)]
+        let task_id = task.task_id();
+
         let task = self.worker.handle.shared.owned.assert_owner(task);
 
         // Make sure the worker is not in the **searching** state. This enables
@@ -593,7 +592,16 @@ impl Context {
 
         // Run the task
         coop::budget(|| {
+            // Unlike the poll time above, poll start callback is attached to the task id,
+            // so it is tightly associated with the actual poll invocation.
+            #[cfg(tokio_unstable)]
+            self.worker.handle.task_hooks.poll_start_callback(task_id);
+
             task.run();
+
+            #[cfg(tokio_unstable)]
+            self.worker.handle.task_hooks.poll_stop_callback(task_id);
+
             let mut lifo_polls = 0;
 
             // As long as there is budget remaining and a task exists in the
@@ -656,7 +664,17 @@ impl Context {
                 // Run the LIFO task, then loop
                 *self.core.borrow_mut() = Some(core);
                 let task = self.worker.handle.shared.owned.assert_owner(task);
+
+                #[cfg(tokio_unstable)]
+                let task_id = task.task_id();
+
+                #[cfg(tokio_unstable)]
+                self.worker.handle.task_hooks.poll_start_callback(task_id);
+
                 task.run();
+
+                #[cfg(tokio_unstable)]
+                self.worker.handle.task_hooks.poll_stop_callback(task_id);
             }
         })
     }
@@ -764,7 +782,13 @@ impl Context {
     }
 
     pub(crate) fn defer(&self, waker: &Waker) {
-        self.defer.defer(waker);
+        if self.core.borrow().is_none() {
+            // If there is no core, then the worker is currently in a block_in_place. In this case,
+            // we cannot use the defer queue as we aren't really in the current runtime.
+            waker.wake_by_ref();
+        } else {
+            self.defer.defer(waker);
+        }
     }
 
     #[allow(dead_code)]

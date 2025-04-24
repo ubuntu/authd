@@ -10,7 +10,7 @@ async fn nesting_apps() {
             get(|| async { "users#index" }).post(|| async { "users#create" }),
         )
         .route(
-            "/users/:id",
+            "/users/{id}",
             get(
                 |params: extract::Path<HashMap<String, String>>| async move {
                     format!(
@@ -22,7 +22,7 @@ async fn nesting_apps() {
             ),
         )
         .route(
-            "/games/:id",
+            "/games/{id}",
             get(
                 |params: extract::Path<HashMap<String, String>>| async move {
                     format!(
@@ -36,7 +36,7 @@ async fn nesting_apps() {
 
     let app = Router::new()
         .route("/", get(|| async { "hi" }))
-        .nest("/:version/api", api_routes);
+        .nest("/{version}/api", api_routes);
 
     let client = TestClient::new(app);
 
@@ -60,74 +60,49 @@ async fn nesting_apps() {
 #[crate::test]
 async fn wrong_method_nest() {
     let nested_app = Router::new().route("/", get(|| async {}));
-    let app = Router::new().nest("/", nested_app);
+    let app = Router::new().nest("/foo", nested_app);
 
     let client = TestClient::new(app);
 
-    let res = client.get("/").await;
+    let res = client.get("/foo").await;
     assert_eq!(res.status(), StatusCode::OK);
 
-    let res = client.post("/").await;
+    let res = client.post("/foo").await;
     assert_eq!(res.status(), StatusCode::METHOD_NOT_ALLOWED);
     assert_eq!(res.headers()[ALLOW], "GET,HEAD");
 
-    let res = client.patch("/foo").await;
+    let res = client.patch("/foo/bar").await;
     assert_eq!(res.status(), StatusCode::NOT_FOUND);
 }
 
-#[crate::test]
-async fn nesting_router_at_root() {
-    let nested = Router::new().route("/foo", get(|uri: Uri| async move { uri.to_string() }));
-    let app = Router::new().nest("/", nested);
-
-    let client = TestClient::new(app);
-
-    let res = client.get("/").await;
-    assert_eq!(res.status(), StatusCode::NOT_FOUND);
-
-    let res = client.get("/foo").await;
-    assert_eq!(res.status(), StatusCode::OK);
-    assert_eq!(res.text().await, "/foo");
-
-    let res = client.get("/foo/bar").await;
-    assert_eq!(res.status(), StatusCode::NOT_FOUND);
+#[test]
+#[should_panic(expected = "Nesting at the root is no longer supported. Use merge instead.")]
+fn nest_router_at_root() {
+    let nested = Router::new().route("/foo", get(|| async {}));
+    let _: Router = Router::new().nest("/", nested);
 }
 
-#[crate::test]
-async fn nesting_router_at_empty_path() {
-    let nested = Router::new().route("/foo", get(|uri: Uri| async move { uri.to_string() }));
-    let app = Router::new().nest("", nested);
-
-    let client = TestClient::new(app);
-
-    let res = client.get("/").await;
-    assert_eq!(res.status(), StatusCode::NOT_FOUND);
-
-    let res = client.get("/foo").await;
-    assert_eq!(res.status(), StatusCode::OK);
-    assert_eq!(res.text().await, "/foo");
-
-    let res = client.get("/foo/bar").await;
-    assert_eq!(res.status(), StatusCode::NOT_FOUND);
+#[test]
+#[should_panic(expected = "Nesting at the root is no longer supported. Use merge instead.")]
+fn nest_router_at_empty_path() {
+    let nested = Router::new().route("/foo", get(|| async {}));
+    let _: Router = Router::new().nest("", nested);
 }
 
-#[crate::test]
-async fn nesting_handler_at_root() {
-    let app = Router::new().nest_service("/", get(|uri: Uri| async move { uri.to_string() }));
+#[test]
+#[should_panic(
+    expected = "Nesting at the root is no longer supported. Use fallback_service instead."
+)]
+fn nest_service_at_root() {
+    let _: Router = Router::new().nest_service("/", get(|| async {}));
+}
 
-    let client = TestClient::new(app);
-
-    let res = client.get("/").await;
-    assert_eq!(res.status(), StatusCode::OK);
-    assert_eq!(res.text().await, "/");
-
-    let res = client.get("/foo").await;
-    assert_eq!(res.status(), StatusCode::OK);
-    assert_eq!(res.text().await, "/foo");
-
-    let res = client.get("/foo/bar").await;
-    assert_eq!(res.status(), StatusCode::OK);
-    assert_eq!(res.text().await, "/foo/bar");
+#[test]
+#[should_panic(
+    expected = "Nesting at the root is no longer supported. Use fallback_service instead."
+)]
+fn nest_service_at_empty_path() {
+    let _: Router = Router::new().nest_service("", get(|| async {}));
 }
 
 #[crate::test]
@@ -227,21 +202,6 @@ async fn nested_multiple_routes() {
     assert_eq!(client.get("/api/teams").await.text().await, "teams");
 }
 
-#[test]
-#[should_panic = "Invalid route \"/\": insertion failed due to conflict with previously registered route: /*__private__axum_nest_tail_param"]
-fn nested_service_at_root_with_other_routes() {
-    let _: Router = Router::new()
-        .nest_service("/", Router::new().route("/users", get(|| async {})))
-        .route("/", get(|| async {}));
-}
-
-#[test]
-fn nested_at_root_with_other_routes() {
-    let _: Router = Router::new()
-        .nest("/", Router::new().route("/users", get(|| async {})))
-        .route("/", get(|| async {}));
-}
-
 #[crate::test]
 async fn multiple_top_level_nests() {
     let app = Router::new()
@@ -263,7 +223,7 @@ async fn multiple_top_level_nests() {
 #[crate::test]
 #[should_panic(expected = "Invalid route: nested routes cannot contain wildcards (*)")]
 async fn nest_cannot_contain_wildcards() {
-    _ = Router::<()>::new().nest("/one/*rest", Router::new());
+    _ = Router::<()>::new().nest("/one/{*rest}", Router::new());
 }
 
 #[crate::test]
@@ -317,11 +277,11 @@ async fn outer_middleware_still_see_whole_url() {
 #[crate::test]
 async fn nest_at_capture() {
     let api_routes = Router::new().route(
-        "/:b",
+        "/{b}",
         get(|Path((a, b)): Path<(String, String)>| async move { format!("a={a} b={b}") }),
     );
 
-    let app = Router::new().nest("/:a", api_routes);
+    let app = Router::new().nest("/{a}", api_routes);
 
     let client = TestClient::new(app);
 
@@ -405,15 +365,25 @@ macro_rules! nested_route_test {
 }
 
 // test cases taken from https://github.com/tokio-rs/axum/issues/714#issuecomment-1058144460
-nested_route_test!(nest_1, nest = "", route = "/", expected = "/");
-nested_route_test!(nest_2, nest = "", route = "/a", expected = "/a");
-nested_route_test!(nest_3, nest = "", route = "/a/", expected = "/a/");
-nested_route_test!(nest_4, nest = "/", route = "/", expected = "/");
-nested_route_test!(nest_5, nest = "/", route = "/a", expected = "/a");
-nested_route_test!(nest_6, nest = "/", route = "/a/", expected = "/a/");
-nested_route_test!(nest_7, nest = "/a", route = "/", expected = "/a");
-nested_route_test!(nest_8, nest = "/a", route = "/a", expected = "/a/a");
-nested_route_test!(nest_9, nest = "/a", route = "/a/", expected = "/a/a/");
-nested_route_test!(nest_11, nest = "/a/", route = "/", expected = "/a/");
-nested_route_test!(nest_12, nest = "/a/", route = "/a", expected = "/a/a");
-nested_route_test!(nest_13, nest = "/a/", route = "/a/", expected = "/a/a/");
+nested_route_test!(nest_1, nest = "/a", route = "/", expected = "/a");
+nested_route_test!(nest_2, nest = "/a", route = "/a", expected = "/a/a");
+nested_route_test!(nest_3, nest = "/a", route = "/a/", expected = "/a/a/");
+nested_route_test!(nest_4, nest = "/a/", route = "/", expected = "/a/");
+nested_route_test!(nest_5, nest = "/a/", route = "/a", expected = "/a/a");
+nested_route_test!(nest_6, nest = "/a/", route = "/a/", expected = "/a/a/");
+
+#[crate::test]
+#[should_panic(
+    expected = "Path segments must not start with `:`. For capture groups, use `{capture}`. If you meant to literally match a segment starting with a colon, call `without_v07_checks` on the router."
+)]
+async fn colon_in_route() {
+    _ = Router::<()>::new().nest("/:foo", Router::new());
+}
+
+#[crate::test]
+#[should_panic(
+    expected = "Path segments must not start with `*`. For wildcard capture, use `{*wildcard}`. If you meant to literally match a segment starting with an asterisk, call `without_v07_checks` on the router."
+)]
+async fn asterisk_in_route() {
+    _ = Router::<()>::new().nest("/*foo", Router::new());
+}

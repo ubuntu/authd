@@ -31,6 +31,8 @@
     unused_parens,
     unknown_lints,
     renamed_and_removed_lints,
+    unnameable_types,
+    clippy::elidable_lifetime_names,
     clippy::mut_mut,
     clippy::needless_lifetimes,
     clippy::undocumented_unsafe_blocks
@@ -123,13 +125,15 @@ const _: () = {
         __lifetime0: &'a (),
     }
     impl<'pin, 'a, T> ::pin_project::__private::Unpin for Struct<'a, T> where
-        __Struct<'pin, 'a, T>: ::pin_project::__private::Unpin
+        ::pin_project::__private::PinnedFieldsOf<__Struct<'pin, 'a, T>>:
+            ::pin_project::__private::Unpin
     {
     }
     // A dummy impl of `UnsafeUnpin`, to ensure that the user cannot implement it.
     #[doc(hidden)]
     unsafe impl<'pin, 'a, T> ::pin_project::UnsafeUnpin for Struct<'a, T> where
-        __Struct<'pin, 'a, T>: ::pin_project::__private::Unpin
+        ::pin_project::__private::PinnedFieldsOf<__Struct<'pin, 'a, T>>:
+            ::pin_project::__private::Unpin
     {
     }
 };
