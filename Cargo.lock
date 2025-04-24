@@ -657,7 +657,7 @@ dependencies = [
  "log",
  "procfs",
  "prost",
- "rustix 0.38.44",
+ "rustix 1.0.5",
  "simple_logger",
  "syslog",
  "tokio",
