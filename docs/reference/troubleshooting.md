@@ -202,7 +202,7 @@ If using an edge release, you can read the
 [latest development version of the documentation](https://canonical-authd.readthedocs-hosted.com/en/latest/)
 ```
 
-## Switch the snap to the edge channel
+## Switch broker snap to the edge channel
 
 Maybe your issue is already fixed! You should try switching to the edge channel of the broker snap. You can easily do that with:
 
