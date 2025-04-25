@@ -47,6 +47,8 @@ func (m *Manager) UpdateUserEntry(user UserRow, authdGroups []GroupRow, localGro
 
 // handleUserUpdate updates the user record in the database.
 func handleUserUpdate(db queryable, u UserRow) error {
+	log.Debugf(context.Background(), "Updating entry of user %q (UID: %d)", u.Name, u.UID)
+
 	existingUser, err := userByID(db, u.UID)
 	if err != nil && !errors.Is(err, NoDataFoundError{}) {
 		return err
@@ -64,7 +66,12 @@ func handleUserUpdate(db queryable, u UserRow) error {
 		u.Dir = existingUser.Dir
 	}
 
-	log.Debugf(context.Background(), "Updating entry of user %q (UID: %d)", u.Name, u.UID)
+	// Ensure that we use the same shell as the one we have in the database.
+	if existingUser.Shell != "" && existingUser.Shell != u.Shell {
+		log.Debugf(context.TODO(), "Not updating shell to %q because it's already set to %q", u.Shell, existingUser.Shell)
+		u.Shell = existingUser.Shell
+	}
+
 	return insertOrUpdateUserByID(db, u)
 }
 

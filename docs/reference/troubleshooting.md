@@ -104,7 +104,6 @@ Then you need to restart the service with `sudo systemctl restart gdm`.
 
 #### authd broker service
 
-
 To increase the verbosity of the broker service, edit the service file:
 
 ::::{tab-set}
@@ -170,7 +169,39 @@ You will then need to restart the service with:
 :::
 ::::
 
-## Switch the snap to the edge channel
+## Switch authd to the edge PPA
+
+Maybe your issue is already fixed! You can try switching to the [edge PPA](https://launchpad.net/~ubuntu-enterprise-desktop/+archive/ubuntu/authd-edge), which contains the
+latest fixes and features for authd, in addition to its GNOME Shell (GDM)
+counterpart.
+
+```{warning}
+Do not use the edge PPA in a production system, because it may apply changes to
+the authd database in a non-reversible way, which can make it difficult to roll
+back to the stable version of authd.
+```
+
+```shell
+sudo add-apt-repository ppa:ubuntu-enterprise-desktop/authd-edge
+sudo apt update
+sudo apt install authd gnome-shell
+```
+
+Keep in mind that this version is not tested and may be incompatible with the current released version of the brokers.
+
+To switch back to the stable version of authd:
+
+```shell
+sudo apt install ppa-purge
+sudo ppa-purge ppa:ubuntu-enterprise-desktop/authd-edge
+```
+
+```{note}
+If using an edge release, you can read the
+[latest development version of the documentation](https://canonical-authd.readthedocs-hosted.com/en/latest/)
+```
+
+## Switch broker snap to the edge channel
 
 Maybe your issue is already fixed! You should try switching to the edge channel of the broker snap. You can easily do that with:
 
@@ -225,7 +256,54 @@ If using an edge release, you can read the
 [latest development version of the documentation](https://canonical-authd.readthedocs-hosted.com/en/latest/)
 ```
 
-## Common issues and limitations
+## Common issues
+
+### Only the first logged-in user can get access to a machine
+
+This is the expected behavior.
+
+By default, the first logged-in user is defined as the "owner" and only the
+owner can log in.
+
+For other users to gain access after authentication, they must be added to
+`allowed_users` in the `broker.conf` file.
+This is outlined in the [guide for configuring authd](ref::config-allowed-users).
+
+See below the relevant line in the configuration, showing both the owner and
+an additional user:
+
+```ini
+[users]
+allowed_users = OWNER,additionaluser1@example.com
+```
+
+If an administrator is the first to log in to a machine and becomes the owner,
+they can ensure that the next user to log in becomes the owner by removing the
+`20-owner-autoregistration.conf` file:
+
+::::{tab-set}
+:sync-group: broker
+
+:::{tab-item} Google IAM
+:sync: google
+
+```shell
+sudo rm /var/snap/authd-google/current/broker.conf.d/20-owner-autoregistration.conf
+```
+:::
+
+:::{tab-item} MS Entra ID
+:sync: msentraid
+
+```shell
+sudo rm /var/snap/authd-msentraid/current/broker.conf.d/20-owner-autoregistration.conf
+```
+:::
+::::
+
+
+This file is generated when a user logs in and becomes the owner. If it is
+removed, it will be regenerated on the next successful login.
 
 ### File ownership on shared network resources (e.g. NFS, Samba)
 
