@@ -9,6 +9,8 @@ package userslocking
 
 import (
 	"errors"
+	"fmt"
+	"time"
 )
 
 var (
@@ -22,6 +24,9 @@ var (
 
 	// ErrUnlock is the error when unlocking the database fails.
 	ErrUnlock = errors.New("failed to unlock the shadow password database")
+
+	// ErrLockTimeout is the error when unlocking the database fails because of timeout.
+	ErrLockTimeout = fmt.Errorf("%w: timeout", ErrLock)
 )
 
 // WriteLock locks for writing the the local user entries database by using
@@ -32,7 +37,21 @@ var (
 // database in write mode, while it will return an error if called while the
 // lock is already hold by this process.
 func WriteLock() error {
-	return writeLockImpl()
+	done := make(chan error)
+	go func() {
+		done <- writeLockImpl()
+	}()
+
+	select {
+	// lckpwdf when called from cgo doesn't behave exactly the same, likely
+	// because alarms are handled by go runtime, so do it manually here by
+	// failing if "lock not obtained within 15 seconds" as per lckpwdf.3.
+	// Keep this in sync with what lckpwdf does, adding an extra second.
+	case <-time.After(16 * time.Second):
+		return ErrLockTimeout
+	case err := <-done:
+		return err
+	}
 }
 
 // WriteUnlock unlocks for writing the local user entries database by using

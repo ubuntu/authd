@@ -224,6 +224,48 @@ func TestLockingLockedDatabase(t *testing.T) {
 	}
 }
 
+func TestLockingLockedDatabaseFailsAfterTimeout(t *testing.T) {
+	require.Zero(t, os.Geteuid(), "Not root")
+
+	testLockerUtility := os.Getenv("AUTHD_TESTS_PASSWD_LOCKER_UTILITY")
+	require.NotEmpty(t, testLockerUtility, "Setup: Locker utility unset")
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cmd := exec.CommandContext(ctx, testLockerUtility)
+	t.Logf("Running command: %s", cmd.Args)
+
+	lockerExited := make(chan error)
+	t.Cleanup(func() {
+		cancel()
+		syscall.Kill(cmd.Process.Pid, syscall.SIGKILL)
+		require.Error(t, <-lockerExited, "Stopping locking process")
+		require.NoError(t, userslocking.WriteUnlock(), "Final unlocking")
+	})
+
+	go func() {
+		lockerExited <- cmd.Run()
+	}()
+
+	select {
+	case <-time.After(sleepDuration(1 * time.Second)):
+		t.Cleanup(func() { cmd.Process.Kill() })
+		// If we're time-outing: it's fine, it means the test-locker process is running
+	case err := <-lockerExited:
+		require.NoError(t, err, "test locker should not have failed")
+	}
+
+	t.Log("Waiting for lock")
+	writeLockExited := make(chan error)
+	go func() {
+		writeLockExited <- userslocking.WriteLock()
+	}()
+
+	err := <-writeLockExited
+	t.Log("Done waiting for lock!")
+	require.ErrorIs(t, err, userslocking.ErrLock)
+	require.ErrorIs(t, err, userslocking.ErrLockTimeout)
+}
+
 func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 	require.Zero(t, os.Geteuid(), "Not root")
 
