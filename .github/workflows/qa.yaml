@@ -249,7 +249,8 @@ jobs:
           # Overriding the default coverage directory is not an exported flag of go test (yet), so
           # we need to override it using the test.gocoverdir flag instead.
           #TODO: Update when https://go-review.googlesource.com/c/go/+/456595 is merged.
-          go test -json -timeout ${GO_TESTS_TIMEOUT} -cover -covermode=set ./... -coverpkg=./... -shuffle=on -args -test.gocoverdir="${raw_cov_dir}" | \
+          go test -json -timeout ${GO_TESTS_TIMEOUT} -cover -covermode=set ./... -coverpkg=./... \
+            -shuffle=on -failfast -args -test.gocoverdir="${raw_cov_dir}" | \
             gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.log"
 
           # Convert the raw coverage data into textfmt so we can merge the Rust one into it
@@ -282,7 +283,7 @@ jobs:
           AUTHD_TESTS_SLEEP_MULTIPLIER: 3
           GORACE: log_path=${{ env.AUTHD_TESTS_ARTIFACTS_PATH }}/gorace.log
         run: |
-          go test -json -timeout ${GO_TESTS_TIMEOUT} -race ./... | \
+          go test -json -timeout ${GO_TESTS_TIMEOUT} -race -failfast ./... | \
             gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.race.log"
 
       - name: Run PAM tests (with Address Sanitizer)
@@ -300,7 +301,7 @@ jobs:
           # Print executed commands to ease debugging
           set -x
 
-          go test -C ./pam/internal -json -asan -gcflags=all="${GO_GC_FLAGS}" -timeout ${GO_TESTS_TIMEOUT} ./... | \
+          go test -C ./pam/internal -json -asan -gcflags=all="${GO_GC_FLAGS}" -failfast -timeout ${GO_TESTS_TIMEOUT} ./... | \
             gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.pam-internal-asan.log" || exit_code=$?
           if [ -n "${exit_code:-}" ]; then
             cat "${AUTHD_TESTS_ARTIFACTS_PATH}"/asan.log* || true
@@ -312,6 +313,7 @@ jobs:
           go test -asan -gcflags=all="${GO_GC_FLAGS}" -c
           go tool test2json -p pam/integrations-test ./integration-tests.test \
             -test.v=test2json \
+            -test.failfast \
             -test.timeout ${GO_TESTS_TIMEOUT} | \
           gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.pam-integration-tests-asan.log" || \
           exit_code=$?
