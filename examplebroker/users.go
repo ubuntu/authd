@@ -12,6 +12,8 @@ var (
 		"user1":               {Password: "goodpass"},
 		"user2":               {Password: "goodpass"},
 		"user3":               {Password: "goodpass"},
+		"user-ssh":            {Password: "goodpass"},
+		"user-ssh2":           {Password: "goodpass"},
 		"user-mfa":            {Password: "goodpass"},
 		"user-mfa-with-reset": {Password: "goodpass"},
 		"user-needs-reset":    {Password: "goodpass"},

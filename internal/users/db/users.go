@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/ubuntu/authd/log"
 )
@@ -62,6 +63,9 @@ func userByID(db queryable, uid uint32) (UserRow, error) {
 
 // UserByName returns a user matching this name or an error if the database is corrupted or no entry was found.
 func (m *Manager) UserByName(name string) (UserRow, error) {
+	// authd uses lowercase usernames
+	name = strings.ToLower(name)
+
 	query := fmt.Sprintf(`SELECT %s FROM users WHERE name = ?`, publicUserColumns)
 	row := m.db.QueryRow(query, name)
 

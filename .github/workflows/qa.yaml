@@ -24,6 +24,8 @@ env:
     libpwquality-dev
 
   test_apt_deps: >-
+    apparmor-profiles
+    bubblewrap
     cracklib-runtime
     git-delta
     openssh-client
@@ -155,6 +157,10 @@ jobs:
 
           # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
           sudo apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}} ${{ env.test_apt_deps }}
+
+          # Load the apparmor profile for bubblewrap.
+          sudo ln -s /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/
+          sudo apparmor_parser /etc/apparmor.d/bwrap-userns-restrict
       - name: Install PAM and GLib debug symbols
         run: |
           set -eu

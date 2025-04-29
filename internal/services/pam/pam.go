@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os/user"
+	"strings"
 
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/auth"
@@ -127,6 +128,9 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 	username := req.GetUsername()
 	brokerID := req.GetBrokerId()
 	lang := req.GetLang()
+
+	// authd usernames are lowercase
+	username = strings.ToLower(username)
 
 	if username == "" {
 		return nil, status.Error(codes.InvalidArgument, "no user name provided")
