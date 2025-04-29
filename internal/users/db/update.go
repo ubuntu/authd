@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/mattn/go-sqlite3"
 	"github.com/ubuntu/authd/log"
@@ -11,6 +12,9 @@ import (
 
 // UpdateUserEntry inserts or updates user and group records from the user information.
 func (m *Manager) UpdateUserEntry(user UserRow, authdGroups []GroupRow, localGroups []string) (err error) {
+	// authd uses lowercase usernames
+	user.Name = strings.ToLower(user.Name)
+
 	// Start a transaction
 	tx, err := m.db.Begin()
 	if err != nil {
@@ -157,6 +161,9 @@ func handleUsersToLocalGroupsUpdate(db queryable, uid uint32, localGroups []stri
 
 // UpdateBrokerForUser updates the last broker the user successfully authenticated with.
 func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
+	// authd uses lowercase usernames
+	username = strings.ToLower(username)
+
 	query := `UPDATE users SET broker_id = ? WHERE name = ?`
 	res, err := m.db.Exec(query, brokerID, username)
 	if err != nil {

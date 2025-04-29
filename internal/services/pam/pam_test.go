@@ -207,8 +207,8 @@ func TestSelectBroker(t *testing.T) {
 		"Error_when_mode_does_not_exist":                  {sessionMode: "does not exist", wantErr: true},
 		"Error_when_brokerID_is_empty":                    {username: "empty broker", brokerID: "-", wantErr: true},
 		"Error_when_broker_does_not_exist":                {username: "no broker", brokerID: "does not exist", wantErr: true},
-		"Error_when_broker_does_not_provide_a_session_ID": {username: "NS_no_id", wantErr: true},
-		"Error_when_starting_the_session":                 {username: "NS_error", wantErr: true},
+		"Error_when_broker_does_not_provide_a_session_ID": {username: "ns_no_id", wantErr: true},
+		"Error_when_starting_the_session":                 {username: "ns_error", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -271,14 +271,14 @@ func TestGetAuthenticationModes(t *testing.T) {
 		wantErr bool
 	}{
 		"Successfully_get_authentication_modes":          {},
-		"Successfully_get_multiple_authentication_modes": {username: "GAM_multiple_modes"},
+		"Successfully_get_multiple_authentication_modes": {username: "gam_multiple_modes"},
 
 		"Error_when_not_root":                     {currentUserNotRoot: true, wantErr: true},
 		"Error_when_sessionID_is_empty":           {sessionID: "-", wantErr: true},
 		"Error_when_passing_invalid_layout":       {supportedUILayouts: []*authd.UILayout{emptyType}, wantErr: true},
 		"Error_when_sessionID_is_invalid":         {sessionID: "invalid-session", wantErr: true},
-		"Error_when_getting_authentication_modes": {username: "GAM_error", wantErr: true},
-		"Error_when_broker_returns_invalid_modes": {username: "GAM_invalid", wantErr: true},
+		"Error_when_getting_authentication_modes": {username: "gam_error", wantErr: true},
+		"Error_when_broker_returns_invalid_modes": {username: "gam_invalid", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -336,24 +336,24 @@ func TestSelectAuthenticationMode(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully_select_mode_with_required_value":         {username: "SAM_success_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}},
-		"Successfully_select_mode_with_missing_optional_value": {username: "SAM_missing_optional_entry", supportedUILayouts: []*authd.UILayout{optionalEntry}},
+		"Successfully_select_mode_with_required_value":         {username: "sam_success_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}},
+		"Successfully_select_mode_with_missing_optional_value": {username: "sam_missing_optional_entry", supportedUILayouts: []*authd.UILayout{optionalEntry}},
 
 		// service errors
-		"Error_when_not_root":                {username: "SAM_success_required_entry", currentUserNotRoot: true, wantErr: true},
+		"Error_when_not_root":                {username: "sam_success_required_entry", currentUserNotRoot: true, wantErr: true},
 		"Error_when_sessionID_is_empty":      {sessionID: "-", wantErr: true},
 		"Error_when_session_ID_is_invalid":   {sessionID: "invalid-session", wantErr: true},
 		"Error_when_no_authmode_is_selected": {sessionID: "no auth mode", authMode: "-", wantErr: true},
 
 		// broker errors
-		"Error_when_selecting_invalid_auth_mode":                     {username: "SAM_error", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error_when_selecting_invalid_auth_mode":                     {username: "sam_error", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
 		"Error_when_broker_does_not_have_validators_for_the_session": {username: "does not matter", noValidators: true, wantErr: true},
 
 		/* Layout errors */
-		"Error_when_returns_no_layout":                     {username: "SAM_no_layout", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error_when_returns_layout_with_no_type":           {username: "SAM_no_layout_type", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error_when_returns_layout_without_required_value": {username: "SAM_missing_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
-		"Error_when_returns_layout_with_unknown_field":     {username: "SAM_unknown_field", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error_when_returns_no_layout":                     {username: "sam_no_layout", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error_when_returns_layout_with_no_type":           {username: "sam_no_layout_type", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error_when_returns_layout_without_required_value": {username: "sam_missing_required_entry", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
+		"Error_when_returns_layout_with_unknown_field":     {username: "sam_unknown_field", supportedUILayouts: []*authd.UILayout{requiredEntry}, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -380,8 +380,8 @@ func TestSelectAuthenticationMode(t *testing.T) {
 				tc.authMode = ""
 			}
 
-			// If the username does not have a SAM_something, it means we don't care about the broker answer and we don't need the validators.
-			if !tc.noValidators && strings.HasPrefix(tc.username, "SAM_") {
+			// If the username does not have a sam_something, it means we don't care about the broker answer and we don't need the validators.
+			if !tc.noValidators && strings.HasPrefix(tc.username, "sam_") {
 				// We need to call GetAuthenticationModes to generate the layout validators on the broker.
 				gamReq := &authd.GAMRequest{
 					SessionId:          tc.sessionID,
@@ -425,8 +425,8 @@ func TestIsAuthenticated(t *testing.T) {
 		// There is no wantErr as it's stored in the golden file.
 	}{
 		"Successfully_authenticate":                           {username: "success"},
-		"Successfully_authenticate_if_first_call_is_canceled": {username: "IA_second_call", secondCall: true, cancelFirstCall: true},
-		"Denies_authentication_when_broker_times_out":         {username: "IA_timeout"},
+		"Successfully_authenticate_if_first_call_is_canceled": {username: "ia_second_call", secondCall: true, cancelFirstCall: true},
+		"Denies_authentication_when_broker_times_out":         {username: "ia_timeout"},
 		"Update_existing_DB_on_success":                       {username: "success", existingDB: "cache-with-user.db"},
 		"Update_local_groups":                                 {username: "success_with_local_groups", localGroupsFile: "valid.group"},
 
@@ -436,12 +436,12 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error_when_there_is_no_broker": {sessionID: "invalid-session"},
 
 		// broker errors
-		"Error_when_authenticating":                         {username: "IA_error"},
-		"Error_on_empty_data_even_if_granted":               {username: "IA_empty_data"},
-		"Error_when_broker_returns_invalid_access":          {username: "IA_invalid_access"},
-		"Error_when_broker_returns_invalid_data":            {username: "IA_invalid_data"},
-		"Error_when_broker_returns_invalid_userinfo":        {username: "IA_invalid_userinfo"},
-		"Error_when_calling_second_time_without_cancelling": {username: "IA_second_call", secondCall: true},
+		"Error_when_authenticating":                         {username: "ia_error"},
+		"Error_on_empty_data_even_if_granted":               {username: "ia_empty_data"},
+		"Error_when_broker_returns_invalid_access":          {username: "ia_invalid_access"},
+		"Error_when_broker_returns_invalid_data":            {username: "ia_invalid_data"},
+		"Error_when_broker_returns_invalid_userinfo":        {username: "ia_invalid_userinfo"},
+		"Error_when_calling_second_time_without_cancelling": {username: "ia_second_call", secondCall: true},
 
 		// local group error
 		"Error_on_updating_local_groups_with_unexisting_file": {username: "success_with_local_groups", localGroupsFile: "does_not_exists.group"},
@@ -664,7 +664,7 @@ func TestEndSession(t *testing.T) {
 		"Error_when_not_root":             {username: "success", currentUserNotRoot: true, wantErr: true},
 		"Error_when_sessionID_is_empty":   {sessionID: "-", wantErr: true},
 		"Error_when_sessionID_is_invalid": {sessionID: "invalid-session", wantErr: true},
-		"Error_when_ending_session":       {username: "ES_error", wantErr: true},
+		"Error_when_ending_session":       {username: "es_error", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

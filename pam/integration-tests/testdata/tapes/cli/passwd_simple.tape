@@ -52,7 +52,7 @@ Wait /Username: user name\n/
 Show
 
 Hide
-TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
+TypeUsername "${AUTHD_TEST_TAPE_LOGIN_USERNAME}"
 Show
 
 Hide

@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -193,7 +194,7 @@ func TestGdmModel(t *testing.T) {
 		},
 		"Challenge_stage_caused_by_client_side_broker_and_authMode_selection": {
 			gdmEvents: []*gdm.EventData{
-				gdm_test.SelectUserEvent("gdm-selected-user-and-broker"),
+				gdm_test.SelectUserEvent("GDM-SELECTED-USER-AND-BROKER"),
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
@@ -231,7 +232,7 @@ func TestGdmModel(t *testing.T) {
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password")),
-			pamUser: "pam-preset-user-and-daemon-selected-broker",
+			pamUser: "pam-PRESET-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
 					stage: pam_proto.Stage_challenge,
@@ -251,6 +252,62 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_userSelected,
+				gdm.EventType_brokersReceived,
+				gdm.EventType_brokerSelected,
+				gdm.EventType_authModeSelected,
+				gdm.EventType_uiLayoutReceived,
+				gdm.EventType_startAuthentication,
+				gdm.EventType_authEvent,
+			},
+			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Granted}},
+			wantStage:      pam_proto.Stage_challenge,
+			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
+		},
+		"Authenticated_with_preset_PAM_user_updated_and_server_side_broker_and_authMode_selection": {
+			clientOptions: append(slices.Clone(singleBrokerClientOptions),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
+				pam_test.WithIsAuthenticatedWantSecret("gdm-good-password")),
+			pamUser: "GDM@PAM-CASE-INDEPENDENT-PRESET-USER",
+			messages: []tea.Msg{
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_challenge,
+					events: []*gdm.EventData{
+						gdm_test.ChangeStageEvent(pam_proto.Stage_userSelection),
+					},
+					commands: []tea.Cmd{
+						sendEvent(gdmTestWaitForStage{
+							stage: pam_proto.Stage_userSelection,
+							events: []*gdm.EventData{
+								gdm_test.SelectUserEvent("gdm@pam-case-independent-preset-user"),
+							},
+							commands: []tea.Cmd{
+								sendEvent(gdmTestWaitForStage{
+									stage: pam_proto.Stage_challenge,
+									commands: []tea.Cmd{
+										sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
+											Secret: "gdm-good-password",
+										}}),
+									},
+								}),
+							},
+						}),
+					},
+				},
+			},
+			wantMessages: []tea.Msg{
+				userSelected{"GDM@PAM-CASE-INDEPENDENT-PRESET-USER"},
+				userSelected{"gdm@pam-case-independent-preset-user"},
+			},
+			wantSelectedBroker: firstBrokerInfo.Id,
+			wantGdmRequests: []gdm.RequestType{
+				gdm.RequestType_uiLayoutCapabilities,
+				gdm.RequestType_changeStage, // -> broker Selection
+				gdm.RequestType_changeStage, // -> authMode Selection
+				gdm.RequestType_changeStage, // -> password
+			},
+			wantGdmEvents: []gdm.EventType{
+				gdm.EventType_userSelected, // First selection, done from PAM.
+				gdm.EventType_userSelected, // Second injected (and accepted) selection.
 				gdm.EventType_brokersReceived,
 				gdm.EventType_brokerSelected,
 				gdm.EventType_authModeSelected,
@@ -2298,11 +2355,24 @@ func TestGdmModel(t *testing.T) {
 			},
 		},
 		"Error_on_selecting_user_name_after_PAM_provided_already_one": {
+			clientOptions: append(slices.Clone(singleBrokerClientOptions),
+				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil)),
 			pamUser: "gdm-pam-preset-user",
 			messages: []tea.Msg{
-				tea.Sequence(tea.Tick(gdmPollFrequency*2, func(t time.Time) tea.Msg {
-					return userSelected{username: "another-selected-user"}
-				}))(),
+				gdmTestWaitForStage{
+					stage: pam_proto.Stage_challenge,
+					events: []*gdm.EventData{
+						gdm_test.ChangeStageEvent(pam_proto.Stage_userSelection),
+					},
+					commands: []tea.Cmd{
+						sendEvent(gdmTestWaitForStage{
+							stage: pam_proto.Stage_userSelection,
+							events: []*gdm.EventData{
+								gdm_test.SelectUserEvent("another-selected-user"),
+							},
+						}),
+					},
+				},
 			},
 			wantGdmRequests: []gdm.RequestType{
 				gdm.RequestType_uiLayoutCapabilities,
@@ -2320,10 +2390,9 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_brokerSelected,
 				gdm.EventType_authModesReceived,
 				gdm.EventType_authModeSelected,
-				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantStage: pam_proto.Stage_brokerSelection,
+			wantStage: pam_proto.Stage_userSelection,
 			wantExitStatus: pamError{
 				status: pam.ErrPermDenied,
 				msg:    `Changing username "gdm-pam-preset-user" to "another-selected-user" is not allowed`,
@@ -2559,8 +2628,11 @@ func TestGdmModel(t *testing.T) {
 			require.Empty(t, appState.wantMessages, "Wanted messages have not all been processed")
 
 			username, err := appState.pamMTx.GetItem(pam.User)
-			require.NoError(t, err)
-			require.Equal(t, tc.wantUsername, username)
+			require.NoError(t, err, "Failed to get the PAM user name")
+			// authd uses lowercase usernames
+			require.Equal(t, strings.ToLower(tc.wantUsername), username,
+				"User name does not match")
+
 			gdm_test.RequireEqualData(t, tc.wantGdmAuthRes, gdmHandler.authEvents)
 
 			if r, ok := tc.wantExitStatus.(PamReturnError); ok {
