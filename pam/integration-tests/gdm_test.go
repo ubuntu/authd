@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -157,6 +158,16 @@ func TestGdmModule(t *testing.T) {
 		wantAcctMgmtErr      error
 	}{
 		"Authenticates_user": {
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
+						Secret: "goodpass",
+					}),
+				},
+			},
+		},
+		"Authenticates_user_with_upper_case_name": {
+			pamUser: ptrValue(strings.ToUpper(vhsTestUserName(t, "upper-case"))),
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
 				gdm.EventType_startAuthentication: {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
@@ -1035,7 +1046,9 @@ func TestGdmModule(t *testing.T) {
 
 			user, err := gh.tx.GetItem(pam.User)
 			require.NoError(t, err, "Can't get the pam user")
-			require.Equal(t, pamUser, user, "PAM user name does not match expected")
+			// authd uses lowercase usernames.
+			require.Equal(t, strings.ToLower(pamUser), user,
+				"PAM user name does not match expected")
 
 			requirePreviousBrokerForUser(t, socketPath, gh.selectedBrokerName, user)
 		})

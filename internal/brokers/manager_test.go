@@ -186,8 +186,8 @@ func TestNewSession(t *testing.T) {
 		"Successfully_start_a_new_session_with_the_correct_broker": {username: "success", configuredBrokers: []string{t.Name() + "_Broker1.conf", t.Name() + "_Broker2.conf"}},
 
 		"Error_when_broker_does_not_exist":           {brokerID: "does_not_exist", wantErr: true},
-		"Error_when_broker_does_not_provide_an_ID":   {username: "NS_no_id", wantErr: true},
-		"Error_when_starting_a_new_session":          {username: "NS_error", wantErr: true},
+		"Error_when_broker_does_not_provide_an_ID":   {username: "ns_no_id", wantErr: true},
+		"Error_when_starting_a_new_session":          {username: "ns_error", wantErr: true},
 		"Error_when_broker_is_not_available_on_dbus": {unavailableBroker: true, wantErr: true},
 	}
 	for name, tc := range tests {
@@ -270,7 +270,7 @@ func TestEndSession(t *testing.T) {
 		"Successfully_end_session_on_the_correct_broker": {sessionID: "success", configuredBrokers: []string{t.Name() + "_Broker1", t.Name() + "_Broker2"}},
 
 		"Error_when_broker_does_not_exist": {brokerID: "does not exist", sessionID: "dont matter", wantErr: true},
-		"Error_when_ending_session":        {sessionID: "ES_error", wantErr: true},
+		"Error_when_ending_session":        {sessionID: "es_error", wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

@@ -1,8 +1,8 @@
 FIRST CALL:
 	access: granted
-	data: {"Name":"TestIsAuthenticated/Error_when_calling_IsAuthenticated_a_second_time_without_cancelling_separator_IA_second_call","UID":0,"Gecos":"gecos for IA_second_call","Dir":"/home/IA_second_call","Shell":"/bin/sh/IA_second_call","Groups":[{"Name":"group-IA_second_call","GID":null,"UGID":"ugid-IA_second_call"}]}
+	data: {"Name":"TestIsAuthenticated/Error_when_calling_IsAuthenticated_a_second_time_without_cancelling_separator_ia_second_call","UID":0,"Gecos":"gecos for ia_second_call","Dir":"/home/ia_second_call","Shell":"/bin/sh/ia_second_call","Groups":[{"Name":"group-ia_second_call","GID":null,"UGID":"ugid-ia_second_call"}]}
 	err: <nil>
 SECOND CALL:
 	access: 
 	data: 
-	err: broker "TestIsAuthenticated": IsAuthenticated already running for session "TestIsAuthenticated/Error_when_calling_IsAuthenticated_a_second_time_without_cancelling_separator_IA_second_call"
+	err: broker "TestIsAuthenticated": IsAuthenticated already running for session "TestIsAuthenticated/Error_when_calling_IsAuthenticated_a_second_time_without_cancelling_separator_ia_second_call"
