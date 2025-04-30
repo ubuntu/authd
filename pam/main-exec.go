@@ -15,9 +15,8 @@ import (
 )
 
 var (
-	pamFlags      = flag.Int64("flags", 0, "pam flags")
-	serverAddress = flag.String("server-address", "", "the dbus connection to use to communicate with module")
-	timeout       = flag.Int64("timeout", 120, "timeout for the server connection (in seconds)")
+	pamFlags = flag.Int64("flags", 0, "pam flags")
+	timeout  = flag.Int64("timeout", 120, "timeout for the server connection (in seconds)")
 )
 
 func init() {
@@ -37,12 +36,8 @@ func mainFunc() error {
 		return errors.New("not enough arguments")
 	}
 
-	serverAddressEnv := os.Getenv("AUTHD_PAM_SERVER_ADDRESS")
-	if serverAddressEnv != "" {
-		*serverAddress = serverAddressEnv
-	}
-
-	if serverAddress == nil {
+	serverAddress := os.Getenv("AUTHD_PAM_SERVER_ADDRESS")
+	if serverAddress == "" {
 		return fmt.Errorf("%w: no connection provided", pam.ErrSystem)
 	}
 
