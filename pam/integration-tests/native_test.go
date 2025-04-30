@@ -386,6 +386,15 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape:               "authd_stopped",
 			wantSeparateDaemon: true,
 		},
+		"Exit_the_pam_client_if_parent_pam_application_is_stopped": {
+			tape: "pam_app_killed",
+			tapeVariables: map[string]string{
+				"AUTHD_TEST_TAPE_AUTHD_PAM_BINARY_NAME": authdPamBinaryName,
+				vhsCommandFinalAuthWaitVariable:         "",
+			},
+			userSelection:   true,
+			skipRunnerCheck: true,
+		},
 
 		"Error_if_cannot_connect_to_authd": {
 			tape:       "connection_error",

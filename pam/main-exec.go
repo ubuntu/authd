@@ -48,11 +48,25 @@ func mainFunc() error {
 
 	ctx, cancel := context.WithTimeout(context.TODO(), time.Duration(*timeout)*time.Second)
 	defer cancel()
+
 	mTx, closeFunc, err := dbusmodule.NewTransaction(ctx, *serverAddress)
 	if err != nil {
 		return fmt.Errorf("%w: can't connect to server: %w", pam.ErrSystem, err)
 	}
 	defer closeFunc()
+
+	actionDone := make(chan struct{})
+	defer close(actionDone)
+
+	go func() {
+		select {
+		case <-actionDone:
+		case <-mTx.Context().Done():
+			log.Warningf(context.Background(), "D-Bus Connection closed: %v",
+				mTx.Context().Err())
+			os.Exit(255)
+		}
+	}()
 
 	action, args := args[0], args[1:]
 
@@ -60,6 +74,8 @@ func mainFunc() error {
 	if pamFlags != nil {
 		flags = pam.Flags(*pamFlags)
 	}
+
+	log.Debugf(context.Background(), "Starting action %q (%v)", action, flags)
 
 	switch action {
 	case "authenticate":
