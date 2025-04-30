@@ -122,7 +122,11 @@ func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
 
 	// Create a temporary user group file for testing
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
-	err = os.WriteFile(groupsFilePath, []byte("Group1:x:11111:User1\n"), 0600)
+	err = os.WriteFile(groupsFilePath, []byte(`root:x:0:
+other-local-group:x:1234:
+other-local-group-with-users:x:4321:user-foo,user-bar
+Group1:x:11111:User1
+`), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
 	// Make the db package use the temporary group file

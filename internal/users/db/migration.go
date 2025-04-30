@@ -258,7 +258,7 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 			continue
 		}
 
-		fields := strings.FieldsFunc(line, func(r rune) bool { return r == ':' })
+		fields := strings.SplitN(line, ":", 4)
 		if len(fields) != 4 {
 			return fmt.Errorf("unexpected number of fields in %s line (expected 4, got %d): %s",
 				groupFile, len(fields), line)
