@@ -122,7 +122,11 @@ func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
 
 	// Create a temporary user group file for testing
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
-	err = os.WriteFile(groupsFilePath, []byte("Group1:x:11111:User1\n"), 0600)
+	err = os.WriteFile(groupsFilePath, []byte(`root:x:0:
+other-local-group:x:1234:
+other-local-group-with-users:x:4321:user-foo,user-bar
+Group1:x:11111:User1
+`), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
 	// Make the db package use the temporary group file
@@ -154,6 +158,90 @@ func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
 	userGroupBackupContent, err := os.ReadFile(db.GroupFileBackupPath())
 	require.NoError(t, err)
 	golden.CheckOrUpdate(t, string(userGroupBackupContent), golden.WithPath("groups-backup"))
+}
+
+func TestMigrationToLowercaseUserAndGroupNamesEmptyDB(t *testing.T) {
+	// Create a database from the testdata
+	dbDir := t.TempDir()
+	dbFile := "empty.db.yaml"
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	// Create a temporary user group file for testing
+	groupsFilePath := filepath.Join(t.TempDir(), "groups")
+	err = fileutils.Touch(groupsFilePath)
+	require.NoError(t, err, "Setup: could not create group file")
+
+	// Make the db package use the temporary group file
+	origGroupFile := db.GroupFile()
+	db.SetGroupFile(groupsFilePath)
+	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
+
+	// Make the userutils package to use test locking for the group file
+	userslocking.Z_ForTests_OverrideLocking()
+	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+
+	// Run the migrations
+	m, err := db.New(dbDir)
+	require.NoError(t, err)
+
+	// Check the content of the SQLite database
+	dbContent, err := db.Z_ForTests_DumpNormalizedYAML(m)
+	require.NoError(t, err)
+
+	golden.CheckOrUpdate(t, dbContent, golden.WithPath("db"))
+
+	// Check the content of the user group file
+	userGroupContent, err := os.ReadFile(groupsFilePath)
+	require.NoError(t, err)
+
+	golden.CheckOrUpdate(t, string(userGroupContent), golden.WithPath("groups"))
+
+	// Check the content of the backup group file
+	_, err = os.Stat(db.GroupFileBackupPath())
+	require.ErrorIs(t, err, os.ErrNotExist, "No backup should exist")
+}
+
+func TestMigrationToLowercaseUserAndGroupNamesAlreadyUpdated(t *testing.T) {
+	// Create a database from the testdata
+	dbDir := t.TempDir()
+	dbFile := "one_user_and_group_with_uppercase.db.yaml"
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	// Create a temporary user group file for testing
+	groupsFilePath := filepath.Join(t.TempDir(), "groups")
+	err = os.WriteFile(groupsFilePath, []byte("Group1:x:11111:user1\n"), 0600)
+	require.NoError(t, err, "Setup: could not create group file")
+
+	// Make the db package use the temporary group file
+	origGroupFile := db.GroupFile()
+	db.SetGroupFile(groupsFilePath)
+	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
+
+	// Make the userutils package to use test locking for the group file
+	userslocking.Z_ForTests_OverrideLocking()
+	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+
+	// Run the migrations
+	m, err := db.New(dbDir)
+	require.NoError(t, err)
+
+	// Check the content of the SQLite database
+	dbContent, err := db.Z_ForTests_DumpNormalizedYAML(m)
+	require.NoError(t, err)
+
+	golden.CheckOrUpdate(t, dbContent, golden.WithPath("db"))
+
+	// Check the content of the user group file
+	userGroupContent, err := os.ReadFile(groupsFilePath)
+	require.NoError(t, err)
+
+	golden.CheckOrUpdate(t, string(userGroupContent), golden.WithPath("groups"))
+
+	// Check the content of the backup group file
+	_, err = os.Stat(db.GroupFileBackupPath())
+	require.ErrorIs(t, err, os.ErrNotExist, "No backup should exist")
 }
 
 func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedGroupFile(t *testing.T) {
