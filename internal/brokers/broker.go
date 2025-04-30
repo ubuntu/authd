@@ -149,7 +149,7 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 
 	// Validate access authentication.
 	if !slices.Contains(auth.Replies, access) {
-		return "", "", fmt.Errorf("invalid access authentication key: %v", access)
+		return "", "", fmt.Errorf("invalid authentication reply: %v", access)
 	}
 
 	if data == "" {
