@@ -48,7 +48,7 @@ func mainFunc() error {
 
 	ctx, cancel := context.WithTimeout(context.TODO(), time.Duration(*timeout)*time.Second)
 	defer cancel()
-	mTx, closeFunc, err := dbusmodule.NewTransaction(ctx, *serverAddress)
+	mTx, _, closeFunc, err := dbusmodule.NewTransaction(ctx, serverAddress)
 	if err != nil {
 		return fmt.Errorf("%w: can't connect to server: %w", pam.ErrSystem, err)
 	}

@@ -61,11 +61,19 @@ func mainFunc() error {
 		return fmt.Errorf("%w: no connection provided", pam_test.ErrInvalid)
 	}
 
-	mTx, closeFunc, err := newModuleWrapper(*serverAddress)
+	mTx, dbusCtx, closeFunc, err := newModuleWrapper(serverAddress)
 	if err != nil {
 		return fmt.Errorf("%w: can't connect to server: %w", pam_test.ErrInvalid, err)
 	}
 	defer closeFunc()
+
+	go func() {
+		select {
+		case <-dbusCtx.Done():
+			log.Debugf(context.Background(), "Connection lost: %v",
+				dbusCtx.Err())
+		}
+	}()
 
 	action, args := args[0], args[1:]
 

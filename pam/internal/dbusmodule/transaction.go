@@ -39,9 +39,10 @@ const objectPath = "/com/ubuntu/authd/pam"
 const variantNothing = "<@mv nothing>"
 
 // NewTransaction creates a new [dbusmodule.Transaction] with the provided connection.
-// A [pam.ModuleTransaction] implementation is returned together with a cleanup function that
-// should be called to release the connection.
-func NewTransaction(ctx context.Context, address string, o ...TransactionOptions) (tx pam.ModuleTransaction, cleanup func(), err error) {
+// A [pam.ModuleTransaction] implementation is returned together with the connection context
+// that will be cancelled when the connection to the server has been closed and with a cleanup
+// function that should be called to release the connection.
+func NewTransaction(ctx context.Context, address string, o ...TransactionOptions) (tx pam.ModuleTransaction, connCtx context.Context, cleanup func(), err error) {
 	opts := options{}
 	for _, f := range o {
 		f(&opts)
@@ -50,21 +51,22 @@ func NewTransaction(ctx context.Context, address string, o ...TransactionOptions
 	log.Debugf(context.TODO(), "Connecting to %s", address)
 	conn, err := dbus.Dial(address, dbus.WithContext(ctx))
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	cleanup = func() { conn.Close() }
 	if err = conn.Auth(nil); err != nil {
 		cleanup()
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	if opts.isSharedConnection {
 		if err = conn.Hello(); err != nil {
 			cleanup()
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
 	}
+
 	obj := conn.Object(ifaceName, objectPath)
-	return &Transaction{obj: obj}, cleanup, nil
+	return &Transaction{obj: obj}, conn.Context(), cleanup, nil
 }
 
 // BusObject gets the DBus object.
