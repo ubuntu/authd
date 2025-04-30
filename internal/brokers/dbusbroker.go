@@ -102,6 +102,10 @@ func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, aut
 func (b dbusBroker) IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (access, data string, err error) {
 	call, err := b.call(ctx, "IsAuthenticated", sessionID, authenticationData)
 	if errors.Is(err, context.Canceled) {
+		// In contrast to gRPC, D-Bus does not support cancelling ongoing method calls through context cancellation.
+		// BusObject.CallWithContext only aborts the call on the client side when the context is cancelled.
+		// So if that happens, we need to call CancelIsAuthenticated to also cancel the ongoing call on the broker side,
+		// to avoid that the broker continuous its work to authenticate the user.
 		b.CancelIsAuthenticated(context.Background(), sessionID)
 		return auth.Cancelled, "", nil
 	}
