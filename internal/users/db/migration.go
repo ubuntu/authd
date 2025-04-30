@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/ubuntu/authd/internal/fileutils"
@@ -227,6 +228,11 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 	log.Debugf(context.Background(), "Renaming users in %q: %v -> %v", groupFile,
 		oldNames, newNames)
 
+	if len(oldNames) == 0 && len(newNames) == 0 {
+		// Nothing to do.
+		return nil
+	}
+
 	// Note that we can't use gpasswd here because `gpasswd --add` checks for the existence of the user, which causes an
 	// NSS request to be sent to authd, but authd is not ready yet because we are still migrating the database.
 	err := userslocking.WriteLock()
@@ -273,6 +279,10 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 
 	// Add final new line to the group file.
 	newLines = append(newLines, "")
+
+	if slices.Compare(oldLines, newLines) == 0 {
+		return nil
+	}
 
 	backupPath := groupFileBackupPath()
 	oldBackup := ""
