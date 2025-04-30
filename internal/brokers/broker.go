@@ -142,21 +142,9 @@ func (b Broker) SelectAuthenticationMode(ctx context.Context, sessionID, authent
 func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (access string, data string, err error) {
 	sessionID = b.parseSessionID(sessionID)
 
-	// monitor ctx in goroutine to call cancel
-	done := make(chan struct{})
-	go func() {
-		access, data, err = b.brokerer.IsAuthenticated(ctx, sessionID, authenticationData)
-		close(done)
-	}()
-
-	select {
-	case <-done:
-		if err != nil {
-			return "", "", err
-		}
-	case <-ctx.Done():
-		b.cancelIsAuthenticated(ctx, sessionID)
-		<-done
+	access, data, err = b.brokerer.IsAuthenticated(ctx, sessionID, authenticationData)
+	if err != nil {
+		return "", "", err
 	}
 
 	// Validate access authentication.
@@ -221,14 +209,6 @@ func (b Broker) endSession(ctx context.Context, sessionID string) (err error) {
 	delete(b.ongoingUserRequests, sessionID)
 
 	return b.brokerer.EndSession(ctx, sessionID)
-}
-
-// cancelIsAuthenticated calls the broker corresponding method.
-// If the session does not have a pending IsAuthenticated call, this is a no-op.
-//
-// Even though this is a public method, it should only be interacted with through IsAuthenticated and ctx cancellation.
-func (b Broker) cancelIsAuthenticated(ctx context.Context, sessionID string) {
-	b.brokerer.CancelIsAuthenticated(ctx, sessionID)
 }
 
 // UserPreCheck calls the broker corresponding method.

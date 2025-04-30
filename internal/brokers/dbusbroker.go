@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/godbus/dbus/v5"
+	"github.com/ubuntu/authd/internal/brokers/auth"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
@@ -98,9 +99,12 @@ func (b dbusBroker) SelectAuthenticationMode(ctx context.Context, sessionID, aut
 }
 
 // IsAuthenticated calls the corresponding method on the broker bus and returns the user information and access.
-func (b dbusBroker) IsAuthenticated(_ context.Context, sessionID, authenticationData string) (access, data string, err error) {
-	// We don’t want to cancel the context when the parent call is cancelled.
-	call, err := b.call(context.Background(), "IsAuthenticated", sessionID, authenticationData)
+func (b dbusBroker) IsAuthenticated(ctx context.Context, sessionID, authenticationData string) (access, data string, err error) {
+	call, err := b.call(ctx, "IsAuthenticated", sessionID, authenticationData)
+	if errors.Is(err, context.Canceled) {
+		b.CancelIsAuthenticated(context.Background(), sessionID)
+		return auth.Cancelled, "", nil
+	}
 	if err != nil {
 		return "", "", err
 	}
@@ -121,8 +125,7 @@ func (b dbusBroker) EndSession(ctx context.Context, sessionID string) (err error
 
 // CancelIsAuthenticated calls the corresponding method on the broker bus.
 func (b dbusBroker) CancelIsAuthenticated(ctx context.Context, sessionID string) {
-	// We don’t want to cancel the context when the parent call is cancelled.
-	if _, err := b.call(context.Background(), "CancelIsAuthenticated", sessionID); err != nil {
+	if _, err := b.call(ctx, "CancelIsAuthenticated", sessionID); err != nil {
 		log.Errorf(ctx, "could not cancel IsAuthenticated call for session %q: %v", sessionID, err)
 	}
 }
