@@ -9,7 +9,9 @@ import (
 	"strings"
 
 	"github.com/ubuntu/authd/internal/services/permissions"
+	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
 )
 
 // load any behaviour modifiers from env variable.
@@ -25,4 +27,7 @@ func init() {
 	}
 	localentries.Z_ForTests_SetGpasswdCmd(strings.Split(gpasswdArgs, " "))
 	localentries.Z_ForTests_SetGroupPath(grpFilePath)
+	db.Z_ForTests_SetGroupFile(grpFilePath)
+
+	userslocking.Z_ForTests_OverrideLocking()
 }
