@@ -6,10 +6,10 @@ use tokio::runtime::Builder;
 use tonic::Request;
 
 use crate::client::{self, authd};
-use authd::GroupEntry;
+use authd::Group as AuthdGroup;
 
-pub struct AuthdGroup;
-impl GroupHooks for AuthdGroup {
+pub struct AuthdGroupHooks;
+impl GroupHooks for AuthdGroupHooks {
     /// get_all_entries returns all group entries.
     fn get_all_entries() -> Response<Vec<Group>> {
         get_all_entries()
@@ -47,8 +47,8 @@ fn get_all_entries() -> Response<Vec<Group>> {
 
         let mut req = Request::new(authd::Empty {});
         req.set_timeout(REQUEST_TIMEOUT);
-        match client.get_group_entries(req).await {
-            Ok(r) => Response::Success(group_entries_to_groups(r.into_inner().entries)),
+        match client.list_groups(req).await {
+            Ok(r) => Response::Success(authd_groups_to_group_entries(r.into_inner().groups)),
             Err(e) => {
                 info!("error when listing groups: {}", e.code());
                 super::grpc_status_to_nss_response(e)
@@ -76,12 +76,12 @@ fn get_entry_by_gid(gid: gid_t) -> Response<Group> {
             }
         };
 
-        let mut req = Request::new(authd::GetByIdRequest { id: gid });
+        let mut req = Request::new(authd::GetGroupByIdRequest { id: gid });
         req.set_timeout(REQUEST_TIMEOUT);
-        match client.get_group_by_gid(req).await {
-            Ok(r) => Response::Success(group_entry_to_group(r.into_inner())),
+        match client.get_group_by_id(req).await {
+            Ok(r) => Response::Success(authd_group_to_group_entry(r.into_inner())),
             Err(e) => {
-                info!("error when getting group by gid '{}': {}", gid, e.code());
+                info!("error when getting group by ID '{}': {}", gid, e.code());
                 super::grpc_status_to_nss_response(e)
             }
         }
@@ -110,7 +110,7 @@ fn get_entry_by_name(name: String) -> Response<Group> {
         let mut req = Request::new(authd::GetGroupByNameRequest { name: name.clone() });
         req.set_timeout(REQUEST_TIMEOUT);
         match client.get_group_by_name(req).await {
-            Ok(r) => Response::Success(group_entry_to_group(r.into_inner())),
+            Ok(r) => Response::Success(authd_group_to_group_entry(r.into_inner())),
             Err(e) => {
                 info!(
                     "error when getting group by name '{}': {}",
@@ -123,17 +123,17 @@ fn get_entry_by_name(name: String) -> Response<Group> {
     })
 }
 
-/// group_entry_to_group converts a GroupEntry to a libnss::Group.
-fn group_entry_to_group(entry: GroupEntry) -> Group {
+/// authd_group_to_group_entry converts a authd::Group to a libnss::Group.
+fn authd_group_to_group_entry(group: AuthdGroup) -> Group {
     Group {
-        name: entry.name,
-        passwd: entry.passwd,
-        gid: entry.gid,
-        members: entry.members,
+        name: group.name,
+        passwd: group.passwd,
+        gid: group.gid,
+        members: group.members,
     }
 }
 
-/// group_entries_to_groups converts a Vec<GroupEntry> to a Vec<libnss::Group>.
-fn group_entries_to_groups(entries: Vec<GroupEntry>) -> Vec<Group> {
-    entries.into_iter().map(group_entry_to_group).collect()
+/// authd_groups_to_group_entries converts a Vec<authd::Group> to a Vec<libnss::Group>.
+fn authd_groups_to_group_entries(groups: Vec<AuthdGroup>) -> Vec<Group> {
+    groups.into_iter().map(authd_group_to_group_entry).collect()
 }

@@ -1,6 +1,6 @@
 authd.NSS:
     methods:
-        - name: GetGroupByGID
+        - name: GetGroupByID
           isclientstream: false
           isserverstream: false
         - name: GetGroupByName

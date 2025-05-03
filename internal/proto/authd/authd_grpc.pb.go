@@ -387,367 +387,291 @@ var PAM_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	NSS_GetPasswdByName_FullMethodName  = "/authd.NSS/GetPasswdByName"
-	NSS_GetPasswdByUID_FullMethodName   = "/authd.NSS/GetPasswdByUID"
-	NSS_GetPasswdEntries_FullMethodName = "/authd.NSS/GetPasswdEntries"
-	NSS_GetGroupByName_FullMethodName   = "/authd.NSS/GetGroupByName"
-	NSS_GetGroupByGID_FullMethodName    = "/authd.NSS/GetGroupByGID"
-	NSS_GetGroupEntries_FullMethodName  = "/authd.NSS/GetGroupEntries"
-	NSS_GetShadowByName_FullMethodName  = "/authd.NSS/GetShadowByName"
-	NSS_GetShadowEntries_FullMethodName = "/authd.NSS/GetShadowEntries"
+	UserService_GetUserByName_FullMethodName  = "/authd.UserService/GetUserByName"
+	UserService_GetUserByID_FullMethodName    = "/authd.UserService/GetUserByID"
+	UserService_ListUsers_FullMethodName      = "/authd.UserService/ListUsers"
+	UserService_GetGroupByName_FullMethodName = "/authd.UserService/GetGroupByName"
+	UserService_GetGroupByID_FullMethodName   = "/authd.UserService/GetGroupByID"
+	UserService_ListGroups_FullMethodName     = "/authd.UserService/ListGroups"
 )
 
-// NSSClient is the client API for NSS service.
+// UserServiceClient is the client API for UserService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type NSSClient interface {
-	GetPasswdByName(ctx context.Context, in *GetPasswdByNameRequest, opts ...grpc.CallOption) (*PasswdEntry, error)
-	GetPasswdByUID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*PasswdEntry, error)
-	GetPasswdEntries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*PasswdEntries, error)
-	GetGroupByName(ctx context.Context, in *GetGroupByNameRequest, opts ...grpc.CallOption) (*GroupEntry, error)
-	GetGroupByGID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GroupEntry, error)
-	GetGroupEntries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GroupEntries, error)
-	GetShadowByName(ctx context.Context, in *GetShadowByNameRequest, opts ...grpc.CallOption) (*ShadowEntry, error)
-	GetShadowEntries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ShadowEntries, error)
+type UserServiceClient interface {
+	GetUserByName(ctx context.Context, in *GetUserByNameRequest, opts ...grpc.CallOption) (*User, error)
+	GetUserByID(ctx context.Context, in *GetUserByIDRequest, opts ...grpc.CallOption) (*User, error)
+	ListUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Users, error)
+	GetGroupByName(ctx context.Context, in *GetGroupByNameRequest, opts ...grpc.CallOption) (*Group, error)
+	GetGroupByID(ctx context.Context, in *GetGroupByIDRequest, opts ...grpc.CallOption) (*Group, error)
+	ListGroups(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Groups, error)
 }
 
-type nSSClient struct {
+type userServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewNSSClient(cc grpc.ClientConnInterface) NSSClient {
-	return &nSSClient{cc}
+func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
+	return &userServiceClient{cc}
 }
 
-func (c *nSSClient) GetPasswdByName(ctx context.Context, in *GetPasswdByNameRequest, opts ...grpc.CallOption) (*PasswdEntry, error) {
+func (c *userServiceClient) GetUserByName(ctx context.Context, in *GetUserByNameRequest, opts ...grpc.CallOption) (*User, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PasswdEntry)
-	err := c.cc.Invoke(ctx, NSS_GetPasswdByName_FullMethodName, in, out, cOpts...)
+	out := new(User)
+	err := c.cc.Invoke(ctx, UserService_GetUserByName_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nSSClient) GetPasswdByUID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*PasswdEntry, error) {
+func (c *userServiceClient) GetUserByID(ctx context.Context, in *GetUserByIDRequest, opts ...grpc.CallOption) (*User, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PasswdEntry)
-	err := c.cc.Invoke(ctx, NSS_GetPasswdByUID_FullMethodName, in, out, cOpts...)
+	out := new(User)
+	err := c.cc.Invoke(ctx, UserService_GetUserByID_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nSSClient) GetPasswdEntries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*PasswdEntries, error) {
+func (c *userServiceClient) ListUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Users, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PasswdEntries)
-	err := c.cc.Invoke(ctx, NSS_GetPasswdEntries_FullMethodName, in, out, cOpts...)
+	out := new(Users)
+	err := c.cc.Invoke(ctx, UserService_ListUsers_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nSSClient) GetGroupByName(ctx context.Context, in *GetGroupByNameRequest, opts ...grpc.CallOption) (*GroupEntry, error) {
+func (c *userServiceClient) GetGroupByName(ctx context.Context, in *GetGroupByNameRequest, opts ...grpc.CallOption) (*Group, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GroupEntry)
-	err := c.cc.Invoke(ctx, NSS_GetGroupByName_FullMethodName, in, out, cOpts...)
+	out := new(Group)
+	err := c.cc.Invoke(ctx, UserService_GetGroupByName_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nSSClient) GetGroupByGID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GroupEntry, error) {
+func (c *userServiceClient) GetGroupByID(ctx context.Context, in *GetGroupByIDRequest, opts ...grpc.CallOption) (*Group, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GroupEntry)
-	err := c.cc.Invoke(ctx, NSS_GetGroupByGID_FullMethodName, in, out, cOpts...)
+	out := new(Group)
+	err := c.cc.Invoke(ctx, UserService_GetGroupByID_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nSSClient) GetGroupEntries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GroupEntries, error) {
+func (c *userServiceClient) ListGroups(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Groups, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GroupEntries)
-	err := c.cc.Invoke(ctx, NSS_GetGroupEntries_FullMethodName, in, out, cOpts...)
+	out := new(Groups)
+	err := c.cc.Invoke(ctx, UserService_ListGroups_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nSSClient) GetShadowByName(ctx context.Context, in *GetShadowByNameRequest, opts ...grpc.CallOption) (*ShadowEntry, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ShadowEntry)
-	err := c.cc.Invoke(ctx, NSS_GetShadowByName_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *nSSClient) GetShadowEntries(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ShadowEntries, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ShadowEntries)
-	err := c.cc.Invoke(ctx, NSS_GetShadowEntries_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// NSSServer is the server API for NSS service.
-// All implementations must embed UnimplementedNSSServer
+// UserServiceServer is the server API for UserService service.
+// All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
-type NSSServer interface {
-	GetPasswdByName(context.Context, *GetPasswdByNameRequest) (*PasswdEntry, error)
-	GetPasswdByUID(context.Context, *GetByIDRequest) (*PasswdEntry, error)
-	GetPasswdEntries(context.Context, *Empty) (*PasswdEntries, error)
-	GetGroupByName(context.Context, *GetGroupByNameRequest) (*GroupEntry, error)
-	GetGroupByGID(context.Context, *GetByIDRequest) (*GroupEntry, error)
-	GetGroupEntries(context.Context, *Empty) (*GroupEntries, error)
-	GetShadowByName(context.Context, *GetShadowByNameRequest) (*ShadowEntry, error)
-	GetShadowEntries(context.Context, *Empty) (*ShadowEntries, error)
-	mustEmbedUnimplementedNSSServer()
+type UserServiceServer interface {
+	GetUserByName(context.Context, *GetUserByNameRequest) (*User, error)
+	GetUserByID(context.Context, *GetUserByIDRequest) (*User, error)
+	ListUsers(context.Context, *Empty) (*Users, error)
+	GetGroupByName(context.Context, *GetGroupByNameRequest) (*Group, error)
+	GetGroupByID(context.Context, *GetGroupByIDRequest) (*Group, error)
+	ListGroups(context.Context, *Empty) (*Groups, error)
+	mustEmbedUnimplementedUserServiceServer()
 }
 
-// UnimplementedNSSServer must be embedded to have
+// UnimplementedUserServiceServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedNSSServer struct{}
+type UnimplementedUserServiceServer struct{}
 
-func (UnimplementedNSSServer) GetPasswdByName(context.Context, *GetPasswdByNameRequest) (*PasswdEntry, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPasswdByName not implemented")
+func (UnimplementedUserServiceServer) GetUserByName(context.Context, *GetUserByNameRequest) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserByName not implemented")
 }
-func (UnimplementedNSSServer) GetPasswdByUID(context.Context, *GetByIDRequest) (*PasswdEntry, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPasswdByUID not implemented")
+func (UnimplementedUserServiceServer) GetUserByID(context.Context, *GetUserByIDRequest) (*User, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserByID not implemented")
 }
-func (UnimplementedNSSServer) GetPasswdEntries(context.Context, *Empty) (*PasswdEntries, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPasswdEntries not implemented")
+func (UnimplementedUserServiceServer) ListUsers(context.Context, *Empty) (*Users, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListUsers not implemented")
 }
-func (UnimplementedNSSServer) GetGroupByName(context.Context, *GetGroupByNameRequest) (*GroupEntry, error) {
+func (UnimplementedUserServiceServer) GetGroupByName(context.Context, *GetGroupByNameRequest) (*Group, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGroupByName not implemented")
 }
-func (UnimplementedNSSServer) GetGroupByGID(context.Context, *GetByIDRequest) (*GroupEntry, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetGroupByGID not implemented")
+func (UnimplementedUserServiceServer) GetGroupByID(context.Context, *GetGroupByIDRequest) (*Group, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGroupByID not implemented")
 }
-func (UnimplementedNSSServer) GetGroupEntries(context.Context, *Empty) (*GroupEntries, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetGroupEntries not implemented")
+func (UnimplementedUserServiceServer) ListGroups(context.Context, *Empty) (*Groups, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListGroups not implemented")
 }
-func (UnimplementedNSSServer) GetShadowByName(context.Context, *GetShadowByNameRequest) (*ShadowEntry, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetShadowByName not implemented")
-}
-func (UnimplementedNSSServer) GetShadowEntries(context.Context, *Empty) (*ShadowEntries, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetShadowEntries not implemented")
-}
-func (UnimplementedNSSServer) mustEmbedUnimplementedNSSServer() {}
-func (UnimplementedNSSServer) testEmbeddedByValue()             {}
+func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
+func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
 
-// UnsafeNSSServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to NSSServer will
+// UnsafeUserServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to UserServiceServer will
 // result in compilation errors.
-type UnsafeNSSServer interface {
-	mustEmbedUnimplementedNSSServer()
+type UnsafeUserServiceServer interface {
+	mustEmbedUnimplementedUserServiceServer()
 }
 
-func RegisterNSSServer(s grpc.ServiceRegistrar, srv NSSServer) {
-	// If the following call pancis, it indicates UnimplementedNSSServer was
+func RegisterUserServiceServer(s grpc.ServiceRegistrar, srv UserServiceServer) {
+	// If the following call pancis, it indicates UnimplementedUserServiceServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&NSS_ServiceDesc, srv)
+	s.RegisterService(&UserService_ServiceDesc, srv)
 }
 
-func _NSS_GetPasswdByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPasswdByNameRequest)
+func _UserService_GetUserByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByNameRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NSSServer).GetPasswdByName(ctx, in)
+		return srv.(UserServiceServer).GetUserByName(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: NSS_GetPasswdByName_FullMethodName,
+		FullMethod: UserService_GetUserByName_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NSSServer).GetPasswdByName(ctx, req.(*GetPasswdByNameRequest))
+		return srv.(UserServiceServer).GetUserByName(ctx, req.(*GetUserByNameRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NSS_GetPasswdByUID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetByIDRequest)
+func _UserService_GetUserByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserByIDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NSSServer).GetPasswdByUID(ctx, in)
+		return srv.(UserServiceServer).GetUserByID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: NSS_GetPasswdByUID_FullMethodName,
+		FullMethod: UserService_GetUserByID_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NSSServer).GetPasswdByUID(ctx, req.(*GetByIDRequest))
+		return srv.(UserServiceServer).GetUserByID(ctx, req.(*GetUserByIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NSS_GetPasswdEntries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserService_ListUsers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NSSServer).GetPasswdEntries(ctx, in)
+		return srv.(UserServiceServer).ListUsers(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: NSS_GetPasswdEntries_FullMethodName,
+		FullMethod: UserService_ListUsers_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NSSServer).GetPasswdEntries(ctx, req.(*Empty))
+		return srv.(UserServiceServer).ListUsers(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NSS_GetGroupByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserService_GetGroupByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetGroupByNameRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NSSServer).GetGroupByName(ctx, in)
+		return srv.(UserServiceServer).GetGroupByName(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: NSS_GetGroupByName_FullMethodName,
+		FullMethod: UserService_GetGroupByName_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NSSServer).GetGroupByName(ctx, req.(*GetGroupByNameRequest))
+		return srv.(UserServiceServer).GetGroupByName(ctx, req.(*GetGroupByNameRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NSS_GetGroupByGID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetByIDRequest)
+func _UserService_GetGroupByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGroupByIDRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NSSServer).GetGroupByGID(ctx, in)
+		return srv.(UserServiceServer).GetGroupByID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: NSS_GetGroupByGID_FullMethodName,
+		FullMethod: UserService_GetGroupByID_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NSSServer).GetGroupByGID(ctx, req.(*GetByIDRequest))
+		return srv.(UserServiceServer).GetGroupByID(ctx, req.(*GetGroupByIDRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NSS_GetGroupEntries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _UserService_ListGroups_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(NSSServer).GetGroupEntries(ctx, in)
+		return srv.(UserServiceServer).ListGroups(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: NSS_GetGroupEntries_FullMethodName,
+		FullMethod: UserService_ListGroups_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NSSServer).GetGroupEntries(ctx, req.(*Empty))
+		return srv.(UserServiceServer).ListGroups(ctx, req.(*Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _NSS_GetShadowByName_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetShadowByNameRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(NSSServer).GetShadowByName(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: NSS_GetShadowByName_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NSSServer).GetShadowByName(ctx, req.(*GetShadowByNameRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _NSS_GetShadowEntries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Empty)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(NSSServer).GetShadowEntries(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: NSS_GetShadowEntries_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NSSServer).GetShadowEntries(ctx, req.(*Empty))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// NSS_ServiceDesc is the grpc.ServiceDesc for NSS service.
+// UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var NSS_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "authd.NSS",
-	HandlerType: (*NSSServer)(nil),
+var UserService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "authd.UserService",
+	HandlerType: (*UserServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetPasswdByName",
-			Handler:    _NSS_GetPasswdByName_Handler,
+			MethodName: "GetUserByName",
+			Handler:    _UserService_GetUserByName_Handler,
 		},
 		{
-			MethodName: "GetPasswdByUID",
-			Handler:    _NSS_GetPasswdByUID_Handler,
+			MethodName: "GetUserByID",
+			Handler:    _UserService_GetUserByID_Handler,
 		},
 		{
-			MethodName: "GetPasswdEntries",
-			Handler:    _NSS_GetPasswdEntries_Handler,
+			MethodName: "ListUsers",
+			Handler:    _UserService_ListUsers_Handler,
 		},
 		{
 			MethodName: "GetGroupByName",
-			Handler:    _NSS_GetGroupByName_Handler,
+			Handler:    _UserService_GetGroupByName_Handler,
 		},
 		{
-			MethodName: "GetGroupByGID",
-			Handler:    _NSS_GetGroupByGID_Handler,
+			MethodName: "GetGroupByID",
+			Handler:    _UserService_GetGroupByID_Handler,
 		},
 		{
-			MethodName: "GetGroupEntries",
-			Handler:    _NSS_GetGroupEntries_Handler,
-		},
-		{
-			MethodName: "GetShadowByName",
-			Handler:    _NSS_GetShadowByName_Handler,
-		},
-		{
-			MethodName: "GetShadowEntries",
-			Handler:    _NSS_GetShadowEntries_Handler,
+			MethodName: "ListGroups",
+			Handler:    _UserService_ListGroups_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

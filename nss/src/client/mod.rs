@@ -1,4 +1,4 @@
-use authd::nss_client::NssClient;
+use authd::user_service_client::UserServiceClient;
 use hyper_util::rt::TokioIo;
 use std::error::Error;
 use tokio::net::UnixStream;
@@ -12,7 +12,7 @@ pub mod authd {
 }
 
 /// new_client creates a new client connection to the gRPC server or returns an active one.
-pub async fn new_client() -> Result<NssClient<Channel>, Box<dyn Error>> {
+pub async fn new_client() -> Result<UserServiceClient<Channel>, Box<dyn Error>> {
     info!("Connecting to authd on {}...", super::socket_path());
 
     // The URL must have a valid format, even though we don't use it.
@@ -24,5 +24,5 @@ pub async fn new_client() -> Result<NssClient<Channel>, Box<dyn Error>> {
         }))
         .await?;
 
-    Ok(NssClient::new(ch))
+    Ok(UserServiceClient::new(ch))
 }

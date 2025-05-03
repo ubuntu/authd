@@ -1,30 +1,3 @@
-authd.NSS:
-    methods:
-        - name: GetGroupByGID
-          isclientstream: false
-          isserverstream: false
-        - name: GetGroupByName
-          isclientstream: false
-          isserverstream: false
-        - name: GetGroupEntries
-          isclientstream: false
-          isserverstream: false
-        - name: GetPasswdByName
-          isclientstream: false
-          isserverstream: false
-        - name: GetPasswdByUID
-          isclientstream: false
-          isserverstream: false
-        - name: GetPasswdEntries
-          isclientstream: false
-          isserverstream: false
-        - name: GetShadowByName
-          isclientstream: false
-          isserverstream: false
-        - name: GetShadowEntries
-          isclientstream: false
-          isserverstream: false
-    metadata: authd.proto
 authd.PAM:
     methods:
         - name: AvailableBrokers
@@ -49,6 +22,27 @@ authd.PAM:
           isclientstream: false
           isserverstream: false
         - name: SetDefaultBrokerForUser
+          isclientstream: false
+          isserverstream: false
+    metadata: authd.proto
+authd.UserService:
+    methods:
+        - name: GetGroupByID
+          isclientstream: false
+          isserverstream: false
+        - name: GetGroupByName
+          isclientstream: false
+          isserverstream: false
+        - name: GetUserByID
+          isclientstream: false
+          isserverstream: false
+        - name: GetUserByName
+          isclientstream: false
+          isserverstream: false
+        - name: ListGroups
+          isclientstream: false
+          isserverstream: false
+        - name: ListUsers
           isclientstream: false
           isserverstream: false
     metadata: authd.proto
