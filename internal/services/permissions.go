@@ -13,7 +13,7 @@ func (m Manager) globalPermissions(ctx context.Context, req interface{}, info *g
 			return nil, err
 		}
 	} else if strings.HasPrefix(info.FullMethod, "/authd.NSS/") {
-		if err := m.nssService.CheckGlobalAccess(ctx, info.FullMethod); err != nil {
+		if err := m.userService.CheckGlobalAccess(ctx, info.FullMethod); err != nil {
 			return nil, err
 		}
 	}

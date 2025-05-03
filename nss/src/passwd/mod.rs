@@ -7,10 +7,10 @@ use tokio::runtime::Builder;
 use tonic::Request;
 
 use crate::client::{self, authd};
-use authd::PasswdEntry;
+use authd::User;
 
-pub struct AuthdPasswd;
-impl PasswdHooks for AuthdPasswd {
+pub struct AuthdPasswdHooks;
+impl PasswdHooks for AuthdPasswdHooks {
     /// get_all_entries returns all passwd entries.
     fn get_all_entries() -> Response<Vec<Passwd>> {
         get_all_entries()
@@ -48,8 +48,8 @@ fn get_all_entries() -> Response<Vec<Passwd>> {
 
         let mut req = Request::new(authd::Empty {});
         req.set_timeout(REQUEST_TIMEOUT);
-        match client.get_passwd_entries(req).await {
-            Ok(r) => Response::Success(passwd_entries_to_passwds(r.into_inner().entries)),
+        match client.list_users(req).await {
+            Ok(r) => Response::Success(users_to_passwd_entries(r.into_inner().users)),
             Err(e) => {
                 info!("error when listing passwd: {}", e.code());
                 super::grpc_status_to_nss_response(e)
@@ -77,12 +77,12 @@ fn get_entry_by_uid(uid: uid_t) -> Response<Passwd> {
             }
         };
 
-        let mut req = Request::new(authd::GetByIdRequest { id: uid });
+        let mut req = Request::new(authd::GetUserByIdRequest { id: uid });
         req.set_timeout(REQUEST_TIMEOUT);
-        match client.get_passwd_by_uid(req).await {
-            Ok(r) => Response::Success(passwd_entry_to_passwd(r.into_inner())),
+        match client.get_user_by_id(req).await {
+            Ok(r) => Response::Success(user_to_passwd_entry(r.into_inner())),
             Err(e) => {
-                info!("error when getting passwd by uid '{}': {}", uid, e.code());
+                info!("error when getting user by ID '{}': {}", uid, e.code());
                 super::grpc_status_to_nss_response(e)
             }
         }
@@ -121,26 +121,26 @@ fn get_entry_by_name(name: String) -> Response<Passwd> {
             should_pre_check()
         );
 
-        let mut req = Request::new(authd::GetPasswdByNameRequest {
+        let mut req = Request::new(authd::GetUserByNameRequest {
             name: name.clone(),
             should_pre_check: should_pre_check(),
         });
         req.set_timeout(REQUEST_TIMEOUT);
-        match client.get_passwd_by_name(req).await {
-            Ok(r) => Response::Success(passwd_entry_to_passwd(r.into_inner())),
+        match client.get_user_by_name(req).await {
+            Ok(r) => Response::Success(user_to_passwd_entry(r.into_inner())),
             Err(e) => {
-                info!("error when getting passwd by name '{}': {}", name, e.code());
+                info!("error when getting user by name '{}': {}", name, e.code());
                 super::grpc_status_to_nss_response(e)
             }
         }
     })
 }
 
-/// passwd_entry_to_passwd converts a PasswdEntry to a libnss::Passwd.
-fn passwd_entry_to_passwd(entry: PasswdEntry) -> Passwd {
+/// user_to_passwd_entry converts a authd::User to a libnss::Passwd.
+fn user_to_passwd_entry(entry: User) -> Passwd {
     Passwd {
         name: entry.name,
-        passwd: entry.passwd,
+        passwd: "x".to_owned(),
         uid: entry.uid,
         gid: entry.gid,
         gecos: entry.gecos,
@@ -149,9 +149,9 @@ fn passwd_entry_to_passwd(entry: PasswdEntry) -> Passwd {
     }
 }
 
-/// passwd_entries_to_passwds converts a Vec<PasswdEntry> to a Vec<libnss::Passwd>.
-fn passwd_entries_to_passwds(entries: Vec<PasswdEntry>) -> Vec<Passwd> {
-    entries.into_iter().map(passwd_entry_to_passwd).collect()
+/// users_to_passwd_entries converts a Vec<authd::User> to a Vec<libnss::Passwd>.
+fn users_to_passwd_entries(entries: Vec<User>) -> Vec<Passwd> {
+    entries.into_iter().map(user_to_passwd_entry).collect()
 }
 
 static SSHD_BINARY_PATH: &str = "/usr/sbin/sshd";
