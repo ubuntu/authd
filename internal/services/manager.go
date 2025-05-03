@@ -8,9 +8,9 @@ import (
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
-	"github.com/ubuntu/authd/internal/services/nss"
 	"github.com/ubuntu/authd/internal/services/pam"
 	"github.com/ubuntu/authd/internal/services/permissions"
+	"github.com/ubuntu/authd/internal/services/user"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/log"
 	"google.golang.org/grpc"
@@ -24,7 +24,7 @@ type Manager struct {
 	userManager   *users.Manager
 	brokerManager *brokers.Manager
 	pamService    pam.Service
-	nssService    nss.Service
+	userService   user.Service
 }
 
 // NewManager returns a new manager after creating all necessary items for our business logic.
@@ -43,13 +43,13 @@ func NewManager(ctx context.Context, dbDir, brokersConfPath string, configuredBr
 
 	permissionManager := permissions.New()
 
-	nssService := nss.NewService(ctx, userManager, brokerManager, &permissionManager)
+	userService := user.NewService(ctx, userManager, brokerManager, &permissionManager)
 	pamService := pam.NewService(ctx, userManager, brokerManager, &permissionManager)
 
 	return Manager{
 		userManager:   userManager,
 		brokerManager: brokerManager,
-		nssService:    nssService,
+		userService:   userService,
 		pamService:    pamService,
 	}, nil
 }
@@ -69,7 +69,7 @@ func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 	// point, so no need to start in NOT_SERVING mode and then update it accordingly.
 	defer healthCheck.SetServingStatus(consts.ServiceName, healthpb.HealthCheckResponse_SERVING)
 
-	authd.RegisterNSSServer(grpcServer, m.nssService)
+	authd.RegisterUserServiceServer(grpcServer, m.userService)
 	authd.RegisterPAMServer(grpcServer, m.pamService)
 
 	return grpcServer
