@@ -21,9 +21,9 @@ type moduleWrapper struct {
 	pam.ModuleTransaction
 }
 
-func newModuleWrapper(serverAddress string) (pam.ModuleTransaction, func(), error) {
-	mTx, closeFunc, err := dbusmodule.NewTransaction(context.TODO(), serverAddress)
-	return &moduleWrapper{mTx}, closeFunc, err
+func newModuleWrapper(serverAddress string) (pam.ModuleTransaction, context.Context, func(), error) {
+	mTx, dbusCtx, closeFunc, err := dbusmodule.NewTransaction(context.TODO(), serverAddress)
+	return &moduleWrapper{mTx}, dbusCtx, closeFunc, err
 }
 
 // SimulateClientPanic forces the client to panic with the provided text.
