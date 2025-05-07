@@ -108,7 +108,7 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 			return m, nil
 		}
 
-		log.Debugf(context.TODO(), "%#v, autoselect: %q", msg, m.autoSelectedAuthModeID)
+		safeMessageDebug(msg, "autoselect: %q", m.autoSelectedAuthModeID)
 
 		if m.autoSelectedAuthModeID != "" {
 			authMode := m.autoSelectedAuthModeID
@@ -117,7 +117,7 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 		}
 
 	case supportedUILayoutsReceived:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		if len(msg.layouts) == 0 {
 			return m, sendEvent(pamError{
 				status: pam.ErrCredUnavail,
@@ -128,7 +128,7 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 		return m, sendEvent(supportedUILayoutsSet{})
 
 	case authModesReceived:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		m.availableAuthModes = msg.authModes
 
 		var allAuthModes []tea_list.Item
@@ -159,12 +159,12 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 			return m, nil
 		}
 
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		authMode := convertTo[authModeItem](msg.item)
 		return m, selectAuthMode(authMode.id)
 
 	case authModeSelected:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		// Ensure auth mode id is valid
 		if !validAuthModeID(msg.id, m.availableAuthModes) {
 			log.Infof(context.TODO(), "authentication mode %q is not part of currently available authentication mode", msg.id)

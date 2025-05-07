@@ -112,7 +112,7 @@ func (m List) Update(msg tea.Msg) (List, tea.Cmd) {
 			return m, nil
 		}
 
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		m.focused = true
 		return m, nil
 	}

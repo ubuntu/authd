@@ -63,7 +63,7 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 		return m, getAvailableBrokers(m.client)
 
 	case brokersListReceived:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		if len(msg.brokers) == 0 {
 			return m, sendEvent(pamError{
 				status: pam.ErrAuthinfoUnavail,
@@ -86,7 +86,7 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 		return m, tea.Batch(cmds...)
 
 	case brokerSelectionRequired:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		return m, sendEvent(ChangeStage{Stage: proto.Stage_brokerSelection})
 
 	case listItemSelected:
@@ -94,12 +94,12 @@ func (m brokerSelectionModel) Update(msg tea.Msg) (brokerSelectionModel, tea.Cmd
 			return m, nil
 		}
 
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		broker := convertTo[brokerItem](msg.item)
 		return m, selectBroker(broker.id)
 
 	case brokerSelected:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		broker := brokerFromID(msg.brokerID, m.availableBrokers)
 		if broker == nil {
 			log.Infof(context.TODO(), "broker %q is not part of current active brokers", msg.brokerID)
