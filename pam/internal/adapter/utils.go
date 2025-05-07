@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"strings"
 	"sync"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/term"
 	"github.com/msteinert/pam/v2"
+	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/log"
 )
 
@@ -133,4 +135,104 @@ func maybeSendPamError(err error) tea.Cmd {
 		return sendEvent(pamError{status: errPam, msg: err.Error()})
 	}
 	return sendEvent(pamError{status: pam.ErrSystem, msg: err.Error()})
+}
+
+var debugMessageFormatter = defaultSafeMessageFormatter
+
+func defaultSafeMessageFormatter(msg tea.Msg) string {
+	switch msg := msg.(type) {
+	case newPasswordCheck:
+		return fmt.Sprintf("%#v",
+			newPasswordCheck{password: "***********", ctx: msg.ctx})
+	case newPasswordCheckResult:
+		return fmt.Sprintf("%#v",
+			newPasswordCheckResult{password: "***********", msg: msg.msg, ctx: msg.ctx})
+	case isAuthenticatedRequested:
+		switch item := msg.item.(type) {
+		case *authd.IARequest_AuthenticationData_Secret:
+			return fmt.Sprintf(`%T{%T{Secret:"***********"}}`, msg, item)
+		case *authd.IARequest_AuthenticationData_Wait:
+			return fmt.Sprintf("%T{%T{Wait:%q}}", msg, item, item.Wait)
+		case *authd.IARequest_AuthenticationData_Skip:
+			return fmt.Sprintf("%T{%T{Skip:%q}}", msg, item, item.Skip)
+		default:
+			return fmt.Sprintf("%T{%T{}}", msg, item)
+		}
+	case isAuthenticatedRequestedSend:
+		return fmt.Sprintf("%T{%s}", msg,
+			defaultSafeMessageFormatter(msg.isAuthenticatedRequested))
+	case UILayoutReceived:
+		return fmt.Sprintf("%T{%#v}", msg, msg.layout)
+	case ChangeStage:
+		return fmt.Sprintf("%T{Stage:%q}", msg, msg.Stage)
+	case StageChanged:
+		return fmt.Sprintf("%T{Stage:%q}", msg, msg.Stage)
+	case nativeStageChangeRequest:
+		return fmt.Sprintf("%T{Stage:%q}", msg, msg.Stage)
+	case tea.KeyMsg:
+		if msg.Type != tea.KeyRunes {
+			return fmt.Sprintf("%T{%s}", msg, msg)
+		}
+	case nil:
+		return ""
+	default:
+		return fmt.Sprintf("%#v", msg)
+	}
+
+	return ""
+}
+
+func testMessageFormatter(msg tea.Msg) string {
+	switch msg := msg.(type) {
+	case newPasswordCheck:
+	case newPasswordCheckResult:
+	case isAuthenticatedRequested:
+		switch item := msg.item.(type) {
+		case *authd.IARequest_AuthenticationData_Secret:
+			return fmt.Sprintf(`%T{%T{Secret:%q}}`, msg, item, item.Secret)
+		default:
+			return defaultSafeMessageFormatter(msg)
+		}
+	case isAuthenticatedRequestedSend:
+		return fmt.Sprintf("%T{%s}", msg,
+			testMessageFormatter(msg.isAuthenticatedRequested))
+	case tea.KeyMsg:
+		return fmt.Sprintf("%T{%s}", msg, msg)
+	default:
+		return defaultSafeMessageFormatter(msg)
+	}
+
+	return fmt.Sprintf("%#v", msg)
+}
+
+func safeMessageDebug(msg tea.Msg, formatAndArgs ...any) {
+	safeMessageDebugWithPrefix("", msg, formatAndArgs...)
+}
+
+func safeMessageDebugWithPrefix(prefix string, msg tea.Msg, formatAndArgs ...any) {
+	if !log.IsLevelEnabled(log.DebugLevel) {
+		return
+	}
+
+	m := debugMessageFormatter(msg)
+	if m == "" {
+		return
+	}
+	if prefix != "" {
+		m = fmt.Sprintf("%s: %s", prefix, m)
+	}
+
+	if len(formatAndArgs) == 0 {
+		log.Debug(context.Background(), m)
+		return
+	}
+
+	format, ok := formatAndArgs[0].(string)
+	if !ok || !strings.Contains(format, "%") {
+		log.Debug(context.Background(), append([]any{m, ", "}, formatAndArgs...)...)
+		return
+	}
+
+	args := formatAndArgs[1:]
+	log.Debugf(context.Background(), "%s, %s", m, fmt.Sprintf(format, args...))
 }
