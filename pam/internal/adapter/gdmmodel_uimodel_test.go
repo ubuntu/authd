@@ -102,7 +102,7 @@ func (m *gdmTestUIModel) maybeHandleWantMessageUnlocked(msg tea.Msg) {
 func (m *gdmTestUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if log.IsLevelEnabled(log.DebugLevel) &&
 		reflect.TypeOf(msg).PkgPath() == currentPkg {
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 	}
 
 	m.mu.Lock()

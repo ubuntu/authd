@@ -1,10 +1,7 @@
 package adapter
 
 import (
-	"context"
-
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/ubuntu/authd/log"
 )
 
 type authReselectButtonModel struct {
@@ -28,7 +25,7 @@ func (b authReselectButtonModel) Init() tea.Cmd {
 func (b authReselectButtonModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case buttonSelectionEvent:
-		log.Debugf(context.TODO(), "%#v: %#v", b, msg)
+		safeMessageDebug(msg, "button: %#v", b)
 		if msg.model == b.buttonModel {
 			return b, sendEvent(reselectAuthMode{})
 		}
