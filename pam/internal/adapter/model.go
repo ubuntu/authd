@@ -229,16 +229,7 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	// Key presses
 	case tea.KeyMsg:
-		if log.IsLevelEnabled(log.DebugLevel) {
-			debugKey := m.currentStage() != pam_proto.Stage_challenge
-			switch msg.String() {
-			case "enter", "ctrl+c", "esc", "tab", "shift+tab":
-				debugKey = true
-			}
-			if debugKey {
-				log.Debugf(context.TODO(), "Key: %q in stage %q", msg, m.currentStage())
-			}
-		}
+		safeMessageDebugWithPrefix("Key", msg, "in stage %q", m.currentStage())
 
 		switch msg.String() {
 		case "ctrl+c":
@@ -254,12 +245,12 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case initHealthCheck:
-		log.Debugf(context.TODO(), "%#v")
+		safeMessageDebug(msg)
 		return m, m.startHealthCheck()
 
 	// Exit cases
 	case PamReturnStatus:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		if m.exitStatus == nil {
 			return m, m.quit()
 		}
@@ -272,14 +263,14 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Events
 	case BrokerListReceived:
-		log.Debugf(context.TODO(), "%#v, brokers: %#v", msg, m.availableBrokers())
+		safeMessageDebug(msg, "brokers: %#v", m.availableBrokers())
 		if m.availableBrokers() == nil {
 			return m, nil
 		}
 		return m, m.userSelectionModel.SelectUser()
 
 	case UsernameSelected:
-		log.Debugf(context.TODO(), "%#v, user: %q", msg, m.username())
+		safeMessageDebug(msg, "user: %q", m.username())
 		if m.username() == "" {
 			return m, nil
 		}
@@ -288,7 +279,7 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, AutoSelectForUser(m.client, m.username())
 
 	case BrokerSelected:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		if m.sessionStartingForBroker == "" {
 			m.sessionStartingForBroker = msg.BrokerID
 			return m, startBrokerSession(m.client, msg.BrokerID, m.username(), m.sessionMode)
@@ -297,7 +288,7 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Sequence(endSession(m.client, m.currentSession), sendEvent(msg))
 		}
 	case SessionStarted:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		m.sessionStartingForBroker = ""
 		pubASN1, err := base64.StdEncoding.DecodeString(msg.encryptionKey)
 		if err != nil {
@@ -330,14 +321,14 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, sendEvent(GetAuthenticationModesRequested{})
 
 	case ChangeStage:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		return m, m.changeStage(msg.Stage)
 
 	case StageChanged:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 
 	case GetAuthenticationModesRequested:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		if m.currentSession == nil {
 			return m, nil
 		}
@@ -348,7 +339,7 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		)
 
 	case AuthModeSelected:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		if m.currentSession == nil {
 			return m, nil
 		}
@@ -368,7 +359,7 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		)
 
 	case UILayoutReceived:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		if m.currentSession == nil {
 			return m, nil
 		}
@@ -384,7 +375,7 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		)
 
 	case SessionEnded:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		m.sessionStartingForBroker = ""
 		m.currentSession = nil
 		return m, nil

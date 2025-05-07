@@ -196,32 +196,32 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 		if msg.Stage != pam_proto.Stage_challenge {
 			return m, nil
 		}
-		log.Debugf(context.TODO(), "%#v, in progress %v, focused: %v",
-			msg, m.inProgress, m.Focused())
+		safeMessageDebug(msg, "in progress %v, focused: %v",
+			m.inProgress, m.Focused())
 		if m.inProgress || !m.Focused() {
 			return m, nil
 		}
 		return m, sendEvent(startAuthentication{})
 
 	case startAuthentication:
-		log.Debugf(context.TODO(), "%#v: current model %v, focused %v",
-			msg, m.currentModel, m.Focused())
+		safeMessageDebug(msg, "current model %v, focused %v",
+			m.currentModel, m.Focused())
 		if !m.Focused() {
 			return m, nil
 		}
 		m.inProgress = true
 
 	case stopAuthentication:
-		log.Debugf(context.TODO(), "%#v: current model %v, focused %v",
-			msg, m.currentModel, m.Focused())
+		safeMessageDebug(msg, "current model %v, focused %v",
+			m.currentModel, m.Focused())
 		m.inProgress = false
 
 	case reselectAuthMode:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		return m, tea.Sequence(m.cancelIsAuthenticated(), sendEvent(AuthModeSelected{}))
 
 	case newPasswordCheck:
-		log.Debugf(context.TODO(), "%T", msg)
+		safeMessageDebug(msg)
 		currentSecret := m.currentSecret
 		return m, func() tea.Msg {
 			res := newPasswordCheckResult{ctx: msg.ctx, password: msg.password}
@@ -232,7 +232,7 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 		}
 
 	case newPasswordCheckResult:
-		log.Debugf(msg.ctx, "%T: %s", msg, msg.msg)
+		safeMessageDebug(msg)
 		if m.clientType != Gdm {
 			// This may be handled by the current model, so don't return early.
 			break
@@ -261,7 +261,7 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 		})
 
 	case isAuthenticatedRequested:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 
 		authTracker := m.authTracker
 
@@ -294,7 +294,7 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 		}
 
 	case isAuthenticatedRequestedSend:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		// no password value, pass it as is
 		plainTextSecret, err := msg.encryptSecretIfPresent(m.encryptionKey)
 		if err != nil {
@@ -304,11 +304,11 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 		return m, sendIsAuthenticated(msg.ctx, m.client, m.currentSessionID, &authd.IARequest_AuthenticationData{Item: msg.item}, plainTextSecret)
 
 	case isAuthenticatedCancelled:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 		return m, m.cancelIsAuthenticated()
 
 	case isAuthenticatedResultReceived:
-		log.Debugf(context.TODO(), "%#v", msg)
+		safeMessageDebug(msg)
 
 		// Resets password if the authentication wasn't successful.
 		defer func() {
