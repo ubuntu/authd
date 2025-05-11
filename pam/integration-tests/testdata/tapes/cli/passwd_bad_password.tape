@@ -16,7 +16,7 @@ Show
 
 Hide
 Type "2"
-Wait+Prompt /Gimme your password/
+Wait+CLIPrompt /Gimme your password/ /Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -25,30 +25,30 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt /New password/
+Wait+CLIPrompt /New password/ /Press escape key to go back to choose the provider/
 Show
 
 Hide
 Enter
-Wait+CLIPrompt /New password/ /No password supplied/
+Wait+CLIPrompt /New password/ /No password supplied[\n]+[ ]*Press escape key to go back to choose the provider/
 Show
 
 Hide
 TypeCLIPassword "1234"
 Enter
-Wait+CLIPrompt /New password/ /The password is shorter than \d+ characters/
+Wait+CLIPrompt /New password/ /The password is shorter than \d+ characters[\n]+[ ]*Press escape key to go back to choose the provider/
 Show
 
 Hide
 TypeCLIPassword "12345678"
 Enter
-Wait+CLIPrompt /New password/ /The password fails the dictionary check[^\n]*/
+Wait+CLIPrompt /New password/ /The password fails the dictionary check[^\n]*[\n]+[ ]*Press escape key to go back to choose the provider/
 Show
 
 Hide
 TypeCLIPassword "authd2404"
 Enter
-Wait+Prompt /Confirm password/
+Wait+CLIPrompt /Confirm password/ /Press escape key to go back to choose the provider/
 Show
 
 Hide
@@ -57,13 +57,13 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt /New password/ /Password entries don't match/
+Wait+CLIPrompt /New password/ /Password entries don't match[\n]+[ ]*Press escape key to go back to choose the provider/
 Show
 
 Hide
 TypeCLIPassword "authd2404"
 Enter
-Wait+Prompt /Confirm password/
+Wait+CLIPrompt /Confirm password/ /Press escape key to go back to choose the provider/
 Show
 
 Hide
