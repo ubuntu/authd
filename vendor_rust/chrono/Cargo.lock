@@ -119,7 +119,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "chrono"
-version = "0.4.40"
+version = "0.4.41"
 dependencies = [
  "android-tzdata",
  "arbitrary",
@@ -703,11 +703,13 @@ dependencies = [
 
 [[package]]
 name = "windows-bindgen"
-version = "0.60.0"
+version = "0.61.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d72f8d00d9d4bd00634be0ddbb927cec37d010b55753c4c07a401f4035da6268"
+checksum = "ac1c59c20569610dd9ed784d5f003fb493ec57b4cf39d974eb03a84bb7156c90"
 dependencies = [
  "rayon",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

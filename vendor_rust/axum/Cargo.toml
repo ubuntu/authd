@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.75"
 name = "axum"
-version = "0.8.3"
+version = "0.8.4"
 build = false
 autolib = false
 autobins = false
@@ -141,6 +141,10 @@ ws = [
 name = "axum"
 path = "src/lib.rs"
 
+[[test]]
+name = "panic_location"
+path = "tests/panic_location.rs"
+
 [[bench]]
 name = "benches"
 path = "benches/benches.rs"
@@ -250,7 +254,7 @@ optional = true
 version = "1.0.0"
 
 [dependencies.tokio]
-version = "1.25.0"
+version = "1.44"
 features = ["time"]
 optional = true
 package = "tokio"
@@ -343,7 +347,7 @@ version = "0.3"
 features = ["serde-human-readable"]
 
 [dev-dependencies.tokio]
-version = "1.25.0"
+version = "1.44.2"
 features = [
     "macros",
     "rt",

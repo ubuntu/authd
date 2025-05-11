@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.75"
 name = "tonic"
-version = "0.13.0"
+version = "0.13.1"
 authors = ["Lucio Franco <luciofranco14@gmail.com>"]
 build = false
 exclude = ["benches-disabled"]
@@ -279,16 +279,16 @@ version = "1.0"
 [dev-dependencies.tokio]
 version = "1.0"
 features = [
-    "rt",
+    "rt-multi-thread",
     "macros",
 ]
 
 [dev-dependencies.tower]
 version = "0.5"
-features = [
-    "load-shed",
-    "timeout",
-]
+features = ["full"]
+
+[lints.clippy]
+uninlined_format_args = "deny"
 
 [lints.rust]
 missing_debug_implementations = "warn"

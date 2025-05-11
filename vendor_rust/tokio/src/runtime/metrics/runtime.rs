@@ -1,12 +1,13 @@
 use crate::runtime::Handle;
+use std::time::Duration;
+
+cfg_64bit_metrics! {
+    use std::sync::atomic::Ordering::Relaxed;
+}
 
 cfg_unstable_metrics! {
     use std::ops::Range;
     use std::thread::ThreadId;
-    cfg_64bit_metrics! {
-        use std::sync::atomic::Ordering::Relaxed;
-    }
-    use std::time::Duration;
 }
 
 /// Handle to the runtime's metrics.
@@ -94,6 +95,151 @@ impl RuntimeMetrics {
     /// ```
     pub fn global_queue_depth(&self) -> usize {
         self.handle.inner.injection_queue_depth()
+    }
+
+    cfg_64bit_metrics! {
+        /// Returns the amount of time the given worker thread has been busy.
+        ///
+        /// The worker busy duration starts at zero when the runtime is created and
+        /// increases whenever the worker is spending time processing work. Using
+        /// this value can indicate the load of the given worker. If a lot of time
+        /// is spent busy, then the worker is under load and will check for inbound
+        /// events less often.
+        ///
+        /// The timer is monotonically increasing. It is never decremented or reset
+        /// to zero.
+        ///
+        /// # Arguments
+        ///
+        /// `worker` is the index of the worker being queried. The given value must
+        /// be between 0 and `num_workers()`. The index uniquely identifies a single
+        /// worker and will continue to identify the worker throughout the lifetime
+        /// of the runtime instance.
+        ///
+        /// # Panics
+        ///
+        /// The method panics when `worker` represents an invalid worker, i.e. is
+        /// greater than or equal to `num_workers()`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use tokio::runtime::Handle;
+        ///
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     let metrics = Handle::current().metrics();
+        ///
+        ///     let n = metrics.worker_total_busy_duration(0);
+        ///     println!("worker 0 was busy for a total of {:?}", n);
+        /// }
+        /// ```
+        pub fn worker_total_busy_duration(&self, worker: usize) -> Duration {
+            let nanos = self
+                .handle
+                .inner
+                .worker_metrics(worker)
+                .busy_duration_total
+                .load(Relaxed);
+            Duration::from_nanos(nanos)
+        }
+
+        /// Returns the total number of times the given worker thread has parked.
+        ///
+        /// The worker park count starts at zero when the runtime is created and
+        /// increases by one each time the worker parks the thread waiting for new
+        /// inbound events to process. This usually means the worker has processed
+        /// all pending work and is currently idle.
+        ///
+        /// The counter is monotonically increasing. It is never decremented or
+        /// reset to zero.
+        ///
+        /// # Arguments
+        ///
+        /// `worker` is the index of the worker being queried. The given value must
+        /// be between 0 and `num_workers()`. The index uniquely identifies a single
+        /// worker and will continue to identify the worker throughout the lifetime
+        /// of the runtime instance.
+        ///
+        /// # Panics
+        ///
+        /// The method panics when `worker` represents an invalid worker, i.e. is
+        /// greater than or equal to `num_workers()`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use tokio::runtime::Handle;
+        ///
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     let metrics = Handle::current().metrics();
+        ///
+        ///     let n = metrics.worker_park_count(0);
+        ///     println!("worker 0 parked {} times", n);
+        /// }
+        /// ```
+        pub fn worker_park_count(&self, worker: usize) -> u64 {
+            self.handle
+                .inner
+                .worker_metrics(worker)
+                .park_count
+                .load(Relaxed)
+        }
+
+        /// Returns the total number of times the given worker thread has parked
+        /// and unparked.
+        ///
+        /// The worker park/unpark count starts at zero when the runtime is created
+        /// and increases by one each time the worker parks the thread waiting for
+        /// new inbound events to process. This usually means the worker has processed
+        /// all pending work and is currently idle. When new work becomes available,
+        /// the worker is unparked and the park/unpark count is again increased by one.
+        ///
+        /// An odd count means that the worker is currently parked.
+        /// An even count means that the worker is currently active.
+        ///
+        /// The counter is monotonically increasing. It is never decremented or
+        /// reset to zero.
+        ///
+        /// # Arguments
+        ///
+        /// `worker` is the index of the worker being queried. The given value must
+        /// be between 0 and `num_workers()`. The index uniquely identifies a single
+        /// worker and will continue to identify the worker throughout the lifetime
+        /// of the runtime instance.
+        ///
+        /// # Panics
+        ///
+        /// The method panics when `worker` represents an invalid worker, i.e. is
+        /// greater than or equal to `num_workers()`.
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use tokio::runtime::Handle;
+        ///
+        /// #[tokio::main]
+        /// async fn main() {
+        ///     let metrics = Handle::current().metrics();
+        ///     let n = metrics.worker_park_unpark_count(0);
+        ///
+        ///     println!("worker 0 parked and unparked {} times", n);
+        ///
+        ///     if n % 2 == 0 {
+        ///         println!("worker 0 is active");
+        ///     } else {
+        ///         println!("worker 0 is parked");
+        ///     }
+        /// }
+        /// ```
+        pub fn worker_park_unpark_count(&self, worker: usize) -> u64 {
+            self.handle
+                .inner
+                .worker_metrics(worker)
+                .park_unpark_count
+                .load(Relaxed)
+        }
     }
 
     cfg_unstable_metrics! {
@@ -269,104 +415,6 @@ impl RuntimeMetrics {
                     .load(Relaxed)
             }
 
-            /// Returns the total number of times the given worker thread has parked.
-            ///
-            /// The worker park count starts at zero when the runtime is created and
-            /// increases by one each time the worker parks the thread waiting for new
-            /// inbound events to process. This usually means the worker has processed
-            /// all pending work and is currently idle.
-            ///
-            /// The counter is monotonically increasing. It is never decremented or
-            /// reset to zero.
-            ///
-            /// # Arguments
-            ///
-            /// `worker` is the index of the worker being queried. The given value must
-            /// be between 0 and `num_workers()`. The index uniquely identifies a single
-            /// worker and will continue to identify the worker throughout the lifetime
-            /// of the runtime instance.
-            ///
-            /// # Panics
-            ///
-            /// The method panics when `worker` represents an invalid worker, i.e. is
-            /// greater than or equal to `num_workers()`.
-            ///
-            /// # Examples
-            ///
-            /// ```
-            /// use tokio::runtime::Handle;
-            ///
-            /// #[tokio::main]
-            /// async fn main() {
-            ///     let metrics = Handle::current().metrics();
-            ///
-            ///     let n = metrics.worker_park_count(0);
-            ///     println!("worker 0 parked {} times", n);
-            /// }
-            /// ```
-            pub fn worker_park_count(&self, worker: usize) -> u64 {
-                self.handle
-                    .inner
-                    .worker_metrics(worker)
-                    .park_count
-                    .load(Relaxed)
-            }
-
-            /// Returns the total number of times the given worker thread has parked
-            /// and unparked.
-            ///
-            /// The worker park/unpark count starts at zero when the runtime is created
-            /// and increases by one each time the worker parks the thread waiting for
-            /// new inbound events to process. This usually means the worker has processed
-            /// all pending work and is currently idle. When new work becomes available,
-            /// the worker is unparked and the park/unpark count is again increased by one.
-            ///
-            /// An odd count means that the worker is currently parked.
-            /// An even count means that the worker is currently active.
-            ///
-            /// The counter is monotonically increasing. It is never decremented or
-            /// reset to zero.
-            ///
-            /// # Arguments
-            ///
-            /// `worker` is the index of the worker being queried. The given value must
-            /// be between 0 and `num_workers()`. The index uniquely identifies a single
-            /// worker and will continue to identify the worker throughout the lifetime
-            /// of the runtime instance.
-            ///
-            /// # Panics
-            ///
-            /// The method panics when `worker` represents an invalid worker, i.e. is
-            /// greater than or equal to `num_workers()`.
-            ///
-            /// # Examples
-            ///
-            /// ```
-            /// use tokio::runtime::Handle;
-            ///
-            /// #[tokio::main]
-            /// async fn main() {
-            ///     let metrics = Handle::current().metrics();
-            ///     let n = metrics.worker_park_unpark_count(0);
-            ///
-            ///     println!("worker 0 parked and unparked {} times", n);
-            ///
-            ///     if n % 2 == 0 {
-            ///         println!("worker 0 is active");
-            ///     } else {
-            ///         println!("worker 0 is parked");
-            ///     }
-            /// }
-            /// ```
-            pub fn worker_park_unpark_count(&self, worker: usize) -> u64 {
-                self.handle
-                    .inner
-                    .worker_metrics(worker)
-                    .park_unpark_count
-                    .load(Relaxed)
-            }
-
-
             /// Returns the number of times the given worker thread unparked but
             /// performed no work before parking again.
             ///
@@ -541,52 +589,6 @@ impl RuntimeMetrics {
                     .worker_metrics(worker)
                     .poll_count
                     .load(Relaxed)
-            }
-
-            /// Returns the amount of time the given worker thread has been busy.
-            ///
-            /// The worker busy duration starts at zero when the runtime is created and
-            /// increases whenever the worker is spending time processing work. Using
-            /// this value can indicate the load of the given worker. If a lot of time
-            /// is spent busy, then the worker is under load and will check for inbound
-            /// events less often.
-            ///
-            /// The timer is monotonically increasing. It is never decremented or reset
-            /// to zero.
-            ///
-            /// # Arguments
-            ///
-            /// `worker` is the index of the worker being queried. The given value must
-            /// be between 0 and `num_workers()`. The index uniquely identifies a single
-            /// worker and will continue to identify the worker throughout the lifetime
-            /// of the runtime instance.
-            ///
-            /// # Panics
-            ///
-            /// The method panics when `worker` represents an invalid worker, i.e. is
-            /// greater than or equal to `num_workers()`.
-            ///
-            /// # Examples
-            ///
-            /// ```
-            /// use tokio::runtime::Handle;
-            ///
-            /// #[tokio::main]
-            /// async fn main() {
-            ///     let metrics = Handle::current().metrics();
-            ///
-            ///     let n = metrics.worker_total_busy_duration(0);
-            ///     println!("worker 0 was busy for a total of {:?}", n);
-            /// }
-            /// ```
-            pub fn worker_total_busy_duration(&self, worker: usize) -> Duration {
-                let nanos = self
-                    .handle
-                    .inner
-                    .worker_metrics(worker)
-                    .busy_duration_total
-                    .load(Relaxed);
-                Duration::from_nanos(nanos)
             }
 
             /// Returns the number of tasks scheduled from **within** the runtime on the

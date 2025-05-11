@@ -858,7 +858,8 @@ impl DateTime<Utc> {
     }
 
     /// The Unix Epoch, 1970-01-01 00:00:00 UTC.
-    pub const UNIX_EPOCH: Self = Self { datetime: NaiveDateTime::UNIX_EPOCH, offset: Utc };
+    pub const UNIX_EPOCH: Self =
+        expect(NaiveDate::from_ymd_opt(1970, 1, 1), "").and_time(NaiveTime::MIN).and_utc();
 }
 
 impl Default for DateTime<Utc> {
@@ -975,7 +976,7 @@ impl DateTime<FixedOffset> {
     ///   [Appendix A.5]
     /// - Single letter 'military' time zone names are parsed as a `-0000` offset.
     ///   They were defined with the wrong sign in RFC 822 and corrected in RFC 2822. But because
-    ///   the meaning is now ambiguous, the standard says they should be be considered as `-0000`
+    ///   the meaning is now ambiguous, the standard says they should be considered as `-0000`
     ///   unless there is out-of-band information confirming their meaning.
     ///   The exception is `Z`, which remains identical to `+0000`.
     ///

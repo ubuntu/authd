@@ -2,6 +2,9 @@ cfg_io_driver! {
     pub(crate) mod bit;
 }
 
+#[cfg(feature = "fs")]
+pub(crate) mod as_ref;
+
 #[cfg(feature = "rt")]
 pub(crate) mod atomic_cell;
 
@@ -12,9 +15,6 @@ mod blocking_check;
 pub(crate) use blocking_check::check_socket_for_blocking;
 
 pub(crate) mod metric_atomics;
-
-#[cfg(any(feature = "rt", feature = "signal", feature = "process"))]
-pub(crate) mod once_cell;
 
 #[cfg(any(
     // io driver uses `WakeList` directly
@@ -57,7 +57,7 @@ cfg_rt! {
     pub(crate) mod sharded_list;
 }
 
-#[cfg(any(feature = "rt", feature = "macros", feature = "time"))]
+#[cfg(any(feature = "rt", feature = "macros"))]
 pub(crate) mod rand;
 
 cfg_rt! {
@@ -84,6 +84,9 @@ cfg_rt_multi_thread! {
 
 pub(crate) mod trace;
 
+#[cfg(feature = "fs")]
+pub(crate) mod typeid;
+
 pub(crate) mod error;
 
 #[cfg(feature = "io-util")]
@@ -95,4 +98,12 @@ pub(crate) mod cacheline;
 
 cfg_io_driver_impl! {
     pub(crate) mod ptr_expose;
+}
+
+use std::{ops::DerefMut, pin::Pin};
+
+/// Copy of [`std::pin::Pin::as_deref_mut`].
+// TODO: Remove this once we bump the MSRV to 1.84.
+pub(crate) fn pin_as_deref_mut<P: DerefMut>(ptr: Pin<&mut Pin<P>>) -> Pin<&mut P::Target> {
+    unsafe { ptr.get_unchecked_mut() }.as_mut()
 }

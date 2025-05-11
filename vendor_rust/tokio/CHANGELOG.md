@@ -1,4 +1,31 @@
-# 1.44.2 (April 4, 2025)
+# 1.45.0 (May 5th, 2025)
+
+### Added
+
+- metrics: stabilize `worker_total_busy_duration`, `worker_park_count`, and
+  `worker_unpark_count` ([#6899], [#7276])
+- process: add `Command::spawn_with` ([#7249])
+
+### Changed
+
+- io: do not require `Unpin` for some trait impls ([#7204])
+- rt: mark `runtime::Handle` as unwind safe ([#7230])
+- time: revert internal sharding implementation ([#7226])
+
+### Unstable
+
+- rt: remove alt multi-threaded runtime ([#7275])
+
+[#6899]: https://github.com/tokio-rs/tokio/pull/6899
+[#7276]: https://github.com/tokio-rs/tokio/pull/7276
+[#7249]: https://github.com/tokio-rs/tokio/pull/7249
+[#7204]: https://github.com/tokio-rs/tokio/pull/7204
+[#7230]: https://github.com/tokio-rs/tokio/pull/7230
+[#7226]: https://github.com/tokio-rs/tokio/pull/7226
+[#7275]: https://github.com/tokio-rs/tokio/pull/7275
+
+
+# 1.44.2 (April 5th, 2025)
 
 This release fixes a soundness issue in the broadcast channel. The channel
 accepts values that are `Send` but `!Sync`. Previously, the channel called
@@ -99,7 +126,7 @@ comment on [#7172].
 [#7186]: https://github.com/tokio-rs/tokio/pull/7186
 [#7192]: https://github.com/tokio-rs/tokio/pull/7192
 
-# 1.43.1 (April 2nd, 2025)
+# 1.43.1 (April 5th, 2025)
 
 This release fixes a soundness issue in the broadcast channel. The channel
 accepts values that are `Send` but `!Sync`. Previously, the channel called
@@ -166,6 +193,20 @@ reporting the issue).
 [#7068]: https://github.com/tokio-rs/tokio/pull/7068
 [#7073]: https://github.com/tokio-rs/tokio/pull/7073
 [#7074]: https://github.com/tokio-rs/tokio/pull/7074
+
+# 1.42.1 (April 8th, 2025)
+
+This release fixes a soundness issue in the broadcast channel. The channel
+accepts values that are `Send` but `!Sync`. Previously, the channel called
+`clone()` on these values without synchronizing. This release fixes the channel
+by synchronizing calls to `.clone()` (Thanks Austin Bonander for finding and
+reporting the issue).
+
+### Fixed
+
+- sync: synchronize `clone()` call in broadcast channel ([#7232])
+
+[#7232]: https://github.com/tokio-rs/tokio/pull/7232
 
 # 1.42.0 (Dec 3rd, 2024)
 
