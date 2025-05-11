@@ -15,20 +15,20 @@ import (
 	"github.com/ubuntu/authd/log"
 )
 
-var listIDs atomic.Int32
+var listIDs atomic.Uint32
 
 // List is a [tea_list.Model] implementation for authd list views.
 type List struct {
 	tea_list.Model
 
 	clientType PamClientType
-	id         int32
+	id         uint32
 	focused    bool
 }
 
 // listFocused is the internal event to signal that the list view is focused.
 type listFocused struct {
-	id int32
+	id uint32
 }
 
 // listItemSelected is the internal event to signal that the a list item has been selected.

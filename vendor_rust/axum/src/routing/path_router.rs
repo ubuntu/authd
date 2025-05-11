@@ -98,7 +98,7 @@ where
             let service = Endpoint::MethodRouter(
                 prev_method_router
                     .clone()
-                    .merge_for_path(Some(path), method_router),
+                    .merge_for_path(Some(path), method_router)?,
             );
             self.routes.insert(route_id, service);
             return Ok(());
@@ -367,6 +367,7 @@ where
         }
     }
 
+    #[allow(clippy::result_large_err)]
     pub(super) fn call_with_state(
         &self,
         #[cfg_attr(not(feature = "original-uri"), allow(unused_mut))] mut req: Request,

@@ -104,8 +104,9 @@ func (m authModeSelectionModel) Init() tea.Cmd {
 func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea.Cmd) {
 	switch msg := msg.(type) {
 	case listFocused:
+		cmd := m.updateListModel(msg)
 		if m.id != msg.id {
-			return m, nil
+			return m, cmd
 		}
 
 		safeMessageDebug(msg, "autoselect: %q", m.autoSelectedAuthModeID)
@@ -113,8 +114,10 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 		if m.autoSelectedAuthModeID != "" {
 			authMode := m.autoSelectedAuthModeID
 			m.autoSelectedAuthModeID = ""
-			return m, selectAuthMode(authMode)
+			return m, tea.Sequence(cmd, selectAuthMode(authMode))
 		}
+
+		return m, cmd
 
 	case supportedUILayoutsReceived:
 		safeMessageDebug(msg)
@@ -156,12 +159,13 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 
 	case listItemSelected:
 		if !m.Focused() {
-			return m, nil
+			return m, m.updateListModel(msg)
 		}
 
 		safeMessageDebug(msg)
 		authMode := convertTo[authModeItem](msg.item)
-		return m, selectAuthMode(authMode.id)
+		return m, tea.Sequence(m.updateListModel(msg),
+			selectAuthMode(authMode.id))
 
 	case authModeSelected:
 		safeMessageDebug(msg)
@@ -186,9 +190,13 @@ func (m authModeSelectionModel) Update(msg tea.Msg) (authModeSelectionModel, tea
 		})
 	}
 
+	return m, m.updateListModel(msg)
+}
+
+func (m *authModeSelectionModel) updateListModel(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	m.List, cmd = m.List.Update(msg)
-	return m, cmd
+	return cmd
 }
 
 // authModeItem is the list item corresponding to an authentication mode.

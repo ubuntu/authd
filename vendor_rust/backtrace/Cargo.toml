@@ -16,7 +16,7 @@ optional = true
 version = "1.0"
 
 [dev-dependencies.libloading]
-version = "0.7"
+version = "0.8"
 
 [features]
 coresymbolication = []
@@ -26,6 +26,7 @@ dl_iterate_phdr = []
 dladdr = []
 kernel32 = []
 libunwind = []
+ruzstd = ["dep:ruzstd"]
 serialize-serde = ["serde"]
 std = []
 unix-backtrace = []
@@ -42,6 +43,7 @@ authors = ["The Rust Project Developers"]
 autobenches = false
 autobins = false
 autoexamples = false
+autolib = false
 autotests = false
 description = """
 A library to acquire a stack trace (backtrace) at runtime in a Rust program.
@@ -54,8 +56,11 @@ license = "MIT OR Apache-2.0"
 name = "backtrace"
 readme = "README.md"
 repository = "https://github.com/rust-lang/backtrace-rs"
-rust-version = "1.65.0"
-version = "0.3.74"
+rust-version = "1.82.0"
+version = "0.3.75"
+
+[target.'cfg(any(windows, target_os = "cygwin"))'.dependencies.windows-targets]
+version = "0.52.6"
 
 [target.'cfg(not(all(windows, target_env = "msvc", not(target_vendor = "uwp"))))'.dependencies.addr2line]
 default-features = false
@@ -74,5 +79,7 @@ default-features = false
 features = ["read_core", "elf", "macho", "pe", "xcoff", "unaligned", "archive"]
 version = "0.36.0"
 
-[target."cfg(windows)".dependencies.windows-targets]
-version = "0.52.6"
+[target.'cfg(not(all(windows, target_env = "msvc", not(target_vendor = "uwp"))))'.dependencies.ruzstd]
+default-features = false
+optional = true
+version = "0.7.3"

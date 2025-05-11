@@ -279,7 +279,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		}
 
 		if len(m.authModes) == 1 {
-			return m, sendEvent(authModeSelected{id: m.authModes[0].Id})
+			return m, selectAuthMode(m.authModes[0].Id)
 		}
 
 		return m.startAsyncOp(m.authModeSelection)
@@ -552,7 +552,7 @@ func (m nativeModel) authModeSelection() tea.Cmd {
 		})
 	}
 
-	return sendEvent(authModeSelected{id: id})
+	return selectAuthMode(id)
 }
 
 func (m nativeModel) startChallenge() tea.Cmd {
