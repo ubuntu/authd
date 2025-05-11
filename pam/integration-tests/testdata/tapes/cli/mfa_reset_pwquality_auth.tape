@@ -16,7 +16,7 @@ Show
 
 Hide
 Type "2"
-Wait+Prompt /Gimme your password/
+Wait+CLIPrompt /Gimme your password/ /Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -25,21 +25,24 @@ Show
 
 Hide
 Enter
-Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /Password reset, 2 step\(s\) missing/
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /Password reset, 2 step\(s\) missing/
+Wait /Press escape key to go back to select the authentication method/
 Show
 
 Hide
-Wait /Plug your fido device and press with your thumb/
+Wait+Screen /Plug your fido device and press with your thumb/
+Wait /Press escape key to go back to select the authentication method/
 Show
 
 Hide
-Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /Password reset, 1 step\(s\) missing/
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /Password reset, 1 step\(s\) missing/
+Wait /Press escape key to go back to select the authentication method/
 Show
 
 # Wait for MFA auth to happen
 Hide
 Wait+Screen /Enter your new password \(3 days until mandatory\)\n/
-Wait+CLIPrompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /New password/ /\[ Skip \]/
+Wait+CLIPrompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT} * 1.2 /New password/ /\[ Skip \]/ /[ ]*Press escape key to go back to choose the provider/
 Show
 
 Hide
@@ -48,7 +51,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]/ /The password is the same as the old one/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]/ /The password is the same as the old one[\n]+[ ]*Press escape key to go back to choose the provider/
 Show
 
 Hide
@@ -57,7 +60,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]\nThe password fails the dictionary check[^\n]+/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]\nThe password fails the dictionary check[^\n]+[\n]+[ ]*Press escape key to go back to choose the provider/
 Show
 
 Hide
@@ -66,7 +69,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]\nThe password is the same as the old one/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]\nThe password is the same as the old one[\n]+[ ]*Press escape key to go back to choose the provider/
 Show
 
 Hide
@@ -75,7 +78,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]\nThe password is shorter than \d+ characters/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /New password/ /\[ Skip \]\nThe password is shorter than \d+ characters[\n]+[ ]*Press escape key to go back to choose the provider/
 Show
 
 Hide
@@ -84,7 +87,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /Confirm password/ /\[ Skip \]/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /Confirm password/ /\[ Skip \]/ /[ ]*Press escape key to go back to choose the provider/
 Show
 
 Hide
