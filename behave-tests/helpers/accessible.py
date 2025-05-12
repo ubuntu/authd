@@ -286,7 +286,13 @@ class Accessible:
         raise Exception(f"Could not find action '{name}' for {self}")
 
     def get_character_count(self) -> int:
-        return self._text_proxy.get_cached_property("CharacterCount").unpack()
+        return self._text_proxy.call_sync(
+            method_name='org.freedesktop.DBus.Properties.Get',
+            parameters=GLib.Variant("(ss)", ("org.a11y.atspi.Text", "CharacterCount")),
+            flags=Gio.DBusCallFlags.NONE,
+            timeout_msec=-1,
+            cancellable=None
+        ).unpack()[0]
 
     def set_text(self, text: str):
         success = self._editable_text_proxy.call_sync(
