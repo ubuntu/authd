@@ -60,18 +60,6 @@ def step_impl(context: behave.runner.Context):
     main_test_vm.check_call(["sudo", "apt", "install", "-y", "authd"])
     main_test_vm.check_call(["sudo", "snap", "install", "authd-msentraid"])
 
-    # Install the dogtail service
-    # TODO: This should not be done here
-    # Get the latest snap of the dogtail service from the dogtail service directory
-    # snaps = glob.glob(os.path.join(DOGTAIL_SERVICE_DIR, "dogtail-service_*.snap"))
-    # if not snaps:
-    #     raise FileNotFoundError("No dogtail-service snap found in %s" % DOGTAIL_SERVICE_DIR)
-    #
-    # snap = max(snaps, key=os.path.getctime)
-    # executil.check_call(["multipass", "transfer", snap, f"{MAIN_TEST_VM_NAME}:/tmp/"])
-    # main_test_vm.check_call(["sudo", "snap", "install", "--devmode", "--dangerous", "/tmp/" + os.path.basename(snap)])
-    # install_dogtail_service
-
     # Configure authd to use the MS Entra ID broker
     # TODO: This should not be done here
     src = "/snap/authd-msentraid/current/conf/authd/msentraid.conf"

@@ -7,7 +7,6 @@ Feature: authd GDM login
 #    And I installed the authd-msentraid snap
 #    And I configured authd to use the MS Entra ID broker
 #    And I configured the MS Entra ID broker to use the test OIDC app
-#    And I installed the dogtail-service
 #    And I rebooted the system
     And I'm at the GDM login screen
     And I have a second machine with a web browser
