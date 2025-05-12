@@ -29,3 +29,5 @@ vendor_rust/
 
 # Go workspace file
 go.work
+
+__pycache__
