@@ -76,6 +76,14 @@ func TestNativeAuthenticate(t *testing.T) {
 				PamUser: examplebroker.UserIntegrationAuthModesPrefix + "password-integration-native",
 			},
 		},
+		"Authenticate_user_successfully_with_password_only_supported_method_in_polkit": {
+			tape: "simple_auth_one_broker_only",
+			clientOptions: clientOptions{
+				PamServiceName: "polkit-1",
+				PamUser: vhsTestUserNameFull(t,
+					examplebroker.UserIntegrationAuthModesPrefix, "password-integration-polkit"),
+			},
+		},
 		"Authenticate_user_with_mfa": {
 			tape:         "mfa_auth",
 			tapeSettings: []tapeSetting{{vhsHeight, 1200}},
@@ -272,10 +280,22 @@ func TestNativeAuthenticate(t *testing.T) {
 			tape:          "local_user",
 			userSelection: true,
 		},
+		"Autoselect_local_broker_for_local_user_on_polkit": {
+			tape:          "local_user",
+			userSelection: true,
+			clientOptions: clientOptions{PamServiceName: "polkit-1"},
+		},
 		"Autoselect_local_broker_for_local_user_preset": {
 			tape: "local_user_preset",
 			clientOptions: clientOptions{
 				PamUser: "root",
+			},
+		},
+		"Autoselect_local_broker_for_local_user_preset_on_polkit": {
+			tape: "local_user_preset",
+			clientOptions: clientOptions{
+				PamServiceName: "polkit-1",
+				PamUser:        "root",
 			},
 		},
 
