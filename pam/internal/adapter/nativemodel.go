@@ -211,7 +211,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		if m.serviceName == polkitServiceName && len(msg.brokers) > 1 {
 			// Do not support using local broker in the polkit case.
 			// FIXME: This should be up to authd to keep a list of brokers based on service.
-			m.availableBrokers = slices.DeleteFunc(msg.brokers, func(b *authd.ABResponse_BrokerInfo) bool {
+			m.availableBrokers = slices.DeleteFunc(slices.Clone(m.availableBrokers), func(b *authd.ABResponse_BrokerInfo) bool {
 				return b.Id == brokers.LocalBrokerName
 			})
 		}
