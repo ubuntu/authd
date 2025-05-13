@@ -12,10 +12,10 @@ use_step_matcher("re")
 # Add helpers module to the path
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "helpers"))
 
-import checkpoints
 import executil
 import msentraid
 from accessible import Accessible, SearchError
+from snapshot import snapshot
 from util import retry, RetriableError
 from vm import VM
 
@@ -29,7 +29,8 @@ MAIN_TEST_VM_MEMORY = "2G"
 SECOND_TEST_VM_NAME = "behave-tests-second"
 SECOND_TEST_VM_DISK_SPACE = "10G"
 SECOND_TEST_VM_MEMORY = "2G"
-SNAPSHOT_BASE = "base-snapshot"
+SECOND_TEST_VM_USER = "user"
+SECOND_TEST_VM_PASSWORD = "test"
 
 LIBVIRT_CONNECTION = libvirt.open("qemu:///system")
 
@@ -45,48 +46,150 @@ assert main_test_vm.vsock_cid != second_test_vm.vsock_cid
 
 login_code = None # type: str|None
 
+
+@given("I have an Ubuntu Desktop machine set up to test authd and booted to the GDM login screen")
+def step_impl(context: behave.runner.Context):
+    force_new_vms = context.config.userdata.getbool("FORCE_NEW_VMS")
+    # TODO: The snapshot should be invalidated if these change
+    issuer_id = context.config.userdata["msentraid_issuer_id"]
+    client_id = context.config.userdata["msentraid_client_id"]
+    prepare_main_vm(main_test_vm, force_new_vms, issuer_id, client_id)
+
+
+@snapshot("authd-installed-and-configured", "authd and the Entra ID broker are installed and configured")
+def prepare_main_vm(vm: VM, force_new_snapshots: bool,
+                    issuer_id: str, client_id: str) -> None:
+    prepare_new_vm(vm, force_new_snapshots)
+
+    # Install authd and the authd-msentraid snap
+    vm.check_call(["sudo", "apt", "install", "-y", "authd"])
+    vm.check_call(["sudo", "snap", "install", "authd-msentraid"])
+
+    # Configure authd to use the MS Entra ID broker
+    src = "/snap/authd-msentraid/current/conf/authd/msentraid.conf"
+    dest = "/etc/authd/brokers.d/"
+    vm.check_call(["sudo", "install", "-D", "--target-directory", dest, src])
+
+    # Configure the MS Entra ID broker to use the test OIDC app
+    broker_config_file = "/var/snap/authd-msentraid/current/broker.conf"
+    vm.check_call([
+        "sudo", "sed", "-i", "-e", f"s/<ISSUER_ID>/{issuer_id}/", "-e",
+        f"s/<CLIENT_ID>/{client_id}/",
+        broker_config_file,
+
+    ])
+
+    # Reboot the VM
+    vm.restart()
+
+
 @given("I have an Ubuntu Desktop machine")
 def step_impl(context: behave.runner.Context):
     force_new_vms = context.config.userdata.getbool("FORCE_NEW_VMS")
+    prepare_new_vm(main_test_vm, force_new_vms)
 
-    if not force_new_vms and main_test_vm.has_snapshot(SNAPSHOT_BASE):
-        main_test_vm.restore_snapshot(SNAPSHOT_BASE)
-        return
+@snapshot("new-vm", "The VM is newly created")
+def prepare_new_vm(vm: VM, force_new_snapshots: bool):
+    vm.ensure_is_purged()
+    vm.launch()
 
-    checkpoints.new_vm.restore_or_run(main_test_vm, force_new_vms)
+    # Define the devices we need in the VM. That requires stopping the VM.
+    vm.stop()
+    vm.define_devices()
+    vm.start()
 
-    # Install authd and the authd-msentraid snap
-    # TODO: This should not be done here
-    main_test_vm.check_call(["sudo", "apt", "install", "-y", "authd"])
-    main_test_vm.check_call(["sudo", "snap", "install", "authd-msentraid"])
+    # Set a root password
+    vm.check_call(["sudo", "chpasswd"], input="root:root")
 
-    # Configure authd to use the MS Entra ID broker
-    # TODO: This should not be done here
-    src = "/snap/authd-msentraid/current/conf/authd/msentraid.conf"
-    dest = "/etc/authd/brokers.d/"
-    main_test_vm.check_call(["sudo", "install", "-D", "--target-directory", dest, src])
+    # Uninstall unattended-upgrades, because it can lock apt
+    vm.check_call(["sudo", "apt", "remove", "-y", "unattended-upgrades"])
 
-    # Configure the MS Entra ID broker to use the test OIDC app
-    # TODO: This should not be done here
-    issuer_id = context.config.userdata["msentraid_issuer_id"]
-    client_id = context.config.userdata["msentraid_client_id"]
-    broker_config_file = "/var/snap/authd-msentraid/current/broker.conf"
-    main_test_vm.check_call([
-                         "sudo", "sed", "-i", "-e", f"s/<ISSUER_ID>/{issuer_id}/", "-e",
-                         f"s/<CLIENT_ID>/{client_id}/",
-                         broker_config_file])
+    # Add the authd PPA (to install gnome-shell and yaru-theme-gnome-shell from
+    # the PPA)
+    vm.check_call(["sudo", "add-apt-repository", "-y",
+                   "ppa:ubuntu-enterprise-desktop/authd"])
 
-    # Create the snapshot
-    main_test_vm.create_snapshot(SNAPSHOT_BASE, "Initial snapshot")
+    # Install the GNOME desktop
+    vm.check_call(["sudo", "apt", "update"])
+    vm.check_call(["sudo", "apt", "install", "-y", "ubuntu-session"])
+
+    # Install socat
+    vm.check_call(["sudo", "apt", "install", "-y", "socat"])
+
+    # Enable anonymous authentication for the a11y bus, because we forward it
+    # to the host and connect to it as the current user.
+    logger.debug("Enabling anonymous authentication to the a11y bus")
+    old_config = "<auth>EXTERNAL</auth>"
+    new_config = "<auth>EXTERNAL</auth>\\n  " \
+                 "<auth>ANONYMOUS</auth>\\n  " \
+                 "<allow_anonymous/>\\n  "
+    vm.check_call(["sudo", "sed", "-i", f"s|{old_config}|{new_config}|",
+                   "/usr/share/defaults/at-spi2/accessibility.conf"])
+
+    # Set GNOME_ACCESSIBILITY=1 in /etc/environment, which is needed for
+    # Firefox (and maybe other apps) to expose itself on the a11y bus
+    vm.check_call(["sudo", "sh", "-c",
+                   "echo GNOME_ACCESSIBILITY=1 > /etc/environment.d/90-gnome-a11y.conf"])
 
 
 @given("I have a second machine with a web browser")
 def step_impl(context: behave.runner.Context):
     force_new_vms = context.config.userdata.getbool("FORCE_NEW_VMS")
-    checkpoints.second_vm_prepared.restore_or_run(
-        second_test_vm, force_new_vms,
-    )
+    prepare_second_vm(second_test_vm, force_new_vms)
 
+
+@snapshot("second-vm-prepared", "The second VM is prepared for testing")
+def prepare_second_vm(vm: VM, force_new_snapshots: bool) -> None:
+    prepare_new_vm(vm, force_new_snapshots)
+
+    # TODO: Delete this, it's already done in prepare_new_vm
+    # Set a root password
+    vm.check_call(["sudo", "chpasswd"], input="root:root")
+
+    # The second machine needs a web browser
+    install_firefox(vm, force_new_snapshots)
+
+    # TODO: Remove this, only do it in _launch_new_vm
+    # Set GNOME_ACCESSIBILITY=1 in /etc/environment, which is needed for
+    # Firefox (and maybe other apps) to expose itself on the a11y bus
+    # vm.check_call(["sudo", "sh", "-c",
+    #                "echo GNOME_ACCESSIBILITY=1 > /etc/environment.d/90-gnome-a11y.conf"])
+
+    ### Create a user and log in ###
+    username = SECOND_TEST_VM_USER
+    password = SECOND_TEST_VM_PASSWORD
+
+    # Create the user
+    vm.check_call(["sudo", "useradd", "-m", username])
+    vm.check_call(["sudo", "chpasswd"], input=f"{username}:{password}")
+
+    # Enable accessibility for the user
+    vm.check_call(["sudo", "su", username, "-c",
+                   "gsettings set org.gnome.desktop.interface toolkit-accessibility true"])
+
+    # Restart the VM to be able to log in as the new user
+    vm.restart()
+
+    # Wait until we're at the GDM login screen
+    vm.gnome_shell.find_child(name="Login Options", role_name="menu")
+
+    user_button = vm.gnome_shell.find_child(role_name="push button",
+                                            label=username)
+    user_button.grab_focus()
+    vm.screen.press("Enter")
+
+    # Enter the password
+    password_entry = vm.gnome_shell.find_child(
+        role_name="password text",
+        editable=True,
+    )
+    password_entry.set_text(password)
+    password_entry.activate()
+
+@snapshot("firefox-installed", "Firefox installed")
+def install_firefox(vm: VM, force_new_snapshots: bool) -> None:
+    vm.check_call(["sudo", "apt", "update"])
+    vm.check_call(["sudo", "apt", "install", "-y", "firefox"])
 
 @step("I installed the authd package")
 def step_impl(context: behave.runner.Context):
@@ -141,15 +244,16 @@ def step_impl(context: behave.runner.Context):
     test_user = context.config.userdata["test_user_name"]
 
     # The username text entry doesn't have a label or description, but it's the only editable
-    # text entry and the focused one.
-    text_entry = main_test_vm.gnome_shell.find_child(role_name="text", editable=True, focused=True)
+    # text entry.
+    text_entry = main_test_vm.gnome_shell.find_child(role_name="text", editable=True)
     text_entry.set_text(test_user)
     text_entry.activate()
 
 
 @then("I am asked to select the broker")
 def step_impl(context: behave.runner.Context):
-    main_test_vm.gnome_shell.find_child(name="Select the broker", role_name="label", retry=True)
+    main_test_vm.gnome_shell.find_child(name="Select the broker", role_name="label",
+                                        retry=True, retry_timeout=10)
 
 
 @when('I select the "(?P<broker_name>.+)" broker')
@@ -193,7 +297,7 @@ def step_impl(context: behave.runner.Context):
 @when('I open "(?P<url>.+)" on the second machine and log in')
 def step_impl(context: behave.runner.Context, url: str):
     # Use the a11y bus of the logged-in user
-    second_test_vm.a11y_bus_user = checkpoints.SECONDARY_VM_USER
+    second_test_vm.a11y_bus_user = SECOND_TEST_VM_USER
 
     # Launch Firefox
     search_entry = second_test_vm.gnome_shell.find_child(editable=True, role_name="text")
@@ -217,7 +321,13 @@ def step_impl(context: behave.runner.Context, url: str):
     firefox = retry(check_firefox_running, 30, 1)
 
     address_bar = firefox.find_child("Search or enter address", role_name="entry", editable=True)
-    address_bar.set_text(url)
+    # XXX: set_text doesn't work because of https://bugzilla.mozilla.org/show_bug.cgi?id=1861026
+    address_bar.grab_focus()
+    second_test_vm.screen.paste(url)
+
+    import ipdb
+    ipdb.set_trace()
+
     address_bar.activate()
 
 

@@ -1,11 +1,11 @@
-Feature: authd GDM login
-  Test logging in with authd via GDM
+Feature: AppArmor Prompting
+  Test the AppArmor prompting feature
 
   Background:
-    Given I have an Ubuntu Desktop machine set up to test authd and booted to the GDM login screen
-    And I have a second machine with a web browser
+    Given I have an Ubuntu Desktop machine
+    And I have logged in
 
-  Scenario: First login (MS Entra ID)
+  Scenario: Launching GNOME Calculator
     When I enter the username of the test user
     Then I am asked to select the broker
     When I select the "Microsoft Entra ID" broker

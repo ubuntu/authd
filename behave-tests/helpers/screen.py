@@ -45,12 +45,13 @@ class Screen:
     def __init__(self, vm: "VM"):
         self.vm = vm
 
-    def press(self, key: str) -> None:
+    def press(self, *keys: str) -> None:
+        keycodes = [keycode(key) for key in keys]
         self.vm.domain.sendKey(
             codeset=libvirt.VIR_KEYCODE_SET_LINUX,
             holdtime=40,
-            keycodes=[keycode(key)],
-            nkeycodes=1,
+            keycodes=keycodes,
+            nkeycodes=len(keycodes),
             flags=0,
         )
 
@@ -66,3 +67,7 @@ class Screen:
                     raise Exception(f"Error while taking screenshot: {data}")
                 f.write(data)
             stream.finish()
+
+    def paste(self, text: str):
+        self.vm.set_clipboard(text)
+        self.press("lctrl", "v")

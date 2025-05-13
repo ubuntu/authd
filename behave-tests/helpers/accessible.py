@@ -295,6 +295,25 @@ class Accessible:
         ).unpack()[0]
 
     def set_text(self, text: str):
+        # TODO: This fails if the entry is a password entry, because get_text
+        #       returns '●●●●'. After taking a quick look, I couldn't find a way
+        #       to figure out via the a11y API if an entry is a password entry.
+        # def try_set_text():
+        #     success = self._editable_text_proxy.call_sync(
+        #         method_name="SetTextContents",
+        #         parameters=GLib.Variant("(s)", (text,)),
+        #         flags=Gio.DBusCallFlags.NONE,
+        #         timeout_msec=-1,
+        #         cancellable=None
+        #     )
+        #     if not success:
+        #         raise Exception(f"Could not set text '{text}' for {self}")
+        #     # if self.get_text() != text:
+        #     got_text = self.get_text()
+        #     logging.debug(f"XXX: Got text '{got_text}' for {self}")
+        #     if got_text != text:
+        #         raise util.RetriableError("Failed to set text")
+        # util.retry(try_set_text, 5, 0.2)
         success = self._editable_text_proxy.call_sync(
             method_name="SetTextContents",
             parameters=GLib.Variant("(s)", (text,)),
@@ -304,6 +323,31 @@ class Accessible:
         )
         if not success:
             raise Exception(f"Could not set text '{text}' for {self}")
+
+    def insert_text(self, text: str, start_position: int = 0):
+        success = self._editable_text_proxy.call_sync(
+            method_name="InsertText",
+            parameters=GLib.Variant("(isi)", (start_position, text, 0)),
+            flags=Gio.DBusCallFlags.NONE,
+            timeout_msec=-1,
+            cancellable=None
+        )
+        if not success:
+            raise Exception(f"Could not insert text '{text}' for {self}")
+
+    def delete_text(self, start_position: int = 0, end_position: int = None):
+        if end_position is None:
+            end_position = self.get_character_count()
+
+        success = self._editable_text_proxy.call_sync(
+            method_name="DeleteText",
+            parameters=GLib.Variant("(ii)", (start_position, end_position)),
+            flags=Gio.DBusCallFlags.NONE,
+            timeout_msec=-1,
+            cancellable=None
+        )
+        if not success:
+            raise Exception(f"Could not delete text for {self}")
 
     def get_text(self, start_offset: int = None, end_offset: int = None) -> str:
         if start_offset is None:

@@ -1,3 +1,4 @@
+import contextlib
 import json
 import subprocess
 import time
@@ -83,6 +84,9 @@ class VM:
 
     def check_output(self, command: [str], *args, **kwargs) -> str:
         return executil.check_output(["multipass", "exec", self.name, "--"] + command, *args, **kwargs)
+
+    def set_clipboard(self, text: str):
+        self.check_call(["wl-copy", text])
 
     def get_ip(self) -> str:
         vm_info_json = executil.check_output(["multipass", "info", self.name, "--format", "json"])

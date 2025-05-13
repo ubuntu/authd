@@ -84,4 +84,5 @@ LOG_FILE=${RUNTIME_DIR}/behave-tests.log
 echo >&2 "Logging to ${LOG_FILE}"
 
 set -x
-${BEHAVE_CMD} "${SCRIPT_DIR}" "$@" |& tee "${LOG_FILE}"
+#${BEHAVE_CMD} "${SCRIPT_DIR}" "$@" |& tee "${LOG_FILE}"
+script -q --log-out "${LOG_FILE}" -c "${BEHAVE_CMD} \"${SCRIPT_DIR}\" $*"
