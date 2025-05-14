@@ -441,9 +441,8 @@ func (m nativeModel) promptForChoiceWithMessage(title string, message string, ch
 		}
 	}
 
-	if m.canGoBack() {
-		msg += fmt.Sprintf("\nOr enter '%s' to %s", nativeCancelKey,
-			m.goBackActionLabel())
+	if goBackLabel := m.goBackActionLabel(); goBackLabel != "" {
+		msg += fmt.Sprintf("\nOr enter '%s' to %s", nativeCancelKey, goBackLabel)
 	}
 
 	for {
@@ -638,19 +637,27 @@ func (m nativeModel) handleFormChallenge(hasWait bool) tea.Cmd {
 		})
 	}
 
-	instructions := "Enter '%[1]s' to cancel the request and %[2]s"
+	var instructions string
+	if m.canGoBack() {
+		instructions = "Enter '%[1]s' to cancel the request and %[2]s"
+	}
+
 	if hasWait {
 		// Duplicating some contents here, as it will be better for translators once we've them
-		instructions = "Leave the input field empty to wait for the alternative authentication method " +
-			"or enter '%[1]s' to %[2]s"
+		instructions = "Leave the input field empty to wait for the alternative authentication method"
 		if m.uiLayout.GetEntry() == "" {
-			instructions = "Press Enter to wait for authentication " +
-				"or enter '%[1]s' to %[2]s"
+			instructions = "Press Enter to wait for authentication"
+		}
+
+		if m.canGoBack() {
+			instructions += " or enter '%[1]s' to %[2]s"
 		}
 	}
 
-	instructions = fmt.Sprintf(instructions, nativeCancelKey, m.goBackActionLabel())
-	if cmd := maybeSendPamError(m.sendInfo("== %s ==\n%s", authMode, instructions)); cmd != nil {
+	if goBackLabel := m.goBackActionLabel(); goBackLabel != "" {
+		instructions = "\n" + fmt.Sprintf(instructions, nativeCancelKey, m.goBackActionLabel())
+	}
+	if cmd := maybeSendPamError(m.sendInfo("== %s ==%s", authMode, instructions)); cmd != nil {
 		return cmd
 	}
 
@@ -819,10 +826,13 @@ func (m nativeModel) handleNewPassword() tea.Cmd {
 
 func (m nativeModel) newPasswordChallenge(previousPassword *string) tea.Cmd {
 	if previousPassword == nil {
-		instructions := fmt.Sprintf("Enter '%[1]s' to cancel the request and %[2]s",
-			nativeCancelKey, m.goBackActionLabel())
+		var instructions string
+		if goBackLabel := m.goBackActionLabel(); goBackLabel != "" {
+			instructions = fmt.Sprintf("\nEnter '%[1]s' to cancel the request and %[2]s",
+				nativeCancelKey, goBackLabel)
+		}
 		title := m.selectedAuthModeLabel("Password Update")
-		if cmd := maybeSendPamError(m.sendInfo("== %s ==\n%s", title, instructions)); cmd != nil {
+		if cmd := maybeSendPamError(m.sendInfo("== %s ==%s", title, instructions)); cmd != nil {
 			return cmd
 		}
 	}
@@ -892,6 +902,9 @@ func (m nativeModel) previousStage() pam_proto.Stage {
 }
 
 func (m nativeModel) goBackActionLabel() string {
+	if !m.canGoBack() {
+		return ""
+	}
 	switch m.previousStage() {
 	case proto.Stage_authModeSelection:
 		return "go back to select the authentication method"
