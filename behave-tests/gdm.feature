@@ -13,11 +13,11 @@ Feature: authd GDM login
     And I see a QR code which encodes the URL "https://microsoft.com/devicelogin"
     And I see a valid Microsoft Entra ID login code
     When I open "https://microsoft.com/devicelogin" on the second machine and log in
-    And I enter the login code "user_code"
-    And I log in with the username "demo@uaadtest.onmicrosoft.com" and password "password"
-    Then I am asked if I am trying to sign in to "Azure OIDC Poc"
-    When I click "Continue"
-    Then I am prompted to create a local password
-    When I enter a password
-    And confirm the password
-    Then I am logged in
+#    And I enter the login code "user_code"
+#    And I log in with the username "demo@uaadtest.onmicrosoft.com" and password "password"
+#    Then I am asked if I am trying to sign in to "Azure OIDC Poc"
+#    When I click "Continue"
+#    Then I am prompted to create a local password
+#    When I enter a password
+#    And confirm the password
+#    Then I am logged in

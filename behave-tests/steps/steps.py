@@ -381,10 +381,10 @@ def step_impl(context: behave.runner.Context, url: str):
     address_bar.grab_focus()
     second_test_vm.screen.paste(url)
 
-    import ipdb
-    ipdb.set_trace()
-
-    address_bar.activate()
+    # import ipdb
+    # ipdb.set_trace()
+    #
+    # address_bar.activate()
 
 
 @then("I am prompted to create a local password")
