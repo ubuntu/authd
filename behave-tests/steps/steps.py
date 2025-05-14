@@ -33,8 +33,8 @@ MAIN_TEST_VM_MEMORY = "2G"
 SECOND_TEST_VM_NAME = "behave-tests-second"
 SECOND_TEST_VM_DISK_SPACE = "10G"
 SECOND_TEST_VM_MEMORY = "2G"
-SECOND_TEST_VM_USER = USER_NAME
-SECOND_TEST_VM_PASSWORD = PASSWORD
+SECOND_TEST_VM_USER = "user"
+SECOND_TEST_VM_PASSWORD = "test"
 
 LIBVIRT_CONNECTION = libvirt.open("qemu:///system")
 
@@ -80,7 +80,6 @@ def prepare_main_vm(vm: VM, force_new_snapshots: bool,
         "sudo", "sed", "-i", "-e", f"s/<ISSUER_ID>/{issuer_id}/", "-e",
         f"s/<CLIENT_ID>/{client_id}/",
         broker_config_file,
-
     ])
 
     # Reboot the VM
@@ -372,13 +371,10 @@ def step_impl(context: behave.runner.Context, url: str):
     second_test_vm.screen.press("Enter")
 
     # Wait for Firefox to start
-    @retry()
-    def check_firefox_running():
-        try:
-            return second_test_vm.application("Firefox")
-        except SearchError:
-            raise RetriableError("Firefox not running yet")
-    firefox = retry(check_firefox_running, 30, 1)
+    @retryable(30, 1, (SearchError,), "Firefox is not running")
+    def find_firefox():
+        return second_test_vm.application("Firefox")
+    firefox = find_firefox()
 
     address_bar = firefox.find_child("Search or enter address", role_name="entry", editable=True)
     # XXX: set_text doesn't work because of https://bugzilla.mozilla.org/show_bug.cgi?id=1861026
