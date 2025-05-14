@@ -131,7 +131,12 @@ class VM:
             if vm_info["info"][self.name]["state"] == "Running":
                 return
 
-            time.sleep(1)
+            # Try executing a command in the VM to check if it's running
+            try:
+                self.check_call(["true"])
+            except subprocess.CalledProcessError:
+                time.sleep(1)
+                continue
 
         raise TimeoutError(f"VM '{self.name}' did not start within the timeout ({WAIT_FOR_VM_RUNNING_TIMEOUT} seconds)")
 
@@ -410,8 +415,9 @@ class VM:
         return self.application("gnome-shell")
 
     def application(self, app_name) -> accessible.Root:
-        cache_key = f"application-{app_name}"
+        cache_key = f"application-{self.a11y_bus_user}-{app_name}"
         if cache_key in self._cache:
             return self._cache[cache_key]
+
         self._cache[cache_key] = accessible.application_root(self.a11y_bus_proxy, app_name)
         return self._cache[cache_key]

@@ -4,6 +4,9 @@ from typing import Optional
 import util
 
 import gi
+
+from retry import retryable
+
 gi.require_version("Atspi", "2.0")
 from gi.repository import Gio, Atspi, GObject, GLib
 
@@ -204,21 +207,21 @@ class Accessible:
         """
         query_description = f"(name={name!r}, description={description!r}, label={label!r}, role_name={role_name!r}, editable={editable!r}, focused={focused!r})"
 
-        def find_child_no_retry():
+        def find_child():
             result = self._find_child_recursive(name, role_name, description, label, editable, focused)
             if not result:
                 raise SearchError(f"Could not find child with {query_description}")
             return result
 
         if not retry:
-            return find_child_no_retry()
+            return find_child()
 
-        def try_find_child():
-            try:
-                return find_child_no_retry()
-            except SearchError as e:
-                raise util.RetriableError(e)
-        return util.retry(try_find_child, retry_timeout, retry_interval, f"Could not find child with {query_description}")
+        @retryable(timeout_sec=retry_timeout, interval_sec=retry_interval, retriable_exceptions=(SearchError,),
+                   error_msg=f"Could not find child with {query_description}")
+        def find_child_with_retry():
+            return find_child()
+
+        return find_child_with_retry()
 
     def _find_child_recursive(
             self,
@@ -240,7 +243,7 @@ class Accessible:
         else:
             states = []
 
-        logging.debug(f"XXX: Checking if query {query_description} matches {self}")
+        # logging.debug(f"XXX: Checking if query {query_description} matches {self}")
 
         if ((name is None or self.name == name) and
             (role_name is None or self.get_role_name() == role_name) and
@@ -295,34 +298,27 @@ class Accessible:
         ).unpack()[0]
 
     def set_text(self, text: str):
-        # TODO: This fails if the entry is a password entry, because get_text
-        #       returns '●●●●'. After taking a quick look, I couldn't find a way
-        #       to figure out via the a11y API if an entry is a password entry.
-        # def try_set_text():
-        #     success = self._editable_text_proxy.call_sync(
-        #         method_name="SetTextContents",
-        #         parameters=GLib.Variant("(s)", (text,)),
-        #         flags=Gio.DBusCallFlags.NONE,
-        #         timeout_msec=-1,
-        #         cancellable=None
-        #     )
-        #     if not success:
-        #         raise Exception(f"Could not set text '{text}' for {self}")
-        #     # if self.get_text() != text:
-        #     got_text = self.get_text()
-        #     logging.debug(f"XXX: Got text '{got_text}' for {self}")
-        #     if got_text != text:
-        #         raise util.RetriableError("Failed to set text")
-        # util.retry(try_set_text, 5, 0.2)
-        success = self._editable_text_proxy.call_sync(
-            method_name="SetTextContents",
-            parameters=GLib.Variant("(s)", (text,)),
-            flags=Gio.DBusCallFlags.NONE,
-            timeout_msec=-1,
-            cancellable=None
-        )
-        if not success:
-            raise Exception(f"Could not set text '{text}' for {self}")
+        @retryable(timeout_sec=5, interval_sec=0.2, retriable_exceptions=(util.RetriableError,),
+                   error_msg=f"Failed to set text '{text}' for {self}")
+        def set_text_with_retry():
+            success = self._editable_text_proxy.call_sync(
+                method_name="SetTextContents",
+                parameters=GLib.Variant("(s)", (text,)),
+                flags=Gio.DBusCallFlags.NONE,
+                timeout_msec=-1,
+                cancellable=None
+            )
+            if not success:
+                raise Exception(f"Could not set text '{text}' for {self}")
+
+            # We can't use `if self.get_text != text` here, because that fails
+            # if the entry is a password entry, for which get_text returns '●●●●'.
+            # After taking a quick look, I couldn't find a way to figure out via
+            # the a11y API if an entry is a password entry.
+            if self.get_character_count() != len(text):
+                raise util.RetriableError("Failed to set text")
+
+        set_text_with_retry()
 
     def insert_text(self, text: str, start_position: int = 0):
         success = self._editable_text_proxy.call_sync(

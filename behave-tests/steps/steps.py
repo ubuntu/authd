@@ -15,6 +15,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..", "helpers"))
 import executil
 import msentraid
 from accessible import Accessible, SearchError
+from retry import retryable
 from snapshot import snapshot
 from util import retry, RetriableError
 from vm import VM
@@ -23,14 +24,17 @@ logger = logging.getLogger(os.path.basename(__file__))
 
 use_step_matcher("re")
 
+USER_NAME = "ubuntu"
+PASSWORD = "ubuntu"
+
 MAIN_TEST_VM_NAME = "behave-tests-main"
 MAIN_TEST_VM_DISK_SPACE = "5G"
 MAIN_TEST_VM_MEMORY = "2G"
 SECOND_TEST_VM_NAME = "behave-tests-second"
 SECOND_TEST_VM_DISK_SPACE = "10G"
 SECOND_TEST_VM_MEMORY = "2G"
-SECOND_TEST_VM_USER = "user"
-SECOND_TEST_VM_PASSWORD = "test"
+SECOND_TEST_VM_USER = USER_NAME
+SECOND_TEST_VM_PASSWORD = PASSWORD
 
 LIBVIRT_CONNECTION = libvirt.open("qemu:///system")
 
@@ -59,7 +63,7 @@ def step_impl(context: behave.runner.Context):
 @snapshot("authd-installed-and-configured", "authd and the Entra ID broker are installed and configured")
 def prepare_main_vm(vm: VM, force_new_snapshots: bool,
                     issuer_id: str, client_id: str) -> None:
-    prepare_new_vm(vm, force_new_snapshots)
+    prepare_new_vm(vm, force_new_snapshots, no_reboot=True)
 
     # Install authd and the authd-msentraid snap
     vm.check_call(["sudo", "apt", "install", "-y", "authd"])
@@ -88,8 +92,27 @@ def step_impl(context: behave.runner.Context):
     force_new_vms = context.config.userdata.getbool("FORCE_NEW_VMS")
     prepare_new_vm(main_test_vm, force_new_vms)
 
+@given("I have an Ubuntu Desktop machine with the desktop-security-center installed")
+def step_impl(context: behave.runner.Context):
+    force_new_vms = context.config.userdata.getbool("FORCE_NEW_VMS")
+    prepare_vm_for_apparmor_prompting(main_test_vm, force_new_vms)
+
+
+@snapshot("apparmor-prompting", "The VM is prepared for AppArmor prompting")
+def prepare_vm_for_apparmor_prompting(vm: VM, force_new_snapshots: bool) -> None:
+    prepare_new_vm(vm, force_new_snapshots, no_reboot=True)
+
+    # TODO: Remove once the snapshots were recreated
+    vm.wait_until_running()
+
+    # Install the desktop-security-center snap
+    vm.check_call(["sudo", "snap", "install", "desktop-security-center"])
+
+    # Restart the VM to apply the changes
+    vm.restart()
+
 @snapshot("new-vm", "The VM is newly created")
-def prepare_new_vm(vm: VM, force_new_snapshots: bool):
+def prepare_new_vm(vm: VM, force_new_snapshots: bool, no_reboot: bool = False):
     vm.ensure_is_purged()
     vm.launch()
 
@@ -100,6 +123,9 @@ def prepare_new_vm(vm: VM, force_new_snapshots: bool):
 
     # Set a root password
     vm.check_call(["sudo", "chpasswd"], input="root:root")
+
+    # Set a password for the default user
+    vm.check_call(["sudo", "chpasswd"], input=f"{USER_NAME}:{PASSWORD}")
 
     # Uninstall unattended-upgrades, because it can lock apt
     vm.check_call(["sudo", "apt", "remove", "-y", "unattended-upgrades"])
@@ -131,6 +157,10 @@ def prepare_new_vm(vm: VM, force_new_snapshots: bool):
     vm.check_call(["sudo", "sh", "-c",
                    "echo GNOME_ACCESSIBILITY=1 > /etc/environment.d/90-gnome-a11y.conf"])
 
+    if not no_reboot:
+        # Restart the VM to apply the changes
+        vm.restart()
+
 
 @given("I have a second machine with a web browser")
 def step_impl(context: behave.runner.Context):
@@ -140,7 +170,7 @@ def step_impl(context: behave.runner.Context):
 
 @snapshot("second-vm-prepared", "The second VM is prepared for testing")
 def prepare_second_vm(vm: VM, force_new_snapshots: bool) -> None:
-    prepare_new_vm(vm, force_new_snapshots)
+    prepare_new_vm(vm, force_new_snapshots, no_reboot=True)
 
     # TODO: Delete this, it's already done in prepare_new_vm
     # Set a root password
@@ -155,12 +185,11 @@ def prepare_second_vm(vm: VM, force_new_snapshots: bool) -> None:
     # vm.check_call(["sudo", "sh", "-c",
     #                "echo GNOME_ACCESSIBILITY=1 > /etc/environment.d/90-gnome-a11y.conf"])
 
-    ### Create a user and log in ###
+    ### Set a password for the default user and log in ###
     username = SECOND_TEST_VM_USER
     password = SECOND_TEST_VM_PASSWORD
 
-    # Create the user
-    vm.check_call(["sudo", "useradd", "-m", username])
+    # Set a password for the default user
     vm.check_call(["sudo", "chpasswd"], input=f"{username}:{password}")
 
     # Enable accessibility for the user
@@ -190,6 +219,40 @@ def prepare_second_vm(vm: VM, force_new_snapshots: bool) -> None:
 def install_firefox(vm: VM, force_new_snapshots: bool) -> None:
     vm.check_call(["sudo", "apt", "update"])
     vm.check_call(["sudo", "apt", "install", "-y", "firefox"])
+
+@given("I logged in")
+def step_impl(context: behave.runner.Context):
+    # Wait until we're at the GDM login screen
+    main_test_vm.gnome_shell.find_child(name="Login Options", role_name="menu")
+
+    # Set a password for the default user
+    # TODO: Remove once the snapshots were recreated
+    main_test_vm.check_call(["sudo", "chpasswd"], input=f"{USER_NAME}:{PASSWORD}")
+
+    # The username text entry doesn't have a label or description, but it's the only editable
+    # text entry.
+    text_entry = main_test_vm.gnome_shell.find_child(role_name="text",
+                                                     editable=True)
+    text_entry.set_text(USER_NAME)
+    text_entry.activate()
+
+    # Enter the password
+    password_entry = main_test_vm.gnome_shell.find_child(
+        role_name="password text",
+        editable=True,
+    )
+    password_entry.set_text(PASSWORD)
+    password_entry.activate()
+
+    # Use the a11y bus of the logged-in user from now on
+    main_test_vm.a11y_bus_user = USER_NAME
+
+    # Wait for the desktop to load
+    main_test_vm.gnome_shell.find_child(name="Activities",
+                                        retry=True,
+                                        retry_timeout=30,
+                                        retry_interval=1)
+
 
 @step("I installed the authd package")
 def step_impl(context: behave.runner.Context):
@@ -303,16 +366,13 @@ def step_impl(context: behave.runner.Context, url: str):
     search_entry = second_test_vm.gnome_shell.find_child(editable=True, role_name="text")
     search_entry.set_text("firefox")
 
-    def find_firefox_push_button() -> Accessible:
-        try:
-            return second_test_vm.gnome_shell.find_child(role_name="push button", label="Firefox")
-        except SearchError:
-            raise RetriableError("Firefox push button not found yet")
-    push_button = retry(find_firefox_push_button, 3, 0.2)
+    push_button = second_test_vm.gnome_shell.find_child(role_name="push button", label="Firefox",
+                                                        retry=True)
     push_button.grab_focus()
     second_test_vm.screen.press("Enter")
 
     # Wait for Firefox to start
+    @retry()
     def check_firefox_running():
         try:
             return second_test_vm.application("Firefox")
@@ -384,3 +444,47 @@ def step_impl(context):
     :type context: behave.runner.Context
     """
     raise NotImplementedError(u'STEP: When I click "Continue"')
+
+
+@when('I launch "(?P<app_name>.+)"')
+def step_impl(context, app_name: str):
+    search_entry = main_test_vm.gnome_shell.find_child(editable=True,
+                                                       role_name="text",
+                                                       retry=True)
+    search_entry.set_text(app_name)
+
+    push_button = second_test_vm.gnome_shell.find_child(role_name="push button", label=app_name,
+                                                        retry=True)
+    push_button.grab_focus()
+    second_test_vm.screen.press("Enter")
+
+    # Wait for the app to start
+    def check_app_running():
+        try:
+            return second_test_vm.application(app_name)
+        except SearchError:
+            raise RetriableError(f"{app_name} not running yet")
+    retry(check_app_running, 30, 1)
+
+@when('I launch the Security Center')
+def step_impl(context):
+    search_entry = main_test_vm.gnome_shell.find_child(editable=True,
+                                                       role_name="text",
+                                                       retry=True)
+    search_entry.set_text("Security Center")
+
+    push_button = second_test_vm.gnome_shell.find_child(role_name="push button",
+                                                        label="Settings",
+                                                        retry=True)
+    push_button.grab_focus()
+    second_test_vm.screen.press("Enter")
+
+    app_name = "Security Center"
+
+    # Wait for the app to start
+    def check_app_running():
+        try:
+            return second_test_vm.application(app_name)
+        except SearchError:
+            raise RetriableError(f"{app_name} not running yet")
+    retry(check_app_running, 30, 1)
