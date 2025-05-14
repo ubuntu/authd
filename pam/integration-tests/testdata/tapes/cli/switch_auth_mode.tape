@@ -16,7 +16,7 @@ Show
 
 Hide
 Type "2"
-Wait+Prompt /Gimme your password/
+Wait+CLIPrompt /Gimme your password/ /Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -27,7 +27,7 @@ Show
 
 Hide
 Type "2"
-Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/3 /Click on the link received at .* or enter the code/
+Wait+CLIPrompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/3 /Click on the link received at .* or enter the code/ /Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -38,7 +38,8 @@ Show
 
 Hide
 Type "3"
-Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/3 /Plug your fido device and press with your thumb/
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/3 /Plug your fido device and press with your thumb/
+Wait /Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -49,7 +50,7 @@ Show
 
 Hide
 Type "1"
-Wait+Prompt /Gimme your password/
+Wait+CLIPrompt /Gimme your password/ /Press escape key to go back to select the authentication method/
 Show
 
 Hide

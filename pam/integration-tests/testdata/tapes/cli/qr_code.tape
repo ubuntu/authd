@@ -15,7 +15,7 @@ Show
 
 Hide
 Type "2"
-Wait+Prompt /Gimme your password/
+Wait+CLIPrompt /Gimme your password/ /Press escape key to go back to select the authentication method/
 Show
 
 Hide

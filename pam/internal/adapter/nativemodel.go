@@ -905,17 +905,8 @@ func (m nativeModel) goBackActionLabel() string {
 	if !m.canGoBack() {
 		return ""
 	}
-	switch m.previousStage() {
-	case proto.Stage_authModeSelection:
-		return "go back to select the authentication method"
-	case proto.Stage_brokerSelection:
-		return "go back to choose the provider"
-	case proto.Stage_challenge:
-		return "go back to authentication"
-	case proto.Stage_userSelection:
-		return "go back to user selection"
-	}
-	return "go back"
+
+	return goBackLabel(m.previousStage())
 }
 
 func sendAuthWaitCommand() tea.Cmd {

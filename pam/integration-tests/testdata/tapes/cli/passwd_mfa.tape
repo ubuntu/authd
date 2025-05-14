@@ -16,7 +16,7 @@ Show
 
 Hide
 Type "2"
-Wait+Prompt /Gimme your password/
+Wait+CLIPrompt /Gimme your password/ /Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -27,7 +27,7 @@ Show
 
 Hide
 Type "1"
-Wait+Prompt /Gimme your password/
+Wait+CLIPrompt /Gimme your password/ /Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -36,7 +36,8 @@ Show
 
 Hide
 Enter
-Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
+Wait /Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -47,11 +48,13 @@ Show
 
 Hide
 Enter
-Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Plug your fido device and press with your thumb/
+Wait /Press escape key to go back to select the authentication method/
 Show
 
 Hide
-Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Unlock your phone \+33\.\.\. or accept request on web interface/
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Unlock your phone \+33\.\.\. or accept request on web interface/
+Wait /Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -62,11 +65,12 @@ Show
 
 Hide
 Enter
-Wait@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Unlock your phone \+33\.\.\. or accept request on web interface/
+Wait+Screen@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}/2 /Unlock your phone \+33\.\.\. or accept request on web interface/
+Wait /Press escape key to go back to select the authentication method/
 Show
 
 Hide
-Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /New password/
+Wait+CLIPrompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /New password/ /Press escape key to go back to choose the provider/
 Show
 
 Hide
@@ -75,7 +79,7 @@ Show
 
 Hide
 Enter
-Wait+Prompt /Confirm password/
+Wait+CLIPrompt /Confirm password/ /Press escape key to go back to choose the provider/
 TypeCLIPassword "authd2404"
 Show
 
