@@ -739,7 +739,7 @@ func (m nativeModel) handleQrCode() tea.Cmd {
 		qrcodeView = append(qrcodeView, centerString(code, firstQrCodeLine))
 	}
 
-	// Ass some extra vertical space to improve readability
+	// Add some extra vertical space to improve readability
 	qrcodeView = append(qrcodeView, " ")
 
 	choices := []choicePair{
