@@ -19,6 +19,11 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	// Disable command sorting by name. This makes cobra print the commands in the
+	// order they are added to the root command and adds the `help` and `completion`
+	// commands at the end.
+	cobra.EnableCommandSorting = false
+
 	rootCmd.AddCommand(user.UserCmd)
 }
 
