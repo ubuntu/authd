@@ -16,7 +16,6 @@ var UserCmd = &cobra.Command{
 	Use:   "user",
 	Short: "Commands related to users",
 	Args:  cobra.NoArgs,
-	Run:   func(cmd *cobra.Command, args []string) {},
 }
 
 // NewUserServiceClient creates and returns a new [authd.UserServiceClient].
