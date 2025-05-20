@@ -16,7 +16,7 @@ Show
 
 Hide
 Type "2"
-Wait+Prompt /Gimme your password/
+Wait+CLIPrompt /Gimme your password/ /Press escape key to go back to select the authentication method/
 Escape
 Wait+Screen /Select your authentication method/
 Wait+Screen /7\. Authentication code/
@@ -24,7 +24,7 @@ Show
 
 Hide
 Type "7"
-Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /Enter your one time credential/ /\[ Resend SMS \(1 sent\) \]/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /Enter your one time credential/ /\[ Resend SMS \(1 sent\) \][\n]+[ ]*Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -47,7 +47,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /Enter your one time credential/ /\[ Resend SMS \(1 sent\) \]/
+Wait+CLIPrompt@${AUTHD_WAIT_DEFAULT}*2 /Enter your one time credential/ /\[ Resend SMS \(1 sent\) \][\n]+[ ]*Press escape key to go back to select the authentication method/
 Show
 
 Hide
