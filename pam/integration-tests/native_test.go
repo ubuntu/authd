@@ -432,11 +432,14 @@ func TestNativeChangeAuthTok(t *testing.T) {
 
 	tapeCommand := fmt.Sprintf(nativeTapeBaseCommand, pam_test.RunnerActionPasswd,
 		vhsTapeSocketVariable)
+	tapeLoginCommand := fmt.Sprintf(nativeTapeBaseCommand, pam_test.RunnerActionLogin,
+		vhsTapeSocketVariable)
 
 	tests := map[string]struct {
 		tape          string
 		tapeSettings  []tapeSetting
 		tapeVariables map[string]string
+		clientOptions clientOptions
 
 		currentUserNotRoot bool
 		skipRunnerCheck    bool
@@ -444,17 +447,26 @@ func TestNativeChangeAuthTok(t *testing.T) {
 		"Change_password_successfully_and_authenticate_with_new_one": {
 			tape: "passwd_simple",
 			tapeVariables: map[string]string{
-				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(
-					nativeTapeBaseCommand, pam_test.RunnerActionLogin, vhsTapeSocketVariable),
+				"AUTHD_TEST_TAPE_LOGIN_COMMAND":  tapeLoginCommand,
 				vhsTapeUserVariable:              vhsTestUserName(t, "simple"),
 				"AUTHD_TEST_TAPE_LOGIN_USERNAME": vhsTestUserName(t, "simple"),
+			},
+		},
+		"Change_password_successfully_and_authenticate_with_new_one_with_single_broker_and_password_only_supported_method": {
+			tape: "passwd_simple_one_broker_only",
+			tapeVariables: map[string]string{
+				"AUTHD_TEST_TAPE_LOGIN_COMMAND": tapeLoginCommand,
+			},
+			clientOptions: clientOptions{
+				PamServiceName: "polkit-1",
+				PamUser: vhsTestUserNameFull(t,
+					examplebroker.UserIntegrationAuthModesPrefix, "password,mandatoryreset-integration-polkit"),
 			},
 		},
 		"Change_password_successfully_and_authenticate_with_new_one_with_different_case": {
 			tape: "passwd_simple",
 			tapeVariables: map[string]string{
-				"AUTHD_TEST_TAPE_LOGIN_COMMAND": fmt.Sprintf(
-					nativeTapeBaseCommand, pam_test.RunnerActionLogin, vhsTapeSocketVariable),
+				"AUTHD_TEST_TAPE_LOGIN_COMMAND":  tapeLoginCommand,
 				vhsTapeUserVariable:              vhsTestUserName(t, "case-insensitive"),
 				"AUTHD_TEST_TAPE_LOGIN_USERNAME": vhsTestUserName(t, "case-insensitive"),
 			},
@@ -523,7 +535,8 @@ func TestNativeChangeAuthTok(t *testing.T) {
 				socketPath, _ = sharedAuthd(t)
 			}
 
-			if _, ok := tc.tapeVariables[vhsTapeUserVariable]; !ok && !tc.currentUserNotRoot {
+			if _, ok := tc.tapeVariables[vhsTapeUserVariable]; !ok &&
+				!tc.currentUserNotRoot && tc.clientOptions.PamUser == "" {
 				if tc.tapeVariables == nil {
 					tc.tapeVariables = make(map[string]string)
 				}
@@ -535,13 +548,14 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			td.Variables = tc.tapeVariables
 			td.Env[vhsTapeSocketVariable] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
-			td.AddClientOptions(t, clientOptions{})
+			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			golden.CheckOrUpdate(t, got)
 
 			if !tc.skipRunnerCheck {
-				requireRunnerResult(t, authd.SessionMode_CHANGE_PASSWORD, got)
+				requireRunnerResultForUser(t, authd.SessionMode_CHANGE_PASSWORD,
+					tc.clientOptions.PamUser, got)
 			}
 		})
 	}
