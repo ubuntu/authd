@@ -1,3 +1,9 @@
+authd (0.4.1+git250521+621+31f2fb3a) plucky; urgency=medium
+
+  * Github build. Run id: 15171072544. Run number: 621.
+
+ -- Marco <marco@ubuntu.com>  Wed, 21 May 2025 19:39:12 +0000
+
 authd (0.4.1) plucky; urgency=medium
 
   * New Launchpad upload
