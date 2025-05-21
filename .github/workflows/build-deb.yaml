@@ -18,7 +18,7 @@ on:
 
 env:
   UBUNTU_VERSIONS: |
-    ["noble", "devel"]
+    ["noble", "plucky", "devel"]
   CARGO_VENDOR_FILTERER_VERSION: 0.5.16
 
 jobs:
@@ -42,8 +42,10 @@ jobs:
       run-id: ${{ github.run_id }}
       # FIXME: Use dynamic outputs when possible: https://github.com/actions/runner/pull/2477
       pkg-dsc-devel:  ${{ steps.outputs.outputs.pkg-dsc-devel }}
+      pkg-dsc-plucky:  ${{ steps.outputs.outputs.pkg-dsc-plucky }}
       pkg-dsc-noble:  ${{ steps.outputs.outputs.pkg-dsc-noble }}
       pkg-src-changes-devel: ${{ steps.outputs.outputs.pkg-src-changes-devel }}
+      pkg-src-changes-plucky: ${{ steps.outputs.outputs.pkg-src-changes-plucky }}
       pkg-src-changes-noble: ${{ steps.outputs.outputs.pkg-src-changes-noble }}
 
     steps:
