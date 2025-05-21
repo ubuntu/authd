@@ -1,4 +1,4 @@
-authd (0.5.0) UNRELEASED; urgency=medium
+authd (0.5.0) questing; urgency=medium
 
   * Use SQLite instead of bbolt
   * Use lowercase usernames
