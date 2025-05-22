@@ -22,7 +22,7 @@ func TestTransactionConnectionError(t *testing.T) {
 	t.Parallel()
 
 	tx, cleanup, err := dbusmodule.NewTransaction(context.TODO(), "invalid-address")
-	require.Nil(t, tx, "Transaction must be unset")
+	require.Zero(t, tx, "Transaction must be unset")
 	require.Nil(t, cleanup, "Cleanup func must be unset")
 	require.NotNil(t, err, "Error must be set")
 }
@@ -640,7 +640,7 @@ func requireDbusErrorIs(t *testing.T, err error, wantError error) {
 	}
 }
 
-func prepareTransaction(t *testing.T, expectedReturns []methodReturn) (*dbusmodule.Transaction, *testServer) {
+func prepareTransaction(t *testing.T, expectedReturns []methodReturn) (dbusmodule.Transaction, *testServer) {
 	t.Helper()
 
 	address, obj := prepareTestServer(t, expectedReturns)
