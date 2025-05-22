@@ -29,9 +29,9 @@ simple_logger = {version = "5.0.0", features = ["stderr"]}
 syslog = "7.0.0"
 ctor = "0.4.1"
 procfs = "0.17.0"
-hyper-util = "0.1.11"
+hyper-util = "0.1.12"
 
 [build-dependencies]
 # We need to pin tonic-build to 0.11.* for now until https://github.com/hyperium/tonic/issues/1909 is fixed.
 tonic-build = "0.13.*"
-cc = "1.2.21"
+cc = "1.2.23"
