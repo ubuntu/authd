@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"time"
 
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/log"
@@ -16,7 +15,6 @@ import (
 
 var (
 	pamFlags = flag.Int64("flags", 0, "pam flags")
-	timeout  = flag.Int64("timeout", 120, "timeout for the server connection (in seconds)")
 )
 
 func init() {
@@ -41,7 +39,7 @@ func mainFunc() error {
 		return fmt.Errorf("%w: no connection provided", pam.ErrSystem)
 	}
 
-	ctx, cancel := context.WithTimeout(context.TODO(), time.Duration(*timeout)*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	mTx, closeFunc, err := dbusmodule.NewTransaction(ctx, serverAddress)
