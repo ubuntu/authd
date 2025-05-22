@@ -39,14 +39,11 @@ func mainFunc() error {
 		return fmt.Errorf("%w: no connection provided", pam.ErrSystem)
 	}
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	mTx, closeFunc, err := dbusmodule.NewTransaction(ctx, serverAddress)
+	mTx, _, err := dbusmodule.NewTransaction(context.Background(), serverAddress)
 	if err != nil {
 		return fmt.Errorf("%w: can't connect to server: %w", pam.ErrSystem, err)
 	}
-	defer closeFunc()
+	// defer closeFunc()
 
 	actionDone := make(chan struct{})
 	defer close(actionDone)
