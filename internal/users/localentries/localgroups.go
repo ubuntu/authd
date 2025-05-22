@@ -246,7 +246,7 @@ func runGPasswd(cmdName string, args ...string) error {
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		if cmd.ProcessState.ExitCode() == 3 {
-			log.Infof(context.TODO(), "ignoring gpasswd error: %s", out)
+			log.Infof(context.TODO(), "gpasswd exited with code 3 (group or user does not exist); ignoring: %s", out)
 			return nil
 		}
 		return fmt.Errorf("%q returned: %v\nOutput: %s", strings.Join(cmd.Args, " "), err, out)
