@@ -80,7 +80,7 @@ sudo systemctl edit authd.service
 
 Add the following lines to the override file and make sure to add `-vv` at the end of the `authd` command:
 
-```
+```ini
 [Service]
 ExecStart=
 ExecStart=/usr/libexec/authd -vv
@@ -134,7 +134,7 @@ Add the following lines to the override file and make sure to add `-vv` to the e
 :::{tab-item} Google IAM
 :sync: google
 
-```
+```ini
 [Service]
 ExecStart=
 ExecStart=/usr/bin/snap run authd-google -vv
@@ -144,7 +144,7 @@ ExecStart=/usr/bin/snap run authd-google -vv
 :::{tab-item} MS Entra ID
 :sync: msentraid
 
-```
+```ini
 [Service]
 ExecStart=
 ExecStart=/usr/bin/snap run authd-msentraid -vv
