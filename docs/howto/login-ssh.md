@@ -17,7 +17,7 @@ Alternatively, you can directly set the keys in the sshd configuration file `/et
 
 Then restart the SSH server:
 
-```
+```shell
 sudo systemctl restart ssh
 ```
 
@@ -25,7 +25,7 @@ sudo systemctl restart ssh
 
 To configure the broker edit the file `/var/snap/authd-<broker_name>/current/broker.conf` and set the key `ssh_allowed_suffixes` with the list of domains that you want to allow.
 
-```
+```ini
 ...
 
 [users]
@@ -36,7 +36,7 @@ ssh_allowed_suffixes = <ALLOWED DOMAINS>
 
 You can set several domains separated by a comma. For instance:
 
-```
+```ini
 ssh_allowed_suffixes = @example.com,@ubuntu.com
 ```
 
