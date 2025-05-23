@@ -13,9 +13,9 @@ brokers for different cloud providers.
 
 ### authd
 
-```authd``` logs to the system journal.
+`authd` logs to the system journal.
 
-For ```authd``` entries, run:
+For `authd` entries, run:
 
 ```shell
 journalctl -u authd.service
@@ -56,7 +56,7 @@ For the GDM integration:
 journalctl /usr/bin/gnome-shell
 ```
 
-For anything else or more broader investigation, use ```journalctl```.
+For anything else or more broader investigation, use `journalctl`.
 
 ### Logging verbosity
 
@@ -64,7 +64,7 @@ You can increase the verbosity of the logs in different ways.
 
 #### PAM module
 
-Append ```debug=true``` to all the lines with `pam_authd_exec.so` or `pam_authd.so` in the PAM configuration files (`common-auth`, `gdm-authd`...) in ```/etc/pam.d/``` to increase the verbosity of the PAM messages.
+Append `debug=true` to all the lines with `pam_authd_exec.so` or `pam_authd.so` in the PAM configuration files (`common-auth`, `gdm-authd`...) in `/etc/pam.d/` to increase the verbosity of the PAM messages.
 
 #### NSS module
 
