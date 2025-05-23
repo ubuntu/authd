@@ -102,6 +102,10 @@ func New() *App {
 		},
 		// We display usage error ourselves
 		SilenceErrors: true,
+		// Don't add a completion subcommand, authd is not a CLI tool.
+		CompletionOptions: cobra.CompletionOptions{
+			DisableDefaultCmd: true,
+		},
 	}
 	viper := viper.New()
 
