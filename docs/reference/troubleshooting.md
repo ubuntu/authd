@@ -18,13 +18,13 @@ brokers for different cloud providers.
 For ```authd``` entries, run:
 
 ```shell
-journalctl -u authd.service
+sudo journalctl -u authd.service
 ```
 
 If you want logs for authd and all brokers on the system, run:
 
 ```shell
-journalctl -u authd.service -u "snap.authd-*.service"
+sudo journalctl -u authd.service -u "snap.authd-*.service"
 ```
 
 For specific broker entries run the command for your chosen broker:
@@ -36,7 +36,7 @@ For specific broker entries run the command for your chosen broker:
 :sync: google
 
 ```shell
-journalctl -u snap.authd-google.authd-google.service
+sudo journalctl -u snap.authd-google.authd-google.service
 ```
 :::
 
@@ -44,7 +44,7 @@ journalctl -u snap.authd-google.authd-google.service
 :sync: msentraid
 
 ```shell
-journalctl -u snap.authd-msentraid.authd-msentraid.service
+sudo journalctl -u snap.authd-msentraid.authd-msentraid.service
 ```
 :::
 ::::
@@ -53,10 +53,10 @@ journalctl -u snap.authd-msentraid.authd-msentraid.service
 For the GDM integration:
 
 ```shell
-journalctl /usr/bin/gnome-shell
+sudo journalctl /usr/bin/gnome-shell
 ```
 
-For anything else or more broader investigation, use ```journalctl```.
+For anything else or more broader investigation, use ```sudo journalctl```.
 
 ### Logging verbosity
 
