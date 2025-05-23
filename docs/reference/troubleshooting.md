@@ -159,13 +159,13 @@ You will then need to restart the service with:
 :::{tab-item} Google IAM
 :sync: google
 
-`snap restart authd-google`.
+`sudo snap restart authd-google`.
 :::
 
 :::{tab-item} MS Entra ID
 :sync: msentraid
 
-`snap restart authd-msentraid`.
+`sudo snap restart authd-msentraid`.
 :::
 ::::
 
@@ -212,8 +212,8 @@ Maybe your issue is already fixed! You should try switching to the edge channel 
 :sync: google
 
 ```shell
-snap switch authd-google --edge
-snap refresh authd-google
+sudo snap switch authd-google --edge
+sudo snap refresh authd-google
 ```
 :::
 
@@ -221,8 +221,8 @@ snap refresh authd-google
 :sync: msentraid
 
 ```shell
-snap switch authd-msentraid --edge
-snap refresh authd-msentraid
+sudo snap switch authd-msentraid --edge
+sudo snap refresh authd-msentraid
 ```
 :::
 ::::
@@ -236,8 +236,8 @@ Keep in mind that this version is not tested and may be incompatible with the cu
 :sync: google
 
 ```shell
-snap switch authd-google --stable
-snap refresh authd-google
+sudo snap switch authd-google --stable
+sudo snap refresh authd-google
 ```
 :::
 
@@ -245,8 +245,8 @@ snap refresh authd-google
 :sync: msentraid
 
 ```shell
-snap switch authd-msentraid --stable
-snap refresh authd-msentraid
+sudo snap switch authd-msentraid --stable
+sudo snap refresh authd-msentraid
 ```
 :::
 ::::

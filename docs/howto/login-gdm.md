@@ -42,7 +42,7 @@ The broker is managed through the ```snap``` command.
 The main operation is to restart the broker to reload the configuration when it has changed. You can reload the broker with the command:
 
 ```shell
-snap restart authd-msentraid
+sudo snap restart authd-msentraid
 ```
 
 > If you are using a different broker to `msentraid`, make sure to change the snap name when running this command.
