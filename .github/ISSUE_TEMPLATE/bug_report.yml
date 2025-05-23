@@ -66,6 +66,7 @@ body:
       description: |
         Copy this command and run it in a terminal. It will open a text editor with the system information and logs. Paste the output below. Redact any sensitive information from the logs.
         ```bash
+        sudo -v
         TMPFILE=$(mktemp authd-system-info-XXXXXX.md)
         if command -v xdg-open > /dev/null && [ -n "${DISPLAY:-}" ]; then authd_editor=xdg-open; elif [ -n "${EDITOR:-}" ]; then authd_editor=$EDITOR; fi
         cat > "$TMPFILE" <<EOF && ${authd_editor:-editor} "$TMPFILE"
