@@ -53,7 +53,7 @@ func New() *App {
 		Short:/*i18n.G(*/ "Authentication daemon",                                           /*)*/
 		Long:/*i18n.G(*/ "Authentication daemon bridging the system with external brokers.", /*)*/
 		Args:                                                                                cobra.NoArgs,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			// First thing, initialize the journal handler
 			log.InitJournalHandler(false)
 
