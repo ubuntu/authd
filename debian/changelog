@@ -1,3 +1,9 @@
+authd (0.5.1) UNRELEASED; urgency=medium
+
+  * Fix migration to lowercase user and group names
+
+ --  <adrian.dombeck@canonical.com>  Mon, 26 May 2025 19:23:22 +0200
+
 authd (0.5.0) questing; urgency=medium
 
   * Use SQLite instead of bbolt
