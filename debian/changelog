@@ -1,8 +1,8 @@
-authd (0.5.0+git250522+633+b1f55fe7) noble; urgency=medium
+authd (0.5.0+git250526+643+d48da9c1) noble; urgency=medium
 
-  * Github build. Run id: 15184128957. Run number: 633.
+  * Github build. Run id: 15258556318. Run number: 643.
 
- -- Adrian <adrian.dombeck@canonical.com>  Thu, 22 May 2025 10:25:00 +0000
+ -- Adrian <adrian.dombeck@canonical.com>  Mon, 26 May 2025 16:36:58 +0000
 
 authd (0.5.0) questing; urgency=medium
 
@@ -11,6 +11,7 @@ authd (0.5.0) questing; urgency=medium
   * Fix races in the PAM module.
   * Do not support device authentication mode in polkit.
   * Do not clear terminal context on sudo or other authenticated ops
+  * Fix login via GDM with some non-English locales
   * Simplified GDM PAM protocol
   * Don't overwrite shell when updating user entry
   * Improve warning logged when home directory has incorrect owner/group
