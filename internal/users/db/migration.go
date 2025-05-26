@@ -32,7 +32,22 @@ func MigrateFromBBoltToSQLite(dbDir string) error {
 		}
 	}()
 
-	return m.migrateFromBBoltToSQLite(dbDir)
+	err = m.migrateFromBBoltToSQLite(dbDir)
+	if err != nil {
+		return err
+	}
+
+	// Apply schema migrations after the migration to SQLite.
+	// The call to `New` above created the database with the current schema version,
+	// so we need to set the schema version to 0 first.
+	if err := setSchemaVersion(m.db, 0); err != nil {
+		return fmt.Errorf("failed to reset schema version: %w", err)
+	}
+	if err := m.maybeApplyMigrations(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m *Manager) migrateFromBBoltToSQLite(dbDir string) (err error) {
@@ -74,9 +89,7 @@ func (m *Manager) migrateFromBBoltToSQLite(dbDir string) (err error) {
 		}
 
 		user := UserRow{
-			// Version 0.4.2 introduced both the migration to SQLite and the lowercase usernames,
-			// so we do both in one go and lowercase the usernames here.
-			Name:     strings.ToLower(u.Name),
+			Name:     u.Name,
 			UID:      u.UID,
 			GID:      u.GID,
 			Gecos:    u.Gecos,

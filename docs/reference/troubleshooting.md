@@ -18,13 +18,13 @@ brokers for different cloud providers.
 For ```authd``` entries, run:
 
 ```shell
-journalctl -u authd.service
+sudo journalctl -u authd.service
 ```
 
 If you want logs for authd and all brokers on the system, run:
 
 ```shell
-journalctl -u authd.service -u "snap.authd-*.service"
+sudo journalctl -u authd.service -u "snap.authd-*.service"
 ```
 
 For specific broker entries run the command for your chosen broker:
@@ -36,7 +36,7 @@ For specific broker entries run the command for your chosen broker:
 :sync: google
 
 ```shell
-journalctl -u snap.authd-google.authd-google.service
+sudo journalctl -u snap.authd-google.authd-google.service
 ```
 :::
 
@@ -44,7 +44,7 @@ journalctl -u snap.authd-google.authd-google.service
 :sync: msentraid
 
 ```shell
-journalctl -u snap.authd-msentraid.authd-msentraid.service
+sudo journalctl -u snap.authd-msentraid.authd-msentraid.service
 ```
 :::
 ::::
@@ -53,10 +53,10 @@ journalctl -u snap.authd-msentraid.authd-msentraid.service
 For the GDM integration:
 
 ```shell
-journalctl /usr/bin/gnome-shell
+sudo journalctl /usr/bin/gnome-shell
 ```
 
-For anything else or more broader investigation, use ```journalctl```.
+For anything else or more broader investigation, use ```sudo journalctl```.
 
 ### Logging verbosity
 
@@ -159,13 +159,13 @@ You will then need to restart the service with:
 :::{tab-item} Google IAM
 :sync: google
 
-`snap restart authd-google`.
+`sudo snap restart authd-google`.
 :::
 
 :::{tab-item} MS Entra ID
 :sync: msentraid
 
-`snap restart authd-msentraid`.
+`sudo snap restart authd-msentraid`.
 :::
 ::::
 
@@ -212,8 +212,8 @@ Maybe your issue is already fixed! You should try switching to the edge channel 
 :sync: google
 
 ```shell
-snap switch authd-google --edge
-snap refresh authd-google
+sudo snap switch authd-google --edge
+sudo snap refresh authd-google
 ```
 :::
 
@@ -221,8 +221,8 @@ snap refresh authd-google
 :sync: msentraid
 
 ```shell
-snap switch authd-msentraid --edge
-snap refresh authd-msentraid
+sudo snap switch authd-msentraid --edge
+sudo snap refresh authd-msentraid
 ```
 :::
 ::::
@@ -236,8 +236,8 @@ Keep in mind that this version is not tested and may be incompatible with the cu
 :sync: google
 
 ```shell
-snap switch authd-google --stable
-snap refresh authd-google
+sudo snap switch authd-google --stable
+sudo snap refresh authd-google
 ```
 :::
 
@@ -245,8 +245,8 @@ snap refresh authd-google
 :sync: msentraid
 
 ```shell
-snap switch authd-msentraid --stable
-snap refresh authd-msentraid
+sudo snap switch authd-msentraid --stable
+sudo snap refresh authd-msentraid
 ```
 :::
 ::::
