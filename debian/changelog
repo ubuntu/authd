@@ -1,8 +1,15 @@
-authd (0.5.0+git250526+643+d48da9c1) plucky; urgency=medium
+authd (0.5.1+git250526+645+793f00c6) plucky; urgency=medium
 
-  * Github build. Run id: 15258556318. Run number: 643.
+  * Github build. Run id: 15259248695. Run number: 645.
 
- -- Adrian <adrian.dombeck@canonical.com>  Mon, 26 May 2025 16:36:51 +0000
+ -- Adrian <adrian.dombeck@canonical.com>  Mon, 26 May 2025 17:26:58 +0000
+
+authd (0.5.1) questing; urgency=medium
+
+  [ adrian.dombeck@canonical.com ]
+  * Fix migration to lowercase user and group names
+
+ --  <adrian.dombeck@canonical.com>  Mon, 26 May 2025 19:24:52 +0200
 
 authd (0.5.0) questing; urgency=medium
 
