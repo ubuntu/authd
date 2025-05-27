@@ -993,27 +993,27 @@ func (x *GetUserByIDRequest) GetId() uint32 {
 	return 0
 }
 
-type DisableUserRequest struct {
+type LockUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *DisableUserRequest) Reset() {
-	*x = DisableUserRequest{}
+func (x *LockUserRequest) Reset() {
+	*x = LockUserRequest{}
 	mi := &file_authd_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *DisableUserRequest) String() string {
+func (x *LockUserRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DisableUserRequest) ProtoMessage() {}
+func (*LockUserRequest) ProtoMessage() {}
 
-func (x *DisableUserRequest) ProtoReflect() protoreflect.Message {
+func (x *LockUserRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_authd_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1025,39 +1025,39 @@ func (x *DisableUserRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DisableUserRequest.ProtoReflect.Descriptor instead.
-func (*DisableUserRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use LockUserRequest.ProtoReflect.Descriptor instead.
+func (*LockUserRequest) Descriptor() ([]byte, []int) {
 	return file_authd_proto_rawDescGZIP(), []int{18}
 }
 
-func (x *DisableUserRequest) GetName() string {
+func (x *LockUserRequest) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-type EnableUserRequest struct {
+type UnlockUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *EnableUserRequest) Reset() {
-	*x = EnableUserRequest{}
+func (x *UnlockUserRequest) Reset() {
+	*x = UnlockUserRequest{}
 	mi := &file_authd_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *EnableUserRequest) String() string {
+func (x *UnlockUserRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*EnableUserRequest) ProtoMessage() {}
+func (*UnlockUserRequest) ProtoMessage() {}
 
-func (x *EnableUserRequest) ProtoReflect() protoreflect.Message {
+func (x *UnlockUserRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_authd_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1069,12 +1069,12 @@ func (x *EnableUserRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use EnableUserRequest.ProtoReflect.Descriptor instead.
-func (*EnableUserRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use UnlockUserRequest.ProtoReflect.Descriptor instead.
+func (*UnlockUserRequest) Descriptor() ([]byte, []int) {
 	return file_authd_proto_rawDescGZIP(), []int{19}
 }
 
-func (x *EnableUserRequest) GetName() string {
+func (x *UnlockUserRequest) GetName() string {
 	if x != nil {
 		return x.Name
 	}
@@ -1728,10 +1728,10 @@ const file_authd_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12&\n" +
 	"\x0eshouldPreCheck\x18\x02 \x01(\bR\x0eshouldPreCheck\"$\n" +
 	"\x12GetUserByIDRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\rR\x02id\"(\n" +
-	"\x12DisableUserRequest\x12\x12\n" +
+	"\x02id\x18\x01 \x01(\rR\x02id\"%\n" +
+	"\x0fLockUserRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"'\n" +
-	"\x11EnableUserRequest\x12\x12\n" +
+	"\x11UnlockUserRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"+\n" +
 	"\x15GetGroupByNameRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\"%\n" +
@@ -1766,14 +1766,14 @@ const file_authd_proto_rawDesc = "" +
 	"\x0fIsAuthenticated\x12\x10.authd.IARequest\x1a\x11.authd.IAResponse\x12,\n" +
 	"\n" +
 	"EndSession\x12\x10.authd.ESRequest\x1a\f.authd.Empty\x12<\n" +
-	"\x17SetDefaultBrokerForUser\x12\x13.authd.SDBFURequest\x1a\f.authd.Empty2\xb9\x03\n" +
+	"\x17SetDefaultBrokerForUser\x12\x13.authd.SDBFURequest\x1a\f.authd.Empty2\xb3\x03\n" +
 	"\vUserService\x129\n" +
 	"\rGetUserByName\x12\x1b.authd.GetUserByNameRequest\x1a\v.authd.User\x125\n" +
 	"\vGetUserByID\x12\x19.authd.GetUserByIDRequest\x1a\v.authd.User\x12'\n" +
-	"\tListUsers\x12\f.authd.Empty\x1a\f.authd.Users\x126\n" +
-	"\vDisableUser\x12\x19.authd.DisableUserRequest\x1a\f.authd.Empty\x124\n" +
+	"\tListUsers\x12\f.authd.Empty\x1a\f.authd.Users\x120\n" +
+	"\bLockUser\x12\x16.authd.LockUserRequest\x1a\f.authd.Empty\x124\n" +
 	"\n" +
-	"EnableUser\x12\x18.authd.EnableUserRequest\x1a\f.authd.Empty\x12<\n" +
+	"UnlockUser\x12\x18.authd.UnlockUserRequest\x1a\f.authd.Empty\x12<\n" +
 	"\x0eGetGroupByName\x12\x1c.authd.GetGroupByNameRequest\x1a\f.authd.Group\x128\n" +
 	"\fGetGroupByID\x12\x1a.authd.GetGroupByIDRequest\x1a\f.authd.Group\x12)\n" +
 	"\n" +
@@ -1813,8 +1813,8 @@ var file_authd_proto_goTypes = []any{
 	(*ESRequest)(nil),                      // 16: authd.ESRequest
 	(*GetUserByNameRequest)(nil),           // 17: authd.GetUserByNameRequest
 	(*GetUserByIDRequest)(nil),             // 18: authd.GetUserByIDRequest
-	(*DisableUserRequest)(nil),             // 19: authd.DisableUserRequest
-	(*EnableUserRequest)(nil),              // 20: authd.EnableUserRequest
+	(*LockUserRequest)(nil),                // 19: authd.LockUserRequest
+	(*UnlockUserRequest)(nil),              // 20: authd.UnlockUserRequest
 	(*GetGroupByNameRequest)(nil),          // 21: authd.GetGroupByNameRequest
 	(*GetGroupByIDRequest)(nil),            // 22: authd.GetGroupByIDRequest
 	(*User)(nil),                           // 23: authd.User
@@ -1845,8 +1845,8 @@ var file_authd_proto_depIdxs = []int32{
 	17, // 16: authd.UserService.GetUserByName:input_type -> authd.GetUserByNameRequest
 	18, // 17: authd.UserService.GetUserByID:input_type -> authd.GetUserByIDRequest
 	1,  // 18: authd.UserService.ListUsers:input_type -> authd.Empty
-	19, // 19: authd.UserService.DisableUser:input_type -> authd.DisableUserRequest
-	20, // 20: authd.UserService.EnableUser:input_type -> authd.EnableUserRequest
+	19, // 19: authd.UserService.LockUser:input_type -> authd.LockUserRequest
+	20, // 20: authd.UserService.UnlockUser:input_type -> authd.UnlockUserRequest
 	21, // 21: authd.UserService.GetGroupByName:input_type -> authd.GetGroupByNameRequest
 	22, // 22: authd.UserService.GetGroupByID:input_type -> authd.GetGroupByIDRequest
 	1,  // 23: authd.UserService.ListGroups:input_type -> authd.Empty
@@ -1861,8 +1861,8 @@ var file_authd_proto_depIdxs = []int32{
 	23, // 32: authd.UserService.GetUserByName:output_type -> authd.User
 	23, // 33: authd.UserService.GetUserByID:output_type -> authd.User
 	24, // 34: authd.UserService.ListUsers:output_type -> authd.Users
-	1,  // 35: authd.UserService.DisableUser:output_type -> authd.Empty
-	1,  // 36: authd.UserService.EnableUser:output_type -> authd.Empty
+	1,  // 35: authd.UserService.LockUser:output_type -> authd.Empty
+	1,  // 36: authd.UserService.UnlockUser:output_type -> authd.Empty
 	25, // 37: authd.UserService.GetGroupByName:output_type -> authd.Group
 	25, // 38: authd.UserService.GetGroupByID:output_type -> authd.Group
 	26, // 39: authd.UserService.ListGroups:output_type -> authd.Groups
