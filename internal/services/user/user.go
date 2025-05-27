@@ -116,8 +116,8 @@ func (s Service) ListUsers(ctx context.Context, req *authd.Empty) (*authd.Users,
 	return &res, nil
 }
 
-// DisableUser marks a user as disabled.
-func (s Service) DisableUser(ctx context.Context, req *authd.DisableUserRequest) (*authd.Empty, error) {
+// LockUser marks a user as locked.
+func (s Service) LockUser(ctx context.Context, req *authd.LockUserRequest) (*authd.Empty, error) {
 	if err := s.permissionManager.CheckRequestIsFromRoot(ctx); err != nil {
 		return nil, err
 	}
@@ -126,15 +126,15 @@ func (s Service) DisableUser(ctx context.Context, req *authd.DisableUserRequest)
 		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
 
-	if err := s.userManager.DisableUser(req.GetName()); err != nil {
+	if err := s.userManager.LockUser(req.GetName()); err != nil {
 		return nil, err
 	}
 
 	return &authd.Empty{}, nil
 }
 
-// EnableUser marks a user as enabled.
-func (s Service) EnableUser(ctx context.Context, req *authd.EnableUserRequest) (*authd.Empty, error) {
+// UnlockUser marks a user as unlocked.
+func (s Service) UnlockUser(ctx context.Context, req *authd.UnlockUserRequest) (*authd.Empty, error) {
 	if err := s.permissionManager.CheckRequestIsFromRoot(ctx); err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (s Service) EnableUser(ctx context.Context, req *authd.EnableUserRequest) (
 		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
 
-	if err := s.userManager.EnableUser(req.GetName()); err != nil {
+	if err := s.userManager.UnlockUser(req.GetName()); err != nil {
 		return nil, err
 	}
 

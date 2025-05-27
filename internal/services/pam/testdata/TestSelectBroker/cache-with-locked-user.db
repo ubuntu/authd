@@ -1,12 +1,12 @@
 users:
-    - name: testselectbroker/error_when_user_is_disabled_separator_disabled
+    - name: testselectbroker/error_when_user_is_locked_separator_locked
       uid: 1111
       gid: 11111
       gecos: gecos for other user
-      dir: /home/disabled
+      dir: /home/locked
       shell: /bin/bash
       broker_id: broker-id
-      disabled: true
+      locked: true
 groups:
     - name: group1
       gid: 11111
