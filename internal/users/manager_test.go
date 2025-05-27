@@ -331,7 +331,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 }
 
 //nolint:dupl // This is not a duplicate test
-func TestDisableUser(t *testing.T) {
+func TestLockUser(t *testing.T) {
 	tests := map[string]struct {
 		username string
 
@@ -340,7 +340,7 @@ func TestDisableUser(t *testing.T) {
 		wantErr     bool
 		wantErrType error
 	}{
-		"Successfully_disable_user": {},
+		"Successfully_lock_user": {},
 
 		"Error_if_user_does_not_exist": {username: "doesnotexist", wantErrType: db.NoDataFoundError{}},
 	}
@@ -361,7 +361,7 @@ func TestDisableUser(t *testing.T) {
 			require.NoError(t, err, "Setup: could not create database from testdata")
 			m := newManagerForTests(t, dbDir)
 
-			err = m.DisableUser(tc.username)
+			err = m.LockUser(tc.username)
 
 			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
 			if tc.wantErrType != nil || tc.wantErr {
@@ -377,7 +377,7 @@ func TestDisableUser(t *testing.T) {
 }
 
 //nolint:dupl // This is not a duplicate test
-func TestEnableUser(t *testing.T) {
+func TestUnlockUser(t *testing.T) {
 	tests := map[string]struct {
 		username string
 
@@ -399,7 +399,7 @@ func TestEnableUser(t *testing.T) {
 				tc.username = "user1"
 			}
 			if tc.dbFile == "" {
-				tc.dbFile = "disabled_user"
+				tc.dbFile = "locked_user"
 			}
 
 			dbDir := t.TempDir()
@@ -407,7 +407,7 @@ func TestEnableUser(t *testing.T) {
 			require.NoError(t, err, "Setup: could not create database from testdata")
 			m := newManagerForTests(t, dbDir)
 
-			err = m.EnableUser(tc.username)
+			err = m.UnlockUser(tc.username)
 
 			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
 			if tc.wantErrType != nil || tc.wantErr {
