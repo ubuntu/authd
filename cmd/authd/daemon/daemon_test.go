@@ -16,7 +16,6 @@ import (
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/testutils"
-	"github.com/ubuntu/authd/log"
 )
 
 func TestHelp(t *testing.T) {
@@ -404,8 +403,6 @@ func captureStdout(t *testing.T) func() string {
 }
 
 func TestMain(m *testing.M) {
-	log.SetLevel(log.DebugLevel)
-
 	// Start system bus mock.
 	cleanup, err := testutils.StartSystemBusMock()
 	if err != nil {
