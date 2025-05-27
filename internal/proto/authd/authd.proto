@@ -133,8 +133,8 @@ service UserService {
   rpc GetUserByName(GetUserByNameRequest) returns (User);
   rpc GetUserByID(GetUserByIDRequest) returns (User);
   rpc ListUsers(Empty) returns (Users);
-  rpc DisableUser(DisableUserRequest) returns (Empty);
-  rpc EnableUser(EnableUserRequest) returns (Empty);
+  rpc LockUser(LockUserRequest) returns (Empty);
+  rpc UnlockUser(UnlockUserRequest) returns (Empty);
 
   rpc GetGroupByName(GetGroupByNameRequest) returns (Group);
   rpc GetGroupByID(GetGroupByIDRequest) returns (Group);
@@ -150,11 +150,11 @@ message GetUserByIDRequest{
   uint32 id = 1;
 }
 
-message DisableUserRequest{
+message LockUserRequest{
   string name = 1;
 }
 
-message EnableUserRequest{
+message UnlockUserRequest{
   string name = 1;
 }
 

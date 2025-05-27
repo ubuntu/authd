@@ -468,32 +468,32 @@ func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 	return nil
 }
 
-// DisableUser sets the Disabled field to true for the given user.
-func (m *Manager) DisableUser(username string) error {
-	if err := m.db.UpdateDisabledFieldForUser(username, true); err != nil {
+// LockUser sets the "locked" field to true for the given user.
+func (m *Manager) LockUser(username string) error {
+	if err := m.db.UpdateLockedFieldForUser(username, true); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// EnableUser sets the Disabled field to false for the given user.
-func (m *Manager) EnableUser(username string) error {
-	if err := m.db.UpdateDisabledFieldForUser(username, false); err != nil {
+// UnlockUser sets the "locked" field to false for the given user.
+func (m *Manager) UnlockUser(username string) error {
+	if err := m.db.UpdateLockedFieldForUser(username, false); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// IsUserDisabled returns true if the user with the given user name is disabled, false otherwise.
-func (m *Manager) IsUserDisabled(username string) (bool, error) {
+// IsUserLocked returns true if the user with the given user name is locked, false otherwise.
+func (m *Manager) IsUserLocked(username string) (bool, error) {
 	u, err := m.db.UserByName(username)
 	if err != nil {
 		return false, err
 	}
 
-	return u.Disabled, nil
+	return u.Locked, nil
 }
 
 // UserByName returns the user information for the given user name.
