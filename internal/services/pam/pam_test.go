@@ -210,7 +210,7 @@ func TestSelectBroker(t *testing.T) {
 		"Error_when_broker_does_not_exist":                {username: "no broker", brokerID: "does not exist", wantErr: true},
 		"Error_when_broker_does_not_provide_a_session_ID": {username: "ns_no_id", wantErr: true},
 		"Error_when_starting_the_session":                 {username: "ns_error", wantErr: true},
-		"Error_when_user_is_disabled":                     {username: "disabled", wantErr: true, existingDB: "cache-with-disabled-user.db"},
+		"Error_when_user_is_locked":                       {username: "locked", wantErr: true, existingDB: "cache-with-locked-user.db"},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
