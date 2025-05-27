@@ -8,7 +8,7 @@ users:
       dir: /home/user1
       shell: /bin/bash
       broker_id: broker-id
-      disabled: true
+      locked: true
     - name: user2
       uid: 2222
       gid: 22222
