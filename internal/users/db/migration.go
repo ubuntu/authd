@@ -187,6 +187,7 @@ var schemaMigrations = []schemaMigration{
 			}
 
 			query := `UPDATE users SET name = LOWER(name);
+					  UPDATE groups SET ugid = LOWER(ugid) WHERE ugid = name;
 					  UPDATE groups SET name = LOWER(name);`
 			_, err = m.db.Exec(query)
 			return err
