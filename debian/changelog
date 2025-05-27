@@ -1,6 +1,11 @@
+authd (0.5.1.1~pre1) UNRELEASED; urgency=medium
+
+  * Fix another issue with the migration to lowercase user and group names
+
+ --  <adrian.dombeck@canonical.com>  Tue, 27 May 2025 20:14:18 +0200
+
 authd (0.5.1) questing; urgency=medium
 
-  [ adrian.dombeck@canonical.com ]
   * Fix migration to lowercase user and group names
 
  --  <adrian.dombeck@canonical.com>  Mon, 26 May 2025 19:24:52 +0200
