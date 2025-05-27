@@ -466,7 +466,7 @@ func TestIsAuthenticated(t *testing.T) {
 			managerOpts := []users.Option{
 				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
 					UIDsToGenerate: []uint32{1111},
-					GIDsToGenerate: []uint32{1111, 2222},
+					GIDsToGenerate: []uint32{22222},
 				}),
 			}
 
@@ -560,7 +560,7 @@ func TestIDGeneration(t *testing.T) {
 			managerOpts := []users.Option{
 				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
 					UIDsToGenerate: []uint32{1111},
-					GIDsToGenerate: []uint32{1111, 2222},
+					GIDsToGenerate: []uint32{22222},
 				}),
 			}
 
