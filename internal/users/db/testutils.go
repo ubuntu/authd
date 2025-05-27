@@ -201,15 +201,6 @@ func createDBFromYAMLReader(r io.Reader, destDir string) (err error) {
 	return nil
 }
 
-// Z_ForTests_GetGroupFile returns the path to the group file.
-//
-// nolint:revive,nolintlint // We want to use underscores in the function name here.
-func Z_ForTests_GetGroupFile() string {
-	testsdetection.MustBeTesting()
-
-	return groupFile
-}
-
 // Z_ForTests_SetGroupFile sets the group file to the provided path.
 //
 // nolint:revive,nolintlint // We want to use underscores in the function name here.

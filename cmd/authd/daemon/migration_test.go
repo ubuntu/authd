@@ -11,7 +11,6 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/db/bbolt"
-	userslocking "github.com/ubuntu/authd/internal/users/locking"
 )
 
 func TestMaybeMigrateOldDBDir(t *testing.T) {
@@ -121,14 +120,10 @@ func TestMaybeMigrateOldDBDir(t *testing.T) {
 }
 
 func TestMaybeMigrateBBoltToSQLite(t *testing.T) {
+	t.Parallel()
+
 	validTestdata := "testdata/multiple_users_and_groups.db.yaml"
 	invalidTestdata := "testdata/invalid.db.yaml"
-	groupFile := "testdata/group"
-
-	// Make the userslocking package use a locking mechanism which doesn't
-	// require root privileges.
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
 
 	testCases := map[string]struct {
 		bboltExists      bool
@@ -151,8 +146,7 @@ func TestMaybeMigrateBBoltToSQLite(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			// These tests can't be run in parallel, because they set the group file
-			// used by the db package, which is a global variable.
+			t.Parallel()
 
 			dbDir := t.TempDir()
 
@@ -182,16 +176,6 @@ func TestMaybeMigrateBBoltToSQLite(t *testing.T) {
 				}()
 			}
 
-			// Create a temporary user group file for testing
-			tempGroupFile := filepath.Join(t.TempDir(), "groups")
-			err := fileutils.CopyFile(groupFile, tempGroupFile)
-			require.NoError(t, err, "failed to copy group file for testing")
-
-			// Make the db package use the temporary group file
-			origGroupFile := db.Z_ForTests_GetGroupFile()
-			db.Z_ForTests_SetGroupFile(tempGroupFile)
-			t.Cleanup(func() { db.Z_ForTests_SetGroupFile(origGroupFile) })
-
 			migrated, err := maybeMigrateBBoltToSQLite(dbDir)
 			if tc.wantError {
 				require.Error(t, err)
@@ -219,9 +203,7 @@ func TestMaybeMigrateBBoltToSQLite(t *testing.T) {
 
 			yamlData, err := db.Z_ForTests_DumpNormalizedYAML(database)
 			require.NoError(t, err)
-			golden.CheckOrUpdate(t, yamlData, golden.WithPath("db"))
-
-			golden.CheckOrUpdateFileTree(t, tempGroupFile, golden.WithPath("group"))
+			golden.CheckOrUpdate(t, yamlData)
 		})
 	}
 }
