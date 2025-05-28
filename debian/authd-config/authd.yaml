@@ -10,6 +10,10 @@
 ## users and groups.
 ## Make sure that these don't overlap with any other ranges that are
 ## used on the system (for example /etc/subuid and /etc/subgid).
+##
+## Note: The user private group (the group named after the user) is always
+## created with the same GID as the user’s UID, regardless of the GID_MIN
+## and GID_MAX values.
 #UID_MIN: 1000000000
 #UID_MAX: 1999999999
 #GID_MIN: 1000000000
