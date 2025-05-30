@@ -176,22 +176,26 @@ getpwnam (const char *name)
       passwd_entity->pw_gecos = AUTHD_TEST_GECOS;
       passwd_entity->pw_name = (char *) name;
       passwd_entity->pw_dir = (char *) get_home_path ();
+
+      if (!is_lower_case (passwd_entity->pw_name))
+        {
+          /* authd uses lower-case user names */
+          MockPasswd *mock_passwd = (MockPasswd *) passwd_entity;
+          char *n = strdup (passwd_entity->pw_name);
+
+          for (size_t i = 0; n[i]; ++i)
+            n[i] = tolower (n[i]);
+
+          mock_passwd->authd_name = n;
+          passwd_entity->pw_name = mock_passwd->authd_name;
+
+          fprintf (stderr, "sshd_preloader [%d]: User %s converted to %s\n",
+                  getpid (), name, passwd_entity->pw_name);
+        }
     }
 
-  if (!is_lower_case (name))
-    {
-      /* authd uses lower-case user names */
-      MockPasswd *mock_passwd = (MockPasswd *) passwd_entity;
-      char *n = strdup (name);
-
-      for (size_t i = 0; n[i]; ++i)
-        n[i] = tolower (n[i]);
-
-      mock_passwd->authd_name = n;
-      name = mock_passwd->authd_name;
-      fprintf (stderr, "sshd_preloader [%d]: User converted to %s\n",
-               getpid (), name);
-    }
+  /* authd uses lower-case user names */
+  assert (is_lower_case (passwd_entity->pw_name));
 
   /* We're simulating to be the same user running the test but with another
    * name, so that we won't touch the user settings, but it's still enough to
