@@ -875,6 +875,20 @@ func TestUpdateBrokerForUser(t *testing.T) {
 	require.Error(t, err, "UpdateBrokerForUser for a nonexistent user should return an error")
 }
 
+func TestUpdateLockedFieldForUser(t *testing.T) {
+	t.Parallel()
+
+	c := initDB(t, "one_user_and_group")
+
+	// Update broker for existent user
+	err := c.UpdateLockedFieldForUser("user1", true)
+	require.NoError(t, err, "UpdateLockedFieldForUser for an existent user should not return an error")
+
+	// Error when updating broker for nonexistent user
+	err = c.UpdateLockedFieldForUser("nonexistent", false)
+	require.Error(t, err, "UpdateLockedFieldForUser for a nonexistent user should return an error")
+}
+
 func TestRemoveDb(t *testing.T) {
 	t.Parallel()
 
