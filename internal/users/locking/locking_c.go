@@ -6,6 +6,7 @@ package userslocking
 import "C"
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/ubuntu/authd/internal/errno"
@@ -20,7 +21,12 @@ func writeLock() error {
 		return nil
 	}
 
-	if err := errno.Get(); err != nil {
+	err := errno.Get()
+	if errors.Is(err, errno.ErrIntr) {
+		// lckpwdf sets errno to EINTR when a SIGALRM is received, which is expected when the lock times out.
+		return ErrLockTimeout
+	}
+	if err != nil {
 		return fmt.Errorf("%w: %w", ErrLock, err)
 	}
 
