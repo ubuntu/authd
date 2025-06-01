@@ -91,7 +91,8 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) string {
 	t.Helper()
 
-	socketPath, _ := runAuthdForTesting(t, gpasswdOutput, groupsFile, currentUserAsRoot, false, args...)
+	socketPath, waitFunc := runAuthdForTesting(t, gpasswdOutput, groupsFile, currentUserAsRoot, false, args...)
+	t.Cleanup(waitFunc)
 	return socketPath
 }
 
