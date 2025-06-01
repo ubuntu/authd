@@ -1,0 +1,25 @@
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+Gimme your password:
+>
+PAM Error Message: authentication status failure: can't check authentication: failed to update u
+ser "user-integration-with-mixed-case": found a different group with the same name in the databa
+se
+PAM Authenticate()
+  User: "user-integration-with-mixed-case"
+  Result: error: PAM exit code: 4
+    System error
+acct=incomplete
+PAM AcctMgmt()
+  User: "user-integration-with-mixed-case"
+  Result: error: PAM exit code: 25
+    The return value should be ignored by PAM dispatch
+>
+────────────────────────────────────────────────────────────────────────────────

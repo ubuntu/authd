@@ -38,6 +38,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		socketPath         string
 		currentUserNotRoot bool
 		wantLocalGroups    bool
+		oldDBDir           string
 		stopDaemonAfter    time.Duration
 	}{
 		"Authenticate_user_successfully": {
@@ -79,6 +80,27 @@ func TestCLIAuthenticate(t *testing.T) {
 		},
 		"Authenticate_user_successfully_after_trying_empty_user": {
 			tape: "simple_auth_empty_user",
+		},
+		"Authenticate_user_successfully_after_db_migration": {
+			tape:     "simple_auth_with_auto_selected_broker",
+			oldDBDir: "authd_0.4.1_bbolt_with_mixed_case_users",
+			clientOptions: clientOptions{
+				PamUser: "user-integration-cached",
+			},
+		},
+		"Authenticate_user_with_upper_case_using_lower_case_after_db_migration": {
+			tape:     "simple_auth_with_auto_selected_broker",
+			oldDBDir: "authd_0.4.1_bbolt_with_mixed_case_users",
+			clientOptions: clientOptions{
+				PamUser: "user-integration-upper-case",
+			},
+		},
+		"Authenticate_user_with_mixed_case_after_db_migration": {
+			tape:     "simple_auth_with_auto_selected_broker",
+			oldDBDir: "authd_0.4.1_bbolt_with_mixed_case_users",
+			clientOptions: clientOptions{
+				PamUser: "user-integration-WITH-Mixed-CaSe",
+			},
 		},
 		"Authenticate_user_with_mfa": {
 			tape: "mfa_auth",
@@ -222,16 +244,19 @@ func TestCLIAuthenticate(t *testing.T) {
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
 			var socketPath, gpasswdOutput, pidFile string
-			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.stopDaemonAfter > 0 {
+			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.stopDaemonAfter > 0 || tc.oldDBDir != "" {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// Similarly for the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
+
 				pidFile = filepath.Join(outDir, "authd.pid")
+
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot,
-					testutils.WithPidFile(pidFile))
+					testutils.WithPidFile(pidFile),
+					testutils.WithEnvironment(useOldDatabaseEnv(t, tc.oldDBDir)...))
 			} else {
 				socketPath, gpasswdOutput = sharedAuthd(t)
 			}

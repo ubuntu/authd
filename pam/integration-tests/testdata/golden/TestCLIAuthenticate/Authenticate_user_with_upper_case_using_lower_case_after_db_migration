@@ -1,0 +1,23 @@
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
+Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
+Gimme your password:
+> ********
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
+Gimme your password:
+PAM Error Message: authentication status failure: can't check authentication: failed to update u
+ser "user-integration-upper-case": found a different group with the same name in the database
+PAM Authenticate()
+  User: "user-integration-upper-case"
+  Result: error: PAM exit code: 4
+    System error
+PAM Info Message: acct=incomplete
+PAM AcctMgmt()
+  User: "user-integration-upper-case"
+  Result: error: PAM exit code: 25
+    The return value should be ignored by PAM dispatch
+>
+────────────────────────────────────────────────────────────────────────────────

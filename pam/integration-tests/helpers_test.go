@@ -18,6 +18,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/consts"
+	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
@@ -348,6 +349,12 @@ func prepareGPasswdFiles(t *testing.T) (string, string) {
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
+	// Do a copy of the original group file, since it may be migrated by authd.
+	tmpCopy := filepath.Join(t.TempDir(), filepath.Base(groupsFile))
+	err = fileutils.CopyFile(groupsFile, tmpCopy)
+	require.NoError(t, err, "Cannot copy the group file %q", groupsFile)
+	groupsFile = tmpCopy
+
 	saveArtifactsForDebugOnCleanup(t, []string{gpasswdOutput, groupsFile})
 
 	return gpasswdOutput, groupsFile
@@ -535,4 +542,26 @@ func requireGetEntExists(t *testing.T, nssLibrary, authdSocket, user string, exi
 		return
 	}
 	require.NoError(t, err, "getent should not fail for user %q\n%s", user, out)
+}
+
+func useOldDatabaseEnv(t *testing.T, oldDB string) []string {
+	t.Helper()
+
+	if oldDB == "" {
+		return nil
+	}
+
+	cwd, err := os.Getwd()
+	require.NoError(t, err, "Cannot get current working directory")
+
+	tempDir := t.TempDir()
+	oldDBDir, err := os.MkdirTemp(tempDir, "old-db-path")
+	require.NoError(t, err, "Cannot create db directory in %q", tempDir)
+
+	testDataDB := filepath.Join(cwd, "testdata", "databases", oldDB)
+	t.Logf("Using database at %q", testDataDB)
+	err = os.CopyFS(oldDBDir, os.DirFS(testDataDB))
+	require.NoError(t, err, "Cannot copy contents of %q to %q", testDataDB, oldDBDir)
+
+	return []string{fmt.Sprintf("AUTHD_INTEGRATIONTESTS_OLD_DB_DIR=%s", oldDBDir)}
 }
