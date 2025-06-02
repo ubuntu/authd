@@ -24,6 +24,7 @@ import (
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
+	"github.com/ubuntu/authd/internal/users/db/bbolt"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 	"google.golang.org/grpc"
@@ -559,17 +560,12 @@ func useOldDatabaseEnv(t *testing.T, oldDB string) []string {
 		return nil
 	}
 
-	cwd, err := os.Getwd()
-	require.NoError(t, err, "Cannot get current working directory")
-
 	tempDir := t.TempDir()
 	oldDBDir, err := os.MkdirTemp(tempDir, "old-db-path")
 	require.NoError(t, err, "Cannot create db directory in %q", tempDir)
 
-	testDataDB := filepath.Join(cwd, "testdata", "databases", oldDB)
-	t.Logf("Using database at %q", testDataDB)
-	err = os.CopyFS(oldDBDir, os.DirFS(testDataDB))
-	require.NoError(t, err, "Cannot copy contents of %q to %q", testDataDB, oldDBDir)
+	err = bbolt.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", oldDB+".db.yaml"), oldDBDir)
+	require.NoError(t, err, "Setup: creating old database")
 
 	return []string{fmt.Sprintf("AUTHD_INTEGRATIONTESTS_OLD_DB_DIR=%s", oldDBDir)}
 }

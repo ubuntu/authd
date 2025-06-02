@@ -36,7 +36,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		currentUserNotRoot bool
 		userSelection      bool
 		userSuffixSkip     bool
-		oldDBDir           string
+		oldDB              string
 		wantLocalGroups    bool
 		wantSeparateDaemon bool
 		skipRunnerCheck    bool
@@ -88,7 +88,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate_user_successfully_after_db_migration": {
 			tape:           "simple_auth_with_auto_selected_broker",
-			oldDBDir:       "authd_0.4.1_bbolt_with_mixed_case_users",
+			oldDB:          "authd_0.4.1_bbolt_with_mixed_case_users",
 			userSuffixSkip: true,
 			clientOptions: clientOptions{
 				PamUser: "user-integration-cached",
@@ -96,7 +96,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate_user_with_upper_case_using_lower_case_after_db_migration": {
 			tape:           "simple_auth_with_auto_selected_broker",
-			oldDBDir:       "authd_0.4.1_bbolt_with_mixed_case_users",
+			oldDB:          "authd_0.4.1_bbolt_with_mixed_case_users",
 			userSuffixSkip: true,
 			clientOptions: clientOptions{
 				PamUser: "user-integration-upper-case",
@@ -104,7 +104,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		},
 		"Authenticate_user_with_mixed_case_after_db_migration": {
 			tape:           "simple_auth_with_auto_selected_broker",
-			oldDBDir:       "authd_0.4.1_bbolt_with_mixed_case_users",
+			oldDB:          "authd_0.4.1_bbolt_with_mixed_case_users",
 			userSuffixSkip: true,
 			clientOptions: clientOptions{
 				PamUser: "user-integration-WITH-Mixed-CaSe",
@@ -403,7 +403,7 @@ func TestNativeAuthenticate(t *testing.T) {
 
 			var socketPath, gpasswdOutput, groupsFile, pidFile string
 			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.wantSeparateDaemon ||
-				tc.oldDBDir != "" {
+				tc.oldDB != "" {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// Similarly for the not-root tests authd has to run in a more restricted way.
@@ -414,7 +414,7 @@ func TestNativeAuthenticate(t *testing.T) {
 
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot,
 					testutils.WithPidFile(pidFile),
-					testutils.WithEnvironment(useOldDatabaseEnv(t, tc.oldDBDir)...))
+					testutils.WithEnvironment(useOldDatabaseEnv(t, tc.oldDB)...))
 			} else {
 				socketPath, gpasswdOutput = sharedAuthd(t)
 			}
@@ -445,7 +445,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			got := td.ExpectedOutput(t, outDir)
 			golden.CheckOrUpdate(t, got)
 
-			if tc.wantLocalGroups || tc.oldDBDir != "" {
+			if tc.wantLocalGroups || tc.oldDB != "" {
 				actualGroups, err := os.ReadFile(groupsFile)
 				require.NoError(t, err, "Failed to read the groups file")
 				golden.CheckOrUpdate(t, string(actualGroups), golden.WithSuffix(".groups"))

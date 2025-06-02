@@ -146,7 +146,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		socketPath       string
 		daemonizeSSHd    bool
 		interactiveShell bool
-		oldDBDir         string
+		oldDB            string
 
 		wantUserAlreadyExist bool
 		wantNotLoggedInUser  bool
@@ -174,19 +174,19 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 		"Authenticate_user_successfully_after_db_migration": {
 			tape:                 "simple_auth_with_auto_selected_broker",
-			oldDBDir:             "authd_0.4.1_bbolt_with_mixed_case_users",
+			oldDB:                "authd_0.4.1_bbolt_with_mixed_case_users",
 			wantUserAlreadyExist: true,
 			user:                 "user-integration-cached",
 		},
 		"Authenticate_user_with_upper_case_using_lower_case_after_db_migration": {
 			tape:                 "simple_auth_with_auto_selected_broker",
-			oldDBDir:             "authd_0.4.1_bbolt_with_mixed_case_users",
+			oldDB:                "authd_0.4.1_bbolt_with_mixed_case_users",
 			wantUserAlreadyExist: true,
 			user:                 "user-integration-upper-case",
 		},
 		"Authenticate_user_with_mixed_case_after_db_migration": {
 			tape:                 "simple_auth_with_auto_selected_broker",
-			oldDBDir:             "authd_0.4.1_bbolt_with_mixed_case_users",
+			oldDB:                "authd_0.4.1_bbolt_with_mixed_case_users",
 			wantUserAlreadyExist: true,
 			user:                 "user-integration-WITH-Mixed-CaSe",
 		},
@@ -376,13 +376,13 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			}
 
 			var groupsFile string
-			if tc.wantLocalGroups || tc.oldDBDir != "" {
+			if tc.wantLocalGroups || tc.oldDB != "" {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 
-				authdEnv = append(authdEnv, useOldDatabaseEnv(t, tc.oldDBDir)...)
+				authdEnv = append(authdEnv, useOldDatabaseEnv(t, tc.oldDB)...)
 
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, true,
 					testutils.WithEnvironment(authdEnv...))
@@ -427,7 +427,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 
 			sshdPort := defaultSSHDPort
 			userHome := defaultUserHome
-			if !sharedSSHd || tc.wantLocalGroups || tc.oldDBDir != "" ||
+			if !sharedSSHd || tc.wantLocalGroups || tc.oldDB != "" ||
 				tc.interactiveShell || tc.socketPath != "" {
 				sshdEnv := sshdEnv
 				if nssLibrary != "" {
@@ -511,7 +511,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				}
 			}
 
-			if tc.wantLocalGroups || tc.oldDBDir != "" {
+			if tc.wantLocalGroups || tc.oldDB != "" {
 				actualGroups, err := os.ReadFile(groupsFile)
 				require.NoError(t, err, "Failed to read the groups file")
 				golden.CheckOrUpdate(t, string(actualGroups), golden.WithSuffix(".groups"))
