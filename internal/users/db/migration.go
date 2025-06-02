@@ -170,7 +170,15 @@ var schemaMigrations = []schemaMigration{
 	{
 		description: "Migrate to lowercase user and group names",
 		migrate: func(m *Manager) error {
-			users, err := m.AllUsers()
+			// Start a transaction to ensure atomicity
+			tx, err := m.db.Begin()
+
+			// Ensure the transaction is committed or rolled back
+			defer func() {
+				err = commitOrRollBackTransaction(err, tx)
+			}()
+
+			users, err := allUsers(tx)
 			if err != nil {
 				return fmt.Errorf("failed to get users from database: %w", err)
 			}
@@ -187,14 +195,14 @@ var schemaMigrations = []schemaMigration{
 			}
 
 			// Delete groups that would cause unique constraint violations
-			if err := removeGroupsWithNameConflicts(m); err != nil {
+			if err := removeGroupsWithNameConflicts(tx); err != nil {
 				return fmt.Errorf("failed to remove groups with name conflicts: %w", err)
 			}
 
 			query := `UPDATE users SET name = LOWER(name);
 					  UPDATE groups SET ugid = LOWER(ugid) WHERE ugid = name;
 					  UPDATE groups SET name = LOWER(name);`
-			_, err = m.db.Exec(query)
+			_, err = tx.Exec(query)
 			return err
 		},
 	},
@@ -354,9 +362,9 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 	return nil
 }
 
-func removeGroupsWithNameConflicts(m *Manager) error {
+func removeGroupsWithNameConflicts(db queryable) error {
 	// Delete groups with conflicting names
-	rows, err := m.db.Query(`
+	rows, err := db.Query(`
 		SELECT name FROM groups
 		WHERE rowid NOT IN (
 			SELECT MIN(rowid)
@@ -375,7 +383,7 @@ func removeGroupsWithNameConflicts(m *Manager) error {
 		}
 
 		log.Noticef(context.Background(), "Deleting group due to name conflict: %s", name)
-		if _, err := m.db.Exec("DELETE FROM groups WHERE name = ?", name); err != nil {
+		if _, err := db.Exec("DELETE FROM groups WHERE name = ?", name); err != nil {
 			return fmt.Errorf("failed to delete group %s: %w", name, err)
 		}
 	}
