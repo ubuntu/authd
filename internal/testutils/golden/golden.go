@@ -59,6 +59,22 @@ func WithSuffix(suffix string) Option {
 	}
 }
 
+func parseGoldenOptions(t *testing.T, options ...Option) goldenOptions {
+	t.Helper()
+
+	opts := goldenOptions{}
+	for _, f := range options {
+		f(&opts)
+	}
+	if !filepath.IsAbs(opts.path) {
+		opts.path = filepath.Join(Path(t), opts.path)
+	}
+
+	opts.path += opts.suffix
+
+	return opts
+}
+
 func updateGoldenFile(t *testing.T, path string, data []byte) {
 	t.Helper()
 
@@ -74,15 +90,7 @@ func updateGoldenFile(t *testing.T, path string, data []byte) {
 func CheckOrUpdate(t *testing.T, got string, options ...Option) {
 	t.Helper()
 
-	opts := goldenOptions{}
-	for _, f := range options {
-		f(&opts)
-	}
-	if !filepath.IsAbs(opts.path) {
-		opts.path = filepath.Join(Path(t), opts.path)
-	}
-
-	opts.path += opts.suffix
+	opts := parseGoldenOptions(t, options...)
 
 	if update {
 		updateGoldenFile(t, opts.path, []byte(got))
@@ -107,15 +115,7 @@ func CheckOrUpdateYAML[E any](t *testing.T, got E, options ...Option) {
 func LoadWithUpdate(t *testing.T, data string, options ...Option) string {
 	t.Helper()
 
-	opts := goldenOptions{}
-	for _, f := range options {
-		f(&opts)
-	}
-	if !filepath.IsAbs(opts.path) {
-		opts.path = filepath.Join(Path(t), opts.path)
-	}
-
-	opts.path += opts.suffix
+	opts := parseGoldenOptions(t, options...)
 
 	if update {
 		updateGoldenFile(t, opts.path, []byte(data))
@@ -259,15 +259,7 @@ func checkGoldenFileEqualsString(t *testing.T, got, goldenPath string) {
 func CheckOrUpdateFileTree(t *testing.T, path string, options ...Option) {
 	t.Helper()
 
-	opts := goldenOptions{}
-	for _, f := range options {
-		f(&opts)
-	}
-	if !filepath.IsAbs(opts.path) {
-		opts.path = filepath.Join(Path(t), opts.path)
-	}
-
-	opts.path += opts.suffix
+	opts := parseGoldenOptions(t, options...)
 
 	if update {
 		t.Logf("updating golden path %s", opts.path)
