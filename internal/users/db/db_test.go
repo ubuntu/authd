@@ -116,7 +116,7 @@ func TestDatabaseRemovedWhenSchemaCreationFails(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_user_and_group_with_uppercase.db.yaml"
+	dbFile := "one_users_multiple_groups_with_uppercase.db.yaml"
 	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
@@ -125,7 +125,7 @@ func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
 	err = os.WriteFile(groupsFilePath, []byte(`root:x:0:
 other-local-group:x:1234:
 other-local-group-with-users:x:4321:user-foo,user-bar
-Group1:x:11111:User1
+TestGroup:x:11111:TestUser
 `), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
@@ -205,13 +205,13 @@ func TestMigrationToLowercaseUserAndGroupNamesEmptyDB(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNamesAlreadyUpdated(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_user_and_group_with_uppercase.db.yaml"
+	dbFile := "one_users_multiple_groups_with_uppercase.db.yaml"
 	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	// Create a temporary user group file for testing
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
-	err = os.WriteFile(groupsFilePath, []byte("Group1:x:11111:user1\n"), 0600)
+	err = os.WriteFile(groupsFilePath, []byte("TestGroup:x:11111:testuser\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
 	// Make the db package use the temporary group file
@@ -247,13 +247,13 @@ func TestMigrationToLowercaseUserAndGroupNamesAlreadyUpdated(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedGroupFile(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_user_and_group_with_uppercase.db.yaml"
+	dbFile := "one_users_multiple_groups_with_uppercase.db.yaml"
 	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	// Create a temporary user group file for testing
 	realGroupsPath := filepath.Join(t.TempDir(), "real-groups")
-	err = os.WriteFile(realGroupsPath, []byte("Group1:x:11111:User1\n"), 0600)
+	err = os.WriteFile(realGroupsPath, []byte("TestGroup:x:11111:TestUser\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
@@ -299,13 +299,13 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedGroupFile(t *testing.
 func TestMigrationToLowercaseUserAndGroupNamesWithPreviousBackup(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_user_and_group_fully_uppercase.db.yaml"
+	dbFile := "one_users_multiple_groups_fully_uppercase.db.yaml"
 	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	// Create a temporary user group file for testing
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
-	originalGroupFileContents := []byte("GROUP1:x:11111:USER1\n")
+	originalGroupFileContents := []byte("TESTGROUP:x:11111:TESTUSER\n")
 	err = os.WriteFile(groupsFilePath, originalGroupFileContents, 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
@@ -315,7 +315,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithPreviousBackup(t *testing.T) {
 	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
 
 	// Create a temporary user group file backup for testing
-	err = os.WriteFile(db.GroupFileBackupPath(), []byte("Group1:x:11111:User1backup\n"), 0600)
+	err = os.WriteFile(db.GroupFileBackupPath(), []byte("TestGroup:x:11111:TestUserBackup\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
 	// Make the userutils package to use test locking for the group file
@@ -347,13 +347,13 @@ func TestMigrationToLowercaseUserAndGroupNamesWithPreviousBackup(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedPreviousBackup(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_user_and_group_fully_uppercase.db.yaml"
+	dbFile := "one_users_multiple_groups_fully_uppercase.db.yaml"
 	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	// Create a temporary user group file for testing
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
-	originalGroupFileContents := []byte("GROUP1:x:11111:USER1\n")
+	originalGroupFileContents := []byte("TESTGROUP:x:11111:TESTUSER\n")
 	err = os.WriteFile(groupsFilePath, originalGroupFileContents, 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
@@ -364,7 +364,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedPreviousBackup(t *tes
 
 	// Create a temporary user group file backup for testing
 	realGroupsBackup := filepath.Join(t.TempDir(), "groups-backup")
-	err = os.WriteFile(realGroupsBackup, []byte("Group1:x:11111:User1backup\n"), 0600)
+	err = os.WriteFile(realGroupsBackup, []byte("TestGroup:x:11111:TestUserBackup\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
 	// Symlink it to the backup path
@@ -405,13 +405,13 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedPreviousBackup(t *tes
 func TestMigrationToLowercaseUserAndGroupNamesFails(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_user_and_group_fully_uppercase.db.yaml"
+	dbFile := "one_users_multiple_groups_fully_uppercase.db.yaml"
 	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	// Create a temporary user group file for testing
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
-	originalGroupFileContents := []byte("GROUP1:x:11111:USER1\n")
+	originalGroupFileContents := []byte("TESTGROUP:x:11111:USER\n")
 	err = os.WriteFile(groupsFilePath, originalGroupFileContents, 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
@@ -445,13 +445,13 @@ func TestMigrationToLowercaseUserAndGroupNamesFails(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNamesWithBackupFailure(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_user_and_group_with_uppercase.db.yaml"
+	dbFile := "one_users_multiple_groups_with_uppercase.db.yaml"
 	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	// Create a temporary user group file for testing
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
-	err = os.WriteFile(groupsFilePath, []byte("Group1:x:11111:User1\n"), 0600)
+	err = os.WriteFile(groupsFilePath, []byte("TestGroup:x:11111:TestUser\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
 	// Make the db package use the temporary group file
