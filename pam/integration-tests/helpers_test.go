@@ -346,8 +346,16 @@ func prependBinToPath(t *testing.T) string {
 func prepareGPasswdFiles(t *testing.T) (string, string) {
 	t.Helper()
 
+	cwd, err := os.Getwd()
+	require.NoError(t, err, "Cannot get current working directory")
+
+	const groupFileName = "gpasswd.group"
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+	groupsFile := filepath.Join(cwd, "testdata", t.Name(), groupFileName)
+
+	if ok, _ := fileutils.FileExists(groupsFile); !ok {
+		groupsFile = filepath.Join(cwd, testutils.TestFamilyPath(t), groupFileName)
+	}
 
 	// Do a copy of the original group file, since it may be migrated by authd.
 	tmpCopy := filepath.Join(t.TempDir(), filepath.Base(groupsFile))
