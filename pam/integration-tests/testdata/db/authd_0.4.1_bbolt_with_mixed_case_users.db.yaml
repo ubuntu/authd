@@ -11,12 +11,12 @@ GroupByID:
     "1485242865": '{"Name":"group-user-integration-pre-check-WITH-UPPER-CASE","GID":1485242865,"UGID":"ugid-user-integration-pre-check-WITH-UPPER-CASE"}'
     "1637945796": '{"Name":"group-user-local-groups-UPPER-CASE","GID":1637945796,"UGID":"ugid-user-local-groups-UPPER-CASE"}'
     "1722096224": '{"Name":"user-local-groups-lower-case","GID":1722096224,"UGID":"user-local-groups-lower-case"}'
-    "1726859569": '{"Name":"group-user-integration-UPPER-CASE","GID":1726859569,"UGID":"ugid-user-integration-UPPER-CASE"}'
+    "1726859569": '{"Name":"group-user-integration-UPPER-CASE","GID":1726859569,"UGID":"ugid-user-integration-upper-case"}'
     "1888170398": '{"Name":"group-user-local-groups-Mixed-Case","GID":1888170398,"UGID":"ugid-user-local-groups-Mixed-Case"}'
     "1926585439": '{"Name":"user-integration-UPPER-CASE","GID":1926585439,"UGID":"user-integration-UPPER-CASE"}'
     "1974061242": '{"Name":"user-local-groups-Mixed-Case","GID":1974061242,"UGID":"user-local-groups-Mixed-Case"}'
 GroupByName:
-    group-user-integration-UPPER-CASE: '{"Name":"group-user-integration-UPPER-CASE","GID":1726859569,"UGID":"ugid-user-integration-UPPER-CASE"}'
+    group-user-integration-UPPER-CASE: '{"Name":"group-user-integration-UPPER-CASE","GID":1726859569,"UGID":"ugid-user-integration-upper-case"}'
     group-user-integration-WITH-Mixed-CaSe: '{"Name":"group-user-integration-WITH-Mixed-CaSe","GID":1308355719,"UGID":"ugid-user-integration-WITH-Mixed-CaSe"}'
     group-user-integration-cached: '{"Name":"group-user-integration-cached","GID":1147556396,"UGID":"ugid-user-integration-cached"}'
     group-user-integration-pre-check-WITH-UPPER-CASE: '{"Name":"group-user-integration-pre-check-WITH-UPPER-CASE","GID":1485242865,"UGID":"ugid-user-integration-pre-check-WITH-UPPER-CASE"}'
@@ -32,8 +32,9 @@ GroupByName:
     user-local-groups-UPPER-CASE: '{"Name":"user-local-groups-UPPER-CASE","GID":1060856841,"UGID":"user-local-groups-UPPER-CASE"}'
     user-local-groups-lower-case: '{"Name":"user-local-groups-lower-case","GID":1722096224,"UGID":"user-local-groups-lower-case"}'
     user-pre-check: '{"Name":"user-pre-check","GID":1308629880,"UGID":"user-pre-check"}'
+
 GroupByUGID:
-    ugid-user-integration-UPPER-CASE: '{"Name":"group-user-integration-UPPER-CASE","GID":1726859569,"UGID":"ugid-user-integration-UPPER-CASE"}'
+    ugid-user-integration-upper-case: '{"Name":"group-user-integration-UPPER-CASE","GID":1726859569,"UGID":"ugid-user-integration-upper-case"}'
     ugid-user-integration-WITH-Mixed-CaSe: '{"Name":"group-user-integration-WITH-Mixed-CaSe","GID":1308355719,"UGID":"ugid-user-integration-WITH-Mixed-CaSe"}'
     ugid-user-integration-cached: '{"Name":"group-user-integration-cached","GID":1147556396,"UGID":"ugid-user-integration-cached"}'
     ugid-user-integration-pre-check-WITH-UPPER-CASE: '{"Name":"group-user-integration-pre-check-WITH-UPPER-CASE","GID":1485242865,"UGID":"ugid-user-integration-pre-check-WITH-UPPER-CASE"}'
