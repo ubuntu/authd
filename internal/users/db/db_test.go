@@ -125,7 +125,7 @@ func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
 	err = os.WriteFile(groupsFilePath, []byte(`root:x:0:
 other-local-group:x:1234:
 other-local-group-with-users:x:4321:user-foo,user-bar
-TestGroup:x:11111:TestUser
+LocalTestGroup:x:12345:TestUser
 `), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
@@ -211,7 +211,7 @@ func TestMigrationToLowercaseUserAndGroupNamesAlreadyUpdated(t *testing.T) {
 
 	// Create a temporary user group file for testing
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
-	err = os.WriteFile(groupsFilePath, []byte("TestGroup:x:11111:testuser\n"), 0600)
+	err = os.WriteFile(groupsFilePath, []byte("LocalTestGroup:x:12345:testuser\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
 	// Make the db package use the temporary group file
@@ -253,7 +253,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedGroupFile(t *testing.
 
 	// Create a temporary user group file for testing
 	realGroupsPath := filepath.Join(t.TempDir(), "real-groups")
-	err = os.WriteFile(realGroupsPath, []byte("TestGroup:x:11111:TestUser\n"), 0600)
+	err = os.WriteFile(realGroupsPath, []byte("LocalTestGroup:x:12345:TestUser\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
@@ -305,7 +305,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithPreviousBackup(t *testing.T) {
 
 	// Create a temporary user group file for testing
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
-	originalGroupFileContents := []byte("TESTGROUP:x:11111:TESTUSER\n")
+	originalGroupFileContents := []byte("LOCALTESTGROUP:x:12345:TESTUSER\n")
 	err = os.WriteFile(groupsFilePath, originalGroupFileContents, 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
@@ -315,7 +315,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithPreviousBackup(t *testing.T) {
 	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
 
 	// Create a temporary user group file backup for testing
-	err = os.WriteFile(db.GroupFileBackupPath(), []byte("TestGroup:x:11111:TestUserBackup\n"), 0600)
+	err = os.WriteFile(db.GroupFileBackupPath(), []byte("LocalTestGroup:x:12345:TestUserBackup\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
 	// Make the userutils package to use test locking for the group file
@@ -353,7 +353,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedPreviousBackup(t *tes
 
 	// Create a temporary user group file for testing
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
-	originalGroupFileContents := []byte("TESTGROUP:x:11111:TESTUSER\n")
+	originalGroupFileContents := []byte("LOCALTESTGROUP:x:12345:TESTUSER\n")
 	err = os.WriteFile(groupsFilePath, originalGroupFileContents, 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
@@ -364,7 +364,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedPreviousBackup(t *tes
 
 	// Create a temporary user group file backup for testing
 	realGroupsBackup := filepath.Join(t.TempDir(), "groups-backup")
-	err = os.WriteFile(realGroupsBackup, []byte("TestGroup:x:11111:TestUserBackup\n"), 0600)
+	err = os.WriteFile(realGroupsBackup, []byte("LocalTestGroup:x:12345:TestUserBackup\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
 	// Symlink it to the backup path
@@ -411,7 +411,7 @@ func TestMigrationToLowercaseUserAndGroupNamesFails(t *testing.T) {
 
 	// Create a temporary user group file for testing
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
-	originalGroupFileContents := []byte("TESTGROUP:x:11111:USER\n")
+	originalGroupFileContents := []byte("LOCALTESTGROUP:x:12345:USER\n")
 	err = os.WriteFile(groupsFilePath, originalGroupFileContents, 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
@@ -451,7 +451,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithBackupFailure(t *testing.T) {
 
 	// Create a temporary user group file for testing
 	groupsFilePath := filepath.Join(t.TempDir(), "groups")
-	err = os.WriteFile(groupsFilePath, []byte("TestGroup:x:11111:TestUser\n"), 0600)
+	err = os.WriteFile(groupsFilePath, []byte("LocalTestGroup:x:12345:TestUser\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
 	// Make the db package use the temporary group file
