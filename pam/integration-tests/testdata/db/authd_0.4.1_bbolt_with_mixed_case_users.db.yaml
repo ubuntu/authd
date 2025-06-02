@@ -6,7 +6,7 @@ GroupByID:
     "1147556396": '{"Name":"group-user-integration-cached","GID":1147556396,"UGID":"ugid-user-integration-cached"}'
     "1204499006": '{"Name":"user-integration-pre-check-WITH-UPPER-CASE","GID":1204499006,"UGID":"user-integration-pre-check-WITH-UPPER-CASE"}'
     "1305862567": '{"Name":"user-integration-cached","GID":1305862567,"UGID":"user-integration-cached"}'
-    "1308355719": '{"Name":"group-user-integration-WITH-Mixed-CaSe","GID":1308355719,"UGID":"ugid-user-integration-WITH-Mixed-CaSe"}'
+    "1308355719": '{"Name":"group-user-integration-WITH-Mixed-CaSe","GID":1308355719,"UGID":"ugid-user-integration-with-mixed-case"}'
     "1308629880": '{"Name":"user-pre-check","GID":1308629880,"UGID":"user-pre-check"}'
     "1485242865": '{"Name":"group-user-integration-pre-check-WITH-UPPER-CASE","GID":1485242865,"UGID":"ugid-user-integration-pre-check-WITH-UPPER-CASE"}'
     "1637945796": '{"Name":"group-user-local-groups-UPPER-CASE","GID":1637945796,"UGID":"ugid-user-local-groups-UPPER-CASE"}'
@@ -17,7 +17,7 @@ GroupByID:
     "1974061242": '{"Name":"user-local-groups-Mixed-Case","GID":1974061242,"UGID":"user-local-groups-Mixed-Case"}'
 GroupByName:
     group-user-integration-UPPER-CASE: '{"Name":"group-user-integration-UPPER-CASE","GID":1726859569,"UGID":"ugid-user-integration-upper-case"}'
-    group-user-integration-WITH-Mixed-CaSe: '{"Name":"group-user-integration-WITH-Mixed-CaSe","GID":1308355719,"UGID":"ugid-user-integration-WITH-Mixed-CaSe"}'
+    group-user-integration-WITH-Mixed-CaSe: '{"Name":"group-user-integration-WITH-Mixed-CaSe","GID":1308355719,"UGID":"ugid-user-integration-with-mixed-case"}'
     group-user-integration-cached: '{"Name":"group-user-integration-cached","GID":1147556396,"UGID":"ugid-user-integration-cached"}'
     group-user-integration-pre-check-WITH-UPPER-CASE: '{"Name":"group-user-integration-pre-check-WITH-UPPER-CASE","GID":1485242865,"UGID":"ugid-user-integration-pre-check-WITH-UPPER-CASE"}'
     group-user-local-groups-Mixed-Case: '{"Name":"group-user-local-groups-Mixed-Case","GID":1888170398,"UGID":"ugid-user-local-groups-Mixed-Case"}'
@@ -35,7 +35,7 @@ GroupByName:
 
 GroupByUGID:
     ugid-user-integration-upper-case: '{"Name":"group-user-integration-UPPER-CASE","GID":1726859569,"UGID":"ugid-user-integration-upper-case"}'
-    ugid-user-integration-WITH-Mixed-CaSe: '{"Name":"group-user-integration-WITH-Mixed-CaSe","GID":1308355719,"UGID":"ugid-user-integration-WITH-Mixed-CaSe"}'
+    ugid-user-integration-with-mixed-case: '{"Name":"group-user-integration-WITH-Mixed-CaSe","GID":1308355719,"UGID":"ugid-user-integration-with-mixed-case"}'
     ugid-user-integration-cached: '{"Name":"group-user-integration-cached","GID":1147556396,"UGID":"ugid-user-integration-cached"}'
     ugid-user-integration-pre-check-WITH-UPPER-CASE: '{"Name":"group-user-integration-pre-check-WITH-UPPER-CASE","GID":1485242865,"UGID":"ugid-user-integration-pre-check-WITH-UPPER-CASE"}'
     ugid-user-local-groups-Mixed-Case: '{"Name":"group-user-local-groups-Mixed-Case","GID":1888170398,"UGID":"ugid-user-local-groups-Mixed-Case"}'
