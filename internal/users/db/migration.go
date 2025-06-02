@@ -186,6 +186,11 @@ var schemaMigrations = []schemaMigration{
 					groupFile, err)
 			}
 
+			// Delete groups that would cause unique constraint violations
+			if err := removeGroupsWithNameConflicts(m); err != nil {
+				return fmt.Errorf("failed to remove groups with name conflicts: %w", err)
+			}
+
 			query := `UPDATE users SET name = LOWER(name);
 					  UPDATE groups SET ugid = LOWER(ugid) WHERE ugid = name;
 					  UPDATE groups SET name = LOWER(name);`
@@ -344,6 +349,35 @@ func renameUsersInGroupFile(oldNames, newNames []string) error {
 
 	if err := fileutils.Lrename(tempPath, groupFile); err != nil {
 		return fmt.Errorf("error renaming %s to %s: %w", tempPath, groupFile, err)
+	}
+
+	return nil
+}
+
+func removeGroupsWithNameConflicts(m *Manager) error {
+	// Delete groups with conflicting names
+	rows, err := m.db.Query(`
+		SELECT name FROM groups
+		WHERE rowid NOT IN (
+			SELECT MIN(rowid)
+			FROM groups
+			GROUP BY LOWER(name)
+		);`)
+	if err != nil {
+		return fmt.Errorf("failed to query for groups with name conflicts: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return fmt.Errorf("failed to scan group name: %w", err)
+		}
+
+		log.Noticef(context.Background(), "Deleting group due to name conflict: %s", name)
+		if _, err := m.db.Exec("DELETE FROM groups WHERE name = ?", name); err != nil {
+			return fmt.Errorf("failed to delete group %s: %w", name, err)
+		}
 	}
 
 	return nil
