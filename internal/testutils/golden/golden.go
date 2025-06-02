@@ -34,7 +34,8 @@ func init() {
 }
 
 type goldenOptions struct {
-	path string
+	path   string
+	suffix string
 }
 
 // Option is a supported option reference to change the golden files comparison.
@@ -45,6 +46,15 @@ func WithPath(path string) Option {
 	return func(o *goldenOptions) {
 		if path != "" {
 			o.path = path
+		}
+	}
+}
+
+// WithSuffix add a suffix to golden files used.
+func WithSuffix(suffix string) Option {
+	return func(o *goldenOptions) {
+		if suffix != "" {
+			o.suffix = suffix
 		}
 	}
 }
@@ -71,6 +81,8 @@ func CheckOrUpdate(t *testing.T, got string, options ...Option) {
 	if !filepath.IsAbs(opts.path) {
 		opts.path = filepath.Join(Path(t), opts.path)
 	}
+
+	opts.path += opts.suffix
 
 	if update {
 		updateGoldenFile(t, opts.path, []byte(got))
@@ -102,6 +114,8 @@ func LoadWithUpdate(t *testing.T, data string, options ...Option) string {
 	if !filepath.IsAbs(opts.path) {
 		opts.path = filepath.Join(Path(t), opts.path)
 	}
+
+	opts.path += opts.suffix
 
 	if update {
 		updateGoldenFile(t, opts.path, []byte(data))
@@ -252,6 +266,8 @@ func CheckOrUpdateFileTree(t *testing.T, path string, options ...Option) {
 	if !filepath.IsAbs(opts.path) {
 		opts.path = filepath.Join(Path(t), opts.path)
 	}
+
+	opts.path += opts.suffix
 
 	if update {
 		t.Logf("updating golden path %s", opts.path)
