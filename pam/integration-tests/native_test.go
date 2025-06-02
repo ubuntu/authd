@@ -35,6 +35,8 @@ func TestNativeAuthenticate(t *testing.T) {
 		clientOptions      clientOptions
 		currentUserNotRoot bool
 		userSelection      bool
+		userSuffixSkip     bool
+		oldDB              string
 		wantLocalGroups    bool
 		wantSeparateDaemon bool
 		skipRunnerCheck    bool
@@ -82,6 +84,30 @@ func TestNativeAuthenticate(t *testing.T) {
 				PamServiceName: "polkit-1",
 				PamUser: vhsTestUserNameFull(t,
 					examplebroker.UserIntegrationAuthModesPrefix, "password-integration-polkit"),
+			},
+		},
+		"Authenticate_user_successfully_after_db_migration": {
+			tape:           "simple_auth_with_auto_selected_broker",
+			oldDB:          "authd_0.4.1_bbolt_with_mixed_case_users",
+			userSuffixSkip: true,
+			clientOptions: clientOptions{
+				PamUser: "user-integration-cached",
+			},
+		},
+		"Authenticate_user_with_upper_case_using_lower_case_after_db_migration": {
+			tape:           "simple_auth_with_auto_selected_broker",
+			oldDB:          "authd_0.4.1_bbolt_with_mixed_case_users",
+			userSuffixSkip: true,
+			clientOptions: clientOptions{
+				PamUser: "user-integration-upper-case",
+			},
+		},
+		"Authenticate_user_with_mixed_case_after_db_migration": {
+			tape:           "simple_auth_with_auto_selected_broker",
+			oldDB:          "authd_0.4.1_bbolt_with_mixed_case_users",
+			userSuffixSkip: true,
+			clientOptions: clientOptions{
+				PamUser: "user-integration-WITH-Mixed-CaSe",
 			},
 		},
 		"Authenticate_user_with_mfa": {
@@ -375,17 +401,20 @@ func TestNativeAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			var socketPath, gpasswdOutput, pidFile string
-			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.wantSeparateDaemon {
+			var socketPath, gpasswdOutput, groupsFile, pidFile string
+			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.wantSeparateDaemon ||
+				tc.oldDB != "" {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// Similarly for the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
-				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
+
 				pidFile = filepath.Join(outDir, "authd.pid")
+
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot,
-					testutils.WithPidFile(pidFile))
+					testutils.WithPidFile(pidFile),
+					testutils.WithEnvironment(useOldDatabaseEnv(t, tc.oldDB)...))
 			} else {
 				socketPath, gpasswdOutput = sharedAuthd(t)
 			}
@@ -397,7 +426,8 @@ func TestNativeAuthenticate(t *testing.T) {
 				tc.tapeCommand = tapeCommand
 			}
 
-			if u := tc.clientOptions.PamUser; strings.Contains(u, "integration") && !strings.Contains(u, "native") {
+			if u := tc.clientOptions.PamUser; !tc.userSuffixSkip &&
+				strings.Contains(u, "integration") && !strings.Contains(u, "native") {
 				tc.clientOptions.PamUser += "-native"
 			}
 			if tc.clientOptions.PamUser == "" && !tc.userSelection {
@@ -414,6 +444,12 @@ func TestNativeAuthenticate(t *testing.T) {
 			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			golden.CheckOrUpdate(t, got)
+
+			if tc.wantLocalGroups || tc.oldDB != "" {
+				actualGroups, err := os.ReadFile(groupsFile)
+				require.NoError(t, err, "Failed to read the groups file")
+				golden.CheckOrUpdate(t, string(actualGroups), golden.WithSuffix(".groups"))
+			}
 
 			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, golden.Path(t)+".gpasswd_out")
 

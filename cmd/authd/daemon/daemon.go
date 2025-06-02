@@ -19,6 +19,9 @@ import (
 // cmdName is the binary name for the agent.
 const cmdName = "authd"
 
+// oldDBDir is the path of the old DB directory.
+var oldDBDir = consts.OldDBDir
+
 // App encapsulate commands and options of the daemon, which can be controlled by env variables and config files.
 type App struct {
 	rootCmd cobra.Command
@@ -82,7 +85,7 @@ func New() *App {
 			setVerboseMode(a.config.Verbosity)
 			log.Debugf(context.Background(), "Verbosity: %d", a.config.Verbosity)
 
-			if err := maybeMigrateOldDBDir(consts.OldDBDir, a.config.Paths.Database); err != nil {
+			if err := maybeMigrateOldDBDir(oldDBDir, a.config.Paths.Database); err != nil {
 				return err
 			}
 

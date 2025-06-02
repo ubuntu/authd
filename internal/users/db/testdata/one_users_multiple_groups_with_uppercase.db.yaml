@@ -1,18 +1,21 @@
 users:
-    - name: USER1
+    - name: TestUser
       uid: 1111
       gid: 11111
-      gecos: |-
-        USER1 gecos
-        On multiple lines
-      dir: /home/user1
+      gecos: testuser gecos
+      dir: /home/testuser
       shell: /bin/bash
       broker_id: broker-id
 groups:
-    - name: GROUP1
+    - name: testgroup
       gid: 11111
       ugid: "12345678"
+    - name: TestGroup
+      gid: 22222
+      ugid: "56781234"
 users_to_groups:
     - uid: 1111
       gid: 11111
+    - uid: 1111
+      gid: 22222
 schema_version: 0
