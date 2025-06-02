@@ -401,14 +401,13 @@ func TestNativeAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			var socketPath, gpasswdOutput, pidFile string
+			var socketPath, gpasswdOutput, groupsFile, pidFile string
 			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.wantSeparateDaemon ||
 				tc.oldDBDir != "" {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// Similarly for the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
-				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 
 				pidFile = filepath.Join(outDir, "authd.pid")
@@ -445,6 +444,12 @@ func TestNativeAuthenticate(t *testing.T) {
 			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
 			got := td.ExpectedOutput(t, outDir)
 			golden.CheckOrUpdate(t, got)
+
+			if tc.wantLocalGroups || tc.oldDBDir != "" {
+				actualGroups, err := os.ReadFile(groupsFile)
+				require.NoError(t, err, "Failed to read the groups file")
+				golden.CheckOrUpdate(t, string(actualGroups), golden.WithSuffix(".groups"))
+			}
 
 			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, golden.Path(t)+".gpasswd_out")
 

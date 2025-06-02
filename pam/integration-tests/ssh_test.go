@@ -375,11 +375,11 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				authdEnv = append(authdEnv, nssTestEnv(t, nssLibrary, authdSocketLink)...)
 			}
 
+			var groupsFile string
 			if tc.wantLocalGroups || tc.oldDBDir != "" {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// In the other cases this is not needed, so we can just use a shared authd.
-				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 
 				authdEnv = append(authdEnv, useOldDatabaseEnv(t, tc.oldDBDir)...)
@@ -509,6 +509,12 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 					require.NoError(t, err, "Error checking for %q", userHome)
 					require.True(t, stat.IsDir(), "%q is not a directory", userHome)
 				}
+			}
+
+			if tc.wantLocalGroups || tc.oldDBDir != "" {
+				actualGroups, err := os.ReadFile(groupsFile)
+				require.NoError(t, err, "Failed to read the groups file")
+				golden.CheckOrUpdate(t, string(actualGroups), golden.WithSuffix(".groups"))
 			}
 
 			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, golden.Path(t)+".gpasswd_out")
