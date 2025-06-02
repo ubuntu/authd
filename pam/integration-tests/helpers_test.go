@@ -73,7 +73,7 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 	if !isSharedDaemon {
 		database := filepath.Join(t.TempDir(), "db", consts.DefaultDatabaseFileName)
 		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
-		saveArtifactsForDebugOnCleanup(t, []string{outputFile})
+		saveArtifactsForDebugOnCleanup(t, []string{database})
 	}
 	if isSharedDaemon && authdArtifactsAlwaysSave {
 		database := filepath.Join(authdArtifactsDir, "db", consts.DefaultDatabaseFileName)
