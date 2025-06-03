@@ -63,9 +63,7 @@ func New() *App {
 			// Command parsing has been successful. Returns to not print usage anymore.
 			a.rootCmd.SilenceUsage = true
 		},
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			// TODO: before or after?  cmd.LocalFlags()
-
+		RunE: func(cmd *cobra.Command, args []string) error {
 			// Set config defaults
 			a.config = daemonConfig{
 				Paths: systemPaths{
@@ -87,6 +85,11 @@ func New() *App {
 			setVerboseMode(a.config.Verbosity)
 			log.Debugf(context.Background(), "Verbosity: %d", a.config.Verbosity)
 
+			// If we are only checking the configuration, we exit now.
+			if check, _ := cmd.Flags().GetBool("check-config"); check {
+				return nil
+			}
+
 			if err := maybeMigrateOldDBDir(oldDBDir, a.config.Paths.Database); err != nil {
 				return err
 			}
@@ -95,9 +98,6 @@ func New() *App {
 				return err
 			}
 
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
 			return a.serve(a.config)
 		},
 		// We display usage error ourselves
@@ -109,6 +109,8 @@ func New() *App {
 
 	installVerbosityFlag(&a.rootCmd, a.viper)
 	installConfigFlag(&a.rootCmd)
+	// Install the --check-config flag to check the configuration and exit.
+	a.rootCmd.Flags().Bool("check-config", false /*i18n.G(*/, "check configuration and exit" /*)*/)
 
 	// subcommands
 	a.installVersion()
