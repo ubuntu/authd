@@ -16,7 +16,7 @@ Show
 
 Hide
 Type "2"
-Wait+Prompt /Gimme your password/
+Wait+CLIPrompt /Gimme your password/ /Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -25,7 +25,7 @@ Show
 
 Hide
 Enter
-Wait+Prompt /New password/
+Wait+CLIPrompt /New password/ /Press escape key to go back to choose the provider/
 Show
 
 Hide
@@ -34,13 +34,13 @@ Show
 
 Hide
 Enter
-Wait+Prompt /Confirm password/
+Wait+CLIPrompt /Confirm password/ /Press escape key to go back to choose the provider/
 TypeCLIPassword "badpass"
 Show
 
 Hide
 Enter
-Wait+CLIPrompt /New password/ /Password entries don't match/
+Wait+CLIPrompt /New password/ /Password entries don't match[\n]+[ ]*Press escape key to go back to choose the provider/
 Show
 
 Hide
@@ -49,7 +49,7 @@ Show
 
 Hide
 Enter
-Wait+Prompt /Confirm password/
+Wait+CLIPrompt /Confirm password/ /Press escape key to go back to choose the provider/
 TypeCLIPassword "authd2404"
 Show
 
