@@ -23,7 +23,7 @@ machine.
 
 1. **Install packages:**
    On the NFS server, run:
-   ```bash
+   ```shell
    sudo apt install -y nfs-kernel-server nfs-common rpcbind krb5-user krb5-admin-server krb5-kdc
    ```
 
@@ -57,7 +57,7 @@ machine.
 #### Step 2: Configure Kerberos
 
 1. **Create the Realm:**
-   ```bash
+   ```shell
    sudo krb5_newrealm
    ```
    Follow the prompts to set up the Kerberos realm.
@@ -68,14 +68,14 @@ machine.
    - Add a principal for the NFS server:
      This principal is used by the NFS client to authenticate when mounting an
      NFS directory.
-     ```bash
+     ```shell
      sudo kadmin.local addprinc -randkey nfs/server.example.com
      ```
 
    - Add a principal for the user `alice`:
      This principal is used for authentication when the user accesses the
      mounted NFS directory.
-     ```bash
+     ```shell
      sudo kadmin.local addprinc alice
      ```
      When prompted, set a password for the user `alice`.
@@ -87,7 +87,7 @@ machine.
    to input a password each time.
 
    - Export the keytab for the NFS server and the user `alice`:
-     ```bash
+     ```shell
      sudo kadmin.local ktadd -k /etc/krb5.keytab nfs/server.example.com
      ```
 
@@ -101,14 +101,14 @@ machine.
    directory in the `/etc/exports` file.
 
    - **Create a directory owned by `alice`:**
-     ```bash
+     ```shell
      sudo mkdir -p /srv/nfs/shared/alice
      sudo chown alice:alice /srv/nfs/shared/alice
      ```
 
    - **Configure exports:**
      Edit the `/etc/exports` file to define the shared directory:
-     ```bash
+     ```shell
      sudo editor /etc/exports
      ```
      Add this line:
@@ -118,7 +118,7 @@ machine.
 
 2. **Configure IDMAP:**
    Edit the IDMAP configuration:
-   ```bash
+   ```shell
    sudo editor /etc/idmapd.conf
    ```
    Ensure the following is set:
@@ -128,13 +128,13 @@ machine.
    ```
 
 3. **Restart services:**
-   ```bash
+   ```shell
    sudo systemctl restart nfs-kernel-server rpcbind rpc-svcgssd
    ```
 
 4. **Verify running services:**
    Check the status of the relevant services:
-   ```bash
+   ```shell
    sudo systemctl status nfs-kernel-server rpcbind rpc-svcgssd
    ```
 
@@ -146,7 +146,7 @@ machine.
 
 1. **Install packages:**
    On the NFS client, run:
-   ```bash
+   ```shell
    sudo apt install -y nfs-common krb5-user rpcbind
    ```
 
@@ -176,7 +176,7 @@ machine.
 1. **Copy keytab file:**
    Securely copy the keytab from the server to the client and set the correct
    permissions:
-   ```bash
+   ```shell
    scp root@server.example.com:/etc/krb5.keytab /tmp/krb5.keytab && \
    sudo mv /tmp/krb5.keytab /etc/krb5.keytab && \
    sudo chown root:root /etc/krb5.keytab && \
@@ -189,7 +189,7 @@ machine.
 
 1. **Configure IDMAP:**
    Edit the IDMAP configuration:
-   ```bash
+   ```shell
    sudo editor /etc/idmapd.conf
    ```
    Ensure the following is set:
@@ -199,13 +199,13 @@ machine.
    ```
 
 2. **Restart services:**
-   ```bash
+   ```shell
    sudo systemctl restart nfs-client.target rpc-gssd.service rpcbind.service
    ```
 
 3. **Verify running services:**
    Check the status of the relevant services:
-   ```bash
+   ```shell
    sudo systemctl status nfs-client.target rpc-gssd.service auth-rpcgss-module.service rpcbind.service
    ```
 
@@ -214,7 +214,7 @@ machine.
 #### Step 4: Mount the NFS share
 
 Mount the shared directory with Kerberos security:
-```bash
+```shell
 sudo -u alice mkdir /home/alice/nfs
 sudo mount -t nfs4 -o sec=krb5 server.example.com:/srv/nfs/shared/alice /home/alice/nfs
 ```
@@ -224,12 +224,12 @@ sudo mount -t nfs4 -o sec=krb5 server.example.com:/srv/nfs/shared/alice /home/al
 #### Step 5: Obtain Kerberos ticket
 
 Log in as the user `alice` and authenticate:
-```bash
+```shell
 kinit alice
 ```
 
 Verify the ticket:
-```bash
+```shell
 klist
 ```
 
@@ -239,24 +239,24 @@ klist
 
 1. **Test access to the share:**
    As the user `alice`, try accessing the share:
-   ```bash
+   ```shell
    ls -la /home/alice/nfs
    ```
 
    Create a test file to verify write access:
-   ```bash
+   ```shell
    touch /home/alice/nfs/test
    ```
 
 2. **Check logs if issues arise:**
 
    - On the server:
-     ```bash
+     ```shell
      sudo journalctl -u nfs-kernel-server -u rpcbind -u rpc-svcgssd
      ```
 
    - On the client:
-     ```bash
+     ```shell
      sudo journalctl -u rpcbind -u rpc-gssd
      ```
 
@@ -270,35 +270,35 @@ follow these steps:
 #### On the server
 
 1. **Purge installed packages:**
-   ```bash
+   ```shell
    sudo apt purge "krb*" "nfs-*"
    ```
 
 2. **Remove Kerberos configuration and data:**
-   ```bash
+   ```shell
    sudo sh -c "rm -rf /etc/krb5* /var/lib/krb5kdc/* /tmp/krb5*"
    ```
 
 3. **Remove the shared directory:**
-   ```bash
+   ```shell
    sudo rm -rf /srv/nfs/shared
    sudo rmdir /srv/nfs
    ```
 #### On the client
 
 1. **Unmount the shared directory and delete the mountpoint:**
-   ```bash
+   ```shell
    sudo umount /home/alice/nfs
    sudo rmdir /home/alice/nfs
    ```
 
 2. **Purge installed packages:**
-   ```bash
+   ```shell
    sudo apt purge nfs-common krb5-* rpcbind
    ```
 
 3. **Remove Kerberos data:**
-   ```bash
+   ```shell
    sudo rm -f /etc/krb5.keytab /tmp/krb5*
    ```
 
