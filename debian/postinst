@@ -42,4 +42,11 @@ if [ configure = "$action" ]; then
             chmod 700 /etc/authd
         fi
     fi
+
+    # Version 0.5.0 introduced breaking changes to the API, which requires a reboot
+    # to avoid issues between gnome-shell and authd.
+    if dpkg --compare-versions "$previous_version" lt-nl "0.5.0~" && \
+       command -v /usr/share/update-notifier/notify-reboot-required >/dev/null; then
+            /usr/share/update-notifier/notify-reboot-required
+    fi
 fi

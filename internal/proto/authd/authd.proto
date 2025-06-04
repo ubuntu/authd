@@ -107,6 +107,9 @@ message IARequest {
       string secret = 1;
       string wait = 2;
       string skip = 3;
+
+      // FIXME: Drop this when gdm side is ready to update.
+      string challenge = 999;
     }
   }
   AuthenticationData authentication_data = 2;

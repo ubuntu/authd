@@ -166,6 +166,15 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 		},
+		"Authenticates_user_when_using_the_old_challenge_field": {
+			eventPollResponses: map[gdm.EventType][]*gdm.EventData{
+				gdm.EventType_startAuthentication: {
+					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Challenge{
+						Challenge: "goodpass",
+					}),
+				},
+			},
+		},
 		"Authenticates_user_with_upper_case_name": {
 			pamUser: ptrValue(strings.ToUpper(vhsTestUserName(t, "upper-case"))),
 			eventPollResponses: map[gdm.EventType][]*gdm.EventData{

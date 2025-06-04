@@ -68,6 +68,7 @@ func SendData(pamMTx pam.ModuleTransaction, d *Data) (*Data, error) {
 		log.Warningf(context.TODO(), "Failed parsing GDM result %q: %v", jsonValue, err)
 		return nil, fmt.Errorf("failed parsing GDM result: %w", err)
 	}
+
 	// Log unless it's an empty poll, which are so frequently that it would be
 	// too verbose to log them.
 	if gdmData.Type == DataType_pollResponse && len(gdmData.GetPollResponse()) == 0 {
