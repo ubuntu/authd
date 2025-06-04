@@ -1,0 +1,1 @@
+../native/simple_auth_with_auto_selected_broker.tape
