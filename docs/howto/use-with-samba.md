@@ -21,7 +21,7 @@ shared directory on the server from a client machine.
 1. **Install Samba:**
    Install the Samba server package:
 
-   ```bash
+   ```shell
    sudo apt update
    sudo apt install samba
    ```
@@ -29,7 +29,7 @@ shared directory on the server from a client machine.
 2. **Create the shared directory:**
    Create the directory to be shared and set ownership to the `alice` user:
 
-   ```bash
+   ```shell
    sudo mkdir -p /srv/samba/alice
    sudo chown alice:alice /srv/samba/alice
    ```
@@ -37,7 +37,7 @@ shared directory on the server from a client machine.
 3. **Edit Samba configuration:**
    Open the Samba configuration file:
 
-   ```bash
+   ```shell
    sudo editor /etc/samba/smb.conf
    ```
 
@@ -62,7 +62,7 @@ shared directory on the server from a client machine.
 4. **Create a Samba user for `alice`:**
    Add the `alice` user to the Samba database and set a password:
 
-   ```bash
+   ```shell
    sudo smbpasswd -a alice
    ```
 
@@ -71,7 +71,7 @@ shared directory on the server from a client machine.
 5. **Restart Samba service:**
    Restart the Samba service to apply the changes:
 
-   ```bash
+   ```shell
    sudo systemctl restart smbd
    ```
 
@@ -82,7 +82,7 @@ shared directory on the server from a client machine.
 1. **Install Samba client:**
    Install the required packages for connecting to Samba shares:
 
-   ```bash
+   ```shell
    sudo apt update
    sudo apt install smbclient cifs-utils
    ```
@@ -91,7 +91,7 @@ shared directory on the server from a client machine.
    Test connectivity using `smbclient`, making sure to replace `$SERVER` with
    the Samba server's hostname or IP address:
 
-   ```bash
+   ```shell
    smbclient //$SERVER/alice -U alice
    ```
 
@@ -101,13 +101,13 @@ shared directory on the server from a client machine.
 3. **Mount the share:**
    Create a mount point for the share:
 
-   ```bash
+   ```shell
    mkdir -p /home/alice/samba
    ```
 
    Mount the share using the `cifs` filesystem type:
 
-   ```bash
+   ```shell
    sudo mount -t cifs //$SERVER/alice /home/alice/samba -o user=alice,uid=$(id -u alice),gid=$(id -g alice)
    ```
 
@@ -118,7 +118,7 @@ shared directory on the server from a client machine.
 
    - Create a credentials file:
 
-     ```bash
+     ```shell
      sudo editor /etc/samba/credentials
      ```
 
@@ -131,7 +131,7 @@ shared directory on the server from a client machine.
 
    - Secure the credentials file:
 
-     ```bash
+     ```shell
      sudo chmod 600 /etc/samba/credentials
      ```
 
@@ -144,13 +144,13 @@ shared directory on the server from a client machine.
 5. **Verify the mount:**
    As the user `alice`, try accessing the shared directory:
 
-   ```bash
+   ```shell
    ls -la /home/alice/samba
    ```
 
    Verify write access by creating a test file:
 
-   ```bash
+   ```shell
    touch /home/alice/samba/test
    ```
 
@@ -170,14 +170,14 @@ shared directory on the server from a client machine.
 
    - Create a restricted directory on the server:
 
-     ```bash
+     ```shell
      sudo mkdir /srv/samba/alice/secrets
      sudo chmod 700 /srv/samba/alice/secrets
      ```
 
    - Attempt to access it on the client:
 
-     ```bash
+     ```shell
      ls /home/alice/samba/secrets
      ```
 
@@ -197,14 +197,14 @@ shared directory on the server from a client machine.
 1. **Delete the shared directory:**
    Remove the directory used for the Samba share:
 
-   ```bash
+   ```shell
    sudo rm -rf /srv/samba/alice
    ```
 
 2. **Purge installed Samba packages:**
    If Samba is no longer needed, uninstall it completely:
 
-   ```bash
+   ```shell
    sudo apt purge samba samba-common
    sudo apt autoremove
    ```
@@ -215,20 +215,20 @@ shared directory on the server from a client machine.
 
 1. **Unmount the shared directory:**
 
-   ```bash
+   ```shell
    sudo umount /home/alice/samba
    ```
 
 2. **Delete the mount point:**
 
-   ```bash
+   ```shell
    rmdir /home/alice/samba
    ```
 
 3. **Remove fstab entry:**
    If you added the share to `/etc/fstab`, remove its entry:
 
-   ```bash
+   ```shell
    sudo editor /etc/fstab
    ```
 
@@ -237,14 +237,14 @@ shared directory on the server from a client machine.
 4. **Delete credentials file:**
    If a credentials file was used, remove it:
 
-   ```bash
+   ```shell
    sudo rm /etc/samba/credentials
    ```
 
 5. **Purge installed Samba client packages:**
    If Samba client tools are no longer needed, uninstall them:
 
-   ```bash
+   ```shell
    sudo apt purge samba-common smbclient cifs-utils
    sudo apt autoremove
    ```

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/ubuntu/authd/internal/services/permissions"
+	"github.com/ubuntu/authd/internal/testsdetection"
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
@@ -16,6 +17,8 @@ import (
 
 // load any behaviour modifiers from env variable.
 func init() {
+	testsdetection.MustBeTesting()
+
 	if os.Getenv("AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT") != "" {
 		permissions.Z_ForTests_DefaultCurrentUserAsRoot()
 	}

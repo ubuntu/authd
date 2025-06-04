@@ -3,7 +3,6 @@ package bbolt
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"go.etcd.io/bbolt"
 )
@@ -33,8 +32,6 @@ func (c *Database) UserByID(uid uint32) (UserDB, error) {
 
 // UserByName returns a user matching this name or an error if the database is corrupted or no entry was found.
 func (c *Database) UserByName(name string) (UserDB, error) {
-	// authd uses lowercase usernames
-	name = strings.ToLower(name)
 	return getUser(c, userByNameBucketName, name)
 }
 

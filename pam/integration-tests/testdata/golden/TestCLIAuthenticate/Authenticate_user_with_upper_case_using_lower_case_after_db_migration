@@ -1,0 +1,17 @@
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
+Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
+Gimme your password:
+> ********
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
+PAM Authenticate()
+  User: "user-integration-upper-case"
+  Result: success
+PAM AcctMgmt()
+  User: "user-integration-upper-case"
+  Result: success
+>
+────────────────────────────────────────────────────────────────────────────────

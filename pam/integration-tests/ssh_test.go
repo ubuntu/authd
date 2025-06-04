@@ -146,9 +146,11 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		socketPath       string
 		daemonizeSSHd    bool
 		interactiveShell bool
+		oldDB            string
 
-		wantNotLoggedInUser bool
-		wantLocalGroups     bool
+		wantUserAlreadyExist bool
+		wantNotLoggedInUser  bool
+		wantLocalGroups      bool
 	}{
 		"Authenticate_user_successfully": {
 			tape: "simple_auth",
@@ -169,6 +171,24 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		"Authenticate_user_successfully_if_already_registered_with_upper_case": {
 			user: "USER-SSH2",
 			tape: "simple_auth",
+		},
+		"Authenticate_user_successfully_after_db_migration": {
+			tape:                 "simple_auth_with_auto_selected_broker",
+			oldDB:                "authd_0.4.1_bbolt_with_mixed_case_users",
+			wantUserAlreadyExist: true,
+			user:                 "user-integration-cached",
+		},
+		"Authenticate_user_with_upper_case_using_lower_case_after_db_migration": {
+			tape:                 "simple_auth_with_auto_selected_broker",
+			oldDB:                "authd_0.4.1_bbolt_with_mixed_case_users",
+			wantUserAlreadyExist: true,
+			user:                 "user-integration-upper-case",
+		},
+		"Authenticate_user_with_mixed_case_after_db_migration": {
+			tape:                 "simple_auth_with_auto_selected_broker",
+			oldDB:                "authd_0.4.1_bbolt_with_mixed_case_users",
+			wantUserAlreadyExist: true,
+			user:                 "user-integration-WITH-Mixed-CaSe",
 		},
 		"Authenticate_user_with_mfa": {
 			tape:         "mfa_auth",
@@ -355,12 +375,15 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				authdEnv = append(authdEnv, nssTestEnv(t, nssLibrary, authdSocketLink)...)
 			}
 
-			if tc.wantLocalGroups {
+			var groupsFile string
+			if tc.wantLocalGroups || tc.oldDB != "" {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// In the other cases this is not needed, so we can just use a shared authd.
-				var groupsFile string
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
+
+				authdEnv = append(authdEnv, useOldDatabaseEnv(t, tc.oldDB)...)
+
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, true,
 					testutils.WithEnvironment(authdEnv...))
 			} else if !sharedSSHd {
@@ -394,12 +417,18 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 					sleepDuration(5*time.Second)))
 
 				userClient = authd.NewUserServiceClient(conn)
-				requireNoAuthdUser(t, userClient, user)
+
+				if tc.wantUserAlreadyExist {
+					requireAuthdUser(t, userClient, user)
+				} else {
+					requireNoAuthdUser(t, userClient, user)
+				}
 			}
 
 			sshdPort := defaultSSHDPort
 			userHome := defaultUserHome
-			if !sharedSSHd || tc.wantLocalGroups || tc.interactiveShell || tc.socketPath != "" {
+			if !sharedSSHd || tc.wantLocalGroups || tc.oldDB != "" ||
+				tc.interactiveShell || tc.socketPath != "" {
 				sshdEnv := sshdEnv
 				if nssLibrary != "" {
 					sshdEnv = slices.Clone(sshdEnv)
@@ -474,9 +503,18 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 					}
 				}
 
-				stat, err := os.Stat(userHome)
-				require.NoError(t, err, "Error checking for %q", userHome)
-				require.True(t, stat.IsDir(), "%q is not a directory", userHome)
+				if !tc.wantUserAlreadyExist {
+					// Check if user home has been created, but only if the user is a new one.
+					stat, err := os.Stat(userHome)
+					require.NoError(t, err, "Error checking for %q", userHome)
+					require.True(t, stat.IsDir(), "%q is not a directory", userHome)
+				}
+			}
+
+			if tc.wantLocalGroups || tc.oldDB != "" {
+				actualGroups, err := os.ReadFile(groupsFile)
+				require.NoError(t, err, "Failed to read the groups file")
+				golden.CheckOrUpdate(t, string(actualGroups), golden.WithSuffix(".groups"))
 			}
 
 			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, golden.Path(t)+".gpasswd_out")

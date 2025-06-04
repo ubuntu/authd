@@ -18,11 +18,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/consts"
+	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
+	"github.com/ubuntu/authd/internal/users/db/bbolt"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 	"google.golang.org/grpc"
@@ -73,7 +75,7 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 	if !isSharedDaemon {
 		database := filepath.Join(t.TempDir(), "db", consts.DefaultDatabaseFileName)
 		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
-		saveArtifactsForDebugOnCleanup(t, []string{outputFile})
+		saveArtifactsForDebugOnCleanup(t, []string{database})
 	}
 	if isSharedDaemon && authdArtifactsAlwaysSave {
 		database := filepath.Join(authdArtifactsDir, "db", consts.DefaultDatabaseFileName)
@@ -91,7 +93,8 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) string {
 	t.Helper()
 
-	socketPath, _ := runAuthdForTesting(t, gpasswdOutput, groupsFile, currentUserAsRoot, false, args...)
+	socketPath, waitFunc := runAuthdForTesting(t, gpasswdOutput, groupsFile, currentUserAsRoot, false, args...)
+	t.Cleanup(waitFunc)
 	return socketPath
 }
 
@@ -344,8 +347,22 @@ func prependBinToPath(t *testing.T) string {
 func prepareGPasswdFiles(t *testing.T) (string, string) {
 	t.Helper()
 
+	cwd, err := os.Getwd()
+	require.NoError(t, err, "Cannot get current working directory")
+
+	const groupFileName = "gpasswd.group"
 	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
+	groupsFile := filepath.Join(cwd, "testdata", t.Name(), groupFileName)
+
+	if ok, _ := fileutils.FileExists(groupsFile); !ok {
+		groupsFile = filepath.Join(cwd, testutils.TestFamilyPath(t), groupFileName)
+	}
+
+	// Do a copy of the original group file, since it may be migrated by authd.
+	tmpCopy := filepath.Join(t.TempDir(), filepath.Base(groupsFile))
+	err = fileutils.CopyFile(groupsFile, tmpCopy)
+	require.NoError(t, err, "Cannot copy the group file %q", groupsFile)
+	groupsFile = tmpCopy
 
 	saveArtifactsForDebugOnCleanup(t, []string{gpasswdOutput, groupsFile})
 
@@ -534,4 +551,21 @@ func requireGetEntExists(t *testing.T, nssLibrary, authdSocket, user string, exi
 		return
 	}
 	require.NoError(t, err, "getent should not fail for user %q\n%s", user, out)
+}
+
+func useOldDatabaseEnv(t *testing.T, oldDB string) []string {
+	t.Helper()
+
+	if oldDB == "" {
+		return nil
+	}
+
+	tempDir := t.TempDir()
+	oldDBDir, err := os.MkdirTemp(tempDir, "old-db-path")
+	require.NoError(t, err, "Cannot create db directory in %q", tempDir)
+
+	err = bbolt.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", oldDB+".db.yaml"), oldDBDir)
+	require.NoError(t, err, "Setup: creating old database")
+
+	return []string{fmt.Sprintf("AUTHD_INTEGRATIONTESTS_OLD_DB_DIR=%s", oldDBDir)}
 }
