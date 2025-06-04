@@ -142,6 +142,15 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 		lang = "C"
 	}
 
+	userIsLocked, err := s.userManager.IsUserLocked(username)
+	if err != nil && !errors.Is(err, users.NoDataFoundError{}) {
+		return nil, fmt.Errorf("could not check if user %q is locked: %w", username, err)
+	}
+	// Throw an error if the user trying to authenticate already exists in the database and is locked
+	if err == nil && userIsLocked {
+		return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("user %s is locked", username))
+	}
+
 	var mode string
 	switch req.GetMode() {
 	case authd.SessionMode_LOGIN:
