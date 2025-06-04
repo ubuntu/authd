@@ -1,3 +1,11 @@
+authd (0.5.3~pre1) UNRELEASED; urgency=medium
+
+  * Notify user that a reboot is required after upgrade
+  * Fix login via GDM being broken after authd update when an old gnome-shell
+    is still running.
+
+ --  <adrian.dombeck@canonical.com>  Wed, 04 Jun 2025 14:29:30 +0200
+
 authd (0.5.2) questing; urgency=medium
 
   * Fix another issue with the migration to lowercase user and group names
