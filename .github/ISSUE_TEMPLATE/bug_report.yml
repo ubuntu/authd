@@ -99,6 +99,11 @@ body:
             -e 's/[0-9a-zA-Z_-]+\.apps\.googleusercontent\.com/<redacted>/g')
         \`\`\`
 
+        #### authd apt history
+        \`\`\`
+        $(awk -v RS= -v ORS="\n\n" '/authd/' /var/log/apt/history.log)
+        \`\`\`
+
         #### authd broker configuration
         $(sudo sh -c 'if ! find /etc/authd/brokers.d -name \*.conf | grep -q .; then echo ":warning: No config files in /etc/authd/brokers.d/"; else for f in /etc/authd/brokers.d/*.conf; do echo "#### $f"; echo "\`\`\`";  cat $f; echo "\`\`\`"; done; fi')
 
