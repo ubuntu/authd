@@ -107,9 +107,9 @@ func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...Daemo
 	if opts.dbPath == "" {
 		opts.dbPath = filepath.Join(tempDir, "db")
 	}
-	require.NoError(t, os.MkdirAll(opts.dbPath, 0700), "Setup: failed to create database dir")
 
 	if opts.existentDB != "" {
+		require.NoError(t, os.MkdirAll(opts.dbPath, 0700), "Setup: failed to create database dir")
 		err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", opts.existentDB+".db.yaml"), opts.dbPath)
 		require.NoError(t, err, "Setup: could not create database from testdata")
 	}

@@ -34,7 +34,8 @@ func init() {
 }
 
 type goldenOptions struct {
-	path string
+	path   string
+	suffix string
 }
 
 // Option is a supported option reference to change the golden files comparison.
@@ -47,6 +48,31 @@ func WithPath(path string) Option {
 			o.path = path
 		}
 	}
+}
+
+// WithSuffix add a suffix to golden files used.
+func WithSuffix(suffix string) Option {
+	return func(o *goldenOptions) {
+		if suffix != "" {
+			o.suffix = suffix
+		}
+	}
+}
+
+func parseGoldenOptions(t *testing.T, options ...Option) goldenOptions {
+	t.Helper()
+
+	opts := goldenOptions{}
+	for _, f := range options {
+		f(&opts)
+	}
+	if !filepath.IsAbs(opts.path) {
+		opts.path = filepath.Join(Path(t), opts.path)
+	}
+
+	opts.path += opts.suffix
+
+	return opts
 }
 
 func updateGoldenFile(t *testing.T, path string, data []byte) {
@@ -64,13 +90,7 @@ func updateGoldenFile(t *testing.T, path string, data []byte) {
 func CheckOrUpdate(t *testing.T, got string, options ...Option) {
 	t.Helper()
 
-	opts := goldenOptions{}
-	for _, f := range options {
-		f(&opts)
-	}
-	if !filepath.IsAbs(opts.path) {
-		opts.path = filepath.Join(Path(t), opts.path)
-	}
+	opts := parseGoldenOptions(t, options...)
 
 	if update {
 		updateGoldenFile(t, opts.path, []byte(got))
@@ -95,13 +115,7 @@ func CheckOrUpdateYAML[E any](t *testing.T, got E, options ...Option) {
 func LoadWithUpdate(t *testing.T, data string, options ...Option) string {
 	t.Helper()
 
-	opts := goldenOptions{}
-	for _, f := range options {
-		f(&opts)
-	}
-	if !filepath.IsAbs(opts.path) {
-		opts.path = filepath.Join(Path(t), opts.path)
-	}
+	opts := parseGoldenOptions(t, options...)
 
 	if update {
 		updateGoldenFile(t, opts.path, []byte(data))
@@ -245,13 +259,7 @@ func checkGoldenFileEqualsString(t *testing.T, got, goldenPath string) {
 func CheckOrUpdateFileTree(t *testing.T, path string, options ...Option) {
 	t.Helper()
 
-	opts := goldenOptions{}
-	for _, f := range options {
-		f(&opts)
-	}
-	if !filepath.IsAbs(opts.path) {
-		opts.path = filepath.Join(Path(t), opts.path)
-	}
+	opts := parseGoldenOptions(t, options...)
 
 	if update {
 		t.Logf("updating golden path %s", opts.path)
