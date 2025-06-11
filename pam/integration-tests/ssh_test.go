@@ -330,6 +330,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 		"Exit_authd_if_local_broker_is_selected": {
 			tape:                "local_broker",
 			wantNotLoggedInUser: true,
+			daemonizeSSHd:       true,
 			tapeVariables: map[string]string{
 				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
 			},
