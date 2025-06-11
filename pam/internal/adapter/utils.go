@@ -264,7 +264,14 @@ func safeMessageDebugWithPrefix(prefix string, msg tea.Msg, formatAndArgs ...any
 
 	format, ok := formatAndArgs[0].(string)
 	if !ok || !strings.Contains(format, "%") {
-		log.Debug(context.Background(), append([]any{m, ", "}, formatAndArgs...)...)
+		args := []any{m, ", "}
+		for i, arg := range formatAndArgs {
+			args = append(args, debugMessageFormatter(arg))
+			if i < len(formatAndArgs)-1 {
+				args = append(args, " ")
+			}
+		}
+		log.Debug(context.Background(), args...)
 		return
 	}
 
