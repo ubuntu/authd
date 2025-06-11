@@ -161,7 +161,9 @@ jobs:
           # Load the apparmor profile for bubblewrap.
           sudo ln -s /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/
           sudo apparmor_parser /etc/apparmor.d/bwrap-userns-restrict
+
       - name: Install PAM and GLib debug symbols
+        continue-on-error: true
         run: |
           set -eu
           sudo apt-get install ubuntu-dbgsym-keyring -y
