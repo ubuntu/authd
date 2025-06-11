@@ -5,7 +5,7 @@ Wait /Username:\n/
 Show
 
 Hide
-TypeUsername "root"
+TypeUsername "${AUTHD_TEST_TAPE_USERNAME}"
 Enter
 ${AUTHD_TEST_TAPE_COMMAND_AUTH_FINAL_WAIT}
 Show

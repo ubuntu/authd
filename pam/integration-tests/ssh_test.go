@@ -143,15 +143,16 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		tapeSettings  []tapeSetting
 		tapeVariables map[string]string
 
-		user             string
-		isLocalUser      bool
-		userPrefix       string
-		pamServiceName   string
-		socketPath       string
-		daemonizeSSHd    bool
-		interactiveShell bool
-		command          []string
-		oldDB            string
+		user               string
+		isLocalUser        bool
+		userPrefix         string
+		pamServiceName     string
+		socketPath         string
+		daemonizeSSHd      bool
+		interactiveShell   bool
+		noConfiguredBroker bool
+		command            []string
+		oldDB              string
 
 		wantUserAlreadyExist bool
 		wantNotLoggedInUser  bool
@@ -344,6 +345,14 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
 			},
 		},
+		"Exit_authd_if_no_broker_is_configured_with_preset_user": {
+			tape:                "local_user_preset",
+			noConfiguredBroker:  true,
+			wantNotLoggedInUser: true,
+			tapeVariables: map[string]string{
+				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
+			},
+		},
 		"Exit_authd_if_user_sigints": {
 			tape:                "sigint",
 			wantNotLoggedInUser: true,
@@ -386,13 +395,18 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			}
 
 			var groupsFile string
-			if tc.wantLocalGroups || tc.oldDB != "" {
+			needsLocalTestDaemonInstance := tc.wantLocalGroups || tc.noConfiguredBroker || tc.oldDB != ""
+
+			if needsLocalTestDaemonInstance {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 
 				authdEnv = append(authdEnv, useOldDatabaseEnv(t, tc.oldDB)...)
+				if tc.noConfiguredBroker {
+					authdEnv = append(authdEnv, "AUTHD_EXAMPLE_BROKER_DISABLE=1")
+				}
 
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, true,
 					testutils.WithEnvironment(authdEnv...))
@@ -450,7 +464,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				userHome = expectedUserHome(t, user)
 			}
 
-			if !sharedSSHd || tc.wantLocalGroups || tc.oldDB != "" ||
+			if !sharedSSHd || needsLocalTestDaemonInstance ||
 				tc.interactiveShell || tc.socketPath != "" {
 				sshdEnv := sshdEnv
 				if nssLibrary != "" {
