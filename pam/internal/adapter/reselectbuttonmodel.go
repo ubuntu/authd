@@ -25,7 +25,7 @@ func (b authReselectButtonModel) Init() tea.Cmd {
 func (b authReselectButtonModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case buttonSelectionEvent:
-		safeMessageDebug(msg, "button: %#v", b)
+		safeMessageDebug(msg, "button:", b)
 		if msg.model == b.buttonModel {
 			return b, sendEvent(reselectAuthMode{})
 		}

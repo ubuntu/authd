@@ -239,6 +239,22 @@ func TestSafeMessageDebug(t *testing.T) {
 			formatAndArgs:  []any{true, false},
 			wantSafeString: "prefix: adapter.startAuthentication{}, true false",
 		},
+		"startAuthentication_message_with_prefix_and_multiple_formatted_values_suffix": {
+			msg:    startAuthentication{},
+			prefix: "prefix",
+			formatAndArgs: []any{
+				newPasswordCheck{password: "password!"},
+				UILayoutReceived{&authd.UILayout{Type: "Foo"}},
+				authModesReceived{
+					authModes: []*authd.GAMResponse_AuthenticationMode{
+						{Id: "id1", Label: "Label1"},
+						{Id: "id2", Label: "Label2"},
+					},
+				},
+			},
+			wantDebugString: `prefix: adapter.startAuthentication{}, adapter.newPasswordCheck{ctx:context.Context(nil), password:"password!"} adapter.UILayoutReceived{layouts:*authd.UILayout{{"type":"Foo"}}} adapter.authModesReceived{authModes:[]*authd.GAMResponse_AuthenticationMode{[{"id":"id1","label":"Label1"},{"id":"id2","label":"Label2"}]}}`,
+			wantSafeString:  `prefix: adapter.startAuthentication{}, adapter.newPasswordCheck{ctx:context.Context(nil), password:"***********"} adapter.UILayoutReceived{layouts:*authd.UILayout{{"type":"Foo"}}} adapter.authModesReceived{authModes:[]*authd.GAMResponse_AuthenticationMode{[{"id":"id1","label":"Label1"},{"id":"id2","label":"Label2"}]}}`,
+		},
 		"startAuthentication_message_with_prefix_and_single_string_suffix": {
 			msg:            startAuthentication{},
 			prefix:         "prefix",
@@ -329,11 +345,12 @@ func TestSafeMessageDebug(t *testing.T) {
 			handlerCalled := false
 			wantCtx := context.Background()
 			log.SetLevelHandler(log.DebugLevel, func(ctx context.Context, l log.Level, format string, args ...interface{}) {
-				t.Logf(format, args...)
+				t.Logf("Format: %q", format)
+				t.Log(append([]any{"Args:"}, args...)...)
 				handlerCalled = true
 				require.Equal(t, wantCtx, ctx, "Context should match expected")
 				require.Equal(t, tc.wantSafeString, fmt.Sprintf(format, args...),
-					"Format should match")
+					"Format for safe usage should match")
 			})
 
 			initialLogLevel := log.GetLevel()
@@ -363,11 +380,11 @@ func TestSafeMessageDebug(t *testing.T) {
 			log.SetLevelHandler(log.DebugLevel, func(ctx context.Context, l log.Level, format string, args ...interface{}) {
 				t.Logf(format, args...)
 				handlerCalled = true
-				t.Logf("Called with %q", format)
-				t.Logf("Atgs are %#v", args)
+				t.Logf("Format: %q", format)
+				t.Log(append([]any{"Args:"}, args...)...)
 				require.Equal(t, wantCtx, ctx, "Context should match expected")
 				require.Equal(t, tc.wantDebugString, fmt.Sprintf(format, args...),
-					"Format should match")
+					"Format for debug usage should match")
 			})
 
 			initialLogLevel := log.GetLevel()
