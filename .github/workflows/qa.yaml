@@ -161,7 +161,9 @@ jobs:
           # Load the apparmor profile for bubblewrap.
           sudo ln -s /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/
           sudo apparmor_parser /etc/apparmor.d/bwrap-userns-restrict
+
       - name: Install PAM and GLib debug symbols
+        continue-on-error: true
         run: |
           set -eu
           sudo apt-get install ubuntu-dbgsym-keyring -y
@@ -173,9 +175,11 @@ jobs:
           sudo apt update -y || true
           if ! sudo apt install -y libpam-modules-dbgsym libpam0*-dbgsym libglib2.0-0*-dbgsym; then
             sudo apt install -y ubuntu-dev-tools
-            pull-lp-ddebs pam $(lsb_release -cs)
-            pull-lp-ddebs glib2.0 $(lsb_release -cs)
-            sudo apt install -y ./libpam0*.ddeb ./libpam-modules*.ddeb ./libglib2.0-0*-dbgsym*.ddeb
+            for pkg in pam glib2.0; do
+              pull-lp-debs "${pkg}" $(lsb_release -cs)
+              pull-lp-ddebs "${pkg}" $(lsb_release -cs)
+            done
+            sudo apt install -y ./libpam0*.*deb ./libpam-modules*.*deb ./libglib2.0-0*-dbgsym*.ddeb
             sudo apt remove -y ubuntu-dev-tools
             sudo apt autoremove -y
           fi
