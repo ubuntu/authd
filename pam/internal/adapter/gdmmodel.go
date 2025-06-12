@@ -154,9 +154,16 @@ func (m gdmModel) handlePollResponse(gdmPollResults []*gdm.EventData) tea.Cmd {
 					status: pam.ErrSystem, msg: "missing auth requested",
 				})
 			}
-			commands = append(commands, sendEvent(isAuthenticatedRequested{
-				item: res.IsAuthenticatedRequested.GetAuthenticationData().Item,
-			}))
+
+			authItem := res.IsAuthenticatedRequested.AuthenticationData.Item
+
+			// TODO: Drop this when we don't care supporting anymore old gnome-shell versions
+			if ch, ok := authItem.(*authd.IARequest_AuthenticationData_Challenge); ok && ch != nil {
+				authItem = &authd.IARequest_AuthenticationData_Secret{
+					Secret: ch.Challenge,
+				}
+			}
+			commands = append(commands, sendEvent(isAuthenticatedRequested{authItem}))
 
 		case *gdm.EventData_ReselectAuthMode:
 			commands = append(commands, sendEvent(reselectAuthMode{}))
