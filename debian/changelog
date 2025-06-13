@@ -1,8 +1,8 @@
-authd (0.5.3+git250613+702+f5a6c21c) noble; urgency=medium
+authd (0.5.3+git250613+703+c6841728) noble; urgency=medium
 
-  * Github build. Run id: 15632650418. Run number: 702.
+  * Github build. Run id: 15632694162. Run number: 703.
 
- -- Marco <marco@ubuntu.com>  Fri, 13 Jun 2025 10:42:16 +0000
+ -- Marco <marco@ubuntu.com>  Fri, 13 Jun 2025 10:46:57 +0000
 
 authd (0.5.3) questing; urgency=medium
 
