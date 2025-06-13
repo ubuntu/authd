@@ -11,6 +11,7 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/proto/authd"
@@ -35,7 +36,14 @@ const (
 	Gdm
 )
 
-var debug string
+var (
+	debug string
+
+	infoMsgStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{
+		Light: "#909090",
+		Dark:  "#7f7f7f",
+	}).Padding(1, 0, 0, 2)
+)
 
 // sessionInfo contains the global broker session information.
 type sessionInfo struct {
@@ -431,6 +439,12 @@ func (m uiModel) View() string {
 
 	if debug != "" {
 		view.WriteString(debug)
+	}
+
+	if view.Len() > 0 && m.canGoBack() {
+		infoMessage := infoMsgStyle.Render(fmt.Sprintf("Press escape key to %s",
+			goBackLabel(m.previousStage())))
+		return lipgloss.JoinVertical(lipgloss.Left, view.String(), infoMessage)
 	}
 
 	return view.String()
