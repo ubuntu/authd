@@ -2,6 +2,7 @@ package adapter
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -16,6 +17,7 @@ import (
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/authd/pam/internal/proto"
 	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
+	protbuf_proto "google.golang.org/protobuf/proto"
 )
 
 var (
@@ -142,6 +144,8 @@ func maybeSendPamError(err error) tea.Cmd {
 var debugMessageFormatter = defaultSafeMessageFormatter
 
 func defaultSafeMessageFormatter(msg tea.Msg) string {
+	type jsonMarshal struct{ tea.Msg }
+
 	switch msg := msg.(type) {
 	case newPasswordCheck:
 		return fmt.Sprintf("%#v",
@@ -164,19 +168,48 @@ func defaultSafeMessageFormatter(msg tea.Msg) string {
 		return fmt.Sprintf("%T{%s}", msg,
 			defaultSafeMessageFormatter(msg.isAuthenticatedRequested))
 	case UILayoutReceived:
-		return fmt.Sprintf("%T{%#v}", msg, msg.layout)
+		return fmt.Sprintf("%T{layouts:%s}", msg,
+			defaultSafeMessageFormatter(msg.layout))
 	case ChangeStage:
 		return fmt.Sprintf("%T{Stage:%q}", msg, msg.Stage)
 	case StageChanged:
 		return fmt.Sprintf("%T{Stage:%q}", msg, msg.Stage)
 	case nativeStageChangeRequest:
 		return fmt.Sprintf("%T{Stage:%q}", msg, msg.Stage)
+	case brokersListReceived:
+		return fmt.Sprintf("%T{brokers:%s}", msg,
+			defaultSafeMessageFormatter(msg.brokers))
+	case supportedUILayoutsReceived:
+		return fmt.Sprintf("%T{layouts:%s}", msg,
+			defaultSafeMessageFormatter(msg.layouts))
+	case authModesReceived:
+		return fmt.Sprintf("%T{authModes:%s}", msg,
+			defaultSafeMessageFormatter(msg.authModes))
 	case tea.KeyMsg:
 		if msg.Type != tea.KeyRunes {
 			return fmt.Sprintf("%T{%s}", msg, msg)
 		}
+	case []*authd.ABResponse_BrokerInfo:
+		return defaultSafeMessageFormatter(jsonMarshal{msg})
+	case []*authd.UILayout:
+		return defaultSafeMessageFormatter(jsonMarshal{msg})
+	case []*authd.GAMResponse_AuthenticationMode:
+		return defaultSafeMessageFormatter(jsonMarshal{msg})
+	case protbuf_proto.Message:
+		return defaultSafeMessageFormatter(jsonMarshal{msg})
+	case []protbuf_proto.Message:
+		return defaultSafeMessageFormatter(jsonMarshal{msg})
+	case jsonMarshal:
+		b, err := json.Marshal(msg.Msg)
+		if err != nil {
+			// Use fallback mode, avoid recursion by wrapping it with an unnamed type.
+			b = []byte(defaultSafeMessageFormatter(struct{ tea.Msg }{msg.Msg}))
+		}
+		return fmt.Sprintf("%T{%s}", msg.Msg, b)
 	case nil:
 		return ""
+	case string:
+		return msg
 	default:
 		return fmt.Sprintf("%#v", msg)
 	}
@@ -231,7 +264,14 @@ func safeMessageDebugWithPrefix(prefix string, msg tea.Msg, formatAndArgs ...any
 
 	format, ok := formatAndArgs[0].(string)
 	if !ok || !strings.Contains(format, "%") {
-		log.Debug(context.Background(), append([]any{m, ", "}, formatAndArgs...)...)
+		args := []any{m, ", "}
+		for i, arg := range formatAndArgs {
+			args = append(args, debugMessageFormatter(arg))
+			if i < len(formatAndArgs)-1 {
+				args = append(args, " ")
+			}
+		}
+		log.Debug(context.Background(), args...)
 		return
 	}
 

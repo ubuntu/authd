@@ -29,6 +29,7 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
+	"golang.org/x/term"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -139,14 +140,15 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		tapeSettings  []tapeSetting
 		tapeVariables map[string]string
 
-		user             string
-		isLocalUser      bool
-		userPrefix       string
-		pamServiceName   string
-		socketPath       string
-		daemonizeSSHd    bool
-		interactiveShell bool
-		oldDB            string
+		user               string
+		isLocalUser        bool
+		userPrefix         string
+		pamServiceName     string
+		socketPath         string
+		daemonizeSSHd      bool
+		interactiveShell   bool
+		noConfiguredBroker bool
+		oldDB              string
 
 		wantUserAlreadyExist bool
 		wantNotLoggedInUser  bool
@@ -321,6 +323,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 		"Exit_authd_if_local_broker_is_selected": {
 			tape:                "local_broker",
 			wantNotLoggedInUser: true,
+			daemonizeSSHd:       true,
 			tapeVariables: map[string]string{
 				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
 			},
@@ -329,6 +332,14 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			tape:                "local_ssh",
 			user:                examplebroker.UserIntegrationPrefix + "ssh-service-not-allowed",
 			pamServiceName:      "sshd",
+			wantNotLoggedInUser: true,
+			tapeVariables: map[string]string{
+				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
+			},
+		},
+		"Exit_authd_if_no_broker_is_configured_with_preset_user": {
+			tape:                "local_user_preset",
+			noConfiguredBroker:  true,
 			wantNotLoggedInUser: true,
 			tapeVariables: map[string]string{
 				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
@@ -376,13 +387,18 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			}
 
 			var groupsFile string
-			if tc.wantLocalGroups || tc.oldDB != "" {
+			needsLocalTestDaemonInstance := tc.wantLocalGroups || tc.noConfiguredBroker || tc.oldDB != ""
+
+			if needsLocalTestDaemonInstance {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// In the other cases this is not needed, so we can just use a shared authd.
 				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
 
 				authdEnv = append(authdEnv, useOldDatabaseEnv(t, tc.oldDB)...)
+				if tc.noConfiguredBroker {
+					authdEnv = append(authdEnv, "AUTHD_EXAMPLE_BROKER_DISABLE=1")
+				}
 
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, true,
 					testutils.WithEnvironment(authdEnv...))
@@ -427,7 +443,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 
 			sshdPort := defaultSSHDPort
 			userHome := defaultUserHome
-			if !sharedSSHd || tc.wantLocalGroups || tc.oldDB != "" ||
+			if !sharedSSHd || needsLocalTestDaemonInstance ||
 				tc.interactiveShell || tc.socketPath != "" {
 				sshdEnv := sshdEnv
 				if nssLibrary != "" {
@@ -457,12 +473,18 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			require.NoError(t, err, "Setup: can't create known hosts file")
 
 			outDir := t.TempDir()
-			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
-			td.Command = tapeCommand
-			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
-			td.Env["HOME"] = t.TempDir()
-			td.Env[pamSSHUserEnv] = user
-			td.Env["AUTHD_PAM_SSH_ARGS"] = strings.Join([]string{
+			sshLogFile := filepath.Join(outDir, "ssh.log")
+			saveArtifactsForDebugOnCleanup(t, []string{sshLogFile})
+			t.Cleanup(func() {
+				if !t.Failed() {
+					return
+				}
+				sshLog, err := os.ReadFile(sshLogFile)
+				require.NoError(t, err, "Opening SSH log file %s", sshLogFile)
+				t.Logf("SSH client\n ##### LOG #####\n %s \n ##### END #####", sshLog)
+			})
+
+			sshCmd := []string{
 				"-p", sshdPort,
 				"-F", os.DevNull,
 				"-i", os.DevNull,
@@ -470,7 +492,22 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				"-o", "PasswordAuthentication=no",
 				"-o", "PubkeyAuthentication=no",
 				"-o", "UserKnownHostsFile=" + knownHost,
-			}, " ")
+				"-o", "ConnectTimeout=300",
+				"-t",
+				"-E", sshLogFile,
+				"-vvv",
+			}
+
+			// if !tc.interactiveShell {
+			// 	sshCmd = append(sshCmd, "true")
+			// }
+
+			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
+			td.Command = tapeCommand
+			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
+			td.Env["HOME"] = t.TempDir()
+			td.Env[pamSSHUserEnv] = user
+			td.Env["AUTHD_PAM_SSH_ARGS"] = strings.Join(sshCmd, " ")
 			td.Variables = tc.tapeVariables
 			td.RunVhs(t, vhsTestTypeSSH, outDir, nil)
 			got := sanitizeGoldenFile(t, td, outDir)
@@ -677,7 +714,11 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	sshd, sshdPidFile, sshdLogFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env, daemonize)
 	sshdStderr := bytes.Buffer{}
 	sshd.Stderr = &sshdStderr
-	if testing.Verbose() {
+
+	interactiveVerbose := testing.Verbose() &&
+		term.IsTerminal(int(os.Stdout.Fd())) && term.IsTerminal(int(os.Stderr.Fd()))
+
+	if interactiveVerbose {
 		sshd.Stdout = os.Stdout
 		sshd.Stderr = os.Stderr
 	}
@@ -688,9 +729,14 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	sshdPid := sshd.Process.Pid
 
 	t.Cleanup(func() {
-		if testing.Verbose() || !t.Failed() {
+		if interactiveVerbose || !t.Failed() {
 			return
 		}
+
+		if testing.Verbose() {
+			t.Logf("SSHd log:\n%s", sshdStderr.Bytes())
+		}
+
 		sshdLog := filepath.Join(t.TempDir(), "sshd.log")
 		require.NoError(t, os.WriteFile(sshdLog, sshdStderr.Bytes(), 0600),
 			"TearDown: Saving sshd log")
