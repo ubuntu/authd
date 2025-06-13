@@ -146,6 +146,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		socketPath       string
 		daemonizeSSHd    bool
 		interactiveShell bool
+		command          []string
 		oldDB            string
 
 		wantUserAlreadyExist bool
@@ -162,6 +163,10 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		"Authenticate_user_successfully_and_enters_shell": {
 			tape:             "simple_auth_with_shell",
 			interactiveShell: true,
+		},
+		"Authenticate_user_successfully_launching_command": {
+			tape:    "simple_auth",
+			command: []string{"true"},
 		},
 		"Authenticate_user_successfully_with_upper_case": {
 			tape: "simple_auth",
@@ -456,13 +461,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			), 0600)
 			require.NoError(t, err, "Setup: can't create known hosts file")
 
-			outDir := t.TempDir()
-			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
-			td.Command = tapeCommand
-			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
-			td.Env["HOME"] = t.TempDir()
-			td.Env[pamSSHUserEnv] = user
-			td.Env["AUTHD_PAM_SSH_ARGS"] = strings.Join([]string{
+			sshArgs := []string{
 				"-p", sshdPort,
 				"-F", os.DevNull,
 				"-i", os.DevNull,
@@ -470,7 +469,20 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				"-o", "PasswordAuthentication=no",
 				"-o", "PubkeyAuthentication=no",
 				"-o", "UserKnownHostsFile=" + knownHost,
-			}, " ")
+			}
+
+			if tc.interactiveShell {
+				require.Nil(t, tc.command, "Setup: Interactive shell and commands are incompatible")
+			}
+			sshArgs = append(sshArgs, tc.command...)
+
+			outDir := t.TempDir()
+			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
+			td.Command = tapeCommand
+			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
+			td.Env["HOME"] = t.TempDir()
+			td.Env[pamSSHUserEnv] = user
+			td.Env["AUTHD_PAM_SSH_ARGS"] = strings.Join(sshArgs, " ")
 			td.Variables = tc.tapeVariables
 			td.RunVhs(t, vhsTestTypeSSH, outDir, nil)
 			got := sanitizeGoldenFile(t, td, outDir)
