@@ -50,6 +50,7 @@ func GenerateTestConfig(t *testing.T, origConf *daemonConfig) string {
 	d, err := yaml.Marshal(conf)
 	require.NoError(t, err, "Setup: could not marshal configuration for tests")
 
+	t.Logf("Test config file is\n%s", d)
 	confPath := filepath.Join(t.TempDir(), "testconfig.yaml")
 	err = os.WriteFile(confPath, d, 0600)
 	require.NoError(t, err, "Setup: could not create configuration for tests")
