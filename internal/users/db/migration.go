@@ -171,15 +171,20 @@ var schemaMigrations = []schemaMigration{
 				err = commitOrRollBackTransaction(err, tx)
 			}()
 
-			users, err := allUsers(tx)
+			rows, err := tx.Query(`SELECT name FROM users`)
 			if err != nil {
 				return fmt.Errorf("failed to get users from database: %w", err)
 			}
+			defer rows.Close()
 
 			var oldNames, newNames []string
-			for _, u := range users {
-				oldNames = append(oldNames, u.Name)
-				newNames = append(newNames, strings.ToLower(u.Name))
+			for rows.Next() {
+				var name string
+				if err := rows.Scan(&name); err != nil {
+					return fmt.Errorf("failed to scan user name: %w", err)
+				}
+				oldNames = append(oldNames, name)
+				newNames = append(newNames, strings.ToLower(name))
 			}
 
 			if err := renameUsersInGroupFile(oldNames, newNames); err != nil {
