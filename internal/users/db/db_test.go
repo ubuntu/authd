@@ -118,7 +118,7 @@ func TestDatabaseRemovedWhenSchemaCreationFails(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	sqlDump := "one_users_multiple_groups_with_uppercase.sql"
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_with_uppercase.sql"
 	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
@@ -189,7 +189,7 @@ func TestMigrationToLowercaseUserAndGroupNamesEmptyDB(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNamesAlreadyUpdated(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	sqlDump := "one_users_multiple_groups_with_uppercase.sql"
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_with_uppercase.sql"
 	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
@@ -220,7 +220,7 @@ func TestMigrationToLowercaseUserAndGroupNamesAlreadyUpdated(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedGroupFile(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	sqlDump := "one_users_multiple_groups_with_uppercase.sql"
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_with_uppercase.sql"
 	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
@@ -271,7 +271,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedGroupFile(t *testing.
 func TestMigrationToLowercaseUserAndGroupNamesWithPreviousBackup(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	sqlDump := "one_users_multiple_groups_fully_uppercase.sql"
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_fully_uppercase.sql"
 	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
@@ -318,7 +318,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithPreviousBackup(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedPreviousBackup(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	sqlDump := "one_users_multiple_groups_fully_uppercase.sql"
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_fully_uppercase.sql"
 	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
@@ -375,7 +375,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedPreviousBackup(t *tes
 func TestMigrationToLowercaseUserAndGroupNamesFails(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	sqlDump := "one_users_multiple_groups_fully_uppercase.sql"
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_fully_uppercase.sql"
 	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
@@ -413,7 +413,7 @@ func TestMigrationToLowercaseUserAndGroupNamesFails(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNamesWithBackupFailure(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	sqlDump := "one_users_multiple_groups_with_uppercase.sql"
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_with_uppercase.sql"
 	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
@@ -458,7 +458,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithBackupFailure(t *testing.T) {
 func TestMigrationAddLockedColumnToUsersTable(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	sqlDump := "one_user_and_group_without_locked_column.sql"
+	sqlDump := "TestMigrationAddLockedColumnToUsersTable/one_user_and_group_without_locked_column.sql"
 	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
