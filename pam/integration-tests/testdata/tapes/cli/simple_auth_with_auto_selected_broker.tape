@@ -1,7 +1,7 @@
 Hide
 TypeInPrompt+Shell "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
-Wait+Prompt /Gimme your password/
+Wait+CLIPrompt /Gimme your password/ /Press escape key to go back to select the authentication method/
 Show
 
 Hide

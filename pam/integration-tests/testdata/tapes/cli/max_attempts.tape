@@ -16,7 +16,7 @@ Show
 
 Hide
 Type "2"
-Wait+Prompt /Gimme your password/
+Wait+CLIPrompt /Gimme your password/ /Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -25,7 +25,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+/
+Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+[\n]+[ ]*Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -34,7 +34,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+/
+Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+[\n]+[ ]*Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -43,7 +43,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+/
+Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+[\n]+[ ]*Press escape key to go back to select the authentication method/
 Show
 
 Hide
@@ -52,7 +52,7 @@ Show
 
 Hide
 Enter
-Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+/
+Wait+CLIPrompt /Gimme your password/ /invalid password '.+', should be[^\n]+[\n]+[ ]*Press escape key to go back to select the authentication method/
 Show
 
 Hide
