@@ -677,7 +677,9 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	sshd, sshdPidFile, sshdLogFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env, daemonize)
 	sshdStderr := bytes.Buffer{}
 	sshd.Stderr = &sshdStderr
-	if testing.Verbose() {
+
+	isCIVerbose := testutils.IsCI() && testing.Verbose()
+	if isCIVerbose {
 		sshd.Stdout = os.Stdout
 		sshd.Stderr = os.Stderr
 	}
@@ -688,9 +690,14 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	sshdPid := sshd.Process.Pid
 
 	t.Cleanup(func() {
-		if testing.Verbose() || !t.Failed() {
+		if isCIVerbose || !t.Failed() {
 			return
 		}
+
+		if testing.Verbose() {
+			t.Logf("SSHd log:\n%s", sshdStderr.Bytes())
+		}
+
 		sshdLog := filepath.Join(t.TempDir(), "sshd.log")
 		require.NoError(t, os.WriteFile(sshdLog, sshdStderr.Bytes(), 0600),
 			"TearDown: Saving sshd log")
