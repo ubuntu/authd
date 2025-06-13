@@ -29,6 +29,7 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
+	"golang.org/x/term"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -692,7 +693,11 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	sshd, sshdPidFile, sshdLogFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env, daemonize)
 	sshdStderr := bytes.Buffer{}
 	sshd.Stderr = &sshdStderr
-	if testing.Verbose() {
+
+	interactiveVerbose := testing.Verbose() &&
+		term.IsTerminal(int(os.Stdout.Fd())) && term.IsTerminal(int(os.Stderr.Fd()))
+
+	if interactiveVerbose {
 		sshd.Stdout = os.Stdout
 		sshd.Stderr = os.Stderr
 	}
@@ -703,9 +708,14 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	sshdPid := sshd.Process.Pid
 
 	t.Cleanup(func() {
-		if testing.Verbose() || !t.Failed() {
+		if interactiveVerbose || !t.Failed() {
 			return
 		}
+
+		if testing.Verbose() {
+			t.Logf("SSHd log:\n%s", sshdStderr.Bytes())
+		}
+
 		sshdLog := filepath.Join(t.TempDir(), "sshd.log")
 		require.NoError(t, os.WriteFile(sshdLog, sshdStderr.Bytes(), 0600),
 			"TearDown: Saving sshd log")
