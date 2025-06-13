@@ -9,10 +9,14 @@ Username: user-mfa
 
 > 1. local
   2. ExampleBroker
+
+  Press escape key to go back to user selection
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 >
+
+  Press escape key to go back to select the authentication method
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
   Select your authentication method
@@ -24,17 +28,25 @@ Gimme your password:
   5. Use your phone +1...
   6. Use a QR code
   7. Authentication code
+
+  Press escape key to go back to choose the provider
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 >
+
+  Press escape key to go back to select the authentication method
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 > ********
+
+  Press escape key to go back to select the authentication method
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Plug your fido device and press with your thumb
+
+  Press escape key to go back to select the authentication method
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
   Select your authentication method
@@ -42,21 +54,31 @@ Plug your fido device and press with your thumb
 > 1. Use your fido device foo
   2. Use your phone +33...
   3. Authentication code
+
+  Press escape key to go back to choose the provider
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Plug your fido device and press with your thumb
+
+  Press escape key to go back to select the authentication method
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Unlock your phone +33... or accept request on web interface
+
+  Press escape key to go back to select the authentication method
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
   Select your authentication method
 
 > 1. Use your phone +33...
   2. Authentication code
+
+  Press escape key to go back to choose the provider
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Unlock your phone +33... or accept request on web interface
+
+  Press escape key to go back to select the authentication method
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 PAM Authenticate()

@@ -1,10 +1,14 @@
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 >
+
+  Press escape key to go back to select the authentication method
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 > ********
+
+  Press escape key to go back to select the authentication method
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 PAM Authenticate()

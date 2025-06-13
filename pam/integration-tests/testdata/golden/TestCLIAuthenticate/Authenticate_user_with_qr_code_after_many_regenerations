@@ -9,10 +9,14 @@ Username: user-integration-qrcode-static-regenerate
 
 > 1. local
   2. ExampleBroker
+
+  Press escape key to go back to user selection
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Gimme your password:
 >
+
+  Press escape key to go back to select the authentication method
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
   Select your authentication method
@@ -24,6 +28,8 @@ Gimme your password:
   5. Use your phone +1...
   6. Use a QR code
   7. Authentication code
+
+  Press escape key to go back to choose the provider
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 Scan the qrcode or enter the code in the login page
@@ -49,6 +55,8 @@ Scan the qrcode or enter the code in the login page
               1337
 
         [ Regenerate code ]
+
+  Press escape key to go back to select the authentication method
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
 PAM Authenticate()

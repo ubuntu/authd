@@ -9,11 +9,15 @@ Username: user-unexistent
 
 > 1. local
   2. ExampleBroker
+
+  Press escape key to go back to user selection
 ────────────────────────────────────────────────────────────────────────────────
 > ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET}
   Select your provider
 
   1. local
+> 2. ExampleBroker
+
 PAM Error Message: can't select broker: user "user-unexistent" does not exist
 PAM Authenticate()
   User: "user-unexistent"
