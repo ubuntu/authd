@@ -22,10 +22,10 @@ import (
 
 // Config is the configuration for the user manager.
 type Config struct {
-	UIDMin uint32 `mapstructure:"uid_min"`
-	UIDMax uint32 `mapstructure:"uid_max"`
-	GIDMin uint32 `mapstructure:"gid_min"`
-	GIDMax uint32 `mapstructure:"gid_max"`
+	UIDMin uint32 `mapstructure:"uid_min" yaml:"uid_min"`
+	UIDMax uint32 `mapstructure:"uid_max" yaml:"uid_max"`
+	GIDMin uint32 `mapstructure:"gid_min" yaml:"gid_min"`
+	GIDMax uint32 `mapstructure:"gid_max" yaml:"gid_max"`
 }
 
 // DefaultConfig is the default configuration for the user manager.
