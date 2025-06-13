@@ -455,6 +455,24 @@ func TestMigrationToLowercaseUserAndGroupNamesWithBackupFailure(t *testing.T) {
 	golden.CheckOrUpdate(t, string(userGroupContent), golden.WithPath("groups"))
 }
 
+func TestMigrationAddLockedColumnToUsersTable(t *testing.T) {
+	// Create a database from the testdata
+	dbDir := t.TempDir()
+	sqlDump := "one_user_and_group_without_locked_column.sql"
+	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	// Run the migrations
+	m, err := db.New(dbDir)
+	require.NoError(t, err)
+
+	// Check the content of the SQLite database
+	dbContent, err := db.Z_ForTests_DumpNormalizedYAML(m)
+	require.NoError(t, err)
+
+	golden.CheckOrUpdate(t, dbContent)
+}
+
 func TestUpdateUserEntry(t *testing.T) {
 	t.Parallel()
 
