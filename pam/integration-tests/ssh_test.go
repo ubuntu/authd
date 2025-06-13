@@ -473,6 +473,17 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			require.NoError(t, err, "Setup: can't create known hosts file")
 
 			outDir := t.TempDir()
+			sshLogFile := filepath.Join(outDir, "ssh.log")
+			saveArtifactsForDebugOnCleanup(t, []string{sshLogFile})
+			t.Cleanup(func() {
+				if !t.Failed() {
+					return
+				}
+				sshLog, err := os.ReadFile(sshLogFile)
+				require.NoError(t, err, "Opening SSH log file %s", sshLogFile)
+				t.Logf("SSH client\n ##### LOG #####\n %s \n ##### END #####", sshLog)
+			})
+
 			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
 			td.Command = tapeCommand
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
@@ -486,6 +497,9 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				"-o", "PasswordAuthentication=no",
 				"-o", "PubkeyAuthentication=no",
 				"-o", "UserKnownHostsFile=" + knownHost,
+				"-o", "ConnectTimeout=300",
+				"-E", sshLogFile,
+				"-vvv",
 			}, " ")
 			td.Variables = tc.tapeVariables
 			td.RunVhs(t, vhsTestTypeSSH, outDir, nil)
