@@ -11,3 +11,5 @@ FlushPending=yes
 
 [Install]
 WantedBy=sockets.target
+WantedBy=nss-user-lookup.target
+WantedBy=systemd-logind.service
