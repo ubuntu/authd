@@ -45,7 +45,7 @@ type daemonConfig struct {
 	Brokers     []string
 	Verbosity   int
 	Paths       systemPaths
-	UsersConfig users.Config `mapstructure:",squash"`
+	UsersConfig *users.Config `mapstructure:",squash" yaml:",inline"`
 }
 
 // New registers commands and return a new App.
@@ -71,7 +71,7 @@ func New() *App {
 					Database:    consts.DefaultDatabaseDir,
 					Socket:      "",
 				},
-				UsersConfig: users.DefaultConfig,
+				UsersConfig: &users.DefaultConfig,
 			}
 
 			// Install and unmarshall configuration
@@ -124,7 +124,12 @@ func (a *App) serve(config daemonConfig) error {
 		return fmt.Errorf("error initializing database directory at %q: %v", dbDir, err)
 	}
 
-	m, err := services.NewManager(ctx, dbDir, config.Paths.BrokersConf, config.Brokers, config.UsersConfig)
+	if config.UsersConfig == nil {
+		// This is an assert, since we assume that the daemonConfig on [New] is properly defined.
+		panic("Users config must be set! This is a programmer error.")
+	}
+
+	m, err := services.NewManager(ctx, dbDir, config.Paths.BrokersConf, config.Brokers, *config.UsersConfig)
 	if err != nil {
 		close(a.ready)
 		return err

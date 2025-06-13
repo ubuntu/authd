@@ -16,6 +16,7 @@ import (
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/testutils"
+	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/log"
 )
 
@@ -265,10 +266,12 @@ func TestAppGetRootCmd(t *testing.T) {
 }
 
 func TestConfigLoad(t *testing.T) {
+	wantUsersConfig := &users.Config{UIDMin: 10001, UIDMax: 19000, GIDMax: 9999}
 	customizedSocketPath := filepath.Join(t.TempDir(), "mysocket")
 	var config daemon.DaemonConfig
 	config.Verbosity = 1
 	config.Paths.Socket = customizedSocketPath
+	config.UsersConfig = wantUsersConfig
 
 	a, wait := startDaemon(t, &config)
 	defer wait()
@@ -277,6 +280,7 @@ func TestConfigLoad(t *testing.T) {
 	_, err := os.Stat(customizedSocketPath)
 	require.NoError(t, err, "Socket should exist")
 	require.Equal(t, 1, a.Config().Verbosity, "Verbosity is set from config")
+	require.Equal(t, wantUsersConfig, a.Config().UsersConfig, "Unexpected users config")
 }
 
 func TestAutoDetectConfig(t *testing.T) {
@@ -310,6 +314,7 @@ func TestAutoDetectConfig(t *testing.T) {
 	_, err = os.Stat(customizedSocketPath)
 	require.NoError(t, err, "Socket should exist")
 	require.Equal(t, 1, a.Config().Verbosity, "Verbosity is set from config")
+	require.Equal(t, &users.DefaultConfig, a.Config().UsersConfig, "Default Users Config")
 }
 
 func TestNoConfigSetDefaults(t *testing.T) {
@@ -323,6 +328,7 @@ func TestNoConfigSetDefaults(t *testing.T) {
 	require.Equal(t, 0, a.Config().Verbosity, "Default Verbosity")
 	require.Equal(t, consts.DefaultBrokersConfPath, a.Config().Paths.BrokersConf, "Default brokers configuration path")
 	require.Equal(t, consts.DefaultDatabaseDir, a.Config().Paths.Database, "Default database directory")
+	require.Equal(t, &users.DefaultConfig, a.Config().UsersConfig, "Default Users Config")
 	require.Equal(t, "", a.Config().Paths.Socket, "No socket address as default")
 }
 
