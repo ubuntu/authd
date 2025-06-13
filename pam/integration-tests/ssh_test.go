@@ -484,12 +484,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				t.Logf("SSH client\n ##### LOG #####\n %s \n ##### END #####", sshLog)
 			})
 
-			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
-			td.Command = tapeCommand
-			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
-			td.Env["HOME"] = t.TempDir()
-			td.Env[pamSSHUserEnv] = user
-			td.Env["AUTHD_PAM_SSH_ARGS"] = strings.Join([]string{
+			sshCmd := []string{
 				"-p", sshdPort,
 				"-F", os.DevNull,
 				"-i", os.DevNull,
@@ -498,9 +493,21 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				"-o", "PubkeyAuthentication=no",
 				"-o", "UserKnownHostsFile=" + knownHost,
 				"-o", "ConnectTimeout=300",
+				"-t",
 				"-E", sshLogFile,
 				"-vvv",
-			}, " ")
+			}
+
+			// if !tc.interactiveShell {
+			// 	sshCmd = append(sshCmd, "true")
+			// }
+
+			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
+			td.Command = tapeCommand
+			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
+			td.Env["HOME"] = t.TempDir()
+			td.Env[pamSSHUserEnv] = user
+			td.Env["AUTHD_PAM_SSH_ARGS"] = strings.Join(sshCmd, " ")
 			td.Variables = tc.tapeVariables
 			td.RunVhs(t, vhsTestTypeSSH, outDir, nil)
 			got := sanitizeGoldenFile(t, td, outDir)
