@@ -43,7 +43,7 @@ func userGroups(db queryable, uid uint32) ([]GroupRow, error) {
 	}
 
 	if len(groups) == 0 {
-		return nil, NoDataFoundError{key: strconv.FormatUint(uint64(uid), 10), table: "users_to_groups"}
+		return nil, NewUIDNotFoundError(uid)
 	}
 
 	return groups, nil
