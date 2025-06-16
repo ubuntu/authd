@@ -860,6 +860,13 @@ func getModuleArgs(t *testing.T, clientPath string, args []string) []string {
 	if env := testutils.CoverDirEnv(); env != "" {
 		moduleArgs = append(moduleArgs, "--exec-env", env)
 	}
+	if testutils.IsRace() {
+		moduleArgs = append(moduleArgs, "--exec-env", "GORACE")
+	}
+	if testutils.IsAsan() {
+		moduleArgs = append(moduleArgs, "--exec-env", "ASAN_OPTIONS")
+		moduleArgs = append(moduleArgs, "--exec-env", "LSAN_OPTIONS")
+	}
 
 	logFile := os.Stderr.Name()
 	if !testutils.IsVerbose() {
