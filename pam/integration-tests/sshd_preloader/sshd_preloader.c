@@ -138,6 +138,22 @@ getpwnam (const char *name)
       fprintf (stderr, "sshd_preloader[%d]: Simulating to be the broker user %s (%d:%d)\n",
                getpid (), passwd_entity->pw_name, passwd_entity->pw_uid,
                passwd_entity->pw_gid);
+
+      if (strcmp (name, "root") == 0)
+        {
+          assert (passwd_entity->pw_uid == 0);
+          assert (passwd_entity->pw_gid == 0);
+        }
+      else
+        {
+          assert (passwd_entity->pw_uid != 0);
+          assert (passwd_entity->pw_gid != 0);
+        }
+
+      /* Ensure the GID we got matches the UID.
+       * See: https://wiki.debian.org/UserPrivateGroups#UPGs
+       */
+      assert (passwd_entity->pw_gid == passwd_entity->pw_uid);
     }
   else if (!is_supported_test_fake_user (name))
     {

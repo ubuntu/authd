@@ -194,6 +194,8 @@ func (s Service) userPreCheck(ctx context.Context, username string) (types.UserE
 	if err != nil {
 		return types.UserEntry{}, fmt.Errorf("failed to add temporary record for user %q: %v", username, err)
 	}
+	// The UID is also the GID of the user private group (see https://wiki.debian.org/UserPrivateGroups#UPGs)
+	u.GID = u.UID
 
 	return u, nil
 }

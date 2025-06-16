@@ -1,8 +1,17 @@
-authd (0.5.3+git250613+712+4f9e74c9) plucky; urgency=medium
+authd (0.5.4+git250616+718+7d1cb027) plucky; urgency=medium
 
-  * Github build. Run id: 15637028029. Run number: 712.
+  * Github build. Run id: 15679448921. Run number: 718.
 
- -- Marco <marco@ubuntu.com>  Fri, 13 Jun 2025 14:31:37 +0000
+ -- Adrian <adrian.dombeck@canonical.com>  Mon, 16 Jun 2025 11:24:38 +0000
+
+authd (0.5.4) questing; urgency=medium
+
+  * CVE-2025-5689: Fix new users logging in via SSH being part of the root group
+  * Set the GID of the user private group to the UID.
+  * Document that GID == UID for the user private group in comment for UID/GID
+    ranges
+
+ --  <adrian.dombeck@canonical.com>  Fri, 13 Jun 2025 13:46:34 +0200
 
 authd (0.5.3) questing; urgency=medium
 
