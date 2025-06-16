@@ -549,14 +549,8 @@ func createSshdServiceFile(t *testing.T, module, execChild, mkHomeModule, socket
 		moduleArgs = append(moduleArgs, "--exec-env", env)
 	}
 	if testutils.IsAsan() {
-		if o := os.Getenv("ASAN_OPTIONS"); o != "" {
-			moduleArgs = append(moduleArgs, "--exec-env",
-				fmt.Sprintf("ASAN_OPTIONS=%s", o))
-		}
-		if o := os.Getenv("LSAN_OPTIONS"); o != "" {
-			moduleArgs = append(moduleArgs, "--exec-env",
-				fmt.Sprintf("LSAN_OPTIONS=%s", o))
-		}
+		moduleArgs = append(moduleArgs, "--exec-env", "ASAN_OPTIONS")
+		moduleArgs = append(moduleArgs, "--exec-env", "LSAN_OPTIONS")
 	}
 
 	outDir := t.TempDir()

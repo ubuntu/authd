@@ -1157,7 +1157,13 @@ do_pam_action_thread (pam_handle_t *pamh,
     }
 
   for (int i = 0; env_variables && env_variables[i]; ++i)
-    g_ptr_array_add (envp, g_strdup (env_variables[i]));
+    {
+      if (strchr (env_variables[i], '='))
+        g_ptr_array_add (envp, g_strdup (env_variables[i]));
+      else
+        maybe_replicate_env (envp, env_variables[i]);
+    }
+
   g_ptr_array_add (envp, g_strdup_printf ("AUTHD_PAM_SERVER_ADDRESS=%s",
                                           g_dbus_server_get_client_address (server)));
   /* FIXME: use g_ptr_array_new_null_terminated when we can use newer GLib. */
@@ -1173,8 +1179,10 @@ do_pam_action_thread (pam_handle_t *pamh,
 
   if (is_debug_logging_enabled ())
     {
+      g_autofree char *exec_env = g_strjoinv ("\n  ", (char **) envp->pdata);
       g_autofree char *exec_str_args = g_strjoinv (" ", (char **) args->pdata);
 
+      g_debug ("Environment:%s%s", exec_env && *exec_env ? "\n  " : "", exec_env);
       g_debug ("Launching '%s'", exec_str_args);
     }
 
