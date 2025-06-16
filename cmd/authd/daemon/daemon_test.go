@@ -29,15 +29,6 @@ func TestHelp(t *testing.T) {
 	require.NoErrorf(t, err, "Run should not return an error with argument --help. Stdout: %v", getStdout())
 }
 
-func TestCompletion(t *testing.T) {
-	a := daemon.NewForTests(t, nil, "completion", "bash")
-
-	getStdout := captureStdout(t)
-
-	err := a.Run()
-	require.NoError(t, err, "Completion should not start the daemon. Stdout: %v", getStdout())
-}
-
 func TestVersion(t *testing.T) {
 	a := daemon.NewForTests(t, nil, "version")
 
@@ -58,7 +49,7 @@ func TestVersion(t *testing.T) {
 }
 
 func TestNoUsageError(t *testing.T) {
-	a := daemon.NewForTests(t, nil, "completion", "bash")
+	a := daemon.NewForTests(t, nil, "version")
 
 	getStdout := captureStdout(t)
 	err := a.Run()
