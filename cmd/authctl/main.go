@@ -16,6 +16,9 @@ var rootCmd = &cobra.Command{
 	Short: "CLI tool to interact with authd",
 	Long:  "authctl is a CLI tool which can be used to interact with authd.",
 	Args:  cobra.NoArgs,
+	CompletionOptions: cobra.CompletionOptions{
+		HiddenDefaultCmd: true,
+	},
 }
 
 func init() {
