@@ -141,13 +141,15 @@ func TestIntegration(t *testing.T) {
 
 			if tc.shouldPreCheck && tc.getentDB == "passwd" {
 				// When pre-checking, the `getent passwd` output contains a randomly generated UID.
-				// To make the test deterministic, we replace the UID with a placeholder.
+				// To make the test deterministic, we replace the UID and GID with a placeholder.
 				// The output looks something like this:
-				//     user-pre-check:x:1776689191:0:gecos for user-pre-check:/home/user-pre-check:/usr/bin/bash\n
+				//     user-pre-check:x:1776689191:1776689191:gecos for user-pre-check:/home/user-pre-check:/usr/bin/bash\n
 				fields := strings.Split(got, ":")
 				require.Len(t, fields, 7, "Invalid number of fields in the output: %q", got)
 				// The UID is the third field.
 				fields[2] = "{{UID}}"
+				// The GID is the fourth field.
+				fields[3] = "{{GID}}"
 				got = strings.Join(fields, ":")
 			}
 
