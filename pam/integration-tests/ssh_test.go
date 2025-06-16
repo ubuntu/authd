@@ -436,6 +436,15 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 
 			sshdPort := defaultSSHDPort
 			userHome := defaultUserHome
+
+			if tc.wantUserAlreadyExist {
+				authdUser, err := userClient.GetUserByName(context.Background(),
+					&authd.GetUserByNameRequest{Name: user, ShouldPreCheck: false})
+				require.NoError(t, err, "User %q should already exist in the daemon", user)
+				userHome = authdUser.Homedir
+				require.NotEmpty(t, userHome, "Setup: User HOME for known user %q is unset", user)
+			}
+
 			if userHome == "" {
 				userHome = expectedUserHome(t, user)
 			}
@@ -461,7 +470,13 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 
 			if !sharedSSHd {
 				_, err := os.Stat(userHome)
-				require.ErrorIs(t, err, os.ErrNotExist, "Unexpected error checking for %q", userHome)
+				if tc.wantUserAlreadyExist {
+					require.NoError(t, err, os.ErrNotExist,
+						"User home %q must already exist", userHome)
+				} else {
+					require.ErrorIs(t, err, os.ErrNotExist,
+						"Unexpected error checking for %q", userHome)
+				}
 			}
 
 			knownHost := filepath.Join(t.TempDir(), "known_hosts")
@@ -507,6 +522,9 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				if nssLibrary != "" {
 					requireGetEntExists(t, nssLibrary, socketPath, user, tc.isLocalUser)
 				}
+
+				_, err := os.Stat(userHome)
+				require.Error(t, err, "User %q home %q must not exist", user, userHome)
 			} else {
 				require.Contains(t, got, userEnv, "Logged in user does not matches")
 
@@ -524,12 +542,10 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 					}
 				}
 
-				if !tc.wantUserAlreadyExist {
-					// Check if user home has been created, but only if the user is a new one.
-					stat, err := os.Stat(userHome)
-					require.NoError(t, err, "Error checking for %q", userHome)
-					require.True(t, stat.IsDir(), "%q is not a directory", userHome)
-				}
+				// Check if user home has been created.
+				stat, err := os.Stat(userHome)
+				require.NoError(t, err, "Error checking for %q", userHome)
+				require.True(t, stat.IsDir(), "User %q home %q is not a directory", user, userHome)
 			}
 
 			if tc.wantLocalGroups || tc.oldDB != "" {

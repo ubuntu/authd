@@ -85,6 +85,10 @@ func Z_ForTests_CreateDBFromYAMLWithBaseHome(src, destDir, baseHomeDir string) (
 						}
 
 						u.Dir = strings.ReplaceAll(u.Dir, redactedUserHome, baseHomeDir)
+						if err := os.MkdirAll(u.Dir, 0700); err != nil {
+							return err
+						}
+
 						v, err := json.Marshal(u)
 						if err != nil {
 							return err
