@@ -4,6 +4,8 @@ Description=Socket activation for Authd daemon
 DefaultDependencies=No
 Wants=dbus.service
 After=dbus.service
+Before=nss-user-lookup.target
+Wants=nss-user-lookup.target
 
 [Socket]
 ListenStream=/run/authd.sock
