@@ -266,6 +266,15 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 		cmd.Env = append(cmd.Env, fmt.Sprintf("GORACE=log_path=%s exitcode=0", raceLog))
 	}
 
+	if testutils.IsAsan() {
+		if asanOptions := os.Getenv("ASAN_OPTIONS"); asanOptions != "" {
+			cmd.Env = append(cmd.Env, fmt.Sprintf("ASAN_OPTIONS=%s", asanOptions))
+		}
+		if lsanOptions := os.Getenv("LSAN_OPTIONS"); lsanOptions != "" {
+			cmd.Env = append(cmd.Env, fmt.Sprintf("LSAN_OPTIONS=%s", lsanOptions))
+		}
+	}
+
 	cmd.Args = append(cmd.Args, td.PrepareTape(t, testType, outDir))
 	out, err := cmd.CombinedOutput()
 	if raceLog != "" {
