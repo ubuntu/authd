@@ -564,7 +564,8 @@ func useOldDatabaseEnv(t *testing.T, oldDB string) []string {
 	oldDBDir, err := os.MkdirTemp(tempDir, "old-db-path")
 	require.NoError(t, err, "Cannot create db directory in %q", tempDir)
 
-	err = bbolt.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", oldDB+".db.yaml"), oldDBDir)
+	err = bbolt.Z_ForTests_CreateDBFromYAMLWithBaseHome(
+		filepath.Join("testdata", "db", oldDB+".db.yaml"), oldDBDir, t.TempDir())
 	require.NoError(t, err, "Setup: creating old database")
 
 	return []string{fmt.Sprintf("AUTHD_INTEGRATIONTESTS_OLD_DB_DIR=%s", oldDBDir)}

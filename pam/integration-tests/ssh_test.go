@@ -74,6 +74,8 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	execModule := buildExecModuleWithCFlags(t, []string{"-std=c11"}, true)
 	execChild := buildPAMExecChild(t)
 
+	specialUserAcceptAll := "authd-test-user-sshd-accept-all"
+
 	mkHomeDirHelper, err := exec.LookPath("mkhomedir_helper")
 	require.NoError(t, err, "Setup: mkhomedir_helper not found")
 	pamMkHomeDirModule := buildCPAMModule(t,
@@ -94,7 +96,8 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		nssLibrary, nssEnv = testutils.BuildRustNSSLib(t, true)
 		sshdPreloadLibraries = append(sshdPreloadLibraries, nssLibrary)
 		sshdPreloaderCFlags = append(sshdPreloaderCFlags,
-			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS")
+			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS",
+			fmt.Sprintf("-DAUTHD_SPECIAL_USER_ACCEPT_ALL=%q", specialUserAcceptAll))
 		nssEnv = append(nssEnv, nssTestEnvBase(t, nssLibrary)...)
 	} else if err != nil {
 		t.Logf("Using the dummy library to implement NSS: %v", err)
@@ -127,8 +130,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		serviceFile := createSshdServiceFile(t, execModule, execChild, pamMkHomeDirModule, defaultSocketPath)
 		sshdEnv = append(sshdEnv, nssEnv...)
 		sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocketPath))
-		defaultSSHDPort, defaultUserHome = startSSHdForTest(t, serviceFile, sshdHostKey,
-			"authd-test-user-sshd-accept-all", sshdPreloadLibraries, sshdEnv, true, false)
+		defaultUserHome = expectedUserHome(t, specialUserAcceptAll)
+		defaultSSHDPort = startSSHdForTest(t, serviceFile, sshdHostKey,
+			defaultUserHome, specialUserAcceptAll, sshdPreloadLibraries, sshdEnv, true, false)
 	}
 
 	sshEnvVariablesRegex = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`)
@@ -432,6 +436,10 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 
 			sshdPort := defaultSSHDPort
 			userHome := defaultUserHome
+			if userHome == "" {
+				userHome = expectedUserHome(t, user)
+			}
+
 			if !sharedSSHd || tc.wantLocalGroups || tc.oldDB != "" ||
 				tc.interactiveShell || tc.socketPath != "" {
 				sshdEnv := sshdEnv
@@ -446,8 +454,9 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				}
 				serviceFile := createSshdServiceFile(t, execModule, execChild,
 					pamMkHomeDirModule, socketPath)
-				sshdPort, userHome = startSSHdForTest(t, serviceFile, sshdHostKey, user,
-					sshdPreloadLibraries, sshdEnv, tc.daemonizeSSHd, tc.interactiveShell)
+				sshdPort = startSSHdForTest(t, serviceFile, sshdHostKey,
+					userHome, user, sshdPreloadLibraries, sshdEnv, tc.daemonizeSSHd,
+					tc.interactiveShell)
 			}
 
 			if !sharedSSHd {
@@ -605,7 +614,13 @@ func createSshdServiceFile(t *testing.T, module, execChild, mkHomeModule, socket
 	return serviceFile
 }
 
-func startSSHdForTest(t *testing.T, serviceFile, hostKey, user string, preloadLibraries []string, env []string, daemonize bool, interactiveShell bool) (string, string) {
+func expectedUserHome(t *testing.T, userName string) string {
+	t.Helper()
+
+	return filepath.Join(t.TempDir(), strings.ToLower(userName))
+}
+
+func startSSHdForTest(t *testing.T, serviceFile, hostKey, userHome, user string, preloadLibraries []string, env []string, daemonize bool, interactiveShell bool) string {
 	t.Helper()
 
 	sshdConnectCommand := fmt.Sprintf(
@@ -620,17 +635,18 @@ func startSSHdForTest(t *testing.T, serviceFile, hostKey, user string, preloadLi
 		sshdConnectCommand = "/bin/sh"
 	}
 
-	homeBase := t.TempDir()
-	userHome := filepath.Join(homeBase, user)
+	require.NotEmpty(t, user, "Setup: User name is unset")
+	require.NotEmpty(t, userHome, "Setup: User HOME for %q is unset", user)
+
 	sshdPort := startSSHd(t, hostKey, sshdConnectCommand, append([]string{
-		fmt.Sprintf("HOME=%s", homeBase),
+		fmt.Sprintf("HOME=%s", t.TempDir()),
 		fmt.Sprintf("LD_PRELOAD=%s", strings.Join(preloadLibraries, ":")),
 		fmt.Sprintf("AUTHD_TEST_SSH_USER=%s", user),
 		fmt.Sprintf("AUTHD_TEST_SSH_HOME=%s", userHome),
 		fmt.Sprintf("AUTHD_TEST_SSH_PAM_SERVICE=%s", serviceFile),
 	}, env...), daemonize)
 
-	return sshdPort, userHome
+	return sshdPort
 }
 
 func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string, daemonize bool) (*exec.Cmd, string, string) {
