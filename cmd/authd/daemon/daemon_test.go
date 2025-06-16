@@ -319,8 +319,8 @@ func TestAutoDetectConfig(t *testing.T) {
 
 func TestNoConfigSetDefaults(t *testing.T) {
 	a := daemon.New()
-	// Use version to still run preExec to load no config but without running server
-	a.SetArgs("version")
+
+	a.SetArgs("--check-config")
 
 	err := a.Run()
 	require.NoError(t, err, "Run should not return an error")
@@ -334,8 +334,7 @@ func TestNoConfigSetDefaults(t *testing.T) {
 
 func TestBadConfigReturnsError(t *testing.T) {
 	a := daemon.New()
-	// Use version to still run preExec to load no config but without running server
-	a.SetArgs("version", "--config", "/does/not/exist.yaml")
+	a.SetArgs("--check-config", "--config", "/does/not/exist.yaml")
 
 	err := a.Run()
 	require.Error(t, err, "Run should return an error on config file")
