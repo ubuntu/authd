@@ -160,7 +160,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 
 	// Prepend the user private group
-	u.Groups = append([]types.GroupInfo{{Name: u.Name, UGID: u.Name}}, u.Groups...)
+	u.Groups = append([]types.GroupInfo{{Name: u.Name, GID: &uid, UGID: u.Name}}, u.Groups...)
 
 	var groupRows []db.GroupRow
 	var localGroups []string
@@ -191,7 +191,12 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			// Unexpected error
 			return err
 		}
-		if errors.Is(err, db.NoDataFoundError{}) {
+		if !errors.Is(err, db.NoDataFoundError{}) {
+			// The group already exists in the database, use the existing GID to avoid permission issues.
+			g.GID = &oldGroup.GID
+		}
+
+		if g.GID == nil {
 			// The group does not exist in the database, so we generate a unique GID for it. Similar to the RegisterUser
 			// call above, this also registers a temporary group in our NSS handler. We remove that temporary group
 			// before returning from this function, at which point the group is added to the database (so we don't need
@@ -202,11 +207,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			}
 
 			defer cleanup()
-
 			g.GID = &gid
-		} else {
-			// The group already exists in the database, use the existing GID to avoid permission issues.
-			g.GID = &oldGroup.GID
 		}
 
 		groupRows = append(groupRows, db.NewGroupRow(g.Name, *g.GID, g.UGID))
