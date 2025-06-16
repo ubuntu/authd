@@ -56,14 +56,14 @@ func New() *App {
 		Short:/*i18n.G(*/ "Authentication daemon",                                           /*)*/
 		Long:/*i18n.G(*/ "Authentication daemon bridging the system with external brokers.", /*)*/
 		Args:                                                                                cobra.NoArgs,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// First thing, initialize the journal handler
 			log.InitJournalHandler(false)
 
 			// Command parsing has been successful. Returns to not print usage anymore.
 			a.rootCmd.SilenceUsage = true
-			// TODO: before or after?  cmd.LocalFlags()
-
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
 			// Set config defaults
 			a.config = daemonConfig{
 				Paths: systemPaths{
@@ -85,6 +85,11 @@ func New() *App {
 			setVerboseMode(a.config.Verbosity)
 			log.Debugf(context.Background(), "Verbosity: %d", a.config.Verbosity)
 
+			// If we are only checking the configuration, we exit now.
+			if check, _ := cmd.Flags().GetBool("check-config"); check {
+				return nil
+			}
+
 			if err := maybeMigrateOldDBDir(oldDBDir, a.config.Paths.Database); err != nil {
 				return err
 			}
@@ -93,9 +98,6 @@ func New() *App {
 				return err
 			}
 
-			return nil
-		},
-		RunE: func(cmd *cobra.Command, args []string) error {
 			return a.serve(a.config)
 		},
 		// We display usage error ourselves
@@ -107,6 +109,8 @@ func New() *App {
 
 	installVerbosityFlag(&a.rootCmd, a.viper)
 	installConfigFlag(&a.rootCmd)
+	// Install the --check-config flag to check the configuration and exit.
+	a.rootCmd.Flags().Bool("check-config", false /*i18n.G(*/, "check configuration and exit" /*)*/)
 
 	// subcommands
 	a.installVersion()
