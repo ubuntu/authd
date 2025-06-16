@@ -202,8 +202,7 @@ func TestUpdateUser(t *testing.T) {
 				require.NoError(t, err, "Setup: could not create database from testdata")
 			}
 
-			// One GID is generated for the user private group
-			gids := []uint32{11110}
+			var gids []uint32
 			for _, group := range groupsCases[tc.groupsCase] {
 				if group.GID != 0 {
 					gids = append(gids, group.GID)
@@ -330,7 +329,6 @@ func TestUpdateBrokerForUser(t *testing.T) {
 	}
 }
 
-//nolint:dupl // This is not a duplicate test
 func TestUserByIDAndName(t *testing.T) {
 	tests := map[string]struct {
 		uid        uint32
@@ -377,11 +375,13 @@ func TestUserByIDAndName(t *testing.T) {
 				return
 			}
 
-			// Registering a temporary user creates it with a random UID and random gecos, so we have to make it
+			// Registering a temporary user creates it with a random UID, GID, and gecos, so we have to make it
 			// deterministic before comparing it with the golden file
 			if tc.isTempUser {
 				require.Equal(t, tc.uid, user.UID)
 				user.UID = 0
+				require.Equal(t, tc.uid, user.GID)
+				user.GID = 0
 				require.NotEmpty(t, user.Gecos)
 				user.Gecos = ""
 			}
@@ -422,7 +422,6 @@ func TestAllUsers(t *testing.T) {
 	}
 }
 
-//nolint:dupl // This is not a duplicate test
 func TestGroupByIDAndName(t *testing.T) {
 	tests := map[string]struct {
 		gid         uint32

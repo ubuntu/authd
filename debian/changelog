@@ -1,3 +1,12 @@
+authd (0.5.4) questing; urgency=medium
+
+  * CVE-2025-5689: Fix new users logging in via SSH being part of the root group
+  * Set the GID of the user private group to the UID.
+  * Document that GID == UID for the user private group in comment for UID/GID
+    ranges
+
+ --  <adrian.dombeck@canonical.com>  Fri, 13 Jun 2025 13:46:34 +0200
+
 authd (0.5.3) questing; urgency=medium
 
   * Notify user that a reboot is required after upgrade

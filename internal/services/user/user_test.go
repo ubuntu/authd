@@ -290,7 +290,6 @@ func newUserManagerForTests(t *testing.T, dbFile string) *users.Manager {
 	managerOpts := []users.Option{
 		users.WithIDGenerator(&idgenerator.IDGeneratorMock{
 			UIDsToGenerate: []uint32{1234},
-			GIDsToGenerate: []uint32{1234},
 		}),
 	}
 
