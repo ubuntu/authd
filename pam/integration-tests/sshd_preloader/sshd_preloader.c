@@ -153,7 +153,12 @@ getpwnam (const char *name)
       /* Ensure the GID we got matches the UID.
        * See: https://wiki.debian.org/UserPrivateGroups#UPGs
        */
-      assert (passwd_entity->pw_gid == passwd_entity->pw_uid);
+      if (passwd_entity->pw_uid != passwd_entity->pw_gid)
+        {
+          fprintf (stderr, "sshd_preloader[%d]: User %s has different UID and GID (%d:%d)\n",
+                   getpid (), name, passwd_entity->pw_uid, passwd_entity->pw_gid);
+          abort();
+        }
     }
   else if (!is_supported_test_fake_user (name))
     {
