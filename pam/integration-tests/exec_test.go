@@ -870,7 +870,7 @@ func getModuleArgs(t *testing.T, clientPath string, args []string) []string {
 	}
 
 	logFile := os.Stderr.Name()
-	if !testutils.IsVerbose() {
+	if !testing.Verbose() {
 		logFile = prepareFileLogging(t, "exec-module.log")
 	}
 	moduleArgs = append(moduleArgs, "--exec-log", logFile)

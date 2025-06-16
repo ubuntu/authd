@@ -737,7 +737,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	}
 
 	t.Cleanup(func() {
-		if !t.Failed() && !testutils.IsVerbose() {
+		if !t.Failed() && !testing.Verbose() {
 			return
 		}
 		contents, err := os.ReadFile(sshdLogFile)

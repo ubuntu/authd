@@ -477,7 +477,7 @@ func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath st
 	err = os.WriteFile(tapePath, tape, 0600)
 	require.NoError(t, err, "Setup: write tape file")
 
-	if testutils.IsVerbose() {
+	if testing.Verbose() {
 		t.Logf("Tape %q is now:\n%s", td.Name, tape)
 	}
 

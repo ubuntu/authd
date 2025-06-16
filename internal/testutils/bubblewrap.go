@@ -134,7 +134,7 @@ func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []str
 	var b bytes.Buffer
 	cmd.Stdout = &b
 	cmd.Stderr = &b
-	if IsVerbose() {
+	if testing.Verbose() {
 		cmd.Stderr = os.Stderr
 		cmd.Stdout = os.Stdout
 	}
@@ -143,7 +143,7 @@ func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []str
 	err = cmd.Run()
 	output := strings.TrimSpace(b.String())
 
-	if !IsVerbose() {
+	if !testing.Verbose() {
 		t.Log(output)
 	}
 	return output, err
