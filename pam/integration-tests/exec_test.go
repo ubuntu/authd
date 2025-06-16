@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"syscall"
 	"testing"
@@ -922,6 +923,9 @@ func preparePamTransactionForServiceFile(t *testing.T, serviceFile string, user 
 
 	var tx *pam.Transaction
 	var err error
+
+	runtime.LockOSThread()
+	t.Cleanup(runtime.UnlockOSThread)
 
 	// FIXME: pam.Transaction doesn't handle well pam.ConversationHandler(nil)
 	if conv != nil && !reflect.ValueOf(conv).IsNil() {
