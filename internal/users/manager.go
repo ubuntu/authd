@@ -324,10 +324,6 @@ func checkHomeDirOwnership(home string, uid, gid uint32) error {
 // BrokerForUser returns the broker ID for the given user.
 func (m *Manager) BrokerForUser(username string) (string, error) {
 	u, err := m.db.UserByName(username)
-	if err != nil && errors.Is(err, db.NoDataFoundError{}) {
-		// User not in db.
-		return "", NoDataFoundError{}
-	}
 	if err != nil {
 		return "", err
 	}

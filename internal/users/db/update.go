@@ -174,7 +174,7 @@ func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 		return fmt.Errorf("failed to get rows affected: %w", err)
 	}
 	if rowsAffected == 0 {
-		return NoDataFoundError{table: "users", key: username}
+		return NewUserNotFoundError(username)
 	}
 
 	return nil
