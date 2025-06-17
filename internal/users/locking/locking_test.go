@@ -118,8 +118,7 @@ func compileLockerBinary(t *testing.T) string {
 func TestUsersLockingOverride(t *testing.T) {
 	// This cannot be parallel.
 
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	err := userslocking.WriteLock()
 	require.NoError(t, err, "Locking should be allowed")
