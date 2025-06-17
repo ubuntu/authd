@@ -127,7 +127,7 @@ func (s Service) LockUser(ctx context.Context, req *authd.LockUserRequest) (*aut
 	}
 
 	if err := s.userManager.LockUser(req.GetName()); err != nil {
-		return nil, err
+		return nil, grpcError(err)
 	}
 
 	return &authd.Empty{}, nil
@@ -144,7 +144,7 @@ func (s Service) UnlockUser(ctx context.Context, req *authd.UnlockUserRequest) (
 	}
 
 	if err := s.userManager.UnlockUser(req.GetName()); err != nil {
-		return nil, err
+		return nil, grpcError(err)
 	}
 
 	return &authd.Empty{}, nil
