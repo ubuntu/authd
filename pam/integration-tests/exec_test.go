@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"syscall"
 	"testing"
@@ -860,9 +861,16 @@ func getModuleArgs(t *testing.T, clientPath string, args []string) []string {
 	if env := testutils.CoverDirEnv(); env != "" {
 		moduleArgs = append(moduleArgs, "--exec-env", env)
 	}
+	if testutils.IsRace() {
+		moduleArgs = append(moduleArgs, "--exec-env", "GORACE")
+	}
+	if testutils.IsAsan() {
+		moduleArgs = append(moduleArgs, "--exec-env", "ASAN_OPTIONS")
+		moduleArgs = append(moduleArgs, "--exec-env", "LSAN_OPTIONS")
+	}
 
 	logFile := os.Stderr.Name()
-	if !testutils.IsVerbose() {
+	if !testing.Verbose() {
 		logFile = prepareFileLogging(t, "exec-module.log")
 	}
 	moduleArgs = append(moduleArgs, "--exec-log", logFile)
@@ -915,6 +923,9 @@ func preparePamTransactionForServiceFile(t *testing.T, serviceFile string, user 
 
 	var tx *pam.Transaction
 	var err error
+
+	runtime.LockOSThread()
+	t.Cleanup(runtime.UnlockOSThread)
 
 	// FIXME: pam.Transaction doesn't handle well pam.ConversationHandler(nil)
 	if conv != nil && !reflect.ValueOf(conv).IsNil() {

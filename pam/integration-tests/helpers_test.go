@@ -120,7 +120,7 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 		defer sharedAuthdInstance.mu.Unlock()
 
 		sa.refCount--
-		if testutils.IsVerbose() {
+		if testing.Verbose() {
 			t.Logf("Authd shared instances decreased: %v", sa.refCount)
 		}
 		if sa.refCount != 0 {
@@ -139,7 +139,7 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 	defer sharedAuthdInstance.mu.Unlock()
 
 	sa.refCount++
-	if testutils.IsVerbose() {
+	if testing.Verbose() {
 		t.Logf("Authd shared instances increased: %v", sa.refCount)
 	}
 	if sa.refCount != 1 {
