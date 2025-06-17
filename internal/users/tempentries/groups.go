@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
@@ -43,7 +44,7 @@ func (r *temporaryGroupRecords) GroupByID(gid uint32) (types.GroupEntry, error) 
 
 	group, ok := r.groups[gid]
 	if !ok {
-		return types.GroupEntry{}, NoDataFoundError{}
+		return types.GroupEntry{}, db.NewGIDNotFoundError(gid)
 	}
 
 	return groupEntry(group), nil
@@ -56,7 +57,7 @@ func (r *temporaryGroupRecords) GroupByName(name string) (types.GroupEntry, erro
 
 	gid, ok := r.gidByName[name]
 	if !ok {
-		return types.GroupEntry{}, NoDataFoundError{}
+		return types.GroupEntry{}, db.NewGroupNotFoundError(name)
 	}
 
 	return r.GroupByID(gid)

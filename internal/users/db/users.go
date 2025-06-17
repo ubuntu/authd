@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/ubuntu/authd/log"
@@ -52,7 +51,7 @@ func userByID(db queryable, uid uint32) (UserRow, error) {
 	var u UserRow
 	err := row.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return UserRow{}, NoDataFoundError{key: strconv.FormatUint(uint64(uid), 10), table: "users"}
+		return UserRow{}, NewUIDNotFoundError(uid)
 	}
 	if err != nil {
 		return UserRow{}, fmt.Errorf("query error: %w", err)
@@ -72,7 +71,7 @@ func (m *Manager) UserByName(name string) (UserRow, error) {
 	var u UserRow
 	err := row.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return UserRow{}, NoDataFoundError{key: name, table: "users"}
+		return UserRow{}, NewUserNotFoundError(name)
 	}
 	if err != nil {
 		return UserRow{}, fmt.Errorf("query error: %w", err)
@@ -181,7 +180,7 @@ func (m *Manager) DeleteUser(uid uint32) error {
 		return fmt.Errorf("failed to get rows affected: %w", err)
 	}
 	if rowsAffected == 0 {
-		return NoDataFoundError{table: "users", key: strconv.FormatUint(uint64(uid), 10)}
+		return NewUIDNotFoundError(uid)
 	}
 
 	return nil
