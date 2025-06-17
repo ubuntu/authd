@@ -630,8 +630,8 @@ func startSSHdForTest(t *testing.T, serviceFile, hostKey, userHome, user string,
 	t.Helper()
 
 	sshdConnectCommand := fmt.Sprintf(
-		"/usr/bin/echo ' SSHD: Connected to ssh via authd module! [%s]'",
-		t.Name())
+		"/usr/bin/sleep %.2f && /usr/bin/echo ' SSHD: Connected to ssh via authd module! [%s]'",
+		sleepDuration(1*time.Second).Seconds(), t.Name())
 	if daemonize {
 		// When in daemon mode SSH doesn't show debug infos, so let's
 		// handle this manually.
