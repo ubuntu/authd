@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -163,4 +164,129 @@ func TestUsersLockingOverrideAsLockedExternally(t *testing.T) {
 
 	err = userslocking.WriteUnlock()
 	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
+}
+
+func TestUsersLockingRecLockingOverride(t *testing.T) {
+	// This cannot be parallel.
+
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
+
+	err := userslocking.WriteRecLock()
+	require.NoError(t, err, "Locking should be allowed")
+
+	err = userslocking.WriteRecLock()
+	require.NoError(t, err, "Locking again should be allowed")
+
+	err = userslocking.WriteRecUnlock()
+	require.NoError(t, err, "Unlocking should be allowed")
+
+	err = userslocking.WriteRecUnlock()
+	require.NoError(t, err, "Unlocking again should be allowed")
+
+	err = userslocking.WriteRecUnlock()
+	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
+
+	err = userslocking.WriteLock()
+	require.NoError(t, err, "Locking should be allowed")
+
+	err = userslocking.WriteUnlock()
+	require.NoError(t, err, "Unlocking should be allowed")
+}
+
+func TestUsersLockingRecLockingMixedWithLockOverride(t *testing.T) {
+	// This cannot be parallel.
+
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
+
+	// Using RecLock first, then trying to use normal lock in between.
+	err := userslocking.WriteRecLock()
+	require.NoError(t, err, "Locking should be allowed")
+
+	err = userslocking.WriteRecLock()
+	require.NoError(t, err, "Locking again should be allowed")
+
+	err = userslocking.WriteLock()
+	require.ErrorIs(t, err, userslocking.ErrLock, "Locking again should not be allowed")
+
+	err = userslocking.WriteRecUnlock()
+	require.NoError(t, err, "Unlocking should be allowed")
+
+	err = userslocking.WriteUnlock()
+	require.ErrorIs(t, err, userslocking.ErrUnlock, "Normal unlocking unlocked should not be allowed")
+
+	err = userslocking.WriteRecUnlock()
+	require.NoError(t, err, "Unlocking again should be allowed")
+
+	// Use normal lock, then try to RecLock meanwhile
+
+	err = userslocking.WriteLock()
+	require.NoError(t, err, "Locking should be allowed")
+
+	err = userslocking.WriteRecLock()
+	require.ErrorIs(t, err, userslocking.ErrLock, "Locking again should not be allowed")
+
+	err = userslocking.WriteRecUnlock()
+	require.ErrorIs(t, err, userslocking.ErrUnlock, "Normal unlocking unlocked should not be allowed")
+
+	err = userslocking.WriteUnlock()
+	require.NoError(t, err, "Unlocking should be allowed")
+}
+
+func TestUsersLockingRecLockingOverrideAsLockedExternally(t *testing.T) {
+	// This cannot be parallel.
+	lockCtx, lockCancel := context.WithCancel(context.Background())
+	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, lockCtx)
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		err := userslocking.WriteRecLock()
+		require.NoError(t, err, "Locking should not fail")
+		wg.Done()
+	}()
+	go func() {
+		err := userslocking.WriteRecLock()
+		require.NoError(t, err, "Locking should not fail")
+		wg.Done()
+	}()
+
+	doneWaiting := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(doneWaiting)
+	}()
+
+	select {
+	case <-time.After(1 * time.Second):
+		// If we're time-outing: it's fine, it means we were locked!
+	case <-doneWaiting:
+		t.Error("We should not be unlocked, but we are")
+		t.FailNow()
+	}
+
+	wg.Add(2)
+	go func() {
+		err := userslocking.WriteRecUnlock()
+		require.NoError(t, err, "Unlocking should not fail")
+		wg.Done()
+	}()
+	go func() {
+		err := userslocking.WriteRecUnlock()
+		require.NoError(t, err, "Unlocking should not fail")
+		wg.Done()
+	}()
+	t.Cleanup(wg.Wait)
+
+	select {
+	case <-time.After(1 * time.Second):
+		// If we're time-outing: it's fine, it means we were locked!
+	case <-doneWaiting:
+		t.Error("We should not be unlocked, but we are")
+		t.FailNow()
+	}
+
+	// Remove the "external" lock now.
+	lockCancel()
+
+	<-doneWaiting
 }
