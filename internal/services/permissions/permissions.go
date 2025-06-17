@@ -53,7 +53,7 @@ func (m Manager) CheckRequestIsFromRoot(ctx context.Context) (err error) {
 	}
 
 	if pci.uid != m.rootUID {
-		return errors.New("this action is only allowed for root users")
+		return errors.New("only root can perform this operation")
 	}
 
 	return nil
