@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
@@ -58,7 +59,7 @@ func (r *preAuthUserRecords) userByID(uid uint32) (types.UserEntry, error) {
 
 	user, ok := r.users[uid]
 	if !ok {
-		return types.UserEntry{}, NoDataFoundError{}
+		return types.UserEntry{}, db.NewUIDNotFoundError(uid)
 	}
 
 	return preAuthUserEntry(user), nil
@@ -71,7 +72,7 @@ func (r *preAuthUserRecords) userByName(name string) (types.UserEntry, error) {
 
 	uid, ok := r.uidByName[name]
 	if !ok {
-		return types.UserEntry{}, NoDataFoundError{}
+		return types.UserEntry{}, db.NewUserNotFoundError(name)
 	}
 
 	return r.userByID(uid)
@@ -83,7 +84,7 @@ func (r *preAuthUserRecords) userByLogin(loginName string) (types.UserEntry, err
 
 	uid, ok := r.uidByLogin[loginName]
 	if !ok {
-		return types.UserEntry{}, NoDataFoundError{}
+		return types.UserEntry{}, db.NewUserNotFoundError(loginName)
 	}
 
 	return r.userByID(uid)
