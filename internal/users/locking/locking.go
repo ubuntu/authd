@@ -10,12 +10,16 @@ package userslocking
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 )
 
 var (
 	writeLockImpl   = writeLock
 	writeUnlockImpl = writeUnlock
+
+	writeLocksCount   uint64
+	writeLocksCountMu sync.RWMutex
 
 	// maxWait is the maximum wait time for a lock to happen.
 	// We mimic the libc behavior, in case we don't get SIGALRM'ed.
@@ -41,6 +45,17 @@ var (
 // database in write mode, while it will return an error if called while the
 // lock is already hold by this process.
 func WriteLock() error {
+	writeLocksCountMu.RLock()
+	defer writeLocksCountMu.RUnlock()
+
+	if writeLocksCount > 0 {
+		return fmt.Errorf("%w: mixing recursive and normal locking", ErrLock)
+	}
+
+	return writeLockInternal()
+}
+
+func writeLockInternal() error {
 	done := make(chan error)
 	go func() {
 		done <- writeLockImpl()
@@ -63,5 +78,52 @@ func WriteLock() error {
 // As soon as this function is called all the other waiting processes will be
 // allowed to take the lock.
 func WriteUnlock() error {
+	writeLocksCountMu.RLock()
+	defer writeLocksCountMu.RUnlock()
+
+	if writeLocksCount > 0 {
+		return fmt.Errorf("%w: mixing recursive and normal locking", ErrUnlock)
+	}
+
 	return writeUnlockImpl()
+}
+
+// WriteRecLock is like [WriteLock] but it allows recursive locks, so that if
+// called when authd already has shadow password lock, then we increase the
+// locking reference count without returning an error.
+func WriteRecLock() error {
+	writeLocksCountMu.Lock()
+	defer writeLocksCountMu.Unlock()
+
+	if writeLocksCount == 0 {
+		if err := writeLockInternal(); err != nil {
+			return err
+		}
+	}
+
+	writeLocksCount++
+	return nil
+}
+
+// WriteRecUnlock is like [WriteUnlock] but it reduces the reference count
+// of the recursive lock added by [WriteRecLock].
+func WriteRecUnlock() error {
+	writeLocksCountMu.Lock()
+	defer writeLocksCountMu.Unlock()
+
+	if writeLocksCount == 0 {
+		return fmt.Errorf("%w: no locks found", ErrUnlock)
+	}
+
+	if writeLocksCount > 1 {
+		writeLocksCount--
+		return nil
+	}
+
+	if err := writeUnlockImpl(); err != nil {
+		return err
+	}
+
+	writeLocksCount--
+	return nil
 }
