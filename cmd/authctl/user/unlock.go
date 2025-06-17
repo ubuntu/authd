@@ -10,7 +10,7 @@ import (
 
 // unlockCmd is a command to unlock (enable) a user.
 var unlockCmd = &cobra.Command{
-	Use:   "unlock",
+	Use:   "unlock <user>",
 	Short: "Unlock (enable) a user managed by authd",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
