@@ -38,6 +38,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		socketPath         string
 		currentUserNotRoot bool
 		wantLocalGroups    bool
+		noConfiguredBroker bool
 		oldDB              string
 		stopDaemonAfter    time.Duration
 	}{
@@ -189,6 +190,9 @@ func TestCLIAuthenticate(t *testing.T) {
 		},
 		"Autoselect_local_broker_for_local_user": {
 			tape: "local_user",
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: "root",
+			},
 		},
 		"Autoselect_local_broker_for_local_user_preset": {
 			tape:          "local_user_preset",
@@ -221,6 +225,18 @@ func TestCLIAuthenticate(t *testing.T) {
 			tape:         "local_broker",
 			tapeSettings: []tapeSetting{{vhsHeight, 800}},
 		},
+		"Exit_authd_if_no_broker_is_configured": {
+			tape: "local_user",
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: vhsTestUserName(t, "no-broker"),
+			},
+			noConfiguredBroker: true,
+		},
+		"Exit_authd_if_no_broker_is_configured_with_preset_user": {
+			tape:               "local_user_preset",
+			clientOptions:      clientOptions{PamUser: vhsTestUserName(t, "no-broker")},
+			noConfiguredBroker: true,
+		},
 		"Exit_authd_if_user_sigints": {
 			tape: "sigint",
 		},
@@ -244,7 +260,8 @@ func TestCLIAuthenticate(t *testing.T) {
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
 			var socketPath, gpasswdOutput, groupsFile, pidFile string
-			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.stopDaemonAfter > 0 || tc.oldDB != "" {
+			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.stopDaemonAfter > 0 ||
+				tc.noConfiguredBroker || tc.oldDB != "" {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// Similarly for the not-root tests authd has to run in a more restricted way.
@@ -253,9 +270,14 @@ func TestCLIAuthenticate(t *testing.T) {
 
 				pidFile = filepath.Join(outDir, "authd.pid")
 
+				env := useOldDatabaseEnv(t, tc.oldDB)
+				if tc.noConfiguredBroker {
+					env = append(env, "AUTHD_EXAMPLE_BROKER_DISABLE=1")
+				}
+
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot,
 					testutils.WithPidFile(pidFile),
-					testutils.WithEnvironment(useOldDatabaseEnv(t, tc.oldDB)...))
+					testutils.WithEnvironment(env...))
 			} else {
 				socketPath, gpasswdOutput = sharedAuthd(t)
 			}

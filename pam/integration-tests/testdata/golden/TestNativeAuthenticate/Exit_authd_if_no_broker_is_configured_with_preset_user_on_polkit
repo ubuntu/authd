@@ -1,0 +1,24 @@
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
+auth=incomplete
+PAM Authenticate()
+  User: "user-integration-no-broker-polkit-testnativeauthenticate"
+  Result: error: PAM exit code: 25
+    The return value should be ignored by PAM dispatch
+PAM AcctMgmt()
+  User: "user-integration-no-broker-polkit-testnativeauthenticate"
+  Result: error: PAM exit code: 26
+    Critical error - immediate abort
+>
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} force_native_client=true
+auth=incomplete
+PAM Authenticate()
+  User: "user-integration-no-broker-polkit-testnativeauthenticate"
+  Result: error: PAM exit code: 25
+    The return value should be ignored by PAM dispatch
+PAM AcctMgmt()
+  User: "user-integration-no-broker-polkit-testnativeauthenticate"
+  Result: error: PAM exit code: 26
+    Critical error - immediate abort
+>
+────────────────────────────────────────────────────────────────────────────────
