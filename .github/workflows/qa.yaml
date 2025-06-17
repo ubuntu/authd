@@ -294,7 +294,12 @@ jobs:
           GORACE: log_path=${{ env.AUTHD_TESTS_ARTIFACTS_PATH }}/gorace.log
         run: |
           go test -json -timeout ${GO_TESTS_TIMEOUT} -race -failfast ./... | \
-            gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.race.log"
+            gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.race.log" || exit_code=$?
+
+          if [ "${exit_code:-0}" -ne 0 ]; then
+            cat "${AUTHD_TESTS_ARTIFACTS_PATH}"/gorace.log* || true
+            exit ${exit_code}
+          fi
 
       - name: Run PAM tests (with Address Sanitizer)
         if: matrix.test == 'asan'

@@ -61,17 +61,16 @@ func main() {
 		defaultArgs = append(defaultArgs, "--exec-debug", "--exec-log", logFile)
 	}
 
-	if coverDir := os.Getenv("GOCOVERDIR"); coverDir != "" {
-		defaultArgs = append(defaultArgs, "--exec-env", fmt.Sprintf("GOCOVERDIR=%s", coverDir))
-	}
-	if goRace := os.Getenv("GORACE"); goRace != "" {
-		defaultArgs = append(defaultArgs, "--exec-env", fmt.Sprintf("GORACE=%s", goRace))
-	}
-	if asanOptions := os.Getenv("ASAN_OPTIONS"); asanOptions != "" {
-		defaultArgs = append(defaultArgs, "--exec-env", fmt.Sprintf("ASAN_OPTIONS=%s", asanOptions))
-	}
-	if lsanOptions := os.Getenv("LSAN_OPTIONS"); lsanOptions != "" {
-		defaultArgs = append(defaultArgs, "--exec-env", fmt.Sprintf("LSAN_OPTIONS=%s", lsanOptions))
+	for _, env := range []string{
+		"GOCOVERDIR",
+		"GORACE",
+		"ASAN_OPTIONS",
+		"LSAN_OPTIONS",
+	} {
+		if _, ok := os.LookupEnv(env); !ok {
+			continue
+		}
+		defaultArgs = append(defaultArgs, "--exec-env", env)
 	}
 
 	if len(os.Args) < 2 {

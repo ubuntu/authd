@@ -59,7 +59,7 @@ func TestUsersLockingInBubbleWrap(t *testing.T) {
 				"Setup: Too many tests defined for %s", testsListStr)
 
 			testCommand := []string{testBinary, "-test.run", nameRegex}
-			if testutils.IsVerbose() {
+			if testing.Verbose() {
 				testCommand = append(testCommand, "-test.v")
 			}
 			if c := testutils.CoverDirForTests(); c != "" {
