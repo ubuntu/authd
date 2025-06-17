@@ -127,8 +127,7 @@ func TestMaybeMigrateBBoltToSQLite(t *testing.T) {
 
 	// Make the userslocking package use a locking mechanism which doesn't
 	// require root privileges.
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	testCases := map[string]struct {
 		bboltExists      bool
