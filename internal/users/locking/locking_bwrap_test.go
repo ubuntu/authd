@@ -285,7 +285,7 @@ func TestLockingLockedDatabase(t *testing.T) {
 			}()
 
 			select {
-			case <-time.After(3 * time.Second):
+			case <-time.After(1 * time.Second):
 				// If we're time-outing: it's fine, it means the test-locker process is
 				// still running and holding the lock.
 			case err := <-writeLockExited:
@@ -297,6 +297,8 @@ func TestLockingLockedDatabase(t *testing.T) {
 
 func TestLockingLockedDatabaseFailsAfterTimeout(t *testing.T) {
 	require.Zero(t, os.Geteuid(), "Not root")
+
+	userslocking.Z_ForTests_SetMaxWaitTime(t, 2*time.Second)
 
 	testLockerUtility := os.Getenv("AUTHD_TESTS_PASSWD_LOCKER_UTILITY")
 	require.NotEmpty(t, testLockerUtility, "Setup: Locker utility unset")
@@ -350,6 +352,8 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 	testLockerUtility := os.Getenv("AUTHD_TESTS_PASSWD_LOCKER_UTILITY")
 	require.NotEmpty(t, testLockerUtility, "Setup: Locker utility unset")
 
+	userslocking.Z_ForTests_SetMaxWaitTime(t, 3*time.Second)
+
 	for name, f := range maps.Clone(lockingCases) {
 		t.Run(name, func(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
@@ -367,7 +371,7 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 			}()
 
 			select {
-			case <-time.After(1 * time.Second):
+			case <-time.After(500 * time.Millisecond):
 				// If we're time-outing: it's fine, it means the test-locker process is
 				// still running and holding the lock.
 				t.Cleanup(func() { lockerProcess.Kill() })
@@ -381,7 +385,7 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 			}()
 
 			select {
-			case <-time.After(3 * time.Second):
+			case <-time.After(1 * time.Second):
 				// If we're time-outing: it's fine, it means the test-locker process is
 				// still running and holding the lock.
 			case err := <-writeLockExited:
@@ -394,7 +398,7 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 			}()
 
 			select {
-			case <-time.After(1 * time.Second):
+			case <-time.After(500 * time.Millisecond):
 				// If we're time-outing: it's fine, it means the test-locker process is
 				// still running and holding the lock.
 			case err := <-writeUnLockExited:
