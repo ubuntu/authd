@@ -135,8 +135,7 @@ LocalTestGroup:x:12345:TestUser
 	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
@@ -178,8 +177,7 @@ func TestMigrationToLowercaseUserAndGroupNamesEmptyDB(t *testing.T) {
 	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
@@ -220,8 +218,7 @@ func TestMigrationToLowercaseUserAndGroupNamesAlreadyUpdated(t *testing.T) {
 	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
@@ -266,8 +263,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedGroupFile(t *testing.
 	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
@@ -319,8 +315,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithPreviousBackup(t *testing.T) {
 	require.NoError(t, err, "Setup: could not create group file")
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
@@ -372,8 +367,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedPreviousBackup(t *tes
 	require.NoError(t, err, "Setup: could not create group file backup symlink")
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
@@ -424,8 +418,7 @@ func TestMigrationToLowercaseUserAndGroupNamesFails(t *testing.T) {
 	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
@@ -468,8 +461,7 @@ func TestMigrationToLowercaseUserAndGroupNamesWithBackupFailure(t *testing.T) {
 	require.NoError(t, err, "Setup: touching a file in %q", db.GroupFileBackupPath())
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)

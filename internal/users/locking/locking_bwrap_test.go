@@ -137,8 +137,7 @@ func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 }
 
 func TestUnlockUnlockedOverridden(t *testing.T) {
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	err := userslocking.WriteUnlock()
 	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
