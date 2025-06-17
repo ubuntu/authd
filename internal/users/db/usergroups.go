@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"strconv"
 
 	"github.com/ubuntu/authd/log"
 )
@@ -122,7 +121,7 @@ func removeUserFromAllGroups(db queryable, uid uint32) error {
 		return fmt.Errorf("failed to get rows affected: %w", err)
 	}
 	if rowsAffected == 0 {
-		return NoDataFoundError{table: "users_to_groups", key: strconv.FormatUint(uint64(uid), 10)}
+		return NoDataFoundError{fmt.Sprintf("no groups found for user with UID %d", uid)}
 	}
 
 	return nil
