@@ -10,7 +10,7 @@ import (
 
 // lockCmd is a command to lock (disable) a user.
 var lockCmd = &cobra.Command{
-	Use:   "lock",
+	Use:   "lock <user>",
 	Short: "Lock (disable) a user managed by authd",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
