@@ -14,6 +14,7 @@ import (
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
 	"github.com/ubuntu/authd/internal/users/localentries"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/internal/users/tempentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
@@ -455,6 +456,18 @@ func (m *Manager) AllShadows() ([]types.ShadowEntry, error) {
 // RegisterUserPreAuth registers a temporary user with a unique UID in our NSS handler (in memory, not in the database).
 //
 // The temporary user record is removed when UpdateUser is called with the same username.
-func (m *Manager) RegisterUserPreAuth(name string) (uint32, error) {
+func (m *Manager) RegisterUserPreAuth(name string) (uid uint32, err error) {
+	defer decorate.OnError(&err, "failed to register pre-auth user %q", name)
+
+	if err := userslocking.WriteRecLock(); err != nil {
+		return 0, err
+	}
+	defer func() {
+		if unlockErr := userslocking.WriteRecUnlock(); unlockErr != nil {
+			uid = 0
+			err = errors.Join(err, unlockErr)
+		}
+	}()
+
 	return m.temporaryRecords.RegisterPreAuthUser(name)
 }
