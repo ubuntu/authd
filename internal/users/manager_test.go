@@ -5,9 +5,11 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/consts"
+	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/db"
@@ -585,6 +587,48 @@ func TestAllShadows(t *testing.T) {
 			golden.CheckOrUpdateYAML(t, got)
 		})
 	}
+}
+
+func TestRegisterUserPreAuthWhenLocked(t *testing.T) {
+	// This cannot be parallel
+
+	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, context.Background())
+	userslocking.Z_ForTests_SetMaxWaitTime(t, testutils.MultipliedSleepDuration(750*time.Millisecond))
+
+	dbFile := "one_user_and_group"
+	dbDir := t.TempDir()
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", dbFile+".db.yaml"), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	m := newManagerForTests(t, dbDir)
+
+	uid, err := m.RegisterUserPreAuth("locked-user")
+	require.ErrorIs(t, err, userslocking.ErrLock)
+	require.Zero(t, uid, "Uid should be unset")
+}
+
+func TestRegisterUserPreAuthAfterUnlock(t *testing.T) {
+	// This cannot be parallel
+
+	waitTime := testutils.MultipliedSleepDuration(750 * time.Millisecond)
+	lockCtx, lockCancel := context.WithTimeout(context.Background(), waitTime/2)
+	t.Cleanup(lockCancel)
+
+	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, lockCtx)
+	userslocking.Z_ForTests_SetMaxWaitTime(t, waitTime)
+
+	t.Cleanup(func() { _ = userslocking.WriteRecUnlock() })
+
+	dbFile := "one_user_and_group"
+	dbDir := t.TempDir()
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", dbFile+".db.yaml"), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	m := newManagerForTests(t, dbDir)
+
+	uid, err := m.RegisterUserPreAuth("locked-user")
+	require.NoError(t, err, "Registration should not fail")
+	require.NotZero(t, uid, "UID should be set")
 }
 
 func requireErrorAssertions(t *testing.T, gotErr, wantErrType error, wantErr bool) {
