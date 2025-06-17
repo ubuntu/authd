@@ -15,7 +15,6 @@ var rootCmd = &cobra.Command{
 	Use:   "authctl",
 	Short: "CLI tool to interact with authd",
 	Long:  "authctl is a command-line tool to interact with the authd service for user and group management.",
-	Args:  cobra.NoArgs,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// The command was successfully parsed, so we don't want cobra to print usage information on error.
 		cmd.SilenceUsage = true
@@ -25,6 +24,8 @@ var rootCmd = &cobra.Command{
 	},
 	// We handle errors ourselves
 	SilenceErrors: true,
+	Args:          cobra.NoArgs,
+	RunE:          func(cmd *cobra.Command, args []string) error { return cmd.Usage() },
 }
 
 func init() {
