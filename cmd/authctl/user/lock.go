@@ -14,7 +14,7 @@ var lockCmd = &cobra.Command{
 	Short: "Lock (disable) a user managed by authd",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Printf("Locking user %q\n...", args[0])
+		fmt.Printf("Locking user %q...\n", args[0])
 
 		client, err := NewUserServiceClient()
 		if err != nil {
