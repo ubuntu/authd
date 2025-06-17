@@ -4,7 +4,6 @@ package permissions
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/ubuntu/decorate"
 	"google.golang.org/grpc/peer"
@@ -54,7 +53,7 @@ func (m Manager) CheckRequestIsFromRoot(ctx context.Context) (err error) {
 	}
 
 	if pci.uid != m.rootUID {
-		return fmt.Errorf("this action is only allowed for root users. Current user is %d", pci.uid)
+		return errors.New("this action is only allowed for root users")
 	}
 
 	return nil
