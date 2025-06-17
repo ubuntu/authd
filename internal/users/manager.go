@@ -12,6 +12,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/tempentries"
@@ -321,7 +322,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		return err
 	}
 
-	if err = checkHomeDirOwnership(userRow.Dir, userRow.UID, userRow.GID); err != nil {
+	if err = checkHomeDirOwner(userRow.Dir, userRow.UID, userRow.GID); err != nil {
 		log.Warningf(context.Background(), "Failed to check home directory ownership: %v", err)
 	}
 
@@ -372,17 +373,53 @@ func compareNewUserInfoWithUserInfoFromDB(newUserInfo, dbUserInfo types.UserInfo
 }
 
 // SetUserID updates the UID of the user with the given name to the specified UID.
-func (m *Manager) SetUserID(name string, uid uint32) error {
+func (m *Manager) SetUserID(name string, uid uint32) (warnings []string, err error) {
 	// authd uses lowercase usernames
 	name = strings.ToLower(name)
 
 	log.Debugf(context.TODO(), "Updating UID for user %q to %d", name, uid)
 
 	if name == "" {
-		return errors.New("empty username")
+		return nil, errors.New("empty username")
 	}
 
-	return m.db.SetUserID(name, uid)
+	oldUser, err := m.db.UserByName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	err = m.db.SetUserID(name, uid)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if the home directory is currently owned by the user.
+	homeUID, _, err := getHomeDirOwner(oldUser.Dir)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("failed to get home directory owner for user %q: %w", name, err)
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		// The home directory does not exist, so we don't need to change the owner.
+		log.Debugf(context.Background(), "Home directory %q for user %q does not exist, skipping ownership change", oldUser.Dir, name)
+		return nil, nil
+	}
+
+	if homeUID != oldUser.UID {
+		warning := fmt.Sprintf("Not changing ownership of home directory %q, because it is not owned by UID %d (current owner: %d)", oldUser.Dir, oldUser.UID, homeUID)
+		log.Warning(context.Background(), warning)
+		return []string{warning}, nil
+	}
+
+	// Change the ownership of all files in the home directory from the old UID and GID to the new UID and GID.
+	// The GID is the same as the new UID for user private groups, so we use the same value for both.
+	err = fileutils.ChownRecursiveFrom(oldUser.Dir, oldUser.UID, oldUser.GID, uid, uid)
+	if err != nil {
+		warning := fmt.Sprintf("Failed to change ownership of home directory %q from UID %d to %d: %v", oldUser.Dir, oldUser.UID, uid, err)
+		log.Warning(context.Background(), warning)
+		return []string{warning}, nil
+	}
+
+	return nil, nil
 }
 
 // checkGroupNameConflict checks if a group with the given name already exists.
@@ -430,10 +467,24 @@ func (m *Manager) findGroup(group types.GroupInfo) (oldGroup db.GroupRow, err er
 	return m.db.GroupByName(group.Name)
 }
 
-// checkHomeDirOwnership checks if the home directory of the user is owned by the user and the user's group.
-// If not, it logs a warning.
-func checkHomeDirOwnership(home string, uid, gid uint32) error {
+func getHomeDirOwner(home string) (uid uint32, gid uint32, err error) {
 	fileInfo, err := os.Stat(home)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	sys, ok := fileInfo.Sys().(*syscall.Stat_t)
+	if !ok {
+		return 0, 0, errors.New("failed to get file info")
+	}
+
+	return sys.Uid, sys.Gid, nil
+}
+
+// checkHomeDirOwner checks if the home directory of the user is owned by the user and the user's group.
+// If not, it logs a warning.
+func checkHomeDirOwner(home string, uid, gid uint32) error {
+	oldUID, oldGID, err := getHomeDirOwner(home)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
@@ -441,12 +492,6 @@ func checkHomeDirOwnership(home string, uid, gid uint32) error {
 		// The home directory does not exist, so we don't need to check the owner.
 		return nil
 	}
-
-	sys, ok := fileInfo.Sys().(*syscall.Stat_t)
-	if !ok {
-		return errors.New("failed to get file info")
-	}
-	oldUID, oldGID := sys.Uid, sys.Gid
 
 	// Check if the home directory is owned by the user.
 	if oldUID != uid && oldGID != gid {
