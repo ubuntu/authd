@@ -111,12 +111,12 @@ func (m *Manager) Stop() error {
 
 // UpdateUser updates the user information in the db.
 func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
+	// authd uses lowercase usernames
+	u.Name = strings.ToLower(u.Name)
+
 	defer decorate.OnError(&err, "failed to update user %q", u.Name)
 
 	log.Debugf(context.TODO(), "Updating user %q", u.Name)
-
-	// authd uses lowercase usernames
-	u.Name = strings.ToLower(u.Name)
 
 	if u.Name == "" {
 		return errors.New("empty username")
@@ -235,6 +235,22 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 
 	return nil
+}
+
+// SetUserID updates the UID of the user with the given name to the specified UID.
+func (m *Manager) SetUserID(name string, uid uint32) error {
+	// authd uses lowercase usernames
+	name = strings.ToLower(name)
+
+	log.Debugf(context.TODO(), "Updating UID for user %q to %d", name, uid)
+
+	// TODO: Use lckpwdf
+
+	if name == "" {
+		return errors.New("empty username")
+	}
+
+	return m.db.SetUserID(name, uid)
 }
 
 // checkGroupNameConflict checks if a group with the given name already exists.
