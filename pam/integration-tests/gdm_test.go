@@ -1013,7 +1013,7 @@ func TestGdmModule(t *testing.T) {
 			}
 
 			var pamFlags pam.Flags
-			if !testutils.IsVerbose() {
+			if !testing.Verbose() {
 				pamFlags = pam.Silent
 			}
 
@@ -1089,7 +1089,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	t.Cleanup(enableGdmExtension)
 
 	var pamFlags pam.Flags
-	if !testutils.IsVerbose() {
+	if !testing.Verbose() {
 		pamFlags = pam.Silent
 	}
 
@@ -1130,7 +1130,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	}
 
 	var pamFlags pam.Flags
-	if !testutils.IsVerbose() {
+	if !testing.Verbose() {
 		pamFlags = pam.Silent
 	}
 

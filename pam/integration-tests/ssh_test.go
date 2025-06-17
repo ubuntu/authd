@@ -548,15 +548,12 @@ func createSshdServiceFile(t *testing.T, module, execChild, mkHomeModule, socket
 	if env := testutils.CoverDirEnv(); env != "" {
 		moduleArgs = append(moduleArgs, "--exec-env", env)
 	}
+	if testutils.IsRace() {
+		moduleArgs = append(moduleArgs, "--exec-env", "GORACE")
+	}
 	if testutils.IsAsan() {
-		if o := os.Getenv("ASAN_OPTIONS"); o != "" {
-			moduleArgs = append(moduleArgs, "--exec-env",
-				fmt.Sprintf("ASAN_OPTIONS=%s", o))
-		}
-		if o := os.Getenv("LSAN_OPTIONS"); o != "" {
-			moduleArgs = append(moduleArgs, "--exec-env",
-				fmt.Sprintf("LSAN_OPTIONS=%s", o))
-		}
+		moduleArgs = append(moduleArgs, "--exec-env", "ASAN_OPTIONS")
+		moduleArgs = append(moduleArgs, "--exec-env", "LSAN_OPTIONS")
 	}
 
 	outDir := t.TempDir()
@@ -740,7 +737,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	}
 
 	t.Cleanup(func() {
-		if !t.Failed() && !testutils.IsVerbose() {
+		if !t.Failed() && !testing.Verbose() {
 			return
 		}
 		contents, err := os.ReadFile(sshdLogFile)
