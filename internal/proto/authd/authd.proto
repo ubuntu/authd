@@ -135,7 +135,7 @@ service UserService {
   rpc ListUsers(Empty) returns (Users);
   rpc LockUser(LockUserRequest) returns (Empty);
   rpc UnlockUser(UnlockUserRequest) returns (Empty);
-  rpc SetUserID(SetUserIDRequest) returns (Empty);
+  rpc SetUserID(SetUserIDRequest) returns (SetUserIDResponse);
 
   rpc GetGroupByName(GetGroupByNameRequest) returns (Group);
   rpc GetGroupByID(GetGroupByIDRequest) returns (Group);
@@ -170,6 +170,10 @@ message GetGroupByIDRequest{
 message SetUserIDRequest {
   string name = 1;
   uint32 id = 2;
+}
+
+message SetUserIDResponse {
+  repeated string warnings = 1;
 }
 
 message SetGroupIDRequest {

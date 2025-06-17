@@ -209,7 +209,7 @@ func (s Service) ListGroups(ctx context.Context, req *authd.Empty) (*authd.Group
 }
 
 // SetUserID sets the UID of a user.
-func (s Service) SetUserID(ctx context.Context, req *authd.SetUserIDRequest) (*authd.Empty, error) {
+func (s Service) SetUserID(ctx context.Context, req *authd.SetUserIDRequest) (*authd.SetUserIDResponse, error) {
 	if err := s.permissionManager.CheckRequestIsFromRoot(ctx); err != nil {
 		return nil, status.Error(codes.PermissionDenied, err.Error())
 	}
@@ -218,13 +218,13 @@ func (s Service) SetUserID(ctx context.Context, req *authd.SetUserIDRequest) (*a
 		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
 
-	err := s.userManager.SetUserID(req.GetName(), req.GetId())
+	warnings, err := s.userManager.SetUserID(req.GetName(), req.GetId())
 	if err != nil {
 		log.Debugf(ctx, "SetUserID: %v", err)
 		return nil, grpcError(err)
 	}
 
-	return &authd.Empty{}, nil
+	return &authd.SetUserIDResponse{Warnings: warnings}, nil
 }
 
 // userToProtobuf converts a types.UserEntry to authd.User.
