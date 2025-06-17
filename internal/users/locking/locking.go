@@ -10,12 +10,16 @@ package userslocking
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 )
 
 var (
 	writeLockImpl   = writeLock
 	writeUnlockImpl = writeUnlock
+
+	writeLocksCount   uint64
+	writeLocksCountMu sync.RWMutex
 
 	// maxWait is the maximum wait time for a lock to happen.
 	// We mimic the libc behavior, in case we don't get SIGALRM'ed.
@@ -41,6 +45,17 @@ var (
 // database in write mode, while it will return an error if called while the
 // lock is already hold by this process.
 func WriteLock() error {
+	writeLocksCountMu.RLock()
+	defer writeLocksCountMu.RUnlock()
+
+	if writeLocksCount > 0 {
+		return fmt.Errorf("%w: mixing recursive and normal locking", ErrLock)
+	}
+
+	return writeLockInternal()
+}
+
+func writeLockInternal() error {
 	done := make(chan error)
 	writeLockImpl := writeLockImpl
 
@@ -65,5 +80,64 @@ func WriteLock() error {
 // As soon as this function is called all the other waiting processes will be
 // allowed to take the lock.
 func WriteUnlock() error {
+	writeLocksCountMu.RLock()
+	defer writeLocksCountMu.RUnlock()
+
+	if writeLocksCount > 0 {
+		return fmt.Errorf("%w: mixing recursive and normal locking", ErrUnlock)
+	}
+
 	return writeUnlockImpl()
+}
+
+// WriteRecLock locks the system's user database for writing.
+// While the lock is held, all other processes trying to lock the database
+// will block until the lock is released (or a timeout of 15 seconds is reached).
+// Note that this implies that if some other process owns the lock when
+// this function is called, it will block until the other process releases the
+// lock.
+//
+// This function is recursive, it can be called multiple times without
+// deadlocking even by different goroutines - the system user database is locked
+// only once, when the reference count is 0, else it just increments the
+// reference count.
+//
+// [WriteRecUnlock] must be called the same number of times as [WriteRecLock] to
+// release the lock.
+func WriteRecLock() error {
+	writeLocksCountMu.Lock()
+	defer writeLocksCountMu.Unlock()
+
+	if writeLocksCount == 0 {
+		if err := writeLockInternal(); err != nil {
+			return err
+		}
+	}
+
+	writeLocksCount++
+	return nil
+}
+
+// WriteRecUnlock decreases the reference count of the lock acquired by.
+// [WriteRecLock]. If the reference count reaches 0, it releases the lock
+// on the system's user database.
+func WriteRecUnlock() error {
+	writeLocksCountMu.Lock()
+	defer writeLocksCountMu.Unlock()
+
+	if writeLocksCount == 0 {
+		return fmt.Errorf("%w: no locks found", ErrUnlock)
+	}
+
+	if writeLocksCount > 1 {
+		writeLocksCount--
+		return nil
+	}
+
+	if err := writeUnlockImpl(); err != nil {
+		return err
+	}
+
+	writeLocksCount--
+	return nil
 }
