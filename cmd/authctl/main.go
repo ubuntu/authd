@@ -7,6 +7,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/ubuntu/authd/cmd/authctl/user"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const cmdName = "authctl"
@@ -32,7 +34,20 @@ func init() {
 
 func main() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
+		s, ok := status.FromError(err)
+		if !ok {
+			// If the error is not a gRPC status, we print it as is.
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+
+		switch s.Code() {
+		case codes.PermissionDenied:
+			fmt.Fprintln(os.Stderr, "Permission denied:", s.Message())
+		default:
+			fmt.Fprintln(os.Stderr, "Error:", s.Message())
+		}
+
 		os.Exit(1)
 	}
 }
