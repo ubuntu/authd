@@ -371,6 +371,20 @@ func compareNewUserInfoWithUserInfoFromDB(newUserInfo, dbUserInfo types.UserInfo
 	return dbUserInfo.Equals(newUserInfo)
 }
 
+// SetUserID updates the UID of the user with the given name to the specified UID.
+func (m *Manager) SetUserID(name string, uid uint32) error {
+	// authd uses lowercase usernames
+	name = strings.ToLower(name)
+
+	log.Debugf(context.TODO(), "Updating UID for user %q to %d", name, uid)
+
+	if name == "" {
+		return errors.New("empty username")
+	}
+
+	return m.db.SetUserID(name, uid)
+}
+
 // checkGroupNameConflict checks if a group with the given name already exists.
 // If it does, it checks if it has the same UGID.
 func (m *Manager) checkGroupNameConflict(name string, ugid string) error {
