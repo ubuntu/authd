@@ -138,6 +138,15 @@ func (r *preAuthUserRecords) RegisterPreAuthUser(loginName string) (uid uint32, 
 		return user.UID, nil
 	}
 
+	passwdEntries, err := localentries.GetPasswdEntries()
+	if err != nil {
+		return 0, fmt.Errorf("could not check user, failed to get passwd entries: %w", err)
+	}
+	groupEntries, err := localentries.GetGroupEntries()
+	if err != nil {
+		return 0, fmt.Errorf("could not check user, failed to get group entries: %w", err)
+	}
+
 	// Generate a UID until we find a unique one
 	for {
 		uid, err := r.idGenerator.GenerateUID()
@@ -154,7 +163,7 @@ func (r *preAuthUserRecords) RegisterPreAuthUser(loginName string) (uid uint32, 
 			return 0, fmt.Errorf("could not add pre-auth user record: %w", err)
 		}
 
-		unique, err := r.isUniqueUID(uid, tmpName)
+		unique, err := r.isUniqueUID(uid, passwdEntries, groupEntries, tmpName)
 		if err != nil {
 			cleanup()
 			return 0, fmt.Errorf("could not check if UID %d is unique: %w", uid, err)
@@ -171,21 +180,13 @@ func (r *preAuthUserRecords) RegisterPreAuthUser(loginName string) (uid uint32, 
 
 // isUniqueUID returns true if the given UID is unique in the system. It returns false if the UID is already assigned to
 // a user by any NSS source (except the given temporary user).
-func (r *preAuthUserRecords) isUniqueUID(uid uint32, tmpName string) (bool, error) {
-	entries, err := localentries.GetPasswdEntries()
-	if err != nil {
-		return false, err
-	}
-	for _, entry := range entries {
+func (r *preAuthUserRecords) isUniqueUID(uid uint32, passwdEntries []types.UserEntry, groupEntries []types.GroupEntry, tmpName string) (bool, error) {
+	for _, entry := range passwdEntries {
 		if entry.UID == uid && entry.Name != tmpName {
 			return false, nil
 		}
 	}
 
-	groupEntries, err := localentries.GetGroupEntries()
-	if err != nil {
-		return false, fmt.Errorf("failed to get group entries: %w", err)
-	}
 	for _, group := range groupEntries {
 		if group.GID == uid {
 			// A group with the same ID already exists, so we can't use that ID as the GID of the temporary user
