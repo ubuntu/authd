@@ -11,10 +11,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-const cmdName = "authctl"
-
 var rootCmd = &cobra.Command{
-	Use:   fmt.Sprintf("%s COMMAND", cmdName),
+	Use:   "authctl",
 	Short: "CLI tool to interact with authd",
 	Long:  "authctl is a CLI tool which can be used to interact with authd.",
 	Args:  cobra.NoArgs,
