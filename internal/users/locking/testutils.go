@@ -14,12 +14,17 @@ import (
 )
 
 var (
-	overrideLocked atomic.Bool
+	overrideLocked  atomic.Bool
+	overrideMaxWait atomic.Int64
 
 	overriddenMu              sync.Mutex
 	overriddenWriteLockImpl   []func() error
 	overriddenWriteUnlockImpl []func() error
 )
+
+func init() {
+	overrideMaxWait.Store(int64(maxWait))
+}
 
 // Z_ForTests_OverrideLocking is a function to override the locking functions
 // for testing purposes.
@@ -99,11 +104,13 @@ func Z_ForTests_OverrideLockingAsLockedExternally(t *testing.T, ctx context.Cont
 	overriddenWriteLockImpl = append(overriddenWriteLockImpl, writeLockImpl)
 	writeLockImpl = func() error {
 		for {
+			maxWait := time.Duration(overrideMaxWait.Load())
+
 			select {
 			case lockCh <- struct{}{}:
 				log.Debug(ctx, "TestOverrideExternallyLocked: Local entries external lock released!")
 			case <-time.After(maxWait):
-				return ErrLockTimeout
+				return fmt.Errorf("failed waiting for %v: %w", maxWait, ErrLockTimeout)
 			}
 
 			if overrideLocked.CompareAndSwap(false, true) {
@@ -171,4 +178,26 @@ func Z_ForTests_RestoreLocking() {
 
 	overriddenWriteLockImpl, writeLockImpl = popLast(overriddenWriteLockImpl)
 	overriddenWriteUnlockImpl, writeUnlockImpl = popLast(overriddenWriteUnlockImpl)
+}
+
+// Z_ForTests_SetMaxWaitTime sets the max time that we should wait before
+// returning a failure in [WriteLock] and [WriteRecLock].
+//
+// nolint:revive,nolintlint // We want to use underscores in the function name here.
+func Z_ForTests_SetMaxWaitTime(t *testing.T, maxWaitTime time.Duration) {
+	t.Helper()
+
+	testsdetection.MustBeTesting()
+
+	require.True(t, overrideMaxWait.CompareAndSwap(int64(maxWait), int64(maxWaitTime)),
+		"Waiting time has an unexpected value: %v", overrideMaxWait.Load())
+
+	defaultMaxWait := maxWait
+	maxWait = maxWaitTime
+
+	t.Cleanup(func() {
+		require.True(t, overrideMaxWait.CompareAndSwap(int64(maxWaitTime), int64(defaultMaxWait)),
+			"Waiting time has been changed: %v", overrideMaxWait.Load())
+		maxWait = defaultMaxWait
+	})
 }
