@@ -1,4 +1,4 @@
-authd (0.5.5) UNRELEASED; urgency=medium
+authd (0.5.5) questing; urgency=medium
 
   * Fix race with accounts service which could result in authd users not being
     listed in the GDM login screen.
@@ -8,7 +8,7 @@ authd (0.5.5) UNRELEASED; urgency=medium
   * Update Go dependencies:
     - toolchain go1.23.10
 
- --  <adrian.dombeck@canonical.com>  Mon, 16 Jun 2025 13:44:02 +0200
+ --  <adrian.dombeck@canonical.com>  Tue, 17 Jun 2025 19:42:04 +0200
 
 authd (0.5.4) questing; urgency=medium
 
