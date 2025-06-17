@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
@@ -42,7 +43,7 @@ func (r *temporaryUserRecords) userByID(uid uint32) (types.UserEntry, error) {
 
 	user, ok := r.users[uid]
 	if !ok {
-		return types.UserEntry{}, NoDataFoundError{}
+		return types.UserEntry{}, db.NewUIDNotFoundError(uid)
 	}
 
 	return userEntry(user), nil
@@ -55,7 +56,7 @@ func (r *temporaryUserRecords) userByName(name string) (types.UserEntry, error) 
 
 	uid, ok := r.uidByName[name]
 	if !ok {
-		return types.UserEntry{}, NoDataFoundError{}
+		return types.UserEntry{}, db.NewUserNotFoundError(name)
 	}
 
 	return r.userByID(uid)

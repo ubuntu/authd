@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"syscall"
 
@@ -175,6 +176,26 @@ func RemoveDB(dbDir string) error {
 	return os.Remove(filepath.Join(dbDir, consts.DefaultDatabaseFileName))
 }
 
+// NewUIDNotFoundError returns a NoDataFoundError for the given user ID.
+func NewUIDNotFoundError(uid uint32) NoDataFoundError {
+	return NoDataFoundError{key: strconv.FormatUint(uint64(uid), 10), table: "users"}
+}
+
+// NewGIDNotFoundError returns a NoDataFoundError for the given group ID.
+func NewGIDNotFoundError(gid uint32) NoDataFoundError {
+	return NoDataFoundError{key: strconv.FormatUint(uint64(gid), 10), table: "groups"}
+}
+
+// NewUserNotFoundError returns a NoDataFoundError for the given user name.
+func NewUserNotFoundError(name string) NoDataFoundError {
+	return NoDataFoundError{key: name, table: "users"}
+}
+
+// NewGroupNotFoundError returns a NoDataFoundError for the given group name.
+func NewGroupNotFoundError(name string) NoDataFoundError {
+	return NoDataFoundError{key: name, table: "groups"}
+}
+
 // NoDataFoundError is returned when we didn’t find a matching entry.
 type NoDataFoundError struct {
 	key   string
@@ -183,7 +204,7 @@ type NoDataFoundError struct {
 
 // Error implements the error interface.
 func (err NoDataFoundError) Error() string {
-	return fmt.Sprintf("no result matching %v in %v", err.key, err.table)
+	return fmt.Sprintf("no result matching %q in %q", err.key, err.table)
 }
 
 // Is makes this error insensitive to the key and table names.
