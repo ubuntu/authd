@@ -12,6 +12,7 @@ provider.
 
 Install authd <install-authd>
 Configure authd <configure-authd>
+Use authd with LXD <use-with-lxd>
 ```
 
 ## Login and authentication

@@ -273,6 +273,23 @@ sudo snap restart authd-msentraid
 ::::
 :::::
 
-## System configuration
+## Configure login timeout
 
-By default on Ubuntu, the login timeout is 60s. This may be too brief for a device code flow authentication. It can be set to a different value by changing the value of `LOGIN_TIMEOUT` in `/etc/login.defs`
+By default on Ubuntu, the login timeout is 60s.
+
+This may be too brief for a device code flow authentication.
+
+It can be modified by changing the value of `LOGIN_TIMEOUT` in `/etc/login.defs`.
+
+## Configure the authd service
+
+The authd service is configured in `/etc/authd/authd.yaml`.
+
+This provides configuration options for logging verbosity and UID/GID ranges.
+
+```{admonition} Additional configuration for LXD
+:class: tip
+If you are using authd inside LXD containers, read our short guide on [how to
+use authd with LXD](howto::use-with-lxd), which outlines additional steps for
+configuring appropriate UID/GID ranges.
+```
