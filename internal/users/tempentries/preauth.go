@@ -115,7 +115,7 @@ func preAuthUserEntry(user preAuthUser) types.UserEntry {
 // after the user authenticated successfully.
 //
 // Returns the generated UID.
-func (r *preAuthUserRecords) RegisterPreAuthUser(loginName string) (uint32, error) {
+func (r *preAuthUserRecords) RegisterPreAuthUser(loginName string) (uid uint32, err error) {
 	// To mitigate DoS attacks, we limit the length of the name to 256 characters.
 	if len(loginName) > 256 {
 		return 0, errors.New("username is too long (max 256 characters)")

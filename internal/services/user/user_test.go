@@ -20,6 +20,7 @@ import (
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -69,6 +70,10 @@ func TestGetUserByName(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// We don't care about gpasswd output here as it's already covered in the db unit tests.
 			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+
+			if tc.shouldPreCheck {
+				userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
+			}
 
 			client := newUserServiceClient(t, tc.dbFile)
 
