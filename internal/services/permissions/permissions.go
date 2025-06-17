@@ -39,7 +39,7 @@ func New(args ...Option) Manager {
 	}
 }
 
-// CheckRequestIsFromRoot returns nil if the request was performed by a root user.
+// CheckRequestIsFromRoot checks if the current gRPC request is from a root user and returns an error if not.
 // The pid and uid are extracted from peerCredsInfo in the gRPC context.
 func (m Manager) CheckRequestIsFromRoot(ctx context.Context) (err error) {
 	defer decorate.OnError(&err, "permission denied")
