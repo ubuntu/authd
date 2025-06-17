@@ -10,8 +10,6 @@ import (
 	"google.golang.org/grpc/peer"
 )
 
-var permErrorFmt = "this action is only allowed for root users. Current user is %d"
-
 // Manager is an abstraction of permission process.
 type Manager struct {
 	rootUID uint32
@@ -56,7 +54,7 @@ func (m Manager) IsRequestFromRoot(ctx context.Context) (err error) {
 	}
 
 	if pci.uid != m.rootUID {
-		return fmt.Errorf(permErrorFmt, pci.uid)
+		return fmt.Errorf("this action is only allowed for root users. Current user is %d", pci.uid)
 	}
 
 	return nil
