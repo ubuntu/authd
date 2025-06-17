@@ -407,7 +407,7 @@ type UserServiceClient interface {
 	ListUsers(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Users, error)
 	LockUser(ctx context.Context, in *LockUserRequest, opts ...grpc.CallOption) (*Empty, error)
 	UnlockUser(ctx context.Context, in *UnlockUserRequest, opts ...grpc.CallOption) (*Empty, error)
-	SetUserID(ctx context.Context, in *SetUserIDRequest, opts ...grpc.CallOption) (*Empty, error)
+	SetUserID(ctx context.Context, in *SetUserIDRequest, opts ...grpc.CallOption) (*SetUserIDResponse, error)
 	GetGroupByName(ctx context.Context, in *GetGroupByNameRequest, opts ...grpc.CallOption) (*Group, error)
 	GetGroupByID(ctx context.Context, in *GetGroupByIDRequest, opts ...grpc.CallOption) (*Group, error)
 	ListGroups(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Groups, error)
@@ -471,9 +471,9 @@ func (c *userServiceClient) UnlockUser(ctx context.Context, in *UnlockUserReques
 	return out, nil
 }
 
-func (c *userServiceClient) SetUserID(ctx context.Context, in *SetUserIDRequest, opts ...grpc.CallOption) (*Empty, error) {
+func (c *userServiceClient) SetUserID(ctx context.Context, in *SetUserIDRequest, opts ...grpc.CallOption) (*SetUserIDResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Empty)
+	out := new(SetUserIDResponse)
 	err := c.cc.Invoke(ctx, UserService_SetUserID_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -520,7 +520,7 @@ type UserServiceServer interface {
 	ListUsers(context.Context, *Empty) (*Users, error)
 	LockUser(context.Context, *LockUserRequest) (*Empty, error)
 	UnlockUser(context.Context, *UnlockUserRequest) (*Empty, error)
-	SetUserID(context.Context, *SetUserIDRequest) (*Empty, error)
+	SetUserID(context.Context, *SetUserIDRequest) (*SetUserIDResponse, error)
 	GetGroupByName(context.Context, *GetGroupByNameRequest) (*Group, error)
 	GetGroupByID(context.Context, *GetGroupByIDRequest) (*Group, error)
 	ListGroups(context.Context, *Empty) (*Groups, error)
@@ -549,7 +549,7 @@ func (UnimplementedUserServiceServer) LockUser(context.Context, *LockUserRequest
 func (UnimplementedUserServiceServer) UnlockUser(context.Context, *UnlockUserRequest) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UnlockUser not implemented")
 }
-func (UnimplementedUserServiceServer) SetUserID(context.Context, *SetUserIDRequest) (*Empty, error) {
+func (UnimplementedUserServiceServer) SetUserID(context.Context, *SetUserIDRequest) (*SetUserIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUserID not implemented")
 }
 func (UnimplementedUserServiceServer) GetGroupByName(context.Context, *GetGroupByNameRequest) (*Group, error) {
