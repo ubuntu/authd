@@ -74,6 +74,8 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	execModule := buildExecModuleWithCFlags(t, []string{"-std=c11"}, true)
 	execChild := buildPAMExecChild(t)
 
+	specialUserAcceptAll := "authd-test-user-sshd-accept-all"
+
 	mkHomeDirHelper, err := exec.LookPath("mkhomedir_helper")
 	require.NoError(t, err, "Setup: mkhomedir_helper not found")
 	pamMkHomeDirModule := buildCPAMModule(t,
@@ -94,7 +96,8 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		nssLibrary, nssEnv = testutils.BuildRustNSSLib(t, true)
 		sshdPreloadLibraries = append(sshdPreloadLibraries, nssLibrary)
 		sshdPreloaderCFlags = append(sshdPreloaderCFlags,
-			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS")
+			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS",
+			fmt.Sprintf("-DAUTHD_SPECIAL_USER_ACCEPT_ALL=%q", specialUserAcceptAll))
 		nssEnv = append(nssEnv, nssTestEnvBase(t, nssLibrary)...)
 	} else if err != nil {
 		t.Logf("Using the dummy library to implement NSS: %v", err)
@@ -127,8 +130,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		serviceFile := createSshdServiceFile(t, execModule, execChild, pamMkHomeDirModule, defaultSocketPath)
 		sshdEnv = append(sshdEnv, nssEnv...)
 		sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocketPath))
-		defaultSSHDPort, defaultUserHome = startSSHdForTest(t, serviceFile, sshdHostKey,
-			"authd-test-user-sshd-accept-all", sshdPreloadLibraries, sshdEnv, true, false)
+		defaultUserHome = expectedUserHome(t, specialUserAcceptAll)
+		defaultSSHDPort = startSSHdForTest(t, serviceFile, sshdHostKey,
+			defaultUserHome, specialUserAcceptAll, sshdPreloadLibraries, sshdEnv, true, false)
 	}
 
 	sshEnvVariablesRegex = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`)
@@ -146,6 +150,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		socketPath       string
 		daemonizeSSHd    bool
 		interactiveShell bool
+		command          []string
 		oldDB            string
 
 		wantUserAlreadyExist bool
@@ -162,6 +167,10 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		"Authenticate_user_successfully_and_enters_shell": {
 			tape:             "simple_auth_with_shell",
 			interactiveShell: true,
+		},
+		"Authenticate_user_successfully_launching_command": {
+			tape:    "simple_auth",
+			command: []string{"true"},
 		},
 		"Authenticate_user_successfully_with_upper_case": {
 			tape: "simple_auth",
@@ -405,6 +414,9 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				user = vhsTestUserNameFull(t, tc.userPrefix, "ssh")
 			}
 
+			sshdPort := defaultSSHDPort
+			userHome := defaultUserHome
+
 			var userClient authd.UserServiceClient
 			if tc.socketPath == "" {
 				conn, err := grpc.NewClient("unix://"+socketPath,
@@ -419,14 +431,17 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				userClient = authd.NewUserServiceClient(conn)
 
 				if tc.wantUserAlreadyExist {
-					requireAuthdUser(t, userClient, user)
+					authdUser := requireAuthdUser(t, userClient, user)
+					userHome = authdUser.Homedir
 				} else {
 					requireNoAuthdUser(t, userClient, user)
 				}
 			}
 
-			sshdPort := defaultSSHDPort
-			userHome := defaultUserHome
+			if userHome == "" {
+				userHome = expectedUserHome(t, user)
+			}
+
 			if !sharedSSHd || tc.wantLocalGroups || tc.oldDB != "" ||
 				tc.interactiveShell || tc.socketPath != "" {
 				sshdEnv := sshdEnv
@@ -441,13 +456,20 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				}
 				serviceFile := createSshdServiceFile(t, execModule, execChild,
 					pamMkHomeDirModule, socketPath)
-				sshdPort, userHome = startSSHdForTest(t, serviceFile, sshdHostKey, user,
-					sshdPreloadLibraries, sshdEnv, tc.daemonizeSSHd, tc.interactiveShell)
+				sshdPort = startSSHdForTest(t, serviceFile, sshdHostKey,
+					userHome, user, sshdPreloadLibraries, sshdEnv, tc.daemonizeSSHd,
+					tc.interactiveShell)
 			}
 
 			if !sharedSSHd {
 				_, err := os.Stat(userHome)
-				require.ErrorIs(t, err, os.ErrNotExist, "Unexpected error checking for %q", userHome)
+				if tc.wantUserAlreadyExist {
+					require.NoError(t, err, os.ErrNotExist,
+						"User home %q must already exist", userHome)
+				} else {
+					require.ErrorIs(t, err, os.ErrNotExist,
+						"Unexpected error checking for %q", userHome)
+				}
 			}
 
 			knownHost := filepath.Join(t.TempDir(), "known_hosts")
@@ -456,13 +478,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			), 0600)
 			require.NoError(t, err, "Setup: can't create known hosts file")
 
-			outDir := t.TempDir()
-			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
-			td.Command = tapeCommand
-			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
-			td.Env["HOME"] = t.TempDir()
-			td.Env[pamSSHUserEnv] = user
-			td.Env["AUTHD_PAM_SSH_ARGS"] = strings.Join([]string{
+			sshArgs := []string{
 				"-p", sshdPort,
 				"-F", os.DevNull,
 				"-i", os.DevNull,
@@ -470,7 +486,20 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				"-o", "PasswordAuthentication=no",
 				"-o", "PubkeyAuthentication=no",
 				"-o", "UserKnownHostsFile=" + knownHost,
-			}, " ")
+			}
+
+			if tc.interactiveShell {
+				require.Nil(t, tc.command, "Setup: Interactive shell and commands are incompatible")
+			}
+			sshArgs = append(sshArgs, tc.command...)
+
+			outDir := t.TempDir()
+			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
+			td.Command = tapeCommand
+			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
+			td.Env["HOME"] = t.TempDir()
+			td.Env[pamSSHUserEnv] = user
+			td.Env["AUTHD_PAM_SSH_ARGS"] = strings.Join(sshArgs, " ")
 			td.Variables = tc.tapeVariables
 			td.RunVhs(t, vhsTestTypeSSH, outDir, nil)
 			got := sanitizeGoldenFile(t, td, outDir)
@@ -486,6 +515,9 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				if nssLibrary != "" {
 					requireGetEntExists(t, nssLibrary, socketPath, user, tc.isLocalUser)
 				}
+
+				_, err := os.Stat(userHome)
+				require.Error(t, err, "User %q home %q must not exist", user, userHome)
 			} else {
 				require.Contains(t, got, userEnv, "Logged in user does not matches")
 
@@ -503,12 +535,10 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 					}
 				}
 
-				if !tc.wantUserAlreadyExist {
-					// Check if user home has been created, but only if the user is a new one.
-					stat, err := os.Stat(userHome)
-					require.NoError(t, err, "Error checking for %q", userHome)
-					require.True(t, stat.IsDir(), "%q is not a directory", userHome)
-				}
+				// Check if user home has been created.
+				stat, err := os.Stat(userHome)
+				require.NoError(t, err, "Error checking for %q", userHome)
+				require.True(t, stat.IsDir(), "User %q home %q is not a directory", user, userHome)
 			}
 
 			if tc.wantLocalGroups || tc.oldDB != "" {
@@ -590,12 +620,18 @@ func createSshdServiceFile(t *testing.T, module, execChild, mkHomeModule, socket
 	return serviceFile
 }
 
-func startSSHdForTest(t *testing.T, serviceFile, hostKey, user string, preloadLibraries []string, env []string, daemonize bool, interactiveShell bool) (string, string) {
+func expectedUserHome(t *testing.T, userName string) string {
+	t.Helper()
+
+	return filepath.Join(t.TempDir(), strings.ToLower(userName))
+}
+
+func startSSHdForTest(t *testing.T, serviceFile, hostKey, userHome, user string, preloadLibraries []string, env []string, daemonize bool, interactiveShell bool) string {
 	t.Helper()
 
 	sshdConnectCommand := fmt.Sprintf(
-		"/usr/bin/echo ' SSHD: Connected to ssh via authd module! [%s]'",
-		t.Name())
+		"/usr/bin/sleep %.2f && /usr/bin/echo ' SSHD: Connected to ssh via authd module! [%s]'",
+		sleepDuration(1*time.Second).Seconds(), t.Name())
 	if daemonize {
 		// When in daemon mode SSH doesn't show debug infos, so let's
 		// handle this manually.
@@ -605,17 +641,18 @@ func startSSHdForTest(t *testing.T, serviceFile, hostKey, user string, preloadLi
 		sshdConnectCommand = "/bin/sh"
 	}
 
-	homeBase := t.TempDir()
-	userHome := filepath.Join(homeBase, user)
+	require.NotEmpty(t, user, "Setup: User name is unset")
+	require.NotEmpty(t, userHome, "Setup: User HOME for %q is unset", user)
+
 	sshdPort := startSSHd(t, hostKey, sshdConnectCommand, append([]string{
-		fmt.Sprintf("HOME=%s", homeBase),
+		fmt.Sprintf("HOME=%s", t.TempDir()),
 		fmt.Sprintf("LD_PRELOAD=%s", strings.Join(preloadLibraries, ":")),
 		fmt.Sprintf("AUTHD_TEST_SSH_USER=%s", user),
 		fmt.Sprintf("AUTHD_TEST_SSH_HOME=%s", userHome),
 		fmt.Sprintf("AUTHD_TEST_SSH_PAM_SERVICE=%s", serviceFile),
 	}, env...), daemonize)
 
-	return sshdPort, userHome
+	return sshdPort
 }
 
 func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string, daemonize bool) (*exec.Cmd, string, string) {
@@ -674,7 +711,9 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	sshd, sshdPidFile, sshdLogFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env, daemonize)
 	sshdStderr := bytes.Buffer{}
 	sshd.Stderr = &sshdStderr
-	if testing.Verbose() {
+
+	isCIVerbose := testutils.IsCI() && testing.Verbose()
+	if isCIVerbose {
 		sshd.Stdout = os.Stdout
 		sshd.Stderr = os.Stderr
 	}
@@ -685,9 +724,14 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	sshdPid := sshd.Process.Pid
 
 	t.Cleanup(func() {
-		if testing.Verbose() || !t.Failed() {
+		if isCIVerbose || !t.Failed() {
 			return
 		}
+
+		if testing.Verbose() {
+			t.Logf("SSHd log:\n%s", sshdStderr.Bytes())
+		}
+
 		sshdLog := filepath.Join(t.TempDir(), "sshd.log")
 		require.NoError(t, os.WriteFile(sshdLog, sshdStderr.Bytes(), 0600),
 			"TearDown: Saving sshd log")
