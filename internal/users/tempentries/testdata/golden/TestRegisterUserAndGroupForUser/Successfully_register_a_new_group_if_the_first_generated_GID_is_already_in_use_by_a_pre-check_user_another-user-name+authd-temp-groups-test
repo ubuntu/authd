@@ -1,0 +1,4 @@
+name: another-user-name+authd-temp-groups-test
+gid: 54321
+users: []
+passwd: ""

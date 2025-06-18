@@ -66,11 +66,10 @@ func groupEntry(group groupRecord) types.GroupEntry {
 	return types.GroupEntry{Name: group.name, GID: group.gid, Passwd: group.passwd}
 }
 
-// RegisterGroup registers a temporary group with a unique GID in our NSS handler (in memory, not in the database).
+// registerGroup registers a temporary group with a unique GID in our NSS handler (in memory, not in the database).
 //
-// Returns the generated GID and a cleanup function that should be called to remove the temporary group once the group
-// was added to the database.
-func (r *temporaryGroupRecords) RegisterGroup(name string) (gid uint32, cleanup func(), err error) {
+// Returns the generated GID and a cleanup function that should be called to remove the temporary group.
+func (r *temporaryGroupRecords) registerGroup(name string) (gid uint32, cleanup func(), err error) {
 	r.registerMu.Lock()
 	defer r.registerMu.Unlock()
 
@@ -117,8 +116,6 @@ func (r *temporaryGroupRecords) uniqueNameAndGID(name string, gid uint32, groupE
 	if _, ok := r.groups[gid]; ok {
 		return false, nil
 	}
-
-	// FIXME: Also check here if the generated GID is not part of the pre-check users UIDs!
 
 	for _, entry := range groupEntries {
 		if entry.Name == name {
