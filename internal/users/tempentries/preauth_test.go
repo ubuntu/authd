@@ -36,6 +36,11 @@ func TestPreAuthUser(t *testing.T) {
 			uidsToGenerate: []uint32{uidToGenerate},
 			wantUIDs:       []uint32{uidToGenerate, uidToGenerate},
 		},
+		"Successfully_register_a_pre-auth_user_if_the_first_generated_UID_is_already_registered": {
+			users:          []string{defaultLoginName, "other-test"},
+			uidsToGenerate: []uint32{uidToGenerate, uidToGenerate, uidToGenerate + 1},
+			wantUIDs:       []uint32{uidToGenerate, uidToGenerate + 1},
+		},
 		"No_error_when_registering_a_pre-auth_user_with_the_same_name": {users: []string{defaultLoginName, defaultLoginName}},
 
 		"Error_when_maximum_number_of_pre-auth_users_is_reached": {maxUsers: true, wantErr: true},
