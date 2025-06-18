@@ -187,6 +187,13 @@ func (r *preAuthUserRecords) RegisterPreAuthUser(loginName string) (uid uint32, 
 // isUniqueUID returns true if the given UID is unique in the system. It returns false if the UID is already assigned to
 // a user by any NSS source.
 func (r *preAuthUserRecords) isUniqueUID(uid uint32, passwdEntries []types.UserEntry, groupEntries []types.GroupEntry) (bool, error) {
+	r.rwMu.RLock()
+	defer r.rwMu.RUnlock()
+
+	if _, ok := r.users[uid]; ok {
+		return false, nil
+	}
+
 	for _, entry := range passwdEntries {
 		if entry.UID == uid {
 			log.Debugf(context.Background(), "ID %d already in use by user %q", uid, entry.Name)
