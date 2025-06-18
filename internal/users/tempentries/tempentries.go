@@ -185,3 +185,31 @@ func (r *TemporaryRecords) RegisterPreAuthUser(loginName string) (uid uint32, er
 		return uid, nil
 	}
 }
+
+// RegisterGroupForUser registers a temporary group with a unique GID in our
+// NSS handler (in memory, not in the database) for the provided UID.
+//
+// Returns the generated GID and a cleanup function that should be called to remove
+// the temporary group once the group was added to the database.
+func (r *TemporaryRecords) RegisterGroupForUser(uid uint32, name string) (gid uint32, cleanup func(), err error) {
+	for {
+		gid, cleanup, err := r.temporaryGroupRecords.registerGroup(name)
+		if err != nil {
+			return gid, cleanup, err
+		}
+
+		if gid == uid {
+			// Generated GID matches current user UID, try again...
+			cleanup()
+			continue
+		}
+
+		if !r.idTracker.trackID(gid) {
+			// If the UID is not unique, generate a new one in the next iteration.
+			cleanup()
+			continue
+		}
+
+		return gid, func() { cleanup(); r.idTracker.forgetID(gid) }, nil
+	}
+}

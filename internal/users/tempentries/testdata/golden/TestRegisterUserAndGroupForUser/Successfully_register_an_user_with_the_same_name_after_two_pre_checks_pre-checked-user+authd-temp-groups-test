@@ -1,0 +1,4 @@
+name: pre-checked-user+authd-temp-groups-test
+gid: 54321
+users: []
+passwd: ""

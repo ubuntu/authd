@@ -433,6 +433,7 @@ func TestAllUsers(t *testing.T) {
 
 func TestGroupByIDAndName(t *testing.T) {
 	t.Parallel()
+	userUID := uint32(12345)
 
 	tests := map[string]struct {
 		gid         uint32
@@ -462,7 +463,7 @@ func TestGroupByIDAndName(t *testing.T) {
 
 			if tc.isTempGroup {
 				var cleanup func()
-				tc.gid, cleanup, err = m.TemporaryRecords().RegisterGroup("tempgroup1")
+				tc.gid, cleanup, err = m.TemporaryRecords().RegisterGroupForUser(userUID, "tempgroup1")
 				require.NoError(t, err, "RegisterGroup should not return an error, but did")
 				t.Cleanup(cleanup)
 			}

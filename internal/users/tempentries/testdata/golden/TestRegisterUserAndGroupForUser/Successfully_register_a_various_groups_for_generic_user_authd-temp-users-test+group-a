@@ -1,0 +1,4 @@
+name: authd-temp-users-test+group-a
+gid: 54321
+users: []
+passwd: ""
