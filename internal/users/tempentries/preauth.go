@@ -123,8 +123,16 @@ func (r *preAuthUserRecords) RegisterPreAuthUser(loginName string) (uid uint32, 
 	r.registerMu.Lock()
 	defer r.registerMu.Unlock()
 
-	if len(r.users) >= MaxPreAuthUsers {
-		return 0, errors.New("maximum number of pre-auth users reached, login for new users via SSH is disabled until authd is restarted")
+	if err = func() error {
+		r.rwMu.RLock()
+		defer r.rwMu.RUnlock()
+
+		if len(r.users) >= MaxPreAuthUsers {
+			return errors.New("maximum number of pre-auth users reached, login for new users via SSH is disabled until authd is restarted")
+		}
+		return nil
+	}(); err != nil {
+		return 0, err
 	}
 
 	// Check if there is already a pre-auth user for that name
