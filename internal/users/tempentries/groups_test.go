@@ -28,6 +28,11 @@ func TestRegisterGroup(t *testing.T) {
 			gidsToGenerate: []uint32{0, gidToGenerate}, // GID 0 (root) always exists
 			wantGIDs:       []uint32{gidToGenerate},
 		},
+		"Successfully_register_a_group_if_the_first_generated_GID_is_already_registered": {
+			groups:         []string{defaultGroupName, "other-group"},
+			gidsToGenerate: []uint32{gidToGenerate, gidToGenerate, gidToGenerate + 1},
+			wantGIDs:       []uint32{gidToGenerate, gidToGenerate + 1},
+		},
 
 		"Error_when_name_is_already_in_use": {groups: []string{"root"}, wantErr: []bool{true}},
 		"Error_when_registering_a_group_with_the_same_name": {
