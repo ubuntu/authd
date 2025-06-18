@@ -461,8 +461,10 @@ func TestGroupByIDAndName(t *testing.T) {
 			m := newManagerForTests(t, dbDir)
 
 			if tc.isTempGroup {
-				tc.gid, _, err = m.TemporaryRecords().RegisterGroup("tempgroup1")
+				var cleanup func()
+				tc.gid, cleanup, err = m.TemporaryRecords().RegisterGroup("tempgroup1")
 				require.NoError(t, err, "RegisterGroup should not return an error, but did")
+				t.Cleanup(cleanup)
 			}
 
 			var group types.GroupEntry
@@ -482,8 +484,7 @@ func TestGroupByIDAndName(t *testing.T) {
 			if tc.isTempGroup {
 				require.Equal(t, tc.gid, group.GID)
 				group.GID = 0
-				require.NotEmpty(t, group.Passwd)
-				group.Passwd = ""
+				require.Empty(t, group.Passwd)
 			}
 
 			golden.CheckOrUpdateYAML(t, group)
