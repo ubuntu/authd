@@ -1,4 +1,4 @@
-name: ""
+name: authd-pre-auth-user-XXXXXXXX
 uid: 12345
 gid: 12345
 gecos: test
