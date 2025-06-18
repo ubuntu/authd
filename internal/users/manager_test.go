@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/ubuntu/authd/internal/users/idgenerator"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
+	"github.com/ubuntu/authd/internal/users/tempentries"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
@@ -345,10 +347,9 @@ func TestUserByIDAndName(t *testing.T) {
 		wantErr     bool
 		wantErrType error
 	}{
-		"Successfully_get_user_by_ID":             {uid: 1111, dbFile: "multiple_users_and_groups"},
-		"Successfully_get_user_by_name":           {username: "user1", dbFile: "multiple_users_and_groups"},
-		"Successfully_get_temporary_user_by_ID":   {dbFile: "multiple_users_and_groups", isTempUser: true},
-		"Successfully_get_temporary_user_by_name": {username: "tempuser1", dbFile: "multiple_users_and_groups", isTempUser: true},
+		"Successfully_get_user_by_ID":           {uid: 1111, dbFile: "multiple_users_and_groups"},
+		"Successfully_get_user_by_name":         {username: "user1", dbFile: "multiple_users_and_groups"},
+		"Successfully_get_temporary_user_by_ID": {dbFile: "multiple_users_and_groups", isTempUser: true},
 
 		"Error_if_user_does_not_exist_-_by_ID":   {uid: 0, dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 		"Error_if_user_does_not_exist_-_by_name": {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
@@ -364,7 +365,7 @@ func TestUserByIDAndName(t *testing.T) {
 			m := newManagerForTests(t, dbDir)
 
 			if tc.isTempUser {
-				tc.uid, _, err = m.TemporaryRecords().RegisterUser("tempuser1")
+				tc.uid, err = m.TemporaryRecords().RegisterPreAuthUser("tempuser1")
 				require.NoError(t, err, "RegisterUser should not return an error, but did")
 			}
 
@@ -383,6 +384,8 @@ func TestUserByIDAndName(t *testing.T) {
 			// Registering a temporary user creates it with a random UID, GID, and gecos, so we have to make it
 			// deterministic before comparing it with the golden file
 			if tc.isTempUser {
+				require.True(t, strings.HasPrefix(user.Name, tempentries.UserPrefix))
+				user.Name = tempentries.UserPrefix + "{{random-suffix}}"
 				require.Equal(t, tc.uid, user.UID)
 				user.UID = 0
 				require.Equal(t, tc.uid, user.GID)
