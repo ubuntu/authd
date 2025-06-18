@@ -30,6 +30,10 @@ func TestRegisterGroup(t *testing.T) {
 		},
 
 		"Error_when_name_is_already_in_use": {groups: []string{"root"}, wantErr: []bool{true}},
+		"Error_when_registering_a_group_with_the_same_name": {
+			groups:  []string{defaultGroupName, defaultGroupName},
+			wantErr: []bool{false, true},
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
