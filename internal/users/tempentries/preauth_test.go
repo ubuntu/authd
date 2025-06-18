@@ -1,6 +1,7 @@
 package tempentries
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -139,8 +140,9 @@ func checkPreAuthUser(t *testing.T, user types.UserEntry) {
 	t.Helper()
 
 	// The name field is randomly generated, so unset it before comparing the user with the golden file.
-	require.NotEmpty(t, user.Name, "Name should not be empty")
-	user.Name = ""
+	require.True(t, strings.HasPrefix(user.Name, UserPrefix),
+		"Name should have %q prefix", UserPrefix)
+	user.Name = UserPrefix + "-XXXXXXXX"
 
 	golden.CheckOrUpdateYAML(t, user)
 }

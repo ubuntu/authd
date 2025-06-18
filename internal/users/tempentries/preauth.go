@@ -21,6 +21,9 @@ const (
 	// defined by UID_MIN and UID_MAX in the config file), otherwise finding a unique UID by trial and error can take
 	// too long.
 	MaxPreAuthUsers = 4096
+
+	// UserPrefix is the prefix used as login name by the pre-auth temporary users.
+	UserPrefix = "authd-pre-auth-user"
 )
 
 type preAuthUser struct {
@@ -208,7 +211,7 @@ func (r *preAuthUserRecords) addPreAuthUser(uid uint32, loginName string) (name 
 	if _, err := rand.Read(bytes); err != nil {
 		return "", nil, fmt.Errorf("failed to generate random name: %w", err)
 	}
-	name = fmt.Sprintf("authd-pre-auth-user-%x", bytes)
+	name = fmt.Sprintf("%s-%x", UserPrefix, bytes)
 
 	user := preAuthUser{name: name, uid: uid, loginName: loginName}
 	r.users[uid] = user
