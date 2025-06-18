@@ -2,26 +2,22 @@ package tempentries
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"sync"
 
-	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 )
 
 type groupRecord struct {
-	name   string
-	gid    uint32
-	passwd string
+	name string
+	gid  uint32
 }
 
 type temporaryGroupRecords struct {
 	idGenerator IDGenerator
-	registerMu  sync.Mutex
-	rwMu        sync.RWMutex
+	mu          sync.Mutex
 	groups      map[uint32]groupRecord
 	gidByName   map[string]uint32
 }
@@ -29,56 +25,21 @@ type temporaryGroupRecords struct {
 func newTemporaryGroupRecords(idGenerator IDGenerator) *temporaryGroupRecords {
 	return &temporaryGroupRecords{
 		idGenerator: idGenerator,
-		registerMu:  sync.Mutex{},
-		rwMu:        sync.RWMutex{},
 		groups:      make(map[uint32]groupRecord),
 		gidByName:   make(map[string]uint32),
 	}
-}
-
-// GroupByID returns the group information for the given group ID.
-func (r *temporaryGroupRecords) GroupByID(gid uint32) (types.GroupEntry, error) {
-	r.rwMu.RLock()
-	defer r.rwMu.RUnlock()
-
-	group, ok := r.groups[gid]
-	if !ok {
-		return types.GroupEntry{}, db.NewGIDNotFoundError(gid)
-	}
-
-	return groupEntry(group), nil
-}
-
-// GroupByName returns the group information for the given group name.
-func (r *temporaryGroupRecords) GroupByName(name string) (types.GroupEntry, error) {
-	r.rwMu.RLock()
-	defer r.rwMu.RUnlock()
-
-	gid, ok := r.gidByName[name]
-	if !ok {
-		return types.GroupEntry{}, db.NewGroupNotFoundError(name)
-	}
-
-	return r.GroupByID(gid)
-}
-
-func groupEntry(group groupRecord) types.GroupEntry {
-	return types.GroupEntry{Name: group.name, GID: group.gid, Passwd: group.passwd}
 }
 
 // registerGroup registers a temporary group with a unique GID in our NSS handler (in memory, not in the database).
 //
 // Returns the generated GID and a cleanup function that should be called to remove the temporary group.
 func (r *temporaryGroupRecords) registerGroup(name string) (gid uint32, cleanup func(), err error) {
-	r.registerMu.Lock()
-	defer r.registerMu.Unlock()
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
 	// Check if there is already a temporary group with this name
-	_, err = r.GroupByName(name)
-	if err != nil && !errors.Is(err, NoDataFoundError{}) {
-		return 0, nil, fmt.Errorf("could not check if temporary group %q already exists: %w", name, err)
-	}
-	if err == nil {
+	_, ok := r.gidByName[name]
+	if ok {
 		return 0, nil, fmt.Errorf("group %q already exists", name)
 	}
 
@@ -110,9 +71,6 @@ func (r *temporaryGroupRecords) registerGroup(name string) (gid uint32, cleanup 
 }
 
 func (r *temporaryGroupRecords) uniqueNameAndGID(name string, gid uint32, groupEntries []types.GroupEntry) (bool, error) {
-	r.rwMu.RLock()
-	defer r.rwMu.RUnlock()
-
 	if _, ok := r.groups[gid]; ok {
 		return false, nil
 	}
@@ -134,19 +92,18 @@ func (r *temporaryGroupRecords) uniqueNameAndGID(name string, gid uint32, groupE
 }
 
 func (r *temporaryGroupRecords) addTemporaryGroup(gid uint32, name string) (cleanup func()) {
-	r.rwMu.Lock()
-	defer r.rwMu.Unlock()
-
 	r.groups[gid] = groupRecord{name: name, gid: gid}
 	r.gidByName[name] = gid
 
-	return func() { r.deleteTemporaryGroup(gid) }
+	return func() {
+		r.mu.Lock()
+		defer r.mu.Unlock()
+
+		r.deleteTemporaryGroup(gid)
+	}
 }
 
 func (r *temporaryGroupRecords) deleteTemporaryGroup(gid uint32) {
-	r.rwMu.Lock()
-	defer r.rwMu.Unlock()
-
 	group, ok := r.groups[gid]
 	if !ok {
 		log.Warningf(context.Background(), "Can't delete temporary group with GID %d, it does not exist", gid)

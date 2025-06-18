@@ -433,21 +433,17 @@ func TestAllUsers(t *testing.T) {
 
 func TestGroupByIDAndName(t *testing.T) {
 	t.Parallel()
-	userUID := uint32(12345)
 
 	tests := map[string]struct {
-		gid         uint32
-		groupname   string
-		dbFile      string
-		isTempGroup bool
+		gid       uint32
+		groupname string
+		dbFile    string
 
 		wantErr     bool
 		wantErrType error
 	}{
-		"Successfully_get_group_by_ID":             {gid: 11111, dbFile: "multiple_users_and_groups"},
-		"Successfully_get_group_by_name":           {groupname: "group1", dbFile: "multiple_users_and_groups"},
-		"Successfully_get_temporary_group_by_ID":   {dbFile: "multiple_users_and_groups", isTempGroup: true},
-		"Successfully_get_temporary_group_by_name": {groupname: "tempgroup1", dbFile: "multiple_users_and_groups", isTempGroup: true},
+		"Successfully_get_group_by_ID":   {gid: 11111, dbFile: "multiple_users_and_groups"},
+		"Successfully_get_group_by_name": {groupname: "group1", dbFile: "multiple_users_and_groups"},
 
 		"Error_if_group_does_not_exist_-_by_ID":   {gid: 0, dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 		"Error_if_group_does_not_exist_-_by_name": {groupname: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
@@ -461,13 +457,6 @@ func TestGroupByIDAndName(t *testing.T) {
 			require.NoError(t, err, "Setup: could not create database from testdata")
 			m := newManagerForTests(t, dbDir)
 
-			if tc.isTempGroup {
-				var cleanup func()
-				tc.gid, cleanup, err = m.TemporaryRecords().RegisterGroupForUser(userUID, "tempgroup1")
-				require.NoError(t, err, "RegisterGroup should not return an error, but did")
-				t.Cleanup(cleanup)
-			}
-
 			var group types.GroupEntry
 			if tc.groupname != "" {
 				group, err = m.GroupByName(tc.groupname)
@@ -478,14 +467,6 @@ func TestGroupByIDAndName(t *testing.T) {
 			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
 			if tc.wantErrType != nil || tc.wantErr {
 				return
-			}
-
-			// Registering a temporary group creates it with a random GID and random passwd, so we have to make it
-			// deterministic before comparing it with the golden file
-			if tc.isTempGroup {
-				require.Equal(t, tc.gid, group.GID)
-				group.GID = 0
-				require.Empty(t, group.Passwd)
 			}
 
 			golden.CheckOrUpdateYAML(t, group)
