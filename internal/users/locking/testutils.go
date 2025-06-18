@@ -2,6 +2,7 @@ package userslocking
 
 import (
 	"context"
+	"fmt"
 	"sync/atomic"
 
 	"github.com/ubuntu/authd/internal/testsdetection"
@@ -21,7 +22,7 @@ func Z_ForTests_OverrideLocking() {
 
 	writeLockImpl = func() error {
 		if !overrideLocked.CompareAndSwap(false, true) {
-			return ErrLock
+			return fmt.Errorf("%w: already locked", ErrLock)
 		}
 
 		log.Debug(context.Background(), "TestOverride: Local entries locked!")
@@ -30,7 +31,7 @@ func Z_ForTests_OverrideLocking() {
 
 	writeUnlockImpl = func() error {
 		if !overrideLocked.CompareAndSwap(true, false) {
-			return ErrUnlock
+			return fmt.Errorf("%w: already unlocked", ErrUnlock)
 		}
 
 		log.Debug(context.Background(), "TestOverride: Local entries unlocked!")
