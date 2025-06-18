@@ -97,7 +97,8 @@ body:
           _SYSTEMD_UNIT=snap.authd-google.authd-google.service \+ UNIT=snap.authd-google.authd-google.service \+ SYSLOG_IDENTIFIER=authd-google \+ \
           '_CMDLINE="gdm-session-worker [pam/gdm-authd]"' | sed -E -e 's/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/<UUID redacted>/g' \
             -e 's/GOCSPX-[0-9a-zA-Z_-]+/<redacted>/g' \
-            -e 's/[0-9a-zA-Z_-]+\.apps\.googleusercontent\.com/<redacted>/g')
+            -e 's/[0-9a-zA-Z_-]+\.apps\.googleusercontent\.com/<redacted>/g' \
+            -e 's/(client_secret = )\S+.*/\1<redacted>/g')
         \`\`\`
 
         #### authd apt history
