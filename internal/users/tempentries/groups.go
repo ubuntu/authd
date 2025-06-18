@@ -111,6 +111,15 @@ func (r *temporaryGroupRecords) RegisterGroup(name string) (gid uint32, cleanup 
 }
 
 func (r *temporaryGroupRecords) uniqueNameAndGID(name string, gid uint32, groupEntries []types.GroupEntry) (bool, error) {
+	r.rwMu.RLock()
+	defer r.rwMu.RUnlock()
+
+	if _, ok := r.groups[gid]; ok {
+		return false, nil
+	}
+
+	// FIXME: Also check here if the generated GID is not part of the pre-check users UIDs!
+
 	for _, entry := range groupEntries {
 		if entry.Name == name {
 			// A group with the same name already exists, we can't register this temporary group.
