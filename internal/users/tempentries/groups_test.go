@@ -135,9 +135,7 @@ func TestGroupByIDAndName(t *testing.T) {
 func checkGroup(t *testing.T, group types.GroupEntry) {
 	t.Helper()
 
-	// The passwd field is randomly generated, so unset it before comparing the group with the golden file.
-	require.NotEmpty(t, group.Passwd, "Passwd should not be empty")
-	group.Passwd = ""
+	require.Empty(t, group.Passwd, "Passwd should be empty")
 
 	golden.CheckOrUpdateYAML(t, group)
 }

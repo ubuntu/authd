@@ -2,7 +2,6 @@ package tempentries
 
 import (
 	"context"
-	"crypto/rand"
 	"errors"
 	"fmt"
 	"sync"
@@ -84,6 +83,11 @@ func (r *temporaryGroupRecords) RegisterGroup(name string) (gid uint32, cleanup 
 		return 0, nil, fmt.Errorf("group %q already exists", name)
 	}
 
+	groupEntries, err := localentries.GetGroupEntries()
+	if err != nil {
+		return 0, nil, fmt.Errorf("could not register group, failed to get group entries: %w", err)
+	}
+
 	// Generate a GID until we find a unique one
 	for {
 		gid, err = r.idGenerator.GenerateGID()
@@ -91,46 +95,30 @@ func (r *temporaryGroupRecords) RegisterGroup(name string) (gid uint32, cleanup 
 			return 0, nil, err
 		}
 
-		// To avoid races where a group with this GID is created by some NSS source after we checked, we register this
-		// GID in our NSS handler and then check if another group with the same GID exists in the system. This way we
-		// can guarantee that the GID is unique, under the assumption that other NSS sources don't add groups with a GID
-		// that we already registered (if they do, there's nothing we can do about it).
-		var tmpID string
-		tmpID, cleanup, err = r.addTemporaryGroup(gid, name)
+		unique, err := r.uniqueNameAndGID(name, gid, groupEntries)
 		if err != nil {
-			return 0, nil, fmt.Errorf("could not register temporary group: %w", err)
-		}
-
-		unique, err := r.uniqueNameAndGID(name, gid, tmpID)
-		if err != nil {
-			cleanup()
 			return 0, nil, fmt.Errorf("could not check if GID %d is unique: %w", gid, err)
 		}
-		if unique {
-			break
+		if !unique {
+			// If the GID is not unique, generate a new one in the next iteration.
+			continue
 		}
 
-		// If the GID is not unique, remove the temporary group and generate a new one in the next iteration.
-		cleanup()
+		cleanup = r.addTemporaryGroup(gid, name)
+		log.Debugf(context.Background(), "Registered group %q with GID %d", name, gid)
+		return gid, cleanup, nil
 	}
-
-	log.Debugf(context.Background(), "Registered group %q with GID %d", name, gid)
-	return gid, cleanup, nil
 }
 
-func (r *temporaryGroupRecords) uniqueNameAndGID(name string, gid uint32, tmpID string) (bool, error) {
-	entries, err := localentries.GetGroupEntries()
-	if err != nil {
-		return false, err
-	}
-	for _, entry := range entries {
-		if entry.Name == name && entry.Passwd != tmpID {
+func (r *temporaryGroupRecords) uniqueNameAndGID(name string, gid uint32, groupEntries []types.GroupEntry) (bool, error) {
+	for _, entry := range groupEntries {
+		if entry.Name == name {
 			// A group with the same name already exists, we can't register this temporary group.
 			log.Debugf(context.Background(), "Name %q already in use by GID %d", name, entry.GID)
 			return false, fmt.Errorf("group %q already exists", name)
 		}
 
-		if entry.GID == gid && entry.Passwd != tmpID {
+		if entry.GID == gid {
 			log.Debugf(context.Background(), "GID %d already in use by group %q, generating a new one", gid, entry.Name)
 			return false, nil
 		}
@@ -139,24 +127,14 @@ func (r *temporaryGroupRecords) uniqueNameAndGID(name string, gid uint32, tmpID 
 	return true, nil
 }
 
-func (r *temporaryGroupRecords) addTemporaryGroup(gid uint32, name string) (tmpID string, cleanup func(), err error) {
+func (r *temporaryGroupRecords) addTemporaryGroup(gid uint32, name string) (cleanup func()) {
 	r.rwMu.Lock()
 	defer r.rwMu.Unlock()
 
-	// Generate a 64 character (32 bytes in hex) random ID which we store in the passwd field of the temporary group
-	// record to be able to identify it in isUniqueGID.
-	bytes := make([]byte, 32)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", nil, fmt.Errorf("failed to generate random name: %w", err)
-	}
-	tmpID = fmt.Sprintf("authd-temp-group-%x", bytes)
-
-	r.groups[gid] = groupRecord{name: name, gid: gid, passwd: tmpID}
+	r.groups[gid] = groupRecord{name: name, gid: gid}
 	r.gidByName[name] = gid
 
-	cleanup = func() { r.deleteTemporaryGroup(gid) }
-
-	return tmpID, cleanup, nil
+	return func() { r.deleteTemporaryGroup(gid) }
 }
 
 func (r *temporaryGroupRecords) deleteTemporaryGroup(gid uint32) {

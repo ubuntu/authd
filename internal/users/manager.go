@@ -174,6 +174,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 
 	var groupRows []db.GroupRow
 	var localGroups []string
+	var newGroups []types.GroupInfo
 	for _, g := range u.Groups {
 		if g.Name == "" {
 			return fmt.Errorf("empty group name for user %q", u.Name)
@@ -207,20 +208,33 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		}
 
 		if g.GID == nil {
-			// The group does not exist in the database, so we generate a unique GID for it. Similar to the RegisterUser
-			// call above, this also registers a temporary group in our NSS handler. We remove that temporary group
-			// before returning from this function, at which point the group is added to the database (so we don't need
-			// the temporary group anymore to keep the GID unique).
+			// The group does not exist in the database, so we generate a unique GID for it.
+			newGroups = append(newGroups, g)
+			continue
+		}
+
+		groupRows = append(groupRows, db.NewGroupRow(g.Name, *g.GID, g.UGID))
+	}
+
+	if len(newGroups) > 0 {
+		if err := userslocking.WriteRecLock(); err != nil {
+			return err
+		}
+		defer func() {
+			if unlockErr := userslocking.WriteRecUnlock(); unlockErr != nil {
+				err = errors.Join(err, unlockErr)
+			}
+		}()
+
+		for _, g := range newGroups {
 			gid, cleanup, err := m.temporaryRecords.RegisterGroup(g.Name)
 			if err != nil {
 				return fmt.Errorf("could not generate GID for group %q: %v", g.Name, err)
 			}
 
 			defer cleanup()
-			g.GID = &gid
+			groupRows = append(groupRows, db.NewGroupRow(g.Name, gid, g.UGID))
 		}
-
-		groupRows = append(groupRows, db.NewGroupRow(g.Name, *g.GID, g.UGID))
 	}
 
 	oldLocalGroups, err := m.db.UserLocalGroups(uid)
