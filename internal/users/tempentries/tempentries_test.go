@@ -67,7 +67,7 @@ func TestRegisterUser(t *testing.T) {
 				if tc.preAuthUIDAlreadyExists {
 					preAuthUID = 0 // UID 0 (root) always exists
 				}
-				_, _, err := records.preAuthUserRecords.addPreAuthUser(preAuthUID, tc.userName)
+				err := records.preAuthUserRecords.addPreAuthUser(preAuthUID, tc.userName)
 				require.NoError(t, err, "addPreAuthUser should not return an error, but did")
 			}
 

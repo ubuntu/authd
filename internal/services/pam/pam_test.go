@@ -28,6 +28,7 @@ import (
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"github.com/ubuntu/authd/log"
 	"google.golang.org/grpc"
@@ -862,6 +863,9 @@ func TestMain(m *testing.M) {
 	}
 
 	log.SetLevel(log.DebugLevel)
+
+	userslocking.Z_ForTests_OverrideLocking()
+	defer userslocking.Z_ForTests_RestoreLocking()
 
 	cleanup, err := setupGlobalBrokerMock()
 	if err != nil {
