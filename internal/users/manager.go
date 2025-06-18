@@ -415,10 +415,6 @@ func (m *Manager) AllUsers() ([]types.UserEntry, error) {
 // GroupByName returns the group information for the given group name.
 func (m *Manager) GroupByName(groupname string) (types.GroupEntry, error) {
 	grp, err := m.db.GroupWithMembersByName(groupname)
-	if errors.Is(err, db.NoDataFoundError{}) {
-		// Check if the group is a temporary group.
-		return m.temporaryRecords.GroupByName(groupname)
-	}
 	if err != nil {
 		return types.GroupEntry{}, err
 	}
@@ -428,10 +424,6 @@ func (m *Manager) GroupByName(groupname string) (types.GroupEntry, error) {
 // GroupByID returns the group information for the given group ID.
 func (m *Manager) GroupByID(gid uint32) (types.GroupEntry, error) {
 	grp, err := m.db.GroupWithMembersByID(gid)
-	if errors.Is(err, db.NoDataFoundError{}) {
-		// Check if the group is a temporary group.
-		return m.temporaryRecords.GroupByID(gid)
-	}
 	if err != nil {
 		return types.GroupEntry{}, err
 	}
