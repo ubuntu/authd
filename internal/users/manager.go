@@ -231,7 +231,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 
 	if err = checkHomeDirOwnership(userRow.Dir, userRow.UID, userRow.GID); err != nil {
-		return fmt.Errorf("failed to check home directory owner and group: %w", err)
+		log.Warningf(context.Background(), "Failed to check home directory ownership: %v", err)
 	}
 
 	return nil
