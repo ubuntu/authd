@@ -1,3 +1,9 @@
+authd (0.5.6) UNRELEASED; urgency=medium
+
+  * New launchpad upload
+
+ -- adrian.dombeck@gmail.com <adrian.dombeck@canonical.com>  Wed, 18 Jun 2025 14:54:08 +0200
+
 authd (0.5.5) questing; urgency=medium
 
   * Fix race with accounts service which could result in authd users not being
