@@ -41,7 +41,6 @@ type preAuthUserRecords struct {
 	users       map[uint32]preAuthUser
 	uidByName   map[string]uint32
 	uidByLogin  map[string]uint32
-	numUsers    int
 }
 
 func newPreAuthUserRecords(idGenerator IDGenerator) *preAuthUserRecords {
@@ -124,7 +123,7 @@ func (r *preAuthUserRecords) RegisterPreAuthUser(loginName string) (uid uint32, 
 	r.registerMu.Lock()
 	defer r.registerMu.Unlock()
 
-	if r.numUsers >= MaxPreAuthUsers {
+	if len(r.users) >= MaxPreAuthUsers {
 		return 0, errors.New("maximum number of pre-auth users reached, login for new users via SSH is disabled until authd is restarted")
 	}
 
@@ -218,7 +217,6 @@ func (r *preAuthUserRecords) addPreAuthUser(uid uint32, loginName string) (err e
 	r.users[uid] = user
 	r.uidByName[name] = uid
 	r.uidByLogin[loginName] = uid
-	r.numUsers++
 
 	return nil
 }
@@ -238,6 +236,5 @@ func (r *preAuthUserRecords) deletePreAuthUser(uid uint32) {
 	delete(r.users, uid)
 	delete(r.uidByName, user.name)
 	delete(r.uidByLogin, user.loginName)
-	r.numUsers--
 	log.Debugf(context.Background(), "Removed temporary record for user %q with UID %d", user.name, uid)
 }
