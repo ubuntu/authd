@@ -125,9 +125,11 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 
 	var uid uint32
 
-	// Prevent a TOCTOU race condition between the check for existence in our database and the registration of the
-	// temporary user/group records. This does not prevent a race condition where a user is created by some other NSS
-	// source, but that is handled in the temporaryRecords.RegisterUser and temporaryRecords.RegisterGroup functions.
+	// Prevent a TOCTOU race condition between the check for existence in our
+	// database and the registration of the temporary user/group records.
+	// This does not prevent a race condition where a user is created by some
+	// other NSS source, but that is handled by locking the users database if
+	// this happens.
 	m.updateUserMu.Lock()
 	defer m.updateUserMu.Unlock()
 
@@ -154,10 +156,8 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			return fmt.Errorf("user %q already exists on the system (but not in this authd instance)", u.Name)
 		}
 
-		// The user does not exist, so we generate a unique UID for it. To avoid that a user with the same UID is
-		// created by some other NSS source, this also registers a temporary user in our NSS handler. We remove that
-		// temporary user before returning from this function, at which point the user is added to the database (so we
-		// don't need the temporary user anymore to keep the UID unique).
+		// The user does not exist, so we generate a unique UID for it or
+		// we reuse the one that has been already pre-registered.
 		var cleanup func()
 		uid, cleanup, err = m.temporaryRecords.RegisterUser(u.Name)
 		if err != nil {

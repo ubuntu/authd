@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/ubuntu/authd/internal/users/db"
+	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 )
@@ -22,7 +23,7 @@ type IDGenerator interface {
 
 // TemporaryRecords is the in-memory temporary user and group records.
 type TemporaryRecords struct {
-	*temporaryUserRecords
+	*idTracker
 	*preAuthUserRecords
 	*temporaryGroupRecords
 
@@ -33,7 +34,7 @@ type TemporaryRecords struct {
 func NewTemporaryRecords(idGenerator IDGenerator) *TemporaryRecords {
 	return &TemporaryRecords{
 		idGenerator:           idGenerator,
-		temporaryUserRecords:  newTemporaryUserRecords(idGenerator),
+		idTracker:             newIDTracker(),
 		preAuthUserRecords:    newPreAuthUserRecords(idGenerator),
 		temporaryGroupRecords: newTemporaryGroupRecords(idGenerator),
 	}
@@ -41,37 +42,26 @@ func NewTemporaryRecords(idGenerator IDGenerator) *TemporaryRecords {
 
 // UserByID returns the user information for the given user ID.
 func (r *TemporaryRecords) UserByID(uid uint32) (types.UserEntry, error) {
-	user, err := r.temporaryUserRecords.userByID(uid)
-	if errors.Is(err, NoDataFoundError{}) {
-		user, err = r.preAuthUserRecords.userByID(uid)
-	}
-	return user, err
+	return r.preAuthUserRecords.userByID(uid)
 }
 
 // UserByName returns the user information for the given user name.
 func (r *TemporaryRecords) UserByName(name string) (types.UserEntry, error) {
-	user, err := r.temporaryUserRecords.userByName(name)
-	if errors.Is(err, NoDataFoundError{}) {
-		user, err = r.preAuthUserRecords.userByName(name)
-	}
-	return user, err
+	return r.preAuthUserRecords.userByName(name)
 }
 
 // RegisterUser registers a temporary user with a unique UID in our NSS handler (in memory, not in the database).
 //
-// Returns the generated UID and a cleanup function that should be called to remove the temporary user once the user was
-// added to the database.
+// Returns the generated UID and a cleanup function that should be called to
+// remove the temporary user once the user is added to the database.
 func (r *TemporaryRecords) RegisterUser(name string) (uid uint32, cleanup func(), err error) {
-	r.temporaryUserRecords.registerMu.Lock()
-	defer r.temporaryUserRecords.registerMu.Unlock()
-
-	// Check if there is a temporary  user with the same login name.
-	_, err = r.temporaryUserRecords.userByName(name)
-	if err != nil && !errors.Is(err, NoDataFoundError{}) {
-		return 0, nil, fmt.Errorf("could not check if temporary user %q already exists: %w", name, err)
+	passwdEntries, err := localentries.GetPasswdEntries()
+	if err != nil {
+		return 0, nil, fmt.Errorf("could not check user, failed to get passwd entries: %w", err)
 	}
-	if err == nil {
-		return 0, nil, fmt.Errorf("user %q already exists", name)
+	groupEntries, err := localentries.GetGroupEntries()
+	if err != nil {
+		return 0, nil, fmt.Errorf("could not check user, failed to get group entries: %w", err)
 	}
 
 	// Check if there is a pre-auth user with the same login name.
@@ -80,9 +70,32 @@ func (r *TemporaryRecords) RegisterUser(name string) (uid uint32, cleanup func()
 		return 0, nil, fmt.Errorf("could not check if pre-auth user %q already exists: %w", name, err)
 	}
 	if err == nil {
-		// There is a pre-auth user with the same login name. Now that the user authenticated successfully, we can
-		// replace the pre-auth user with a temporary user.
-		return r.replacePreAuthUser(user, name)
+		// There is a pre-auth user with the same login name.
+
+		// Remove the pre-checked user as last thing, so that the user UID is exposed as the
+		// ones we manage in authd while we're updating the users, although there's no risk
+		// that someone else takes the UID here, since we're locked.
+		cleanup := func() {
+			r.deletePreAuthUser(user.UID)
+			r.forgetID(user.UID)
+			r.idTracker.forgetUser(name)
+		}
+
+		// Now that the user authenticated successfully, we don't really need to check again
+		// if the UID is unique, since that's something we did while registering it, and we're
+		// currently locked, so nothing else can add another user with such ID, but we do to
+		// ensure that there is not another user with the same name.
+		unique, err := uniqueNameAndUID(name, user.UID, passwdEntries, groupEntries)
+		if err != nil {
+			cleanup()
+			return 0, nil, fmt.Errorf("checking UID and name uniqueness: %w", err)
+		}
+		if !unique {
+			cleanup()
+			return 0, nil, fmt.Errorf("UID (%d) or name (%q) from pre-auth user are not unique", user.UID, name)
+		}
+
+		return user.UID, cleanup, nil
 	}
 
 	// Generate a UID until we find a unique one
@@ -92,57 +105,83 @@ func (r *TemporaryRecords) RegisterUser(name string) (uid uint32, cleanup func()
 			return 0, nil, err
 		}
 
-		// To avoid races where a user with this UID is created by some NSS source after we checked, we register this
-		// UID in our NSS handler and then check if another user with the same UID exists in the system. This way we
-		// can guarantee that the UID is unique, under the assumption that other NSS sources don't add users with a UID
-		// that we already registered (if they do, there's nothing we can do about it).
-		var tmpID string
-		tmpID, cleanup, err = r.temporaryUserRecords.addTemporaryUser(uid, name)
+		unique, err := uniqueNameAndUID(name, uid, passwdEntries, groupEntries)
 		if err != nil {
-			return 0, nil, fmt.Errorf("could not add temporary user record: %w", err)
+			return 0, nil, fmt.Errorf("checking UID and name uniqueness: %w", err)
+		}
+		if !unique {
+			// If the UID is not unique, generate a new one in the next iteration.
+			continue
 		}
 
-		unique, err := r.temporaryUserRecords.uniqueNameAndUID(name, uid, tmpID)
-		if err != nil {
-			err = fmt.Errorf("checking UID and name uniqueness: %w", err)
-			cleanup()
-			return 0, nil, err
-		}
-		if unique {
-			break
+		if !r.idTracker.trackID(uid) {
+			// If the UID is not unique, generate a new one in the next iteration.
+			continue
 		}
 
-		// If the UID is not unique, remove the temporary user and generate a new one in the next iteration.
-		cleanup()
+		tracked, currentUID := r.idTracker.trackUser(name, uid)
+		if !tracked {
+			// If the loginName is already set for a different UID, it means
+			// that another concurrent request won the race, so let's just
+			// use that one instead.
+			r.idTracker.forgetID(uid)
+			uid = currentUID
+		}
+
+		log.Debugf(context.Background(), "Generated UID %d for user UID %s", uid, name)
+		return uid, func() { r.idTracker.forgetID(uid); r.idTracker.forgetUser(name) }, nil
 	}
-
-	log.Debugf(context.Background(), "Added temporary record for user %q with UID %d", name, uid)
-	return uid, cleanup, nil
 }
 
-// replacePreAuthUser replaces a pre-auth user with a temporary user with the same name and UID.
-func (r *TemporaryRecords) replacePreAuthUser(user types.UserEntry, name string) (uid uint32, cleanup func(), err error) {
-	var tmpID string
-	tmpID, cleanup, err = r.addTemporaryUser(user.UID, name)
-	if err != nil {
-		return 0, nil, fmt.Errorf("could not add temporary user record: %w", err)
+// RegisterPreAuthUser registers a temporary user with a unique UID in our NSS handler (in memory, not in the database).
+//
+// The temporary user record is removed when UpdateUser is called with the same username.
+//
+// This method is called when a user logs in for the first time via SSH, in which case sshd checks if the user exists on
+// the system (before authentication), and denies the login if the user does not exist. We pretend that the user exists
+// by creating this temporary user record, which is converted into a permanent user record when UpdateUser is called
+// after the user authenticated successfully.
+//
+// Returns the generated UID.
+func (r *TemporaryRecords) RegisterPreAuthUser(loginName string) (uid uint32, err error) {
+	// Check if there is already a pre-auth user for that name
+	user, err := r.preAuthUserRecords.userByLogin(loginName)
+	if err != nil && !errors.Is(err, NoDataFoundError{}) {
+		return 0, fmt.Errorf("could not check if pre-auth user %q already exists: %w",
+			loginName, err)
+	}
+	if err == nil {
+		// A pre-auth user is already registered for this name, so we return the
+		// already generated UID.
+		return user.UID, nil
 	}
 
-	// Remove the pre-auth user from the pre-auth user records.
-	r.deletePreAuthUser(user.UID)
+	for {
+		uid, err := r.preAuthUserRecords.generatePreAuthUserID(loginName)
+		if err != nil {
+			return 0, err
+		}
 
-	// Check if the UID and name are unique.
-	unique, err := r.temporaryUserRecords.uniqueNameAndUID(name, user.UID, tmpID)
-	if err != nil {
-		err = fmt.Errorf("checking UID and name uniqueness: %w", err)
-		cleanup()
-		return 0, nil, err
-	}
-	if !unique {
-		err = fmt.Errorf("UID (%d) or name (%q) from pre-auth user are not unique", user.UID, name)
-		cleanup()
-		return 0, nil, err
-	}
+		if !r.idTracker.trackID(uid) {
+			// If the UID is not unique, generate a new one in the next iteration.
+			continue
+		}
 
-	return user.UID, cleanup, nil
+		tracked, currentUID := r.idTracker.trackUser(loginName, uid)
+		if !tracked {
+			// If the loginName is already set for a different UID, it means
+			// that another concurrent request won the race, so let's just
+			// use that one instead.
+			r.idTracker.forgetID(uid)
+			uid = currentUID
+		}
+
+		if err := r.addPreAuthUser(uid, loginName); err != nil {
+			r.idTracker.forgetID(uid)
+			r.idTracker.forgetUser(loginName)
+			return 0, fmt.Errorf("could not add pre-auth user record: %w", err)
+		}
+
+		return uid, nil
+	}
 }
