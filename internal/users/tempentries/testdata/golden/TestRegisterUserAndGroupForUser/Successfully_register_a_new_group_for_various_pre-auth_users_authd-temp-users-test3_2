@@ -1,0 +1,6 @@
+name: authd-pre-auth-user-XXXXXXXX
+uid: 12347
+gid: 12347
+gecos: authd-temp-users-test3
+dir: /nonexistent
+shell: /usr/sbin/nologin

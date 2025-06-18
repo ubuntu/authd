@@ -227,7 +227,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		}()
 
 		for _, g := range newGroups {
-			gid, cleanup, err := m.temporaryRecords.RegisterGroup(g.Name)
+			gid, cleanup, err := m.temporaryRecords.RegisterGroupForUser(uid, g.Name)
 			if err != nil {
 				return fmt.Errorf("could not generate GID for group %q: %v", g.Name, err)
 			}
