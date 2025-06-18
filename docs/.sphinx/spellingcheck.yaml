@@ -28,3 +28,4 @@ matrix:
             - img
             - a.p-navigation__link
             - a.contributor
+            - div.code-block-caption
