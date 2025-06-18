@@ -1,12 +1,15 @@
 package tempentries
 
 import (
+	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
 	"github.com/ubuntu/authd/internal/users/types"
+	"github.com/ubuntu/authd/log"
 )
 
 func TestRegisterUser(t *testing.T) {
@@ -94,6 +97,412 @@ func TestRegisterUser(t *testing.T) {
 	}
 }
 
+func TestRegisterUserAndGroupForUser(t *testing.T) {
+	t.Parallel()
+
+	defaultUserName := "authd-temp-users-test"
+	uidToGenerate := uint32(12345)
+	defaultGroupName := "authd-temp-groups-test"
+	gidToGenerate := uint32(54321)
+
+	type userTestData struct {
+		name       string
+		preAuth    bool
+		groups     []string
+		runCleanup bool
+
+		// Simulates the case in which an UID has been registered while another
+		// request wins the UID registration race.
+		simulateUIDRace bool
+
+		// Simulates the case in which an user has been registered while another
+		// request wins the username registration race.
+		simulateNameRace bool
+
+		wantUID      uint32
+		wantErr      bool
+		wantGroupErr []bool
+		wantGIDs     []uint32
+	}
+
+	defaultUserTestData := userTestData{name: defaultUserName}
+
+	tests := map[string]struct {
+		users          []userTestData
+		uidsToGenerate []uint32
+		gidsToGenerate []uint32
+	}{
+		"Successfully_register_a_new_group_for_generic_user": {},
+		"Successfully_register_a_new_group_for_pre-auth_user": {
+			users: []userTestData{{name: defaultUserName, preAuth: true}},
+		},
+		"Successfully_register_a_new_group_for_various_generic_users": {
+			users: []userTestData{
+				{name: defaultUserName + fmt.Sprint(1)},
+				{name: defaultUserName + fmt.Sprint(2)},
+				{name: defaultUserName + fmt.Sprint(3)},
+			},
+		},
+		"Successfully_register_a_new_group_for_various_pre-auth_users": {
+			users: []userTestData{
+				{name: defaultUserName + fmt.Sprint(1), preAuth: true},
+				{name: defaultUserName + fmt.Sprint(2), preAuth: true},
+				{name: defaultUserName + fmt.Sprint(3), preAuth: true},
+			},
+		},
+		"Successfully_register_a_various_groups_for_generic_user": {
+			users: []userTestData{
+				{name: defaultUserName, groups: []string{"group-a", "group-b", "group-c"}},
+			},
+		},
+		"Successfully_register_a_various_groups_for_pre-auth_user": {
+			users: []userTestData{
+				{name: defaultUserName, preAuth: true, groups: []string{"group-a", "group-b", "group-c"}},
+			},
+		},
+		"Successfully_register_a_new_user_if_the_first_generated_UID_is_already_in_use": {
+			uidsToGenerate: []uint32{0, uidToGenerate}, // UID 0 (root) always exists
+			users:          []userTestData{{name: defaultUserName, preAuth: true, wantUID: uidToGenerate}},
+		},
+		"Successfully_register_a_new_group_if_the_first_generated_GID_is_already_in_use": {
+			users:          []userTestData{{name: defaultUserName, wantGIDs: []uint32{gidToGenerate}}},
+			gidsToGenerate: []uint32{0, gidToGenerate}, // GID 0 (root) always exists
+		},
+		"Successfully_register_a_new_group_if_the_first_generated_GID_matches_the_user_UID": {
+			users:          []userTestData{{name: defaultUserName, wantGIDs: []uint32{gidToGenerate}}},
+			gidsToGenerate: []uint32{uidToGenerate, gidToGenerate}, // UID should be skipped!
+		},
+		"Successfully_register_a_new_group_if_the_first_generated_GID_is_already_in_use_by_a_pre-check_user": {
+			users: []userTestData{
+				{name: defaultUserName, preAuth: true},
+				{name: "another-user-name"},
+			},
+			gidsToGenerate: []uint32{uidToGenerate, gidToGenerate, gidToGenerate + 1},
+		},
+		"Successfully_register_an_user_if_the_first_generated_UID_is_already_registered": {
+			users: []userTestData{
+				{name: "pre-checked-user", preAuth: true, wantUID: uidToGenerate},
+				{name: "pre-checked-user", wantUID: uidToGenerate, wantGIDs: []uint32{gidToGenerate}},
+				{name: "other-user", wantUID: uidToGenerate + 1, wantGIDs: []uint32{gidToGenerate + 1}},
+			},
+			uidsToGenerate: []uint32{uidToGenerate, uidToGenerate, uidToGenerate + 1},
+		},
+		"Successfully_register_a_pre-checked_user_if_the_first_generated_UID_is_already_registered": {
+			users: []userTestData{
+				{name: "pre-checked-user", preAuth: true, wantUID: uidToGenerate},
+				{name: "other-pre-checked-user", preAuth: true, wantUID: uidToGenerate + 1},
+			},
+			uidsToGenerate: []uint32{uidToGenerate, uidToGenerate, uidToGenerate + 1},
+		},
+		"Successfully_register_a_pre-checked_user_twice_with_the_same_UID": {
+			users: []userTestData{
+				{name: "pre-checked-user", preAuth: true, wantUID: uidToGenerate},
+				{name: "pre-checked-user", preAuth: true, wantUID: uidToGenerate},
+			},
+		},
+		"Successfully_register_an_user_after_two_pre_checks": {
+			users: []userTestData{
+				{name: "pre-checked-user", preAuth: true, wantUID: uidToGenerate},
+				{name: "pre-checked-user", preAuth: true, wantUID: uidToGenerate},
+				{name: "pre-checked-user", wantUID: uidToGenerate, wantGIDs: []uint32{gidToGenerate}},
+			},
+		},
+		"Successfully_register_an_user_with_the_same_name_after_two_pre_checks": {
+			users: []userTestData{
+				{name: "pre-checked-user", preAuth: true, wantUID: uidToGenerate},
+				{name: "pre-checked-user", preAuth: true, wantUID: uidToGenerate},
+				{name: "pre-checked-user", wantUID: uidToGenerate, wantGIDs: []uint32{gidToGenerate}, runCleanup: true},
+				{name: "pre-checked-user", preAuth: true, wantUID: uidToGenerate + 1},
+			},
+		},
+		"Successfully_register_a_pre-check_user_if_multiple_concurrent_requests_happen": {
+			users: []userTestData{
+				{name: "racing-pre-checked-user", preAuth: true, simulateNameRace: true},
+				{name: "racing-pre-checked-user", preAuth: true, wantUID: uidToGenerate},
+			},
+		},
+		"Successfully_register_an_user_if_multiple_concurrent_pre-check_requests_happen": {
+			users: []userTestData{
+				{name: "racing-pre-checked-user", preAuth: true, simulateNameRace: true},
+				{name: "racing-pre-checked-user", wantUID: uidToGenerate, wantGIDs: []uint32{gidToGenerate}},
+			},
+		},
+		"Successfully_register_an_user_if_multiple_concurrent_requests_happen": {
+			users: []userTestData{
+				{name: "racing-user", simulateNameRace: true, wantUID: uidToGenerate},
+				{name: "racing-user", wantUID: uidToGenerate + 1, wantGIDs: []uint32{gidToGenerate}},
+			},
+		},
+		"Successfully_register_a_pre-check_user_if_multiple_concurrent_requests_happen_for_the_same_UID": {
+			users: []userTestData{
+				{name: "racing-pre-checked-user", preAuth: true, simulateUIDRace: true},
+				{name: "racing-pre-checked-user", preAuth: true, wantUID: uidToGenerate},
+			},
+		},
+		"Successfully_register_an_user_if_multiple_concurrent_pre-check_requests_happen_for_the_same_UID": {
+			users: []userTestData{
+				{name: "racing-pre-checked-user", preAuth: true, simulateUIDRace: true},
+				{name: "racing-pre-checked-user", wantUID: uidToGenerate, wantGIDs: []uint32{gidToGenerate}},
+			},
+		},
+		"Successfully_register_an_user_if_multiple_concurrent_requests_happen_for_the_same_UID": {
+			users: []userTestData{
+				{name: "racing-user", simulateUIDRace: true, wantUID: uidToGenerate},
+				{name: "racing-user", wantUID: uidToGenerate, wantGIDs: []uint32{gidToGenerate}},
+			},
+		},
+
+		"Error_if_there_are_no_UID_to_generate": {
+			users:          []userTestData{{name: defaultUserName, wantErr: true}},
+			uidsToGenerate: []uint32{0},
+		},
+		"Error_if_there_are_no_UID_to_generate_for_pre-check_user": {
+			users:          []userTestData{{name: defaultUserName, preAuth: true, wantErr: true}},
+			uidsToGenerate: []uint32{0},
+		},
+		"Error_if_there_are_no_GID_to_generate": {
+			users:          []userTestData{{name: defaultUserName, preAuth: true, wantGroupErr: []bool{true}}},
+			gidsToGenerate: []uint32{},
+		},
+		"Error_if_there_are_no_GID_to_generate_for_pre-check_user": {
+			users:          []userTestData{{name: defaultUserName, preAuth: true, wantGroupErr: []bool{true}}},
+			gidsToGenerate: []uint32{},
+		},
+	}
+	for name, tc := range tests {
+		log.SetLevel(log.DebugLevel)
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if len(tc.users) == 0 {
+				tc.users = append(tc.users, defaultUserTestData)
+			}
+
+			if tc.uidsToGenerate == nil {
+				uid := uidToGenerate
+				for range tc.users {
+					tc.uidsToGenerate = append(tc.uidsToGenerate, uid)
+					uid++
+				}
+			}
+			t.Log("UIDs to generate", tc.uidsToGenerate)
+
+			if tc.gidsToGenerate == nil {
+				gid := gidToGenerate
+				for _, u := range tc.users {
+					if u.preAuth {
+						continue
+					}
+					groups := len(u.groups)
+					if u.groups == nil {
+						groups = 1
+					}
+					for range groups {
+						tc.gidsToGenerate = append(tc.gidsToGenerate, gid)
+						gid++
+					}
+				}
+			}
+			t.Log("GIDs to generate", tc.gidsToGenerate)
+
+			wantRegisteredUsers := 0
+			var registeredUIDs []uint32
+
+			wantRegisteredGroups := 0
+			var registeredGIDs []uint32
+
+			lastCleanupIdx := 0
+
+			idGeneratorMock := &idgenerator.IDGeneratorMock{
+				UIDsToGenerate: tc.uidsToGenerate,
+				GIDsToGenerate: tc.gidsToGenerate,
+			}
+			records := NewTemporaryRecords(idGeneratorMock)
+
+			for idx, uc := range tc.users {
+				t.Logf("Registering user %q", uc.name)
+
+				replacingPreAuthUser := false
+				if !uc.preAuth {
+					_, err := records.userByLogin(uc.name)
+					replacingPreAuthUser = err == nil
+				}
+
+				var uid uint32
+				var err error
+				var cleanup func()
+				if uc.preAuth {
+					uid, err = records.RegisterPreAuthUser(uc.name)
+				} else {
+					uid, cleanup, err = records.RegisterUser(uc.name)
+				}
+
+				if cleanup != nil {
+					t.Cleanup(cleanup)
+				}
+
+				if uc.wantErr {
+					require.Error(t, err, "User registration should return an error, but did not")
+					continue
+				}
+
+				require.NoError(t, err, "User registration should not return an error, but did")
+				t.Logf("Registered user %q (preauth: %v) with UID %d", uc.name, uc.preAuth, uid)
+
+				isDuplicated := slices.ContainsFunc(tc.users[lastCleanupIdx:idx], func(u userTestData) bool {
+					return u.name == uc.name
+				})
+
+				if uc.wantUID == 0 {
+					uc.wantUID = tc.uidsToGenerate[idx]
+				}
+
+				if !isDuplicated && uc.preAuth {
+					wantRegisteredUsers++
+				}
+
+				require.Equal(t, uc.wantUID, uid, "%q UID is not matching expected value", uc.name)
+				require.Equal(t, wantRegisteredUsers, len(records.users),
+					"Number of pre-auth registered, users should be %d", wantRegisteredUsers)
+
+				if isDuplicated {
+					require.Contains(t, registeredUIDs, uid, "UID %d has been already registered!", uid)
+				} else {
+					require.NotContains(t, registeredUIDs, uid, "UID %d has not been already registered!", uid)
+				}
+
+				registeredUIDs = append(registeredUIDs, uid)
+
+				if uc.runCleanup {
+					require.NotNil(t, cleanup, "Cleanup function is invalid!")
+					cleanup()
+					lastCleanupIdx = idx + 1
+
+					if replacingPreAuthUser {
+						wantRegisteredUsers--
+						require.Equal(t, wantRegisteredUsers, len(records.users),
+							"Number of pre-auth registered, users should be %d", wantRegisteredUsers)
+					}
+				}
+
+				// Check that the user was registered
+				user, err := records.userByLogin(uc.name)
+				if uc.preAuth || (replacingPreAuthUser && !uc.runCleanup) {
+					require.NoError(t, err, "UserByID should not return an error, but did")
+				} else {
+					require.ErrorIs(t, err, NoDataFoundError{})
+					require.Zero(t, user, "User should be unset")
+				}
+
+				var goldenOptions []golden.Option
+				userSuffix := ""
+				if idx > 0 {
+					userSuffix = fmt.Sprintf("_%s_%d", uc.name, idx)
+					goldenOptions = append(goldenOptions, golden.WithSuffix(userSuffix))
+				}
+
+				if uc.preAuth {
+					checkPreAuthUser(t, user, goldenOptions...)
+
+					if uc.simulateUIDRace {
+						t.Logf("Dropping the registered UID %d for %q", uid, uc.name)
+						t.Log(records.preAuthUserRecords.users)
+						delete(records.preAuthUserRecords.users, uid)
+						t.Log("after", records.preAuthUserRecords.users)
+
+						lastCleanupIdx = idx + 1
+						registeredUIDs = slices.DeleteFunc(registeredUIDs,
+							func(u uint32) bool { return u == uid })
+						wantRegisteredUsers--
+					}
+
+					if uc.simulateNameRace {
+						t.Logf("Dropping the registered login name %q for %d", uc.name, uid)
+						delete(records.preAuthUserRecords.uidByLogin, uc.name)
+					}
+
+					// We don't have groups registration for the pre-check user.
+					continue
+				}
+
+				checkUser(t, types.UserEntry{Name: uc.name, UID: uid, GID: uid}, goldenOptions...)
+
+				if uc.simulateUIDRace {
+					t.Logf("Dropping the registered UID %d for %q", uid, uc.name)
+					delete(records.idTracker.ids, uid)
+					continue
+				}
+
+				if uc.simulateNameRace {
+					// We drop the registered name to check if the logic can handle such case.
+					t.Logf("Dropping the registered user name %q for %d", uc.name, uid)
+					delete(records.idTracker.userNames, uc.name)
+					lastCleanupIdx = idx + 1
+					continue
+				}
+
+				if uc.groups == nil {
+					uc.groups = append(uc.groups, defaultGroupName)
+				}
+				if uc.wantGIDs == nil {
+					uc.wantGIDs = tc.gidsToGenerate[idx:]
+				}
+				if uc.wantGroupErr == nil {
+					uc.wantGroupErr = make([]bool, len(uc.groups))
+				}
+
+				numGroups := 0
+
+				for idx, groupName := range uc.groups {
+					groupName = uc.name + "+" + groupName
+					t.Logf("Registering group %q", groupName)
+
+					gid, cleanup, err := records.RegisterGroupForUser(uid, groupName)
+					if uc.wantGroupErr[idx] {
+						require.Error(t, err, "RegisterGroup should return an error, but did not")
+						continue
+					}
+
+					require.NoError(t, err, "RegisterGroup should not return an error, but did")
+					t.Logf("Registered group %q with GID %d", groupName, gid)
+					t.Cleanup(cleanup)
+
+					isDuplicated := slices.Contains(uc.groups[:idx], groupName)
+					if !isDuplicated {
+						numGroups++
+						wantRegisteredGroups++
+					}
+
+					if isDuplicated {
+						require.Contains(t, registeredGIDs, gid, "GID %d has been already registered!", gid)
+					} else {
+						require.NotContains(t, registeredGIDs, gid, "GID %d has not been already registered!", gid)
+					}
+
+					wantGID := uc.wantGIDs[numGroups-1]
+					registeredGIDs = append(registeredGIDs, gid)
+
+					require.NoError(t, err, "RegisterGroup should not return an error, but did")
+					require.Equal(t, wantGID, gid, "%q GID is not matching expected value", groupName)
+					require.Equal(t, wantRegisteredGroups, len(records.groups),
+						"Number of groups registered, users should be %d", wantRegisteredGroups)
+
+					// Check that the temporary group was created
+					group, err := records.GroupByID(gid)
+					require.NoError(t, err, "GroupByID should not return an error, but did")
+
+					groupSuffix := groupName
+					if idx > 0 {
+						groupSuffix = fmt.Sprintf("%s_%d", uc.name, idx)
+					}
+					checkGroup(t, group,
+						golden.WithSuffix("_"+groupSuffix))
+				}
+			}
+		})
+	}
+}
+
 func TestUserByIDAndName(t *testing.T) {
 	t.Parallel()
 
@@ -152,8 +561,8 @@ func TestUserByIDAndName(t *testing.T) {
 	}
 }
 
-func checkUser(t *testing.T, user types.UserEntry) {
+func checkUser(t *testing.T, user types.UserEntry, options ...golden.Option) {
 	t.Helper()
 
-	golden.CheckOrUpdateYAML(t, user)
+	golden.CheckOrUpdateYAML(t, user, options...)
 }
