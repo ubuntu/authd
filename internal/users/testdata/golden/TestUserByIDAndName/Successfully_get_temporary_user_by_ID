@@ -1,4 +1,4 @@
-name: tempuser1
+name: authd-pre-auth-user-XXXXXX
 uid: 0
 gid: 0
 gecos: ""
