@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/user"
 	"strings"
 	"sync"
 	"syscall"
@@ -139,7 +138,6 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		return fmt.Errorf("could not get user %q: %w", u.Name, err)
 	}
 	if errors.Is(err, db.NoDataFoundError{}) {
-		// Check if the user exists on the system
 		if err := userslocking.WriteRecLock(); err != nil {
 			return err
 		}
@@ -148,13 +146,6 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 				err = errors.Join(err, unlockErr)
 			}
 		}()
-
-		existingUser, err := user.Lookup(u.Name)
-		var unknownUserErr user.UnknownUserError
-		if !errors.As(err, &unknownUserErr) {
-			log.Errorf(context.Background(), "User already exists on the system: %+v", existingUser)
-			return fmt.Errorf("user %q already exists on the system (but not in this authd instance)", u.Name)
-		}
 
 		// The user does not exist, so we generate a unique UID for it or
 		// we reuse the one that has been already pre-registered.
@@ -272,14 +263,8 @@ func (m *Manager) checkGroupNameConflict(name string, ugid string) error {
 	}
 
 	if errors.Is(err, db.NoDataFoundError{}) {
-		// The group does not exist in the database, check if it exists on the system.
-		existingGroup, err := user.LookupGroup(name)
-		var unknownGroupErr user.UnknownGroupError
-		if !errors.As(err, &unknownGroupErr) {
-			log.Errorf(context.Background(), "Group already exists on the system: %+v", existingGroup)
-			return fmt.Errorf("group %q already exists on the system (but not in this authd instance)", name)
-		}
-		// The group does not exist on the system, so we can proceed.
+		// The group does not exist in the database, the check in the system
+		// can be delayed to the registration point.
 		return nil
 	}
 
