@@ -154,35 +154,35 @@ func (r *preAuthUserRecords) RegisterPreAuthUser(loginName string) (uid uint32, 
 			return 0, err
 		}
 
-		// To avoid races where a user with this UID is created by some NSS source after we checked, we register this
-		// UID in our NSS handler and then check if another user with the same UID exists in the system. This way we
-		// can guarantee that the UID is unique, under the assumption that other NSS sources don't add users with a UID
-		// that we already registered (if they do, there's nothing we can do about it).
-		tmpName, cleanup, err := r.addPreAuthUser(uid, loginName)
+		unique, err := r.isUniqueUID(uid, passwdEntries, groupEntries)
 		if err != nil {
+			return 0, fmt.Errorf("could not check if UID %d is unique: %w", uid, err)
+		}
+
+		if !unique {
+			// If the UID is not unique, generate a new one in the next iteration.
+			continue
+		}
+
+		// To avoid races where a user with this UID is created by some NSS source
+		// until the user actually logs in, we register this UID in our NSS handler.
+		if err := r.addPreAuthUser(uid, loginName); err != nil {
 			return 0, fmt.Errorf("could not add pre-auth user record: %w", err)
 		}
 
-		unique, err := r.isUniqueUID(uid, passwdEntries, groupEntries, tmpName)
-		if err != nil {
-			cleanup()
-			return 0, fmt.Errorf("could not check if UID %d is unique: %w", uid, err)
-		}
-		if unique {
-			log.Debugf(context.Background(), "Added temporary record for user %q with UID %d", loginName, uid)
-			return uid, nil
-		}
+		log.Debugf(context.Background(),
+			"Added temporary record for user %q with UID %d", loginName, uid)
 
-		// If the UID is not unique, remove the temporary user and generate a new one in the next iteration.
-		cleanup()
+		return uid, nil
 	}
 }
 
 // isUniqueUID returns true if the given UID is unique in the system. It returns false if the UID is already assigned to
-// a user by any NSS source (except the given temporary user).
-func (r *preAuthUserRecords) isUniqueUID(uid uint32, passwdEntries []types.UserEntry, groupEntries []types.GroupEntry, tmpName string) (bool, error) {
+// a user by any NSS source.
+func (r *preAuthUserRecords) isUniqueUID(uid uint32, passwdEntries []types.UserEntry, groupEntries []types.GroupEntry) (bool, error) {
 	for _, entry := range passwdEntries {
-		if entry.UID == uid && entry.Name != tmpName {
+		if entry.UID == uid {
+			log.Debugf(context.Background(), "ID %d already in use by user %q", uid, entry.Name)
 			return false, nil
 		}
 	}
@@ -202,7 +202,7 @@ func (r *preAuthUserRecords) isUniqueUID(uid uint32, passwdEntries []types.UserE
 // creating user records with attacker-controlled names.
 //
 // It returns the generated name and a cleanup function to remove the temporary user record.
-func (r *preAuthUserRecords) addPreAuthUser(uid uint32, loginName string) (name string, cleanup func(), err error) {
+func (r *preAuthUserRecords) addPreAuthUser(uid uint32, loginName string) (err error) {
 	r.rwMu.Lock()
 	defer r.rwMu.Unlock()
 
@@ -210,9 +210,9 @@ func (r *preAuthUserRecords) addPreAuthUser(uid uint32, loginName string) (name 
 	// record to be able to identify it in isUniqueUID.
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
-		return "", nil, fmt.Errorf("failed to generate random name: %w", err)
+		return fmt.Errorf("failed to generate random name: %w", err)
 	}
-	name = fmt.Sprintf("%s-%x", UserPrefix, bytes)
+	name := fmt.Sprintf("%s-%x", UserPrefix, bytes)
 
 	user := preAuthUser{name: name, uid: uid, loginName: loginName}
 	r.users[uid] = user
@@ -220,9 +220,7 @@ func (r *preAuthUserRecords) addPreAuthUser(uid uint32, loginName string) (name 
 	r.uidByLogin[loginName] = uid
 	r.numUsers++
 
-	cleanup = func() { r.deletePreAuthUser(uid) }
-
-	return name, cleanup, nil
+	return nil
 }
 
 // deletePreAuthUser deletes the temporary user with the given UID.
