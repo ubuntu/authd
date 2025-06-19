@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"slices"
 	"sync"
 
 	"github.com/ubuntu/authd/internal/users/db"
@@ -152,6 +153,13 @@ func (r *preAuthUserRecords) RegisterPreAuthUser(loginName string) (uid uint32, 
 	groupEntries, err := localentries.GetGroupEntries()
 	if err != nil {
 		return 0, fmt.Errorf("could not check user, failed to get group entries: %w", err)
+	}
+
+	if slices.ContainsFunc(passwdEntries, func(p types.UserEntry) bool {
+		return p.Name == loginName
+	}) {
+		log.Errorf(context.Background(), "User already exists on the system: %+v", loginName)
+		return 0, fmt.Errorf("user %q already exists on the system", loginName)
 	}
 
 	// Generate a UID until we find a unique one

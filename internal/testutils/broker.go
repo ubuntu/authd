@@ -335,7 +335,7 @@ func (b *BrokerBusMock) CancelIsAuthenticated(sessionID string) (dbusErr *dbus.E
 
 // UserPreCheck returns default values to be used in tests or an error if requested.
 func (b *BrokerBusMock) UserPreCheck(username string) (userinfo string, dbusErr *dbus.Error) {
-	if strings.ToLower(username) != "user-pre-check" {
+	if username != "user-pre-check" && username != "local-pre-check" {
 		return "", dbus.MakeFailedError(fmt.Errorf("broker %q: UserPreCheck errored out", b.name))
 	}
 	return userInfoFromName(username, nil), nil
@@ -387,6 +387,9 @@ func userInfoFromName(sessionID string, extraGroups []groupJSONInfo) string {
 		home = "this is not a homedir"
 	case "ia_info_invalid_shell":
 		shell = "this is not a valid shell"
+	case "local-pre-check":
+		name = "root"
+		home = "/root"
 	}
 
 	groups := []groupJSONInfo{{Name: group, UGID: ugid}}

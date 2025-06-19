@@ -62,8 +62,9 @@ func TestGetUserByName(t *testing.T) {
 		"Error_with_typed_GRPC_notfound_code_on_unexisting_user": {username: "does-not-exists", wantErr: true, wantErrNotExists: true},
 		"Error_on_missing_name":                                  {wantErr: true},
 
-		"Error_if_user_not_in_db_and_precheck_is_disabled": {username: "user-pre-check", wantErr: true, wantErrNotExists: true},
-		"Error_if_user_not_in_db_and_precheck_fails":       {username: "does-not-exist", dbFile: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
+		"Error_if_user_not_in_db_and_precheck_is_disabled":             {username: "user-pre-check", wantErr: true, wantErrNotExists: true},
+		"Error_if_user_not_in_db_and_precheck_fails":                   {username: "does-not-exist", dbFile: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
+		"Error_if_user_not_in_db_and_precheck_fails_for_existing_user": {username: "local-pre-check", dbFile: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -75,6 +76,13 @@ func TestGetUserByName(t *testing.T) {
 
 			got, err := client.GetUserByName(context.Background(), &authd.GetUserByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
 			requireExpectedResult(t, "GetUserByName", got, err, tc.wantErr, tc.wantErrNotExists)
+
+			if !tc.shouldPreCheck || tc.wantErr {
+				return
+			}
+
+			_, err = client.GetUserByName(context.Background(), &authd.GetUserByNameRequest{Name: tc.username, ShouldPreCheck: false})
+			require.Error(t, err, "GetUserByName should return an error, but did not")
 		})
 	}
 }
@@ -307,7 +315,9 @@ func requireExpectedResult[T authd.User | authd.Group](t *testing.T, funcName st
 		require.True(t, ok, "The error is always a gRPC error")
 		if wantErrNotExists {
 			require.Equal(t, codes.NotFound.String(), s.Code().String())
+			return
 		}
+		require.NotEqual(t, codes.NotFound.String(), s.Code().String())
 		return
 	}
 	require.NoError(t, err, fmt.Sprintf("%s should not return an error, but did", funcName))
