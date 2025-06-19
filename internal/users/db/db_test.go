@@ -116,8 +116,8 @@ func TestDatabaseRemovedWhenSchemaCreationFails(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNames(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_users_multiple_groups_with_uppercase.db.yaml"
-	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_with_uppercase.sql"
+	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	// Create a temporary user group file for testing
@@ -205,8 +205,8 @@ func TestMigrationToLowercaseUserAndGroupNamesEmptyDB(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNamesAlreadyUpdated(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_users_multiple_groups_with_uppercase.db.yaml"
-	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_with_uppercase.sql"
+	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	// Create a temporary user group file for testing
@@ -247,8 +247,8 @@ func TestMigrationToLowercaseUserAndGroupNamesAlreadyUpdated(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedGroupFile(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_users_multiple_groups_with_uppercase.db.yaml"
-	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_with_uppercase.sql"
+	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	// Create a temporary user group file for testing
@@ -299,8 +299,8 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedGroupFile(t *testing.
 func TestMigrationToLowercaseUserAndGroupNamesWithPreviousBackup(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_users_multiple_groups_fully_uppercase.db.yaml"
-	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_fully_uppercase.sql"
+	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	// Create a temporary user group file for testing
@@ -347,8 +347,8 @@ func TestMigrationToLowercaseUserAndGroupNamesWithPreviousBackup(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedPreviousBackup(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_users_multiple_groups_fully_uppercase.db.yaml"
-	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_fully_uppercase.sql"
+	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	// Create a temporary user group file for testing
@@ -405,8 +405,8 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedPreviousBackup(t *tes
 func TestMigrationToLowercaseUserAndGroupNamesFails(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_users_multiple_groups_fully_uppercase.db.yaml"
-	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_fully_uppercase.sql"
+	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	// Create a temporary user group file for testing
@@ -445,8 +445,8 @@ func TestMigrationToLowercaseUserAndGroupNamesFails(t *testing.T) {
 func TestMigrationToLowercaseUserAndGroupNamesWithBackupFailure(t *testing.T) {
 	// Create a database from the testdata
 	dbDir := t.TempDir()
-	dbFile := "one_users_multiple_groups_with_uppercase.db.yaml"
-	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", dbFile), dbDir)
+	sqlDump := "TestMigrationToLowercaseUserAndGroupNames/one_users_multiple_groups_with_uppercase.sql"
+	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	// Create a temporary user group file for testing
@@ -486,6 +486,24 @@ func TestMigrationToLowercaseUserAndGroupNamesWithBackupFailure(t *testing.T) {
 	require.NoError(t, err)
 
 	golden.CheckOrUpdate(t, string(userGroupContent), golden.WithPath("groups"))
+}
+
+func TestMigrationAddLockedColumnToUsersTable(t *testing.T) {
+	// Create a database from the testdata
+	dbDir := t.TempDir()
+	sqlDump := "TestMigrationAddLockedColumnToUsersTable/one_user_and_group_without_locked_column.sql"
+	err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", sqlDump), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	// Run the migrations
+	m, err := db.New(dbDir)
+	require.NoError(t, err)
+
+	// Check the content of the SQLite database
+	dbContent, err := db.Z_ForTests_DumpNormalizedYAML(m)
+	require.NoError(t, err)
+
+	golden.CheckOrUpdate(t, dbContent)
 }
 
 func TestUpdateUserEntry(t *testing.T) {
@@ -873,6 +891,20 @@ func TestUpdateBrokerForUser(t *testing.T) {
 	// Error when updating broker for nonexistent user
 	err = c.UpdateBrokerForUser("nonexistent", "ExampleBrokerID")
 	require.Error(t, err, "UpdateBrokerForUser for a nonexistent user should return an error")
+}
+
+func TestUpdateLockedFieldForUser(t *testing.T) {
+	t.Parallel()
+
+	c := initDB(t, "one_user_and_group")
+
+	// Update broker for existent user
+	err := c.UpdateLockedFieldForUser("user1", true)
+	require.NoError(t, err, "UpdateLockedFieldForUser for an existent user should not return an error")
+
+	// Error when updating broker for nonexistent user
+	err = c.UpdateLockedFieldForUser("nonexistent", false)
+	require.Error(t, err, "UpdateLockedFieldForUser for a nonexistent user should return an error")
 }
 
 func TestRemoveDb(t *testing.T) {
