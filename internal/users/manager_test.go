@@ -252,6 +252,88 @@ func TestUpdateUser(t *testing.T) {
 	}
 }
 
+func TestRegisterUserPreauth(t *testing.T) {
+	t.Parallel()
+
+	userCases := map[string]userCase{
+		"user1":                   {UserInfo: types.UserInfo{Name: "user1"}, UID: 1111},
+		"nameless":                {UID: 1111},
+		"same-name-different-uid": {UserInfo: types.UserInfo{Name: "user1"}, UID: 3333},
+		"user-exists-on-system":   {UserInfo: types.UserInfo{Name: "root"}, UID: 1111},
+	}
+
+	tests := map[string]struct {
+		userCase string
+
+		dbFile string
+
+		wantUserInDB bool
+		wantErr      bool
+	}{
+		"Successfully_update_user": {},
+		"Successfully_if_user_already_exists_on_db": {
+			userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantUserInDB: true,
+		},
+
+		"Error_if_user_has_no_username":  {userCase: "nameless", wantErr: true},
+		"Error_if_user_exists_on_system": {userCase: "user-exists-on-system", wantErr: true},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if tc.userCase == "" {
+				tc.userCase = "user1"
+			}
+
+			user := userCases[tc.userCase]
+
+			dbDir := t.TempDir()
+			if tc.dbFile != "" {
+				err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+				require.NoError(t, err, "Setup: could not create database from testdata")
+			}
+
+			managerOpts := []users.Option{
+				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+					UIDsToGenerate: []uint32{user.UID},
+				}),
+			}
+			m := newManagerForTests(t, dbDir, managerOpts...)
+
+			uid, err := m.RegisterUserPreAuth(user.Name)
+
+			requireErrorAssertions(t, err, nil, tc.wantErr)
+			if tc.wantErr {
+				return
+			}
+
+			_, err = m.UserByName(user.Name)
+			if tc.wantUserInDB {
+				require.NoError(t, err, "UserByName should not return an error, but did")
+			} else {
+				require.Error(t, err, "UserByName should return an error, but did not")
+			}
+
+			newUser, err := m.UserByID(uid)
+			require.NoError(t, err, "UserByID should not return an error, but did")
+
+			require.Equal(t, uid, newUser.UID, "UID should not have changed")
+
+			if tc.wantUserInDB {
+				require.Equal(t, user.Name, newUser.Name, "User name does not match")
+			} else {
+				require.True(t, strings.HasPrefix(newUser.Name, tempentries.UserPrefix),
+					"Pre-auth users should have %q as prefix: %q", tempentries.UserPrefix,
+					newUser.Name)
+				newUser.Name = tempentries.UserPrefix + "-{{random-suffix}}"
+			}
+
+			golden.CheckOrUpdateYAML(t, newUser)
+		})
+	}
+}
+
 func TestBrokerForUser(t *testing.T) {
 	t.Parallel()
 
