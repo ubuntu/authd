@@ -107,6 +107,10 @@ func preAuthUserEntry(user preAuthUser) types.UserEntry {
 }
 
 func (r *preAuthUserRecords) generatePreAuthUserID(loginName string) (uid uint32, err error) {
+	if loginName == "" {
+		return 0, errors.New("empty username")
+	}
+
 	// To mitigate DoS attacks, we limit the length of the name to 256 characters.
 	if len(loginName) > 256 {
 		return 0, errors.New("username is too long (max 256 characters)")
