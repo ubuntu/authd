@@ -468,6 +468,11 @@ func (m *Manager) AllShadows() ([]types.ShadowEntry, error) {
 func (m *Manager) RegisterUserPreAuth(name string) (uid uint32, err error) {
 	defer decorate.OnError(&err, "failed to register pre-auth user %q", name)
 
+	_, err = m.db.UserByName(name)
+	if err == nil {
+		return 0, fmt.Errorf("user %q is already registered in our DB: %w", name, err)
+	}
+
 	if err := userslocking.WriteRecLock(); err != nil {
 		return 0, err
 	}
