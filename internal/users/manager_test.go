@@ -117,7 +117,10 @@ type groupCase struct {
 	GID uint32 // The GID to generate for this group
 }
 
+//nolint:tparallel // Only some subtests can be parallel.
 func TestUpdateUser(t *testing.T) {
+	t.Parallel()
+
 	userCases := map[string]userCase{
 		"user1":                             {UserInfo: types.UserInfo{Name: "user1"}, UID: 1111},
 		"nameless":                          {UID: 1111},
