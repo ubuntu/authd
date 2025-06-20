@@ -631,6 +631,46 @@ func TestRegisterUserPreAuthAfterUnlock(t *testing.T) {
 	require.NotZero(t, uid, "UID should be set")
 }
 
+func TestUpdateUserWhenLocked(t *testing.T) {
+	// This cannot be parallel
+
+	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, context.Background())
+	userslocking.Z_ForTests_SetMaxWaitTime(t, testutils.MultipliedSleepDuration(750*time.Millisecond))
+
+	dbFile := "one_user_and_group"
+	dbDir := t.TempDir()
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", dbFile+".db.yaml"), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	m := newManagerForTests(t, dbDir)
+
+	err = m.UpdateUser(types.UserInfo{UID: 1234, Name: "test-user"})
+	require.ErrorIs(t, err, userslocking.ErrLock)
+}
+
+func TestUpdateUserAfterUnlock(t *testing.T) {
+	// This cannot be parallel
+
+	waitTime := testutils.MultipliedSleepDuration(750 * time.Millisecond)
+	lockCtx, lockCancel := context.WithTimeout(context.Background(), waitTime/2)
+	t.Cleanup(lockCancel)
+
+	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, lockCtx)
+	userslocking.Z_ForTests_SetMaxWaitTime(t, waitTime)
+
+	t.Cleanup(func() { _ = userslocking.WriteRecUnlock() })
+
+	dbFile := "one_user_and_group"
+	dbDir := t.TempDir()
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", dbFile+".db.yaml"), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	m := newManagerForTests(t, dbDir)
+
+	err = m.UpdateUser(types.UserInfo{UID: 1234, Name: "some-user-test"})
+	require.NoError(t, err, "UpdateUser should not fail")
+}
+
 func requireErrorAssertions(t *testing.T, gotErr, wantErrType error, wantErr bool) {
 	t.Helper()
 
