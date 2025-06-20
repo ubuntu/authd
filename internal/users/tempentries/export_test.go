@@ -12,7 +12,7 @@ func (r *temporaryGroupRecords) GroupByID(gid uint32) (types.GroupEntry, error) 
 		return types.GroupEntry{}, db.NewGIDNotFoundError(gid)
 	}
 
-	return groupEntry(group), nil
+	return groupEntry(*group), nil
 }
 
 func groupEntry(group groupRecord) types.GroupEntry {

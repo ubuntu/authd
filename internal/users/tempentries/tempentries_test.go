@@ -3,6 +3,8 @@ package tempentries
 import (
 	"fmt"
 	"slices"
+	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,6 +12,211 @@ import (
 	"github.com/ubuntu/authd/internal/users/idgenerator"
 	"github.com/ubuntu/authd/internal/users/types"
 )
+
+func TestRacingLockingActions(t *testing.T) {
+	t.Parallel()
+
+	// These tests are meant to stress-test in parallel our temporary entries,
+	// this is happening by registering new users or pre-auth some of them and
+	// ensure that the generated IDs and GIDs are not clashing.
+	// There may be still clashes when the cleanup functions are called, but
+	// then it's up to the caller to ensure that these IDs are not duplicated
+	// in the database.
+
+	const nIterations = 100
+
+	type cleanupType string
+	const (
+		noCleanup      cleanupType = "no_cleanup"
+		perUserCleanup cleanupType = "per_user_cleanup"
+		perTestCleanup cleanupType = "per_test_cleanup"
+	)
+
+	for _, cleanupType := range []cleanupType{noCleanup, perTestCleanup, perUserCleanup} {
+		registeredUsersMu := sync.Mutex{}
+		registeredUsers := make(map[string][]uint32)
+		registeredGroups := make(map[string][]uint32)
+
+		tmpRecords := NewTemporaryRecords(&idgenerator.IDGenerator{
+			UIDMin: 0,
+			UIDMax: nIterations * 5,
+			GIDMin: 0,
+			GIDMax: nIterations * 5,
+		})
+
+		t.Run(fmt.Sprintf("with_%s", cleanupType), func(t *testing.T) {
+			t.Parallel()
+
+			for idx := range nIterations {
+				t.Run(fmt.Sprintf("iteration_%d", idx), func(t *testing.T) {
+					t.Parallel()
+
+					records := tmpRecords
+					doPreAuth := idx%3 == 0
+					userName := fmt.Sprintf("authd-test-user%d", idx)
+
+					cleanupsMu := sync.Mutex{}
+					var cleanups []func()
+
+					var userID atomic.Uint32
+					var firstGroupID atomic.Uint32
+
+					if doPreAuth {
+						// In the pre-auth case we do even more parallelization, so that
+						// the pre-auth happens without a defined order of the actual
+						// registration.
+						userName = fmt.Sprintf("authd-test-maybe-pre-check-user%d", idx)
+
+						//nolint:thelper // This is actually a test function!
+						preAuth := func(t *testing.T) {
+							t.Parallel()
+
+							uid, err := records.RegisterPreAuthUser(userName)
+							require.NoError(t, err, "RegisterPreAuthUser should not fail but it did")
+
+							if !userID.CompareAndSwap(0, uid) && cleanupType != perTestCleanup {
+								require.Equal(t, int(uid), int(userID.Load()),
+									"Pre-auth UID for already-registered user is not matching expected")
+							}
+						}
+
+						for i := range 3 {
+							t.Run(fmt.Sprintf("pre_auth%d", i), preAuth)
+						}
+					}
+
+					//nolint:thelper // This is actually a test function!
+					userUpdate := func(t *testing.T) {
+						t.Parallel()
+
+						// We do not run the cleanup function here, because we want to preserve the
+						// user in our temporary entries, to ensure that we may not register the same
+						// twice.
+						uid, userCleanup, err := records.RegisterUser(userName)
+						require.NoError(t, err, "RegisterUser should not fail but it did")
+						if cleanupType == perTestCleanup {
+							t.Cleanup(userCleanup)
+						}
+
+						if !userID.CompareAndSwap(0, uid) && cleanupType != perTestCleanup {
+							require.Equal(t, int(uid), int(userID.Load()),
+								"UID for pre-auth or already registered user %q is not matching expected",
+								userName)
+						}
+
+						groupName1 := fmt.Sprintf("authd-test-group%d.1", idx)
+						gid1, groupCleanup1, err := records.RegisterGroupForUser(uid, groupName1)
+						require.NoError(t, err, "RegisterGroupForUser should not fail but it did")
+						if cleanupType == perTestCleanup {
+							t.Cleanup(groupCleanup1)
+						}
+
+						if !firstGroupID.CompareAndSwap(0, gid1) && cleanupType != perTestCleanup {
+							require.Equal(t, int(gid1), int(firstGroupID.Load()),
+								"GID for group %q is not matching expected", groupName1)
+						}
+
+						groupName2 := fmt.Sprintf("authd-test-group%d.2", idx)
+						gid2, groupCleanup2, err := records.RegisterGroupForUser(uid, groupName2)
+						require.NoError(t, err, "RegisterGroupForUser should not fail but it did")
+						if cleanupType == perTestCleanup {
+							t.Cleanup(groupCleanup2)
+						}
+
+						registeredUsersMu.Lock()
+						defer registeredUsersMu.Unlock()
+						registeredUsers[userName] = append(registeredUsers[userName], uid)
+						registeredGroups[groupName1] = append(registeredGroups[groupName1], gid1)
+						registeredGroups[groupName2] = append(registeredGroups[groupName2], gid2)
+
+						cleanupsMu.Lock()
+						defer cleanupsMu.Unlock()
+
+						if cleanupType == perUserCleanup {
+							cleanups = append(cleanups, userCleanup, groupCleanup1, groupCleanup2)
+						}
+					}
+
+					testName := "update_user"
+					if doPreAuth {
+						testName = "maybe_finish_registration"
+					}
+
+					for i := range 3 {
+						t.Run(fmt.Sprintf("%s%d", testName, i), userUpdate)
+					}
+
+					t.Cleanup(func() {
+						cleanupsMu.Lock()
+						defer cleanupsMu.Unlock()
+
+						t.Logf("Running cleanups for iteration %d", idx)
+						for _, cleanup := range cleanups {
+							cleanup()
+						}
+					})
+				})
+			}
+
+			t.Cleanup(func() {
+				t.Log("Running final checks for cleanup mode " + fmt.Sprint(cleanupType))
+
+				registeredUsersMu.Lock()
+				defer registeredUsersMu.Unlock()
+
+				if cleanupType == perTestCleanup {
+					// In such case we may have duplicate UIDs or GIDs since they
+					// may be duplicated after each test has finished.
+					// This is not actually a problem because in the real scenario
+					// the temporary entries owner (the user manager) should check
+					// that such IDs are already registered in the database before
+					// actually using them.
+					return
+				}
+
+				uniqueIDs := make(map[uint32]string)
+
+				for u, uids := range registeredUsers {
+					uids = slices.Compact(uids)
+					require.Len(t, uids, 1, "Only one UID should be registered for user %q", u)
+
+					if cleanupType == perUserCleanup {
+						// In this case we only care about the fact of having registered only one
+						// UID for each user, although the UIDs may not be unique across all the
+						// tests, since the cleanup functions have deleted the temporary data.
+						// It's still important to test this case though, since it allows to ensure
+						// that the pre-check and registered user IDs are valid.
+						continue
+					}
+
+					old, ok := uniqueIDs[uids[0]]
+					require.False(t, ok, "ID %d must be unique across entries, but it's used by both %q and %q",
+						uids[0], u, old)
+					uniqueIDs[uids[0]] = u
+				}
+
+				for g, gids := range registeredGroups {
+					gids = slices.Compact(gids)
+					require.Len(t, gids, 1, "Only one GID should be registered for group %q", g)
+
+					if cleanupType == perUserCleanup {
+						// In this case we only care about the fact of having registered only one
+						// UID for each user, although the UIDs may not be unique across all the
+						// tests, since the cleanup functions have deleted the temporary data.
+						// It's still important to test this case though, since it allows to ensure
+						// that the pre-check and registered user IDs are valid.
+						continue
+					}
+
+					old, ok := uniqueIDs[gids[0]]
+					require.False(t, ok, "ID %d must be unique across entries, but it's used both %q and %q",
+						gids[0], g, old)
+					uniqueIDs[gids[0]] = g
+				}
+			})
+		})
+	}
+}
 
 func TestRegisterUser(t *testing.T) {
 	t.Parallel()
@@ -230,12 +437,6 @@ func TestRegisterUserAndGroupForUser(t *testing.T) {
 			users: []userTestData{
 				{name: "racing-user", simulateNameRace: true, wantUID: uidToGenerate},
 				{name: "racing-user", wantUID: uidToGenerate + 1, wantGIDs: []uint32{gidToGenerate}},
-			},
-		},
-		"Successfully_register_a_pre-check_user_if_multiple_concurrent_requests_happen_for_the_same_UID": {
-			users: []userTestData{
-				{name: "racing-pre-checked-user", preAuth: true, simulateUIDRace: true},
-				{name: "racing-pre-checked-user", preAuth: true, wantUID: uidToGenerate},
 			},
 		},
 		"Successfully_register_an_user_if_multiple_concurrent_pre-check_requests_happen_for_the_same_UID": {
