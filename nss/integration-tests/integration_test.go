@@ -33,7 +33,7 @@ func TestIntegration(t *testing.T) {
 
 	env := append(localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, defaultOutputPath, defaultGroupsFilePath), "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
 	ctx, cancel := context.WithCancel(context.Background())
-	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
+	_, stopped := testutils.StartDaemon(ctx, t, daemonPath,
 		testutils.WithSocketPath(defaultSocket),
 		testutils.WithPreviousDBState(defaultDbState),
 		testutils.WithEnvironment(env...),
@@ -121,7 +121,7 @@ func TestIntegration(t *testing.T) {
 				var daemonStopped chan struct{}
 				ctx, cancel := context.WithCancel(context.Background())
 				env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, outPath, groupsFilePath)
-				socketPath, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath,
+				socketPath, daemonStopped = testutils.StartDaemon(ctx, t, daemonPath,
 					testutils.WithPreviousDBState(tc.dbState),
 					testutils.WithEnvironment(env...),
 				)
