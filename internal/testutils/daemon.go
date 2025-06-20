@@ -113,9 +113,9 @@ func WithGroupFileOutput(groupFile string) DaemonOption {
 	}
 }
 
-// RunDaemon runs the daemon in a separate process and returns the socket path and a channel that will be closed when
+// StartDaemon runs the daemon in a separate process and returns the socket path and a channel that will be closed when
 // the daemon stops.
-func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
+func StartDaemon(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
 	t.Helper()
 
 	opts := &daemonOptions{}
