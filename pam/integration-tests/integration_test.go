@@ -18,13 +18,14 @@ func TestMain(m *testing.M) {
 		os.Exit(m.Run())
 	}
 
-	execPath, daemonCleanup, err := testutils.BuildDaemon("-tags=withexamplebroker,integrationtests")
+	var cleanup func()
+	var err error
+	daemonPath, cleanup, err = testutils.BuildDaemon()
 	if err != nil {
-		log.Printf("Setup: Failed to build authd daemon: %v", err)
+		log.Printf("Setup: failed to build daemon: %v", err)
 		os.Exit(1)
 	}
-	defer daemonCleanup()
-	daemonPath = execPath
+	defer cleanup()
 
 	m.Run()
 }
