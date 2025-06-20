@@ -6,10 +6,12 @@ package userslocking
 import "C"
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/ubuntu/authd/internal/errno"
+	"github.com/ubuntu/authd/log"
 )
 
 // writeLock is the default locking implementation.
@@ -18,6 +20,7 @@ func writeLock() error {
 	defer errno.Unlock()
 
 	if C.lckpwdf() == 0 {
+		log.Debug(context.Background(), "glibc lckpwdf: Local entries locked!")
 		return nil
 	}
 
@@ -39,6 +42,7 @@ func writeUnlock() error {
 	defer errno.Unlock()
 
 	if C.ulckpwdf() == 0 {
+		log.Debug(context.Background(), "glibc lckpwdf: Local entries unlocked!")
 		return nil
 	}
 
