@@ -5,11 +5,9 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"slices"
 	"sync"
 
 	"github.com/ubuntu/authd/internal/users/db"
-	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 )
@@ -116,109 +114,17 @@ func (r *preAuthUserRecords) generatePreAuthUserID(loginName string) (uid uint32
 		return 0, errors.New("username is too long (max 256 characters)")
 	}
 
-	if err = func() error {
-		r.rwMu.RLock()
-		defer r.rwMu.RUnlock()
-
-		if len(r.users) >= MaxPreAuthUsers {
-			return errors.New("maximum number of pre-auth users reached, login for new users via SSH is disabled until authd is restarted")
-		}
-		return nil
-	}(); err != nil {
-		return 0, err
+	if len(r.users) >= MaxPreAuthUsers {
+		return 0, errors.New("maximum number of pre-auth users reached, login for new users via SSH is disabled until authd is restarted")
 	}
 
-	passwdEntries, err := localentries.GetPasswdEntries()
-	if err != nil {
-		return 0, fmt.Errorf("could not check user, failed to get passwd entries: %w", err)
-	}
-	groupEntries, err := localentries.GetGroupEntries()
-	if err != nil {
-		return 0, fmt.Errorf("could not check user, failed to get group entries: %w", err)
-	}
-
-	if slices.ContainsFunc(passwdEntries, func(p types.UserEntry) bool {
-		return p.Name == loginName
-	}) {
-		log.Errorf(context.Background(), "User already exists on the system: %+v", loginName)
-		return 0, fmt.Errorf("user %q already exists on the system", loginName)
-	}
-
-	// Generate a UID until we find a unique one
-	for {
-		uid, err := r.idGenerator.GenerateUID()
-		if err != nil {
-			return 0, err
-		}
-
-		unique, err := r.isUniqueUID(uid, passwdEntries, groupEntries)
-		if err != nil {
-			return 0, fmt.Errorf("could not check if UID %d is unique: %w", uid, err)
-		}
-
-		if !unique {
-			// If the UID is not unique, generate a new one in the next iteration.
-			continue
-		}
-
-		return uid, nil
-	}
-}
-
-// isUniqueUID returns true if the given UID is unique in the system. It returns false if the UID is already assigned to
-// a user by any NSS source.
-func (r *preAuthUserRecords) isUniqueUID(uid uint32, passwdEntries []types.UserEntry, groupEntries []types.GroupEntry) (bool, error) {
-	r.rwMu.RLock()
-	defer r.rwMu.RUnlock()
-
-	if _, ok := r.users[uid]; ok {
-		return false, nil
-	}
-
-	for _, entry := range passwdEntries {
-		if entry.UID == uid {
-			log.Debugf(context.Background(), "ID %d already in use by user %q", uid, entry.Name)
-			return false, nil
-		}
-	}
-
-	for _, group := range groupEntries {
-		if group.GID == uid {
-			// A group with the same ID already exists, so we can't use that ID as the GID of the temporary user
-			log.Debugf(context.Background(), "ID %d already in use by group %q", uid, group.Name)
-			return false, fmt.Errorf("group with GID %d already exists", uid)
-		}
-	}
-
-	return true, nil
+	// Generate a UID
+	return r.idGenerator.GenerateUID()
 }
 
 // addPreAuthUser adds a temporary user with a random name and the given UID. We use a random name here to avoid
 // creating user records with attacker-controlled names.
-//
-// It returns the generated name and a cleanup function to remove the temporary user record.
 func (r *preAuthUserRecords) addPreAuthUser(uid uint32, loginName string) (err error) {
-	r.rwMu.Lock()
-	defer r.rwMu.Unlock()
-
-	if currentUID, ok := r.users[uid]; ok {
-		if currentUID.uid == uid {
-			r.uidByLogin[loginName] = uid
-			log.Debugf(context.Background(),
-				"Pre-auth user %q with UID %d is already registered", loginName, uid)
-			return nil
-		}
-		// This is really a programmer error if we get there, so... Let's just avoid it.
-		return fmt.Errorf("An user with ID %d already exists, this should never happen", uid)
-	}
-
-	if currentUID, ok := r.uidByLogin[loginName]; ok && currentUID != uid {
-		log.Warningf(context.Background(),
-			"An temporary user entry for %q already exists as %d, impossible to register user",
-			loginName, uid)
-		return fmt.Errorf("failed to register again %q as %d", loginName, uid)
-	}
-
 	var name string
 	for {
 		// Generate a 64 character (32 bytes in hex) random ID which we store in the
@@ -249,19 +155,19 @@ func (r *preAuthUserRecords) addPreAuthUser(uid uint32, loginName string) (err e
 }
 
 // deletePreAuthUser deletes the temporary user with the given UID.
-func (r *preAuthUserRecords) deletePreAuthUser(uid uint32) {
-	r.rwMu.Lock()
-	defer r.rwMu.Unlock()
-
+//
+// This must be called with the mutex locked.
+func (r *preAuthUserRecords) deletePreAuthUser(uid uint32) bool {
 	user, ok := r.users[uid]
 	if !ok {
 		// We ignore the case that the pre-auth user does not exist, because it can happen that the same user is
 		// registered multiple times (because multiple SSH sessions are opened for the same user) and the cleanup
 		// function is called multiple times.
-		return
+		return false
 	}
 	delete(r.users, uid)
 	delete(r.uidByName, user.name)
 	delete(r.uidByLogin, user.loginName)
 	log.Debugf(context.Background(), "Removed temporary record for user %q with UID %d", user.name, uid)
+	return true
 }
