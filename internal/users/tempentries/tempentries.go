@@ -5,11 +5,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
+	"github.com/ubuntu/decorate"
 )
 
 // NoDataFoundError is the error returned when no entry is found in the database.
@@ -59,6 +61,11 @@ func (r *TemporaryRecords) RegisterUser(name string) (uid uint32, cleanup func()
 	if err != nil {
 		return 0, nil, fmt.Errorf("could not check user, failed to get passwd entries: %w", err)
 	}
+
+	if !isUniqueSystemUserName(name, passwdEntries) {
+		return 0, nil, fmt.Errorf("user %q already exists", name)
+	}
+
 	groupEntries, err := localentries.GetGroupEntries()
 	if err != nil {
 		return 0, nil, fmt.Errorf("could not check user, failed to get group entries: %w", err)
@@ -76,21 +83,20 @@ func (r *TemporaryRecords) RegisterUser(name string) (uid uint32, cleanup func()
 		// ones we manage in authd while we're updating the users, although there's no risk
 		// that someone else takes the UID here, since we're locked.
 		cleanup := func() {
-			r.deletePreAuthUser(user.UID)
-			r.forgetID(user.UID)
+			r.preAuthUserRecords.rwMu.Lock()
+			defer r.preAuthUserRecords.rwMu.Unlock()
+
 			r.idTracker.forgetUser(name)
+			if r.deletePreAuthUser(user.UID) {
+				r.forgetID(user.UID)
+			}
 		}
 
 		// Now that the user authenticated successfully, we don't really need to check again
 		// if the UID is unique, since that's something we did while registering it, and we're
 		// currently locked, so nothing else can add another user with such ID, but we do to
-		// ensure that there is not another user with the same name.
-		unique, err := uniqueNameAndUID(name, user.UID, passwdEntries, groupEntries)
-		if err != nil {
-			cleanup()
-			return 0, nil, fmt.Errorf("checking UID and name uniqueness: %w", err)
-		}
-		if !unique {
+		// double check it, just in case.
+		if !isUniqueSystemID(user.UID, passwdEntries, groupEntries) {
 			cleanup()
 			return 0, nil, fmt.Errorf("UID (%d) or name (%q) from pre-auth user are not unique", user.UID, name)
 		}
@@ -105,31 +111,24 @@ func (r *TemporaryRecords) RegisterUser(name string) (uid uint32, cleanup func()
 			return 0, nil, err
 		}
 
-		unique, err := uniqueNameAndUID(name, uid, passwdEntries, groupEntries)
-		if err != nil {
-			return 0, nil, fmt.Errorf("checking UID and name uniqueness: %w", err)
-		}
-		if !unique {
+		if unique := r.maybeTrackUniqueID(uid, passwdEntries, groupEntries); !unique {
 			// If the UID is not unique, generate a new one in the next iteration.
 			continue
 		}
 
-		if !r.idTracker.trackID(uid) {
-			// If the UID is not unique, generate a new one in the next iteration.
-			continue
-		}
-
-		tracked, currentUID := r.idTracker.trackUser(name, uid)
-		if !tracked {
+		if tracked, currentUID := r.idTracker.trackUser(name, uid); !tracked {
 			// If the loginName is already set for a different UID, it means
 			// that another concurrent request won the race, so let's just
 			// use that one instead.
 			r.idTracker.forgetID(uid)
-			uid = currentUID
+			return currentUID, func() {}, nil
 		}
 
 		log.Debugf(context.Background(), "Generated UID %d for user UID %s", uid, name)
-		return uid, func() { r.idTracker.forgetID(uid); r.idTracker.forgetUser(name) }, nil
+		return uid, func() {
+			r.idTracker.forgetID(uid)
+			r.idTracker.forgetUser(name)
+		}, nil
 	}
 }
 
@@ -144,16 +143,27 @@ func (r *TemporaryRecords) RegisterUser(name string) (uid uint32, cleanup func()
 //
 // Returns the generated UID.
 func (r *TemporaryRecords) RegisterPreAuthUser(loginName string) (uid uint32, err error) {
+	r.rwMu.Lock()
+	defer r.rwMu.Unlock()
+
 	// Check if there is already a pre-auth user for that name
-	user, err := r.preAuthUserRecords.userByLogin(loginName)
-	if err != nil && !errors.Is(err, NoDataFoundError{}) {
-		return 0, fmt.Errorf("could not check if pre-auth user %q already exists: %w",
-			loginName, err)
+	if uid, ok := r.preAuthUserRecords.uidByLogin[loginName]; ok {
+		return uid, nil
 	}
-	if err == nil {
-		// A pre-auth user is already registered for this name, so we return the
-		// already generated UID.
-		return user.UID, nil
+
+	passwdEntries, err := localentries.GetPasswdEntries()
+	if err != nil {
+		return 0, fmt.Errorf("could not check user, failed to get passwd entries: %w", err)
+	}
+
+	if !isUniqueSystemUserName(loginName, passwdEntries) {
+		log.Errorf(context.Background(), "User already exists on the system: %+v", loginName)
+		return 0, fmt.Errorf("user %q already exists on the system", loginName)
+	}
+
+	groupEntries, err := localentries.GetGroupEntries()
+	if err != nil {
+		return 0, fmt.Errorf("could not check user, failed to get group entries: %w", err)
 	}
 
 	for {
@@ -162,13 +172,12 @@ func (r *TemporaryRecords) RegisterPreAuthUser(loginName string) (uid uint32, er
 			return 0, err
 		}
 
-		if !r.idTracker.trackID(uid) {
+		if unique := r.maybeTrackUniqueID(uid, passwdEntries, groupEntries); !unique {
 			// If the UID is not unique, generate a new one in the next iteration.
 			continue
 		}
 
-		tracked, currentUID := r.idTracker.trackUser(loginName, uid)
-		if !tracked {
+		if tracked, currentUID := r.idTracker.trackUser(loginName, uid); !tracked {
 			// If the loginName is already set for a different UID, it means
 			// that another concurrent request won the race, so let's just
 			// use that one instead.
@@ -177,8 +186,8 @@ func (r *TemporaryRecords) RegisterPreAuthUser(loginName string) (uid uint32, er
 		}
 
 		if err := r.addPreAuthUser(uid, loginName); err != nil {
-			r.idTracker.forgetID(uid)
 			r.idTracker.forgetUser(loginName)
+			r.idTracker.forgetID(uid)
 			return 0, fmt.Errorf("could not add pre-auth user record: %w", err)
 		}
 
@@ -192,24 +201,98 @@ func (r *TemporaryRecords) RegisterPreAuthUser(loginName string) (uid uint32, er
 // Returns the generated GID and a cleanup function that should be called to
 // remove the temporary group once the group was added to the database.
 func (r *TemporaryRecords) RegisterGroupForUser(uid uint32, name string) (gid uint32, cleanup func(), err error) {
+	defer decorate.OnError(&err, "failed to register group %q for user ID %d", name, uid)
+
+	groupEntries, err := localentries.GetGroupEntries()
+	if err != nil {
+		return 0, nil, fmt.Errorf("failed to get group entries: %w", err)
+	}
+
+	if slices.ContainsFunc(groupEntries, func(g types.GroupEntry) bool {
+		return g.Name == name
+	}) {
+		return 0, nil, fmt.Errorf("group %q already exists", name)
+	}
+
+	passwdEntries, err := localentries.GetPasswdEntries()
+	if err != nil {
+		return 0, nil, fmt.Errorf("failed to get passwd entries: %w", err)
+	}
+
+	r.temporaryGroupRecords.mu.Lock()
+	defer r.temporaryGroupRecords.mu.Unlock()
+
+	groupCleanup := func() {
+		r.temporaryGroupRecords.mu.Lock()
+		defer r.temporaryGroupRecords.mu.Unlock()
+
+		if r.releaseTemporaryGroup(gid) {
+			r.idTracker.forgetID(gid)
+		}
+	}
+
+	if gid = r.getTemporaryGroup(name); gid != 0 {
+		return gid, groupCleanup, nil
+	}
+
 	for {
-		gid, cleanup, err := r.temporaryGroupRecords.registerGroup(name)
+		gid, err = r.temporaryGroupRecords.generateGroupID()
 		if err != nil {
-			return gid, cleanup, err
+			return 0, nil, err
 		}
 
 		if gid == uid {
 			// Generated GID matches current user UID, try again...
-			cleanup()
 			continue
 		}
 
-		if !r.idTracker.trackID(gid) {
-			// If the UID is not unique, generate a new one in the next iteration.
-			cleanup()
+		if unique := r.maybeTrackUniqueID(gid, passwdEntries, groupEntries); !unique {
+			// If the GID is not unique, generate a new one in the next iteration.
 			continue
 		}
 
-		return gid, func() { cleanup(); r.idTracker.forgetID(gid) }, nil
+		r.addTemporaryGroup(gid, name)
+
+		return gid, groupCleanup, nil
 	}
+}
+
+func (r *TemporaryRecords) maybeTrackUniqueID(id uint32, passwdEntries []types.UserEntry, groupEntries []types.GroupEntry) (unique bool) {
+	defer func() {
+		if !unique {
+			log.Debugf(context.TODO(), "ID %d is not unique in this system", id)
+		}
+	}()
+
+	if !isUniqueSystemID(id, passwdEntries, groupEntries) {
+		return false
+	}
+
+	return r.idTracker.trackID(id)
+}
+
+func isUniqueSystemID(uid uint32, passwdEntries []types.UserEntry, groupEntries []types.GroupEntry) bool {
+	if slices.ContainsFunc(passwdEntries, func(p types.UserEntry) (found bool) {
+		found = p.UID == uid
+		if found {
+			log.Debugf(context.Background(), "ID %d already in use by user %q", uid, p.Name)
+		}
+		return found
+	}) {
+		return false
+	}
+
+	return !slices.ContainsFunc(groupEntries, func(g types.GroupEntry) (found bool) {
+		found = g.GID == uid
+		if found {
+			log.Debugf(context.Background(), "ID %d already in use by group %q", uid, g.Name)
+		}
+		return found
+	})
+}
+
+func isUniqueSystemUserName(name string, passwdEntries []types.UserEntry) bool {
+	return !slices.ContainsFunc(passwdEntries, func(p types.UserEntry) bool {
+		return p.Name == name
+	})
 }
