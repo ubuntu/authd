@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -329,7 +328,7 @@ func saveArtifactsForDebugOnCleanup(t *testing.T, artifacts []string) {
 }
 
 func sleepDuration(in time.Duration) time.Duration {
-	return time.Duration(math.Round(float64(in) * testutils.SleepMultiplier()))
+	return testutils.MultipliedSleepDuration(in)
 }
 
 // prependBinToPath returns the value of the GOPATH defined in go env prepended to PATH.
