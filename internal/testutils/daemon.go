@@ -249,8 +249,8 @@ paths:
 	return opts.socketPath, stopped
 }
 
-// BuildDaemon builds the daemon executable and returns the binary path.
-func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err error) {
+// BuildDaemonWithExampleBroker builds the daemon executable and returns the binary path.
+func BuildDaemonWithExampleBroker() (execPath string, cleanup func(), err error) {
 	projectRoot := ProjectRoot()
 
 	tempDir, err := os.MkdirTemp("", "authd-tests-daemon")
@@ -273,7 +273,7 @@ func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err erro
 		cmd.Args = append(cmd.Args, "-race")
 	}
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
-	cmd.Args = append(cmd.Args, extraArgs...)
+	cmd.Args = append(cmd.Args, "-tags=withexamplebroker,integrationtests")
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")
 
 	if out, err := cmd.CombinedOutput(); err != nil {

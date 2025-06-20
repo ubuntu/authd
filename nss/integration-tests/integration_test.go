@@ -167,13 +167,14 @@ func TestIntegration(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	execPath, cleanup, err := testutils.BuildDaemon("-tags=withexamplebroker,integrationtests")
+	var cleanup func()
+	var err error
+	daemonPath, cleanup, err = testutils.BuildDaemonWithExampleBroker()
 	if err != nil {
 		log.Printf("Setup: failed to build daemon: %v", err)
 		os.Exit(1)
 	}
 	defer cleanup()
-	daemonPath = execPath
 
 	m.Run()
 }
