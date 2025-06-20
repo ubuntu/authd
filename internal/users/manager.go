@@ -138,6 +138,15 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 	if errors.Is(err, db.NoDataFoundError{}) {
 		// Check if the user exists on the system
+		if err := userslocking.WriteRecLock(); err != nil {
+			return err
+		}
+		defer func() {
+			if unlockErr := userslocking.WriteRecUnlock(); unlockErr != nil {
+				err = errors.Join(err, unlockErr)
+			}
+		}()
+
 		existingUser, err := user.Lookup(u.Name)
 		var unknownUserErr user.UnknownUserError
 		if !errors.As(err, &unknownUserErr) {
