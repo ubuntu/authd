@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 )
@@ -74,7 +75,7 @@ func TestRegisterUser(t *testing.T) {
 				require.NoError(t, err, "addPreAuthUser should not return an error, but did")
 			}
 
-			uid, cleanup, err := records.RegisterUser(tc.userName)
+			uid, cleanup, err := records.registerUser(tc.userName)
 			if tc.wantErr {
 				require.Error(t, err, "RegisterUser should return an error, but did not")
 				return
@@ -328,8 +329,16 @@ func TestRegisterUserAndGroupForUser(t *testing.T) {
 					replacingPreAuthUser = err == nil
 				}
 
+				records, recordsUnlock, err := records.LockForChanges()
+				require.NoError(t, err, "LockForChanges should not return an error, but did")
+				t.Cleanup(func() {
+					err := recordsUnlock()
+					require.NoError(t, err, "recordsCleanup should not return an error, but did")
+				})
+
+				internalRecords := records.tr
+
 				var uid uint32
-				var err error
 				var cleanup func()
 				if uc.preAuth {
 					uid, err = records.RegisterPreAuthUser(uc.name)
@@ -362,7 +371,7 @@ func TestRegisterUserAndGroupForUser(t *testing.T) {
 				}
 
 				require.Equal(t, uc.wantUID, uid, "%q UID is not matching expected value", uc.name)
-				require.Equal(t, wantRegisteredUsers, len(records.users),
+				require.Equal(t, wantRegisteredUsers, len(internalRecords.users),
 					"Number of pre-auth registered, users should be %d", wantRegisteredUsers)
 
 				if isDuplicated {
@@ -380,13 +389,13 @@ func TestRegisterUserAndGroupForUser(t *testing.T) {
 
 					if replacingPreAuthUser {
 						wantRegisteredUsers--
-						require.Equal(t, wantRegisteredUsers, len(records.users),
+						require.Equal(t, wantRegisteredUsers, len(internalRecords.users),
 							"Number of pre-auth registered, users should be %d", wantRegisteredUsers)
 					}
 				}
 
 				// Check that the user was registered
-				user, err := records.userByLogin(uc.name)
+				user, err := internalRecords.userByLogin(uc.name)
 				if uc.preAuth || (replacingPreAuthUser && !uc.runCleanup) {
 					require.NoError(t, err, "UserByID should not return an error, but did")
 				} else {
@@ -406,9 +415,9 @@ func TestRegisterUserAndGroupForUser(t *testing.T) {
 
 					if uc.simulateUIDRace {
 						t.Logf("Dropping the registered UID %d for %q", uid, uc.name)
-						t.Log(records.preAuthUserRecords.users)
-						delete(records.preAuthUserRecords.users, uid)
-						t.Log("after", records.preAuthUserRecords.users)
+						t.Log(internalRecords.preAuthUserRecords.users)
+						delete(internalRecords.preAuthUserRecords.users, uid)
+						t.Log("after", internalRecords.preAuthUserRecords.users)
 
 						lastCleanupIdx = idx + 1
 						registeredUIDs = slices.DeleteFunc(registeredUIDs,
@@ -418,7 +427,7 @@ func TestRegisterUserAndGroupForUser(t *testing.T) {
 
 					if uc.simulateNameRace {
 						t.Logf("Dropping the registered login name %q for %d", uc.name, uid)
-						delete(records.preAuthUserRecords.uidByLogin, uc.name)
+						delete(internalRecords.preAuthUserRecords.uidByLogin, uc.name)
 					}
 
 					// We don't have groups registration for the pre-check user.
@@ -429,14 +438,14 @@ func TestRegisterUserAndGroupForUser(t *testing.T) {
 
 				if uc.simulateUIDRace {
 					t.Logf("Dropping the registered UID %d for %q", uid, uc.name)
-					delete(records.idTracker.ids, uid)
+					delete(internalRecords.idTracker.ids, uid)
 					continue
 				}
 
 				if uc.simulateNameRace {
 					// We drop the registered name to check if the logic can handle such case.
 					t.Logf("Dropping the registered user name %q for %d", uc.name, uid)
-					delete(records.idTracker.userNames, uc.name)
+					delete(internalRecords.idTracker.userNames, uc.name)
 					lastCleanupIdx = idx + 1
 					continue
 				}
@@ -484,11 +493,11 @@ func TestRegisterUserAndGroupForUser(t *testing.T) {
 
 					require.NoError(t, err, "RegisterGroup should not return an error, but did")
 					require.Equal(t, wantGID, gid, "%q GID is not matching expected value", groupName)
-					require.Equal(t, wantRegisteredGroups, len(records.groups),
+					require.Equal(t, wantRegisteredGroups, len(internalRecords.groups),
 						"Number of groups registered, users should be %d", wantRegisteredGroups)
 
 					// Check that the temporary group was created
-					group, err := records.GroupByID(gid)
+					group, err := internalRecords.GroupByID(gid)
 					require.NoError(t, err, "GroupByID should not return an error, but did")
 
 					groupSuffix := groupName
@@ -537,7 +546,7 @@ func TestUserByIDAndName(t *testing.T) {
 			records := NewTemporaryRecords(idGeneratorMock)
 
 			if tc.registerUser {
-				uid, cleanup, err := records.RegisterUser(userName)
+				uid, cleanup, err := records.registerUser(userName)
 				require.NoError(t, err, "RegisterUser should not return an error, but did")
 				require.Equal(t, uidToGenerate, uid, "UID should be the one generated by the IDGenerator")
 				t.Cleanup(cleanup)
@@ -565,4 +574,13 @@ func checkUser(t *testing.T, user types.UserEntry, options ...golden.Option) {
 	t.Helper()
 
 	golden.CheckOrUpdateYAML(t, user, options...)
+}
+
+func TestMain(m *testing.M) {
+	log.SetLevel(log.DebugLevel)
+
+	userslocking.Z_ForTests_OverrideLocking()
+	defer userslocking.Z_ForTests_RestoreLocking()
+
+	m.Run()
 }

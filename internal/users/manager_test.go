@@ -437,7 +437,14 @@ func TestUserByIDAndName(t *testing.T) {
 			m := newManagerForTests(t, dbDir)
 
 			if tc.isTempUser {
-				tc.uid, err = m.TemporaryRecords().RegisterPreAuthUser("tempuser1")
+				records, recordsUnlock, err := m.TemporaryRecords().LockForChanges()
+				require.NoError(t, err, "LockForChanges should not return an error, but did")
+				t.Cleanup(func() {
+					err := recordsUnlock()
+					require.NoError(t, err, "recordsCleanup should not return an error, but did")
+				})
+
+				tc.uid, err = records.RegisterPreAuthUser("tempuser1")
 				require.NoError(t, err, "RegisterUser should not return an error, but did")
 			}
 

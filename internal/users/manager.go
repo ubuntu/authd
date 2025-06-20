@@ -12,7 +12,6 @@ import (
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
 	"github.com/ubuntu/authd/internal/users/localentries"
-	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/internal/users/tempentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
@@ -128,19 +127,14 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		return fmt.Errorf("could not get user %q: %w", u.Name, err)
 	}
 	if errors.Is(err, db.NoDataFoundError{}) {
-		if err := userslocking.WriteRecLock(); err != nil {
+		records, recordsUnlock, err := m.temporaryRecords.LockForChanges()
+		if err != nil {
 			return err
 		}
-		defer func() {
-			if unlockErr := userslocking.WriteRecUnlock(); unlockErr != nil {
-				err = errors.Join(err, unlockErr)
-			}
-		}()
+		defer func() { err = errors.Join(err, recordsUnlock()) }()
 
-		// The user does not exist, so we generate a unique UID for it or
-		// we reuse the one that has been already pre-registered.
 		var cleanup func()
-		uid, cleanup, err = m.temporaryRecords.RegisterUser(u.Name)
+		uid, cleanup, err = records.RegisterUser(u.Name)
 		if err != nil {
 			return fmt.Errorf("could not register user %q: %w", u.Name, err)
 		}
@@ -198,17 +192,14 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 
 	if len(newGroups) > 0 {
-		if err := userslocking.WriteRecLock(); err != nil {
+		records, recordsUnlock, err := m.temporaryRecords.LockForChanges()
+		if err != nil {
 			return err
 		}
-		defer func() {
-			if unlockErr := userslocking.WriteRecUnlock(); unlockErr != nil {
-				err = errors.Join(err, unlockErr)
-			}
-		}()
+		defer func() { err = errors.Join(err, recordsUnlock()) }()
 
 		for _, g := range newGroups {
-			gid, cleanup, err := m.temporaryRecords.RegisterGroupForUser(uid, g.Name)
+			gid, cleanup, err := records.RegisterGroupForUser(uid, g.Name)
 			if err != nil {
 				return fmt.Errorf("could not generate GID for group %q: %v", g.Name, err)
 			}
@@ -448,15 +439,11 @@ func (m *Manager) RegisterUserPreAuth(name string) (uid uint32, err error) {
 		return 0, fmt.Errorf("user %q is already registered in our DB: %w", name, err)
 	}
 
-	if err := userslocking.WriteRecLock(); err != nil {
+	records, recordsUnlock, err := m.temporaryRecords.LockForChanges()
+	if err != nil {
 		return 0, err
 	}
-	defer func() {
-		if unlockErr := userslocking.WriteRecUnlock(); unlockErr != nil {
-			uid = 0
-			err = errors.Join(err, unlockErr)
-		}
-	}()
+	defer func() { err = errors.Join(err, recordsUnlock()) }()
 
-	return m.temporaryRecords.RegisterPreAuthUser(name)
+	return records.RegisterPreAuthUser(name)
 }
