@@ -6,9 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"sync"
+	"sync/atomic"
 
+	"github.com/ubuntu/authd/internal/testsdetection"
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
@@ -29,7 +33,139 @@ type TemporaryRecords struct {
 	*preAuthUserRecords
 	*temporaryGroupRecords
 
-	idGenerator IDGenerator
+	idGenerator   IDGenerator
+	lockedRecords atomic.Pointer[temporaryRecordsLocked]
+}
+
+// temporaryRecordsLocked is the structure that allows to safely perform write
+// changes to [TemporaryRecords] entries while the local entries database is
+// locked.
+type temporaryRecordsLocked struct {
+	tr *TemporaryRecords
+
+	locksMu sync.RWMutex
+	locks   uint64
+
+	cachedLocalPasswd []types.UserEntry
+	cachedLocalGroup  []types.GroupEntry
+}
+
+func (l *temporaryRecordsLocked) mustBeLocked() (cleanup func()) {
+	// While all the [temporaryRecordsLocked] operations are happening
+	// we need to keep a read lock on it, to prevent it being unlocked
+	// while some action is still ongoing.
+	l.locksMu.RLock()
+	cleanup = l.locksMu.RUnlock
+
+	if l.locks == 0 {
+		defer cleanup()
+		panic("locked groups are not locked!")
+	}
+
+	return cleanup
+}
+
+// RegisterUser registers a temporary user with a unique UID.
+//
+// Returns the generated UID and a cleanup function that should be called to
+// remove the temporary user once the user is added to the database.
+func (l *temporaryRecordsLocked) RegisterUser(name string) (uid uint32, cleanup func(), err error) {
+	unlock := l.mustBeLocked()
+	defer unlock()
+
+	return l.tr.registerUser(name)
+}
+
+// RegisterPreAuthUser registers a temporary user with a unique UID in our NSS
+// handler (in memory, not in the database).
+//
+// The temporary user record is removed when [RegisterUser] is called with the
+// same username.
+//
+// This method is called when a user logs in for the first time via SSH, in
+// which case sshd checks if the user exists on the system (before
+// authentication), and denies the login if the user does not exist.
+// We pretend that the user exists by creating this temporary user record,
+// which is converted into a permanent user record when [RegisterUser] is called
+// after the user authenticated successfully.
+//
+// Returns the generated UID.
+func (l *temporaryRecordsLocked) RegisterPreAuthUser(loginName string) (uid uint32, err error) {
+	unlock := l.mustBeLocked()
+	defer unlock()
+
+	return l.tr.registerPreAuthUser(loginName)
+}
+
+// RegisterGroupForUser registers a temporary group with a unique GID in
+// memory for the provided UID.
+//
+// Returns the generated GID and a cleanup function that should be called to
+// remove the temporary group once the group was added to the database.
+func (l *temporaryRecordsLocked) RegisterGroupForUser(uid uint32, name string) (gid uint32, cleanup func(), err error) {
+	unlock := l.mustBeLocked()
+	defer unlock()
+
+	return l.tr.registerGroupForUser(uid, name)
+}
+
+func (l *temporaryRecordsLocked) lock() (err error) {
+	defer decorate.OnError(&err, "could not lock temporary records")
+
+	l.locksMu.Lock()
+	defer l.locksMu.Unlock()
+
+	if l.locks != 0 {
+		l.locks++
+		return nil
+	}
+
+	log.Debug(context.Background(), "Locking temporary records ")
+
+	l.cachedLocalPasswd, err = localentries.GetPasswdEntries()
+	if err != nil {
+		return fmt.Errorf("failed to get passwd entries: %w", err)
+	}
+	l.cachedLocalGroup, err = localentries.GetGroupEntries()
+	if err != nil {
+		return fmt.Errorf("failed to get group entries: %w", err)
+	}
+
+	if err := userslocking.WriteRecLock(); err != nil {
+		return err
+	}
+
+	l.locks++
+
+	return nil
+}
+
+func (l *temporaryRecordsLocked) unlock() (err error) {
+	defer decorate.OnError(&err, "could not unlock temporary records")
+
+	l.locksMu.Lock()
+	defer l.locksMu.Unlock()
+
+	if l.locks == 0 {
+		return errors.New("temporary records are already unlocked")
+	}
+
+	if l.locks != 1 {
+		l.locks--
+		return nil
+	}
+
+	log.Debug(context.Background(), "Unlocking temporary records")
+
+	if err := userslocking.WriteRecUnlock(); err != nil {
+		return err
+	}
+
+	l.cachedLocalPasswd = nil
+	l.cachedLocalGroup = nil
+	l.locks--
+
+	return nil
 }
 
 // NewTemporaryRecords creates a new TemporaryRecords.
@@ -52,23 +188,45 @@ func (r *TemporaryRecords) UserByName(name string) (types.UserEntry, error) {
 	return r.preAuthUserRecords.userByName(name)
 }
 
-// RegisterUser registers a temporary user with a unique UID in our NSS handler (in memory, not in the database).
+// LockForChanges locks the underneath system user entries databases and returns
+// a [temporaryRecordsLocked] that allows to perform write-modifications to the
+// user records in a way that is safe for the environment, and preventing races
+// with other NSS modules.
 //
-// Returns the generated UID and a cleanup function that should be called to
-// remove the temporary user once the user is added to the database.
-func (r *TemporaryRecords) RegisterUser(name string) (uid uint32, cleanup func(), err error) {
-	passwdEntries, err := localentries.GetPasswdEntries()
-	if err != nil {
-		return 0, nil, fmt.Errorf("could not check user, failed to get passwd entries: %w", err)
+//nolint:revive,nolintlint  // [temporaryRecordsLocked] is not a type we want to be able to use outside of this package
+func (r *TemporaryRecords) LockForChanges() (tra *temporaryRecordsLocked, unlock func() error, err error) {
+	defer decorate.OnError(&err, "failed to lock for changes")
+
+	lockedRecords := &temporaryRecordsLocked{tr: r}
+
+	for {
+		if r.lockedRecords.CompareAndSwap(nil, lockedRecords) {
+			break
+		}
+
+		// We've old locked records, let's just return these once we're sure!
+		l := r.lockedRecords.Load()
+		if l == nil {
+			continue
+		}
+		if err := l.lock(); err != nil {
+			return nil, nil, err
+		}
+		return l, l.unlock, nil
 	}
 
-	if !isUniqueSystemUserName(name, passwdEntries) {
+	if err := lockedRecords.lock(); err != nil {
+		return nil, nil, err
+	}
+
+	return lockedRecords, lockedRecords.unlock, nil
+}
+
+func (r *TemporaryRecords) registerUser(name string) (uid uint32, cleanup func(), err error) {
+	defer decorate.OnError(&err, "failed to register user %q", name)
+
+	if !r.isUniqueSystemUserName(name) {
 		return 0, nil, fmt.Errorf("user %q already exists", name)
-	}
-
-	groupEntries, err := localentries.GetGroupEntries()
-	if err != nil {
-		return 0, nil, fmt.Errorf("could not check user, failed to get group entries: %w", err)
 	}
 
 	// Check if there is a pre-auth user with the same login name.
@@ -96,7 +254,7 @@ func (r *TemporaryRecords) RegisterUser(name string) (uid uint32, cleanup func()
 		// if the UID is unique, since that's something we did while registering it, and we're
 		// currently locked, so nothing else can add another user with such ID, but we do to
 		// double check it, just in case.
-		if !isUniqueSystemID(user.UID, passwdEntries, groupEntries) {
+		if !r.isUniqueSystemID(user.UID) {
 			cleanup()
 			return 0, nil, fmt.Errorf("UID (%d) or name (%q) from pre-auth user are not unique", user.UID, name)
 		}
@@ -111,7 +269,7 @@ func (r *TemporaryRecords) RegisterUser(name string) (uid uint32, cleanup func()
 			return 0, nil, err
 		}
 
-		if unique := r.maybeTrackUniqueID(uid, passwdEntries, groupEntries); !unique {
+		if unique := r.maybeTrackUniqueID(uid); !unique {
 			// If the UID is not unique, generate a new one in the next iteration.
 			continue
 		}
@@ -132,17 +290,7 @@ func (r *TemporaryRecords) RegisterUser(name string) (uid uint32, cleanup func()
 	}
 }
 
-// RegisterPreAuthUser registers a temporary user with a unique UID in our NSS handler (in memory, not in the database).
-//
-// The temporary user record is removed when UpdateUser is called with the same username.
-//
-// This method is called when a user logs in for the first time via SSH, in which case sshd checks if the user exists on
-// the system (before authentication), and denies the login if the user does not exist. We pretend that the user exists
-// by creating this temporary user record, which is converted into a permanent user record when UpdateUser is called
-// after the user authenticated successfully.
-//
-// Returns the generated UID.
-func (r *TemporaryRecords) RegisterPreAuthUser(loginName string) (uid uint32, err error) {
+func (r *TemporaryRecords) registerPreAuthUser(loginName string) (uid uint32, err error) {
 	r.rwMu.Lock()
 	defer r.rwMu.Unlock()
 
@@ -151,19 +299,9 @@ func (r *TemporaryRecords) RegisterPreAuthUser(loginName string) (uid uint32, er
 		return uid, nil
 	}
 
-	passwdEntries, err := localentries.GetPasswdEntries()
-	if err != nil {
-		return 0, fmt.Errorf("could not check user, failed to get passwd entries: %w", err)
-	}
-
-	if !isUniqueSystemUserName(loginName, passwdEntries) {
+	if !r.isUniqueSystemUserName(loginName) {
 		log.Errorf(context.Background(), "User already exists on the system: %+v", loginName)
 		return 0, fmt.Errorf("user %q already exists on the system", loginName)
-	}
-
-	groupEntries, err := localentries.GetGroupEntries()
-	if err != nil {
-		return 0, fmt.Errorf("could not check user, failed to get group entries: %w", err)
 	}
 
 	for {
@@ -172,7 +310,7 @@ func (r *TemporaryRecords) RegisterPreAuthUser(loginName string) (uid uint32, er
 			return 0, err
 		}
 
-		if unique := r.maybeTrackUniqueID(uid, passwdEntries, groupEntries); !unique {
+		if unique := r.maybeTrackUniqueID(uid); !unique {
 			// If the UID is not unique, generate a new one in the next iteration.
 			continue
 		}
@@ -195,28 +333,43 @@ func (r *TemporaryRecords) RegisterPreAuthUser(loginName string) (uid uint32, er
 	}
 }
 
-// RegisterGroupForUser registers a temporary group with a unique GID in
-// memory for the provided UID.
-//
-// Returns the generated GID and a cleanup function that should be called to
-// remove the temporary group once the group was added to the database.
-func (r *TemporaryRecords) RegisterGroupForUser(uid uint32, name string) (gid uint32, cleanup func(), err error) {
-	defer decorate.OnError(&err, "failed to register group %q for user ID %d", name, uid)
+func (r *TemporaryRecords) passwdEntries() []types.UserEntry {
+	l := r.lockedRecords.Load()
+	if l == nil {
+		testsdetection.MustBeTesting()
 
-	groupEntries, err := localentries.GetGroupEntries()
-	if err != nil {
-		return 0, nil, fmt.Errorf("failed to get group entries: %w", err)
+		entries, err := localentries.GetPasswdEntries()
+		if err != nil {
+			panic(fmt.Sprintf("Failed get local passwd: %v", err))
+		}
+		return entries
 	}
 
-	if slices.ContainsFunc(groupEntries, func(g types.GroupEntry) bool {
+	return l.cachedLocalPasswd
+}
+
+func (r *TemporaryRecords) groupEntries() []types.GroupEntry {
+	l := r.lockedRecords.Load()
+	if l == nil {
+		testsdetection.MustBeTesting()
+
+		entries, err := localentries.GetGroupEntries()
+		if err != nil {
+			panic(fmt.Sprintf("Failed get local groups: %v", err))
+		}
+		return entries
+	}
+
+	return l.cachedLocalGroup
+}
+
+func (r *TemporaryRecords) registerGroupForUser(uid uint32, name string) (gid uint32, cleanup func(), err error) {
+	defer decorate.OnError(&err, "failed to register group %q for user ID %d", name, uid)
+
+	if slices.ContainsFunc(r.groupEntries(), func(g types.GroupEntry) bool {
 		return g.Name == name
 	}) {
 		return 0, nil, fmt.Errorf("group %q already exists", name)
-	}
-
-	passwdEntries, err := localentries.GetPasswdEntries()
-	if err != nil {
-		return 0, nil, fmt.Errorf("failed to get passwd entries: %w", err)
 	}
 
 	r.temporaryGroupRecords.mu.Lock()
@@ -246,7 +399,7 @@ func (r *TemporaryRecords) RegisterGroupForUser(uid uint32, name string) (gid ui
 			continue
 		}
 
-		if unique := r.maybeTrackUniqueID(gid, passwdEntries, groupEntries); !unique {
+		if unique := r.maybeTrackUniqueID(gid); !unique {
 			// If the GID is not unique, generate a new one in the next iteration.
 			continue
 		}
@@ -257,42 +410,42 @@ func (r *TemporaryRecords) RegisterGroupForUser(uid uint32, name string) (gid ui
 	}
 }
 
-func (r *TemporaryRecords) maybeTrackUniqueID(id uint32, passwdEntries []types.UserEntry, groupEntries []types.GroupEntry) (unique bool) {
+func (r *TemporaryRecords) maybeTrackUniqueID(id uint32) (unique bool) {
 	defer func() {
 		if !unique {
 			log.Debugf(context.TODO(), "ID %d is not unique in this system", id)
 		}
 	}()
 
-	if !isUniqueSystemID(id, passwdEntries, groupEntries) {
+	if !r.isUniqueSystemID(id) {
 		return false
 	}
 
 	return r.idTracker.trackID(id)
 }
 
-func isUniqueSystemID(uid uint32, passwdEntries []types.UserEntry, groupEntries []types.GroupEntry) bool {
-	if slices.ContainsFunc(passwdEntries, func(p types.UserEntry) (found bool) {
-		found = p.UID == uid
-		if found {
-			log.Debugf(context.Background(), "ID %d already in use by user %q", uid, p.Name)
-		}
-		return found
-	}) {
+func (r *TemporaryRecords) isUniqueSystemID(id uint32) bool {
+	if idx := slices.IndexFunc(r.passwdEntries(), func(p types.UserEntry) (found bool) {
+		return p.UID == id
+	}); idx != -1 {
+		log.Debugf(context.Background(), "ID %d already in use by user %q",
+			id, r.passwdEntries()[idx].Name)
 		return false
 	}
 
-	return !slices.ContainsFunc(groupEntries, func(g types.GroupEntry) (found bool) {
-		found = g.GID == uid
-		if found {
-			log.Debugf(context.Background(), "ID %d already in use by group %q", uid, g.Name)
-		}
-		return found
-	})
+	if idx := slices.IndexFunc(r.groupEntries(), func(g types.GroupEntry) (found bool) {
+		return g.GID == id
+	}); idx != -1 {
+		log.Debugf(context.Background(), "ID %d already in use by user %q",
+			id, r.groupEntries()[idx].Name)
+		return false
+	}
+
+	return true
 }
 
-func isUniqueSystemUserName(name string, passwdEntries []types.UserEntry) bool {
-	return !slices.ContainsFunc(passwdEntries, func(p types.UserEntry) bool {
+func (r *TemporaryRecords) isUniqueSystemUserName(name string) bool {
+	return !slices.ContainsFunc(r.passwdEntries(), func(p types.UserEntry) bool {
 		return p.Name == name
 	})
 }
