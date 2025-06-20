@@ -2,10 +2,8 @@ package tempentries
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
-	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/log"
 )
 
@@ -75,31 +73,4 @@ func (r *idTracker) forgetUser(name string) {
 			"Forgetting tracked user name %q for UID %d: %v", name, id, ok)
 	}
 	delete(r.userNames, name)
-}
-
-// uniqueNameAndUID returns true if the given UID is unique in the system. It returns false if the UID is already assigned to
-// a user by any NSS source.
-func uniqueNameAndUID(name string, uid uint32, passwdEntries []localentries.Passwd, groupEntries []localentries.Group) (bool, error) {
-	for _, entry := range passwdEntries {
-		if entry.Name == name && entry.UID != uid {
-			// A user with the same name already exists, we can't register this temporary user.
-			log.Debugf(context.Background(), "Name %q already in use by UID %d", name, entry.UID)
-			return false, fmt.Errorf("user %q already exists", name)
-		}
-
-		if entry.UID == uid {
-			log.Debugf(context.Background(), "UID %d already in use by user %q, generating a new one", uid, entry.Name)
-			return false, nil
-		}
-	}
-
-	for _, group := range groupEntries {
-		if group.GID == uid {
-			// A group with the same ID already exists, so we can't use that ID as the GID of the temporary user.
-			log.Debugf(context.Background(), "ID %d already in use by group %q", uid, group.Name)
-			return false, fmt.Errorf("group with GID %d already exists", uid)
-		}
-	}
-
-	return true, nil
 }

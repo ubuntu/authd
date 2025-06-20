@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/log"
 )
 
@@ -29,80 +28,56 @@ func newTemporaryGroupRecords(idGenerator IDGenerator) *temporaryGroupRecords {
 	}
 }
 
-// registerGroup registers a temporary group with a unique GID in our NSS handler (in memory, not in the database).
+// generateGroupID registers a temporary group with a potential unique GID.
 //
-// Returns the generated GID and a cleanup function that should be called to remove the temporary group.
-func (r *temporaryGroupRecords) registerGroup(name string) (gid uint32, cleanup func(), err error) {
+// Returns the generated GID .
+func (r *temporaryGroupRecords) generateGroupID(name string) (gid uint32, err error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	// Check if there is already a temporary group with this name
 	_, ok := r.gidByName[name]
 	if ok {
-		return 0, nil, fmt.Errorf("group %q already exists", name)
+		return 0, fmt.Errorf("group %q already exists", name)
 	}
 
-	groupEntries, err := localentries.GetGroupEntries()
-	if err != nil {
-		return 0, nil, fmt.Errorf("could not register group, failed to get group entries: %w", err)
-	}
-
-	// Generate a GID until we find a unique one
-	for {
-		gid, err = r.idGenerator.GenerateGID()
-		if err != nil {
-			return 0, nil, err
-		}
-
-		unique, err := r.uniqueNameAndGID(name, gid, groupEntries)
-		if err != nil {
-			return 0, nil, fmt.Errorf("could not check if GID %d is unique: %w", gid, err)
-		}
-		if !unique {
-			// If the GID is not unique, generate a new one in the next iteration.
-			continue
-		}
-
-		cleanup = r.addTemporaryGroup(gid, name)
-		log.Debugf(context.Background(), "Registered group %q with GID %d", name, gid)
-		return gid, cleanup, nil
-	}
+	// Generate a GID
+	return r.idGenerator.GenerateGID()
 }
 
-func (r *temporaryGroupRecords) uniqueNameAndGID(name string, gid uint32, groupEntries []localentries.Group) (bool, error) {
-	if _, ok := r.groups[gid]; ok {
-		return false, nil
+func (r *temporaryGroupRecords) addTemporaryGroup(gid uint32, name string) (err error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	if g, ok := r.groups[gid]; ok {
+		if g.gid == gid && g.name == name {
+			r.gidByName[name] = gid
+			log.Debugf(context.Background(),
+				"Group %q with GID %d is already registered", name, gid)
+			return nil
+		}
+		// This is really a programmer error if we get there, so... Let's just avoid it.
+		return fmt.Errorf("A group with ID %d already exists, this should never happen", gid)
 	}
 
-	for _, entry := range groupEntries {
-		if entry.Name == name {
-			// A group with the same name already exists, we can't register this temporary group.
-			log.Debugf(context.Background(), "Name %q already in use by GID %d", name, entry.GID)
-			return false, fmt.Errorf("group %q already exists", name)
-		}
-
-		if entry.GID == gid {
-			log.Debugf(context.Background(), "GID %d already in use by group %q, generating a new one", gid, entry.Name)
-			return false, nil
-		}
+	if _, ok := r.gidByName[name]; ok {
+		log.Warningf(context.Background(),
+			"A group entry for %q already exists, impossible to register the group")
+		return fmt.Errorf("failed to register again group %q", name)
 	}
 
-	return true, nil
-}
-
-func (r *temporaryGroupRecords) addTemporaryGroup(gid uint32, name string) (cleanup func()) {
 	r.groups[gid] = groupRecord{name: name, gid: gid}
 	r.gidByName[name] = gid
 
-	return func() {
-		r.mu.Lock()
-		defer r.mu.Unlock()
+	log.Debugf(context.Background(), "Registered group %q with GID %d", name, gid)
 
-		r.deleteTemporaryGroup(gid)
-	}
+	return nil
 }
 
 func (r *temporaryGroupRecords) deleteTemporaryGroup(gid uint32) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	group, ok := r.groups[gid]
 	if !ok {
 		log.Warningf(context.Background(), "Can't delete temporary group with GID %d, it does not exist", gid)

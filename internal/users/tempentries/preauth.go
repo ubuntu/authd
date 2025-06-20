@@ -5,11 +5,9 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
-	"slices"
 	"sync"
 
 	"github.com/ubuntu/authd/internal/users/db"
-	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 )
@@ -124,69 +122,8 @@ func (r *preAuthUserRecords) generatePreAuthUserID(loginName string) (uid uint32
 		return 0, err
 	}
 
-	passwdEntries, err := localentries.GetPasswdEntries()
-	if err != nil {
-		return 0, fmt.Errorf("could not check user, failed to get passwd entries: %w", err)
-	}
-	groupEntries, err := localentries.GetGroupEntries()
-	if err != nil {
-		return 0, fmt.Errorf("could not check user, failed to get group entries: %w", err)
-	}
-
-	if slices.ContainsFunc(passwdEntries, func(p localentries.Passwd) bool {
-		return p.Name == loginName
-	}) {
-		log.Errorf(context.Background(), "User already exists on the system: %+v", loginName)
-		return 0, fmt.Errorf("user %q already exists on the system", loginName)
-	}
-
-	// Generate a UID until we find a unique one
-	for {
-		uid, err := r.idGenerator.GenerateUID()
-		if err != nil {
-			return 0, err
-		}
-
-		unique, err := r.isUniqueUID(uid, passwdEntries, groupEntries)
-		if err != nil {
-			return 0, fmt.Errorf("could not check if UID %d is unique: %w", uid, err)
-		}
-
-		if !unique {
-			// If the UID is not unique, generate a new one in the next iteration.
-			continue
-		}
-
-		return uid, nil
-	}
-}
-
-// isUniqueUID returns true if the given UID is unique in the system. It returns false if the UID is already assigned to
-// a user by any NSS source.
-func (r *preAuthUserRecords) isUniqueUID(uid uint32, passwdEntries []localentries.Passwd, groupEntries []localentries.Group) (bool, error) {
-	r.rwMu.RLock()
-	defer r.rwMu.RUnlock()
-
-	if _, ok := r.users[uid]; ok {
-		return false, nil
-	}
-
-	for _, entry := range passwdEntries {
-		if entry.UID == uid {
-			log.Debugf(context.Background(), "ID %d already in use by user %q", uid, entry.Name)
-			return false, nil
-		}
-	}
-
-	for _, group := range groupEntries {
-		if group.GID == uid {
-			// A group with the same ID already exists, so we can't use that ID as the GID of the temporary user
-			log.Debugf(context.Background(), "ID %d already in use by group %q", uid, group.Name)
-			return false, fmt.Errorf("group with GID %d already exists", uid)
-		}
-	}
-
-	return true, nil
+	// Generate a UID
+	return r.idGenerator.GenerateUID()
 }
 
 // addPreAuthUser adds a temporary user with a random name and the given UID. We use a random name here to avoid
@@ -197,8 +134,8 @@ func (r *preAuthUserRecords) addPreAuthUser(uid uint32, loginName string) (err e
 	r.rwMu.Lock()
 	defer r.rwMu.Unlock()
 
-	if currentUID, ok := r.users[uid]; ok {
-		if currentUID.uid == uid {
+	if u, ok := r.users[uid]; ok {
+		if u.uid == uid && u.loginName == loginName {
 			r.uidByLogin[loginName] = uid
 			log.Debugf(context.Background(),
 				"Pre-auth user %q with UID %d is already registered", loginName, uid)
