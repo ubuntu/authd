@@ -120,7 +120,7 @@ func TestMain(m *testing.M) {
 	defer authctlCleanup()
 
 	var daemonCleanup func()
-	daemonPath, daemonCleanup, err = testutils.BuildDaemon("-tags=withexamplebroker,integrationtests")
+	daemonPath, daemonCleanup, err = testutils.BuildDaemonWithExampleBroker()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Setup: %v\n", err)
 		os.Exit(1)
