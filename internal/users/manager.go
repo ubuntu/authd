@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"sync"
 	"syscall"
 
 	"github.com/ubuntu/authd/internal/users/db"
@@ -41,7 +40,6 @@ type Manager struct {
 	db               *db.Manager
 	config           Config
 	temporaryRecords *tempentries.TemporaryRecords
-	updateUserMu     sync.Mutex
 }
 
 type options struct {
@@ -123,14 +121,6 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 
 	var uid uint32
-
-	// Prevent a TOCTOU race condition between the check for existence in our
-	// database and the registration of the temporary user/group records.
-	// This does not prevent a race condition where a user is created by some
-	// other NSS source, but that is handled by locking the users database if
-	// this happens.
-	m.updateUserMu.Lock()
-	defer m.updateUserMu.Unlock()
 
 	// Check if the user already exists in the database
 	oldUser, err := m.db.UserByName(u.Name)
