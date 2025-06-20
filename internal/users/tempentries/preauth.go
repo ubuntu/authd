@@ -215,13 +215,23 @@ func (r *preAuthUserRecords) addPreAuthUser(uid uint32, loginName string) (err e
 		return fmt.Errorf("failed to register again %q as %d", loginName, uid)
 	}
 
-	// Generate a 64 character (32 bytes in hex) random ID which we store in the name field of the temporary user
-	// record to be able to identify it in isUniqueUID.
-	bytes := make([]byte, 32)
-	if _, err := rand.Read(bytes); err != nil {
-		return fmt.Errorf("failed to generate random name: %w", err)
+	var name string
+	for {
+		// Generate a 64 character (32 bytes in hex) random ID which we store in the
+		// name field of the temporary user record to be able to identify it.
+		bytes := make([]byte, 32)
+		if _, err := rand.Read(bytes); err != nil {
+			return fmt.Errorf("failed to generate random name: %w", err)
+		}
+		name = fmt.Sprintf("%s-%x", UserPrefix, bytes)
+
+		if _, ok := r.uidByName[name]; ok {
+			log.Debugf(context.Background(), "Generated user %q was not unique", name)
+			continue
+		}
+
+		break
 	}
-	name := fmt.Sprintf("%s-%x", UserPrefix, bytes)
 
 	log.Debugf(context.Background(),
 		"Added temporary record for user %q with UID %d as %q", loginName, uid, name)
