@@ -17,20 +17,14 @@ import (
 	"syscall"
 	"unsafe"
 
+	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/decorate"
 )
-
-// Passwd represents a passwd entry.
-type Passwd struct {
-	Name  string
-	UID   uint32
-	Gecos string
-}
 
 var getpwentMu sync.Mutex
 
 // GetPasswdEntries returns all passwd entries.
-func GetPasswdEntries() (entries []Passwd, err error) {
+func GetPasswdEntries() (entries []types.UserEntry, err error) {
 	decorate.OnError(&err, "getpwent_r")
 
 	// This function repeatedly calls getpwent_r, which iterates over the records in the passwd database.
@@ -69,7 +63,7 @@ func GetPasswdEntries() (entries []Passwd, err error) {
 			return nil, errno
 		}
 
-		entries = append(entries, Passwd{
+		entries = append(entries, types.UserEntry{
 			Name:  C.GoString(passwdPtr.pw_name),
 			UID:   uint32(passwdPtr.pw_uid),
 			Gecos: C.GoString(passwdPtr.pw_gecos),
@@ -81,7 +75,7 @@ func GetPasswdEntries() (entries []Passwd, err error) {
 var ErrUserNotFound = errors.New("user not found")
 
 // GetPasswdByName returns the user with the given name.
-func GetPasswdByName(name string) (p Passwd, err error) {
+func GetPasswdByName(name string) (p types.UserEntry, err error) {
 	decorate.OnError(&err, "getgrnam_r")
 
 	var passwd C.struct_passwd
@@ -111,13 +105,13 @@ func GetPasswdByName(name string) (p Passwd, err error) {
 			errors.Is(errno, syscall.ESRCH) ||
 			errors.Is(errno, syscall.EBADF) ||
 			errors.Is(errno, syscall.EPERM) {
-			return Passwd{}, ErrUserNotFound
+			return types.UserEntry{}, ErrUserNotFound
 		}
 		if !errors.Is(errno, syscall.Errno(0)) {
-			return Passwd{}, errno
+			return types.UserEntry{}, errno
 		}
 
-		return Passwd{
+		return types.UserEntry{
 			Name:  C.GoString(passwdPtr.pw_name),
 			UID:   uint32(passwdPtr.pw_uid),
 			Gecos: C.GoString(passwdPtr.pw_gecos),
