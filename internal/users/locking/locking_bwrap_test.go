@@ -4,7 +4,6 @@ package userslocking_test
 
 import (
 	"context"
-	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,7 +13,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/testutils"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 )
 
@@ -121,7 +119,7 @@ func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 	}()
 
 	select {
-	case <-time.After(sleepDuration(3 * time.Second)):
+	case <-time.After(3 * time.Second):
 		// If we're time-outing: it's fine, it means we were locked!
 	case err := <-gPasswdExited:
 		require.ErrorIs(t, err, userslocking.ErrLock, "GPasswd should fail")
@@ -191,7 +189,7 @@ func TestLockingLockedDatabase(t *testing.T) {
 	}()
 
 	select {
-	case <-time.After(sleepDuration(1 * time.Second)):
+	case <-time.After(1 * time.Second):
 		t.Cleanup(func() { cmd.Process.Kill() })
 		// If we're time-outing: it's fine, it means the test-locker process is running
 	case err := <-lockerExited:
@@ -205,7 +203,7 @@ func TestLockingLockedDatabase(t *testing.T) {
 	}()
 
 	select {
-	case <-time.After(sleepDuration(3 * time.Second)):
+	case <-time.After(3 * time.Second):
 		// If we're time-outing: it's fine, it means we were locked!
 	case err := <-gPasswdExited:
 		require.ErrorIs(t, err, userslocking.ErrLock, "GPasswd should fail")
@@ -216,7 +214,7 @@ func TestLockingLockedDatabase(t *testing.T) {
 	}()
 
 	select {
-	case <-time.After(sleepDuration(3 * time.Second)):
+	case <-time.After(3 * time.Second):
 		// If we're time-outing: it's fine, it means the test-locker process is
 		// still running and holding the lock.
 	case err := <-writeLockExited:
@@ -247,7 +245,7 @@ func TestLockingLockedDatabaseFailsAfterTimeout(t *testing.T) {
 	}()
 
 	select {
-	case <-time.After(sleepDuration(1 * time.Second)):
+	case <-time.After(2 * time.Second):
 		t.Cleanup(func() { cmd.Process.Kill() })
 		// If we're time-outing: it's fine, it means the test-locker process is running
 	case err := <-lockerExited:
@@ -283,7 +281,7 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 	}()
 
 	select {
-	case <-time.After(sleepDuration(1 * time.Second)):
+	case <-time.After(1 * time.Second):
 		// If we're time-outing: it's fine, it means the test-locker process is
 		// still running and holding the lock.
 		t.Cleanup(func() { lockerCmd.Process.Kill() })
@@ -297,7 +295,7 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 	}()
 
 	select {
-	case <-time.After(sleepDuration(3 * time.Second)):
+	case <-time.After(3 * time.Second):
 		// If we're time-outing: it's fine, it means the test-locker process is
 		// still running and holding the lock.
 	case err := <-writeLockExited:
@@ -310,7 +308,7 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 	}()
 
 	select {
-	case <-time.After(sleepDuration(1 * time.Second)):
+	case <-time.After(1 * time.Second):
 		// If we're time-outing: it's fine, it means the test-locker process is
 		// still running and holding the lock.
 	case err := <-writeUnLockExited:
@@ -352,8 +350,4 @@ func runGPasswd(t *testing.T, args ...string) (string, error) {
 	t.Helper()
 
 	return runCmd(t, "gpasswd", args...)
-}
-
-func sleepDuration(in time.Duration) time.Duration {
-	return time.Duration(math.Round(float64(in) * testutils.SleepMultiplier()))
 }
