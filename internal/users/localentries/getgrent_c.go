@@ -19,20 +19,15 @@ import (
 	"syscall"
 	"unsafe"
 
+	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/decorate"
 )
 
-// Group represents a group entry.
-type Group struct {
-	Name   string
-	GID    uint32
-	Passwd string
-}
-
+// types.GroupEntry represents a group entry.
 var getgrentMu sync.Mutex
 
 // GetGroupEntries returns all group entries.
-func GetGroupEntries() (entries []Group, err error) {
+func GetGroupEntries() (entries []types.GroupEntry, err error) {
 	decorate.OnError(&err, "getgrent_r")
 
 	// This function repeatedly calls getgrent_r, which iterates over the records in the group database.
@@ -71,7 +66,7 @@ func GetGroupEntries() (entries []Group, err error) {
 			return nil, errno
 		}
 
-		entries = append(entries, Group{
+		entries = append(entries, types.GroupEntry{
 			Name:   C.GoString(groupPtr.gr_name),
 			Passwd: C.GoString(groupPtr.gr_passwd),
 			GID:    uint32(groupPtr.gr_gid),
@@ -83,7 +78,7 @@ func GetGroupEntries() (entries []Group, err error) {
 var ErrGroupNotFound = errors.New("group not found")
 
 // GetGroupByName returns the group with the given name.
-func GetGroupByName(name string) (g Group, err error) {
+func GetGroupByName(name string) (g types.GroupEntry, err error) {
 	decorate.OnError(&err, "getgrnam_r")
 
 	var group C.struct_group
@@ -113,13 +108,13 @@ func GetGroupByName(name string) (g Group, err error) {
 			errors.Is(errno, syscall.ESRCH) ||
 			errors.Is(errno, syscall.EBADF) ||
 			errors.Is(errno, syscall.EPERM) {
-			return Group{}, ErrGroupNotFound
+			return types.GroupEntry{}, ErrGroupNotFound
 		}
 		if !errors.Is(errno, syscall.Errno(0)) {
-			return Group{}, errno
+			return types.GroupEntry{}, errno
 		}
 
-		return Group{
+		return types.GroupEntry{
 			Name:   C.GoString(groupPtr.gr_name),
 			GID:    uint32(groupPtr.gr_gid),
 			Passwd: C.GoString(groupPtr.gr_passwd),

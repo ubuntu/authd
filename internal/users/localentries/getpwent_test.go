@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/users/types"
 )
 
 func TestGetPasswdEntries(t *testing.T) {
@@ -20,7 +21,7 @@ func TestGetPasswdEntries(t *testing.T) {
 			require.NotEmpty(t, got, "GetPasswdEntries should never return an empty list")
 
 			// Check if the root user is present in the list
-			rootFound := slices.ContainsFunc(got, func(entry Passwd) bool {
+			rootFound := slices.ContainsFunc(got, func(entry types.UserEntry) bool {
 				return entry.Name == "root" && entry.UID == 0
 			})
 			require.True(t, rootFound, "GetPasswdEntries should always return root")

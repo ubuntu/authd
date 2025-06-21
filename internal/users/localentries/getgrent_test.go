@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/users/types"
 )
 
 func TestGetGroupEntries(t *testing.T) {
@@ -19,7 +20,7 @@ func TestGetGroupEntries(t *testing.T) {
 			got, err := GetGroupEntries()
 			require.NoError(t, err, "GetGroupEntries should never return an error")
 			require.NotEmpty(t, got, "GetGroupEntries should never return an empty list")
-			require.True(t, slices.ContainsFunc(got, func(g Group) bool {
+			require.True(t, slices.ContainsFunc(got, func(g types.GroupEntry) bool {
 				return g.Name == "root" && g.GID == 0
 			}), "GetGroupEntries should return root")
 		})
