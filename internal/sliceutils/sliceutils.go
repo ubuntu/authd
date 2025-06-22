@@ -1,6 +1,8 @@
 // Package sliceutils provides utility functions for slices.
 package sliceutils
 
+import "slices"
+
 // Difference returns a slice with the elements that are in a but not in b.
 func Difference[T comparable](a, b []T) []T {
 	setB := make(map[T]struct{}, len(b))
@@ -12,6 +14,18 @@ func Difference[T comparable](a, b []T) []T {
 	for _, item := range a {
 		if _, found := setB[item]; !found {
 			diff = append(diff, item)
+		}
+	}
+	return diff
+}
+
+// DifferenceFunc returns a slice with the elements that are in a but not in b,
+// supporting a function to compare the items.
+func DifferenceFunc[S ~[]E, E any](a, b S, f func(E, E) bool) S {
+	var diff S
+	for _, aItem := range a {
+		if !slices.ContainsFunc(b, func(bItem E) bool { return f(aItem, bItem) }) {
+			diff = append(diff, aItem)
 		}
 	}
 	return diff
