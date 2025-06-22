@@ -50,10 +50,23 @@ func TestUpdatelocalentries(t *testing.T) {
 		"User_is_not_removed_from_groups_they_are_not_part_of":      {newGroups: []string{}, oldGroups: []string{"localgroup2"}, groupFilePath: "user_in_one_group.group"},
 
 		// Error cases
-		"Error_on_missing_groups_file":                {groupFilePath: "does_not_exists.group", wantErr: true},
-		"Error_when_groups_file_is_malformed":         {groupFilePath: "malformed_file.group", wantErr: true},
-		"Error_on_any_unignored_add_gpasswd_error":    {username: "gpasswdfail", groupFilePath: "no_users.group", wantErr: true},
-		"Error_on_any_unignored_delete_gpasswd_error": {username: "gpasswdfail", groupFilePath: "gpasswdfail_in_deleted_group.group", wantErr: true},
+		"Error_on_missing_groups_file": {groupFilePath: "does_not_exists.group", wantErr: true},
+		"Error_when_groups_file_has_missing_fields": {
+			groupFilePath: "malformed_file_missing_field.group",
+			wantErr:       true,
+		},
+		"Error_when_groups_file_has_invalid_gid": {
+			groupFilePath: "malformed_file_invalid_gid.group",
+			wantErr:       true,
+		},
+		"Error_when_groups_file_has_no_group_name": {
+			groupFilePath: "malformed_file_no_group_name.group",
+			wantErr:       true,
+		},
+		"Error_when_groups_file_has_a_duplicated_group": {
+			groupFilePath: "malformed_file_duplicated.group",
+			wantErr:       true,
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
