@@ -19,6 +19,18 @@ func Difference[T comparable](a, b []T) []T {
 	return diff
 }
 
+// DifferenceFunc returns a slice with the elements that are in a but not in b,
+// supporting a function to compare the items.
+func DifferenceFunc[S ~[]E, E any](a, b S, f func(E, E) bool) S {
+	var diff S
+	for _, aItem := range a {
+		if !slices.ContainsFunc(b, func(bItem E) bool { return f(aItem, bItem) }) {
+			diff = append(diff, aItem)
+		}
+	}
+	return diff
+}
+
 // Intersection returns a slice with the elements that are in both a and b.
 func Intersection[T comparable](a, b []T) []T {
 	setB := make(map[T]struct{}, len(b))
