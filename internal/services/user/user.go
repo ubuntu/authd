@@ -204,7 +204,7 @@ func (s Service) userPreCheck(ctx context.Context, username string) (types.UserE
 // The NSS module uses this status code to determine the NSS status it should return.
 func grpcError(err error) error {
 	if errors.Is(err, users.NoDataFoundError{}) {
-		return status.Error(codes.NotFound, "")
+		return status.Error(codes.NotFound, err.Error())
 	}
 
 	return err
