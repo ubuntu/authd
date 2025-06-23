@@ -125,8 +125,6 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 
 // SelectBroker starts a new session and selects the requested broker for the user.
 func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *authd.SBResponse, err error) {
-	defer decorate.OnError(&err, "can't start authentication transaction")
-
 	username := req.GetUsername()
 	brokerID := req.GetBrokerId()
 	lang := req.GetLang()
