@@ -176,6 +176,8 @@ paths:
 		var b bytes.Buffer
 		cmd.Stdout = &b
 		cmd.Stderr = &b
+
+		t.Logf("Setup: starting daemon with command: %s", cmd.String())
 		err := cmd.Start()
 		require.NoError(t, err, "Setup: daemon cannot start %v", cmd.Args)
 		if opts.pidFile != "" {
@@ -276,6 +278,7 @@ func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err erro
 	cmd.Args = append(cmd.Args, extraArgs...)
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")
 
+	fmt.Fprintln(os.Stderr, "Running command:", cmd.String())
 	if out, err := cmd.CombinedOutput(); err != nil {
 		cleanup()
 		return "", nil, fmt.Errorf("failed to build daemon(%v): %s", err, out)
