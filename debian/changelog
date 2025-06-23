@@ -1,8 +1,26 @@
-authd (0.5.4+git250620+771+a24d7472) questing; urgency=medium
+authd (0.5.6+git250623+772+82642243) questing; urgency=medium
 
-  * Github build. Run id: 15789755801. Run number: 771.
+  * Github build. Run id: 15819169462. Run number: 772.
 
- -- Marco <marco@ubuntu.com>  Fri, 20 Jun 2025 23:54:37 +0000
+ -- adombeck <18482300+adombeck@users.noreply.github.com>  Mon, 23 Jun 2025 08:28:05 +0000
+
+authd (0.5.6) questing; urgency=medium
+
+  * New launchpad upload
+
+ -- Adrian Dombeck <adrian.dombeck@canonical.com>  Wed, 18 Jun 2025 16:05:23 +0200
+
+authd (0.5.5) questing; urgency=medium
+
+  * Fix race with accounts service which could result in authd users not being
+    listed in the GDM login screen.
+  * When authenticating on the command-line, show a message that explains that
+    the escape key can be used to go back.
+  * Improve log message.
+  * Update Go dependencies:
+    - toolchain go1.23.10
+
+ --  <adrian.dombeck@canonical.com>  Tue, 17 Jun 2025 19:42:04 +0200
 
 authd (0.5.4) questing; urgency=medium
 
