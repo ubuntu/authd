@@ -805,7 +805,7 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 			wantPamErrorMessages: []string{
-				"can't select broker: error InvalidArgument from server: can't start authentication transaction: rpc error: code = InvalidArgument desc = no user name provided",
+				"can't select broker: error InvalidArgument from server: no user name provided",
 			},
 			wantError:       pam.ErrSystem,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
