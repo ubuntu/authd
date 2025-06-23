@@ -82,3 +82,38 @@ func TestIntersection(t *testing.T) {
 		})
 	}
 }
+
+func TestMap(t *testing.T) {
+	t.Parallel()
+
+	type intStruct struct {
+		i int
+	}
+
+	tests := map[string]struct {
+		a    []intStruct
+		want []int
+	}{
+		"test_mapping_a_slice": {
+			a:    []intStruct{{1}, {2}, {3}, {4}, {5}},
+			want: []int{1, 2, 3, 4, 5},
+		},
+		"test_mapping_an empty_slice": {
+			a:    []intStruct{},
+			want: []int{},
+		},
+		"test_mapping_a_nil_slice": {
+			a:    []intStruct(nil),
+			want: []int(nil),
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			got := sliceutils.Map(tc.a, func(s intStruct) int { return s.i })
+			require.Equal(t, tc.want, got)
+		})
+	}
+}
