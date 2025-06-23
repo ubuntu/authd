@@ -3,6 +3,7 @@ package testutils
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"html/template"
 	"os"
@@ -95,9 +96,12 @@ func StartBusBrokerMock(cfgDir string, brokerName string) (string, func(), error
 	}
 
 	reply, err := conn.RequestName(busName, dbus.NameFlagDoNotQueue)
-	if err != nil || reply != dbus.RequestNameReplyPrimaryOwner {
+	if err != nil {
 		conn.Close()
-		return "", nil, err
+		return "", nil, fmt.Errorf("can't get the D-Bus name %s: %w", busName, err)
+	}
+	if reply != dbus.RequestNameReplyPrimaryOwner {
+		return "", nil, errors.New("not a D-Bus primary name owner")
 	}
 
 	configPath, err := writeConfig(cfgDir, brokerName)
