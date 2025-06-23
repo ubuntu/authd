@@ -32,3 +32,16 @@ func Intersection[T comparable](a, b []T) []T {
 	}
 	return intersection
 }
+
+// Map maps the slice to another slice of the same size, using the provided function.
+func Map[T any, S ~[]E, E any](a S, f func(E) T) []T {
+	if a == nil {
+		return nil
+	}
+
+	mapped := make([]T, 0, len(a))
+	for _, v := range a {
+		mapped = append(mapped, f(v))
+	}
+	return mapped
+}
