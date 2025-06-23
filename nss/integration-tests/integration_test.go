@@ -34,7 +34,7 @@ func TestIntegration(t *testing.T) {
 		testutils.WithSocketPath(defaultSocket),
 		testutils.WithPreviousDBState(defaultDbState),
 		testutils.WithGroupFile(defaultGroupsFilePath),
-		testutils.WithEnvironment("AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1"),
+		testutils.WithCurrentUserAsRoot,
 	)
 
 	t.Cleanup(func() {

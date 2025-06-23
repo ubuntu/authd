@@ -8,8 +8,6 @@ import (
 	"github.com/ubuntu/authd/internal/testutils"
 )
 
-const authdCurrentUserRootEnvVariableContent = "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1"
-
 var daemonPath string
 
 func TestMain(m *testing.M) {
