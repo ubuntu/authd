@@ -50,11 +50,16 @@ var (
 	sharedAuthdInstance = authdInstance{}
 )
 
-func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon bool, args ...testutils.DaemonOption) (
-	socketPath string, waitFunc func()) {
+func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon bool, args ...testutils.DaemonOption) (socketPath string) {
 	t.Helper()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	socketPath, cancelFunc := runAuthdForTestingWithCancel(t, currentUserAsRoot, isSharedDaemon, args...)
+	t.Cleanup(cancelFunc)
+	return socketPath
+}
+
+func runAuthdForTestingWithCancel(t *testing.T, currentUserAsRoot bool, isSharedDaemon bool, args ...testutils.DaemonOption) (socketPath string, cancelFunc func()) {
+	t.Helper()
 
 	outputFile := filepath.Join(t.TempDir(), "authd.log")
 	args = append(args, testutils.WithOutputFile(outputFile))
@@ -78,20 +83,15 @@ func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon boo
 		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
 	}
 
-	socketPath, stopped := testutils.StartDaemon(ctx, t, daemonPath, args...)
+	socketPath, cancelFunc = testutils.StartDaemonWithCancel(t, daemonPath, args...)
 	saveArtifactsForDebugOnCleanup(t, []string{outputFile})
-	return socketPath, func() {
-		cancel()
-		<-stopped
-	}
+	return socketPath, cancelFunc
 }
 
 func runAuthd(t *testing.T, currentUserAsRoot bool, args ...testutils.DaemonOption) string {
 	t.Helper()
 
-	socketPath, waitFunc := runAuthdForTesting(t, currentUserAsRoot, false, args...)
-	t.Cleanup(waitFunc)
-	return socketPath
+	return runAuthdForTesting(t, currentUserAsRoot, false, args...)
 }
 
 func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath string, groupFile string) {
@@ -108,8 +108,7 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 		args = append(args,
 			testutils.WithGroupFile(groups),
 			testutils.WithGroupFileOutput(groupOutput))
-		socket, cleanup := runAuthdForTesting(t, true, useSharedInstance, args...)
-		t.Cleanup(cleanup)
+		socket := runAuthdForTesting(t, true, useSharedInstance, args...)
 		return socket, groupOutput
 	}
 
@@ -150,7 +149,7 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 	args = append(args, testutils.WithGroupFile(sa.groupsFile))
 	sa.groupsOutputPath = filepath.Join(t.TempDir(), "groups")
 	args = append(args, testutils.WithGroupFileOutput(sa.groupsOutputPath))
-	sa.socketPath, sa.cleanup = runAuthdForTesting(t, true, useSharedInstance, args...)
+	sa.socketPath, sa.cleanup = runAuthdForTestingWithCancel(t, true, useSharedInstance, args...)
 	return sa.socketPath, sa.groupsOutputPath
 }
 
