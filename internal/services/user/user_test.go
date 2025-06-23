@@ -19,7 +19,6 @@ import (
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	"github.com/ubuntu/authd/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -67,9 +66,6 @@ func TestGetUserByName(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the db unit tests.
-			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
-
 			client := newUserServiceClient(t, tc.dbFile)
 
 			got, err := client.GetUserByName(context.Background(), &authd.GetUserByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
@@ -94,9 +90,6 @@ func TestGetUserByID(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the db unit tests.
-			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
-
 			client := newUserServiceClient(t, tc.dbFile)
 
 			got, err := client.GetUserByID(context.Background(), &authd.GetUserByIDRequest{Id: tc.uid})
@@ -121,9 +114,6 @@ func TestGetGroupByName(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the db unit tests.
-			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
-
 			client := newUserServiceClient(t, tc.dbFile)
 
 			got, err := client.GetGroupByName(context.Background(), &authd.GetGroupByNameRequest{Name: tc.groupname})
@@ -148,9 +138,6 @@ func TestGetGroupByID(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the db unit tests.
-			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
-
 			client := newUserServiceClient(t, tc.dbFile)
 
 			got, err := client.GetGroupByID(context.Background(), &authd.GetGroupByIDRequest{Id: tc.gid})
@@ -170,9 +157,6 @@ func TestListUsers(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the db unit tests.
-			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
-
 			if tc.dbFile == "" {
 				tc.dbFile = "default.db.yaml"
 			}
@@ -196,9 +180,6 @@ func TestListGroups(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the db unit tests.
-			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
-
 			if tc.dbFile == "" {
 				tc.dbFile = "default.db.yaml"
 			}
@@ -217,10 +198,6 @@ func TestListGroups(t *testing.T) {
 			golden.CheckOrUpdateYAML(t, resp)
 		})
 	}
-}
-
-func TestMockgpasswd(t *testing.T) {
-	localgroupstestutils.Mockgpasswd(t)
 }
 
 // newUserServiceClient returns a new gRPC client for the CLI service.
@@ -350,11 +327,6 @@ func requireExpectedListResult[T authd.User | authd.Group](t *testing.T, funcNam
 }
 
 func TestMain(m *testing.M) {
-	// Needed to skip the test setup when running the gpasswd mock.
-	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
-		os.Exit(m.Run())
-	}
-
 	log.SetLevel(log.DebugLevel)
 
 	cleanup, err := testutils.StartSystemBusMock()

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/ubuntu/authd/internal/sliceutils"
@@ -45,6 +46,15 @@ func (g GroupEntry) Equals(other GroupEntry) bool {
 func (g GroupEntry) DeepCopy() GroupEntry {
 	g.Users = slices.Clone(g.Users)
 	return g
+}
+
+func (g GroupEntry) String() string {
+	return strings.Join([]string{
+		g.Name,
+		g.Passwd,
+		strconv.FormatUint(uint64(g.GID), 10),
+		strings.Join(g.Users, ","),
+	}, ":")
 }
 
 // DeepCopyGroupEntries makes a deep copy of group entries.

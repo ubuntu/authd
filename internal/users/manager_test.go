@@ -13,6 +13,7 @@ import (
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
@@ -41,7 +42,8 @@ func TestNewManager(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			destCmdsFile := localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "groups", "users_in_groups.group"))
+			destGroupFile := localgroupstestutils.SetupGroupMock(t,
+				filepath.Join("testdata", "groups", "users_in_groups.group"))
 
 			dbDir := t.TempDir()
 			if tc.dbFile == "" {
@@ -85,7 +87,7 @@ func TestNewManager(t *testing.T) {
 
 			golden.CheckOrUpdate(t, got)
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t)+".gpasswd.output")
+			localgroupstestutils.RequireGroupFile(t, destGroupFile, golden.Path(t))
 		})
 	}
 }
@@ -134,10 +136,6 @@ func TestUpdateUser(t *testing.T) {
 			{GroupInfo: types.GroupInfo{Name: "localgroup1", UGID: ""}},
 			{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111},
 		},
-		"mixed-groups-gpasswd-fail": {
-			{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111},
-			{GroupInfo: types.GroupInfo{Name: "gpasswdfail", UGID: ""}},
-		},
 		"nameless-group":          {{GroupInfo: types.GroupInfo{Name: "", UGID: "1"}, GID: 11111}},
 		"different-name-same-gid": {{GroupInfo: types.GroupInfo{Name: "newgroup1", UGID: "1"}, GID: 11111}},
 		"group-exists-on-system":  {{GroupInfo: types.GroupInfo{Name: "root", UGID: "1"}, GID: 11111}},
@@ -159,6 +157,7 @@ func TestUpdateUser(t *testing.T) {
 	}{
 		"Successfully_update_user":                                          {groupsCase: "authd-group"},
 		"Successfully_update_user_updating_local_groups":                    {groupsCase: "mixed-groups-authd-first", localGroupsFile: "users_in_groups.group"},
+		"Successfully_update_user_updating_local_groups_with_changes":       {groupsCase: "mixed-groups-authd-first", localGroupsFile: "user_mismatching_groups.group"},
 		"UID_does_not_change_if_user_already_exists":                        {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
 		"Successfully update user with different capitalization":            {userCase: "different-capitalization-same-uid", dbFile: "one_user_and_group"},
 		"GID_does_not_change_if_group_with_same_UGID_exists":                {groupsCase: "different-name-same-ugid", dbFile: "one_user_and_group"},
@@ -179,9 +178,10 @@ func TestUpdateUser(t *testing.T) {
 				t.Parallel()
 			}
 
-			var destCmdsFile string
+			var destGroupFile string
 			if tc.localGroupsFile != "" {
-				destCmdsFile = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "groups", tc.localGroupsFile))
+				destGroupFile = localgroupstestutils.SetupGroupMock(t,
+					filepath.Join("testdata", "groups", tc.localGroupsFile))
 			}
 
 			if tc.userCase == "" {
@@ -243,12 +243,14 @@ func TestUpdateUser(t *testing.T) {
 
 			golden.CheckOrUpdate(t, got)
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t)+".gpasswd.output")
+			localgroupstestutils.RequireGroupFile(t, destGroupFile, golden.Path(t))
 		})
 	}
 }
 
 func TestBrokerForUser(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		username string
 		dbFile   string
@@ -264,8 +266,7 @@ func TestBrokerForUser(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
@@ -285,6 +286,8 @@ func TestBrokerForUser(t *testing.T) {
 }
 
 func TestUpdateBrokerForUser(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		username string
 
@@ -299,8 +302,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			if tc.username == "" {
 				tc.username = "user1"
@@ -330,6 +332,8 @@ func TestUpdateBrokerForUser(t *testing.T) {
 }
 
 func TestUserByIDAndName(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		uid        uint32
 		username   string
@@ -349,8 +353,7 @@ func TestUserByIDAndName(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
@@ -392,6 +395,8 @@ func TestUserByIDAndName(t *testing.T) {
 }
 
 func TestAllUsers(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		dbFile string
 
@@ -402,8 +407,7 @@ func TestAllUsers(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
@@ -423,6 +427,8 @@ func TestAllUsers(t *testing.T) {
 }
 
 func TestGroupByIDAndName(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		gid         uint32
 		groupname   string
@@ -442,8 +448,7 @@ func TestGroupByIDAndName(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
@@ -482,6 +487,8 @@ func TestGroupByIDAndName(t *testing.T) {
 }
 
 func TestAllGroups(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		dbFile string
 
@@ -492,8 +499,7 @@ func TestAllGroups(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
@@ -514,6 +520,8 @@ func TestAllGroups(t *testing.T) {
 }
 
 func TestShadowByName(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		username string
 		dbFile   string
@@ -527,8 +535,7 @@ func TestShadowByName(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
@@ -549,6 +556,8 @@ func TestShadowByName(t *testing.T) {
 }
 
 func TestAllShadows(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		dbFile string
 
@@ -558,8 +567,7 @@ func TestAllShadows(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
@@ -577,10 +585,6 @@ func TestAllShadows(t *testing.T) {
 			golden.CheckOrUpdateYAML(t, got)
 		})
 	}
-}
-
-func TestMockgpasswd(t *testing.T) {
-	localgroupstestutils.Mockgpasswd(t)
 }
 
 func requireErrorAssertions(t *testing.T, gotErr, wantErrType error, wantErr bool) {
@@ -608,5 +612,9 @@ func newManagerForTests(t *testing.T, dbDir string, opts ...users.Option) *users
 
 func TestMain(m *testing.M) {
 	log.SetLevel(log.DebugLevel)
+
+	userslocking.Z_ForTests_OverrideLocking()
+	defer userslocking.Z_ForTests_RestoreLocking()
+
 	m.Run()
 }

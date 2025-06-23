@@ -3,13 +3,26 @@ package localentries
 // WithGroupPath overrides the default /etc/group path for tests.
 func WithGroupPath(p string) Option {
 	return func(o *options) {
-		o.groupPath = p
+		o.groupInputPath = p
+		o.groupOutputPath = p
 	}
 }
 
-// WithGpasswdCmd overrides gpasswd call with specific commands for tests.
-func WithGpasswdCmd(cmds []string) Option {
+// WithGroupInputPath overrides the default /etc/group path for input in tests.
+func WithGroupInputPath(p string) Option {
 	return func(o *options) {
-		o.gpasswdCmd = cmds
+		o.groupInputPath = p
 	}
+}
+
+// WithGroupOutputPath overrides the default /etc/group path for output in tests.
+func WithGroupOutputPath(p string) Option {
+	return func(o *options) {
+		o.groupOutputPath = p
+	}
+}
+
+// GroupFileBackupPath exposes the path to the group file backup for testing.
+func GroupFileBackupPath(groupFilePath string) string {
+	return groupFileBackupPath(groupFilePath)
 }
