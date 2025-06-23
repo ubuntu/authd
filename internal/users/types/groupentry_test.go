@@ -153,6 +153,55 @@ func TestGroupEntryEquals(t *testing.T) {
 	}
 }
 
+func TestGroupEntryString(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		group    GroupEntry
+		expected string
+	}{
+		{
+			name:     "All_fields_set_with_users",
+			group:    GroupEntry{Name: "group1", GID: 1000, Passwd: "x", Users: []string{"user1", "user2"}},
+			expected: "group1:x:1000:user1,user2",
+		},
+		{
+			name:     "No_users",
+			group:    GroupEntry{Name: "group2", GID: 1001, Passwd: "y", Users: nil},
+			expected: "group2:y:1001:",
+		},
+		{
+			name:     "Empty_users_slice",
+			group:    GroupEntry{Name: "group3", GID: 1002, Passwd: "z", Users: []string{}},
+			expected: "group3:z:1002:",
+		},
+		{
+			name:     "Empty_passwd",
+			group:    GroupEntry{Name: "group4", GID: 1003, Passwd: "", Users: []string{"user3"}},
+			expected: "group4::1003:user3",
+		},
+		{
+			name:     "Empty_group",
+			group:    GroupEntry{},
+			expected: "::0:",
+		},
+		{
+			name:     "Multiple_users",
+			group:    GroupEntry{Name: "admins", GID: 42, Passwd: "pw", Users: []string{"alice", "bob", "carol"}},
+			expected: "admins:pw:42:alice,bob,carol",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			got := tc.group.String()
+			require.Equal(t, tc.expected, got, "String output mismatch")
+		})
+	}
+}
+
 func TestValidateGroupEntries(t *testing.T) {
 	t.Parallel()
 

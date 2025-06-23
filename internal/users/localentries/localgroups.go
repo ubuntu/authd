@@ -4,16 +4,18 @@ package localentries
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"os"
-	"os/exec"
 	"slices"
 	"strconv"
 	"strings"
 	"sync"
 
+	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/sliceutils"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
@@ -23,13 +25,13 @@ import (
 const GroupFile = "/etc/group"
 
 var defaultOptions = options{
-	groupPath:  GroupFile,
-	gpasswdCmd: []string{"gpasswd"},
+	groupInputPath:  GroupFile,
+	groupOutputPath: GroupFile,
 }
 
 type options struct {
-	groupPath  string
-	gpasswdCmd []string
+	groupInputPath  string
+	groupOutputPath string
 }
 
 // Option represents an optional function to override UpdateLocalGroups default values.
@@ -47,41 +49,63 @@ func Update(username string, newGroups []string, oldGroups []string, args ...Opt
 		arg(&opts)
 	}
 
-	currentGroups, err := existingLocalGroups(username, opts.groupPath)
-	if err != nil {
+	if err := userslocking.WriteRecLock(); err != nil {
 		return err
 	}
-
-	currentGroupsNames := sliceutils.Map(currentGroups, func(g types.GroupEntry) string {
-		return g.Name
-	})
+	defer func() {
+		if unlockErr := userslocking.WriteRecUnlock(); unlockErr != nil {
+			err = errors.Join(err, unlockErr)
+		}
+	}()
 
 	localGroupsMu.Lock()
 	defer localGroupsMu.Unlock()
+
+	allGroups, userGroups, err := existingLocalGroups(username, opts.groupInputPath)
+	if err != nil {
+		return err
+	}
+	currentGroupsNames := sliceutils.Map(userGroups, func(g types.GroupEntry) string {
+		return g.Name
+	})
+
 	groupsToAdd := sliceutils.Difference(newGroups, currentGroupsNames)
-	log.Debugf(context.TODO(), "Adding to local groups: %v", groupsToAdd)
+	log.Debugf(context.TODO(), "Adding %q to local groups: %v", username, groupsToAdd)
 	groupsToRemove := sliceutils.Difference(oldGroups, newGroups)
 	// Only remove user from groups which they are part of
 	groupsToRemove = sliceutils.Intersection(groupsToRemove, currentGroupsNames)
-	log.Debugf(context.TODO(), "Removing from local groups: %v", groupsToRemove)
+	log.Debugf(context.TODO(), "Removing %q from local groups: %v", username, groupsToRemove)
 
-	// Do all this in a goroutine as we don't want to hang.
-	for _, g := range groupsToRemove {
-		args := opts.gpasswdCmd[1:]
-		args = append(args, "--delete", username, g)
-		if err := runGPasswd(opts.gpasswdCmd[0], args...); err != nil {
-			return err
+	if len(groupsToRemove) == 0 && len(groupsToAdd) == 0 {
+		return nil
+	}
+
+	getGroupByName := func(name string) *types.GroupEntry {
+		idx := slices.IndexFunc(allGroups, func(g types.GroupEntry) bool { return g.Name == name })
+		if idx == -1 {
+			return nil
 		}
+		return &allGroups[idx]
+	}
+
+	for _, g := range groupsToRemove {
+		group := getGroupByName(g)
+		if group == nil {
+			continue
+		}
+		group.Users = slices.DeleteFunc(group.Users, func(u string) bool {
+			return u == username
+		})
 	}
 	for _, g := range groupsToAdd {
-		args := opts.gpasswdCmd[1:]
-		args = append(args, "--add", username, g)
-		if err := runGPasswd(opts.gpasswdCmd[0], args...); err != nil {
-			return err
+		group := getGroupByName(g)
+		if group == nil {
+			continue
 		}
+		group.Users = append(group.Users, username)
 	}
 
-	return nil
+	return saveLocalGroups(opts.groupInputPath, opts.groupOutputPath, allGroups)
 }
 
 func parseLocalGroups(groupPath string) (groups []types.GroupEntry, err error) {
@@ -139,32 +163,72 @@ func parseLocalGroups(groupPath string) (groups []types.GroupEntry, err error) {
 	return groups, nil
 }
 
-// existingLocalGroups returns which groups from groupPath the user is part of.
-func existingLocalGroups(user, groupPath string) (groups []types.GroupEntry, err error) {
+func groupFileTemporaryPath(groupPath string) string {
+	return fmt.Sprintf("%s+", groupPath)
+}
+
+func groupFileBackupPath(groupPath string) string {
+	return fmt.Sprintf("%s-", groupPath)
+}
+
+func formatGroupEntries(groups []types.GroupEntry) string {
+	groupLines := sliceutils.Map(groups, func(group types.GroupEntry) string {
+		return group.String()
+	})
+
+	// Add final new line to the group file.
+	groupLines = append(groupLines, "")
+
+	return strings.Join(groupLines, "\n")
+}
+
+func saveLocalGroups(inputPath, groupPath string, groups []types.GroupEntry) (err error) {
+	defer decorate.OnError(&err, "could not write local groups to %q", groupPath)
+
+	if err := types.ValidateGroupEntries(groups); err != nil {
+		return err
+	}
+
+	backupPath := groupFileBackupPath(groupPath)
+	groupsEntries := formatGroupEntries(groups)
+
+	log.Debugf(context.TODO(), "Saving group entries %#v to %q", groups, groupPath)
+	if len(groupsEntries) > 0 {
+		log.Debugf(context.TODO(), "Group file content:\n%s", groupsEntries)
+	}
+
+	if err := os.Remove(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
+		log.Warningf(context.Background(), "Failed to remove group file backup: %v", err)
+	}
+
+	log.Debugf(context.Background(), "Backing up %q to %q", inputPath, backupPath)
+	if err := fileutils.CopyFile(inputPath, backupPath); err != nil {
+		log.Warningf(context.Background(), "Failed make a backup for the group file: %v", err)
+	}
+
+	tempPath := groupFileTemporaryPath(groupPath)
+	//nolint:gosec // G306 /etc/group should indeed have 0644 permissions
+	if err := os.WriteFile(tempPath, []byte(groupsEntries), 0644); err != nil {
+		return fmt.Errorf("error writing %s: %w", tempPath, err)
+	}
+
+	if err := fileutils.Lrename(tempPath, groupPath); err != nil {
+		return fmt.Errorf("error renaming %s to %s: %w", tempPath, groupPath, err)
+	}
+
+	return nil
+}
+
+// existingLocalGroups returns all the available groups and which groups from groupPath the user is part of.
+func existingLocalGroups(user, groupPath string) (groups, userGroups []types.GroupEntry, err error) {
 	defer decorate.OnError(&err, "could not fetch existing local group for user %q", user)
 
 	groups, err = parseLocalGroups(groupPath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return slices.DeleteFunc(groups, func(g types.GroupEntry) bool {
+	return groups, slices.DeleteFunc(slices.Clone(groups), func(g types.GroupEntry) bool {
 		return !slices.Contains(g.Users, user)
 	}), nil
-}
-
-// runGPasswd is a wrapper to cmdName ignoring exit code 3, meaning that the group doesn't exist.
-// Note: it’s the same return code for user not existing, but it’s something we are in control of as we
-// are responsible for the user itself and parsing the output is not desired.
-func runGPasswd(cmdName string, args ...string) error {
-	cmd := exec.Command(cmdName, args...)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		if cmd.ProcessState.ExitCode() == 3 {
-			log.Noticef(context.TODO(), "gpasswd exited with code 3 (group or user does not exist); ignoring: %s", out)
-			return nil
-		}
-		return fmt.Errorf("%q returned: %v\nOutput: %s", strings.Join(cmd.Args, " "), err, out)
-	}
-	return nil
 }
