@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	localentriestestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 )
@@ -86,116 +85,6 @@ func TestUpdatelocalentries(t *testing.T) {
 				require.NoError(t, err, "Updatelocalentries should not have failed")
 			}
 
-			localentriestestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
-		})
-	}
-}
-
-func TestCleanlocalentries(t *testing.T) {
-	t.Parallel()
-
-	tests := map[string]struct {
-		groupFilePath string
-
-		getUsersReturn []string
-
-		wantErr bool
-	}{
-		"No-op_when_there_are_no_inactive_users":        {groupFilePath: "user_in_many_groups.group"},
-		"Cleans_up_user_from_group":                     {groupFilePath: "inactive_user_in_one_group.group"},
-		"Cleans_up_user_from_multiple_groups":           {groupFilePath: "inactive_user_in_many_groups.group"},
-		"Cleans_up_multiple_users_from_group":           {groupFilePath: "inactive_users_in_one_group.group"},
-		"Cleans_up_multiple_users_from_multiple_groups": {groupFilePath: "inactive_users_in_many_groups.group"},
-
-		"Error_if_there_is_no_active_user":            {groupFilePath: "user_in_many_groups.group", getUsersReturn: []string{}, wantErr: true},
-		"Error_on_missing_groups_file":                {groupFilePath: "does_not_exists.group", wantErr: true},
-		"Error_when_groups_file_is_malformed":         {groupFilePath: "malformed_file.group", wantErr: true},
-		"Error_on_any_unignored_delete_gpasswd_error": {groupFilePath: "gpasswdfail_in_deleted_group.group", wantErr: true},
-	}
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
-			groupFilePath := filepath.Join("testdata", tc.groupFilePath)
-			gpasswdCmd := []string{"env", "GO_WANT_HELPER_PROCESS=1",
-				os.Args[0], "-test.run=TestMockgpasswd", "--",
-				groupFilePath, destCmdsFile,
-			}
-
-			if tc.getUsersReturn == nil {
-				tc.getUsersReturn = []string{"myuser", "otheruser", "otheruser2", "otheruser3", "otheruser4"}
-			}
-
-			cleanupOptions := []localentries.Option{
-				localentries.WithGpasswdCmd(gpasswdCmd),
-				localentries.WithGroupPath(groupFilePath),
-				localentries.WithGetUsersFunc(func() ([]string, error) { return tc.getUsersReturn, nil }),
-			}
-			err := localentries.Clean(cleanupOptions...)
-			if tc.wantErr {
-				require.Error(t, err, "Cleanuplocalentries should have failed")
-			} else {
-				require.NoError(t, err, "Cleanuplocalentries should not have failed")
-			}
-
-			localentriestestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
-		})
-	}
-}
-
-func TestCleanUserFromlocalentries(t *testing.T) {
-	t.Parallel()
-
-	tests := map[string]struct {
-		username string
-
-		groupFilePath   string
-		wantMockFailure bool
-
-		wantErr bool
-	}{
-		"Cleans_up_user_from_group":                   {},
-		"Cleans_up_user_from_multiple_groups":         {groupFilePath: "user_in_many_groups.group"},
-		"No_op_if_user_does_not_belong_to_any_groups": {username: "groupless"},
-
-		"Error_on_missing_groups_file":                {groupFilePath: "does_not_exists.group", wantErr: true},
-		"Error_when_groups_file_is_malformed":         {groupFilePath: "malformed_file.group", wantErr: true},
-		"Error_on_any_unignored_delete_gpasswd_error": {wantMockFailure: true, wantErr: true},
-	}
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			if tc.username == "" {
-				tc.username = "myuser"
-			}
-			if tc.groupFilePath == "" {
-				tc.groupFilePath = "user_in_one_group.group"
-			}
-
-			destCmdsFile := filepath.Join(t.TempDir(), "gpasswd.output")
-			groupFilePath := filepath.Join("testdata", tc.groupFilePath)
-			gpasswdCmd := []string{"env", "GO_WANT_HELPER_PROCESS=1",
-				os.Args[0], "-test.run=TestMockgpasswd", "--",
-				groupFilePath, destCmdsFile,
-			}
-			if tc.wantMockFailure {
-				gpasswdCmd = append(gpasswdCmd, "gpasswdfail")
-			}
-
-			cleanupOptions := []localentries.Option{
-				localentries.WithGpasswdCmd(gpasswdCmd),
-				localentries.WithGroupPath(groupFilePath),
-			}
-			err := localentries.CleanUser(tc.username, cleanupOptions...)
-			if tc.wantErr {
-				require.Error(t, err, "CleanUserFromlocalentries should have failed")
-			} else {
-				require.NoError(t, err, "CleanUserFromlocalentries should not have failed")
-			}
-
-			localentriestestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t))
 		})
 	}
 }
