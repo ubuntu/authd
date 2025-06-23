@@ -1,17 +1,22 @@
 package user_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
+	"google.golang.org/grpc/codes"
 )
 
 var authctlPath string
+var daemonPath string
 
 func TestUserCommand(t *testing.T) {
 	t.Parallel()
@@ -53,15 +58,74 @@ func TestUserCommand(t *testing.T) {
 	}
 }
 
+func TestUserLockCommand(t *testing.T) {
+	t.Parallel()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	daemonSocket, stopped := testutils.StartDaemon(ctx, t, daemonPath,
+		testutils.WithGroupFile(filepath.Join("testdata", "empty.group")),
+		testutils.WithPreviousDBState("one_user_and_group"),
+		testutils.WithEnvironment("AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1"),
+	)
+
+	t.Cleanup(func() {
+		t.Log("Stopping daemon...")
+		cancel()
+		<-stopped
+	})
+
+	err := os.Setenv("AUTHD_SOCKET", "unix://"+daemonSocket)
+	require.NoError(t, err, "Failed to set AUTHD_SOCKET environment variable")
+
+	tests := map[string]struct {
+		args             []string
+		expectedExitCode int
+	}{
+		"Lock_user_success": {args: []string{"lock", "user1"}, expectedExitCode: 0},
+
+		"Error_locking_invalid_user": {args: []string{"lock", "invaliduser"}, expectedExitCode: int(codes.NotFound)},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			//nolint:gosec // G204 it's safe to use exec.Command with a variable here
+			cmd := exec.Command(authctlPath, append([]string{"user"}, tc.args...)...)
+			t.Logf("Running command: %s", strings.Join(cmd.Args, " "))
+			outputBytes, err := cmd.CombinedOutput()
+			output := string(outputBytes)
+			exitCode := cmd.ProcessState.ExitCode()
+
+			t.Logf("Command output:\n%s", output)
+
+			if tc.expectedExitCode == 0 {
+				require.NoError(t, err)
+			}
+			require.Equal(t, tc.expectedExitCode, exitCode, "Expected exit code does not match actual exit code")
+
+			golden.CheckOrUpdate(t, output)
+		})
+	}
+}
+
 func TestMain(m *testing.M) {
-	var cleanup func()
+	var authctlCleanup func()
 	var err error
-	authctlPath, cleanup, err = testutils.BuildAuthctl()
+	authctlPath, authctlCleanup, err = testutils.BuildAuthctl()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Setup: %v\n", err)
 		os.Exit(1)
 	}
-	defer cleanup()
+	defer authctlCleanup()
+
+	var daemonCleanup func()
+	daemonPath, daemonCleanup, err = testutils.BuildDaemon("-tags=withexamplebroker,integrationtests")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Setup: %v\n", err)
+		os.Exit(1)
+	}
+	defer daemonCleanup()
 
 	m.Run()
 }
