@@ -24,7 +24,6 @@ import (
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/db/bbolt"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -39,25 +38,25 @@ var (
 )
 
 type authdInstance struct {
-	mu                sync.Mutex
-	refCount          uint64
-	socketPath        string
-	gPasswdOutputPath string
-	groupsFile        string
-	cleanup           func()
+	mu               sync.Mutex
+	refCount         uint64
+	socketPath       string
+	groupsOutputPath string
+	groupsFile       string
+	cleanup          func()
 }
 
 var (
 	sharedAuthdInstance = authdInstance{}
 )
 
-func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, isSharedDaemon bool, args ...testutils.DaemonOption) (
+func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon bool, args ...testutils.DaemonOption) (
 	socketPath string, waitFunc func()) {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile)
+	var env []string
 	if currentUserAsRoot {
 		env = append(env, authdCurrentUserRootEnvVariableContent)
 	}
@@ -89,15 +88,15 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 	}
 }
 
-func runAuthd(t *testing.T, gpasswdOutput, groupsFile string, currentUserAsRoot bool, args ...testutils.DaemonOption) string {
+func runAuthd(t *testing.T, currentUserAsRoot bool, args ...testutils.DaemonOption) string {
 	t.Helper()
 
-	socketPath, waitFunc := runAuthdForTesting(t, gpasswdOutput, groupsFile, currentUserAsRoot, false, args...)
+	socketPath, waitFunc := runAuthdForTesting(t, currentUserAsRoot, false, args...)
 	t.Cleanup(waitFunc)
 	return socketPath
 }
 
-func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath string, gpasswdFile string) {
+func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath string, groupFile string) {
 	t.Helper()
 
 	useSharedInstance := testutils.IsRace()
@@ -106,11 +105,14 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 	}
 
 	if !useSharedInstance {
-		gPasswd := filepath.Join(t.TempDir(), "gpasswd.output")
-		groups := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-		socket, cleanup := runAuthdForTesting(t, gPasswd, groups, true, useSharedInstance, args...)
+		groupOutput := filepath.Join(t.TempDir(), "groups")
+		groups := filepath.Join(testutils.TestFamilyPath(t), "groups")
+		args = append(args,
+			testutils.WithGroupFile(groups),
+			testutils.WithGroupFileOutput(groupOutput))
+		socket, cleanup := runAuthdForTesting(t, true, useSharedInstance, args...)
 		t.Cleanup(cleanup)
-		return socket, gPasswd
+		return socket, groupOutput
 	}
 
 	sa := &sharedAuthdInstance
@@ -128,7 +130,7 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 		require.NotNil(t, sa.cleanup)
 		cleanup := sa.cleanup
 		sa.socketPath = ""
-		sa.gPasswdOutputPath = ""
+		sa.groupsOutputPath = ""
 		sa.groupsFile = ""
 		sa.cleanup = nil
 		cleanup()
@@ -142,15 +144,16 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 		t.Logf("Authd shared instances increased: %v", sa.refCount)
 	}
 	if sa.refCount != 1 {
-		return sa.socketPath, sa.gPasswdOutputPath
+		return sa.socketPath, sa.groupsOutputPath
 	}
 
 	args = append(slices.Clone(args), testutils.WithSharedDaemon(true))
-	sa.gPasswdOutputPath = filepath.Join(t.TempDir(), "gpasswd.output")
-	sa.groupsFile = filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-	sa.socketPath, sa.cleanup = runAuthdForTesting(t, sa.gPasswdOutputPath,
-		sa.groupsFile, true, useSharedInstance, args...)
-	return sa.socketPath, sa.gPasswdOutputPath
+	sa.groupsFile = filepath.Join(testutils.TestFamilyPath(t), "groups")
+	args = append(args, testutils.WithGroupFile(sa.groupsFile))
+	sa.groupsOutputPath = filepath.Join(t.TempDir(), "groups")
+	args = append(args, testutils.WithGroupFileOutput(sa.groupsOutputPath))
+	sa.socketPath, sa.cleanup = runAuthdForTesting(t, true, useSharedInstance, args...)
+	return sa.socketPath, sa.groupsOutputPath
 }
 
 func preparePamRunnerTest(t *testing.T, clientPath string) []string {
@@ -343,29 +346,29 @@ func prependBinToPath(t *testing.T) string {
 	return "PATH=" + strings.Join([]string{filepath.Join(strings.TrimSpace(string(out)), "bin"), env}, ":")
 }
 
-func prepareGPasswdFiles(t *testing.T) (string, string) {
+func prepareGroupFiles(t *testing.T) (string, string) {
 	t.Helper()
 
 	cwd, err := os.Getwd()
 	require.NoError(t, err, "Cannot get current working directory")
 
-	const groupFileName = "gpasswd.group"
-	gpasswdOutput := filepath.Join(t.TempDir(), "gpasswd.output")
+	const groupFileName = "groups"
+	groupOutputFile := filepath.Join(t.TempDir(), "groups")
 	groupsFile := filepath.Join(cwd, "testdata", t.Name(), groupFileName)
 
 	if ok, _ := fileutils.FileExists(groupsFile); !ok {
 		groupsFile = filepath.Join(cwd, testutils.TestFamilyPath(t), groupFileName)
 	}
 
-	// Do a copy of the original group file, since it may be migrated by authd.
+	// Do a copy of the original group file, since it may be changed by authd.
 	tmpCopy := filepath.Join(t.TempDir(), filepath.Base(groupsFile))
 	err = fileutils.CopyFile(groupsFile, tmpCopy)
 	require.NoError(t, err, "Cannot copy the group file %q", groupsFile)
 	groupsFile = tmpCopy
 
-	saveArtifactsForDebugOnCleanup(t, []string{gpasswdOutput, groupsFile})
+	saveArtifactsForDebugOnCleanup(t, []string{groupOutputFile, groupsFile})
 
-	return gpasswdOutput, groupsFile
+	return groupOutputFile, groupsFile
 }
 
 func getUbuntuVersion(t *testing.T) int {

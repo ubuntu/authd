@@ -5,8 +5,8 @@
 package main
 
 import (
+	"fmt"
 	"os"
-	"strings"
 
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/testsdetection"
@@ -23,13 +23,15 @@ func init() {
 		permissions.Z_ForTests_DefaultCurrentUserAsRoot()
 	}
 
-	gpasswdArgs := os.Getenv("AUTHD_INTEGRATIONTESTS_GPASSWD_ARGS")
-	grpFilePath := os.Getenv("AUTHD_INTEGRATIONTESTS_GPASSWD_GRP_FILE_PATH")
-	if gpasswdArgs == "" || grpFilePath == "" {
-		panic("AUTHD_INTEGRATIONTESTS_GPASSWD_ARGS and AUTHD_INTEGRATIONTESTS_GPASSWD_GRP_FILE_PATH must be set")
+	grpFilePath := os.Getenv(localentries.Z_ForTests_GroupFilePathEnv)
+	if grpFilePath == "" {
+		panic(fmt.Sprintf("%q must be set", localentries.Z_ForTests_GroupFilePathEnv))
 	}
-	localentries.Z_ForTests_SetGpasswdCmd(strings.Split(gpasswdArgs, " "))
-	localentries.Z_ForTests_SetGroupPath(grpFilePath)
+	grpFileOutputPath := os.Getenv(localentries.Z_ForTests_GroupFileOutputPathEnv)
+	if grpFileOutputPath == "" {
+		grpFileOutputPath = grpFilePath
+	}
+	localentries.Z_ForTests_SetGroupPath(grpFilePath, grpFileOutputPath)
 	db.Z_ForTests_SetGroupFile(grpFilePath)
 
 	userslocking.Z_ForTests_OverrideLocking()
