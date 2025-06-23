@@ -1,7 +1,6 @@
 package user_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -61,18 +60,11 @@ func TestUserCommand(t *testing.T) {
 func TestUserLockCommand(t *testing.T) {
 	t.Parallel()
 
-	ctx, cancel := context.WithCancel(context.Background())
-	daemonSocket, stopped := testutils.StartDaemon(ctx, t, daemonPath,
+	daemonSocket := testutils.StartDaemon(t, daemonPath,
 		testutils.WithGroupFile(filepath.Join("testdata", "empty.group")),
 		testutils.WithPreviousDBState("one_user_and_group"),
 		testutils.WithCurrentUserAsRoot,
 	)
-
-	t.Cleanup(func() {
-		t.Log("Stopping daemon...")
-		cancel()
-		<-stopped
-	})
 
 	err := os.Setenv("AUTHD_SOCKET", "unix://"+daemonSocket)
 	require.NoError(t, err, "Failed to set AUTHD_SOCKET environment variable")
