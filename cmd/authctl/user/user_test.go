@@ -65,12 +65,12 @@ func TestUserLockCommand(t *testing.T) {
 	gpasswdOutput := filepath.Join(filepath.Dir(daemonPath), "gpasswd.output")
 	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 	env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile)
-	env = append(env, "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	daemonSocket, stopped := testutils.StartDaemon(ctx, t, daemonPath,
 		testutils.WithPreviousDBState("one_user_and_group"),
 		testutils.WithEnvironment(env...),
+		testutils.WithCurrentUserAsRoot,
 	)
 
 	t.Cleanup(func() {

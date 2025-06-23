@@ -59,9 +59,6 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 	ctx, cancel := context.WithCancel(context.Background())
 
 	env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile)
-	if currentUserAsRoot {
-		env = append(env, authdCurrentUserRootEnvVariableContent)
-	}
 	args = append(args, testutils.WithEnvironment(env...))
 
 	outputFile := filepath.Join(t.TempDir(), "authd.log")
@@ -71,6 +68,10 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 	err := os.MkdirAll(homeBaseDir, 0700)
 	require.NoError(t, err, "Setup: Creating home base dir %q", homeBaseDir)
 	args = append(args, testutils.WithHomeBaseDir(homeBaseDir))
+
+	if currentUserAsRoot {
+		args = append(args, testutils.WithCurrentUserAsRoot)
+	}
 
 	if !isSharedDaemon {
 		database := filepath.Join(t.TempDir(), "db", consts.DefaultDatabaseFileName)
