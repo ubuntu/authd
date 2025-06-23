@@ -65,7 +65,7 @@ func TestUserLockCommand(t *testing.T) {
 	daemonSocket, stopped := testutils.StartDaemon(ctx, t, daemonPath,
 		testutils.WithGroupFile(filepath.Join("testdata", "empty.group")),
 		testutils.WithPreviousDBState("one_user_and_group"),
-		testutils.WithEnvironment("AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1"),
+		testutils.WithCurrentUserAsRoot,
 	)
 
 	t.Cleanup(func() {

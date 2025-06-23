@@ -113,6 +113,13 @@ func WithGroupFileOutput(groupFile string) DaemonOption {
 	}
 }
 
+// WithCurrentUserAsRoot configures the daemon to accept the current user as root when checking permissions.
+// This is useful for integration tests where the current user is not root, but we want to
+// test the behavior as if it were root.
+var WithCurrentUserAsRoot DaemonOption = func(o *daemonOptions) {
+	o.env = append(o.env, "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
+}
+
 // StartDaemon runs the daemon in a separate process and returns the socket path and a channel that will be closed when
 // the daemon stops.
 func StartDaemon(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
