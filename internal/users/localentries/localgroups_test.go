@@ -1,7 +1,9 @@
 package localentries_test
 
 import (
+	"fmt"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -23,7 +25,8 @@ func TestUpdatelocalentries(t *testing.T) {
 		oldGroups     []string
 		groupFilePath string
 
-		wantErr bool
+		wantLockErr   bool
+		wantUpdateErr bool
 	}{
 		// First insertion cases
 		"Insert_new_user_in_existing_files_with_no_users_in_our_group":             {groupFilePath: "no_users_in_our_groups.group"},
@@ -53,27 +56,30 @@ func TestUpdatelocalentries(t *testing.T) {
 		"User_is_not_removed_from_groups_they_are_not_part_of":      {newGroups: []string{}, oldGroups: []string{"localgroup2"}, groupFilePath: "user_in_one_group.group"},
 
 		// Error cases
-		"Error_on_missing_groups_file": {groupFilePath: "does_not_exists.group", wantErr: true},
+		"Error_on_missing_groups_file": {
+			groupFilePath: "does_not_exists.group",
+			wantLockErr:   true,
+		},
 		"Error_on_invalid_user_name": {
 			groupFilePath: "no_users_in_our_groups.group",
 			username:      "no,commas,please",
-			wantErr:       true,
+			wantUpdateErr: true,
 		},
 		"Error_when_groups_file_has_missing_fields": {
 			groupFilePath: "malformed_file_missing_field.group",
-			wantErr:       true,
+			wantLockErr:   true,
 		},
 		"Error_when_groups_file_has_invalid_gid": {
 			groupFilePath: "malformed_file_invalid_gid.group",
-			wantErr:       true,
+			wantLockErr:   true,
 		},
 		"Error_when_groups_file_has_no_group_name": {
 			groupFilePath: "malformed_file_no_group_name.group",
-			wantErr:       true,
+			wantLockErr:   true,
 		},
 		"Error_when_groups_file_has_a_duplicated_group": {
 			groupFilePath: "malformed_file_duplicated.group",
-			wantErr:       true,
+			wantLockErr:   true,
 		},
 	}
 	for name, tc := range tests {
@@ -101,17 +107,100 @@ func TestUpdatelocalentries(t *testing.T) {
 				inputGroupFilePath = tempGroupFile
 			}
 
-			err := localentries.Update(tc.username, tc.newGroups, tc.oldGroups,
+			defer localentriestestutils.RequireGroupFile(t, outputGroupFilePath, golden.Path(t))
+
+			lg, cleanup, err := localentries.GetGroupsWithLock(
 				localentries.WithGroupInputPath(inputGroupFilePath),
-				localentries.WithGroupOutputPath(outputGroupFilePath))
-			if tc.wantErr {
+				localentries.WithGroupOutputPath(outputGroupFilePath),
+			)
+			if tc.wantLockErr {
+				require.Error(t, err, "GetGroupsWithLock should have failed")
+				return
+			}
+			require.NoError(t, err, "Setup: failed to lock the users group")
+			t.Cleanup(func() { require.NoError(t, cleanup(), "Releasing unlocked groups") })
+
+			err = lg.Update(tc.username, tc.newGroups, tc.oldGroups)
+			if tc.wantUpdateErr {
 				require.Error(t, err, "Updatelocalentries should have failed")
 			} else {
 				require.NoError(t, err, "Updatelocalentries should not have failed")
 			}
-
-			localentriestestutils.RequireGroupFile(t, outputGroupFilePath, golden.Path(t))
 		})
+	}
+}
+
+//nolint:tparallel // This can't be parallel, but subtests can.
+func TestRacingLockingActions(t *testing.T) {
+	const nIterations = 50
+
+	testFilePath := filepath.Join("testdata", "no_users_in_our_groups.group")
+
+	wg := sync.WaitGroup{}
+	wg.Add(nIterations)
+
+	// Lock and get the values in parallel.
+	for idx := range nIterations {
+		t.Run(fmt.Sprintf("iteration_%d", idx), func(t *testing.T) {
+			t.Parallel()
+
+			t.Cleanup(wg.Done)
+
+			var opts []localentries.Option
+			useTestGroupFile := idx%3 == 0
+
+			if useTestGroupFile {
+				// Mix the requests with test-only code paths...
+				opts = append(opts, localentries.WithGroupPath(testFilePath))
+			}
+
+			lg, unlock, err := localentries.GetGroupsWithLock(opts...)
+			require.NoError(t, err, "Failed to lock the users group (test groups: %v)", useTestGroupFile)
+			err = lg.Update("", nil, nil)
+			require.NoError(t, err, "Update should not fail (test groups: %v)", useTestGroupFile)
+			err = unlock()
+			require.NoError(t, err, "Unlock should not fail to lock the users group (test groups: %v)", useTestGroupFile)
+		})
+	}
+
+	t.Run("final_check", func(t *testing.T) {
+		t.Parallel()
+		wg.Wait()
+
+		// Get a last unlock function, to see if we're all good...
+		lg, unlock, err := localentries.GetGroupsWithLock()
+		require.NoError(t, err, "Failed to lock the users group")
+		err = unlock()
+		require.NoError(t, err, "Unlock should not fail to lock the users group")
+
+		// Ensure that we had cleaned up all the locks correctly!
+		require.Panics(t, func() { _ = lg.Update("", nil, nil) })
+	})
+}
+
+func TestLockedInvalidActions(t *testing.T) {
+	// This cannot be parallel
+
+	lg, unlock, err := localentries.GetGroupsWithLock()
+
+	require.NoError(t, err, "Setup: failed to lock the users group")
+	err = unlock()
+	require.NoError(t, err, "Unlock should not fail to lock the users group")
+
+	err = unlock()
+	require.Error(t, err, "Unlocking twice should fail")
+
+	require.Panics(t, func() { _ = lg.Update("", nil, nil) },
+		"Update should panic but did not")
+
+	// This is to ensure that we're in a good state, despite the actions above
+	for range 10 {
+		lg, unlock, err = localentries.GetGroupsWithLock()
+		require.NoError(t, err, "Failed to lock the users group")
+		defer func() {
+			err := unlock()
+			require.NoError(t, err, "Unlock should not fail to lock the users group")
+		}()
 	}
 }
 
