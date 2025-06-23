@@ -1,7 +1,6 @@
 package nss_test
 
 import (
-	"context"
 	"log"
 	"os"
 	"path/filepath"
@@ -31,18 +30,12 @@ func TestIntegration(t *testing.T) {
 	defaultOutputPath := filepath.Join(filepath.Dir(daemonPath), "gpasswd.output")
 	defaultGroupsFilePath := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
-	ctx, cancel := context.WithCancel(context.Background())
-	_, stopped := testutils.StartDaemon(ctx, t, daemonPath,
+	testutils.StartDaemon(t, daemonPath,
 		testutils.WithSocketPath(defaultSocket),
 		testutils.WithPreviousDBState(defaultDbState),
 		testutils.WithCurrentUserAsRoot,
 		testutils.WithGPasswdMock(defaultOutputPath, defaultGroupsFilePath),
 	)
-
-	t.Cleanup(func() {
-		cancel()
-		<-stopped
-	})
 
 	tests := map[string]struct {
 		getentDB string
@@ -118,16 +111,10 @@ func TestIntegration(t *testing.T) {
 				outPath := filepath.Join(t.TempDir(), "gpasswd.output")
 				groupsFilePath := filepath.Join("testdata", "empty.group")
 
-				var daemonStopped chan struct{}
-				ctx, cancel := context.WithCancel(context.Background())
-				socketPath, daemonStopped = testutils.StartDaemon(ctx, t, daemonPath,
+				socketPath = testutils.StartDaemon(t, daemonPath,
 					testutils.WithPreviousDBState(tc.dbState),
 					testutils.WithGPasswdMock(outPath, groupsFilePath),
 				)
-				t.Cleanup(func() {
-					cancel()
-					<-daemonStopped
-				})
 			}
 
 			cmds := []string{tc.getentDB}

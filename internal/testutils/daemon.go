@@ -109,9 +109,8 @@ func WithGPasswdMock(outputFile, groupsFile string) DaemonOption {
 	}
 }
 
-// StartDaemon starts the daemon in a separate process and returns the socket path and a channel that will be closed when
-// the daemon stops.
-func StartDaemon(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
+// StartDaemon starts the daemon in a separate process and returns the socket path.
+func StartDaemon(t *testing.T, execPath string, args ...DaemonOption) (socketPath string) {
 	t.Helper()
 
 	opts := &daemonOptions{}
@@ -157,10 +156,13 @@ paths:
 	configPath := filepath.Join(tempDir, "testconfig.yaml")
 	require.NoError(t, os.WriteFile(configPath, []byte(config), 0600), "Setup: failed to create config file for tests")
 
-	var cancel context.CancelCauseFunc
-	if opts.pidFile != "" {
-		ctx, cancel = context.WithCancelCause(ctx)
-	}
+	stopped := make(chan struct{})
+	ctx, cancel := context.WithCancelCause(context.Background())
+	t.Cleanup(func() {
+		t.Log("Stopping daemon...")
+		cancel(nil)
+		<-stopped
+	})
 
 	// #nosec:G204 - we control the command arguments in tests
 	cmd := exec.CommandContext(ctx, execPath, "-c", configPath)
@@ -178,7 +180,6 @@ paths:
 	}
 
 	// Start the daemon
-	stopped = make(chan struct{})
 	processPid := make(chan int)
 	go func() {
 		defer close(stopped)
@@ -257,7 +258,7 @@ paths:
 		}()
 	}
 
-	return opts.socketPath, stopped
+	return opts.socketPath
 }
 
 // BuildDaemon builds the daemon executable and returns the binary path.
