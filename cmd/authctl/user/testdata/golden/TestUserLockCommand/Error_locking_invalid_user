@@ -1,2 +1,2 @@
 Locking user "invaliduser"...
-Error: 
+Error: no result matching "invaliduser" in "users"
