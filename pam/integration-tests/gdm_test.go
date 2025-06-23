@@ -805,7 +805,7 @@ func TestGdmModule(t *testing.T) {
 				},
 			},
 			wantPamErrorMessages: []string{
-				"can't select broker: error InvalidArgument from server: no user name provided",
+				"error InvalidArgument from server: no user name provided",
 			},
 			wantError:       pam.ErrSystem,
 			wantAcctMgmtErr: pam_test.ErrIgnore,
