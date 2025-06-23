@@ -25,7 +25,6 @@ import (
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/db/bbolt"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -58,8 +57,7 @@ func runAuthdForTesting(t *testing.T, gpasswdOutput, groupsFile string, currentU
 
 	ctx, cancel := context.WithCancel(context.Background())
 
-	env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile)
-	args = append(args, testutils.WithEnvironment(env...))
+	args = append(args, testutils.WithGPasswdMock(gpasswdOutput, groupsFile))
 
 	outputFile := filepath.Join(t.TempDir(), "authd.log")
 	args = append(args, testutils.WithOutputFile(outputFile))

@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -21,13 +22,15 @@ import (
 )
 
 type daemonOptions struct {
-	dbPath     string
-	existentDB string
-	socketPath string
-	pidFile    string
-	outputFile string
-	shared     bool
-	env        []string
+	dbPath            string
+	existentDB        string
+	socketPath        string
+	pidFile           string
+	outputFile        string
+	gpasswdGroupsFile string
+	gpasswdArgs       []string
+	shared            bool
+	env               []string
 }
 
 // DaemonOption represents an optional function that can be used to override some of the daemon default values.
@@ -97,6 +100,15 @@ var WithCurrentUserAsRoot DaemonOption = func(o *daemonOptions) {
 	o.env = append(o.env, "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
 }
 
+// WithGPasswdMock configures the daemon to use a mock gpasswd command for testing purposes.
+func WithGPasswdMock(outputFile, groupsFile string) DaemonOption {
+	return func(o *daemonOptions) {
+		o.gpasswdGroupsFile = groupsFile
+		o.gpasswdArgs = append([]string{"env", "GO_WANT_HELPER_PROCESS=1"}, os.Args...)
+		o.gpasswdArgs = append(o.gpasswdArgs, "-test.run=TestMockgpasswd", "--", groupsFile, outputFile)
+	}
+}
+
 // StartDaemon starts the daemon in a separate process and returns the socket path and a channel that will be closed when
 // the daemon stops.
 func StartDaemon(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
@@ -125,6 +137,16 @@ func StartDaemon(ctx context.Context, t *testing.T, execPath string, args ...Dae
 		opts.socketPath = filepath.Join(tempDir, "authd.socket")
 	}
 
+	if opts.gpasswdGroupsFile == "" {
+		opts.gpasswdGroupsFile = filepath.Join(tempDir, "gpasswd.group")
+	}
+
+	if opts.gpasswdArgs == nil {
+		gpasswdOutputFile := filepath.Join(tempDir, "gpasswd.output")
+		opts.gpasswdArgs = append([]string{"env", "GO_WANT_HELPER_PROCESS=1"}, os.Args...)
+		opts.gpasswdArgs = append(opts.gpasswdArgs, "-test.run=TestMockgpasswd", "--", opts.gpasswdGroupsFile, gpasswdOutputFile)
+	}
+
 	config := fmt.Sprintf(`
 verbosity: 2
 paths:
@@ -144,6 +166,9 @@ paths:
 	cmd := exec.CommandContext(ctx, execPath, "-c", configPath)
 	opts.env = append(opts.env, os.Environ()...)
 	opts.env = append(opts.env, fmt.Sprintf("AUTHD_EXAMPLE_BROKER_SLEEP_MULTIPLIER=%f", SleepMultiplier()))
+	opts.env = append(opts.env, "AUTHD_INTEGRATIONTESTS_GPASSWD_ARGS="+strings.Join(opts.gpasswdArgs, " "))
+	opts.env = append(opts.env, "AUTHD_INTEGRATIONTESTS_GPASSWD_GRP_FILE_PATH="+opts.gpasswdGroupsFile)
+
 	cmd.Env = AppendCovEnv(opts.env)
 
 	// This is the function that is called by CommandContext when the context is cancelled.

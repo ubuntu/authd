@@ -5,14 +5,12 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	"google.golang.org/grpc/codes"
 )
 
@@ -62,14 +60,9 @@ func TestUserCommand(t *testing.T) {
 func TestUserLockCommand(t *testing.T) {
 	t.Parallel()
 
-	gpasswdOutput := filepath.Join(filepath.Dir(daemonPath), "gpasswd.output")
-	groupsFile := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
-	env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, gpasswdOutput, groupsFile)
-
 	ctx, cancel := context.WithCancel(context.Background())
 	daemonSocket, stopped := testutils.StartDaemon(ctx, t, daemonPath,
 		testutils.WithPreviousDBState("one_user_and_group"),
-		testutils.WithEnvironment(env...),
 		testutils.WithCurrentUserAsRoot,
 	)
 
