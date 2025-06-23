@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/ubuntu/authd/internal/proto/authd"
@@ -14,8 +13,6 @@ var lockCmd = &cobra.Command{
 	Short: "Lock (disable) a user managed by authd",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Printf("Locking user %q...\n", args[0])
-
 		client, err := NewUserServiceClient()
 		if err != nil {
 			return err
