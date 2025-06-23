@@ -95,8 +95,6 @@ func TestRegisterUser(t *testing.T) {
 }
 
 func TestUserByIDAndName(t *testing.T) {
-	t.Parallel()
-
 	userName := "authd-temp-users-test"
 	uidToGenerate := uint32(12345)
 
@@ -127,8 +125,6 @@ func TestUserByIDAndName(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
 			idGeneratorMock := &idgenerator.IDGeneratorMock{UIDsToGenerate: []uint32{uidToGenerate}}
 			records := NewTemporaryRecords(idGeneratorMock)
 			userRecords := records.temporaryUserRecords
