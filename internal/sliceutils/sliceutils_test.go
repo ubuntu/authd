@@ -117,3 +117,85 @@ func TestMap(t *testing.T) {
 		})
 	}
 }
+
+func TestEqualsContentFunc(t *testing.T) {
+	t.Parallel()
+
+	type notComparable struct {
+		i  int
+		ii []int
+	}
+
+	notComparableCompareFunc := func(a, b notComparable) bool {
+		return a.i == b.i && sliceutils.EqualContent(a.ii, b.ii)
+	}
+
+	tests := map[string]struct {
+		a, b []notComparable
+		want bool
+	}{
+		"equal_slices_same_order": {
+			a:    []notComparable{{i: 1}, {i: 2}, {i: 3}},
+			b:    []notComparable{{i: 1}, {i: 2}, {i: 3}},
+			want: true,
+		},
+		"equal_slices_different_order": {
+			a:    []notComparable{{i: 1}, {i: 2}, {i: 3}},
+			b:    []notComparable{{i: 3}, {i: 1}, {i: 2}},
+			want: true,
+		},
+		"equal_with_nested_slices": {
+			a:    []notComparable{{i: 1, ii: []int{1, 2}}, {i: 2, ii: []int{3}}},
+			b:    []notComparable{{i: 2, ii: []int{3}}, {i: 1, ii: []int{1, 2}}},
+			want: true,
+		},
+		"equal_with_nested_slices_with_different_order": {
+			a:    []notComparable{{i: 1, ii: []int{1, 2}}, {i: 2, ii: []int{3}}},
+			b:    []notComparable{{i: 2, ii: []int{3}}, {i: 1, ii: []int{2, 1}}},
+			want: true,
+		},
+		"both_empty": {
+			a:    []notComparable{},
+			b:    []notComparable{},
+			want: true,
+		},
+		"both_nil": {
+			a:    nil,
+			b:    nil,
+			want: true,
+		},
+		"nil_and_empty": {
+			a:    nil,
+			b:    []notComparable{},
+			want: true,
+		},
+		"not_equal_different_lengths": {
+			a:    []notComparable{{i: 1}, {i: 2}},
+			b:    []notComparable{{i: 1}, {i: 2}, {i: 3}},
+			want: false,
+		},
+		"not_equal_different_content": {
+			a:    []notComparable{{i: 1}, {i: 2}, {i: 3}},
+			b:    []notComparable{{i: 1}, {i: 2}, {i: 4}},
+			want: false,
+		},
+		"not_equal_with_nested_slices_with_different_content": {
+			a:    []notComparable{{i: 1, ii: []int{1, 2}}, {i: 2, ii: []int{3}}},
+			b:    []notComparable{{i: 2, ii: []int{4}}, {i: 1, ii: []int{2, 1}}},
+			want: false,
+		},
+		"one_empty_one_nonempty": {
+			a:    []notComparable{},
+			b:    []notComparable{{i: 1}},
+			want: false,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			got := sliceutils.EqualContentFunc(tc.a, tc.b, notComparableCompareFunc)
+			require.Equal(t, tc.want, got)
+		})
+	}
+}
