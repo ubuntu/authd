@@ -78,7 +78,7 @@ func Z_ForTests_OverrideLockingWithCleanup(t *testing.T) {
 // user database is locked by an external process.
 //
 // When called, it marks the user database as locked, causing any subsequent
-// locking attempts by authd (via [WriteLock]) to block until the provided
+// locking attempts by authd (via [WriteRecLock]) to block until the provided
 // context is cancelled.
 //
 // This does not use real file locking. The lock can be released either
@@ -181,7 +181,7 @@ func Z_ForTests_RestoreLocking() {
 }
 
 // Z_ForTests_SetMaxWaitTime sets the max time that we should wait before
-// returning a failure in [WriteLock] and [WriteRecLock].
+// returning a failure in [WriteRecLock].
 //
 // nolint:revive,nolintlint // We want to use underscores in the function name here.
 func Z_ForTests_SetMaxWaitTime(t *testing.T, maxWaitTime time.Duration) {

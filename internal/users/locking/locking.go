@@ -37,24 +37,6 @@ var (
 	ErrLockTimeout = fmt.Errorf("%w: timeout", ErrLock)
 )
 
-// WriteLock locks for writing the the local user entries database by using
-// the standard libc lckpwdf() function.
-// While the database is locked read operations can happen, but no other process
-// is allowed to write.
-// Note that this call will block all the other processes trying to access the
-// database in write mode, while it will return an error if called while the
-// lock is already hold by this process.
-func WriteLock() error {
-	writeLocksCountMu.RLock()
-	defer writeLocksCountMu.RUnlock()
-
-	if writeLocksCount > 0 {
-		return fmt.Errorf("%w: mixing recursive and normal locking", ErrLock)
-	}
-
-	return writeLockInternal()
-}
-
 func writeLockInternal() error {
 	done := make(chan error)
 	writeLockImpl := writeLockImpl
@@ -73,21 +55,6 @@ func writeLockInternal() error {
 	case err := <-done:
 		return err
 	}
-}
-
-// WriteUnlock unlocks for writing the local user entries database by using
-// the standard libc ulckpwdf() function.
-// As soon as this function is called all the other waiting processes will be
-// allowed to take the lock.
-func WriteUnlock() error {
-	writeLocksCountMu.RLock()
-	defer writeLocksCountMu.RUnlock()
-
-	if writeLocksCount > 0 {
-		return fmt.Errorf("%w: mixing recursive and normal locking", ErrUnlock)
-	}
-
-	return writeUnlockImpl()
 }
 
 // WriteRecLock locks the system's user database for writing.

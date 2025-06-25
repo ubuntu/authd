@@ -4,7 +4,6 @@ package userslocking_test
 
 import (
 	"context"
-	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,33 +16,25 @@ import (
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 )
 
-var lockingCases = map[string]struct {
-	WriteLock   func() error
-	WriteUnlock func() error
-}{
-	"NormalLocking": {
-		WriteLock:   userslocking.WriteLock,
-		WriteUnlock: userslocking.WriteUnlock,
-	},
-	"RecLocking": {
-		WriteLock: func() error {
-			for i := 0; i < 5; i++ {
-				if err := userslocking.WriteRecLock(); err != nil {
-					return err
-				}
+var (
+	writeLock = func() error {
+		for i := 0; i < 5; i++ {
+			if err := userslocking.WriteRecLock(); err != nil {
+				return err
 			}
-			return nil
-		},
-		WriteUnlock: func() error {
-			for i := 0; i < 5; i++ {
-				if err := userslocking.WriteRecUnlock(); err != nil {
-					return err
-				}
+		}
+		return nil
+	}
+
+	writeUnlock = func() error {
+		for i := 0; i < 5; i++ {
+			if err := userslocking.WriteRecUnlock(); err != nil {
+				return err
 			}
-			return nil
-		},
-	},
-}
+		}
+		return nil
+	}
+)
 
 func TestLockAndWriteUnlock(t *testing.T) {
 	require.Zero(t, os.Geteuid(), "Not root")
@@ -54,46 +45,42 @@ func TestLockAndWriteUnlock(t *testing.T) {
 	err := os.WriteFile(groupFile, []byte("root:x:0:\n"+newGroupContents), 0644)
 	require.NoError(t, err, "Writing group file")
 
-	for name, f := range maps.Clone(lockingCases) {
-		t.Run(name, func(t *testing.T) {
-			// Try using gpasswd to modify the group file. This should succeed, because
-			// the group file is not locked.
-			output, err := runGPasswd(t, "--add", "root", "testgroup")
-			require.NoError(t, err, "Output: %s", output)
+	// Try using gpasswd to modify the group file. This should succeed, because
+	// the group file is not locked.
+	output, err := runGPasswd(t, "--add", "root", "testgroup")
+	require.NoError(t, err, "Output: %s", output)
 
-			// Lock the group file
-			err = f.WriteLock()
-			require.NoError(t, err, "Locking database")
+	// Lock the group file
+	err = writeLock()
+	require.NoError(t, err, "Locking database")
 
-			output, err = runCmd(t, "getent", "group", "testgroup")
-			require.NoError(t, err, "Output: %s", output)
-			require.Equal(t, output, newGroupContents+",root", "Group not found")
+	output, err = runCmd(t, "getent", "group", "testgroup")
+	require.NoError(t, err, "Output: %s", output)
+	require.Equal(t, output, newGroupContents+",root", "Group not found")
 
-			// Try using gpasswd to modify the group file. This should fail, because
-			// the group file is locked.
-			output, err = runGPasswd(t, "--delete", "root", "testgroup")
-			require.Error(t, err, output)
-			require.Contains(t, output, "gpasswd: cannot lock /etc/group")
+	// Try using gpasswd to modify the group file. This should fail, because
+	// the group file is locked.
+	output, err = runGPasswd(t, "--delete", "root", "testgroup")
+	require.Error(t, err, output)
+	require.Contains(t, output, "gpasswd: cannot lock /etc/group")
 
-			// Reading is allowed when locked.
-			output, err = runCmd(t, "getent", "group", "testgroup")
-			require.NoError(t, err, "Output: %s", output)
-			require.Equal(t, output, newGroupContents+",root", "Group not found")
+	// Reading is allowed when locked.
+	output, err = runCmd(t, "getent", "group", "testgroup")
+	require.NoError(t, err, "Output: %s", output)
+	require.Equal(t, output, newGroupContents+",root", "Group not found")
 
-			// Unlock the group file
-			err = f.WriteUnlock()
-			require.NoError(t, err, "Unlocking database")
+	// Unlock the group file
+	err = writeUnlock()
+	require.NoError(t, err, "Unlocking database")
 
-			// Try using gpasswd to modify the group file again. This should succeed,
-			// because the group file is unlocked.
-			output, err = runGPasswd(t, "--delete", "root", "testgroup")
-			require.NoError(t, err, "Output: %s", output)
+	// Try using gpasswd to modify the group file again. This should succeed,
+	// because the group file is unlocked.
+	output, err = runGPasswd(t, "--delete", "root", "testgroup")
+	require.NoError(t, err, "Output: %s", output)
 
-			output, err = runCmd(t, "getent", "group", "testgroup")
-			require.NoError(t, err, "Output: %s", output)
-			require.Equal(t, output, newGroupContents, "Group not found")
-		})
-	}
+	output, err = runCmd(t, "getent", "group", "testgroup")
+	require.NoError(t, err, "Output: %s", output)
+	require.Equal(t, output, newGroupContents, "Group not found")
 }
 
 func TestReadWhileLocked(t *testing.T) {
@@ -107,20 +94,16 @@ testgroup:x:1001:testuser`
 	err := os.WriteFile(groupFile, []byte(groupContents), 0644)
 	require.NoError(t, err, "Writing group file")
 
-	for name, f := range maps.Clone(lockingCases) {
-		t.Run(name, func(t *testing.T) {
-			err = f.WriteLock()
-			require.NoError(t, err, "Locking once it is allowed")
-			t.Cleanup(func() {
-				err := f.WriteUnlock()
-				require.NoError(t, err, "Unlocking should be allowed")
-			})
+	err = writeLock()
+	require.NoError(t, err, "Locking once it is allowed")
+	t.Cleanup(func() {
+		err := writeUnlock()
+		require.NoError(t, err, "Unlocking should be allowed")
+	})
 
-			output, err := runCmd(t, "getent", "group", "root", "testgroup")
-			require.NoError(t, err, "Reading should be allowed")
-			require.Equal(t, groupContents, output)
-		})
-	}
+	output, err := runCmd(t, "getent", "group", "root", "testgroup")
+	require.NoError(t, err, "Reading should be allowed")
+	require.Equal(t, groupContents, output)
 }
 
 func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
@@ -128,13 +111,10 @@ func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 	restoreFunc := userslocking.Z_ForTests_RestoreLocking
 	t.Cleanup(func() { restoreFunc() })
 
-	err := userslocking.WriteLock()
+	err := userslocking.WriteRecLock()
 	require.NoError(t, err, "Locking once it is allowed")
 
-	err = userslocking.WriteLock()
-	require.ErrorIs(t, err, userslocking.ErrLock, "Locking again should not be allowed")
-
-	err = userslocking.WriteUnlock()
+	err = userslocking.WriteRecUnlock()
 	require.NoError(t, err, "Unlocking should be allowed")
 
 	// Ensure restoring works as expected.
@@ -148,12 +128,12 @@ func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 	err = os.WriteFile(groupFile, []byte(groupContents), 0644)
 	require.NoError(t, err, "Writing group file")
 
-	err = userslocking.WriteLock()
+	err = userslocking.WriteRecLock()
 	require.NoError(t, err, "Locking once it is allowed")
 	t.Cleanup(func() {
 		// Ignore the error here, as it's expected to return an error if the
-		// WriteUnlock further below is called first.
-		_ = userslocking.WriteUnlock()
+		// WriteRecUnlock further below is called first.
+		_ = userslocking.WriteRecUnlock()
 	})
 
 	gPasswdExited := make(chan error)
@@ -169,41 +149,22 @@ func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 		require.ErrorIs(t, err, userslocking.ErrLock, "GPasswd should fail")
 	}
 
-	require.NoError(t, userslocking.WriteUnlock())
+	require.NoError(t, userslocking.WriteRecUnlock())
 	<-gPasswdExited
 }
 
 func TestUnlockUnlockedOverridden(t *testing.T) {
 	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
-	err := userslocking.WriteUnlock()
+	err := userslocking.WriteRecUnlock()
 	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
-}
-
-func TestLockAndLockAgainGroupFile(t *testing.T) {
-	require.Zero(t, os.Geteuid(), "Not root")
-
-	err := userslocking.WriteLock()
-	require.NoError(t, err, "Locking once it is allowed")
-
-	err = userslocking.WriteLock()
-	require.ErrorIs(t, err, userslocking.ErrLock, "Locking again should not be allowed")
-
-	err = userslocking.WriteUnlock()
-	require.NoError(t, err, "Unlocking should be allowed")
 }
 
 func TestUnlockUnlocked(t *testing.T) {
 	require.Zero(t, os.Geteuid(), "Not root")
 
-	for name, f := range maps.Clone(lockingCases) {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			err := f.WriteUnlock()
-			require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
-		})
-	}
+	err := writeUnlock()
+	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
 }
 
 func TestRecLockAndRecLockAgainGroupFile(t *testing.T) {
@@ -235,63 +196,59 @@ func TestLockingLockedDatabase(t *testing.T) {
 	err := os.WriteFile(groupFile, []byte(groupContents), 0644)
 	require.NoError(t, err, "Writing group file")
 
-	for name, f := range maps.Clone(lockingCases) {
-		t.Run(name, func(t *testing.T) {
-			ctx, cancel := context.WithCancel(context.Background())
-			cmd := exec.CommandContext(ctx, testLockerUtility)
-			t.Logf("Running command: %s", cmd.Args)
+	ctx, cancel := context.WithCancel(context.Background())
+	cmd := exec.CommandContext(ctx, testLockerUtility)
+	t.Logf("Running command: %s", cmd.Args)
 
-			err := cmd.Start()
-			require.NoError(t, err, "Setup: Locker utility should start")
-			lockerProcess := cmd.Process
+	err = cmd.Start()
+	require.NoError(t, err, "Setup: Locker utility should start")
+	lockerProcess := cmd.Process
 
-			lockerExited := make(chan error)
-			writeLockExited := make(chan error)
-			t.Cleanup(func() {
-				cancel()
-				syscall.Kill(lockerProcess.Pid, syscall.SIGKILL)
-				require.Error(t, <-lockerExited, "Stopping locking process")
-				require.NoError(t, <-writeLockExited, "Final locking")
-				require.NoError(t, f.WriteUnlock(), "Final unlocking")
-			})
+	lockerExited := make(chan error)
+	writeLockExited := make(chan error)
+	t.Cleanup(func() {
+		cancel()
+		syscall.Kill(lockerProcess.Pid, syscall.SIGKILL)
+		require.Error(t, <-lockerExited, "Stopping locking process")
+		require.NoError(t, <-writeLockExited, "Final locking")
+		require.NoError(t, writeUnlock(), "Final unlocking")
+	})
 
-			go func() {
-				lockerExited <- cmd.Wait()
-			}()
+	go func() {
+		lockerExited <- cmd.Wait()
+	}()
 
-			select {
-			case <-time.After(1 * time.Second):
-				t.Cleanup(func() { lockerProcess.Kill() })
-				// If we're time-outing: it's fine, it means the test-locker process is running
-			case err := <-lockerExited:
-				require.NoError(t, err, "test locker should not have failed")
-			}
+	select {
+	case <-time.After(1 * time.Second):
+		t.Cleanup(func() { lockerProcess.Kill() })
+		// If we're time-outing: it's fine, it means the test-locker process is running
+	case err := <-lockerExited:
+		require.NoError(t, err, "test locker should not have failed")
+	}
 
-			gPasswdExited := make(chan error)
-			go func() {
-				_, err := runGPasswd(t, "--add", "root", "testgroup")
-				gPasswdExited <- err
-			}()
+	gPasswdExited := make(chan error)
+	go func() {
+		_, err := runGPasswd(t, "--add", "root", "testgroup")
+		gPasswdExited <- err
+	}()
 
-			select {
-			case <-time.After(3 * time.Second):
-				// If we're time-outing: it's fine, it means we were locked!
-			case err := <-gPasswdExited:
-				require.ErrorIs(t, err, userslocking.ErrLock, "GPasswd should fail")
-			}
+	select {
+	case <-time.After(3 * time.Second):
+		// If we're time-outing: it's fine, it means we were locked!
+	case err := <-gPasswdExited:
+		require.ErrorIs(t, err, userslocking.ErrLock, "GPasswd should fail")
+	}
 
-			go func() {
-				writeLockExited <- f.WriteLock()
-			}()
+	go func() {
+		writeLockExited <- writeLock()
+	}()
 
-			select {
-			case <-time.After(1 * time.Second):
-				// If we're time-outing: it's fine, it means the test-locker process is
-				// still running and holding the lock.
-			case err := <-writeLockExited:
-				require.ErrorIs(t, err, userslocking.ErrLock, "Locking should not work")
-			}
-		})
+	select {
+	case <-time.After(1 * time.Second):
+		// If we're time-outing: it's fine, it means the test-locker process is
+		// still running and holding the lock.
+	case err := <-writeLockExited:
+		require.ErrorIs(t, err, userslocking.ErrLock, "Locking should not work")
 	}
 }
 
@@ -330,20 +287,16 @@ func TestLockingLockedDatabaseFailsAfterTimeout(t *testing.T) {
 		require.NoError(t, err, "test locker should not have failed")
 	}
 
-	for name, f := range maps.Clone(lockingCases) {
-		t.Run(name, func(t *testing.T) {
-			t.Log("Waiting for lock")
-			writeLockExited := make(chan error)
-			go func() {
-				writeLockExited <- f.WriteLock()
-			}()
+	t.Log("Waiting for lock")
+	writeLockExited := make(chan error)
+	go func() {
+		writeLockExited <- writeLock()
+	}()
 
-			err := <-writeLockExited
-			t.Log("Done waiting for lock!")
-			require.ErrorIs(t, err, userslocking.ErrLock)
-			require.ErrorIs(t, err, userslocking.ErrLockTimeout)
-		})
-	}
+	err = <-writeLockExited
+	t.Log("Done waiting for lock!")
+	require.ErrorIs(t, err, userslocking.ErrLock)
+	require.ErrorIs(t, err, userslocking.ErrLockTimeout)
 }
 
 func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
@@ -354,75 +307,71 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 
 	userslocking.Z_ForTests_SetMaxWaitTime(t, 3*time.Second)
 
-	for name, f := range maps.Clone(lockingCases) {
-		t.Run(name, func(t *testing.T) {
-			ctx, cancel := context.WithCancel(context.Background())
-			t.Cleanup(cancel)
-			lockerCmd := exec.CommandContext(ctx, testLockerUtility)
-			t.Logf("Running command: %s", lockerCmd.Args)
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	lockerCmd := exec.CommandContext(ctx, testLockerUtility)
+	t.Logf("Running command: %s", lockerCmd.Args)
 
-			err := lockerCmd.Start()
-			require.NoError(t, err, "Setup: Locker utility should start")
-			lockerProcess := lockerCmd.Process
+	err := lockerCmd.Start()
+	require.NoError(t, err, "Setup: Locker utility should start")
+	lockerProcess := lockerCmd.Process
 
-			lockerExited := make(chan error)
-			go func() {
-				lockerExited <- lockerCmd.Wait()
-			}()
+	lockerExited := make(chan error)
+	go func() {
+		lockerExited <- lockerCmd.Wait()
+	}()
 
-			select {
-			case <-time.After(500 * time.Millisecond):
-				// If we're time-outing: it's fine, it means the test-locker process is
-				// still running and holding the lock.
-				t.Cleanup(func() { lockerProcess.Kill() })
-			case err := <-lockerExited:
-				require.NoError(t, err, "test locker should not have failed")
-			}
-
-			writeLockExited := make(chan error)
-			go func() {
-				writeLockExited <- f.WriteLock()
-			}()
-
-			select {
-			case <-time.After(1 * time.Second):
-				// If we're time-outing: it's fine, it means the test-locker process is
-				// still running and holding the lock.
-			case err := <-writeLockExited:
-				require.ErrorIs(t, err, userslocking.ErrLock, "Locking should not work")
-			}
-
-			writeUnLockExited := make(chan error)
-			go func() {
-				writeUnLockExited <- f.WriteUnlock()
-			}()
-
-			select {
-			case <-time.After(500 * time.Millisecond):
-				// If we're time-outing: it's fine, it means the test-locker process is
-				// still running and holding the lock.
-			case err := <-writeUnLockExited:
-				require.ErrorIs(t, err, userslocking.ErrUnlock, "Locking should not work")
-			}
-
-			t.Log("Killing locking process")
-			cancel()
-			syscall.Kill(lockerProcess.Pid, syscall.SIGKILL)
-			// Do not wait for the locker being exited yet, so that we can ensure that
-			// our function call wait is over.
-
-			t.Log("We should get the lock now!")
-			err = <-writeLockExited
-			require.NoError(t, err, "We should have the lock now")
-
-			t.Log("Ensure locking process has been stopped!")
-			err = <-lockerExited
-			require.Error(t, err, "Locker should exit with failure")
-
-			err = <-writeUnLockExited
-			require.NoError(t, err, "We should be able to unlock now")
-		})
+	select {
+	case <-time.After(500 * time.Millisecond):
+		// If we're time-outing: it's fine, it means the test-locker process is
+		// still running and holding the lock.
+		t.Cleanup(func() { lockerProcess.Kill() })
+	case err := <-lockerExited:
+		require.NoError(t, err, "test locker should not have failed")
 	}
+
+	writeLockExited := make(chan error)
+	go func() {
+		writeLockExited <- writeLock()
+	}()
+
+	select {
+	case <-time.After(1 * time.Second):
+		// If we're time-outing: it's fine, it means the test-locker process is
+		// still running and holding the lock.
+	case err := <-writeLockExited:
+		require.ErrorIs(t, err, userslocking.ErrLock, "Locking should not work")
+	}
+
+	writeUnLockExited := make(chan error)
+	go func() {
+		writeUnLockExited <- writeUnlock()
+	}()
+
+	select {
+	case <-time.After(500 * time.Millisecond):
+		// If we're time-outing: it's fine, it means the test-locker process is
+		// still running and holding the lock.
+	case err := <-writeUnLockExited:
+		require.ErrorIs(t, err, userslocking.ErrUnlock, "Locking should not work")
+	}
+
+	t.Log("Killing locking process")
+	cancel()
+	syscall.Kill(lockerProcess.Pid, syscall.SIGKILL)
+	// Do not wait for the locker being exited yet, so that we can ensure that
+	// our function call wait is over.
+
+	t.Log("We should get the lock now!")
+	err = <-writeLockExited
+	require.NoError(t, err, "We should have the lock now")
+
+	t.Log("Ensure locking process has been stopped!")
+	err = <-lockerExited
+	require.Error(t, err, "Locker should exit with failure")
+
+	err = <-writeUnLockExited
+	require.NoError(t, err, "We should be able to unlock now")
 }
 
 func runCmd(t *testing.T, command string, args ...string) (string, error) {
