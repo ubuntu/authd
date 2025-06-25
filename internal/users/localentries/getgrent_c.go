@@ -1,6 +1,4 @@
 // Package localentries provides functions to access the local user and group database.
-//
-//nolint:dupl // This it not a duplicate of getpwent_c.go
 package localentries
 
 /*
@@ -70,6 +68,7 @@ func GetGroupEntries() (entries []types.GroupEntry, err error) {
 			Name:   C.GoString(groupPtr.gr_name),
 			Passwd: C.GoString(groupPtr.gr_passwd),
 			GID:    uint32(groupPtr.gr_gid),
+			Users:  strvToSlice(groupPtr.gr_mem),
 		})
 	}
 }
@@ -118,6 +117,21 @@ func GetGroupByName(name string) (g types.GroupEntry, err error) {
 			Name:   C.GoString(groupPtr.gr_name),
 			GID:    uint32(groupPtr.gr_gid),
 			Passwd: C.GoString(groupPtr.gr_passwd),
+			Users:  strvToSlice(groupPtr.gr_mem),
 		}, nil
 	}
+}
+
+func strvToSlice(strv **C.char) []string {
+	var users []string
+	for i := C.uint(0); ; i++ {
+		s := *(**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(strv)) +
+			uintptr(i)*unsafe.Sizeof(*strv)))
+		if s == nil {
+			break
+		}
+
+		users = append(users, C.GoString(s))
+	}
+	return users
 }
