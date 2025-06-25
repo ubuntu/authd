@@ -144,7 +144,7 @@ func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []str
 	output := strings.TrimSpace(b.String())
 
 	if !testing.Verbose() {
-		t.Log(output)
+		t.Logf("Command output\n%s", output)
 	}
 	return output, err
 }
