@@ -10,7 +10,6 @@ import (
 
 	"github.com/ubuntu/authd/internal/services/permissions"
 	"github.com/ubuntu/authd/internal/testsdetection"
-	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 )
@@ -32,7 +31,6 @@ func init() {
 		grpFileOutputPath = grpFilePath
 	}
 	localentries.Z_ForTests_SetGroupPath(grpFilePath, grpFileOutputPath)
-	db.Z_ForTests_SetGroupFile(grpFilePath)
 
 	userslocking.Z_ForTests_OverrideLocking()
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/db/bbolt"
+	localgrouptestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 )
 
@@ -186,10 +187,8 @@ func TestMaybeMigrateBBoltToSQLite(t *testing.T) {
 			err := fileutils.CopyFile(groupFile, tempGroupFile)
 			require.NoError(t, err, "failed to copy group file for testing")
 
-			// Make the db package use the temporary group file
-			origGroupFile := db.Z_ForTests_GetGroupFile()
-			db.Z_ForTests_SetGroupFile(tempGroupFile)
-			t.Cleanup(func() { db.Z_ForTests_SetGroupFile(origGroupFile) })
+			// Make the localentries package use the test group file.
+			tempGroupFile = localgrouptestutils.SetupGroupMock(t, tempGroupFile)
 
 			migrated, err := maybeMigrateBBoltToSQLite(dbDir)
 			if tc.wantError {

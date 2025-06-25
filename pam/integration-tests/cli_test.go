@@ -253,6 +253,11 @@ func TestCLIAuthenticate(t *testing.T) {
 				var groupFile string
 				groupFileOutput, groupFile = prepareGroupFiles(t)
 
+				if tc.wantLocalGroups || tc.oldDB != "" {
+					// We don't want to use separate input ant output files here.
+					groupFileOutput = groupFile
+				}
+
 				pidFile = filepath.Join(outDir, "authd.pid")
 
 				socketPath = runAuthd(t, !tc.currentUserNotRoot,

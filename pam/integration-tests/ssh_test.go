@@ -379,14 +379,12 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that saves the updated group file to a writable
 				// location for us to test.
-				var groupsFile string
-				groupOutput, groupsFile = prepareGroupFiles(t)
+				_, groupOutput = prepareGroupFiles(t)
 
 				authdEnv = append(authdEnv, useOldDatabaseEnv(t, tc.oldDB)...)
 
 				socketPath = runAuthd(t, true,
-					testutils.WithGroupFile(groupsFile),
-					testutils.WithGroupFileOutput(groupOutput),
+					testutils.WithGroupFile(groupOutput),
 					testutils.WithEnvironment(authdEnv...))
 			} else if !sharedSSHd {
 				socketPath, groupOutput = sharedAuthd(t,
