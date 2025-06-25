@@ -22,7 +22,7 @@ func TestGetPasswdEntries(t *testing.T) {
 
 			// Check if the root user is present in the list
 			rootFound := slices.ContainsFunc(got, func(entry types.UserEntry) bool {
-				return entry.Name == "root" && entry.UID == 0
+				return entry.Name == "root" && entry.UID == 0 && entry.GID == 0
 			})
 			require.True(t, rootFound, "GetPasswdEntries should always return root")
 		})
@@ -40,7 +40,10 @@ func TestGetPasswdByName(t *testing.T) {
 			require.NoError(t, err, "GetPasswdByName should not return an error")
 			require.Equal(t, "root", got.Name, "Name does not match")
 			require.Equal(t, uint32(0), got.UID, "UID does not match")
+			require.Equal(t, uint32(0), got.GID, "GID does not match")
 			require.Equal(t, "root", got.Gecos, "Gecos does not match")
+			require.NotEmpty(t, got.Shell, "Shell is not empty")
+			require.Equal(t, "/root", got.Dir, "Dir does not match")
 		})
 	}
 }

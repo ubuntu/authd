@@ -64,7 +64,10 @@ func GetPasswdEntries() (entries []types.UserEntry, err error) {
 		entries = append(entries, types.UserEntry{
 			Name:  C.GoString(passwdPtr.pw_name),
 			UID:   uint32(passwdPtr.pw_uid),
+			GID:   uint32(passwdPtr.pw_gid),
 			Gecos: C.GoString(passwdPtr.pw_gecos),
+			Dir:   C.GoString(passwdPtr.pw_dir),
+			Shell: C.GoString(passwdPtr.pw_shell),
 		})
 	}
 }
@@ -112,7 +115,10 @@ func GetPasswdByName(name string) (p types.UserEntry, err error) {
 		return types.UserEntry{
 			Name:  C.GoString(passwdPtr.pw_name),
 			UID:   uint32(passwdPtr.pw_uid),
+			GID:   uint32(passwdPtr.pw_gid),
 			Gecos: C.GoString(passwdPtr.pw_gecos),
+			Dir:   C.GoString(passwdPtr.pw_dir),
+			Shell: C.GoString(passwdPtr.pw_shell),
 		}, nil
 	}
 }
