@@ -139,12 +139,12 @@ func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []str
 		cmd.Stdout = os.Stdout
 	}
 
-	t.Log("Running command", strings.Join(args, " "))
+	t.Log("Running command:", cmd.String())
 	err = cmd.Run()
 	output := strings.TrimSpace(b.String())
 
 	if !testing.Verbose() {
-		t.Log(output)
+		t.Logf("Command output\n%s", output)
 	}
 	return output, err
 }
