@@ -126,6 +126,36 @@ func (g *GroupsWithLock) mustLock() (cleanup func()) {
 	return cleanup
 }
 
+func (g *GroupsWithLock) mustRLock() (cleanup func()) {
+	g.mu.RLock()
+	cleanup = g.mu.RUnlock
+
+	if g.refCount == 0 {
+		defer cleanup()
+		panic("locked groups are not locked!")
+	}
+
+	return cleanup
+}
+
+// GetEntries returns a copy of the current group entries.
+func (g *GroupsWithLock) GetEntries() (entries []types.GroupEntry) {
+	unlock := g.mustRLock()
+	defer unlock()
+
+	return types.DeepCopyGroupEntries(g.entries)
+}
+
+// SaveEntries saves the provided group entries to the local group file.
+func (g *GroupsWithLock) SaveEntries(entries []types.GroupEntry) (err error) {
+	defer decorate.OnError(&err, "could not save groups")
+
+	unlock := g.mustLock()
+	defer unlock()
+
+	return g.saveLocalGroups(entries)
+}
+
 // Update updates the local groups for a user, adding them to the groups in
 // newGroups which they are not already part of, and removing them from the
 // groups in oldGroups which are not in newGroups.
@@ -260,6 +290,11 @@ func (g *GroupsWithLock) saveLocalGroups(groups []types.GroupEntry) (err error) 
 	groupPath := g.options.groupOutputPath
 
 	defer decorate.OnError(&err, "could not write local groups to %q", groupPath)
+
+	if slices.EqualFunc(g.entries, groups, types.GroupEntry.Equals) {
+		log.Debugf(context.TODO(), "Nothing to do, groups are equal")
+		return nil
+	}
 
 	if err := types.ValidateGroupEntries(groups); err != nil {
 		return err
