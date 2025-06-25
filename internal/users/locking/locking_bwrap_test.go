@@ -78,7 +78,7 @@ testgroup:x:1001:testuser`
 	require.NoError(t, err, "Locking once it is allowed")
 	t.Cleanup(func() { userslocking.WriteUnlock() })
 
-	output, err := runCmd(t, "getent", "group")
+	output, err := runCmd(t, "getent", "group", "root", "testgroup")
 	require.NoError(t, err, "Reading should be allowed")
 	require.Equal(t, groupContents, output)
 }
