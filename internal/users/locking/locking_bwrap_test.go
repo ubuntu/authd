@@ -76,7 +76,10 @@ testgroup:x:1001:testuser`
 
 	err = userslocking.WriteLock()
 	require.NoError(t, err, "Locking once it is allowed")
-	t.Cleanup(func() { userslocking.WriteUnlock() })
+	t.Cleanup(func() {
+		err := userslocking.WriteUnlock()
+		require.NoError(t, err, "Unlocking should be allowed")
+	})
 
 	output, err := runCmd(t, "getent", "group", "root", "testgroup")
 	require.NoError(t, err, "Reading should be allowed")
@@ -110,7 +113,11 @@ func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 
 	err = userslocking.WriteLock()
 	require.NoError(t, err, "Locking once it is allowed")
-	t.Cleanup(func() { userslocking.WriteUnlock() })
+	t.Cleanup(func() {
+		// Ignore the error here, as it's expected to return an error if the
+		// WriteUnlock further below is called first.
+		_ = userslocking.WriteUnlock()
+	})
 
 	gPasswdExited := make(chan error)
 	go func() {
