@@ -2,16 +2,20 @@ package localentries_test
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/fileutils"
+	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	localentriestestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
+	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 )
 
@@ -130,6 +134,221 @@ func TestUpdatelocalentries(t *testing.T) {
 	}
 }
 
+func TestGetAndSaveLocalGroups(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		groupFilePath string
+		addGroups     []types.GroupEntry
+		removeGroups  []string
+		addUsers      map[string][]string
+
+		wantGetErr bool
+		wantSetErr bool
+		wantNoOp   bool
+	}{
+		"Empty_group_is_kept_empty_on_no_op": {
+			groupFilePath: "empty.group",
+		},
+		"Empty_group_adding_one_group": {
+			groupFilePath: "empty.group",
+			addGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1},
+			},
+		},
+		"Empty_group_adding_one_group_with_one_user": {
+			groupFilePath: "empty.group",
+			addGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1},
+			},
+			addUsers: map[string][]string{"group1": {"user1"}},
+		},
+		"Empty_group_adding_two_groups_with_two_users": {
+			groupFilePath: "empty.group",
+			addGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1},
+				{Name: "group2", Passwd: "x", GID: 2},
+			},
+			addUsers: map[string][]string{
+				"group1": {"user1.1", "user1.2"},
+				"group2": {"user2.2", "user2.2"},
+			},
+		},
+		"Empty_group_adding_one_group_and_removing_it_afterwards": {
+			groupFilePath: "empty.group",
+			addGroups:     []types.GroupEntry{{Name: "group1", GID: 1}},
+			removeGroups:  []string{"group1"},
+			wantNoOp:      true,
+		},
+		"Insert_new_user_in_existing_files_with_no_users_in_our_group": {
+			groupFilePath: "no_users_in_our_groups.group",
+			addUsers: map[string][]string{
+				"localgroup1": {"user1.1", "user1.2"},
+				"localgroup2": {"user2.2", "user2.2"},
+			},
+		},
+		"Insert_new_user_when_no_users_in_any_group": {
+			groupFilePath: "no_users.group",
+			addUsers: map[string][]string{
+				"localgroup1": {"user1.1", "user1.2"},
+				"localgroup2": {"user2.2", "user2.2"},
+			},
+		},
+		"Insert_new_user_in_existing_files_with_other_users_in_our_group": {
+			groupFilePath: "users_in_our_groups.group",
+			addUsers: map[string][]string{
+				"localgroup1": {"user1.1", "user1.2"},
+				"localgroup2": {"user2.2", "user2.2"},
+			},
+		},
+		"Insert_new_user_in_existing_files_with_multiple_other_users_in_our_group": {
+			groupFilePath: "multiple_users_in_our_groups.group",
+			addUsers: map[string][]string{
+				"localgroup1": {"user1.1", "user1.2"},
+				"localgroup2": {"user2.2", "user2.2"},
+			},
+		},
+		"Ignores_adding_duplicated_equal_groups": {
+			groupFilePath: "empty.group",
+			addGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 12345, Users: []string{"user1", "user2"}},
+				{Name: "group1", Passwd: "x", GID: 12345, Users: []string{"user1", "user2"}},
+			},
+		},
+		"Ignores_adding_duplicated_equal_group_to_existing_file": {
+			groupFilePath: "no_users_in_our_groups.group",
+			addGroups: []types.GroupEntry{
+				{Name: "localgroup3", Passwd: "x", GID: 43},
+			},
+		},
+		"Removes_group_correctly": {
+			groupFilePath: "multiple_users_in_our_groups.group",
+			removeGroups:  []string{"localgroup1", "localgroup4"},
+		},
+
+		// Error cases
+		"Error_on_missing_groups_file": {
+			groupFilePath: "does_not_exists.group",
+			wantGetErr:    true,
+		},
+		"Error_when_groups_file_has_missing_fields": {
+			groupFilePath: "malformed_file_missing_field.group",
+			wantGetErr:    true,
+		},
+		"Error_when_groups_file_has_invalid_gid": {
+			groupFilePath: "malformed_file_invalid_gid.group",
+			wantGetErr:    true,
+		},
+		"Error_when_groups_file_has_no_group_name": {
+			groupFilePath: "malformed_file_no_group_name.group",
+			wantGetErr:    true,
+		},
+		"Error_when_groups_file_has_a_duplicated_group": {
+			groupFilePath: "malformed_file_duplicated.group",
+			wantGetErr:    true,
+		},
+		"Error_adding_duplicated_groups": {
+			groupFilePath: "empty.group",
+			addGroups: []types.GroupEntry{
+				{Name: "group1", GID: 12345},
+				{Name: "group1", GID: 12345, Users: []string{"user1"}},
+			},
+			wantSetErr: true,
+		},
+		"Error_adding_duplicated_group_to_existing_file": {
+			groupFilePath: "no_users_in_our_groups.group",
+			addGroups:     []types.GroupEntry{{Name: "localgroup3", GID: 12345}},
+			wantSetErr:    true,
+		},
+		"Error_adding_duplicated_groups_GIDs": {
+			groupFilePath: "empty.group",
+			addGroups: []types.GroupEntry{
+				{Name: "group1", GID: 43},
+				{Name: "group2", GID: 43, Users: []string{"user1"}},
+			},
+			wantSetErr: true,
+		},
+		"Error_adding_duplicated_group_GID_to_existing_file": {
+			groupFilePath: "no_users_in_our_groups.group",
+			addGroups:     []types.GroupEntry{{Name: "test-group3", GID: 43}},
+			wantSetErr:    true,
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			inputGroupFilePath := filepath.Join(testutils.CurrentDir(),
+				"testdata", tc.groupFilePath)
+			outputGroupFilePath := filepath.Join(t.TempDir(), "group")
+
+			if !tc.wantNoOp && tc.addGroups == nil && tc.removeGroups == nil && tc.addUsers == nil {
+				tc.wantNoOp = true
+			}
+
+			if exists, _ := fileutils.FileExists(inputGroupFilePath); exists {
+				tempGroupFile := filepath.Join(t.TempDir(), "group")
+				err := os.Symlink(inputGroupFilePath, tempGroupFile)
+				require.NoError(t, err, "failed to symlink group file for testing")
+				inputGroupFilePath = tempGroupFile
+			}
+
+			defer localentriestestutils.RequireGroupFile(t, outputGroupFilePath, golden.Path(t))
+
+			lg, cleanup, err := localentries.GetGroupsWithLock(
+				localentries.WithGroupInputPath(inputGroupFilePath),
+				localentries.WithGroupOutputPath(outputGroupFilePath),
+			)
+			if tc.wantGetErr {
+				require.Error(t, err, "Locking should have failed, but it did not")
+				return
+			}
+
+			require.NoError(t, err, "Setup: failed to lock the users group")
+			defer func() { require.NoError(t, cleanup(), "Releasing unlocked groups") }()
+
+			groups := lg.GetEntries()
+			initialGroups := slices.Clone(groups)
+
+			groups = append(groups, tc.addGroups...)
+			groups = slices.DeleteFunc(groups, func(g types.GroupEntry) bool {
+				return slices.Contains(tc.removeGroups, g.Name)
+			})
+
+			for groupName, userNames := range tc.addUsers {
+				idx := slices.IndexFunc(groups, func(g types.GroupEntry) bool { return g.Name == groupName })
+				require.GreaterOrEqual(t, idx, 0, "Setup: %q is not in groups %v", groupName, groups)
+				groups[idx].Users = append(groups[idx].Users, userNames...)
+			}
+
+			err = lg.SaveEntries(groups)
+			if tc.wantSetErr {
+				require.Error(t, err, "SaveEntries should have failed")
+				updatedGroups := lg.GetEntries()
+				require.Equal(t, initialGroups, updatedGroups, "Cached groups have been changed")
+				return
+			}
+
+			if len(groups) == 0 {
+				groups = nil
+			}
+
+			require.NoError(t, err, "SaveEntries should not have failed")
+			// Ensure we also saved the cached version of the groups...
+			updatedGroups := lg.GetEntries()
+			require.Equal(t, groups, updatedGroups, "Cached groups are not saved")
+
+			if tc.wantNoOp {
+				// The output group file should not have been created
+				require.NoFileExists(t, outputGroupFilePath, "Output group file should not have been created")
+				return
+			}
+
+			require.FileExists(t, outputGroupFilePath, "Output file should have been created")
+		})
+	}
+}
+
 //nolint:tparallel // This can't be parallel, but subtests can.
 func TestRacingLockingActions(t *testing.T) {
 	const nIterations = 50
@@ -147,17 +366,20 @@ func TestRacingLockingActions(t *testing.T) {
 			t.Cleanup(wg.Done)
 
 			var opts []localentries.Option
+			wantGroup := types.GroupEntry{Name: "root", GID: 0, Passwd: "x"}
 			useTestGroupFile := idx%3 == 0
 
 			if useTestGroupFile {
 				// Mix the requests with test-only code paths...
 				opts = append(opts, localentries.WithGroupPath(testFilePath))
+				wantGroup = types.GroupEntry{Name: "localgroup1", GID: 41, Passwd: "x"}
 			}
 
 			lg, unlock, err := localentries.GetGroupsWithLock(opts...)
 			require.NoError(t, err, "Failed to lock the users group (test groups: %v)", useTestGroupFile)
-			err = lg.Update("", nil, nil)
-			require.NoError(t, err, "Update should not fail (test groups: %v)", useTestGroupFile)
+			groups := lg.GetEntries()
+			require.NotEmpty(t, groups, "Got empty groups (test groups: %v)", useTestGroupFile)
+			require.Contains(t, groups, wantGroup, "Expected group was not found  (test groups: %v)", useTestGroupFile)
 			err = unlock()
 			require.NoError(t, err, "Unlock should not fail to lock the users group (test groups: %v)", useTestGroupFile)
 		})
@@ -174,7 +396,7 @@ func TestRacingLockingActions(t *testing.T) {
 		require.NoError(t, err, "Unlock should not fail to lock the users group")
 
 		// Ensure that we had cleaned up all the locks correctly!
-		require.Panics(t, func() { _ = lg.Update("", nil, nil) })
+		require.Panics(t, func() { _ = lg.GetEntries() })
 	})
 }
 
@@ -192,6 +414,10 @@ func TestLockedInvalidActions(t *testing.T) {
 
 	require.Panics(t, func() { _ = lg.Update("", nil, nil) },
 		"Update should panic but did not")
+	require.Panics(t, func() { _ = lg.GetEntries() },
+		"GetEntries should panic but did not")
+	require.Panics(t, func() { _ = lg.SaveEntries(nil) },
+		"SaveEntries should panic but did not")
 
 	// This is to ensure that we're in a good state, despite the actions above
 	for range 10 {
