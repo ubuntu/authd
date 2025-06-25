@@ -1,6 +1,4 @@
 // Package localentries provides functions to access local passwd entries.
-//
-//nolint:dupl // This it not a duplicate of getgrent_c.go
 package localentries
 
 /*
