@@ -118,54 +118,6 @@ func compileLockerBinary(t *testing.T) string {
 	return testLocker
 }
 
-func TestUsersLockingOverride(t *testing.T) {
-	// This cannot be parallel.
-
-	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
-
-	err := userslocking.WriteLock()
-	require.NoError(t, err, "Locking should be allowed")
-
-	err = userslocking.WriteLock()
-	require.ErrorIs(t, err, userslocking.ErrLock, "Locking again should not be allowed")
-
-	err = userslocking.WriteUnlock()
-	require.NoError(t, err, "Unlocking should be allowed")
-
-	err = userslocking.WriteUnlock()
-	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
-}
-
-func TestUsersLockingOverrideAsLockedExternally(t *testing.T) {
-	// This cannot be parallel.
-	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, context.Background())
-
-	lockingExited := make(chan error)
-	go func() {
-		lockingExited <- userslocking.WriteLock()
-	}()
-
-	select {
-	case <-time.After(1 * time.Second):
-		// If we're time-outing: it's fine, it means we were locked!
-	case err := <-lockingExited:
-		t.Errorf("We should have not been exited, but we did with error %v", err)
-		t.FailNow()
-	}
-
-	err := userslocking.WriteUnlock()
-	require.NoError(t, err, "Unlocking should be allowed")
-
-	err = <-lockingExited
-	require.NoError(t, err, "Previous concurrent locking should have been allowed now")
-
-	err = userslocking.WriteUnlock()
-	require.NoError(t, err, "Unlocking should be allowed")
-
-	err = userslocking.WriteUnlock()
-	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
-}
-
 func TestUsersLockingRecLockingOverride(t *testing.T) {
 	// This cannot be parallel.
 
@@ -185,51 +137,6 @@ func TestUsersLockingRecLockingOverride(t *testing.T) {
 
 	err = userslocking.WriteRecUnlock()
 	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
-
-	err = userslocking.WriteLock()
-	require.NoError(t, err, "Locking should be allowed")
-
-	err = userslocking.WriteUnlock()
-	require.NoError(t, err, "Unlocking should be allowed")
-}
-
-func TestUsersLockingRecLockingMixedWithLockOverride(t *testing.T) {
-	// This cannot be parallel.
-
-	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
-
-	// Using RecLock first, then trying to use normal lock in between.
-	err := userslocking.WriteRecLock()
-	require.NoError(t, err, "Locking should be allowed")
-
-	err = userslocking.WriteRecLock()
-	require.NoError(t, err, "Locking again should be allowed")
-
-	err = userslocking.WriteLock()
-	require.ErrorIs(t, err, userslocking.ErrLock, "Locking again should not be allowed")
-
-	err = userslocking.WriteRecUnlock()
-	require.NoError(t, err, "Unlocking should be allowed")
-
-	err = userslocking.WriteUnlock()
-	require.ErrorIs(t, err, userslocking.ErrUnlock, "Normal unlocking unlocked should not be allowed")
-
-	err = userslocking.WriteRecUnlock()
-	require.NoError(t, err, "Unlocking again should be allowed")
-
-	// Use normal lock, then try to RecLock meanwhile
-
-	err = userslocking.WriteLock()
-	require.NoError(t, err, "Locking should be allowed")
-
-	err = userslocking.WriteRecLock()
-	require.ErrorIs(t, err, userslocking.ErrLock, "Locking again should not be allowed")
-
-	err = userslocking.WriteRecUnlock()
-	require.ErrorIs(t, err, userslocking.ErrUnlock, "Normal unlocking unlocked should not be allowed")
-
-	err = userslocking.WriteUnlock()
-	require.NoError(t, err, "Unlocking should be allowed")
 }
 
 func TestUsersLockingRecLockingOverrideAsLockedExternally(t *testing.T) {
