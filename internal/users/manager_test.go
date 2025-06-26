@@ -2,9 +2,12 @@ package users_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -335,6 +338,158 @@ func TestRegisterUserPreauth(t *testing.T) {
 			golden.CheckOrUpdateYAML(t, newUser)
 		})
 	}
+}
+
+func TestConcurrentUserUpdate(t *testing.T) {
+	t.Parallel()
+
+	const nIterations = 100
+
+	dbDir := t.TempDir()
+	const dbFile = "one_user_and_group_with_matching_gid"
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", dbFile+".db.yaml"), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	const registeredUserPrefix = "authd-test-maybe-pre-check-user"
+
+	managerOpts := []users.Option{
+		users.WithIDGenerator(&idgenerator.IDGenerator{
+			UIDMin: 0,
+			UIDMax: nIterations * 3,
+			GIDMin: 0,
+			GIDMax: nIterations * 10,
+		}),
+	}
+
+	m := newManagerForTests(t, dbDir, managerOpts...)
+
+	wg := sync.WaitGroup{}
+	wg.Add(nIterations)
+
+	// These tests are meant to stress-test in parallel our users manager,
+	// this is happening by updating new users or pre-auth some of them
+	// using a very limited UID and GID set, to retry more their generation.
+	// concurrently so that users gets registered first and then updated.
+	// Finally ensure that the generated UIDs and GIDs are not clashing.
+
+	for idx := range nIterations {
+		t.Run(fmt.Sprintf("iteration_%d", idx), func(t *testing.T) {
+			t.Parallel()
+
+			idx := idx
+			doPreAuth := idx%3 == 0
+			userName := fmt.Sprintf("authd-test-user%d", idx)
+			t.Cleanup(wg.Done)
+
+			var preauthUID atomic.Uint32
+			// var err error
+			if doPreAuth {
+				// In the pre-auth case we do even more parallelization, so that
+				// the pre-auth happens without a defined order of the actual
+				// registration.
+				userName = fmt.Sprintf("%s%d", registeredUserPrefix, idx)
+
+				//nolint:thelper // This is actually a test function!
+				preAuth := func(t *testing.T) {
+					t.Parallel()
+
+					uid, err := m.RegisterUserPreAuth(userName)
+					require.NoError(t, err, "RegisterPreAuthUser should not fail but it did")
+					preauthUID.Store(uid)
+				}
+
+				for i := range 3 {
+					t.Run(fmt.Sprintf("pre_auth%d", i), preAuth)
+				}
+			}
+
+			//nolint:thelper // This is actually a test function!
+			userUpdate := func(t *testing.T) {
+				t.Parallel()
+
+				err := m.UpdateUser(types.UserInfo{
+					Name:  userName,
+					UID:   preauthUID.Load(),
+					Dir:   "/home-prefixes/" + userName,
+					Shell: "/usr/sbin/nologin",
+					Groups: []types.GroupInfo{
+						{
+							Name: fmt.Sprintf("authd-test-group%d.1", idx),
+							UGID: fmt.Sprintf("authd-test-ugid%d.1", idx),
+						},
+						{
+							Name: fmt.Sprintf("authd-test-group%d.2", idx),
+							UGID: fmt.Sprintf("authd-test-ugid%d.2", idx),
+						},
+						{Name: fmt.Sprintf("authd-test-local-group%d", idx)},
+					},
+				})
+				require.NoError(t, err, "UpdateUser should not fail but it did")
+			}
+
+			testName := "update_user"
+			if doPreAuth {
+				testName = "maybe_finish_registration"
+			}
+
+			for i := range 3 {
+				t.Run(fmt.Sprintf("%s%d", testName, i), userUpdate)
+			}
+		})
+	}
+
+	t.Run("database_checks", func(t *testing.T) {
+		t.Parallel()
+
+		// Wait for the other tests to be completed, not using t.Cleanup here
+		// since this is actually a test.
+		wg.Wait()
+
+		// This includes the extra user that was already in the DB.
+		users, err := m.AllUsers()
+		require.NoError(t, err, "AllUsers should not fail but it did")
+		require.Len(t, users, nIterations+1, "Number of registered users mismatch")
+
+		// This includes the extra group that was already in the DB.
+		groups, err := m.AllGroups()
+		require.NoError(t, err, "AllGroups should not fail but it did")
+		require.Len(t, groups, nIterations*3+1, "Number of registered groups mismatch")
+
+		uniqueUIDs := make(map[uint32]types.UserEntry)
+		uniqueGIDs := make(map[uint32]string)
+
+		for _, u := range users {
+			old, ok := uniqueUIDs[u.UID]
+			require.False(t, ok,
+				"UID %d must be unique across entries, but it's used both %q and %q",
+				u.UID, u.Name, old)
+			uniqueUIDs[u.UID] = u
+			require.Equal(t, int(u.UID), int(u.GID), "User %q UID should match its GID", u.Name)
+
+			if !strings.HasPrefix(u.Name, registeredUserPrefix) {
+				// Ignore the local user checks for users already in the DB.
+				continue
+			}
+			localgroups, err := m.DB().UserLocalGroups(u.UID)
+			require.NoError(t, err, "UserLocalGroups for %q should not fail but it did", u.Name)
+			require.Len(t, localgroups, 1,
+				"Number of registered local groups for %q mismatch", u.Name)
+		}
+
+		for _, g := range groups {
+			old, ok := uniqueGIDs[g.GID]
+			require.False(t, ok, "GID %d must be unique across entries, but it's used both %q and %q",
+				g.GID, g.Name, old)
+			uniqueGIDs[g.GID] = g.Name
+
+			u, ok := uniqueUIDs[g.GID]
+			if !ok {
+				continue
+			}
+			require.Equal(t, int(g.GID), int(u.GID),
+				"Group %q can only match its user, not to %q", g.Name, u.Name)
+		}
+	})
 }
 
 func TestBrokerForUser(t *testing.T) {
