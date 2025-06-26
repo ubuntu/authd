@@ -1,8 +1,8 @@
-authd (0.5.6+git250625+801+57eb1aba) questing; urgency=medium
+authd (0.5.6+git250626+810+8a1a3a8f) questing; urgency=medium
 
-  * Github build. Run id: 15882610015. Run number: 801.
+  * Github build. Run id: 15912300659. Run number: 810.
 
- -- Marco <marco@ubuntu.com>  Wed, 25 Jun 2025 17:07:10 +0000
+ -- adombeck <18482300+adombeck@users.noreply.github.com>  Thu, 26 Jun 2025 20:56:47 +0000
 
 authd (0.5.6) questing; urgency=medium
 
