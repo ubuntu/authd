@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"syscall"
 
@@ -47,6 +48,9 @@ type options struct {
 
 // Option is a function that allows changing some of the default behaviors of the manager.
 type Option func(*options)
+
+// errUpdateRetry is an error when the user update failed in a non fatal way.
+var errUpdateRetry = errors.New("update failed. Try again")
 
 // WithIDGenerator makes the manager use a specific ID generator.
 // This option is only useful in tests.
@@ -108,6 +112,31 @@ func (m *Manager) Stop() error {
 
 // UpdateUser updates the user information in the db.
 func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
+	// Maybe we can even avoid to have a max... But well we'd likely fail only
+	// if the UID/GID set is very limited and we've lots of concurrent requests.
+	// In the worse case we'd fail anyways because temporary entries max
+	// max generation limit is reached anyways.
+	const maxRetries = 100
+
+	for i := range maxRetries {
+		user := u
+		user.Groups = slices.Clone(u.Groups)
+
+		err = m.updateUser(user)
+		if errors.Is(err, errUpdateRetry) {
+			log.Infof(context.Background(),
+				"User %q update [try: %d] failed for a recoverable reason: %v",
+				u.Name, i, err)
+			continue
+		}
+
+		break
+	}
+
+	return err
+}
+
+func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	defer decorate.OnError(&err, "failed to update user %q", u.Name)
 
 	log.Debugf(context.TODO(), "Updating user %q", u.Name)
@@ -120,6 +149,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 
 	var uid uint32
+	var isNewUser bool
 
 	// Check if the user already exists in the database
 	oldUser, err := m.db.UserByName(u.Name)
@@ -127,6 +157,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		return fmt.Errorf("could not get user %q: %w", u.Name, err)
 	}
 	if errors.Is(err, db.NoDataFoundError{}) {
+		isNewUser = true
 		records, recordsUnlock, err := m.temporaryRecords.LockForChanges()
 		if err != nil {
 			return err
@@ -217,7 +248,19 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	// Update user information in the db.
 	userPrivateGroup := groupRows[0]
 	userRow := db.NewUserRow(u.Name, uid, userPrivateGroup.GID, u.Gecos, u.Dir, u.Shell)
-	if err := m.db.UpdateUserEntry(userRow, groupRows, localGroups); err != nil {
+	err = m.db.UpdateUserEntry(userRow, groupRows, localGroups)
+	if isNewUser && errors.Is(err, db.ErrUIDAlreadyInUse) {
+		return fmt.Errorf("%w: %w", errUpdateRetry, err)
+	}
+	if errors.Is(err, db.ErrGIDAlreadyInUse) {
+		return fmt.Errorf("%w: %w", errUpdateRetry, err)
+	}
+	if errors.Is(err, db.NoDataFoundError{}) {
+		// The user or group has not been found while updating it, likely due
+		// to previous concurrent requests not having finished, so let's retry.
+		return fmt.Errorf("%w: %w", errUpdateRetry, err)
+	}
+	if err != nil {
 		return err
 	}
 
