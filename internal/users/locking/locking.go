@@ -20,10 +20,10 @@ var (
 
 var (
 	// ErrLock is the error when locking the database fails.
-	ErrLock = errors.New("failed to lock the shadow password database")
+	ErrLock = errors.New("failed to lock the system's user database")
 
 	// ErrUnlock is the error when unlocking the database fails.
-	ErrUnlock = errors.New("failed to unlock the shadow password database")
+	ErrUnlock = errors.New("failed to unlock the system's user database")
 
 	// ErrLockTimeout is the error when unlocking the database fails because of timeout.
 	ErrLockTimeout = fmt.Errorf("%w: timeout", ErrLock)
