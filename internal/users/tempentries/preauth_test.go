@@ -15,7 +15,7 @@ import (
 func TestPreAuthUser(t *testing.T) {
 	t.Parallel()
 
-	defaultLoginName := "test"
+	defaultLoginName := t.Name()
 	uidToGenerate := uint32(12345)
 
 	tests := map[string]struct {
@@ -150,7 +150,7 @@ func TestPreAuthUser(t *testing.T) {
 func TestPreAuthUserByIDAndName(t *testing.T) {
 	t.Parallel()
 
-	loginName := "test"
+	loginName := t.Name()
 	uidToGenerate := uint32(12345)
 
 	tests := map[string]struct {
