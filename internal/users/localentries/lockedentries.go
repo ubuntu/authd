@@ -55,7 +55,7 @@ type UserDBLocked struct {
 	// mu is a mutex that protects the refCount and entries fields.
 	mu sync.Mutex
 	// refCount is used to track how many times the GroupsWithLock instance has
-	// been returned by [NewWithLock].
+	// been returned by [NewUserDBLocked].
 	refCount uint64
 
 	// localGroupsMu is the mutex that protects us globally from concurrent
