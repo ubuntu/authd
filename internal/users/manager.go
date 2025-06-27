@@ -151,6 +151,13 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	var uid uint32
 	var isNewUser bool
 
+	// TODO: only do this when we actually have to make changes.
+	localEntries, unlockEntries, err := localentries.NewWithLock()
+	if err != nil {
+		return err
+	}
+	defer func() { err = errors.Join(err, unlockEntries()) }()
+
 	// Check if the user already exists in the database
 	oldUser, err := m.db.UserByName(u.Name)
 	if err != nil && !errors.Is(err, db.NoDataFoundError{}) {
@@ -158,11 +165,7 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	}
 	if errors.Is(err, db.NoDataFoundError{}) {
 		isNewUser = true
-		records, recordsUnlock, err := m.temporaryRecords.LockForChanges()
-		if err != nil {
-			return err
-		}
-		defer func() { err = errors.Join(err, recordsUnlock()) }()
+		records := m.temporaryRecords.LockForChanges(localEntries)
 
 		var cleanup func()
 		uid, cleanup, err = records.RegisterUser(u.Name)
@@ -223,11 +226,7 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	}
 
 	if len(newGroups) > 0 {
-		records, recordsUnlock, err := m.temporaryRecords.LockForChanges()
-		if err != nil {
-			return err
-		}
-		defer func() { err = errors.Join(err, recordsUnlock()) }()
+		records := m.temporaryRecords.LockForChanges(localEntries)
 
 		for _, g := range newGroups {
 			gid, cleanup, err := records.RegisterGroupForUser(uid, g.Name)
@@ -264,13 +263,8 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 		return err
 	}
 
-	lockedGroups, cleanup, err := localentries.GetGroupsWithLock()
-	if err != nil {
-		return err
-	}
-	defer func() { err = errors.Join(err, cleanup()) }()
-
 	// Update local groups.
+	lockedGroups := localentries.GetGroupsWithLock(localEntries)
 	if err := lockedGroups.Update(u.Name, localGroups, oldLocalGroups); err != nil {
 		return err
 	}
@@ -487,11 +481,11 @@ func (m *Manager) RegisterUserPreAuth(name string) (uid uint32, err error) {
 		return userRow.UID, nil
 	}
 
-	records, recordsUnlock, err := m.temporaryRecords.LockForChanges()
+	localEntries, unlockEntries, err := localentries.NewWithLock()
 	if err != nil {
 		return 0, err
 	}
-	defer func() { err = errors.Join(err, recordsUnlock()) }()
+	defer func() { err = errors.Join(err, unlockEntries()) }()
 
-	return records.RegisterPreAuthUser(name)
+	return m.temporaryRecords.LockForChanges(localEntries).RegisterPreAuthUser(name)
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
+	"github.com/ubuntu/authd/internal/users/localentries"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/internal/users/tempentries"
@@ -605,12 +606,13 @@ func TestUserByIDAndName(t *testing.T) {
 			m := newManagerForTests(t, dbDir)
 
 			if tc.isTempUser {
-				records, recordsUnlock, err := m.TemporaryRecords().LockForChanges()
-				require.NoError(t, err, "LockForChanges should not return an error, but did")
+				entries, entriesUnlock, err := localentries.NewWithLock()
+				require.NoError(t, err, "Setup: failed to lock the locale entries")
 				t.Cleanup(func() {
-					err := recordsUnlock()
-					require.NoError(t, err, "recordsCleanup should not return an error, but did")
+					err = entriesUnlock()
+					require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 				})
+				records := m.TemporaryRecords().LockForChanges(entries)
 
 				tc.uid, err = records.RegisterPreAuthUser("tempuser1")
 				require.NoError(t, err, "RegisterUser should not return an error, but did")
