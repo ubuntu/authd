@@ -238,9 +238,6 @@ in `allowed_users`:
 owner = ""
 ```
 
-::::
-:::::
-
 ## Restart the broker
 
 When a configuration file is added you have to restart authd:
