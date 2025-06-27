@@ -44,6 +44,10 @@ func TestPreAuthUser(t *testing.T) {
 		"No_error_when_registering_a_pre-auth_user_with_the_same_name": {users: []string{defaultLoginName, defaultLoginName}},
 
 		"Error_when_maximum_number_of_pre-auth_users_is_reached": {maxUsers: true, wantErr: true},
+		"Error_when_a_valid_UID_cannot_be_found": {
+			uidsToGenerate: make([]uint32, maxIDGenerateIterations*10),
+			wantErr:        true,
+		},
 	}
 
 	for name, tc := range tests {

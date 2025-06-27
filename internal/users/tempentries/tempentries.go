@@ -18,6 +18,10 @@ import (
 	"github.com/ubuntu/decorate"
 )
 
+// Avoid to loop forever if we can't find an UID for the user, it's just better
+// to fail after a limit is reached than hang or crash.
+const maxIDGenerateIterations = 256
+
 // NoDataFoundError is the error returned when no entry is found in the database.
 type NoDataFoundError = db.NoDataFoundError
 
@@ -263,7 +267,7 @@ func (r *TemporaryRecords) registerUser(name string) (uid uint32, cleanup func()
 	}
 
 	// Generate a UID until we find a unique one
-	for {
+	for range maxIDGenerateIterations {
 		uid, err = r.idGenerator.GenerateUID()
 		if err != nil {
 			return 0, nil, err
@@ -288,6 +292,9 @@ func (r *TemporaryRecords) registerUser(name string) (uid uint32, cleanup func()
 			r.idTracker.forgetUser(name)
 		}, nil
 	}
+
+	return 0, nil, fmt.Errorf("failed to find a valid UID after %d attempts",
+		maxIDGenerateIterations)
 }
 
 func (r *TemporaryRecords) registerPreAuthUser(loginName string) (uid uint32, err error) {
@@ -304,7 +311,7 @@ func (r *TemporaryRecords) registerPreAuthUser(loginName string) (uid uint32, er
 		return 0, fmt.Errorf("user %q already exists on the system", loginName)
 	}
 
-	for {
+	for range maxIDGenerateIterations {
 		uid, err := r.preAuthUserRecords.generatePreAuthUserID(loginName)
 		if err != nil {
 			return 0, err
@@ -331,6 +338,9 @@ func (r *TemporaryRecords) registerPreAuthUser(loginName string) (uid uint32, er
 
 		return uid, nil
 	}
+
+	return 0, fmt.Errorf("failed to find a valid UID after %d attempts",
+		maxIDGenerateIterations)
 }
 
 func (r *TemporaryRecords) passwdEntries() []types.UserEntry {
@@ -388,7 +398,7 @@ func (r *TemporaryRecords) registerGroupForUser(uid uint32, name string) (gid ui
 		return gid, groupCleanup, nil
 	}
 
-	for {
+	for range maxIDGenerateIterations {
 		gid, err = r.temporaryGroupRecords.generateGroupID()
 		if err != nil {
 			return 0, nil, err
@@ -408,6 +418,9 @@ func (r *TemporaryRecords) registerGroupForUser(uid uint32, name string) (gid ui
 
 		return gid, groupCleanup, nil
 	}
+
+	return 0, nil, fmt.Errorf("failed to find a valid GID after %d attempts",
+		maxIDGenerateIterations)
 }
 
 func (r *TemporaryRecords) maybeTrackUniqueID(id uint32) (unique bool) {

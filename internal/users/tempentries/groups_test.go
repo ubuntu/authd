@@ -40,6 +40,10 @@ func TestRegisterGroup(t *testing.T) {
 		},
 
 		"Error_when_name_is_already_in_use": {groups: []string{"root"}, wantErr: []bool{true}},
+		"Error_when_a_valid_GID_cannot_be_found": {
+			gidsToGenerate: make([]uint32, maxIDGenerateIterations*10),
+			wantErr:        []bool{true},
+		},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
