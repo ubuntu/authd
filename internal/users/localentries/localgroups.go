@@ -252,3 +252,20 @@ func userLocalGroups(entries []types.GroupEntry, user string) (userGroups []type
 		return !slices.Contains(g.Users, user)
 	})
 }
+
+// UpdateGroups updates the groups of a user, adding them to the groups in newGroups
+// which they are not already part of, and removing them from the groups in oldGroups
+// which are not in newGroups. It locks the groups to prevent concurrent modifications.
+func UpdateGroups(username string, newGroups []string, oldGroups []string, args ...Option) (err error) {
+	if len(newGroups) == 0 && len(oldGroups) == 0 {
+		return nil
+	}
+
+	localEntries, unlockEntries, err := NewWithLock(args...)
+	if err != nil {
+		return err
+	}
+	defer func() { err = errors.Join(err, unlockEntries()) }()
+
+	return GetGroupsWithLock(localEntries).Update(username, newGroups, oldGroups)
+}
