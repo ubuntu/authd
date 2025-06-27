@@ -264,8 +264,7 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	}
 
 	// Update local groups.
-	lockedGroups := localentries.GetGroupsWithLock(localEntries)
-	if err := lockedGroups.Update(u.Name, localGroups, oldLocalGroups); err != nil {
+	if err := localentries.UpdateGroups(u.Name, localGroups, oldLocalGroups); err != nil {
 		return err
 	}
 
