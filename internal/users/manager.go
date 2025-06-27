@@ -151,13 +151,6 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	var uid uint32
 	var isNewUser bool
 
-	// TODO: only do this when we actually have to make changes.
-	localEntries, unlockEntries, err := localentries.NewUserDBLocked()
-	if err != nil {
-		return err
-	}
-	defer func() { err = errors.Join(err, unlockEntries()) }()
-
 	// Check if the user already exists in the database
 	oldUser, err := m.db.UserByName(u.Name)
 	if err != nil && !errors.Is(err, db.NoDataFoundError{}) {
@@ -165,6 +158,11 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	}
 	if errors.Is(err, db.NoDataFoundError{}) {
 		isNewUser = true
+		localEntries, unlockEntries, err := localentries.NewUserDBLocked()
+		if err != nil {
+			return err
+		}
+		defer func() { err = errors.Join(err, unlockEntries()) }()
 		records := m.temporaryRecords.LockForChanges(localEntries)
 
 		var cleanup func()
@@ -226,6 +224,11 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	}
 
 	if len(newGroups) > 0 {
+		localEntries, unlockEntries, err := localentries.NewUserDBLocked()
+		if err != nil {
+			return err
+		}
+		defer func() { err = errors.Join(err, unlockEntries()) }()
 		records := m.temporaryRecords.LockForChanges(localEntries)
 
 		for _, g := range newGroups {
@@ -264,6 +267,12 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	}
 
 	// Update local groups.
+	localEntries, unlockEntries, err := localentries.NewUserDBLocked()
+	if err != nil {
+		return err
+	}
+	defer func() { err = errors.Join(err, unlockEntries()) }()
+
 	lockedGroups := localentries.GetGroupsWithLock(localEntries)
 	if err := lockedGroups.Update(u.Name, localGroups, oldLocalGroups); err != nil {
 		return err
