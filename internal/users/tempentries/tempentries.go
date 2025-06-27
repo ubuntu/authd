@@ -12,7 +12,6 @@ import (
 	"github.com/ubuntu/authd/internal/testsdetection"
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
-	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/decorate"
@@ -45,28 +44,32 @@ type TemporaryRecords struct {
 // changes to [TemporaryRecords] entries while the local entries database is
 // locked.
 type temporaryRecordsLocked struct {
-	tr *TemporaryRecords
+	tr      *TemporaryRecords
+	entries *localentries.WithLock
 
-	locksMu sync.RWMutex
-	locks   uint64
-
+	entriesMu         sync.RWMutex
 	cachedLocalPasswd []types.UserEntry
 	cachedLocalGroup  []types.GroupEntry
 }
 
-func (l *temporaryRecordsLocked) mustBeLocked() (cleanup func()) {
+func (l *temporaryRecordsLocked) updateLocalEntries() (err error) {
 	// While all the [temporaryRecordsLocked] operations are happening
 	// we need to keep a read lock on it, to prevent it being unlocked
 	// while some action is still ongoing.
-	l.locksMu.RLock()
-	cleanup = l.locksMu.RUnlock
+	l.entriesMu.Lock()
+	defer l.entriesMu.Unlock()
 
-	if l.locks == 0 {
-		defer cleanup()
-		panic("locked groups are not locked!")
+	l.cachedLocalPasswd, err = l.entries.GetUserEntries()
+	if err != nil {
+		return err
 	}
 
-	return cleanup
+	l.cachedLocalGroup, err = l.entries.GetGroupEntries()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // RegisterUser registers a temporary user with a unique UID.
@@ -74,8 +77,9 @@ func (l *temporaryRecordsLocked) mustBeLocked() (cleanup func()) {
 // Returns the generated UID and a cleanup function that should be called to
 // remove the temporary user once the user is added to the database.
 func (l *temporaryRecordsLocked) RegisterUser(name string) (uid uint32, cleanup func(), err error) {
-	unlock := l.mustBeLocked()
-	defer unlock()
+	if err := l.updateLocalEntries(); err != nil {
+		return 0, nil, err
+	}
 
 	return l.tr.registerUser(name)
 }
@@ -95,8 +99,9 @@ func (l *temporaryRecordsLocked) RegisterUser(name string) (uid uint32, cleanup 
 //
 // Returns the generated UID.
 func (l *temporaryRecordsLocked) RegisterPreAuthUser(loginName string) (uid uint32, err error) {
-	unlock := l.mustBeLocked()
-	defer unlock()
+	if err := l.updateLocalEntries(); err != nil {
+		return 0, err
+	}
 
 	return l.tr.registerPreAuthUser(loginName)
 }
@@ -107,69 +112,11 @@ func (l *temporaryRecordsLocked) RegisterPreAuthUser(loginName string) (uid uint
 // Returns the generated GID and a cleanup function that should be called to
 // remove the temporary group once the group was added to the database.
 func (l *temporaryRecordsLocked) RegisterGroupForUser(uid uint32, name string) (gid uint32, cleanup func(), err error) {
-	unlock := l.mustBeLocked()
-	defer unlock()
+	if err := l.updateLocalEntries(); err != nil {
+		return 0, nil, err
+	}
 
 	return l.tr.registerGroupForUser(uid, name)
-}
-
-func (l *temporaryRecordsLocked) lock() (err error) {
-	defer decorate.OnError(&err, "could not lock temporary records")
-
-	l.locksMu.Lock()
-	defer l.locksMu.Unlock()
-
-	if l.locks != 0 {
-		l.locks++
-		return nil
-	}
-
-	log.Debug(context.Background(), "Locking temporary records ")
-
-	l.cachedLocalPasswd, err = localentries.GetPasswdEntries()
-	if err != nil {
-		return fmt.Errorf("failed to get passwd entries: %w", err)
-	}
-	l.cachedLocalGroup, err = localentries.GetGroupEntries()
-	if err != nil {
-		return fmt.Errorf("failed to get group entries: %w", err)
-	}
-
-	if err := userslocking.WriteRecLock(); err != nil {
-		return err
-	}
-
-	l.locks++
-
-	return nil
-}
-
-func (l *temporaryRecordsLocked) unlock() (err error) {
-	defer decorate.OnError(&err, "could not unlock temporary records")
-
-	l.locksMu.Lock()
-	defer l.locksMu.Unlock()
-
-	if l.locks == 0 {
-		return errors.New("temporary records are already unlocked")
-	}
-
-	if l.locks != 1 {
-		l.locks--
-		return nil
-	}
-
-	log.Debug(context.Background(), "Unlocking temporary records")
-
-	if err := userslocking.WriteRecUnlock(); err != nil {
-		return err
-	}
-
-	l.cachedLocalPasswd = nil
-	l.cachedLocalGroup = nil
-	l.locks--
-
-	return nil
 }
 
 // NewTemporaryRecords creates a new TemporaryRecords.
@@ -198,10 +145,9 @@ func (r *TemporaryRecords) UserByName(name string) (types.UserEntry, error) {
 // with other NSS modules.
 //
 //nolint:revive,nolintlint  // [temporaryRecordsLocked] is not a type we want to be able to use outside of this package
-func (r *TemporaryRecords) LockForChanges() (tra *temporaryRecordsLocked, unlock func() error, err error) {
-	defer decorate.OnError(&err, "failed to lock for changes")
-
-	lockedRecords := &temporaryRecordsLocked{tr: r}
+func (r *TemporaryRecords) LockForChanges(entries *localentries.WithLock) (tra *temporaryRecordsLocked) {
+	entries.MustBeLocked()
+	lockedRecords := &temporaryRecordsLocked{tr: r, entries: entries}
 
 	for {
 		if r.lockedRecords.CompareAndSwap(nil, lockedRecords) {
@@ -213,17 +159,10 @@ func (r *TemporaryRecords) LockForChanges() (tra *temporaryRecordsLocked, unlock
 		if l == nil {
 			continue
 		}
-		if err := l.lock(); err != nil {
-			return nil, nil, err
-		}
-		return l, l.unlock, nil
+		return l
 	}
 
-	if err := lockedRecords.lock(); err != nil {
-		return nil, nil, err
-	}
-
-	return lockedRecords, lockedRecords.unlock, nil
+	return lockedRecords
 }
 
 func (r *TemporaryRecords) registerUser(name string) (uid uint32, cleanup func(), err error) {
@@ -355,6 +294,9 @@ func (r *TemporaryRecords) passwdEntries() []types.UserEntry {
 		return entries
 	}
 
+	l.entriesMu.RLock()
+	defer l.entriesMu.RUnlock()
+
 	return l.cachedLocalPasswd
 }
 
@@ -369,6 +311,9 @@ func (r *TemporaryRecords) groupEntries() []types.GroupEntry {
 		}
 		return entries
 	}
+
+	l.entriesMu.RLock()
+	defer l.entriesMu.RUnlock()
 
 	return l.cachedLocalGroup
 }

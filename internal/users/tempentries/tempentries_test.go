@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
+	"github.com/ubuntu/authd/internal/users/localentries"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
@@ -18,15 +19,28 @@ import (
 func TestLockedInvalidActions(t *testing.T) {
 	t.Parallel()
 
-	tmpRecords := NewTemporaryRecords(&idgenerator.IDGenerator{})
+	require.Panics(t, func() { _, _ = (&temporaryRecordsLocked{}).RegisterPreAuthUser("foobar") },
+		"RegisterPreAuthUser should panic but did not")
+	require.Panics(t, func() { _, _, _ = (&temporaryRecordsLocked{}).RegisterUser("foobar") },
+		"RegisterUser should panic but did not")
+	require.Panics(t, func() { _, _, _ = (&temporaryRecordsLocked{}).RegisterGroupForUser(123, "foobar") },
+		"RegisterGroupForUser should panic but did not")
 
-	records, recordsUnlock, err := tmpRecords.LockForChanges()
-	require.NoError(t, err, "Setup: failed to lock the temporary records")
-	err = recordsUnlock()
-	require.NoError(t, err, "recordsUnlock should not fail to unlock the temporary records")
+	require.Panics(t, func() { NewTemporaryRecords(nil).LockForChanges(&localentries.WithLock{}) },
+		"LockForChanges should panic but did not")
 
-	err = recordsUnlock()
-	require.Error(t, err, "Cleaning up twice should fail")
+	tmpRecords := NewTemporaryRecords(&idgenerator.IDGenerator{UIDMax: 100})
+
+	entries, entriesUnlock, err := localentries.NewWithLock(([]localentries.Option{})...)
+	require.NoError(t, err, "Setup: failed to lock the locale entries")
+
+	records := tmpRecords.LockForChanges(entries)
+
+	err = entriesUnlock()
+	require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
+
+	err = entriesUnlock()
+	require.Error(t, err, "Unlocking twice should fail")
 
 	require.Panics(t, func() { _, _ = records.RegisterPreAuthUser("foobar") },
 		"RegisterPreAuthUser should panic but did not")
@@ -37,11 +51,12 @@ func TestLockedInvalidActions(t *testing.T) {
 
 	// This is to ensure that we're in a good state, despite the actions above
 	for range 10 {
-		_, recordsUnlock, err := tmpRecords.LockForChanges()
-		require.NoError(t, err, "Failed to lock the temporary records")
+		entries, entriesUnlock, err := localentries.NewWithLock()
+		require.NoError(t, err, "Failed to lock the local entries")
+		_ = tmpRecords.LockForChanges(entries)
 		defer func() {
-			err := recordsUnlock()
-			require.NoError(t, err, "recordsUnlock should not fail to unlock the temporary records")
+			err := entriesUnlock()
+			require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 		}()
 	}
 }
@@ -84,13 +99,14 @@ func TestRacingLockingActions(t *testing.T) {
 				t.Run(fmt.Sprintf("iteration_%d", idx), func(t *testing.T) {
 					t.Parallel()
 
-					records, recordsUnlock, err := tmpRecords.LockForChanges()
-					require.NoError(t, err, "Setup: failed to lock the temporary records")
+					entries, entriesUnlock, err := localentries.NewWithLock()
+					require.NoError(t, err, "Setup: failed to lock the locale entries")
 					t.Cleanup(func() {
-						err = recordsUnlock()
-						require.NoError(t, err, "recordsUnlock should not fail to unlock the temporary records")
+						err = entriesUnlock()
+						require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 					})
 
+					records := tmpRecords.LockForChanges(entries)
 					doPreAuth := idx%3 == 0
 					userName := fmt.Sprintf("authd-test-user%d", idx)
 
@@ -570,13 +586,14 @@ func TestRegisterUserAndGroupForUser(t *testing.T) {
 					replacingPreAuthUser = err == nil
 				}
 
-				records, recordsUnlock, err := records.LockForChanges()
-				require.NoError(t, err, "LockForChanges should not return an error, but did")
+				entries, entriesUnlock, err := localentries.NewWithLock()
+				require.NoError(t, err, "Setup: failed to lock the locale entries")
 				t.Cleanup(func() {
-					err := recordsUnlock()
-					require.NoError(t, err, "recordsCleanup should not return an error, but did")
+					err = entriesUnlock()
+					require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 				})
 
+				records := records.LockForChanges(entries)
 				internalRecords := records.tr
 
 				var uid uint32
