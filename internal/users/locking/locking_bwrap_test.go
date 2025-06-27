@@ -16,26 +16,6 @@ import (
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 )
 
-var (
-	writeLock = func() error {
-		for i := 0; i < 5; i++ {
-			if err := userslocking.WriteRecLock(); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-
-	writeUnlock = func() error {
-		for i := 0; i < 5; i++ {
-			if err := userslocking.WriteRecUnlock(); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-)
-
 func TestLockAndWriteUnlock(t *testing.T) {
 	require.Zero(t, os.Geteuid(), "Not root")
 
@@ -51,7 +31,7 @@ func TestLockAndWriteUnlock(t *testing.T) {
 	require.NoError(t, err, "Output: %s", output)
 
 	// Lock the group file
-	err = writeLock()
+	err = userslocking.WriteLock()
 	require.NoError(t, err, "Locking database")
 
 	output, err = runCmd(t, "getent", "group", "testgroup")
@@ -70,7 +50,7 @@ func TestLockAndWriteUnlock(t *testing.T) {
 	require.Equal(t, output, newGroupContents+",root", "Group not found")
 
 	// Unlock the group file
-	err = writeUnlock()
+	err = userslocking.WriteUnlock()
 	require.NoError(t, err, "Unlocking database")
 
 	// Try using gpasswd to modify the group file again. This should succeed,
@@ -94,10 +74,10 @@ testgroup:x:1001:testuser`
 	err := os.WriteFile(groupFile, []byte(groupContents), 0644)
 	require.NoError(t, err, "Writing group file")
 
-	err = writeLock()
+	err = userslocking.WriteLock()
 	require.NoError(t, err, "Locking once it is allowed")
 	t.Cleanup(func() {
-		err := writeUnlock()
+		err := userslocking.WriteUnlock()
 		require.NoError(t, err, "Unlocking should be allowed")
 	})
 
@@ -111,10 +91,10 @@ func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 	restoreFunc := userslocking.Z_ForTests_RestoreLocking
 	t.Cleanup(func() { restoreFunc() })
 
-	err := userslocking.WriteRecLock()
+	err := userslocking.WriteLock()
 	require.NoError(t, err, "Locking once it is allowed")
 
-	err = userslocking.WriteRecUnlock()
+	err = userslocking.WriteUnlock()
 	require.NoError(t, err, "Unlocking should be allowed")
 
 	// Ensure restoring works as expected.
@@ -128,12 +108,12 @@ func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 	err = os.WriteFile(groupFile, []byte(groupContents), 0644)
 	require.NoError(t, err, "Writing group file")
 
-	err = userslocking.WriteRecLock()
+	err = userslocking.WriteLock()
 	require.NoError(t, err, "Locking once it is allowed")
 	t.Cleanup(func() {
 		// Ignore the error here, as it's expected to return an error if the
-		// WriteRecUnlock further below is called first.
-		_ = userslocking.WriteRecUnlock()
+		// userslocking.WriteUnlock further below is called first.
+		_ = userslocking.WriteUnlock()
 	})
 
 	gPasswdExited := make(chan error)
@@ -149,38 +129,35 @@ func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 		require.ErrorIs(t, err, userslocking.ErrLock, "GPasswd should fail")
 	}
 
-	require.NoError(t, userslocking.WriteRecUnlock())
+	require.NoError(t, userslocking.WriteUnlock())
 	<-gPasswdExited
 }
 
 func TestUnlockUnlockedOverridden(t *testing.T) {
 	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
-	err := userslocking.WriteRecUnlock()
+	err := userslocking.WriteUnlock()
 	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
 }
 
 func TestUnlockUnlocked(t *testing.T) {
 	require.Zero(t, os.Geteuid(), "Not root")
 
-	err := writeUnlock()
+	err := userslocking.WriteUnlock()
 	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
 }
 
-func TestRecLockAndRecLockAgainGroupFile(t *testing.T) {
+func TestLockAndLockAgainGroupFile(t *testing.T) {
 	require.Zero(t, os.Geteuid(), "Not root")
 
-	err := userslocking.WriteRecLock()
+	err := userslocking.WriteLock()
 	require.NoError(t, err, "Locking once it is allowed")
 
-	err = userslocking.WriteRecLock()
-	require.NoError(t, err, "Locking twice it is allowed")
+	err = userslocking.WriteLock()
+	require.ErrorIs(t, err, userslocking.ErrLock, "Locking again should not be allowed")
 
-	err = userslocking.WriteRecUnlock()
-	require.NoError(t, err, "Unlocking should be allowed once")
-
-	err = userslocking.WriteRecUnlock()
-	require.NoError(t, err, "Unlocking should be allowed twice")
+	err = userslocking.WriteUnlock()
+	require.NoError(t, err, "Unlocking should be allowed")
 }
 
 func TestLockingLockedDatabase(t *testing.T) {
@@ -211,7 +188,7 @@ func TestLockingLockedDatabase(t *testing.T) {
 		syscall.Kill(lockerProcess.Pid, syscall.SIGKILL)
 		require.Error(t, <-lockerExited, "Stopping locking process")
 		require.NoError(t, <-writeLockExited, "Final locking")
-		require.NoError(t, writeUnlock(), "Final unlocking")
+		require.NoError(t, userslocking.WriteUnlock(), "Final unlocking")
 	})
 
 	go func() {
@@ -240,7 +217,7 @@ func TestLockingLockedDatabase(t *testing.T) {
 	}
 
 	go func() {
-		writeLockExited <- writeLock()
+		writeLockExited <- userslocking.WriteLock()
 	}()
 
 	select {
@@ -290,7 +267,7 @@ func TestLockingLockedDatabaseFailsAfterTimeout(t *testing.T) {
 	t.Log("Waiting for lock")
 	writeLockExited := make(chan error)
 	go func() {
-		writeLockExited <- writeLock()
+		writeLockExited <- userslocking.WriteLock()
 	}()
 
 	err = <-writeLockExited
@@ -332,7 +309,7 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 
 	writeLockExited := make(chan error)
 	go func() {
-		writeLockExited <- writeLock()
+		writeLockExited <- userslocking.WriteLock()
 	}()
 
 	select {
@@ -345,7 +322,7 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 
 	writeUnLockExited := make(chan error)
 	go func() {
-		writeUnLockExited <- writeUnlock()
+		writeUnLockExited <- userslocking.WriteUnlock()
 	}()
 
 	select {

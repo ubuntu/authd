@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	overrideLocked  atomic.Bool
+	defaultMock     SimpleMock
 	overrideMaxWait atomic.Int64
 
 	overriddenMu              sync.Mutex
@@ -24,6 +24,36 @@ var (
 
 func init() {
 	overrideMaxWait.Store(int64(maxWait))
+}
+
+// SimpleMock is a structure that can be used to simulate the users database
+// lock without relying on the actual file locking.
+type SimpleMock struct {
+	overrideLocked atomic.Bool
+}
+
+// WriteLock locks the mock.
+func (t *SimpleMock) WriteLock() error {
+	testsdetection.MustBeTesting()
+
+	if !t.overrideLocked.CompareAndSwap(false, true) {
+		return fmt.Errorf("%w: already locked", ErrLock)
+	}
+
+	log.Debug(context.Background(), "TestOverride: Local entries locked!")
+	return nil
+}
+
+// WriteUnlock unlocks the mock.
+func (t *SimpleMock) WriteUnlock() error {
+	testsdetection.MustBeTesting()
+
+	if !t.overrideLocked.CompareAndSwap(true, false) {
+		return fmt.Errorf("%w: already unlocked", ErrUnlock)
+	}
+
+	log.Debug(context.Background(), "TestOverride: Local entries unlocked!")
+	return nil
 }
 
 // Z_ForTests_OverrideLocking is a function to override the locking functions
@@ -39,24 +69,10 @@ func Z_ForTests_OverrideLocking() {
 	defer overriddenMu.Unlock()
 
 	overriddenWriteLockImpl = append(overriddenWriteLockImpl, writeLockImpl)
-	writeLockImpl = func() error {
-		if !overrideLocked.CompareAndSwap(false, true) {
-			return fmt.Errorf("%w: already locked", ErrLock)
-		}
-
-		log.Debug(context.Background(), "TestOverride: Local entries locked!")
-		return nil
-	}
+	writeLockImpl = defaultMock.WriteLock
 
 	overriddenWriteUnlockImpl = append(overriddenWriteUnlockImpl, writeUnlockImpl)
-	writeUnlockImpl = func() error {
-		if !overrideLocked.CompareAndSwap(true, false) {
-			return fmt.Errorf("%w: already unlocked", ErrUnlock)
-		}
-
-		log.Debug(context.Background(), "TestOverride: Local entries unlocked!")
-		return nil
-	}
+	writeUnlockImpl = defaultMock.WriteUnlock
 }
 
 // Z_ForTests_OverrideLockingWithCleanup is a function to override the locking
@@ -78,7 +94,7 @@ func Z_ForTests_OverrideLockingWithCleanup(t *testing.T) {
 // user database is locked by an external process.
 //
 // When called, it marks the user database as locked, causing any subsequent
-// locking attempts by authd (via [WriteRecLock]) to block until the provided
+// locking attempts by authd (via [WriteLock]) to block until the provided
 // context is cancelled.
 //
 // This does not use real file locking. The lock can be released either
@@ -113,7 +129,7 @@ func Z_ForTests_OverrideLockingAsLockedExternally(t *testing.T, ctx context.Cont
 				return fmt.Errorf("failed waiting for %v: %w", maxWait, ErrLockTimeout)
 			}
 
-			if overrideLocked.CompareAndSwap(false, true) {
+			if defaultMock.overrideLocked.CompareAndSwap(false, true) {
 				log.Debug(ctx, "TestOverrideExternallyLocked: Local entries locked!")
 				break
 			}
@@ -123,7 +139,7 @@ func Z_ForTests_OverrideLockingAsLockedExternally(t *testing.T, ctx context.Cont
 
 	overriddenWriteUnlockImpl = append(overriddenWriteUnlockImpl, writeUnlockImpl)
 	writeUnlockImpl = func() error {
-		if !overrideLocked.CompareAndSwap(true, false) {
+		if !defaultMock.overrideLocked.CompareAndSwap(true, false) {
 			return ErrUnlock
 		}
 
@@ -138,7 +154,7 @@ func Z_ForTests_OverrideLockingAsLockedExternally(t *testing.T, ctx context.Cont
 		if !done.CompareAndSwap(false, true) {
 			return
 		}
-		if !overrideLocked.Load() {
+		if !defaultMock.overrideLocked.Load() {
 			return
 		}
 		err := writeUnlockImpl()
@@ -163,7 +179,7 @@ func Z_ForTests_OverrideLockingAsLockedExternally(t *testing.T, ctx context.Cont
 func Z_ForTests_RestoreLocking() {
 	testsdetection.MustBeTesting()
 
-	if overrideLocked.Load() {
+	if defaultMock.overrideLocked.Load() {
 		panic("Lock has not been released before restoring!")
 	}
 
@@ -181,7 +197,7 @@ func Z_ForTests_RestoreLocking() {
 }
 
 // Z_ForTests_SetMaxWaitTime sets the max time that we should wait before
-// returning a failure in [WriteRecLock].
+// returning a failure in [WriteLock].
 //
 // nolint:revive,nolintlint // We want to use underscores in the function name here.
 func Z_ForTests_SetMaxWaitTime(t *testing.T, maxWaitTime time.Duration) {

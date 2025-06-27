@@ -1,5 +1,7 @@
 package localentries
 
+import userslocking "github.com/ubuntu/authd/internal/users/locking"
+
 // WithGroupPath overrides the default /etc/group path for tests.
 func WithGroupPath(p string) Option {
 	return func(o *options) {
@@ -19,6 +21,24 @@ func WithGroupInputPath(p string) Option {
 func WithGroupOutputPath(p string) Option {
 	return func(o *options) {
 		o.groupOutputPath = p
+	}
+}
+
+// WithMockUserDBLocking uses a mock implementation to lock the users database.
+func WithMockUserDBLocking() Option {
+	return func(o *options) {
+		mock := userslocking.SimpleMock{}
+		o.writeLockFunc = mock.WriteLock
+		o.writeUnlockFunc = mock.WriteUnlock
+	}
+}
+
+// WithUserDBLockedInstance allows to use a test-provided locked instance that
+// can be used to verify the refcounting behavior instead of relying on the
+// default instance that is used normally.
+func WithUserDBLockedInstance(userDBLocked *UserDBLocked) Option {
+	return func(o *options) {
+		o.userDBLocked = userDBLocked
 	}
 }
 

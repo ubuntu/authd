@@ -694,12 +694,13 @@ func TestUserByIDAndName(t *testing.T) {
 			m := newManagerForTests(t, dbDir)
 
 			if tc.isTempUser {
-				records, recordsUnlock, err := m.TemporaryRecords().LockForChanges()
-				require.NoError(t, err, "LockForChanges should not return an error, but did")
+				entries, entriesUnlock, err := localentries.NewUserDBLocked()
+				require.NoError(t, err, "Setup: failed to lock the locale entries")
 				t.Cleanup(func() {
-					err := recordsUnlock()
-					require.NoError(t, err, "recordsCleanup should not return an error, but did")
+					err = entriesUnlock()
+					require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 				})
+				records := m.TemporaryRecords().LockForChanges(entries)
 
 				tc.uid, err = records.RegisterPreAuthUser("tempuser1")
 				require.NoError(t, err, "RegisterUser should not return an error, but did")
@@ -939,7 +940,7 @@ func TestRegisterUserPreAuthAfterUnlock(t *testing.T) {
 	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, lockCtx)
 	userslocking.Z_ForTests_SetMaxWaitTime(t, waitTime)
 
-	t.Cleanup(func() { _ = userslocking.WriteRecUnlock() })
+	t.Cleanup(func() { _ = userslocking.WriteUnlock() })
 
 	dbFile := "one_user_and_group"
 	dbDir := t.TempDir()
@@ -980,7 +981,7 @@ func TestUpdateUserAfterUnlock(t *testing.T) {
 	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, lockCtx)
 	userslocking.Z_ForTests_SetMaxWaitTime(t, waitTime)
 
-	t.Cleanup(func() { _ = userslocking.WriteRecUnlock() })
+	t.Cleanup(func() { _ = userslocking.WriteUnlock() })
 
 	dbFile := "one_user_and_group"
 	dbDir := t.TempDir()
