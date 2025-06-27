@@ -105,7 +105,7 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 		return &authd.GPBResponse{}, nil
 	}
 
-	// Database the broker which should be used for the user, so that we don't have to query the database again next time -
+	// Cache the broker which should be used for the user, so that we don't have to query the database again next time -
 	// except if the broker is the local broker, because then the decision to use the local broker should be made each
 	// time the user tries to log in, based on whether the user is provided by any other NSS service.
 	if brokerID == brokers.LocalBrokerName {
