@@ -293,6 +293,10 @@ func TestRegisterUser(t *testing.T) {
 			userName:            "root",
 			wantErr:             true,
 		},
+		"Error_when_a_valid_UID_cannot_be_found": {
+			uidsToGenerate: make([]uint32, maxIDGenerateIterations*10),
+			wantErr:        true,
+		},
 		"Error_when_pre-auth_UID_is_not_unique": {
 			replacesPreAuthUser:     true,
 			preAuthUIDAlreadyExists: true,
