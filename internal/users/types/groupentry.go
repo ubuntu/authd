@@ -95,3 +95,51 @@ func ValidateGroupEntries(groups []GroupEntry) error {
 
 	return nil
 }
+
+// GetValidGroupEntries returns the first valid group entries according to validates a list of group entries, ensuring they respect
+// the [GroupEntry.Validate] constraints and that the names and the GID are unique.
+func GetValidGroupEntries(groups []GroupEntry) (validEntries []GroupEntry) {
+	groupNames := make(map[string]*GroupEntry, len(groups))
+	groupIDs := make(map[uint32]*GroupEntry, len(groups))
+
+	if groups == nil {
+		return nil
+	}
+
+	validEntries = make([]GroupEntry, 0, len(groups))
+
+	for _, g := range groups {
+		if err := g.Validate(); err != nil {
+			log.Warningf(context.Background(), "Group %q is not valid: %v", g.Name, err)
+			continue
+		}
+
+		if otherGroup, ok := groupNames[g.Name]; ok {
+			if !g.Equals(*otherGroup) {
+				log.Warningf(context.Background(),
+					"Skipping group %q, it's a duplicate!", g)
+				continue
+			}
+
+			log.Infof(context.Background(),
+				"Group %q name (%q) is not unique (duplicates %q)", g.Name, g, *otherGroup)
+
+			// We still consider it valid, not to miss track of it, while ideally
+			// it should be just dropped, but maybe it's not our duty.
+			validEntries = append(validEntries, g)
+			continue
+		}
+		if otherGroup, ok := groupIDs[g.GID]; ok {
+			log.Warningf(context.Background(),
+				"Group %q ID (%d) is not unique (duplicates %q)", g.Name, g.GID, *otherGroup)
+			continue
+		}
+
+		groupNames[g.Name] = &g
+		groupIDs[g.GID] = &g
+
+		validEntries = append(validEntries, g)
+	}
+
+	return validEntries
+}

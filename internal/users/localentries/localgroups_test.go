@@ -270,6 +270,15 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 			groupFilePath: "multiple_users_in_our_groups.group",
 			removeGroups:  []string{"localgroup1", "localgroup4"},
 		},
+		"Warn_when_groups_file_has_a_duplicated_group": {
+			groupFilePath: "malformed_file_duplicated.group",
+			addGroups: []types.GroupEntry{
+				{Name: "localgroup5", Passwd: "x", GID: 45},
+			},
+		},
+		"Warn_when_groups_file_has_no_group_name": {
+			groupFilePath: "malformed_file_no_group_name.group",
+		},
 
 		// Error cases
 		"Error_on_missing_groups_file": {
@@ -282,14 +291,6 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 		},
 		"Error_when_groups_file_has_invalid_gid": {
 			groupFilePath: "malformed_file_invalid_gid.group",
-			wantGetErr:    true,
-		},
-		"Error_when_groups_file_has_no_group_name": {
-			groupFilePath: "malformed_file_no_group_name.group",
-			wantGetErr:    true,
-		},
-		"Error_when_groups_file_has_a_duplicated_group": {
-			groupFilePath: "malformed_file_duplicated.group",
 			wantGetErr:    true,
 		},
 		"Error_adding_duplicated_groups": {
@@ -497,4 +498,173 @@ func TestMain(m *testing.M) {
 	defer userslocking.Z_ForTests_RestoreLocking()
 
 	m.Run()
+}
+func TestValidateChangedGroups(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		currentGroups []types.GroupEntry
+		changedGroups []types.GroupEntry
+		newGroups     []types.GroupEntry
+		wantErr       bool
+	}{
+		"Empty_groups_no_error": {},
+		"Add_valid_group": {
+			currentGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+			},
+			newGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "group2", Passwd: "x", GID: 2, Users: []string{"user2"}},
+			},
+		},
+		"No_changes_in_old_groups": {
+			currentGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "group2", Passwd: "x", GID: 2, Users: []string{"user2"}},
+			},
+			newGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "group2", Passwd: "x", GID: 2, Users: []string{"user2"}},
+			},
+		},
+		"Replace_old_groups_with_same_name_valid": {
+			currentGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "group2", Passwd: "x", GID: 2, Users: []string{"user2"}},
+			},
+			newGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "group2", Passwd: "x", GID: 2, Users: []string{"user3"}},
+			},
+		},
+		"Add_multiple_valid_groups": {
+			currentGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+			},
+			newGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "group2", Passwd: "x", GID: 2, Users: []string{"user2"}},
+				{Name: "group3", Passwd: "x", GID: 3, Users: []string{"user3"}},
+			},
+		},
+		"Removed_group": {
+			currentGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "group2", Passwd: "x", GID: 2, Users: []string{"user2"}},
+			},
+			newGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				// group2 removed
+			},
+		},
+		"Removed_multiple_groups": {
+			currentGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "group2", Passwd: "x", GID: 2, Users: []string{"user2"}},
+				{Name: "group3", Passwd: "x", GID: 3, Users: []string{"user3"}},
+			},
+			newGroups: []types.GroupEntry{
+				{Name: "group3", Passwd: "x", GID: 3, Users: []string{"user3"}},
+				// group1 and group2 removed
+			},
+		},
+		"All_groups_removed": {
+			currentGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+			},
+			newGroups: []types.GroupEntry{
+				// All groups removed
+			},
+		},
+		"Add_valid_group_to_current_groups_with_invalid": {
+			currentGroups: []types.GroupEntry{
+				{Name: "invalid1", Passwd: "x", GID: 1, Users: []string{"user,1"}},
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+			},
+			newGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "invalid1", Passwd: "x", GID: 1, Users: []string{"user,1"}},
+				{Name: "group2", Passwd: "x", GID: 2, Users: []string{"user2"}},
+			},
+		},
+		"Add_user_to_group": {
+			currentGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+			},
+			newGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1", "user2"}},
+			},
+		},
+
+		// Error cases.
+		"Error_changed_groups_invalid": {
+			currentGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+			},
+			newGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "invalid,group", Passwd: "x", GID: 2, Users: []string{"user2"}},
+			},
+			wantErr: true,
+		},
+		"Error_combined_groups_invalid": {
+			currentGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+			},
+			newGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "group2", Passwd: "x", GID: 1, Users: []string{"user2"}},
+			},
+			wantErr: true,
+		},
+		"Error_adding_multiple_groups_one_invalid": {
+			currentGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+			},
+			newGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "group2", Passwd: "x", GID: 2, Users: []string{"user2"}},
+				{Name: "invalid,group", Passwd: "x", GID: 4, Users: []string{"user4"}},
+			},
+			wantErr: true,
+		},
+		"Error_adding_multiple_groups_with_duplicate_GID": {
+			currentGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+			},
+			newGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "group2", Passwd: "x", GID: 2, Users: []string{"user2"}},
+				{Name: "group3", Passwd: "x", GID: 2, Users: []string{"user3"}},
+			},
+			wantErr: true,
+		},
+		"Error_adding_multiple_groups_with_duplicate_name": {
+			currentGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+			},
+			newGroups: []types.GroupEntry{
+				{Name: "group1", Passwd: "x", GID: 1, Users: []string{"user1"}},
+				{Name: "group2", Passwd: "x", GID: 2, Users: []string{"user2"}},
+				{Name: "group2", Passwd: "x", GID: 22, Users: []string{"user2.2"}},
+			},
+			wantErr: true,
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			err := localentries.ValidateChangedGroups(tc.currentGroups,
+				tc.newGroups)
+			if tc.wantErr {
+				require.Error(t, err, "expected error but got nil")
+				t.Logf("Validation failed with error: %v", err)
+				return
+			}
+			require.NoError(t, err, "expected no error but got: %v", err)
+		})
+	}
 }
