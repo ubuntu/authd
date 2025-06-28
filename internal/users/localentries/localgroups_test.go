@@ -233,6 +233,12 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 				{Name: "localgroup5", Passwd: "x", GID: 45},
 			},
 		},
+		"Warn_when_groups_file_has_an_extra_field": {
+			groupFilePath: "malformed_file_extra_field.group",
+			addGroups: []types.GroupEntry{
+				{Name: "localgroup5", Passwd: "x", GID: 45},
+			},
+		},
 		"Warn_when_groups_file_has_no_group_name": {
 			groupFilePath: "malformed_file_no_group_name.group",
 		},

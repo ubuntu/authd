@@ -140,8 +140,8 @@ func parseLocalGroups(groupPath string) (groups []types.GroupEntry, err error) {
 		if t == "" {
 			continue
 		}
-		elems := strings.Split(t, ":")
-		if len(elems) != 4 {
+		elems := strings.SplitN(t, ":", 4)
+		if len(elems) < 4 {
 			return nil, fmt.Errorf("malformed entry in group file (should have 4 separators, got %d): %q", len(elems), t)
 		}
 
