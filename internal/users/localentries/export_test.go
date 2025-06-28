@@ -1,6 +1,9 @@
 package localentries
 
-import userslocking "github.com/ubuntu/authd/internal/users/locking"
+import (
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
+	"github.com/ubuntu/authd/internal/users/types"
+)
 
 // WithGroupPath overrides the default /etc/group path for tests.
 func WithGroupPath(p string) Option {
@@ -45,4 +48,9 @@ func WithUserDBLockedInstance(userDBLocked *UserDBLocked) Option {
 // GroupFileBackupPath exposes the path to the group file backup for testing.
 func GroupFileBackupPath(groupFilePath string) string {
 	return groupFileBackupPath(groupFilePath)
+}
+
+// ValidateChangedGroups validates the new groups given the current, changed and new groups.
+func ValidateChangedGroups(currentGroups, newGroups []types.GroupEntry) error {
+	return validateChangedGroups(currentGroups, newGroups)
 }

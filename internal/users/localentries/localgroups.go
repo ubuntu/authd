@@ -170,7 +170,9 @@ func parseLocalGroups(groupPath string) (groups []types.GroupEntry, err error) {
 	}
 
 	if err := types.ValidateGroupEntries(groups); err != nil {
-		return nil, err
+		log.Warningf(context.Background(),
+			"The group file %q contains at least one invalid entry: %v",
+			groupPath, err)
 	}
 
 	return groups, nil
@@ -207,20 +209,21 @@ func (g *GroupsWithLock) saveLocalGroups(groups []types.GroupEntry) (err error) 
 	}
 
 	if slices.EqualFunc(currentGroups, groups, types.GroupEntry.Equals) {
-		log.Debugf(context.TODO(), "Nothing to do, groups are equal")
+		log.Debugf(context.Background(), "Nothing to do, groups are equal")
 		return nil
 	}
 
-	if err := types.ValidateGroupEntries(groups); err != nil {
+	if err := validateChangedGroups(currentGroups, groups); err != nil {
+		log.Debugf(context.Background(), "New groups are not valid: %v", err)
 		return err
 	}
 
 	backupPath := groupFileBackupPath(groupPath)
 	groupsEntries := formatGroupEntries(groups)
 
-	log.Debugf(context.TODO(), "Saving group entries %#v to %q", groups, groupPath)
+	log.Debugf(context.Background(), "Saving group entries %#v to %q", groups, groupPath)
 	if len(groupsEntries) > 0 {
-		log.Debugf(context.TODO(), "Group file content:\n%s", groupsEntries)
+		log.Debugf(context.Background(), "Group file content:\n%s", groupsEntries)
 	}
 
 	if err := os.Remove(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
@@ -244,6 +247,38 @@ func (g *GroupsWithLock) saveLocalGroups(groups []types.GroupEntry) (err error) 
 
 	g.l.updateLocalGroupEntriesCache(groups)
 	return nil
+}
+
+func validateChangedGroups(currentGroups, newGroups []types.GroupEntry) error {
+	changedGroups := sliceutils.DifferenceFunc(newGroups, currentGroups,
+		types.GroupEntry.Equals)
+	if len(changedGroups) == 0 {
+		log.Debugf(context.Background(), "No new groups added to validate")
+		return nil
+	}
+
+	log.Debugf(context.Background(), "Groups added or modified: %#v",
+		changedGroups)
+
+	if err := types.ValidateGroupEntries(changedGroups); err != nil {
+		// One of the group that has been changed is not valid.
+		return fmt.Errorf("changed groups are not valid: %w", err)
+	}
+
+	if err := types.ValidateGroupEntries(newGroups); err == nil {
+		// The groups we got are all good, no need to proceed further!
+		return nil
+	}
+
+	validCurrentGroups := types.GetValidGroupEntries(currentGroups)
+
+	// So, now we know that:
+	//  1) the changed groups alone are good
+	//  2) the whole set of the new groups are not good
+	// So let's try to check if the changed groups are compatible with the
+	// current valid groups that we have.
+	validGroupsWithChanged := append(validCurrentGroups, changedGroups...)
+	return types.ValidateGroupEntries(validGroupsWithChanged)
 }
 
 // userLocalGroups returns all groups the user is part of.

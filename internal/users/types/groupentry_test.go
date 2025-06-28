@@ -390,3 +390,123 @@ func TestDeepCopyGroupEntries(t *testing.T) {
 		})
 	}
 }
+
+func TestGetValidGroupEntries(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		groups []GroupEntry
+		want   []GroupEntry
+	}{
+		{
+			name: "Nil_input",
+		},
+		{
+			name:   "Empty_input",
+			groups: []GroupEntry{},
+			want:   []GroupEntry{},
+		},
+		{
+			name: "All_valid_groups",
+			groups: []GroupEntry{
+				{Name: "group1", GID: 1000, Passwd: "x", Users: []string{"user1"}},
+				{Name: "group2", GID: 1001, Passwd: "y", Users: []string{"user2"}},
+			},
+			want: []GroupEntry{
+				{Name: "group1", GID: 1000, Passwd: "x", Users: []string{"user1"}},
+				{Name: "group2", GID: 1001, Passwd: "y", Users: []string{"user2"}},
+			},
+		},
+		{
+			name: "Invalid_group_skipped",
+			groups: []GroupEntry{
+				{Name: "invalid,group", GID: 1000, Passwd: "x", Users: []string{"user1"}},
+				{Name: "group2", GID: 1001, Passwd: "y", Users: []string{"user2"}},
+			},
+			want: []GroupEntry{
+				{Name: "group2", GID: 1001, Passwd: "y", Users: []string{"user2"}},
+			},
+		},
+		{
+			name: "Duplicate_name_with_equal_content",
+			groups: []GroupEntry{
+				{Name: "group1", GID: 1000, Passwd: "x", Users: []string{"user1"}},
+				{Name: "group1", GID: 1000, Passwd: "x", Users: []string{"user1"}},
+			},
+			want: []GroupEntry{
+				{Name: "group1", GID: 1000, Passwd: "x", Users: []string{"user1"}},
+				{Name: "group1", GID: 1000, Passwd: "x", Users: []string{"user1"}},
+			},
+		},
+		{
+			name: "Duplicate_name_with_different_content",
+			groups: []GroupEntry{
+				{Name: "group1", GID: 1000, Passwd: "x", Users: []string{"user1"}},
+				{Name: "group1", GID: 1001, Passwd: "y", Users: []string{"user2"}},
+				{Name: "group2", GID: 1002, Passwd: "z", Users: []string{"user3"}},
+			},
+			want: []GroupEntry{
+				{Name: "group1", GID: 1000, Passwd: "x", Users: []string{"user1"}},
+				{Name: "group2", GID: 1002, Passwd: "z", Users: []string{"user3"}},
+			},
+		},
+		{
+			name: "Duplicate_GID",
+			groups: []GroupEntry{
+				{Name: "group1", GID: 1000, Passwd: "x", Users: []string{"user1"}},
+				{Name: "group2", GID: 1000, Passwd: "y", Users: []string{"user2"}},
+				{Name: "group3", GID: 1001, Passwd: "z", Users: []string{"user3"}},
+			},
+			want: []GroupEntry{
+				{Name: "group1", GID: 1000, Passwd: "x", Users: []string{"user1"}},
+				{Name: "group3", GID: 1001, Passwd: "z", Users: []string{"user3"}},
+			},
+		},
+		{
+			name: "Multiple_invalid_and_duplicates",
+			groups: []GroupEntry{
+				{Name: "invalid,group", GID: 1000, Passwd: "x", Users: []string{"user1"}},
+				{Name: "group1", GID: 1001, Passwd: "y", Users: []string{"user2"}},
+				{Name: "group1", GID: 1001, Passwd: "y", Users: []string{"user2"}},
+				{Name: "group2", GID: 1001, Passwd: "z", Users: []string{"user3"}},
+				{Name: "group3", GID: 1002, Passwd: "w", Users: []string{"user4"}},
+			},
+			want: []GroupEntry{
+				{Name: "group1", GID: 1001, Passwd: "y", Users: []string{"user2"}},
+				{Name: "group1", GID: 1001, Passwd: "y", Users: []string{"user2"}},
+				{Name: "group3", GID: 1002, Passwd: "w", Users: []string{"user4"}},
+			},
+		},
+		{
+			name: "Root_group_GID_0_valid",
+			groups: []GroupEntry{
+				{Name: "root", GID: 0, Passwd: "x"},
+				{Name: "group1", GID: 1000, Passwd: "y"},
+			},
+			want: []GroupEntry{
+				{Name: "root", GID: 0, Passwd: "x"},
+				{Name: "group1", GID: 1000, Passwd: "y"},
+			},
+		},
+		{
+			name: "Non_root_group_GID_0_invalid",
+			groups: []GroupEntry{
+				{Name: "group1", GID: 0, Passwd: "x"},
+				{Name: "group2", GID: 1001, Passwd: "y"},
+			},
+			want: []GroupEntry{
+				{Name: "group2", GID: 1001, Passwd: "y"},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := GetValidGroupEntries(tc.groups)
+			require.Equal(t, tc.want, got, "GetValidGroupEntries output mismatch")
+		})
+	}
+}
