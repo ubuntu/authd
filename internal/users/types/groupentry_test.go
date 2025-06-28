@@ -62,6 +62,26 @@ func TestValidateGroupEntry(t *testing.T) {
 			group:   GroupEntry{Name: "group1", GID: 1005, Passwd: "x", Users: []string{"user1", "b,ob"}},
 			wantErr: true,
 		},
+		{
+			name:    "Error_on_name_contains_colon",
+			group:   GroupEntry{Name: "ad:mins", GID: 1002, Passwd: "x", Users: []string{"user1"}},
+			wantErr: true,
+		},
+		{
+			name:    "Error_on_passwd_contains_colon",
+			group:   GroupEntry{Name: "group1", GID: 1003, Passwd: "x:", Users: []string{"user1"}},
+			wantErr: true,
+		},
+		{
+			name:    "Error_on_user_contains_colon",
+			group:   GroupEntry{Name: "group1", GID: 1004, Passwd: "x", Users: []string{"user:1"}},
+			wantErr: true,
+		},
+		{
+			name:    "Error_on_multiple_users_one_with_colon",
+			group:   GroupEntry{Name: "group1", GID: 1005, Passwd: "x", Users: []string{"user1", "user:2"}},
+			wantErr: true,
+		},
 	}
 
 	for _, tc := range tests {
