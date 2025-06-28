@@ -3,12 +3,15 @@
 package userslocking_test
 
 import (
+	"context"
 	"fmt"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/fileutils"
@@ -115,21 +118,82 @@ func compileLockerBinary(t *testing.T) string {
 	return testLocker
 }
 
-func TestUsersLockingOverride(t *testing.T) {
+func TestUsersLockingRecLockingOverride(t *testing.T) {
 	// This cannot be parallel.
 
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
-	err := userslocking.WriteLock()
+	err := userslocking.WriteRecLock()
 	require.NoError(t, err, "Locking should be allowed")
 
-	err = userslocking.WriteLock()
-	require.ErrorIs(t, err, userslocking.ErrLock, "Locking again should not be allowed")
+	err = userslocking.WriteRecLock()
+	require.NoError(t, err, "Locking again should be allowed")
 
-	err = userslocking.WriteUnlock()
+	err = userslocking.WriteRecUnlock()
 	require.NoError(t, err, "Unlocking should be allowed")
 
-	err = userslocking.WriteUnlock()
+	err = userslocking.WriteRecUnlock()
+	require.NoError(t, err, "Unlocking again should be allowed")
+
+	err = userslocking.WriteRecUnlock()
 	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
+}
+
+func TestUsersLockingRecLockingOverrideAsLockedExternally(t *testing.T) {
+	// This cannot be parallel.
+	lockCtx, lockCancel := context.WithCancel(context.Background())
+	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, lockCtx)
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		err := userslocking.WriteRecLock()
+		require.NoError(t, err, "Locking should not fail")
+		wg.Done()
+	}()
+	go func() {
+		err := userslocking.WriteRecLock()
+		require.NoError(t, err, "Locking should not fail")
+		wg.Done()
+	}()
+
+	doneWaiting := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(doneWaiting)
+	}()
+
+	select {
+	case <-time.After(1 * time.Second):
+		// If we're time-outing: it's fine, it means we were locked!
+	case <-doneWaiting:
+		t.Error("We should not be unlocked, but we are")
+		t.FailNow()
+	}
+
+	wg.Add(2)
+	go func() {
+		err := userslocking.WriteRecUnlock()
+		require.NoError(t, err, "Unlocking should not fail")
+		wg.Done()
+	}()
+	go func() {
+		err := userslocking.WriteRecUnlock()
+		require.NoError(t, err, "Unlocking should not fail")
+		wg.Done()
+	}()
+	t.Cleanup(wg.Wait)
+
+	select {
+	case <-time.After(1 * time.Second):
+		// If we're time-outing: it's fine, it means we were locked!
+	case <-doneWaiting:
+		t.Error("We should not be unlocked, but we are")
+		t.FailNow()
+	}
+
+	// Remove the "external" lock now.
+	lockCancel()
+
+	<-doneWaiting
 }

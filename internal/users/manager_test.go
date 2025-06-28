@@ -2,17 +2,26 @@ package users_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/consts"
+	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
+	"github.com/ubuntu/authd/internal/users/localentries"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
+	"github.com/ubuntu/authd/internal/users/tempentries"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
@@ -41,7 +50,8 @@ func TestNewManager(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			destCmdsFile := localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "groups", "users_in_groups.group"))
+			destGroupFile := localgroupstestutils.SetupGroupMock(t,
+				filepath.Join("testdata", "groups", "users_in_groups.group"))
 
 			dbDir := t.TempDir()
 			if tc.dbFile == "" {
@@ -85,7 +95,7 @@ func TestNewManager(t *testing.T) {
 
 			golden.CheckOrUpdate(t, got)
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t)+".gpasswd.output")
+			localgroupstestutils.RequireGroupFile(t, destGroupFile, golden.Path(t))
 		})
 	}
 }
@@ -111,7 +121,10 @@ type groupCase struct {
 	GID uint32 // The GID to generate for this group
 }
 
+//nolint:tparallel // Only some subtests can be parallel.
 func TestUpdateUser(t *testing.T) {
+	t.Parallel()
+
 	userCases := map[string]userCase{
 		"user1":                             {UserInfo: types.UserInfo{Name: "user1"}, UID: 1111},
 		"nameless":                          {UID: 1111},
@@ -134,10 +147,6 @@ func TestUpdateUser(t *testing.T) {
 			{GroupInfo: types.GroupInfo{Name: "localgroup1", UGID: ""}},
 			{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111},
 		},
-		"mixed-groups-gpasswd-fail": {
-			{GroupInfo: types.GroupInfo{Name: "group1", UGID: "1"}, GID: 11111},
-			{GroupInfo: types.GroupInfo{Name: "gpasswdfail", UGID: ""}},
-		},
 		"nameless-group":          {{GroupInfo: types.GroupInfo{Name: "", UGID: "1"}, GID: 11111}},
 		"different-name-same-gid": {{GroupInfo: types.GroupInfo{Name: "newgroup1", UGID: "1"}, GID: 11111}},
 		"group-exists-on-system":  {{GroupInfo: types.GroupInfo{Name: "root", UGID: "1"}, GID: 11111}},
@@ -159,6 +168,7 @@ func TestUpdateUser(t *testing.T) {
 	}{
 		"Successfully_update_user":                                          {groupsCase: "authd-group"},
 		"Successfully_update_user_updating_local_groups":                    {groupsCase: "mixed-groups-authd-first", localGroupsFile: "users_in_groups.group"},
+		"Successfully_update_user_updating_local_groups_with_changes":       {groupsCase: "mixed-groups-authd-first", localGroupsFile: "user_mismatching_groups.group"},
 		"UID_does_not_change_if_user_already_exists":                        {userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantSameUID: true},
 		"Successfully update user with different capitalization":            {userCase: "different-capitalization-same-uid", dbFile: "one_user_and_group"},
 		"GID_does_not_change_if_group_with_same_UGID_exists":                {groupsCase: "different-name-same-ugid", dbFile: "one_user_and_group"},
@@ -179,9 +189,10 @@ func TestUpdateUser(t *testing.T) {
 				t.Parallel()
 			}
 
-			var destCmdsFile string
+			var destGroupFile string
 			if tc.localGroupsFile != "" {
-				destCmdsFile = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "groups", tc.localGroupsFile))
+				destGroupFile = localgroupstestutils.SetupGroupMock(t,
+					filepath.Join("testdata", "groups", tc.localGroupsFile))
 			}
 
 			if tc.userCase == "" {
@@ -243,12 +254,248 @@ func TestUpdateUser(t *testing.T) {
 
 			golden.CheckOrUpdate(t, got)
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, golden.Path(t)+".gpasswd.output")
+			localgroupstestutils.RequireGroupFile(t, destGroupFile, golden.Path(t))
 		})
 	}
 }
 
+func TestRegisterUserPreauth(t *testing.T) {
+	t.Parallel()
+
+	userCases := map[string]userCase{
+		"user1":                   {UserInfo: types.UserInfo{Name: "user1"}, UID: 1111},
+		"nameless":                {UID: 1111},
+		"same-name-different-uid": {UserInfo: types.UserInfo{Name: "user1"}, UID: 3333},
+		"user-exists-on-system":   {UserInfo: types.UserInfo{Name: "root"}, UID: 1111},
+	}
+
+	tests := map[string]struct {
+		userCase string
+
+		dbFile string
+
+		wantUserInDB bool
+		wantErr      bool
+	}{
+		"Successfully_update_user": {},
+		"Successfully_if_user_already_exists_on_db": {
+			userCase: "same-name-different-uid", dbFile: "one_user_and_group", wantUserInDB: true,
+		},
+
+		"Error_if_user_has_no_username":  {userCase: "nameless", wantErr: true},
+		"Error_if_user_exists_on_system": {userCase: "user-exists-on-system", wantErr: true},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if tc.userCase == "" {
+				tc.userCase = "user1"
+			}
+
+			user := userCases[tc.userCase]
+
+			dbDir := t.TempDir()
+			if tc.dbFile != "" {
+				err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+				require.NoError(t, err, "Setup: could not create database from testdata")
+			}
+
+			managerOpts := []users.Option{
+				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+					UIDsToGenerate: []uint32{user.UID},
+				}),
+			}
+			m := newManagerForTests(t, dbDir, managerOpts...)
+
+			uid, err := m.RegisterUserPreAuth(user.Name)
+
+			requireErrorAssertions(t, err, nil, tc.wantErr)
+			if tc.wantErr {
+				return
+			}
+
+			_, err = m.UserByName(user.Name)
+			if tc.wantUserInDB {
+				require.NoError(t, err, "UserByName should not return an error, but did")
+			} else {
+				require.Error(t, err, "UserByName should return an error, but did not")
+			}
+
+			newUser, err := m.UserByID(uid)
+			require.NoError(t, err, "UserByID should not return an error, but did")
+
+			require.Equal(t, uid, newUser.UID, "UID should not have changed")
+
+			if tc.wantUserInDB {
+				require.Equal(t, user.Name, newUser.Name, "User name does not match")
+			} else {
+				require.True(t, strings.HasPrefix(newUser.Name, tempentries.UserPrefix),
+					"Pre-auth users should have %q as prefix: %q", tempentries.UserPrefix,
+					newUser.Name)
+				newUser.Name = tempentries.UserPrefix + "-{{random-suffix}}"
+			}
+
+			golden.CheckOrUpdateYAML(t, newUser)
+		})
+	}
+}
+
+func TestConcurrentUserUpdate(t *testing.T) {
+	t.Parallel()
+
+	const nIterations = 100
+
+	dbDir := t.TempDir()
+	const dbFile = "one_user_and_group_with_matching_gid"
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", dbFile+".db.yaml"), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	const registeredUserPrefix = "authd-test-maybe-pre-check-user"
+
+	managerOpts := []users.Option{
+		users.WithIDGenerator(&idgenerator.IDGenerator{
+			UIDMin: 0,
+			UIDMax: nIterations * 3,
+			GIDMin: 0,
+			GIDMax: nIterations * 10,
+		}),
+	}
+
+	m := newManagerForTests(t, dbDir, managerOpts...)
+
+	wg := sync.WaitGroup{}
+	wg.Add(nIterations)
+
+	// These tests are meant to stress-test in parallel our users manager,
+	// this is happening by updating new users or pre-auth some of them
+	// using a very limited UID and GID set, to retry more their generation.
+	// concurrently so that users gets registered first and then updated.
+	// Finally ensure that the generated UIDs and GIDs are not clashing.
+
+	for idx := range nIterations {
+		t.Run(fmt.Sprintf("iteration_%d", idx), func(t *testing.T) {
+			t.Parallel()
+
+			idx := idx
+			doPreAuth := idx%3 == 0
+			userName := fmt.Sprintf("authd-test-user%d", idx)
+			t.Cleanup(wg.Done)
+
+			var preauthUID atomic.Uint32
+			// var err error
+			if doPreAuth {
+				// In the pre-auth case we do even more parallelization, so that
+				// the pre-auth happens without a defined order of the actual
+				// registration.
+				userName = fmt.Sprintf("%s%d", registeredUserPrefix, idx)
+
+				//nolint:thelper // This is actually a test function!
+				preAuth := func(t *testing.T) {
+					t.Parallel()
+
+					uid, err := m.RegisterUserPreAuth(userName)
+					require.NoError(t, err, "RegisterPreAuthUser should not fail but it did")
+					preauthUID.Store(uid)
+				}
+
+				for i := range 3 {
+					t.Run(fmt.Sprintf("pre_auth%d", i), preAuth)
+				}
+			}
+
+			//nolint:thelper // This is actually a test function!
+			userUpdate := func(t *testing.T) {
+				t.Parallel()
+
+				err := m.UpdateUser(types.UserInfo{
+					Name:  userName,
+					UID:   preauthUID.Load(),
+					Dir:   "/home-prefixes/" + userName,
+					Shell: "/usr/sbin/nologin",
+					Groups: []types.GroupInfo{
+						{
+							Name: fmt.Sprintf("authd-test-group%d.1", idx),
+							UGID: fmt.Sprintf("authd-test-ugid%d.1", idx),
+						},
+						{
+							Name: fmt.Sprintf("authd-test-group%d.2", idx),
+							UGID: fmt.Sprintf("authd-test-ugid%d.2", idx),
+						},
+						{Name: fmt.Sprintf("authd-test-local-group%d", idx)},
+					},
+				})
+				require.NoError(t, err, "UpdateUser should not fail but it did")
+			}
+
+			testName := "update_user"
+			if doPreAuth {
+				testName = "maybe_finish_registration"
+			}
+
+			for i := range 3 {
+				t.Run(fmt.Sprintf("%s%d", testName, i), userUpdate)
+			}
+		})
+	}
+
+	t.Run("database_checks", func(t *testing.T) {
+		t.Parallel()
+
+		// Wait for the other tests to be completed, not using t.Cleanup here
+		// since this is actually a test.
+		wg.Wait()
+
+		// This includes the extra user that was already in the DB.
+		users, err := m.AllUsers()
+		require.NoError(t, err, "AllUsers should not fail but it did")
+		require.Len(t, users, nIterations+1, "Number of registered users mismatch")
+
+		// This includes the extra group that was already in the DB.
+		groups, err := m.AllGroups()
+		require.NoError(t, err, "AllGroups should not fail but it did")
+		require.Len(t, groups, nIterations*3+1, "Number of registered groups mismatch")
+
+		uniqueUIDs := make(map[uint32]types.UserEntry)
+		uniqueGIDs := make(map[uint32]string)
+
+		for _, u := range users {
+			old, ok := uniqueUIDs[u.UID]
+			require.False(t, ok,
+				"UID %d must be unique across entries, but it's used both %q and %q",
+				u.UID, u.Name, old)
+			uniqueUIDs[u.UID] = u
+			require.Equal(t, int(u.UID), int(u.GID), "User %q UID should match its GID", u.Name)
+
+			if !strings.HasPrefix(u.Name, registeredUserPrefix) {
+				// Ignore the local user checks for users already in the DB.
+				continue
+			}
+			localgroups, err := m.DB().UserLocalGroups(u.UID)
+			require.NoError(t, err, "UserLocalGroups for %q should not fail but it did", u.Name)
+			require.Len(t, localgroups, 1,
+				"Number of registered local groups for %q mismatch", u.Name)
+		}
+
+		for _, g := range groups {
+			old, ok := uniqueGIDs[g.GID]
+			require.False(t, ok, "GID %d must be unique across entries, but it's used both %q and %q",
+				g.GID, g.Name, old)
+			uniqueGIDs[g.GID] = g.Name
+
+			u, ok := uniqueUIDs[g.GID]
+			if !ok {
+				continue
+			}
+			require.Equal(t, int(g.GID), int(u.GID),
+				"Group %q can only match its user, not to %q", g.Name, u.Name)
+		}
+	})
+}
+
 func TestBrokerForUser(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		username string
 		dbFile   string
@@ -264,8 +511,7 @@ func TestBrokerForUser(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
@@ -285,6 +531,8 @@ func TestBrokerForUser(t *testing.T) {
 }
 
 func TestUpdateBrokerForUser(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		username string
 
@@ -299,8 +547,7 @@ func TestUpdateBrokerForUser(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			if tc.username == "" {
 				tc.username = "user1"
@@ -330,6 +577,8 @@ func TestUpdateBrokerForUser(t *testing.T) {
 }
 
 func TestUserByIDAndName(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		uid        uint32
 		username   string
@@ -339,18 +588,16 @@ func TestUserByIDAndName(t *testing.T) {
 		wantErr     bool
 		wantErrType error
 	}{
-		"Successfully_get_user_by_ID":             {uid: 1111, dbFile: "multiple_users_and_groups"},
-		"Successfully_get_user_by_name":           {username: "user1", dbFile: "multiple_users_and_groups"},
-		"Successfully_get_temporary_user_by_ID":   {dbFile: "multiple_users_and_groups", isTempUser: true},
-		"Successfully_get_temporary_user_by_name": {username: "tempuser1", dbFile: "multiple_users_and_groups", isTempUser: true},
+		"Successfully_get_user_by_ID":           {uid: 1111, dbFile: "multiple_users_and_groups"},
+		"Successfully_get_user_by_name":         {username: "user1", dbFile: "multiple_users_and_groups"},
+		"Successfully_get_temporary_user_by_ID": {dbFile: "multiple_users_and_groups", isTempUser: true},
 
 		"Error_if_user_does_not_exist_-_by_ID":   {uid: 0, dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 		"Error_if_user_does_not_exist_-_by_name": {username: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
@@ -359,7 +606,15 @@ func TestUserByIDAndName(t *testing.T) {
 			m := newManagerForTests(t, dbDir)
 
 			if tc.isTempUser {
-				tc.uid, _, err = m.TemporaryRecords().RegisterUser("tempuser1")
+				entries, entriesUnlock, err := localentries.NewWithLock()
+				require.NoError(t, err, "Setup: failed to lock the locale entries")
+				t.Cleanup(func() {
+					err = entriesUnlock()
+					require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
+				})
+				records := m.TemporaryRecords().LockForChanges(entries)
+
+				tc.uid, err = records.RegisterPreAuthUser("tempuser1")
 				require.NoError(t, err, "RegisterUser should not return an error, but did")
 			}
 
@@ -378,6 +633,8 @@ func TestUserByIDAndName(t *testing.T) {
 			// Registering a temporary user creates it with a random UID, GID, and gecos, so we have to make it
 			// deterministic before comparing it with the golden file
 			if tc.isTempUser {
+				require.True(t, strings.HasPrefix(user.Name, tempentries.UserPrefix))
+				user.Name = tempentries.UserPrefix + "{{random-suffix}}"
 				require.Equal(t, tc.uid, user.UID)
 				user.UID = 0
 				require.Equal(t, tc.uid, user.GID)
@@ -392,6 +649,8 @@ func TestUserByIDAndName(t *testing.T) {
 }
 
 func TestAllUsers(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		dbFile string
 
@@ -402,8 +661,7 @@ func TestAllUsers(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
@@ -423,37 +681,30 @@ func TestAllUsers(t *testing.T) {
 }
 
 func TestGroupByIDAndName(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
-		gid         uint32
-		groupname   string
-		dbFile      string
-		isTempGroup bool
+		gid       uint32
+		groupname string
+		dbFile    string
 
 		wantErr     bool
 		wantErrType error
 	}{
-		"Successfully_get_group_by_ID":             {gid: 11111, dbFile: "multiple_users_and_groups"},
-		"Successfully_get_group_by_name":           {groupname: "group1", dbFile: "multiple_users_and_groups"},
-		"Successfully_get_temporary_group_by_ID":   {dbFile: "multiple_users_and_groups", isTempGroup: true},
-		"Successfully_get_temporary_group_by_name": {groupname: "tempgroup1", dbFile: "multiple_users_and_groups", isTempGroup: true},
+		"Successfully_get_group_by_ID":   {gid: 11111, dbFile: "multiple_users_and_groups"},
+		"Successfully_get_group_by_name": {groupname: "group1", dbFile: "multiple_users_and_groups"},
 
 		"Error_if_group_does_not_exist_-_by_ID":   {gid: 0, dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 		"Error_if_group_does_not_exist_-_by_name": {groupname: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
 			require.NoError(t, err, "Setup: could not create database from testdata")
 			m := newManagerForTests(t, dbDir)
-
-			if tc.isTempGroup {
-				tc.gid, _, err = m.TemporaryRecords().RegisterGroup("tempgroup1")
-				require.NoError(t, err, "RegisterGroup should not return an error, but did")
-			}
 
 			var group types.GroupEntry
 			if tc.groupname != "" {
@@ -467,21 +718,14 @@ func TestGroupByIDAndName(t *testing.T) {
 				return
 			}
 
-			// Registering a temporary group creates it with a random GID and random passwd, so we have to make it
-			// deterministic before comparing it with the golden file
-			if tc.isTempGroup {
-				require.Equal(t, tc.gid, group.GID)
-				group.GID = 0
-				require.NotEmpty(t, group.Passwd)
-				group.Passwd = ""
-			}
-
 			golden.CheckOrUpdateYAML(t, group)
 		})
 	}
 }
 
 func TestAllGroups(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		dbFile string
 
@@ -492,8 +736,7 @@ func TestAllGroups(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
@@ -514,6 +757,8 @@ func TestAllGroups(t *testing.T) {
 }
 
 func TestShadowByName(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		username string
 		dbFile   string
@@ -527,8 +772,7 @@ func TestShadowByName(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
@@ -549,6 +793,8 @@ func TestShadowByName(t *testing.T) {
 }
 
 func TestAllShadows(t *testing.T) {
+	t.Parallel()
+
 	tests := map[string]struct {
 		dbFile string
 
@@ -558,8 +804,7 @@ func TestAllShadows(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about the output of gpasswd in this test, but we still need to mock it.
-			_ = localgroupstestutils.SetupGPasswdMock(t, "empty.group")
+			t.Parallel()
 
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
@@ -579,8 +824,86 @@ func TestAllShadows(t *testing.T) {
 	}
 }
 
-func TestMockgpasswd(t *testing.T) {
-	localgroupstestutils.Mockgpasswd(t)
+func TestRegisterUserPreAuthWhenLocked(t *testing.T) {
+	// This cannot be parallel
+
+	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, context.Background())
+	userslocking.Z_ForTests_SetMaxWaitTime(t, testutils.MultipliedSleepDuration(750*time.Millisecond))
+
+	dbFile := "one_user_and_group"
+	dbDir := t.TempDir()
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", dbFile+".db.yaml"), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	m := newManagerForTests(t, dbDir)
+
+	uid, err := m.RegisterUserPreAuth("locked-user")
+	require.ErrorIs(t, err, userslocking.ErrLock)
+	require.Zero(t, uid, "Uid should be unset")
+}
+
+func TestRegisterUserPreAuthAfterUnlock(t *testing.T) {
+	// This cannot be parallel
+
+	waitTime := testutils.MultipliedSleepDuration(750 * time.Millisecond)
+	lockCtx, lockCancel := context.WithTimeout(context.Background(), waitTime/2)
+	t.Cleanup(lockCancel)
+
+	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, lockCtx)
+	userslocking.Z_ForTests_SetMaxWaitTime(t, waitTime)
+
+	t.Cleanup(func() { _ = userslocking.WriteRecUnlock() })
+
+	dbFile := "one_user_and_group"
+	dbDir := t.TempDir()
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", dbFile+".db.yaml"), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	m := newManagerForTests(t, dbDir)
+
+	uid, err := m.RegisterUserPreAuth("locked-user")
+	require.NoError(t, err, "Registration should not fail")
+	require.NotZero(t, uid, "UID should be set")
+}
+
+func TestUpdateUserWhenLocked(t *testing.T) {
+	// This cannot be parallel
+
+	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, context.Background())
+	userslocking.Z_ForTests_SetMaxWaitTime(t, testutils.MultipliedSleepDuration(750*time.Millisecond))
+
+	dbFile := "one_user_and_group"
+	dbDir := t.TempDir()
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", dbFile+".db.yaml"), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	m := newManagerForTests(t, dbDir)
+
+	err = m.UpdateUser(types.UserInfo{UID: 1234, Name: "test-user"})
+	require.ErrorIs(t, err, userslocking.ErrLock)
+}
+
+func TestUpdateUserAfterUnlock(t *testing.T) {
+	// This cannot be parallel
+
+	waitTime := testutils.MultipliedSleepDuration(750 * time.Millisecond)
+	lockCtx, lockCancel := context.WithTimeout(context.Background(), waitTime/2)
+	t.Cleanup(lockCancel)
+
+	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, lockCtx)
+	userslocking.Z_ForTests_SetMaxWaitTime(t, waitTime)
+
+	t.Cleanup(func() { _ = userslocking.WriteRecUnlock() })
+
+	dbFile := "one_user_and_group"
+	dbDir := t.TempDir()
+	err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", dbFile+".db.yaml"), dbDir)
+	require.NoError(t, err, "Setup: could not create database from testdata")
+
+	m := newManagerForTests(t, dbDir)
+
+	err = m.UpdateUser(types.UserInfo{UID: 1234, Name: "some-user-test"})
+	require.NoError(t, err, "UpdateUser should not fail")
 }
 
 func requireErrorAssertions(t *testing.T, gotErr, wantErrType error, wantErr bool) {
@@ -608,5 +931,9 @@ func newManagerForTests(t *testing.T, dbDir string, opts ...users.Option) *users
 
 func TestMain(m *testing.M) {
 	log.SetLevel(log.DebugLevel)
+
+	userslocking.Z_ForTests_OverrideLocking()
+	defer userslocking.Z_ForTests_RestoreLocking()
+
 	m.Run()
 }

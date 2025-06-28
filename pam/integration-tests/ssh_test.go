@@ -121,9 +121,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	defaultTapeSettings := []tapeSetting{{vhsHeight, 1000}, {vhsWidth, 1500}}
 
 	var sshdEnv []string
-	var defaultSSHDPort, defaultUserHome, defaultSocketPath, defaultGPasswdOutput string
+	var defaultSSHDPort, defaultUserHome, defaultSocketPath, defaultGroupOutput string
 	if sharedSSHd {
-		defaultSocketPath, defaultGPasswdOutput = sharedAuthd(t)
+		defaultSocketPath, defaultGroupOutput = sharedAuthd(t)
 		serviceFile := createSshdServiceFile(t, execModule, execChild, pamMkHomeDirModule, defaultSocketPath)
 		sshdEnv = append(sshdEnv, nssEnv...)
 		sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocketPath))
@@ -356,7 +356,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			t.Parallel()
 
 			socketPath := defaultSocketPath
-			gpasswdOutput := defaultGPasswdOutput
+			groupOutput := defaultGroupOutput
 
 			var authdEnv []string
 			var authdSocketLink string
@@ -375,19 +375,20 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				authdEnv = append(authdEnv, nssTestEnv(t, nssLibrary, authdSocketLink)...)
 			}
 
-			var groupsFile string
 			if tc.wantLocalGroups || tc.oldDB != "" {
 				// For the local groups tests we need to run authd again so that it has
-				// special environment that generates a fake gpasswd output for us to test.
-				// In the other cases this is not needed, so we can just use a shared authd.
-				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
+				// special environment that saves the updated group file to a writable
+				// location for us to test.
+				_, groupOutput = prepareGroupFiles(t)
 
 				authdEnv = append(authdEnv, useOldDatabaseEnv(t, tc.oldDB)...)
 
-				socketPath = runAuthd(t, gpasswdOutput, groupsFile, true,
+				socketPath = runAuthd(t, true,
+					testutils.WithGroupFile(groupOutput),
 					testutils.WithEnvironment(authdEnv...))
 			} else if !sharedSSHd {
-				socketPath, gpasswdOutput = sharedAuthd(t,
+				socketPath, groupOutput = sharedAuthd(t,
+					testutils.WithGroupFileOutput(defaultGroupOutput),
 					testutils.WithEnvironment(authdEnv...))
 			}
 			if tc.socketPath != "" {
@@ -511,13 +512,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				}
 			}
 
-			if tc.wantLocalGroups || tc.oldDB != "" {
-				actualGroups, err := os.ReadFile(groupsFile)
-				require.NoError(t, err, "Failed to read the groups file")
-				golden.CheckOrUpdate(t, string(actualGroups), golden.WithSuffix(".groups"))
-			}
-
-			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, golden.Path(t)+".gpasswd_out")
+			localgroupstestutils.RequireGroupFile(t, groupOutput, golden.Path(t))
 		})
 	}
 }

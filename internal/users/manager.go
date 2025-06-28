@@ -6,9 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/user"
+	"slices"
 	"strings"
-	"sync"
 	"syscall"
 
 	"github.com/ubuntu/authd/internal/users/db"
@@ -41,7 +40,6 @@ type Manager struct {
 	db               *db.Manager
 	config           Config
 	temporaryRecords *tempentries.TemporaryRecords
-	updateUserMu     sync.Mutex
 }
 
 type options struct {
@@ -50,6 +48,9 @@ type options struct {
 
 // Option is a function that allows changing some of the default behaviors of the manager.
 type Option func(*options)
+
+// errUpdateRetry is an error when the user update failed in a non fatal way.
+var errUpdateRetry = errors.New("update failed. Try again")
 
 // WithIDGenerator makes the manager use a specific ID generator.
 // This option is only useful in tests.
@@ -111,6 +112,31 @@ func (m *Manager) Stop() error {
 
 // UpdateUser updates the user information in the db.
 func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
+	// Maybe we can even avoid to have a max... But well we'd likely fail only
+	// if the UID/GID set is very limited and we've lots of concurrent requests.
+	// In the worse case we'd fail anyways because temporary entries max
+	// max generation limit is reached anyways.
+	const maxRetries = 100
+
+	for i := range maxRetries {
+		user := u
+		user.Groups = slices.Clone(u.Groups)
+
+		err = m.updateUser(user)
+		if errors.Is(err, errUpdateRetry) {
+			log.Infof(context.Background(),
+				"User %q update [try: %d] failed for a recoverable reason: %v",
+				u.Name, i, err)
+			continue
+		}
+
+		break
+	}
+
+	return err
+}
+
+func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	defer decorate.OnError(&err, "failed to update user %q", u.Name)
 
 	log.Debugf(context.TODO(), "Updating user %q", u.Name)
@@ -123,12 +149,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 
 	var uid uint32
-
-	// Prevent a TOCTOU race condition between the check for existence in our database and the registration of the
-	// temporary user/group records. This does not prevent a race condition where a user is created by some other NSS
-	// source, but that is handled in the temporaryRecords.RegisterUser and temporaryRecords.RegisterGroup functions.
-	m.updateUserMu.Lock()
-	defer m.updateUserMu.Unlock()
+	var isNewUser bool
 
 	// Check if the user already exists in the database
 	oldUser, err := m.db.UserByName(u.Name)
@@ -136,20 +157,16 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		return fmt.Errorf("could not get user %q: %w", u.Name, err)
 	}
 	if errors.Is(err, db.NoDataFoundError{}) {
-		// Check if the user exists on the system
-		existingUser, err := user.Lookup(u.Name)
-		var unknownUserErr user.UnknownUserError
-		if !errors.As(err, &unknownUserErr) {
-			log.Errorf(context.Background(), "User already exists on the system: %+v", existingUser)
-			return fmt.Errorf("user %q already exists on the system (but not in this authd instance)", u.Name)
+		isNewUser = true
+		localEntries, unlockEntries, err := localentries.NewWithLock()
+		if err != nil {
+			return err
 		}
+		defer func() { err = errors.Join(err, unlockEntries()) }()
+		records := m.temporaryRecords.LockForChanges(localEntries)
 
-		// The user does not exist, so we generate a unique UID for it. To avoid that a user with the same UID is
-		// created by some other NSS source, this also registers a temporary user in our NSS handler. We remove that
-		// temporary user before returning from this function, at which point the user is added to the database (so we
-		// don't need the temporary user anymore to keep the UID unique).
 		var cleanup func()
-		uid, cleanup, err = m.temporaryRecords.RegisterUser(u.Name)
+		uid, cleanup, err = records.RegisterUser(u.Name)
 		if err != nil {
 			return fmt.Errorf("could not register user %q: %w", u.Name, err)
 		}
@@ -164,6 +181,7 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 
 	var groupRows []db.GroupRow
 	var localGroups []string
+	var newGroups []types.GroupInfo
 	for _, g := range u.Groups {
 		if g.Name == "" {
 			return fmt.Errorf("empty group name for user %q", u.Name)
@@ -197,20 +215,31 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		}
 
 		if g.GID == nil {
-			// The group does not exist in the database, so we generate a unique GID for it. Similar to the RegisterUser
-			// call above, this also registers a temporary group in our NSS handler. We remove that temporary group
-			// before returning from this function, at which point the group is added to the database (so we don't need
-			// the temporary group anymore to keep the GID unique).
-			gid, cleanup, err := m.temporaryRecords.RegisterGroup(g.Name)
+			// The group does not exist in the database, so we generate a unique GID for it.
+			newGroups = append(newGroups, g)
+			continue
+		}
+
+		groupRows = append(groupRows, db.NewGroupRow(g.Name, *g.GID, g.UGID))
+	}
+
+	if len(newGroups) > 0 {
+		localEntries, unlockEntries, err := localentries.NewWithLock()
+		if err != nil {
+			return err
+		}
+		defer func() { err = errors.Join(err, unlockEntries()) }()
+		records := m.temporaryRecords.LockForChanges(localEntries)
+
+		for _, g := range newGroups {
+			gid, cleanup, err := records.RegisterGroupForUser(uid, g.Name)
 			if err != nil {
 				return fmt.Errorf("could not generate GID for group %q: %v", g.Name, err)
 			}
 
 			defer cleanup()
-			g.GID = &gid
+			groupRows = append(groupRows, db.NewGroupRow(g.Name, gid, g.UGID))
 		}
-
-		groupRows = append(groupRows, db.NewGroupRow(g.Name, *g.GID, g.UGID))
 	}
 
 	oldLocalGroups, err := m.db.UserLocalGroups(uid)
@@ -221,12 +250,24 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	// Update user information in the db.
 	userPrivateGroup := groupRows[0]
 	userRow := db.NewUserRow(u.Name, uid, userPrivateGroup.GID, u.Gecos, u.Dir, u.Shell)
-	if err := m.db.UpdateUserEntry(userRow, groupRows, localGroups); err != nil {
+	err = m.db.UpdateUserEntry(userRow, groupRows, localGroups)
+	if isNewUser && errors.Is(err, db.ErrUIDAlreadyInUse) {
+		return fmt.Errorf("%w: %w", errUpdateRetry, err)
+	}
+	if errors.Is(err, db.ErrGIDAlreadyInUse) {
+		return fmt.Errorf("%w: %w", errUpdateRetry, err)
+	}
+	if errors.Is(err, db.NoDataFoundError{}) {
+		// The user or group has not been found while updating it, likely due
+		// to previous concurrent requests not having finished, so let's retry.
+		return fmt.Errorf("%w: %w", errUpdateRetry, err)
+	}
+	if err != nil {
 		return err
 	}
 
 	// Update local groups.
-	if err := localentries.Update(u.Name, localGroups, oldLocalGroups); err != nil {
+	if err := localentries.UpdateGroups(u.Name, localGroups, oldLocalGroups); err != nil {
 		return err
 	}
 
@@ -248,14 +289,8 @@ func (m *Manager) checkGroupNameConflict(name string, ugid string) error {
 	}
 
 	if errors.Is(err, db.NoDataFoundError{}) {
-		// The group does not exist in the database, check if it exists on the system.
-		existingGroup, err := user.LookupGroup(name)
-		var unknownGroupErr user.UnknownGroupError
-		if !errors.As(err, &unknownGroupErr) {
-			log.Errorf(context.Background(), "Group already exists on the system: %+v", existingGroup)
-			return fmt.Errorf("group %q already exists on the system (but not in this authd instance)", name)
-		}
-		// The group does not exist on the system, so we can proceed.
+		// The group does not exist in the database, the check in the system
+		// can be delayed to the registration point.
 		return nil
 	}
 
@@ -385,10 +420,6 @@ func (m *Manager) AllUsers() ([]types.UserEntry, error) {
 // GroupByName returns the group information for the given group name.
 func (m *Manager) GroupByName(groupname string) (types.GroupEntry, error) {
 	grp, err := m.db.GroupWithMembersByName(groupname)
-	if errors.Is(err, db.NoDataFoundError{}) {
-		// Check if the group is a temporary group.
-		return m.temporaryRecords.GroupByName(groupname)
-	}
 	if err != nil {
 		return types.GroupEntry{}, err
 	}
@@ -398,10 +429,6 @@ func (m *Manager) GroupByName(groupname string) (types.GroupEntry, error) {
 // GroupByID returns the group information for the given group ID.
 func (m *Manager) GroupByID(gid uint32) (types.GroupEntry, error) {
 	grp, err := m.db.GroupWithMembersByID(gid)
-	if errors.Is(err, db.NoDataFoundError{}) {
-		// Check if the group is a temporary group.
-		return m.temporaryRecords.GroupByID(gid)
-	}
 	if err != nil {
 		return types.GroupEntry{}, err
 	}
@@ -449,6 +476,18 @@ func (m *Manager) AllShadows() ([]types.ShadowEntry, error) {
 // RegisterUserPreAuth registers a temporary user with a unique UID in our NSS handler (in memory, not in the database).
 //
 // The temporary user record is removed when UpdateUser is called with the same username.
-func (m *Manager) RegisterUserPreAuth(name string) (uint32, error) {
-	return m.temporaryRecords.RegisterPreAuthUser(name)
+func (m *Manager) RegisterUserPreAuth(name string) (uid uint32, err error) {
+	defer decorate.OnError(&err, "failed to register pre-auth user %q", name)
+
+	if userRow, err := m.db.UserByName(name); err == nil {
+		return userRow.UID, nil
+	}
+
+	localEntries, unlockEntries, err := localentries.NewWithLock()
+	if err != nil {
+		return 0, err
+	}
+	defer func() { err = errors.Join(err, unlockEntries()) }()
+
+	return m.temporaryRecords.LockForChanges(localEntries).RegisterPreAuthUser(name)
 }
