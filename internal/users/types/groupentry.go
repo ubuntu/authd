@@ -25,12 +25,25 @@ func (g GroupEntry) Validate() error {
 		return fmt.Errorf("group %q cannot contain ',' character", g.Name)
 	}
 
+	if strings.ContainsRune(g.Name, ':') {
+		return fmt.Errorf("group %q cannot contain ':' character", g.Name)
+	}
+
 	if strings.ContainsRune(g.Passwd, ',') {
 		return fmt.Errorf("group %q passwd %q cannot contain ',' character", g.Name, g.Passwd)
 	}
 
-	if slices.ContainsFunc(g.Users, func(u string) bool { return strings.ContainsRune(u, ',') }) {
-		return fmt.Errorf("group %q cannot contain users with ',' character (%v)", g, g.Users)
+	if strings.ContainsRune(g.Passwd, ':') {
+		return fmt.Errorf("group %q passwd %q cannot contain ':' character", g.Name, g.Passwd)
+	}
+
+	for _, u := range g.Users {
+		if strings.ContainsRune(u, ',') {
+			return fmt.Errorf("group %q cannot contain users with ',' character (%v)", g, g.Users)
+		}
+		if strings.ContainsRune(u, ':') {
+			return fmt.Errorf("group %q cannot contain users with ':' character (%v)", g, g.Users)
+		}
 	}
 
 	return nil
