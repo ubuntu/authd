@@ -76,13 +76,13 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 		// autoselection silently in authd.
 		// User not in database, if there is only the local broker available, return this one without saving it.
 		if len(s.brokerManager.AvailableBrokers()) == 1 {
-			log.Debugf(ctx, "User %q is not handled by authd and only local broker: select it.", req.GetUsername())
+			log.Debugf(ctx, "GetPreviousBroker: User %q not found in database and only local broker available, selecting local broker", req.GetUsername())
 			return &authd.GPBResponse{PreviousBroker: brokers.LocalBrokerName}, nil
 		}
 
 		// User not accessible through NSS, first time login or no valid user. Anyway, no broker selected.
 		if _, err := user.Lookup(req.GetUsername()); err != nil {
-			log.Debugf(ctx, "User %q is unknown", req.GetUsername())
+			log.Debugf(ctx, "GetPreviousBroker: User %q not found", req.GetUsername())
 			return &authd.GPBResponse{}, nil
 		}
 
@@ -90,29 +90,29 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 		// service (passwd, winbind, sss…) is handling that user.
 		brokerID = brokers.LocalBrokerName
 	} else if err != nil {
-		log.Infof(ctx, "Could not get previous broker for user %q from database: %v", req.GetUsername(), err)
+		log.Infof(ctx, "GetPreviousBroker: Could not get broker for user %q from database: %v", req.GetUsername(), err)
 		return &authd.GPBResponse{}, nil
 	}
 
 	// No error but the brokerID is empty (broker in database but default broker not stored yet due no successful login)
 	if brokerID == "" {
-		log.Infof(ctx, "No assigned broker for user %q from database", req.GetUsername())
+		log.Infof(ctx, "GetPreviousBroker: No broker set for user %q, letting the user select a new one", req.GetUsername())
 		return &authd.GPBResponse{}, nil
 	}
 
 	if !s.brokerManager.BrokerExists(brokerID) {
-		log.Warningf(ctx, "Last used broker %q is not available for user %q, letting the user select a new one", brokerID, req.GetUsername())
+		log.Warningf(ctx, "GetPreviousBroker: Broker %q set for user %q does not exist, letting the user select a new one", brokerID, req.GetUsername())
 		return &authd.GPBResponse{}, nil
 	}
 
-	// Database the broker which should be used for the user, so that we don't have to query the database again next time -
+	// Cache the broker which should be used for the user, so that we don't have to query the database again next time -
 	// except if the broker is the local broker, because then the decision to use the local broker should be made each
 	// time the user tries to log in, based on whether the user is provided by any other NSS service.
 	if brokerID == brokers.LocalBrokerName {
 		return &authd.GPBResponse{PreviousBroker: brokerID}, nil
 	}
 	if err = s.brokerManager.SetDefaultBrokerForUser(brokerID, req.GetUsername()); err != nil {
-		log.Warningf(ctx, "Could not set default broker %q for user %q: %v", brokerID, req.GetUsername(), err)
+		log.Warningf(ctx, "GetPreviousBroker: Could not cache broker %q for user %q: %v", brokerID, req.GetUsername(), err)
 		return &authd.GPBResponse{}, nil
 	}
 
@@ -133,9 +133,11 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 	username = strings.ToLower(username)
 
 	if username == "" {
+		log.Errorf(ctx, "SelectBroker: No user name provided")
 		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
 	if brokerID == "" {
+		log.Errorf(ctx, "SelectBroker: No broker selected")
 		return nil, status.Error(codes.InvalidArgument, "no broker selected")
 	}
 	if lang == "" {
@@ -149,19 +151,21 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 	case authd.SessionMode_CHANGE_PASSWORD:
 		mode = auth.SessionModeChangePassword
 	default:
+		log.Errorf(ctx, "SelectBroker: Invalid session mode %q", req.GetMode())
 		return nil, status.Error(codes.InvalidArgument, "invalid session mode")
 	}
 
 	// Create a session and Memorize selected broker for it.
 	sessionID, encryptionKey, err := s.brokerManager.NewSession(brokerID, username, lang, mode)
 	if err != nil {
+		log.Errorf(ctx, "SelectBroker: Could not create session for user %q with broker %q: %v", username, brokerID, err)
 		return nil, err
 	}
 
 	return &authd.SBResponse{
 		SessionId:     sessionID,
 		EncryptionKey: encryptionKey,
-	}, err
+	}, nil
 }
 
 // GetAuthenticationModes fetches a list of authentication modes supported by the broker depending on the session information.
@@ -170,11 +174,13 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMReque
 
 	sessionID := req.GetSessionId()
 	if sessionID == "" {
+		log.Errorf(ctx, "GetAuthenticationModes: No session ID provided")
 		return nil, status.Error(codes.InvalidArgument, "no session ID provided")
 	}
 
 	broker, err := s.brokerManager.BrokerFromSessionID(sessionID)
 	if err != nil {
+		log.Errorf(ctx, "GetAuthenticationModes: Could not get broker for session %q: %v", sessionID, err)
 		return nil, err
 	}
 
@@ -182,6 +188,7 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMReque
 	for _, l := range req.GetSupportedUiLayouts() {
 		layout, err := uiLayoutToMap(l)
 		if err != nil {
+			log.Errorf(ctx, "GetAuthenticationModes: Invalid UI layout %v: %v", l, err)
 			return nil, err
 		}
 		supportedLayouts = append(supportedLayouts, layout)
@@ -189,6 +196,7 @@ func (s Service) GetAuthenticationModes(ctx context.Context, req *authd.GAMReque
 
 	authenticationModes, err := broker.GetAuthenticationModes(ctx, sessionID, supportedLayouts)
 	if err != nil {
+		log.Errorf(ctx, "GetAuthenticationModes: Could not get authentication modes for session %q: %v", sessionID, err)
 		return nil, err
 	}
 
@@ -213,19 +221,23 @@ func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMReq
 	authenticationModeID := req.GetAuthenticationModeId()
 
 	if sessionID == "" {
+		log.Errorf(ctx, "SelectAuthenticationMode: No session ID provided")
 		return nil, status.Error(codes.InvalidArgument, "no session ID provided")
 	}
 	if authenticationModeID == "" {
+		log.Errorf(ctx, "SelectAuthenticationMode: No authentication mode provided")
 		return nil, status.Error(codes.InvalidArgument, "no authentication mode provided")
 	}
 
 	broker, err := s.brokerManager.BrokerFromSessionID(sessionID)
 	if err != nil {
+		log.Errorf(ctx, "SelectAuthenticationMode: Could not get broker for session %q: %v", sessionID, err)
 		return nil, err
 	}
 
 	uiLayoutInfo, err := broker.SelectAuthenticationMode(ctx, sessionID, authenticationModeID)
 	if err != nil {
+		log.Errorf(ctx, "SelectAuthenticationMode: Could not select authentication mode %q for session %q: %v", authenticationModeID, sessionID, err)
 		return nil, err
 	}
 
@@ -240,21 +252,25 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 
 	sessionID := req.GetSessionId()
 	if sessionID == "" {
+		log.Errorf(ctx, "IsAuthenticated: No session ID provided")
 		return nil, status.Error(codes.InvalidArgument, "no session ID provided")
 	}
 
 	broker, err := s.brokerManager.BrokerFromSessionID(sessionID)
 	if err != nil {
+		log.Errorf(ctx, "IsAuthenticated: Could not get broker for session %q: %v", sessionID, err)
 		return nil, err
 	}
 
 	authenticationDataJSON, err := protojson.Marshal(req.GetAuthenticationData())
 	if err != nil {
+		log.Errorf(ctx, "IsAuthenticated: Could not marshal authentication data for session %q: %v", sessionID, err)
 		return nil, err
 	}
 
 	access, data, err := broker.IsAuthenticated(ctx, sessionID, string(authenticationDataJSON))
 	if err != nil {
+		log.Errorf(ctx, "IsAuthenticated: Could not check authentication for session %q: %v", sessionID, err)
 		return nil, err
 	}
 
@@ -269,11 +285,13 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 
 	var uInfo types.UserInfo
 	if err := json.Unmarshal([]byte(data), &uInfo); err != nil {
+		log.Errorf(ctx, "IsAuthenticated: Could not unmarshal user data for session %q: %v", sessionID, err)
 		return nil, fmt.Errorf("user data from broker invalid: %v", err)
 	}
 
 	// Update database and local groups on granted auth.
 	if err := s.userManager.UpdateUser(uInfo); err != nil {
+		log.Errorf(ctx, "IsAuthenticated: Could not update user %q in database: %v", uInfo.Name, err)
 		return nil, err
 	}
 
@@ -288,20 +306,24 @@ func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURe
 	defer decorate.OnError(&err, "can't set default broker %q for user %q", req.GetBrokerId(), req.GetUsername())
 
 	if req.GetUsername() == "" {
+		log.Errorf(ctx, "SetDefaultBrokerForUser: No user name given")
 		return nil, status.Error(codes.InvalidArgument, "no user name given")
 	}
 
 	// Don't allow setting the default broker to the local broker, because the decision to use the local broker should
 	// be made each time the user tries to log in, based on whether the user is provided by any other NSS service.
 	if req.GetBrokerId() == brokers.LocalBrokerName {
+		log.Errorf(ctx, "SetDefaultBrokerForUser: Can't set local broker as default for user %q", req.GetUsername())
 		return nil, status.Error(codes.InvalidArgument, "can't set local broker as default")
 	}
 
 	if err = s.brokerManager.SetDefaultBrokerForUser(req.GetBrokerId(), req.GetUsername()); err != nil {
+		log.Errorf(ctx, "SetDefaultBrokerForUser: Could not set default broker %q for user %q: %v", req.GetBrokerId(), req.GetUsername(), err)
 		return &authd.Empty{}, err
 	}
 
 	if err = s.userManager.UpdateBrokerForUser(req.GetUsername(), req.GetBrokerId()); err != nil {
+		log.Errorf(ctx, "SetDefaultBrokerForUser: Could not update broker for user %q in database: %v", req.GetUsername(), err)
 		return &authd.Empty{}, err
 	}
 
@@ -314,6 +336,7 @@ func (s Service) EndSession(ctx context.Context, req *authd.ESRequest) (empty *a
 
 	sessionID := req.GetSessionId()
 	if sessionID == "" {
+		log.Errorf(ctx, "EndSession: No session ID given")
 		return nil, status.Error(codes.InvalidArgument, "no session id given")
 	}
 
