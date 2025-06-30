@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -21,13 +22,15 @@ import (
 )
 
 type daemonOptions struct {
-	dbPath     string
-	existentDB string
-	socketPath string
-	pidFile    string
-	outputFile string
-	shared     bool
-	env        []string
+	dbPath            string
+	existentDB        string
+	socketPath        string
+	pidFile           string
+	outputFile        string
+	gpasswdGroupsFile string
+	gpasswdArgs       []string
+	shared            bool
+	env               []string
 }
 
 // DaemonOption represents an optional function that can be used to override some of the daemon default values.
@@ -90,9 +93,24 @@ func WithHomeBaseDir(baseDir string) DaemonOption {
 	}
 }
 
-// RunDaemon runs the daemon in a separate process and returns the socket path and a channel that will be closed when
-// the daemon stops.
-func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
+// WithCurrentUserAsRoot configures the daemon to accept the current user as root when checking permissions.
+// This is useful for integration tests where the current user is not root, but we want to
+// test the behavior as if it were root.
+var WithCurrentUserAsRoot DaemonOption = func(o *daemonOptions) {
+	o.env = append(o.env, "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
+}
+
+// WithGPasswdMock configures the daemon to use a mock gpasswd command for testing purposes.
+func WithGPasswdMock(outputFile, groupsFile string) DaemonOption {
+	return func(o *daemonOptions) {
+		o.gpasswdGroupsFile = groupsFile
+		o.gpasswdArgs = append([]string{"env", "GO_WANT_HELPER_PROCESS=1"}, os.Args...)
+		o.gpasswdArgs = append(o.gpasswdArgs, "-test.run=TestMockgpasswd", "--", groupsFile, outputFile)
+	}
+}
+
+// StartDaemon starts the daemon in a separate process and returns the socket path.
+func StartDaemon(t *testing.T, execPath string, args ...DaemonOption) (socketPath string) {
 	t.Helper()
 
 	opts := &daemonOptions{}
@@ -118,6 +136,16 @@ func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...Daemo
 		opts.socketPath = filepath.Join(tempDir, "authd.socket")
 	}
 
+	if opts.gpasswdGroupsFile == "" {
+		opts.gpasswdGroupsFile = filepath.Join(tempDir, "gpasswd.group")
+	}
+
+	if opts.gpasswdArgs == nil {
+		gpasswdOutputFile := filepath.Join(tempDir, "gpasswd.output")
+		opts.gpasswdArgs = append([]string{"env", "GO_WANT_HELPER_PROCESS=1"}, os.Args...)
+		opts.gpasswdArgs = append(opts.gpasswdArgs, "-test.run=TestMockgpasswd", "--", opts.gpasswdGroupsFile, gpasswdOutputFile)
+	}
+
 	config := fmt.Sprintf(`
 verbosity: 2
 paths:
@@ -128,15 +156,21 @@ paths:
 	configPath := filepath.Join(tempDir, "testconfig.yaml")
 	require.NoError(t, os.WriteFile(configPath, []byte(config), 0600), "Setup: failed to create config file for tests")
 
-	var cancel context.CancelCauseFunc
-	if opts.pidFile != "" {
-		ctx, cancel = context.WithCancelCause(ctx)
-	}
+	stopped := make(chan struct{})
+	ctx, cancel := context.WithCancelCause(context.Background())
+	t.Cleanup(func() {
+		t.Log("Stopping daemon...")
+		cancel(nil)
+		<-stopped
+	})
 
 	// #nosec:G204 - we control the command arguments in tests
 	cmd := exec.CommandContext(ctx, execPath, "-c", configPath)
 	opts.env = append(opts.env, os.Environ()...)
 	opts.env = append(opts.env, fmt.Sprintf("AUTHD_EXAMPLE_BROKER_SLEEP_MULTIPLIER=%f", SleepMultiplier()))
+	opts.env = append(opts.env, "AUTHD_INTEGRATIONTESTS_GPASSWD_ARGS="+strings.Join(opts.gpasswdArgs, " "))
+	opts.env = append(opts.env, "AUTHD_INTEGRATIONTESTS_GPASSWD_GRP_FILE_PATH="+opts.gpasswdGroupsFile)
+
 	cmd.Env = AppendCovEnv(opts.env)
 
 	// This is the function that is called by CommandContext when the context is cancelled.
@@ -146,13 +180,14 @@ paths:
 	}
 
 	// Start the daemon
-	stopped = make(chan struct{})
 	processPid := make(chan int)
 	go func() {
 		defer close(stopped)
 		var b bytes.Buffer
 		cmd.Stdout = &b
 		cmd.Stderr = &b
+
+		t.Logf("Setup: starting daemon with command: %s", cmd.String())
 		err := cmd.Start()
 		require.NoError(t, err, "Setup: daemon cannot start %v", cmd.Args)
 		if opts.pidFile != "" {
@@ -223,11 +258,11 @@ paths:
 		}()
 	}
 
-	return opts.socketPath, stopped
+	return opts.socketPath
 }
 
 // BuildDaemon builds the daemon executable and returns the binary path.
-func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err error) {
+func BuildDaemon() (execPath string, cleanup func(), err error) {
 	projectRoot := ProjectRoot()
 
 	tempDir, err := os.MkdirTemp("", "authd-tests-daemon")
@@ -250,9 +285,10 @@ func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err erro
 		cmd.Args = append(cmd.Args, "-race")
 	}
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
-	cmd.Args = append(cmd.Args, extraArgs...)
+	cmd.Args = append(cmd.Args, "-tags=withexamplebroker,integrationtests")
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")
 
+	fmt.Fprintln(os.Stderr, "Running command:", cmd.String())
 	if out, err := cmd.CombinedOutput(); err != nil {
 		cleanup()
 		return "", nil, fmt.Errorf("failed to build daemon(%v): %s", err, out)

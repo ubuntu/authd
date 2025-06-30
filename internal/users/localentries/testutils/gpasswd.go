@@ -86,26 +86,6 @@ func SetupGPasswdMock(t *testing.T, groupsFilePath string) string {
 	return destCmdsFile
 }
 
-// AuthdIntegrationTestsEnvWithGpasswdMock returns the environment to pass to the authd daemon to use the gpasswd
-// mock. In order to enable it, the authd binary must be built with the tag integrationtests.
-// You need to install a TestMockgpasswd (generally calling Mockgpasswd) in your integration tests files.
-func AuthdIntegrationTestsEnvWithGpasswdMock(t *testing.T, outputFilePath, groupsFilePath string) []string {
-	t.Helper()
-
-	gpasswdArgs := append([]string{
-		"env", "GO_WANT_HELPER_PROCESS=1"},
-		os.Args...)
-	gpasswdArgs = append(gpasswdArgs,
-		"-test.run=TestMockgpasswd", "--",
-		groupsFilePath, outputFilePath,
-	)
-
-	return []string{
-		"AUTHD_INTEGRATIONTESTS_GPASSWD_ARGS=" + strings.Join(gpasswdArgs, " "),
-		"AUTHD_INTEGRATIONTESTS_GPASSWD_GRP_FILE_PATH=" + groupsFilePath,
-	}
-}
-
 // RequireGPasswdOutput compare the output of gpasswd with the golden file.
 func RequireGPasswdOutput(t *testing.T, destCmdsFile, goldenGpasswdPath string) {
 	t.Helper()

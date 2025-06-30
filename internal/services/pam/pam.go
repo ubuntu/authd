@@ -123,8 +123,6 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 
 // SelectBroker starts a new session and selects the requested broker for the user.
 func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *authd.SBResponse, err error) {
-	defer decorate.OnError(&err, "can't start authentication transaction")
-
 	username := req.GetUsername()
 	brokerID := req.GetBrokerId()
 	lang := req.GetLang()
@@ -140,6 +138,15 @@ func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *
 	}
 	if lang == "" {
 		lang = "C"
+	}
+
+	userIsLocked, err := s.userManager.IsUserLocked(username)
+	if err != nil && !errors.Is(err, users.NoDataFoundError{}) {
+		return nil, fmt.Errorf("could not check if user %q is locked: %w", username, err)
+	}
+	// Throw an error if the user trying to authenticate already exists in the database and is locked
+	if err == nil && userIsLocked {
+		return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("user %s is locked", username))
 	}
 
 	var mode string
