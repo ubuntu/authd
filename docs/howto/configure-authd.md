@@ -238,8 +238,35 @@ in `allowed_users`:
 owner = ""
 ```
 
-::::
-:::::
+(ref::config-user-groups)=
+## Configure user groups
+
+Some brokers support adding users to groups that are configured in the identity provider.
+
+> See the [group management reference](reference::group-management) for more details.
+
+In addition, you can configure extra groups for authd users.
+On login, the users are added to these groups automatically.
+Specify any extra groups in the `users` section of the broker
+configuration file:
+
+```ini
+[users]
+## A comma-separated list of local groups which authd users will be
+## added to upon login.
+## Example: extra_groups = users
+#extra_groups =
+```
+
+There is also an `owner_extra_groups` option for specifying additional local groups,
+to which only the user with the [owner role](#configure-allowed-users) is added:
+
+```ini
+## Like 'extra_groups', but only the user assigned the owner role
+## will be added to these groups.
+## Example: owner_extra_groups = sudo,lpadmin
+#owner_extra_groups =
+```
 
 ## Restart the broker
 
