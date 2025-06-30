@@ -7,11 +7,13 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"syscall"
 	"time"
 
 	"github.com/msteinert/pam/v2"
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/authd/pam/internal/dbusmodule"
+	"golang.org/x/sys/unix"
 )
 
 var (
@@ -25,6 +27,19 @@ func init() {
 	// calling the dbus services from the process and so that the module PID
 	// check won't fail.
 	runtime.LockOSThread()
+
+	// Ask the kernel to send SIGTERM if the parent dies
+	if err := unix.Prctl(unix.PR_SET_PDEATHSIG, uintptr(syscall.SIGTERM), 0, 0, 0); err != nil {
+		log.Errorf(context.Background(), "failed to set PDEATHSIG: %v", err)
+		os.Exit(1)
+	}
+
+	// Check if parent is still alive
+	ppid := unix.Getppid()
+	if ppid == 1 {
+		log.Error(context.Background(), "parent is already gone; exiting")
+		os.Exit(1)
+	}
 }
 
 func mainFunc() error {
