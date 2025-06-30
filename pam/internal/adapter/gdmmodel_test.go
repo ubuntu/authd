@@ -2551,6 +2551,9 @@ func TestGdmModel(t *testing.T) {
 				if tc.timeout == 0 {
 					tc.timeout = 10 * time.Second
 				}
+				if testutils.IsCI() {
+					tc.timeout *= 3
+				}
 				waitChan := make(chan struct{})
 				go func() {
 					wg.Wait()

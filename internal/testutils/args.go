@@ -75,3 +75,9 @@ func SleepMultiplier() float64 {
 
 	return sleepMultiplier
 }
+
+// IsCI returns whether the test is running in CI environment.
+var IsCI = sync.OnceValue(func() bool {
+	_, ok := os.LookupEnv("GITHUB_ACTIONS")
+	return ok
+})
