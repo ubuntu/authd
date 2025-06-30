@@ -37,6 +37,7 @@ func TestNativeAuthenticate(t *testing.T) {
 		userSelection      bool
 		userSuffixSkip     bool
 		oldDB              string
+		noConfiguredBroker bool
 		wantLocalGroups    bool
 		wantSeparateDaemon bool
 		skipRunnerCheck    bool
@@ -305,11 +306,13 @@ func TestNativeAuthenticate(t *testing.T) {
 		"Autoselect_local_broker_for_local_user": {
 			tape:          "local_user",
 			userSelection: true,
+			tapeVariables: map[string]string{vhsTapeUserVariable: "root"},
 		},
 		"Autoselect_local_broker_for_local_user_on_polkit": {
 			tape:          "local_user",
 			userSelection: true,
 			clientOptions: clientOptions{PamServiceName: "polkit-1"},
+			tapeVariables: map[string]string{vhsTapeUserVariable: "root"},
 		},
 		"Autoselect_local_broker_for_local_user_preset": {
 			tape: "local_user_preset",
@@ -365,6 +368,27 @@ func TestNativeAuthenticate(t *testing.T) {
 				PamServiceName: "sshd",
 			},
 		},
+		"Exit_authd_if_no_broker_is_configured": {
+			tape: "local_user",
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: vhsTestUserName(t, "no-broker"),
+			},
+			userSelection:      true,
+			noConfiguredBroker: true,
+		},
+		"Exit_authd_if_no_broker_is_configured_with_preset_user": {
+			tape:               "local_user_preset",
+			clientOptions:      clientOptions{PamUser: vhsTestUserName(t, "no-broker")},
+			noConfiguredBroker: true,
+		},
+		"Exit_authd_if_no_broker_is_configured_with_preset_user_on_polkit": {
+			tape: "local_user_preset",
+			clientOptions: clientOptions{
+				PamServiceName: "polkit-1",
+				PamUser:        vhsTestUserName(t, "no-broker-polkit"),
+			},
+			noConfiguredBroker: true,
+		},
 		"Exit_if_user_is_not_pre-checked_on_custom_ssh_service_with_connection_env": {
 			tape: "local_ssh",
 			clientOptions: clientOptions{
@@ -403,7 +427,7 @@ func TestNativeAuthenticate(t *testing.T) {
 
 			var socketPath, gpasswdOutput, groupsFile, pidFile string
 			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.wantSeparateDaemon ||
-				tc.oldDB != "" {
+				tc.noConfiguredBroker || tc.oldDB != "" {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that generates a fake gpasswd output for us to test.
 				// Similarly for the not-root tests authd has to run in a more restricted way.
@@ -412,9 +436,14 @@ func TestNativeAuthenticate(t *testing.T) {
 
 				pidFile = filepath.Join(outDir, "authd.pid")
 
+				env := useOldDatabaseEnv(t, tc.oldDB)
+				if tc.noConfiguredBroker {
+					env = append(env, "AUTHD_EXAMPLE_BROKER_DISABLE=1")
+				}
+
 				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot,
 					testutils.WithPidFile(pidFile),
-					testutils.WithEnvironment(useOldDatabaseEnv(t, tc.oldDB)...))
+					testutils.WithEnvironment(env...))
 			} else {
 				socketPath, gpasswdOutput = sharedAuthd(t)
 			}

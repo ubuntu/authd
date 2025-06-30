@@ -13,6 +13,9 @@ import (
 
 // useExampleBrokers starts a mock system bus and exports the examplebroker in it.
 func useExampleBrokers() (string, func(), error) {
+	if os.Getenv("AUTHD_EXAMPLE_BROKER_DISABLE") != "" {
+		return "", func() { /* Nothing to cleanup */ }, nil
+	}
 	busCleanup, err := testutils.StartSystemBusMock()
 	if err != nil {
 		return "", nil, err

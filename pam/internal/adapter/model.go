@@ -271,7 +271,7 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Events
 	case BrokerListReceived:
-		safeMessageDebug(msg, "brokers: %#v", m.availableBrokers())
+		safeMessageDebug(msg, "brokers:", m.availableBrokers())
 		if m.availableBrokers() == nil {
 			return m, nil
 		}

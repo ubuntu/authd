@@ -204,16 +204,16 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 		return m, sendEvent(startAuthentication{})
 
 	case startAuthentication:
-		safeMessageDebug(msg, "current model %v, focused %v",
-			m.currentModel, m.Focused())
+		safeMessageDebug(msg, "current model:", m.currentModel,
+			"focused:", m.Focused())
 		if !m.Focused() {
 			return m, nil
 		}
 		m.inProgress = true
 
 	case stopAuthentication:
-		safeMessageDebug(msg, "current model %v, focused %v",
-			m.currentModel, m.Focused())
+		safeMessageDebug(msg, "current model:", m.currentModel,
+			"focused:", m.Focused())
 		m.inProgress = false
 
 	case reselectAuthMode:

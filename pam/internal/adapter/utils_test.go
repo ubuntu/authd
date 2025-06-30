@@ -105,6 +105,81 @@ func TestDebugMessageFormatter(t *testing.T) {
 			},
 			wantSafeString: `adapter.isAuthenticatedRequestedSend{adapter.isAuthenticatedRequested{*authd.IARequest_AuthenticationData_Skip{Skip:"skip!"}}}`,
 		},
+		"brokerInfo": {
+			msg:            &authd.ABResponse_BrokerInfo{Id: "broker-id", Name: "broker-name", BrandIcon: nil},
+			wantSafeString: `*authd.ABResponse_BrokerInfo{{"id":"broker-id","name":"broker-name"}}`,
+		},
+		"brokerInfo_slice": {
+			msg:            []*authd.ABResponse_BrokerInfo{{Id: "broker-id", Name: "broker-name", BrandIcon: nil}},
+			wantSafeString: `[]*authd.ABResponse_BrokerInfo{[{"id":"broker-id","name":"broker-name"}]}`,
+		},
+		"brokersListReceived_empty": {
+			msg:            brokersListReceived{},
+			wantSafeString: `adapter.brokersListReceived{brokers:[]*authd.ABResponse_BrokerInfo{null}}`,
+		},
+		"brokersListReceived_with_brokers": {
+			msg: brokersListReceived{[]*authd.ABResponse_BrokerInfo{{
+				Id: "broker-id", Name: "broker-name", BrandIcon: nil,
+			}}},
+			wantSafeString: `adapter.brokersListReceived{brokers:[]*authd.ABResponse_BrokerInfo{[{"id":"broker-id","name":"broker-name"}]}}`,
+		},
+		"UILayout": {
+			msg: &authd.UILayout{
+				Type:    "Type",
+				Label:   ptrValue("Label"),
+				Content: ptrValue("Content"),
+				Wait:    ptrValue("Wait"),
+				Button:  ptrValue("Button"),
+				Code:    ptrValue("Code"),
+				Entry:   ptrValue("Entry"),
+			},
+			wantSafeString: `*authd.UILayout{{"type":"Type","label":"Label","button":"Button","wait":"Wait","entry":"Entry","content":"Content","code":"Code"}}`,
+		},
+		"UILayout_slice": {
+			msg: []*authd.UILayout{{
+				Type:    "Type",
+				Label:   ptrValue("Label"),
+				Content: ptrValue("Content"),
+				Wait:    ptrValue("Wait"),
+				Button:  ptrValue("Button"),
+				Code:    ptrValue("Code"),
+				Entry:   ptrValue("Entry"),
+			}},
+			wantSafeString: `[]*authd.UILayout{[{"type":"Type","label":"Label","button":"Button","wait":"Wait","entry":"Entry","content":"Content","code":"Code"}]}`,
+		},
+		"UILayoutReceived": {
+			msg:            UILayoutReceived{&authd.UILayout{Type: "Foo"}},
+			wantSafeString: `adapter.UILayoutReceived{layouts:*authd.UILayout{{"type":"Foo"}}}`,
+		},
+		"supportedUILayoutsReceived": {
+			msg: supportedUILayoutsReceived{[]*authd.UILayout{{
+				Type:    "Type",
+				Label:   ptrValue("Label"),
+				Content: ptrValue("Content"),
+				Wait:    ptrValue("Wait"),
+				Button:  ptrValue("Button"),
+				Code:    ptrValue("Code"),
+				Entry:   ptrValue("Entry"),
+			}, {Type: "Other"}}},
+			wantSafeString: `adapter.supportedUILayoutsReceived{layouts:[]*authd.UILayout{[{"type":"Type","label":"Label","button":"Button","wait":"Wait","entry":"Entry","content":"Content","code":"Code"},{"type":"Other"}]}}`,
+		},
+		"GAMResponse_AuthenticationMode": {
+			msg:            &authd.GAMResponse_AuthenticationMode{Id: "id", Label: "Label"},
+			wantSafeString: `*authd.GAMResponse_AuthenticationMode{{"id":"id","label":"Label"}}`,
+		},
+		"GAMResponse_AuthenticationMode_slice": {
+			msg:            []*authd.GAMResponse_AuthenticationMode{{Id: "id", Label: "Label"}},
+			wantSafeString: `[]*authd.GAMResponse_AuthenticationMode{[{"id":"id","label":"Label"}]}`,
+		},
+		"authModesReceived": {
+			msg: authModesReceived{
+				authModes: []*authd.GAMResponse_AuthenticationMode{
+					{Id: "id1", Label: "Label1"},
+					{Id: "id2", Label: "Label2"},
+				},
+			},
+			wantSafeString: `adapter.authModesReceived{authModes:[]*authd.GAMResponse_AuthenticationMode{[{"id":"id1","label":"Label1"},{"id":"id2","label":"Label2"}]}}`,
+		},
 	}
 
 	for name, tc := range tests {
@@ -163,6 +238,22 @@ func TestSafeMessageDebug(t *testing.T) {
 			prefix:         "prefix",
 			formatAndArgs:  []any{true, false},
 			wantSafeString: "prefix: adapter.startAuthentication{}, true false",
+		},
+		"startAuthentication_message_with_prefix_and_multiple_formatted_values_suffix": {
+			msg:    startAuthentication{},
+			prefix: "prefix",
+			formatAndArgs: []any{
+				newPasswordCheck{password: "password!"},
+				UILayoutReceived{&authd.UILayout{Type: "Foo"}},
+				authModesReceived{
+					authModes: []*authd.GAMResponse_AuthenticationMode{
+						{Id: "id1", Label: "Label1"},
+						{Id: "id2", Label: "Label2"},
+					},
+				},
+			},
+			wantDebugString: `prefix: adapter.startAuthentication{}, adapter.newPasswordCheck{ctx:context.Context(nil), password:"password!"} adapter.UILayoutReceived{layouts:*authd.UILayout{{"type":"Foo"}}} adapter.authModesReceived{authModes:[]*authd.GAMResponse_AuthenticationMode{[{"id":"id1","label":"Label1"},{"id":"id2","label":"Label2"}]}}`,
+			wantSafeString:  `prefix: adapter.startAuthentication{}, adapter.newPasswordCheck{ctx:context.Context(nil), password:"***********"} adapter.UILayoutReceived{layouts:*authd.UILayout{{"type":"Foo"}}} adapter.authModesReceived{authModes:[]*authd.GAMResponse_AuthenticationMode{[{"id":"id1","label":"Label1"},{"id":"id2","label":"Label2"}]}}`,
 		},
 		"startAuthentication_message_with_prefix_and_single_string_suffix": {
 			msg:            startAuthentication{},
@@ -254,11 +345,12 @@ func TestSafeMessageDebug(t *testing.T) {
 			handlerCalled := false
 			wantCtx := context.Background()
 			log.SetLevelHandler(log.DebugLevel, func(ctx context.Context, l log.Level, format string, args ...interface{}) {
-				t.Logf(format, args...)
+				t.Logf("Format: %q", format)
+				t.Log(append([]any{"Args:"}, args...)...)
 				handlerCalled = true
 				require.Equal(t, wantCtx, ctx, "Context should match expected")
 				require.Equal(t, tc.wantSafeString, fmt.Sprintf(format, args...),
-					"Format should match")
+					"Format for safe usage should match")
 			})
 
 			initialLogLevel := log.GetLevel()
@@ -288,11 +380,11 @@ func TestSafeMessageDebug(t *testing.T) {
 			log.SetLevelHandler(log.DebugLevel, func(ctx context.Context, l log.Level, format string, args ...interface{}) {
 				t.Logf(format, args...)
 				handlerCalled = true
-				t.Logf("Called with %q", format)
-				t.Logf("Atgs are %#v", args)
+				t.Logf("Format: %q", format)
+				t.Log(append([]any{"Args:"}, args...)...)
 				require.Equal(t, wantCtx, ctx, "Context should match expected")
 				require.Equal(t, tc.wantDebugString, fmt.Sprintf(format, args...),
-					"Format should match")
+					"Format for debug usage should match")
 			})
 
 			initialLogLevel := log.GetLevel()
@@ -312,4 +404,8 @@ func TestSafeMessageDebug(t *testing.T) {
 				"Handler should have been called")
 		})
 	}
+}
+
+func ptrValue[T any](value T) *T {
+	return &value
 }
