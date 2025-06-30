@@ -1,0 +1,49 @@
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-ssh-authenticate-user-successfully-launching-command@localhost) Choose your provider:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-ssh-authenticate-user-successfully-launching-command@localhost) Choose your provider:
+> 2
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-ssh-authenticate-user-successfully-launching-command@localhost) Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-integration-pre-check-ssh-authenticate-user-successfully-launching-command@localhost) Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Provider selection ==
+  1. local
+  2. ExampleBroker
+(user-integration-pre-check-ssh-authenticate-user-successfully-launching-command@localhost) Choose your provider:
+> 2
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-integration-pre-check-ssh-authenticate-user-successfully-launching-command@localhost) Gimme your password:
+>
+PAM Authenticate() finished for user 'user-integration-pre-check-ssh-authenticate-user-successfully-launching-command'
+PAM AcctMgmt() finished for user 'user-integration-pre-check-ssh-authenticate-user-successfully-launching-command'
+Environment:
+  USER=user-integration-pre-check-ssh-authenticate-user-successfully-launching-command
+  LOGNAME=user-integration-pre-check-ssh-authenticate-user-successfully-launching-command
+  HOME=${AUTHD_TEST_HOME}
+  PATH=${AUTHD_TEST_PATH}
+  SHELL=/bin/sh
+  SSH_CLIENT=${AUTHD_TEST_SSH_CLIENT}
+  SSH_CONNECTION=${AUTHD_TEST_SSH_CONNECTION}
+  SSH_ORIGINAL_COMMAND=true
+ SSHD: Connected to ssh via authd module! [TestSSHAuthenticate/Authenticate_user_successfully_launching_command]
+>
+────────────────────────────────────────────────────────────────────────────────
