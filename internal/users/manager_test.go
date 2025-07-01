@@ -365,7 +365,7 @@ func TestConcurrentUserUpdate(t *testing.T) {
 		UIDMax: uint32(len(systemPasswd)) + nIterations*preAuthIterations,
 		GIDMin: 0,
 		//nolint: gosec // we're in tests, overflow is very unlikely to happen.
-		GIDMax: uint32(len(systemGroups)) + nIterations*perUserGroups*3,
+		GIDMax: uint32(len(systemGroups)) + nIterations*perUserGroups,
 	}
 	m := newManagerForTests(t, dbDir, users.WithIDGenerator(idGenerator))
 
@@ -694,15 +694,7 @@ func TestUserByIDAndName(t *testing.T) {
 			m := newManagerForTests(t, dbDir)
 
 			if tc.isTempUser {
-				entries, entriesUnlock, err := localentries.NewUserDBLocked()
-				require.NoError(t, err, "Setup: failed to lock the locale entries")
-				t.Cleanup(func() {
-					err = entriesUnlock()
-					require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
-				})
-				records := m.TemporaryRecords().LockForChanges(entries)
-
-				tc.uid, err = records.RegisterPreAuthUser("tempuser1")
+				tc.uid, err = m.RegisterUserPreAuth("tempuser1")
 				require.NoError(t, err, "RegisterUser should not return an error, but did")
 			}
 

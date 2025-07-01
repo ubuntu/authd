@@ -1,4 +1,4 @@
-name: authd-pre-auth-user-XXXXXXXX
+name: authd-pre-auth-user-{RANDOM-ID}
 uid: 12345
 gid: 12345
 gecos: TestPreAuthUser

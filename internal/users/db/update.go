@@ -10,12 +10,6 @@ import (
 	"github.com/ubuntu/authd/log"
 )
 
-// ErrUIDAlreadyInUse is the error we return on registering a duplicate UID.
-var ErrUIDAlreadyInUse = errors.New("UID already in use by a different user")
-
-// ErrGIDAlreadyInUse is the error we return on registering a duplicate GID.
-var ErrGIDAlreadyInUse = errors.New("GID already in use by a different group")
-
 // UpdateUserEntry inserts or updates user and group records from the user information.
 func (m *Manager) UpdateUserEntry(user UserRow, authdGroups []GroupRow, localGroups []string) (err error) {
 	// authd uses lowercase usernames
@@ -68,7 +62,8 @@ func handleUserUpdate(db queryable, u UserRow) error {
 	if existingUser.Name != "" && existingUser.Name != u.Name {
 		log.Errorf(context.TODO(), "UID %d for user %q already in use by user %q",
 			u.UID, u.Name, existingUser.Name)
-		return fmt.Errorf("%w: %q", ErrUIDAlreadyInUse, u.Name)
+		return fmt.Errorf("UID for user %q already in use by a different user %q",
+			u.Name, existingUser.Name)
 	}
 
 	// Ensure that we use the same homedir as the one we have in the database.
@@ -100,7 +95,8 @@ func handleGroupsUpdate(db queryable, groups []GroupRow) error {
 		// UGID, which was the case before https://github.com/ubuntu/authd/pull/647.
 		if groupExists && existingGroup.UGID != "" && existingGroup.UGID != group.UGID {
 			log.Errorf(context.TODO(), "GID %d for group with UGID %q already in use by a group with UGID %q", group.GID, group.UGID, existingGroup.UGID)
-			return fmt.Errorf("%w: %q", ErrGIDAlreadyInUse, group.Name)
+			return fmt.Errorf("GID for group %q already in use by a different group %q",
+				group.Name, existingGroup.Name)
 		}
 
 		log.Debugf(context.Background(), "Updating entry of group %q (%+v)", group.Name, group)
