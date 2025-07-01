@@ -92,8 +92,7 @@ func TestRacingEntriesLockingActions(t *testing.T) {
 				context.Background(), opts...)
 			require.NoError(t, err, "Failed to lock the local entries")
 
-			lg := localentries.GetGroupsWithLock(ctx)
-			groups, err := lg.GetEntries()
+			groups, err := localentries.GetGroupEntries(ctx)
 			require.NoError(t, err, "GetEntries should not return an error, but did")
 			require.NotEmpty(t, groups, "Got empty groups (test groups: %v)", useTestGroupFile)
 			require.Contains(t, groups, wantGroup, "Expected group was not found  (test groups: %v)", useTestGroupFile)

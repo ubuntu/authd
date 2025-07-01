@@ -125,9 +125,7 @@ func TestUpdatelocalentries(t *testing.T) {
 				require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 			})
 
-			lg := localentries.GetGroupsWithLock(ctx)
-
-			err = lg.Update(tc.username, tc.newGroups, tc.oldGroups)
+			err = localentries.UpdateGroups(ctx, tc.username, tc.newGroups, tc.oldGroups)
 			if tc.wantErr {
 				require.Error(t, err, "Updatelocalentries should have failed")
 			} else {
@@ -321,8 +319,7 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 				require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 			}()
 
-			lg := localentries.GetGroupsWithLock(ctx)
-			groups, err := lg.GetEntries()
+			groups, err := localentries.GetGroupEntries(ctx)
 			if tc.wantGetErr {
 				require.Error(t, err, "GetEntries should return an error, but did not")
 				return
@@ -341,10 +338,10 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 				groups[idx].Users = append(groups[idx].Users, userNames...)
 			}
 
-			err = lg.SaveEntries(groups)
+			err = localentries.SaveGroupEntries(ctx, groups)
 			if tc.wantSetErr {
 				require.Error(t, err, "SaveEntries should have failed")
-				updatedGroups, err := lg.GetEntries()
+				updatedGroups, err := localentries.GetGroupEntries(ctx)
 				require.NoError(t, err, "GetEntries should not return an error, but did")
 				require.Equal(t, initialGroups, updatedGroups, "Cached groups have been changed")
 				return
@@ -356,7 +353,7 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 
 			require.NoError(t, err, "SaveEntries should not have failed")
 			// Ensure we also saved the cached version of the groups...
-			updatedGroups, err := lg.GetEntries()
+			updatedGroups, err := localentries.GetGroupEntries(ctx)
 			require.NoError(t, err, "GetEntries should not return an error, but did")
 			require.Equal(t, groups, updatedGroups, "Cached groups are not saved")
 
@@ -410,8 +407,7 @@ func TestRacingGroupsLockingActions(t *testing.T) {
 				require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 			})
 
-			lg := localentries.GetGroupsWithLock(ctx)
-			groups, err := lg.GetEntries()
+			groups, err := localentries.GetGroupEntries(ctx)
 			require.NoError(t, err, "GetEntries should not return an error, but did")
 			require.NotEmpty(t, groups, "Got empty groups (test groups: %v)", useTestGroupFile)
 			require.Contains(t, groups, wantGroup, "Expected group was not found  (test groups: %v)", useTestGroupFile)
@@ -426,56 +422,50 @@ func TestRacingGroupsLockingActions(t *testing.T) {
 		ctx, entriesUnlock, err := localentries.ContextUserDBLocked(context.Background())
 		require.NoError(t, err, "Failed to lock the local entries")
 
-		lg := localentries.GetGroupsWithLock(ctx)
 		require.NoError(t, err, "Unlock should not fail to lock the users group")
 
 		err = entriesUnlock()
 		require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 
 		// Ensure that we had cleaned up all the locks correctly!
-		require.Panics(t, func() { _, _ = lg.GetEntries() })
+		require.Panics(t, func() { _, _ = localentries.GetGroupEntries(ctx) })
 	})
 }
 
 func TestLockedInvalidActions(t *testing.T) {
 	// This cannot be parallel
 
-	require.Panics(t, func() { localentries.GetGroupsWithLock(context.Background()) },
-		"GetGroupsWithLock should panic but did not")
-	require.Panics(t, func() { _ = (&localentries.GroupsWithLock{}).Update("", nil, nil) },
+	require.Panics(t, func() { _ = localentries.UpdateGroups(context.Background(), "", nil, nil) },
 		"Update should panic but did not")
-	require.Panics(t, func() { _, _ = (&localentries.GroupsWithLock{}).GetEntries() },
+	require.Panics(t, func() { _, _ = localentries.GetGroupEntries(context.Background()) },
 		"GetEntries should panic but did not")
-	require.Panics(t, func() { _ = (&localentries.GroupsWithLock{}).SaveEntries(nil) },
+	require.Panics(t, func() { _ = localentries.SaveGroupEntries(context.Background(), nil) },
 		"SaveEntries should panic but did not")
 
 	ctx, entriesUnlock, err := localentries.ContextUserDBLocked(context.Background())
 	require.NoError(t, err, "Failed to lock the local entries")
 
-	lg := localentries.GetGroupsWithLock(ctx)
 	err = entriesUnlock()
 	require.NoError(t, err, "Unlock should not fail to lock the users group")
 
 	err = entriesUnlock()
 	require.Error(t, err, "Unlocking twice should fail")
 
-	require.Panics(t, func() { _ = lg.Update("", nil, nil) },
+	require.Panics(t, func() { _ = localentries.UpdateGroups(ctx, "", nil, nil) },
 		"Update should panic but did not")
-	require.Panics(t, func() { _, _ = lg.GetEntries() },
+	require.Panics(t, func() { _, _ = localentries.GetGroupEntries(ctx) },
 		"GetEntries should panic but did not")
-	require.Panics(t, func() { _ = lg.SaveEntries(nil) },
+	require.Panics(t, func() { _ = localentries.SaveGroupEntries(ctx, nil) },
 		"SaveEntries should panic but did not")
 
 	// This is to ensure that we're in a good state, despite the actions above
 	for range 10 {
-		ctx, entriesUnlock, err := localentries.ContextUserDBLocked(context.Background())
+		_, entriesUnlock, err := localentries.ContextUserDBLocked(context.Background())
 		require.NoError(t, err, "Failed to lock the local entries")
 		defer func() {
 			err := entriesUnlock()
 			require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 		}()
-
-		lg = localentries.GetGroupsWithLock(ctx)
 	}
 }
 
@@ -634,10 +624,17 @@ func TestValidateChangedGroups(t *testing.T) {
 		},
 	}
 
+	ctx, entriesUnlock, err := localentries.ContextUserDBLocked(context.Background())
+	require.NoError(t, err, "Failed to lock the local entries")
+	t.Cleanup(func() {
+		err := entriesUnlock()
+		require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
+	})
+
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			err := localentries.ValidateChangedGroups(tc.currentGroups,
+			err := localentries.ValidateChangedGroups(ctx, tc.currentGroups,
 				tc.newGroups)
 			if tc.wantErr {
 				require.Error(t, err, "expected error but got nil")
