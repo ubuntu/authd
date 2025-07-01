@@ -198,8 +198,8 @@ func formatGroupEntries(groups []types.GroupEntry) string {
 }
 
 func (g *GroupsWithLock) saveLocalGroups(groups []types.GroupEntry) (err error) {
-	inputPath := g.l.options.groupInputPath
-	groupPath := g.l.options.groupOutputPath
+	inputPath := g.l.options.inputGroupPath
+	groupPath := g.l.options.outputGroupPath
 
 	defer decorate.OnError(&err, "could not write local groups to %q", groupPath)
 

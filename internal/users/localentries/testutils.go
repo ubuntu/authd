@@ -35,6 +35,6 @@ func Z_ForTests_RestoreDefaultOptions() {
 func Z_ForTests_SetGroupPath(inputGroupPath, outputGroupPath string) {
 	testsdetection.MustBeTesting()
 
-	defaultOptions.groupInputPath = inputGroupPath
-	defaultOptions.groupOutputPath = outputGroupPath
+	defaultOptions.inputGroupPath = inputGroupPath
+	defaultOptions.outputGroupPath = outputGroupPath
 }

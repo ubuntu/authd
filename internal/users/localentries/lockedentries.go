@@ -16,12 +16,12 @@ import (
 const GroupFile = "/etc/group"
 
 type options struct {
-	// groupInputPath is the path used to read the group file. Defaults to
+	// inputGroupPath is the path used to read the group file. Defaults to
 	// [GroupFile], but can be overwritten in tests.
-	groupInputPath string
-	// groupOutputPath is the path used to write the group file. Defaults to
+	inputGroupPath string
+	// outputGroupPath is the path used to write the group file. Defaults to
 	// [GroupFile], but can be overwritten in tests.
-	groupOutputPath string
+	outputGroupPath string
 
 	// These are the lock and unlock functions to be used that can be overridden
 	// for testing purposes.
@@ -38,8 +38,8 @@ var defaultOptions = options{
 	// no test options are provided.
 	userDBLocked: &UserDBLocked{},
 
-	groupInputPath:  GroupFile,
-	groupOutputPath: GroupFile,
+	inputGroupPath:  GroupFile,
+	outputGroupPath: GroupFile,
 
 	writeLockFunc:   userslocking.WriteLock,
 	writeUnlockFunc: userslocking.WriteUnlock,
@@ -193,7 +193,7 @@ func (l *UserDBLocked) GetLocalGroupEntries() (entries []types.GroupEntry, err e
 		return l.localGroupEntries, nil
 	}
 
-	l.localGroupEntries, err = parseLocalGroups(l.options.groupInputPath)
+	l.localGroupEntries, err = parseLocalGroups(l.options.inputGroupPath)
 	return l.localGroupEntries, err
 }
 
