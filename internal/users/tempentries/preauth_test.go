@@ -54,6 +54,10 @@ func TestPreAuthUser(t *testing.T) {
 			users:   []string{""},
 			wantErr: true,
 		},
+		"Error_when_login_name_exceeds_maximum_length": {
+			users:   []string{strings.Repeat("a", MaxPreAuthUserNameLength+1)},
+			wantErr: true,
+		},
 	}
 
 	for name, tc := range tests {
