@@ -121,35 +121,47 @@ func (g *GroupsWithLock) Update(username string, newGroups []string, oldGroups [
 	return g.saveLocalGroups(allGroups)
 }
 
-func parseLocalGroups(groupPath string) (groups []types.GroupEntry, err error) {
+func parseLocalGroups(groupPath string) (groups []types.GroupEntry, invalidEntries []invalidEntry, err error) {
 	defer decorate.OnError(&err, "could not fetch existing local group")
 
 	log.Debugf(context.Background(), "Reading groups from %q", groupPath)
 
 	f, err := os.Open(groupPath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer f.Close()
 
 	// Format of a line composing the group file is:
 	// group_name:password:group_id:user1,…,usern
 	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		t := strings.TrimSpace(scanner.Text())
-		if t == "" {
+	for lineNum := 0; scanner.Scan(); lineNum++ {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || line[0] == '#' {
+			invalidEntries = append(invalidEntries,
+				invalidEntry{lineNum: lineNum, line: line})
 			continue
 		}
-		elems := strings.SplitN(t, ":", 4)
+
+		elems := strings.SplitN(line, ":", 4)
 		if len(elems) < 4 {
-			return nil, fmt.Errorf("malformed entry in group file (should have 4 separators, got %d): %q", len(elems), t)
+			log.Warningf(context.Background(),
+				"Malformed entry in group file (should have 4 separators, got %d): %q",
+				len(elems), line)
+			invalidEntries = append(invalidEntries,
+				invalidEntry{lineNum: lineNum, line: line})
+			continue
 		}
 
 		name, passwd, gidValue, usersValue := elems[0], elems[1], elems[2], elems[3]
 
 		gid, err := strconv.ParseUint(gidValue, 10, 0)
 		if err != nil || gid > math.MaxUint32 {
-			return nil, fmt.Errorf("failed parsing entry %q, unexpected GID value", t)
+			log.Warningf(context.Background(),
+				"Failed parsing entry %q, unexpected GID value: %v", line, err)
+			invalidEntries = append(invalidEntries,
+				invalidEntry{lineNum: lineNum, line: line})
+			continue
 		}
 
 		var users []string
@@ -166,7 +178,7 @@ func parseLocalGroups(groupPath string) (groups []types.GroupEntry, err error) {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if err := types.ValidateGroupEntries(groups); err != nil {
@@ -175,7 +187,7 @@ func parseLocalGroups(groupPath string) (groups []types.GroupEntry, err error) {
 			groupPath, err)
 	}
 
-	return groups, nil
+	return groups, invalidEntries, nil
 }
 
 func groupFileTemporaryPath(groupPath string) string {
@@ -186,10 +198,15 @@ func groupFileBackupPath(groupPath string) string {
 	return fmt.Sprintf("%s-", groupPath)
 }
 
-func formatGroupEntries(groups []types.GroupEntry) string {
+func (g *GroupsWithLock) formatGroupEntries(groups []types.GroupEntry) string {
 	groupLines := sliceutils.Map(groups, func(group types.GroupEntry) string {
 		return group.String()
 	})
+
+	for _, entry := range g.l.localGroupInvalidEntries {
+		groupLines = slices.Insert(groupLines,
+			min(entry.lineNum, len(groupLines)-1), entry.line)
+	}
 
 	// Add final new line to the group file.
 	groupLines = append(groupLines, "")
@@ -219,7 +236,7 @@ func (g *GroupsWithLock) saveLocalGroups(groups []types.GroupEntry) (err error) 
 	}
 
 	backupPath := groupFileBackupPath(groupPath)
-	groupsEntries := formatGroupEntries(groups)
+	groupsEntries := g.formatGroupEntries(groups)
 
 	log.Debugf(context.Background(), "Saving group entries %#v to %q", groups, groupPath)
 	if len(groupsEntries) > 0 {

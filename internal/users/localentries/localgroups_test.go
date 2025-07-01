@@ -62,6 +62,13 @@ func TestUpdatelocalentries(t *testing.T) {
 			groupFilePath: "malformed_file_no_group_name.group",
 			newGroups:     []string{"localgroup6"},
 		},
+		"Warn_when_groups_file_has_missing_fields": {
+			groupFilePath: "malformed_file_missing_field.group",
+			newGroups:     []string{"localgroup6"},
+		},
+		"Warn_when_groups_file_has_invalid_gid": {
+			groupFilePath: "malformed_file_invalid_gid.group",
+		},
 
 		// Error cases
 		"Error_on_missing_groups_file": {
@@ -71,14 +78,6 @@ func TestUpdatelocalentries(t *testing.T) {
 		"Error_on_invalid_user_name": {
 			groupFilePath: "no_users_in_our_groups.group",
 			username:      "no,commas,please",
-			wantErr:       true,
-		},
-		"Error_when_groups_file_has_missing_fields": {
-			groupFilePath: "malformed_file_missing_field.group",
-			wantErr:       true,
-		},
-		"Error_when_groups_file_has_invalid_gid": {
-			groupFilePath: "malformed_file_invalid_gid.group",
 			wantErr:       true,
 		},
 		"Error_when_groups_file_has_a_duplicated_group": {
@@ -239,21 +238,25 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 				{Name: "localgroup5", Passwd: "x", GID: 45},
 			},
 		},
+		"Warn_when_groups_file_has_entries_with_missing_fields": {
+			groupFilePath: "malformed_file_invalid_entries_length.group",
+			addGroups: []types.GroupEntry{
+				{Name: "localgroup9", Passwd: "x", GID: 49},
+			},
+		},
 		"Warn_when_groups_file_has_no_group_name": {
 			groupFilePath: "malformed_file_no_group_name.group",
 		},
-
-		// Error cases
-		"Error_on_missing_groups_file": {
-			groupFilePath: "does_not_exists.group",
-			wantGetErr:    true,
-		},
-		"Error_when_groups_file_has_missing_fields": {
+		"Warn_when_groups_file_has_missing_fields": {
 			groupFilePath: "malformed_file_missing_field.group",
-			wantGetErr:    true,
 		},
-		"Error_when_groups_file_has_invalid_gid": {
+		"Warn_when_groups_file_has_invalid_gid": {
 			groupFilePath: "malformed_file_invalid_gid.group",
+		},
+
+		// Error cases.
+		"Error_when_missing_groups_file": {
+			groupFilePath: "does_not_exists.group",
 			wantGetErr:    true,
 		},
 		"Error_adding_duplicated_groups": {
