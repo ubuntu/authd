@@ -118,41 +118,37 @@ func compileLockerBinary(t *testing.T) string {
 	return testLocker
 }
 
-func TestUsersLockingRecLockingOverride(t *testing.T) {
+func TestUsersLockingOverride(t *testing.T) {
 	// This cannot be parallel.
 
 	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
-	err := userslocking.WriteRecLock()
+	lock := userslocking.NewUserDBLock()
+
+	err := lock.Lock()
 	require.NoError(t, err, "Locking should be allowed")
 
-	err = userslocking.WriteRecLock()
-	require.NoError(t, err, "Locking again should be allowed")
+	err = lock.TryLock()
+	require.ErrorIs(t, err, userslocking.ErrLock, "Locking again should not be allowed")
 
-	err = userslocking.WriteRecUnlock()
+	err = lock.Unlock()
 	require.NoError(t, err, "Unlocking should be allowed")
 
-	err = userslocking.WriteRecUnlock()
-	require.NoError(t, err, "Unlocking again should be allowed")
-
-	err = userslocking.WriteRecUnlock()
+	err = lock.Unlock()
 	require.ErrorIs(t, err, userslocking.ErrUnlock, "Unlocking unlocked should not be allowed")
 }
 
-func TestUsersLockingRecLockingOverrideAsLockedExternally(t *testing.T) {
+func TestUsersLockingOverrideAsLockedExternally(t *testing.T) {
 	// This cannot be parallel.
 	lockCtx, lockCancel := context.WithCancel(context.Background())
 	userslocking.Z_ForTests_OverrideLockingAsLockedExternally(t, lockCtx)
 
+	lock := userslocking.NewUserDBLock()
+
 	wg := sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(1)
 	go func() {
-		err := userslocking.WriteRecLock()
-		require.NoError(t, err, "Locking should not fail")
-		wg.Done()
-	}()
-	go func() {
-		err := userslocking.WriteRecLock()
+		err := lock.Lock()
 		require.NoError(t, err, "Locking should not fail")
 		wg.Done()
 	}()
@@ -171,14 +167,9 @@ func TestUsersLockingRecLockingOverrideAsLockedExternally(t *testing.T) {
 		t.FailNow()
 	}
 
-	wg.Add(2)
+	wg.Add(1)
 	go func() {
-		err := userslocking.WriteRecUnlock()
-		require.NoError(t, err, "Unlocking should not fail")
-		wg.Done()
-	}()
-	go func() {
-		err := userslocking.WriteRecUnlock()
+		err := lock.Unlock()
 		require.NoError(t, err, "Unlocking should not fail")
 		wg.Done()
 	}()

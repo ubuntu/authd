@@ -8,6 +8,7 @@
 package userslocking
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sync"
@@ -17,9 +18,6 @@ import (
 var (
 	writeLockImpl   = writeLock
 	writeUnlockImpl = writeUnlock
-
-	writeLocksCount   uint64
-	writeLocksCountMu sync.RWMutex
 
 	// maxWait is the maximum wait time for a lock to happen.
 	// We mimic the libc behavior, in case we don't get SIGALRM'ed.
@@ -36,6 +34,104 @@ var (
 	// ErrLockTimeout is the error when unlocking the database fails because of timeout.
 	ErrLockTimeout = fmt.Errorf("%w: timeout", ErrLock)
 )
+
+type UserDBLock struct {
+	mu   sync.Mutex
+	cond *sync.Cond
+	held bool
+}
+
+// NewUserDBLock creates a new UserDBLock.
+func NewUserDBLock() *UserDBLock {
+	lock := &UserDBLock{}
+	lock.cond = sync.NewCond(&lock.mu)
+	return lock
+}
+
+// Lock acquires the user database lock.
+// Returns an error if already held.
+func (l *UserDBLock) Lock() error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	for l.held {
+		l.cond.Wait()
+	}
+
+	if err := writeLockInternal(); err != nil {
+		return err
+	}
+
+	l.held = true
+
+	return nil
+}
+
+// TryLock attempts to acquire the user database lock without blocking.
+func (l *UserDBLock) TryLock() error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	if l.held {
+		return fmt.Errorf("%w: lock already held", ErrLock)
+	}
+
+	if err := writeLockInternal(); err != nil {
+		return err
+	}
+
+	l.held = true
+
+	return nil
+}
+
+// Unlock releases the user database lock.
+func (l *UserDBLock) Unlock() error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	if !l.held {
+		return fmt.Errorf("%w: lock not held", ErrUnlock)
+	}
+
+	if err := writeUnlockImpl(); err != nil {
+		return err
+	}
+
+	l.held = false
+	l.cond.Signal()
+
+	return nil
+}
+
+// IsHeld returns true if the lock is currently held.
+func (l *UserDBLock) IsHeld() bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.held
+}
+
+type userDBLockKey struct{}
+
+// WithUserDBLock creates and acquires a UserDBLock,
+// storing it in the returned context.
+func WithUserDBLock(parent context.Context) (context.Context, error) {
+	lock := NewUserDBLock()
+	if err := lock.Lock(); err != nil {
+		return nil, err
+	}
+	ctx := context.WithValue(parent, userDBLockKey{}, lock)
+	return ctx, nil
+}
+
+// GetUserDBLock retrieves the UserDBLock from context, if present.
+func GetUserDBLock(ctx context.Context) *UserDBLock {
+	val := ctx.Value(userDBLockKey{})
+	if lock, ok := val.(*UserDBLock); ok {
+		return lock
+	}
+	return nil
+}
 
 func writeLockInternal() error {
 	done := make(chan error)
@@ -55,56 +151,4 @@ func writeLockInternal() error {
 	case err := <-done:
 		return err
 	}
-}
-
-// WriteRecLock locks the system's user database for writing.
-// While the lock is held, all other processes trying to lock the database
-// will block until the lock is released (or a timeout of 15 seconds is reached).
-// Note that this implies that if some other process owns the lock when
-// this function is called, it will block until the other process releases the
-// lock.
-//
-// This function is recursive, it can be called multiple times without
-// deadlocking even by different goroutines - the system user database is locked
-// only once, when the reference count is 0, else it just increments the
-// reference count.
-//
-// [WriteRecUnlock] must be called the same number of times as [WriteRecLock] to
-// release the lock.
-func WriteRecLock() error {
-	writeLocksCountMu.Lock()
-	defer writeLocksCountMu.Unlock()
-
-	if writeLocksCount == 0 {
-		if err := writeLockInternal(); err != nil {
-			return err
-		}
-	}
-
-	writeLocksCount++
-	return nil
-}
-
-// WriteRecUnlock decreases the reference count of the lock acquired by.
-// [WriteRecLock]. If the reference count reaches 0, it releases the lock
-// on the system's user database.
-func WriteRecUnlock() error {
-	writeLocksCountMu.Lock()
-	defer writeLocksCountMu.Unlock()
-
-	if writeLocksCount == 0 {
-		return fmt.Errorf("%w: no locks found", ErrUnlock)
-	}
-
-	if writeLocksCount > 1 {
-		writeLocksCount--
-		return nil
-	}
-
-	if err := writeUnlockImpl(); err != nil {
-		return err
-	}
-
-	writeLocksCount--
-	return nil
 }

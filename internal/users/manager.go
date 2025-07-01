@@ -6,13 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"slices"
 	"strings"
 	"syscall"
 
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/idgenerator"
 	"github.com/ubuntu/authd/internal/users/localentries"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/internal/users/tempentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
@@ -37,9 +37,10 @@ var DefaultConfig = Config{
 
 // Manager is the manager for any user related operation.
 type Manager struct {
-	db               *db.Manager
-	config           Config
-	temporaryRecords *tempentries.TemporaryRecords
+	db             *db.Manager
+	config         Config
+	idGenerator    tempentries.IDGenerator
+	preAuthRecords *tempentries.PreAuthUserRecords
 }
 
 type options struct {
@@ -48,9 +49,6 @@ type options struct {
 
 // Option is a function that allows changing some of the default behaviors of the manager.
 type Option func(*options)
-
-// errUpdateRetry is an error when the user update failed in a non fatal way.
-var errUpdateRetry = errors.New("update failed. Try again")
 
 // WithIDGenerator makes the manager use a specific ID generator.
 // This option is only useful in tests.
@@ -93,8 +91,9 @@ func NewManager(config Config, dbDir string, args ...Option) (m *Manager, err er
 	}
 
 	m = &Manager{
-		config:           config,
-		temporaryRecords: tempentries.NewTemporaryRecords(opts.idGenerator),
+		config:         config,
+		idGenerator:    opts.idGenerator,
+		preAuthRecords: tempentries.NewPreAuthUserRecords(opts.idGenerator),
 	}
 
 	m.db, err = db.New(dbDir)
@@ -112,31 +111,6 @@ func (m *Manager) Stop() error {
 
 // UpdateUser updates the user information in the db.
 func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
-	// Maybe we can even avoid to have a max... But well we'd likely fail only
-	// if the UID/GID set is very limited and we've lots of concurrent requests.
-	// In the worse case we'd fail anyways because temporary entries max
-	// max generation limit is reached anyways.
-	const maxRetries = 100
-
-	for i := range maxRetries {
-		user := u
-		user.Groups = slices.Clone(u.Groups)
-
-		err = m.updateUser(user)
-		if errors.Is(err, errUpdateRetry) {
-			log.Infof(context.Background(),
-				"User %q update [try: %d] failed for a recoverable reason: %v",
-				u.Name, i, err)
-			continue
-		}
-
-		break
-	}
-
-	return err
-}
-
-func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	defer decorate.OnError(&err, "failed to update user %q", u.Name)
 
 	log.Debugf(context.TODO(), "Updating user %q", u.Name)
@@ -149,7 +123,7 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	}
 
 	var uid uint32
-	var isNewUser bool
+	ctx := context.Background()
 
 	// Check if the user already exists in the database
 	oldUser, err := m.db.UserByName(u.Name)
@@ -157,20 +131,26 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 		return fmt.Errorf("could not get user %q: %w", u.Name, err)
 	}
 	if errors.Is(err, db.NoDataFoundError{}) {
-		isNewUser = true
-		localEntries, unlockEntries, err := localentries.NewWithLock()
+		ctx, err = userslocking.WithUserDBLock(ctx)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to acquire userdb lock: %w", err)
 		}
-		defer func() { err = errors.Join(err, unlockEntries()) }()
-		records := m.temporaryRecords.LockForChanges(localEntries)
+		defer func() { err = errors.Join(err, userslocking.GetUserDBLock(ctx).Unlock()) }()
 
-		var cleanup func()
-		uid, cleanup, err = records.RegisterUser(u.Name)
-		if err != nil {
-			return fmt.Errorf("could not register user %q: %w", u.Name, err)
+		// Check if the user already exists on the system (e.g. in /etc/passwd).
+		_, err := localentries.GetPasswdByName(u.Name)
+		if err != nil && !errors.Is(err, localentries.ErrUserNotFound) {
+			return fmt.Errorf("could not check if user %q exists on the system: %w", u.Name, err)
 		}
-		defer cleanup()
+		if err == nil {
+			// The user already exists on the system, so we cannot create a new user with the same name.
+			return fmt.Errorf("user %q already exists on the system (but not in the authd database)", u.Name)
+		}
+
+		uid, err = m.idGenerator.GenerateUID()
+		if err != nil {
+			return fmt.Errorf("could not generate UID for user %q: %w", u.Name, err)
+		}
 	} else {
 		// The user already exists in the database, use the existing UID to avoid permission issues.
 		uid = oldUser.UID
@@ -224,20 +204,12 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	}
 
 	if len(newGroups) > 0 {
-		localEntries, unlockEntries, err := localentries.NewWithLock()
-		if err != nil {
-			return err
-		}
-		defer func() { err = errors.Join(err, unlockEntries()) }()
-		records := m.temporaryRecords.LockForChanges(localEntries)
-
 		for _, g := range newGroups {
-			gid, cleanup, err := records.RegisterGroupForUser(uid, g.Name)
+			gid, err := m.idGenerator.GenerateGID()
 			if err != nil {
 				return fmt.Errorf("could not generate GID for group %q: %v", g.Name, err)
 			}
 
-			defer cleanup()
 			groupRows = append(groupRows, db.NewGroupRow(g.Name, gid, g.UGID))
 		}
 	}
@@ -251,23 +223,12 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	userPrivateGroup := groupRows[0]
 	userRow := db.NewUserRow(u.Name, uid, userPrivateGroup.GID, u.Gecos, u.Dir, u.Shell)
 	err = m.db.UpdateUserEntry(userRow, groupRows, localGroups)
-	if isNewUser && errors.Is(err, db.ErrUIDAlreadyInUse) {
-		return fmt.Errorf("%w: %w", errUpdateRetry, err)
-	}
-	if errors.Is(err, db.ErrGIDAlreadyInUse) {
-		return fmt.Errorf("%w: %w", errUpdateRetry, err)
-	}
-	if errors.Is(err, db.NoDataFoundError{}) {
-		// The user or group has not been found while updating it, likely due
-		// to previous concurrent requests not having finished, so let's retry.
-		return fmt.Errorf("%w: %w", errUpdateRetry, err)
-	}
 	if err != nil {
 		return err
 	}
 
 	// Update local groups.
-	if err := localentries.UpdateGroups(u.Name, localGroups, oldLocalGroups); err != nil {
+	if err := updateLocalGroups(ctx, u.Name, localGroups, oldLocalGroups); err != nil {
 		return err
 	}
 
@@ -276,6 +237,24 @@ func (m *Manager) updateUser(u types.UserInfo) (err error) {
 	}
 
 	return nil
+}
+
+// updateLocalGroups updates the groups of a user, adding them to the groups in newGroups
+// which they are not already part of, and removing them from the groups in oldGroups
+// which are not in newGroups. It locks the system's user database to prevent concurrent modifications.
+func updateLocalGroups(ctx context.Context, username string, newGroups []string, oldGroups []string) (err error) {
+	if len(newGroups) == 0 && len(oldGroups) == 0 {
+		return nil
+	}
+
+	lock := userslocking.GetUserDBLock(ctx)
+	if lock == nil {
+		ctx, err = userslocking.WithUserDBLock(ctx)
+		defer func() { err = errors.Join(err, userslocking.GetUserDBLock(ctx).Unlock()) }()
+	}
+
+	groupManager := localentries.NewGroupManager()
+	return groupManager.Update(username, newGroups, oldGroups)
 }
 
 // checkGroupNameConflict checks if a group with the given name already exists.
@@ -380,7 +359,7 @@ func (m *Manager) UserByName(username string) (types.UserEntry, error) {
 	usr, err := m.db.UserByName(username)
 	if errors.Is(err, db.NoDataFoundError{}) {
 		// Check if the user is a temporary user.
-		return m.temporaryRecords.UserByName(username)
+		return m.preAuthRecords.UserByName(username)
 	}
 	if err != nil {
 		return types.UserEntry{}, err
@@ -393,7 +372,7 @@ func (m *Manager) UserByID(uid uint32) (types.UserEntry, error) {
 	usr, err := m.db.UserByID(uid)
 	if errors.Is(err, db.NoDataFoundError{}) {
 		// Check if the user is a temporary user.
-		return m.temporaryRecords.UserByID(uid)
+		return m.preAuthRecords.UserByID(uid)
 	}
 	if err != nil {
 		return types.UserEntry{}, err
@@ -483,11 +462,11 @@ func (m *Manager) RegisterUserPreAuth(name string) (uid uint32, err error) {
 		return userRow.UID, nil
 	}
 
-	localEntries, unlockEntries, err := localentries.NewWithLock()
-	if err != nil {
-		return 0, err
+	userdbLock := userslocking.NewUserDBLock()
+	if err := userdbLock.Lock(); err != nil {
+		return 0, fmt.Errorf("failed to acquire userdb lock: %w", err)
 	}
-	defer func() { err = errors.Join(err, unlockEntries()) }()
+	defer func() { err = errors.Join(err, userdbLock.Unlock()) }()
 
-	return m.temporaryRecords.LockForChanges(localEntries).RegisterPreAuthUser(name)
+	return m.preAuthRecords.RegisterPreAuthUser(name)
 }

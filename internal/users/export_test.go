@@ -5,8 +5,8 @@ import (
 	"github.com/ubuntu/authd/internal/users/tempentries"
 )
 
-func (m *Manager) TemporaryRecords() *tempentries.TemporaryRecords {
-	return m.temporaryRecords
+func (m *Manager) PreAuthUserRecords() *tempentries.PreAuthUserRecords {
+	return m.preAuthRecords
 }
 
 func (m *Manager) DB() *db.Manager {

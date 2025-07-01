@@ -5,22 +5,22 @@ import "github.com/ubuntu/authd/internal/users/types"
 // WithGroupPath overrides the default /etc/group path for tests.
 func WithGroupPath(p string) Option {
 	return func(o *options) {
-		o.groupInputPath = p
-		o.groupOutputPath = p
+		o.inputGroupFile = p
+		o.outputGroupFile = p
 	}
 }
 
 // WithGroupInputPath overrides the default /etc/group path for input in tests.
 func WithGroupInputPath(p string) Option {
 	return func(o *options) {
-		o.groupInputPath = p
+		o.inputGroupFile = p
 	}
 }
 
 // WithGroupOutputPath overrides the default /etc/group path for output in tests.
 func WithGroupOutputPath(p string) Option {
 	return func(o *options) {
-		o.groupOutputPath = p
+		o.outputGroupFile = p
 	}
 }
 
@@ -32,4 +32,8 @@ func GroupFileBackupPath(groupFilePath string) string {
 // ValidateChangedGroups validates the new groups given the current, changed and new groups.
 func ValidateChangedGroups(currentGroups, newGroups []types.GroupEntry) error {
 	return validateChangedGroups(currentGroups, newGroups)
+}
+
+func ParseLocalGroups(groupFilePath string) ([]types.GroupEntry, error) {
+	return parseLocalGroups(groupFilePath)
 }

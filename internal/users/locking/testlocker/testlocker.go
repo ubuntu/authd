@@ -12,7 +12,7 @@ import (
 
 func main() {
 	log.Println("Locking database...")
-	err := userslocking.WriteRecLock()
+	err := userslocking.WriteLock()
 	if err != nil {
 		log.Fatal(err)
 	}

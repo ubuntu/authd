@@ -1,7 +1,10 @@
 package localentries
 
 import (
+	"context"
+
 	"github.com/ubuntu/authd/internal/testsdetection"
+	"github.com/ubuntu/authd/log"
 )
 
 var originalDefaultOptions = defaultOptions
@@ -35,6 +38,8 @@ func Z_ForTests_RestoreDefaultOptions() {
 func Z_ForTests_SetGroupPath(inputGroupPath, outputGroupPath string) {
 	testsdetection.MustBeTesting()
 
-	defaultOptions.groupInputPath = inputGroupPath
-	defaultOptions.groupOutputPath = outputGroupPath
+	log.Debugf(context.Background(), "XXX: Setting group input path to %q and output path to %q", inputGroupPath, outputGroupPath)
+
+	defaultOptions.inputGroupFile = inputGroupPath
+	defaultOptions.outputGroupFile = outputGroupPath
 }

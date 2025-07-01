@@ -1,11 +1,9 @@
 package localentries_test
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
-	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -83,14 +81,10 @@ var updateTestCases = map[string]struct {
 	},
 }
 
-func TestUpdatelocalentries(t *testing.T) {
-	t.Parallel()
-
+func TestUpdate(t *testing.T) {
 	tests := updateTestCases
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
 			if tc.newGroups == nil {
 				tc.newGroups = []string{"localgroup1", "localgroup3"}
 			}
@@ -114,76 +108,22 @@ func TestUpdatelocalentries(t *testing.T) {
 
 			defer localentriestestutils.RequireGroupFile(t, outputGroupFilePath, golden.Path(t))
 
-			entries, entriesUnlock, err := localentries.NewWithLock(
+			groupManager := localentries.NewGroupManager(
 				localentries.WithGroupInputPath(inputGroupFilePath),
 				localentries.WithGroupOutputPath(outputGroupFilePath),
 			)
-			require.NoError(t, err, "Failed to lock the local entries")
-			defer func() {
-				err := entriesUnlock()
-				require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
-			}()
 
-			lg := localentries.GetGroupsWithLock(entries)
-
-			err = lg.Update(tc.username, tc.newGroups, tc.oldGroups)
+			err := groupManager.Update(tc.username, tc.newGroups, tc.oldGroups)
 			if tc.wantErr {
-				require.Error(t, err, "Updatelocalentries should have failed")
+				require.Error(t, err, "Update should have failed")
 			} else {
-				require.NoError(t, err, "Updatelocalentries should not have failed")
-			}
-		})
-	}
-}
-
-func TestUpdateGroups(t *testing.T) {
-	t.Parallel()
-
-	tests := updateTestCases
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
-			if tc.newGroups == nil {
-				tc.newGroups = []string{"localgroup1", "localgroup3"}
-			}
-
-			switch tc.username {
-			case "":
-				tc.username = "myuser"
-			case "-":
-				tc.username = ""
-			}
-
-			inputGroupFilePath := filepath.Join("testdata", tc.groupFilePath)
-			outputGroupFilePath := filepath.Join(t.TempDir(), "group")
-
-			if exists, _ := fileutils.FileExists(inputGroupFilePath); exists {
-				tempGroupFile := filepath.Join(t.TempDir(), "group")
-				err := fileutils.CopyFile(inputGroupFilePath, tempGroupFile)
-				require.NoError(t, err, "failed to copy group file for testing")
-				inputGroupFilePath = tempGroupFile
-			}
-
-			defer localentriestestutils.RequireGroupFile(t, outputGroupFilePath, golden.Path(t))
-
-			err := localentries.UpdateGroups(
-				tc.username, tc.newGroups, tc.oldGroups,
-				localentries.WithGroupInputPath(inputGroupFilePath),
-				localentries.WithGroupOutputPath(outputGroupFilePath),
-			)
-			if tc.wantErr {
-				require.Error(t, err, "UpdateGroups should have failed")
-			} else {
-				require.NoError(t, err, "UpdateGroups should not have failed")
+				require.NoError(t, err, "Update should not have failed")
 			}
 		})
 	}
 }
 
 func TestGetAndSaveLocalGroups(t *testing.T) {
-	t.Parallel()
-
 	tests := map[string]struct {
 		groupFilePath string
 		addGroups     []types.GroupEntry
@@ -192,9 +132,11 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 
 		wantGetErr bool
 		wantSetErr bool
+		wantNoOp   bool
 	}{
 		"Empty_group_is_kept_empty_on_no_op": {
 			groupFilePath: "empty.group",
+			wantNoOp:      true,
 		},
 		"Empty_group_adding_one_group": {
 			groupFilePath: "empty.group",
@@ -224,6 +166,7 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 			groupFilePath: "empty.group",
 			addGroups:     []types.GroupEntry{{Name: "group1", GID: 1}},
 			removeGroups:  []string{"group1"},
+			wantNoOp:      true,
 		},
 		"Insert_new_user_in_existing_files_with_no_users_in_our_group": {
 			groupFilePath: "no_users_in_our_groups.group",
@@ -284,6 +227,7 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 		},
 		"Warn_when_groups_file_has_no_group_name": {
 			groupFilePath: "malformed_file_no_group_name.group",
+			wantNoOp:      true,
 		},
 
 		// Error cases
@@ -328,8 +272,6 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			t.Parallel()
-
 			inputGroupFilePath := filepath.Join(testutils.CurrentDir(),
 				"testdata", tc.groupFilePath)
 			outputGroupFilePath := filepath.Join(t.TempDir(), "group")
@@ -343,18 +285,12 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 
 			defer localentriestestutils.RequireGroupFile(t, outputGroupFilePath, golden.Path(t))
 
-			entries, entriesUnlock, err := localentries.NewWithLock(
+			groupManager := localentries.NewGroupManager(
 				localentries.WithGroupInputPath(inputGroupFilePath),
 				localentries.WithGroupOutputPath(outputGroupFilePath),
 			)
-			require.NoError(t, err, "Failed to lock the local entries")
-			defer func() {
-				err := entriesUnlock()
-				require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
-			}()
 
-			lg := localentries.GetGroupsWithLock(entries)
-			groups, err := lg.GetEntries()
+			groups, err := groupManager.GetEntries()
 			if tc.wantGetErr {
 				require.Error(t, err, "GetEntries should return an error, but did not")
 				return
@@ -373,10 +309,10 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 				groups[idx].Users = append(groups[idx].Users, userNames...)
 			}
 
-			err = lg.SaveEntries(groups)
+			err = groupManager.SaveEntries(groups)
 			if tc.wantSetErr {
 				require.Error(t, err, "SaveEntries should have failed")
-				updatedGroups, err := lg.GetEntries()
+				updatedGroups, err := groupManager.GetEntries()
 				require.NoError(t, err, "GetEntries should not return an error, but did")
 				require.Equal(t, initialGroups, updatedGroups, "Cached groups have been changed")
 				return
@@ -387,113 +323,19 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 			}
 
 			require.NoError(t, err, "SaveEntries should not have failed")
-			// Ensure we also saved the cached version of the groups...
-			updatedGroups, err := lg.GetEntries()
-			require.NoError(t, err, "GetEntries should not return an error, but did")
-			require.Equal(t, groups, updatedGroups, "Cached groups are not saved")
-		})
-	}
-}
 
-//nolint:tparallel // This can't be parallel, but subtests can.
-func TestRacingGroupsLockingActions(t *testing.T) {
-	const nIterations = 50
-
-	testFilePath := filepath.Join("testdata", "no_users_in_our_groups.group")
-
-	wg := sync.WaitGroup{}
-	wg.Add(nIterations)
-
-	// Lock and get the values in parallel.
-	for idx := range nIterations {
-		t.Run(fmt.Sprintf("iteration_%d", idx), func(t *testing.T) {
-			t.Parallel()
-
-			t.Cleanup(wg.Done)
-
-			var opts []localentries.Option
-			wantGroup := types.GroupEntry{Name: "root", GID: 0, Passwd: "x"}
-			useTestGroupFile := idx%3 == 0
-
-			if useTestGroupFile {
-				// Mix the requests with test-only code paths...
-				opts = append(opts, localentries.WithGroupPath(testFilePath))
-				wantGroup = types.GroupEntry{Name: "localgroup1", GID: 41, Passwd: "x"}
+			if tc.wantNoOp {
+				// The output group file should not have been created
+				exists, err := fileutils.FileExists(outputGroupFilePath)
+				require.NoError(t, err, "FileExists should not return an error, but did")
+				require.False(t, exists, "Output group file should not have been created")
+			} else {
+				// Check that the output group file has been created with the expected content
+				updatedGroups, err := localentries.ParseLocalGroups(outputGroupFilePath)
+				require.NoError(t, err, "ParseLocalGroups should not return an error, but did")
+				require.Equal(t, groups, updatedGroups, "Cached groups are not saved")
 			}
-
-			entries, entriesUnlock, err := localentries.NewWithLock(opts...)
-			require.NoError(t, err, "Failed to lock the local entries")
-			defer func() {
-				err := entriesUnlock()
-				require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
-			}()
-
-			lg := localentries.GetGroupsWithLock(entries)
-			groups, err := lg.GetEntries()
-			require.NoError(t, err, "GetEntries should not return an error, but did")
-			require.NotEmpty(t, groups, "Got empty groups (test groups: %v)", useTestGroupFile)
-			require.Contains(t, groups, wantGroup, "Expected group was not found  (test groups: %v)", useTestGroupFile)
 		})
-	}
-
-	t.Run("final_check", func(t *testing.T) {
-		t.Parallel()
-		wg.Wait()
-
-		// Get a last unlock function, to see if we're all good...
-		entries, entriesUnlock, err := localentries.NewWithLock()
-		require.NoError(t, err, "Failed to lock the local entries")
-
-		lg := localentries.GetGroupsWithLock(entries)
-		require.NoError(t, err, "Unlock should not fail to lock the users group")
-
-		err = entriesUnlock()
-		require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
-
-		// Ensure that we had cleaned up all the locks correctly!
-		require.Panics(t, func() { _, _ = lg.GetEntries() })
-	})
-}
-
-func TestLockedInvalidActions(t *testing.T) {
-	// This cannot be parallel
-
-	require.Panics(t, func() { localentries.GetGroupsWithLock((&localentries.WithLock{})) },
-		"GetGroupsWithLock should panic but did not")
-	require.Panics(t, func() { _ = (&localentries.GroupsWithLock{}).Update("", nil, nil) },
-		"Update should panic but did not")
-	require.Panics(t, func() { _, _ = (&localentries.GroupsWithLock{}).GetEntries() },
-		"GetEntries should panic but did not")
-	require.Panics(t, func() { _ = (&localentries.GroupsWithLock{}).SaveEntries(nil) },
-		"SaveEntries should panic but did not")
-
-	entries, entriesUnlock, err := localentries.NewWithLock()
-	require.NoError(t, err, "Failed to lock the local entries")
-
-	lg := localentries.GetGroupsWithLock(entries)
-	err = entriesUnlock()
-	require.NoError(t, err, "Unlock should not fail to lock the users group")
-
-	err = entriesUnlock()
-	require.Error(t, err, "Unlocking twice should fail")
-
-	require.Panics(t, func() { _ = lg.Update("", nil, nil) },
-		"Update should panic but did not")
-	require.Panics(t, func() { _, _ = lg.GetEntries() },
-		"GetEntries should panic but did not")
-	require.Panics(t, func() { _ = lg.SaveEntries(nil) },
-		"SaveEntries should panic but did not")
-
-	// This is to ensure that we're in a good state, despite the actions above
-	for range 10 {
-		entries, entriesUnlock, err := localentries.NewWithLock()
-		require.NoError(t, err, "Failed to lock the local entries")
-		defer func() {
-			err := entriesUnlock()
-			require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
-		}()
-
-		lg = localentries.GetGroupsWithLock(entries)
 	}
 }
 

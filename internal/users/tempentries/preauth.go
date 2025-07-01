@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/ubuntu/authd/internal/users/db"
+	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 )
@@ -21,9 +22,21 @@ const (
 	// too long.
 	MaxPreAuthUsers = 4096
 
+	// MaxPreAuthUserNameLength is the maximum length of the pre-auth user name.
+	MaxPreAuthUserNameLength = 256
+
 	// UserPrefix is the prefix used as login name by the pre-auth temporary users.
 	UserPrefix = "authd-pre-auth-user"
 )
+
+// NoDataFoundError is the error returned when no entry is found in the database.
+type NoDataFoundError = db.NoDataFoundError
+
+// IDGenerator is the interface that must be implemented by the ID generator.
+type IDGenerator interface {
+	GenerateUID() (uint32, error)
+	GenerateGID() (uint32, error)
+}
 
 type preAuthUser struct {
 	// name is the generated random name of the pre-auth user (which is returned by UserByID).
@@ -33,7 +46,7 @@ type preAuthUser struct {
 	uid       uint32
 }
 
-type preAuthUserRecords struct {
+type PreAuthUserRecords struct {
 	idGenerator IDGenerator
 	rwMu        sync.RWMutex
 	users       map[uint32]preAuthUser
@@ -41,8 +54,8 @@ type preAuthUserRecords struct {
 	uidByLogin  map[string]uint32
 }
 
-func newPreAuthUserRecords(idGenerator IDGenerator) *preAuthUserRecords {
-	return &preAuthUserRecords{
+func NewPreAuthUserRecords(idGenerator IDGenerator) *PreAuthUserRecords {
+	return &PreAuthUserRecords{
 		idGenerator: idGenerator,
 		users:       make(map[uint32]preAuthUser),
 		uidByName:   make(map[string]uint32),
@@ -51,14 +64,14 @@ func newPreAuthUserRecords(idGenerator IDGenerator) *preAuthUserRecords {
 }
 
 // UserByID returns the user information for the given user ID.
-func (r *preAuthUserRecords) userByID(uid uint32) (types.UserEntry, error) {
+func (r *PreAuthUserRecords) UserByID(uid uint32) (types.UserEntry, error) {
 	r.rwMu.RLock()
 	defer r.rwMu.RUnlock()
 
 	return r.userByIDWithoutLock(uid)
 }
 
-func (r *preAuthUserRecords) userByIDWithoutLock(uid uint32) (types.UserEntry, error) {
+func (r *PreAuthUserRecords) userByIDWithoutLock(uid uint32) (types.UserEntry, error) {
 	user, ok := r.users[uid]
 	if !ok {
 		return types.UserEntry{}, db.NewUIDNotFoundError(uid)
@@ -68,7 +81,7 @@ func (r *preAuthUserRecords) userByIDWithoutLock(uid uint32) (types.UserEntry, e
 }
 
 // UserByName returns the user information for the given user name.
-func (r *preAuthUserRecords) userByName(name string) (types.UserEntry, error) {
+func (r *PreAuthUserRecords) UserByName(name string) (types.UserEntry, error) {
 	r.rwMu.RLock()
 	defer r.rwMu.RUnlock()
 
@@ -80,7 +93,7 @@ func (r *preAuthUserRecords) userByName(name string) (types.UserEntry, error) {
 	return r.userByIDWithoutLock(uid)
 }
 
-func (r *preAuthUserRecords) userByLogin(loginName string) (types.UserEntry, error) {
+func (r *PreAuthUserRecords) UserByLogin(loginName string) (types.UserEntry, error) {
 	r.rwMu.RLock()
 	defer r.rwMu.RUnlock()
 
@@ -104,34 +117,61 @@ func preAuthUserEntry(user preAuthUser) types.UserEntry {
 	}
 }
 
-func (r *preAuthUserRecords) generatePreAuthUserID(loginName string) (uid uint32, err error) {
-	if loginName == "" {
-		return 0, errors.New("empty username")
-	}
+// RegisterPreAuthUser registers a temporary user with a unique UID in our NSS
+// handler (in memory, not in the database).
+//
+// The temporary user record is removed when [RegisterUser] is called with the
+// same username.
+//
+// This method is called when a user logs in for the first time via SSH, in
+// which case sshd checks if the user exists on the system (before
+// authentication), and denies the login if the user does not exist.
+// We pretend that the user exists by creating this temporary user record,
+// which is converted into a permanent user record when [RegisterUser] is called
+// after the user authenticated successfully.
+//
+// Returns the generated UID.
+func (r *PreAuthUserRecords) RegisterPreAuthUser(loginName string) (uid uint32, err error) {
+	r.rwMu.Lock()
+	defer r.rwMu.Unlock()
 
 	// To mitigate DoS attacks, we limit the length of the name to 256 characters.
-	if len(loginName) > 256 {
-		return 0, errors.New("username is too long (max 256 characters)")
+	if len(loginName) > MaxPreAuthUserNameLength {
+		return 0, fmt.Errorf("username is too long (maximum %d characters): %q", MaxPreAuthUserNameLength, loginName)
 	}
 
 	if len(r.users) >= MaxPreAuthUsers {
 		return 0, errors.New("maximum number of pre-auth users reached, login for new users via SSH is disabled until authd is restarted")
 	}
 
-	// Generate a UID
-	return r.idGenerator.GenerateUID()
-}
+	// Check if there is already a pre-auth user for that name
+	if uid, ok := r.uidByLogin[loginName]; ok {
+		return uid, nil
+	}
 
-// addPreAuthUser adds a temporary user with a random name and the given UID. We use a random name here to avoid
-// creating user records with attacker-controlled names.
-func (r *preAuthUserRecords) addPreAuthUser(uid uint32, loginName string) (err error) {
+	// Check if the user already exists on the system (e.g. in /etc/passwd).
+	_, err = localentries.GetPasswdByName(loginName)
+	if err != nil && !errors.Is(err, localentries.ErrUserNotFound) {
+		return 0, fmt.Errorf("could not check if user %q exists on the system: %w", loginName, err)
+	}
+	if err == nil {
+		// The user already exists on the system, so we cannot create a new user with the same name.
+		return 0, fmt.Errorf("user %q already exists on the system (but not in the authd database)", loginName)
+	}
+
+	// Generate a unique UID for the pre-auth user.
+	uid, err = r.idGenerator.GenerateUID()
+	if err != nil {
+		return 0, fmt.Errorf("failed to generate unique UID for pre-auth user: %w", err)
+	}
+
 	var name string
 	for {
 		// Generate a 64 character (32 bytes in hex) random ID which we store in the
 		// name field of the temporary user record to be able to identify it.
 		bytes := make([]byte, 32)
 		if _, err := rand.Read(bytes); err != nil {
-			return fmt.Errorf("failed to generate random name: %w", err)
+			return 0, fmt.Errorf("failed to generate random name: %w", err)
 		}
 		name = fmt.Sprintf("%s-%x", UserPrefix, bytes)
 
@@ -151,13 +191,13 @@ func (r *preAuthUserRecords) addPreAuthUser(uid uint32, loginName string) (err e
 	r.uidByName[name] = uid
 	r.uidByLogin[loginName] = uid
 
-	return nil
+	return uid, nil
 }
 
 // deletePreAuthUser deletes the temporary user with the given UID.
 //
 // This must be called with the mutex locked.
-func (r *preAuthUserRecords) deletePreAuthUser(uid uint32) bool {
+func (r *PreAuthUserRecords) deletePreAuthUser(uid uint32) bool {
 	user, ok := r.users[uid]
 	if !ok {
 		// We ignore the case that the pre-auth user does not exist, because it can happen that the same user is
