@@ -248,13 +248,13 @@ func renameUsersInGroupFile(oldNames, newNames []string) (err error) {
 		return nil
 	}
 
-	lockedEntries, entriesUnlock, err := localentries.NewUserDBLocked()
+	ctx, entriesUnlock, err := localentries.ContextUserDBLocked(context.Background())
 	if err != nil {
 		return err
 	}
 	defer func() { err = errors.Join(err, entriesUnlock()) }()
 
-	lockedGroups := localentries.GetGroupsWithLock(lockedEntries)
+	lockedGroups := localentries.GetGroupsWithLock(ctx)
 	groups, err := lockedGroups.GetEntries()
 	if err != nil {
 		return err

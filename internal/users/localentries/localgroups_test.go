@@ -1,6 +1,7 @@
 package localentries_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -112,7 +113,8 @@ func TestUpdatelocalentries(t *testing.T) {
 
 			defer localentriestestutils.RequireGroupFile(t, outputGroupFilePath, golden.Path(t))
 
-			entries, entriesUnlock, err := localentries.NewUserDBLocked(
+			ctx, entriesUnlock, err := localentries.ContextUserDBLocked(
+				context.Background(),
 				localentries.WithGroupInputPath(inputGroupFilePath),
 				localentries.WithGroupOutputPath(outputGroupFilePath),
 				localentries.WithMockUserDBLocking(),
@@ -123,7 +125,7 @@ func TestUpdatelocalentries(t *testing.T) {
 				require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 			})
 
-			lg := localentries.GetGroupsWithLock(entries)
+			lg := localentries.GetGroupsWithLock(ctx)
 
 			err = lg.Update(tc.username, tc.newGroups, tc.oldGroups)
 			if tc.wantErr {
@@ -307,7 +309,8 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 
 			defer localentriestestutils.RequireGroupFile(t, outputGroupFilePath, golden.Path(t))
 
-			entries, entriesUnlock, err := localentries.NewUserDBLocked(
+			ctx, entriesUnlock, err := localentries.ContextUserDBLocked(
+				context.Background(),
 				localentries.WithGroupInputPath(inputGroupFilePath),
 				localentries.WithGroupOutputPath(outputGroupFilePath),
 				localentries.WithMockUserDBLocking(),
@@ -318,7 +321,7 @@ func TestGetAndSaveLocalGroups(t *testing.T) {
 				require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 			}()
 
-			lg := localentries.GetGroupsWithLock(entries)
+			lg := localentries.GetGroupsWithLock(ctx)
 			groups, err := lg.GetEntries()
 			if tc.wantGetErr {
 				require.Error(t, err, "GetEntries should return an error, but did not")
@@ -399,14 +402,15 @@ func TestRacingGroupsLockingActions(t *testing.T) {
 				wantGroup = types.GroupEntry{Name: "localgroup1", GID: 41, Passwd: "x"}
 			}
 
-			entries, entriesUnlock, err := localentries.NewUserDBLocked(opts...)
+			ctx, entriesUnlock, err := localentries.ContextUserDBLocked(
+				context.Background(), opts...)
 			require.NoError(t, err, "Failed to lock the local entries")
 			t.Cleanup(func() {
 				err := entriesUnlock()
 				require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 			})
 
-			lg := localentries.GetGroupsWithLock(entries)
+			lg := localentries.GetGroupsWithLock(ctx)
 			groups, err := lg.GetEntries()
 			require.NoError(t, err, "GetEntries should not return an error, but did")
 			require.NotEmpty(t, groups, "Got empty groups (test groups: %v)", useTestGroupFile)
@@ -419,10 +423,10 @@ func TestRacingGroupsLockingActions(t *testing.T) {
 		wg.Wait()
 
 		// Get a last unlock function, to see if we're all good...
-		entries, entriesUnlock, err := localentries.NewUserDBLocked()
+		ctx, entriesUnlock, err := localentries.ContextUserDBLocked(context.Background())
 		require.NoError(t, err, "Failed to lock the local entries")
 
-		lg := localentries.GetGroupsWithLock(entries)
+		lg := localentries.GetGroupsWithLock(ctx)
 		require.NoError(t, err, "Unlock should not fail to lock the users group")
 
 		err = entriesUnlock()
@@ -436,7 +440,7 @@ func TestRacingGroupsLockingActions(t *testing.T) {
 func TestLockedInvalidActions(t *testing.T) {
 	// This cannot be parallel
 
-	require.Panics(t, func() { localentries.GetGroupsWithLock((&localentries.UserDBLocked{})) },
+	require.Panics(t, func() { localentries.GetGroupsWithLock(context.Background()) },
 		"GetGroupsWithLock should panic but did not")
 	require.Panics(t, func() { _ = (&localentries.GroupsWithLock{}).Update("", nil, nil) },
 		"Update should panic but did not")
@@ -445,10 +449,10 @@ func TestLockedInvalidActions(t *testing.T) {
 	require.Panics(t, func() { _ = (&localentries.GroupsWithLock{}).SaveEntries(nil) },
 		"SaveEntries should panic but did not")
 
-	entries, entriesUnlock, err := localentries.NewUserDBLocked()
+	ctx, entriesUnlock, err := localentries.ContextUserDBLocked(context.Background())
 	require.NoError(t, err, "Failed to lock the local entries")
 
-	lg := localentries.GetGroupsWithLock(entries)
+	lg := localentries.GetGroupsWithLock(ctx)
 	err = entriesUnlock()
 	require.NoError(t, err, "Unlock should not fail to lock the users group")
 
@@ -464,14 +468,14 @@ func TestLockedInvalidActions(t *testing.T) {
 
 	// This is to ensure that we're in a good state, despite the actions above
 	for range 10 {
-		entries, entriesUnlock, err := localentries.NewUserDBLocked()
+		ctx, entriesUnlock, err := localentries.ContextUserDBLocked(context.Background())
 		require.NoError(t, err, "Failed to lock the local entries")
 		defer func() {
 			err := entriesUnlock()
 			require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 		}()
 
-		lg = localentries.GetGroupsWithLock(entries)
+		lg = localentries.GetGroupsWithLock(ctx)
 	}
 }
 

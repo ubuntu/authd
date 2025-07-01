@@ -47,9 +47,6 @@ type Manager struct {
 	config         Config
 	preAuthRecords *tempentries.PreAuthUserRecords
 	idGenerator    tempentries.IDGenerator
-
-	userEntries  []types.UserEntry
-	groupEntries []types.GroupEntry
 }
 
 type options struct {
@@ -153,18 +150,22 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			uid = preauthUID
 			defer cleanup()
 		} else {
-			unlockEntries, err := m.cacheLockedEntries()
+			ctx, unlockEntries, err := localentries.ContextUserDBLocked(context.Background())
 			if err != nil {
 				return err
 			}
 			defer func() { err = errors.Join(err, unlockEntries()) }()
 
-			if !m.isUniqueSystemUserName(u.Name) {
-				log.Warningf(context.Background(), "Another user exists with name %q", u.Name)
+			unique, err := localentries.GetUserDBLocked(ctx).IsUniqueUserName(u.Name)
+			if err != nil {
+				return err
+			}
+			if !unique {
+				log.Warningf(context.Background(), "User %q already exists", u.Name)
 				return fmt.Errorf("another system user exists with %q name", u.Name)
 			}
 
-			if uid, err = m.generateUniqueUID(); err != nil {
+			if uid, err = m.generateUniqueUID(ctx); err != nil {
 				return err
 			}
 			log.Debugf(context.Background(), "Using new UID %d for user %q", uid, u.Name)
@@ -222,11 +223,13 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 
 	if len(newGroups) > 0 {
-		unlockEntries, err := m.cacheLockedEntries()
+		ctx, unlockEntries, err := localentries.ContextUserDBLocked(context.Background())
 		if err != nil {
 			return err
 		}
 		defer func() { err = errors.Join(err, unlockEntries()) }()
+
+		lockedEntries := localentries.GetUserDBLocked(ctx)
 
 		for i, j := 0, 0; i < len(newGroups); j++ {
 			g := &newGroups[i]
@@ -235,7 +238,16 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 					g.Name, maxIDGenerateIterations)
 			}
 
-			gid, err := m.generateUniqueGID()
+			unique, err := lockedEntries.IsUniqueGroupName(g.Name)
+			if err != nil {
+				return err
+			}
+			if !unique {
+				log.Warningf(ctx, "Group %q already exists", g.Name)
+				return fmt.Errorf("another system group exists with %q name", g.Name)
+			}
+
+			gid, err := m.generateUniqueGID(ctx)
 			if err != nil {
 				return err
 			}
@@ -248,14 +260,9 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 				continue
 			}
 
-			if !m.isUniqueSystemGroupName(g.Name) {
-				log.Warningf(context.Background(), "Group %q already exists", g.Name)
-				return fmt.Errorf("another system group exists with %q name", g.Name)
-			}
-
 			g.GID = &gid
 			groupRows = append(groupRows, db.NewGroupRow(g.Name, *g.GID, g.UGID))
-			log.Debugf(context.Background(), "Using new GID %d for group %q", gid, u.Name)
+			log.Debugf(ctx, "Using new GID %d for group %q", gid, u.Name)
 			i++
 		}
 	}
@@ -273,13 +280,13 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 
 	// Update local groups.
-	localEntries, unlockEntries, err := localentries.NewUserDBLocked()
+	ctx, unlockEntries, err := localentries.ContextUserDBLocked(context.Background())
 	if err != nil {
 		return err
 	}
 	defer func() { err = errors.Join(err, unlockEntries()) }()
 
-	lockedGroups := localentries.GetGroupsWithLock(localEntries)
+	lockedGroups := localentries.GetGroupsWithLock(ctx)
 	if err := lockedGroups.Update(u.Name, localGroups, oldLocalGroups); err != nil {
 		return err
 	}
@@ -482,7 +489,7 @@ func (m *Manager) AllShadows() ([]types.ShadowEntry, error) {
 	return shadowEntries, err
 }
 
-func (m *Manager) generateUniqueID(generator func() (uint32, error)) (uint32, error) {
+func (m *Manager) generateUniqueID(ctx context.Context, generator func() (uint32, error)) (uint32, error) {
 	for range maxIDGenerateIterations {
 		uid, err := generator()
 		if err != nil {
@@ -490,12 +497,12 @@ func (m *Manager) generateUniqueID(generator func() (uint32, error)) (uint32, er
 		}
 
 		var unique bool
-		unique, err = m.isUniqueID(uid)
+		unique, err = m.isUniqueID(ctx, uid)
 		if err != nil {
 			return 0, err
 		}
 		if !unique {
-			log.Debugf(context.Background(), "UID %d is not unique", uid)
+			log.Debugf(ctx, "UID %d is not unique", uid)
 			continue
 		}
 
@@ -505,18 +512,18 @@ func (m *Manager) generateUniqueID(generator func() (uint32, error)) (uint32, er
 	return 0, fmt.Errorf("Cannot find an unique ID")
 }
 
-func (m *Manager) generateUniqueUID() (uint32, error) {
-	return m.generateUniqueID(m.idGenerator.GenerateUID)
+func (m *Manager) generateUniqueUID(ctx context.Context) (uint32, error) {
+	return m.generateUniqueID(ctx, m.idGenerator.GenerateUID)
 }
 
-func (m *Manager) generateUniqueGID() (uint32, error) {
-	return m.generateUniqueID(m.idGenerator.GenerateGID)
+func (m *Manager) generateUniqueGID(ctx context.Context) (uint32, error) {
+	return m.generateUniqueID(ctx, m.idGenerator.GenerateGID)
 }
 
-func (m *Manager) isUniqueID(id uint32) (bool, error) {
+func (m *Manager) isUniqueID(ctx context.Context, id uint32) (bool, error) {
 	oldUser, err := m.UserByID(id)
 	if err == nil {
-		log.Debugf(context.TODO(), "Found duplicate user %v", oldUser)
+		log.Debugf(ctx, "Found duplicate user %v", oldUser)
 		return false, nil
 	}
 	if !errors.Is(err, db.NoDataFoundError{}) {
@@ -525,86 +532,42 @@ func (m *Manager) isUniqueID(id uint32) (bool, error) {
 
 	oldGroup, err := m.GroupByID(id)
 	if err == nil {
-		log.Debugf(context.TODO(), "Found duplicate group %v", oldGroup)
+		log.Debugf(ctx, "Found duplicate group %v", oldGroup)
 		return false, nil
 	}
 	if !errors.Is(err, db.NoDataFoundError{}) {
 		return false, err
 	}
 
-	return m.isUniqueSystemID(id)
+	return m.isUniqueSystemID(ctx, id)
 }
 
-func (m *Manager) isUniqueSystemID(id uint32) (unique bool, err error) {
-	if m.userEntries == nil {
-		panic("User entries have note ben set")
-	}
-	if m.groupEntries == nil {
-		panic("Group entries have note ben set")
+func (m *Manager) isUniqueSystemID(ctx context.Context, id uint32) (unique bool, err error) {
+	users, err := localentries.GetUserDBLocked(ctx).GetUserEntries()
+	if err != nil {
+		return false, err
 	}
 
-	if idx := slices.IndexFunc(m.userEntries, func(p types.UserEntry) (found bool) {
+	if idx := slices.IndexFunc(users, func(p types.UserEntry) (found bool) {
 		return p.UID == id
 	}); idx != -1 {
-		log.Debugf(context.Background(), "ID %d already in use by user %q",
-			id, m.userEntries[idx].Name)
+		log.Debugf(ctx, "ID %d already in use by user %q", id, users[idx].Name)
 		return false, nil
 	}
 
-	if idx := slices.IndexFunc(m.groupEntries, func(g types.GroupEntry) (found bool) {
+	groups, err := localentries.GetUserDBLocked(ctx).GetGroupEntries()
+	if err != nil {
+		return false, err
+	}
+
+	if idx := slices.IndexFunc(groups, func(g types.GroupEntry) (found bool) {
 		return g.GID == id
 	}); idx != -1 {
-		log.Debugf(context.Background(), "ID %d already in use by user %q",
-			id, m.groupEntries[idx].Name)
+		log.Debugf(ctx, "ID %d already in use by user %q", id, groups[idx].Name)
 		return false, nil
 	}
 
 	return true, nil
-}
-
-func (m *Manager) cacheLockedEntries() (unlockEntries func() error, err error) {
-	if m.userEntries != nil && m.groupEntries != nil {
-		return func() error { return nil }, nil
-	}
-
-	localEntries, unlock, err := localentries.NewUserDBLocked()
-	if err != nil {
-		return nil, err
-	}
-
-	m.userEntries, err = localEntries.GetUserEntries()
-	if err != nil {
-		return nil, err
-	}
-
-	m.groupEntries, err = localEntries.GetGroupEntries()
-	if err != nil {
-		return nil, err
-	}
-
-	return func() error {
-		m.userEntries = nil
-		m.groupEntries = nil
-		return unlock()
-	}, nil
-}
-
-func (m *Manager) isUniqueSystemUserName(name string) (unique bool) {
-	if m.userEntries == nil {
-		panic("User entries are not set!")
-	}
-	return !slices.ContainsFunc(m.userEntries, func(g types.UserEntry) bool {
-		return g.Name == name
-	})
-}
-
-func (m *Manager) isUniqueSystemGroupName(name string) (unique bool) {
-	if m.groupEntries == nil {
-		panic("Group entries are not set!")
-	}
-	return !slices.ContainsFunc(m.groupEntries, func(g types.GroupEntry) bool {
-		return g.Name == name
-	})
 }
 
 // RegisterUserPreAuth registers a temporary user with a unique UID in our NSS handler (in memory, not in the database).
@@ -630,17 +593,21 @@ func (m *Manager) RegisterUserPreAuth(name string) (uid uint32, err error) {
 		return 0, err
 	}
 
-	unlockEntries, err := m.cacheLockedEntries()
+	ctx, unlockEntries, err := localentries.ContextUserDBLocked(context.Background())
 	if err != nil {
 		return 0, err
 	}
 	defer func() { err = errors.Join(err, unlockEntries()) }()
 
-	if !m.isUniqueSystemUserName(name) {
+	unique, err := localentries.GetUserDBLocked(ctx).IsUniqueUserName(name)
+	if err != nil {
+		return 0, err
+	}
+	if !unique {
 		return 0, fmt.Errorf("another system user exists with %q name", name)
 	}
 
-	uid, err = m.generateUniqueUID()
+	uid, err = m.generateUniqueUID(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -649,6 +616,6 @@ func (m *Manager) RegisterUserPreAuth(name string) (uid uint32, err error) {
 		return 0, err
 	}
 
-	log.Debugf(context.Background(), "Using new UID %d for temporary user %q", uid, name)
+	log.Debugf(ctx, "Using new UID %d for temporary user %q", uid, name)
 	return uid, nil
 }

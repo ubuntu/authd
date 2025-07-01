@@ -2,7 +2,11 @@ package localentries
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os/user"
+	"slices"
+	"strconv"
 	"sync"
 
 	"github.com/ubuntu/authd/internal/testsdetection"
@@ -45,7 +49,7 @@ var defaultOptions = options{
 	writeUnlockFunc: userslocking.WriteUnlock,
 }
 
-// Option represents an optional function to override [NewUserDBLocked] default values.
+// Option represents an optional function to override [UserDBLocked] default values.
 type Option func(*options)
 
 type invalidEntry struct {
@@ -87,11 +91,29 @@ type UserDBLocked struct {
 	options options
 }
 
-// NewUserDBLocked gets a [UserDBLocked] instance with a lock on the system's user database.
-// It returns an unlock function that should be called to unlock system's user database.
-func NewUserDBLocked(args ...Option) (entries *UserDBLocked, unlock func() error, err error) {
+type userDBLockKey struct{}
+
+// GetUserDBLocked retrieves the [WithLock] from context, if present.
+func GetUserDBLocked(ctx context.Context) *UserDBLocked {
+	if l, ok := ctx.Value(userDBLockKey{}).(*UserDBLocked); ok {
+		l.MustBeLocked()
+		return l
+	}
+	return nil
+}
+
+// ContextUserDBLocked gets a context instance with a lock on the system's
+// user database.
+// It returns an unlock function that should be called to unlock it.
+//
+// It can called safely multiple times and will return always a new context that
+// is always bound to the same instance of [UserDBLocked] with increased
+// reference counting (that is released through the unlock function).
+// Use [GetUserDBLocked] to retrieve it.
+func ContextUserDBLocked(parent context.Context, args ...Option) (ctx context.Context, unlock func() error, err error) {
 	defer decorate.OnError(&err, "could not lock local groups")
 
+	var entries *UserDBLocked
 	unlock = func() error {
 		entries.mu.Lock()
 		defer entries.mu.Unlock()
@@ -126,13 +148,14 @@ func NewUserDBLocked(args ...Option) (entries *UserDBLocked, unlock func() error
 	}
 
 	entries = opts.userDBLocked
+	ctx = context.WithValue(parent, userDBLockKey{}, entries)
 
 	entries.mu.Lock()
 	defer entries.mu.Unlock()
 
 	if entries.refCount != 0 {
 		entries.refCount++
-		return entries, unlock, nil
+		return ctx, unlock, nil
 	}
 
 	log.Debug(context.Background(), "Locking local entries")
@@ -144,7 +167,7 @@ func NewUserDBLocked(args ...Option) (entries *UserDBLocked, unlock func() error
 	entries.options = opts
 	entries.refCount++
 
-	return entries, unlock, nil
+	return ctx, unlock, nil
 }
 
 // MustBeLocked ensures wether the entries are locked.
@@ -224,4 +247,136 @@ func (l *UserDBLocked) lockGroupFile() (unlock func()) {
 
 	l.localGroupsMu.Lock()
 	return l.localGroupsMu.Unlock
+}
+
+// IsUniqueUserName returns if a user exists for the given name.
+func (l *UserDBLocked) IsUniqueUserName(name string) (unique bool, err error) {
+	l.MustBeLocked()
+
+	users, err := l.GetUserEntries()
+	if err != nil {
+		return false, err
+	}
+
+	// Let's try to check first the (potentially) cached entries.
+	if slices.ContainsFunc(users, func(u types.UserEntry) bool {
+		return u.Name == name
+	}) {
+		return false, nil
+	}
+
+	// In case we found no user, we need to still double check NSS by name.
+	_, err = user.Lookup(name)
+	if err == nil {
+		return false, nil
+	}
+
+	var userErr user.UnknownUserError
+	if !errors.As(err, &userErr) {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// IsUniqueGroupName returns if a user exists for the given UID.
+func (l *UserDBLocked) IsUniqueGroupName(group string) (unique bool, err error) {
+	l.MustBeLocked()
+
+	// Let's try to check first the (potentially) cached entries.
+	groups, err := l.GetGroupEntries()
+	if err != nil {
+		return false, err
+	}
+
+	if slices.ContainsFunc(groups, func(g types.GroupEntry) bool {
+		return g.Name == group
+	}) {
+		return false, nil
+	}
+
+	// In case we found no user, we need to still double check NSS by name.
+	_, err = user.LookupGroup(group)
+	if err == nil {
+		return false, nil
+	}
+
+	var groupErr user.UnknownGroupError
+	if !errors.As(err, &groupErr) {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// IsUniqueUID returns if a user exists for the given UID.
+func (l *UserDBLocked) IsUniqueUID(uid uint32) (unique bool, err error) {
+	l.MustBeLocked()
+
+	users, err := l.GetUserEntries()
+	if err != nil {
+		return false, err
+	}
+
+	// Let's try to check first the (potentially) cached entries.
+	if slices.ContainsFunc(users, func(u types.UserEntry) bool {
+		return u.UID == uid
+	}) {
+		return false, nil
+	}
+
+	// In case we found no user, we need to still double check NSS by ID.
+	_, err = user.LookupId(strconv.FormatUint(uint64(uid), 10))
+	if err == nil {
+		return false, nil
+	}
+
+	var userErr user.UnknownUserIdError
+	if !errors.As(err, &userErr) {
+		return false, err
+	}
+
+	// Also check that the UID is not used by a group.
+	return l.IsUniqueGID(uid)
+}
+
+// IsUniqueGID returns if a user exists for the given UID.
+func (l *UserDBLocked) IsUniqueGID(gid uint32) (unique bool, err error) {
+	l.MustBeLocked()
+
+	// Let's try to check first the (potentially) cached entries.
+	groups, err := l.GetGroupEntries()
+	if err != nil {
+		return false, err
+	}
+
+	if slices.ContainsFunc(groups, func(g types.GroupEntry) bool {
+		return g.GID == gid
+	}) {
+		return false, nil
+	}
+
+	// Then the (potentially) cached user entries, for user local groups.
+	users, err := l.GetUserEntries()
+	if err != nil {
+		return false, err
+	}
+	if slices.ContainsFunc(users, func(u types.UserEntry) bool {
+		return u.GID == gid
+	}) {
+		return false, nil
+	}
+
+	// In case we found no user, we need to still double check NSS by ID.
+	_, err = user.LookupGroupId(strconv.FormatUint(uint64(gid), 10))
+	if err == nil {
+		return false, nil
+	}
+
+	var groupErr user.UnknownGroupIdError
+	if !errors.As(err, &groupErr) {
+		return false, err
+	}
+
+	return true, nil
 }

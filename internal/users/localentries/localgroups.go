@@ -27,7 +27,8 @@ type GroupsWithLock struct {
 }
 
 // GetGroupsWithLock gets a GroupsWithLock instance with a lock on the system's user database.
-func GetGroupsWithLock(entriesWithLock *UserDBLocked) (groups *GroupsWithLock) {
+func GetGroupsWithLock(context context.Context) (groups *GroupsWithLock) {
+	entriesWithLock := GetUserDBLocked(context)
 	entriesWithLock.MustBeLocked()
 
 	return &GroupsWithLock{entriesWithLock}
