@@ -21,8 +21,8 @@ import (
 
 var getpwentMu sync.Mutex
 
-// GetPasswdEntries returns all passwd entries.
-func GetPasswdEntries() (entries []types.UserEntry, err error) {
+// getUserEntries returns all passwd entries.
+func getUserEntries() (entries []types.UserEntry, err error) {
 	decorate.OnError(&err, "getpwent_r")
 
 	// This function repeatedly calls getpwent_r, which iterates over the records in the passwd database.

@@ -16,7 +16,7 @@ func TestGetPasswdEntries(t *testing.T) {
 		t.Run(fmt.Sprintf("iteration_%d", idx), func(t *testing.T) {
 			t.Parallel()
 
-			got, err := GetPasswdEntries()
+			got, err := getUserEntries()
 			require.NoError(t, err, "GetPasswdEntries should never return an error")
 			require.NotEmpty(t, got, "GetPasswdEntries should never return an empty list")
 

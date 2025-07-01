@@ -17,7 +17,7 @@ func TestGetGroupEntries(t *testing.T) {
 		t.Run(fmt.Sprintf("iteration_%d", idx), func(t *testing.T) {
 			t.Parallel()
 
-			got, err := GetGroupEntries()
+			got, err := getGroupEntries()
 			require.NoError(t, err, "GetGroupEntries should never return an error")
 			require.NotEmpty(t, got, "GetGroupEntries should never return an empty list")
 			require.True(t, slices.ContainsFunc(got, func(g types.GroupEntry) bool {

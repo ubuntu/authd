@@ -24,8 +24,8 @@ import (
 // types.GroupEntry represents a group entry.
 var getgrentMu sync.Mutex
 
-// GetGroupEntries returns all group entries.
-func GetGroupEntries() (entries []types.GroupEntry, err error) {
+// getGroupEntries returns all group entries.
+func getGroupEntries() (entries []types.GroupEntry, err error) {
 	decorate.OnError(&err, "getgrent_r")
 
 	// This function repeatedly calls getgrent_r, which iterates over the records in the group database.
