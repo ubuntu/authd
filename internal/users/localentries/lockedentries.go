@@ -16,10 +16,19 @@ import (
 	"github.com/ubuntu/decorate"
 )
 
-// GroupFile is the default local group fill.
-const GroupFile = "/etc/group"
+const (
+	// GroupFile is the default local passwd file.
+	passwdFile = "/etc/passwd"
+
+	// GroupFile is the default local group file.
+	GroupFile = "/etc/group"
+)
 
 type options struct {
+	// inputPasswdPath is the path used to read the passwd file. Defaults to
+	// [passwdFile], but can be overwritten in tests.
+	inputPasswdPath string
+
 	// inputGroupPath is the path used to read the group file. Defaults to
 	// [GroupFile], but can be overwritten in tests.
 	inputGroupPath string
@@ -42,6 +51,7 @@ var defaultOptions = options{
 	// no test options are provided.
 	userDBLocked: &UserDBLocked{},
 
+	inputPasswdPath: passwdFile,
 	inputGroupPath:  GroupFile,
 	outputGroupPath: GroupFile,
 
@@ -80,6 +90,9 @@ type UserDBLocked struct {
 
 	// userEntries holds the current group entries.
 	userEntries []types.UserEntry
+	// localUserEntries holds the current local entries.
+	localUserEntries []types.UserEntry
+
 	// groupEntries holds the current group entries.
 	groupEntries []types.GroupEntry
 	// localGroupEntries holds the current group entries.
@@ -212,6 +225,21 @@ func (l *UserDBLocked) GetGroupEntries() (entries []types.GroupEntry, err error)
 
 	l.groupEntries, err = getGroupEntries()
 	return l.groupEntries, err
+}
+
+// GetLocalUserEntries gets the local group entries.
+func (l *UserDBLocked) GetLocalUserEntries() (entries []types.UserEntry, err error) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	l.mustBeLocked()
+
+	if l.localUserEntries != nil {
+		return l.localUserEntries, nil
+	}
+
+	l.localUserEntries, err = parseLocalPasswdFile(l.options.inputPasswdPath)
+	return l.localUserEntries, err
 }
 
 // GetLocalGroupEntries gets the local group entries.
