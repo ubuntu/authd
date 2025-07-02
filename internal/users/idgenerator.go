@@ -52,7 +52,7 @@ type IDGenerator struct {
 
 // Avoid to loop forever if we can't find an UID for the user, it's just better
 // to fail after a limit is reached than hang or crash.
-const maxIDGenerateIterations = 256
+const maxIDGenerateIterations = 1000000
 
 // GenerateUID generates a random UID in the configured range.
 func (g *IDGenerator) GenerateUID(ctx context.Context, owner IDOwner) (uint32, error) {
@@ -140,10 +140,11 @@ func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (uint32, error) {
 
 	// Find the highest used ID, if any
 	var highestUsed uint32
-	if len(usedIDs) > 0 {
-		highestUsed = usedIDs[len(usedIDs)-1]
-	} else {
+	if minID > 0 {
 		highestUsed = minID - 1 // No used IDs
+	}
+	if len(usedIDs) > 0 {
+		highestUsed = max(highestUsed, usedIDs[len(usedIDs)-1])
 	}
 
 	// Try IDs above the highest used

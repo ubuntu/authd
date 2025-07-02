@@ -3,6 +3,7 @@ package users_test
 import (
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"slices"
@@ -592,6 +593,78 @@ func TestConcurrentUserUpdate(t *testing.T) {
 				"Generate GID should be an ID less or equal to the maximum")
 		}
 	})
+}
+
+func TestUpdateWhenNoMoreIDsAreAvailable(t *testing.T) {
+	t.Parallel()
+
+	const maxIDs = uint32(10)
+
+	tests := map[string]struct {
+		idGenerator users.IDGeneratorIface
+	}{
+		"Errors_after_registering_the_max_amount_of_users_for_lower_IDs": {
+			idGenerator: &users.IDGenerator{
+				UIDMin: 0,
+				UIDMax: 0 + maxIDs - 1,
+				GIDMin: 0,
+				GIDMax: 0 + maxIDs - 1,
+			},
+		},
+		"Errors_after_registering_the_max_amount_of_users_for_highest_IDs": {
+			idGenerator: &users.IDGenerator{
+				UIDMin: math.MaxUint32 - maxIDs + 1,
+				UIDMax: math.MaxUint32,
+				GIDMin: math.MaxUint32 - maxIDs + 1,
+				GIDMax: math.MaxUint32,
+			},
+		},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			dbDir := t.TempDir()
+			const dbFile = "one_user_and_group_with_matching_gid"
+			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", dbFile+".db.yaml"), dbDir)
+			require.NoError(t, err, "Setup: could not create database from testdata")
+
+			m := newManagerForTests(t, dbDir, users.WithIDGenerator(tc.idGenerator))
+
+			// Let'ts fill the manager first...
+			for idx := range maxIDs {
+				userName := fmt.Sprintf("authd-test-lucky-user-%d", idx)
+				t.Logf("Updating user %q", userName)
+
+				err := m.UpdateUser(types.UserInfo{
+					Name:  userName,
+					Dir:   "/home-prefixes/" + userName,
+					Shell: "/usr/sbin/nologin",
+				})
+
+				// We do not care about the return value now...
+				t.Logf("UpdateUser for %q exited with %v", userName, err)
+			}
+
+			// Now try to add more users, we must fail for all of them.
+			for idx := range maxIDs {
+				t.Run(fmt.Sprintf("Adding_more_users%d", idx), func(t *testing.T) {
+					t.Parallel()
+
+					userName := fmt.Sprintf("authd-test-unlucky-user-%d", idx)
+					t.Logf("Updating user %q", userName)
+
+					err := m.UpdateUser(types.UserInfo{
+						Name:  userName,
+						Dir:   "/home-prefixes/" + userName,
+						Shell: "/usr/sbin/nologin",
+					})
+
+					require.Error(t, err, "UpdateUser should have failed for %q", userName)
+				})
+			}
+		})
+	}
 }
 
 func TestBrokerForUser(t *testing.T) {
