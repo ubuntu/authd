@@ -26,7 +26,6 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/db"
-	"github.com/ubuntu/authd/internal/users/idgenerator"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
@@ -466,7 +465,7 @@ func TestIsAuthenticated(t *testing.T) {
 			}
 
 			managerOpts := []users.Option{
-				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+				users.WithIDGenerator(&users.IDGeneratorMock{
 					UIDsToGenerate: []uint32{1111},
 					GIDsToGenerate: []uint32{22222},
 				}),
@@ -560,7 +559,7 @@ func TestIDGeneration(t *testing.T) {
 			t.Parallel()
 
 			managerOpts := []users.Option{
-				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+				users.WithIDGenerator(&users.IDGeneratorMock{
 					UIDsToGenerate: []uint32{1111},
 					GIDsToGenerate: []uint32{22222},
 				}),

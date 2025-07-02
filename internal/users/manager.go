@@ -6,13 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"slices"
 	"strings"
 	"sync"
 	"syscall"
 
 	"github.com/ubuntu/authd/internal/users/db"
-	"github.com/ubuntu/authd/internal/users/idgenerator"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/tempentries"
 	"github.com/ubuntu/authd/internal/users/types"
@@ -46,23 +44,19 @@ type Manager struct {
 	db             *db.Manager
 	config         Config
 	preAuthRecords *tempentries.PreAuthUserRecords
-	idGenerator    tempentries.IDGenerator
+	idGenerator    IDGeneratorIface
 }
 
 type options struct {
-	idGenerator tempentries.IDGenerator
+	idGenerator IDGeneratorIface
 }
-
-// Avoid to loop forever if we can't find an UID for the user, it's just better
-// to fail after a limit is reached than hang or crash.
-const maxIDGenerateIterations = 256
 
 // Option is a function that allows changing some of the default behaviors of the manager.
 type Option func(*options)
 
 // WithIDGenerator makes the manager use a specific ID generator.
 // This option is only useful in tests.
-func WithIDGenerator(g tempentries.IDGenerator) Option {
+func WithIDGenerator(g IDGeneratorIface) Option {
 	return func(o *options) {
 		o.idGenerator = g
 	}
@@ -92,7 +86,7 @@ func NewManager(config Config, dbDir string, args ...Option) (m *Manager, err er
 			return nil, fmt.Errorf("UID range configured via UID_MIN and UID_MAX is too small (%d), must be at least %d", numUIDs, minNumUIDs)
 		}
 
-		opts.idGenerator = &idgenerator.IDGenerator{
+		opts.idGenerator = &IDGenerator{
 			UIDMin: config.UIDMin,
 			UIDMax: config.UIDMax,
 			GIDMin: config.GIDMin,
@@ -165,9 +159,10 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 				return fmt.Errorf("another system user exists with %q name", u.Name)
 			}
 
-			if uid, err = m.generateUniqueUID(ctx); err != nil {
+			if uid, err = m.idGenerator.GenerateUID(ctx, m); err != nil {
 				return err
 			}
+			defer m.idGenerator.ClearPendingIDs()
 			log.Debugf(context.Background(), "Using new UID %d for user %q", uid, u.Name)
 		}
 	} else {
@@ -230,14 +225,9 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		defer func() { err = errors.Join(err, unlockEntries()) }()
 
 		lockedEntries := localentries.GetUserDBLocked(ctx)
+		defer m.idGenerator.ClearPendingIDs()
 
-		for i, j := 0, 0; i < len(newGroups); j++ {
-			g := &newGroups[i]
-			if j >= maxIDGenerateIterations {
-				return fmt.Errorf("failed to find a valid GID for %q after %d attempts",
-					g.Name, maxIDGenerateIterations)
-			}
-
+		for _, g := range newGroups {
 			unique, err := lockedEntries.IsUniqueGroupName(g.Name)
 			if err != nil {
 				return err
@@ -247,23 +237,14 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 				return fmt.Errorf("another system group exists with %q name", g.Name)
 			}
 
-			gid, err := m.generateUniqueGID(ctx)
+			gid, err := m.idGenerator.GenerateGID(ctx, m)
 			if err != nil {
 				return err
-			}
-			if gid == uid {
-				continue
-			}
-			if slices.ContainsFunc(newGroups, func(og types.GroupInfo) bool {
-				return og.GID != nil && *og.GID == gid
-			}) {
-				continue
 			}
 
 			g.GID = &gid
 			groupRows = append(groupRows, db.NewGroupRow(g.Name, *g.GID, g.UGID))
 			log.Debugf(ctx, "Using new GID %d for group %q", gid, u.Name)
-			i++
 		}
 	}
 
@@ -432,6 +413,30 @@ func (m *Manager) AllUsers() ([]types.UserEntry, error) {
 	return usrEntries, err
 }
 
+// UsedUIDs returns all user IDs, including the UIDs of temporary pre-auth users.
+func (m *Manager) UsedUIDs() ([]uint32, error) {
+	var uids []uint32
+
+	usrEntries, err := m.AllUsers()
+	if err != nil {
+		return nil, err
+	}
+	for _, usr := range usrEntries {
+		uids = append(uids, usr.UID)
+	}
+
+	// Add temporary users from the pre-auth records.
+	tempUsers, err := m.preAuthRecords.AllUsers()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get temporary users: %w", err)
+	}
+	for _, tempUser := range tempUsers {
+		uids = append(uids, tempUser.UID)
+	}
+
+	return uids, nil
+}
+
 // GroupByName returns the group information for the given group name.
 func (m *Manager) GroupByName(groupname string) (types.GroupEntry, error) {
 	grp, err := m.db.GroupWithMembersByName(groupname)
@@ -465,6 +470,38 @@ func (m *Manager) AllGroups() ([]types.GroupEntry, error) {
 	return grpEntries, nil
 }
 
+// UsedGIDs returns all group IDs, including the GIDs of temporary pre-auth users.
+func (m *Manager) UsedGIDs() ([]uint32, error) {
+	var gids []uint32
+
+	grpEntries, err := m.AllGroups()
+	if err != nil {
+		return nil, err
+	}
+	for _, g := range grpEntries {
+		gids = append(gids, g.GID)
+	}
+
+	allUsers, err := m.AllUsers()
+	if err != nil {
+		return nil, err
+	}
+	for _, u := range allUsers {
+		gids = append(gids, u.GID)
+	}
+
+	// Add temporary groups from the pre-auth records.
+	tempUsers, err := m.preAuthRecords.AllUsers()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get temporary groups: %w", err)
+	}
+	for _, tu := range tempUsers {
+		gids = append(gids, tu.GID)
+	}
+
+	return gids, nil
+}
+
 // ShadowByName returns the shadow information for the given user name.
 func (m *Manager) ShadowByName(username string) (types.ShadowEntry, error) {
 	usr, err := m.db.UserByName(username)
@@ -486,87 +523,6 @@ func (m *Manager) AllShadows() ([]types.ShadowEntry, error) {
 		shadowEntries = append(shadowEntries, shadowEntryFromUserRow(usr))
 	}
 	return shadowEntries, err
-}
-
-func (m *Manager) generateUniqueID(ctx context.Context, generator func() (uint32, error)) (uint32, error) {
-	for range maxIDGenerateIterations {
-		uid, err := generator()
-		if err != nil {
-			return 0, err
-		}
-
-		var unique bool
-		unique, err = m.isUniqueID(ctx, uid)
-		if err != nil {
-			return 0, err
-		}
-		if !unique {
-			log.Debugf(ctx, "UID %d is not unique", uid)
-			continue
-		}
-
-		return uid, nil
-	}
-
-	return 0, fmt.Errorf("Cannot find an unique ID")
-}
-
-func (m *Manager) generateUniqueUID(ctx context.Context) (uint32, error) {
-	return m.generateUniqueID(ctx, m.idGenerator.GenerateUID)
-}
-
-func (m *Manager) generateUniqueGID(ctx context.Context) (uint32, error) {
-	return m.generateUniqueID(ctx, m.idGenerator.GenerateGID)
-}
-
-func (m *Manager) isUniqueID(ctx context.Context, id uint32) (bool, error) {
-	oldUser, err := m.UserByID(id)
-	if err == nil {
-		log.Debugf(ctx, "Found duplicate user %v", oldUser)
-		return false, nil
-	}
-	if !errors.Is(err, db.NoDataFoundError{}) {
-		return false, err
-	}
-
-	oldGroup, err := m.GroupByID(id)
-	if err == nil {
-		log.Debugf(ctx, "Found duplicate group %v", oldGroup)
-		return false, nil
-	}
-	if !errors.Is(err, db.NoDataFoundError{}) {
-		return false, err
-	}
-
-	return m.isUniqueSystemID(ctx, id)
-}
-
-func (m *Manager) isUniqueSystemID(ctx context.Context, id uint32) (unique bool, err error) {
-	users, err := localentries.GetUserDBLocked(ctx).GetUserEntries()
-	if err != nil {
-		return false, err
-	}
-
-	if idx := slices.IndexFunc(users, func(p types.UserEntry) (found bool) {
-		return p.UID == id
-	}); idx != -1 {
-		log.Debugf(ctx, "ID %d already in use by user %q", id, users[idx].Name)
-		return false, nil
-	}
-
-	groups, err := localentries.GetUserDBLocked(ctx).GetGroupEntries()
-	if err != nil {
-		return false, err
-	}
-
-	if idx := slices.IndexFunc(groups, func(g types.GroupEntry) (found bool) {
-		return g.GID == id
-	}); idx != -1 {
-		log.Debugf(ctx, "ID %d already in use by user %q", id, groups[idx].Name)
-		return false, nil
-	}
-
-	return true, nil
 }
 
 // RegisterUserPreAuth registers a temporary user with a unique UID in our NSS handler (in memory, not in the database).
@@ -606,10 +562,11 @@ func (m *Manager) RegisterUserPreAuth(name string) (uid uint32, err error) {
 		return 0, fmt.Errorf("another system user exists with %q name", name)
 	}
 
-	uid, err = m.generateUniqueUID(ctx)
+	uid, err = m.idGenerator.GenerateUID(ctx, m)
 	if err != nil {
 		return 0, err
 	}
+	defer m.idGenerator.ClearPendingIDs()
 
 	if err := m.preAuthRecords.RegisterPreAuthUser(name, uid); err != nil {
 		return 0, err

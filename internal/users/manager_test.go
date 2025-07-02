@@ -18,7 +18,6 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/db"
-	"github.com/ubuntu/authd/internal/users/idgenerator"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
@@ -219,7 +218,7 @@ func TestUpdateUser(t *testing.T) {
 			}
 
 			managerOpts := []users.Option{
-				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+				users.WithIDGenerator(&users.IDGeneratorMock{
 					UIDsToGenerate: []uint32{user.UID},
 					GIDsToGenerate: gids,
 				}),
@@ -300,7 +299,7 @@ func TestRegisterUserPreauth(t *testing.T) {
 			}
 
 			managerOpts := []users.Option{
-				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+				users.WithIDGenerator(&users.IDGeneratorMock{
 					UIDsToGenerate: []uint32{user.UID},
 				}),
 			}
@@ -365,7 +364,7 @@ func TestConcurrentUserUpdate(t *testing.T) {
 	err = entriesUnlock()
 	require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 
-	idGenerator := &idgenerator.IDGenerator{
+	idGenerator := &users.IDGenerator{
 		UIDMin: 0,
 		//nolint: gosec // we're in tests, overflow is very unlikely to happen.
 		UIDMax: uint32(len(systemPasswd)) + nIterations*preAuthIterations,

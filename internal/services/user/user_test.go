@@ -18,7 +18,6 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/db"
-	"github.com/ubuntu/authd/internal/users/idgenerator"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/log"
 	"google.golang.org/grpc"
@@ -278,7 +277,7 @@ func newUserManagerForTests(t *testing.T, dbFile string) *users.Manager {
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	managerOpts := []users.Option{
-		users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+		users.WithIDGenerator(&users.IDGeneratorMock{
 			UIDsToGenerate: []uint32{1234},
 		}),
 	}

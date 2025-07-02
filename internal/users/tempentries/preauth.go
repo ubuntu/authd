@@ -32,12 +32,6 @@ const (
 // NoDataFoundError is the error returned when no entry is found in the database.
 type NoDataFoundError = db.NoDataFoundError
 
-// IDGenerator is the interface that must be implemented by the ID generator.
-type IDGenerator interface {
-	GenerateUID() (uint32, error)
-	GenerateGID() (uint32, error)
-}
-
 type preAuthUser struct {
 	// name is the generated random name of the pre-auth user (which is returned by UserByID).
 	name string
@@ -95,6 +89,23 @@ func (r *PreAuthUserRecords) UserByID(uid uint32) (types.UserEntry, error) {
 // UserByLogin returns the user information for the given user name.
 func (r *PreAuthUserRecords) UserByLogin(name string) (types.UserEntry, error) {
 	return r.userByLogin(name)
+}
+
+// AllUsers returns all pre-auth users as a slice of UserEntry.
+func (r *PreAuthUserRecords) AllUsers() ([]types.UserEntry, error) {
+	r.rwMu.RLock()
+	defer r.rwMu.RUnlock()
+
+	if len(r.users) == 0 {
+		return nil, nil
+	}
+
+	users := make([]types.UserEntry, 0, len(r.users))
+	for _, user := range r.users {
+		users = append(users, preAuthUserEntry(user))
+	}
+
+	return users, nil
 }
 
 // RegisterPreAuthUser registers a temporary user with a unique UID in our NSS

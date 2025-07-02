@@ -1,4 +1,4 @@
-package idgenerator
+package users
 
 import (
 	"testing"
@@ -21,7 +21,7 @@ func TestGenerateID(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			id, err := generateID(tc.idMin, tc.idMax)
+			id, err := getIDCandidate(tc.idMin, tc.idMax, []uint32{})
 			require.NoError(t, err, "GenerateID should not have failed")
 
 			require.GreaterOrEqual(t, id, tc.idMin, "GenerateID should return an ID greater or equal to the minimum")
