@@ -14,28 +14,25 @@ type IDGeneratorMock struct {
 }
 
 // GenerateUID generates a UID.
-func (g *IDGeneratorMock) GenerateUID(_ context.Context, _ IDOwner) (uint32, error) {
+func (g *IDGeneratorMock) GenerateUID(_ context.Context, _ IDOwner) (uint32, func(), error) {
 	testsdetection.MustBeTesting()
 
 	if len(g.UIDsToGenerate) == 0 {
-		return 0, fmt.Errorf("no more UIDs to generate")
+		return 0, nil, fmt.Errorf("no more UIDs to generate")
 	}
 	uid := g.UIDsToGenerate[0]
 	g.UIDsToGenerate = g.UIDsToGenerate[1:]
-	return uid, nil
+	return uid, func() {}, nil
 }
 
 // GenerateGID generates a GID.
-func (g *IDGeneratorMock) GenerateGID(_ context.Context, _ IDOwner) (uint32, error) {
+func (g *IDGeneratorMock) GenerateGID(_ context.Context, _ IDOwner) (uint32, func(), error) {
 	testsdetection.MustBeTesting()
 
 	if len(g.GIDsToGenerate) == 0 {
-		return 0, fmt.Errorf("no more GIDs to generate")
+		return 0, nil, fmt.Errorf("no more GIDs to generate")
 	}
 	gid := g.GIDsToGenerate[0]
 	g.GIDsToGenerate = g.GIDsToGenerate[1:]
-	return gid, nil
+	return gid, func() {}, nil
 }
-
-// ClearPendingIDs clears the pending IDs.
-func (g *IDGeneratorMock) ClearPendingIDs() {}

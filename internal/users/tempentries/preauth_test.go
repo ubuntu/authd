@@ -107,7 +107,7 @@ func TestPreAuthUser(t *testing.T) {
 
 			for idx, loginName := range tc.users {
 				t.Logf("Registering user %q", loginName)
-				uid, err := idGeneratorMock.GenerateUID(context.Background(), nil)
+				uid, _, err := idGeneratorMock.GenerateUID(context.Background(), nil)
 				require.NoError(t, err, "GenerateUID should not return an error, but it did")
 
 				if tc.wantPanic[idx] {
@@ -209,7 +209,7 @@ func TestPreAuthUserByIDAndName(t *testing.T) {
 			records := tempentries.NewPreAuthUserRecords()
 
 			if tc.registerUser {
-				uid, err := idGeneratorMock.GenerateUID(context.Background(), nil)
+				uid, _, err := idGeneratorMock.GenerateUID(context.Background(), nil)
 				require.NoError(t, err, "GenerateUID should not return an error, but it did")
 
 				err = records.RegisterPreAuthUser(loginName, uid)

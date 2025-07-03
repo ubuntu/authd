@@ -159,10 +159,12 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 				return fmt.Errorf("another system user exists with %q name", u.Name)
 			}
 
-			if uid, err = m.idGenerator.GenerateUID(ctx, m); err != nil {
+			var cleanupUID func()
+			uid, cleanupUID, err = m.idGenerator.GenerateUID(ctx, m)
+			if err != nil {
 				return err
 			}
-			defer m.idGenerator.ClearPendingIDs()
+			defer cleanupUID()
 			log.Debugf(context.Background(), "Using new UID %d for user %q", uid, u.Name)
 		}
 	} else {
@@ -225,7 +227,6 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		defer func() { err = errors.Join(err, unlockEntries()) }()
 
 		lockedEntries := localentries.GetUserDBLocked(ctx)
-		defer m.idGenerator.ClearPendingIDs()
 
 		for _, g := range newGroups {
 			unique, err := lockedEntries.IsUniqueGroupName(g.Name)
@@ -237,10 +238,11 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 				return fmt.Errorf("another system group exists with %q name", g.Name)
 			}
 
-			gid, err := m.idGenerator.GenerateGID(ctx, m)
+			gid, cleanupGID, err := m.idGenerator.GenerateGID(ctx, m)
 			if err != nil {
 				return err
 			}
+			defer cleanupGID()
 
 			g.GID = &gid
 			groupRows = append(groupRows, db.NewGroupRow(g.Name, *g.GID, g.UGID))
@@ -562,11 +564,11 @@ func (m *Manager) RegisterUserPreAuth(name string) (uid uint32, err error) {
 		return 0, fmt.Errorf("another system user exists with %q name", name)
 	}
 
-	uid, err = m.idGenerator.GenerateUID(ctx, m)
+	uid, cleanupUID, err := m.idGenerator.GenerateUID(ctx, m)
 	if err != nil {
 		return 0, err
 	}
-	defer m.idGenerator.ClearPendingIDs()
+	defer cleanupUID()
 
 	if err := m.preAuthRecords.RegisterPreAuthUser(name, uid); err != nil {
 		return 0, err

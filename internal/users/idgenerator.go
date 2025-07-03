@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"slices"
 	"sort"
-	"sync"
 
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/log"
@@ -14,9 +13,8 @@ import (
 
 // IDGeneratorIface is the interface that must be implemented by the ID generator.
 type IDGeneratorIface interface {
-	GenerateUID(ctx context.Context, owner IDOwner) (uint32, error)
-	GenerateGID(ctx context.Context, owner IDOwner) (uint32, error)
-	ClearPendingIDs()
+	GenerateUID(ctx context.Context, owner IDOwner) (uid uint32, cleanup func(), err error)
+	GenerateGID(ctx context.Context, owner IDOwner) (gid uint32, cleanup func(), err error)
 }
 
 // IDOwner is the interface that must be implemented by the IDs owner to provide
@@ -40,8 +38,7 @@ type IDGenerator struct {
 	//   because the UID is also used as the GID of the user private group.
 	// * When picking a GID, we avoid IDs which we already used as UIDs,
 	//   because those are also GIDs of the user private groups.
-	pendingIDs   []uint32
-	pendingIDsMu sync.Mutex
+	pendingIDs []uint32
 }
 
 // Avoid to loop forever if we can't find an UID for the user, it's just better
@@ -49,7 +46,7 @@ type IDGenerator struct {
 const maxIDGenerateIterations = 1000000
 
 // GenerateUID generates a random UID in the configured range.
-func (g *IDGenerator) GenerateUID(ctx context.Context, owner IDOwner) (uint32, error) {
+func (g *IDGenerator) GenerateUID(ctx context.Context, owner IDOwner) (uint32, func(), error) {
 	return g.generateID(ctx, owner, generateID{
 		idType:        "UID",
 		minID:         g.UIDMin,
@@ -60,7 +57,7 @@ func (g *IDGenerator) GenerateUID(ctx context.Context, owner IDOwner) (uint32, e
 }
 
 // GenerateGID generates a random GID in the configured range.
-func (g *IDGenerator) GenerateGID(ctx context.Context, owner IDOwner) (uint32, error) {
+func (g *IDGenerator) GenerateGID(ctx context.Context, owner IDOwner) (uint32, func(), error) {
 	return g.generateID(ctx, owner, generateID{
 		idType:        "GID",
 		minID:         g.GIDMin,
@@ -78,13 +75,10 @@ type generateID struct {
 	getUsedIDs    func(context.Context, IDOwner) ([]uint32, error)
 }
 
-func (g *IDGenerator) generateID(ctx context.Context, owner IDOwner, args generateID) (id uint32, err error) {
-	g.pendingIDsMu.Lock()
-	defer g.pendingIDsMu.Unlock()
-
+func (g *IDGenerator) generateID(ctx context.Context, owner IDOwner, args generateID) (id uint32, cleanup func(), err error) {
 	usedIDs, err := args.getUsedIDs(ctx, owner)
 	if err != nil {
-		return 0, err
+		return 0, nil, err
 	}
 
 	// Add pending IDs to the used IDs to ensure we don't generate the same ID again
@@ -95,12 +89,12 @@ func (g *IDGenerator) generateID(ctx context.Context, owner IDOwner, args genera
 	for range maxIDGenerateIterations {
 		id, err := getIDCandidate(args.minID, args.maxID, usedIDs)
 		if err != nil {
-			return 0, err
+			return 0, nil, err
 		}
 
 		available, err := args.isAvailableID(ctx, id)
 		if err != nil {
-			return 0, err
+			return 0, nil, err
 		}
 
 		if !available {
@@ -111,20 +105,15 @@ func (g *IDGenerator) generateID(ctx context.Context, owner IDOwner, args genera
 		}
 
 		g.pendingIDs = append(g.pendingIDs, id)
-		return id, nil
+		cleanup = func() {
+			idx := slices.Index(g.pendingIDs, id)
+			g.pendingIDs = append(g.pendingIDs[:idx], g.pendingIDs[idx+1:]...)
+		}
+		return id, cleanup, nil
 	}
 
-	return 0, fmt.Errorf("failed to find a valid %s for after %d attempts",
+	return 0, nil, fmt.Errorf("failed to find a valid %s for after %d attempts",
 		args.idType, maxIDGenerateIterations)
-}
-
-// ClearPendingIDs clears the pending UIDs and GIDs.
-// This function should be called once the generated IDs have been saved to the database.
-func (g *IDGenerator) ClearPendingIDs() {
-	g.pendingIDsMu.Lock()
-	defer g.pendingIDsMu.Unlock()
-
-	g.pendingIDs = nil
 }
 
 func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (uint32, error) {
