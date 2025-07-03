@@ -2,6 +2,7 @@ alice
 amd
 auth
 authd
+authd's
 biometric
 Center
 DBus
@@ -24,7 +25,9 @@ Kerberos
 keytab
 Keytab
 Keytabs
+libpwquality
 linux
+MDM
 mountpoint
 msentraid
 NFS
