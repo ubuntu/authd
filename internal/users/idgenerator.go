@@ -8,7 +8,6 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/ubuntu/authd/internal/testsdetection"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/log"
 )
@@ -43,11 +42,6 @@ type IDGenerator struct {
 	//   because those are also GIDs of the user private groups.
 	pendingIDs   []uint32
 	pendingIDsMu sync.Mutex
-
-	getUsedUIDsMock    func() ([]uint32, error)
-	getUsedGIDsMock    func() ([]uint32, error)
-	isGIDAvailableMock func(gid uint32) (bool, error)
-	isUIDAvailableMock func(uid uint32) (bool, error)
 }
 
 // Avoid to loop forever if we can't find an UID for the user, it's just better
@@ -167,12 +161,6 @@ func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (uint32, error) {
 }
 
 func (g *IDGenerator) isUIDAvailable(ctx context.Context, uid uint32) (bool, error) {
-	if g.isUIDAvailableMock != nil {
-		// If a mock function is provided, use it to check if the UID is available
-		testsdetection.MustBeTesting()
-		return g.isUIDAvailableMock(uid)
-	}
-
 	lockedEntries := localentries.GetUserDBLocked(ctx)
 	if unique, err := lockedEntries.IsUniqueUID(uid); !unique || err != nil {
 		return false, err
@@ -182,12 +170,6 @@ func (g *IDGenerator) isUIDAvailable(ctx context.Context, uid uint32) (bool, err
 }
 
 func (g *IDGenerator) isGIDAvailable(ctx context.Context, gid uint32) (bool, error) {
-	if g.isUIDAvailableMock != nil {
-		// If a mock function is provided, use it to check if the UID is available
-		testsdetection.MustBeTesting()
-		return g.isGIDAvailableMock(gid)
-	}
-
 	lockedEntries := localentries.GetUserDBLocked(ctx)
 	if unique, err := lockedEntries.IsUniqueGID(gid); !unique || err != nil {
 		return false, err
@@ -214,12 +196,6 @@ func (g *IDGenerator) getUsedIDs(ctx context.Context, owner IDOwner) ([]uint32, 
 }
 
 func (g *IDGenerator) getUsedUIDs(ctx context.Context, owner IDOwner) ([]uint32, error) {
-	if g.getUsedUIDsMock != nil {
-		// If a mock function is provided, use it to get the used UIDs
-		testsdetection.MustBeTesting()
-		return g.getUsedUIDsMock()
-	}
-
 	// Get the users from the authd database and pre-auth users.
 	uids, err := owner.UsedUIDs()
 	if err != nil {
@@ -241,12 +217,6 @@ func (g *IDGenerator) getUsedUIDs(ctx context.Context, owner IDOwner) ([]uint32,
 }
 
 func (g *IDGenerator) getUsedGIDs(ctx context.Context, owner IDOwner) ([]uint32, error) {
-	if g.getUsedGIDsMock != nil {
-		// If a mock function is provided, use it to get the used GIDs
-		testsdetection.MustBeTesting()
-		return g.getUsedGIDsMock()
-	}
-
 	gids, err := owner.UsedGIDs()
 	if err != nil {
 		return nil, err
