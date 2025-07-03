@@ -853,6 +853,7 @@ func (b *Broker) cancelIsAuthenticatedUnlocked(_ context.Context, sessionID stri
 }
 
 // UserPreCheck checks if the user is known to the broker.
+// It returns the user info in JSON format if the user is valid, or an empty string if the user is not allowed.
 func (b *Broker) UserPreCheck(ctx context.Context, username string) (string, error) {
 	if strings.HasPrefix(username, "user-") && strings.Contains(username, "integration") &&
 		strings.Contains(username, fmt.Sprintf("-%s-", UserIntegrationPreCheckValue)) {
@@ -862,7 +863,8 @@ func (b *Broker) UserPreCheck(ctx context.Context, username string) (string, err
 	exampleUsersMu.Lock()
 	defer exampleUsersMu.Unlock()
 	if _, exists := exampleUsers[username]; !exists {
-		return "", fmt.Errorf("user %q does not exist", username)
+		// The username does not match any of the allowed suffixes.
+		return "", nil
 	}
 	return userInfoFromName(username), nil
 }
