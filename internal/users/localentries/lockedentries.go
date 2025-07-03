@@ -350,7 +350,8 @@ func (l *UserDBLocked) IsUniqueUID(uid uint32) (unique bool, err error) {
 		return false, err
 	}
 
-	// Also check that the UID is not used by a group.
+	// Also check if there is a group with the same ID, because the UID is
+	// also used as the GID of the user private group.
 	return l.IsUniqueGID(uid)
 }
 

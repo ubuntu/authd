@@ -26,6 +26,7 @@ import (
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
+	"gopkg.in/yaml.v3"
 )
 
 func TestNewManager(t *testing.T) {
@@ -984,6 +985,89 @@ func TestAllShadows(t *testing.T) {
 			}
 
 			golden.CheckOrUpdateYAML(t, got)
+		})
+	}
+}
+
+func TestCompareNewUserInfoWithDB(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		dbFile string
+
+		wantUserExactMatch map[string]bool
+		wantUserNoMatch    map[string]bool
+	}{
+		"Compare_all_valid_users": {
+			dbFile:             "multiple_users_and_groups",
+			wantUserExactMatch: map[string]bool{"user1": true},
+		},
+		"Compare_all_not_matching_users": {
+			dbFile: "multiple_users_and_groups",
+			wantUserNoMatch: map[string]bool{
+				"user1": true, "user2": true, "user3": true, "userwithoutbroker": true,
+			},
+		},
+	}
+	for name, tc := range tests {
+		dbDir := t.TempDir()
+		err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
+		require.NoError(t, err, "Setup: could not create database from testdata")
+
+		m := newManagerForTests(t, dbDir)
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			userEntries, err := m.AllUsers()
+			require.NoError(t, err, "AllUsers should not fail but it did")
+
+			for _, u := range userEntries {
+				t.Run(u.Name, func(t *testing.T) {
+					t.Parallel()
+
+					u, err := m.GetOldUserInfoFromDB(u.Name)
+					require.NoError(t, err, "GetOldUserInfoFromDB should not fail but it did")
+					require.NotNil(t, u, "GetOldUserInfoFromDB user should not be nil but it is")
+
+					dbUserInfo := *u
+					golden.CheckOrUpdateYAML(t, dbUserInfo,
+						golden.WithSuffix("-from-getOldUserInfoFromDB"))
+
+					userInfoFile := filepath.Join("testdata", t.Name())
+					content, err := os.ReadFile(userInfoFile)
+					require.NoError(t, err, "ReadFile should not fail opening %q", userInfoFile)
+
+					var wantUserInfo types.UserInfo
+					err = yaml.Unmarshal(content, &wantUserInfo)
+					require.NoError(t, err, "Cannot deserialize user info")
+
+					if tc.wantUserExactMatch[u.Name] {
+						require.Equal(t, wantUserInfo, dbUserInfo,
+							"User infos be strictly equal, but they are not")
+						require.True(t, wantUserInfo.Equals(dbUserInfo),
+							"User infos be strictly equal, but they are not")
+					} else {
+						require.NotEqual(t, wantUserInfo, dbUserInfo,
+							"User infos should not be strictly equal, but they are")
+						require.False(t, wantUserInfo.Equals(dbUserInfo),
+							"User infos should not be strictly equal, but they are")
+					}
+
+					got := users.CompareNewUserInfoWithUserInfoFromDB(wantUserInfo, dbUserInfo)
+					require.Equal(t, !tc.wantUserNoMatch[u.Name], got,
+						"User infos does not respect wanted equality check:"+
+							"\nNew: %#v\n Old: %#v", wantUserInfo, dbUserInfo)
+				})
+			}
+		})
+
+		t.Run("not_existing_user", func(t *testing.T) {
+			t.Parallel()
+
+			user, err := m.GetOldUserInfoFromDB("ImustNot-exist")
+			require.NoError(t, err, "GetOldUserInfoFromDB should not fail but it did")
+			require.Nil(t, user, "returned user should be nil, but it was not")
 		})
 	}
 }

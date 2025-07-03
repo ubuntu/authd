@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"slices"
 	"strings"
 	"sync"
 	"syscall"
@@ -117,39 +118,77 @@ func (m *Manager) Stop() error {
 func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	defer decorate.OnError(&err, "failed to update user %q", u.Name)
 
-	m.userManagementMu.Lock()
-	defer m.userManagementMu.Unlock()
-
 	log.Debugf(context.TODO(), "Updating user %q", u.Name)
-
-	// authd uses lowercase usernames
-	u.Name = strings.ToLower(u.Name)
 
 	if u.Name == "" {
 		return errors.New("empty username")
 	}
 
-	var uid uint32
-	// Check if the user already exists in the database
-	oldUser, err := m.db.UserByName(u.Name)
-	if err != nil && !errors.Is(err, db.NoDataFoundError{}) {
-		return fmt.Errorf("could not get user %q: %w", u.Name, err)
+	// authd uses lowercase usernames
+	u.Name = strings.ToLower(u.Name)
+
+	// Prepend the user private group
+	u.Groups = append([]types.GroupInfo{{Name: u.Name, UGID: u.Name}}, u.Groups...)
+	userPrivateGroup := &u.Groups[0]
+
+	var oldUserInfo *types.UserInfo
+	checkEqualUserExists := func() (exists bool, err error) {
+		// Check if the user already exists in the database.
+		oldUserInfo, err = m.getOldUserInfoFromDB(u.Name)
+		if err != nil {
+			return false, err
+		}
+		if oldUserInfo == nil {
+			return false, nil
+		}
+		if !compareNewUserInfoWithUserInfoFromDB(u, *oldUserInfo) {
+			log.Debugf(context.TODO(), "User %q is already in our database", u.Name)
+			return false, nil
+		}
+
+		log.Debugf(context.TODO(), "User %q in database already matches current", u.Name)
+		return true, nil
 	}
-	if errors.Is(err, db.NoDataFoundError{}) {
+
+	// Do a first check before locking, so that if the user is already there and
+	// matches the DB entry, we can avoid any kind of locking (and so being
+	// blocked by other pre-auth users that may try to login meanwhile).
+	exists, err := checkEqualUserExists()
+	if exists || err != nil {
+		// The user already exists, so no update needed, or an error occurred.
+		return err
+	}
+
+	m.userManagementMu.Lock()
+	defer m.userManagementMu.Unlock()
+
+	// Now that we're locked, check again if meanwhile some other request
+	// created the same user, if not we can do all the kinds of locking since
+	// we're sure that the user needs to be added or updated in the database.
+	if exists, err := checkEqualUserExists(); exists || err != nil {
+		return err
+	}
+
+	log.Debugf(context.TODO(), "User %q needs update", u.Name)
+
+	lockedEntries, unlockEntries, err := localentries.WithUserDBLock()
+	if err != nil {
+		return err
+	}
+	defer func() { err = errors.Join(err, unlockEntries()) }()
+
+	if oldUserInfo != nil {
+		// The user already exists in the database, use the existing UID to avoid permission issues.
+		u.UID = oldUserInfo.UID
+	} else {
 		preauthUID, cleanup, err := m.preAuthRecords.MaybeCompletePreauthUser(u.Name)
 		if err != nil && !errors.Is(err, tempentries.NoDataFoundError{}) {
 			return err
 		}
 		if preauthUID != 0 {
-			uid = preauthUID
+			u.UID = preauthUID
 			defer cleanup()
 		} else {
-			lockedEntries, unlockEntries, err := localentries.WithUserDBLock()
-			if err != nil {
-				return err
-			}
-			defer func() { err = errors.Join(err, unlockEntries()) }()
-
 			unique, err := lockedEntries.IsUniqueUserName(u.Name)
 			if err != nil {
 				return err
@@ -160,20 +199,17 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			}
 
 			var cleanupUID func()
-			uid, cleanupUID, err = m.idGenerator.GenerateUID(lockedEntries, m)
+			u.UID, cleanupUID, err = m.idGenerator.GenerateUID(lockedEntries, m)
 			if err != nil {
 				return err
 			}
 			defer cleanupUID()
-			log.Debugf(context.Background(), "Using new UID %d for user %q", uid, u.Name)
+			log.Debugf(context.Background(), "Using new UID %d for user %q", u.UID, u.Name)
 		}
-	} else {
-		// The user already exists in the database, use the existing UID to avoid permission issues.
-		uid = oldUser.UID
 	}
 
-	// Prepend the user private group
-	u.Groups = append([]types.GroupInfo{{Name: u.Name, GID: &uid, UGID: u.Name}}, u.Groups...)
+	// User private Group GID is the same of the user UID.
+	userPrivateGroup.GID = &u.UID
 
 	var groupRows []db.GroupRow
 	var localGroups []string
@@ -220,12 +256,6 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 
 	if len(newGroups) > 0 {
-		lockedEntries, unlockEntries, err := localentries.WithUserDBLock()
-		if err != nil {
-			return err
-		}
-		defer func() { err = errors.Join(err, unlockEntries()) }()
-
 		for _, g := range newGroups {
 			unique, err := lockedEntries.IsUniqueGroupName(g.Name)
 			if err != nil {
@@ -248,25 +278,23 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		}
 	}
 
-	oldLocalGroups, err := m.db.UserLocalGroups(uid)
-	if err != nil && !errors.Is(err, db.NoDataFoundError{}) {
-		return err
+	var oldLocalGroups []string
+	if oldUserInfo != nil {
+		for _, g := range oldUserInfo.Groups {
+			if g.UGID != "" {
+				// A non-empty UGID means that it's an authd group
+				continue
+			}
+			oldLocalGroups = append(oldLocalGroups, g.Name)
+		}
 	}
 
-	// Update user information in the db.
-	userPrivateGroup := groupRows[0]
-	userRow := db.NewUserRow(u.Name, uid, userPrivateGroup.GID, u.Gecos, u.Dir, u.Shell)
+	userRow := db.NewUserRow(u.Name, u.UID, *userPrivateGroup.GID, u.Gecos, u.Dir, u.Shell)
 	if err = m.db.UpdateUserEntry(userRow, groupRows, localGroups); err != nil {
 		return err
 	}
 
 	// Update local groups.
-	lockedEntries, unlockEntries, err := localentries.WithUserDBLock()
-	if err != nil {
-		return err
-	}
-	defer func() { err = errors.Join(err, unlockEntries()) }()
-
 	if err := localentries.UpdateGroups(lockedEntries, u.Name, localGroups, oldLocalGroups); err != nil {
 		return err
 	}
@@ -276,6 +304,59 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 	}
 
 	return nil
+}
+
+func (m *Manager) getOldUserInfoFromDB(name string) (oldUserInfo *types.UserInfo, err error) {
+	// Check if the user already exists in the database.
+	u, err := m.db.UserByName(name)
+	if errors.Is(err, db.NoDataFoundError{}) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("could not get user %q: %w", name, err)
+	}
+
+	userGroups, err := m.db.UserGroups(u.UID)
+	if err != nil && !errors.Is(err, db.NoDataFoundError{}) {
+		return nil, fmt.Errorf("could not get users groups for %q: %w", name, err)
+	}
+
+	oldLocalGroups, err := m.db.UserLocalGroups(u.UID)
+	if err != nil && !errors.Is(err, db.NoDataFoundError{}) {
+		return nil, err
+	}
+
+	return userInfoFromUserAndGroupRows(u, userGroups, oldLocalGroups), nil
+}
+
+func compareNewUserInfoWithUserInfoFromDB(newUserInfo, dbUserInfo types.UserInfo) bool {
+	if len(dbUserInfo.Groups) != len(newUserInfo.Groups) {
+		return false
+	}
+
+	// The new user UID may be set or un set, but despite that we're going to use
+	// the one we saved, so compare against it.
+	newUserInfo.UID = dbUserInfo.UID
+
+	// We then need to normalize the new user groups in order to be able to
+	// compare the two users, in fact we may receive from the broker user entries
+	// with unset or different GIDs, so let's
+	for idx, g := range newUserInfo.Groups {
+		oldGroupIdx := slices.IndexFunc(dbUserInfo.Groups, func(dg types.GroupInfo) bool {
+			if dg.UGID == "" {
+				// Do not compare through UGID if the one of the existing group is
+				// empty, because we didn't store the UGID in 0.3.7 and earlier.
+				return dg.Name == g.Name
+			}
+			return dg.UGID == g.UGID
+		})
+		if oldGroupIdx < 0 {
+			continue
+		}
+		newUserInfo.Groups[idx].GID = dbUserInfo.Groups[oldGroupIdx].GID
+	}
+
+	return dbUserInfo.Equals(newUserInfo)
 }
 
 // checkGroupNameConflict checks if a group with the given name already exists.
@@ -531,9 +612,18 @@ func (m *Manager) AllShadows() ([]types.ShadowEntry, error) {
 func (m *Manager) RegisterUserPreAuth(name string) (uid uint32, err error) {
 	defer decorate.OnError(&err, "failed to register pre-auth user %q", name)
 
+	// Do a first check without the lock, so that if the user is already there
+	// we don't have to go through actual locking.
+	if userRow, err := m.db.UserByName(name); err == nil {
+		log.Debugf(context.Background(), "user %q already exists on the system", name)
+		return userRow.UID, nil
+	}
+
 	m.userManagementMu.Lock()
 	defer m.userManagementMu.Unlock()
 
+	// Repeat the check once locked, so that we are really sure that the user
+	// has not been registered meanwhile.
 	if userRow, err := m.db.UserByName(name); err == nil {
 		log.Debugf(context.Background(), "user %q already exists on the system", name)
 		return userRow.UID, nil
