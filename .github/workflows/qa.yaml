@@ -52,6 +52,30 @@ jobs:
         with:
           golangci-lint-configfile: ".golangci.yaml"
           tools-directory: "tools"
+      - name: Check that shell completions are up to date
+        run: |
+          set -eu
+          BASH_COMPLETION_PATH=./shell-completion/bash/authctl
+          go run ./cmd/authctl/main.go completion bash > "${BASH_COMPLETION_PATH}.new"
+          if ! diff -Nau "${BASH_COMPLETION_PATH}" "${BASH_COMPLETION_PATH}.new"; then
+            echo "Bash completion is out of date, please run 'go run ./cmd/authctl/main.go completion bash > ${BASH_COMPLETION_PATH}.new' and commit the changes."
+            exit 1
+          fi
+          rm "${BASH_COMPLETION_PATH}.new"
+          ZSH_COMPLETION_PATH=./shell-completion/zsh/_authctl
+          go run ./cmd/authctl/main.go completion zsh > "${ZSH_COMPLETION_PATH}.new"
+          if ! diff -Nau "${ZSH_COMPLETION_PATH}" "${ZSH_COMPLETION_PATH}.new"; then
+            echo "Zsh completion is out of date, please run 'go run ./cmd/authctl/main.go completion zsh > ${ZSH_COMPLETION_PATH}.new' and commit the changes."
+            exit 1
+          fi
+          rm "${ZSH_COMPLETION_PATH}.new"
+          FISH_COMPLETION_PATH=./shell-completion/fish/authctl.fish
+          go run ./cmd/authctl/main.go completion fish > "${FISH_COMPLETION_PATH}.new"
+          if ! diff -Nau "${FISH_COMPLETION_PATH}" "${FISH_COMPLETION_PATH}.new"; then
+              echo "Fish completion is out of date, please run 'go run ./cmd/authctl/main.go completion fish > ${FISH_COMPLETION_PATH}.new' and commit the changes."
+              exit 1
+          fi
+          rm "${FISH_COMPLETION_PATH}.new"
       - name: Build cmd/authd with withexamplebroker tag
         run: |
           set -eu
