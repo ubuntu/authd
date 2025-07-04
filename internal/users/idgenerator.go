@@ -126,29 +126,39 @@ func (g *IDGenerator) generateID(ctx context.Context, owner IDOwner, args genera
 }
 
 func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (uint32, error) {
-	// Find the highest used ID, if any
-	var highestUsed uint32
-	if minID > 0 {
-		highestUsed = minID - 1 // No used IDs
-	}
+	// Pick the preferred ID candidate, starting with minID.
+	preferredID := minID
+
 	if len(usedIDs) > 0 {
-		highestUsed = max(highestUsed, usedIDs[len(usedIDs)-1])
+		// If there are used IDs, we prefer the next ID above the highest used.
+		// Note that this may overflow, and so go back to 0, but the next check
+		// will adjust the value to the minID.
+		preferredID = usedIDs[len(usedIDs)-1] + 1
+
+		// Ensure that the preferred ID is not less than the minimum ID.
+		preferredID = max(preferredID, minID)
 	}
 
-	// Try IDs above the highest used
-	for id := highestUsed + 1; id <= maxID && highestUsed < math.MaxUint32; id++ {
-		if _, found := slices.BinarySearch(usedIDs, id); found {
-			continue
+	// Try IDs starting from the preferred ID up to the maximum ID.
+	for id := preferredID; id <= maxID; id++ {
+		if _, found := slices.BinarySearch(usedIDs, id); !found {
+			return id, nil
 		}
-		return id, nil
+
+		if id == math.MaxUint32 {
+			break // Avoid overflow
+		}
 	}
 
-	// Fallback: try IDs from minID up to highestUsed
-	for id := minID; id <= highestUsed && id <= maxID && id < math.MaxUint32; id++ {
-		if _, found := slices.BinarySearch(usedIDs, id); found {
-			continue
+	// Fallback: try IDs from the minimum ID up to the preferred ID.
+	for id := minID; id < preferredID && id <= maxID; id++ {
+		if _, found := slices.BinarySearch(usedIDs, id); !found {
+			return id, nil
 		}
-		return id, nil
+
+		// Overflows are avoided by the loop condition (id < preferredID, where
+		// preferredID is a uint32, so the condition must be false when
+		// id == math.MaxUint32).
 	}
 
 	return 0, errors.New("no available ID in range")
