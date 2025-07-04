@@ -248,13 +248,13 @@ func renameUsersInGroupFile(oldNames, newNames []string) (err error) {
 		return nil
 	}
 
-	ctx, entriesUnlock, err := localentries.ContextUserDBLocked(context.Background())
+	entries, entriesUnlock, err := localentries.WithUserDBLock()
 	if err != nil {
 		return err
 	}
 	defer func() { err = errors.Join(err, entriesUnlock()) }()
 
-	groups, err := localentries.GetGroupEntries(ctx)
+	groups, err := localentries.GetGroupEntries(entries)
 	if err != nil {
 		return err
 	}
@@ -268,7 +268,7 @@ func renameUsersInGroupFile(oldNames, newNames []string) (err error) {
 		}
 	}
 
-	return localentries.SaveGroupEntries(ctx, groups)
+	return localentries.SaveGroupEntries(entries, groups)
 }
 
 func removeGroupsWithNameConflicts(db queryable) error {

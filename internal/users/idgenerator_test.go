@@ -1,13 +1,13 @@
 package users
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"math"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/users/localentries"
 )
 
 func TestGetIDCandidate(t *testing.T) {
@@ -133,19 +133,19 @@ func (m IDOwnerMock) UsedGIDs() ([]uint32, error) { return m.usedGIDs, nil }
 func TestGenerateIDMocked(t *testing.T) {
 	t.Parallel()
 
-	allAvailableIDsFunc := func(ctx context.Context, u uint32) (bool, error) {
+	allAvailableIDsFunc := func(_ *localentries.UserDBLocked, u uint32) (bool, error) {
 		return true, nil
 	}
-	noAvailableIDFunc := func(ctx context.Context, u uint32) (bool, error) {
+	noAvailableIDFunc := func(_ *localentries.UserDBLocked, u uint32) (bool, error) {
 		return false, nil
 	}
-	noUsedIDFunc := func(ctx context.Context, o IDOwner) ([]uint32, error) {
+	noUsedIDFunc := func(_ *localentries.UserDBLocked, o IDOwner) ([]uint32, error) {
 		return nil, nil
 	}
-	getOwnerUsedUIDsFunc := func(ctx context.Context, o IDOwner) ([]uint32, error) {
+	getOwnerUsedUIDsFunc := func(_ *localentries.UserDBLocked, o IDOwner) ([]uint32, error) {
 		return o.UsedUIDs()
 	}
-	getOwnerUsedGIDsFunc := func(ctx context.Context, o IDOwner) ([]uint32, error) {
+	getOwnerUsedGIDsFunc := func(_ *localentries.UserDBLocked, o IDOwner) ([]uint32, error) {
 		return o.UsedGIDs()
 	}
 
@@ -221,7 +221,7 @@ func TestGenerateIDMocked(t *testing.T) {
 			genID: generateID{
 				idType: "UID",
 				minID:  300, maxID: 303,
-				isAvailableID: func(ctx context.Context, u uint32) (bool, error) {
+				isAvailableID: func(_ *localentries.UserDBLocked, u uint32) (bool, error) {
 					return u == 302, nil
 				},
 				getUsedIDs: getOwnerUsedUIDsFunc,
@@ -251,7 +251,7 @@ func TestGenerateIDMocked(t *testing.T) {
 			genID: generateID{
 				idType: "UID",
 				minID:  10000, maxID: 10010,
-				isAvailableID: func(ctx context.Context, u uint32) (bool, error) {
+				isAvailableID: func(_ *localentries.UserDBLocked, u uint32) (bool, error) {
 					return false, errors.New("test error")
 				},
 				getUsedIDs: noUsedIDFunc,
@@ -263,7 +263,7 @@ func TestGenerateIDMocked(t *testing.T) {
 				idType: "UID",
 				minID:  10000, maxID: 10002,
 				isAvailableID: allAvailableIDsFunc,
-				getUsedIDs: func(ctx context.Context, o IDOwner) ([]uint32, error) {
+				getUsedIDs: func(_ *localentries.UserDBLocked, o IDOwner) ([]uint32, error) {
 					return []uint32{10000, 10001, 10002}, nil
 				},
 			},
@@ -282,7 +282,7 @@ func TestGenerateIDMocked(t *testing.T) {
 			genID: generateID{
 				idType: "ID",
 				minID:  10000, maxID: math.MaxUint32,
-				isAvailableID: func(ctx context.Context, u uint32) (bool, error) {
+				isAvailableID: func(_ *localentries.UserDBLocked, u uint32) (bool, error) {
 					return u < 10000, nil
 				},
 				getUsedIDs: noUsedIDFunc,
@@ -294,7 +294,7 @@ func TestGenerateIDMocked(t *testing.T) {
 				idType: "UID",
 				minID:  10000, maxID: 10010,
 				isAvailableID: allAvailableIDsFunc,
-				getUsedIDs: func(ctx context.Context, o IDOwner) ([]uint32, error) {
+				getUsedIDs: func(_ *localentries.UserDBLocked, o IDOwner) ([]uint32, error) {
 					return nil, errors.New("usedIDs error")
 				},
 			},
@@ -323,7 +323,8 @@ func TestGenerateIDMocked(t *testing.T) {
 					tc.genID.idType)
 			}
 
-			id, cleanup, err := tc.generator.generateID(context.Background(),
+			lockedMock := &localentries.UserDBLocked{}
+			id, cleanup, err := tc.generator.generateID(lockedMock,
 				tc.owner, tc.genID)
 			if tc.wantErr {
 				require.Error(t, err, "Expected error but got none")

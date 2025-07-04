@@ -1,7 +1,6 @@
 package localentries_test
 
 import (
-	"context"
 	"crypto/rand"
 	"fmt"
 	"path/filepath"
@@ -26,8 +25,7 @@ func TestEntriesWithLockInvalidActions(t *testing.T) {
 	require.Panics(t, func() { _, _ = (&localentries.UserDBLocked{}).GetLocalGroupEntries() },
 		"GetLocalGroupEntries should panic but did not")
 
-	ctx, unlock, err := localentries.ContextUserDBLocked(context.Background())
-	le := localentries.GetUserDBLocked(ctx)
+	le, unlock, err := localentries.WithUserDBLock()
 	require.NotNil(t, le, "GetWithLock should not return nil but it did")
 
 	require.NoError(t, err, "Setup: failed to lock the users group")
@@ -37,8 +35,6 @@ func TestEntriesWithLockInvalidActions(t *testing.T) {
 	err = unlock()
 	require.Error(t, err, "Unlocking twice should fail")
 
-	require.Panics(t, func() { _ = localentries.GetUserDBLocked(ctx) },
-		"GetWithLock should panic but did not")
 	require.Panics(t, func() { _, _ = le.GetUserEntries() },
 		"GetUserEntries should panic but did not")
 	require.Panics(t, func() { _, _ = le.GetGroupEntries() },
@@ -48,7 +44,7 @@ func TestEntriesWithLockInvalidActions(t *testing.T) {
 
 	// This is to ensure that we're in a good state, despite the actions above
 	for range 10 {
-		_, unlock, err = localentries.ContextUserDBLocked(context.Background())
+		_, unlock, err = localentries.WithUserDBLock()
 		require.NoError(t, err, "Failed to lock the users group")
 		defer func() {
 			err := unlock()
@@ -88,8 +84,7 @@ func TestRacingEntriesLockingActions(t *testing.T) {
 				wantGroup = types.GroupEntry{Name: "localgroup1", GID: 41, Passwd: "x"}
 			}
 
-			ctx, entriesUnlock, err := localentries.ContextUserDBLocked(
-				context.Background(), opts...)
+			ctx, entriesUnlock, err := localentries.WithUserDBLock(opts...)
 			require.NoError(t, err, "Failed to lock the local entries")
 
 			groups, err := localentries.GetGroupEntries(ctx)
@@ -106,7 +101,7 @@ func TestRacingEntriesLockingActions(t *testing.T) {
 func TestIsUniqueUserName(t *testing.T) {
 	t.Parallel()
 
-	ctx, unlock, err := localentries.ContextUserDBLocked(context.Background())
+	le, unlock, err := localentries.WithUserDBLock()
 	require.NoError(t, err, "Setup: NewUserDBLocked should not fail to lock the users group")
 
 	t.Cleanup(func() {
@@ -114,7 +109,6 @@ func TestIsUniqueUserName(t *testing.T) {
 		require.NoError(t, err, "TearDown: Unlock should not fail, but it did")
 	})
 
-	le := localentries.GetUserDBLocked(ctx)
 	users, err := le.GetUserEntries()
 	require.NoError(t, err, "Setup: GetUserEntries should not fail, but it did")
 
@@ -142,7 +136,7 @@ func TestIsUniqueUserName(t *testing.T) {
 func TestIsUniqueGroupName(t *testing.T) {
 	t.Parallel()
 
-	ctx, unlock, err := localentries.ContextUserDBLocked(context.Background())
+	le, unlock, err := localentries.WithUserDBLock()
 	require.NoError(t, err, "Setup: NewUserDBLocked should not fail to lock the users group")
 
 	t.Cleanup(func() {
@@ -150,7 +144,6 @@ func TestIsUniqueGroupName(t *testing.T) {
 		require.NoError(t, err, "TearDown: Unlock should not fail, but it did")
 	})
 
-	le := localentries.GetUserDBLocked(ctx)
 	groups, err := le.GetGroupEntries()
 	require.NoError(t, err, "Setup: GetGroupEntries should not fail, but it did")
 
@@ -178,7 +171,7 @@ func TestIsUniqueGroupName(t *testing.T) {
 func TestIsUniqueUID(t *testing.T) {
 	t.Parallel()
 
-	ctx, unlock, err := localentries.ContextUserDBLocked(context.Background())
+	le, unlock, err := localentries.WithUserDBLock()
 	require.NoError(t, err, "Setup: NewUserDBLocked should not fail to lock the users group")
 
 	t.Cleanup(func() {
@@ -186,7 +179,6 @@ func TestIsUniqueUID(t *testing.T) {
 		require.NoError(t, err, "TearDown: Unlock should not fail, but it did")
 	})
 
-	le := localentries.GetUserDBLocked(ctx)
 	users, err := le.GetUserEntries()
 	require.NoError(t, err, "Setup: GetUserEntries should not fail, but it did")
 
@@ -223,7 +215,7 @@ func TestIsUniqueUID(t *testing.T) {
 func TestIsUniqueGID(t *testing.T) {
 	t.Parallel()
 
-	ctx, unlock, err := localentries.ContextUserDBLocked(context.Background())
+	le, unlock, err := localentries.WithUserDBLock()
 	require.NoError(t, err, "Setup: NewUserDBLocked should not fail to lock the users group")
 
 	t.Cleanup(func() {
@@ -231,7 +223,6 @@ func TestIsUniqueGID(t *testing.T) {
 		require.NoError(t, err, "TearDown: Unlock should not fail, but it did")
 	})
 
-	le := localentries.GetUserDBLocked(ctx)
 	groups, err := le.GetGroupEntries()
 	require.NoError(t, err, "Setup: GetUserEntries should not fail, but it did")
 

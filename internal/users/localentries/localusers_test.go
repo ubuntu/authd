@@ -1,7 +1,6 @@
 package localentries_test
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -146,8 +145,7 @@ func TestParseLocalPasswdFile(t *testing.T) {
 				require.NoError(t, err, "Setup: Failed to write passwd file to %s", inputPasswdFilePath)
 			}
 
-			ctx, entriesUnlock, err := localentries.ContextUserDBLocked(
-				context.Background(),
+			le, entriesUnlock, err := localentries.WithUserDBLock(
 				localentries.WithPasswdInputPath(inputPasswdFilePath),
 				localentries.WithMockUserDBLocking(),
 			)
@@ -157,7 +155,7 @@ func TestParseLocalPasswdFile(t *testing.T) {
 				require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 			})
 
-			got, err := localentries.GetUserDBLocked(ctx).GetLocalUserEntries()
+			got, err := le.GetLocalUserEntries()
 			if tc.wantErr {
 				require.Error(t, err, "parseLocalPasswdFile() returned no error")
 			} else {

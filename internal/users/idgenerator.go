@@ -14,8 +14,8 @@ import (
 
 // IDGeneratorIface is the interface that must be implemented by the ID generator.
 type IDGeneratorIface interface {
-	GenerateUID(ctx context.Context, owner IDOwner) (uid uint32, cleanup func(), err error)
-	GenerateGID(ctx context.Context, owner IDOwner) (gid uint32, cleanup func(), err error)
+	GenerateUID(lockedEntries *localentries.UserDBLocked, owner IDOwner) (uid uint32, cleanup func(), err error)
+	GenerateGID(lockedEntries *localentries.UserDBLocked, owner IDOwner) (gid uint32, cleanup func(), err error)
 }
 
 // IDOwner is the interface that must be implemented by the IDs owner to provide
@@ -49,8 +49,8 @@ type IDGenerator struct {
 const maxIDGenerateIterations = 1000
 
 // GenerateUID generates a random UID in the configured range.
-func (g *IDGenerator) GenerateUID(ctx context.Context, owner IDOwner) (uint32, func(), error) {
-	return g.generateID(ctx, owner, generateID{
+func (g *IDGenerator) GenerateUID(lockedEntries *localentries.UserDBLocked, owner IDOwner) (uint32, func(), error) {
+	return g.generateID(lockedEntries, owner, generateID{
 		idType:        "UID",
 		minID:         g.UIDMin,
 		maxID:         g.UIDMax,
@@ -60,8 +60,8 @@ func (g *IDGenerator) GenerateUID(ctx context.Context, owner IDOwner) (uint32, f
 }
 
 // GenerateGID generates a random GID in the configured range.
-func (g *IDGenerator) GenerateGID(ctx context.Context, owner IDOwner) (uint32, func(), error) {
-	return g.generateID(ctx, owner, generateID{
+func (g *IDGenerator) GenerateGID(lockedEntries *localentries.UserDBLocked, owner IDOwner) (uint32, func(), error) {
+	return g.generateID(lockedEntries, owner, generateID{
 		idType:        "GID",
 		minID:         g.GIDMin,
 		maxID:         g.GIDMax,
@@ -74,16 +74,16 @@ func (g *IDGenerator) GenerateGID(ctx context.Context, owner IDOwner) (uint32, f
 type generateID struct {
 	idType        string
 	minID, maxID  uint32
-	isAvailableID func(context.Context, uint32) (bool, error)
-	getUsedIDs    func(context.Context, IDOwner) ([]uint32, error)
+	isAvailableID func(*localentries.UserDBLocked, uint32) (bool, error)
+	getUsedIDs    func(*localentries.UserDBLocked, IDOwner) ([]uint32, error)
 }
 
-func (g *IDGenerator) generateID(ctx context.Context, owner IDOwner, args generateID) (id uint32, cleanup func(), err error) {
+func (g *IDGenerator) generateID(lockedEntries *localentries.UserDBLocked, owner IDOwner, args generateID) (id uint32, cleanup func(), err error) {
 	if args.minID > args.maxID {
 		return 0, nil, errors.New("minID must be less than or equal to maxID")
 	}
 
-	usedIDs, err := args.getUsedIDs(ctx, owner)
+	usedIDs, err := args.getUsedIDs(lockedEntries, owner)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -101,7 +101,7 @@ func (g *IDGenerator) generateID(ctx context.Context, owner IDOwner, args genera
 			return 0, nil, err
 		}
 
-		available, err := args.isAvailableID(ctx, id)
+		available, err := args.isAvailableID(lockedEntries, id)
 		if err != nil {
 			return 0, nil, err
 		}
@@ -112,7 +112,7 @@ func (g *IDGenerator) generateID(ctx context.Context, owner IDOwner, args genera
 			usedIDs = slices.Insert(usedIDs, pos, id)
 
 			// If the GID is not available, try the next candidate
-			log.Debugf(ctx, "%s %d is already used", args.idType, id)
+			log.Debugf(context.Background(), "%s %d is already used", args.idType, id)
 			continue
 		}
 
@@ -167,8 +167,7 @@ func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (id uint32, uniqueIDs
 	return 0, -1, errors.New("no available ID in range")
 }
 
-func (g *IDGenerator) isUIDAvailable(ctx context.Context, uid uint32) (bool, error) {
-	lockedEntries := localentries.GetUserDBLocked(ctx)
+func (g *IDGenerator) isUIDAvailable(lockedEntries *localentries.UserDBLocked, uid uint32) (bool, error) {
 	if unique, err := lockedEntries.IsUniqueUID(uid); !unique || err != nil {
 		return false, err
 	}
@@ -176,8 +175,7 @@ func (g *IDGenerator) isUIDAvailable(ctx context.Context, uid uint32) (bool, err
 	return true, nil
 }
 
-func (g *IDGenerator) isGIDAvailable(ctx context.Context, gid uint32) (bool, error) {
-	lockedEntries := localentries.GetUserDBLocked(ctx)
+func (g *IDGenerator) isGIDAvailable(lockedEntries *localentries.UserDBLocked, gid uint32) (bool, error) {
 	if unique, err := lockedEntries.IsUniqueGID(gid); !unique || err != nil {
 		return false, err
 	}
@@ -185,8 +183,8 @@ func (g *IDGenerator) isGIDAvailable(ctx context.Context, gid uint32) (bool, err
 	return true, nil
 }
 
-func (g *IDGenerator) getUsedIDs(ctx context.Context, owner IDOwner) ([]uint32, error) {
-	usedUIDs, err := g.getUsedUIDs(ctx, owner)
+func (g *IDGenerator) getUsedIDs(lockedEntries *localentries.UserDBLocked, owner IDOwner) ([]uint32, error) {
+	usedUIDs, err := g.getUsedUIDs(lockedEntries, owner)
 	if err != nil {
 		return nil, err
 	}
@@ -194,7 +192,7 @@ func (g *IDGenerator) getUsedIDs(ctx context.Context, owner IDOwner) ([]uint32, 
 	// For the user ID we also need to exclude all the GIDs, since the user
 	// private group ID will match its own uid, so if we don't do this, we may
 	// have a clash later on, when trying to add the group for this user.
-	usedGIDs, err := g.getUsedGIDs(ctx, owner)
+	usedGIDs, err := g.getUsedGIDs(lockedEntries, owner)
 	if err != nil {
 		return nil, err
 	}
@@ -202,7 +200,7 @@ func (g *IDGenerator) getUsedIDs(ctx context.Context, owner IDOwner) ([]uint32, 
 	return append(usedUIDs, usedGIDs...), nil
 }
 
-func (g *IDGenerator) getUsedUIDs(ctx context.Context, owner IDOwner) ([]uint32, error) {
+func (g *IDGenerator) getUsedUIDs(lockedEntries *localentries.UserDBLocked, owner IDOwner) ([]uint32, error) {
 	// Get the users from the authd database and pre-auth users.
 	uids, err := owner.UsedUIDs()
 	if err != nil {
@@ -212,7 +210,7 @@ func (g *IDGenerator) getUsedUIDs(ctx context.Context, owner IDOwner) ([]uint32,
 	// Get the user entries from the passwd file. We don't use NSS here,
 	// because for picking the next higher ID we only want to consider the users
 	// in /etc/passwd and in the authd database, not from other sources like LDAP.
-	userEntries, err := localentries.GetUserDBLocked(ctx).GetLocalUserEntries()
+	userEntries, err := lockedEntries.GetLocalUserEntries()
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +221,7 @@ func (g *IDGenerator) getUsedUIDs(ctx context.Context, owner IDOwner) ([]uint32,
 	return uids, nil
 }
 
-func (g *IDGenerator) getUsedGIDs(ctx context.Context, owner IDOwner) ([]uint32, error) {
+func (g *IDGenerator) getUsedGIDs(lockedEntries *localentries.UserDBLocked, owner IDOwner) ([]uint32, error) {
 	gids, err := owner.UsedGIDs()
 	if err != nil {
 		return nil, err
@@ -233,7 +231,7 @@ func (g *IDGenerator) getUsedGIDs(ctx context.Context, owner IDOwner) ([]uint32,
 	// because for picking the next higher ID we only want to consider the groups
 	// in /etc/group and the users in /etc/group and in the authd database, not
 	// from other sources like LDAP (in case merge method is used).
-	groupEntries, err := localentries.GetUserDBLocked(ctx).GetLocalGroupEntries()
+	groupEntries, err := lockedEntries.GetLocalGroupEntries()
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +240,7 @@ func (g *IDGenerator) getUsedGIDs(ctx context.Context, owner IDOwner) ([]uint32,
 	}
 
 	// And include users GIDs too.
-	userEntries, err := localentries.GetUserDBLocked(ctx).GetLocalUserEntries()
+	userEntries, err := lockedEntries.GetLocalUserEntries()
 	if err != nil {
 		return nil, err
 	}

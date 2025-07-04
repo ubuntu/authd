@@ -104,48 +104,35 @@ type UserDBLocked struct {
 	options options
 }
 
-type userDBLockKey struct{}
-
-// GetUserDBLocked retrieves the [WithLock] from context, if present.
-func GetUserDBLocked(ctx context.Context) *UserDBLocked {
-	if l, ok := ctx.Value(userDBLockKey{}).(*UserDBLocked); ok {
-		l.MustBeLocked()
-		return l
-	}
-	return nil
-}
-
-// ContextUserDBLocked gets a context instance with a lock on the system's
+// WithUserDBLock gets an [UserDBLocked] instance with a lock on the system's
 // user database.
 // It returns an unlock function that should be called to unlock it.
 //
-// It can called safely multiple times and will return always a new context that
-// is always bound to the same instance of [UserDBLocked] with increased
-// reference counting (that is released through the unlock function).
-// Use [GetUserDBLocked] to retrieve it.
-func ContextUserDBLocked(parent context.Context, args ...Option) (ctx context.Context, unlock func() error, err error) {
+// It can called safely multiple times and will return always a the same
+// [UserDBLocked] with increased reference counting (that must be released
+// through returned the unlock function).
+func WithUserDBLock(args ...Option) (userDB *UserDBLocked, unlock func() error, err error) {
 	defer decorate.OnError(&err, "could not lock local groups")
 
-	var entries *UserDBLocked
 	unlock = func() error {
-		entries.mu.Lock()
-		defer entries.mu.Unlock()
+		userDB.mu.Lock()
+		defer userDB.mu.Unlock()
 
-		if entries.refCount == 0 {
+		if userDB.refCount == 0 {
 			return fmt.Errorf("groups were already unlocked")
 		}
 
-		entries.refCount--
-		if entries.refCount != 0 {
+		userDB.refCount--
+		if userDB.refCount != 0 {
 			return nil
 		}
 
 		log.Debug(context.Background(), "Unlocking local entries")
-		entries.userEntries = nil
-		entries.localGroupEntries = nil
-		entries.groupEntries = nil
+		userDB.userEntries = nil
+		userDB.localGroupEntries = nil
+		userDB.groupEntries = nil
 
-		return entries.options.writeUnlockFunc()
+		return userDB.options.writeUnlockFunc()
 	}
 
 	opts := defaultOptions
@@ -160,15 +147,14 @@ func ContextUserDBLocked(parent context.Context, args ...Option) (ctx context.Co
 		}
 	}
 
-	entries = opts.userDBLocked
-	ctx = context.WithValue(parent, userDBLockKey{}, entries)
+	userDB = opts.userDBLocked
 
-	entries.mu.Lock()
-	defer entries.mu.Unlock()
+	userDB.mu.Lock()
+	defer userDB.mu.Unlock()
 
-	if entries.refCount != 0 {
-		entries.refCount++
-		return ctx, unlock, nil
+	if userDB.refCount != 0 {
+		userDB.refCount++
+		return userDB, unlock, nil
 	}
 
 	log.Debug(context.Background(), "Locking local entries")
@@ -177,10 +163,10 @@ func ContextUserDBLocked(parent context.Context, args ...Option) (ctx context.Co
 		return nil, nil, err
 	}
 
-	entries.options = opts
-	entries.refCount++
+	userDB.options = opts
+	userDB.refCount++
 
-	return ctx, unlock, nil
+	return userDB, unlock, nil
 }
 
 // MustBeLocked ensures wether the entries are locked.

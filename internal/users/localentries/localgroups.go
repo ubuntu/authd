@@ -20,17 +20,19 @@ import (
 )
 
 // GetGroupEntries returns a copy of the current group entries.
-func GetGroupEntries(ctx context.Context) (entries []types.GroupEntry, err error) {
+func GetGroupEntries(dbLocked *UserDBLocked) (entries []types.GroupEntry, err error) {
 	defer decorate.OnError(&err, "could not get groups")
 
-	unlock := GetUserDBLocked(ctx).lockGroupFile()
+	dbLocked.MustBeLocked()
+
+	unlock := dbLocked.lockGroupFile()
 	defer unlock()
 
-	return getGroupEntriesWithContext(ctx)
+	return getGroupEntriesWithContext(dbLocked)
 }
 
-func getGroupEntriesWithContext(ctx context.Context) (entries []types.GroupEntry, err error) {
-	entries, err = GetUserDBLocked(ctx).GetLocalGroupEntries()
+func getGroupEntriesWithContext(dbLocked *UserDBLocked) (entries []types.GroupEntry, err error) {
+	entries, err = dbLocked.GetLocalGroupEntries()
 	if err != nil {
 		return nil, err
 	}
@@ -39,30 +41,34 @@ func getGroupEntriesWithContext(ctx context.Context) (entries []types.GroupEntry
 }
 
 // SaveGroupEntries saves the provided group entries to the local group file.
-func SaveGroupEntries(ctx context.Context, entries []types.GroupEntry) (err error) {
+func SaveGroupEntries(dbLocked *UserDBLocked, entries []types.GroupEntry) (err error) {
 	defer decorate.OnError(&err, "could not save groups")
 
-	unlock := GetUserDBLocked(ctx).lockGroupFile()
+	dbLocked.MustBeLocked()
+
+	unlock := dbLocked.lockGroupFile()
 	defer unlock()
 
-	return saveLocalGroups(ctx, entries)
+	return saveLocalGroups(dbLocked, entries)
 }
 
 // UpdateGroups updates the local groups for a user, adding them to the groups in
 // newGroups which they are not already part of, and removing them from the
 // groups in oldGroups which are not in newGroups.
-func UpdateGroups(ctx context.Context, username string, newGroups []string, oldGroups []string) (err error) {
-	log.Debugf(ctx, "Updating local groups for user %q, new groups: %v, old groups: %v", username, newGroups, oldGroups)
+func UpdateGroups(dbLocked *UserDBLocked, username string, newGroups []string, oldGroups []string) (err error) {
+	log.Debugf(context.Background(), "Updating local groups for user %q, new groups: %v, old groups: %v", username, newGroups, oldGroups)
 	defer decorate.OnError(&err, "could not update local groups for user %q", username)
 
-	unlock := GetUserDBLocked(ctx).lockGroupFile()
+	dbLocked.MustBeLocked()
+
+	unlock := dbLocked.lockGroupFile()
 	defer unlock()
 
 	if len(newGroups) == 0 && len(oldGroups) == 0 {
 		return nil
 	}
 
-	allGroups, err := getGroupEntriesWithContext(ctx)
+	allGroups, err := getGroupEntriesWithContext(dbLocked)
 	if err != nil {
 		return err
 	}
@@ -73,11 +79,11 @@ func UpdateGroups(ctx context.Context, username string, newGroups []string, oldG
 	})
 
 	groupsToAdd := sliceutils.Difference(newGroups, currentGroupsNames)
-	log.Debugf(ctx, "Adding %q to local groups: %v", username, groupsToAdd)
+	log.Debugf(context.Background(), "Adding %q to local groups: %v", username, groupsToAdd)
 	groupsToRemove := sliceutils.Difference(oldGroups, newGroups)
 	// Only remove user from groups which they are part of
 	groupsToRemove = sliceutils.Intersection(groupsToRemove, currentGroupsNames)
-	log.Debugf(ctx, "Removing %q from local groups: %v", username, groupsToRemove)
+	log.Debugf(context.Background(), "Removing %q from local groups: %v", username, groupsToRemove)
 
 	if len(groupsToRemove) == 0 && len(groupsToAdd) == 0 {
 		return nil
@@ -108,7 +114,7 @@ func UpdateGroups(ctx context.Context, username string, newGroups []string, oldG
 		group.Users = append(group.Users, username)
 	}
 
-	return saveLocalGroups(ctx, allGroups)
+	return saveLocalGroups(dbLocked, allGroups)
 }
 
 func parseLocalGroups(groupPath string) (groups []types.GroupEntry, invalidEntries []invalidEntry, err error) {
@@ -188,12 +194,12 @@ func groupFileBackupPath(groupPath string) string {
 	return fmt.Sprintf("%s-", groupPath)
 }
 
-func formatGroupEntries(ctx context.Context, groups []types.GroupEntry) string {
+func formatGroupEntries(dbLocked *UserDBLocked, groups []types.GroupEntry) string {
 	groupLines := sliceutils.Map(groups, func(group types.GroupEntry) string {
 		return group.String()
 	})
 
-	for _, entry := range GetUserDBLocked(ctx).localGroupInvalidEntries {
+	for _, entry := range dbLocked.localGroupInvalidEntries {
 		groupLines = slices.Insert(groupLines,
 			min(entry.lineNum, len(groupLines)-1), entry.line)
 	}
@@ -204,43 +210,43 @@ func formatGroupEntries(ctx context.Context, groups []types.GroupEntry) string {
 	return strings.Join(groupLines, "\n")
 }
 
-func saveLocalGroups(ctx context.Context, groups []types.GroupEntry) (err error) {
-	lockedEntries := GetUserDBLocked(ctx)
+func saveLocalGroups(dbLocked *UserDBLocked, groups []types.GroupEntry) (err error) {
+	lockedEntries := dbLocked
 	inputPath := lockedEntries.options.inputGroupPath
 	groupPath := lockedEntries.options.outputGroupPath
 
 	defer decorate.OnError(&err, "could not write local groups to %q", groupPath)
 
-	currentGroups, err := getGroupEntriesWithContext(ctx)
+	currentGroups, err := getGroupEntriesWithContext(dbLocked)
 	if err != nil {
 		return err
 	}
 
 	if slices.EqualFunc(currentGroups, groups, types.GroupEntry.Equals) {
-		log.Debugf(ctx, "Nothing to do, groups are equal")
+		log.Debugf(context.Background(), "Nothing to do, groups are equal")
 		return nil
 	}
 
-	if err := validateChangedGroups(ctx, currentGroups, groups); err != nil {
-		log.Debugf(ctx, "New groups are not valid: %v", err)
+	if err := validateChangedGroups(currentGroups, groups); err != nil {
+		log.Debugf(context.Background(), "New groups are not valid: %v", err)
 		return err
 	}
 
 	backupPath := groupFileBackupPath(groupPath)
-	groupsEntries := formatGroupEntries(ctx, groups)
+	groupsEntries := formatGroupEntries(dbLocked, groups)
 
-	log.Debugf(ctx, "Saving group entries %#v to %q", groups, groupPath)
+	log.Debugf(context.Background(), "Saving group entries %#v to %q", groups, groupPath)
 	if len(groupsEntries) > 0 {
-		log.Debugf(ctx, "Group file content:\n%s", groupsEntries)
+		log.Debugf(context.Background(), "Group file content:\n%s", groupsEntries)
 	}
 
 	if err := os.Remove(backupPath); err != nil && !errors.Is(err, os.ErrNotExist) {
-		log.Warningf(ctx, "Failed to remove group file backup: %v", err)
+		log.Warningf(context.Background(), "Failed to remove group file backup: %v", err)
 	}
 
-	log.Debugf(ctx, "Backing up %q to %q", inputPath, backupPath)
+	log.Debugf(context.Background(), "Backing up %q to %q", inputPath, backupPath)
 	if err := fileutils.CopyFile(inputPath, backupPath); err != nil {
-		log.Warningf(ctx, "Failed make a backup for the group file: %v", err)
+		log.Warningf(context.Background(), "Failed make a backup for the group file: %v", err)
 	}
 
 	tempPath := groupFileTemporaryPath(groupPath)
@@ -257,15 +263,15 @@ func saveLocalGroups(ctx context.Context, groups []types.GroupEntry) (err error)
 	return nil
 }
 
-func validateChangedGroups(ctx context.Context, currentGroups, newGroups []types.GroupEntry) error {
+func validateChangedGroups(currentGroups, newGroups []types.GroupEntry) error {
 	changedGroups := sliceutils.DifferenceFunc(newGroups, currentGroups,
 		types.GroupEntry.Equals)
 	if len(changedGroups) == 0 {
-		log.Debugf(ctx, "No new groups added to validate")
+		log.Debugf(context.Background(), "No new groups added to validate")
 		return nil
 	}
 
-	log.Debugf(ctx, "Groups added or modified: %#v", changedGroups)
+	log.Debugf(context.Background(), "Groups added or modified: %#v", changedGroups)
 
 	if err := types.ValidateGroupEntries(changedGroups); err != nil {
 		// One of the group that has been changed is not valid.
