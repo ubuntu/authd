@@ -66,13 +66,13 @@ func (s Service) GetUserByName(ctx context.Context, req *authd.GetUserByNameRequ
 
 	// If the user is not found in the database, we check if it exists in at least one broker.
 	user, err = s.userPreCheck(ctx, name)
-	if err != nil {
-		log.Errorf(context.Background(), "GetUserByName: %v", err)
-		return nil, status.Error(codes.NotFound, err.Error())
-	}
-	if user == (types.UserEntry{}) {
+	if errors.Is(err, errUserNotPermitted) {
 		err := fmt.Errorf("user %q is unknown and not authorized to log in via SSH for the first time by any configured broker", name)
 		log.Warningf(context.Background(), "GetUserByName: %v", err)
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	if err != nil {
+		log.Errorf(context.Background(), "GetUserByName: %v", err)
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
@@ -194,9 +194,11 @@ func groupToProtobuf(g types.GroupEntry) *authd.Group {
 	}
 }
 
+var errUserNotPermitted = errors.New("user not permitted to log in via SSH for the first time")
+
 // userPreCheck checks if the user is permitted to log in via SSH for the first time.
-// It returns a types.UserEntry with a unique UID if the user is permitted to log in, or an empty types.UserEntry if the
-// user is not permitted to log in.
+// It returns a types.UserEntry with a unique UID if the user is permitted to log in.
+// If the user is not permitted to log in by any broker, errUserNotPermitted is returned.
 func (s Service) userPreCheck(ctx context.Context, username string) (types.UserEntry, error) {
 	// authd uses lowercase usernames.
 	username = strings.ToLower(username)
@@ -222,7 +224,7 @@ func (s Service) userPreCheck(ctx context.Context, username string) (types.UserE
 
 	if err != nil || userinfo == "" {
 		// No broker permits the user to log in via SSH for the first time.
-		return types.UserEntry{}, nil
+		return types.UserEntry{}, errUserNotPermitted
 	}
 
 	var u types.UserEntry
