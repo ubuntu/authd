@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"slices"
 	"sort"
 
@@ -135,7 +136,7 @@ func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (uint32, error) {
 	}
 
 	// Try IDs above the highest used
-	for id := highestUsed + 1; id <= maxID; id++ {
+	for id := highestUsed + 1; id <= maxID && highestUsed < math.MaxUint32; id++ {
 		if _, found := slices.BinarySearch(usedIDs, id); found {
 			continue
 		}
@@ -143,7 +144,7 @@ func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (uint32, error) {
 	}
 
 	// Fallback: try IDs from minID up to highestUsed
-	for id := minID; id <= highestUsed && id <= maxID; id++ {
+	for id := minID; id <= highestUsed && id <= maxID && id < math.MaxUint32; id++ {
 		if _, found := slices.BinarySearch(usedIDs, id); found {
 			continue
 		}

@@ -52,6 +52,16 @@ func TestGetIDCandidate(t *testing.T) {
 			used:   []uint32{20, 100},
 			wantID: 1000,
 		},
+		"Only_MaxUint32_is_available": {
+			idMin:  math.MaxUint32,
+			idMax:  math.MaxUint32,
+			wantID: math.MaxUint32,
+		},
+		"Intermediate_value_after_MaxUint32_is_reached": {
+			idMin: math.MaxUint32 - 2, idMax: math.MaxUint32,
+			used:   []uint32{math.MaxUint32 - 2, math.MaxUint32},
+			wantID: math.MaxUint32 - 1,
+		},
 
 		"Error_if_no_available_ID_in_range": {
 			idMin: 1000, idMax: 2000,
@@ -71,6 +81,11 @@ func TestGetIDCandidate(t *testing.T) {
 		},
 		"Error_if_minID_greater_than_maxID": {
 			idMin: 100000, idMax: 10000,
+			wantErr: true,
+		},
+		"Error_if_all_the_values_next_to_MaxUint32_are_used": {
+			idMin: math.MaxUint32 - 2, idMax: math.MaxUint32,
+			used:    []uint32{math.MaxUint32 - 2, math.MaxUint32 - 1, math.MaxUint32},
 			wantErr: true,
 		},
 	}
