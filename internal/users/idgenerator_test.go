@@ -14,53 +14,64 @@ func TestGetIDCandidate(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		idMin   uint32
-		idMax   uint32
-		used    []uint32
+		idMin uint32
+		idMax uint32
+		used  []uint32
+
+		wantPos int
 		wantID  uint32
 		wantErr bool
 	}{
 		"Generated_ID_is_within_the_defined_range": {
 			idMin: 1000, idMax: 2000,
-			wantID: 1000,
+			wantID:  1000,
+			wantPos: 0,
 		},
 		"Generate_ID_with_minimum_ID_equal_to_maximum_ID": {
 			idMin: 1000, idMax: 1000,
-			wantID: 1000,
+			wantID:  1000,
+			wantPos: 0,
 		},
 		"UsedIDs_outside_range_are_ignored": {
 			idMin: 1000, idMax: 2000,
-			used:   []uint32{1, 2, 3, 999, 2001, 3000},
-			wantID: 1000,
+			used:    []uint32{1, 2, 3, 999, 2001, 3000},
+			wantID:  1000,
+			wantPos: 4,
 		},
 		"UsedIDs_in_middle_of_range": {
 			idMin: 1000, idMax: 1005,
-			used:   []uint32{1002, 1003},
-			wantID: 1004,
+			used:    []uint32{1002, 1003},
+			wantID:  1004,
+			wantPos: 2,
 		},
 		"UsedIDs_at_the_end_of_range": {
 			idMin: 1000, idMax: 1005,
-			used:   []uint32{1002, 1005},
-			wantID: 1000,
+			used:    []uint32{1002, 1005},
+			wantID:  1000,
+			wantPos: 0,
 		},
 		"UsedIDs_minID_equals_maxID_and_unused": {
 			idMin: 1000, idMax: 1000,
-			wantID: 1000,
+			wantID:  1000,
+			wantPos: 0,
 		},
 		"UsedIDs_last_value_is_smaller_than_the_minimum_id": {
 			idMin: 1000, idMax: 2000,
-			used:   []uint32{20, 100},
-			wantID: 1000,
+			used:    []uint32{20, 100},
+			wantID:  1000,
+			wantPos: 2,
 		},
 		"Only_MaxUint32_is_available": {
-			idMin:  math.MaxUint32,
-			idMax:  math.MaxUint32,
-			wantID: math.MaxUint32,
+			idMin:   math.MaxUint32,
+			idMax:   math.MaxUint32,
+			wantID:  math.MaxUint32,
+			wantPos: 0,
 		},
 		"Intermediate_value_after_MaxUint32_is_reached": {
 			idMin: math.MaxUint32 - 2, idMax: math.MaxUint32,
-			used:   []uint32{math.MaxUint32 - 2, math.MaxUint32},
-			wantID: math.MaxUint32 - 1,
+			used:    []uint32{math.MaxUint32 - 2, math.MaxUint32},
+			wantID:  math.MaxUint32 - 1,
+			wantPos: 1,
 		},
 
 		"Error_if_no_available_ID_in_range": {
@@ -94,16 +105,19 @@ func TestGetIDCandidate(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			id, err := getIDCandidate(tc.idMin, tc.idMax, tc.used)
+			id, pos, err := getIDCandidate(tc.idMin, tc.idMax, tc.used)
 			if tc.wantErr {
 				require.Error(t, err, "getIDCandidate not returned an error as expected")
+				require.Equal(t, -1, pos, "getIDCandidate did not return the expected usedIDs position")
 				return
 			}
 
 			require.NoError(t, err, "getIDCandidate returned an unexpected error")
 			require.GreaterOrEqual(t, int(id), int(tc.idMin), "ID is less than idMin")
 			require.LessOrEqual(t, int(id), int(tc.idMax), "ID is greater than idMax")
+			require.GreaterOrEqual(t, pos, 0, "Position is not greater or equal 0")
 			require.Equal(t, int(tc.wantID), int(id), "Generated ID does not match expected value")
+			require.Equal(t, tc.wantPos, pos, "getIDCandidate returned unexpected position in usedIDs")
 		})
 	}
 }
@@ -202,6 +216,18 @@ func TestGenerateIDMocked(t *testing.T) {
 			generator:      IDGenerator{pendingIDs: []uint32{100, 101, 102}},
 			wantID:         103,
 			noCleanupCheck: true,
+		},
+		"Used_ids_are_always_sorted": {
+			genID: generateID{
+				idType: "UID",
+				minID:  300, maxID: 303,
+				isAvailableID: func(ctx context.Context, u uint32) (bool, error) {
+					return u == 302, nil
+				},
+				getUsedIDs: getOwnerUsedUIDsFunc,
+			},
+			owner:  IDOwnerMock{usedUIDs: []uint32{300, 303}},
+			wantID: 302,
 		},
 
 		// Error cases

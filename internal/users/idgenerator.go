@@ -96,7 +96,7 @@ func (g *IDGenerator) generateID(ctx context.Context, owner IDOwner, args genera
 	maxAttempts := min(maxIDGenerateIterations, args.maxID-args.minID+1)
 
 	for range maxAttempts {
-		id, err := getIDCandidate(args.minID, args.maxID, usedIDs)
+		id, pos, err := getIDCandidate(args.minID, args.maxID, usedIDs)
 		if err != nil {
 			return 0, nil, err
 		}
@@ -107,8 +107,11 @@ func (g *IDGenerator) generateID(ctx context.Context, owner IDOwner, args genera
 		}
 
 		if !available {
+			// Keep track of the id, but preserving usedIDs sorted, since we
+			// use the binary search to add elements to it.
+			usedIDs = slices.Insert(usedIDs, pos, id)
+
 			// If the GID is not available, try the next candidate
-			usedIDs = append(usedIDs, id)
 			log.Debugf(ctx, "%s %d is already used", args.idType, id)
 			continue
 		}
@@ -125,7 +128,7 @@ func (g *IDGenerator) generateID(ctx context.Context, owner IDOwner, args genera
 		args.idType, maxAttempts)
 }
 
-func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (uint32, error) {
+func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (id uint32, uniqueIDsPos int, err error) {
 	// Pick the preferred ID candidate, starting with minID.
 	preferredID := minID
 
@@ -141,8 +144,8 @@ func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (uint32, error) {
 
 	// Try IDs starting from the preferred ID up to the maximum ID.
 	for id := preferredID; id <= maxID; id++ {
-		if _, found := slices.BinarySearch(usedIDs, id); !found {
-			return id, nil
+		if pos, found := slices.BinarySearch(usedIDs, id); !found {
+			return id, pos, nil
 		}
 
 		if id == math.MaxUint32 {
@@ -152,8 +155,8 @@ func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (uint32, error) {
 
 	// Fallback: try IDs from the minimum ID up to the preferred ID.
 	for id := minID; id < preferredID && id <= maxID; id++ {
-		if _, found := slices.BinarySearch(usedIDs, id); !found {
-			return id, nil
+		if pos, found := slices.BinarySearch(usedIDs, id); !found {
+			return id, pos, nil
 		}
 
 		// Overflows are avoided by the loop condition (id < preferredID, where
@@ -161,7 +164,7 @@ func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (uint32, error) {
 		// id == math.MaxUint32).
 	}
 
-	return 0, errors.New("no available ID in range")
+	return 0, -1, errors.New("no available ID in range")
 }
 
 func (g *IDGenerator) isUIDAvailable(ctx context.Context, uid uint32) (bool, error) {
