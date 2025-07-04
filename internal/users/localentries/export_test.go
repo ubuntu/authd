@@ -15,6 +15,13 @@ func WithGroupPath(p string) Option {
 	}
 }
 
+// WithPasswdInputPath overrides the default /etc/passwd path for input in tests.
+func WithPasswdInputPath(p string) Option {
+	return func(o *options) {
+		o.inputPasswdPath = p
+	}
+}
+
 // WithGroupInputPath overrides the default /etc/group path for input in tests.
 func WithGroupInputPath(p string) Option {
 	return func(o *options) {
