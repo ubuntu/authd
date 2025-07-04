@@ -1,10 +1,10 @@
 package users
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/ubuntu/authd/internal/testsdetection"
+	"github.com/ubuntu/authd/internal/users/localentries"
 )
 
 // IDGeneratorMock is a mock implementation of the IDGenerator interface.
@@ -14,7 +14,7 @@ type IDGeneratorMock struct {
 }
 
 // GenerateUID generates a UID.
-func (g *IDGeneratorMock) GenerateUID(_ context.Context, _ IDOwner) (uint32, func(), error) {
+func (g *IDGeneratorMock) GenerateUID(_ *localentries.UserDBLocked, _ IDOwner) (uint32, func(), error) {
 	testsdetection.MustBeTesting()
 
 	if len(g.UIDsToGenerate) == 0 {
@@ -26,7 +26,7 @@ func (g *IDGeneratorMock) GenerateUID(_ context.Context, _ IDOwner) (uint32, fun
 }
 
 // GenerateGID generates a GID.
-func (g *IDGeneratorMock) GenerateGID(_ context.Context, _ IDOwner) (uint32, func(), error) {
+func (g *IDGeneratorMock) GenerateGID(_ *localentries.UserDBLocked, _ IDOwner) (uint32, func(), error) {
 	testsdetection.MustBeTesting()
 
 	if len(g.GIDsToGenerate) == 0 {

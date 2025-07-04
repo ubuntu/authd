@@ -1,8 +1,6 @@
 package localentries
 
 import (
-	"context"
-
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/internal/users/types"
 )
@@ -60,6 +58,6 @@ func GroupFileBackupPath(groupFilePath string) string {
 }
 
 // ValidateChangedGroups validates the new groups given the current, changed and new groups.
-func ValidateChangedGroups(ctx context.Context, currentGroups, newGroups []types.GroupEntry) error {
-	return validateChangedGroups(ctx, currentGroups, newGroups)
+func ValidateChangedGroups(currentGroups, newGroups []types.GroupEntry) error {
+	return validateChangedGroups(currentGroups, newGroups)
 }

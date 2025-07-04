@@ -1,7 +1,6 @@
 package tempentries_test
 
 import (
-	"context"
 	"fmt"
 	"slices"
 	"strings"
@@ -10,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
+	"github.com/ubuntu/authd/internal/users/localentries"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/internal/users/tempentries"
 	"github.com/ubuntu/authd/internal/users/types"
@@ -107,7 +107,7 @@ func TestPreAuthUser(t *testing.T) {
 
 			for idx, loginName := range tc.users {
 				t.Logf("Registering user %q", loginName)
-				uid, _, err := idGeneratorMock.GenerateUID(context.Background(), nil)
+				uid, _, err := idGeneratorMock.GenerateUID(&localentries.UserDBLocked{}, nil)
 				require.NoError(t, err, "GenerateUID should not return an error, but it did")
 
 				if tc.wantPanic[idx] {
@@ -209,7 +209,7 @@ func TestPreAuthUserByIDAndName(t *testing.T) {
 			records := tempentries.NewPreAuthUserRecords()
 
 			if tc.registerUser {
-				uid, _, err := idGeneratorMock.GenerateUID(context.Background(), nil)
+				uid, _, err := idGeneratorMock.GenerateUID(&localentries.UserDBLocked{}, nil)
 				require.NoError(t, err, "GenerateUID should not return an error, but it did")
 
 				err = records.RegisterPreAuthUser(loginName, uid)

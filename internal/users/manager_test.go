@@ -354,9 +354,8 @@ func TestConcurrentUserUpdate(t *testing.T) {
 
 	const registeredUserPrefix = "authd-test-maybe-pre-check-user"
 
-	ctx, entriesUnlock, err := localentries.ContextUserDBLocked(context.Background())
+	lockedEntries, entriesUnlock, err := localentries.WithUserDBLock()
 	require.NoError(t, err, "Failed to lock the local entries")
-	lockedEntries := localentries.GetUserDBLocked(ctx)
 	systemPasswd, err := lockedEntries.GetUserEntries()
 	require.NoError(t, err, "GetPasswdEntries should not fail but it did")
 	systemGroups, err := lockedEntries.GetGroupEntries()
@@ -509,14 +508,13 @@ func TestConcurrentUserUpdate(t *testing.T) {
 		require.NoError(t, err, "AllGroups should not fail but it did")
 		require.Len(t, groups, nIterations*3+1, "Number of registered groups mismatch")
 
-		ctx, entriesUnlock, err := localentries.ContextUserDBLocked(context.Background())
+		lockedEntries, entriesUnlock, err := localentries.WithUserDBLock()
 		require.NoError(t, err, "Failed to lock the local entries")
 		defer func() {
 			err := entriesUnlock()
 			require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 		}()
 
-		lockedEntries := localentries.GetUserDBLocked(ctx)
 		localPasswd, err := lockedEntries.GetUserEntries()
 		require.NoError(t, err, "GetPasswdEntries should not fail but it did")
 		localGroups, err := lockedEntries.GetGroupEntries()
