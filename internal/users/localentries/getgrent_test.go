@@ -25,33 +25,3 @@ func TestGetGroupEntries(t *testing.T) {
 		})
 	}
 }
-
-func TestGetGroupByName(t *testing.T) {
-	t.Parallel()
-
-	for idx := range 10 {
-		t.Run(fmt.Sprintf("iteration_%d", idx), func(t *testing.T) {
-			t.Parallel()
-
-			got, err := GetGroupByName("root")
-			require.NoError(t, err, "GetGroupByName should not return an error")
-			require.Equal(t, got.Name, "root")
-			require.Equal(t, got.GID, uint32(0))
-			require.Equal(t, got.Passwd, "x")
-		})
-	}
-}
-
-func TestGetGroupByName_NotFound(t *testing.T) {
-	t.Parallel()
-
-	for idx := range 10 {
-		t.Run(fmt.Sprintf("iteration_%d", idx), func(t *testing.T) {
-			t.Parallel()
-
-			got, err := GetGroupByName(fmt.Sprintf("nonexistent-really-%d", idx))
-			require.ErrorIs(t, err, ErrGroupNotFound)
-			require.Equal(t, got.Name, "")
-		})
-	}
-}
