@@ -48,6 +48,14 @@ type IDGenerator struct {
 // from other NSS sources when determining which candidates to exclude.
 const maxIDGenerateIterations = 1000
 
+// Reserved IDs.
+const (
+	rootID         uint32 = 0
+	nobodyID       uint32 = 65534
+	uidT32MinusOne uint32 = math.MaxUint32
+	uidT16MinusOne uint32 = math.MaxUint16
+)
+
 // GenerateUID generates a random UID in the configured range.
 func (g *IDGenerator) GenerateUID(lockedEntries *localentries.UserDBLocked, owner IDOwner) (uint32, func(), error) {
 	return g.generateID(lockedEntries, owner, generateID{
@@ -101,6 +109,13 @@ func (g *IDGenerator) generateID(lockedEntries *localentries.UserDBLocked, owner
 			return 0, nil, err
 		}
 
+		if !isReservedID(id) {
+			// Keep track of the id, but preserving usedIDs sorted, since we
+			// use the binary search to add elements to it.
+			usedIDs = slices.Insert(usedIDs, pos, id)
+			continue
+		}
+
 		available, err := args.isAvailableID(lockedEntries, id)
 		if err != nil {
 			return 0, nil, err
@@ -126,6 +141,41 @@ func (g *IDGenerator) generateID(lockedEntries *localentries.UserDBLocked, owner
 
 	return 0, nil, fmt.Errorf("failed to find a valid %s for after %d attempts",
 		args.idType, maxAttempts)
+}
+
+// isReservedID checks if the ID is a value is not a linux system reserved value.
+// Note that we are not listing here the system IDs (1…999), as this the job
+// for the [Manager], being a wrong configuration.
+// See: https://systemd.io/UIDS-GIDS/
+func isReservedID(id uint32) bool {
+	switch id {
+	case rootID:
+		// The root super-user.
+		log.Warningf(context.Background(),
+			"ID %d cannot be used: it is the root super-user.", id)
+		return false
+
+	case nobodyID:
+		// Nobody user.
+		log.Warningf(context.Background(),
+			"ID %d cannot be used: it is nobody user.", id)
+		return false
+
+	case uidT32MinusOne:
+		// uid_t-1 (32): Special non-valid ID for `setresuid` and `chown`.
+		log.Warningf(context.Background(),
+			"ID %d cannot be used: it is uid_t-1 (32bit).")
+		return false
+
+	case uidT16MinusOne:
+		// uid_t-1 (16): As before, but comes from legacy 16bit programs.
+		log.Warningf(context.Background(),
+			"ID %d cannot be used: it is uid_t-1 (16bit)", id)
+		return false
+
+	default:
+		return true
+	}
 }
 
 func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (id uint32, uniqueIDsPos int, err error) {
