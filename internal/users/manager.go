@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"slices"
 	"strings"
@@ -26,6 +27,15 @@ type Config struct {
 	GIDMin uint32 `mapstructure:"gid_min" yaml:"gid_min"`
 	GIDMax uint32 `mapstructure:"gid_max" yaml:"gid_max"`
 }
+
+const (
+	// minAllowedUID is the minimum value used to generate the user and group IDs.
+	// See https://systemd.io/UIDS-GIDS/ for reference.
+	minAllowedUID uint32 = 1000
+	minAllowedGID uint32 = 1000
+
+	maxSuggestedID uint32 = math.MaxInt32
+)
 
 // DefaultConfig is the default configuration for the user manager.
 var DefaultConfig = Config{
@@ -80,8 +90,31 @@ func NewManager(config Config, dbDir string, args ...Option) (m *Manager, err er
 		if config.GIDMin >= config.GIDMax {
 			return nil, errors.New("GID_MIN must be less than GID_MAX")
 		}
+
+		// See https://systemd.io/UIDS-GIDS/ for reference.
+		if config.UIDMin < minAllowedUID {
+			log.Warning(context.Background(), "authd is configured to potentially use "+
+				"system users IDs (as per the default SYS_UID_MIN and SYS_UID_MAX values). "+
+				"This may not be safe.")
+		}
+		if config.GIDMin < minAllowedGID {
+			log.Warning(context.Background(), "authd is configured to potentially use "+
+				"system group IDs (as per the default SYS_GID_MIN and SYS_GID_MAX values). "+
+				"This may not be safe.")
+		}
+		if config.UIDMax > maxSuggestedID {
+			log.Warningf(context.Background(), "authd is configured to use maximum user ID values "+
+				"outside the signed 32-bit range, this is not safe and may lead some programs no to work "+
+				"as expected. Adjust UID_MAX to a value minor or equal than %d", maxSuggestedID)
+		}
+		if config.GIDMax > maxSuggestedID {
+			log.Warningf(context.Background(), "authd is configured to use maximum groups ID values "+
+				"outside the signed 32-bit range, this is not safe and may lead some programs no to work "+
+				"as expected. Adjust GID_MAX to a value minor or equal than %d", maxSuggestedID)
+		}
+
 		// Check that the number of possible UIDs is at least twice the number of possible pre-auth users.
-		numUIDs := config.UIDMax - config.UIDMin
+		numUIDs := config.UIDMax - config.UIDMin + 1
 		minNumUIDs := uint32(tempentries.MaxPreAuthUsers * 2)
 		if numUIDs < minNumUIDs {
 			return nil, fmt.Errorf("UID range configured via UID_MIN and UID_MAX is too small (%d), must be at least %d", numUIDs, minNumUIDs)

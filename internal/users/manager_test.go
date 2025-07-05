@@ -43,9 +43,17 @@ func TestNewManager(t *testing.T) {
 		"Successfully_create_manager_with_default_config": {},
 		"Successfully_create_manager_with_custom_config":  {uidMin: 10000, uidMax: 20000, gidMin: 10000, gidMax: 20000},
 
+		"Warns_creating_manager_with_partially_invalid_UID_ranges": {uidMin: 1, uidMax: 20000},
+		"Warns_creating_manager_with_partially_invalid_GID_ranges": {gidMin: 1, gidMax: 20000},
+
+		"Warns_creating_manager_with_potentially_invalid_UID_ranges": {uidMin: 20000, uidMax: users.MaxSuggestedID + 1},
+		"Warns_creating_manager_with_potentially_invalid_GID_ranges": {gidMin: 20000, gidMax: users.MaxSuggestedID + 1},
+
 		// Corrupted databases
-		"Error_when_database_is_corrupted":     {corruptedDbFile: true, wantErr: true},
-		"Error_if_dbDir_does_not_exist":        {dbFile: "-", wantErr: true},
+		"Error_when_database_is_corrupted": {corruptedDbFile: true, wantErr: true},
+		"Error_if_dbDir_does_not_exist":    {dbFile: "-", wantErr: true},
+
+		// Invalid UIDs/GIDs ranges
 		"Error_if_UID_MIN_is_equal_to_UID_MAX": {uidMin: 1000, uidMax: 1000, wantErr: true},
 		"Error_if_GID_MIN_is_equal_to_GID_MAX": {gidMin: 1000, gidMax: 1000, wantErr: true},
 		"Error_if_UID_range_is_too_small":      {uidMin: 1000, uidMax: 2000, wantErr: true},
@@ -87,6 +95,7 @@ func TestNewManager(t *testing.T) {
 
 			m, err := users.NewManager(config, dbDir)
 			if tc.wantErr {
+				t.Logf("Manager creation exited with %v", err)
 				require.Error(t, err, "NewManager should return an error, but did not")
 				return
 			}
@@ -96,6 +105,17 @@ func TestNewManager(t *testing.T) {
 			require.NoError(t, err, "Created database should be valid yaml content")
 
 			golden.CheckOrUpdate(t, got)
+
+			idGenerator := m.RealIDGenerator()
+
+			require.Equal(t, int(config.UIDMin), int(idGenerator.UIDMin),
+				"ID generator UIDMin has not the expected value")
+			require.Equal(t, int(config.UIDMax), int(idGenerator.UIDMax),
+				"ID generator UIDMax has not the expected value")
+			require.Equal(t, int(config.GIDMin), int(idGenerator.GIDMin),
+				"ID generator GIDMin has not the expected value")
+			require.Equal(t, int(config.GIDMax), int(idGenerator.GIDMax),
+				"ID generator GIDMax has not the expected value")
 
 			localgroupstestutils.RequireGroupFile(t, destGroupFile, golden.Path(t))
 		})
