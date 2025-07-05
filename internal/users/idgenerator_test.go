@@ -257,6 +257,94 @@ func TestGenerateIDMocked(t *testing.T) {
 			owner:  IDOwnerMock{usedUIDs: []uint32{uidT32MinusOne}},
 			wantID: uidT32MinusOne - 2,
 		},
+		"IDs_in_systemd_homed_and_systemd_containers_range_are_skipped": {
+			genID: generateID{
+				idType: "UID",
+				minID:  nssSystemdHomedMin, maxID: systemdContainersUsersMax + 86,
+				isAvailableID: allAvailableIDsFunc,
+				getUsedIDs:    noUsedIDFunc,
+			},
+			wantID: systemdContainersUsersMax + 1,
+		},
+		"IDs_in_systemd_homed_and_systemd_containers_range_are_skipped_when_next_to_preferred_id": {
+			genID: generateID{
+				idType: "UID",
+				minID:  nssSystemdHomedMin - 10, maxID: systemdContainersUsersMax + 10,
+				isAvailableID: allAvailableIDsFunc,
+				getUsedIDs: func(ud *localentries.UserDBLocked, i IDOwner) ([]uint32, error) {
+					return []uint32{nssSystemdHomedMin - 1}, nil
+				},
+			},
+			wantID: systemdContainersUsersMax + 1,
+		},
+		"IDs_in_systemd_homed_and_systemd_containers_range_are_skipped_when_next_to_preferred_id_minus_one": {
+			genID: generateID{
+				idType: "UID",
+				minID:  nssSystemdHomedMin - 10, maxID: systemdContainersUsersMax + 10,
+				isAvailableID: allAvailableIDsFunc,
+				getUsedIDs: func(ud *localentries.UserDBLocked, i IDOwner) ([]uint32, error) {
+					return []uint32{nssSystemdHomedMin - 1}, nil
+				},
+			},
+			wantID: systemdContainersUsersMax + 1,
+		},
+		"IDs_in_systemd_homed_and_systemd_containers_range_are_not_skipped_when_next_to_min_id": {
+			genID: generateID{
+				idType: "UID",
+				minID:  nssSystemdHomedMin - 1, maxID: systemdContainersUsersMax + 10,
+				isAvailableID: allAvailableIDsFunc,
+				getUsedIDs:    noUsedIDFunc,
+			},
+			wantID: nssSystemdHomedMin - 1,
+		},
+		"IDs_in_systemd_homed_and_systemd_containers_range_are_not_skipped_when_next_to_min_id_minus_one": {
+			genID: generateID{
+				idType: "UID",
+				minID:  nssSystemdHomedMin - 2, maxID: systemdContainersUsersMax + 10,
+				isAvailableID: allAvailableIDsFunc,
+				getUsedIDs:    noUsedIDFunc,
+			},
+			wantID: nssSystemdHomedMin - 2,
+		},
+		"IDs_in_systemd_dynamic_service_users_range_are_skipped": {
+			genID: generateID{
+				idType: "UID",
+				minID:  nssSystemdDynamicServiceUsersMin - 55, maxID: nssSystemdDynamicServiceUsersMax + 1,
+				isAvailableID: func(ud *localentries.UserDBLocked, u uint32) (bool, error) {
+					return u != nssSystemdDynamicServiceUsersMax+1, nil
+				},
+				getUsedIDs: getOwnerUsedUIDsFunc,
+			},
+			owner:  IDOwnerMock{usedUIDs: []uint32{nssSystemdDynamicServiceUsersMin + 1}},
+			wantID: nssSystemdDynamicServiceUsersMin - 55,
+		},
+		"IDs_in_systemd_containers_and_dynamic_service_user_range_are_skipped": {
+			genID: generateID{
+				idType: "UID",
+				minID:  systemdContainersUsersMin, maxID: nssSystemdDynamicServiceUsersMax,
+				isAvailableID: func(ud *localentries.UserDBLocked, u uint32) (bool, error) {
+					return u != systemdContainersUsersMax+2, nil
+				},
+				getUsedIDs: getOwnerUsedUIDsFunc,
+			},
+			owner: IDOwnerMock{usedUIDs: []uint32{
+				nssSystemdDynamicServiceUsersMax - 10,
+				systemdContainersUsersMax + 1,
+			}},
+			wantID: systemdContainersUsersMax + 3,
+		},
+		"IDs_in_systemd_container_range_are_skipped": {
+			genID: generateID{
+				idType: "UID",
+				minID:  nssSystemdContainerMin - 8, maxID: nssSystemdContainerMax,
+				isAvailableID: func(ud *localentries.UserDBLocked, u uint32) (bool, error) {
+					return u != nssSystemdContainerMin-8, nil
+				},
+				getUsedIDs: getOwnerUsedUIDsFunc,
+			},
+			owner:  IDOwnerMock{usedUIDs: []uint32{(nssSystemdContainerMin + nssSystemdContainerMax) / 2}},
+			wantID: nssSystemdContainerMin - 7,
+		},
 
 		// Error cases
 		"Error_if_minID_is_equal_to_maxID": {
@@ -336,6 +424,53 @@ func TestGenerateIDMocked(t *testing.T) {
 				getUsedIDs:    getOwnerUsedUIDsFunc,
 			},
 			owner:   IDOwnerMock{usedUIDs: []uint32{10, 11, 12}},
+			wantErr: true,
+		},
+		"Errors_if_IDs_only_in_systemd_homed_range": {
+			genID: generateID{
+				idType: "UID",
+				minID:  nssSystemdHomedMin, maxID: nssSystemdHomedMax,
+				isAvailableID: allAvailableIDsFunc,
+				getUsedIDs:    noUsedIDFunc,
+			},
+			wantErr: true,
+		},
+		"Errors_if_IDs_only_in_systemd_containers_range": {
+			genID: generateID{
+				idType: "UID",
+				minID:  systemdContainersUsersMin, maxID: systemdContainersUsersMax,
+				isAvailableID: allAvailableIDsFunc,
+				getUsedIDs:    noUsedIDFunc,
+			},
+			wantErr: true,
+		},
+		"Errors_if_IDs_only_in_systemd_dynamic_service_user_range": {
+			genID: generateID{
+				idType: "UID",
+				minID:  nssSystemdDynamicServiceUsersMin, maxID: nssSystemdDynamicServiceUsersMax,
+				isAvailableID: allAvailableIDsFunc,
+				getUsedIDs:    noUsedIDFunc,
+			},
+			wantErr: true,
+		},
+		"Errors_if_IDs_only_in_systemd_containers_and_dynamic_service_user_range_with_other_used_IDs": {
+			genID: generateID{
+				idType: "UID",
+				minID:  systemdContainersUsersMin, maxID: nssSystemdDynamicServiceUsersMax,
+				isAvailableID: func(ud *localentries.UserDBLocked, u uint32) (bool, error) {
+					return u <= systemdContainersUsersMax && u >= nssSystemdDynamicServiceUsersMin, nil
+				},
+				getUsedIDs: noUsedIDFunc,
+			},
+			wantErr: true,
+		},
+		"Errors_if_IDs_only_in_container_nss-systemd_range": {
+			genID: generateID{
+				idType: "UID",
+				minID:  nssSystemdContainerMin, maxID: nssSystemdContainerMax,
+				isAvailableID: allAvailableIDsFunc,
+				getUsedIDs:    noUsedIDFunc,
+			},
 			wantErr: true,
 		},
 	}
