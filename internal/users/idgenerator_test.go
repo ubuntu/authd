@@ -229,6 +229,34 @@ func TestGenerateIDMocked(t *testing.T) {
 			owner:  IDOwnerMock{usedUIDs: []uint32{300, 303}},
 			wantID: 302,
 		},
+		"Root_uid_is_always_skipped": {
+			genID: generateID{
+				idType: "UID",
+				minID:  0, maxID: 1,
+				isAvailableID: allAvailableIDsFunc,
+				getUsedIDs:    noUsedIDFunc,
+			},
+			wantID: 1,
+		},
+		"Nobody_and_uid-t_16bit_are_always_skipped": {
+			genID: generateID{
+				idType: "UID",
+				minID:  nobodyID, maxID: nobodyID + 2,
+				isAvailableID: allAvailableIDsFunc,
+				getUsedIDs:    noUsedIDFunc,
+			},
+			wantID: nobodyID + 2,
+		},
+		"uid-t_32bit_is_always_skipped": {
+			genID: generateID{
+				idType: "UID",
+				minID:  uidT32MinusOne - 2, maxID: uidT32MinusOne,
+				isAvailableID: allAvailableIDsFunc,
+				getUsedIDs:    getOwnerUsedUIDsFunc,
+			},
+			owner:  IDOwnerMock{usedUIDs: []uint32{uidT32MinusOne}},
+			wantID: uidT32MinusOne - 2,
+		},
 
 		// Error cases
 		"Error_if_minID_is_equal_to_maxID": {
