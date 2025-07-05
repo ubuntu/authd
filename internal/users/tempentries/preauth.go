@@ -7,8 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/ubuntu/authd/internal/users/db"
+	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
 )
@@ -29,6 +31,20 @@ const (
 	UserPrefix = "authd-pre-auth-user"
 )
 
+var (
+	// maxTemporaryUserLifetime is the amount of time a pre-auth user is kept
+	// in memory before being released.
+	// This value should be big enough to prevent that DoS attacks can be
+	// performed (together with [MaxPreAuthUsers]), but also not too big to
+	// ensure that there is a window during which valid users can use to login
+	// after a DoS attack and to allow them to perform longer MFA operations.
+	//
+	// TODO: This is a var only because we need to override it in tests, but use
+	// synctest instead when it will not be experimental anymore.
+	// See: https://go.dev/blog/synctest
+	maxTemporaryUserLifetime = 15 * time.Minute
+)
+
 // NoDataFoundError is the error returned when no entry is found in the database.
 type NoDataFoundError = db.NoDataFoundError
 
@@ -38,6 +54,10 @@ type preAuthUser struct {
 	// loginName is the name of the user who the pre-auth user record is created for.
 	loginName string
 	uid       uint32
+
+	// cancelGarbageCollection is the function to cancel the garbage collection
+	// of the pre auth user, if the user has been removed already.
+	cancelGarbageCollection context.CancelFunc
 }
 
 // PreAuthUserRecords is a structure holding in memory all the temporary users
@@ -152,7 +172,9 @@ func (r *PreAuthUserRecords) RegisterPreAuthUser(loginName string, uid uint32) (
 
 	// To mitigate DoS attacks, we limit the pre-auth users to [MaxPreAuthUsers].
 	if len(r.users) >= MaxPreAuthUsers {
-		return errors.New("maximum number of pre-auth users reached, login for new users via SSH is disabled until authd is restarted")
+		return fmt.Errorf("maximum number of pre-auth users reached, "+
+			"login for new users via SSH is disabled for %s or until authd is restarted",
+			maxTemporaryUserLifetime)
 	}
 
 	if _, ok := r.uidByLogin[loginName]; ok {
@@ -240,10 +262,51 @@ func (r *PreAuthUserRecords) addPreAuthUser(uid uint32, loginName string) (err e
 	log.Debugf(context.Background(),
 		"Added temporary record for user %q with UID %d as %q", loginName, uid, name)
 
-	user := preAuthUser{name: name, uid: uid, loginName: loginName}
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	user := preAuthUser{name: name, uid: uid, loginName: loginName, cancelGarbageCollection: cancelFunc}
+
 	r.users[uid] = user
 	r.uidByName[name] = uid
 	r.uidByLogin[loginName] = uid
+
+	// Garbage collect the pre-auth user after [maxLifetime] if the
+	// user does not log-in first. This still mitigates the DoS attacks, but also
+	// frees the resources used by authd and avoids the requirement of restarting
+	// the server in case of attack.
+	maxLifetime := maxTemporaryUserLifetime
+	go func() {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(maxLifetime):
+		}
+
+		log.Debugf(ctx, "Starting garbage collection for pre-auth user %q (%q)",
+			loginName, name)
+
+		_, unlock, err := localentries.WithUserDBLock()
+		if err != nil {
+			log.Warningf(ctx, "Failed to lock the temporary entries: %v", err)
+			// While this is not great, it's fine to remove an user while unlocked
+			// since there is no race risk here.
+		}
+
+		defer func() {
+			if unlock == nil {
+				// This is possible, since we ignored the locking error.
+				return
+			}
+
+			if err := unlock(); err != nil {
+				log.Warningf(ctx, "Failed to unlock the temporary entries: %v", err)
+			}
+		}()
+
+		r.rwMu.Lock()
+		defer r.rwMu.Unlock()
+
+		r.deletePreAuthUser(uid)
+	}()
 
 	return nil
 }
@@ -259,6 +322,8 @@ func (r *PreAuthUserRecords) deletePreAuthUser(uid uint32) {
 		// function is called multiple times.
 		return
 	}
+
+	user.cancelGarbageCollection()
 	delete(r.users, uid)
 	delete(r.uidByName, user.name)
 	delete(r.uidByLogin, user.loginName)

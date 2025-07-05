@@ -1,5 +1,10 @@
 package tempentries
 
+import (
+	"testing"
+	"time"
+)
+
 type PreAuthUser = preAuthUser
 
 func NewPreAuthUser(uid uint32, loginName string) PreAuthUser {
@@ -23,4 +28,12 @@ func (r *PreAuthUserRecords) DeletePreAuthUser(uid uint32) {
 	defer r.rwMu.Unlock()
 
 	r.deletePreAuthUser(uid)
+}
+
+func OverrideMaxTemporaryUserLifetime(t *testing.T, lifetime time.Duration) {
+	t.Helper()
+
+	defaultMaxTemporaryUserLifetime := maxTemporaryUserLifetime
+	maxTemporaryUserLifetime = lifetime
+	t.Cleanup(func() { maxTemporaryUserLifetime = defaultMaxTemporaryUserLifetime })
 }

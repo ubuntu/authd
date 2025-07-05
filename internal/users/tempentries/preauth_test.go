@@ -4,9 +4,12 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/localentries"
@@ -230,6 +233,123 @@ func TestPreAuthUserByIDAndName(t *testing.T) {
 			}
 			require.NoError(t, err, "UserByID should not return an error, but did")
 			checkPreAuthUser(t, user)
+		})
+	}
+}
+
+//nolint:tparallel  // This cannot be parallel, subtests can.
+func TestPreAuthUserGarbageCollection(t *testing.T) {
+	uidToGenerate := uint32(12345)
+
+	garbageCollectionTimeout := 100 * time.Millisecond
+	tempentries.OverrideMaxTemporaryUserLifetime(t, garbageCollectionTimeout)
+
+	tests := map[string]struct {
+		numUsers             int
+		completeRegistration bool
+	}{
+		"Successfully_cleanups_a_pre-auth_user":        {},
+		"Successfully_cleanups_multiple_pre-auth_user": {numUsers: 10},
+		"Successfully_cleanups_maximum_pre-auth_users": {numUsers: tempentries.MaxPreAuthUsers},
+
+		"Successfully_cancel_cleanups_a_pre-auth_user_when_registered":              {completeRegistration: true},
+		"Successfully_cancel_cleanups_multiple_pre-auth_users_when_registered":      {numUsers: 10, completeRegistration: true},
+		"Successfully_cancel_cleanups_Successfully_cleanups_maximum_pre-auth_users": {numUsers: tempentries.MaxPreAuthUsers, completeRegistration: true},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			if tc.numUsers == 0 {
+				tc.numUsers = 1
+			}
+
+			var preauthUsers []string
+			var uidsToGenerate []uint32
+			uid := uidToGenerate
+			for idx := range tc.numUsers {
+				preauthUsers = append(preauthUsers, fmt.Sprintf("%s-%d", t.Name(), idx))
+
+				// Users are registered twice, so we need double the UIDs.
+				uidsToGenerate = append(uidsToGenerate, uid, uid+1)
+				uid += 2
+			}
+
+			t.Log("UIDs to generate", uidsToGenerate)
+			idGeneratorMock := &users.IDGeneratorMock{UIDsToGenerate: uidsToGenerate}
+			records := tempentries.NewPreAuthUserRecords()
+
+			wg := sync.WaitGroup{}
+
+			for _, loginName := range preauthUsers {
+				t.Logf("Registering user %q", loginName)
+				uid, _, err := idGeneratorMock.GenerateUID(&localentries.UserDBLocked{}, nil)
+				require.NoError(t, err, "GenerateUID should not return an error, but it did")
+
+				err = records.RegisterPreAuthUser(loginName, uid)
+				require.NoError(t, err, "generatePreAuthUserID should not return an error, but did")
+
+				// Check that the user was registered
+				_, err = records.UserByID(uid)
+				require.NoError(t, err, "UserByID should not return an error, but did")
+
+				if tc.completeRegistration {
+					// Let's wait a bit, to make the garbage collector groutine to start.
+					<-time.After(garbageCollectionTimeout / 10)
+
+					preauthUID, cleanup, err := records.MaybeCompletePreauthUser(loginName)
+					require.NoError(t, err, "MaybeCompletePreauthUser should not fail but it did")
+					require.Equal(t, uid, preauthUID, "MaybeCompletePreauthUser UID is not matching")
+					cleanup()
+					require.Len(t, records.GetUsers(), 0, "Number of pre-auth users should be zero")
+					break
+				}
+
+				wg.Add(1)
+				go func() {
+					for {
+						<-time.After(garbageCollectionTimeout)
+						if _, err := records.UserByLogin(loginName); err != nil {
+							break
+						}
+					}
+					wg.Done()
+				}()
+			}
+
+			done := make(chan struct{})
+			go func() { wg.Wait(); close(done) }()
+			select {
+			case <-done:
+			case <-time.After(testutils.MultipliedSleepDuration(30 * time.Second)):
+				t.Fatal("Timeout occurred waiting for users cleanups")
+			}
+
+			for _, loginName := range preauthUsers {
+				// Check that the user was removed
+				_, err := records.UserByLogin(loginName)
+				require.Error(t, err, "UserByLogin should return an error for %q, but did not",
+					loginName)
+			}
+
+			require.Len(t, records.GetUsers(), 0, "Number of pre-auth users should be zero")
+
+			// Check again users can be registered now, ensuring that the
+			// [tempentries.MaxPreAuthUsers] limit is not blocking us anymore.
+			for _, loginName := range preauthUsers {
+				t.Logf("Registering user %q", loginName)
+				uid, _, err := idGeneratorMock.GenerateUID(&localentries.UserDBLocked{}, nil)
+				require.NoError(t, err, "GenerateUID should not return an error, but it did")
+
+				err = records.RegisterPreAuthUser(loginName, uid)
+				require.NoError(t, err, "generatePreAuthUserID should not return an error, but did")
+
+				_, err = records.UserByLogin(loginName)
+				require.NoError(t, err, "UserByID should not return an error, but did")
+
+				t.Cleanup(func() { records.DeletePreAuthUser(uid) })
+			}
 		})
 	}
 }
