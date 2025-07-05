@@ -163,6 +163,12 @@ func (g *IDGenerator) generateID(lockedEntries *localentries.UserDBLocked, owner
 			continue
 		}
 
+		if id > maxSuggestedID {
+			log.Warningf(context.Background(),
+				"Generated ID %d is outside the signed 32-bit range, "+
+					"it may not work as expected", id)
+		}
+
 		g.pendingIDs = append(g.pendingIDs, id)
 		cleanup = func() {
 			idx := slices.Index(g.pendingIDs, id)
