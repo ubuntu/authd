@@ -91,6 +91,21 @@ func (r *PreAuthUserRecords) UserByLogin(name string) (types.UserEntry, error) {
 	return r.userByLogin(name)
 }
 
+// GroupByID returns the private-group information for the given user ID.
+func (r *PreAuthUserRecords) GroupByID(gid uint32) (types.GroupEntry, error) {
+	user, err := r.userByID(gid)
+	if err != nil {
+		return types.GroupEntry{}, err
+	}
+
+	return types.GroupEntry{
+		Name:   user.Name,
+		GID:    user.GID,
+		Users:  []string{user.Name},
+		Passwd: "x",
+	}, nil
+}
+
 // AllUsers returns all pre-auth users as a slice of UserEntry.
 func (r *PreAuthUserRecords) AllUsers() ([]types.UserEntry, error) {
 	r.rwMu.RLock()
