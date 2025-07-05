@@ -160,7 +160,7 @@ type EventType int32
 const (
 	// EventType_unknownEvent is an unknown EventType.
 	EventType_unknownEvent EventType = 0
-	// EventType_userSelected is an user selected EventType.
+	// EventType_userSelected is a user selected EventType.
 	EventType_userSelected EventType = 1
 	// EventType_brokersReceived is a broker received EventType.
 	EventType_brokersReceived EventType = 2
