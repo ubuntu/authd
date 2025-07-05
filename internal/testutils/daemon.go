@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -16,6 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/services/errmessages"
 	"github.com/ubuntu/authd/internal/users/db"
+	"github.com/ubuntu/authd/internal/users/localentries"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -87,6 +90,26 @@ func WithSharedDaemon(shared bool) DaemonOption {
 func WithHomeBaseDir(baseDir string) DaemonOption {
 	return func(o *daemonOptions) {
 		o.env = append(o.env, fmt.Sprintf("AUTHD_EXAMPLE_BROKER_HOME_BASE_DIR=%s", baseDir))
+	}
+}
+
+// WithGroupFile sets the group file.
+func WithGroupFile(groupFile string) DaemonOption {
+	return func(o *daemonOptions) {
+		o.env = slices.DeleteFunc(o.env, func(e string) bool {
+			return strings.HasPrefix(e, localentries.Z_ForTests_GroupFilePathEnv+"=")
+		})
+		o.env = append(o.env, fmt.Sprintf("%s=%s", localentries.Z_ForTests_GroupFilePathEnv, groupFile))
+	}
+}
+
+// WithGroupFileOutput sets the group output file.
+func WithGroupFileOutput(groupFile string) DaemonOption {
+	return func(o *daemonOptions) {
+		o.env = slices.DeleteFunc(o.env, func(e string) bool {
+			return strings.HasPrefix(e, localentries.Z_ForTests_GroupFileOutputPathEnv+"=")
+		})
+		o.env = append(o.env, fmt.Sprintf("%s=%s", localentries.Z_ForTests_GroupFileOutputPathEnv, groupFile))
 	}
 }
 

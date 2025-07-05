@@ -85,7 +85,7 @@ message ResponseData {
 enum EventType {
     // EventType_unknownEvent is an unknown EventType.
     unknownEvent = 0;
-    // EventType_userSelected is an user selected EventType.
+    // EventType_userSelected is a user selected EventType.
     userSelected = 1;
     // EventType_brokersReceived is a broker received EventType.
     brokersReceived = 2;

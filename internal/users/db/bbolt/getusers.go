@@ -62,7 +62,7 @@ func (c *Database) AllUsers() (all []UserDB, err error) {
 	return all, nil
 }
 
-// getUser returns an user matching the key or an error if the database is corrupted or no entry was found.
+// getUser returns a user matching the key or an error if the database is corrupted or no entry was found.
 func getUser[K uint32 | string](c *Database, bucketName string, key K) (u UserDB, err error) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()

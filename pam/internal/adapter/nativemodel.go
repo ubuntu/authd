@@ -55,7 +55,7 @@ const (
 // nativeStageChangeRequest is the internal event to request that a stage change.
 type nativeStageChangeRequest ChangeStage
 
-// nativeUserSelection is the internal event that an user needs to be (re)set.
+// nativeUserSelection is the internal event that a user needs to be (re)set.
 type nativeUserSelection struct{}
 
 // nativeBrokerSelection is the internal event that a broker needs to be (re)selected.
