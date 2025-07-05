@@ -869,15 +869,17 @@ func TestGroupByIDAndName(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
-		gid       uint32
-		groupname string
-		dbFile    string
+		gid         uint32
+		groupname   string
+		dbFile      string
+		preAuthUser string
 
 		wantErr     bool
 		wantErrType error
 	}{
-		"Successfully_get_group_by_ID":   {gid: 11111, dbFile: "multiple_users_and_groups"},
-		"Successfully_get_group_by_name": {groupname: "group1", dbFile: "multiple_users_and_groups"},
+		"Successfully_get_group_by_ID":                  {gid: 11111, dbFile: "multiple_users_and_groups"},
+		"Successfully_get_group_by_ID_for_preauth_user": {preAuthUser: "hello-authd", dbFile: "multiple_users_and_groups"},
+		"Successfully_get_group_by_name":                {groupname: "group1", dbFile: "multiple_users_and_groups"},
 
 		"Error_if_group_does_not_exist_-_by_ID":   {gid: 0, dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
 		"Error_if_group_does_not_exist_-_by_name": {groupname: "doesnotexist", dbFile: "multiple_users_and_groups", wantErrType: db.NoDataFoundError{}},
@@ -889,7 +891,16 @@ func TestGroupByIDAndName(t *testing.T) {
 			dbDir := t.TempDir()
 			err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", tc.dbFile+".db.yaml"), dbDir)
 			require.NoError(t, err, "Setup: could not create database from testdata")
-			m := newManagerForTests(t, dbDir)
+			m := newManagerForTests(t, dbDir, users.WithIDGenerator(&users.IDGeneratorMock{
+				UIDsToGenerate: []uint32{12345},
+				GIDsToGenerate: []uint32{12345},
+			}))
+
+			if tc.preAuthUser != "" {
+				tc.gid, err = m.RegisterUserPreAuth(tc.preAuthUser)
+				require.NoError(t, err, "RegisterUserPreAuth should not fail for %q, but it did",
+					tc.preAuthUser)
+			}
 
 			var group types.GroupEntry
 			if tc.groupname != "" {
@@ -901,6 +912,19 @@ func TestGroupByIDAndName(t *testing.T) {
 			requireErrorAssertions(t, err, tc.wantErrType, tc.wantErr)
 			if tc.wantErrType != nil || tc.wantErr {
 				return
+			}
+
+			if tc.preAuthUser != "" {
+				require.True(t, strings.HasPrefix(group.Name, tempentries.UserPrefix),
+					"Pre-auth user group should have %q as prefix: %q", tempentries.UserPrefix,
+					group.Name)
+				group.Name = tempentries.UserPrefix + "-{{RANDOM_ID}}"
+
+				require.Len(t, group.Users, 1, "Users length mismatch")
+				require.True(t, strings.HasPrefix(group.Users[0], tempentries.UserPrefix),
+					"Pre-auth user should have %q as prefix: %q", tempentries.UserPrefix,
+					group.Users[0])
+				group.Users[0] = tempentries.UserPrefix + "-{{RANDOM_ID}}"
 			}
 
 			golden.CheckOrUpdateYAML(t, group)

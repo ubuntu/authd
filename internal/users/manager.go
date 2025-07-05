@@ -563,6 +563,10 @@ func (m *Manager) GroupByName(groupname string) (types.GroupEntry, error) {
 // GroupByID returns the group information for the given group ID.
 func (m *Manager) GroupByID(gid uint32) (types.GroupEntry, error) {
 	grp, err := m.db.GroupWithMembersByID(gid)
+	if errors.Is(err, db.NoDataFoundError{}) {
+		// Check if the ID will be the private-group of a temporary user.
+		return m.preAuthRecords.GroupByID(gid)
+	}
 	if err != nil {
 		return types.GroupEntry{}, err
 	}
