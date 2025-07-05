@@ -56,6 +56,28 @@ const (
 	uidT16MinusOne uint32 = math.MaxUint16
 )
 
+// Systemd used ranges.
+const (
+	// FIXME: Do not hardcode them, use go-generate script to define these
+	// values as constants using pkg-config instead.
+
+	// Human users (homed) (nss-systemd).
+	nssSystemdHomedMin uint32 = 60001
+	nssSystemdHomedMax uint32 = 60513
+
+	// Host users mapped into containers (systemd-nspawn).
+	systemdContainersUsersMin uint32 = 60514
+	systemdContainersUsersMax uint32 = 60577
+
+	// Dynamic service users (nss-systemd).
+	nssSystemdDynamicServiceUsersMin uint32 = 61184
+	nssSystemdDynamicServiceUsersMax uint32 = 65519
+
+	// Container UID ranges (nss-systemd).
+	nssSystemdContainerMin uint32 = 524288
+	nssSystemdContainerMax uint32 = 1879048191
+)
+
 // GenerateUID generates a random UID in the configured range.
 func (g *IDGenerator) GenerateUID(lockedEntries *localentries.UserDBLocked, owner IDOwner) (uint32, func(), error) {
 	return g.generateID(lockedEntries, owner, generateID{
@@ -178,6 +200,40 @@ func isReservedID(id uint32) bool {
 	}
 }
 
+// idSanitize increments the ID value skipping the linux (systemd) reserved
+// ranges.
+func idSanitize(id uint32) uint32 {
+	// Human users (homed) (nss-systemd)
+	if id >= nssSystemdHomedMin && id <= nssSystemdHomedMax {
+		log.Warningf(context.Background(),
+			"ID %d is within the nss-systemd range, it cannot be used", id)
+		return systemdContainersUsersMax + 1
+	}
+
+	// Host users mapped into containers (systemd-nspawn)
+	if id >= systemdContainersUsersMin && id <= systemdContainersUsersMax {
+		log.Warningf(context.Background(),
+			"ID %d is within the systemd-nspawn range, it cannot be used", id)
+		return systemdContainersUsersMax + 1
+	}
+
+	// Dynamic service users (nss-systemd)
+	if id >= nssSystemdDynamicServiceUsersMin && id <= nssSystemdDynamicServiceUsersMax {
+		log.Warningf(context.Background(),
+			"ID %d is within the nss-systemd range, it cannot be used", id)
+		return nssSystemdDynamicServiceUsersMax + 1
+	}
+
+	// Container UID ranges (nss-systemd)
+	if id >= nssSystemdContainerMin && id <= nssSystemdContainerMax {
+		log.Warningf(context.Background(),
+			"ID %d is within the nss-systemd range, it cannot be used", id)
+		return nssSystemdContainerMax + 1
+	}
+
+	return id
+}
+
 func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (id uint32, uniqueIDsPos int, err error) {
 	// Pick the preferred ID candidate, starting with minID.
 	preferredID := minID
@@ -193,7 +249,7 @@ func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (id uint32, uniqueIDs
 	}
 
 	// Try IDs starting from the preferred ID up to the maximum ID.
-	for id := preferredID; id <= maxID; id++ {
+	for id := idSanitize(preferredID); id <= maxID; id++ {
 		if pos, found := slices.BinarySearch(usedIDs, id); !found {
 			return id, pos, nil
 		}
@@ -204,7 +260,7 @@ func getIDCandidate(minID, maxID uint32, usedIDs []uint32) (id uint32, uniqueIDs
 	}
 
 	// Fallback: try IDs from the minimum ID up to the preferred ID.
-	for id := minID; id < preferredID && id <= maxID; id++ {
+	for id := idSanitize(minID); id < preferredID && id <= maxID; id++ {
 		if pos, found := slices.BinarySearch(usedIDs, id); !found {
 			return id, pos, nil
 		}
