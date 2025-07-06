@@ -1,6 +1,7 @@
 use authd::user_service_client::UserServiceClient;
 use hyper_util::rt::TokioIo;
 use std::error::Error;
+use std::sync::OnceLock;
 use tokio::net::UnixStream;
 use tonic::transport::{Channel, Endpoint, Uri};
 use tower::service_fn;
@@ -17,10 +18,13 @@ const AUTHD_PID_ENV_VAR: &str = "AUTHD_PID";
 pub async fn new_client() -> Result<UserServiceClient<Channel>, Box<dyn Error>> {
     info!("Connecting to authd on {}...", super::socket_path());
 
+    // Cache for self-check result.
+    static AUTHD_PROCESS_CHECK: OnceLock<bool> = OnceLock::new();
+
     let connector = service_fn(|_: Uri| async {
         let stream = UnixStream::connect(super::socket_path()).await?;
 
-        if check_is_authd_process(&stream) {
+        if *AUTHD_PROCESS_CHECK.get_or_init(|| check_is_authd_process(&stream)) {
             info!("Module loaded by authd itself: ignoring the connection");
 
             return Err(std::io::Error::new(
