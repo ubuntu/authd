@@ -2,6 +2,7 @@ package nss_test
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -26,12 +27,21 @@ func TestIntegration(t *testing.T) {
 	libPath, rustCovEnv := testutils.BuildRustNSSLib(t, false, "should_pre_check_env")
 
 	// Create a default daemon to use for most test cases.
-	defaultSocket := filepath.Join(os.TempDir(), "nss-integration-tests.sock")
+	defaultSocket := filepath.Join(t.TempDir(), "nss.sock")
 	defaultDbState := "multiple_users_and_groups"
 	defaultOutputPath := filepath.Join(filepath.Dir(daemonPath), "gpasswd.output")
 	defaultGroupsFilePath := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
+	nssLibraryEnv := append(rustCovEnv,
+		"AUTHD_NSS_INFO=stderr",
+		// NSS needs both LD_PRELOAD and LD_LIBRARY_PATH to load the module library
+		fmt.Sprintf("LD_PRELOAD=%s:%s", libPath, os.Getenv("LD_PRELOAD")),
+		fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", filepath.Dir(libPath), os.Getenv("LD_LIBRARY_PATH")),
+	)
+
 	env := append(localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, defaultOutputPath, defaultGroupsFilePath), "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
+	env = append(env, nssLibraryEnv...)
+	env = append(env, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocket))
 	ctx, cancel := context.WithCancel(context.Background())
 	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
 		testutils.WithSocketPath(defaultSocket),
@@ -118,12 +128,17 @@ func TestIntegration(t *testing.T) {
 				outPath := filepath.Join(t.TempDir(), "gpasswd.output")
 				groupsFilePath := filepath.Join("testdata", "empty.group")
 
+				socketPath = filepath.Join(t.TempDir(), "nss.sock")
+
 				var daemonStopped chan struct{}
 				ctx, cancel := context.WithCancel(context.Background())
 				env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, outPath, groupsFilePath)
-				socketPath, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath,
+				env = append(env, nssLibraryEnv...)
+				env = append(env, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", socketPath))
+				_, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath,
 					testutils.WithPreviousDBState(tc.dbState),
 					testutils.WithEnvironment(env...),
+					testutils.WithSocketPath(socketPath),
 				)
 				t.Cleanup(func() {
 					cancel()
@@ -136,7 +151,7 @@ func TestIntegration(t *testing.T) {
 				cmds = append(cmds, tc.key)
 			}
 
-			got, status := getentOutputForLib(t, libPath, socketPath, rustCovEnv, tc.shouldPreCheck, cmds...)
+			got, status := getentOutputForLib(t, socketPath, nssLibraryEnv, tc.shouldPreCheck, cmds...)
 			require.Equal(t, tc.wantStatus, status, "Expected status %d, but got %d", tc.wantStatus, status)
 
 			if tc.shouldPreCheck && tc.getentDB == "passwd" {
@@ -164,7 +179,7 @@ func TestIntegration(t *testing.T) {
 
 			// This is to check that some cache tasks, such as cleaning a corrupted database, work as expected.
 			if tc.wantSecondCall {
-				got, status := getentOutputForLib(t, libPath, socketPath, rustCovEnv, tc.shouldPreCheck, cmds...)
+				got, status := getentOutputForLib(t, socketPath, nssLibraryEnv, tc.shouldPreCheck, cmds...)
 				require.NotEqual(t, codeNotFound, status, "Expected no error, but got %v", status)
 				require.Empty(t, got, "Expected empty output, but got %q", got)
 			}
