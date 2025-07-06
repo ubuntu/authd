@@ -1,10 +1,13 @@
 package nss_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -14,6 +17,7 @@ import (
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
+	"gopkg.in/yaml.v3"
 )
 
 var daemonPath string
@@ -185,6 +189,112 @@ func TestIntegration(t *testing.T) {
 			}
 		})
 	}
+
+	runPidAbuser := func(action, arg string) []byte {
+		require.NotEmpty(t, action, "Setup: action should not be empty")
+
+		// #nosec:G204 - we control the command arguments in tests
+		cmd := exec.Command("go", "run")
+		if testutils.CoverDirForTests() != "" {
+			// -cover is a "positional flag", so it needs to come right after the "build" command.
+			cmd.Args = append(cmd.Args, "-cover")
+			cmd.Env = testutils.AppendCovEnv(env)
+		}
+		if testutils.IsRace() {
+			cmd.Args = append(cmd.Args, "-race")
+		}
+		cmd.Env = append(cmd.Env, nssLibraryEnv...)
+		cmd.Env = append(cmd.Env,
+			fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocket),
+			"ACTION="+action,
+			"ACTION_ARG="+arg,
+		)
+		cmd.Env = append(cmd.Env, os.Environ()...)
+
+		cmd.Dir = "pid_abuser"
+		cmd.Args = append(cmd.Args, "./")
+		var stdout bytes.Buffer
+		var stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		err := cmd.Run()
+		require.NoError(t, err, "Could not run PID abuser: %s, %s",
+			stdout.String(), stderr.String())
+		t.Logf("STDOUT:\n%s", stdout.String())
+		t.Logf("STDERR:\n%s", stderr.String())
+		return stdout.Bytes()
+	}
+
+	t.Run("Simulate_running_as_authd", func(t *testing.T) {
+		tests := map[string]struct {
+			action string
+			arg    string
+
+			want any
+		}{
+			"Lookups_user": {
+				action: "lookup_user",
+				arg:    "user1",
+				want: user.User{
+					Uid:      "1111",
+					Gid:      "11111",
+					Username: "user1",
+					Name:     "User1 gecos\nOn multiple lines",
+					HomeDir:  "/home/user1",
+				},
+			},
+			"Lookups_group": {
+				action: "lookup_group",
+				arg:    "group1",
+				want:   user.Group{Gid: "11111", Name: "group1"},
+			},
+			"Lookups_uid": {
+				action: "lookup_uid",
+				arg:    "1111",
+				want: user.User{
+					Uid:      "1111",
+					Gid:      "11111",
+					Username: "user1",
+					Name:     "User1 gecos\nOn multiple lines",
+					HomeDir:  "/home/user1",
+				},
+			},
+			"Lookups_gid": {
+				action: "lookup_gid",
+				arg:    "11111",
+				want:   user.Group{Gid: "11111", Name: "group1"},
+			},
+		}
+		for name, tc := range tests {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+
+				ret := runPidAbuser(tc.action, tc.arg)
+
+				switch action, _ := strings.CutPrefix(tc.action, "lookup_"); action {
+				case "user":
+					fallthrough
+				case "uid":
+					u := unmarshalYAML[user.User](t, ret)
+					require.Equal(t, tc.want, u, "User does not match")
+				case "group":
+					fallthrough
+				case "gid":
+					g := unmarshalYAML[user.Group](t, ret)
+					require.Equal(t, tc.want, g, "Group does not match")
+				}
+			})
+		}
+	})
+}
+
+func unmarshalYAML[T any](t *testing.T, yml []byte) T {
+	t.Helper()
+
+	var val T
+	err := yaml.Unmarshal(yml, &val)
+	require.NoError(t, err, "Unmarshalling failed:\n%q", yml)
+	return val
 }
 
 func TestMockgpasswd(t *testing.T) {

@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"slices"
 	"testing"
 )
 
@@ -17,7 +18,10 @@ func getentOutputForLib(t *testing.T, socketPath string, env []string, shouldPre
 	// #nosec:G204 - we control the command arguments in tests
 	cmds = append(cmds, "--service", "authd")
 	cmd := exec.Command("getent", cmds...)
-	cmd.Env = env
+	cmd.Env = slices.Clone(env)
+
+	// Set the PID to to self, so that we can verify that it won't work for all.
+	cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_PID=%d", os.Getpid()))
 
 	if socketPath != "" {
 		cmd.Env = append(cmd.Env, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", socketPath))
