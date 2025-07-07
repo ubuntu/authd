@@ -31,8 +31,8 @@ type Config struct {
 const (
 	// minAllowedUID is the minimum value used to generate the user and group IDs.
 	// See https://systemd.io/UIDS-GIDS/ for reference.
-	minAllowedUID uint32 = 1000
-	minAllowedGID uint32 = 1000
+	minAllowedUID = SystemdSystemUidMax + 1
+	minAllowedGID = SystemdSystemGidMax + 1
 
 	maxSuggestedID uint32 = math.MaxInt32
 )

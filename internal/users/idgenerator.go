@@ -58,8 +58,8 @@ const (
 
 // Systemd used ranges.
 const (
-	// FIXME: Do not hardcode them, use go-generate script to define these
-	// values as constants using pkg-config instead.
+	// FIXME: Use idgenerator to define them all.
+	// Some are not yet available in noble though.
 
 	// Human users (homed) (nss-systemd).
 	nssSystemdHomedMin uint32 = 60001
@@ -70,8 +70,8 @@ const (
 	systemdContainersUsersMax uint32 = 60577
 
 	// Dynamic service users (nss-systemd).
-	nssSystemdDynamicServiceUsersMin uint32 = 61184
-	nssSystemdDynamicServiceUsersMax uint32 = 65519
+	nssSystemdDynamicServiceUsersMin = SystemdDynamicUidMin
+	nssSystemdDynamicServiceUsersMax = SystemdDynamicUidMax
 
 	// Container UID ranges (nss-systemd).
 	// According to https://systemd.io/UIDS-GIDS/, systemd-nspawn will check NSS
@@ -79,8 +79,8 @@ const (
 	// safe for us to use. However, it also says that, for performance reasons,
 	// it will only check for the first UID of the range it allocates, so we do
 	// need to avoid using the whole range.
-	nssSystemdContainerMin uint32 = 524288
-	nssSystemdContainerMax uint32 = 1879048191
+	nssSystemdContainerMin = SystemdContainerUidBaseMin
+	nssSystemdContainerMax = SystemdContainerUidBaseMax
 )
 
 // GenerateUID generates a random UID in the configured range.
