@@ -162,11 +162,11 @@ jobs:
           sudo ln -s /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/
           sudo apparmor_parser /etc/apparmor.d/bwrap-userns-restrict
 
-      - name: Install PAM and GLib debug symbols
+      - name: Install glibc, PAM and GLib debug symbols
         continue-on-error: true
         run: |
           set -eu
-          sudo apt-get install ubuntu-dbgsym-keyring -y
+          sudo apt-get install -y ubuntu-dbgsym-keyring libc6-dbg
           echo "deb http://ddebs.ubuntu.com $(lsb_release -cs) main restricted universe multiverse
           deb http://ddebs.ubuntu.com $(lsb_release -cs)-updates main restricted universe multiverse
           deb http://ddebs.ubuntu.com $(lsb_release -cs)-proposed main restricted universe multiverse" | \
@@ -315,6 +315,9 @@ jobs:
         run: |
           # Print executed commands to ease debugging
           set -x
+
+          # For llvm-symbolizer
+          sudo apt install -y llvm
 
           go test -C ./pam/internal -json -asan -gcflags=all="${GO_GC_FLAGS}" -failfast -timeout ${GO_TESTS_TIMEOUT} ./... | \
             gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.pam-internal-asan.log" || exit_code=$?
