@@ -5,6 +5,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"strconv"
 	"sync"
 	"syscall"
 
@@ -30,6 +31,7 @@ type app interface {
 }
 
 func run(a app) int {
+	os.Setenv("AUTHD_PID", strconv.FormatInt(int64(os.Getpid()), 10))
 	defer installSignalHandler(a)()
 
 	if err := a.Run(); err != nil {

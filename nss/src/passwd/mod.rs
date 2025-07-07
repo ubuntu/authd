@@ -3,6 +3,7 @@ use libc::uid_t;
 use libnss::interop::Response;
 use libnss::passwd::{Passwd, PasswdHooks};
 use std::path::PathBuf;
+use std::sync::OnceLock;
 use tokio::runtime::Builder;
 use tonic::Request;
 
@@ -178,13 +179,18 @@ fn is_proc_matching(pid: u32, name: &str) -> bool {
 /// should_pre_check returns true if the current process sshd or a child of sshd.
 #[allow(unreachable_code)] // This function body is overridden in integration tests, so we need to ignore the warning.
 fn should_pre_check() -> bool {
-    #[cfg(feature = "should_pre_check_env")]
-    return std::env::var("AUTHD_NSS_SHOULD_PRE_CHECK").is_ok();
+    static SHOULD_PRE_CHECK: OnceLock<bool> = OnceLock::new();
 
-    let pid = std::process::id();
-    if is_proc_matching(pid, SSHD_BINARY_PATH) {
-        return true;
-    }
+    *SHOULD_PRE_CHECK.get_or_init(|| {
+        #[cfg(feature = "should_pre_check_env")]
+        return std::env::var("AUTHD_NSS_SHOULD_PRE_CHECK").is_ok();
 
-    is_proc_matching(std::os::unix::process::parent_id(), SSHD_BINARY_PATH)
+        let pid = std::process::id();
+
+        if is_proc_matching(pid, SSHD_BINARY_PATH) {
+            return true;
+        }
+
+        is_proc_matching(std::os::unix::process::parent_id(), SSHD_BINARY_PATH)
+    })
 }

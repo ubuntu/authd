@@ -1,9 +1,13 @@
 package nss_test
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"log"
 	"os"
+	"os/exec"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -13,6 +17,7 @@ import (
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
+	"gopkg.in/yaml.v3"
 )
 
 var daemonPath string
@@ -26,12 +31,21 @@ func TestIntegration(t *testing.T) {
 	libPath, rustCovEnv := testutils.BuildRustNSSLib(t, false, "should_pre_check_env")
 
 	// Create a default daemon to use for most test cases.
-	defaultSocket := filepath.Join(os.TempDir(), "nss-integration-tests.sock")
+	defaultSocket := filepath.Join(t.TempDir(), "nss.sock")
 	defaultDbState := "multiple_users_and_groups"
 	defaultOutputPath := filepath.Join(filepath.Dir(daemonPath), "gpasswd.output")
 	defaultGroupsFilePath := filepath.Join(testutils.TestFamilyPath(t), "gpasswd.group")
 
+	nssLibraryEnv := append(rustCovEnv,
+		"AUTHD_NSS_INFO=stderr",
+		// NSS needs both LD_PRELOAD and LD_LIBRARY_PATH to load the module library
+		fmt.Sprintf("LD_PRELOAD=%s:%s", libPath, os.Getenv("LD_PRELOAD")),
+		fmt.Sprintf("LD_LIBRARY_PATH=%s:%s", filepath.Dir(libPath), os.Getenv("LD_LIBRARY_PATH")),
+	)
+
 	env := append(localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, defaultOutputPath, defaultGroupsFilePath), "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
+	env = append(env, nssLibraryEnv...)
+	env = append(env, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocket))
 	ctx, cancel := context.WithCancel(context.Background())
 	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
 		testutils.WithSocketPath(defaultSocket),
@@ -118,12 +132,17 @@ func TestIntegration(t *testing.T) {
 				outPath := filepath.Join(t.TempDir(), "gpasswd.output")
 				groupsFilePath := filepath.Join("testdata", "empty.group")
 
+				socketPath = filepath.Join(t.TempDir(), "nss.sock")
+
 				var daemonStopped chan struct{}
 				ctx, cancel := context.WithCancel(context.Background())
 				env := localgroupstestutils.AuthdIntegrationTestsEnvWithGpasswdMock(t, outPath, groupsFilePath)
-				socketPath, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath,
+				env = append(env, nssLibraryEnv...)
+				env = append(env, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", socketPath))
+				_, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath,
 					testutils.WithPreviousDBState(tc.dbState),
 					testutils.WithEnvironment(env...),
+					testutils.WithSocketPath(socketPath),
 				)
 				t.Cleanup(func() {
 					cancel()
@@ -136,7 +155,7 @@ func TestIntegration(t *testing.T) {
 				cmds = append(cmds, tc.key)
 			}
 
-			got, status := getentOutputForLib(t, libPath, socketPath, rustCovEnv, tc.shouldPreCheck, cmds...)
+			got, status := getentOutputForLib(t, socketPath, nssLibraryEnv, tc.shouldPreCheck, cmds...)
 			require.Equal(t, tc.wantStatus, status, "Expected status %d, but got %d", tc.wantStatus, status)
 
 			if tc.shouldPreCheck && tc.getentDB == "passwd" {
@@ -164,12 +183,118 @@ func TestIntegration(t *testing.T) {
 
 			// This is to check that some cache tasks, such as cleaning a corrupted database, work as expected.
 			if tc.wantSecondCall {
-				got, status := getentOutputForLib(t, libPath, socketPath, rustCovEnv, tc.shouldPreCheck, cmds...)
+				got, status := getentOutputForLib(t, socketPath, nssLibraryEnv, tc.shouldPreCheck, cmds...)
 				require.NotEqual(t, codeNotFound, status, "Expected no error, but got %v", status)
 				require.Empty(t, got, "Expected empty output, but got %q", got)
 			}
 		})
 	}
+
+	runPidAbuser := func(action, arg string) []byte {
+		require.NotEmpty(t, action, "Setup: action should not be empty")
+
+		// #nosec:G204 - we control the command arguments in tests
+		cmd := exec.Command("go", "run")
+		if testutils.CoverDirForTests() != "" {
+			// -cover is a "positional flag", so it needs to come right after the "build" command.
+			cmd.Args = append(cmd.Args, "-cover")
+			cmd.Env = testutils.AppendCovEnv(env)
+		}
+		if testutils.IsRace() {
+			cmd.Args = append(cmd.Args, "-race")
+		}
+		cmd.Env = append(cmd.Env, nssLibraryEnv...)
+		cmd.Env = append(cmd.Env,
+			fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocket),
+			"ACTION="+action,
+			"ACTION_ARG="+arg,
+		)
+		cmd.Env = append(cmd.Env, os.Environ()...)
+
+		cmd.Dir = "pid_abuser"
+		cmd.Args = append(cmd.Args, "./")
+		var stdout bytes.Buffer
+		var stderr bytes.Buffer
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+		err := cmd.Run()
+		require.NoError(t, err, "Could not run PID abuser: %s, %s",
+			stdout.String(), stderr.String())
+		t.Logf("STDOUT:\n%s", stdout.String())
+		t.Logf("STDERR:\n%s", stderr.String())
+		return stdout.Bytes()
+	}
+
+	t.Run("Simulate_running_as_authd", func(t *testing.T) {
+		tests := map[string]struct {
+			action string
+			arg    string
+
+			want any
+		}{
+			"Lookups_user": {
+				action: "lookup_user",
+				arg:    "user1",
+				want: user.User{
+					Uid:      "1111",
+					Gid:      "11111",
+					Username: "user1",
+					Name:     "User1 gecos\nOn multiple lines",
+					HomeDir:  "/home/user1",
+				},
+			},
+			"Lookups_group": {
+				action: "lookup_group",
+				arg:    "group1",
+				want:   user.Group{Gid: "11111", Name: "group1"},
+			},
+			"Lookups_uid": {
+				action: "lookup_uid",
+				arg:    "1111",
+				want: user.User{
+					Uid:      "1111",
+					Gid:      "11111",
+					Username: "user1",
+					Name:     "User1 gecos\nOn multiple lines",
+					HomeDir:  "/home/user1",
+				},
+			},
+			"Lookups_gid": {
+				action: "lookup_gid",
+				arg:    "11111",
+				want:   user.Group{Gid: "11111", Name: "group1"},
+			},
+		}
+		for name, tc := range tests {
+			t.Run(name, func(t *testing.T) {
+				t.Parallel()
+
+				ret := runPidAbuser(tc.action, tc.arg)
+
+				switch action, _ := strings.CutPrefix(tc.action, "lookup_"); action {
+				case "user":
+					fallthrough
+				case "uid":
+					u := unmarshalYAML[user.User](t, ret)
+					require.Equal(t, tc.want, u, "User does not match")
+				case "group":
+					fallthrough
+				case "gid":
+					g := unmarshalYAML[user.Group](t, ret)
+					require.Equal(t, tc.want, g, "Group does not match")
+				}
+			})
+		}
+	})
+}
+
+func unmarshalYAML[T any](t *testing.T, yml []byte) T {
+	t.Helper()
+
+	var val T
+	err := yaml.Unmarshal(yml, &val)
+	require.NoError(t, err, "Unmarshalling failed:\n%q", yml)
+	return val
 }
 
 func TestMockgpasswd(t *testing.T) {
