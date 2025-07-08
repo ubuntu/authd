@@ -68,7 +68,7 @@ func sendIsAuthenticated(ctx context.Context, client authd.PAMClient, sessionID 
 			}
 			return pamError{
 				status: pam.ErrSystem,
-				msg:    fmt.Sprintf("authentication status failure: %v", err),
+				msg:    err.Error(),
 			}
 		}
 

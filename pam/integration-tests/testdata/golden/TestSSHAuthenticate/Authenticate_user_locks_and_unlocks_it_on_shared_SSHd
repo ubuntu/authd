@@ -82,6 +82,16 @@ Use "authctl [command] --help" for more information about a command.
 >
 ────────────────────────────────────────────────────────────────────────────────
 > ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-integration-pre-check-ssh-authenticate-user-locks-and-unlocks-it-on-shared-sshd@localhost) Gimme your password:
+>
+────────────────────────────────────────────────────────────────────────────────
+> ssh ${AUTHD_PAM_SSH_USER}@localhost ${AUTHD_PAM_SSH_ARGS}
+== Password authentication ==
+Enter 'r' to cancel the request and go back to select the authentication method
+(user-integration-pre-check-ssh-authenticate-user-locks-and-unlocks-it-on-shared-sshd@localhost) Gimme your password:
+>
 permission denied: user user-integration-pre-check-ssh-authenticate-user-locks-and-unlocks-it-on-shared-sshd is locked
 Received disconnect from ${SSH_HOST} port ${SSH_PORT} Too many authentication failures
 Disconnected from ${SSH_HOST} port ${SSH_PORT}

@@ -2028,7 +2028,7 @@ func TestGdmModel(t *testing.T) {
 			wantStage: proto.Stage_challenge,
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
-				msg:    "authentication status failure: some authentication error",
+				msg:    "some authentication error",
 			},
 		},
 		"Error_on_authentication_client_invalid_message": {
