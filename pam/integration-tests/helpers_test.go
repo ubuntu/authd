@@ -176,17 +176,7 @@ func preparePamRunnerTest(t *testing.T, clientPath string) []string {
 func buildPAMRunner(execPath string) (cleanup func(), err error) {
 	cmd := exec.Command("go", "build")
 	cmd.Dir = testutils.ProjectRoot()
-	if testutils.CoverDirForTests() != "" {
-		// -cover is a "positional flag", so it needs to come right after the "build" command.
-		cmd.Args = append(cmd.Args, "-cover")
-	}
-	if testutils.IsAsan() {
-		// -asan is a "positional flag", so it needs to come right after the "build" command.
-		cmd.Args = append(cmd.Args, "-asan")
-	}
-	if testutils.IsRace() {
-		cmd.Args = append(cmd.Args, "-race")
-	}
+	cmd.Args = append(cmd.Args, testutils.GoBuildFlags()...)
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
 	cmd.Args = append(cmd.Args, "-tags=withpamrunner", "-o", filepath.Join(execPath, "pam_authd"),
 		"./pam/tools/pam-runner")
@@ -200,19 +190,9 @@ func buildPAMRunner(execPath string) (cleanup func(), err error) {
 func buildPAMExecChild(t *testing.T) string {
 	t.Helper()
 
-	cmd := exec.Command("go", "build", "-C", "pam")
-	cmd.Dir = testutils.ProjectRoot()
-	if testutils.CoverDirForTests() != "" {
-		// -cover is a "positional flag", so it needs to come right after the "build" command.
-		cmd.Args = append(cmd.Args, "-cover")
-	}
-	if testutils.IsAsan() {
-		// -asan is a "positional flag", so it needs to come right after the "build" command.
-		cmd.Args = append(cmd.Args, "-asan")
-	}
-	if testutils.IsRace() {
-		cmd.Args = append(cmd.Args, "-race")
-	}
+	cmd := exec.Command("go", "build")
+	cmd.Dir = filepath.Join(testutils.ProjectRoot(), "pam")
+	cmd.Args = append(cmd.Args, testutils.GoBuildFlags()...)
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
 	cmd.Args = append(cmd.Args, "-tags=pam_debug")
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)
