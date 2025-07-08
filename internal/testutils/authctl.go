@@ -16,7 +16,9 @@ func BuildAuthctl() (binaryPath string, cleanup func(), err error) {
 	cleanup = func() { os.RemoveAll(tempDir) }
 	binaryPath = filepath.Join(tempDir, "authctl")
 
-	cmd := exec.Command("go", "build", "-o", binaryPath, "./cmd/authctl/main.go")
+	cmd := exec.Command("go", "build")
+	cmd.Args = append(cmd.Args, GoBuildFlags()...)
+	cmd.Args = append(cmd.Args, "-o", binaryPath, "./cmd/authctl")
 	cmd.Dir = ProjectRoot()
 
 	fmt.Fprintln(os.Stderr, "Running command:", cmd.String())
