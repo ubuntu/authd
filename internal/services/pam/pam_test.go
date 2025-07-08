@@ -210,7 +210,6 @@ func TestSelectBroker(t *testing.T) {
 		"Error_when_broker_does_not_exist":                {username: "no broker", brokerID: "does not exist", wantErr: true},
 		"Error_when_broker_does_not_provide_a_session_ID": {username: "ns_no_id", wantErr: true},
 		"Error_when_starting_the_session":                 {username: "ns_error", wantErr: true},
-		"Error_when_user_is_locked":                       {username: "locked", wantErr: true, existingDB: "cache-with-locked-user.db"},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -446,6 +445,7 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error_when_not_root":           {username: "success", currentUserNotRoot: true},
 		"Error_when_sessionID_is_empty": {sessionID: "-"},
 		"Error_when_there_is_no_broker": {sessionID: "invalid-session"},
+		"Error_when_user_is_locked":     {username: "locked", existingDB: "cache-with-locked-user.db"},
 
 		// broker errors
 		"Error_when_authenticating":                         {username: "ia_error"},
