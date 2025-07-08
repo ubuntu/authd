@@ -40,23 +40,26 @@ func TestNewManager(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully_create_manager_with_default_config": {},
-		"Successfully_create_manager_with_custom_config":  {uidMin: 10000, uidMax: 20000, gidMin: 10000, gidMax: 20000},
+		"Successfully_create_manager_with_default_config":                           {},
+		"Successfully_create_manager_with_custom_config":                            {uidMin: 10000, uidMax: 20000, gidMin: 10000, gidMax: 20000},
+		"Successfully_create_manager_with_UID_range_next_to_systemd_dynamic_users":  {uidMin: users.SystemdDynamicUIDMax + 1, uidMax: users.SystemdDynamicUIDMax + 10000},
+		"Successfully_create_manager_with_GID_range_next_to_systemd_dynamic_groups": {gidMin: users.SystemdDynamicUIDMin - 1000, gidMax: users.SystemdDynamicUIDMin - 1},
 
 		"Warns_creating_manager_with_partially_invalid_UID_ranges": {uidMin: 1, uidMax: 20000},
 		"Warns_creating_manager_with_partially_invalid_GID_ranges": {gidMin: 1, gidMax: 20000},
-
-		"Warns_creating_manager_with_potentially_invalid_UID_ranges": {uidMin: 20000, uidMax: users.MaxSuggestedID + 1},
-		"Warns_creating_manager_with_potentially_invalid_GID_ranges": {gidMin: 20000, gidMax: users.MaxSuggestedID + 1},
 
 		// Corrupted databases
 		"Error_when_database_is_corrupted": {corruptedDbFile: true, wantErr: true},
 		"Error_if_dbDir_does_not_exist":    {dbFile: "-", wantErr: true},
 
 		// Invalid UIDs/GIDs ranges
-		"Error_if_UID_MIN_is_equal_to_UID_MAX": {uidMin: 1000, uidMax: 1000, wantErr: true},
-		"Error_if_GID_MIN_is_equal_to_GID_MAX": {gidMin: 1000, gidMax: 1000, wantErr: true},
-		"Error_if_UID_range_is_too_small":      {uidMin: 1000, uidMax: 2000, wantErr: true},
+		"Error_if_UID_MIN_is_equal_to_UID_MAX":                    {uidMin: 1000, uidMax: 1000, wantErr: true},
+		"Error_if_GID_MIN_is_equal_to_GID_MAX":                    {gidMin: 1000, gidMax: 1000, wantErr: true},
+		"Error_if_UID_range_is_too_small":                         {uidMin: 1000, uidMax: 2000, wantErr: true},
+		"Error_if_UID_range_overlaps_with_systemd_dynamic_users":  {uidMin: users.SystemdDynamicUIDMin, uidMax: users.SystemdDynamicUIDMax, wantErr: true},
+		"Error_if_GID_range_overlaps_with_systemd_dynamic_groups": {gidMin: users.SystemdDynamicUIDMin, gidMax: users.SystemdDynamicUIDMax, wantErr: true},
+		"Error_if_UID_range_is_larger_than_max_signed_int32":      {uidMin: 0, uidMax: math.MaxInt32 + 1, wantErr: true},
+		"Error_if_GID_range_is_larger_than_max_signed_int32":      {gidMin: 0, gidMax: math.MaxInt32 + 1, wantErr: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {

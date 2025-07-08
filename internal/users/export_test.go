@@ -5,12 +5,6 @@ import (
 	"github.com/ubuntu/authd/internal/users/types"
 )
 
-const (
-	MinAllowedUID  = minAllowedUID
-	MinAllowedGID  = minAllowedGID
-	MaxSuggestedID = maxSuggestedID
-)
-
 func (m *Manager) DB() *db.Manager {
 	return m.db
 }
@@ -27,3 +21,8 @@ func (m *Manager) GetOldUserInfoFromDB(name string) (oldUserInfo *types.UserInfo
 func CompareNewUserInfoWithUserInfoFromDB(newUserInfo, dbUserInfo types.UserInfo) bool {
 	return compareNewUserInfoWithUserInfoFromDB(newUserInfo, dbUserInfo)
 }
+
+const (
+	SystemdDynamicUIDMin = systemdDynamicUIDMin
+	SystemdDynamicUIDMax = systemdDynamicUIDMax
+)

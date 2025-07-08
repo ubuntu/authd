@@ -28,15 +28,6 @@ type Config struct {
 	GIDMax uint32 `mapstructure:"gid_max" yaml:"gid_max"`
 }
 
-const (
-	// minAllowedUID is the minimum value used to generate the user and group IDs.
-	// See https://systemd.io/UIDS-GIDS/ for reference.
-	minAllowedUID = SystemdSystemUidMax + 1
-	minAllowedGID = SystemdSystemGidMax + 1
-
-	maxSuggestedID uint32 = math.MaxInt32
-)
-
 // DefaultConfig is the default configuration for the user manager.
 var DefaultConfig = Config{
 	UIDMin: 1000000000,
@@ -85,32 +76,30 @@ func NewManager(config Config, dbDir string, args ...Option) (m *Manager, err er
 	if opts.idGenerator == nil {
 		// Check that the ID ranges are valid.
 		if config.UIDMin >= config.UIDMax {
-			return nil, errors.New("UID_MIN must be less than UID_MAX")
+			return nil, fmt.Errorf("UID_MIN (%d) must be less than UID_MAX (%d)", config.UIDMin, config.UIDMax)
 		}
 		if config.GIDMin >= config.GIDMax {
-			return nil, errors.New("GID_MIN must be less than GID_MAX")
+			return nil, fmt.Errorf("GID_MIN (%d) must be less than GID_MAX (%d)", config.GIDMin, config.GIDMax)
+		}
+		// UIDs/GIDs larger than a signed int32 are known to cause issues in various programs,
+		// so they should be avoided (see https://systemd.io/UIDS-GIDS/)
+		if config.UIDMax > math.MaxInt32 {
+			return nil, fmt.Errorf("UID_MAX (%d) must be less than or equal to %d", config.UIDMax, math.MaxInt32)
+		}
+		if config.GIDMax > math.MaxInt32 {
+			return nil, fmt.Errorf("GID_MAX (%d) must be less than or equal to %d", config.GIDMax, math.MaxInt32)
 		}
 
-		// See https://systemd.io/UIDS-GIDS/ for reference.
-		if config.UIDMin < minAllowedUID {
-			log.Warning(context.Background(), "authd is configured to potentially use "+
-				"system users IDs (as per the default SYS_UID_MIN and SYS_UID_MAX values). "+
-				"This may not be safe.")
+		// Check that the ID ranges are not overlapping with systemd dynamic service users.
+		rangesOverlap := func(min1, max1, min2, max2 uint32) bool {
+			return (min1 <= max2 && max1 >= min2) || (min2 <= max1 && max2 >= min1)
 		}
-		if config.GIDMin < minAllowedGID {
-			log.Warning(context.Background(), "authd is configured to potentially use "+
-				"system group IDs (as per the default SYS_GID_MIN and SYS_GID_MAX values). "+
-				"This may not be safe.")
+
+		if rangesOverlap(config.UIDMin, config.UIDMax, systemdDynamicUIDMin, systemdDynamicUIDMax) {
+			return nil, fmt.Errorf("UID range (%d-%d) overlaps with systemd dynamic service users range (%d-%d)", config.UIDMin, config.UIDMax, systemdDynamicUIDMin, systemdDynamicUIDMax)
 		}
-		if config.UIDMax > maxSuggestedID {
-			log.Warningf(context.Background(), "authd is configured to use maximum user ID values "+
-				"outside the signed 32-bit range, this is not safe and may lead some programs no to work "+
-				"as expected. Adjust UID_MAX to a value minor or equal than %d", maxSuggestedID)
-		}
-		if config.GIDMax > maxSuggestedID {
-			log.Warningf(context.Background(), "authd is configured to use maximum groups ID values "+
-				"outside the signed 32-bit range, this is not safe and may lead some programs no to work "+
-				"as expected. Adjust GID_MAX to a value minor or equal than %d", maxSuggestedID)
+		if rangesOverlap(config.GIDMin, config.GIDMax, systemdDynamicUIDMin, systemdDynamicUIDMax) {
+			return nil, fmt.Errorf("GID range (%d-%d) overlaps with systemd dynamic service users range (%d-%d)", config.GIDMin, config.GIDMax, systemdDynamicUIDMin, systemdDynamicUIDMax)
 		}
 
 		// Check that the number of possible UIDs is at least twice the number of possible pre-auth users.
