@@ -1,5 +1,5 @@
 users:
-    - name: testselectbroker/error_when_user_is_locked_separator_locked
+    - name: testisauthenticated/error_when_user_is_locked_separator_locked
       uid: 1111
       gid: 11111
       gecos: gecos for other user
