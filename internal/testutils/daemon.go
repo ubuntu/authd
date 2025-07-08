@@ -279,16 +279,7 @@ func BuildDaemonWithExampleBroker() (execPath string, cleanup func(), err error)
 	execPath = filepath.Join(tempDir, "authd")
 	cmd := exec.Command("go", "build")
 	cmd.Dir = projectRoot
-	if CoverDirForTests() != "" {
-		// -cover is a "positional flag", so it needs to come right after the "build" command.
-		cmd.Args = append(cmd.Args, "-cover")
-	}
-	if IsAsan() {
-		cmd.Args = append(cmd.Args, "-asan")
-	}
-	if IsRace() {
-		cmd.Args = append(cmd.Args, "-race")
-	}
+	cmd.Args = append(cmd.Args, GoBuildFlags()...)
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
 	cmd.Args = append(cmd.Args, "-tags=withexamplebroker,integrationtests")
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")
