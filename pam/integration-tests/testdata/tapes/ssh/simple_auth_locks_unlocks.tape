@@ -48,6 +48,12 @@ ClearTerminal
 Hide
 TypeInPrompt+Shell "${AUTHD_TEST_TAPE_COMMAND}"
 Enter
+Wait+Prompt /Gimme your password/
+Show
+
+Hide
+Type "goodpass"
+Enter
 Wait /permission denied: user .* is locked/
 Wait
 Show
