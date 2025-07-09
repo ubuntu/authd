@@ -8,6 +8,7 @@ Center
 DBus
 entra
 filesystem
+Fosstodon
 fstab
 ESC
 GDM
@@ -27,6 +28,7 @@ Keytab
 Keytabs
 libpwquality
 linux
+makefile
 MDM
 mountpoint
 msentraid
