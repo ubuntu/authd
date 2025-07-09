@@ -269,6 +269,10 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 	}
 
 	access, data, err := broker.IsAuthenticated(ctx, sessionID, string(authenticationDataJSON))
+	if errors.Is(err, context.Canceled) {
+		log.Debugf(ctx, "Authentication for session %s was canceled", sessionID)
+		return &authd.IAResponse{Access: auth.Cancelled}, nil
+	}
 	if err != nil {
 		log.Errorf(ctx, "IsAuthenticated: Could not check authentication for session %q: %v", sessionID, err)
 		return nil, err
