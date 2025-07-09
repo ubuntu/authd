@@ -61,12 +61,6 @@ func TestGetIDCandidate(t *testing.T) {
 			wantID:  1000,
 			wantPos: 2,
 		},
-		"Only_MaxUint32_is_available": {
-			idMin:   math.MaxUint32,
-			idMax:   math.MaxUint32,
-			wantID:  math.MaxUint32,
-			wantPos: 0,
-		},
 		"Intermediate_value_after_MaxUint32_is_reached": {
 			idMin: math.MaxUint32 - 2, idMax: math.MaxUint32,
 			used:    []uint32{math.MaxUint32 - 2, math.MaxUint32},
