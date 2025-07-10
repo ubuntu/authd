@@ -17,7 +17,7 @@ import (
 )
 
 // initViperConfig sets verbosity level and add config env variables and file support based on name prefix.
-func initViperConfig(name string, cmd *cobra.Command, vip *viper.Viper) (err error) {
+func initViperConfig(name string, cmd *cobra.Command, vip *viper.Viper, configDir string) (err error) {
 	defer decorate.OnError(&err, "can't load configuration")
 
 	// Force a visit of the local flags so persistent flags for all parents are merged.
@@ -37,7 +37,7 @@ func initViperConfig(name string, cmd *cobra.Command, vip *viper.Viper) (err err
 		vip.SetConfigName(name)
 		vip.AddConfigPath("./")
 		vip.AddConfigPath("$HOME/")
-		vip.AddConfigPath("/etc/authd/")
+		vip.AddConfigPath(configDir)
 		// Add the executable path to the config search path.
 		if binPath, err := os.Executable(); err != nil {
 			log.Warningf(context.Background(), "Failed to get current executable path, not adding it as a config dir: %v", err)
