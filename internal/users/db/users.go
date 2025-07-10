@@ -62,11 +62,15 @@ func userByID(db queryable, uid uint32) (UserRow, error) {
 
 // UserByName returns a user matching this name or an error if the database is corrupted or no entry was found.
 func (m *Manager) UserByName(name string) (UserRow, error) {
+	return userByName(m.db, name)
+}
+
+func userByName(db queryable, name string) (UserRow, error) {
 	// authd uses lowercase usernames
 	name = strings.ToLower(name)
 
 	query := fmt.Sprintf(`SELECT %s FROM users WHERE name = ?`, publicUserColumns)
-	row := m.db.QueryRow(query, name)
+	row := db.QueryRow(query, name)
 
 	var u UserRow
 	err := row.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID)
@@ -184,4 +188,35 @@ func (m *Manager) DeleteUser(uid uint32) error {
 	}
 
 	return nil
+}
+
+// UserWithGroups returns a user and their groups, including local groups, in a single transaction.
+func (m *Manager) UserWithGroups(name string) (u UserRow, groups []GroupRow, localGroups []string, err error) {
+	// Start a transaction
+	tx, err := m.db.Begin()
+	if err != nil {
+		return UserRow{}, nil, nil, fmt.Errorf("failed to start transaction: %w", err)
+	}
+
+	// Ensure the transaction is committed or rolled back
+	defer func() {
+		err = commitOrRollBackTransaction(err, tx)
+	}()
+
+	u, err = userByName(tx, name)
+	if err != nil {
+		return UserRow{}, nil, nil, err
+	}
+
+	groups, err = userGroups(tx, u.UID)
+	if err != nil {
+		return UserRow{}, nil, nil, fmt.Errorf("failed to get groups: %w", err)
+	}
+
+	localGroups, err = userLocalGroups(tx, u.UID)
+	if err != nil {
+		return UserRow{}, nil, nil, fmt.Errorf("failed to get local groups: %w", err)
+	}
+
+	return u, groups, localGroups, nil
 }

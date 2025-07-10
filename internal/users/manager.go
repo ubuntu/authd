@@ -329,26 +329,16 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 }
 
 func (m *Manager) getOldUserInfoFromDB(name string) (oldUserInfo *types.UserInfo, err error) {
-	// Check if the user already exists in the database.
-	u, err := m.db.UserByName(name)
+	oldUser, oldGroups, oldLocalGroups, err := m.db.UserWithGroups(name)
+	if err != nil && !errors.Is(err, db.NoDataFoundError{}) {
+		// Unexpected error
+		return nil, err
+	}
 	if errors.Is(err, db.NoDataFoundError{}) {
 		return nil, nil
 	}
-	if err != nil {
-		return nil, fmt.Errorf("could not get user %q: %w", name, err)
-	}
 
-	userGroups, err := m.db.UserGroups(u.UID)
-	if err != nil && !errors.Is(err, db.NoDataFoundError{}) {
-		return nil, fmt.Errorf("could not get users groups for %q: %w", name, err)
-	}
-
-	oldLocalGroups, err := m.db.UserLocalGroups(u.UID)
-	if err != nil && !errors.Is(err, db.NoDataFoundError{}) {
-		return nil, err
-	}
-
-	return userInfoFromUserAndGroupRows(u, userGroups, oldLocalGroups), nil
+	return userInfoFromUserAndGroupRows(oldUser, oldGroups, oldLocalGroups), nil
 }
 
 func compareNewUserInfoWithUserInfoFromDB(newUserInfo, dbUserInfo types.UserInfo) bool {
