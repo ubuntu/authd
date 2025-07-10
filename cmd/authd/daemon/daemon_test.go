@@ -286,7 +286,10 @@ func TestAutoDetectConfig(t *testing.T) {
 	// Remove configuration next binary for other tests to not pick it up.
 	defer os.Remove(configNextToBinaryPath)
 
-	a := daemon.New()
+	// Avoid that an existing config file in the config directory is picked up.
+	opt := daemon.WithConfigDir(t.TempDir())
+
+	a := daemon.New(opt)
 	a.SetArgs("--check-config")
 
 	err = a.Run()

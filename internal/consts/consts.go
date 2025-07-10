@@ -24,6 +24,9 @@ const (
 	// DefaultDatabaseDir is the default directory for the database.
 	DefaultDatabaseDir = "/var/lib/authd/"
 
+	// DefaultConfigDir is the default configuration directory.
+	DefaultConfigDir = "/etc/authd/"
+
 	// DefaultDatabaseFileName is the default file name for the database.
 	DefaultDatabaseFileName = "authd.sqlite3"
 
