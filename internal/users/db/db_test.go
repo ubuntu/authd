@@ -13,6 +13,8 @@ import (
 	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users/db"
+	"github.com/ubuntu/authd/internal/users/localentries"
+	localgrouptestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/log"
 )
@@ -129,14 +131,12 @@ LocalTestGroup:x:12345:TestUser
 `), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
-	// Make the db package use the temporary group file
-	origGroupFile := db.GroupFile()
-	db.SetGroupFile(groupsFilePath)
-	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
+	// Make the localentries package use the test group file.
+	t.Cleanup(localentries.Z_ForTests_RestoreDefaultOptions)
+	localentries.Z_ForTests_SetGroupPath(groupsFilePath, groupsFilePath)
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
@@ -153,11 +153,6 @@ LocalTestGroup:x:12345:TestUser
 	require.NoError(t, err)
 
 	golden.CheckOrUpdate(t, string(userGroupContent), golden.WithPath("groups"))
-
-	// Check the content of the backup group file
-	userGroupBackupContent, err := os.ReadFile(db.GroupFileBackupPath())
-	require.NoError(t, err)
-	golden.CheckOrUpdate(t, string(userGroupBackupContent), golden.WithPath("groups-backup"))
 }
 
 func TestMigrationToLowercaseUserAndGroupNamesEmptyDB(t *testing.T) {
@@ -172,14 +167,11 @@ func TestMigrationToLowercaseUserAndGroupNamesEmptyDB(t *testing.T) {
 	err = fileutils.Touch(groupsFilePath)
 	require.NoError(t, err, "Setup: could not create group file")
 
-	// Make the db package use the temporary group file
-	origGroupFile := db.GroupFile()
-	db.SetGroupFile(groupsFilePath)
-	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
+	// Make the localentries package use the test group file.
+	groupsFilePath = localgrouptestutils.SetupGroupMock(t, groupsFilePath)
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
@@ -191,15 +183,7 @@ func TestMigrationToLowercaseUserAndGroupNamesEmptyDB(t *testing.T) {
 
 	golden.CheckOrUpdate(t, dbContent, golden.WithPath("db"))
 
-	// Check the content of the user group file
-	userGroupContent, err := os.ReadFile(groupsFilePath)
-	require.NoError(t, err)
-
-	golden.CheckOrUpdate(t, string(userGroupContent), golden.WithPath("groups"))
-
-	// Check the content of the backup group file
-	_, err = os.Stat(db.GroupFileBackupPath())
-	require.ErrorIs(t, err, os.ErrNotExist, "No backup should exist")
+	require.NoFileExists(t, groupsFilePath, "No new group file should have been created")
 }
 
 func TestMigrationToLowercaseUserAndGroupNamesAlreadyUpdated(t *testing.T) {
@@ -214,14 +198,11 @@ func TestMigrationToLowercaseUserAndGroupNamesAlreadyUpdated(t *testing.T) {
 	err = os.WriteFile(groupsFilePath, []byte("LocalTestGroup:x:12345:testuser\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
-	// Make the db package use the temporary group file
-	origGroupFile := db.GroupFile()
-	db.SetGroupFile(groupsFilePath)
-	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
+	// Make the localentries package use the test group file.
+	groupsFilePath = localgrouptestutils.SetupGroupMock(t, groupsFilePath)
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
@@ -233,15 +214,7 @@ func TestMigrationToLowercaseUserAndGroupNamesAlreadyUpdated(t *testing.T) {
 
 	golden.CheckOrUpdate(t, dbContent, golden.WithPath("db"))
 
-	// Check the content of the user group file
-	userGroupContent, err := os.ReadFile(groupsFilePath)
-	require.NoError(t, err)
-
-	golden.CheckOrUpdate(t, string(userGroupContent), golden.WithPath("groups"))
-
-	// Check the content of the backup group file
-	_, err = os.Stat(db.GroupFileBackupPath())
-	require.ErrorIs(t, err, os.ErrNotExist, "No backup should exist")
+	require.NoFileExists(t, groupsFilePath, "No new group file should have been created")
 }
 
 func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedGroupFile(t *testing.T) {
@@ -260,14 +233,12 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedGroupFile(t *testing.
 	err = os.Symlink(realGroupsPath, groupsFilePath)
 	require.NoError(t, err, "Setup: could not symlink group file")
 
-	// Make the db package use the temporary group file
-	origGroupFile := db.GroupFile()
-	db.SetGroupFile(groupsFilePath)
-	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
+	// Make the localentries package use the test group file.
+	t.Cleanup(localentries.Z_ForTests_RestoreDefaultOptions)
+	localentries.Z_ForTests_SetGroupPath(groupsFilePath, groupsFilePath)
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
@@ -291,7 +262,8 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedGroupFile(t *testing.
 	golden.CheckOrUpdate(t, string(userGroupContent), golden.WithPath("groups"))
 
 	// Check the content of the backup group file
-	usersGroupBackupContent, err := os.ReadFile(db.GroupFileBackupPath())
+	backupFilePath := groupsFilePath + "-"
+	usersGroupBackupContent, err := os.ReadFile(backupFilePath)
 	require.NoError(t, err)
 	golden.CheckOrUpdate(t, string(usersGroupBackupContent), golden.WithPath("groups-backup"))
 }
@@ -309,18 +281,17 @@ func TestMigrationToLowercaseUserAndGroupNamesWithPreviousBackup(t *testing.T) {
 	err = os.WriteFile(groupsFilePath, originalGroupFileContents, 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
-	// Make the db package use the temporary group file
-	origGroupFile := db.GroupFile()
-	db.SetGroupFile(groupsFilePath)
-	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
+	// Make the localentries package use the test group file.
+	t.Cleanup(localentries.Z_ForTests_RestoreDefaultOptions)
+	localentries.Z_ForTests_SetGroupPath(groupsFilePath, groupsFilePath)
 
+	backupFilePath := groupsFilePath + "-"
 	// Create a temporary user group file backup for testing
-	err = os.WriteFile(db.GroupFileBackupPath(), []byte("LocalTestGroup:x:12345:TestUserBackup\n"), 0600)
+	err = os.WriteFile(backupFilePath, []byte("LocalTestGroup:x:12345:TestUserBackup\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
@@ -333,13 +304,13 @@ func TestMigrationToLowercaseUserAndGroupNamesWithPreviousBackup(t *testing.T) {
 	golden.CheckOrUpdate(t, dbContent, golden.WithPath("db"))
 
 	// Check the content of the user group file
-	userGroupContent, err := os.ReadFile(db.GroupFile())
+	userGroupContent, err := os.ReadFile(groupsFilePath)
 	require.NoError(t, err)
 
 	golden.CheckOrUpdate(t, string(userGroupContent), golden.WithPath("groups"))
 
 	// Check the content of the backup group file
-	userGroupBackupContent, err := os.ReadFile(db.GroupFileBackupPath())
+	userGroupBackupContent, err := os.ReadFile(backupFilePath)
 	require.NoError(t, err)
 	golden.CheckOrUpdate(t, string(userGroupBackupContent), golden.WithPath("groups-backup"))
 }
@@ -357,10 +328,9 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedPreviousBackup(t *tes
 	err = os.WriteFile(groupsFilePath, originalGroupFileContents, 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
-	// Make the db package use the temporary group file
-	origGroupFile := db.GroupFile()
-	db.SetGroupFile(groupsFilePath)
-	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
+	// Make the localentries package use the test group file.
+	t.Cleanup(localentries.Z_ForTests_RestoreDefaultOptions)
+	localentries.Z_ForTests_SetGroupPath(groupsFilePath, groupsFilePath)
 
 	// Create a temporary user group file backup for testing
 	realGroupsBackup := filepath.Join(t.TempDir(), "groups-backup")
@@ -368,12 +338,12 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedPreviousBackup(t *tes
 	require.NoError(t, err, "Setup: could not create group file")
 
 	// Symlink it to the backup path
-	err = os.Symlink(realGroupsBackup, db.GroupFileBackupPath())
+	backupFilePath := groupsFilePath + "-"
+	err = os.Symlink(realGroupsBackup, backupFilePath)
 	require.NoError(t, err, "Setup: could not create group file backup symlink")
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
@@ -386,18 +356,18 @@ func TestMigrationToLowercaseUserAndGroupNamesWithSymlinkedPreviousBackup(t *tes
 	golden.CheckOrUpdate(t, dbContent, golden.WithPath("db"))
 
 	// Check the content of the user group file
-	userGroupContent, err := os.ReadFile(db.GroupFile())
+	userGroupContent, err := os.ReadFile(groupsFilePath)
 	require.NoError(t, err)
 
 	golden.CheckOrUpdate(t, string(userGroupContent), golden.WithPath("groups"))
 
 	// Ensure the backup is not anymore a symlink
-	fi, err := os.Lstat(db.GroupFileBackupPath())
+	fi, err := os.Lstat(backupFilePath)
 	require.NoError(t, err)
 	require.Zero(t, fi.Mode()&os.ModeSymlink, "Group file backup must not be a symlink")
 
 	// Check the content of the backup group file
-	userGroupBackupContent, err := os.ReadFile(db.GroupFileBackupPath())
+	userGroupBackupContent, err := os.ReadFile(backupFilePath)
 	require.NoError(t, err)
 	golden.CheckOrUpdate(t, string(userGroupBackupContent), golden.WithPath("groups-backup"))
 }
@@ -418,25 +388,23 @@ func TestMigrationToLowercaseUserAndGroupNamesFails(t *testing.T) {
 	err = os.Chmod(groupsFilePath, 0000)
 	require.NoError(t, err, "Setup: setting chmod to %q", groupsFilePath)
 
-	// Make the db package use the temporary group file
-	origGroupFile := db.GroupFile()
-	db.SetGroupFile(groupsFilePath)
-	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
+	// Make the localentries package use the test group file.
+	t.Cleanup(localentries.Z_ForTests_RestoreDefaultOptions)
+	localentries.Z_ForTests_SetGroupPath(groupsFilePath, groupsFilePath)
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
 	require.Error(t, err, "Updating db fails")
 	require.Nil(t, m, "Db should be unset")
 
-	err = os.Chmod(db.GroupFile(), 0600)
-	require.NoError(t, err, "Setup: setting chmod to %q", db.GroupFile())
+	err = os.Chmod(groupsFilePath, 0600)
+	require.NoError(t, err, "Setup: setting chmod to %q", groupsFilePath)
 
 	// Check the content of the user group file
-	userGroupContent, err := os.ReadFile(db.GroupFile())
+	userGroupContent, err := os.ReadFile(groupsFilePath)
 	require.NoError(t, err)
 
 	golden.CheckOrUpdate(t, string(userGroupContent), golden.WithPath("groups"))
@@ -454,22 +422,21 @@ func TestMigrationToLowercaseUserAndGroupNamesWithBackupFailure(t *testing.T) {
 	err = os.WriteFile(groupsFilePath, []byte("LocalTestGroup:x:12345:TestUser\n"), 0600)
 	require.NoError(t, err, "Setup: could not create group file")
 
-	// Make the db package use the temporary group file
-	origGroupFile := db.GroupFile()
-	db.SetGroupFile(groupsFilePath)
-	t.Cleanup(func() { db.SetGroupFile(origGroupFile) })
+	// Make the localentries package use the test group file.
+	t.Cleanup(localentries.Z_ForTests_RestoreDefaultOptions)
+	localentries.Z_ForTests_SetGroupPath(groupsFilePath, groupsFilePath)
 
 	// To trigger all the errors we should handle, we create a non-empty
 	// directory as backup file. So that we cannot copy or remove it.
-	err = os.Mkdir(db.GroupFileBackupPath(), 0700)
-	require.NoError(t, err, "Setup: creating directory %q", db.GroupFileBackupPath())
+	backupFilePath := groupsFilePath + "-"
+	err = os.Mkdir(backupFilePath, 0700)
+	require.NoError(t, err, "Setup: creating directory %q", backupFilePath)
 
-	err = fileutils.Touch(filepath.Join(db.GroupFileBackupPath(), "a-file"))
-	require.NoError(t, err, "Setup: touching a file in %q", db.GroupFileBackupPath())
+	err = fileutils.Touch(filepath.Join(backupFilePath, "a-file"))
+	require.NoError(t, err, "Setup: touching a file in %q", backupFilePath)
 
 	// Make the userutils package to use test locking for the group file
-	userslocking.Z_ForTests_OverrideLocking()
-	t.Cleanup(userslocking.Z_ForTests_RestoreLocking)
+	userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 
 	// Run the migrations
 	m, err := db.New(dbDir)
