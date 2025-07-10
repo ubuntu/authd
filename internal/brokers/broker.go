@@ -159,8 +159,14 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 			return "", "", err
 		}
 	case <-ctx.Done():
+		log.Warningf(ctx, "Authentication aborted: PAM client disconnected unexpectedly (session %s)", sessionID)
+		log.Debugf(ctx, "Cancelling broker authentication (session %s)", sessionID)
 		b.cancelIsAuthenticated(ctx, sessionID)
 		<-done
+		if err != nil && !errors.Is(err, context.Canceled) {
+			log.Errorf(ctx, "Authentication failed: %v", err)
+		}
+		return auth.Cancelled, "{}", nil
 	}
 
 	// Validate access authentication.
