@@ -18,8 +18,7 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/db"
-	"github.com/ubuntu/authd/internal/users/idgenerator"
-	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	"github.com/ubuntu/authd/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -62,18 +61,27 @@ func TestGetUserByName(t *testing.T) {
 		"Error_with_typed_GRPC_notfound_code_on_unexisting_user": {username: "does-not-exists", wantErr: true, wantErrNotExists: true},
 		"Error_on_missing_name":                                  {wantErr: true},
 
-		"Error_if_user_not_in_db_and_precheck_is_disabled": {username: "user-pre-check", wantErr: true, wantErrNotExists: true},
-		"Error_if_user_not_in_db_and_precheck_fails":       {username: "does-not-exist", dbFile: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
+		"Error_if_user_not_in_db_and_precheck_is_disabled":             {username: "user-pre-check", wantErr: true, wantErrNotExists: true},
+		"Error_if_user_not_in_db_and_precheck_fails":                   {username: "does-not-exist", dbFile: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
+		"Error_if_user_not_in_db_and_precheck_fails_for_existing_user": {username: "local-pre-check", dbFile: "empty.db.yaml", shouldPreCheck: true, wantErr: true, wantErrNotExists: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the db unit tests.
-			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
+			if tc.shouldPreCheck {
+				userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
+			}
 
 			client := newUserServiceClient(t, tc.dbFile)
 
 			got, err := client.GetUserByName(context.Background(), &authd.GetUserByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
 			requireExpectedResult(t, "GetUserByName", got, err, tc.wantErr, tc.wantErrNotExists)
+
+			if !tc.shouldPreCheck || tc.wantErr {
+				return
+			}
+
+			_, err = client.GetUserByName(context.Background(), &authd.GetUserByNameRequest{Name: tc.username, ShouldPreCheck: false})
+			require.Error(t, err, "GetUserByName should return an error, but did not")
 		})
 	}
 }
@@ -94,9 +102,6 @@ func TestGetUserByID(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the db unit tests.
-			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
-
 			client := newUserServiceClient(t, tc.dbFile)
 
 			got, err := client.GetUserByID(context.Background(), &authd.GetUserByIDRequest{Id: tc.uid})
@@ -121,9 +126,6 @@ func TestGetGroupByName(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the db unit tests.
-			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
-
 			client := newUserServiceClient(t, tc.dbFile)
 
 			got, err := client.GetGroupByName(context.Background(), &authd.GetGroupByNameRequest{Name: tc.groupname})
@@ -148,9 +150,6 @@ func TestGetGroupByID(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the db unit tests.
-			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
-
 			client := newUserServiceClient(t, tc.dbFile)
 
 			got, err := client.GetGroupByID(context.Background(), &authd.GetGroupByIDRequest{Id: tc.gid})
@@ -170,9 +169,6 @@ func TestListUsers(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the db unit tests.
-			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
-
 			if tc.dbFile == "" {
 				tc.dbFile = "default.db.yaml"
 			}
@@ -196,9 +192,6 @@ func TestListGroups(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			// We don't care about gpasswd output here as it's already covered in the db unit tests.
-			_ = localgroupstestutils.SetupGPasswdMock(t, filepath.Join("testdata", "empty.group"))
-
 			if tc.dbFile == "" {
 				tc.dbFile = "default.db.yaml"
 			}
@@ -217,10 +210,6 @@ func TestListGroups(t *testing.T) {
 			golden.CheckOrUpdateYAML(t, resp)
 		})
 	}
-}
-
-func TestMockgpasswd(t *testing.T) {
-	localgroupstestutils.Mockgpasswd(t)
 }
 
 // newUserServiceClient returns a new gRPC client for the CLI service.
@@ -288,7 +277,7 @@ func newUserManagerForTests(t *testing.T, dbFile string) *users.Manager {
 	require.NoError(t, err, "Setup: could not create database from testdata")
 
 	managerOpts := []users.Option{
-		users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+		users.WithIDGenerator(&users.IDGeneratorMock{
 			UIDsToGenerate: []uint32{1234},
 		}),
 	}
@@ -325,7 +314,9 @@ func requireExpectedResult[T authd.User | authd.Group](t *testing.T, funcName st
 		require.True(t, ok, "The error is always a gRPC error")
 		if wantErrNotExists {
 			require.Equal(t, codes.NotFound.String(), s.Code().String())
+			return
 		}
+		require.NotEqual(t, codes.NotFound.String(), s.Code().String())
 		return
 	}
 	require.NoError(t, err, fmt.Sprintf("%s should not return an error, but did", funcName))
@@ -350,11 +341,6 @@ func requireExpectedListResult[T authd.User | authd.Group](t *testing.T, funcNam
 }
 
 func TestMain(m *testing.M) {
-	// Needed to skip the test setup when running the gpasswd mock.
-	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
-		os.Exit(m.Run())
-	}
-
 	log.SetLevel(log.DebugLevel)
 
 	cleanup, err := testutils.StartSystemBusMock()

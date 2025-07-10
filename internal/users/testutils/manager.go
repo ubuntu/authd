@@ -2,6 +2,7 @@
 package userstestutils
 
 import (
+	"sync"
 	"unsafe"
 
 	"github.com/ubuntu/authd/internal/testsdetection"
@@ -15,6 +16,8 @@ func init() {
 }
 
 type manager struct {
+	userRegisterMu sync.Mutex
+
 	db *db.Manager
 }
 

@@ -60,8 +60,10 @@ func handleUserUpdate(db queryable, u UserRow) error {
 
 	// If a user with the same UID exists, we need to ensure that it's the same user or fail the update otherwise.
 	if existingUser.Name != "" && existingUser.Name != u.Name {
-		log.Errorf(context.TODO(), "UID for user %q already in use by user %q", u.Name, existingUser.Name)
-		return errors.New("UID already in use by a different user")
+		log.Errorf(context.TODO(), "UID %d for user %q already in use by user %q",
+			u.UID, u.Name, existingUser.Name)
+		return fmt.Errorf("UID for user %q already in use by a different user %q",
+			u.Name, existingUser.Name)
 	}
 
 	// Ensure that we use the same homedir as the one we have in the database.
@@ -93,7 +95,8 @@ func handleGroupsUpdate(db queryable, groups []GroupRow) error {
 		// UGID, which was the case before https://github.com/ubuntu/authd/pull/647.
 		if groupExists && existingGroup.UGID != "" && existingGroup.UGID != group.UGID {
 			log.Errorf(context.TODO(), "GID %d for group with UGID %q already in use by a group with UGID %q", group.GID, group.UGID, existingGroup.UGID)
-			return fmt.Errorf("GID for group %q already in use by a different group", group.Name)
+			return fmt.Errorf("GID for group %q already in use by a different group %q",
+				group.Name, existingGroup.Name)
 		}
 
 		log.Debugf(context.Background(), "Updating entry of group %q (%+v)", group.Name, group)
@@ -124,13 +127,13 @@ func handleUsersToGroupsUpdate(db queryable, uid uint32, groups []GroupRow) erro
 				// GID exist.
 				_, userErr := userByID(db, uid)
 				if errors.Is(userErr, NoDataFoundError{}) {
-					err = fmt.Errorf("%w (user with UID %d does not exist)", err, uid)
+					err = fmt.Errorf("%w (%w)", err, userErr)
 				} else if userErr != nil {
 					err = errors.Join(err, fmt.Errorf("failed to check if user with UID %d exists: %w", uid, userErr))
 				}
 				_, groupErr := groupByID(db, group.GID)
 				if errors.Is(groupErr, NoDataFoundError{}) {
-					err = fmt.Errorf("%w (group with GID %d does not exist)", err, group.GID)
+					err = fmt.Errorf("%w (%w)", err, groupErr)
 				} else if groupErr != nil {
 					err = errors.Join(err, fmt.Errorf("failed to check if group with GID %d exists: %w", group.GID, groupErr))
 				}
