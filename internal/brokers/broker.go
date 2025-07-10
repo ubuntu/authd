@@ -151,6 +151,10 @@ func (b Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationDa
 
 	select {
 	case <-done:
+		if errors.Is(err, context.Canceled) {
+			log.Debugf(ctx, "Authentication for session %s was canceled", sessionID)
+			return auth.Cancelled, "{}", nil
+		}
 		if err != nil {
 			return "", "", err
 		}
