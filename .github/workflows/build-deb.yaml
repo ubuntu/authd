@@ -56,10 +56,13 @@ jobs:
         uses: canonical/desktop-engineering/gh-actions/common/build-debian@main
         with:
           docker-image: ubuntu:${{ matrix.ubuntu-version }}
+          # Extra build dependencies:
+          # - systemd-dev: Required to read compile time variables from systemd via pkg-config.
           extra-source-build-deps: |
             ca-certificates
             git
             libssl-dev
+            systemd-dev
           extra-source-build-script: |
             if [ "${{ matrix.ubuntu-version }}" == noble ]; then
               cargo install --locked --root=/usr \
