@@ -216,12 +216,17 @@ func (s Service) userPreCheck(ctx context.Context, username string) (types.UserE
 
 		userinfo, err = b.UserPreCheck(ctx, username)
 		if err != nil {
+			// An unexpected error occurred while checking the user.
+			log.Errorf(ctx, "UserPreCheck: %v", err)
+			continue
+		}
+		if userinfo == "" {
+			// The broker does not permit the user to log in via SSH for the first time.
+			// This is an expected error, so we only log it at debug level.
 			log.Debugf(ctx, "UserPreCheck: %v", err)
 			continue
 		}
-		if userinfo != "" {
-			break
-		}
+		break
 	}
 
 	if err != nil || userinfo == "" {
