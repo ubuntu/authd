@@ -107,7 +107,7 @@ func TestIntegration(t *testing.T) {
 
 			// We don't check compatibility of arguments, have noDaemon taking precedences to the others.
 			if tc.noDaemon {
-				socketPath = ""
+				socketPath = "/non-existent"
 				useAlternativeDaemon = false
 			}
 
