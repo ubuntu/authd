@@ -1,10 +1,12 @@
 package testutils
 
 import (
+	"math"
 	"os"
 	"runtime/debug"
 	"strconv"
 	"sync"
+	"time"
 )
 
 var (
@@ -74,4 +76,10 @@ func SleepMultiplier() float64 {
 	})
 
 	return sleepMultiplier
+}
+
+// MultipliedSleepDuration returns a duration multiplied by the sleep multiplier
+// provided by [MultipliedSleepDuration].
+func MultipliedSleepDuration(in time.Duration) time.Duration {
+	return time.Duration(math.Round(float64(in) * SleepMultiplier()))
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/ubuntu/authd/pam/internal/proto"
 )
 
-// userSelectionModel allows selecting from PAM or interactively an user.
+// userSelectionModel allows selecting from PAM or interactively a user.
 type userSelectionModel struct {
 	textinput.Model
 

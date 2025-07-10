@@ -401,22 +401,31 @@ func TestNativeAuthenticate(t *testing.T) {
 				filepath.Join(outDir, "pam_authd"))
 			require.NoError(t, err, "Setup: symlinking the pam client")
 
-			var socketPath, gpasswdOutput, groupsFile, pidFile string
+			var socketPath, groupFileOutput, pidFile string
 			if tc.wantLocalGroups || tc.currentUserNotRoot || tc.wantSeparateDaemon ||
 				tc.oldDB != "" {
 				// For the local groups tests we need to run authd again so that it has
-				// special environment that generates a fake gpasswd output for us to test.
+				// special environment that saves the updated group file to a writable
+				// location for us to test.
 				// Similarly for the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
-				gpasswdOutput, groupsFile = prepareGPasswdFiles(t)
+				var groupFile string
+				groupFileOutput, groupFile = prepareGroupFiles(t)
+
+				if tc.wantLocalGroups || tc.oldDB != "" {
+					// We don't want to use separate input ant output files here.
+					groupFileOutput = groupFile
+				}
 
 				pidFile = filepath.Join(outDir, "authd.pid")
 
-				socketPath = runAuthd(t, gpasswdOutput, groupsFile, !tc.currentUserNotRoot,
+				socketPath = runAuthd(t, !tc.currentUserNotRoot,
+					testutils.WithGroupFile(groupFile),
+					testutils.WithGroupFileOutput(groupFileOutput),
 					testutils.WithPidFile(pidFile),
 					testutils.WithEnvironment(useOldDatabaseEnv(t, tc.oldDB)...))
 			} else {
-				socketPath, gpasswdOutput = sharedAuthd(t)
+				socketPath, groupFileOutput = sharedAuthd(t)
 			}
 			if tc.socketPath != "" {
 				socketPath = tc.socketPath
@@ -445,13 +454,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			got := td.ExpectedOutput(t, outDir)
 			golden.CheckOrUpdate(t, got)
 
-			if tc.wantLocalGroups || tc.oldDB != "" {
-				actualGroups, err := os.ReadFile(groupsFile)
-				require.NoError(t, err, "Failed to read the groups file")
-				golden.CheckOrUpdate(t, string(actualGroups), golden.WithSuffix(".groups"))
-			}
-
-			localgroupstestutils.RequireGPasswdOutput(t, gpasswdOutput, golden.Path(t)+".gpasswd_out")
+			localgroupstestutils.RequireGroupFile(t, groupFileOutput, golden.Path(t))
 
 			if !tc.skipRunnerCheck {
 				requireRunnerResultForUser(t, authd.SessionMode_LOGIN, tc.clientOptions.PamUser, got)
@@ -566,7 +569,8 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			if tc.currentUserNotRoot {
 				// For the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
-				socketPath = runAuthd(t, os.DevNull, os.DevNull, false)
+				socketPath = runAuthd(t, false,
+					testutils.WithGroupFile(filepath.Join(t.TempDir(), "group")))
 			} else {
 				socketPath, _ = sharedAuthd(t)
 			}

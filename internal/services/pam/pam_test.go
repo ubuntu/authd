@@ -26,8 +26,8 @@ import (
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/db"
-	"github.com/ubuntu/authd/internal/users/idgenerator"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
+	userslocking "github.com/ubuntu/authd/internal/users/locking"
 	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"github.com/ubuntu/authd/log"
 	"google.golang.org/grpc"
@@ -452,9 +452,10 @@ func TestIsAuthenticated(t *testing.T) {
 				t.Parallel()
 			}
 
-			var destCmdsFile string
+			var destGroupFile string
 			if tc.localGroupsFile != "" {
-				destCmdsFile = localgroupstestutils.SetupGPasswdMock(t, filepath.Join(testutils.TestFamilyPath(t), tc.localGroupsFile))
+				destGroupFile = localgroupstestutils.SetupGroupMock(t,
+					filepath.Join(testutils.TestFamilyPath(t), tc.localGroupsFile))
 			}
 
 			dbDir := t.TempDir()
@@ -464,7 +465,7 @@ func TestIsAuthenticated(t *testing.T) {
 			}
 
 			managerOpts := []users.Option{
-				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+				users.WithIDGenerator(&users.IDGeneratorMock{
 					UIDsToGenerate: []uint32{1111},
 					GIDsToGenerate: []uint32{22222},
 				}),
@@ -539,7 +540,7 @@ func TestIsAuthenticated(t *testing.T) {
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
 			golden.CheckOrUpdate(t, gotDB, golden.WithPath("cache.db"))
 
-			localgroupstestutils.RequireGPasswdOutput(t, destCmdsFile, filepath.Join(golden.Path(t), "gpasswd.output"))
+			localgroupstestutils.RequireGroupFile(t, destGroupFile, golden.Path(t))
 		})
 	}
 }
@@ -558,7 +559,7 @@ func TestIDGeneration(t *testing.T) {
 			t.Parallel()
 
 			managerOpts := []users.Option{
-				users.WithIDGenerator(&idgenerator.IDGeneratorMock{
+				users.WithIDGenerator(&users.IDGeneratorMock{
 					UIDsToGenerate: []uint32{1111},
 					GIDsToGenerate: []uint32{22222},
 				}),
@@ -698,10 +699,6 @@ func TestEndSession(t *testing.T) {
 			require.NoError(t, err, "EndSession should not return an error, but did")
 		})
 	}
-}
-
-func TestMockgpasswd(t *testing.T) {
-	localgroupstestutils.Mockgpasswd(t)
 }
 
 // initBrokers starts dbus mock brokers on the system bus. It returns its config path.
@@ -857,11 +854,10 @@ func setupGlobalBrokerMock() (cleanup func(), err error) {
 }
 
 func TestMain(m *testing.M) {
-	if os.Getenv("GO_WANT_HELPER_PROCESS") != "" {
-		os.Exit(m.Run())
-	}
-
 	log.SetLevel(log.DebugLevel)
+
+	userslocking.Z_ForTests_OverrideLocking()
+	defer userslocking.Z_ForTests_RestoreLocking()
 
 	cleanup, err := setupGlobalBrokerMock()
 	if err != nil {
