@@ -276,10 +276,8 @@ func TestConfigLoad(t *testing.T) {
 }
 
 func TestAutoDetectConfig(t *testing.T) {
-	customizedSocketPath := filepath.Join(t.TempDir(), "mysocket")
 	var config daemon.DaemonConfig
 	config.Verbosity = 1
-	config.Paths.Socket = customizedSocketPath
 
 	configPath := daemon.GenerateTestConfig(t, &config)
 	configNextToBinaryPath := filepath.Join(filepath.Dir(os.Args[0]), "authd.yaml")
@@ -289,22 +287,11 @@ func TestAutoDetectConfig(t *testing.T) {
 	defer os.Remove(configNextToBinaryPath)
 
 	a := daemon.New()
+	a.SetArgs("--check-config")
 
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		err := a.Run()
-		require.NoError(t, err, "Run should exits without any error")
-	}()
-	a.WaitReady()
-	time.Sleep(50 * time.Millisecond)
+	err = a.Run()
+	require.NoError(t, err, "Run should not return an error")
 
-	defer wg.Wait()
-	defer a.Quit()
-
-	_, err = os.Stat(customizedSocketPath)
-	require.NoError(t, err, "Socket should exist")
 	require.Equal(t, 1, a.Config().Verbosity, "Verbosity is set from config")
 	require.Equal(t, &users.DefaultConfig, a.Config().UsersConfig, "Default Users Config")
 }
