@@ -48,8 +48,27 @@ type daemonConfig struct {
 	UsersConfig *users.Config `mapstructure:",squash" yaml:",inline"`
 }
 
+type options struct {
+	configDir string
+}
+
+// Option is a function that modifies configuration options for the daemon.
+type Option func(*options)
+
+// WithConfigDir sets the configuration directory for the daemon.
+func WithConfigDir(configDir string) Option {
+	return func(o *options) {
+		o.configDir = configDir
+	}
+}
+
 // New registers commands and return a new App.
-func New() *App {
+func New(args ...Option) *App {
+	opts := &options{configDir: consts.DefaultConfigDir}
+	for _, arg := range args {
+		arg(opts)
+	}
+
 	a := App{ready: make(chan struct{})}
 	a.rootCmd = cobra.Command{
 		Use:                                                                                 fmt.Sprintf("%s COMMAND", cmdName),
@@ -75,7 +94,7 @@ func New() *App {
 			}
 
 			// Install and unmarshall configuration
-			if err := initViperConfig(cmdName, &a.rootCmd, a.viper); err != nil {
+			if err := initViperConfig(cmdName, &a.rootCmd, a.viper, opts.configDir); err != nil {
 				return err
 			}
 			if err := a.viper.Unmarshal(&a.config); err != nil {
