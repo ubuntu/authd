@@ -30,10 +30,10 @@ type Config struct {
 
 // DefaultConfig is the default configuration for the user manager.
 var DefaultConfig = Config{
-	UIDMin: 1000000000,
-	UIDMax: 1999999999,
-	GIDMin: 1000000000,
-	GIDMax: 1999999999,
+	UIDMin: 10000,
+	UIDMax: 60000,
+	GIDMin: 10000,
+	GIDMax: 60000,
 }
 
 // Manager is the manager for any user related operation.

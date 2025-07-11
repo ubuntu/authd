@@ -342,11 +342,3 @@ mode:
 5. Select `drop to root shell prompt`
 
 The user then has access to the root filesystem and can proceed with debugging.
-
-## Using authd in LXD containers
-
-If you are using authd in a LXD container, you may encounter errors during authentication.
-
-To fix these errors, you need to configure UID and GID ranges.
-
-The configuration steps are outlined in this guide on [using authd with LXD](howto::use-with-lxd).
