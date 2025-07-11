@@ -391,7 +391,8 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 
 				authdEnv = append(authdEnv, useOldDatabaseEnv(t, tc.oldDB)...)
 
-				socketPath = runAuthd(t, true,
+				socketPath = runAuthd(t,
+					testutils.WithCurrentUserAsRoot,
 					testutils.WithGroupFile(groupOutput),
 					testutils.WithEnvironment(authdEnv...))
 			} else if !sharedSSHd {
