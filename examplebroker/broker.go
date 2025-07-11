@@ -633,8 +633,15 @@ func (b *Broker) IsAuthenticated(ctx context.Context, sessionID, authenticationD
 	}()
 
 	access, data = b.handleIsAuthenticated(ctx, sessionInfo, authData)
+
+	if ctx.Err() != nil {
+		log.Debugf(ctx, "IsAuthenticated for session %s was cancelled: %v", sessionID, ctx.Err())
+		return auth.Cancelled, `{"message": "authentication request cancelled"}`, ctx.Err()
+	}
+
 	log.Debugf(context.TODO(), "Authentication result on session %s (%s) for user %q: %q - %#v",
 		sessionInfo.sessionMode, sessionID, sessionInfo.username, access, data)
+
 	if access == auth.Granted && sessionInfo.currentAuthStep < sessionInfo.neededAuthSteps {
 		data = ""
 		if sessionInfo.pwdChange != noReset && sessionInfo.sessionMode == auth.SessionModeLogin {
