@@ -419,11 +419,17 @@ func TestNativeAuthenticate(t *testing.T) {
 
 				pidFile = filepath.Join(outDir, "authd.pid")
 
-				socketPath = runAuthd(t, !tc.currentUserNotRoot,
+				args := []testutils.DaemonOption{
 					testutils.WithGroupFile(groupFile),
 					testutils.WithGroupFileOutput(groupFileOutput),
 					testutils.WithPidFile(pidFile),
-					testutils.WithEnvironment(useOldDatabaseEnv(t, tc.oldDB)...))
+					testutils.WithEnvironment(useOldDatabaseEnv(t, tc.oldDB)...),
+				}
+				if !tc.currentUserNotRoot {
+					args = append(args, testutils.WithCurrentUserAsRoot)
+				}
+
+				socketPath = runAuthd(t, args...)
 			} else {
 				socketPath, groupFileOutput = sharedAuthd(t)
 			}
@@ -569,8 +575,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			if tc.currentUserNotRoot {
 				// For the not-root tests authd has to run in a more restricted way.
 				// In the other cases this is not needed, so we can just use a shared authd.
-				socketPath = runAuthd(t, false,
-					testutils.WithGroupFile(filepath.Join(t.TempDir(), "group")))
+				socketPath = runAuthd(t, testutils.WithGroupFile(filepath.Join(t.TempDir(), "group")))
 			} else {
 				socketPath, _ = sharedAuthd(t)
 			}
