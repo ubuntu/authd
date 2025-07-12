@@ -193,6 +193,7 @@ func TestSelectBroker(t *testing.T) {
 		brokerID    string
 		username    string
 		sessionMode string
+		existingDB  string
 
 		currentUserNotRoot bool
 
@@ -214,8 +215,18 @@ func TestSelectBroker(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
+			cacheDir := t.TempDir()
+			if tc.existingDB != "" {
+				err := db.Z_ForTests_CreateDBFromYAML(filepath.Join(testutils.TestFamilyPath(t), tc.existingDB), cacheDir)
+				require.NoError(t, err, "Setup: could not create database from testdata")
+			}
+
+			m, err := users.NewManager(users.DefaultConfig, cacheDir)
+			require.NoError(t, err, "Setup: could not create user manager")
+			t.Cleanup(func() { _ = m.Stop() })
+
 			pm := newPermissionManager(t, tc.currentUserNotRoot)
-			client := newPamClient(t, nil, globalBrokerManager, &pm)
+			client := newPamClient(t, m, globalBrokerManager, &pm)
 
 			switch tc.brokerID {
 			case "":
@@ -434,6 +445,7 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error_when_not_root":           {username: "success", currentUserNotRoot: true},
 		"Error_when_sessionID_is_empty": {sessionID: "-"},
 		"Error_when_there_is_no_broker": {sessionID: "invalid-session"},
+		"Error_when_user_is_locked":     {username: "locked", existingDB: "cache-with-locked-user.db"},
 
 		// broker errors
 		"Error_when_authenticating":                         {username: "ia_error"},
