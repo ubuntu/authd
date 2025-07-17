@@ -314,13 +314,6 @@ The authd service is configured in `/etc/authd/authd.yaml`.
 
 This provides configuration options for logging verbosity and UID/GID ranges.
 
-```{admonition} Additional configuration for LXD
-:class: tip
-If you are using authd inside LXD containers, read our short guide on [how to
-use authd with LXD](howto::use-with-lxd), which outlines additional steps for
-configuring appropriate UID/GID ranges.
-```
-
 ## Configure password quality
 
 You can change authd's local password policy to ensure that users always set
