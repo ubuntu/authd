@@ -4,6 +4,7 @@ myst:
     "description lang=en": "Configure authd and its identity brokers to enable authentication of Ubuntu devices with multiple cloud identity providers, including Google IAM and Microsoft Entra ID."
 ---
 
+(ref::config)=
 # Configure authd for cloud identity providers
 
 This guide shows how to configure identity brokers to support authentication of
@@ -237,6 +238,42 @@ in `allowed_users`:
 ```text
 owner = ""
 ```
+
+:::::{admonition} Only my first logged-in user has access to the machine?
+:class: important
+By default, the first logged-in user is defined as the "owner" and only the
+owner can log in.
+To allow more users to log in, update the list of allowed users.
+
+If an administrator is the first to log in to a machine and becomes the owner,
+they can ensure that the next user to log in becomes the owner by removing the
+`20-owner-autoregistration.conf` file:
+
+::::{tab-set}
+:sync-group: broker
+
+:::{tab-item} Google IAM
+:sync: google
+
+```shell
+sudo rm /var/snap/authd-google/current/broker.conf.d/20-owner-autoregistration.conf
+```
+:::
+
+:::{tab-item} MS Entra ID
+:sync: msentraid
+
+```shell
+sudo rm /var/snap/authd-msentraid/current/broker.conf.d/20-owner-autoregistration.conf
+```
+:::
+::::
+
+
+This file is generated when a user logs in and becomes the owner. If it is
+removed, it will be regenerated on the next successful login.
+
+:::::
 
 (ref::config-user-groups)=
 ## Configure user groups
