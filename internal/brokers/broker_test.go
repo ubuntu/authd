@@ -213,7 +213,7 @@ func TestIsAuthenticated(t *testing.T) {
 		cancelFirstCall bool
 	}{
 		"Successfully_authenticate":                                        {sessionID: "success"},
-		"Successfully_authenticate_after_cancelling_first_call":            {sessionID: "ia_second_call", secondCall: true},
+		"Successfully_authenticate_after_cancelling_first_call":            {sessionID: "ia_second_call", secondCall: true, cancelFirstCall: true},
 		"Denies_authentication_when_broker_times_out":                      {sessionID: "ia_timeout"},
 		"Adds_default_groups_even_if_broker_did_not_set_them":              {sessionID: "ia_info_empty_groups"},
 		"No_error_when_auth.Next_and_no_data":                              {sessionID: "ia_next"},
@@ -236,7 +236,7 @@ func TestIsAuthenticated(t *testing.T) {
 		"Error_when_broker_returns_data_on_auth.Cancelled":                    {sessionID: "ia_cancelled_with_data"},
 		"Error_when_broker_returns_no_data_on_auth.Denied":                    {sessionID: "ia_denied_without_data"},
 		"Error_when_broker_returns_no_data_on_auth.Retry":                     {sessionID: "ia_retry_without_data"},
-		"Error_when_calling_IsAuthenticated_a_second_time_without_cancelling": {sessionID: "ia_second_call", secondCall: true, cancelFirstCall: true},
+		"Error_when_calling_IsAuthenticated_a_second_time_without_cancelling": {sessionID: "ia_second_call", secondCall: true},
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -264,7 +264,7 @@ func TestIsAuthenticated(t *testing.T) {
 			time.Sleep(time.Second)
 
 			if tc.secondCall {
-				if !tc.cancelFirstCall {
+				if tc.cancelFirstCall {
 					cancel()
 					<-done
 				}
