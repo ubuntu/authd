@@ -10,8 +10,8 @@ provider.
 ```{toctree}
 :titlesonly:
 
-Install authd <install-authd>
-Configure authd <configure-authd>
+Installing authd <install-authd>
+Configuring authd <configure-authd>
 ```
 
 ## Login and authentication
@@ -19,12 +19,11 @@ Configure authd <configure-authd>
 Read about how users can authenticate when
 logging into Ubuntu Desktop or Server.
 
-
 ```{toctree}
 :titlesonly:
 
-Log in with GDM <login-gdm>
-Log in with SSH <login-ssh>
+Logging in with GDM <login-gdm>
+Logging in with SSH <login-ssh>
 ```
 
 ## Network file systems
@@ -34,8 +33,30 @@ Learn how to use authd with different network file systems.
 ```{toctree}
 :titlesonly:
 
-Use authd with NFS <use-with-nfs>
-Use authd with Samba <use-with-samba>
+Using authd with NFS <use-with-nfs>
+Using authd with Samba <use-with-samba>
+```
+
+## Debugging and troubleshooting
+
+Actions you can take if something goes wrong.
+
+```{toctree}
+:titlesonly:
+
+Accessing and configuring logs <logging>
+Entering recovery mode on failed login <enter-recovery-mode>
+```
+
+## Updating and upgrading
+
+authd and its brokers can currently be switched between
+stable and edge releases.
+
+```{toctree}
+:titlesonly:
+
+Changing authd versions <changing-versions>
 ```
 
 ## Contributing to authd
