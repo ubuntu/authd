@@ -1,7 +1,6 @@
 package nss_test
 
 import (
-	"context"
 	"log"
 	"os"
 	"path/filepath"
@@ -29,18 +28,12 @@ func TestIntegration(t *testing.T) {
 	defaultDbState := "multiple_users_and_groups"
 	defaultGroupsFilePath := filepath.Join(filepath.Join("testdata", "empty.group"))
 
-	ctx, cancel := context.WithCancel(context.Background())
-	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
+	testutils.StartDaemon(t, daemonPath,
 		testutils.WithSocketPath(defaultSocket),
 		testutils.WithPreviousDBState(defaultDbState),
 		testutils.WithGroupFile(defaultGroupsFilePath),
-		testutils.WithEnvironment("AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1"),
+		testutils.WithCurrentUserAsRoot,
 	)
-
-	t.Cleanup(func() {
-		cancel()
-		<-stopped
-	})
 
 	tests := map[string]struct {
 		getentDB string
@@ -113,16 +106,10 @@ func TestIntegration(t *testing.T) {
 
 			if useAlternativeDaemon {
 				// Run a specific new daemon for special test cases.
-				var daemonStopped chan struct{}
-				ctx, cancel := context.WithCancel(context.Background())
-				socketPath, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath,
+				socketPath = testutils.StartDaemon(t, daemonPath,
 					testutils.WithPreviousDBState(tc.dbState),
 					testutils.WithGroupFile(defaultGroupsFilePath),
 				)
-				t.Cleanup(func() {
-					cancel()
-					<-daemonStopped
-				})
 			}
 
 			cmds := []string{tc.getentDB}
@@ -167,13 +154,14 @@ func TestIntegration(t *testing.T) {
 }
 
 func TestMain(m *testing.M) {
-	execPath, cleanup, err := testutils.BuildDaemon("-tags=withexamplebroker,integrationtests")
+	var cleanup func()
+	var err error
+	daemonPath, cleanup, err = testutils.BuildDaemonWithExampleBroker()
 	if err != nil {
 		log.Printf("Setup: failed to build daemon: %v", err)
 		os.Exit(1)
 	}
 	defer cleanup()
-	daemonPath = execPath
 
 	m.Run()
 }
