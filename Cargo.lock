@@ -668,7 +668,7 @@ dependencies = [
  "libnss",
  "log",
  "procfs",
- "prost 0.14.1",
+ "prost 0.13.5",
  "rustix 1.0.8",
  "simple_logger",
  "syslog",
