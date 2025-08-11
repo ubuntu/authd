@@ -1,8 +1,8 @@
-authd (0.5.6+git250811+969+5af30c9c) plucky; urgency=medium
+authd (0.5.6+git250811+975+69b8babd) plucky; urgency=medium
 
-  * Github build. Run id: 16875786562. Run number: 969.
+  * Github build. Run id: 16882401030. Run number: 975.
 
- -- adombeck <18482300+adombeck@users.noreply.github.com>  Mon, 11 Aug 2025 09:13:54 +0000
+ -- adombeck <18482300+adombeck@users.noreply.github.com>  Mon, 11 Aug 2025 14:05:20 +0000
 
 authd (0.5.6) questing; urgency=medium
 
