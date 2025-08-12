@@ -235,6 +235,11 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tapeSettings: []tapeSetting{{vhsHeight, 1500}, {vhsWidth, 1800}},
 			userPrefix:   examplebroker.UserIntegrationMfaWithResetPrefix,
 		},
+		"Authenticate_user_with_mfa_and_reset_same_password": {
+			tape:         "mfa_reset_same_password",
+			tapeSettings: []tapeSetting{{vhsHeight, 3000}},
+			userPrefix:   examplebroker.UserIntegrationMfaWithResetPrefix,
+		},
 		"Authenticate_user_and_offer_password_reset": {
 			tape:       "optional_password_reset_skip",
 			userPrefix: examplebroker.UserIntegrationCanResetPrefix,
