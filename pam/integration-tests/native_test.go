@@ -223,6 +223,13 @@ func TestNativeAuthenticate(t *testing.T) {
 				PamUser: examplebroker.UserIntegrationMfaWithResetPrefix + "pwquality",
 			},
 		},
+		"Authenticate_user_with_mfa_and_reset_same_password": {
+			tape:         "mfa_reset_same_password",
+			tapeSettings: []tapeSetting{{vhsHeight, 3000}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationMfaWithResetPrefix + "same-password",
+			},
+		},
 		"Authenticate_user_and_offer_password_reset": {
 			tape: "optional_password_reset_skip",
 			clientOptions: clientOptions{
