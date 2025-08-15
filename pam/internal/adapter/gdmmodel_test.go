@@ -82,6 +82,7 @@ func TestGdmModel(t *testing.T) {
 	testCases := map[string]struct {
 		client           authd.PAMClient
 		clientOptions    []pam_test.DummyClientOptions
+		sessionMode      authd.SessionMode
 		supportedLayouts []*authd.UILayout
 		messages         []tea.Msg
 		commands         []tea.Cmd
@@ -554,8 +555,9 @@ func TestGdmModel(t *testing.T) {
 				msg:      "Hi GDM, it's a pleasure to change your password!",
 			},
 		},
-		"New_password_cannot_change_because_matches_previous_with_preset_PAM_user_and_server_side_broker_and_authMode_selection": {
-			timeout: 30 * time.Second,
+		"Changing_password_fails_when_same_as_old_password_with_preset_PAM_user_and_server_side_broker_and_authMode_selection": {
+			timeout:     30 * time.Second,
+			sessionMode: authd.SessionMode_CHANGE_PASSWORD,
 			clientOptions: append(slices.Clone(singleBrokerClientOptions),
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil),
 				pam_test.WithUILayout(newPasswordUILayoutID, "New Password", pam_test.NewPasswordUILayout()),
@@ -2444,6 +2446,9 @@ func TestGdmModel(t *testing.T) {
 			if tc.client == nil {
 				tc.client = pam_test.NewDummyClient(gdmTestPrivateKey, tc.clientOptions...)
 			}
+			if tc.sessionMode == authd.SessionMode_UNDEFINED {
+				tc.sessionMode = authd.SessionMode_LOGIN
+			}
 
 			messagesToSend := tc.messages
 			messagesToWait := append(tc.messages, tc.wantMessages...)
@@ -2471,7 +2476,7 @@ func TestGdmModel(t *testing.T) {
 
 			var exitStatus PamReturnStatus
 			uiModel := newUIModelForClients(pam_test.NewModuleTransactionDummy(gdmHandler),
-				Gdm, authd.SessionMode_LOGIN, tc.client, nil, &exitStatus)
+				Gdm, tc.sessionMode, tc.client, nil, &exitStatus)
 
 			appState := gdmTestUIModel{
 				uiModel:             uiModel,
