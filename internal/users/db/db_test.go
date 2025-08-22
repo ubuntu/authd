@@ -869,6 +869,10 @@ func TestUpdateLockedFieldForUser(t *testing.T) {
 	err := c.UpdateLockedFieldForUser("user1", true)
 	require.NoError(t, err, "UpdateLockedFieldForUser for an existent user should not return an error")
 
+	// Update broker for existent user with different capitalization
+	err = c.UpdateLockedFieldForUser("USER1", true)
+	require.NoError(t, err, "UpdateLockedFieldForUser for an existent user with different capitalization should not return an error")
+
 	// Error when updating broker for nonexistent user
 	err = c.UpdateLockedFieldForUser("nonexistent", false)
 	require.Error(t, err, "UpdateLockedFieldForUser for a nonexistent user should return an error")

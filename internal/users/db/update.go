@@ -185,6 +185,9 @@ func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 
 // UpdateLockedFieldForUser sets the "locked" field of a user record.
 func (m *Manager) UpdateLockedFieldForUser(username string, locked bool) error {
+	// authd uses lowercase usernames
+	username = strings.ToLower(username)
+
 	query := `UPDATE users SET locked = ? WHERE name = ?`
 	res, err := m.db.Exec(query, locked, username)
 	if err != nil {
