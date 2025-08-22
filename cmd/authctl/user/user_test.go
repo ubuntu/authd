@@ -66,7 +66,7 @@ func TestUserLockCommand(t *testing.T) {
 		testutils.WithCurrentUserAsRoot,
 	)
 
-	err := os.Setenv("AUTHD_SOCKET", "unix://"+daemonSocket)
+	err := os.Setenv("AUTHD_SOCKET", daemonSocket)
 	require.NoError(t, err, "Failed to set AUTHD_SOCKET environment variable")
 
 	tests := map[string]struct {
