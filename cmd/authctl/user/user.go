@@ -4,6 +4,7 @@ package user
 import (
 	"fmt"
 	"os"
+	"regexp"
 
 	"github.com/spf13/cobra"
 	"github.com/ubuntu/authd/internal/consts"
@@ -25,6 +26,12 @@ func NewUserServiceClient() (authd.UserServiceClient, error) {
 	authdSocket := os.Getenv("AUTHD_SOCKET")
 	if authdSocket == "" {
 		authdSocket = "unix://" + consts.DefaultSocketPath
+	}
+
+	// Check if the socket has a scheme, else default to "unix://"
+	schemeRegex := regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.-]*:`)
+	if !schemeRegex.MatchString(authdSocket) {
+		authdSocket = "unix://" + authdSocket
 	}
 
 	conn, err := grpc.NewClient(authdSocket, grpc.WithTransportCredentials(insecure.NewCredentials()))
