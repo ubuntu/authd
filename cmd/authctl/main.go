@@ -46,14 +46,20 @@ func main() {
 			os.Exit(1)
 		}
 
-		// If the error is a gRPC status, we print the message and exit with the appropriate code.
+		// If the error is a gRPC status, we print the message and exit with the gRPC status code.
 		switch s.Code() {
 		case codes.PermissionDenied:
 			fmt.Fprintln(os.Stderr, "Permission denied:", s.Message())
 		default:
 			fmt.Fprintln(os.Stderr, "Error:", s.Message())
 		}
+		code := int(s.Code())
+		if code < 0 || code > 255 {
+			// We cannot exit with a negative code or a code greater than 255,
+			// so we map it to 1 in that case.
+			code = 1
+		}
 
-		os.Exit(int(s.Code()))
+		os.Exit(code)
 	}
 }
