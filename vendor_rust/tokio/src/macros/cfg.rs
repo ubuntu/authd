@@ -1,5 +1,26 @@
 #![allow(unused_macros)]
 
+/// Allows specifying arbitrary combinations of features and config flags,
+/// which are also propagated to `docsrs` config.
+///
+/// Each contained item will have the annotations applied
+///
+/// ## Example usage:
+/// ```no-compile
+/// feature! {
+/// #![any(
+///     feature = "process",
+///     feature = "sync",
+///     feature = "rt",
+///     tokio_unstable
+/// )]
+///     /// docs
+///     pub struct MyStruct {};
+///     /// docs
+///     pub struct AnotherStruct {};
+/// }
+/// ```
+///
 macro_rules! feature {
     (
         #![$meta:meta]
@@ -120,11 +141,23 @@ macro_rules! cfg_io_driver {
                 feature = "net",
                 all(unix, feature = "process"),
                 all(unix, feature = "signal"),
+                all(
+                    tokio_uring,
+                    feature = "rt",
+                    feature = "fs",
+                    target_os = "linux"
+                )
             ))]
             #[cfg_attr(docsrs, doc(cfg(any(
                 feature = "net",
                 all(unix, feature = "process"),
                 all(unix, feature = "signal"),
+                all(
+                    tokio_uring,
+                    feature = "rt",
+                    feature = "fs",
+                    target_os = "linux"
+                )
             ))))]
             $item
         )*
@@ -138,6 +171,12 @@ macro_rules! cfg_io_driver_impl {
                 feature = "net",
                 all(unix, feature = "process"),
                 all(unix, feature = "signal"),
+                all(
+                    tokio_uring,
+                    feature = "rt",
+                    feature = "fs",
+                    target_os = "linux"
+                )
             ))]
             $item
         )*
@@ -151,6 +190,12 @@ macro_rules! cfg_not_io_driver {
                 feature = "net",
                 all(unix, feature = "process"),
                 all(unix, feature = "signal"),
+                all(
+                    tokio_uring,
+                    feature = "rt",
+                    feature = "fs",
+                    target_os = "linux"
+                )
             )))]
             $item
         )*
@@ -274,6 +319,35 @@ macro_rules! cfg_net {
         $(
             #[cfg(feature = "net")]
             #[cfg_attr(docsrs, doc(cfg(feature = "net")))]
+            $item
+        )*
+    }
+}
+
+macro_rules! cfg_net_or_uring {
+    ($($item:item)*) => {
+        $(
+            #[cfg(any(
+                feature = "net",
+                all(
+                    tokio_uring,
+                    feature = "rt",
+                    feature = "fs",
+                    target_os = "linux",
+                )
+            ))]
+            #[cfg_attr(
+                docsrs,
+                doc(cfg(any(
+                    feature = "net",
+                    all(
+                        tokio_uring,
+                        feature = "rt",
+                        feature = "fs",
+                        target_os = "linux",
+                    )
+                )))
+            )]
             $item
         )*
     }
@@ -615,4 +689,18 @@ macro_rules! cfg_metrics_variant {
             $($unstable_code)*
         }
     }
+}
+
+macro_rules! cfg_tokio_uring {
+    ($($item:item)*) => {
+        $(
+            #[cfg(all(
+                tokio_uring,
+                feature = "rt",
+                feature = "fs",
+                target_os = "linux",
+            ))]
+            $item
+        )*
+    };
 }

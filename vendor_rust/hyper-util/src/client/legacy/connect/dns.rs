@@ -30,7 +30,6 @@ use std::{fmt, io, vec};
 
 use tokio::task::JoinHandle;
 use tower_service::Service;
-use tracing::debug_span;
 
 pub(super) use self::sealed::Resolve;
 
@@ -117,9 +116,7 @@ impl Service<Name> for GaiResolver {
     }
 
     fn call(&mut self, name: Name) -> Self::Future {
-        let span = debug_span!("resolve", host = %name.host);
         let blocking = tokio::task::spawn_blocking(move || {
-            let _enter = span.enter();
             (&*name.host, 0)
                 .to_socket_addrs()
                 .map(|i| SocketAddrs { iter: i })
@@ -146,7 +143,7 @@ impl Future for GaiFuture {
                 if join_err.is_cancelled() {
                     Err(io::Error::new(io::ErrorKind::Interrupted, join_err))
                 } else {
-                    panic!("gai background task failed: {:?}", join_err)
+                    panic!("gai background task failed: {join_err:?}")
                 }
             }
         })
@@ -294,7 +291,7 @@ pub(super) async fn resolve<R>(resolver: &mut R, name: Name) -> Result<R::Addrs,
 where
     R: Resolve,
 {
-    futures_util::future::poll_fn(|cx| resolver.poll_ready(cx)).await?;
+    crate::common::future::poll_fn(|cx| resolver.poll_ready(cx)).await?;
     resolver.resolve(name).await
 }
 

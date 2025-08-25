@@ -1,16 +1,19 @@
-//! Temporary files and directories.
+//! This is a library for creating temporary files and directories that are automatically deleted
+//! when no longer referenced (i.e., on drop).
 //!
-//! - Use the [`tempfile()`] function for temporary files
-//! - Use the [`tempdir()`] function for temporary directories.
+//! - Use [`tempfile()`] when you need a real [`std::fs::File`] but don't need to refer to it
+//!   by-path.
+//! - Use [`NamedTempFile::new()`] when you need a _named_ temporary file that can be refered to its
+//!   path.
+//! - Use [`tempdir()`] when you need a temporary directory that will be recursively deleted on drop.
+//! - Use [`spooled_tempfile()`] when you need an in-memory buffer that will ultimately be backed by
+//!   a temporary file if it gets too large.
 //!
 //! # Design
 //!
 //! This crate provides several approaches to creating temporary files and directories.
 //! [`tempfile()`] relies on the OS to remove the temporary file once the last handle is closed.
 //! [`TempDir`] and [`NamedTempFile`] both rely on Rust destructors for cleanup.
-//!
-//! When choosing between the temporary file variants, prefer `tempfile`
-//! unless you either need to know the file's path or to be able to persist it.
 //!
 //! ## Resource Leaking
 //!
@@ -215,7 +218,7 @@ pub use crate::dir::{tempdir, tempdir_in, TempDir};
 pub use crate::file::{
     tempfile, tempfile_in, NamedTempFile, PathPersistError, PersistError, TempPath,
 };
-pub use crate::spooled::{spooled_tempfile, SpooledData, SpooledTempFile};
+pub use crate::spooled::{spooled_tempfile, spooled_tempfile_in, SpooledData, SpooledTempFile};
 
 /// Create a new temporary file or directory with custom options.
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -225,7 +228,7 @@ pub struct Builder<'a, 'b> {
     suffix: &'b OsStr,
     append: bool,
     permissions: Option<std::fs::Permissions>,
-    keep: bool,
+    disable_cleanup: bool,
 }
 
 impl Default for Builder<'_, '_> {
@@ -236,7 +239,7 @@ impl Default for Builder<'_, '_> {
             suffix: OsStr::new(""),
             append: false,
             permissions: None,
-            keep: false,
+            disable_cleanup: false,
         }
     }
 }
@@ -462,14 +465,20 @@ impl<'a, 'b> Builder<'a, 'b> {
         self
     }
 
-    /// Set the file/folder to be kept even when the [`NamedTempFile`]/[`TempDir`] goes out of
-    /// scope.
+    /// Disable cleanup of the file/folder to even when the [`NamedTempFile`]/[`TempDir`] goes out
+    /// of scope. Prefer [`NamedTempFile::keep`] and `[`TempDir::keep`] where possible,
+    /// `disable_cleanup` is provided for testing & debugging.
     ///
     /// By default, the file/folder is automatically cleaned up in the destructor of
-    /// [`NamedTempFile`]/[`TempDir`]. When `keep` is set to `true`, this behavior is suppressed.
+    /// [`NamedTempFile`]/[`TempDir`]. When `disable_cleanup` is set to `true`, this behavior is
+    /// suppressed. If you wish to disable cleanup after creating a temporary file/directory, call
+    /// [`NamedTempFile::disable_cleanup`] or [`TempDir::disable_cleanup`].
     ///
-    /// If you wish to keep a temporary file or directory after creating it, call
-    /// [`NamedTempFile::keep`] or [`TempDir::into_path`] respectively.
+    /// # Warnings
+    ///
+    /// On some platforms (for now, only Windows), temporary files are marked with a special
+    /// "temporary file" (`FILE_ATTRIBUTE_TEMPORARY`) attribute. Disabling cleanup _will not_ unset
+    /// this attribute while calling [`NamedTempFile::keep`] will.
     ///
     /// # Examples
     ///
@@ -477,13 +486,19 @@ impl<'a, 'b> Builder<'a, 'b> {
     /// use tempfile::Builder;
     ///
     /// let named_tempfile = Builder::new()
-    ///     .keep(true)
+    ///     .disable_cleanup(true)
     ///     .tempfile()?;
     /// # Ok::<(), std::io::Error>(())
     /// ```
-    pub fn keep(&mut self, keep: bool) -> &mut Self {
-        self.keep = keep;
+    pub fn disable_cleanup(&mut self, disable_cleanup: bool) -> &mut Self {
+        self.disable_cleanup = disable_cleanup;
         self
+    }
+
+    /// Deprecated alias for [`Builder::disable_cleanup`].
+    #[deprecated = "Use Builder::disable_cleanup"]
+    pub fn keep(&mut self, keep: bool) -> &mut Self {
+        self.disable_cleanup(keep)
     }
 
     /// Create the named temporary file.
@@ -551,7 +566,7 @@ impl<'a, 'b> Builder<'a, 'b> {
                     path,
                     OpenOptions::new().append(self.append),
                     self.permissions.as_ref(),
-                    self.keep,
+                    self.disable_cleanup,
                 )
             },
         )
@@ -612,7 +627,7 @@ impl<'a, 'b> Builder<'a, 'b> {
             self.prefix,
             self.suffix,
             self.random_len,
-            |path| dir::create(path, self.permissions.as_ref(), self.keep),
+            |path| dir::create(path, self.permissions.as_ref(), self.disable_cleanup),
         )
     }
 
@@ -737,7 +752,7 @@ impl<'a, 'b> Builder<'a, 'b> {
             move |path| {
                 Ok(NamedTempFile::from_parts(
                     f(&path)?,
-                    TempPath::new(path, self.keep),
+                    TempPath::new(path, self.disable_cleanup),
                 ))
             },
         )

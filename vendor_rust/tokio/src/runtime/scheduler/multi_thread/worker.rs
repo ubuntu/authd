@@ -62,7 +62,7 @@ use crate::runtime::scheduler::multi_thread::{
     idle, queue, Counters, Handle, Idle, Overflow, Parker, Stats, TraceStatus, Unparker,
 };
 use crate::runtime::scheduler::{inject, Defer, Lock};
-use crate::runtime::task::{OwnedTasks, TaskHarnessScheduleHooks};
+use crate::runtime::task::OwnedTasks;
 use crate::runtime::{blocking, driver, scheduler, task, Config, SchedulerMetrics, WorkerMetrics};
 use crate::runtime::{context, TaskHooks};
 use crate::task::coop;
@@ -224,9 +224,6 @@ pub(crate) struct Launch(Vec<Arc<Worker>>);
 /// running the task completes, it is returned. Otherwise, the worker will need
 /// to stop processing.
 type RunResult = Result<Box<Core>, ()>;
-
-/// A task handle
-type Task = task::Task<Arc<Handle>>;
 
 /// A notified task handle
 type Notified = task::Notified<Arc<Handle>>;
@@ -571,7 +568,7 @@ impl Context {
 
     fn run_task(&self, task: Notified, mut core: Box<Core>) -> RunResult {
         #[cfg(tokio_unstable)]
-        let task_id = task.task_id();
+        let task_meta = task.task_meta();
 
         let task = self.worker.handle.shared.owned.assert_owner(task);
 
@@ -595,12 +592,15 @@ impl Context {
             // Unlike the poll time above, poll start callback is attached to the task id,
             // so it is tightly associated with the actual poll invocation.
             #[cfg(tokio_unstable)]
-            self.worker.handle.task_hooks.poll_start_callback(task_id);
+            self.worker
+                .handle
+                .task_hooks
+                .poll_start_callback(&task_meta);
 
             task.run();
 
             #[cfg(tokio_unstable)]
-            self.worker.handle.task_hooks.poll_stop_callback(task_id);
+            self.worker.handle.task_hooks.poll_stop_callback(&task_meta);
 
             let mut lifo_polls = 0;
 
@@ -666,15 +666,18 @@ impl Context {
                 let task = self.worker.handle.shared.owned.assert_owner(task);
 
                 #[cfg(tokio_unstable)]
-                let task_id = task.task_id();
+                let task_meta = task.task_meta();
 
                 #[cfg(tokio_unstable)]
-                self.worker.handle.task_hooks.poll_start_callback(task_id);
+                self.worker
+                    .handle
+                    .task_hooks
+                    .poll_start_callback(&task_meta);
 
                 task.run();
 
                 #[cfg(tokio_unstable)]
-                self.worker.handle.task_hooks.poll_stop_callback(task_id);
+                self.worker.handle.task_hooks.poll_stop_callback(&task_meta);
             }
         })
     }
@@ -1045,27 +1048,6 @@ impl Worker {
     /// Returns a reference to the scheduler's injection queue.
     fn inject(&self) -> &inject::Shared<Arc<Handle>> {
         &self.handle.shared.inject
-    }
-}
-
-// TODO: Move `Handle` impls into handle.rs
-impl task::Schedule for Arc<Handle> {
-    fn release(&self, task: &Task) -> Option<Task> {
-        self.shared.owned.remove(task)
-    }
-
-    fn schedule(&self, task: Notified) {
-        self.schedule_task(task, false);
-    }
-
-    fn hooks(&self) -> TaskHarnessScheduleHooks {
-        TaskHarnessScheduleHooks {
-            task_terminate_callback: self.task_hooks.task_terminate_callback.clone(),
-        }
-    }
-
-    fn yield_now(&self, task: Notified) {
-        self.schedule_task(task, true);
     }
 }
 

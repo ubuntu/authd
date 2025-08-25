@@ -130,7 +130,7 @@ is not automatically supported since, from the target name alone, we cannot dedu
 which JavaScript interface should be used (or if JavaScript is available at all).
 
 To enable `getrandom`'s functionality on `wasm32-unknown-unknown` using the Web
-Crypto methods [described above](#opt-in-backends) via [`wasm-bindgen`], do
+Crypto methods [described above][opt-in] via [`wasm-bindgen`], do
 *both* of the following:
 
 -   Use the `wasm_js` feature flag, i.e.
@@ -138,18 +138,22 @@ Crypto methods [described above](#opt-in-backends) via [`wasm-bindgen`], do
     On its own, this only makes the backend available. (As a side effect this
     will make your `Cargo.lock` significantly larger if you are not already
     using [`wasm-bindgen`], but otherwise enabling this feature is harmless.)
--   Set `RUSTFLAGS='--cfg getrandom_backend="wasm_js"'` ([see above](#opt-in-backends)).
+-   Set `RUSTFLAGS='--cfg getrandom_backend="wasm_js"'` ([see above][opt-in]).
 
 This backend supports both web browsers (main window and Web Workers)
 and Node.js (v19 or later) environments.
+
+WARNING: It is highly recommended to enable the `wasm_js` feature only for
+binary crates and tests, i.e. avoid unconditionally enabling it in library crates.
 
 ### Custom backend
 
 If this crate does not support your target out of the box or you have to use
 a non-default entropy source, then you can provide a custom implementation.
-You need to enable the custom backend as described in the [configuration flags]
-section. Next, you need to define an `extern` function with the following
-signature:
+You need to enable the custom backend as described in the
+[opt-in backends][opt-in] section.
+
+Next, you need to define an `extern` function with the following signature:
 
 ```rust
 use getrandom::Error;
@@ -322,7 +326,7 @@ dual licensed as above, without any additional terms or conditions.
 
 [//]: # (badges)
 
-[GitHub Actions]: https://github.com/rust-random/getrandom/actions?query=workflow:Tests+branch:master
+[GitHub Actions]: https://github.com/rust-random/getrandom/actions?query=branch:master
 [Build Status]: https://github.com/rust-random/getrandom/actions/workflows/tests.yml/badge.svg?branch=master
 [crates.io]: https://crates.io/crates/getrandom
 [Crate]: https://img.shields.io/crates/v/getrandom
@@ -375,6 +379,7 @@ dual licensed as above, without any additional terms or conditions.
 [platform-support]: https://doc.rust-lang.org/stable/rustc/platform-support.html
 [WASI]: https://github.com/WebAssembly/WASI
 [Emscripten]: https://emscripten.org
+[opt-in]: #opt-in-backends
 
 [//]: # (licenses)
 

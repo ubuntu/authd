@@ -13,9 +13,10 @@
 edition = "2021"
 rust-version = "1.70"
 name = "tokio"
-version = "1.45.0"
+version = "1.47.1"
 authors = ["Tokio Contributors <team@tokio.rs>"]
 build = false
+autolib = false
 autobins = false
 autoexamples = false
 autotests = false
@@ -68,6 +69,68 @@ features = [
     "full",
     "test-util",
 ]
+
+[features]
+default = []
+fs = []
+full = [
+    "fs",
+    "io-util",
+    "io-std",
+    "macros",
+    "net",
+    "parking_lot",
+    "process",
+    "rt",
+    "rt-multi-thread",
+    "signal",
+    "sync",
+    "time",
+]
+io-std = []
+io-util = ["bytes"]
+macros = ["tokio-macros"]
+net = [
+    "libc",
+    "mio/os-poll",
+    "mio/os-ext",
+    "mio/net",
+    "socket2",
+    "windows-sys/Win32_Foundation",
+    "windows-sys/Win32_Security",
+    "windows-sys/Win32_Storage_FileSystem",
+    "windows-sys/Win32_System_Pipes",
+    "windows-sys/Win32_System_SystemServices",
+]
+process = [
+    "bytes",
+    "libc",
+    "mio/os-poll",
+    "mio/os-ext",
+    "mio/net",
+    "signal-hook-registry",
+    "windows-sys/Win32_Foundation",
+    "windows-sys/Win32_System_Threading",
+    "windows-sys/Win32_System_WindowsProgramming",
+]
+rt = []
+rt-multi-thread = ["rt"]
+signal = [
+    "libc",
+    "mio/os-poll",
+    "mio/net",
+    "mio/os-ext",
+    "signal-hook-registry",
+    "windows-sys/Win32_Foundation",
+    "windows-sys/Win32_System_Console",
+]
+sync = []
+test-util = [
+    "rt",
+    "sync",
+    "time",
+]
+time = []
 
 [lib]
 name = "tokio"
@@ -350,6 +413,10 @@ name = "process_issue_42"
 path = "tests/process_issue_42.rs"
 
 [[test]]
+name = "process_issue_7144"
+path = "tests/process_issue_7144.rs"
+
+[[test]]
 name = "process_kill_after_wait"
 path = "tests/process_kill_after_wait.rs"
 
@@ -494,6 +561,10 @@ name = "sync_notify"
 path = "tests/sync_notify.rs"
 
 [[test]]
+name = "sync_notify_owned"
+path = "tests/sync_notify_owned.rs"
+
+[[test]]
 name = "sync_once_cell"
 path = "tests/sync_once_cell.rs"
 
@@ -516,6 +587,10 @@ path = "tests/sync_semaphore.rs"
 [[test]]
 name = "sync_semaphore_owned"
 path = "tests/sync_semaphore_owned.rs"
+
+[[test]]
+name = "sync_set_once"
+path = "tests/sync_set_once.rs"
 
 [[test]]
 name = "sync_watch"
@@ -712,73 +787,29 @@ version = "0.1"
 [dev-dependencies.tokio-test]
 version = "0.4.0"
 
-[features]
-default = []
-fs = []
-full = [
-    "fs",
-    "io-util",
-    "io-std",
-    "macros",
-    "net",
-    "parking_lot",
-    "process",
-    "rt",
-    "rt-multi-thread",
-    "signal",
-    "sync",
-    "time",
-]
-io-std = []
-io-util = ["bytes"]
-macros = ["tokio-macros"]
-net = [
-    "libc",
-    "mio/os-poll",
-    "mio/os-ext",
-    "mio/net",
-    "socket2",
-    "windows-sys/Win32_Foundation",
-    "windows-sys/Win32_Security",
-    "windows-sys/Win32_Storage_FileSystem",
-    "windows-sys/Win32_System_Pipes",
-    "windows-sys/Win32_System_SystemServices",
-]
-process = [
-    "bytes",
-    "libc",
-    "mio/os-poll",
-    "mio/os-ext",
-    "mio/net",
-    "signal-hook-registry",
-    "windows-sys/Win32_Foundation",
-    "windows-sys/Win32_System_Threading",
-    "windows-sys/Win32_System_WindowsProgramming",
-]
-rt = []
-rt-multi-thread = ["rt"]
-signal = [
-    "libc",
-    "mio/os-poll",
-    "mio/net",
-    "mio/os-ext",
-    "signal-hook-registry",
-    "windows-sys/Win32_Foundation",
-    "windows-sys/Win32_System_Console",
-]
-sync = []
-test-util = [
-    "rt",
-    "sync",
-    "time",
-]
-time = []
-
 [target.'cfg(all(target_family = "wasm", not(target_os = "wasi")))'.dev-dependencies.wasm-bindgen-test]
 version = "0.3.0"
 
 [target.'cfg(all(tokio_unstable, target_has_atomic = "64"))'.dev-dependencies.tracing-mock]
 version = "= 0.1.0-beta.1"
+
+[target.'cfg(all(tokio_uring, target_os = "linux"))'.dependencies.io-uring]
+version = "0.7.6"
+default-features = false
+
+[target.'cfg(all(tokio_uring, target_os = "linux"))'.dependencies.libc]
+version = "0.2.168"
+
+[target.'cfg(all(tokio_uring, target_os = "linux"))'.dependencies.mio]
+version = "1.0.1"
+features = [
+    "os-poll",
+    "os-ext",
+]
+default-features = false
+
+[target.'cfg(all(tokio_uring, target_os = "linux"))'.dependencies.slab]
+version = "0.4.9"
 
 [target."cfg(loom)".dev-dependencies.loom]
 version = "0.7"
@@ -788,10 +819,10 @@ features = [
 ]
 
 [target.'cfg(not(all(target_family = "wasm", target_os = "unknown")))'.dev-dependencies.rand]
-version = "0.8.0"
+version = "0.9"
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies.socket2]
-version = "0.5.5"
+version = "0.6.0"
 features = ["all"]
 optional = true
 
@@ -799,7 +830,7 @@ optional = true
 version = "1"
 
 [target.'cfg(not(target_family = "wasm"))'.dev-dependencies.socket2]
-version = "0.5.5"
+version = "0.6.0"
 
 [target.'cfg(not(target_family = "wasm"))'.dev-dependencies.tempfile]
 version = "3.1.0"
@@ -838,11 +869,11 @@ features = [
 default-features = false
 
 [target."cfg(windows)".dependencies.windows-sys]
-version = "0.52"
+version = "0.59"
 optional = true
 
 [target."cfg(windows)".dev-dependencies.windows-sys]
-version = "0.52"
+version = "0.59"
 features = [
     "Win32_Foundation",
     "Win32_Security_Authorization",
@@ -861,4 +892,6 @@ check-cfg = [
     "cfg(tokio_no_tuning_tests)",
     "cfg(tokio_taskdump)",
     "cfg(tokio_unstable)",
+    "cfg(tokio_uring)",
+    'cfg(target_os, values("cygwin"))',
 ]

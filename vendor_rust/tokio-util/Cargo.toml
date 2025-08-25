@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.70"
 name = "tokio-util"
-version = "0.7.15"
+version = "0.7.16"
 authors = ["Tokio Contributors <team@tokio.rs>"]
 build = false
 autolib = false
@@ -60,6 +60,7 @@ full = [
     "time",
     "net",
     "rt",
+    "join-map",
 ]
 io = []
 io-util = [
@@ -67,12 +68,15 @@ io-util = [
     "tokio/rt",
     "tokio/io-util",
 ]
+join-map = [
+    "rt",
+    "hashbrown",
+]
 net = ["tokio/net"]
 rt = [
     "tokio/rt",
     "tokio/sync",
     "futures-util",
-    "hashbrown",
 ]
 time = [
     "tokio/time",
@@ -118,6 +122,10 @@ path = "tests/framed_stream.rs"
 [[test]]
 name = "framed_write"
 path = "tests/framed_write.rs"
+
+[[test]]
+name = "future"
+path = "tests/future.rs"
 
 [[test]]
 name = "io_inspect"
@@ -200,6 +208,11 @@ version = "0.3.0"
 version = "0.3.0"
 optional = true
 
+[dependencies.hashbrown]
+version = "0.15.0"
+optional = true
+default-features = false
+
 [dependencies.pin-project-lite]
 version = "0.2.11"
 
@@ -242,12 +255,6 @@ version = "0.1"
 [dev-dependencies.tokio-test]
 version = "0.4.0"
 
-[target."cfg(tokio_unstable)".dependencies.hashbrown]
-version = "0.15.0"
-features = ["raw-entry"]
-optional = true
-default-features = false
-
 [lints.rust.unexpected_cfgs]
 level = "warn"
 priority = 0
@@ -261,4 +268,6 @@ check-cfg = [
     "cfg(tokio_no_tuning_tests)",
     "cfg(tokio_taskdump)",
     "cfg(tokio_unstable)",
+    "cfg(tokio_uring)",
+    'cfg(target_os, values("cygwin"))',
 ]
