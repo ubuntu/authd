@@ -10,9 +10,9 @@ import (
 	"github.com/ubuntu/authd/log"
 )
 
-const allUserColumns = "name, uid, gid, gecos, dir, shell, broker_id"
-const publicUserColumns = "name, uid, gid, gecos, dir, shell, broker_id"
-const allUserColumnsWithPlaceholders = "name = ?, uid = ?, gid = ?, gecos = ?, dir = ?, shell = ?, broker_id = ?"
+const allUserColumns = "name, uid, gid, gecos, dir, shell, broker_id, locked"
+const publicUserColumns = "name, uid, gid, gecos, dir, shell, broker_id, locked"
+const allUserColumnsWithPlaceholders = "name = ?, uid = ?, gid = ?, gecos = ?, dir = ?, shell = ?, broker_id = ?, locked = ?"
 
 // UserRow represents a user row in the database.
 type UserRow struct {
@@ -25,6 +25,8 @@ type UserRow struct {
 
 	// BrokerID specifies the broker the user last successfully authenticated with.
 	BrokerID string `yaml:"broker_id,omitempty"`
+
+	Locked bool `yaml:"locked,omitempty"`
 }
 
 // NewUserRow creates a new UserRow.
@@ -49,7 +51,7 @@ func userByID(db queryable, uid uint32) (UserRow, error) {
 	row := db.QueryRow(query, uid)
 
 	var u UserRow
-	err := row.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID)
+	err := row.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID, &u.Locked)
 	if errors.Is(err, sql.ErrNoRows) {
 		return UserRow{}, NewUIDNotFoundError(uid)
 	}
@@ -73,7 +75,7 @@ func userByName(db queryable, name string) (UserRow, error) {
 	row := db.QueryRow(query, name)
 
 	var u UserRow
-	err := row.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID)
+	err := row.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID, &u.Locked)
 	if errors.Is(err, sql.ErrNoRows) {
 		return UserRow{}, NewUserNotFoundError(name)
 	}
@@ -100,7 +102,7 @@ func allUsers(db queryable) ([]UserRow, error) {
 	var users []UserRow
 	for rows.Next() {
 		var u UserRow
-		err := rows.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID)
+		err := rows.Scan(&u.Name, &u.UID, &u.GID, &u.Gecos, &u.Dir, &u.Shell, &u.BrokerID, &u.Locked)
 		if err != nil {
 			return nil, fmt.Errorf("scan error: %w", err)
 		}
@@ -153,8 +155,8 @@ func userExists(db queryable, u UserRow) (bool, error) {
 // insertUser inserts a new user into the database.
 func insertUser(db queryable, u UserRow) error {
 	log.Debugf(context.Background(), "Inserting user %v", u.Name)
-	query := fmt.Sprintf(`INSERT INTO users (%s) VALUES (?, ?, ?, ?, ?, ?, ?)`, allUserColumns)
-	_, err := db.Exec(query, u.Name, u.UID, u.GID, u.Gecos, u.Dir, u.Shell, u.BrokerID)
+	query := fmt.Sprintf(`INSERT INTO users (%s) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, allUserColumns)
+	_, err := db.Exec(query, u.Name, u.UID, u.GID, u.Gecos, u.Dir, u.Shell, u.BrokerID, u.Locked)
 	if err != nil {
 		return fmt.Errorf("insert user error: %w", err)
 	}
@@ -165,7 +167,7 @@ func insertUser(db queryable, u UserRow) error {
 func updateUserByID(db queryable, u UserRow) error {
 	log.Debugf(context.Background(), "Updating user %v", u.Name)
 	query := fmt.Sprintf(`UPDATE users SET %s WHERE uid = ?`, allUserColumnsWithPlaceholders)
-	_, err := db.Exec(query, u.Name, u.UID, u.GID, u.Gecos, u.Dir, u.Shell, u.BrokerID, u.UID)
+	_, err := db.Exec(query, u.Name, u.UID, u.GID, u.Gecos, u.Dir, u.Shell, u.BrokerID, u.Locked, u.UID)
 	if err != nil {
 		return fmt.Errorf("update user error: %w", err)
 	}

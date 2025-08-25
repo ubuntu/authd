@@ -1775,7 +1775,7 @@ func TestGdmModel(t *testing.T) {
 			},
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
-				msg:    "can't select broker: error during broker selection",
+				msg:    "error during broker selection",
 			},
 		},
 		"Error_during_broker_selection_if_session_ID_is_empty": {
@@ -2027,7 +2027,7 @@ func TestGdmModel(t *testing.T) {
 			wantStage: pam_proto.Stage_challenge,
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
-				msg:    "authentication status failure: some authentication error",
+				msg:    "some authentication error",
 			},
 		},
 		"Error_on_authentication_client_invalid_message": {
