@@ -248,6 +248,10 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 	// If vhs is installed with "go install", we need to add GOPATH to PATH.
 	cmd.Env = append(cmd.Env, prependBinToPath(t))
 
+	// vhs uses rod, which downloads chromium to $HOME/.cache/rod,
+	// so $HOME needs to be set to avoid that it downloads it every time.
+	cmd.Env = append(cmd.Env, fmt.Sprintf("HOME=%s", os.Getenv("HOME")))
+
 	u, err := user.Current()
 	require.NoError(t, err, "Setup: getting current user")
 	if u.Name == "root" || os.Getenv("SCHROOT_CHROOT_NAME") != "" {
