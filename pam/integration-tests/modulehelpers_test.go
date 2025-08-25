@@ -37,7 +37,6 @@ func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags
 
 	require.NoError(t, os.MkdirAll(filepath.Dir(libPath), 0700),
 		"Setup: Can't create loader build path")
-	t.Logf("Compiling C Module library at %s", libPath)
 	cmd.Args = append(cmd.Args, "-o", libPath)
 	cmd.Args = append(cmd.Args, sources...)
 	cmd.Args = append(cmd.Args,
@@ -121,9 +120,8 @@ func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags
 		})
 	}
 
-	t.Logf("Running compiler command: %s %s", cmd.Path, strings.Join(cmd.Args[1:], " "))
-	err := cmd.Run()
-	require.NoError(t, err, "Setup: could not compile C module %s", soname)
+	err := testutils.RunWithTiming("Building PAM module", cmd)
+	require.NoError(t, err, "Setup: Failed to build PAM module")
 
 	return libPath
 }
