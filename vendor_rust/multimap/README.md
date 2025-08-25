@@ -28,6 +28,11 @@ fn main () {
 
 ## Changelog
 
+### 0.10.1
+
+* Fix docs for flat_iter #45
+* Clippy warnings
+
 ### 0.10.0
 
 * Added `FromIterator<(K, Vec<V>)>` [#48](https://github.com/havarnov/multimap/pull/48).

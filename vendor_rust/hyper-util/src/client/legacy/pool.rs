@@ -14,10 +14,9 @@ use std::task::{self, Poll};
 use std::time::{Duration, Instant};
 
 use futures_channel::oneshot;
-use futures_util::ready;
+use futures_core::ready;
 use tracing::{debug, trace};
 
-use hyper::rt::Sleep;
 use hyper::rt::Timer as _;
 
 use crate::common::{exec, exec::Exec, timer::Timer};
@@ -426,24 +425,33 @@ impl<T: Poolable, K: Key> PoolInner<T, K> {
         } else {
             return;
         };
+        if dur == Duration::ZERO {
+            return;
+        }
         let timer = if let Some(timer) = self.timer.clone() {
             timer
         } else {
             return;
         };
+
+        // While someone might want a shorter duration, and it will be respected
+        // at checkout time, there's no need to wake up and proactively evict
+        // faster than this.
+        const MIN_CHECK: Duration = Duration::from_millis(90);
+
+        let dur = dur.max(MIN_CHECK);
+
         let (tx, rx) = oneshot::channel();
         self.idle_interval_ref = Some(tx);
 
         let interval = IdleTask {
             timer: timer.clone(),
             duration: dur,
-            deadline: Instant::now(),
-            fut: timer.sleep_until(Instant::now()), // ready at first tick
             pool: WeakOpt::downgrade(pool_ref),
             pool_drop_notifier: rx,
         };
 
-        self.exec.execute(interval);
+        self.exec.execute(interval.run());
     }
 }
 
@@ -763,55 +771,44 @@ impl Expiration {
     }
 }
 
-pin_project_lite::pin_project! {
-    struct IdleTask<T, K: Key> {
-        timer: Timer,
-        duration: Duration,
-        deadline: Instant,
-        fut: Pin<Box<dyn Sleep>>,
-        pool: WeakOpt<Mutex<PoolInner<T, K>>>,
-        // This allows the IdleTask to be notified as soon as the entire
-        // Pool is fully dropped, and shutdown. This channel is never sent on,
-        // but Err(Canceled) will be received when the Pool is dropped.
-        #[pin]
-        pool_drop_notifier: oneshot::Receiver<Infallible>,
-    }
+struct IdleTask<T, K: Key> {
+    timer: Timer,
+    duration: Duration,
+    pool: WeakOpt<Mutex<PoolInner<T, K>>>,
+    // This allows the IdleTask to be notified as soon as the entire
+    // Pool is fully dropped, and shutdown. This channel is never sent on,
+    // but Err(Canceled) will be received when the Pool is dropped.
+    pool_drop_notifier: oneshot::Receiver<Infallible>,
 }
 
-impl<T: Poolable + 'static, K: Key> Future for IdleTask<T, K> {
-    type Output = ();
+impl<T: Poolable + 'static, K: Key> IdleTask<T, K> {
+    async fn run(self) {
+        use futures_util::future;
 
-    fn poll(self: Pin<&mut Self>, cx: &mut task::Context<'_>) -> Poll<Self::Output> {
-        let mut this = self.project();
+        let mut sleep = self.timer.sleep_until(Instant::now() + self.duration);
+        let mut on_pool_drop = self.pool_drop_notifier;
         loop {
-            match this.pool_drop_notifier.as_mut().poll(cx) {
-                Poll::Ready(Ok(n)) => match n {},
-                Poll::Pending => (),
-                Poll::Ready(Err(_canceled)) => {
-                    trace!("pool closed, canceling idle interval");
-                    return Poll::Ready(());
+            match future::select(&mut on_pool_drop, &mut sleep).await {
+                future::Either::Left(_) => {
+                    // pool dropped, bah-bye
+                    break;
+                }
+                future::Either::Right(((), _)) => {
+                    if let Some(inner) = self.pool.upgrade() {
+                        if let Ok(mut inner) = inner.lock() {
+                            trace!("idle interval checking for expired");
+                            inner.clear_expired();
+                        }
+                    }
+
+                    let deadline = Instant::now() + self.duration;
+                    self.timer.reset(&mut sleep, deadline);
                 }
             }
-
-            ready!(Pin::new(&mut this.fut).poll(cx));
-            // Set this task to run after the next deadline
-            // If the poll missed the deadline by a lot, set the deadline
-            // from the current time instead
-            *this.deadline += *this.duration;
-            if *this.deadline < Instant::now() - Duration::from_millis(5) {
-                *this.deadline = Instant::now() + *this.duration;
-            }
-            *this.fut = this.timer.sleep_until(*this.deadline);
-
-            if let Some(inner) = this.pool.upgrade() {
-                if let Ok(mut inner) = inner.lock() {
-                    trace!("idle interval checking for expired");
-                    inner.clear_expired();
-                    continue;
-                }
-            }
-            return Poll::Ready(());
         }
+
+        trace!("pool closed, canceling idle interval");
+        return;
     }
 }
 
@@ -878,7 +875,7 @@ mod tests {
     }
 
     fn pool_no_timer<T, K: Key>() -> Pool<T, K> {
-        pool_max_idle_no_timer(::std::usize::MAX)
+        pool_max_idle_no_timer(usize::MAX)
     }
 
     fn pool_max_idle_no_timer<T, K: Key>(max_idle: usize) -> Pool<T, K> {
@@ -959,7 +956,7 @@ mod tests {
         let poll_once = PollOnce(&mut checkout);
         // checkout.await should clean out the expired
         poll_once.await;
-        assert!(pool.locked().idle.get(&key).is_none());
+        assert!(!pool.locked().idle.contains_key(&key));
     }
 
     #[test]
@@ -983,7 +980,7 @@ mod tests {
         let pool = Pool::new(
             super::Config {
                 idle_timeout: Some(Duration::from_millis(10)),
-                max_idle_per_host: std::usize::MAX,
+                max_idle_per_host: usize::MAX,
             },
             TokioExecutor::new(),
             Some(TokioTimer::new()),
@@ -1002,10 +999,19 @@ mod tests {
 
         // Let the timer tick passed the expiration...
         tokio::time::sleep(Duration::from_millis(30)).await;
-        // Yield so the Interval can reap...
+
+        // But minimum interval is higher, so nothing should have been reaped
+        assert_eq!(
+            pool.locked().idle.get(&key).map(|entries| entries.len()),
+            Some(3)
+        );
+
+        // Now wait passed the minimum interval more
+        tokio::time::sleep(Duration::from_millis(70)).await;
+        // Yield in case other task hasn't been able to run :shrug:
         tokio::task::yield_now().await;
 
-        assert!(pool.locked().idle.get(&key).is_none());
+        assert!(!pool.locked().idle.contains_key(&key));
     }
 
     #[tokio::test]
@@ -1052,7 +1058,7 @@ mod tests {
         assert_eq!(pool.locked().waiters.get(&key).unwrap().len(), 1);
 
         drop(checkout2);
-        assert!(pool.locked().waiters.get(&key).is_none());
+        assert!(!pool.locked().waiters.contains_key(&key));
     }
 
     #[derive(Debug)]

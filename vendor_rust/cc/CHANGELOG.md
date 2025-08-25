@@ -1,10 +1,99 @@
 # Changelog
+
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.2.32](https://github.com/rust-lang/cc-rs/compare/cc-v1.2.31...cc-v1.2.32) - 2025-08-08
+
+### Fixed
+
+- fix new clippy lint introduced in rust 1.89.0 ([#1509](https://github.com/rust-lang/cc-rs/pull/1509))
+
+### Other
+
+- clarify cargo default if no rerun emitted ([#1508](https://github.com/rust-lang/cc-rs/pull/1508))
+- extract compile_objects_sequential ([#1507](https://github.com/rust-lang/cc-rs/pull/1507))
+- Windows `find_tools`: add support for finding Clang ([#1506](https://github.com/rust-lang/cc-rs/pull/1506))
+- Add m68k-unknown-linux-gnu cross-compile target ([#1505](https://github.com/rust-lang/cc-rs/pull/1505))
+
+## [1.2.31](https://github.com/rust-lang/cc-rs/compare/cc-v1.2.30...cc-v1.2.31) - 2025-08-01
+
+### Other
+
+- Add doc for using sccache/ccache etc ([#1502](https://github.com/rust-lang/cc-rs/pull/1502))
+- ability to statically link against C++ stdlib ([#1497](https://github.com/rust-lang/cc-rs/pull/1497))
+- Add instructions on using sccache ([#1503](https://github.com/rust-lang/cc-rs/pull/1503))
+- Add support for recognizing some architectures supported by GCC, but not LLVM. ([#1500](https://github.com/rust-lang/cc-rs/pull/1500))
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+## [1.2.30](https://github.com/rust-lang/cc-rs/compare/cc-v1.2.29...cc-v1.2.30) - 2025-07-18
+
+### Other
+
+- define _REENTRANT by default ([#1496](https://github.com/rust-lang/cc-rs/pull/1496))
+
+## [1.2.29](https://github.com/rust-lang/cc-rs/compare/cc-v1.2.28...cc-v1.2.29) - 2025-07-05
+
+### Other
+
+- Fix target parsing for powerpc ([#1490](https://github.com/rust-lang/cc-rs/pull/1490))
+
+## [1.2.28](https://github.com/rust-lang/cc-rs/compare/cc-v1.2.27...cc-v1.2.28) - 2025-07-04
+
+### Other
+
+- Recognize `mlibc` environment ([#1488](https://github.com/rust-lang/cc-rs/pull/1488))
+- Fix clippy warnings about not using variables in `format!` strings ([#1489](https://github.com/rust-lang/cc-rs/pull/1489))
+
+## [1.2.27](https://github.com/rust-lang/cc-rs/compare/cc-v1.2.26...cc-v1.2.27) - 2025-06-13
+
+### Other
+
+- Regenerate windows sys bindings ([#1485](https://github.com/rust-lang/cc-rs/pull/1485))
+- Update windows-bindgen requirement from 0.61 to 0.62 ([#1484](https://github.com/rust-lang/cc-rs/pull/1484))
+- Regenerate target info ([#1483](https://github.com/rust-lang/cc-rs/pull/1483))
+
+## [1.2.26](https://github.com/rust-lang/cc-rs/compare/cc-v1.2.25...cc-v1.2.26) - 2025-06-06
+
+### Other
+
+- Also set `SDKROOT` when building apple platforms ([#1475](https://github.com/rust-lang/cc-rs/pull/1475))
+- use windows 2022 in CI ([#1479](https://github.com/rust-lang/cc-rs/pull/1479))
+- Detect -Wslash-u-filename warning on clang-cl ([#1477](https://github.com/rust-lang/cc-rs/pull/1477))
+
+## [1.2.25](https://github.com/rust-lang/cc-rs/compare/cc-v1.2.24...cc-v1.2.25) - 2025-05-30
+
+### Other
+
+- make `powerp64` use `powerpc64-linux-gnu` prefix ([#1474](https://github.com/rust-lang/cc-rs/pull/1474))
+
+## [1.2.24](https://github.com/rust-lang/cc-rs/compare/cc-v1.2.23...cc-v1.2.24) - 2025-05-23
+
+### Other
+
+- Regenerate windows sys bindings ([#1471](https://github.com/rust-lang/cc-rs/pull/1471))
+
+## [1.2.23](https://github.com/rust-lang/cc-rs/compare/cc-v1.2.22...cc-v1.2.23) - 2025-05-16
+
+### Other
+
+- support "vxworks" and "nto" OSes on `get_base_archiver_variant` ([#1456](https://github.com/rust-lang/cc-rs/pull/1456))
+
+## [1.2.22](https://github.com/rust-lang/cc-rs/compare/cc-v1.2.21...cc-v1.2.22) - 2025-05-09
+
+### Other
+
+- Add `flags` method to `cc::Build` for adding multiple flags ([#1466](https://github.com/rust-lang/cc-rs/pull/1466))
 
 ## [1.2.21](https://github.com/rust-lang/cc-rs/compare/cc-v1.2.20...cc-v1.2.21) - 2025-05-02
 

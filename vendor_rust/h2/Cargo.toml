@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.63"
 name = "h2"
-version = "0.4.10"
+version = "0.4.12"
 authors = [
     "Carl Lerche <me@carllerche.com>",
     "Sean McArthur <sean@seanmonstar.com>",
@@ -151,7 +151,7 @@ version = "0.26"
 version = "2.3.2"
 
 [dev-dependencies.webpki-roots]
-version = "0.26"
+version = "1"
 
 [lints.rust.unexpected_cfgs]
 level = "warn"

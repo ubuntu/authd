@@ -16,6 +16,9 @@ pub(crate) use blocking_check::check_socket_for_blocking;
 
 pub(crate) mod metric_atomics;
 
+mod wake;
+pub(crate) use wake::{waker, Wake};
+
 #[cfg(any(
     // io driver uses `WakeList` directly
     feature = "net",
@@ -50,6 +53,7 @@ pub(crate) use wake_list::WakeList;
     feature = "sync",
     feature = "signal",
     feature = "time",
+    fuzzing,
 ))]
 pub(crate) mod linked_list;
 
@@ -66,9 +70,7 @@ cfg_rt! {
 
     pub(crate) use self::rand::RngSeedGenerator;
 
-    mod wake;
-    pub(crate) use wake::WakerRef;
-    pub(crate) use wake::{waker_ref, Wake};
+    pub(crate) use wake::{waker_ref, WakerRef};
 
     mod sync_wrapper;
     pub(crate) use sync_wrapper::SyncWrapper;
