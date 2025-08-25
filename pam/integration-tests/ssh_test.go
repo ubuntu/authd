@@ -669,12 +669,13 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	sshd, sshdPidFile, sshdLogFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env, daemonize)
 	sshdStderr := bytes.Buffer{}
 	sshd.Stderr = &sshdStderr
-	if testing.Verbose() {
+	if testing.Verbose() && os.Getenv("AUTHD_TESTS_SSH_DEBUG_LOG") != "" {
 		sshd.Stdout = os.Stdout
 		sshd.Stderr = os.Stderr
 	}
 
-	t.Log("Launching sshd with", sshd.Env, sshd.Args)
+	t.Logf("Launching sshd: cmd: %s\nenv: %s", sshd.String(), sshd.Env)
+	start := time.Now()
 	err = sshd.Start()
 	require.NoError(t, err, "Setup: Impossible to start sshd")
 	sshdPid := sshd.Process.Pid
@@ -732,12 +733,12 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	}
 
 	t.Cleanup(func() {
-		if !t.Failed() && !testing.Verbose() {
+		if !t.Failed() && !testing.Verbose() || os.Getenv("AUTHD_TESTS_SSH_DEBUG_LOG") == "" {
 			return
 		}
 		contents, err := os.ReadFile(sshdLogFile)
 		require.NoError(t, err, "TearDown: Reading SSHd log failed")
-		t.Logf(" ##### LOG FILE #####\n %s \n ##### END #####", contents)
+		t.Logf(" ##### SSHD LOG FILE #####\n %s \n ##### END #####", contents)
 	})
 
 	t.Cleanup(func() {
@@ -795,8 +796,9 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	pidFileContent, err := os.ReadFile(sshdPidFile)
 	require.NoError(t, err, "Setup: Reading SSHd pid file failed")
 
-	t.Logf("SSHd started with pid %d (%s) and listening on port %s",
-		sshdPid, strings.TrimSpace(string(pidFileContent)), sshdPort)
+	duration := time.Since(start)
+	t.Logf("SSHd started in %.3fs - pid: %d (%s), listen port: %s",
+		duration.Seconds(), sshdPid, strings.TrimSpace(string(pidFileContent)), sshdPort)
 
 	return sshdPort
 }

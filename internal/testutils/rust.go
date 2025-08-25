@@ -91,18 +91,18 @@ func BuildRustNSSLib(t *testing.T, disableCoverage bool, features ...string) (li
 
 	// Builds the nss library.
 	// #nosec:G204 - we control the command arguments in tests
-	cmd := exec.Command(cargo, "build", "--verbose",
-		"--features", strings.Join(features, ","), "--target-dir", target)
+	cmd := exec.Command(cargo, "build", "--features", strings.Join(features, ","), "--target-dir", target)
 	cmd.Env = append(os.Environ(), rustCovEnv...)
 	cmd.Dir = projectRoot
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 
 	if isNightly && IsAsan() {
 		cmd.Env = append(cmd.Env, "RUSTFLAGS=-Zsanitizer=address")
 	}
 
-	t.Log("Building NSS library...", cmd.Args)
-	out, err := cmd.CombinedOutput()
-	require.NoError(t, err, "Setup: could not build Rust NSS library: %s", out)
+	err = RunWithTiming("Building NSS library", cmd)
+	require.NoError(t, err, "Setup: could not build Rust NSS library")
 
 	// When building the crate with dh-cargo, this env is set to indicate which architecture the code
 	// is being compiled to. When it's set, the compiled is stored under target/$(DEB_HOST_RUST_TYPE)/debug,

@@ -221,11 +221,9 @@ func buildPAMExecChild(t *testing.T) string {
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)
 
 	authdPam := filepath.Join(t.TempDir(), "authd-pam")
-	t.Logf("Compiling Exec child at %s", authdPam)
-	t.Log(strings.Join(cmd.Args, " "))
 
 	cmd.Args = append(cmd.Args, "-o", authdPam)
-	out, err := cmd.CombinedOutput()
+	out, err := testutils.CombinedOutputWithTiming("Building PAM exec child", cmd)
 	require.NoError(t, err, "Setup: could not compile PAM exec child: %s", out)
 
 	return authdPam

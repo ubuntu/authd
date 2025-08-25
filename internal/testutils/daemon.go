@@ -169,6 +169,7 @@ paths:
 	}
 
 	// Start the daemon
+	start := time.Now()
 	stopped = make(chan struct{})
 	processPid := make(chan int)
 	go func() {
@@ -176,6 +177,8 @@ paths:
 		var b bytes.Buffer
 		cmd.Stdout = &b
 		cmd.Stderr = &b
+
+		t.Logf("Setup: Starting daemon: %s", cmd.String())
 		err := cmd.Start()
 		require.NoError(t, err, "Setup: daemon cannot start %v", cmd.Args)
 		if opts.pidFile != "" {
@@ -216,7 +219,7 @@ paths:
 				logger("TearDown: failed to remove pid file %q: %v", opts.pidFile, err)
 			}
 		}
-		logger("Daemon stopped (%v)\n ##### Output #####\n %s \n ##### END #####", err, out)
+		logger("Daemon stopped (%v)\n##### authd logs #####\n%s\n##### END #####", err, out)
 	}()
 
 	conn, err := grpc.NewClient("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
@@ -226,6 +229,8 @@ paths:
 	// Block until the daemon is started and ready to accept connections.
 	err = grpcutils.WaitForConnection(ctx, conn, time.Second*30)
 	require.NoError(t, err, "Setup: wait for daemon to be ready timed out")
+	duration := time.Since(start)
+	t.Logf("Setup: daemon is ready after %.3fs", duration.Seconds())
 
 	if opts.pidFile != "" {
 		err := os.WriteFile(opts.pidFile, []byte(fmt.Sprint(<-processPid)), 0600)
