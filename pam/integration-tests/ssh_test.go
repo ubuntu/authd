@@ -669,7 +669,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	sshd, sshdPidFile, sshdLogFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env, daemonize)
 	sshdStderr := bytes.Buffer{}
 	sshd.Stderr = &sshdStderr
-	if testing.Verbose() {
+	if testing.Verbose() && os.Getenv("AUTHD_TESTS_SSH_DEBUG_LOG") != "" {
 		sshd.Stdout = os.Stdout
 		sshd.Stderr = os.Stderr
 	}
@@ -735,9 +735,11 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 		if !t.Failed() && !testing.Verbose() {
 			return
 		}
-		contents, err := os.ReadFile(sshdLogFile)
-		require.NoError(t, err, "TearDown: Reading SSHd log failed")
-		t.Logf(" ##### LOG FILE #####\n %s \n ##### END #####", contents)
+		if os.Getenv("AUTHD_TESTS_SSH_DEBUG_LOG") != "" {
+			contents, err := os.ReadFile(sshdLogFile)
+			require.NoError(t, err, "TearDown: Reading SSHd log failed")
+			t.Logf(" ##### SSHD LOG FILE #####\n %s \n ##### END #####", contents)
+		}
 	})
 
 	t.Cleanup(func() {
