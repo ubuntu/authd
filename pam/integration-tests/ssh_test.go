@@ -693,7 +693,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 		sshd.Stderr = os.Stderr
 	}
 
-	t.Log("Launching sshd with", sshd.Env, sshd.Args)
+	t.Logf("Launching sshd: cmd: %s\nenv: %s", sshd.String(), sshd.Env)
 	start := time.Now()
 	err = sshd.Start()
 	require.NoError(t, err, "Setup: Impossible to start sshd")
