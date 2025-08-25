@@ -675,6 +675,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	}
 
 	t.Logf("Launching sshd: cmd: %s\nenv: %s", sshd.String(), sshd.Env)
+	start := time.Now()
 	err = sshd.Start()
 	require.NoError(t, err, "Setup: Impossible to start sshd")
 	sshdPid := sshd.Process.Pid
@@ -795,8 +796,9 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	pidFileContent, err := os.ReadFile(sshdPidFile)
 	require.NoError(t, err, "Setup: Reading SSHd pid file failed")
 
-	t.Logf("SSHd started with pid %d (%s) and listening on port %s",
-		sshdPid, strings.TrimSpace(string(pidFileContent)), sshdPort)
+	duration := time.Since(start)
+	t.Logf("SSHd started in %.3fs - pid: %d (%s), listen port: %s",
+		duration.Seconds(), sshdPid, strings.TrimSpace(string(pidFileContent)), sshdPort)
 
 	return sshdPort
 }
