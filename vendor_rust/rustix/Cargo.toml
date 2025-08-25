@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.63"
 name = "rustix"
-version = "1.0.7"
+version = "1.0.8"
 authors = [
     "Dan Gohman <dev@sunfishcode.online>",
     "Jakub Konka <kubkon@jakubkonka.com>",
@@ -123,10 +123,8 @@ runtime = ["linux-raw-sys/prctl"]
 rustc-dep-of-std = [
     "core",
     "rustc-std-workspace-alloc",
-    "compiler_builtins",
     "linux-raw-sys/rustc-dep-of-std",
     "bitflags/rustc-dep-of-std",
-    "compiler_builtins?/rustc-dep-of-std",
 ]
 shm = ["fs"]
 std = [
@@ -160,10 +158,6 @@ harness = false
 [dependencies.bitflags]
 version = "2.4.0"
 default-features = false
-
-[dependencies.compiler_builtins]
-version = "0.1.49"
-optional = true
 
 [dependencies.core]
 version = "1.0.0"
@@ -246,7 +240,7 @@ default-features = false
 package = "errno"
 
 [target."cfg(windows)".dependencies.windows-sys]
-version = ">=0.52, <0.60"
+version = ">=0.52, <0.61"
 features = [
     "Win32_Foundation",
     "Win32_Networking_WinSock",

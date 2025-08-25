@@ -1,5 +1,6 @@
 [dependencies.windows-targets]
-version = "0.52.6"
+default-features = false
+version = "0.53.2"
 
 [features]
 Wdk = ["Win32_Foundation"]
@@ -29,16 +30,21 @@ Win32_Data_HtmlHelp = ["Win32_Data"]
 Win32_Data_RightsManagement = ["Win32_Data"]
 Win32_Devices = ["Win32"]
 Win32_Devices_AllJoyn = ["Win32_Devices"]
+Win32_Devices_Beep = ["Win32_Devices"]
 Win32_Devices_BiometricFramework = ["Win32_Devices"]
 Win32_Devices_Bluetooth = ["Win32_Devices"]
+Win32_Devices_Cdrom = ["Win32_Devices"]
 Win32_Devices_Communication = ["Win32_Devices"]
 Win32_Devices_DeviceAndDriverInstallation = ["Win32_Devices"]
 Win32_Devices_DeviceQuery = ["Win32_Devices"]
 Win32_Devices_Display = ["Win32_Devices"]
+Win32_Devices_Dvd = ["Win32_Devices"]
 Win32_Devices_Enumeration = ["Win32_Devices"]
 Win32_Devices_Enumeration_Pnp = ["Win32_Devices_Enumeration"]
 Win32_Devices_Fax = ["Win32_Devices"]
 Win32_Devices_HumanInterfaceDevice = ["Win32_Devices"]
+Win32_Devices_Nfc = ["Win32_Devices"]
+Win32_Devices_Nfp = ["Win32_Devices"]
 Win32_Devices_PortableDevices = ["Win32_Devices"]
 Win32_Devices_Properties = ["Win32_Devices"]
 Win32_Devices_Pwm = ["Win32_Devices"]
@@ -253,13 +259,14 @@ test = false
 
 [lints.rust]
 missing_docs = "warn"
+unsafe_op_in_unsafe_fn = "warn"
 
 [lints.rust.rust_2018_idioms]
 level = "warn"
 priority = -1
 
 [lints.rust.unexpected_cfgs]
-check-cfg = ["cfg(windows_raw_dylib, windows_debugger_visualizer, windows_slim_errors)"]
+check-cfg = ["cfg(windows_raw_dylib, windows_slim_errors)"]
 level = "warn"
 priority = 0
 
@@ -268,17 +275,17 @@ authors = ["Microsoft"]
 autobenches = false
 autobins = false
 autoexamples = false
+autolib = false
 autotests = false
 categories = ["os::windows-apis"]
 description = "Rust for Windows"
 edition = "2021"
-exclude = ["features.json"]
 license = "MIT OR Apache-2.0"
 name = "windows-sys"
 readme = "readme.md"
 repository = "https://github.com/microsoft/windows-rs"
 rust-version = "1.60"
-version = "0.59.0"
+version = "0.60.2"
 
 [package.metadata.docs.rs]
 all-features = true

@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.70"
 name = "mio"
-version = "1.0.3"
+version = "1.0.4"
 authors = [
     "Carl Lerche <me@carllerche.com>",
     "Thomas de Zeeuw <thomasdezeeuw@gmail.com>",
@@ -55,7 +55,7 @@ rustdoc-args = [
 targets = [
     "aarch64-apple-ios",
     "aarch64-linux-android",
-    "wasm32-wasi",
+    "wasm32-wasip1",
     "x86_64-apple-darwin",
     "x86_64-pc-windows-gnu",
     "x86_64-pc-windows-msvc",
@@ -74,6 +74,16 @@ features = [
     "os-ext",
     "net",
 ]
+
+[features]
+default = ["log"]
+net = []
+os-ext = [
+    "os-poll",
+    "windows-sys/Win32_System_Pipes",
+    "windows-sys/Win32_Security",
+]
+os-poll = []
 
 [lib]
 name = "mio"
@@ -114,16 +124,6 @@ default-features = false
 [dev-dependencies.rand]
 version = "0.8"
 
-[features]
-default = ["log"]
-net = []
-os-ext = [
-    "os-poll",
-    "windows-sys/Win32_System_Pipes",
-    "windows-sys/Win32_Security",
-]
-os-poll = []
-
 [target.'cfg(target_os = "hermit")'.dependencies.libc]
 version = "0.2.159"
 
@@ -137,7 +137,7 @@ version = "0.11.0"
 version = "0.2.159"
 
 [target."cfg(windows)".dependencies.windows-sys]
-version = "0.52"
+version = "0.59"
 features = [
     "Wdk_Foundation",
     "Wdk_Storage_FileSystem",

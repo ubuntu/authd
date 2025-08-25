@@ -1,3 +1,126 @@
+# 1.47.1 (August 1st, 2025)
+
+### Fixed
+
+- process: fix panic from spurious pidfd wakeup ([#7494])
+- sync: fix broken link of Python `asyncio.Event` in `SetOnce` docs ([#7485])
+
+[#7485]: https://github.com/tokio-rs/tokio/pull/7485
+
+# 1.47.0 (July 25th, 2025)
+
+This release adds `poll_proceed` and `cooperative` to the `coop` module for
+cooperative scheduling, adds `SetOnce` to the `sync` module which provides
+similar functionality to [`std::sync::OnceLock], and adds a new method
+`sync::Notify::notified_owned()` which returns an `OwnedNotified` without
+a lifetime parameter.
+
+## Added
+
+- coop: add `cooperative` and `poll_proceed` ([#7405])
+- sync: add `SetOnce` ([#7418])
+- sync: add `sync::Notify::notified_owned()` ([#7465])
+
+## Changed
+
+- deps: upgrade windows-sys 0.52 → 0.59 ([#7117])
+- deps: update to socket2 v0.6 ([#7443])
+- sync: improve `AtomicWaker::wake` performance ([#7450])
+
+## Documented
+
+- metrics: fix listed feature requirements for some metrics ([#7449])
+- runtime: improve safety comments of `Readiness<'_>` ([#7415])
+
+[#7405]: https://github.com/tokio-rs/tokio/pull/7405
+[#7415]: https://github.com/tokio-rs/tokio/pull/7415
+[#7418]: https://github.com/tokio-rs/tokio/pull/7418
+[#7449]: https://github.com/tokio-rs/tokio/pull/7449
+[#7450]: https://github.com/tokio-rs/tokio/pull/7450
+[#7465]: https://github.com/tokio-rs/tokio/pull/7465
+
+# 1.46.1 (July 4th, 2025)
+
+This release fixes incorrect spawn locations in runtime task hooks for tasks
+spawned using `tokio::spawn` rather than `Runtime::spawn`. This issue only
+effected the spawn location in `TaskMeta::spawned_at`, and did not effect task
+locations in Tracing events.
+
+## Unstable
+
+- runtime: add `TaskMeta::spawn_location` tracking where a task was spawned
+  ([#7440])
+
+[#7440]: https://github.com/tokio-rs/tokio/pull/7440
+
+# 1.46.0 (July 2nd, 2025)
+
+## Fixed
+
+- net: fixed `TcpStream::shutdown` incorrectly returning an error on macOS ([#7290])
+
+## Added
+
+- sync: `mpsc::OwnedPermit::{same_channel, same_channel_as_sender}` methods ([#7389])
+- macros: `biased` option for `join!` and `try_join!`, similar to `select!` ([#7307])
+- net: support for cygwin ([#7393])
+- net: support `pipe::OpenOptions::read_write` on Android ([#7426])
+- net: add `Clone` implementation for `net::unix::SocketAddr` ([#7422])
+
+## Changed
+
+- runtime: eliminate unnecessary lfence while operating on `queue::Local<T>` ([#7340])
+- task: disallow blocking in `LocalSet::{poll,drop}` ([#7372])
+
+## Unstable
+
+- runtime: add `TaskMeta::spawn_location` tracking where a task was spawned ([#7417])
+- runtime: removed borrow from `LocalOptions` parameter to `runtime::Builder::build_local` ([#7346])
+
+## Documented
+
+- io: clarify behavior of seeking when `start_seek` is not used ([#7366])
+- io: document cancellation safety of `AsyncWriteExt::flush` ([#7364])
+- net: fix docs for `recv_buffer_size` method ([#7336])
+- net: fix broken link of `RawFd` in `TcpSocket` docs ([#7416])
+- net: update `AsRawFd` doc link to current Rust stdlib location ([#7429])
+- readme: fix double period in reactor description ([#7363])
+- runtime: add doc note that `on_*_task_poll` is unstable ([#7311])
+- sync: update broadcast docs on allocation failure ([#7352])
+- time: add a missing panic scenario of `time::advance` ([#7394])
+
+[#7290]: https://github.com/tokio-rs/tokio/pull/7290
+[#7307]: https://github.com/tokio-rs/tokio/pull/7307
+[#7311]: https://github.com/tokio-rs/tokio/pull/7311
+[#7336]: https://github.com/tokio-rs/tokio/pull/7336
+[#7340]: https://github.com/tokio-rs/tokio/pull/7340
+[#7346]: https://github.com/tokio-rs/tokio/pull/7346
+[#7352]: https://github.com/tokio-rs/tokio/pull/7352
+[#7363]: https://github.com/tokio-rs/tokio/pull/7363
+[#7364]: https://github.com/tokio-rs/tokio/pull/7364
+[#7366]: https://github.com/tokio-rs/tokio/pull/7366
+[#7372]: https://github.com/tokio-rs/tokio/pull/7372
+[#7389]: https://github.com/tokio-rs/tokio/pull/7389
+[#7393]: https://github.com/tokio-rs/tokio/pull/7393
+[#7394]: https://github.com/tokio-rs/tokio/pull/7394
+[#7416]: https://github.com/tokio-rs/tokio/pull/7416
+[#7422]: https://github.com/tokio-rs/tokio/pull/7422
+[#7426]: https://github.com/tokio-rs/tokio/pull/7426
+[#7429]: https://github.com/tokio-rs/tokio/pull/7429
+[#7417]: https://github.com/tokio-rs/tokio/pull/7417
+
+# 1.45.1 (May 24th, 2025)
+
+This fixes a regression on the wasm32-unknown-unknown target, where code that
+previously did not panic due to calls to `Instant::now()` started failing. This
+is due to the stabilization of the first time-based metric.
+
+### Fixed
+
+- Disable time-based metrics on wasm32-unknown-unknown ([#7322])
+
+[#7322]: https://github.com/tokio-rs/tokio/pull/7322
+
 # 1.45.0 (May 5th, 2025)
 
 ### Added
@@ -125,6 +248,14 @@ comment on [#7172].
 [#7185]: https://github.com/tokio-rs/tokio/pull/7185
 [#7186]: https://github.com/tokio-rs/tokio/pull/7186
 [#7192]: https://github.com/tokio-rs/tokio/pull/7192
+
+# 1.43.2 (August 1st, 2025)
+
+### Fixed
+
+- process: fix panic from spurious pidfd wakeup ([#7494])
+
+[#7494]: https://github.com/tokio-rs/tokio/pull/7494
 
 # 1.43.1 (April 5th, 2025)
 

@@ -3,7 +3,9 @@ use crate::loom::cell::UnsafeCell;
 use crate::loom::sync::{Arc, Mutex};
 #[cfg(tokio_unstable)]
 use crate::runtime;
-use crate::runtime::task::{self, JoinHandle, LocalOwnedTasks, Task, TaskHarnessScheduleHooks};
+use crate::runtime::task::{
+    self, JoinHandle, LocalOwnedTasks, SpawnLocation, Task, TaskHarnessScheduleHooks,
+};
 use crate::runtime::{context, ThreadId, BOX_FUTURE_THRESHOLD};
 use crate::sync::AtomicWaker;
 use crate::util::trace::SpawnMeta;
@@ -412,7 +414,7 @@ cfg_rt! {
                 let task = crate::util::trace::task(future, "task", meta, id.as_u64());
 
                 // safety: we have verified that this is a `LocalRuntime` owned by the current thread
-                unsafe { handle.spawn_local(task, id) }
+                unsafe { handle.spawn_local(task, id, meta.spawned_at) }
             } else {
                 match CURRENT.with(|LocalData { ctx, .. }| ctx.get()) {
                     None => panic!("`spawn_local` called from outside of a `task::LocalSet` or LocalRuntime"),
@@ -916,6 +918,8 @@ impl Future for LocalSet {
     type Output = ();
 
     fn poll(self: Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> Poll<Self::Output> {
+        let _no_blocking = crate::runtime::context::disallow_block_in_place();
+
         // Register the waker before starting to work
         self.context.shared.waker.register_by_ref(cx.waker());
 
@@ -948,6 +952,8 @@ impl Default for LocalSet {
 impl Drop for LocalSet {
     fn drop(&mut self) {
         self.with_if_possible(|| {
+            let _no_blocking = crate::runtime::context::disallow_block_in_place();
+
             // Shut down all tasks in the LocalOwnedTasks and close it to
             // prevent new tasks from ever being added.
             unsafe {
@@ -1006,10 +1012,12 @@ impl Context {
         // Safety: called from the thread that owns the `LocalSet`
         let (handle, notified) = {
             self.shared.local_state.assert_called_from_owner_thread();
-            self.shared
-                .local_state
-                .owned
-                .bind(future, self.shared.clone(), id)
+            self.shared.local_state.owned.bind(
+                future,
+                self.shared.clone(),
+                id,
+                SpawnLocation::capture(),
+            )
         };
 
         if let Some(notified) = notified {

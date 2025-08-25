@@ -211,10 +211,16 @@ impl Printer {
 
         self.outer_attrs(&expr.attrs);
         self.ibox(0);
+        if !expr.attrs.is_empty() {
+            self.word("(");
+        }
         self.subexpr(&expr.left, left_prec <= Precedence::Range, left_fixup);
         self.word(" = ");
         self.neverbreak();
         self.expr(&expr.right, right_fixup);
+        if !expr.attrs.is_empty() {
+            self.word(")");
+        }
         self.end();
     }
 
@@ -292,12 +298,18 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.ibox(INDENT);
         self.ibox(-INDENT);
+        if !expr.attrs.is_empty() {
+            self.word("(");
+        }
         self.subexpr(&expr.left, left_needs_group, left_fixup);
         self.end();
         self.space();
         self.binary_operator(&expr.op);
         self.nbsp();
         self.subexpr(&expr.right, right_needs_group, right_fixup);
+        if !expr.attrs.is_empty() {
+            self.word(")");
+        }
         self.end();
     }
 
@@ -375,11 +387,17 @@ impl Printer {
         self.outer_attrs(&expr.attrs);
         self.ibox(INDENT);
         self.ibox(-INDENT);
+        if !expr.attrs.is_empty() {
+            self.word("(");
+        }
         self.subexpr(&expr.expr, left_prec < Precedence::Cast, left_fixup);
         self.end();
         self.space();
         self.word("as ");
         self.ty(&expr.ty);
+        if !expr.attrs.is_empty() {
+            self.word(")");
+        }
         self.end();
     }
 
@@ -777,6 +795,9 @@ impl Printer {
 
     pub fn expr_range(&mut self, expr: &ExprRange, fixup: FixupContext) {
         self.outer_attrs(&expr.attrs);
+        if !expr.attrs.is_empty() {
+            self.word("(");
+        }
         if let Some(start) = &expr.start {
             let (left_prec, left_fixup) =
                 fixup.leftmost_subexpression_with_operator(start, true, false, Precedence::Range);
@@ -792,6 +813,9 @@ impl Printer {
             let right_fixup = fixup.rightmost_subexpression_fixup(false, true, Precedence::Range);
             let right_prec = right_fixup.rightmost_subexpression_precedence(end);
             self.subexpr(end, right_prec <= Precedence::Range, right_fixup);
+        }
+        if !expr.attrs.is_empty() {
+            self.word(")");
         }
     }
 
