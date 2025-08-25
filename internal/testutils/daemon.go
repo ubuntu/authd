@@ -187,6 +187,7 @@ paths:
 	}
 
 	// Start the daemon
+	start := time.Now()
 	processPid := make(chan int)
 	go func() {
 		defer close(stopped)
@@ -245,6 +246,8 @@ paths:
 	// Block until the daemon is started and ready to accept connections.
 	err = grpcutils.WaitForConnection(ctx, conn, time.Second*30)
 	require.NoError(t, err, "Setup: wait for daemon to be ready timed out")
+	duration := time.Since(start)
+	t.Logf("Setup: daemon started in %.3fs", duration.Seconds())
 
 	if opts.pidFile != "" {
 		err := os.WriteFile(opts.pidFile, []byte(fmt.Sprint(<-processPid)), 0600)
@@ -289,9 +292,9 @@ func BuildDaemonWithExampleBroker() (execPath string, cleanup func(), err error)
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")
 
 	fmt.Fprintln(os.Stderr, "Running command:", cmd.String())
-	if err := cmd.Run(); err != nil {
+	if err := RunWithTiming("Building authd", cmd); err != nil {
 		cleanup()
-		return "", nil, fmt.Errorf("failed to build daemon: %v", err)
+		return "", nil, fmt.Errorf("failed to build authd: %v", err)
 	}
 
 	return execPath, cleanup, err
