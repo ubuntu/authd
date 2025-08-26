@@ -74,13 +74,8 @@ func BuildRustNSSLib(t *testing.T, disableCoverage bool, features ...string) (li
 	cargo, isNightly, err := getCargoPath()
 	require.NoError(t, err, "Setup: looking for cargo")
 
-	// Note that for developing purposes and avoiding keeping building the rust program dependencies,
-	// TEST_RUST_TARGET environment variable can be set to an absolute path to keep iterative
-	// build artifacts.
-	target := os.Getenv("TEST_RUST_TARGET")
-	if target == "" {
-		target = t.TempDir()
-	}
+	// Store the build artifacts in a common temp directory, so that they can be reused between tests.
+	target := filepath.Join(os.TempDir(), "authd-tests-rust-build-artifacts")
 
 	rustDir := filepath.Join(projectRoot, "nss")
 	if !disableCoverage {
