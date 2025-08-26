@@ -25,7 +25,8 @@ import (
 
 type daemonOptions struct {
 	dbPath     string
-	existentDB string
+	dbFromYAML string
+	dbFromDump string
 	socketPath string
 	pidFile    string
 	outputFile string
@@ -43,10 +44,17 @@ func WithDBPath(path string) DaemonOption {
 	}
 }
 
-// WithPreviousDBState initializes the database of the daemon with a preexistent database.
-func WithPreviousDBState(db string) DaemonOption {
+// WithDBFromYAML initializes the database of the daemon with a preexistent database.
+func WithDBFromYAML(db string) DaemonOption {
 	return func(o *daemonOptions) {
-		o.existentDB = db
+		o.dbFromYAML = db
+	}
+}
+
+// WithDBFromDump initializes the database of the daemon with a preexistent database dump.
+func WithDBFromDump(db string) DaemonOption {
+	return func(o *daemonOptions) {
+		o.dbFromDump = db
 	}
 }
 
@@ -146,10 +154,18 @@ func StartDaemonWithCancel(t *testing.T, execPath string, args ...DaemonOption) 
 		opts.dbPath = filepath.Join(tempDir, "db")
 	}
 
-	if opts.existentDB != "" {
+	require.False(t, opts.dbFromYAML != "" && opts.dbFromDump != "", "Setup: cannot use both dbFromYAML and dbFromDump at the same time")
+
+	if opts.dbFromYAML != "" {
 		require.NoError(t, os.MkdirAll(opts.dbPath, 0700), "Setup: failed to create database dir")
-		err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", opts.existentDB+".db.yaml"), opts.dbPath)
+		err := db.Z_ForTests_CreateDBFromYAML(filepath.Join("testdata", "db", opts.dbFromYAML+".db.yaml"), opts.dbPath)
 		require.NoError(t, err, "Setup: could not create database from testdata")
+	}
+
+	if opts.dbFromDump != "" {
+		require.NoError(t, os.MkdirAll(opts.dbPath, 0700), "Setup: failed to create database dir")
+		err := db.Z_ForTests_CreateDBFromDump(filepath.Join("testdata", "db", opts.dbFromDump+".sql"), opts.dbPath)
+		require.NoError(t, err, "Setup: could not create database from dump")
 	}
 
 	if opts.socketPath == "" {

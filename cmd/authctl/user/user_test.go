@@ -62,7 +62,7 @@ func TestUserLockCommand(t *testing.T) {
 
 	daemonSocket := testutils.StartDaemon(t, daemonPath,
 		testutils.WithGroupFile(filepath.Join("testdata", "empty.group")),
-		testutils.WithPreviousDBState("one_user_and_group"),
+		testutils.WithDBFromYAML("one_user_and_group"),
 		testutils.WithCurrentUserAsRoot,
 	)
 

@@ -30,7 +30,7 @@ func TestIntegration(t *testing.T) {
 
 	testutils.StartDaemon(t, daemonPath,
 		testutils.WithSocketPath(defaultSocket),
-		testutils.WithPreviousDBState(defaultDbState),
+		testutils.WithDBFromYAML(defaultDbState),
 		testutils.WithGroupFile(defaultGroupsFilePath),
 		testutils.WithCurrentUserAsRoot,
 	)
@@ -107,7 +107,7 @@ func TestIntegration(t *testing.T) {
 			if useAlternativeDaemon {
 				// Run a specific new daemon for special test cases.
 				socketPath = testutils.StartDaemon(t, daemonPath,
-					testutils.WithPreviousDBState(tc.dbState),
+					testutils.WithDBFromYAML(tc.dbState),
 					testutils.WithGroupFile(defaultGroupsFilePath),
 				)
 			}
