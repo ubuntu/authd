@@ -289,6 +289,13 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
 			},
 		},
+		"Authenticate_user_after_db_migration": {
+			tape:                 "simple_auth",
+			daemonizeSSHd:        true,
+			oldDB:                "one_user_and_group",
+			user:                 "user1",
+			wantUserAlreadyExist: true,
+		},
 
 		"Deny_authentication_if_max_attempts_reached": {
 			tape:                "max_attempts",
