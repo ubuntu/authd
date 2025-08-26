@@ -297,6 +297,12 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			tape:          "simple_auth_locks_unlocks",
 			daemonizeSSHd: true,
 		},
+		"Authenticate_user_after_db_migration": {
+			tape:                 "simple_auth",
+			oldDB:                "one_user_and_group",
+			user:                 "user1",
+			wantUserAlreadyExist: true,
+		},
 
 		"Deny_authentication_if_max_attempts_reached": {
 			tape:                "max_attempts",
