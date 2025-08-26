@@ -32,7 +32,7 @@ func TestIntegration(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	_, stopped := testutils.RunDaemon(ctx, t, daemonPath,
 		testutils.WithSocketPath(defaultSocket),
-		testutils.WithPreviousDBState(defaultDbState),
+		testutils.WithDBFromYAML(defaultDbState),
 		testutils.WithGroupFile(defaultGroupsFilePath),
 		testutils.WithEnvironment("AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1"),
 	)
@@ -116,7 +116,7 @@ func TestIntegration(t *testing.T) {
 				var daemonStopped chan struct{}
 				ctx, cancel := context.WithCancel(context.Background())
 				socketPath, daemonStopped = testutils.RunDaemon(ctx, t, daemonPath,
-					testutils.WithPreviousDBState(tc.dbState),
+					testutils.WithDBFromYAML(tc.dbState),
 					testutils.WithGroupFile(defaultGroupsFilePath),
 				)
 				t.Cleanup(func() {

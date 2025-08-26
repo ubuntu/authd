@@ -146,6 +146,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		socketPath       string
 		daemonizeSSHd    bool
 		interactiveShell bool
+		oldBBoltDB       string
 		oldDB            string
 
 		wantUserAlreadyExist bool
@@ -174,19 +175,19 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 		"Authenticate_user_successfully_after_db_migration": {
 			tape:                 "simple_auth_with_auto_selected_broker",
-			oldDB:                "authd_0.4.1_bbolt_with_mixed_case_users",
+			oldBBoltDB:           "authd_0.4.1_bbolt_with_mixed_case_users",
 			wantUserAlreadyExist: true,
 			user:                 "user-integration-cached",
 		},
 		"Authenticate_user_with_upper_case_using_lower_case_after_db_migration": {
 			tape:                 "simple_auth_with_auto_selected_broker",
-			oldDB:                "authd_0.4.1_bbolt_with_mixed_case_users",
+			oldBBoltDB:           "authd_0.4.1_bbolt_with_mixed_case_users",
 			wantUserAlreadyExist: true,
 			user:                 "user-integration-upper-case",
 		},
 		"Authenticate_user_with_mixed_case_after_db_migration": {
 			tape:                 "simple_auth_with_auto_selected_broker",
-			oldDB:                "authd_0.4.1_bbolt_with_mixed_case_users",
+			oldBBoltDB:           "authd_0.4.1_bbolt_with_mixed_case_users",
 			wantUserAlreadyExist: true,
 			user:                 "user-integration-WITH-Mixed-CaSe",
 		},
@@ -375,17 +376,19 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				authdEnv = append(authdEnv, nssTestEnv(t, nssLibrary, authdSocketLink)...)
 			}
 
-			if tc.wantLocalGroups || tc.oldDB != "" {
+			if tc.wantLocalGroups || tc.oldDB != "" || tc.oldBBoltDB != "" {
 				// For the local groups tests we need to run authd again so that it has
 				// special environment that saves the updated group file to a writable
 				// location for us to test.
 				_, groupOutput = prepareGroupFiles(t)
 
-				authdEnv = append(authdEnv, useOldDatabaseEnv(t, tc.oldDB)...)
+				authdEnv = append(authdEnv, useOldDatabaseEnv(t, tc.oldBBoltDB)...)
 
 				socketPath = runAuthd(t, true,
 					testutils.WithGroupFile(groupOutput),
-					testutils.WithEnvironment(authdEnv...))
+					testutils.WithEnvironment(authdEnv...),
+					testutils.WithDBFromDump(tc.oldDB),
+				)
 			} else if !sharedSSHd {
 				socketPath, groupOutput = sharedAuthd(t,
 					testutils.WithGroupFileOutput(defaultGroupOutput),
@@ -428,7 +431,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 
 			sshdPort := defaultSSHDPort
 			userHome := defaultUserHome
-			if !sharedSSHd || tc.wantLocalGroups || tc.oldDB != "" ||
+			if !sharedSSHd || tc.wantLocalGroups || tc.oldBBoltDB != "" ||
 				tc.interactiveShell || tc.socketPath != "" {
 				sshdEnv := sshdEnv
 				if nssLibrary != "" {
