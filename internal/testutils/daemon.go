@@ -1,10 +1,10 @@
 package testutils
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -191,9 +191,16 @@ paths:
 	processPid := make(chan int)
 	go func() {
 		defer close(stopped)
-		var b bytes.Buffer
-		cmd.Stdout = &b
-		cmd.Stderr = &b
+
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if opts.outputFile != "" {
+			// Write the output both to stdout/stderr and to the output file.
+			w, err := os.OpenFile(opts.outputFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
+			require.NoError(t, err, "Setup: cannot open output file")
+			cmd.Stdout = io.MultiWriter(os.Stdout, w)
+			cmd.Stderr = io.MultiWriter(os.Stderr, w)
+		}
 
 		t.Logf("Setup: starting daemon with command: %s", cmd.String())
 		err := cmd.Start()
@@ -222,21 +229,14 @@ paths:
 		}
 
 		err = cmd.Wait()
-		out := b.Bytes()
-		if opts.outputFile != "" {
-			logger("writing authd log files to %v", opts.outputFile)
-			if err := os.WriteFile(opts.outputFile, out, 0600); err != nil {
-				logger("TearDown: failed to save output file %q: %v", opts.outputFile, err)
-			}
-		}
-		errorIs(err, context.Canceled, "Setup: daemon stopped unexpectedly: %s", out)
+		errorIs(err, context.Canceled, "Setup: daemon stopped unexpectedly")
 		if opts.pidFile != "" {
 			defer cancel(nil)
 			if err := os.Remove(opts.pidFile); err != nil {
 				logger("TearDown: failed to remove pid file %q: %v", opts.pidFile, err)
 			}
 		}
-		logger("Daemon stopped (%v)\n##### authd logs #####\n%s\n##### END #####", err, out)
+		logger("Daemon stopped (%v)", err)
 	}()
 
 	conn, err := grpc.NewClient("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
