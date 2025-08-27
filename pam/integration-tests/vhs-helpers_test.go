@@ -260,6 +260,8 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 		// so $HOME needs to be set to avoid that it downloads it every time.
 		// TODO: Set XDG_CACHE_HOME instead once https://github.com/go-rod/rod/pull/1213 was merged
 		"HOME="+os.Getenv("HOME"),
+		// Force color output, even if stdout is not a tty.
+		"CLICOLOR_FORCE=1",
 	)
 
 	u, err := user.Current()
