@@ -100,6 +100,9 @@ func BuildRustNSSLib(t *testing.T, disableCoverage bool, features ...string) (li
 	// Builds the nss library.
 	// #nosec:G204 - we control the command arguments in tests
 	cmd := exec.Command(cargo, "build", "--features", strings.Join(features, ","), "--target-dir", target)
+	if TestVerbosity() > 0 {
+		cmd.Args = append(cmd.Args, "--verbose")
+	}
 	cmd.Env = append(os.Environ(), rustCovEnv...)
 	cmd.Dir = projectRoot
 	cmd.Stdout = os.Stdout
