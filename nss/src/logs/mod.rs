@@ -1,13 +1,15 @@
 use log::{LevelFilter, Metadata};
+use once_cell::sync::OnceCell;
 use simple_logger::SimpleLogger;
 use std::env;
 use syslog::{BasicLogger, Facility, Formatter3164};
 
+pub static LOG_PREFIX: OnceCell<&'static str> = OnceCell::new();
+
 #[macro_export]
 macro_rules! info {
     ($($arg:tt)*) => {
-        let log_prefix = "authd:";
-        log::info!("{} {}", log_prefix, format_args!($($arg)*));
+        log::info!("{}{}", $crate::logs::LOG_PREFIX.get().copied().unwrap_or(""), format_args!($($arg)*));
     }
 }
 
@@ -50,26 +52,34 @@ fn init_sys_logger(log_level: LevelFilter) {
         pid: std::process::id(),
     };
 
-    let logger = match syslog::unix(formatter) {
-        Err(err) => {
-            println!("cannot connect to syslog: {err:?}");
-            return;
-        }
-        Ok(l) => l,
-    };
-
-    if let Err(err) = log::set_boxed_logger(Box::new(BasicLogger::new(logger)))
-        .map(|()| log::set_max_level(log_level))
-    {
-        eprintln!("cannot set log level: {err:?}");
+    let logger = if let Ok(l) = syslog::unix(formatter) {
+        l
+    } else {
+        eprintln!("failed to create syslog logger");
         return;
     };
+
+    if let Err(err) = log::set_boxed_logger(Box::new(BasicLogger::new(logger))) {
+        eprintln!("failed to install global syslog logger: {err:?}");
+        return;
+    }
+    log::set_max_level(log_level);
+
+    LOG_PREFIX.set("[nss-authd] ").unwrap();
 
     info!("Log output set to syslog");
 }
 
 /// init_stderr_logger initializes a global log that prints the messages to stderr.
 fn init_stderr_logger(log_level: LevelFilter) {
-    SimpleLogger::new().with_level(log_level).init().unwrap();
+    SimpleLogger::new()
+        .with_level(log_level)
+        .with_local_timestamps()
+        .with_timestamp_format(time::macros::format_description!(
+            "[hour]:[minute]:[second]"
+        ))
+        .init()
+        .unwrap();
+
     info!("Log output set to stderr");
 }
