@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -94,6 +93,5 @@ func setVerboseMode(level int) {
 		log.SetLevel(log.InfoLevel)
 	default:
 		log.SetLevel(log.DebugLevel)
-		slog.SetLogLoggerLevel(slog.LevelDebug)
 	}
 }
