@@ -496,7 +496,10 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 
 			userEnv := fmt.Sprintf("USER=%s", strings.ToLower(user))
 			if tc.wantNotLoggedInUser {
-				require.NotContains(t, got, userEnv, "Should not have a logged in user")
+				if strings.Contains(got, userEnv) {
+					require.Fail(t, "Tape output should not contain the logged in user name",
+						"##### Tape output #####\n%s\n##### End of tape output #####\n", got)
+				}
 
 				if userClient != nil {
 					requireNoAuthdUser(t, userClient, user)
@@ -505,7 +508,10 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 					requireGetEntExists(t, nssLibrary, socketPath, user, tc.isLocalUser)
 				}
 			} else {
-				require.Contains(t, got, userEnv, "Logged in user does not matches")
+				if !strings.Contains(got, userEnv) {
+					require.Fail(t, "Tape output should contain the logged in user name",
+						"##### Tape output:\n%s\n##### End of tape output #####\n", got)
+				}
 
 				if userClient != nil {
 					authdUser := requireAuthdUser(t, userClient, user)
