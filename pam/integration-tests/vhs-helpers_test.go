@@ -262,6 +262,14 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 		"HOME="+os.Getenv("HOME"),
 	)
 
+	// Force VHS to use color because it makes it a lot easier to find the error
+	// message in the VHS output. The only case where we don't want color is when
+	// building a Debian package, because when viewing the logs of a launchpad build
+	// in the browser, ANSI colors are not rendered.
+	if os.Getenv("DEB_BUILD_ARCH") == "" {
+		cmd.Env = append(cmd.Env, "CLICOLOR_FORCE=1")
+	}
+
 	u, err := user.Current()
 	require.NoError(t, err, "Setup: getting current user")
 	if u.Name == "root" || os.Getenv("SCHROOT_CHROOT_NAME") != "" {
