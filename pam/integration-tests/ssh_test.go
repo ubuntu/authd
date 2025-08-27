@@ -1,10 +1,12 @@
 package main_test
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -635,19 +637,36 @@ func startSSHdForTest(t *testing.T, serviceFile, hostKey, user string, preloadLi
 func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string, daemonize bool) (*exec.Cmd, string, string) {
 	t.Helper()
 
-	logFile := ""
 	pidFile := ""
-	runModeArgs := []string{"-ddd"}
+
+	logFile := filepath.Join(t.TempDir(), "sshd-daemon.log")
+	saveArtifactsForDebugOnCleanup(t, []string{logFile})
+
+	var logLevel string
+	if v := os.Getenv("AUTHD_TESTS_SSHD_VERBOSITY"); v != "" {
+		logLevel = v
+	} else if testutils.IsCI() {
+		// In CI we want to be very verbose in case something goes wrong.
+		// We don't print the logs but save them as artifacts for failed tests.
+		logLevel = "DEBUG3"
+	} else {
+		// Locally we print the logs to the terminal, so we don't want to be too verbose.
+		logLevel = "INFO"
+	}
+
+	runModeArgs := []string{
+		"-d",
+		"-E", logFile,
+		"-o", "LogLevel=" + logLevel,
+	}
 
 	if daemonize {
 		pidFile = filepath.Join(t.TempDir(), "sshd.pid")
-		logFile = filepath.Join(t.TempDir(), "sshd-daemon.log")
-		saveArtifactsForDebugOnCleanup(t, []string{logFile})
 
 		runModeArgs = []string{
 			"-E", logFile,
+			"-o", "LogLevel=" + logLevel,
 			"-o", "PidFile=" + pidFile,
-			"-o", "LogLevel=DEBUG3",
 		}
 	}
 
@@ -687,8 +706,11 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 
 	sshd, sshdPidFile, sshdLogFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env, daemonize)
 	sshdStderr := bytes.Buffer{}
-	sshd.Stderr = &sshdStderr
-	if testing.Verbose() {
+	// In CI we capture stderr and save it as a test artifact if the test fails.
+	// Locally, we print the output continuously for better development experience.
+	if testutils.IsCI() {
+		sshd.Stderr = &sshdStderr
+	} else {
 		sshd.Stdout = os.Stdout
 		sshd.Stderr = os.Stderr
 	}
@@ -699,15 +721,51 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	require.NoError(t, err, "Setup: Impossible to start sshd")
 	sshdPid := sshd.Process.Pid
 
-	t.Cleanup(func() {
-		if testing.Verbose() || !t.Failed() {
-			return
-		}
-		sshdLog := filepath.Join(t.TempDir(), "sshd.log")
-		require.NoError(t, os.WriteFile(sshdLog, sshdStderr.Bytes(), 0600),
-			"TearDown: Saving sshd log")
-		saveArtifactsForDebug(t, []string{sshdLog})
-	})
+	if testutils.IsCI() {
+		t.Cleanup(func() {
+			if !t.Failed() {
+				return
+			}
+			sshdLog := filepath.Join(t.TempDir(), "sshd.log")
+			require.NoError(t, os.WriteFile(sshdLog, sshdStderr.Bytes(), 0600), "TearDown: Saving sshd log")
+			saveArtifactsForDebug(t, []string{sshdLog})
+		})
+	} else {
+		// Continuously print the log file to the terminal, so that we can see
+		// what is going on while debugging.
+		go func() {
+			// Wait until the log file is created.
+			for {
+				_, err := os.Stat(sshdLogFile)
+				if !errors.Is(err, os.ErrNotExist) {
+					break
+				}
+				time.Sleep(20 * time.Millisecond)
+			}
+
+			logPrefix := fmt.Sprintf("sshd[%d]: ", sshdPid)
+
+			f, err := os.Open(sshdLogFile)
+			if err != nil {
+				require.NoError(t, err, "Setup: Opening sshd log file %s", sshdLogFile)
+			}
+			defer f.Close()
+			reader := bufio.NewReader(f)
+			for {
+				line, err := reader.ReadString('\n')
+				if len(line) > 0 {
+					fmt.Print(logPrefix, line)
+				}
+				if err != nil {
+					if err == io.EOF {
+						time.Sleep(20 * time.Millisecond)
+						continue
+					}
+					break
+				}
+			}
+		}()
+	}
 
 	t.Cleanup(func() {
 		if sshd.Process == nil {
@@ -725,16 +783,9 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 		select {
 		case <-time.After(sleepDuration(5 * time.Second)):
 			require.NoError(t, sshd.Process.Kill(), "TearDown: Killing SSHd failed")
-			if !testing.Verbose() {
-				t.Logf("SSHd stopped (killed)\n ##### STDERR #####\n %s \n ##### END #####",
-					sshdStderr.String())
-			}
 			t.Fatal("SSHd didn't finish in time!")
 		case state := <-sshdExited:
 			t.Logf("SSHd %v stopped (%s)!", sshdPid, state)
-			if !testing.Verbose() {
-				t.Logf("##### STDERR #####\n %s \n ##### END #####", sshdStderr.String())
-			}
 			expectedExitCode := 255
 			if daemonize {
 				expectedExitCode = 0
@@ -750,15 +801,6 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 		t.Logf("SSHd started with pid %d and listening on port %s", sshdPid, sshdPort)
 		return sshdPort
 	}
-
-	t.Cleanup(func() {
-		if !t.Failed() && !testing.Verbose() {
-			return
-		}
-		contents, err := os.ReadFile(sshdLogFile)
-		require.NoError(t, err, "TearDown: Reading SSHd log failed")
-		t.Logf(" ##### LOG FILE #####\n %s \n ##### END #####", contents)
-	})
 
 	t.Cleanup(func() {
 		pidFileContent, err := os.ReadFile(sshdPidFile)
@@ -801,14 +843,9 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	select {
 	case <-time.After(sleepDuration(5 * time.Second)):
 		_ = sshd.Process.Kill()
-		if !testing.Verbose() {
-			t.Logf("SSHd stopped (killed)\n ##### STDERR #####\n %s \n ##### END #####",
-				sshdStderr.String())
-		}
 		t.Fatal("SSHd didn't start in time!")
 	case err := <-sshdStarted:
-		require.NoError(t, err, "Setup: SSHd startup checking failed %s",
-			sshdStderr.String())
+		require.NoError(t, err, "Setup: SSHd startup checking failed")
 	}
 	require.NoError(t, err, "Setup: Waiting SSHd failed")
 
