@@ -167,6 +167,16 @@ var (
 	vhsClearTape = regexp.MustCompile(`\bClearTerminal\b`)
 )
 
+func init() {
+	if v := os.Getenv("VHS_WAIT_TIMEOUT"); v != "" {
+		d, err := time.ParseDuration(v)
+		if err != nil {
+			panic(err)
+		}
+		defaultSleepValues[authdWaitDefault] = d
+	}
+}
+
 func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 	m := map[string]any{
 		vhsWidth:  800,
