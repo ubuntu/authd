@@ -36,11 +36,18 @@ pub fn init_logger() {
 
 /// init_sys_logger initializes a global log that prints messages to the system logs.
 fn init_sys_logger(log_level: LevelFilter) {
+    // Derive the process name from current_exe(), fall back to a sensible default.
+    let process_name = std::env::current_exe()
+        .ok()
+        .and_then(|p| p.file_name().map(|s| s.to_string_lossy().into_owned()))
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "nss-authd".to_string());
+
     let formatter = Formatter3164 {
         facility: Facility::LOG_USER,
         hostname: None,
-        process: "authd".into(),
-        pid: 0,
+        process: process_name,
+        pid: std::process::id(),
     };
 
     let logger = match syslog::unix(formatter) {
