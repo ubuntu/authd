@@ -134,7 +134,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		sshdEnv = append(sshdEnv, nssEnv...)
 		sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocketPath))
 		defaultSSHDPort, defaultUserHome = startSSHdForTest(t, serviceFile, sshdHostKey,
-			"authd-test-user-sshd-accept-all", sshdPreloadLibraries, sshdEnv, true, false)
+			"authd-test-user-sshd-accept-all", sshdPreloadLibraries, sshdEnv, false)
 	}
 
 	sshEnvVariablesRegex = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`)
@@ -154,7 +154,6 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		userPrefix       string
 		pamServiceName   string
 		socketPath       string
-		daemonizeSSHd    bool
 		interactiveShell bool
 		oldDB            string
 
@@ -229,7 +228,6 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			user: strings.ToUpper(vhsTestUserNameFull(t,
 				examplebroker.UserIntegrationNeedsResetPrefix+
 					examplebroker.UserIntegrationPreCheckValue, "case-insensitive")),
-			daemonizeSSHd: true,
 			tapeVariables: map[string]string{
 				"AUTHD_TEST_TAPE_SSH_USER_VAR": pamSSHUserEnv,
 				"AUTHD_TEST_TAPE_LOWER_CASE_USERNAME": vhsTestUserNameFull(t,
@@ -288,8 +286,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 
 		"Remember_last_successful_broker_and_mode": {
-			tape:          "remember_broker_and_mode",
-			daemonizeSSHd: true,
+			tape: "remember_broker_and_mode",
 		},
 		"Autoselect_local_broker_for_local_user": {
 			tape:                "local_user_preset",
@@ -304,8 +301,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 			},
 		},
 		"Authenticate_user_locks_and_unlocks_it": {
-			tape:          "simple_auth_locks_unlocks",
-			daemonizeSSHd: true,
+			tape: "simple_auth_locks_unlocks",
 		},
 
 		"Deny_authentication_if_max_attempts_reached": {
@@ -463,7 +459,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				serviceFile := createSshdServiceFile(t, execModule, execChild,
 					pamMkHomeDirModule, socketPath)
 				sshdPort, userHome = startSSHdForTest(t, serviceFile, sshdHostKey, user,
-					sshdPreloadLibraries, sshdEnv, tc.daemonizeSSHd, tc.interactiveShell)
+					sshdPreloadLibraries, sshdEnv, tc.interactiveShell)
 			}
 
 			if !sharedSSHd {
@@ -606,19 +602,14 @@ func createSshdServiceFile(t *testing.T, module, execChild, mkHomeModule, socket
 	return serviceFile
 }
 
-func startSSHdForTest(t *testing.T, serviceFile, hostKey, user string, preloadLibraries []string, env []string, daemonize bool, interactiveShell bool) (string, string) {
+func startSSHdForTest(t *testing.T, serviceFile, hostKey, user string, preloadLibraries []string, env []string, interactiveShell bool) (string, string) {
 	t.Helper()
 
 	sshdConnectCommand := fmt.Sprintf(
-		"/usr/bin/echo ' SSHD: Connected to ssh via authd module! [%s]'",
+		"/usr/bin/echo ' SSHD: Connected to ssh via authd module! [%s]' && env | sort | sed 's/^/  /'",
 		t.Name())
-	if daemonize {
-		// When in daemon mode SSH doesn't show debug infos, so let's
-		// handle this manually.
-		sshdConnectCommand += "&& env | sort | sed 's/^/  /'"
-	}
 	if interactiveShell {
-		sshdConnectCommand = "/bin/sh"
+		sshdConnectCommand += "&& /bin/sh"
 	}
 
 	homeBase := t.TempDir()
@@ -629,16 +620,15 @@ func startSSHdForTest(t *testing.T, serviceFile, hostKey, user string, preloadLi
 		fmt.Sprintf("AUTHD_TEST_SSH_USER=%s", user),
 		fmt.Sprintf("AUTHD_TEST_SSH_HOME=%s", userHome),
 		fmt.Sprintf("AUTHD_TEST_SSH_PAM_SERVICE=%s", serviceFile),
-	}, env...), daemonize)
+	}, env...))
 
 	return sshdPort, userHome
 }
 
-func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string, daemonize bool) (*exec.Cmd, string, string) {
+func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string) (*exec.Cmd, string, string) {
 	t.Helper()
 
-	pidFile := ""
-
+	pidFile := filepath.Join(t.TempDir(), "sshd.pid")
 	logFile := filepath.Join(t.TempDir(), "sshd-daemon.log")
 	saveArtifactsForDebugOnCleanup(t, []string{logFile})
 
@@ -654,27 +644,14 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 		logLevel = "INFO"
 	}
 
-	runModeArgs := []string{
-		"-d",
-		"-E", logFile,
-		"-o", "LogLevel=" + logLevel,
-	}
-
-	if daemonize {
-		pidFile = filepath.Join(t.TempDir(), "sshd.pid")
-
-		runModeArgs = []string{
-			"-E", logFile,
-			"-o", "LogLevel=" + logLevel,
-			"-o", "PidFile=" + pidFile,
-		}
-	}
-
 	// #nosec:G204 - we control the command arguments in tests
 	sshd := exec.Command("/usr/sbin/sshd",
 		"-f", os.DevNull,
 		"-p", port,
 		"-h", hostKey,
+		"-E", logFile,
+		"-o", "LogLevel="+logLevel,
+		"-o", "PidFile="+pidFile,
 		"-o", "UsePAM=yes",
 		"-o", "KbdInteractiveAuthentication=yes",
 		"-o", "AuthenticationMethods=keyboard-interactive",
@@ -687,14 +664,13 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 		"-o", "ForceCommand="+forcedCommand,
 		"-o", "MaxAuthTries=1",
 	)
-	sshd.Args = append(sshd.Args, runModeArgs...)
 	sshd.Env = append(sshd.Env, env...)
 	sshd.Env = testutils.AppendCovEnv(sshd.Env)
 
 	return sshd, pidFile, logFile
 }
 
-func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemonize bool) string {
+func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string) string {
 	t.Helper()
 
 	// We use this to easily find a free port we can use, without going random
@@ -704,7 +680,7 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 	sshdPort := url.Port()
 	server.Close()
 
-	sshd, sshdPidFile, sshdLogFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env, daemonize)
+	sshd, sshdPidFile, sshdLogFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env)
 	sshdStderr := bytes.Buffer{}
 	// In CI we capture stderr and save it as a test artifact if the test fails.
 	// Locally, we print the output continuously for better development experience.
@@ -786,21 +762,10 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 			t.Fatal("SSHd didn't finish in time!")
 		case state := <-sshdExited:
 			t.Logf("SSHd %v stopped (%s)!", sshdPid, state)
-			expectedExitCode := 255
-			if daemonize {
-				expectedExitCode = 0
-			}
+			expectedExitCode := 0
 			require.Equal(t, expectedExitCode, state.ExitCode(), "TearDown: SSHd exited with %s", state)
 		}
 	})
-
-	if !daemonize {
-		// Sadly we can't wait for SSHd to be ready using net.Dial, since that will make sshd
-		// (when in debug mode) not to accept further connections from the actual test, but we
-		// can assume we're good.
-		t.Logf("SSHd started with pid %d and listening on port %s", sshdPid, sshdPort)
-		return sshdPort
-	}
 
 	t.Cleanup(func() {
 		pidFileContent, err := os.ReadFile(sshdPidFile)
