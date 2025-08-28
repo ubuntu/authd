@@ -514,10 +514,6 @@ func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath st
 	err = os.WriteFile(tapePath, tape, 0600)
 	require.NoError(t, err, "Setup: write tape file")
 
-	if testing.Verbose() {
-		t.Logf("Tape %q is now:\n%s", td.Name, tape)
-	}
-
 	artifacts := []string{tapePath}
 	for _, o := range td.Outputs {
 		artifacts = append(artifacts, filepath.Join(outputPath, o))
