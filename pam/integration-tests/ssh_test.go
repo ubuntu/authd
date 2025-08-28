@@ -461,7 +461,6 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
 			td.Command = tapeCommand
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
-			td.Env["HOME"] = t.TempDir()
 			td.Env[pamSSHUserEnv] = user
 			td.Env["AUTHD_PAM_SSH_ARGS"] = strings.Join([]string{
 				"-p", sshdPort,

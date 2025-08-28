@@ -260,6 +260,9 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 		cmd.Env = append(cmd.Env, "VHS_NO_SANDBOX=1")
 	}
 
+	// Set a temporary HOME directory to avoid interference with the user's home directory.
+	td.Env["HOME"] = t.TempDir()
+
 	// Move some of the environment specific-variables from the tape to the launched process
 	if e, ok := td.Env[pam_test.RunnerEnvLogFile]; ok {
 		delete(td.Env, pam_test.RunnerEnvLogFile)
