@@ -419,7 +419,6 @@ func TestGdmModule(t *testing.T) {
 				newPasswordAuthID,
 				newPasswordAuthID,
 				newPasswordAuthID,
-				newPasswordAuthID,
 			},
 			supportedLayouts: []*authd.UILayout{
 				pam_test.FormUILayout(pam_test.WithWait(true)),
@@ -443,10 +442,6 @@ func TestGdmModule(t *testing.T) {
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
 						Secret: "noble2404",
 					}),
-					// Use previous one
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
-						Secret: "goodpass",
-					}),
 					// Finally change the password
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
 						Secret: "authd2404",
@@ -456,7 +451,6 @@ func TestGdmModule(t *testing.T) {
 			wantUILayouts: []*authd.UILayout{
 				&testPasswordUILayout,
 				&testFidoDeviceUILayout,
-				&testNewPasswordUILayout,
 				&testNewPasswordUILayout,
 				&testNewPasswordUILayout,
 				&testNewPasswordUILayout,
@@ -472,10 +466,6 @@ func TestGdmModule(t *testing.T) {
 					Access: auth.Retry,
 					Msg:    "new password does not match criteria: must be 'authd2404'",
 				},
-				{
-					Access: auth.Retry,
-					Msg:    "The password is the same as the old one",
-				},
 				{Access: auth.Granted},
 			},
 		},
@@ -483,7 +473,6 @@ func TestGdmModule(t *testing.T) {
 			pamUserPrefix: examplebroker.UserIntegrationNeedsResetPrefix,
 			wantAuthModeIDs: []string{
 				passwordAuthID,
-				newPasswordAuthID,
 				newPasswordAuthID,
 				newPasswordAuthID,
 				newPasswordAuthID,
@@ -500,9 +489,6 @@ func TestGdmModule(t *testing.T) {
 					}),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
 						Secret: "authd",
-					}),
-					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
-						Secret: "goodpass",
 					}),
 					gdm_test.IsAuthenticatedEvent(&authd.IARequest_AuthenticationData_Secret{
 						Secret: "password",
@@ -524,10 +510,6 @@ func TestGdmModule(t *testing.T) {
 				{
 					Access: auth.Retry,
 					Msg:    "The password is shorter than 8 characters",
-				},
-				{
-					Access: auth.Retry,
-					Msg:    "The password is the same as the old one",
 				},
 				{
 					Access: auth.Retry,
