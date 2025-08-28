@@ -61,7 +61,7 @@ func TestSSHAuthenticate(t *testing.T) {
 }
 
 //nolint:thelper // This is actually a test function!
-func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
+func testSSHAuthenticate(t *testing.T, sharedSSHD bool) {
 	// Due to external dependencies such as `vhs`, we can't run the tests in some environments (like LP builders), as we
 	// can't install the dependencies there. So we need to be able to skip these tests on-demand.
 	if os.Getenv("AUTHD_SKIP_EXTERNAL_DEPENDENT_TESTS") != "" {
@@ -128,12 +128,12 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 
 	var sshdEnv []string
 	var defaultSSHDPort, defaultUserHome, defaultSocketPath, defaultGroupOutput string
-	if sharedSSHd {
+	if sharedSSHD {
 		defaultSocketPath, defaultGroupOutput = sharedAuthd(t)
-		serviceFile := createSshdServiceFile(t, execModule, execChild, pamMkHomeDirModule, defaultSocketPath)
+		serviceFile := createSSHDServiceFile(t, execModule, execChild, pamMkHomeDirModule, defaultSocketPath)
 		sshdEnv = append(sshdEnv, nssEnv...)
 		sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocketPath))
-		defaultSSHDPort, defaultUserHome = startSSHdForTest(t, serviceFile, sshdHostKey,
+		defaultSSHDPort, defaultUserHome = startSSHDForTest(t, serviceFile, sshdHostKey,
 			"authd-test-user-sshd-accept-all", sshdPreloadLibraries, sshdEnv, false)
 	}
 
@@ -364,8 +364,8 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 		},
 	}
 	for name, tc := range tests {
-		if sharedSSHd {
-			name = fmt.Sprintf("%s on shared SSHd", name)
+		if sharedSSHD {
+			name = fmt.Sprintf("%s_with_shared_sshd", name)
 		}
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -402,7 +402,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 					testutils.WithCurrentUserAsRoot,
 					testutils.WithGroupFile(groupOutput),
 					testutils.WithEnvironment(authdEnv...))
-			} else if !sharedSSHd {
+			} else if !sharedSSHD {
 				socketPath, groupOutput = sharedAuthd(t,
 					testutils.WithGroupFileOutput(defaultGroupOutput),
 					testutils.WithEnvironment(authdEnv...))
@@ -444,7 +444,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 
 			sshdPort := defaultSSHDPort
 			userHome := defaultUserHome
-			if !sharedSSHd || tc.wantLocalGroups || tc.oldDB != "" ||
+			if !sharedSSHD || tc.wantLocalGroups || tc.oldDB != "" ||
 				tc.interactiveShell || tc.socketPath != "" {
 				sshdEnv := sshdEnv
 				if nssLibrary != "" {
@@ -456,13 +456,13 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 					err := os.Symlink(socketPath, authdSocketLink)
 					require.NoError(t, err, "Setup: symlinking the authd socket")
 				}
-				serviceFile := createSshdServiceFile(t, execModule, execChild,
+				serviceFile := createSSHDServiceFile(t, execModule, execChild,
 					pamMkHomeDirModule, socketPath)
-				sshdPort, userHome = startSSHdForTest(t, serviceFile, sshdHostKey, user,
+				sshdPort, userHome = startSSHDForTest(t, serviceFile, sshdHostKey, user,
 					sshdPreloadLibraries, sshdEnv, tc.interactiveShell)
 			}
 
-			if !sharedSSHd {
+			if !sharedSSHD {
 				_, err := os.Stat(userHome)
 				require.ErrorIs(t, err, os.ErrNotExist, "Unexpected error checking for %q", userHome)
 			}
@@ -551,7 +551,7 @@ func sanitizeGoldenFile(t *testing.T, td tapeData, outDir string) string {
 	return sshHostPortRegex.ReplaceAllLiteralString(golden, "${SSH_HOST} port ${SSH_PORT}")
 }
 
-func createSshdServiceFile(t *testing.T, module, execChild, mkHomeModule, socketPath string) string {
+func createSSHDServiceFile(t *testing.T, module, execChild, mkHomeModule, socketPath string) string {
 	t.Helper()
 
 	moduleArgs := []string{
@@ -608,7 +608,7 @@ func createSshdServiceFile(t *testing.T, module, execChild, mkHomeModule, socket
 	return serviceFile
 }
 
-func startSSHdForTest(t *testing.T, serviceFile, hostKey, user string, preloadLibraries []string, env []string, interactiveShell bool) (string, string) {
+func startSSHDForTest(t *testing.T, serviceFile, hostKey, user string, preloadLibraries []string, env []string, interactiveShell bool) (string, string) {
 	t.Helper()
 
 	sshdConnectCommand := fmt.Sprintf(
@@ -620,7 +620,7 @@ func startSSHdForTest(t *testing.T, serviceFile, hostKey, user string, preloadLi
 
 	homeBase := t.TempDir()
 	userHome := filepath.Join(homeBase, user)
-	sshdPort := startSSHd(t, hostKey, sshdConnectCommand, append([]string{
+	sshdPort := startSSHD(t, hostKey, sshdConnectCommand, append([]string{
 		fmt.Sprintf("HOME=%s", homeBase),
 		fmt.Sprintf("LD_PRELOAD=%s", strings.Join(preloadLibraries, ":")),
 		fmt.Sprintf("AUTHD_TEST_SSH_USER=%s", user),
@@ -676,7 +676,7 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 	return sshd, pidFile, logFile
 }
 
-func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string) string {
+func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string {
 	t.Helper()
 
 	// We use this to easily find a free port we can use, without going random
@@ -757,33 +757,33 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string) string
 		sshdExited := make(chan *os.ProcessState)
 		go func() {
 			processState, err := sshd.Process.Wait()
-			require.NoError(t, err, "TearDown: Waiting SSHd failed")
+			require.NoError(t, err, "TearDown: Waiting sshd failed")
 			sshdExited <- processState
 		}()
 
 		t.Log("Waiting for sshd to be terminated")
 		select {
 		case <-time.After(sleepDuration(5 * time.Second)):
-			require.NoError(t, sshd.Process.Kill(), "TearDown: Killing SSHd failed")
-			t.Fatal("SSHd didn't finish in time!")
+			require.NoError(t, sshd.Process.Kill(), "TearDown: Killing sshd failed")
+			t.Fatal("sshd didn't finish in time!")
 		case state := <-sshdExited:
-			t.Logf("SSHd %v stopped (%s)!", sshdPid, state)
+			t.Logf("sshd %v stopped (%s)!", sshdPid, state)
 			expectedExitCode := 0
-			require.Equal(t, expectedExitCode, state.ExitCode(), "TearDown: SSHd exited with %s", state)
+			require.Equal(t, expectedExitCode, state.ExitCode(), "TearDown: sshd exited with %s", state)
 		}
 	})
 
 	t.Cleanup(func() {
 		pidFileContent, err := os.ReadFile(sshdPidFile)
-		require.NoError(t, err, "TearDown: Reading SSHd pid file failed")
+		require.NoError(t, err, "TearDown: Reading sshd pid file failed")
 		p := strings.TrimSpace(string(pidFileContent))
 		pid, err := strconv.Atoi(p)
-		require.NoError(t, err, "TearDown: Parsing SSHd pid file content: %q", p)
+		require.NoError(t, err, "TearDown: Parsing sshd pid file content: %q", p)
 		process, err := os.FindProcess(pid)
-		require.NoError(t, err, "TearDown: Finding SSHd process")
+		require.NoError(t, err, "TearDown: Finding sshd process")
 		err = process.Kill()
-		require.NoError(t, err, "TearDown: Killing SSHd process")
-		t.Logf("SSHd pid %d killed", pid)
+		require.NoError(t, err, "TearDown: Killing sshd process")
+		t.Logf("sshd pid %d killed", pid)
 	})
 
 	sshdStarted := make(chan error)
@@ -814,17 +814,17 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string) string
 	select {
 	case <-time.After(sleepDuration(5 * time.Second)):
 		_ = sshd.Process.Kill()
-		t.Fatal("SSHd didn't start in time!")
+		t.Fatal("sshd didn't start in time!")
 	case err := <-sshdStarted:
-		require.NoError(t, err, "Setup: SSHd startup checking failed")
+		require.NoError(t, err, "Setup: sshd startup checking failed")
 	}
-	require.NoError(t, err, "Setup: Waiting SSHd failed")
+	require.NoError(t, err, "Setup: Waiting sshd failed")
 
 	pidFileContent, err := os.ReadFile(sshdPidFile)
-	require.NoError(t, err, "Setup: Reading SSHd pid file failed")
+	require.NoError(t, err, "Setup: Reading sshd pid file failed")
 
 	duration := time.Since(start)
-	t.Logf("SSHd started in %.3fs - pid: %d (%s), listen port: %s",
+	t.Logf("sshd started in %.3fs - pid: %d (%s), listen port: %s",
 		duration.Seconds(), sshdPid, strings.TrimSpace(string(pidFileContent)), sshdPort)
 
 	return sshdPort
