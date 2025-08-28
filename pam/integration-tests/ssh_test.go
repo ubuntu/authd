@@ -824,7 +824,7 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 	require.NoError(t, err, "Setup: Reading sshd pid file failed")
 
 	duration := time.Since(start)
-	t.Logf("sshd started in %.3fs - pid: %d (%s), listen port: %s",
+	testutils.LogEndSeparatorf("sshd started in %.3fs - pid: %d (%s), listen port: %s",
 		duration.Seconds(), sshdPid, strings.TrimSpace(string(pidFileContent)), sshdPort)
 
 	return sshdPort
