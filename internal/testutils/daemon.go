@@ -185,7 +185,7 @@ paths:
 			cmd.Stderr = io.MultiWriter(os.Stderr, w)
 		}
 
-		t.Logf("Setup: Starting daemon: %s", cmd.String())
+		LogCommand("Starting authd", cmd)
 		err := cmd.Start()
 		require.NoError(t, err, "Setup: daemon cannot start %v", cmd.Args)
 		if opts.pidFile != "" {
@@ -230,7 +230,7 @@ paths:
 	err = grpcutils.WaitForConnection(ctx, conn, time.Second*30)
 	require.NoError(t, err, "Setup: wait for daemon to be ready timed out")
 	duration := time.Since(start)
-	t.Logf("Setup: daemon started in %.3fs", duration.Seconds())
+	LogEndSeparatorf("authd started in %.3fs", duration.Seconds())
 
 	if opts.pidFile != "" {
 		err := os.WriteFile(opts.pidFile, []byte(fmt.Sprint(<-processPid)), 0600)
