@@ -280,6 +280,8 @@ func BuildDaemonWithExampleBroker() (execPath string, cleanup func(), err error)
 
 	execPath = filepath.Join(tempDir, "authd")
 	cmd := exec.Command("go", "build")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Dir = projectRoot
 	cmd.Args = append(cmd.Args, GoBuildFlags()...)
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
@@ -287,9 +289,9 @@ func BuildDaemonWithExampleBroker() (execPath string, cleanup func(), err error)
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")
 
 	fmt.Fprintln(os.Stderr, "Running command:", cmd.String())
-	if out, err := cmd.CombinedOutput(); err != nil {
+	if err := cmd.Run(); err != nil {
 		cleanup()
-		return "", nil, fmt.Errorf("failed to build daemon(%v): %s", err, out)
+		return "", nil, fmt.Errorf("failed to build daemon: %v", err)
 	}
 
 	return execPath, cleanup, err

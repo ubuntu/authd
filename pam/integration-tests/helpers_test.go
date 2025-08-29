@@ -192,6 +192,8 @@ func buildPAMExecChild(t *testing.T) string {
 	t.Helper()
 
 	cmd := exec.Command("go", "build")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Dir = filepath.Join(testutils.ProjectRoot(), "pam")
 	cmd.Args = append(cmd.Args, testutils.GoBuildFlags()...)
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
@@ -203,8 +205,8 @@ func buildPAMExecChild(t *testing.T) string {
 	t.Log(strings.Join(cmd.Args, " "))
 
 	cmd.Args = append(cmd.Args, "-o", authdPam)
-	out, err := cmd.CombinedOutput()
-	require.NoError(t, err, "Setup: could not compile PAM exec child: %s", out)
+	err := cmd.Run()
+	require.NoError(t, err, "Setup: could not compile PAM exec child")
 
 	return authdPam
 }
