@@ -253,28 +253,33 @@ func artifactsDir(t *testing.T) string {
 	t.Helper()
 
 	authdArtifactsDirOnce.Do(func() {
-		defer func() { t.Logf("Saving test artifacts at %s", authdArtifactsDir) }()
-
-		// We need to copy the artifacts to another directory, since the test directory will be cleaned up.
-		authdArtifactsDir = os.Getenv("AUTHD_TESTS_ARTIFACTS_PATH")
-		if authdArtifactsDir != "" {
-			if err := os.MkdirAll(authdArtifactsDir, 0750); err != nil && !os.IsExist(err) {
-				require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
-			}
-			return
-		}
-
-		st := authdTestSessionTime
-		folderName := fmt.Sprintf("authd-test-artifacts-%d-%02d-%02dT%02d:%02d:%02d.%d-",
-			st.Year(), st.Month(), st.Day(), st.Hour(), st.Minute(), st.Second(),
-			st.UnixMilli())
-
-		var err error
-		authdArtifactsDir, err = os.MkdirTemp(os.TempDir(), folderName)
-		require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
+		authdArtifactsDir = createArtifactsDir(t)
+		t.Logf("Test artifacts directory: %s", authdArtifactsDir)
 	})
 
 	return authdArtifactsDir
+}
+
+func createArtifactsDir(t *testing.T) string {
+	t.Helper()
+
+	// We need to copy the artifacts to another directory, since the test directory will be cleaned up.
+	if dir := os.Getenv("AUTHD_TESTS_ARTIFACTS_PATH"); dir != "" {
+		if err := os.MkdirAll(dir, 0750); err != nil && !os.IsExist(err) {
+			require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
+		}
+		return dir
+	}
+
+	st := authdTestSessionTime
+	dirName := fmt.Sprintf("authd-test-artifacts-%d-%02d-%02dT%02d-%02d-%02d.%d-",
+		st.Year(), st.Month(), st.Day(), st.Hour(), st.Minute(), st.Second(),
+		st.UnixMilli())
+
+	dir, err := os.MkdirTemp(os.TempDir(), dirName)
+	require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
+
+	return dir
 }
 
 // saveArtifactsForDebug saves the specified artifacts to a temporary directory if the test failed.
