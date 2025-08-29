@@ -103,6 +103,7 @@ func BuildRustNSSLib(t *testing.T, disableCoverage bool, features ...string) (li
 	if TestVerbosity() > 0 {
 		cmd.Args = append(cmd.Args, "--verbose")
 	}
+	// dpkg-buildflags sets many relevant environment variables, so we pass the whole environment.
 	cmd.Env = append(os.Environ(), rustCovEnv...)
 	cmd.Dir = projectRoot
 	cmd.Stdout = t.Output()

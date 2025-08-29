@@ -176,9 +176,8 @@ paths:
 
 	// #nosec:G204 - we control the command arguments in tests
 	cmd := exec.CommandContext(ctx, execPath, "-c", configPath)
-	opts.env = append(opts.env, os.Environ()...)
 	opts.env = append(opts.env, fmt.Sprintf("AUTHD_EXAMPLE_BROKER_SLEEP_MULTIPLIER=%f", SleepMultiplier()))
-	cmd.Env = AppendCovEnv(opts.env)
+	cmd.Env = append(AppendCovEnv(opts.env), MinimalPathEnv)
 
 	// This is the function that is called by CommandContext when the context is cancelled.
 	cmd.Cancel = func() error {
