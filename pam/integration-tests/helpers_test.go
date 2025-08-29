@@ -2,6 +2,7 @@ package main_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -198,7 +199,7 @@ func buildPAMExecChild(t *testing.T) string {
 	cmd.Args = append(cmd.Args, testutils.GoBuildFlags()...)
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
 	cmd.Args = append(cmd.Args, "-tags=pam_debug")
-	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)
+	cmd.Env = append(goEnv(t), testutils.MinimalPathEnv, "CGO_CFLAGS=-O0 -g3")
 
 	authdPam := filepath.Join(t.TempDir(), "authd-pam")
 
@@ -312,16 +313,42 @@ func sleepDuration(in time.Duration) time.Duration {
 	return testutils.MultipliedSleepDuration(in)
 }
 
-// prependBinToPath returns the value of the GOPATH defined in go env prepended to PATH.
-func prependBinToPath(t *testing.T) string {
+// pathEnvWithGoBin returns the value of the GOPATH defined in go env prepended to PATH.
+func pathEnvWithGoBin(t *testing.T) string {
 	t.Helper()
+
+	pathEnv := testutils.MinimalPathEnv
 
 	cmd := exec.Command("go", "env", "GOPATH")
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, "Could not get GOPATH: %v: %s", err, out)
 
-	env := os.Getenv("PATH")
-	return "PATH=" + strings.Join([]string{filepath.Join(strings.TrimSpace(string(out)), "bin"), env}, ":")
+	goPath := strings.TrimSpace(string(out))
+
+	if goPath == "" {
+		return pathEnv
+	}
+
+	goBinPath := filepath.Join(goPath, "bin")
+	return fmt.Sprintf("PATH=%s:%s", goBinPath, strings.TrimPrefix(pathEnv, "PATH="))
+}
+
+func goEnv(t *testing.T) []string {
+	t.Helper()
+
+	cmd := exec.Command("go", "env", "-json")
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, "Could not get go env: %v: %s", err, out)
+
+	var env map[string]string
+	err = json.Unmarshal(out, &env)
+	require.NoError(t, err, "Could not unmarshal go env: %v: %s", err, out)
+
+	var envSlice []string
+	for k, v := range env {
+		envSlice = append(envSlice, fmt.Sprintf("%s=%s", k, v))
+	}
+	return envSlice
 }
 
 func prepareGroupFiles(t *testing.T) (string, string) {
