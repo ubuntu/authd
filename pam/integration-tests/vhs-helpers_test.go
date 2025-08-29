@@ -293,7 +293,7 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 	}
 
 	cmd.Args = append(cmd.Args, td.PrepareTape(t, testType, outDir))
-	err = cmd.Run()
+	err = testutils.RunWithTiming(fmt.Sprintf("VHS tape %q", td.Name), cmd)
 	if raceLog != "" {
 		checkDataRaces(t, raceLog)
 	}
@@ -315,7 +315,7 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 		newCmd.Stderr = os.Stderr
 		newCmd.Dir = cmd.Dir
 		newCmd.Env = slices.Clone(cmd.Env)
-		err = newCmd.Run()
+		err = testutils.RunWithTiming(fmt.Sprintf("VHS tape %q (second try)", td.Name), newCmd)
 	}
 	require.NoError(t, err, "Failed to run tape %q, see vhs output above", td.Name)
 }
