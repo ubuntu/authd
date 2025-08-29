@@ -1,7 +1,9 @@
 package main_test
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"maps"
 	"math"
 	"os"
@@ -242,6 +244,12 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 	t.Helper()
 
 	cmd := exec.Command("env", "vhs")
+
+	var outBuf bytes.Buffer
+	// Write stdout/stderr both to our stdout/stderr and to the buffer
+	cmd.Stdout = io.MultiWriter(os.Stdout, &outBuf)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &outBuf)
+
 	cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
 	cmd.Dir = outDir
 
@@ -285,29 +293,31 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 	}
 
 	cmd.Args = append(cmd.Args, td.PrepareTape(t, testType, outDir))
-	out, err := cmd.CombinedOutput()
+	err = cmd.Run()
 	if raceLog != "" {
 		checkDataRaces(t, raceLog)
 	}
 
-	isSSHError := func(processOut []byte) bool {
+	isSSHError := func() bool {
+		out := outBuf.String()
 		const sshConnectionResetByPeer = "Connection reset by peer"
 		const sshConnectionClosed = "Connection closed by"
-		output := string(processOut)
-		return strings.Contains(output, sshConnectionResetByPeer) ||
-			strings.Contains(output, sshConnectionClosed)
+		return strings.Contains(out, sshConnectionResetByPeer) ||
+			strings.Contains(out, sshConnectionClosed)
 	}
-	if err != nil && testType == vhsTestTypeSSH && isSSHError(out) {
-		t.Logf("SSH Connection failed on tape %q: %v: %s", td.Name, err, out)
+	if err != nil && testType == vhsTestTypeSSH && isSSHError() {
+		t.Logf("SSH Connection failed on tape %q: %v", td.Name, err)
 		// We've sometimes (but rarely) seen SSH connection errors which were resolved on retry, so we retry once.
 		// If it fails again, something might actually be broken.
 		//nolint:gosec // G204 it's a test and we explicitly set the parameters before.
 		newCmd := exec.Command(cmd.Args[0], cmd.Args[1:]...)
+		newCmd.Stdout = os.Stdout
+		newCmd.Stderr = os.Stderr
 		newCmd.Dir = cmd.Dir
 		newCmd.Env = slices.Clone(cmd.Env)
-		out, err = newCmd.CombinedOutput()
+		err = newCmd.Run()
 	}
-	require.NoError(t, err, "Failed to run tape %q: %v: %s", td.Name, err, out)
+	require.NoError(t, err, "Failed to run tape %q, see vhs output above", td.Name)
 }
 
 func (td tapeData) String() string {
