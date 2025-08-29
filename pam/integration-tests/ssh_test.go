@@ -635,18 +635,6 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 
 	pidFile := filepath.Join(t.TempDir(), "sshd.pid")
 
-	var logLevel string
-	if v := os.Getenv("AUTHD_TESTS_SSHD_VERBOSITY"); v != "" {
-		logLevel = v
-	} else if testutils.IsCI() {
-		// In CI we want to be very verbose in case something goes wrong.
-		// We don't print the logs but save them as artifacts for failed tests.
-		logLevel = "DEBUG3"
-	} else {
-		// Locally we print the logs to the terminal, so we don't want to be too verbose.
-		logLevel = "INFO"
-	}
-
 	// #nosec:G204 - we control the command arguments in tests
 	sshd := exec.Command("/usr/sbin/sshd",
 		"-f", os.DevNull,
@@ -654,7 +642,7 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 		"-h", hostKey,
 		"-D",
 		"-e",
-		"-o", "LogLevel="+logLevel,
+		"-o", "LogLevel=DEBUG3",
 		"-o", "PidFile="+pidFile,
 		"-o", "UsePAM=yes",
 		"-o", "KbdInteractiveAuthentication=yes",
@@ -685,10 +673,12 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 	server.Close()
 
 	sshd, sshdPidFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env)
+
 	sshdOutput := bytes.Buffer{}
+
 	// Write stdout/stderr both to our stdout/stderr and to the buffer
 	sshd.Stdout = io.MultiWriter(os.Stdout, &sshdOutput)
-	sshd.Stderr = io.MultiWriter(os.Stderr, &sshdOutput)
+	sshd.Stderr = io.MultiWriter(newFilteredStderrWriter(os.Stderr), &sshdOutput)
 
 	testutils.LogCommand("Starting sshd", sshd)
 	start := time.Now()
@@ -777,4 +767,50 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 		duration.Seconds(), sshdPid, strings.TrimSpace(string(pidFileContent)), sshdPort)
 
 	return sshdPort
+}
+
+type filteredStderrWriter struct {
+	w io.Writer
+}
+
+func newFilteredStderrWriter(w io.Writer) *filteredStderrWriter {
+	return &filteredStderrWriter{w: w}
+}
+
+func (fw *filteredStderrWriter) Write(p []byte) (n int, err error) {
+	debugLevel := os.Getenv("AUTHD_SSHD_STDERR_DEBUG_LEVEL")
+	if debugLevel == "" {
+		debugLevel = "1"
+	}
+
+	lines := strings.Split(string(p), "\n")
+	var outLines []string
+	for _, line := range lines {
+		// Only print lines with a debug level less than or equal to the configured level
+		if strings.HasPrefix(line, "debug") {
+			switch debugLevel {
+			case "1":
+				if strings.HasPrefix(line, "debug2") || strings.HasPrefix(line, "debug3") {
+					continue
+				}
+			case "2":
+				if strings.HasPrefix(line, "debug3") {
+					continue
+				}
+			case "3":
+				// Print all debug lines
+			default:
+				// Unknown debug level, don't print any debug lines
+				continue
+			}
+		}
+		outLines = append(outLines, line)
+	}
+	out := strings.Join(outLines, "\n")
+	if out == "" {
+		return len(p), nil
+	}
+
+	_, err = fw.w.Write([]byte(out))
+	return len(p), err
 }
