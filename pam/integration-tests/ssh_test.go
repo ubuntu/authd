@@ -526,7 +526,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 	}
 }
 
-func sanitizedOutput(t *testing.T, td tapeData, outDir string) string {
+func sanitizedOutput(t *testing.T, td *tapeData, outDir string) string {
 	t.Helper()
 
 	output := td.SanitizedOutput(t, outDir)
