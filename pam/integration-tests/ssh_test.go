@@ -539,12 +539,12 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 func sanitizeGoldenFile(t *testing.T, td tapeData, outDir string) string {
 	t.Helper()
 
-	golden := td.ExpectedOutput(t, outDir)
+	output := td.SanitizedOutput(t, outDir)
 
 	// When sshd is in debug mode, it shows the environment variables, so let's sanitize them
-	golden = sshEnvVariablesRegex.ReplaceAllString(golden, "  $1=$${AUTHD_TEST_$1}")
+	output = sshEnvVariablesRegex.ReplaceAllString(output, "  $1=$${AUTHD_TEST_$1}")
 
-	return sshHostPortRegex.ReplaceAllLiteralString(golden, "${SSH_HOST} port ${SSH_PORT}")
+	return sshHostPortRegex.ReplaceAllLiteralString(output, "${SSH_HOST} port ${SSH_PORT}")
 }
 
 func createSSHDServiceFile(t *testing.T, module, execChild, mkHomeModule, socketPath string) string {
