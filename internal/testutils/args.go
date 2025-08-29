@@ -16,7 +16,23 @@ var (
 	isRaceOnce          sync.Once
 	sleepMultiplier     float64
 	sleepMultiplierOnce sync.Once
+	testVerbosity       int
+	testVerbosityOnce   sync.Once
 )
+
+// TestVerbosity returns the verbosity level that should be used in tests.
+func TestVerbosity() int {
+	testVerbosityOnce.Do(func() {
+		if v := os.Getenv("AUTHD_TEST_VERBOSITY"); v != "" {
+			var err error
+			testVerbosity, err = strconv.Atoi(v)
+			if err != nil {
+				panic(err)
+			}
+		}
+	})
+	return testVerbosity
+}
 
 func haveBuildFlag(flag string) bool {
 	b, ok := debug.ReadBuildInfo()
