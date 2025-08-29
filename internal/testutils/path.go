@@ -12,6 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// MinimalPathEnv is the minimal PATH environment variable used to run tests.
+const MinimalPathEnv = "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
 // CurrentDir returns the current file directory.
 func CurrentDir() string {
 	// p is the path to the caller file
