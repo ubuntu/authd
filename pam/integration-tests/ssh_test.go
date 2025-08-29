@@ -704,14 +704,7 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 	sshdPid := sshd.Process.Pid
 
 	if testutils.IsCI() {
-		t.Cleanup(func() {
-			if !t.Failed() {
-				return
-			}
-			sshdLog := filepath.Join(t.TempDir(), "sshd.log")
-			require.NoError(t, os.WriteFile(sshdLog, sshdStderr.Bytes(), 0600), "TearDown: Saving sshd log")
-			saveFilesAsArtifacts(t, sshdLog)
-		})
+		maybeSaveBufferAsArtifactOnCleanup(t, &sshdStderr, "sshd.out")
 	} else {
 		// Continuously print the log file to the terminal, so that we can see
 		// what is going on while debugging.
