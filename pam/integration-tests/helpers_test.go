@@ -249,7 +249,7 @@ func requirePreviousBrokerForUser(t *testing.T, socketPath string, brokerName st
 	require.Equal(t, prevBroker.PreviousBroker, prevBrokerID)
 }
 
-func artifactsPath(t *testing.T) string {
+func artifactsDir(t *testing.T) string {
 	t.Helper()
 
 	authdArtifactsDirOnce.Do(func() {
@@ -284,7 +284,7 @@ func saveArtifactsForDebug(t *testing.T, artifacts ...string) {
 		return
 	}
 
-	tmpDir := filepath.Join(artifactsPath(t), golden.Path(t))
+	tmpDir := filepath.Join(artifactsDir(t), golden.Path(t))
 	err := os.MkdirAll(tmpDir, 0750)
 	require.NoError(t, err, "TearDown: could not create temporary directory %q for artifacts", tmpDir)
 
