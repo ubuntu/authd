@@ -103,7 +103,7 @@ func BuildRustNSSLib(t *testing.T, disableCoverage bool, features ...string) (li
 	if TestVerbosity() > 0 {
 		cmd.Args = append(cmd.Args, "--verbose")
 	}
-	cmd.Env = append(os.Environ(), rustCovEnv...)
+	cmd.Env = append(rustCovEnv, MinimalPathEnv)
 	cmd.Dir = projectRoot
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

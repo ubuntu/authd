@@ -220,7 +220,13 @@ func buildPAMExecChild(t *testing.T) string {
 	}
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
 	cmd.Args = append(cmd.Args, "-tags=pam_debug")
-	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)
+	cmd.Env = []string{
+		"CGO_CFLAGS=-O0 -g3",
+		"GOPATH=" + os.Getenv("GOPATH"),
+		"GOROOT=" + os.Getenv("GOROOT"),
+		"GOCACHE=" + goCache(t),
+		pathEnvWithGoBin(t),
+	}
 
 	authdPam := filepath.Join(t.TempDir(), "authd-pam")
 
@@ -334,16 +340,34 @@ func sleepDuration(in time.Duration) time.Duration {
 	return testutils.MultipliedSleepDuration(in)
 }
 
-// prependBinToPath returns the value of the GOPATH defined in go env prepended to PATH.
-func prependBinToPath(t *testing.T) string {
+// pathEnvWithGoBin returns the value of the GOPATH defined in go env prepended to PATH.
+func pathEnvWithGoBin(t *testing.T) string {
 	t.Helper()
+
+	pathEnv := testutils.MinimalPathEnv
 
 	cmd := exec.Command("go", "env", "GOPATH")
 	out, err := cmd.CombinedOutput()
 	require.NoError(t, err, "Could not get GOPATH: %v: %s", err, out)
 
-	env := os.Getenv("PATH")
-	return "PATH=" + strings.Join([]string{filepath.Join(strings.TrimSpace(string(out)), "bin"), env}, ":")
+	goPath := strings.TrimSpace(string(out))
+
+	if goPath == "" {
+		return pathEnv
+	}
+
+	goBinPath := filepath.Join(goPath, "bin")
+	return fmt.Sprintf("PATH=%s:%s", goBinPath, strings.TrimPrefix(pathEnv, "PATH="))
+}
+
+func goCache(t *testing.T) string {
+	t.Helper()
+
+	cmd := exec.Command("go", "env", "GOCACHE")
+	out, err := cmd.CombinedOutput()
+	require.NoError(t, err, "Could not get GOCACHE: %v: %s", err, out)
+
+	return strings.TrimSpace(string(out))
 }
 
 func prepareGroupFiles(t *testing.T) (string, string) {
