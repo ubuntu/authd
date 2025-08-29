@@ -1,6 +1,7 @@
 package main_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -339,6 +340,17 @@ func maybeSaveBytesAsArtifactOnCleanup(t *testing.T, content []byte, filename st
 			return
 		}
 		saveBytesAsArtifact(t, content, filename)
+	})
+}
+
+func maybeSaveBufferAsArtifactOnCleanup(t *testing.T, buf *bytes.Buffer, filename string) {
+	t.Helper()
+
+	t.Cleanup(func() {
+		if !t.Failed() && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") == "" {
+			return
+		}
+		saveBytesAsArtifact(t, buf.Bytes(), filename)
 	})
 }
 
