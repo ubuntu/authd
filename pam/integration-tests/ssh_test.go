@@ -115,11 +115,11 @@ func testSSHAuthenticate(t *testing.T, sharedSSHD bool) {
 	//#nosec:G204 - we control the command arguments in tests
 	out, err := exec.Command("ssh-keygen", "-q", "-f", sshdHostKey, "-N", "", "-t", "ed25519").CombinedOutput()
 	require.NoError(t, err, "Setup: Failed generating SSH host key: %s", out)
-	maybeSaveFilesAsArtifactsOnCleanup(t, []string{sshdHostKey})
+	maybeSaveFilesAsArtifactsOnCleanup(t, sshdHostKey)
 
 	pubKey, err := os.ReadFile(sshdHostKey + ".pub")
 	require.NoError(t, err, "Setup: Can't read sshd host public key")
-	maybeSaveFilesAsArtifactsOnCleanup(t, []string{sshdHostKey + ".pub"})
+	maybeSaveFilesAsArtifactsOnCleanup(t, sshdHostKey+".pub")
 
 	const pamSSHUserEnv = "AUTHD_PAM_SSH_USER"
 	const baseTapeCommand = "ssh ${%s}@localhost ${AUTHD_PAM_SSH_ARGS}"
@@ -603,7 +603,7 @@ func createSSHDServiceFile(t *testing.T, module, execChild, mkHomeModule, socket
 		{Action: pam_test.Session, Control: pam_test.Requisite, Module: pam_test.Permit.String()},
 	})
 	require.NoError(t, err, "Setup: Creation of service file %s", pamServiceName)
-	maybeSaveFilesAsArtifactsOnCleanup(t, []string{serviceFile})
+	maybeSaveFilesAsArtifactsOnCleanup(t, serviceFile)
 
 	return serviceFile
 }
@@ -636,7 +636,7 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 
 	pidFile := filepath.Join(t.TempDir(), "sshd.pid")
 	logFile := filepath.Join(t.TempDir(), "sshd-daemon.log")
-	maybeSaveFilesAsArtifactsOnCleanup(t, []string{logFile})
+	maybeSaveFilesAsArtifactsOnCleanup(t, logFile)
 
 	var logLevel string
 	if v := os.Getenv("AUTHD_TESTS_SSHD_VERBOSITY"); v != "" {
@@ -710,7 +710,7 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 			}
 			sshdLog := filepath.Join(t.TempDir(), "sshd.log")
 			require.NoError(t, os.WriteFile(sshdLog, sshdStderr.Bytes(), 0600), "TearDown: Saving sshd log")
-			saveArtifactsForDebug(t, []string{sshdLog})
+			saveArtifactsForDebug(t, sshdLog)
 		})
 	} else {
 		// Continuously print the log file to the terminal, so that we can see
