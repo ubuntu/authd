@@ -316,7 +316,10 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) 
 		}
 	}
 
-	cmd.Args = append(cmd.Args, td.PrepareTape(t, testType))
+	tapePath := td.PrepareTape(t, testType)
+	maybeSaveFilesAsArtifactsOnCleanup(t, tapePath, filepath.Join(td.OutputDir, td.OutputFilename))
+	cmd.Args = append(cmd.Args, tapePath)
+
 	err = testutils.RunWithTiming(fmt.Sprintf("VHS tape %q", td.Name), cmd)
 	if raceLog != "" {
 		checkDataRaces(t, raceLog)
@@ -507,8 +510,6 @@ func (td *tapeData) PrepareTape(t *testing.T, testType vhsTestType) string {
 	tapePath := filepath.Join(td.OutputDir, td.Name+".tape")
 	err = os.WriteFile(tapePath, tape, 0600)
 	require.NoError(t, err, "Setup: write tape file")
-
-	maybeSaveFilesAsArtifactsOnCleanup(t, tapePath, td.OutputFilename)
 
 	return tapePath
 }
