@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -631,12 +630,10 @@ func startSSHDForTest(t *testing.T, serviceFile, hostKey, user string, preloadLi
 	return sshdPort, userHome
 }
 
-func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string) (*exec.Cmd, string, string) {
+func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string) (*exec.Cmd, string) {
 	t.Helper()
 
 	pidFile := filepath.Join(t.TempDir(), "sshd.pid")
-	logFile := filepath.Join(t.TempDir(), "sshd-daemon.log")
-	maybeSaveFilesAsArtifactsOnCleanup(t, logFile)
 
 	var logLevel string
 	if v := os.Getenv("AUTHD_TESTS_SSHD_VERBOSITY"); v != "" {
@@ -655,7 +652,8 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 		"-f", os.DevNull,
 		"-p", port,
 		"-h", hostKey,
-		"-E", logFile,
+		"-D",
+		"-e",
 		"-o", "LogLevel="+logLevel,
 		"-o", "PidFile="+pidFile,
 		"-o", "UsePAM=yes",
@@ -673,7 +671,7 @@ func sshdCommand(t *testing.T, port, hostKey, forcedCommand string, env []string
 	sshd.Env = append(sshd.Env, env...)
 	sshd.Env = testutils.AppendCovEnv(sshd.Env)
 
-	return sshd, pidFile, logFile
+	return sshd, pidFile
 }
 
 func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string {
@@ -686,61 +684,19 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 	sshdPort := url.Port()
 	server.Close()
 
-	sshd, sshdPidFile, sshdLogFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env)
-	sshdStderr := bytes.Buffer{}
-	// In CI we capture stderr and save it as a test artifact if the test fails.
-	// Locally, we print the output continuously for better development experience.
-	if testutils.IsCI() {
-		sshd.Stderr = &sshdStderr
-	} else {
-		sshd.Stdout = os.Stdout
-		sshd.Stderr = os.Stderr
-	}
+	sshd, sshdPidFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env)
+	sshdOutput := bytes.Buffer{}
+	// Write stdout/stderr both to our stdout/stderr and to the buffer
+	sshd.Stdout = io.MultiWriter(os.Stdout, &sshdOutput)
+	sshd.Stderr = io.MultiWriter(os.Stderr, &sshdOutput)
 
-	t.Logf("Launching sshd: cmd: %s\nenv: %s", sshd.String(), sshd.Env)
+	testutils.LogCommand("Starting sshd", sshd)
 	start := time.Now()
 	err = sshd.Start()
 	require.NoError(t, err, "Setup: Impossible to start sshd")
 	sshdPid := sshd.Process.Pid
 
-	if testutils.IsCI() {
-		maybeSaveBufferAsArtifactOnCleanup(t, &sshdStderr, "sshd.out")
-	} else {
-		// Continuously print the log file to the terminal, so that we can see
-		// what is going on while debugging.
-		go func() {
-			// Wait until the log file is created.
-			for {
-				_, err := os.Stat(sshdLogFile)
-				if !errors.Is(err, os.ErrNotExist) {
-					break
-				}
-				time.Sleep(20 * time.Millisecond)
-			}
-
-			logPrefix := fmt.Sprintf("sshd[%d]: ", sshdPid)
-
-			f, err := os.Open(sshdLogFile)
-			if err != nil {
-				require.NoError(t, err, "Setup: Opening sshd log file %s", sshdLogFile)
-			}
-			defer f.Close()
-			reader := bufio.NewReader(f)
-			for {
-				line, err := reader.ReadString('\n')
-				if len(line) > 0 {
-					fmt.Print(logPrefix, line)
-				}
-				if err != nil {
-					if err == io.EOF {
-						time.Sleep(20 * time.Millisecond)
-						continue
-					}
-					break
-				}
-			}
-		}()
-	}
+	maybeSaveBufferAsArtifactOnCleanup(t, &sshdOutput, "sshd.log")
 
 	t.Cleanup(func() {
 		if sshd.Process == nil {
@@ -761,7 +717,7 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 			t.Fatal("sshd didn't finish in time!")
 		case state := <-sshdExited:
 			t.Logf("sshd %v stopped (%s)!", sshdPid, state)
-			expectedExitCode := 0
+			expectedExitCode := -1
 			require.Equal(t, expectedExitCode, state.ExitCode(), "TearDown: sshd exited with %s", state)
 		}
 	})
