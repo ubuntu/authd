@@ -113,9 +113,9 @@ func WithGroupFileOutput(groupFile string) DaemonOption {
 	}
 }
 
-// RunDaemon runs the daemon in a separate process and returns the socket path and a channel that will be closed when
-// the daemon stops.
-func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
+// RunAuthd runs authd in a separate process and returns the socket path and a channel that will be closed when
+// authd stops.
+func RunAuthd(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
 	t.Helper()
 
 	opts := &daemonOptions{}
@@ -168,7 +168,7 @@ paths:
 		return cmd.Process.Signal(os.Signal(syscall.SIGTERM))
 	}
 
-	// Start the daemon
+	// Start authd
 	start := time.Now()
 	stopped = make(chan struct{})
 	processPid := make(chan int)
@@ -187,12 +187,12 @@ paths:
 
 		LogCommand("Starting authd", cmd)
 		err := cmd.Start()
-		require.NoError(t, err, "Setup: daemon cannot start %v", cmd.Args)
+		require.NoError(t, err, "Setup: authd failed to start")
 		if opts.pidFile != "" {
 			processPid <- cmd.Process.Pid
 		}
 
-		// When using a shared daemon we should not use the test parameter from now on
+		// When using a shared authd instance we should not use the test parameter from now on
 		// since the test is referring to may not be the one actually running.
 		t := t
 		logger := t.Logf
@@ -212,23 +212,23 @@ paths:
 		}
 
 		err = cmd.Wait()
-		errorIs(err, context.Canceled, "Setup: daemon stopped unexpectedly")
+		errorIs(err, context.Canceled, "Setup: authd stopped unexpectedly")
 		if opts.pidFile != "" {
 			defer cancel(nil)
 			if err := os.Remove(opts.pidFile); err != nil {
 				logger("TearDown: failed to remove pid file %q: %v", opts.pidFile, err)
 			}
 		}
-		logger("Daemon stopped (%v)", err)
+		logger("authd exited (%v)", err)
 	}()
 
 	conn, err := grpc.NewClient("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
-	require.NoError(t, err, "Setup: could not connect to the daemon on %s", opts.socketPath)
+	require.NoError(t, err, "Setup: could not connect to authd on %s", opts.socketPath)
 	defer conn.Close()
 
-	// Block until the daemon is started and ready to accept connections.
+	// Block until authd has started and is ready to accept connections.
 	err = grpcutils.WaitForConnection(ctx, conn, time.Second*30)
-	require.NoError(t, err, "Setup: wait for daemon to be ready timed out")
+	require.NoError(t, err, "Setup: timeout waiting for authd to start")
 	duration := time.Since(start)
 	LogEndSeparatorf("authd started in %.3fs", duration.Seconds())
 
@@ -254,8 +254,8 @@ paths:
 	return opts.socketPath, stopped
 }
 
-// BuildDaemon builds the daemon executable and returns the binary path.
-func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err error) {
+// BuildAuthd builds the authd executable and returns the binary path.
+func BuildAuthd(extraArgs ...string) (execPath string, cleanup func(), err error) {
 	projectRoot := ProjectRoot()
 
 	tempDir, err := os.MkdirTemp("", "authd-tests-daemon")
