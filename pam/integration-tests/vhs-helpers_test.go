@@ -276,6 +276,8 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cl
 		"HOME="+os.Getenv("HOME"),
 		// Force color output, even if stdout is not a tty.
 		"CLICOLOR_FORCE=1",
+		// Avoid VHS printing "Host your GIF on vhs.charm.sh: vhs publish <file>.gif"
+		"VHS_PUBLISH=false",
 	)
 
 	u, err := user.Current()
