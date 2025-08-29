@@ -13,7 +13,7 @@ const authdCurrentUserRootEnvVariableContent = "AUTHD_INTEGRATIONTESTS_CURRENT_U
 var daemonPath string
 
 func TestMain(m *testing.M) {
-	execPath, daemonCleanup, err := testutils.BuildDaemon("-tags=withexamplebroker,integrationtests")
+	execPath, daemonCleanup, err := testutils.BuildAuthd("-tags=withexamplebroker,integrationtests")
 	if err != nil {
 		log.Printf("Setup: Failed to build authd daemon: %v", err)
 		os.Exit(1)
