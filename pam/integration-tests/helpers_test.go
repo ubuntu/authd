@@ -34,7 +34,7 @@ import (
 var (
 	authdTestSessionTime  = time.Now()
 	authdArtifactsDir     string
-	authdArtifactsDirSync sync.Once
+	authdArtifactsDirOnce sync.Once
 )
 
 type authdInstance struct {
@@ -252,7 +252,7 @@ func requirePreviousBrokerForUser(t *testing.T, socketPath string, brokerName st
 func artifactsPath(t *testing.T) string {
 	t.Helper()
 
-	authdArtifactsDirSync.Do(func() {
+	authdArtifactsDirOnce.Do(func() {
 		defer func() { t.Logf("Saving test artifacts at %s", authdArtifactsDir) }()
 
 		// We need to copy the artifacts to another directory, since the test directory will be cleaned up.
