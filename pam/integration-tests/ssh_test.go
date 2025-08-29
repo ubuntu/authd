@@ -17,6 +17,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"testing"
 	"time"
@@ -39,6 +40,21 @@ var (
 	sshHostPortRegex     *regexp.Regexp
 
 	sshDefaultFinalWaitTimeout = sleepDuration(3 * defaultSleepValues[authdWaitDefault])
+
+	prepareSSHTestsOnce sync.Once
+	sshTestsPrepared    bool
+
+	prepareSharedSSHDTestsOnce sync.Once
+	sharedSSHDTestsPrepared    bool
+
+	execModule, execChild, pamMkHomeDirModule string
+	nssEnv                                    []string
+	nssLibrary                                string
+	sshdPreloadLibraries                      []string
+	sshdPreloaderCFlags                       []string
+	sshdEnv                                   []string
+	sshdHostKeyPath                           string
+	sshdHostPubKey                            []byte
 )
 
 func TestSSHAuthenticate(t *testing.T) {
@@ -76,65 +92,77 @@ func testSSHAuthenticate(t *testing.T, sharedSSHD bool) {
 	currentDir, err := os.Getwd()
 	require.NoError(t, err, "Setup: Could not get current directory for the tests")
 
-	execModule := buildExecModuleWithCFlags(t, []string{"-std=c11"}, true)
-	execChild := buildPAMExecChild(t)
+	prepareSSHTests := func(subtest *testing.T) {
+		t.Logf("Preparing SSH tests, triggered by %q", subtest.Name())
 
-	mkHomeDirHelper, err := exec.LookPath("mkhomedir_helper")
-	require.NoError(t, err, "Setup: mkhomedir_helper not found")
-	pamMkHomeDirModule := buildCPAMModule(t,
-		[]string{"./pam/integration-tests/pam_mkhomedir/pam_mkhomedir.c"},
-		nil,
-		[]string{
-			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS",
-			fmt.Sprintf("-DMKHOMEDIR_HELPER=%q", mkHomeDirHelper),
-		},
-		"pam_mkhomedir_test.so", true)
+		execModule = buildExecModuleWithCFlags(t, []string{"-std=c11"}, true)
+		execChild = buildPAMExecChild(t)
 
-	var nssEnv []string
-	var nssLibrary string
-	var sshdPreloadLibraries []string
-	var sshdPreloaderCFlags []string
-	err = testutils.CanRunRustTests(false)
-	if os.Getenv("AUTHD_TESTS_SSH_USE_DUMMY_NSS") == "" && err == nil {
-		nssLibrary, nssEnv = testutils.BuildRustNSSLib(t, true)
-		sshdPreloadLibraries = append(sshdPreloadLibraries, nssLibrary)
-		sshdPreloaderCFlags = append(sshdPreloaderCFlags,
-			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS")
-		nssEnv = append(nssEnv, nssTestEnvBase(t, nssLibrary)...)
-	} else if err != nil {
-		t.Logf("Using the dummy library to implement NSS: %v", err)
+		mkHomeDirHelper, err := exec.LookPath("mkhomedir_helper")
+		require.NoError(t, err, "Setup: mkhomedir_helper not found")
+		pamMkHomeDirModule = buildCPAMModule(t,
+			[]string{"./pam/integration-tests/pam_mkhomedir/pam_mkhomedir.c"},
+			nil,
+			[]string{
+				"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS",
+				fmt.Sprintf("-DMKHOMEDIR_HELPER=%q", mkHomeDirHelper),
+			},
+			"pam_mkhomedir_test.so", true)
+
+		err = testutils.CanRunRustTests(false)
+		if os.Getenv("AUTHD_TESTS_SSH_USE_DUMMY_NSS") == "" && err == nil {
+			nssLibrary, nssEnv = testutils.BuildRustNSSLib(t, true)
+			sshdPreloadLibraries = append(sshdPreloadLibraries, nssLibrary)
+			sshdPreloaderCFlags = append(sshdPreloaderCFlags,
+				"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS")
+			nssEnv = append(nssEnv, nssTestEnvBase(t, nssLibrary)...)
+		} else if err != nil {
+			t.Logf("Using the dummy library to implement NSS: %v", err)
+		}
+
+		sources := []string{filepath.Join(currentDir, "/sshd_preloader/sshd_preloader.c")}
+		sshdPreloadLibrary := buildCModule(t, sources,
+			nil, sshdPreloaderCFlags, nil, "sshd_preloader", true)
+		sshdPreloadLibraries = append(sshdPreloadLibraries, sshdPreloadLibrary)
+
+		sshdHostKeyPath = filepath.Join(t.TempDir(), "ssh_host_ed25519_key")
+		//#nosec:G204 - we control the command arguments in tests
+		out, err := exec.Command("ssh-keygen", "-q", "-f", sshdHostKeyPath, "-N", "", "-t", "ed25519").CombinedOutput()
+		require.NoError(t, err, "Setup: Failed generating SSH host key: %s", out)
+		maybeSaveFilesAsArtifactsOnCleanup(t, sshdHostKeyPath)
+
+		sshdHostPubKey, err = os.ReadFile(sshdHostKeyPath + ".pub")
+		require.NoError(t, err, "Setup: Can't read sshd host public key")
+
+		maybeSaveFilesAsArtifactsOnCleanup(t, sshdHostKeyPath+".pub")
+
+		if !t.Failed() {
+			t.Log("Prepared SSH tests")
+			sshTestsPrepared = true
+		}
 	}
 
-	sshdPreloadLibrary := buildCModule(t, []string{
-		filepath.Join(currentDir, "/sshd_preloader/sshd_preloader.c"),
-	}, nil, sshdPreloaderCFlags, nil, "sshd_preloader", true)
-	sshdPreloadLibraries = append(sshdPreloadLibraries, sshdPreloadLibrary)
+	var sharedSSHDPort, sharedSSHDUserHome, sharedAuthdSocket, sharedAuthdGroupOutput string
+	prepareSharedSSHDTests := func(subtest *testing.T) {
+		t.Logf("Preparing SSH tests with shared sshd, triggered by %q", subtest.Name())
+		sharedAuthdSocket, sharedAuthdGroupOutput = sharedAuthd(t)
+		serviceFile := createSSHDServiceFile(t, execModule, execChild, pamMkHomeDirModule, sharedAuthdSocket)
+		sshdEnv = append(sshdEnv, nssEnv...)
+		sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", sharedAuthdSocket))
 
-	sshdHostKey := filepath.Join(t.TempDir(), "ssh_host_ed25519_key")
-	//#nosec:G204 - we control the command arguments in tests
-	out, err := exec.Command("ssh-keygen", "-q", "-f", sshdHostKey, "-N", "", "-t", "ed25519").CombinedOutput()
-	require.NoError(t, err, "Setup: Failed generating SSH host key: %s", out)
-	maybeSaveFilesAsArtifactsOnCleanup(t, sshdHostKey)
+		sharedSSHDPort, sharedSSHDUserHome = startSSHDForTest(t, serviceFile, sshdHostKeyPath,
+			"authd-test-user-sshd-accept-all", sshdPreloadLibraries, sshdEnv, false)
 
-	pubKey, err := os.ReadFile(sshdHostKey + ".pub")
-	require.NoError(t, err, "Setup: Can't read sshd host public key")
-	maybeSaveFilesAsArtifactsOnCleanup(t, sshdHostKey+".pub")
+		if !t.Failed() {
+			t.Log("Prepared SSH tests with shared sshd")
+			sharedSSHDTestsPrepared = true
+		}
+	}
 
 	const pamSSHUserEnv = "AUTHD_PAM_SSH_USER"
 	const baseTapeCommand = "ssh ${%s}@localhost ${AUTHD_PAM_SSH_ARGS}"
 	tapeCommand := fmt.Sprintf(baseTapeCommand, pamSSHUserEnv)
 	defaultTapeSettings := []tapeSetting{{vhsHeight, 1000}, {vhsWidth, 1500}}
-
-	var sshdEnv []string
-	var defaultSSHDPort, defaultUserHome, defaultSocketPath, defaultGroupOutput string
-	if sharedSSHD {
-		defaultSocketPath, defaultGroupOutput = sharedAuthd(t)
-		serviceFile := createSSHDServiceFile(t, execModule, execChild, pamMkHomeDirModule, defaultSocketPath)
-		sshdEnv = append(sshdEnv, nssEnv...)
-		sshdEnv = append(sshdEnv, fmt.Sprintf("AUTHD_NSS_SOCKET=%s", defaultSocketPath))
-		defaultSSHDPort, defaultUserHome = startSSHDForTest(t, serviceFile, sshdHostKey,
-			"authd-test-user-sshd-accept-all", sshdPreloadLibraries, sshdEnv, false)
-	}
 
 	sshEnvVariablesRegex = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`)
 	sshHostPortRegex = regexp.MustCompile(`([\d\.:]+) port ([\d:]+)`)
@@ -369,8 +397,28 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			socketPath := defaultSocketPath
-			groupOutput := defaultGroupOutput
+			if !sshTestsPrepared {
+				t.Log("Waiting for SSH tests to be prepared")
+				start := time.Now()
+				prepareSSHTestsOnce.Do(func() {
+					prepareSSHTests(t)
+				})
+				require.True(t, sshTestsPrepared, "Setup: preparing SSH tests failed")
+				t.Logf("SSH tests prepared after %.3fs", time.Since(start).Seconds())
+			}
+
+			if sharedSSHD && !sharedSSHDTestsPrepared {
+				t.Log("Waiting for shared SSHD tests to be prepared")
+				start := time.Now()
+				prepareSharedSSHDTestsOnce.Do(func() {
+					prepareSharedSSHDTests(t)
+				})
+				require.True(t, sharedSSHDTestsPrepared, "Setup: creating shared sshd service file failed")
+				t.Logf("Shared SSHD tests prepared after %.3fs", time.Since(start).Seconds())
+			}
+
+			socketPath := sharedAuthdSocket
+			groupOutput := sharedAuthdGroupOutput
 
 			var authdEnv []string
 			var authdSocketLink string
@@ -403,7 +451,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 					testutils.WithEnvironment(authdEnv...))
 			} else if !sharedSSHD {
 				socketPath, groupOutput = sharedAuthd(t,
-					testutils.WithGroupFileOutput(defaultGroupOutput),
+					testutils.WithGroupFileOutput(sharedAuthdGroupOutput),
 					testutils.WithEnvironment(authdEnv...))
 			}
 			if tc.socketPath != "" {
@@ -441,8 +489,8 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				}
 			}
 
-			sshdPort := defaultSSHDPort
-			userHome := defaultUserHome
+			sshdPort := sharedSSHDPort
+			userHome := sharedSSHDUserHome
 			if !sharedSSHD || tc.wantLocalGroups || tc.oldDB != "" ||
 				tc.interactiveShell || tc.socketPath != "" {
 				sshdEnv := sshdEnv
@@ -457,7 +505,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				}
 				serviceFile := createSSHDServiceFile(t, execModule, execChild,
 					pamMkHomeDirModule, socketPath)
-				sshdPort, userHome = startSSHDForTest(t, serviceFile, sshdHostKey, user,
+				sshdPort, userHome = startSSHDForTest(t, serviceFile, sshdHostKeyPath, user,
 					sshdPreloadLibraries, sshdEnv, tc.interactiveShell)
 			}
 
@@ -468,7 +516,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 
 			knownHost := filepath.Join(t.TempDir(), "known_hosts")
 			err := os.WriteFile(knownHost, []byte(
-				fmt.Sprintf("[localhost]:%s %s", sshdPort, pubKey),
+				fmt.Sprintf("[localhost]:%s %s", sshdPort, sshdHostPubKey),
 			), 0600)
 			require.NoError(t, err, "Setup: can't create known hosts file")
 
