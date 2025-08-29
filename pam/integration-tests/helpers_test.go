@@ -286,19 +286,17 @@ func createArtifactsDir(t *testing.T) string {
 func saveFilesAsArtifacts(t *testing.T, artifacts ...string) {
 	t.Helper()
 
-	tmpDir := filepath.Join(artifactsDir(t), t.Name())
-	err := os.MkdirAll(tmpDir, 0750)
-	require.NoError(t, err, "TearDown: could not create temporary directory %q for artifacts", tmpDir)
+	dir := filepath.Join(artifactsDir(t), t.Name())
+	err := os.MkdirAll(dir, 0750)
+	require.NoError(t, err, "TearDown: could not create artifacts directory %q", dir)
 
-	// Copy the artifacts to the temporary directory.
+	// Copy the artifacts to the artifacts directory.
 	for _, artifact := range artifacts {
-		content, err := os.ReadFile(artifact)
+		target := filepath.Join(dir, filepath.Base(artifact))
+		t.Logf("Saving artifact %q", target)
+		err = fileutils.CopyFile(artifact, target)
 		if err != nil {
-			t.Logf("Could not read artifact %q: %v", artifact, err)
-			continue
-		}
-		if err := os.WriteFile(filepath.Join(tmpDir, filepath.Base(artifact)), content, 0600); err != nil {
-			t.Logf("Could not write artifact %q: %v", artifact, err)
+			t.Logf("Teardown: failed to copy artifact %q to %q: %v", artifact, dir, err)
 		}
 	}
 }
