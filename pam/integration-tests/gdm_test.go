@@ -942,7 +942,7 @@ func TestGdmModule(t *testing.T) {
 			moduleArgs = append(moduleArgs, tc.moduleArgs...)
 
 			serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
-			saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
+			maybeSaveFilesAsArtifactsOnCleanup(t, []string{serviceFile})
 
 			pamUser := vhsTestUserName(t, "gdm")
 			if tc.pamUserPrefix != "" {
@@ -1068,7 +1068,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
-	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
+	maybeSaveFilesAsArtifactsOnCleanup(t, []string{serviceFile})
 	pamUser := vhsTestUserName(t, "gdm")
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
@@ -1106,7 +1106,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	moduleArgs = append(moduleArgs, "debug=true", "logfile="+gdmLog)
 
 	serviceFile := createServiceFile(t, "gdm-authd", libPath, moduleArgs)
-	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
+	maybeSaveFilesAsArtifactsOnCleanup(t, []string{serviceFile})
 	pamUser := vhsTestUserName(t, "gdm")
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })

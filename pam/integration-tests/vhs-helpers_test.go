@@ -394,7 +394,7 @@ func checkDataRaces(t *testing.T, raceLog string) {
 		})
 
 	require.NoError(t, err, "TearDown: Check for races")
-	saveArtifactsForDebugOnCleanup(t, raceLogs)
+	maybeSaveFilesAsArtifactsOnCleanup(t, raceLogs)
 	for _, raceLog := range raceLogs {
 		checkDataRace(t, raceLog)
 	}
@@ -518,7 +518,7 @@ func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath st
 	for _, o := range td.Outputs {
 		artifacts = append(artifacts, filepath.Join(outputPath, o))
 	}
-	saveArtifactsForDebugOnCleanup(t, artifacts)
+	maybeSaveFilesAsArtifactsOnCleanup(t, artifacts)
 
 	return tapePath
 }
