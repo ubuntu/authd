@@ -245,14 +245,23 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 	cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
 	cmd.Dir = outDir
 
-	// If vhs is installed with "go install", we need to add GOPATH to PATH.
-	cmd.Env = append(cmd.Env, prependBinToPath(t))
+	cmd.Env = append(cmd.Env,
+		// If vhs is installed with "go install", we need to add GOPATH to PATH.
+		prependBinToPath(t),
+		// vhs uses rod, which downloads chromium to $HOME/.cache/rod,
+		// so $HOME needs to be set to avoid that it downloads it every time.
+		// TODO: Set XDG_CACHE_HOME instead once https://github.com/go-rod/rod/pull/1213 was merged
+		"HOME="+os.Getenv("HOME"),
+	)
 
 	u, err := user.Current()
 	require.NoError(t, err, "Setup: getting current user")
 	if u.Name == "root" || os.Getenv("SCHROOT_CHROOT_NAME") != "" {
 		cmd.Env = append(cmd.Env, "VHS_NO_SANDBOX=1")
 	}
+
+	// Set a temporary HOME directory to avoid interference with the user's home directory.
+	td.Env["HOME"] = t.TempDir()
 
 	// Move some of the environment specific-variables from the tape to the launched process
 	if e, ok := td.Env[pam_test.RunnerEnvLogFile]; ok {
