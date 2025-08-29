@@ -459,16 +459,8 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 	})
 
 	// Save the sanitized result on cleanup
-	t.Cleanup(func() {
-		if !t.Failed() {
-			return
-		}
-		baseName, _ := strings.CutSuffix(td.Output(), ".txt")
-		tempOutput := filepath.Join(t.TempDir(), fmt.Sprintf("%s_sanitized.txt", baseName))
-		require.NoError(t, os.WriteFile(tempOutput, []byte(got), 0600),
-			"TearDown: Saving sanitized output file %q", tempOutput)
-		saveArtifactsForDebug(t, tempOutput)
-	})
+	sanitizedOutputFilename := strings.TrimSuffix(td.Output(), ".txt") + ".sanitized.txt"
+	maybeSaveBytesAsArtifactOnCleanup(t, []byte(got), sanitizedOutputFilename)
 
 	return got
 }

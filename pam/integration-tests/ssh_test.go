@@ -710,7 +710,7 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 			}
 			sshdLog := filepath.Join(t.TempDir(), "sshd.log")
 			require.NoError(t, os.WriteFile(sshdLog, sshdStderr.Bytes(), 0600), "TearDown: Saving sshd log")
-			saveArtifactsForDebug(t, sshdLog)
+			saveFilesAsArtifacts(t, sshdLog)
 		})
 	} else {
 		// Continuously print the log file to the terminal, so that we can see

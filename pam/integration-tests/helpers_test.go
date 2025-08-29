@@ -282,12 +282,9 @@ func createArtifactsDir(t *testing.T) string {
 	return dir
 }
 
-// saveArtifactsForDebug saves the specified artifacts to a temporary directory if the test failed.
-func saveArtifactsForDebug(t *testing.T, artifacts ...string) {
+// saveFilesAsArtifacts saves the specified artifacts to a temporary directory if the test failed.
+func saveFilesAsArtifacts(t *testing.T, artifacts ...string) {
 	t.Helper()
-	if !t.Failed() && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") == "" {
-		return
-	}
 
 	tmpDir := filepath.Join(artifactsDir(t), golden.Path(t))
 	err := os.MkdirAll(tmpDir, 0750)
@@ -308,7 +305,41 @@ func saveArtifactsForDebug(t *testing.T, artifacts ...string) {
 
 func maybeSaveFilesAsArtifactsOnCleanup(t *testing.T, artifacts ...string) {
 	t.Helper()
-	t.Cleanup(func() { saveArtifactsForDebug(t, artifacts...) })
+
+	t.Cleanup(func() {
+		if !t.Failed() && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") == "" {
+			return
+		}
+		saveFilesAsArtifacts(t, artifacts...)
+	})
+}
+
+func saveBytesAsArtifact(t *testing.T, content []byte, filename string) {
+	t.Helper()
+
+	dir := filepath.Join(artifactsDir(t), t.Name())
+	err := os.MkdirAll(dir, 0750)
+	require.NoError(t, err, "TearDown: could not create artifacts directory %q", dir)
+
+	target := filepath.Join(dir, filename)
+	t.Logf("Writing artifact %q", target)
+
+	// Write the bytes to the artifacts directory.
+	err = os.WriteFile(target, content, 0600)
+	if err != nil {
+		t.Logf("Teardown: failed to write artifact %q to %q: %v", filename, dir, err)
+	}
+}
+
+func maybeSaveBytesAsArtifactOnCleanup(t *testing.T, content []byte, filename string) {
+	t.Helper()
+
+	t.Cleanup(func() {
+		if !t.Failed() && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") == "" {
+			return
+		}
+		saveBytesAsArtifact(t, content, filename)
+	})
 }
 
 func sleepDuration(in time.Duration) time.Duration {
