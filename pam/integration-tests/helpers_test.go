@@ -72,7 +72,7 @@ func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon boo
 	if !isSharedDaemon {
 		database := filepath.Join(t.TempDir(), "db", consts.DefaultDatabaseFileName)
 		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
-		maybeSaveFilesAsArtifactsOnCleanup(t, []string{database})
+		maybeSaveFilesAsArtifactsOnCleanup(t, database)
 	}
 	if isSharedDaemon && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") != "" {
 		database := filepath.Join(authdArtifactsDir, "db", consts.DefaultDatabaseFileName)
@@ -80,7 +80,7 @@ func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon boo
 	}
 
 	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, args...)
-	maybeSaveFilesAsArtifactsOnCleanup(t, []string{outputFile})
+	maybeSaveFilesAsArtifactsOnCleanup(t, outputFile)
 	return socketPath, func() {
 		cancel()
 		<-stopped
@@ -240,7 +240,7 @@ func prepareFileLogging(t *testing.T, fileName string) string {
 	t.Helper()
 
 	cliLog := filepath.Join(t.TempDir(), fileName)
-	maybeSaveFilesAsArtifactsOnCleanup(t, []string{cliLog})
+	maybeSaveFilesAsArtifactsOnCleanup(t, cliLog)
 	t.Cleanup(func() {
 		out, err := os.ReadFile(cliLog)
 		if errors.Is(err, fs.ErrNotExist) {
@@ -305,7 +305,7 @@ func artifactsPath(t *testing.T) string {
 }
 
 // saveArtifactsForDebug saves the specified artifacts to a temporary directory if the test failed.
-func saveArtifactsForDebug(t *testing.T, artifacts []string) {
+func saveArtifactsForDebug(t *testing.T, artifacts ...string) {
 	t.Helper()
 	if !t.Failed() && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") == "" {
 		return
@@ -328,9 +328,9 @@ func saveArtifactsForDebug(t *testing.T, artifacts []string) {
 	}
 }
 
-func maybeSaveFilesAsArtifactsOnCleanup(t *testing.T, artifacts []string) {
+func maybeSaveFilesAsArtifactsOnCleanup(t *testing.T, artifacts ...string) {
 	t.Helper()
-	t.Cleanup(func() { saveArtifactsForDebug(t, artifacts) })
+	t.Cleanup(func() { saveArtifactsForDebug(t, artifacts...) })
 }
 
 func sleepDuration(in time.Duration) time.Duration {
@@ -387,7 +387,7 @@ func prepareGroupFiles(t *testing.T) (string, string) {
 	require.NoError(t, err, "Cannot copy the group file %q", groupsFile)
 	groupsFile = tmpCopy
 
-	maybeSaveFilesAsArtifactsOnCleanup(t, []string{groupOutputFile, groupsFile})
+	maybeSaveFilesAsArtifactsOnCleanup(t, groupOutputFile, groupsFile)
 
 	return groupOutputFile, groupsFile
 }
