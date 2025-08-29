@@ -81,7 +81,7 @@ func main() {
 	args = append(defaultArgs, args...)
 
 	if pamService == "" {
-		pamService = "authd-cli"
+		pamService = "authd-cli-pam-service"
 	}
 	serviceFile, err := pam_test.CreateService(tmpDir, pamService, []pam_test.ServiceLine{
 		{Action: pam_test.Auth, Control: pam_test.SufficientRequisite, Module: execModule, Args: args},
