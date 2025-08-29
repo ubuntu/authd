@@ -72,7 +72,7 @@ func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon boo
 	if !isSharedDaemon {
 		database := filepath.Join(t.TempDir(), "db", consts.DefaultDatabaseFileName)
 		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
-		saveArtifactsForDebugOnCleanup(t, []string{database})
+		maybeSaveFilesAsArtifactsOnCleanup(t, []string{database})
 	}
 	if isSharedDaemon && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") != "" {
 		database := filepath.Join(authdArtifactsDir, "db", consts.DefaultDatabaseFileName)
@@ -80,7 +80,7 @@ func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon boo
 	}
 
 	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, args...)
-	saveArtifactsForDebugOnCleanup(t, []string{outputFile})
+	maybeSaveFilesAsArtifactsOnCleanup(t, []string{outputFile})
 	return socketPath, func() {
 		cancel()
 		<-stopped
@@ -240,7 +240,7 @@ func prepareFileLogging(t *testing.T, fileName string) string {
 	t.Helper()
 
 	cliLog := filepath.Join(t.TempDir(), fileName)
-	saveArtifactsForDebugOnCleanup(t, []string{cliLog})
+	maybeSaveFilesAsArtifactsOnCleanup(t, []string{cliLog})
 	t.Cleanup(func() {
 		out, err := os.ReadFile(cliLog)
 		if errors.Is(err, fs.ErrNotExist) {
@@ -328,7 +328,7 @@ func saveArtifactsForDebug(t *testing.T, artifacts []string) {
 	}
 }
 
-func saveArtifactsForDebugOnCleanup(t *testing.T, artifacts []string) {
+func maybeSaveFilesAsArtifactsOnCleanup(t *testing.T, artifacts []string) {
 	t.Helper()
 	t.Cleanup(func() { saveArtifactsForDebug(t, artifacts) })
 }
@@ -387,7 +387,7 @@ func prepareGroupFiles(t *testing.T) (string, string) {
 	require.NoError(t, err, "Cannot copy the group file %q", groupsFile)
 	groupsFile = tmpCopy
 
-	saveArtifactsForDebugOnCleanup(t, []string{groupOutputFile, groupsFile})
+	maybeSaveFilesAsArtifactsOnCleanup(t, []string{groupOutputFile, groupsFile})
 
 	return groupOutputFile, groupsFile
 }
