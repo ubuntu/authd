@@ -274,6 +274,8 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cl
 		// so $HOME needs to be set to avoid that it downloads it every time.
 		// TODO: Set XDG_CACHE_HOME instead once https://github.com/go-rod/rod/pull/1213 was merged
 		"HOME="+os.Getenv("HOME"),
+		// Avoid VHS printing "Host your GIF on vhs.charm.sh: vhs publish <file>.gif"
+		"VHS_PUBLISH=false",
 	)
 
 	// Force VHS to use color because it makes it a lot easier to find the error
