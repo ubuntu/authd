@@ -28,7 +28,7 @@ func TestIntegration(t *testing.T) {
 	defaultDbState := "multiple_users_and_groups"
 	defaultGroupsFilePath := filepath.Join(filepath.Join("testdata", "empty.group"))
 
-	testutils.StartDaemon(t, daemonPath,
+	testutils.StartAuthd(t, daemonPath,
 		testutils.WithSocketPath(defaultSocket),
 		testutils.WithPreviousDBState(defaultDbState),
 		testutils.WithGroupFile(defaultGroupsFilePath),
@@ -106,7 +106,7 @@ func TestIntegration(t *testing.T) {
 
 			if useAlternativeDaemon {
 				// Run a specific new daemon for special test cases.
-				socketPath = testutils.StartDaemon(t, daemonPath,
+				socketPath = testutils.StartAuthd(t, daemonPath,
 					testutils.WithPreviousDBState(tc.dbState),
 					testutils.WithGroupFile(defaultGroupsFilePath),
 				)
@@ -156,7 +156,7 @@ func TestIntegration(t *testing.T) {
 func TestMain(m *testing.M) {
 	var cleanup func()
 	var err error
-	daemonPath, cleanup, err = testutils.BuildDaemonWithExampleBroker()
+	daemonPath, cleanup, err = testutils.BuildAuthdWithExampleBroker()
 	if err != nil {
 		log.Printf("Setup: failed to build daemon: %v", err)
 		os.Exit(1)

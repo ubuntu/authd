@@ -113,24 +113,24 @@ func WithGroupFileOutput(groupFile string) DaemonOption {
 	}
 }
 
-// WithCurrentUserAsRoot configures the daemon to accept the current user as root when checking permissions.
+// WithCurrentUserAsRoot configures authd to accept the current user as root when checking permissions.
 // This is useful for integration tests where the current user is not root, but we want to
 // test the behavior as if it were root.
 var WithCurrentUserAsRoot DaemonOption = func(o *daemonOptions) {
 	o.env = append(o.env, "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
 }
 
-// StartDaemon starts the daemon in a separate process and returns the socket path.
-func StartDaemon(t *testing.T, execPath string, args ...DaemonOption) (socketPath string) {
+// StartAuthd starts authd in a separate process and returns the socket path.
+func StartAuthd(t *testing.T, execPath string, args ...DaemonOption) (socketPath string) {
 	t.Helper()
 
-	socketPath, cancelFunc := StartDaemonWithCancel(t, execPath, args...)
+	socketPath, cancelFunc := StartAuthdWithCancel(t, execPath, args...)
 	t.Cleanup(cancelFunc)
 	return socketPath
 }
 
-// StartDaemonWithCancel starts the daemon in a separate process and returns the socket path and a cancel function.
-func StartDaemonWithCancel(t *testing.T, execPath string, args ...DaemonOption) (socketPath string, cancelFunc func()) {
+// StartAuthdWithCancel starts authd in a separate process and returns the socket path and a cancel function.
+func StartAuthdWithCancel(t *testing.T, execPath string, args ...DaemonOption) (socketPath string, cancelFunc func()) {
 	t.Helper()
 
 	opts := &daemonOptions{}
@@ -169,7 +169,7 @@ paths:
 	stopped := make(chan struct{})
 	ctx, cancel := context.WithCancelCause(context.Background())
 	cancelFunc = func() {
-		t.Log("Stopping daemon...")
+		t.Log("Stopping authd...")
 		cancel(nil)
 		<-stopped
 	}
@@ -186,7 +186,7 @@ paths:
 		return cmd.Process.Signal(os.Signal(syscall.SIGTERM))
 	}
 
-	// Start the daemon
+	// Start authd
 	start := time.Now()
 	processPid := make(chan int)
 	go func() {
@@ -204,12 +204,12 @@ paths:
 
 		LogCommand("Starting authd", cmd)
 		err := cmd.Start()
-		require.NoError(t, err, "Setup: daemon cannot start %v", cmd.Args)
+		require.NoError(t, err, "Setup: authd failed to start")
 		if opts.pidFile != "" {
 			processPid <- cmd.Process.Pid
 		}
 
-		// When using a shared daemon we should not use the test parameter from now on
+		// When using a shared authd instance we should not use the test parameter from now on
 		// since the test is referring to may not be the one actually running.
 		t := t
 		logger := t.Logf
@@ -229,23 +229,23 @@ paths:
 		}
 
 		err = cmd.Wait()
-		errorIs(err, context.Canceled, "Setup: daemon stopped unexpectedly")
+		errorIs(err, context.Canceled, "Setup: authd stopped unexpectedly")
 		if opts.pidFile != "" {
 			defer cancel(nil)
 			if err := os.Remove(opts.pidFile); err != nil {
 				logger("TearDown: failed to remove pid file %q: %v", opts.pidFile, err)
 			}
 		}
-		logger("Daemon stopped (%v)", err)
+		logger("authd exited (%v)", err)
 	}()
 
 	conn, err := grpc.NewClient("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
-	require.NoError(t, err, "Setup: could not connect to the daemon on %s", opts.socketPath)
+	require.NoError(t, err, "Setup: could not connect to authd on %s", opts.socketPath)
 	defer conn.Close()
 
-	// Block until the daemon is started and ready to accept connections.
+	// Block until authd has started and is ready to accept connections.
 	err = grpcutils.WaitForConnection(ctx, conn, time.Second*30)
-	require.NoError(t, err, "Setup: wait for daemon to be ready timed out")
+	require.NoError(t, err, "Setup: timeout waiting for authd to start")
 	duration := time.Since(start)
 	LogEndSeparatorf("authd started in %.3fs", duration.Seconds())
 
@@ -271,8 +271,8 @@ paths:
 	return opts.socketPath, cancelFunc
 }
 
-// BuildDaemonWithExampleBroker builds the daemon executable and returns the binary path.
-func BuildDaemonWithExampleBroker() (execPath string, cleanup func(), err error) {
+// BuildAuthdWithExampleBroker builds the authd executable and returns the binary path.
+func BuildAuthdWithExampleBroker() (execPath string, cleanup func(), err error) {
 	projectRoot := ProjectRoot()
 
 	tempDir, err := os.MkdirTemp("", "authd-tests-daemon")

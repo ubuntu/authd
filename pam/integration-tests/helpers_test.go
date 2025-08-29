@@ -79,7 +79,7 @@ func runAuthdForTestingWithCancel(t *testing.T, isSharedDaemon bool, args ...tes
 		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
 	}
 
-	socketPath, cancelFunc = testutils.StartDaemonWithCancel(t, daemonPath, args...)
+	socketPath, cancelFunc = testutils.StartAuthdWithCancel(t, daemonPath, args...)
 	saveArtifactsForDebugOnCleanup(t, []string{outputFile})
 	return socketPath, cancelFunc
 }
