@@ -31,10 +31,9 @@ import (
 )
 
 var (
-	authdTestSessionTime     = time.Now()
-	authdArtifactsDir        string
-	authdArtifactsAlwaysSave bool
-	authdArtifactsDirSync    sync.Once
+	authdTestSessionTime  = time.Now()
+	authdArtifactsDir     string
+	authdArtifactsDirSync sync.Once
 )
 
 type authdInstance struct {
@@ -75,7 +74,7 @@ func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon boo
 		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
 		saveArtifactsForDebugOnCleanup(t, []string{database})
 	}
-	if isSharedDaemon && authdArtifactsAlwaysSave {
+	if isSharedDaemon && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") != "" {
 		database := filepath.Join(authdArtifactsDir, "db", consts.DefaultDatabaseFileName)
 		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
 	}
@@ -283,8 +282,6 @@ func artifactsPath(t *testing.T) string {
 	authdArtifactsDirSync.Do(func() {
 		defer func() { t.Logf("Saving test artifacts at %s", authdArtifactsDir) }()
 
-		authdArtifactsAlwaysSave = os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") != ""
-
 		// We need to copy the artifacts to another directory, since the test directory will be cleaned up.
 		authdArtifactsDir = os.Getenv("AUTHD_TESTS_ARTIFACTS_PATH")
 		if authdArtifactsDir != "" {
@@ -310,7 +307,7 @@ func artifactsPath(t *testing.T) string {
 // saveArtifactsForDebug saves the specified artifacts to a temporary directory if the test failed.
 func saveArtifactsForDebug(t *testing.T, artifacts []string) {
 	t.Helper()
-	if !t.Failed() && !authdArtifactsAlwaysSave {
+	if !t.Failed() && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") == "" {
 		return
 	}
 
