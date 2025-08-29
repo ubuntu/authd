@@ -261,6 +261,8 @@ func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err erro
 
 	execPath = filepath.Join(tempDir, "authd")
 	cmd := exec.Command("go", "build")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Dir = projectRoot
 	if CoverDirForTests() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
@@ -276,9 +278,9 @@ func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err erro
 	cmd.Args = append(cmd.Args, extraArgs...)
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")
 
-	if out, err := cmd.CombinedOutput(); err != nil {
+	if err := cmd.Run(); err != nil {
 		cleanup()
-		return "", nil, fmt.Errorf("failed to build daemon(%v): %s", err, out)
+		return "", nil, fmt.Errorf("failed to build daemon(%v)", err)
 	}
 
 	return execPath, cleanup, err
