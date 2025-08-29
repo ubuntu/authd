@@ -886,7 +886,7 @@ func getModuleArgs(t *testing.T, clientPath string, args []string) []string {
 			clientArgsPath := filepath.Join(t.TempDir(), "client-args-file")
 			require.NoError(t, os.WriteFile(clientArgsPath, []byte(strings.Join(args, "\t")), 0600),
 				"Setup: Creation of client args file failed")
-			maybeSaveFilesAsArtifactsOnCleanup(t, []string{clientArgsPath})
+			maybeSaveFilesAsArtifactsOnCleanup(t, clientArgsPath)
 			return append(moduleArgs, "-client-args-file", clientArgsPath)
 		}
 	}
@@ -933,7 +933,7 @@ func preparePamTransactionForServiceFile(t *testing.T, serviceFile string, user 
 	} else {
 		tx, err = pam.StartConfDir(filepath.Base(serviceFile), user, nil, filepath.Dir(serviceFile))
 	}
-	maybeSaveFilesAsArtifactsOnCleanup(t, []string{serviceFile})
+	maybeSaveFilesAsArtifactsOnCleanup(t, serviceFile)
 	require.NoError(t, err, "PAM: Error to initialize module")
 	require.NotNil(t, tx, "PAM: Transaction is not set")
 	t.Cleanup(func() { require.NoError(t, tx.End(), "PAM: can't end transaction") })
