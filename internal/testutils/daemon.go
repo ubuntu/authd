@@ -187,7 +187,7 @@ paths:
 
 		LogCommand("Starting authd", cmd)
 		err := cmd.Start()
-		require.NoError(t, err, "Setup: daemon cannot start %v", cmd.Args)
+		require.NoError(t, err, "Setup: authd failed to start")
 		if opts.pidFile != "" {
 			processPid <- cmd.Process.Pid
 		}
@@ -212,23 +212,23 @@ paths:
 		}
 
 		err = cmd.Wait()
-		errorIs(err, context.Canceled, "Setup: daemon stopped unexpectedly")
+		errorIs(err, context.Canceled, "Setup: authd stopped unexpectedly")
 		if opts.pidFile != "" {
 			defer cancel(nil)
 			if err := os.Remove(opts.pidFile); err != nil {
 				logger("TearDown: failed to remove pid file %q: %v", opts.pidFile, err)
 			}
 		}
-		logger("Daemon stopped (%v)", err)
+		logger("authd exited (%v)", err)
 	}()
 
 	conn, err := grpc.NewClient("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
-	require.NoError(t, err, "Setup: could not connect to the daemon on %s", opts.socketPath)
+	require.NoError(t, err, "Setup: could not connect to authd on %s", opts.socketPath)
 	defer conn.Close()
 
-	// Block until the daemon is started and ready to accept connections.
+	// Block until authd has started and is ready to accept connections.
 	err = grpcutils.WaitForConnection(ctx, conn, time.Second*30)
-	require.NoError(t, err, "Setup: wait for daemon to be ready timed out")
+	require.NoError(t, err, "Setup: timeout waiting for authd to start")
 	duration := time.Since(start)
 	LogEndSeparatorf("authd started in %.3fs", duration.Seconds())
 
@@ -266,8 +266,6 @@ func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err erro
 
 	execPath = filepath.Join(tempDir, "authd")
 	cmd := exec.Command("go", "build")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	cmd.Dir = projectRoot
 	if CoverDirForTests() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
