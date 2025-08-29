@@ -47,7 +47,7 @@ func startBrokerSession(client authd.PAMClient, brokerID, username string, mode 
 
 		sbResp, err := client.SelectBroker(context.TODO(), sbReq)
 		if err != nil {
-			return pamError{status: pam.ErrSystem, msg: fmt.Sprintf("can't select broker: %v", err)}
+			return pamError{status: pam.ErrSystem, msg: err.Error()}
 		}
 
 		sessionID := sbResp.GetSessionId()

@@ -116,6 +116,40 @@ func (s Service) ListUsers(ctx context.Context, req *authd.Empty) (*authd.Users,
 	return &res, nil
 }
 
+// LockUser marks a user as locked.
+func (s Service) LockUser(ctx context.Context, req *authd.LockUserRequest) (*authd.Empty, error) {
+	if err := s.permissionManager.CheckRequestIsFromRoot(ctx); err != nil {
+		return nil, err
+	}
+
+	if req.GetName() == "" {
+		return nil, status.Error(codes.InvalidArgument, "no user name provided")
+	}
+
+	if err := s.userManager.LockUser(req.GetName()); err != nil {
+		return nil, grpcError(err)
+	}
+
+	return &authd.Empty{}, nil
+}
+
+// UnlockUser marks a user as unlocked.
+func (s Service) UnlockUser(ctx context.Context, req *authd.UnlockUserRequest) (*authd.Empty, error) {
+	if err := s.permissionManager.CheckRequestIsFromRoot(ctx); err != nil {
+		return nil, err
+	}
+
+	if req.GetName() == "" {
+		return nil, status.Error(codes.InvalidArgument, "no user name provided")
+	}
+
+	if err := s.userManager.UnlockUser(req.GetName()); err != nil {
+		return nil, grpcError(err)
+	}
+
+	return &authd.Empty{}, nil
+}
+
 // GetGroupByName returns the group entry for the given group name.
 func (s Service) GetGroupByName(ctx context.Context, req *authd.GetGroupByNameRequest) (*authd.Group, error) {
 	if req.GetName() == "" {
