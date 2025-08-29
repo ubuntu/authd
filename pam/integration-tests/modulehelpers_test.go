@@ -30,6 +30,8 @@ func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags
 
 	//nolint:gosec // G204 it's a test so we should allow using any compiler safely.
 	cmd := exec.Command(compiler)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Dir = testutils.ProjectRoot()
 	libPath := filepath.Join(t.TempDir(), soname+".so")
 
@@ -120,11 +122,8 @@ func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags
 	}
 
 	t.Logf("Running compiler command: %s %s", cmd.Path, strings.Join(cmd.Args[1:], " "))
-	out, err := cmd.CombinedOutput()
-	require.NoError(t, err, "Setup: could not compile C module %s: %s", soname, out)
-	if string(out) != "" {
-		t.Log(string(out))
-	}
+	err := cmd.Run()
+	require.NoError(t, err, "Setup: could not compile C module %s", soname)
 
 	return libPath
 }
