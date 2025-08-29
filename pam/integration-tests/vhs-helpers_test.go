@@ -14,6 +14,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 	"unicode/utf8"
@@ -77,6 +78,9 @@ type tapeData struct {
 	Settings  map[string]any
 	Env       map[string]string
 	Variables map[string]string
+
+	sanitizeOutputOnce sync.Once
+	sanitizedOutput    string
 }
 
 type vhsTestType int
@@ -177,7 +181,7 @@ func init() {
 	}
 }
 
-func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
+func newTapeData(tapeName string, settings ...tapeSetting) *tapeData {
 	m := map[string]any{
 		vhsWidth:  800,
 		vhsHeight: 500,
@@ -194,7 +198,7 @@ func newTapeData(tapeName string, settings ...tapeSetting) tapeData {
 	for _, s := range settings {
 		m[s.Key] = s.Value
 	}
-	return tapeData{
+	return &tapeData{
 		Name: tapeName,
 		Outputs: []string{
 			tapeName + ".txt",
@@ -250,7 +254,7 @@ func (td *tapeData) AddClientOptions(t *testing.T, opts clientOptions) {
 	}
 }
 
-func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cliEnv []string) {
+func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cliEnv []string) {
 	t.Helper()
 
 	cmd := exec.Command("env", "vhs")
@@ -316,6 +320,9 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 		checkDataRaces(t, raceLog)
 	}
 
+	sanitizedOutputFilename := strings.TrimSuffix(td.Output(), ".txt") + ".sanitized.txt"
+	maybeSaveBytesAsArtifactOnCleanup(t, []byte(td.SanitizedOutput(t, outDir)), sanitizedOutputFilename)
+
 	isSSHError := func() bool {
 		out := outBuf.String()
 		const sshConnectionResetByPeer = "Connection reset by peer"
@@ -338,7 +345,7 @@ func (td tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cli
 	require.NoError(t, err, "Failed to run tape %q, see vhs output above", td.Name)
 }
 
-func (td tapeData) String() string {
+func (td *tapeData) String() string {
 	var str string
 	for _, o := range td.Outputs {
 		str += fmt.Sprintf("Output %q\n", o)
@@ -362,7 +369,7 @@ func (td tapeData) String() string {
 	return str
 }
 
-func (td tapeData) Output() string {
+func (td *tapeData) Output() string {
 	var txt string
 	for _, o := range td.Outputs {
 		if strings.HasSuffix(o, ".txt") {
@@ -414,7 +421,17 @@ func checkDataRace(t *testing.T, raceLog string) {
 	t.Fatalf("Got a GO Race on vhs child:\n%s", out)
 }
 
-func (td tapeData) SanitizedOutput(t *testing.T, outputDir string) string {
+func (td *tapeData) SanitizedOutput(t *testing.T, outputDir string) string {
+	t.Helper()
+
+	td.sanitizeOutputOnce.Do(func() {
+		td.sanitizedOutput = td.sanitizeOutput(t, outputDir)
+	})
+
+	return td.sanitizedOutput
+}
+
+func (td *tapeData) sanitizeOutput(t *testing.T, outputDir string) string {
 	t.Helper()
 
 	outPath := filepath.Join(outputDir, td.Output())
@@ -458,14 +475,10 @@ func (td tapeData) SanitizedOutput(t *testing.T, outputDir string) string {
 		return strings.ReplaceAll(s, "\n", "")
 	})
 
-	// Save the sanitized result on cleanup
-	sanitizedOutputFilename := strings.TrimSuffix(td.Output(), ".txt") + ".sanitized.txt"
-	maybeSaveBytesAsArtifactOnCleanup(t, []byte(s), sanitizedOutputFilename)
-
 	return s
 }
 
-func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath string) string {
+func (td *tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath string) string {
 	t.Helper()
 
 	currentDir, err := os.Getwd()
@@ -515,7 +528,7 @@ func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath st
 	return tapePath
 }
 
-func evaluateTapeVariables(t *testing.T, tapeString string, td tapeData, testType vhsTestType) string {
+func evaluateTapeVariables(t *testing.T, tapeString string, td *tapeData, testType vhsTestType) string {
 	t.Helper()
 
 	for _, m := range vhsSleepOrWaitRegex.FindAllStringSubmatch(tapeString, -1) {
