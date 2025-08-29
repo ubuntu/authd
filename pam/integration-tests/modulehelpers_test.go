@@ -20,7 +20,7 @@ func getPkgConfigFlags(t *testing.T, args []string) []string {
 	return strings.Split(strings.TrimSpace(string(out)), " ")
 }
 
-func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags []string, ldFlags []string, soname string, forPreload bool) string {
+func buildCModule(t *testing.T, logMsg string, sources []string, pkgConfigDeps []string, cFlags []string, ldFlags []string, soname string, forPreload bool) string {
 	t.Helper()
 
 	compiler := os.Getenv("CC")
@@ -120,15 +120,10 @@ func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags
 		})
 	}
 
-	err := testutils.RunWithTiming("Building PAM module", cmd)
+	err := testutils.RunWithTiming(logMsg, cmd)
 	require.NoError(t, err, "Setup: Failed to build PAM module")
 
 	return libPath
-}
-
-func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags []string, soname string, forPreload bool) string {
-	t.Helper()
-	return buildCModule(t, sources, pkgConfigDeps, cFlags, []string{"-lpam"}, soname, forPreload)
 }
 
 type actionArgsMap = map[pam_test.Action][]string
