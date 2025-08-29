@@ -72,13 +72,13 @@ type tapeSetting struct {
 }
 
 type tapeData struct {
-	Name      string
-	Command   string
-	OutputDir string
-	Outputs   []string
-	Settings  map[string]any
-	Env       map[string]string
-	Variables map[string]string
+	Name           string
+	Command        string
+	OutputDir      string
+	OutputFilename string
+	Settings       map[string]any
+	Env            map[string]string
+	Variables      map[string]string
 
 	sanitizeOutputOnce sync.Once
 	sanitizedOutput    string
@@ -200,13 +200,11 @@ func newTapeData(tapeName string, outputDir string, settings ...tapeSetting) *ta
 		m[s.Key] = s.Value
 	}
 	return &tapeData{
-		Name:      tapeName,
-		OutputDir: outputDir,
-		Outputs: []string{
-			tapeName + ".txt",
-		},
-		Settings: m,
-		Env:      make(map[string]string),
+		Name:           tapeName,
+		OutputDir:      outputDir,
+		OutputFilename: tapeName + ".tape.txt",
+		Settings:       m,
+		Env:            make(map[string]string),
 	}
 }
 
@@ -315,7 +313,7 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) 
 		checkDataRaces(t, raceLog)
 	}
 
-	sanitizedOutputFilename := strings.TrimSuffix(td.Output(), ".txt") + ".sanitized.txt"
+	sanitizedOutputFilename := strings.TrimSuffix(td.OutputFilename, ".txt") + ".sanitized.txt"
 	maybeSaveBytesAsArtifactOnCleanup(t, []byte(td.SanitizedOutput(t)), sanitizedOutputFilename)
 
 	isSSHError := func() bool {
@@ -341,10 +339,7 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) 
 }
 
 func (td *tapeData) String() string {
-	var str string
-	for _, o := range td.Outputs {
-		str += fmt.Sprintf("Output %q\n", o)
-	}
+	str := fmt.Sprintf("Output %q\n", td.OutputFilename)
 	for s, v := range td.Settings {
 		switch vv := v.(type) {
 		case time.Duration:
@@ -362,16 +357,6 @@ func (td *tapeData) String() string {
 		str += fmt.Sprintf(`Env %s %q`+"\n", s, v)
 	}
 	return str
-}
-
-func (td *tapeData) Output() string {
-	var txt string
-	for _, o := range td.Outputs {
-		if strings.HasSuffix(o, ".txt") {
-			txt = o
-		}
-	}
-	return txt
 }
 
 func checkDataRaces(t *testing.T, raceLog string) {
@@ -429,7 +414,7 @@ func (td *tapeData) SanitizedOutput(t *testing.T) string {
 func (td *tapeData) sanitizeOutput(t *testing.T) string {
 	t.Helper()
 
-	outPath := filepath.Join(td.OutputDir, td.Output())
+	outPath := filepath.Join(td.OutputDir, td.OutputFilename)
 	out, err := os.ReadFile(outPath)
 	require.NoError(t, err, "Could not read output file of tape %q (%s)", td.Name, outPath)
 	s := string(out)
@@ -513,12 +498,8 @@ func (td *tapeData) PrepareTape(t *testing.T, testType vhsTestType) string {
 	tapePath := filepath.Join(td.OutputDir, td.Name+".tape")
 	err = os.WriteFile(tapePath, tape, 0600)
 	require.NoError(t, err, "Setup: write tape file")
-
-	artifacts := []string{tapePath}
-	for _, o := range td.Outputs {
-		artifacts = append(artifacts, filepath.Join(outputPath, o))
-	}
-	maybeSaveFilesAsArtifactsOnCleanup(t, artifacts...)
+	
+	maybeSaveFilesAsArtifactsOnCleanup(t, tapePath, td.OutputFilename)
 
 	return tapePath
 }
