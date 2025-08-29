@@ -55,13 +55,16 @@ func installSignalHandler(a app) func() {
 		for {
 			switch v, ok := <-c; v {
 			case syscall.SIGINT, syscall.SIGTERM:
+				log.Infof(context.Background(), "Received signal %d (%s), exiting...", v, v.String())
 				a.Quit()
 				return
 			case syscall.SIGHUP:
 				if a.Hup() {
+					log.Info(context.Background(), "Received SIGHUP, exiting...")
 					a.Quit()
 					return
 				}
+				log.Info(context.Background(), "Received SIGHUP, but nothing to do")
 			default:
 				// channel was closed: we exited
 				if !ok {
