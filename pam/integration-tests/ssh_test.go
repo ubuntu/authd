@@ -473,14 +473,14 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			}, " ")
 			td.Variables = tc.tapeVariables
 			td.RunVhs(t, vhsTestTypeSSH, outDir, nil)
-			got := sanitizeGoldenFile(t, td, outDir)
-			golden.CheckOrUpdate(t, got)
+			output := sanitizedOutput(t, td, outDir)
+			golden.CheckOrUpdate(t, output)
 
 			userEnv := fmt.Sprintf("USER=%s", strings.ToLower(user))
 			if tc.wantNotLoggedInUser {
-				if strings.Contains(got, userEnv) {
+				if strings.Contains(output, userEnv) {
 					require.Fail(t, "Tape output should not contain the logged in user name",
-						fmt.Sprintf("##### Tape output #####\n%s\n##### End of tape output #####\n", got))
+						fmt.Sprintf("##### Tape output #####\n%s\n##### End of tape output #####\n", output))
 				}
 
 				if userClient != nil {
@@ -490,9 +490,9 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 					requireGetEntExists(t, nssLibrary, socketPath, user, tc.isLocalUser)
 				}
 			} else {
-				if !strings.Contains(got, userEnv) {
+				if !strings.Contains(output, userEnv) {
 					require.Fail(t, "Tape output should contain the logged in user name",
-						fmt.Sprintf("##### Tape output:\n%s\n##### End of tape output #####\n", got))
+						fmt.Sprintf("##### Tape output:\n%s\n##### End of tape output #####\n", output))
 				}
 
 				if userClient != nil {
@@ -522,7 +522,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 	}
 }
 
-func sanitizeGoldenFile(t *testing.T, td tapeData, outDir string) string {
+func sanitizedOutput(t *testing.T, td tapeData, outDir string) string {
 	t.Helper()
 
 	output := td.SanitizedOutput(t, outDir)
