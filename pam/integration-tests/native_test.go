@@ -468,7 +468,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			td.Variables = tc.tapeVariables
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
-			got := td.ExpectedOutput(t, outDir)
+			got := td.SanitizedOutput(t, outDir)
 			golden.CheckOrUpdate(t, got)
 
 			localgroupstestutils.RequireGroupFile(t, groupFileOutput, golden.Path(t))
@@ -610,7 +610,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
-			got := td.ExpectedOutput(t, outDir)
+			got := td.SanitizedOutput(t, outDir)
 			golden.CheckOrUpdate(t, got)
 
 			if !tc.skipRunnerCheck {

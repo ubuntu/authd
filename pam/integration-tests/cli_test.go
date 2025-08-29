@@ -289,7 +289,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			td.Env["AUTHD_TEST_PID_FILE"] = pidFile
 			td.AddClientOptions(t, tc.clientOptions)
 			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
-			got := td.ExpectedOutput(t, outDir)
+			got := td.SanitizedOutput(t, outDir)
 			golden.CheckOrUpdate(t, got)
 
 			localgroupstestutils.RequireGroupFile(t, groupFileOutput, golden.Path(t))
@@ -411,7 +411,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			td.Env[vhsTapeSocketVariable] = socketPath
 			td.AddClientOptions(t, clientOptions{})
 			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
-			got := td.ExpectedOutput(t, outDir)
+			got := td.SanitizedOutput(t, outDir)
 			golden.CheckOrUpdate(t, got)
 
 			requireRunnerResult(t, authd.SessionMode_CHANGE_PASSWORD, got)

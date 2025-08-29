@@ -491,14 +491,14 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			}, " ")
 			td.Variables = tc.tapeVariables
 			td.RunVhs(t, vhsTestTypeSSH, outDir, nil)
-			got := sanitizeGoldenFile(t, td, outDir)
-			golden.CheckOrUpdate(t, got)
+			output := sanitizedOutput(t, td, outDir)
+			golden.CheckOrUpdate(t, output)
 
 			userEnv := fmt.Sprintf("USER=%s", strings.ToLower(user))
 			if tc.wantNotLoggedInUser {
-				if strings.Contains(got, userEnv) {
+				if strings.Contains(output, userEnv) {
 					require.Fail(t, "Tape output should not contain the logged in user name",
-						"##### Tape output #####\n%s\n##### End of tape output #####\n", got)
+						"##### Tape output #####\n%s\n##### End of tape output #####\n", output)
 				}
 
 				if userClient != nil {
@@ -508,9 +508,9 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 					requireGetEntExists(t, nssLibrary, socketPath, user, tc.isLocalUser)
 				}
 			} else {
-				if !strings.Contains(got, userEnv) {
+				if !strings.Contains(output, userEnv) {
 					require.Fail(t, "Tape output should contain the logged in user name",
-						"##### Tape output:\n%s\n##### End of tape output #####\n", got)
+						"##### Tape output:\n%s\n##### End of tape output #####\n", output)
 				}
 
 				if userClient != nil {
@@ -540,15 +540,15 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 	}
 }
 
-func sanitizeGoldenFile(t *testing.T, td tapeData, outDir string) string {
+func sanitizedOutput(t *testing.T, td tapeData, outDir string) string {
 	t.Helper()
 
-	golden := td.ExpectedOutput(t, outDir)
+	output := td.SanitizedOutput(t, outDir)
 
 	// When sshd is in debug mode, it shows the environment variables, so let's sanitize them
-	golden = sshEnvVariablesRegex.ReplaceAllString(golden, "  $1=$${AUTHD_TEST_$1}")
+	output = sshEnvVariablesRegex.ReplaceAllString(output, "  $1=$${AUTHD_TEST_$1}")
 
-	return sshHostPortRegex.ReplaceAllLiteralString(golden, "${SSH_HOST} port ${SSH_PORT}")
+	return sshHostPortRegex.ReplaceAllLiteralString(output, "${SSH_HOST} port ${SSH_PORT}")
 }
 
 func createSSHDServiceFile(t *testing.T, module, execChild, mkHomeModule, socketPath string) string {

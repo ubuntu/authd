@@ -414,18 +414,18 @@ func checkDataRace(t *testing.T, raceLog string) {
 	t.Fatalf("Got a GO Race on vhs child:\n%s", out)
 }
 
-func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
+func (td tapeData) SanitizedOutput(t *testing.T, outputDir string) string {
 	t.Helper()
 
 	outPath := filepath.Join(outputDir, td.Output())
 	out, err := os.ReadFile(outPath)
 	require.NoError(t, err, "Could not read output file of tape %q (%s)", td.Name, outPath)
-	got := string(out)
+	s := string(out)
 
 	// We need to format the output a little bit, since the txt file can have some noise at the beginning.
 	command := "> " + td.Command
 	maxCommandLen := 0
-	splitTmp := strings.Split(got, "\n")
+	splitTmp := strings.Split(s, "\n")
 	for _, str := range splitTmp {
 		maxCommandLen = max(maxCommandLen, utf8.RuneCountInString(str))
 	}
@@ -434,35 +434,35 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 	}
 	for i, str := range splitTmp {
 		if strings.Contains(str, command) {
-			got = strings.Join(splitTmp[i:], "\n")
+			s = strings.Join(splitTmp[i:], "\n")
 			break
 		}
 	}
 
-	got = permissions.Z_ForTests_IdempotentPermissionError(got)
+	s = permissions.Z_ForTests_IdempotentPermissionError(s)
 
 	// Remove consecutive equal frames from vhs tapes.
 	framesSeparator := strings.Repeat(string(vhsFrameSeparator), vhsFrameSeparatorLength)
-	frames := slices.Compact(strings.Split(got, framesSeparator))
+	frames := slices.Compact(strings.Split(s, framesSeparator))
 	// Drop all the empty lines before each page separator, to remove the clutter.
 	for i, f := range frames {
 		frames[i] = vhsEmptyTrailingLinesRegex.ReplaceAllString(f, "\n")
 	}
-	got = strings.Join(frames, framesSeparator)
+	s = strings.Join(frames, framesSeparator)
 
 	// Drop all the socket references.
-	got = vhsUnixTargetRegex.ReplaceAllLiteralString(got, "unix:///authd/test_socket.sock")
+	s = vhsUnixTargetRegex.ReplaceAllLiteralString(s, "unix:///authd/test_socket.sock")
 
 	// Username may be split in multiple lines, so fix this not to break further checks.
-	got = vhsUserCheckRegex.ReplaceAllStringFunc(got, func(s string) string {
+	s = vhsUserCheckRegex.ReplaceAllStringFunc(s, func(s string) string {
 		return strings.ReplaceAll(s, "\n", "")
 	})
 
 	// Save the sanitized result on cleanup
 	sanitizedOutputFilename := strings.TrimSuffix(td.Output(), ".txt") + ".sanitized.txt"
-	maybeSaveBytesAsArtifactOnCleanup(t, []byte(got), sanitizedOutputFilename)
+	maybeSaveBytesAsArtifactOnCleanup(t, []byte(s), sanitizedOutputFilename)
 
-	return got
+	return s
 }
 
 func (td tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath string) string {
