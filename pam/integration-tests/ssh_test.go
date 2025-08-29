@@ -100,13 +100,15 @@ func testSSHAuthenticate(t *testing.T, sharedSSHD bool) {
 
 		mkHomeDirHelper, err := exec.LookPath("mkhomedir_helper")
 		require.NoError(t, err, "Setup: mkhomedir_helper not found")
-		pamMkHomeDirModule = buildCPAMModule(t,
+		pamMkHomeDirModule = buildCModule(t,
+			"Building pam_mkhomedir module",
 			[]string{"./pam/integration-tests/pam_mkhomedir/pam_mkhomedir.c"},
 			nil,
 			[]string{
 				"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS",
 				fmt.Sprintf("-DMKHOMEDIR_HELPER=%q", mkHomeDirHelper),
 			},
+			[]string{"-lpam"},
 			"pam_mkhomedir_test.so", true)
 
 		err = testutils.CanRunRustTests(false)
@@ -121,7 +123,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHD bool) {
 		}
 
 		sources := []string{filepath.Join(currentDir, "/sshd_preloader/sshd_preloader.c")}
-		sshdPreloadLibrary := buildCModule(t, sources,
+		sshdPreloadLibrary := buildCModule(t, "Building sshd_preloader library", sources,
 			nil, sshdPreloaderCFlags, nil, "sshd_preloader", true)
 		sshdPreloadLibraries = append(sshdPreloadLibraries, sshdPreloadLibrary)
 
