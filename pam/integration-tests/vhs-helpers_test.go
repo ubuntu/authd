@@ -74,6 +74,7 @@ type tapeSetting struct {
 type tapeData struct {
 	Name      string
 	Command   string
+	OutputDir string
 	Outputs   []string
 	Settings  map[string]any
 	Env       map[string]string
@@ -181,7 +182,7 @@ func init() {
 	}
 }
 
-func newTapeData(tapeName string, settings ...tapeSetting) *tapeData {
+func newTapeData(tapeName string, outputDir string, settings ...tapeSetting) *tapeData {
 	m := map[string]any{
 		vhsWidth:  800,
 		vhsHeight: 500,
@@ -199,7 +200,8 @@ func newTapeData(tapeName string, settings ...tapeSetting) *tapeData {
 		m[s.Key] = s.Value
 	}
 	return &tapeData{
-		Name: tapeName,
+		Name:      tapeName,
+		OutputDir: outputDir,
 		Outputs: []string{
 			tapeName + ".txt",
 		},
@@ -254,7 +256,7 @@ func (td *tapeData) AddClientOptions(t *testing.T, opts clientOptions) {
 	}
 }
 
-func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cliEnv []string) {
+func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) {
 	t.Helper()
 
 	cmd := exec.Command("env", "vhs")
@@ -265,7 +267,7 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cl
 	cmd.Stderr = io.MultiWriter(os.Stderr, &outBuf)
 
 	cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
-	cmd.Dir = outDir
+	cmd.Dir = td.OutputDir
 
 	cmd.Env = append(cmd.Env,
 		// If vhs is installed with "go install", we need to add GOPATH to PATH.
@@ -316,14 +318,14 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, outDir string, cl
 		}
 	}
 
-	cmd.Args = append(cmd.Args, td.PrepareTape(t, testType, outDir))
+	cmd.Args = append(cmd.Args, td.PrepareTape(t, testType))
 	err = testutils.RunWithTiming(fmt.Sprintf("VHS tape %q", td.Name), cmd)
 	if raceLog != "" {
 		checkDataRaces(t, raceLog)
 	}
 
 	sanitizedOutputFilename := strings.TrimSuffix(td.Output(), ".txt") + ".sanitized.txt"
-	maybeSaveBytesAsArtifactOnCleanup(t, []byte(td.SanitizedOutput(t, outDir)), sanitizedOutputFilename)
+	maybeSaveBytesAsArtifactOnCleanup(t, []byte(td.SanitizedOutput(t)), sanitizedOutputFilename)
 
 	isSSHError := func() bool {
 		out := outBuf.String()
@@ -423,20 +425,20 @@ func checkDataRace(t *testing.T, raceLog string) {
 	t.Fatalf("Got a GO Race on vhs child:\n%s", out)
 }
 
-func (td *tapeData) SanitizedOutput(t *testing.T, outputDir string) string {
+func (td *tapeData) SanitizedOutput(t *testing.T) string {
 	t.Helper()
 
 	td.sanitizeOutputOnce.Do(func() {
-		td.sanitizedOutput = td.sanitizeOutput(t, outputDir)
+		td.sanitizedOutput = td.sanitizeOutput(t)
 	})
 
 	return td.sanitizedOutput
 }
 
-func (td *tapeData) sanitizeOutput(t *testing.T, outputDir string) string {
+func (td *tapeData) sanitizeOutput(t *testing.T) string {
 	t.Helper()
 
-	outPath := filepath.Join(outputDir, td.Output())
+	outPath := filepath.Join(td.OutputDir, td.Output())
 	out, err := os.ReadFile(outPath)
 	require.NoError(t, err, "Could not read output file of tape %q (%s)", td.Name, outPath)
 	s := string(out)
@@ -480,7 +482,7 @@ func (td *tapeData) sanitizeOutput(t *testing.T, outputDir string) string {
 	return s
 }
 
-func (td *tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath string) string {
+func (td *tapeData) PrepareTape(t *testing.T, testType vhsTestType) string {
 	t.Helper()
 
 	currentDir, err := os.Getwd()
@@ -517,13 +519,13 @@ func (td *tapeData) PrepareTape(t *testing.T, testType vhsTestType, outputPath s
 			sleepDuration(defaultSleepValues[authdSleepDefault]).Milliseconds()),
 	}, "\n"))
 
-	tapePath := filepath.Join(outputPath, td.Name)
+	tapePath := filepath.Join(td.OutputDir, td.Name+".tape")
 	err = os.WriteFile(tapePath, tape, 0600)
 	require.NoError(t, err, "Setup: write tape file")
 
 	artifacts := []string{tapePath}
 	for _, o := range td.Outputs {
-		artifacts = append(artifacts, filepath.Join(outputPath, o))
+		artifacts = append(artifacts, filepath.Join(td.OutputDir, o))
 	}
 	maybeSaveFilesAsArtifactsOnCleanup(t, artifacts...)
 

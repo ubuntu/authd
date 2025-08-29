@@ -474,7 +474,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			require.NoError(t, err, "Setup: can't create known hosts file")
 
 			outDir := t.TempDir()
-			td := newTapeData(tc.tape, append(defaultTapeSettings, tc.tapeSettings...)...)
+			td := newTapeData(tc.tape, outDir, append(defaultTapeSettings, tc.tapeSettings...)...)
 			td.Command = tapeCommand
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.Env[pamSSHUserEnv] = user
@@ -490,8 +490,8 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				"-o", "UserKnownHostsFile=" + knownHost,
 			}, " ")
 			td.Variables = tc.tapeVariables
-			td.RunVhs(t, vhsTestTypeSSH, outDir, nil)
-			output := sanitizedOutput(t, td, outDir)
+			td.RunVhs(t, vhsTestTypeSSH, nil)
+			output := sanitizedOutput(t, td)
 			golden.CheckOrUpdate(t, output)
 
 			userEnv := fmt.Sprintf("USER=%s", strings.ToLower(user))
@@ -540,10 +540,10 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 	}
 }
 
-func sanitizedOutput(t *testing.T, td *tapeData, outDir string) string {
+func sanitizedOutput(t *testing.T, td *tapeData) string {
 	t.Helper()
 
-	output := td.SanitizedOutput(t, outDir)
+	output := td.SanitizedOutput(t)
 
 	// When sshd is in debug mode, it shows the environment variables, so let's sanitize them
 	output = sshEnvVariablesRegex.ReplaceAllString(output, "  $1=$${AUTHD_TEST_$1}")

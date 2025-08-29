@@ -460,15 +460,15 @@ func TestNativeAuthenticate(t *testing.T) {
 				tc.clientOptions.PamUser = vhsTestUserName(t, "native")
 			}
 
-			td := newTapeData(tc.tape, tc.tapeSettings...)
+			td := newTapeData(tc.tape, outDir, tc.tapeSettings...)
 			td.Command = tc.tapeCommand
 			td.Env[vhsTapeSocketVariable] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.Env["AUTHD_TEST_PID_FILE"] = pidFile
 			td.Variables = tc.tapeVariables
 			td.AddClientOptions(t, tc.clientOptions)
-			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
-			got := td.SanitizedOutput(t, outDir)
+			td.RunVhs(t, vhsTestTypeNative, cliEnv)
+			got := td.SanitizedOutput(t)
 			golden.CheckOrUpdate(t, got)
 
 			localgroupstestutils.RequireGroupFile(t, groupFileOutput, golden.Path(t))
@@ -603,14 +603,14 @@ func TestNativeChangeAuthTok(t *testing.T) {
 				tc.tapeVariables[vhsTapeUserVariable] = vhsTestUserName(t, "native-passwd")
 			}
 
-			td := newTapeData(tc.tape, tc.tapeSettings...)
+			td := newTapeData(tc.tape, outDir, tc.tapeSettings...)
 			td.Command = tapeCommand
 			td.Variables = tc.tapeVariables
 			td.Env[vhsTapeSocketVariable] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.AddClientOptions(t, tc.clientOptions)
-			td.RunVhs(t, vhsTestTypeNative, outDir, cliEnv)
-			got := td.SanitizedOutput(t, outDir)
+			td.RunVhs(t, vhsTestTypeNative, cliEnv)
+			got := td.SanitizedOutput(t)
 			golden.CheckOrUpdate(t, got)
 
 			if !tc.skipRunnerCheck {
