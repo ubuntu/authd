@@ -191,17 +191,17 @@ paths:
 	go func() {
 		defer close(stopped)
 
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		cmd.Stdout = NewTestWriter(t)
+		cmd.Stderr = NewTestWriter(t)
 		if opts.outputFile != "" {
 			// Write the output both to stdout/stderr and to the output file.
 			w, err := os.OpenFile(opts.outputFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 			require.NoError(t, err, "Setup: cannot open output file")
-			cmd.Stdout = io.MultiWriter(os.Stdout, w)
-			cmd.Stderr = io.MultiWriter(os.Stderr, w)
+			cmd.Stdout = io.MultiWriter(NewTestWriter(t), w)
+			cmd.Stderr = io.MultiWriter(NewTestWriter(t), w)
 		}
 
-		LogCommand("Starting authd", cmd)
+		LogCommand(t, "Starting authd", cmd)
 		err := cmd.Start()
 		require.NoError(t, err, "Setup: authd failed to start")
 		if opts.pidFile != "" {
@@ -246,7 +246,7 @@ paths:
 	err = grpcutils.WaitForConnection(ctx, conn, time.Second*30)
 	require.NoError(t, err, "Setup: timeout waiting for authd to start")
 	duration := time.Since(start)
-	LogEndSeparatorf("authd started in %.3fs", duration.Seconds())
+	LogEndSeparatorf(t, "authd started in %.3fs", duration.Seconds())
 
 	if opts.pidFile != "" {
 		err := os.WriteFile(opts.pidFile, []byte(fmt.Sprint(<-processPid)), 0600)
@@ -291,7 +291,7 @@ func BuildAuthdWithExampleBroker() (execPath string, cleanup func(), err error) 
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")
 
 	fmt.Fprintln(os.Stderr, "Running command:", cmd.String())
-	if err := RunWithTiming("Building authd", cmd); err != nil {
+	if err := RunWithTiming(nil, "Building authd", cmd); err != nil {
 		cleanup()
 		return "", nil, fmt.Errorf("failed to build authd: %v", err)
 	}

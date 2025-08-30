@@ -261,8 +261,8 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) 
 
 	var outBuf bytes.Buffer
 	// Write stdout/stderr both to our stdout/stderr and to the buffer
-	cmd.Stdout = io.MultiWriter(os.Stdout, &outBuf)
-	cmd.Stderr = io.MultiWriter(os.Stderr, &outBuf)
+	cmd.Stdout = io.MultiWriter(testutils.NewTestWriter(t), &outBuf)
+	cmd.Stderr = io.MultiWriter(testutils.NewTestWriter(t), &outBuf)
 
 	cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
 	cmd.Dir = td.OutputDir
@@ -320,7 +320,7 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) 
 	maybeSaveFilesAsArtifactsOnCleanup(t, tapePath, filepath.Join(td.OutputDir, td.OutputFilename))
 	cmd.Args = append(cmd.Args, tapePath)
 
-	err = testutils.RunWithTiming(fmt.Sprintf("VHS tape %q", td.Name), cmd)
+	err = testutils.RunWithTiming(t, fmt.Sprintf("VHS tape %q", td.Name), cmd)
 	if raceLog != "" {
 		checkDataRaces(t, raceLog)
 	}
@@ -341,11 +341,11 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) 
 		// If it fails again, something might actually be broken.
 		//nolint:gosec // G204 it's a test and we explicitly set the parameters before.
 		newCmd := exec.Command(cmd.Args[0], cmd.Args[1:]...)
-		newCmd.Stdout = os.Stdout
-		newCmd.Stderr = os.Stderr
+		newCmd.Stdout = testutils.NewTestWriter(t)
+		newCmd.Stderr = testutils.NewTestWriter(t)
 		newCmd.Dir = cmd.Dir
 		newCmd.Env = slices.Clone(cmd.Env)
-		err = testutils.RunWithTiming(fmt.Sprintf("VHS tape %q (second try)", td.Name), newCmd)
+		err = testutils.RunWithTiming(t, fmt.Sprintf("VHS tape %q (second try)", td.Name), newCmd)
 	}
 	require.NoError(t, err, "Failed to run tape %q, see vhs output above", td.Name)
 }

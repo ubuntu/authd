@@ -192,8 +192,8 @@ func buildPAMExecChild(t *testing.T) string {
 	t.Helper()
 
 	cmd := exec.Command("go", "build")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = testutils.NewTestWriter(t)
+	cmd.Stderr = testutils.NewTestWriter(t)
 	cmd.Dir = filepath.Join(testutils.ProjectRoot(), "pam")
 	cmd.Args = append(cmd.Args, testutils.GoBuildFlags()...)
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
@@ -203,7 +203,7 @@ func buildPAMExecChild(t *testing.T) string {
 	authdPam := filepath.Join(t.TempDir(), "authd-pam")
 
 	cmd.Args = append(cmd.Args, "-o", authdPam)
-	err := testutils.RunWithTiming("Building PAM exec child", cmd)
+	err := testutils.RunWithTiming(t, "Building PAM exec child", cmd)
 	require.NoError(t, err, "Setup: Failed to build PAM exec child")
 
 	return authdPam

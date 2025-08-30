@@ -727,10 +727,10 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 	sshdOutput := bytes.Buffer{}
 
 	// Write stdout/stderr both to our stdout/stderr and to the buffer
-	sshd.Stdout = io.MultiWriter(os.Stdout, &sshdOutput)
-	sshd.Stderr = io.MultiWriter(newFilteredStderrWriter(os.Stderr), &sshdOutput)
+	sshd.Stdout = io.MultiWriter(testutils.NewTestWriter(t), &sshdOutput)
+	sshd.Stderr = io.MultiWriter(newFilteredStderrWriter(testutils.NewTestWriter(t)), &sshdOutput)
 
-	testutils.LogCommand("Starting sshd", sshd)
+	testutils.LogCommand(t, "Starting sshd", sshd)
 	start := time.Now()
 	err = sshd.Start()
 	require.NoError(t, err, "Setup: Impossible to start sshd")
@@ -813,7 +813,7 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 	require.NoError(t, err, "Setup: Reading sshd pid file failed")
 
 	duration := time.Since(start)
-	testutils.LogEndSeparatorf("sshd started in %.3fs - pid: %d (%s), listen port: %s",
+	testutils.LogEndSeparatorf(t, "sshd started in %.3fs - pid: %d (%s), listen port: %s",
 		duration.Seconds(), sshdPid, strings.TrimSpace(string(pidFileContent)), sshdPort)
 
 	return sshdPort
