@@ -16,7 +16,23 @@ var (
 	isRaceOnce          sync.Once
 	sleepMultiplier     float64
 	sleepMultiplierOnce sync.Once
+	testVerbosity       int
+	testVerbosityOnce   sync.Once
 )
+
+// TestVerbosity returns the verbosity level that should be used in tests.
+func TestVerbosity() int {
+	testVerbosityOnce.Do(func() {
+		if v := os.Getenv("AUTHD_TEST_VERBOSITY"); v != "" {
+			var err error
+			testVerbosity, err = strconv.Atoi(v)
+			if err != nil {
+				panic(err)
+			}
+		}
+	})
+	return testVerbosity
+}
 
 func haveBuildFlag(flag string) bool {
 	b, ok := debug.ReadBuildInfo()
@@ -83,3 +99,9 @@ func SleepMultiplier() float64 {
 func MultipliedSleepDuration(in time.Duration) time.Duration {
 	return time.Duration(math.Round(float64(in) * SleepMultiplier()))
 }
+
+// IsCI returns whether the test is running in CI environment.
+var IsCI = sync.OnceValue(func() bool {
+	_, ok := os.LookupEnv("GITHUB_ACTIONS")
+	return ok
+})

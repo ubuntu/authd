@@ -1,10 +1,10 @@
 package testutils
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -158,9 +158,8 @@ paths:
 
 	// #nosec:G204 - we control the command arguments in tests
 	cmd := exec.CommandContext(ctx, execPath, "-c", configPath)
-	opts.env = append(opts.env, os.Environ()...)
 	opts.env = append(opts.env, fmt.Sprintf("AUTHD_EXAMPLE_BROKER_SLEEP_MULTIPLIER=%f", SleepMultiplier()))
-	cmd.Env = AppendCovEnv(opts.env)
+	cmd.Env = append(AppendCovEnv(opts.env), MinimalPathEnv)
 
 	// This is the function that is called by CommandContext when the context is cancelled.
 	cmd.Cancel = func() error {
@@ -169,15 +168,25 @@ paths:
 	}
 
 	// Start the daemon
+	start := time.Now()
 	stopped = make(chan struct{})
 	processPid := make(chan int)
 	go func() {
 		defer close(stopped)
-		var b bytes.Buffer
-		cmd.Stdout = &b
-		cmd.Stderr = &b
+
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if opts.outputFile != "" {
+			// Write the output both to stdout/stderr and to the output file.
+			w, err := os.OpenFile(opts.outputFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
+			require.NoError(t, err, "Setup: cannot open output file")
+			cmd.Stdout = io.MultiWriter(os.Stdout, w)
+			cmd.Stderr = io.MultiWriter(os.Stderr, w)
+		}
+
+		LogCommand("Starting authd", cmd)
 		err := cmd.Start()
-		require.NoError(t, err, "Setup: daemon cannot start %v", cmd.Args)
+		require.NoError(t, err, "Setup: authd failed to start")
 		if opts.pidFile != "" {
 			processPid <- cmd.Process.Pid
 		}
@@ -202,30 +211,25 @@ paths:
 		}
 
 		err = cmd.Wait()
-		out := b.Bytes()
-		if opts.outputFile != "" {
-			logger("writing authd log files to %v", opts.outputFile)
-			if err := os.WriteFile(opts.outputFile, out, 0600); err != nil {
-				logger("TearDown: failed to save output file %q: %v", opts.outputFile, err)
-			}
-		}
-		errorIs(err, context.Canceled, "Setup: daemon stopped unexpectedly: %s", out)
+		errorIs(err, context.Canceled, "Setup: authd stopped unexpectedly")
 		if opts.pidFile != "" {
 			defer cancel(nil)
 			if err := os.Remove(opts.pidFile); err != nil {
 				logger("TearDown: failed to remove pid file %q: %v", opts.pidFile, err)
 			}
 		}
-		logger("Daemon stopped (%v)\n ##### Output #####\n %s \n ##### END #####", err, out)
+		logger("authd exited (%v)", err)
 	}()
 
 	conn, err := grpc.NewClient("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
-	require.NoError(t, err, "Setup: could not connect to the daemon on %s", opts.socketPath)
+	require.NoError(t, err, "Setup: could not connect to authd on %s", opts.socketPath)
 	defer conn.Close()
 
-	// Block until the daemon is started and ready to accept connections.
+	// Block until authd has started and is ready to accept connections.
 	err = grpcutils.WaitForConnection(ctx, conn, time.Second*30)
-	require.NoError(t, err, "Setup: wait for daemon to be ready timed out")
+	require.NoError(t, err, "Setup: timeout waiting for authd to start")
+	duration := time.Since(start)
+	LogEndSeparatorf("authd started in %.3fs", duration.Seconds())
 
 	if opts.pidFile != "" {
 		err := os.WriteFile(opts.pidFile, []byte(fmt.Sprint(<-processPid)), 0600)
@@ -276,9 +280,9 @@ func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err erro
 	cmd.Args = append(cmd.Args, extraArgs...)
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")
 
-	if out, err := cmd.CombinedOutput(); err != nil {
+	if err := RunWithTiming("Building authd", cmd); err != nil {
 		cleanup()
-		return "", nil, fmt.Errorf("failed to build daemon(%v): %s", err, out)
+		return "", nil, fmt.Errorf("failed to build authd: %v", err)
 	}
 
 	return execPath, cleanup, err

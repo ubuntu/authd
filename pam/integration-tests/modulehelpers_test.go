@@ -20,7 +20,7 @@ func getPkgConfigFlags(t *testing.T, args []string) []string {
 	return strings.Split(strings.TrimSpace(string(out)), " ")
 }
 
-func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags []string, ldFlags []string, soname string, forPreload bool) string {
+func buildCModule(t *testing.T, logMsg string, sources []string, pkgConfigDeps []string, cFlags []string, ldFlags []string, soname string, forPreload bool) string {
 	t.Helper()
 
 	compiler := os.Getenv("CC")
@@ -30,12 +30,13 @@ func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags
 
 	//nolint:gosec // G204 it's a test so we should allow using any compiler safely.
 	cmd := exec.Command(compiler)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
 	cmd.Dir = testutils.ProjectRoot()
 	libPath := filepath.Join(t.TempDir(), soname+".so")
 
 	require.NoError(t, os.MkdirAll(filepath.Dir(libPath), 0700),
 		"Setup: Can't create loader build path")
-	t.Logf("Compiling C Module library at %s", libPath)
 	cmd.Args = append(cmd.Args, "-o", libPath)
 	cmd.Args = append(cmd.Args, sources...)
 	cmd.Args = append(cmd.Args,
@@ -119,19 +120,10 @@ func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags
 		})
 	}
 
-	t.Logf("Running compiler command: %s %s", cmd.Path, strings.Join(cmd.Args[1:], " "))
-	out, err := cmd.CombinedOutput()
-	require.NoError(t, err, "Setup: could not compile C module %s: %s", soname, out)
-	if string(out) != "" {
-		t.Log(string(out))
-	}
+	err := testutils.RunWithTiming(logMsg, cmd)
+	require.NoError(t, err, "Setup: Failed to build PAM module")
 
 	return libPath
-}
-
-func buildCPAMModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags []string, soname string, forPreload bool) string {
-	t.Helper()
-	return buildCModule(t, sources, pkgConfigDeps, cFlags, []string{"-lpam"}, soname, forPreload)
 }
 
 type actionArgsMap = map[pam_test.Action][]string
