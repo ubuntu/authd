@@ -204,8 +204,8 @@ func buildPAMExecChild(t *testing.T) string {
 	t.Helper()
 
 	cmd := exec.Command("go", "build", "-C", "pam")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = testutils.NewTestWriter(t)
+	cmd.Stderr = testutils.NewTestWriter(t)
 	cmd.Dir = testutils.ProjectRoot()
 	if testutils.CoverDirForTests() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
@@ -225,7 +225,7 @@ func buildPAMExecChild(t *testing.T) string {
 	authdPam := filepath.Join(t.TempDir(), "authd-pam")
 
 	cmd.Args = append(cmd.Args, "-o", authdPam)
-	err := testutils.RunWithTiming("Building PAM exec child", cmd)
+	err := testutils.RunWithTiming(t, "Building PAM exec child", cmd)
 	require.NoError(t, err, "Setup: Failed to build PAM exec child")
 
 	return authdPam

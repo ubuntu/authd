@@ -106,14 +106,14 @@ func BuildRustNSSLib(t *testing.T, disableCoverage bool, features ...string) (li
 	// dpkg-buildflags sets many relevant environment variables, so we pass the whole environment.
 	cmd.Env = append(os.Environ(), rustCovEnv...)
 	cmd.Dir = projectRoot
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = NewTestWriter(t)
+	cmd.Stderr = NewTestWriter(t)
 
 	if isNightly && IsAsan() {
 		cmd.Env = append(cmd.Env, "RUSTFLAGS=-Zsanitizer=address")
 	}
 
-	err = RunWithTiming("Building NSS library", cmd)
+	err = RunWithTiming(t, "Building NSS library", cmd)
 	require.NoError(t, err, "Setup: could not build Rust NSS library")
 
 	// When building the crate with dh-cargo, this env is set to indicate which architecture the code

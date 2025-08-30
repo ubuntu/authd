@@ -30,8 +30,8 @@ func buildCModule(t *testing.T, logMsg string, sources []string, pkgConfigDeps [
 
 	//nolint:gosec // G204 it's a test so we should allow using any compiler safely.
 	cmd := exec.Command(compiler)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = testutils.NewTestWriter(t)
+	cmd.Stderr = testutils.NewTestWriter(t)
 	cmd.Dir = testutils.ProjectRoot()
 	libPath := filepath.Join(t.TempDir(), soname+".so")
 
@@ -120,7 +120,7 @@ func buildCModule(t *testing.T, logMsg string, sources []string, pkgConfigDeps [
 		})
 	}
 
-	err := testutils.RunWithTiming(logMsg, cmd)
+	err := testutils.RunWithTiming(t, logMsg, cmd)
 	require.NoError(t, err, "Setup: Failed to build PAM module")
 
 	return libPath
