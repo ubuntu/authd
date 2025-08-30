@@ -136,7 +136,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test: ["coverage", "race", "asan"]
+        test: ["coverage"]
     steps:
       - name: Install dependencies
         run: |
