@@ -20,7 +20,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
 	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 func TestNew(t *testing.T) {
@@ -225,7 +224,7 @@ func TestQuit(t *testing.T) {
 				var service testGRPCService
 				grpctestservice.RegisterTestServiceServer(grpcServer, service)
 				hc := health.NewServer()
-				hc.SetServingStatus(consts.ServiceName, healthpb.HealthCheckResponse_SERVING)
+				hc.SetServingStatus(consts.ServiceName, healthgrpc.HealthCheckResponse_SERVING)
 				healthgrpc.RegisterHealthServer(grpcServer, hc)
 				return grpcServer
 			}
