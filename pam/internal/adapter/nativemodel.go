@@ -690,7 +690,7 @@ func (m nativeModel) promptForSecret(prompt string) (string, error) {
 	case entries.DigitsPassword:
 		return m.promptForNumericInputAsString(pam.PromptEchoOff, prompt)
 	default:
-		return "", fmt.Errorf("Unhandled entry %q", m.uiLayout.GetEntry())
+		return "", fmt.Errorf("unhandled entry %q", m.uiLayout.GetEntry())
 	}
 }
 
