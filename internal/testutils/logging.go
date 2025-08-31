@@ -1,52 +1,11 @@
 package testutils
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"os"
 	"os/exec"
-	"strings"
-	"sync"
 	"testing"
 	"time"
 )
-
-// TestWriter is an io.Writer that sends its output to a testing.T via t.Log,
-// ensuring logs are attributed to the correct test.
-// It buffers partial writes until a newline is seen.
-type TestWriter struct {
-	t   *testing.T
-	mu  sync.Mutex
-	buf bytes.Buffer
-}
-
-// NewTestWriter creates a new TestWriter that logs to t.
-func NewTestWriter(t *testing.T) *TestWriter {
-	return &TestWriter{t: t}
-}
-
-// Write implements io.Writer. It buffers until a newline is seen,
-// then flushes complete lines to t.Log. Remainders are held until
-// the next Write call.
-func (w *TestWriter) Write(p []byte) (n int, err error) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
-
-	n, err = w.buf.Write(p)
-	for {
-		line, errLine := w.buf.ReadString('\n')
-		if errLine == io.EOF {
-			// leftover data without newline — keep it for next Write
-			w.buf.Reset()
-			w.buf.WriteString(line)
-			break
-		}
-		// Trim the newline, let t.Log add its own
-		w.t.Log(strings.TrimSuffix(line, "\n"))
-	}
-	return
-}
 
 // RunWithTiming runs the given command while logging its duration with the provided message.
 //
@@ -151,11 +110,4 @@ func highCyan(s string) string {
 // highRed returns a string with the given text in high-intensity red color for terminal output.
 func highRed(s string) string {
 	return fmt.Sprintf("\033[1;31m%s\033[0m", s)
-}
-
-func testWriterOrStderr(t *testing.T) io.Writer {
-	if t != nil {
-		return NewTestWriter(t)
-	}
-	return os.Stderr
 }
