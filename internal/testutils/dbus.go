@@ -158,5 +158,5 @@ func GetSystemBusConnection(t *testing.T) (*dbus.Conn, error) {
 // isRunning checks if the system bus mock is running.
 func isRunning() bool {
 	busAddr := os.Getenv("DBUS_SYSTEM_BUS_ADDRESS")
-	return !(busAddr == "" || busAddr == defaultSystemBusAddress)
+	return busAddr != "" && busAddr != defaultSystemBusAddress
 }
