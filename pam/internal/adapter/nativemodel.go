@@ -20,7 +20,6 @@ import (
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/authd/pam/internal/proto"
-	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 )
 
 type nativeModel struct {
@@ -184,7 +183,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 
 	case userRequired:
 		m.userSelectionAllowed = true
-		return m, m.requestStageChange(pam_proto.Stage_userSelection)
+		return m, m.requestStageChange(proto.Stage_userSelection)
 
 	case nativeUserSelection:
 		if !m.checkStage(proto.Stage_userSelection) {
@@ -233,7 +232,7 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		}
 		return m.startAsyncOp(func() tea.Cmd {
 			return m.maybePreCheckUser(user,
-				m.requestStageChange(pam_proto.Stage_brokerSelection))
+				m.requestStageChange(proto.Stage_brokerSelection))
 		})
 
 	case nativeBrokerSelection:
@@ -293,10 +292,10 @@ func (m nativeModel) Update(msg tea.Msg) (nativeModel, tea.Cmd) {
 		m.uiLayout = msg.layout
 
 	case startAuthentication:
-		return m, m.requestStageChange(pam_proto.Stage_challenge)
+		return m, m.requestStageChange(proto.Stage_challenge)
 
 	case nativeChallengeRequested:
-		if !m.checkStage(pam_proto.Stage_challenge) {
+		if !m.checkStage(proto.Stage_challenge) {
 			return m, nil
 		}
 		if m.busy {
@@ -544,7 +543,7 @@ func (m nativeModel) authModeSelection() tea.Cmd {
 		return sendEvent(nativeGoBack{})
 	}
 	if errors.Is(err, errEmptyResponse) {
-		return m.requestStageChange(pam_proto.Stage_challenge)
+		return m.requestStageChange(proto.Stage_challenge)
 	}
 	if err != nil {
 		return sendEvent(pamError{
@@ -891,7 +890,7 @@ func (m nativeModel) canGoBack() bool {
 	return m.previousStage() > proto.Stage_userSelection
 }
 
-func (m nativeModel) previousStage() pam_proto.Stage {
+func (m nativeModel) previousStage() proto.Stage {
 	if m.currentStage > proto.Stage_authModeSelection && len(m.authModes) > 1 {
 		return proto.Stage_authModeSelection
 	}
