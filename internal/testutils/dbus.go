@@ -122,14 +122,21 @@ func StartSystemBusMock() (func(), error) {
 		return nil, err
 	}
 	prev, set := os.LookupEnv("DBUS_SYSTEM_BUS_ADDRESS")
-	os.Setenv("DBUS_SYSTEM_BUS_ADDRESS", busAddress)
+	err = os.Setenv("DBUS_SYSTEM_BUS_ADDRESS", busAddress)
+	if err != nil {
+		busCancel()
+		return nil, err
+	}
 
 	return func() {
 		busCancel()
 		if !set {
-			os.Unsetenv("DBUS_SYSTEM_BUS_ADDRESS")
+			err = os.Unsetenv("DBUS_SYSTEM_BUS_ADDRESS")
 		} else {
-			os.Setenv("DBUS_SYSTEM_BUS_ADDRESS", prev)
+			err = os.Setenv("DBUS_SYSTEM_BUS_ADDRESS", prev)
+		}
+		if err != nil {
+			panic(err)
 		}
 	}, nil
 }
