@@ -154,7 +154,7 @@ func (m userSelectionModel) Username() string {
 		return ""
 	}
 	// authd uses lowercase usernames
-	return strings.ToLower(m.Model.Value())
+	return strings.ToLower(m.Value())
 }
 
 // Focus sets the focus state on the model. We also mark as the user is not
