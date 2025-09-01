@@ -204,8 +204,6 @@ func buildPAMExecChild(t *testing.T) string {
 	t.Helper()
 
 	cmd := exec.Command("go", "build", "-C", "pam")
-	cmd.Stdout = testutils.NewTestWriter(t)
-	cmd.Stderr = testutils.NewTestWriter(t)
 	cmd.Dir = testutils.ProjectRoot()
 	if testutils.CoverDirForTests() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.

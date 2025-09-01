@@ -265,8 +265,6 @@ func BuildAuthd(extraArgs ...string) (execPath string, cleanup func(), err error
 
 	execPath = filepath.Join(tempDir, "authd")
 	cmd := exec.Command("go", "build")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	cmd.Dir = projectRoot
 	if CoverDirForTests() != "" {
 		// -cover is a "positional flag", so it needs to come right after the "build" command.
