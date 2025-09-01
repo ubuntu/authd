@@ -320,7 +320,8 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) 
 	maybeSaveFilesAsArtifactsOnCleanup(t, tapePath, filepath.Join(td.OutputDir, td.OutputFilename))
 	cmd.Args = append(cmd.Args, tapePath)
 
-	err = testutils.RunWithTiming(t, fmt.Sprintf("VHS tape %q", td.Name), cmd)
+	err = testutils.RunWithTiming(t, fmt.Sprintf("VHS tape %q", td.Name), cmd,
+		testutils.WithDoNotSetStdoutAndStderr())
 	if raceLog != "" {
 		checkDataRaces(t, raceLog)
 	}
@@ -341,8 +342,6 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) 
 		// If it fails again, something might actually be broken.
 		//nolint:gosec // G204 it's a test and we explicitly set the parameters before.
 		newCmd := exec.Command(cmd.Args[0], cmd.Args[1:]...)
-		newCmd.Stdout = testutils.NewTestWriter(t)
-		newCmd.Stderr = testutils.NewTestWriter(t)
 		newCmd.Dir = cmd.Dir
 		newCmd.Env = slices.Clone(cmd.Env)
 		err = testutils.RunWithTiming(t, fmt.Sprintf("VHS tape %q (second try)", td.Name), newCmd)

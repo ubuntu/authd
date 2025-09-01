@@ -30,8 +30,6 @@ func buildCModule(t *testing.T, logMsg string, sources []string, pkgConfigDeps [
 
 	//nolint:gosec // G204 it's a test so we should allow using any compiler safely.
 	cmd := exec.Command(compiler)
-	cmd.Stdout = testutils.NewTestWriter(t)
-	cmd.Stderr = testutils.NewTestWriter(t)
 	cmd.Dir = testutils.ProjectRoot()
 	libPath := filepath.Join(t.TempDir(), soname+".so")
 
@@ -95,13 +93,12 @@ func buildCModule(t *testing.T, logMsg string, sources []string, pkgConfigDeps [
 
 		t.Cleanup(func() {
 			gcov := exec.Command("gcov")
-			gcov.Stdout = testutils.NewTestWriter(t)
-			gcov.Stderr = testutils.NewTestWriter(t)
 			gcov.Args = append(gcov.Args,
 				"-pb", "-o", libDir,
 				notesFilename)
 			gcov.Dir = gcovDir
-			err := testutils.RunWithTiming(t, "Running gcov", gcov)
+			err := testutils.RunWithTiming(t, "Running gcov", gcov,
+				testutils.WithOnlyPrintStdoutAndStderrOnError())
 			require.NoError(t, err,
 				"Teardown: Can't get coverage report on C library")
 
