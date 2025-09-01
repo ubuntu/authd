@@ -24,7 +24,6 @@ import (
 	"github.com/ubuntu/authd/pam/internal/gdm_test"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 	"github.com/ubuntu/authd/pam/internal/proto"
-	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 )
 
 var gdmTestPrivateKey *rsa.PrivateKey
@@ -41,7 +40,7 @@ func TestGdmModel(t *testing.T) {
 	// been completed fully.
 	gdmTestEarlyStopExitStatus := errNoExitStatus
 
-	gdmTestIgnoreStage := pam_proto.Stage(-1)
+	gdmTestIgnoreStage := proto.Stage(-1)
 
 	firstBrokerInfo := &authd.ABResponse_BrokerInfo{
 		Id:        "testBroker",
@@ -99,13 +98,13 @@ func TestGdmModel(t *testing.T) {
 		wantNoGdmEvents    []gdm.EventType
 		wantNoBrokers      bool
 		wantSelectedBroker string
-		wantStage          pam_proto.Stage
+		wantStage          proto.Stage
 		wantUsername       string
 		wantMessages       []tea.Msg
 	}{
 		"User_selection_stage": {
 			wantGdmRequests: []gdm.RequestType{gdm.RequestType_uiLayoutCapabilities},
-			wantStage:       pam_proto.Stage_userSelection,
+			wantStage:       proto.Stage_userSelection,
 			wantGdmEvents: []gdm.EventType{
 				gdm.EventType_brokersReceived,
 			},
@@ -138,7 +137,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantStage:      pam_proto.Stage_brokerSelection,
+			wantStage:      proto.Stage_brokerSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"Broker_selection_stage_caused_by_client_side_user_selection": {
@@ -161,7 +160,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantStage:      pam_proto.Stage_brokerSelection,
+			wantStage:      proto.Stage_brokerSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"Challenge_stage_caused_by_server_side_broker_and_authMode_selection": {
@@ -169,7 +168,7 @@ func TestGdmModel(t *testing.T) {
 				pam_test.WithGetPreviousBrokerReturn(firstBrokerInfo.Id, nil)),
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
-				gdmTestWaitForStage{stage: pam_proto.Stage_challenge},
+				gdmTestWaitForStage{stage: proto.Stage_challenge},
 			},
 			wantSelectedBroker: firstBrokerInfo.Id,
 			wantGdmRequests: []gdm.RequestType{
@@ -189,7 +188,7 @@ func TestGdmModel(t *testing.T) {
 			wantNoGdmEvents: []gdm.EventType{
 				gdm.EventType_authEvent,
 			},
-			wantStage:      pam_proto.Stage_challenge,
+			wantStage:      proto.Stage_challenge,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"Challenge_stage_caused_by_client_side_broker_and_authMode_selection": {
@@ -198,12 +197,12 @@ func TestGdmModel(t *testing.T) {
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
-				gdmTestWaitForStage{stage: pam_proto.Stage_challenge},
+				gdmTestWaitForStage{stage: proto.Stage_challenge},
 			},
 			wantUsername:       "gdm-selected-user-and-broker",
 			wantSelectedBroker: firstBrokerInfo.Id,
@@ -225,7 +224,7 @@ func TestGdmModel(t *testing.T) {
 			wantNoGdmEvents: []gdm.EventType{
 				gdm.EventType_authEvent,
 			},
-			wantStage:      pam_proto.Stage_challenge,
+			wantStage:      proto.Stage_challenge,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"Authenticated_with_preset_PAM_user_and_server_side_broker_and_authMode_selection": {
@@ -235,7 +234,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-PRESET-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
 							Secret: "gdm-good-password",
@@ -260,7 +259,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authEvent,
 			},
 			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Granted}},
-			wantStage:      pam_proto.Stage_challenge,
+			wantStage:      proto.Stage_challenge,
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
 		"Authenticated_with_preset_PAM_user_using_legacy_challenge_and_server_side_broker_and_authMode_selection": {
@@ -270,7 +269,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-PRESET-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Challenge{
 							Challenge: "gdm-good-password",
@@ -295,7 +294,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authEvent,
 			},
 			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Granted}},
-			wantStage:      pam_proto.Stage_challenge,
+			wantStage:      proto.Stage_challenge,
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
 		"Authenticated_with_preset_PAM_user_updated_and_server_side_broker_and_authMode_selection": {
@@ -305,19 +304,19 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "GDM@PAM-CASE-INDEPENDENT-PRESET-USER",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					events: []*gdm.EventData{
-						gdm_test.ChangeStageEvent(pam_proto.Stage_userSelection),
+						gdm_test.ChangeStageEvent(proto.Stage_userSelection),
 					},
 					commands: []tea.Cmd{
 						sendEvent(gdmTestWaitForStage{
-							stage: pam_proto.Stage_userSelection,
+							stage: proto.Stage_userSelection,
 							events: []*gdm.EventData{
 								gdm_test.SelectUserEvent("gdm@pam-case-independent-preset-user"),
 							},
 							commands: []tea.Cmd{
 								sendEvent(gdmTestWaitForStage{
-									stage: pam_proto.Stage_challenge,
+									stage: proto.Stage_challenge,
 									commands: []tea.Cmd{
 										sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
 											Secret: "gdm-good-password",
@@ -351,7 +350,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authEvent,
 			},
 			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Granted}},
-			wantStage:      pam_proto.Stage_challenge,
+			wantStage:      proto.Stage_challenge,
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
 		"Authenticated_with_message_with_preset_PAM_user_and_server_side_broker_and_authMode_selection": {
@@ -365,7 +364,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
 							Secret: "gdm-good-password",
@@ -389,7 +388,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authEvent,
 				gdm.EventType_startAuthentication,
 			},
-			wantStage: pam_proto.Stage_challenge,
+			wantStage: proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{{
 				Access: auth.Granted,
 				Msg:    "Hi GDM, it's a pleasure to get you in!",
@@ -409,7 +408,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
 							Secret: "gdm-good-password",
@@ -434,7 +433,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantStage: pam_proto.Stage_challenge,
+			wantStage: proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{{
 				Access: auth.Granted,
 			}},
@@ -453,7 +452,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
 							Secret: "gdm-good-password",
@@ -478,7 +477,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantStage: pam_proto.Stage_challenge,
+			wantStage: proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{{
 				Access: auth.Granted,
 				Msg:    "Hi GDM, it's a pleasure to change your password!",
@@ -499,7 +498,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
 							Secret: "newpass",
@@ -534,7 +533,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent, // granted
 			},
-			wantStage: pam_proto.Stage_challenge,
+			wantStage: proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
 				{
 					Access: auth.Retry,
@@ -567,13 +566,13 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-with-daemon-selected-broker-and-auth-mode",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_authModeSelection,
+					stage: proto.Stage_authModeSelection,
 					events: []*gdm.EventData{
 						gdm_test.AuthModeSelectedEvent(passwordUILayoutID),
 					},
 				},
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReadyFull{
 							authData: &authd.IARequest_AuthenticationData_Secret{
@@ -581,22 +580,22 @@ func TestGdmModel(t *testing.T) {
 							},
 							commands: []tea.Cmd{
 								sendEvent(gdmTestWaitForStage{
-									stage: pam_proto.Stage_authModeSelection,
+									stage: proto.Stage_authModeSelection,
 								}),
 								sendEvent(gdmTestWaitForStage{
-									stage: pam_proto.Stage_challenge,
+									stage: proto.Stage_challenge,
 									events: []*gdm.EventData{
-										gdm_test.ChangeStageEvent(pam_proto.Stage_authModeSelection),
+										gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
 									},
 									commands: []tea.Cmd{
 										sendEvent(gdmTestWaitForStage{
-											stage: pam_proto.Stage_authModeSelection,
+											stage: proto.Stage_authModeSelection,
 											events: []*gdm.EventData{
 												gdm_test.AuthModeSelectedEvent(newPasswordUILayoutID),
 											},
 											commands: []tea.Cmd{
 												sendEvent(gdmTestWaitForStage{
-													stage: pam_proto.Stage_challenge,
+													stage: proto.Stage_challenge,
 													commands: []tea.Cmd{
 														sendEvent(gdmTestSendAuthDataWhenReady{
 															&authd.IARequest_AuthenticationData_Secret{
@@ -648,7 +647,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authEvent, // retry
 				gdm.EventType_startAuthentication,
 			},
-			wantStage: pam_proto.Stage_challenge,
+			wantStage: proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
 				{
 					Access: auth.Next,
@@ -686,7 +685,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantStage:      pam_proto.Stage_userSelection,
+			wantStage:      proto.Stage_userSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"Cancelled_with_preset_PAM_user_and_server_side_broker_and_authMode_selection": {
@@ -718,7 +717,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantStage:      pam_proto.Stage_challenge,
+			wantStage:      proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Cancelled}},
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
@@ -729,7 +728,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					events: []*gdm.EventData{
 						gdm_test.IsAuthenticatedCancelledEvent(),
 					},
@@ -750,7 +749,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_uiLayoutReceived,
 				gdm.EventType_startAuthentication,
 			},
-			wantStage:      pam_proto.Stage_challenge,
+			wantStage:      proto.Stage_challenge,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"Explicitly_cancelled_for_a_waiting_auth_mode_with_preset_PAM_user_and_server_side_broker_and_authMode_selection": {
@@ -761,7 +760,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReadyFull{
 							authData: &authd.IARequest_AuthenticationData_Wait{
@@ -791,7 +790,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authEvent,
 			},
 			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Cancelled}},
-			wantStage:      pam_proto.Stage_challenge,
+			wantStage:      proto.Stage_challenge,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"Implicitly_cancelled_for_a_waiting_auth_mode_with_preset_PAM_user_and_server_side_broker_and_authMode_selection": {
@@ -802,17 +801,17 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReadyFull{
 							authData: &authd.IARequest_AuthenticationData_Wait{
 								Wait: layouts.True,
 							},
 							events: []*gdm.EventData{
-								gdm_test.ChangeStageEvent(pam_proto.Stage_brokerSelection),
+								gdm_test.ChangeStageEvent(proto.Stage_brokerSelection),
 							},
 							commands: []tea.Cmd{
-								sendEvent(gdmTestWaitForStage{stage: pam_proto.Stage_brokerSelection}),
+								sendEvent(gdmTestWaitForStage{stage: proto.Stage_brokerSelection}),
 							},
 						}),
 					},
@@ -836,7 +835,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authEvent,
 			},
 			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Cancelled}},
-			wantStage:      pam_proto.Stage_brokerSelection,
+			wantStage:      proto.Stage_brokerSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"Authenticated_with_preset_PAM_user_and_server_side_broker_and_authMode_selection_and_after_various_retries": {
@@ -848,7 +847,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReadyFull{
 							authData: &authd.IARequest_AuthenticationData_Secret{
@@ -891,7 +890,7 @@ func TestGdmModel(t *testing.T) {
 				{Access: auth.Retry},
 				{Access: auth.Granted},
 			},
-			wantStage:      pam_proto.Stage_challenge,
+			wantStage:      proto.Stage_challenge,
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
 		"Authenticated_after_client_side_user_and_broker_and_authMode_selection": {
@@ -903,7 +902,7 @@ func TestGdmModel(t *testing.T) {
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(secondBrokerInfo.Id),
 					},
@@ -931,7 +930,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantStage:      pam_proto.Stage_challenge,
+			wantStage:      proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Granted}},
 			wantExitStatus: PamSuccess{BrokerID: secondBrokerInfo.Id},
 		},
@@ -945,13 +944,13 @@ func TestGdmModel(t *testing.T) {
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReadyFull{
 							authData: &authd.IARequest_AuthenticationData_Secret{
@@ -995,7 +994,7 @@ func TestGdmModel(t *testing.T) {
 				{Access: auth.Retry},
 				{Access: auth.Granted},
 			},
-			wantStage:      pam_proto.Stage_challenge,
+			wantStage:      proto.Stage_challenge,
 			wantExitStatus: PamSuccess{BrokerID: firstBrokerInfo.Id},
 		},
 		"Cancelled_auth_after_client_side_user_and_broker_and_authMode_selection": {
@@ -1009,7 +1008,7 @@ func TestGdmModel(t *testing.T) {
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
@@ -1039,7 +1038,7 @@ func TestGdmModel(t *testing.T) {
 				startAuthentication{},
 			},
 			wantGdmAuthRes: []*authd.IAResponse{{Access: auth.Cancelled}},
-			wantStage:      pam_proto.Stage_challenge,
+			wantStage:      proto.Stage_challenge,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"AuthMode_selection_stage_from_client_after_server_side_broker_and_auth_mode_selection_if_there_is_only_one_auth_mode": {
@@ -1049,12 +1048,12 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					events: []*gdm.EventData{
-						gdm_test.ChangeStageEvent(pam_proto.Stage_authModeSelection),
+						gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
 					},
 					commands: []tea.Cmd{
-						sendEvent(gdmTestWaitForStage{stage: pam_proto.Stage_authModeSelection}),
+						sendEvent(gdmTestWaitForStage{stage: proto.Stage_authModeSelection}),
 					},
 				},
 			},
@@ -1078,7 +1077,7 @@ func TestGdmModel(t *testing.T) {
 			wantNoGdmEvents: []gdm.EventType{
 				gdm.EventType_authEvent,
 			},
-			wantStage:      pam_proto.Stage_authModeSelection,
+			wantStage:      proto.Stage_authModeSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"AuthMode_selection_stage_from_client_after_server_side_broker_and_auth_mode_selection_with_multiple_auth_modes": {
@@ -1089,12 +1088,12 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-daemon-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					events: []*gdm.EventData{
-						gdm_test.ChangeStageEvent(pam_proto.Stage_authModeSelection),
+						gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
 					},
 					commands: []tea.Cmd{
-						sendEvent(gdmTestWaitForStage{stage: pam_proto.Stage_authModeSelection}),
+						sendEvent(gdmTestWaitForStage{stage: proto.Stage_authModeSelection}),
 					},
 				},
 			},
@@ -1118,7 +1117,7 @@ func TestGdmModel(t *testing.T) {
 			wantNoGdmEvents: []gdm.EventType{
 				gdm.EventType_authEvent,
 			},
-			wantStage:      pam_proto.Stage_authModeSelection,
+			wantStage:      proto.Stage_authModeSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"AuthMode_selection_stage_from_client_after_client_side_broker_and_auth_mode_selection_if_there_is_only_one_auth_mode": {
@@ -1127,18 +1126,18 @@ func TestGdmModel(t *testing.T) {
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					events: []*gdm.EventData{
-						gdm_test.ChangeStageEvent(pam_proto.Stage_authModeSelection),
+						gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
 					},
 					commands: []tea.Cmd{
-						sendEvent(gdmTestWaitForStage{stage: pam_proto.Stage_authModeSelection}),
+						sendEvent(gdmTestWaitForStage{stage: proto.Stage_authModeSelection}),
 					},
 				},
 			},
@@ -1164,7 +1163,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantStage:      pam_proto.Stage_authModeSelection,
+			wantStage:      proto.Stage_authModeSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"Authenticated_after_auth_selection_stage_from_client_after_client_side_broker_and_auth_mode_selection_if_there_is_only_one_auth_mode": {
@@ -1176,19 +1175,19 @@ func TestGdmModel(t *testing.T) {
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					events: []*gdm.EventData{
-						gdm_test.ChangeStageEvent(pam_proto.Stage_authModeSelection),
+						gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
 					},
 					commands: []tea.Cmd{
 						sendEvent(gdmTestWaitForStage{
-							stage: pam_proto.Stage_authModeSelection,
+							stage: proto.Stage_authModeSelection,
 							events: []*gdm.EventData{
 								gdm_test.AuthModeSelectedEvent(passwordUILayoutID),
 							},
@@ -1227,7 +1226,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantStage: pam_proto.Stage_challenge,
+			wantStage: proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
 				{Access: auth.Granted},
 			},
@@ -1243,19 +1242,19 @@ func TestGdmModel(t *testing.T) {
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					events: []*gdm.EventData{
-						gdm_test.ChangeStageEvent(pam_proto.Stage_authModeSelection),
+						gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
 					},
 					commands: []tea.Cmd{
 						sendEvent(gdmTestWaitForStage{
-							stage: pam_proto.Stage_authModeSelection,
+							stage: proto.Stage_authModeSelection,
 							events: []*gdm.EventData{
 								gdm_test.AuthModeSelectedEvent("pincode"),
 							},
@@ -1294,7 +1293,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent,
 			},
-			wantStage: pam_proto.Stage_challenge,
+			wantStage: proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
 				{Access: auth.Granted},
 			},
@@ -1315,19 +1314,19 @@ func TestGdmModel(t *testing.T) {
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					events: []*gdm.EventData{
-						gdm_test.ChangeStageEvent(pam_proto.Stage_authModeSelection),
+						gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
 					},
 					commands: []tea.Cmd{
 						sendEvent(gdmTestWaitForStage{
-							stage: pam_proto.Stage_authModeSelection,
+							stage: proto.Stage_authModeSelection,
 							events: []*gdm.EventData{
 								gdm_test.AuthModeSelectedEvent(layouts.QrCode),
 							},
@@ -1366,7 +1365,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent, // granted
 			},
-			wantStage: pam_proto.Stage_challenge,
+			wantStage: proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
 				{Access: auth.Granted},
 			},
@@ -1387,19 +1386,19 @@ func TestGdmModel(t *testing.T) {
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					events: []*gdm.EventData{
-						gdm_test.ChangeStageEvent(pam_proto.Stage_authModeSelection),
+						gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
 					},
 					commands: []tea.Cmd{
 						sendEvent(gdmTestWaitForStage{
-							stage: pam_proto.Stage_authModeSelection,
+							stage: proto.Stage_authModeSelection,
 							events: []*gdm.EventData{
 								gdm_test.AuthModeSelectedEvent(layouts.QrCode),
 							},
@@ -1452,7 +1451,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_startAuthentication,
 				gdm.EventType_authEvent, // granted
 			},
-			wantStage: pam_proto.Stage_challenge,
+			wantStage: proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
 				{Access: auth.Cancelled},
 				{Access: auth.Granted},
@@ -1475,19 +1474,19 @@ func TestGdmModel(t *testing.T) {
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					events: []*gdm.EventData{
-						gdm_test.ChangeStageEvent(pam_proto.Stage_authModeSelection),
+						gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
 					},
 					commands: []tea.Cmd{
 						sendEvent(gdmTestWaitForStage{
-							stage: pam_proto.Stage_authModeSelection,
+							stage: proto.Stage_authModeSelection,
 							events: []*gdm.EventData{
 								gdm_test.AuthModeSelectedEvent(layouts.QrCode),
 							},
@@ -1542,7 +1541,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authModeSelected,
 				gdm.EventType_authEvent, // granted
 			},
-			wantStage: pam_proto.Stage_challenge,
+			wantStage: proto.Stage_challenge,
 			wantGdmAuthRes: []*authd.IAResponse{
 				{Access: auth.Cancelled},
 				{Access: auth.Granted},
@@ -1555,24 +1554,24 @@ func TestGdmModel(t *testing.T) {
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					events: []*gdm.EventData{
-						gdm_test.ChangeStageEvent(pam_proto.Stage_authModeSelection),
+						gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
 					},
 					commands: []tea.Cmd{
 						sendEvent(gdmTestWaitForStage{
-							stage: pam_proto.Stage_authModeSelection,
+							stage: proto.Stage_authModeSelection,
 							events: []*gdm.EventData{
-								gdm_test.ChangeStageEvent(pam_proto.Stage_brokerSelection),
+								gdm_test.ChangeStageEvent(proto.Stage_brokerSelection),
 							},
 							commands: []tea.Cmd{
-								sendEvent(gdmTestWaitForStage{stage: pam_proto.Stage_brokerSelection}),
+								sendEvent(gdmTestWaitForStage{stage: proto.Stage_brokerSelection}),
 							},
 						}),
 					},
@@ -1600,7 +1599,7 @@ func TestGdmModel(t *testing.T) {
 			wantNoGdmEvents: []gdm.EventType{
 				gdm.EventType_authEvent,
 			},
-			wantStage:      pam_proto.Stage_brokerSelection,
+			wantStage:      proto.Stage_brokerSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 		"User_selection_stage_from_client_after_client_side_broker_and_auth_mode_selection_if_there_is_only_one_auth_mode": {
@@ -1609,30 +1608,30 @@ func TestGdmModel(t *testing.T) {
 			},
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					events: []*gdm.EventData{
-						gdm_test.ChangeStageEvent(pam_proto.Stage_authModeSelection),
+						gdm_test.ChangeStageEvent(proto.Stage_authModeSelection),
 					},
 					commands: []tea.Cmd{
 						sendEvent(gdmTestWaitForStage{
-							stage: pam_proto.Stage_authModeSelection,
+							stage: proto.Stage_authModeSelection,
 							events: []*gdm.EventData{
-								gdm_test.ChangeStageEvent(pam_proto.Stage_brokerSelection),
+								gdm_test.ChangeStageEvent(proto.Stage_brokerSelection),
 							},
 							commands: []tea.Cmd{
 								sendEvent(gdmTestWaitForStage{
-									stage: pam_proto.Stage_brokerSelection,
+									stage: proto.Stage_brokerSelection,
 									events: []*gdm.EventData{
-										gdm_test.ChangeStageEvent(pam_proto.Stage_userSelection),
+										gdm_test.ChangeStageEvent(proto.Stage_userSelection),
 									},
 									commands: []tea.Cmd{
-										sendEvent(gdmTestWaitForStage{stage: pam_proto.Stage_userSelection}),
+										sendEvent(gdmTestWaitForStage{stage: proto.Stage_userSelection}),
 									},
 								}),
 							},
@@ -1663,7 +1662,7 @@ func TestGdmModel(t *testing.T) {
 			wantNoGdmEvents: []gdm.EventType{
 				gdm.EventType_authEvent,
 			},
-			wantStage:      pam_proto.Stage_userSelection,
+			wantStage:      proto.Stage_userSelection,
 			wantExitStatus: gdmTestEarlyStopExitStatus,
 		},
 
@@ -1871,7 +1870,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-for-client-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
@@ -1902,7 +1901,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-for-client-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
@@ -1933,7 +1932,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-for-client-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
@@ -1965,7 +1964,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-with-client-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
@@ -2000,7 +1999,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-for-client-selected-broker",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
@@ -2024,7 +2023,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authModeSelected,
 				gdm.EventType_uiLayoutReceived,
 			},
-			wantStage: pam_proto.Stage_challenge,
+			wantStage: proto.Stage_challenge,
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
 				msg:    "authentication status failure: some authentication error",
@@ -2073,13 +2072,13 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-for-client-selected-brokers-with-wrong-pass",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_authModeSelection,
+					stage: proto.Stage_authModeSelection,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
 							Secret: "gdm-wrong-password",
@@ -2120,13 +2119,13 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-client-selected-broker-with-wrong-pass",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_brokerSelection,
+					stage: proto.Stage_brokerSelection,
 					events: []*gdm.EventData{
 						gdm_test.SelectBrokerEvent(firstBrokerInfo.Id),
 					},
 				},
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
 							Secret: "gdm-wrong-password",
@@ -2166,7 +2165,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-daemon-selected-broker-with-wrong-pass",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReadyFull{
 							authData: &authd.IARequest_AuthenticationData_Secret{
@@ -2218,7 +2217,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-daemon-selected-broker-with-wrong-pass",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
 							Secret: "gdm-some-password",
@@ -2263,7 +2262,7 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "pam-preset-user-and-daemon-selected-broker-with-wrong-pass",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					commands: []tea.Cmd{
 						sendEvent(gdmTestSendAuthDataWhenReady{&authd.IARequest_AuthenticationData_Secret{
 							Secret: "gdm-some-password",
@@ -2366,7 +2365,7 @@ func TestGdmModel(t *testing.T) {
 				}): errors.New("this is a stage change error"),
 			},
 			gdmEvents: []*gdm.EventData{
-				gdm_test.ChangeStageEvent(pam_proto.Stage_brokerSelection),
+				gdm_test.ChangeStageEvent(proto.Stage_brokerSelection),
 			},
 			wantExitStatus: pamError{
 				status: pam.ErrSystem,
@@ -2395,13 +2394,13 @@ func TestGdmModel(t *testing.T) {
 			pamUser: "gdm-pam-preset-user",
 			messages: []tea.Msg{
 				gdmTestWaitForStage{
-					stage: pam_proto.Stage_challenge,
+					stage: proto.Stage_challenge,
 					events: []*gdm.EventData{
-						gdm_test.ChangeStageEvent(pam_proto.Stage_userSelection),
+						gdm_test.ChangeStageEvent(proto.Stage_userSelection),
 					},
 					commands: []tea.Cmd{
 						sendEvent(gdmTestWaitForStage{
-							stage: pam_proto.Stage_userSelection,
+							stage: proto.Stage_userSelection,
 							events: []*gdm.EventData{
 								gdm_test.SelectUserEvent("another-selected-user"),
 							},
@@ -2427,7 +2426,7 @@ func TestGdmModel(t *testing.T) {
 				gdm.EventType_authModeSelected,
 				gdm.EventType_authEvent,
 			},
-			wantStage: pam_proto.Stage_userSelection,
+			wantStage: proto.Stage_userSelection,
 			wantExitStatus: pamError{
 				status: pam.ErrPermDenied,
 				msg:    `Changing username "gdm-pam-preset-user" to "another-selected-user" is not allowed`,

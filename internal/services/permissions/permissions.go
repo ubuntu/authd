@@ -32,7 +32,7 @@ func New(args ...Option) Manager {
 		arg(&opts)
 	}
 
-	//nolint:gosimple // S1016 Those structs are not the same conceptually.
+	//nolint:staticcheck // S1016 Those structs are not the same conceptually.
 	return Manager{
 		rootUID: opts.rootUID,
 	}
