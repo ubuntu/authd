@@ -94,18 +94,16 @@ func buildCModule(t *testing.T, logMsg string, sources []string, pkgConfigDeps [
 		require.NoError(t, err, "TearDown: Impossible to create path %q", gcovDir)
 
 		t.Cleanup(func() {
-			t.Log("Running gcov...")
 			gcov := exec.Command("gcov")
+			gcov.Stdout = testutils.NewTestWriter(t)
+			gcov.Stderr = testutils.NewTestWriter(t)
 			gcov.Args = append(gcov.Args,
 				"-pb", "-o", libDir,
 				notesFilename)
 			gcov.Dir = gcovDir
-			out, err := gcov.CombinedOutput()
+			err := testutils.RunWithTiming(t, "Running gcov", gcov)
 			require.NoError(t, err,
-				"Teardown: Can't get coverage report on C library: %s", out)
-			if string(out) != "" {
-				t.Log(string(out))
-			}
+				"Teardown: Can't get coverage report on C library")
 
 			// Also keep track of notes and data files as they're useful to generate
 			// an html output locally using geninfo + genhtml.
