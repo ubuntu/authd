@@ -282,8 +282,6 @@ func BuildAuthdWithExampleBroker() (execPath string, cleanup func(), err error) 
 
 	execPath = filepath.Join(tempDir, "authd")
 	cmd := exec.Command("go", "build")
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
 	cmd.Dir = projectRoot
 	cmd.Args = append(cmd.Args, GoBuildFlags()...)
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")

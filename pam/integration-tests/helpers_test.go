@@ -192,8 +192,6 @@ func buildPAMExecChild(t *testing.T) string {
 	t.Helper()
 
 	cmd := exec.Command("go", "build")
-	cmd.Stdout = testutils.NewTestWriter(t)
-	cmd.Stderr = testutils.NewTestWriter(t)
 	cmd.Dir = filepath.Join(testutils.ProjectRoot(), "pam")
 	cmd.Args = append(cmd.Args, testutils.GoBuildFlags()...)
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
