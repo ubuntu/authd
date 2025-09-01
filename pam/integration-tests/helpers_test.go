@@ -464,7 +464,7 @@ func getEntOutput(t *testing.T, nssLibrary, authdSocket, db, key string) string 
 	cmd.Env = nssTestEnv(t, nssLibrary, authdSocket)
 
 	out, err := cmd.Output()
-	require.NoError(t, err, "getent %s should not fail for key %q\n%s", db, key)
+	require.NoError(t, err, "getent %s should not fail for key %q\n%s", db, key, out)
 
 	o := strings.TrimSpace(string(out))
 	t.Log(strings.Join(cmd.Args, " "), "returned:", o)
