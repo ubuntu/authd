@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/ubuntu/authd/internal/testlog"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
@@ -97,8 +98,8 @@ func buildCModule(t *testing.T, logMsg string, sources []string, pkgConfigDeps [
 				"-pb", "-o", libDir,
 				notesFilename)
 			gcov.Dir = gcovDir
-			err := testutils.RunWithTiming(t, "Running gcov", gcov,
-				testutils.WithOnlyPrintStdoutAndStderrOnError())
+			err := testlog.RunWithTiming(t, "Running gcov", gcov,
+				testlog.OnlyPrintStdoutAndStderrOnError())
 			require.NoError(t, err,
 				"Teardown: Can't get coverage report on C library")
 
@@ -115,7 +116,7 @@ func buildCModule(t *testing.T, logMsg string, sources []string, pkgConfigDeps [
 		})
 	}
 
-	err := testutils.RunWithTiming(t, logMsg, cmd)
+	err := testlog.RunWithTiming(t, logMsg, cmd)
 	require.NoError(t, err, "Setup: Failed to build PAM module")
 
 	return libPath

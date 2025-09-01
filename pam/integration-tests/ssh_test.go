@@ -27,6 +27,7 @@ import (
 	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
+	"github.com/ubuntu/authd/internal/testlog"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/testutils/golden"
 	localgroupstestutils "github.com/ubuntu/authd/internal/users/localentries/testutils"
@@ -727,10 +728,10 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 	sshdOutput := bytes.Buffer{}
 
 	// Write stdout/stderr both to our stdout/stderr and to the buffer
-	sshd.Stdout = io.MultiWriter(testutils.NewTestWriter(t), &sshdOutput)
-	sshd.Stderr = io.MultiWriter(newFilteredStderrWriter(testutils.NewTestWriter(t)), &sshdOutput)
+	sshd.Stdout = io.MultiWriter(testlog.NewTestWriter(t), &sshdOutput)
+	sshd.Stderr = io.MultiWriter(newFilteredStderrWriter(testlog.NewTestWriter(t)), &sshdOutput)
 
-	testutils.LogCommand(t, "Starting sshd", sshd)
+	testlog.LogCommand(t, "Starting sshd", sshd)
 	start := time.Now()
 	err = sshd.Start()
 	require.NoError(t, err, "Setup: Impossible to start sshd")
@@ -813,7 +814,7 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 	require.NoError(t, err, "Setup: Reading sshd pid file failed")
 
 	duration := time.Since(start)
-	testutils.LogEndSeparatorf(t, "sshd started in %.3fs - pid: %d (%s), listen port: %s",
+	testlog.LogEndSeparatorf(t, "sshd started in %.3fs - pid: %d (%s), listen port: %s",
 		duration.Seconds(), sshdPid, strings.TrimSpace(string(pidFileContent)), sshdPort)
 
 	return sshdPort

@@ -24,6 +24,7 @@ import (
 	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/permissions"
+	"github.com/ubuntu/authd/internal/testlog"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
 )
@@ -261,8 +262,8 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) 
 
 	var outBuf bytes.Buffer
 	// Write stdout/stderr both to our stdout/stderr and to the buffer
-	cmd.Stdout = io.MultiWriter(testutils.NewTestWriter(t), &outBuf)
-	cmd.Stderr = io.MultiWriter(testutils.NewTestWriter(t), &outBuf)
+	cmd.Stdout = io.MultiWriter(testlog.NewTestWriter(t), &outBuf)
+	cmd.Stderr = io.MultiWriter(testlog.NewTestWriter(t), &outBuf)
 
 	cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
 	cmd.Dir = td.OutputDir
@@ -320,8 +321,7 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) 
 	maybeSaveFilesAsArtifactsOnCleanup(t, tapePath, filepath.Join(td.OutputDir, td.OutputFilename))
 	cmd.Args = append(cmd.Args, tapePath)
 
-	err = testutils.RunWithTiming(t, fmt.Sprintf("VHS tape %q", td.Name), cmd,
-		testutils.WithDoNotSetStdoutAndStderr())
+	err = testlog.RunWithTiming(t, fmt.Sprintf("VHS tape %q", td.Name), cmd, testlog.DoNotSetStdoutAndStderr())
 	if raceLog != "" {
 		checkDataRaces(t, raceLog)
 	}
@@ -344,7 +344,7 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) 
 		newCmd := exec.Command(cmd.Args[0], cmd.Args[1:]...)
 		newCmd.Dir = cmd.Dir
 		newCmd.Env = slices.Clone(cmd.Env)
-		err = testutils.RunWithTiming(t, fmt.Sprintf("VHS tape %q (second try)", td.Name), newCmd)
+		err = testlog.RunWithTiming(t, fmt.Sprintf("VHS tape %q (second try)", td.Name), newCmd, testlog.DoNotSetStdoutAndStderr())
 	}
 	require.NoError(t, err, "Failed to run tape %q, see vhs output above", td.Name)
 }

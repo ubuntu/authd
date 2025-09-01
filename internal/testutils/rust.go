@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/fileutils"
+	"github.com/ubuntu/authd/internal/testlog"
 )
 
 func getCargoPath() (path string, isNightly bool, err error) {
@@ -114,7 +115,7 @@ func BuildRustNSSLib(t *testing.T, disableCoverage bool, features ...string) (li
 		cmd.Env = append(cmd.Env, "RUSTFLAGS=-Zsanitizer=address")
 	}
 
-	err = RunWithTiming(t, "Building NSS library", cmd)
+	err = testlog.RunWithTiming(t, "Building NSS library", cmd)
 	require.NoError(t, err, "Setup: could not build Rust NSS library")
 
 	// When building the crate with dh-cargo, this env is set to indicate which architecture the code
