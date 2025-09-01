@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "dtor"
-version = "0.0.6"
+version = "0.1.0"
 dependencies = [
  "dtor-proc-macro",
  "libc-print",
@@ -12,9 +12,9 @@ dependencies = [
 
 [[package]]
 name = "dtor-proc-macro"
-version = "0.0.5"
+version = "0.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7454e41ff9012c00d53cf7f475c5e3afa3b91b7c90568495495e8d9bf47a1055"
+checksum = "f678cf4a922c215c63e0de95eb1ff08a958a81d47e485cf9da1e27bf6305cfa5"
 
 [[package]]
 name = "libc"

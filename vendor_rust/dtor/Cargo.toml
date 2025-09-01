@@ -12,7 +12,7 @@
 [package]
 edition = "2021"
 name = "dtor"
-version = "0.0.6"
+version = "0.1.0"
 authors = ["Matt Mastracci <matthew@mastracci.com>"]
 build = false
 autolib = false
@@ -39,7 +39,7 @@ name = "dtor"
 path = "src/lib.rs"
 
 [dependencies.dtor-proc-macro]
-version = "=0.0.5"
+version = "=0.0.6"
 optional = true
 
 [dev-dependencies.libc-print]
