@@ -44,8 +44,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt update
-          sudo apt install -y ${{ env.apt_deps }}
+          sudo apt-get update
+          sudo apt-get install -y ${{ env.apt_deps }}
       - uses: actions/checkout@v5
       - name: Go code sanity check
         uses: canonical/desktop-engineering/gh-actions/go/code-sanity@main
@@ -81,8 +81,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt update
-          sudo apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}}
+          sudo apt-get update
+          sudo apt-get install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}}
       - uses: actions/checkout@v5
       - name: Rust code sanity check
         uses: canonical/desktop-engineering/gh-actions/rust/code-sanity@main
@@ -99,8 +99,8 @@ jobs:
         run: |
           set -eu
 
-          sudo apt update
-          sudo apt install -y ${{ env.apt_deps }} clang-tools clang
+          sudo apt-get update
+          sudo apt-get install -y ${{ env.apt_deps }} clang-tools clang
       - name: Prepare report dir
         run: |
           set -eu
@@ -153,10 +153,10 @@ jobs:
           path-include=/usr/share/doc/*/copyright
           EOF
 
-          sudo apt update
+          sudo apt-get update
 
           # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
-          sudo apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}} ${{ env.test_apt_deps }}
+          sudo apt-get install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}} ${{ env.test_apt_deps }}
 
           # Load the apparmor profile for bubblewrap.
           sudo ln -s /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/
@@ -172,16 +172,16 @@ jobs:
           deb http://ddebs.ubuntu.com $(lsb_release -cs)-proposed main restricted universe multiverse" | \
           sudo tee -a /etc/apt/sources.list.d/ddebs.list
           # Sometimes ddebs archive is stuck, so in case of failure we need to go manual
-          sudo apt update -y || true
-          if ! sudo apt install -y libpam-modules-dbgsym libpam0*-dbgsym libglib2.0-0*-dbgsym; then
-            sudo apt install -y ubuntu-dev-tools
+          sudo apt-get update -y || true
+          if ! sudo apt-get install -y libpam-modules-dbgsym libpam0*-dbgsym libglib2.0-0*-dbgsym; then
+            sudo apt-get install -y ubuntu-dev-tools
             for pkg in pam glib2.0; do
               pull-lp-debs "${pkg}" $(lsb_release -cs)
               pull-lp-ddebs "${pkg}" $(lsb_release -cs)
             done
-            sudo apt install -y ./libpam0*.*deb ./libpam-modules*.*deb ./libglib2.0-0*-dbgsym*.ddeb
-            sudo apt remove -y ubuntu-dev-tools
-            sudo apt autoremove -y
+            sudo apt-get install -y ./libpam0*.*deb ./libpam-modules*.*deb ./libglib2.0-0*-dbgsym*.ddeb
+            sudo apt-get remove -y ubuntu-dev-tools
+            sudo apt-get autoremove -y
           fi
       - uses: actions/checkout@v5
       - uses: actions/setup-go@v5
@@ -233,7 +233,7 @@ jobs:
           set -eu
 
           # Dependendencies for C coverage collection
-          sudo apt install -y gcovr
+          sudo apt-get install -y gcovr
 
           # Dependendencies for Go coverage collection
           go install github.com/AlekSi/gocov-xml@latest
@@ -317,7 +317,7 @@ jobs:
           set -x
 
           # For llvm-symbolizer
-          sudo apt install -y llvm
+          sudo apt-get install -y llvm
 
           go test -C ./pam/internal -json -asan -gcflags=all="${GO_GC_FLAGS}" -failfast -timeout ${GO_TESTS_TIMEOUT} ./... | \
             gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.pam-internal-asan.log" || exit_code=$?

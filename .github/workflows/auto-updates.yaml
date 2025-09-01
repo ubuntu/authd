@@ -40,16 +40,16 @@ jobs:
         run: |
           set -euo pipefail
 
-          apt update -y
-          apt install -y dh-cargo git
+          apt-get update -y
+          apt-get install -y dh-cargo git
 
           if [ "${{ matrix.ubuntu-version }}" = "noble" ]; then
             # Special behavior on noble as dh-cargo is not new enough there
-            apt install -y libssl-dev pkg-config
+            apt-get install -y libssl-dev pkg-config
             cargo install --locked --root=/usr \
               cargo-vendor-filterer@${{ env.CARGO_VENDOR_FILTERER_NOBLE_VERSION }}
           else
-            apt install -y cargo-vendor-filterer
+            apt-get install -y cargo-vendor-filterer
           fi
 
       - name: Checkout the code
