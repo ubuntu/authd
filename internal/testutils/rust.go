@@ -91,11 +91,14 @@ func BuildRustNSSLib(t *testing.T, disableCoverage bool, features ...string) (li
 
 	features = append([]string{"integration_tests", "custom_socket"}, features...)
 
+	t.Logf("Locking Rust target dir %s", target)
 	unlock, err := fileutils.LockDir(target)
 	require.NoError(t, err, "Setup: could not lock Rust target dir")
 	defer func() {
 		require.NoError(t, unlock(), "Setup: could not unlock Rust target dir")
+		t.Logf("Unlocked Rust target dir %s", target)
 	}()
+	t.Logf("Locked Rust target dir %s", target)
 
 	// Builds the nss library.
 	// #nosec:G204 - we control the command arguments in tests
