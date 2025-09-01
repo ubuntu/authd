@@ -1,6 +1,6 @@
 //go:build !go1.25
 
-package testutils
+package testlog
 
 import (
 	"bytes"
