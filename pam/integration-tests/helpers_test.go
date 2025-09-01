@@ -339,7 +339,7 @@ func maybeSaveBytesAsArtifactOnCleanup(t *testing.T, content []byte, filename st
 	})
 }
 
-func maybeSaveBufferAsArtifactOnCleanup(t *testing.T, buf *bytes.Buffer, filename string) {
+func maybeSaveBufferAsArtifactOnCleanup(t *testing.T, buf *syncBuffer, filename string) {
 	t.Helper()
 
 	t.Cleanup(func() {
@@ -616,4 +616,22 @@ func useOldDatabaseEnv(t *testing.T, oldDB string) []string {
 	require.NoError(t, err, "Setup: creating old database")
 
 	return []string{fmt.Sprintf("AUTHD_INTEGRATIONTESTS_OLD_DB_DIR=%s", oldDBDir)}
+}
+
+// syncBuffer is a mutex-protected buffer to avoid data races.
+type syncBuffer struct {
+	mu  sync.RWMutex
+	buf *bytes.Buffer
+}
+
+func (s *syncBuffer) Write(p []byte) (n int, err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.buf.Write(p)
+}
+
+func (s *syncBuffer) Bytes() []byte {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.buf.Bytes()
 }
