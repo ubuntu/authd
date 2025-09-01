@@ -23,6 +23,7 @@ import (
 	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/internal/services/errmessages"
+	"github.com/ubuntu/authd/internal/testlog"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/internal/users/db/bbolt"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -201,7 +202,7 @@ func buildPAMExecChild(t *testing.T) string {
 	authdPam := filepath.Join(t.TempDir(), "authd-pam")
 
 	cmd.Args = append(cmd.Args, "-o", authdPam)
-	err := testutils.RunWithTiming(t, "Building PAM exec child", cmd)
+	err := testlog.RunWithTiming(t, "Building PAM exec child", cmd)
 	require.NoError(t, err, "Setup: Failed to build PAM exec child")
 
 	return authdPam

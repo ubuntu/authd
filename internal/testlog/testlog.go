@@ -1,4 +1,5 @@
-package testutils
+// Package testlog provides utilities for logging test output.
+package testlog
 
 import (
 	"fmt"
@@ -15,16 +16,16 @@ type runWithTimingOptions struct {
 // RunWithTimingOption is a function that configures the RunWithTiming function.
 type RunWithTimingOption func(options *runWithTimingOptions)
 
-// WithDoNotSetStdoutAndStderr prevents RunWithTiming from setting the stdout and stderr of the given command.
+// DoNotSetStdoutAndStderr prevents RunWithTiming from setting the stdout and stderr of the given command.
 // By default, RunWithTiming sets stdout and stderr to the test's output.
-func WithDoNotSetStdoutAndStderr() RunWithTimingOption {
+func DoNotSetStdoutAndStderr() RunWithTimingOption {
 	return func(options *runWithTimingOptions) {
 		options.doNotSetStdoutAndStderr = true
 	}
 }
 
-// WithOnlyPrintStdoutAndStderrOnError makes RunWithTiming only print the stdout and stderr of the given command if it fails.
-func WithOnlyPrintStdoutAndStderrOnError() RunWithTimingOption {
+// OnlyPrintStdoutAndStderrOnError makes RunWithTiming only print the stdout and stderr of the given command if it fails.
+func OnlyPrintStdoutAndStderrOnError() RunWithTimingOption {
 	return func(options *runWithTimingOptions) {
 		options.onlyPrintStdoutAndStderrOnError = true
 	}
@@ -74,6 +75,7 @@ func RunWithTiming(t *testing.T, msg string, cmd *exec.Cmd, options ...RunWithTi
 	} else {
 		fmt.Fprintf(w, separatorf("%s finished in %.3fs", msg, duration.Seconds())+"\n")
 	}
+
 	return err
 }
 

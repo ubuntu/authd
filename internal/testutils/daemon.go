@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/services/errmessages"
+	"github.com/ubuntu/authd/internal/testlog"
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"google.golang.org/grpc"
@@ -191,17 +192,17 @@ paths:
 	go func() {
 		defer close(stopped)
 
-		cmd.Stdout = NewTestWriter(t)
-		cmd.Stderr = NewTestWriter(t)
+		cmd.Stdout = testlog.NewTestWriter(t)
+		cmd.Stderr = testlog.NewTestWriter(t)
 		if opts.outputFile != "" {
 			// Write the output both to stdout/stderr and to the output file.
 			w, err := os.OpenFile(opts.outputFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 			require.NoError(t, err, "Setup: cannot open output file")
-			cmd.Stdout = io.MultiWriter(NewTestWriter(t), w)
-			cmd.Stderr = io.MultiWriter(NewTestWriter(t), w)
+			cmd.Stdout = io.MultiWriter(testlog.NewTestWriter(t), w)
+			cmd.Stderr = io.MultiWriter(testlog.NewTestWriter(t), w)
 		}
 
-		LogCommand(t, "Starting authd", cmd)
+		testlog.LogCommand(t, "Starting authd", cmd)
 		err := cmd.Start()
 		require.NoError(t, err, "Setup: authd failed to start")
 		if opts.pidFile != "" {
@@ -246,7 +247,7 @@ paths:
 	err = grpcutils.WaitForConnection(ctx, conn, time.Second*30)
 	require.NoError(t, err, "Setup: timeout waiting for authd to start")
 	duration := time.Since(start)
-	LogEndSeparatorf(t, "authd started in %.3fs", duration.Seconds())
+	testlog.LogEndSeparatorf(t, "authd started in %.3fs", duration.Seconds())
 
 	if opts.pidFile != "" {
 		err := os.WriteFile(opts.pidFile, []byte(fmt.Sprint(<-processPid)), 0600)
@@ -289,7 +290,7 @@ func BuildAuthdWithExampleBroker() (execPath string, cleanup func(), err error) 
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")
 
 	fmt.Fprintln(os.Stderr, "Running command:", cmd.String())
-	if err := RunWithTiming(nil, "Building authd", cmd); err != nil {
+	if err := testlog.RunWithTiming(nil, "Building authd", cmd); err != nil {
 		cleanup()
 		return "", nil, fmt.Errorf("failed to build authd: %v", err)
 	}
