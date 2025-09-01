@@ -109,8 +109,6 @@ func BuildRustNSSLib(t *testing.T, disableCoverage bool, features ...string) (li
 	// dpkg-buildflags sets many relevant environment variables, so we pass the whole environment.
 	cmd.Env = append(os.Environ(), rustCovEnv...)
 	cmd.Dir = projectRoot
-	cmd.Stdout = NewTestWriter(t)
-	cmd.Stderr = NewTestWriter(t)
 
 	if isNightly && IsAsan() {
 		cmd.Env = append(cmd.Env, "RUSTFLAGS=-Zsanitizer=address")

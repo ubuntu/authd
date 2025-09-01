@@ -7,18 +7,62 @@ import (
 	"time"
 )
 
+type runWithTimingOptions struct {
+	doNotSetStdoutAndStderr         bool
+	onlyPrintStdoutAndStderrOnError bool
+}
+
+type RunWithTimingOption func(options *runWithTimingOptions)
+
+func WithDoNotSetStdoutAndStderr() RunWithTimingOption {
+	return func(options *runWithTimingOptions) {
+		options.doNotSetStdoutAndStderr = true
+	}
+}
+
+func WithOnlyPrintStdoutAndStderrOnError() RunWithTimingOption {
+	return func(options *runWithTimingOptions) {
+		options.onlyPrintStdoutAndStderrOnError = true
+	}
+}
+
 // RunWithTiming runs the given command while logging its duration with the provided message.
 //
 //nolint:thelper // we do call t.Helper() if t is not nil
-func RunWithTiming(t *testing.T, msg string, cmd *exec.Cmd) error {
+func RunWithTiming(t *testing.T, msg string, cmd *exec.Cmd, options ...RunWithTimingOption) error {
 	if t != nil {
 		t.Helper()
 	}
+
 	w := testWriterOrStderr(t)
+
+	opts := runWithTimingOptions{}
+	for _, f := range options {
+		f(&opts)
+	}
+
+	if opts.doNotSetStdoutAndStderr && opts.onlyPrintStdoutAndStderrOnError {
+		panic("onlyPrintStdoutAndStderrOnError and doNotSetStdoutAndStderr cannot be used together")
+	}
+
+	if !opts.doNotSetStdoutAndStderr && !opts.onlyPrintStdoutAndStderrOnError {
+		cmd.Stdout = w
+		cmd.Stderr = w
+	}
 
 	LogCommand(t, msg, cmd)
 	start := time.Now()
-	err := cmd.Run()
+
+	var err error
+	var out []byte
+	if opts.onlyPrintStdoutAndStderrOnError {
+		out, err = cmd.CombinedOutput()
+		if err != nil {
+			_, _ = w.Write(out)
+		}
+	} else {
+		err = cmd.Run()
+	}
 	duration := time.Since(start)
 
 	if err != nil {
