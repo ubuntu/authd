@@ -21,7 +21,7 @@ func getPkgConfigFlags(t *testing.T, args []string) []string {
 	return strings.Split(strings.TrimSpace(string(out)), " ")
 }
 
-func buildCModule(t *testing.T, logMsg string, sources []string, pkgConfigDeps []string, cFlags []string, ldFlags []string, soname string, forPreload bool) string {
+func buildSharedLibrary(t *testing.T, logMsg string, sources []string, pkgConfigDeps []string, cFlags []string, ldFlags []string, soname string, forPreload bool) string {
 	t.Helper()
 
 	compiler := os.Getenv("CC")
