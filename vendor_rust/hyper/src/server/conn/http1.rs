@@ -11,7 +11,7 @@ use std::time::Duration;
 use crate::rt::{Read, Write};
 use crate::upgrade::Upgraded;
 use bytes::Bytes;
-use futures_util::ready;
+use futures_core::ready;
 
 use crate::body::{Body, Incoming as IncomingBody};
 use crate::proto;
@@ -179,7 +179,7 @@ where
     /// This errors if the underlying connection protocol is not HTTP/1.
     pub fn without_shutdown(self) -> impl Future<Output = crate::Result<Parts<I, S>>> {
         let mut zelf = Some(self);
-        futures_util::future::poll_fn(move |cx| {
+        crate::common::future::poll_fn(move |cx| {
             ready!(zelf.as_mut().unwrap().conn.poll_without_shutdown(cx))?;
             Poll::Ready(Ok(zelf.take().unwrap().into_parts()))
         })
@@ -273,6 +273,13 @@ impl Builder {
     /// Default is false.
     pub fn title_case_headers(&mut self, enabled: bool) -> &mut Self {
         self.h1_title_case_headers = enabled;
+        self
+    }
+
+    /// Set whether multiple spaces are allowed as delimiters in request lines.
+    pub fn allow_multiple_spaces_in_request_line_delimiters(&mut self, enabled: bool) -> &mut Self {
+        self.h1_parser_config
+            .allow_multiple_spaces_in_request_line_delimiters(enabled);
         self
     }
 

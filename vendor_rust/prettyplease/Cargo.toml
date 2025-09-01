@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.62"
 name = "prettyplease"
-version = "0.2.36"
+version = "0.2.37"
 authors = ["David Tolnay <dtolnay@gmail.com>"]
 build = "build.rs"
 links = "prettyplease02"
@@ -63,7 +63,7 @@ version = "1.0.80"
 default-features = false
 
 [dependencies.syn]
-version = "2.0.104"
+version = "2.0.105"
 features = ["full"]
 default-features = false
 
@@ -79,7 +79,7 @@ version = "1.0.35"
 default-features = false
 
 [dev-dependencies.syn]
-version = "2.0.104"
+version = "2.0.105"
 features = [
     "clone-impls",
     "extra-traits",

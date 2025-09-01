@@ -262,7 +262,7 @@ use shlex::Shlex;
 mod parallel;
 mod target;
 mod windows;
-use self::target::TargetInfo;
+use self::target::*;
 // Regardless of whether this should be in this crate's public API,
 // it has been since 2015, so don't break it.
 pub use windows::find_tools as windows_registry;
@@ -1399,7 +1399,6 @@ impl Build {
         }
 
         let mut cmd = compiler.to_command();
-        let is_arm = matches!(target.arch, "aarch64" | "arm");
         command_add_output_file(
             &mut cmd,
             &obj,
@@ -1410,7 +1409,7 @@ impl Build {
                 clang: compiler.is_like_clang(),
                 gnu: compiler.is_like_gnu(),
                 is_asm: false,
-                is_arm,
+                is_arm: is_arm(target),
             },
         );
 
@@ -1845,7 +1844,7 @@ impl Build {
             }
             cmd
         };
-        let is_arm = matches!(target.arch, "aarch64" | "arm");
+        let is_arm = is_arm(&target);
         command_add_output_file(
             &mut cmd,
             &obj.dst,
@@ -2302,11 +2301,12 @@ impl Build {
                     // So instead, we pass the deployment target with `-m*-version-min=`, and only
                     // pass it here on visionOS and Mac Catalyst where that option does not exist:
                     // https://github.com/rust-lang/cc-rs/issues/1383
-                    let version = if target.os == "visionos" || target.abi == "macabi" {
-                        Some(self.apple_deployment_target(target))
-                    } else {
-                        None
-                    };
+                    let version =
+                        if target.os == "visionos" || target.get_apple_env() == Some(MacCatalyst) {
+                            Some(self.apple_deployment_target(target))
+                        } else {
+                            None
+                        };
 
                     let clang_target =
                         target.llvm_target(&self.get_raw_target()?, version.as_deref());
@@ -2531,6 +2531,13 @@ impl Build {
             }
         }
 
+        if raw_target == "wasm32v1-none" {
+            // `wasm32v1-none` target only exists in `rustc`, so we need to change the compilation flags:
+            // https://doc.rust-lang.org/rustc/platform-support/wasm32v1-none.html
+            cmd.push_cc_arg("-mcpu=mvp".into());
+            cmd.push_cc_arg("-mmutable-globals".into());
+        }
+
         if target.os == "solaris" || target.os == "illumos" {
             // On Solaris and illumos, multi-threaded C programs must be built with `_REENTRANT`
             // defined. This configures headers to define APIs appropriately for multi-threaded
@@ -2594,14 +2601,11 @@ impl Build {
 
     fn msvc_macro_assembler(&self) -> Result<Command, Error> {
         let target = self.get_target()?;
-        let tool = if target.arch == "x86_64" {
-            "ml64.exe"
-        } else if target.arch == "arm" {
-            "armasm.exe"
-        } else if target.arch == "aarch64" {
-            "armasm64.exe"
-        } else {
-            "ml.exe"
+        let tool = match target.arch {
+            "x86_64" => "ml64.exe",
+            "arm" => "armasm.exe",
+            "aarch64" | "arm64ec" => "armasm64.exe",
+            _ => "ml.exe",
         };
         let mut cmd = self
             .windows_registry_find(&target, tool)
@@ -2610,9 +2614,13 @@ impl Build {
         for directory in self.include_directories.iter() {
             cmd.arg("-I").arg(&**directory);
         }
-        if target.arch == "aarch64" || target.arch == "arm" {
+        if is_arm(&target) {
             if self.get_debug() {
                 cmd.arg("-g");
+            }
+
+            if target.arch == "arm64ec" {
+                cmd.args(["-machine", "ARM64EC"]);
             }
 
             for (key, value) in self.definitions.iter() {
@@ -2791,7 +2799,9 @@ impl Build {
         // https://github.com/llvm/llvm-project/issues/88271
         // And the workaround to use `-mtargetos=` cannot be used with the `--target` flag that we
         // otherwise specify. So we avoid emitting that, and put the version in `--target` instead.
-        if cmd.is_like_gnu() || !(target.os == "visionos" || target.abi == "macabi") {
+        if cmd.is_like_gnu()
+            || !(target.os == "visionos" || target.get_apple_env() == Some(MacCatalyst))
+        {
             let min_version = self.apple_deployment_target(&target);
             cmd.args
                 .push(target.apple_version_flag(&min_version).into());
@@ -2811,7 +2821,7 @@ impl Build {
             cmd.env
                 .push(("SDKROOT".into(), OsStr::new(&sdk_path).to_owned()));
 
-            if target.abi == "macabi" {
+            if target.get_apple_env() == Some(MacCatalyst) {
                 // Mac Catalyst uses the macOS SDK, but to compile against and
                 // link to iOS-specific frameworks, we should have the support
                 // library stubs in the include and library search path.
@@ -4302,6 +4312,10 @@ fn map_darwin_target_from_rust_to_compiler_architecture<'a>(target: &TargetInfo<
         "x86_64h" => "x86_64h",
         arch => arch,
     }
+}
+
+fn is_arm(target: &TargetInfo<'_>) -> bool {
+    matches!(target.arch, "aarch64" | "arm64ec" | "arm")
 }
 
 #[derive(Clone, Copy, PartialEq)]
