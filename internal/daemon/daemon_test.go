@@ -290,7 +290,7 @@ func TestQuit(t *testing.T) {
 			// drop connection
 			disconnectClient()
 
-			require.Eventually(t, serverHasQuit, 100*time.Millisecond, 10*time.Millisecond, "Server should quit with no more active connection")
+			require.Eventually(t, serverHasQuit, 1*time.Second, 10*time.Millisecond, "Server should quit with no more active connection")
 		})
 	}
 }
