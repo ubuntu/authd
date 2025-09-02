@@ -25,13 +25,13 @@ import (
 )
 
 type daemonOptions struct {
-	dbPath     string
-	existentDB string
-	socketPath string
-	pidFile    string
-	outputFile string
-	shared     bool
-	env        []string
+	dbPath                   string
+	existentDB               string
+	socketPath               string
+	pidFile                  string
+	saveOutputAsTestArtifact bool
+	shared                   bool
+	env                      []string
 }
 
 // DaemonOption represents an optional function that can be used to override some of the daemon default values.
@@ -73,10 +73,10 @@ func WithPidFile(pidFile string) DaemonOption {
 	}
 }
 
-// WithOutputFile sets the path where the process log will be saved.
-func WithOutputFile(outputFile string) DaemonOption {
+// WithOutputAsTestArtifact saves the daemon output to a test artifact.
+func WithOutputAsTestArtifact() DaemonOption {
 	return func(o *daemonOptions) {
-		o.outputFile = outputFile
+		o.saveOutputAsTestArtifact = true
 	}
 }
 
@@ -194,12 +194,12 @@ paths:
 
 		cmd.Stdout = testlog.NewTestWriter(t)
 		cmd.Stderr = testlog.NewTestWriter(t)
-		if opts.outputFile != "" {
-			// Write the output both to stdout/stderr and to the output file.
-			w, err := os.OpenFile(opts.outputFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
-			require.NoError(t, err, "Setup: cannot open output file")
-			cmd.Stdout = io.MultiWriter(testlog.NewTestWriter(t), w)
-			cmd.Stderr = io.MultiWriter(testlog.NewTestWriter(t), w)
+
+		if opts.saveOutputAsTestArtifact {
+			authdOutput := NewSyncBuffer()
+			cmd.Stdout = io.MultiWriter(testlog.NewTestWriter(t), authdOutput)
+			cmd.Stderr = io.MultiWriter(testlog.NewTestWriter(t), authdOutput)
+			MaybeSaveBufferAsArtifactOnCleanup(t, authdOutput, "authd.log")
 		}
 
 		testlog.LogCommand(t, "Starting authd", cmd)
