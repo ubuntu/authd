@@ -155,7 +155,7 @@ getpwnam (const char *name)
        */
       if (passwd_entity->pw_uid != passwd_entity->pw_gid)
         {
-          fprintf (stderr, "sshd_preloader[%d]: User %s has different UID and GID (%d:%d)\n",
+          fprintf (stderr, "sshd_preloader[%d]: User %s has different UID and GID (%d:%d), aborting!\n",
                    getpid (), name, passwd_entity->pw_uid, passwd_entity->pw_gid);
           abort();
         }
