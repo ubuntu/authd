@@ -56,8 +56,7 @@ func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon boo
 	}
 	args = append(args, testutils.WithEnvironment(env...))
 
-	outputFile := filepath.Join(t.TempDir(), "authd.log")
-	args = append(args, testutils.WithOutputFile(outputFile))
+	args = append(args, testutils.WithOutputAsTestArtifact())
 
 	homeBaseDir := filepath.Join(t.TempDir(), "homes")
 	err := os.MkdirAll(homeBaseDir, 0700)
@@ -75,7 +74,6 @@ func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon boo
 	}
 
 	socketPath, stopped := testutils.RunAuthd(ctx, t, daemonPath, args...)
-	testutils.MaybeSaveFilesAsArtifactsOnCleanup(t, outputFile)
 	return socketPath, func() {
 		cancel()
 		<-stopped
