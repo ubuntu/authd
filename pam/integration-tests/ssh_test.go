@@ -779,7 +779,7 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 	go func() {
 		for {
 			conn, err := net.DialTimeout("tcp", ":"+sshdPort, sleepDuration(1*time.Second))
-			if errors.Is(err, syscall.ECONNREFUSED) {
+			if errors.Is(err, syscall.ECONNREFUSED) || errors.Is(err, syscall.ECONNRESET) {
 				continue
 			}
 			if err != nil {
