@@ -205,14 +205,9 @@ jobs:
           # Drop this when https://github.com/charmbracelet/vhs/pull/591 is released.
           sudo ln -s /usr/bin/true /usr/local/bin/ffmpeg
 
-      - name: Install rust
-        if: matrix.test != 'asan'
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: nightly # We need nightly to enable instrumentation for coverage.
-          override: true
-          components: llvm-tools-preview
+      - name: Install latest Rust version
+        run: rustup update stable
+
       - name: Install grcov
         if: matrix.test == 'coverage'
         uses: baptiste0928/cargo-install@v3
