@@ -2,6 +2,7 @@
 package localgrouptestutils
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -65,7 +66,9 @@ func RequireGroupFile(t *testing.T, destGroupFile, goldenGroupPath string) {
 		golden.WithSuffix(groupSuffix))
 
 	gotGroupsBackup, err := os.ReadFile(destGroupBackupFile)
-	require.NoError(t, err, "Teardown: could not read dest group backup file")
+	if !errors.Is(err, os.ErrNotExist) {
+		require.NoError(t, err, "Teardown: could not read dest group backup file")
+	}
 	golden.CheckOrUpdate(t, string(gotGroupsBackup), golden.WithPath(goldenGroupPath),
 		golden.WithSuffix(backupSuffix))
 }
