@@ -318,7 +318,7 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) 
 	}
 
 	tapePath := td.PrepareTape(t, testType)
-	maybeSaveFilesAsArtifactsOnCleanup(t, tapePath, filepath.Join(td.OutputDir, td.OutputFilename))
+	testutils.MaybeSaveFilesAsArtifactsOnCleanup(t, tapePath, filepath.Join(td.OutputDir, td.OutputFilename))
 	cmd.Args = append(cmd.Args, tapePath)
 
 	err = testlog.RunWithTiming(t, fmt.Sprintf("VHS tape %q", td.Name), cmd, testlog.DoNotSetStdoutAndStderr())
@@ -327,7 +327,7 @@ func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) 
 	}
 
 	sanitizedOutputFilename := strings.TrimSuffix(td.OutputFilename, ".txt") + ".sanitized.txt"
-	maybeSaveBytesAsArtifactOnCleanup(t, []byte(td.SanitizedOutput(t)), sanitizedOutputFilename)
+	testutils.MaybeSaveBytesAsArtifactOnCleanup(t, []byte(td.SanitizedOutput(t)), sanitizedOutputFilename)
 
 	isSSHError := func() bool {
 		out := outBuf.String()
@@ -392,7 +392,7 @@ func checkDataRaces(t *testing.T, raceLog string) {
 		})
 
 	require.NoError(t, err, "TearDown: Check for races")
-	maybeSaveFilesAsArtifactsOnCleanup(t, raceLogs...)
+	testutils.MaybeSaveFilesAsArtifactsOnCleanup(t, raceLogs...)
 	for _, raceLog := range raceLogs {
 		checkDataRace(t, raceLog)
 	}

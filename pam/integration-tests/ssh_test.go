@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -132,12 +131,12 @@ func testSSHAuthenticate(t *testing.T, sharedSSHD bool) {
 		//#nosec:G204 - we control the command arguments in tests
 		out, err := exec.Command("ssh-keygen", "-q", "-f", sshdHostKeyPath, "-N", "", "-t", "ed25519").CombinedOutput()
 		require.NoError(t, err, "Setup: Failed generating SSH host key: %s", out)
-		maybeSaveFilesAsArtifactsOnCleanup(t, sshdHostKeyPath)
+		testutils.MaybeSaveFilesAsArtifactsOnCleanup(t, sshdHostKeyPath)
 
 		sshdHostPubKey, err = os.ReadFile(sshdHostKeyPath + ".pub")
 		require.NoError(t, err, "Setup: Can't read sshd host public key")
 
-		maybeSaveFilesAsArtifactsOnCleanup(t, sshdHostKeyPath+".pub")
+		testutils.MaybeSaveFilesAsArtifactsOnCleanup(t, sshdHostKeyPath+".pub")
 
 		if !t.Failed() {
 			t.Log("Prepared SSH tests")
@@ -653,7 +652,7 @@ func createSSHDServiceFile(t *testing.T, module, execChild, mkHomeModule, socket
 		{Action: pam_test.Session, Control: pam_test.Requisite, Module: pam_test.Permit.String()},
 	})
 	require.NoError(t, err, "Setup: Creation of service file %s", pamServiceName)
-	maybeSaveFilesAsArtifactsOnCleanup(t, serviceFile)
+	testutils.MaybeSaveFilesAsArtifactsOnCleanup(t, serviceFile)
 
 	return serviceFile
 }
@@ -725,11 +724,11 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 
 	sshd, sshdPidFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env)
 
-	sshdOutput := syncBuffer{buf: &bytes.Buffer{}}
+	sshdOutput := testutils.NewSyncBuffer()
 
 	// Write stdout/stderr both to our stdout/stderr and to the buffer
-	sshd.Stdout = io.MultiWriter(testlog.NewTestWriter(t), &sshdOutput)
-	sshd.Stderr = io.MultiWriter(newFilteredStderrWriter(testlog.NewTestWriter(t)), &sshdOutput)
+	sshd.Stdout = io.MultiWriter(testlog.NewTestWriter(t), sshdOutput)
+	sshd.Stderr = io.MultiWriter(newFilteredStderrWriter(testlog.NewTestWriter(t)), sshdOutput)
 
 	testlog.LogCommand(t, "Starting sshd", sshd)
 	start := time.Now()
@@ -737,7 +736,7 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 	require.NoError(t, err, "Setup: Impossible to start sshd")
 	sshdPid := sshd.Process.Pid
 
-	maybeSaveBufferAsArtifactOnCleanup(t, &sshdOutput, "sshd.log")
+	testutils.MaybeSaveBufferAsArtifactOnCleanup(t, sshdOutput, "sshd.log")
 
 	t.Cleanup(func() {
 		if sshd.Process == nil {

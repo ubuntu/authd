@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -30,12 +29,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"gorbe.io/go/osrelease"
-)
-
-var (
-	authdTestSessionTime  = time.Now()
-	authdArtifactsDir     string
-	authdArtifactsDirOnce sync.Once
 )
 
 type authdInstance struct {
@@ -73,15 +66,15 @@ func runAuthdForTestingWithCancel(t *testing.T, isSharedDaemon bool, args ...tes
 	if !isSharedDaemon {
 		database := filepath.Join(t.TempDir(), "db", consts.DefaultDatabaseFileName)
 		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
-		maybeSaveFilesAsArtifactsOnCleanup(t, database)
+		testutils.MaybeSaveFilesAsArtifactsOnCleanup(t, database)
 	}
 	if isSharedDaemon && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") != "" {
-		database := filepath.Join(authdArtifactsDir, "db", consts.DefaultDatabaseFileName)
+		database := filepath.Join(testutils.ArtifactsDir(t), "db", consts.DefaultDatabaseFileName)
 		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
 	}
 
 	socketPath, cancelFunc = testutils.StartAuthdWithCancel(t, daemonPath, args...)
-	maybeSaveFilesAsArtifactsOnCleanup(t, outputFile)
+	testutils.MaybeSaveFilesAsArtifactsOnCleanup(t, outputFile)
 	return socketPath, cancelFunc
 }
 
@@ -212,7 +205,7 @@ func prepareFileLogging(t *testing.T, fileName string) string {
 	t.Helper()
 
 	cliLog := filepath.Join(t.TempDir(), fileName)
-	maybeSaveFilesAsArtifactsOnCleanup(t, cliLog)
+	testutils.MaybeSaveFilesAsArtifactsOnCleanup(t, cliLog)
 	t.Cleanup(func() {
 		out, err := os.ReadFile(cliLog)
 		if errors.Is(err, fs.ErrNotExist) {
@@ -246,108 +239,6 @@ func requirePreviousBrokerForUser(t *testing.T, socketPath string, brokerName st
 		}
 	}
 	require.Equal(t, prevBroker.PreviousBroker, prevBrokerID)
-}
-
-func artifactsDir(t *testing.T) string {
-	t.Helper()
-
-	authdArtifactsDirOnce.Do(func() {
-		authdArtifactsDir = createArtifactsDir(t)
-		t.Logf("Test artifacts directory: %s", authdArtifactsDir)
-	})
-
-	return authdArtifactsDir
-}
-
-func createArtifactsDir(t *testing.T) string {
-	t.Helper()
-
-	// We need to copy the artifacts to another directory, since the test directory will be cleaned up.
-	if dir := os.Getenv("AUTHD_TESTS_ARTIFACTS_PATH"); dir != "" {
-		if err := os.MkdirAll(dir, 0750); err != nil && !os.IsExist(err) {
-			require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
-		}
-		return dir
-	}
-
-	st := authdTestSessionTime
-	dirName := fmt.Sprintf("authd-test-artifacts-%d-%02d-%02dT%02d-%02d-%02d.%d-",
-		st.Year(), st.Month(), st.Day(), st.Hour(), st.Minute(), st.Second(),
-		st.UnixMilli())
-
-	dir, err := os.MkdirTemp(os.TempDir(), dirName)
-	require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
-
-	return dir
-}
-
-// saveFilesAsArtifacts saves the specified artifacts to a temporary directory if the test failed.
-func saveFilesAsArtifacts(t *testing.T, artifacts ...string) {
-	t.Helper()
-
-	dir := filepath.Join(artifactsDir(t), t.Name())
-	err := os.MkdirAll(dir, 0750)
-	require.NoError(t, err, "TearDown: could not create artifacts directory %q", dir)
-
-	// Copy the artifacts to the artifacts directory.
-	for _, artifact := range artifacts {
-		target := filepath.Join(dir, filepath.Base(artifact))
-		t.Logf("Saving artifact %q", target)
-		err = fileutils.CopyFile(artifact, target)
-		if err != nil {
-			t.Logf("Teardown: failed to copy artifact %q to %q: %v", artifact, dir, err)
-		}
-	}
-}
-
-func maybeSaveFilesAsArtifactsOnCleanup(t *testing.T, artifacts ...string) {
-	t.Helper()
-
-	t.Cleanup(func() {
-		if !t.Failed() && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") == "" {
-			return
-		}
-		saveFilesAsArtifacts(t, artifacts...)
-	})
-}
-
-func saveBytesAsArtifact(t *testing.T, content []byte, filename string) {
-	t.Helper()
-
-	dir := filepath.Join(artifactsDir(t), t.Name())
-	err := os.MkdirAll(dir, 0750)
-	require.NoError(t, err, "TearDown: could not create artifacts directory %q", dir)
-
-	target := filepath.Join(dir, filename)
-	t.Logf("Writing artifact %q", target)
-
-	// Write the bytes to the artifacts directory.
-	err = os.WriteFile(target, content, 0600)
-	if err != nil {
-		t.Logf("Teardown: failed to write artifact %q to %q: %v", filename, dir, err)
-	}
-}
-
-func maybeSaveBytesAsArtifactOnCleanup(t *testing.T, content []byte, filename string) {
-	t.Helper()
-
-	t.Cleanup(func() {
-		if !t.Failed() && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") == "" {
-			return
-		}
-		saveBytesAsArtifact(t, content, filename)
-	})
-}
-
-func maybeSaveBufferAsArtifactOnCleanup(t *testing.T, buf *syncBuffer, filename string) {
-	t.Helper()
-
-	t.Cleanup(func() {
-		if !t.Failed() && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") == "" {
-			return
-		}
-		saveBytesAsArtifact(t, buf.Bytes(), filename)
-	})
 }
 
 func sleepDuration(in time.Duration) time.Duration {
@@ -412,7 +303,7 @@ func prepareGroupFiles(t *testing.T) (string, string) {
 	require.NoError(t, err, "Cannot copy the group file %q", groupsFile)
 	groupsFile = tmpCopy
 
-	maybeSaveFilesAsArtifactsOnCleanup(t, groupOutputFile, groupsFile)
+	testutils.MaybeSaveFilesAsArtifactsOnCleanup(t, groupOutputFile, groupsFile)
 
 	return groupOutputFile, groupsFile
 }
@@ -616,22 +507,4 @@ func useOldDatabaseEnv(t *testing.T, oldDB string) []string {
 	require.NoError(t, err, "Setup: creating old database")
 
 	return []string{fmt.Sprintf("AUTHD_INTEGRATIONTESTS_OLD_DB_DIR=%s", oldDBDir)}
-}
-
-// syncBuffer is a mutex-protected buffer to avoid data races.
-type syncBuffer struct {
-	mu  sync.RWMutex
-	buf *bytes.Buffer
-}
-
-func (s *syncBuffer) Write(p []byte) (n int, err error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.buf.Write(p)
-}
-
-func (s *syncBuffer) Bytes() []byte {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	return s.buf.Bytes()
 }
