@@ -133,7 +133,7 @@ var (
 )
 
 var (
-	// vhsWaitRegex catches Wait(@timeout)? /Pattern/ commands to re-implement default vhs
+	// vhsWaitRegex catches Wait(@timeout)? /Pattern/ commands to re-implement default VHS
 	// Wait /Pattern/ command with full context on errors.
 	vhsWaitRegex = regexp.MustCompile(`\bWait(\+Line)?(@\S+)?[\t ]+(/(.+)/|(.+))`)
 	// vhsWaitLineRegex catches Wait(@timeout) commands to re-implement default Wait command
@@ -255,7 +255,7 @@ func (td *tapeData) AddClientOptions(t *testing.T, opts clientOptions) {
 	}
 }
 
-func (td *tapeData) RunVhs(t *testing.T, testType vhsTestType, cliEnv []string) {
+func (td *tapeData) RunVHS(t *testing.T, testType vhsTestType, cliEnv []string) {
 	t.Helper()
 
 	cmd := exec.Command("env", "vhs")

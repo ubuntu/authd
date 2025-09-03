@@ -520,7 +520,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				"-o", "UserKnownHostsFile=" + knownHost,
 			}, " ")
 			td.Variables = tc.tapeVariables
-			td.RunVhs(t, vhsTestTypeSSH, nil)
+			td.RunVHS(t, vhsTestTypeSSH, nil)
 			output := sanitizedOutput(t, td)
 			golden.CheckOrUpdate(t, output)
 
