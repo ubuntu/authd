@@ -30,7 +30,7 @@ func TestIntegration(t *testing.T) {
 	defaultGroupsFilePath := filepath.Join(filepath.Join("testdata", "empty.group"))
 
 	ctx, cancel := context.WithCancel(context.Background())
-	_, stopped := testutils.RunAuthd(ctx, t, daemonPath,
+	_, stopped := testutils.StartAuthd(ctx, t, daemonPath,
 		testutils.WithSocketPath(defaultSocket),
 		testutils.WithPreviousDBState(defaultDbState),
 		testutils.WithGroupFile(defaultGroupsFilePath),
@@ -115,7 +115,7 @@ func TestIntegration(t *testing.T) {
 				// Run a specific new daemon for special test cases.
 				var daemonStopped chan struct{}
 				ctx, cancel := context.WithCancel(context.Background())
-				socketPath, daemonStopped = testutils.RunAuthd(ctx, t, daemonPath,
+				socketPath, daemonStopped = testutils.StartAuthd(ctx, t, daemonPath,
 					testutils.WithPreviousDBState(tc.dbState),
 					testutils.WithGroupFile(defaultGroupsFilePath),
 				)

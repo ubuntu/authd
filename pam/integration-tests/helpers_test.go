@@ -73,7 +73,7 @@ func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon boo
 		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
 	}
 
-	socketPath, stopped := testutils.RunAuthd(ctx, t, daemonPath, args...)
+	socketPath, stopped := testutils.StartAuthd(ctx, t, daemonPath, args...)
 	return socketPath, func() {
 		cancel()
 		<-stopped
