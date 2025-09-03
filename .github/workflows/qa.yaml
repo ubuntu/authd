@@ -29,13 +29,7 @@ env:
     cracklib-runtime
     git-delta
     openssh-client
-    openssh-server
-
-  # In Rust the grpc stubs are generated at build time
-  # so we always need to install the protobuf compilers
-  # when building the NSS crate.
-  protobuf_compilers: >-
-    protobuf-compiler
+    openssh-server  
 
 jobs:
   go-sanity:
@@ -82,7 +76,10 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}}
+          # In Rust the grpc stubs are generated at build time
+          # so we always need to install the protobuf compilers
+          # when building the NSS crate.
+          sudo apt install -y protobuf-compiler
       - uses: actions/checkout@v5
       - name: Rust code sanity check
         uses: canonical/desktop-engineering/gh-actions/rust/code-sanity@main
