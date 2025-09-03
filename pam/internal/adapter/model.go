@@ -162,7 +162,7 @@ func newUIModelForClients(mTx pam.ModuleTransaction, clientType PamClientType, m
 	m.userSelectionModel = newUserSelectionModel(m.pamMTx, m.clientType)
 	m.brokerSelectionModel = newBrokerSelectionModel(m.client, m.clientType)
 	m.authModeSelectionModel = newAuthModeSelectionModel(m.clientType)
-	m.authenticationModel = newAuthenticationModel(m.client, m.clientType)
+	m.authenticationModel = newAuthenticationModel(m.client, m.clientType, mode)
 	m.healthCheckCancel = func() {}
 
 	return m
