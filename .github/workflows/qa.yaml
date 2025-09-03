@@ -18,12 +18,18 @@ on:
 env:
   DEBIAN_FRONTEND: noninteractive
   GO_TESTS_TIMEOUT: 20m
-  apt_deps: >-
-    libpam-dev
+  c_build_dependencies: >-
+    clang-tools
+    clang
     libglib2.0-dev
+    libpam-dev
+
+  go_build_dependencies: >-
+    libglib2.0-dev
+    libpam-dev
     libpwquality-dev
 
-  test_apt_deps: >-
+  go_test_dependencies: >-
     apparmor-profiles
     bubblewrap
     cracklib-runtime
@@ -39,7 +45,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y ${{ env.apt_deps }}
+          sudo apt install -y ${{ env.go_build_dependencies }}
       - uses: actions/checkout@v5
       - name: Go code sanity check
         uses: canonical/desktop-engineering/gh-actions/go/code-sanity@v1
@@ -97,7 +103,7 @@ jobs:
           set -eu
 
           sudo apt update
-          sudo apt install -y ${{ env.apt_deps }} clang-tools clang
+          sudo apt install -y ${{ env.c_build_dependencies }}
       - name: Prepare report dir
         run: |
           set -eu
@@ -153,7 +159,7 @@ jobs:
           sudo apt update
 
           # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
-          sudo apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}} ${{ env.test_apt_deps }}
+          sudo apt install -y ${{ env.go_build_dependencies }} ${{ env.go_test_dependencies}}
 
           # Load the apparmor profile for bubblewrap.
           sudo ln -s /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/
