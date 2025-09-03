@@ -189,9 +189,8 @@ else:
 
 # Template and asset locations
 
-# html_static_path = [".sphinx/_static"]
+html_static_path = [".sphinx/_static"]
 templates_path = [".sphinx/_templates"]
-
 
 #############
 # Redirects #
@@ -281,12 +280,11 @@ extensions = [
 
 # Adds custom CSS files, located under 'html_static_path'
 
-# html_css_files = []
-
+html_css_files = ["cookie-banner.css"]
 
 # Adds custom JavaScript files, located under 'html_static_path'
 
-# html_js_files = []
+html_js_files = ["js/bundle.js"]
 
 
 # Specifies a reST snippet to be appended to each .rst file
