@@ -288,7 +288,7 @@ func TestCLIAuthenticate(t *testing.T) {
 			td.Env[vhsTapeSocketVariable] = socketPath
 			td.Env["AUTHD_TEST_PID_FILE"] = pidFile
 			td.AddClientOptions(t, tc.clientOptions)
-			td.RunVhs(t, vhsTestTypeCLI, cliEnv)
+			td.RunVHS(t, vhsTestTypeCLI, cliEnv)
 			got := td.SanitizedOutput(t)
 			golden.CheckOrUpdate(t, got)
 
@@ -410,7 +410,7 @@ func TestCLIChangeAuthTok(t *testing.T) {
 			td.Variables = tc.tapeVariables
 			td.Env[vhsTapeSocketVariable] = socketPath
 			td.AddClientOptions(t, clientOptions{})
-			td.RunVhs(t, vhsTestTypeCLI, cliEnv)
+			td.RunVHS(t, vhsTestTypeCLI, cliEnv)
 			got := td.SanitizedOutput(t)
 			golden.CheckOrUpdate(t, got)
 
