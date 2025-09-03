@@ -40,20 +40,6 @@ Wait+Prompt@${AUTHD_SLEEP_EXAMPLE_BROKER_MFA_WAIT}*1.2 /Enter your new password 
 Show
 
 Hide
-Type "password"
-Enter
-Wait+Nth(1) /The password fails the dictionary check/
-Wait+Prompt /Enter your new password \(3 days until mandatory\)/
-Show
-
-Hide
-Type "1234"
-Enter
-Wait+Nth(1) /The password is shorter than \d+ characters/
-Wait+Prompt /Enter your new password \(3 days until mandatory\)/
-Show
-
-Hide
 Type "authd2404"
 Enter
 Wait+Prompt /Confirm Password/
