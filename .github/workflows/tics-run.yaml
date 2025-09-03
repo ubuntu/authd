@@ -1,0 +1,75 @@
+name: TICS QA Analysis
+
+on:
+    schedule:
+        - cron: '0 0 * * 1'  # Runs every Monday at midnight
+    workflow_dispatch:
+
+
+env:
+  apt_deps: >-
+    libpam-dev
+    libglib2.0-dev
+    libpwquality-dev
+    protobuf-compiler
+    protoc-gen-go
+    protoc-gen-go-grpc
+
+jobs:
+    tics:
+        name: TIOBE TICS Framework
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-go@v5
+              with:
+                go-version-file: go.mod
+
+            - name: Update Rust version
+              run: |
+                rustup update stable
+
+            - name: Install dependencies
+              run: |
+                set -eu
+
+                sudo apt-get update
+                sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ${{ env.apt_deps }}
+
+                go install honnef.co/go/tools/cmd/staticcheck@latest
+
+            - name: Fetch last successful QA run id
+              env:
+                GITHUB_TOKEN: ${{ github.token }}
+              run: |
+                set -eu
+                echo "LAST_QA_ID=$(gh run list --workflow 'QA & sanity checks' --limit 1 --status success --json databaseId -b main | jq '.[].databaseId')" >> $GITHUB_ENV
+
+            - name: Download coverage artifact
+              uses: actions/download-artifact@v4
+              with:
+                github-token: ${{ github.token }}
+                path: .artifacts/
+                run-id: ${{ env.LAST_QA_ID }}
+
+            - name: TICS Scan
+              env:
+                TICSAUTHTOKEN: ${{ secrets.TICSAUTHTOKEN }}
+                GH_TOKEN: ${{ github.token }}
+              run: |
+                set -e
+
+                # Move coverage to expected directory
+                mkdir coverage
+                mv .artifacts/coverage/Cobertura.xml coverage/coverage.xml
+
+                # Install TICS
+                . <(curl --silent --show-error 'https://canonical.tiobe.com/tiobeweb/TICS/api/public/v1/fapi/installtics/Script?cfg=GoProjects&platform=linux&url=https://canonical.tiobe.com/tiobeweb/TICS/')
+
+                # TICS requires all artifacts to be built
+                find pam -name '*.so' -print -delete
+                go generate -C pam -x
+                go build ./cmd/authd
+                cargo build
+
+                TICSQServer -project authd -tmpdir /tmp/tics -branchdir .
