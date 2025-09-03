@@ -114,9 +114,9 @@ func WithGroupFileOutput(groupFile string) DaemonOption {
 	}
 }
 
-// RunAuthd runs authd in a separate process and returns the socket path and a channel that will be closed when
-// authd stops.
-func RunAuthd(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
+// StartAuthd starts authd in a separate process, waits for it to be ready to receive connections,
+// and returns its socket path and a channel that is closed when authd stops.
+func StartAuthd(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
 	t.Helper()
 
 	opts := &daemonOptions{}
