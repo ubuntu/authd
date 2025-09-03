@@ -463,7 +463,7 @@ func TestNativeAuthenticate(t *testing.T) {
 			td.Env["AUTHD_TEST_PID_FILE"] = pidFile
 			td.Variables = tc.tapeVariables
 			td.AddClientOptions(t, tc.clientOptions)
-			td.RunVhs(t, vhsTestTypeNative, cliEnv)
+			td.RunVHS(t, vhsTestTypeNative, cliEnv)
 			got := td.SanitizedOutput(t)
 			golden.CheckOrUpdate(t, got)
 
@@ -601,7 +601,7 @@ func TestNativeChangeAuthTok(t *testing.T) {
 			td.Env[vhsTapeSocketVariable] = socketPath
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.AddClientOptions(t, tc.clientOptions)
-			td.RunVhs(t, vhsTestTypeNative, cliEnv)
+			td.RunVHS(t, vhsTestTypeNative, cliEnv)
 			got := td.SanitizedOutput(t)
 			golden.CheckOrUpdate(t, got)
 
