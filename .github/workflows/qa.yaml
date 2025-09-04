@@ -52,6 +52,9 @@ jobs:
           EOF
       - name: Install dependencies
         run: |
+          # Install dependencies
+          set -eu
+
           sudo apt update
           sudo apt install -y ${{ env.go_build_dependencies }}
       - uses: actions/checkout@v5
@@ -97,6 +100,9 @@ jobs:
           EOF
       - name: Install dependencies
         run: |
+          # Install dependencies
+          set -eu
+
           sudo apt update
           # In Rust the grpc stubs are generated at build time
           # so we always need to install the protobuf compilers
@@ -124,6 +130,7 @@ jobs:
           EOF
       - name: Install dependencies
         run: |
+          # Install dependencies
           set -eu
 
           sudo apt update
