@@ -42,6 +42,14 @@ jobs:
     name: "Go: Code sanity"
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
+      - name: Disable installation of locales and manpages
+        run: |
+          cat <<EOF | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
+          path-exclude=/usr/share/locale/*
+          path-exclude=/usr/share/man/*
+          path-exclude=/usr/share/doc/*
+          path-exclude=/usr/share/info/*
+          EOF
       - name: Install dependencies
         run: |
           sudo apt update
@@ -79,6 +87,14 @@ jobs:
     name: "Rust: Code sanity"
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
+      - name: Disable installation of locales and manpages
+        run: |
+          cat <<EOF | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
+          path-exclude=/usr/share/locale/*
+          path-exclude=/usr/share/man/*
+          path-exclude=/usr/share/doc/*
+          path-exclude=/usr/share/info/*
+          EOF
       - name: Install dependencies
         run: |
           sudo apt update
@@ -98,6 +114,14 @@ jobs:
     env:
       CFLAGS: "-Werror"
     steps:
+      - name: Disable installation of locales and manpages
+        run: |
+          cat <<EOF | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
+          path-exclude=/usr/share/locale/*
+          path-exclude=/usr/share/man/*
+          path-exclude=/usr/share/doc/*
+          path-exclude=/usr/share/info/*
+          EOF
       - name: Install dependencies
         run: |
           set -eu
@@ -141,20 +165,18 @@ jobs:
       matrix:
         test: ["coverage", "race", "asan"]
     steps:
+      - name: Disable installation of locales and manpages
+        run: |
+          cat <<EOF | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
+          path-exclude=/usr/share/locale/*
+          path-exclude=/usr/share/man/*
+          path-exclude=/usr/share/doc/*
+          path-exclude=/usr/share/info/*
+          EOF
       - name: Install dependencies
         run: |
-          # Disable installing of locales and manpages
-          cat <<"EOF" | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
-          # Delete locales
-          path-exclude=/usr/share/locale/*
-
-          # Delete man pages
-          path-exclude=/usr/share/man/*
-
-          # Delete docs
-          path-exclude=/usr/share/doc/*
-          path-include=/usr/share/doc/*/copyright
-          EOF
+          # Install dependencies
+          set -eu
 
           sudo apt update
 
