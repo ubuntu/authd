@@ -15,7 +15,6 @@ import (
 	"github.com/ubuntu/authd/internal/proto/authd"
 	"github.com/ubuntu/authd/log"
 	"github.com/ubuntu/authd/pam/internal/proto"
-	pam_proto "github.com/ubuntu/authd/pam/internal/proto"
 )
 
 var (
@@ -239,7 +238,7 @@ func safeMessageDebugWithPrefix(prefix string, msg tea.Msg, formatAndArgs ...any
 	log.Debugf(context.Background(), "%s, %s", m, fmt.Sprintf(format, args...))
 }
 
-func goBackLabel(previousStage pam_proto.Stage) string {
+func goBackLabel(previousStage proto.Stage) string {
 	switch previousStage {
 	case proto.Stage_authModeSelection:
 		return "go back to select the authentication method"

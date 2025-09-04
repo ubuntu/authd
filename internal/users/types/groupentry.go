@@ -87,7 +87,7 @@ func ValidateGroupEntries(groups []GroupEntry) error {
 
 	for _, g := range groups {
 		if err := g.Validate(); err != nil {
-			return fmt.Errorf("Group %q is not valid: %w", g, err)
+			return fmt.Errorf("group %q is not valid: %w", g, err)
 		}
 
 		if otherGroup, ok := groupNames[g.Name]; ok {
