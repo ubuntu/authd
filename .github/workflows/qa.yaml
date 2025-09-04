@@ -42,14 +42,9 @@ jobs:
     name: "Go: Code sanity"
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
+      - uses: actions/checkout@v5
       - name: Disable installation of locales and manpages
-        run: |
-          cat <<EOF | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
-          path-exclude=/usr/share/locale/*
-          path-exclude=/usr/share/man/*
-          path-exclude=/usr/share/doc/*
-          path-exclude=/usr/share/info/*
-          EOF
+        run: .github/scripts/dpkg-exclude-locales-and-manpages.sh
       - name: Install dependencies
         run: |
           # Install dependencies
@@ -57,7 +52,6 @@ jobs:
 
           sudo apt update
           sudo apt install -y ${{ env.go_build_dependencies }}
-      - uses: actions/checkout@v5
       - name: Go code sanity check
         uses: canonical/desktop-engineering/gh-actions/go/code-sanity@v1
         with:
@@ -90,14 +84,9 @@ jobs:
     name: "Rust: Code sanity"
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
+      - uses: actions/checkout@v5
       - name: Disable installation of locales and manpages
-        run: |
-          cat <<EOF | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
-          path-exclude=/usr/share/locale/*
-          path-exclude=/usr/share/man/*
-          path-exclude=/usr/share/doc/*
-          path-exclude=/usr/share/info/*
-          EOF
+        run: .github/scripts/dpkg-exclude-locales-and-manpages.sh
       - name: Install dependencies
         run: |
           # Install dependencies
@@ -108,7 +97,6 @@ jobs:
           # so we always need to install the protobuf compilers
           # when building the NSS crate.
           sudo apt install -y protobuf-compiler
-      - uses: actions/checkout@v5
       - name: Rust code sanity check
         uses: canonical/desktop-engineering/gh-actions/rust/code-sanity@main
         with:
@@ -120,14 +108,9 @@ jobs:
     env:
       CFLAGS: "-Werror"
     steps:
+      - uses: actions/checkout@v5
       - name: Disable installation of locales and manpages
-        run: |
-          cat <<EOF | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
-          path-exclude=/usr/share/locale/*
-          path-exclude=/usr/share/man/*
-          path-exclude=/usr/share/doc/*
-          path-exclude=/usr/share/info/*
-          EOF
+        run: .github/scripts/dpkg-exclude-locales-and-manpages.sh
       - name: Install dependencies
         run: |
           # Install dependencies
@@ -141,7 +124,6 @@ jobs:
 
           scan_build_dir=$(mktemp -d --tmpdir scan-build-dir-XXXXXX)
           echo SCAN_BUILD_REPORTS_PATH="${scan_build_dir}" >> $GITHUB_ENV
-      - uses: actions/checkout@v5
       - name: Run scan build on GDM extensions
         run: |
           set -eu
@@ -172,14 +154,9 @@ jobs:
       matrix:
         test: ["coverage", "race", "asan"]
     steps:
+      - uses: actions/checkout@v5
       - name: Disable installation of locales and manpages
-        run: |
-          cat <<EOF | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
-          path-exclude=/usr/share/locale/*
-          path-exclude=/usr/share/man/*
-          path-exclude=/usr/share/doc/*
-          path-exclude=/usr/share/info/*
-          EOF
+        run: .github/scripts/dpkg-exclude-locales-and-manpages.sh
       - name: Install dependencies
         run: |
           # Install dependencies
@@ -215,7 +192,6 @@ jobs:
             sudo apt remove -y ubuntu-dev-tools
             sudo apt autoremove -y
           fi
-      - uses: actions/checkout@v5
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
