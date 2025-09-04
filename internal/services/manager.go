@@ -16,7 +16,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health"
 	healthgrpc "google.golang.org/grpc/health/grpc_health_v1"
-	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 )
 
 // Manager mediate the whole business logic of the application.
@@ -67,7 +66,7 @@ func (m Manager) RegisterGRPCServices(ctx context.Context) *grpc.Server {
 	// We may provide status per each service, but for now we only care about the global state.
 	// Also, we're serving by default because all the brokers have been initialized at this
 	// point, so no need to start in NOT_SERVING mode and then update it accordingly.
-	defer healthCheck.SetServingStatus(consts.ServiceName, healthpb.HealthCheckResponse_SERVING)
+	defer healthCheck.SetServingStatus(consts.ServiceName, healthgrpc.HealthCheckResponse_SERVING)
 
 	authd.RegisterUserServiceServer(grpcServer, m.userService)
 	authd.RegisterPAMServer(grpcServer, m.pamService)
