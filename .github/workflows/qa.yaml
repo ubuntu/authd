@@ -18,35 +18,40 @@ on:
 env:
   DEBIAN_FRONTEND: noninteractive
   GO_TESTS_TIMEOUT: 20m
-  apt_deps: >-
-    libpam-dev
+  c_build_dependencies: >-
+    clang-tools
+    clang
     libglib2.0-dev
+    libpam-dev
+
+  go_build_dependencies: >-
+    libglib2.0-dev
+    libpam-dev
     libpwquality-dev
 
-  test_apt_deps: >-
+  go_test_dependencies: >-
     apparmor-profiles
     bubblewrap
     cracklib-runtime
     git-delta
     openssh-client
-    openssh-server
-
-  # In Rust the grpc stubs are generated at build time
-  # so we always need to install the protobuf compilers
-  # when building the NSS crate.
-  protobuf_compilers: >-
-    protobuf-compiler
+    openssh-server  
 
 jobs:
   go-sanity:
     name: "Go: Code sanity"
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
+      - uses: actions/checkout@v5
+      - name: Disable installation of locales and manpages
+        run: .github/scripts/dpkg-exclude-locales-and-manpages.sh
       - name: Install dependencies
         run: |
+          # Install dependencies
+          set -eu
+
           sudo apt update
-          sudo apt install -y ${{ env.apt_deps }}
-      - uses: actions/checkout@v5
+          sudo apt install -y ${{ env.go_build_dependencies }}
       - name: Go code sanity check
         uses: canonical/desktop-engineering/gh-actions/go/code-sanity@v1
         with:
@@ -79,11 +84,19 @@ jobs:
     name: "Rust: Code sanity"
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
+      - uses: actions/checkout@v5
+      - name: Disable installation of locales and manpages
+        run: .github/scripts/dpkg-exclude-locales-and-manpages.sh
       - name: Install dependencies
         run: |
+          # Install dependencies
+          set -eu
+
           sudo apt update
-          sudo apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}}
-      - uses: actions/checkout@v5
+          # In Rust the grpc stubs are generated at build time
+          # so we always need to install the protobuf compilers
+          # when building the NSS crate.
+          sudo apt install -y protobuf-compiler
       - name: Rust code sanity check
         uses: canonical/desktop-engineering/gh-actions/rust/code-sanity@main
         with:
@@ -95,19 +108,22 @@ jobs:
     env:
       CFLAGS: "-Werror"
     steps:
+      - uses: actions/checkout@v5
+      - name: Disable installation of locales and manpages
+        run: .github/scripts/dpkg-exclude-locales-and-manpages.sh
       - name: Install dependencies
         run: |
+          # Install dependencies
           set -eu
 
           sudo apt update
-          sudo apt install -y ${{ env.apt_deps }} clang-tools clang
+          sudo apt install -y ${{ env.c_build_dependencies }}
       - name: Prepare report dir
         run: |
           set -eu
 
           scan_build_dir=$(mktemp -d --tmpdir scan-build-dir-XXXXXX)
           echo SCAN_BUILD_REPORTS_PATH="${scan_build_dir}" >> $GITHUB_ENV
-      - uses: actions/checkout@v5
       - name: Run scan build on GDM extensions
         run: |
           set -eu
@@ -138,25 +154,18 @@ jobs:
       matrix:
         test: ["coverage", "race", "asan"]
     steps:
+      - uses: actions/checkout@v5
+      - name: Disable installation of locales and manpages
+        run: .github/scripts/dpkg-exclude-locales-and-manpages.sh
       - name: Install dependencies
         run: |
-          # Disable installing of locales and manpages
-          cat <<"EOF" | sudo tee /etc/dpkg/dpkg.cfg.d/01_nodoc
-          # Delete locales
-          path-exclude=/usr/share/locale/*
-
-          # Delete man pages
-          path-exclude=/usr/share/man/*
-
-          # Delete docs
-          path-exclude=/usr/share/doc/*
-          path-include=/usr/share/doc/*/copyright
-          EOF
+          # Install dependencies
+          set -eu
 
           sudo apt update
 
           # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
-          sudo apt install -y ${{ env.apt_deps }} ${{ env.protobuf_compilers}} ${{ env.test_apt_deps }}
+          sudo apt install -y ${{ env.go_build_dependencies }} ${{ env.go_test_dependencies}}
 
           # Load the apparmor profile for bubblewrap.
           sudo ln -s /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/
@@ -183,7 +192,6 @@ jobs:
             sudo apt remove -y ubuntu-dev-tools
             sudo apt autoremove -y
           fi
-      - uses: actions/checkout@v5
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
