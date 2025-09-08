@@ -45,4 +45,5 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y ${{ env.apt_deps }}
+          sudo apt install -y eatmydata
+          sudo eatmydata apt install -y ${{ env.apt_deps }}
