@@ -184,8 +184,8 @@ jobs:
               pull-lp-ddebs "${pkg}" $(lsb_release -cs)
             done
             sudo apt-get install -y ./libpam0*.*deb ./libpam-modules*.*deb ./libglib2.0-0*-dbgsym*.ddeb
-            sudo apt remove -y ubuntu-dev-tools
-            sudo apt autoremove -y
+            sudo apt-get remove -y ubuntu-dev-tools
+            sudo apt-get autoremove -y
           fi
       - uses: actions/checkout@v5
       - uses: actions/setup-go@v5
