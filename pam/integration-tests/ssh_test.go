@@ -16,7 +16,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 	"syscall"
 	"testing"
 	"time"
@@ -39,19 +38,6 @@ var (
 	sshHostPortRegex     *regexp.Regexp
 
 	sshDefaultFinalWaitTimeout = sleepDuration(3 * defaultSleepValues[authdWaitDefault])
-
-	buildExecModuleOnce sync.Once
-	execModule          string
-
-	buildExecChildOnce sync.Once
-	execChild          string
-
-	buildNSSLibOnce sync.Once
-	nssEnv          []string
-	nssLibrary      string
-
-	buildCModuleOnce   sync.Once
-	sshdPreloadLibrary string
 )
 
 func TestSSHAuthenticate(t *testing.T) {
@@ -89,13 +75,8 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	currentDir, err := os.Getwd()
 	require.NoError(t, err, "Setup: Could not get current directory for the tests")
 
-	buildExecModuleOnce.Do(func() {
-		execModule = buildExecModuleWithCFlags(t, []string{"-std=c11"}, true)
-	})
-
-	buildExecChildOnce.Do(func() {
-		execChild = buildPAMExecChild(t)
-	})
+	execModule := buildExecModuleWithCFlags(t, []string{"-std=c11"}, true)
+	execChild := buildPAMExecChild(t)
 
 	mkHomeDirHelper, err := exec.LookPath("mkhomedir_helper")
 	require.NoError(t, err, "Setup: mkhomedir_helper not found")
@@ -108,12 +89,13 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		},
 		"pam_mkhomedir_test.so", true)
 
+	var nssEnv []string
+	var nssLibrary string
 	var sshdPreloadLibraries []string
 	var sshdPreloaderCFlags []string
+	err = testutils.CanRunRustTests(false)
 	if os.Getenv("AUTHD_TESTS_SSH_USE_DUMMY_NSS") == "" && err == nil {
-		buildNSSLibOnce.Do(func() {
-			nssLibrary, nssEnv = testutils.BuildRustNSSLib(t, true)
-		})
+		nssLibrary, nssEnv = testutils.BuildRustNSSLib(t, true)
 		sshdPreloadLibraries = append(sshdPreloadLibraries, nssLibrary)
 		sshdPreloaderCFlags = append(sshdPreloaderCFlags,
 			"-DAUTHD_TESTS_SSH_USE_AUTHD_NSS")
@@ -122,11 +104,9 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 		t.Logf("Using the dummy library to implement NSS: %v", err)
 	}
 
-	buildCModuleOnce.Do(func() {
-		sshdPreloadLibrary = buildCModule(t, []string{
-			filepath.Join(currentDir, "/sshd_preloader/sshd_preloader.c"),
-		}, nil, sshdPreloaderCFlags, nil, "sshd_preloader", true)
-	})
+	sshdPreloadLibrary := buildCModule(t, []string{
+		filepath.Join(currentDir, "/sshd_preloader/sshd_preloader.c"),
+	}, nil, sshdPreloaderCFlags, nil, "sshd_preloader", true)
 	sshdPreloadLibraries = append(sshdPreloadLibraries, sshdPreloadLibrary)
 
 	sshdHostKey := filepath.Join(t.TempDir(), "ssh_host_ed25519_key")
