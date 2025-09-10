@@ -42,9 +42,7 @@ jobs:
     name: "Go: Code sanity"
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
-      - uses: actions/checkout@v5
-      - name: Disable installation of locales and manpages
-        run: .github/scripts/dpkg-exclude-locales-and-manpages.sh
+      - uses: canonical/desktop-engineering/gh-actions/common/dpkg-install-speedup@main
       - name: Install dependencies
         run: |
           # Install dependencies
@@ -52,6 +50,7 @@ jobs:
 
           sudo apt-get update
           sudo apt-get install -y ${{ env.go_build_dependencies }}
+      - uses: actions/checkout@v5
       - name: Go code sanity check
         uses: canonical/desktop-engineering/gh-actions/go/code-sanity@v2
         with:
@@ -84,9 +83,7 @@ jobs:
     name: "Rust: Code sanity"
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
-      - uses: actions/checkout@v5
-      - name: Disable installation of locales and manpages
-        run: .github/scripts/dpkg-exclude-locales-and-manpages.sh
+      - uses: canonical/desktop-engineering/gh-actions/common/dpkg-install-speedup@main
       - name: Install dependencies
         run: |
           # Install dependencies
@@ -97,6 +94,7 @@ jobs:
           # so we always need to install the protobuf compilers
           # when building the NSS crate.
           sudo apt-get install -y protobuf-compiler
+      - uses: actions/checkout@v5
       - name: Rust code sanity check
         uses: canonical/desktop-engineering/gh-actions/rust/code-sanity@main
         with:
@@ -108,9 +106,7 @@ jobs:
     env:
       CFLAGS: "-Werror"
     steps:
-      - uses: actions/checkout@v5
-      - name: Disable installation of locales and manpages
-        run: .github/scripts/dpkg-exclude-locales-and-manpages.sh
+      - uses: canonical/desktop-engineering/gh-actions/common/dpkg-install-speedup@main
       - name: Install dependencies
         run: |
           # Install dependencies
@@ -124,6 +120,7 @@ jobs:
 
           scan_build_dir=$(mktemp -d --tmpdir scan-build-dir-XXXXXX)
           echo SCAN_BUILD_REPORTS_PATH="${scan_build_dir}" >> $GITHUB_ENV
+      - uses: actions/checkout@v5
       - name: Run scan build on GDM extensions
         run: |
           set -eu
@@ -154,9 +151,7 @@ jobs:
       matrix:
         test: ["coverage", "race", "asan"]
     steps:
-      - uses: actions/checkout@v5
-      - name: Disable installation of locales and manpages
-        run: .github/scripts/dpkg-exclude-locales-and-manpages.sh
+      - uses: canonical/desktop-engineering/gh-actions/common/dpkg-install-speedup@main
       - name: Install dependencies
         run: |
           # Install dependencies
@@ -189,9 +184,10 @@ jobs:
               pull-lp-ddebs "${pkg}" $(lsb_release -cs)
             done
             sudo apt-get install -y ./libpam0*.*deb ./libpam-modules*.*deb ./libglib2.0-0*-dbgsym*.ddeb
-            sudo apt remove -y ubuntu-dev-tools
-            sudo apt autoremove -y
+            sudo apt-get remove -y ubuntu-dev-tools
+            sudo apt-get autoremove -y
           fi
+      - uses: actions/checkout@v5
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
