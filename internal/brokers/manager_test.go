@@ -319,9 +319,10 @@ func TestStartAndEndSession(t *testing.T) {
 
 	// Fetches the broker IDs
 	for _, broker := range m.AvailableBrokers() {
-		if broker.Name == b1.Name {
+		switch broker.Name {
+		case b1.Name:
 			b1.ID = broker.ID
-		} else if broker.Name == b2.Name {
+		case b2.Name:
 			b2.ID = broker.ID
 		}
 	}
