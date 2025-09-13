@@ -56,6 +56,11 @@ jobs:
         uses: canonical/desktop-engineering/gh-actions/common/build-debian@main
         with:
           docker-image: ubuntu:${{ matrix.ubuntu-version }}
+          pre-deps-commands: |
+            # Add the Go backports PPA, so that we can build with a newer
+            # version of Go than the one available in the archive.
+            apt-get install -y software-properties-common
+            add-apt-repository ppa:ubuntu-enterprise-desktop/golang
           # Extra build dependencies:
           # - systemd-dev: Required to read compile time variables from systemd via pkg-config.
           extra-source-build-deps: |
@@ -270,3 +275,4 @@ jobs:
       with:
         lxd-image: ubuntu:${{ matrix.ubuntu-version }}
         source-changes: ${{ env.pkg_src_changes }}
+        autopkgtest-args: --add-apt-source=ppa:ubuntu-enterprise-desktop/golang
