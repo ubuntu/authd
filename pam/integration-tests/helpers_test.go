@@ -50,17 +50,16 @@ var (
 	sharedAuthdInstance = authdInstance{}
 )
 
-func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon bool, args ...testutils.DaemonOption) (
-	socketPath string, waitFunc func()) {
+func runAuthdForTesting(t *testing.T, isSharedDaemon bool, args ...testutils.DaemonOption) (socketPath string) {
 	t.Helper()
 
-	ctx, cancel := context.WithCancel(context.Background())
+	socketPath, cancelFunc := runAuthdForTestingWithCancel(t, isSharedDaemon, args...)
+	t.Cleanup(cancelFunc)
+	return socketPath
+}
 
-	var env []string
-	if currentUserAsRoot {
-		env = append(env, authdCurrentUserRootEnvVariableContent)
-	}
-	args = append(args, testutils.WithEnvironment(env...))
+func runAuthdForTestingWithCancel(t *testing.T, isSharedDaemon bool, args ...testutils.DaemonOption) (socketPath string, cancelFunc func()) {
+	t.Helper()
 
 	outputFile := filepath.Join(t.TempDir(), "authd.log")
 	args = append(args, testutils.WithOutputFile(outputFile))
@@ -80,20 +79,15 @@ func runAuthdForTesting(t *testing.T, currentUserAsRoot bool, isSharedDaemon boo
 		args = append(args, testutils.WithDBPath(filepath.Dir(database)))
 	}
 
-	socketPath, stopped := testutils.RunDaemon(ctx, t, daemonPath, args...)
+	socketPath, cancelFunc = testutils.StartDaemonWithCancel(t, daemonPath, args...)
 	saveArtifactsForDebugOnCleanup(t, []string{outputFile})
-	return socketPath, func() {
-		cancel()
-		<-stopped
-	}
+	return socketPath, cancelFunc
 }
 
-func runAuthd(t *testing.T, currentUserAsRoot bool, args ...testutils.DaemonOption) string {
+func runAuthd(t *testing.T, args ...testutils.DaemonOption) string {
 	t.Helper()
 
-	socketPath, waitFunc := runAuthdForTesting(t, currentUserAsRoot, false, args...)
-	t.Cleanup(waitFunc)
-	return socketPath
+	return runAuthdForTesting(t, false, args...)
 }
 
 func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath string, groupFile string) {
@@ -109,9 +103,10 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 		groups := filepath.Join(testutils.TestFamilyPath(t), "groups")
 		args = append(args,
 			testutils.WithGroupFile(groups),
-			testutils.WithGroupFileOutput(groupOutput))
-		socket, cleanup := runAuthdForTesting(t, true, useSharedInstance, args...)
-		t.Cleanup(cleanup)
+			testutils.WithGroupFileOutput(groupOutput),
+			testutils.WithCurrentUserAsRoot,
+		)
+		socket := runAuthdForTesting(t, useSharedInstance, args...)
 		return socket, groupOutput
 	}
 
@@ -147,12 +142,15 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 		return sa.socketPath, sa.groupsOutputPath
 	}
 
-	args = append(slices.Clone(args), testutils.WithSharedDaemon(true))
 	sa.groupsFile = filepath.Join(testutils.TestFamilyPath(t), "groups")
-	args = append(args, testutils.WithGroupFile(sa.groupsFile))
 	sa.groupsOutputPath = filepath.Join(t.TempDir(), "groups")
-	args = append(args, testutils.WithGroupFileOutput(sa.groupsOutputPath))
-	sa.socketPath, sa.cleanup = runAuthdForTesting(t, true, useSharedInstance, args...)
+	args = append(slices.Clone(args),
+		testutils.WithSharedDaemon(true),
+		testutils.WithCurrentUserAsRoot,
+		testutils.WithGroupFile(sa.groupsFile),
+		testutils.WithGroupFileOutput(sa.groupsOutputPath),
+	)
+	sa.socketPath, sa.cleanup = runAuthdForTestingWithCancel(t, useSharedInstance, args...)
 	return sa.socketPath, sa.groupsOutputPath
 }
 
@@ -179,17 +177,7 @@ func preparePamRunnerTest(t *testing.T, clientPath string) []string {
 func buildPAMRunner(execPath string) (cleanup func(), err error) {
 	cmd := exec.Command("go", "build")
 	cmd.Dir = testutils.ProjectRoot()
-	if testutils.CoverDirForTests() != "" {
-		// -cover is a "positional flag", so it needs to come right after the "build" command.
-		cmd.Args = append(cmd.Args, "-cover")
-	}
-	if testutils.IsAsan() {
-		// -asan is a "positional flag", so it needs to come right after the "build" command.
-		cmd.Args = append(cmd.Args, "-asan")
-	}
-	if testutils.IsRace() {
-		cmd.Args = append(cmd.Args, "-race")
-	}
+	cmd.Args = append(cmd.Args, testutils.GoBuildFlags()...)
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
 	cmd.Args = append(cmd.Args, "-tags=withpamrunner", "-o", filepath.Join(execPath, "pam_authd"),
 		"./pam/tools/pam-runner")
@@ -203,19 +191,9 @@ func buildPAMRunner(execPath string) (cleanup func(), err error) {
 func buildPAMExecChild(t *testing.T) string {
 	t.Helper()
 
-	cmd := exec.Command("go", "build", "-C", "pam")
-	cmd.Dir = testutils.ProjectRoot()
-	if testutils.CoverDirForTests() != "" {
-		// -cover is a "positional flag", so it needs to come right after the "build" command.
-		cmd.Args = append(cmd.Args, "-cover")
-	}
-	if testutils.IsAsan() {
-		// -asan is a "positional flag", so it needs to come right after the "build" command.
-		cmd.Args = append(cmd.Args, "-asan")
-	}
-	if testutils.IsRace() {
-		cmd.Args = append(cmd.Args, "-race")
-	}
+	cmd := exec.Command("go", "build")
+	cmd.Dir = filepath.Join(testutils.ProjectRoot(), "pam")
+	cmd.Args = append(cmd.Args, testutils.GoBuildFlags()...)
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
 	cmd.Args = append(cmd.Args, "-tags=pam_debug")
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)

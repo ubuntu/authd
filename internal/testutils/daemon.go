@@ -113,9 +113,24 @@ func WithGroupFileOutput(groupFile string) DaemonOption {
 	}
 }
 
-// RunDaemon runs the daemon in a separate process and returns the socket path and a channel that will be closed when
-// the daemon stops.
-func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
+// WithCurrentUserAsRoot configures the daemon to accept the current user as root when checking permissions.
+// This is useful for integration tests where the current user is not root, but we want to
+// test the behavior as if it were root.
+var WithCurrentUserAsRoot DaemonOption = func(o *daemonOptions) {
+	o.env = append(o.env, "AUTHD_INTEGRATIONTESTS_CURRENT_USER_AS_ROOT=1")
+}
+
+// StartDaemon starts the daemon in a separate process and returns the socket path.
+func StartDaemon(t *testing.T, execPath string, args ...DaemonOption) (socketPath string) {
+	t.Helper()
+
+	socketPath, cancelFunc := StartDaemonWithCancel(t, execPath, args...)
+	t.Cleanup(cancelFunc)
+	return socketPath
+}
+
+// StartDaemonWithCancel starts the daemon in a separate process and returns the socket path and a cancel function.
+func StartDaemonWithCancel(t *testing.T, execPath string, args ...DaemonOption) (socketPath string, cancelFunc func()) {
 	t.Helper()
 
 	opts := &daemonOptions{}
@@ -151,9 +166,12 @@ paths:
 	configPath := filepath.Join(tempDir, "testconfig.yaml")
 	require.NoError(t, os.WriteFile(configPath, []byte(config), 0600), "Setup: failed to create config file for tests")
 
-	var cancel context.CancelCauseFunc
-	if opts.pidFile != "" {
-		ctx, cancel = context.WithCancelCause(ctx)
+	stopped := make(chan struct{})
+	ctx, cancel := context.WithCancelCause(context.Background())
+	cancelFunc = func() {
+		t.Log("Stopping daemon...")
+		cancel(nil)
+		<-stopped
 	}
 
 	// #nosec:G204 - we control the command arguments in tests
@@ -169,13 +187,14 @@ paths:
 	}
 
 	// Start the daemon
-	stopped = make(chan struct{})
 	processPid := make(chan int)
 	go func() {
 		defer close(stopped)
 		var b bytes.Buffer
 		cmd.Stdout = &b
 		cmd.Stderr = &b
+
+		t.Logf("Setup: starting daemon with command: %s", cmd.String())
 		err := cmd.Start()
 		require.NoError(t, err, "Setup: daemon cannot start %v", cmd.Args)
 		if opts.pidFile != "" {
@@ -246,11 +265,11 @@ paths:
 		}()
 	}
 
-	return opts.socketPath, stopped
+	return opts.socketPath, cancelFunc
 }
 
-// BuildDaemon builds the daemon executable and returns the binary path.
-func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err error) {
+// BuildDaemonWithExampleBroker builds the daemon executable and returns the binary path.
+func BuildDaemonWithExampleBroker() (execPath string, cleanup func(), err error) {
 	projectRoot := ProjectRoot()
 
 	tempDir, err := os.MkdirTemp("", "authd-tests-daemon")
@@ -262,20 +281,12 @@ func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err erro
 	execPath = filepath.Join(tempDir, "authd")
 	cmd := exec.Command("go", "build")
 	cmd.Dir = projectRoot
-	if CoverDirForTests() != "" {
-		// -cover is a "positional flag", so it needs to come right after the "build" command.
-		cmd.Args = append(cmd.Args, "-cover")
-	}
-	if IsAsan() {
-		cmd.Args = append(cmd.Args, "-asan")
-	}
-	if IsRace() {
-		cmd.Args = append(cmd.Args, "-race")
-	}
+	cmd.Args = append(cmd.Args, GoBuildFlags()...)
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
-	cmd.Args = append(cmd.Args, extraArgs...)
+	cmd.Args = append(cmd.Args, "-tags=withexamplebroker,integrationtests")
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")
 
+	fmt.Fprintln(os.Stderr, "Running command:", cmd.String())
 	if out, err := cmd.CombinedOutput(); err != nil {
 		cleanup()
 		return "", nil, fmt.Errorf("failed to build daemon(%v): %s", err, out)

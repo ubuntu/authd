@@ -212,6 +212,68 @@ func TestListGroups(t *testing.T) {
 	}
 }
 
+func TestLockUser(t *testing.T) {
+	tests := map[string]struct {
+		sourceDB string
+
+		username           string
+		currentUserNotRoot bool
+
+		wantErr bool
+	}{
+		"Successfully_lock_user": {username: "user1"},
+
+		"Error_when_username_is_empty":   {wantErr: true},
+		"Error_when_user_does_not_exist": {username: "doesnotexist", wantErr: true},
+		"Error_when_not_root":            {username: "notroot", currentUserNotRoot: true, wantErr: true},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			client := newUserServiceClient(t, tc.sourceDB)
+
+			_, err := client.LockUser(context.Background(), &authd.LockUserRequest{Name: tc.username})
+			if tc.wantErr {
+				require.Error(t, err, "LockUser should return an error, but did not")
+				return
+			}
+			require.NoError(t, err, "LockUser should not return an error, but did")
+		})
+	}
+}
+
+func TestUnlockUser(t *testing.T) {
+	tests := map[string]struct {
+		sourceDB string
+
+		username           string
+		currentUserNotRoot bool
+
+		wantErr bool
+	}{
+		"Successfully_unlock_user": {username: "user1"},
+
+		"Error_when_username_is_empty":   {wantErr: true},
+		"Error_when_user_does_not_exist": {username: "doesnotexist", wantErr: true},
+		"Error_when_not_root":            {username: "notroot", currentUserNotRoot: true, wantErr: true},
+	}
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			if tc.sourceDB == "" {
+				tc.sourceDB = "locked-user.db.yaml"
+			}
+
+			client := newUserServiceClient(t, tc.sourceDB)
+
+			_, err := client.UnlockUser(context.Background(), &authd.UnlockUserRequest{Name: tc.username})
+			if tc.wantErr {
+				require.Error(t, err, "UnlockUser should return an error, but did not")
+				return
+			}
+			require.NoError(t, err, "UnlockUser should not return an error, but did")
+		})
+	}
+}
+
 // newUserServiceClient returns a new gRPC client for the CLI service.
 func newUserServiceClient(t *testing.T, dbFile string) (client authd.UserServiceClient) {
 	t.Helper()
