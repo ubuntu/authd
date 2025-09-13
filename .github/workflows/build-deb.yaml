@@ -164,6 +164,9 @@ jobs:
       run: |
         set -euo pipefail
 
+        # Add the Go backports PPA, so that we can build with a newer version of Go
+        sudo add-apt-repository ppa:ubuntu-enterprise-desktop/golang
+
         sudo apt-get update -y
         sudo apt-get install -y --no-install-suggests --no-install-recommends \
           dpkg-dev devscripts

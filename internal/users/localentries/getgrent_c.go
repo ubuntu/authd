@@ -7,6 +7,19 @@ package localentries
 #include <stdlib.h>
 #include <pwd.h>
 #include <grp.h>
+
+// Copy a NULL-terminated char** into a new array and return length.
+char **copy_strv(char **strv, int *out_len) {
+    int n = 0;
+    while (strv && strv[n]) n++;
+
+    *out_len = n;
+    char **out = calloc(n + 1, sizeof(char*));
+    for (int i = 0; i < n; i++) {
+        out[i] = strv[i];
+    }
+    return out;
+}
 */
 import "C"
 
@@ -74,15 +87,17 @@ func getGroupEntries() (entries []types.GroupEntry, err error) {
 }
 
 func strvToSlice(strv **C.char) []string {
-	var users []string
-	for i := C.uint(0); ; i++ {
-		s := *(**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(strv)) +
-			uintptr(i)*unsafe.Sizeof(*strv)))
-		if s == nil {
-			break
-		}
-
-		users = append(users, C.GoString(s))
+	if strv == nil {
+		return nil
 	}
-	return users
+	var n C.int
+	tmp := C.copy_strv(strv, &n)
+	defer C.free(unsafe.Pointer(tmp))
+
+	out := make([]string, int(n))
+	for i := 0; i < int(n); i++ {
+		p := *(**C.char)(unsafe.Add(unsafe.Pointer(tmp), uintptr(i)*unsafe.Sizeof(*tmp)))
+		out[i] = C.GoString(p)
+	}
+	return out
 }
