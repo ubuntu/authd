@@ -160,6 +160,8 @@ jobs:
           sudo apt-get update
 
           # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
+          sudo apt-get install -y protobuf-compiler
+
           sudo apt-get install -y ${{ env.go_build_dependencies }} ${{ env.go_test_dependencies}}
 
           # Load the apparmor profile for bubblewrap.
