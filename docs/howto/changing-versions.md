@@ -25,7 +25,6 @@ counterpart.
 
 ```shell
 sudo add-apt-repository ppa:ubuntu-enterprise-desktop/authd-edge
-sudo apt update
 sudo apt install authd gnome-shell
 ```
 

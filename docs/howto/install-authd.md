@@ -22,11 +22,10 @@ authd is delivered as a Debian package for Ubuntu Desktop and Ubuntu Server.
 
 You can install authd from the [stable PPA](https://launchpad.net/~ubuntu-enterprise-desktop/+archive/ubuntu/authd).
 
-To add this PPA to your system's software sources, run the following commands:
+To add this PPA to your system's software sources, run the following command:
 
 ```shell
 sudo add-apt-repository ppa:ubuntu-enterprise-desktop/authd
-sudo apt update
 ```
 
 ```{note}
