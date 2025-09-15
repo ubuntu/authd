@@ -68,7 +68,7 @@ jobs:
             git
             libssl-dev
             systemd-dev
-          extra-source-build-script: |
+          pre-source-build-commands: |
             if [ "${{ matrix.ubuntu-version }}" == noble ]; then
               cargo install --locked --root=/usr \
                 cargo-vendor-filterer@${{ env.CARGO_VENDOR_FILTERER_VERSION }}
