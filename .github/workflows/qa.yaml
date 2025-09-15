@@ -56,6 +56,7 @@ jobs:
         with:
           golangci-lint-configfile: ".golangci.yaml"
           tools-directory: "tools"
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build cmd/authd with withexamplebroker tag
         run: |
           set -eu
