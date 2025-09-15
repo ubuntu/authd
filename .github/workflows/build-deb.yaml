@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Build debian packages and sources
-        uses: canonical/desktop-engineering/gh-actions/common/build-debian@main
+        uses: canonical/desktop-engineering/gh-actions/common/build-debian@pre-deps-commands
         with:
           docker-image: ubuntu:${{ matrix.ubuntu-version }}
           pre-deps-commands: |
@@ -271,7 +271,7 @@ jobs:
         merge-multiple: true
 
     - name: Run autopkgtests
-      uses: canonical/desktop-engineering/gh-actions/common/run-autopkgtest@main
+      uses: canonical/desktop-engineering/gh-actions/common/run-autopkgtest@pre-deps-commands
       with:
         lxd-image: ubuntu:${{ matrix.ubuntu-version }}
         source-changes: ${{ env.pkg_src_changes }}
