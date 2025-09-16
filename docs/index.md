@@ -72,7 +72,7 @@ providers.
 
 ::::::
 
-Documentation for the [stable](https://canonical-authd.readthedocs-hosted.com/en/stable/) release of authd and the [latest](https://canonical-authd.readthedocs-hosted.com/en/latest/) development version are
+Documentation for the [stable](https://documentation.ubuntu.com/authd/stable/) release of authd and the [edge](https://documentation.ubuntu.com/authd/edge/) version are
 both available.
 
 ---------
