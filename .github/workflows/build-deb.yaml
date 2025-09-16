@@ -275,8 +275,4 @@ jobs:
       with:
         lxd-image: ubuntu:${{ matrix.ubuntu-version }}
         source-changes: ${{ env.pkg_src_changes }}
-        pre-autopkgtest-commands: |
-          # Add the Go backports PPA, so that we can build with a newer
-          # version of Go than the one available in the archive.
-          sudo apt-get install -y software-properties-common
-          sudo add-apt-repository ppa:ubuntu-enterprise-desktop/golang
+        autopkgtest-args: --add-apt-source=ppa:ubuntu-enterprise-desktop/golang
