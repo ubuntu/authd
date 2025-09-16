@@ -1,11 +1,7 @@
-(reference::group-management)=
 # Group management
 
 Groups are used to manage users that all need the same access and permissions to resources.
 Groups from the remote provider can be mapped into local Linux groups for the user.
-
-In addition, you can configure extra groups
-[in the broker configuration file](ref::config-user-groups).
 
 ```{note}
   Groups are currently supported for the `msentraid` broker.
