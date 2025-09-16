@@ -14,9 +14,9 @@
 [goreport-image]: https://goreportcard.com/badge/github.com/ubuntu/authd
 [goreport-url]: https://goreportcard.com/report/github.com/ubuntu/authd
 
-[docs-image]: https://readthedocs.com/projects/canonical-authd/badge/?version=latest
-[docs-url-stable]: https://canonical-authd.readthedocs-hosted.com/en/stable/
-[docs-url-latest]: https://canonical-authd.readthedocs-hosted.com/en/latest/
+[docs-image]: https://readthedocs.com/projects/canonical-authd/badge/?version=edge
+[docs-url-stable]: https://documentation.ubuntu.com/authd/stable/
+[docs-url-edge]: https://documentation.ubuntu.com/authd/edge/
 
 [![Code quality][actions-image]][actions-url]
 [![License][license-image]](COPYING)
@@ -38,7 +38,7 @@ supported and several other identity providers are under active development.
 To find out more about using authd, refer to the
 [official authd documentation][docs-url-stable].
 If you are on an edge release then you can also read the
-[latest development version of the documentation][docs-url-latest],
+[edge version of the documentation][docs-url-edge],
 which may include features not yet available in the stable release.
 
 The documentation includes how-to guides on installing and configuring authd,

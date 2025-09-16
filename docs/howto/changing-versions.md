@@ -91,5 +91,5 @@ sudo snap refresh authd-msentraid
 
 ```{note}
 If using an edge release, you can read the
-[latest development version of the documentation](https://canonical-authd.readthedocs-hosted.com/en/latest/)
+[edge version of the documentation](https://documentation.ubuntu.com/authd/edge/)
 ```
