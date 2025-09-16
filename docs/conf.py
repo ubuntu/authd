@@ -185,7 +185,7 @@ if "READTHEDOCS_VERSION" in os.environ:
     version = os.environ["READTHEDOCS_VERSION"]
     sitemap_url_scheme = "{version}{link}"
 else:
-    sitemap_url_scheme = "stable/{link}"
+    sitemap_url_scheme = "stable-docs/{link}"
 
 # Template and asset locations
 
