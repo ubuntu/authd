@@ -37,6 +37,6 @@ The [Ubuntu Security disclosure and embargo policy](https://ubuntu.com/security/
 - [Canonical's Security Site](https://ubuntu.com/security)
 - [Ubuntu Security disclosure and embargo policy](https://ubuntu.com/security/disclosure-policy)
 - [Ubuntu Security Notices](https://ubuntu.com/security/notices)
-- [authd Documentation](https://documentation.ubuntu.com/authd/stable/)
+- [authd Documentation](https://documentation.ubuntu.com/authd/stable-docs/)
 
 If you have any questions regarding security vulnerabilities, please reach out to the maintainers via the aforementioned channels.
