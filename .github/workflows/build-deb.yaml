@@ -53,9 +53,14 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Build debian packages and sources
-        uses: canonical/desktop-engineering/gh-actions/common/build-debian@main
+        uses: canonical/desktop-engineering/gh-actions/common/build-debian@pre-deps-commands
         with:
           docker-image: ubuntu:${{ matrix.ubuntu-version }}
+          pre-deps-commands: |
+            # Add the Go backports PPA, so that we can build with a newer
+            # version of Go than the one available in the archive.
+            apt-get install -y software-properties-common
+            add-apt-repository ppa:ubuntu-enterprise-desktop/golang
           # Extra build dependencies:
           # - systemd-dev: Required to read compile time variables from systemd via pkg-config.
           extra-source-build-deps: |
@@ -63,7 +68,7 @@ jobs:
             git
             libssl-dev
             systemd-dev
-          extra-source-build-script: |
+          pre-source-build-commands: |
             if [ "${{ matrix.ubuntu-version }}" == noble ]; then
               cargo install --locked --root=/usr \
                 cargo-vendor-filterer@${{ env.CARGO_VENDOR_FILTERER_VERSION }}
@@ -266,7 +271,8 @@ jobs:
         merge-multiple: true
 
     - name: Run autopkgtests
-      uses: canonical/desktop-engineering/gh-actions/common/run-autopkgtest@main
+      uses: canonical/desktop-engineering/gh-actions/common/run-autopkgtest@pre-deps-commands
       with:
         lxd-image: ubuntu:${{ matrix.ubuntu-version }}
         source-changes: ${{ env.pkg_src_changes }}
+        autopkgtest-args: --add-apt-source=ppa:ubuntu-enterprise-desktop/golang
