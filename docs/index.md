@@ -72,7 +72,7 @@ providers.
 
 ::::::
 
-Documentation for the [stable](https://documentation.ubuntu.com/authd/stable/) release of authd and the [edge](https://documentation.ubuntu.com/authd/edge/) version are
+Documentation for the [stable](https://documentation.ubuntu.com/authd/stable-docs/) release of authd and the [edge](https://documentation.ubuntu.com/authd/edge-docs/) version are
 both available.
 
 ---------
