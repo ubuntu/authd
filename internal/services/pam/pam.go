@@ -100,6 +100,8 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 		return &authd.GPBResponse{}, nil
 	}
 
+	// Check if the broker still exists. Its config file might have been removed from the config directory after the
+	// user logged in the last time, in which case we let the user select a new broker.
 	if !s.brokerManager.BrokerExists(brokerID) {
 		log.Warningf(ctx, "GetPreviousBroker: Broker %q set for user %q does not exist, letting the user select a new one", brokerID, req.GetUsername())
 		return &authd.GPBResponse{}, nil
