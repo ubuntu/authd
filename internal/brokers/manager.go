@@ -215,7 +215,9 @@ func (m *Manager) BrokerExists(brokerID string) bool {
 func (m *Manager) brokerFromID(id string) (broker *Broker, err error) {
 	broker, exists := m.brokers[id]
 	if !exists {
-		return nil, fmt.Errorf("no broker found matching ID %q", id)
+		// Fix error message to include ID in broker lookup
+		return nil, fmt.Errorf("no broker found matching ID %q", id) 
+
 	}
 	return broker, nil
 }
