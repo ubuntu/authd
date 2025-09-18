@@ -206,9 +206,7 @@ func (m *Manager) EndSession(sessionID string) error {
 	return nil
 }
 
-// BrokerExists returns true if the brokerID is known by the manager. It can
-// happen that a broker which was stored in the database is not available anymore
-// because the user removed the configuration file.
+// BrokerExists returns true if the brokerID is known by the manager.
 func (m *Manager) BrokerExists(brokerID string) bool {
 	_, exists := m.brokers[brokerID]
 	return exists
