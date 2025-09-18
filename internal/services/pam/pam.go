@@ -125,8 +125,6 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 
 // SelectBroker starts a new session and selects the requested broker for the user.
 func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *authd.SBResponse, err error) {
-	defer decorate.OnError(&err, "can't start authentication transaction")
-
 	username := req.GetUsername()
 	brokerID := req.GetBrokerId()
 	lang := req.GetLang()
@@ -250,8 +248,6 @@ func (s Service) SelectAuthenticationMode(ctx context.Context, req *authd.SAMReq
 
 // IsAuthenticated returns broker answer to authentication request.
 func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (resp *authd.IAResponse, err error) {
-	defer decorate.OnError(&err, "can't check authentication")
-
 	sessionID := req.GetSessionId()
 	if sessionID == "" {
 		log.Errorf(ctx, "IsAuthenticated: No session ID provided")
@@ -289,6 +285,24 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 	if err := json.Unmarshal([]byte(data), &uInfo); err != nil {
 		log.Errorf(ctx, "IsAuthenticated: Could not unmarshal user data for session %q: %v", sessionID, err)
 		return nil, fmt.Errorf("user data from broker invalid: %v", err)
+	}
+
+	// authd uses lowercase usernames
+	uInfo.Name = strings.ToLower(uInfo.Name)
+
+	// Check if the user is locked. We can only do this after the broker has granted access, because we want to avoid
+	// leaking whether a user exists or not to unauthenticated users.
+	// TODO: We might want to let the broker know whether the user is locked or not, so that it can avoid storing any
+	//       updated tokens or user info on disk.
+	userIsLocked, err := s.userManager.IsUserLocked(uInfo.Name)
+	if err != nil && !errors.Is(err, users.NoDataFoundError{}) {
+		log.Errorf(ctx, "IsAuthenticated: Could not check if user %q is locked: %v", uInfo.Name, err)
+		return nil, fmt.Errorf("could not check if user %q is locked: %w", uInfo.Name, err)
+	}
+	// Throw an error if the user trying to authenticate already exists in the database and is locked
+	if err == nil && userIsLocked {
+		log.Noticef(ctx, "Authentication failure: user %q is locked", uInfo.Name)
+		return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("user %s is locked", uInfo.Name))
 	}
 
 	// Update database and local groups on granted auth.
