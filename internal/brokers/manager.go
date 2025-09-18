@@ -167,6 +167,7 @@ func (m *Manager) BrokerFromSessionID(id string) (broker *Broker, err error) {
 }
 
 // NewSession create a new session for the broker and store the sessionID on the manager.
+// Fix typo
 func (m *Manager) NewSession(ctx context.Context, brokerID, username, lang, mode string) (sessionID string, encryptionKey string, err error) {
 	broker, err := m.brokerFromID(brokerID)
 	if err != nil {
