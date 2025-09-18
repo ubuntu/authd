@@ -22,6 +22,7 @@ Build-Depends: debhelper-compat (= 13),
                libpwquality-dev,
                pkgconf,
                protobuf-compiler,
+               rustc-1.82,
                systemd-dev,
 Standards-Version: 4.6.2
 XS-Go-Import-Path: github.com/ubuntu/authd
