@@ -40,6 +40,7 @@ env:
 jobs:
   go-sanity:
     name: "Go: Code sanity"
+    permissions: {}
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
       - uses: canonical/desktop-engineering/gh-actions/common/dpkg-install-speedup@main
@@ -56,6 +57,7 @@ jobs:
         with:
           golangci-lint-configfile: ".golangci.yaml"
           tools-directory: "tools"
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build cmd/authd with withexamplebroker tag
         run: |
           set -eu
@@ -81,6 +83,7 @@ jobs:
 
   rust-sanity:
     name: "Rust: Code sanity"
+    permissions: {}
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
       - uses: canonical/desktop-engineering/gh-actions/common/dpkg-install-speedup@main
