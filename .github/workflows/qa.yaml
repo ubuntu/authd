@@ -40,6 +40,7 @@ env:
 jobs:
   go-sanity:
     name: "Go: Code sanity"
+    permissions: {}
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
       - uses: canonical/desktop-engineering/gh-actions/common/dpkg-install-speedup@main
@@ -82,6 +83,7 @@ jobs:
 
   rust-sanity:
     name: "Rust: Code sanity"
+    permissions: {}
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
       - uses: canonical/desktop-engineering/gh-actions/common/dpkg-install-speedup@main
