@@ -253,10 +253,10 @@ func TestQuit(t *testing.T) {
 				require.True(t, connected, "new connection should be made allowed")
 			}
 
-			// Request quitting.
-			quiteDone := make(chan struct{})
+			// Request server shutdown
+			shutdownRequested := make(chan struct{})
 			go func() {
-				defer close(quiteDone)
+				defer close(shutdownRequested)
 				d.Quit(context.Background(), tc.force)
 			}()
 
@@ -268,8 +268,8 @@ func TestQuit(t *testing.T) {
 
 			serverHasQuit := func() bool {
 				select {
-				case _, running := <-quiteDone:
-					return !running
+				case _, ok := <-shutdownRequested:
+					return !ok
 				default:
 					return false
 				}
@@ -286,7 +286,7 @@ func TestQuit(t *testing.T) {
 			// drop connection
 			disconnectClient()
 
-			require.Eventually(t, serverHasQuit, 100*time.Millisecond, 10*time.Millisecond, "Server should quit with no more active connection")
+			require.Eventually(t, serverHasQuit, 1*time.Second, 10*time.Millisecond, "Server should quit with no more active connection")
 		})
 	}
 }

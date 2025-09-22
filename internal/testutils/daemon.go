@@ -1,10 +1,10 @@
 package testutils
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,6 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/services/errmessages"
+	"github.com/ubuntu/authd/internal/testlog"
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"google.golang.org/grpc"
@@ -24,13 +25,13 @@ import (
 )
 
 type daemonOptions struct {
-	dbPath     string
-	existentDB string
-	socketPath string
-	pidFile    string
-	outputFile string
-	shared     bool
-	env        []string
+	dbPath                   string
+	existentDB               string
+	socketPath               string
+	pidFile                  string
+	saveOutputAsTestArtifact bool
+	shared                   bool
+	env                      []string
 }
 
 // DaemonOption represents an optional function that can be used to override some of the daemon default values.
@@ -72,10 +73,10 @@ func WithPidFile(pidFile string) DaemonOption {
 	}
 }
 
-// WithOutputFile sets the path where the process log will be saved.
-func WithOutputFile(outputFile string) DaemonOption {
+// WithOutputAsTestArtifact saves the daemon output to a test artifact.
+func WithOutputAsTestArtifact() DaemonOption {
 	return func(o *daemonOptions) {
-		o.outputFile = outputFile
+		o.saveOutputAsTestArtifact = true
 	}
 }
 
@@ -113,9 +114,9 @@ func WithGroupFileOutput(groupFile string) DaemonOption {
 	}
 }
 
-// RunDaemon runs the daemon in a separate process and returns the socket path and a channel that will be closed when
-// the daemon stops.
-func RunDaemon(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
+// StartAuthd starts authd in a separate process, waits for it to be ready to receive connections,
+// and returns its socket path and a channel that is closed when authd stops.
+func StartAuthd(ctx context.Context, t *testing.T, execPath string, args ...DaemonOption) (socketPath string, stopped chan struct{}) {
 	t.Helper()
 
 	opts := &daemonOptions{}
@@ -158,9 +159,8 @@ paths:
 
 	// #nosec:G204 - we control the command arguments in tests
 	cmd := exec.CommandContext(ctx, execPath, "-c", configPath)
-	opts.env = append(opts.env, os.Environ()...)
 	opts.env = append(opts.env, fmt.Sprintf("AUTHD_EXAMPLE_BROKER_SLEEP_MULTIPLIER=%f", SleepMultiplier()))
-	cmd.Env = AppendCovEnv(opts.env)
+	cmd.Env = append(AppendCovEnv(opts.env), MinimalPathEnv)
 
 	// This is the function that is called by CommandContext when the context is cancelled.
 	cmd.Cancel = func() error {
@@ -168,21 +168,31 @@ paths:
 		return cmd.Process.Signal(os.Signal(syscall.SIGTERM))
 	}
 
-	// Start the daemon
+	// Start authd
+	start := time.Now()
 	stopped = make(chan struct{})
 	processPid := make(chan int)
 	go func() {
 		defer close(stopped)
-		var b bytes.Buffer
-		cmd.Stdout = &b
-		cmd.Stderr = &b
+
+		cmd.Stdout = testlog.NewTestWriter(t)
+		cmd.Stderr = testlog.NewTestWriter(t)
+
+		if opts.saveOutputAsTestArtifact {
+			authdOutput := NewSyncBuffer()
+			cmd.Stdout = io.MultiWriter(testlog.NewTestWriter(t), authdOutput)
+			cmd.Stderr = io.MultiWriter(testlog.NewTestWriter(t), authdOutput)
+			MaybeSaveBufferAsArtifactOnCleanup(t, authdOutput, "authd.log")
+		}
+
+		testlog.LogCommand(t, "Starting authd", cmd)
 		err := cmd.Start()
-		require.NoError(t, err, "Setup: daemon cannot start %v", cmd.Args)
+		require.NoError(t, err, "Setup: authd failed to start")
 		if opts.pidFile != "" {
 			processPid <- cmd.Process.Pid
 		}
 
-		// When using a shared daemon we should not use the test parameter from now on
+		// When using a shared authd instance we should not use the test parameter from now on
 		// since the test is referring to may not be the one actually running.
 		t := t
 		logger := t.Logf
@@ -202,30 +212,25 @@ paths:
 		}
 
 		err = cmd.Wait()
-		out := b.Bytes()
-		if opts.outputFile != "" {
-			logger("writing authd log files to %v", opts.outputFile)
-			if err := os.WriteFile(opts.outputFile, out, 0600); err != nil {
-				logger("TearDown: failed to save output file %q: %v", opts.outputFile, err)
-			}
-		}
-		errorIs(err, context.Canceled, "Setup: daemon stopped unexpectedly: %s", out)
+		errorIs(err, context.Canceled, "Setup: authd stopped unexpectedly")
 		if opts.pidFile != "" {
 			defer cancel(nil)
 			if err := os.Remove(opts.pidFile); err != nil {
 				logger("TearDown: failed to remove pid file %q: %v", opts.pidFile, err)
 			}
 		}
-		logger("Daemon stopped (%v)\n ##### Output #####\n %s \n ##### END #####", err, out)
+		logger("authd exited (%v)", err)
 	}()
 
 	conn, err := grpc.NewClient("unix://"+opts.socketPath, grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithUnaryInterceptor(errmessages.FormatErrorMessage))
-	require.NoError(t, err, "Setup: could not connect to the daemon on %s", opts.socketPath)
+	require.NoError(t, err, "Setup: could not connect to authd on %s", opts.socketPath)
 	defer conn.Close()
 
-	// Block until the daemon is started and ready to accept connections.
+	// Block until authd has started and is ready to accept connections.
 	err = grpcutils.WaitForConnection(ctx, conn, time.Second*30)
-	require.NoError(t, err, "Setup: wait for daemon to be ready timed out")
+	require.NoError(t, err, "Setup: timeout waiting for authd to start")
+	duration := time.Since(start)
+	testlog.LogEndSeparatorf(t, "authd started in %.3fs", duration.Seconds())
 
 	if opts.pidFile != "" {
 		err := os.WriteFile(opts.pidFile, []byte(fmt.Sprint(<-processPid)), 0600)
@@ -249,8 +254,8 @@ paths:
 	return opts.socketPath, stopped
 }
 
-// BuildDaemon builds the daemon executable and returns the binary path.
-func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err error) {
+// BuildAuthd builds the authd executable and returns the binary path.
+func BuildAuthd(extraArgs ...string) (execPath string, cleanup func(), err error) {
 	projectRoot := ProjectRoot()
 
 	tempDir, err := os.MkdirTemp("", "authd-tests-daemon")
@@ -276,9 +281,9 @@ func BuildDaemon(extraArgs ...string) (execPath string, cleanup func(), err erro
 	cmd.Args = append(cmd.Args, extraArgs...)
 	cmd.Args = append(cmd.Args, "-o", execPath, "./cmd/authd")
 
-	if out, err := cmd.CombinedOutput(); err != nil {
+	if err := testlog.RunWithTiming(nil, "Building authd", cmd); err != nil {
 		cleanup()
-		return "", nil, fmt.Errorf("failed to build daemon(%v): %s", err, out)
+		return "", nil, fmt.Errorf("failed to build authd: %v", err)
 	}
 
 	return execPath, cleanup, err
