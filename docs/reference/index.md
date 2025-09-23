@@ -2,20 +2,22 @@
 
 # Reference
 
+These guides provide technical information about authd.
+
 ## Providers
 
-Find the cloud providers and brokers currently supported by authd.
+Multiple cloud providers and brokers are supported by authd:
 
 ```{toctree}
 :titlesonly:
 
-Cloud providers <cloud-providers>
+Cloud providers that authd supports <cloud-providers>
 ```
 
 ## Troubleshooting
 
-Read tips on troubleshooting the authd authentication service and its identity
-brokers.
+The documentation includes several pages that are helpful when troubleshooting
+authd:
 
 ```{toctree}
 :titlesonly:
@@ -25,7 +27,8 @@ Troubleshooting <troubleshooting>
 
 ## Groups
 
-Learn more about managing groups with authd and MS Entra ID.
+Managing groups of users that need the same access and permissions to resources
+is supported by the MS Entra ID broker for authd:
 
 ```{toctree}
 :titlesonly:
