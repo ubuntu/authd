@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS users (
     gecos     TEXT DEFAULT "",
     dir       TEXT DEFAULT "",
     shell     TEXT DEFAULT "/bin/bash",
-    broker_id TEXT DEFAULT ""
+    broker_id TEXT DEFAULT "",
+    locked  BOOLEAN DEFAULT FALSE
 );
 CREATE UNIQUE INDEX "idx_user_name" ON users ("name");
 

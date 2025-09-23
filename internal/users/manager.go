@@ -468,6 +468,34 @@ func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 	return nil
 }
 
+// LockUser sets the "locked" field to true for the given user.
+func (m *Manager) LockUser(username string) error {
+	if err := m.db.UpdateLockedFieldForUser(username, true); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UnlockUser sets the "locked" field to false for the given user.
+func (m *Manager) UnlockUser(username string) error {
+	if err := m.db.UpdateLockedFieldForUser(username, false); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// IsUserLocked returns true if the user with the given user name is locked, false otherwise.
+func (m *Manager) IsUserLocked(username string) (bool, error) {
+	u, err := m.db.UserByName(username)
+	if err != nil {
+		return false, err
+	}
+
+	return u.Locked, nil
+}
+
 // UserByName returns the user information for the given user name.
 func (m *Manager) UserByName(username string) (types.UserEntry, error) {
 	usr, err := m.db.UserByName(username)
