@@ -154,6 +154,10 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 	sshEnvVariablesRegex = regexp.MustCompile(`(?m)  (PATH|HOME|PWD|SSH_[A-Z]+)=.*(\n*)($[^ ]{2}.*)?$`)
 	sshHostPortRegex = regexp.MustCompile(`([\d\.:]+) port ([\d:]+)`)
 
+	authctlPath, authctlCleanup, err := testutils.BuildAuthctl()
+	require.NoError(t, err)
+	t.Cleanup(authctlCleanup)
+
 	tests := map[string]struct {
 		tape          string
 		tapeSettings  []tapeSetting
@@ -313,6 +317,10 @@ func testSSHAuthenticate(t *testing.T, sharedSSHd bool) {
 				vhsCommandFinalAuthWaitVariable: `Wait /Password:/`,
 			},
 		},
+		"Authenticate_user_locks_and_unlocks_it": {
+			tape:          "simple_auth_locks_unlocks",
+			daemonizeSSHd: true,
+		},
 
 		"Deny_authentication_if_max_attempts_reached": {
 			tape:                "max_attempts",
@@ -408,7 +416,8 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 
 				authdEnv = append(authdEnv, useOldDatabaseEnv(t, tc.oldDB)...)
 
-				socketPath = runAuthd(t, true,
+				socketPath = runAuthd(t,
+					testutils.WithCurrentUserAsRoot,
 					testutils.WithGroupFile(groupOutput),
 					testutils.WithEnvironment(authdEnv...))
 			} else if !sharedSSHd {
@@ -487,6 +496,8 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 			td.Command = tapeCommand
 			td.Env[pam_test.RunnerEnvSupportsConversation] = "1"
 			td.Env[pamSSHUserEnv] = user
+			td.Env["AUTHD_SOCKET"] = "unix://" + socketPath
+			td.Env["AUTHCTL_PATH"] = authctlPath
 			td.Env["AUTHD_PAM_SSH_ARGS"] = strings.Join([]string{
 				"-p", sshdPort,
 				"-F", os.DevNull,

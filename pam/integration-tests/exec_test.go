@@ -973,19 +973,9 @@ func buildExecModuleWithCFlags(t *testing.T, cFlags []string, forPreload bool) s
 func buildExecClient(t *testing.T) string {
 	t.Helper()
 
-	cmd := exec.Command("go", "build", "-C", "cmd/exec-client")
-	cmd.Dir = filepath.Join(testutils.CurrentDir())
-	if testutils.CoverDirForTests() != "" {
-		// -cover is a "positional flag", so it needs to come right after the "build" command.
-		cmd.Args = append(cmd.Args, "-cover")
-	}
-	if testutils.IsAsan() {
-		// -asan is a "positional flag", so it needs to come right after the "build" command.
-		cmd.Args = append(cmd.Args, "-asan")
-	}
-	if testutils.IsRace() {
-		cmd.Args = append(cmd.Args, "-race")
-	}
+	cmd := exec.Command("go", "build")
+	cmd.Dir = filepath.Join(testutils.CurrentDir(), "cmd/exec-client")
+	cmd.Args = append(cmd.Args, testutils.GoBuildFlags()...)
 	cmd.Args = append(cmd.Args, "-gcflags=all=-N -l")
 	cmd.Args = append(cmd.Args, "-tags=pam_tests_exec_client")
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)

@@ -2,7 +2,11 @@
 
 # Explanation
 
-Read about the modular design of authd and how it interfaces with
+These guides explain how authd works.
+
+## Architecture
+
+authd has a modular design and can interface with
 multiple cloud providers through different identity brokers.
 
 ```{toctree}
