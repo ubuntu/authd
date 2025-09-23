@@ -182,3 +182,24 @@ func (m *Manager) UpdateBrokerForUser(username, brokerID string) error {
 
 	return nil
 }
+
+// UpdateLockedFieldForUser sets the "locked" field of a user record.
+func (m *Manager) UpdateLockedFieldForUser(username string, locked bool) error {
+	// authd uses lowercase usernames
+	username = strings.ToLower(username)
+
+	query := `UPDATE users SET locked = ? WHERE name = ?`
+	res, err := m.db.Exec(query, locked, username)
+	if err != nil {
+		return fmt.Errorf("failed to update locked field for user: %w", err)
+	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		return NewUserNotFoundError(username)
+	}
+
+	return nil
+}
