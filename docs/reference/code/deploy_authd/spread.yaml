@@ -1,0 +1,55 @@
+project: deploy_authd
+
+path: /deploy_authd
+
+environment:
+  ISSUER_ID: $(HOST:echo -n $ISSUER_ID_SECRET)
+  CLIENT_ID: $(HOST:echo -n $CLIENT_ID_SECRET)
+  EMAIL: $(HOST:echo -n $EMAIL_SECRET)
+  SUFFIX: $(HOST:echo -n $SUFFIX_ALLOWED_SECRET)
+
+backends:
+  multipass:
+    type: adhoc
+    allocate: |
+      multipass_image=24.04
+      instance_name="example-multipass-vm"
+
+      # Launch Multipass VM
+      multipass launch --cpus 2 --disk 10G --memory 2G --name "${instance_name}" "${multipass_image}"
+
+      # Pass in env vars
+      # multipass exec "$instance_name" -- bash -c "export ISSUER_ID=${ISSUER_ID_SECRET}"
+
+      # Enable PasswordAuthentication for root over SSH.
+      multipass exec "$instance_name" -- \
+        sudo sh -c "echo root:${SPREAD_PASSWORD} | sudo chpasswd"
+      multipass exec "$instance_name" -- \
+        sudo sh -c \
+        "if [ -d /etc/ssh/sshd_config.d/ ]
+        then
+          echo 'PasswordAuthentication yes' > /etc/ssh/sshd_config.d/10-spread.conf
+          echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config.d/10-spread.conf
+        else
+          sed -i /etc/ssh/sshd_config -E -e 's/^#?PasswordAuthentication.*/PasswordAuthentication yes/' -e 's/^#?PermitRootLogin.*/PermitRootLogin yes/'
+        fi"
+      multipass exec "$instance_name" -- \
+        sudo systemctl restart ssh
+
+      # Get the IP from the instance
+      ip=$(multipass info --format csv "$instance_name" | tail -1 | cut -d\, -f3)
+      ADDRESS "$ip"
+
+    discard: |
+      instance_name="example-multipass-vm"
+      multipass delete --purge "${instance_name}"
+
+    systems:
+      - ubuntu-24.04-64:
+          workers: 1
+
+suites:
+  tests/:
+    summary: authd deploy reference
+    systems:
+      - ubuntu-24.04-64

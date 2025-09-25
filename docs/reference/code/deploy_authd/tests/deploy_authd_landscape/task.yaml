@@ -1,0 +1,57 @@
+###########################################
+# IMPORTANT
+# Comments matter!
+# The docs use the wrapping comments as
+# markers for including said instructions
+# as snippets in the docs.
+###########################################
+summary: Example tutorial
+
+kill-timeout: 5m
+
+execute: |
+
+  # NOTE: not used in doc
+  ISSUER_ID=$ISSUER_ID
+  CLIENT_ID=$CLIENT_ID
+  SUFFIX_ALLOWED=$SUFFIX
+  EMAIL=$EMAIL
+
+  # NOTE: docs commands start here
+
+  # [docs:install-authd-and-broker]
+  add-apt-repository -y ppa:ubuntu-enterprise-desktop/authd
+  apt update && apt upgrade -y
+  apt-get install -y authd
+  snap install authd-msentraid
+  # [docs:install-authd-and-broker-end]
+
+  # [docs:configure-authd-and-broker]
+  sed -i "s|<CLIENT_ID>|$CLIENT_ID|g; s|<ISSUER_ID>|$ISSUER_ID|g" /var/snap/authd-msentraid/current/broker.conf
+  echo "ssh_allowed_suffixes = $SUFFIX_ALLOWED" >> /var/snap/authd-msentraid/current/broker.conf
+  touch /etc/ssh/sshd_config.d/authd.conf
+  echo "UsePAM yes" >> /etc/ssh/sshd_config.d/authd.conf
+  echo "KbdInteractiveAuthentication yes" >> /etc/ssh/sshd_config.d/authd.conf
+  mkdir -p /etc/authd/brokers.d/
+  cp /snap/authd-msentraid/current/conf/authd/msentraid.conf /etc/authd/brokers.d/
+  # [docs:configure-authd-and-broker-end]
+
+  # [docs:restart-authd-and-broker]
+  systemctl restart authd
+  snap restart authd-msentraid
+  systemctl restart ssh
+  # [docs:restart-authd-and-broker-end]
+
+  # NOTE: docs commands end here
+
+  # NOTE: not used in doc
+  # DEBUG: checks if the prompt contains the expected provider
+  if timeout 2 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$EMAIL"@localhost | grep -q "^ *2\. Microsoft Entra ID$" | xargs ; then
+      echo "PASS"
+      echo "Provider: Microsoft Entra ID"
+      exit 0
+  else
+      echo "FAIL"
+      echo "Provider not Microsoft Entra ID"
+      exit 1
+  fi
