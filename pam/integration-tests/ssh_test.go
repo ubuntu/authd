@@ -571,7 +571,7 @@ func createSshdServiceFile(t *testing.T, module, execChild, mkHomeModule, socket
 		"socket=" + socketPath,
 		fmt.Sprintf("connection_timeout=%d", defaultConnectionTimeout),
 		"debug=true",
-		"logfile=" + os.Stderr.Name(),
+		"logfile=/dev/stderr",
 		"--exec-debug",
 	}
 
