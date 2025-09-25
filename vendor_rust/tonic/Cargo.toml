@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.75"
 name = "tonic"
-version = "0.13.1"
+version = "0.14.2"
 authors = ["Lucio Franco <luciofranco14@gmail.com>"]
 build = false
 exclude = ["benches-disabled"]
@@ -69,10 +69,10 @@ all-features = true
 
 [features]
 _tls-any = [
-    "dep:tokio-rustls",
     "dep:tokio",
     "tokio?/rt",
     "tokio?/macros",
+    "tls-connect-info",
 ]
 channel = [
     "dep:hyper",
@@ -84,6 +84,7 @@ channel = [
     "tower?/buffer",
     "tower?/discover",
     "tower?/limit",
+    "tower?/load-shed",
     "tower?/util",
     "dep:tokio",
     "tokio?/time",
@@ -94,11 +95,9 @@ default = [
     "router",
     "transport",
     "codegen",
-    "prost",
 ]
 deflate = ["dep:flate2"]
 gzip = ["dep:flate2"]
-prost = ["dep:prost"]
 router = [
     "dep:axum",
     "dep:tower",
@@ -120,11 +119,13 @@ server = [
     "dep:tower",
     "tower?/util",
     "tower?/limit",
+    "tower?/load-shed",
 ]
 tls-aws-lc = [
     "_tls-any",
     "tokio-rustls/aws-lc-rs",
 ]
+tls-connect-info = ["dep:tokio-rustls"]
 tls-native-roots = [
     "_tls-any",
     "channel",
@@ -209,20 +210,17 @@ version = "2.1"
 [dependencies.pin-project]
 version = "1.0.11"
 
-[dependencies.prost]
-version = "0.13"
-features = ["std"]
-optional = true
-default-features = false
-
 [dependencies.rustls-native-certs]
 version = "0.8"
 optional = true
 
 [dependencies.socket2]
-version = "0.5"
+version = "0.6"
 features = ["all"]
 optional = true
+
+[dependencies.sync_wrapper]
+version = "1.0.2"
 
 [dependencies.tokio]
 version = "1"
@@ -257,7 +255,7 @@ version = "0.3"
 version = "0.1"
 
 [dependencies.webpki-roots]
-version = "0.26"
+version = "1"
 optional = true
 
 [dependencies.zstd]
@@ -285,7 +283,10 @@ features = [
 
 [dev-dependencies.tower]
 version = "0.5"
-features = ["full"]
+features = [
+    "load-shed",
+    "timeout",
+]
 
 [lints.clippy]
 uninlined_format_args = "deny"

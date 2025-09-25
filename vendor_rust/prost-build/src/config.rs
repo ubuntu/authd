@@ -581,7 +581,7 @@ impl Config {
         self
     }
 
-    /// In combination with with `file_descriptor_set_path`, this can be used to provide a file
+    /// In combination with `file_descriptor_set_path`, this can be used to provide a file
     /// descriptor set as an input file, rather than having prost-build generate the file by calling
     /// protoc.
     ///
@@ -685,7 +685,6 @@ impl Config {
         S: AsRef<str>,
         D: AsRef<str>,
     {
-        self.type_name_domains.clear();
         for matcher in paths {
             self.type_name_domains
                 .insert(matcher.as_ref().to_string(), domain.as_ref().to_string());
@@ -729,7 +728,7 @@ impl Config {
     /// Set the path to `protoc` executable to be used by `prost-build`
     ///
     /// Use the provided path to find `protoc`. This can either be a file name which is
-    /// searched for in the `PATH` or an aboslute path to use a specific executable.
+    /// searched for in the `PATH` or an absolute path to use a specific executable.
     ///
     /// # Example `build.rs`
     ///

@@ -13,7 +13,7 @@
 edition = "2021"
 rust-version = "1.71.1"
 name = "prost-build"
-version = "0.13.5"
+version = "0.14.1"
 authors = [
     "Dan Burkert <dan@danburkert.com>",
     "Lucio Franco <luciofranco14@gmail.com>",
@@ -73,20 +73,20 @@ version = "0.2"
 optional = true
 
 [dependencies.prost]
-version = "0.13.5"
+version = "0.14.1"
 default-features = false
 
 [dependencies.prost-types]
-version = "0.13.5"
+version = "0.14.1"
 default-features = false
 
 [dependencies.pulldown-cmark]
-version = "0.12"
+version = "0.13"
 optional = true
 default-features = false
 
 [dependencies.pulldown-cmark-to-cmark]
-version = ">=16, <=20"
+version = "21"
 optional = true
 
 [dependencies.regex]
