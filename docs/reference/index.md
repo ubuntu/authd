@@ -35,3 +35,10 @@ is supported by the MS Entra ID broker for authd:
 
 Group management <group-management>
 ```
+## Deployment
+
+```{toctree}
+:titlesonly:
+
+Reference deployment script <landscape-script>
+```
