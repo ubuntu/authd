@@ -1,0 +1,106 @@
+# Testing documented authd deployment script
+
+[Spread](https://github.com/canonical/spread) tests must currently be run in a
+VM on your local machine.
+
+This test runs through the commands found in the [accompanying documentation
+page](../landscape-script.md).
+
+## Prerequisites
+
+Multipass:
+
+```sh
+snap install multipass
+```
+
+Spread:
+
+```sh
+go install github.com/snapcore/spread/cmd/spread@latest
+```
+
+## Example: manual testing of authd deployment script
+
+The documentation for the authd deployment script can be found in:
+
+```sh
+../landscape-script.md
+```
+
+The document is composed of code snippets defined in:
+
+```sh
+../code/deploy_authd/tests/deploy_authd_landscape/task.yaml
+```
+
+> Note: an alternative way of doing this would be to call a script, or several
+scripts directly from `task.yaml` rather than embedding the commands.
+
+To run the corresponding test, change into the test directory:
+
+```sh
+cd deploy_authd
+```
+
+List available tests:
+
+```sh
+spread --list
+```
+
+Before running the test, the following variables need to be defined in your
+local environment for the script to configure authd and to test user login:
+
+```sh
+ISSUER_ID_SECRET='<issuer-secret>'
+CLIENT_ID_SECRET='<client-secret'
+SUFFIX_ALLOWED_SECRET='<suffix-secret>'
+EMAIL_SECRET='<email-secret>'
+```
+
+Spawn a VM to run the available test (this takes a few minutes):
+
+```sh
+spread -vv -debug multipass:ubuntu-24.04-64:tests/deploy_authd
+```
+
+Relevant output for a successful test:
+
+```
+PASS
+Provider: Microsoft Entra ID
+...
+... Successful tasks: 1
+... Aborted tasks: 0
+```
+
+Running with `-debug` will automatically shell into the VM as root if there is
+an error.
+
+For example, say we try to install the wrong package:
+
+```sh
+apt-get install -y auth
+```
+
+Output:
+
+```
++ apt-get install -y auth
+Reading package lists...
+Building dependency tree...
+Reading state information...
+E: Unable to locate package auth
+-----
+.
+2025-09-25 16:34:31 Starting shell to debug...
+
+```
+
+Checking whether authd daemon is running:
+
+```
+</tests/deploy_authd_landscape# sudo systemctl status authd
+Unit authd.service could not be found.
+```
