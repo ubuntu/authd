@@ -2,7 +2,7 @@ module github.com/ubuntu/authd/tools
 
 go 1.24.0
 
-toolchain go1.24.2
+toolchain go1.25.0
 
 require (
 	github.com/golang/protobuf v1.5.4
