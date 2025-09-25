@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/prost-build/0.13.5")]
+#![doc(html_root_url = "https://docs.rs/prost-build/0.14.1")]
 #![allow(clippy::option_as_ref_deref, clippy::format_push_string)]
 
 //! `prost-build` compiles `.proto` files into Rust.
@@ -115,7 +115,7 @@
 //! PROTOC=/usr/local/bin/protoc
 //! ```
 //!
-//! Alternatively, the path to `protoc` execuatable can be explicitly set
+//! Alternatively, the path to `protoc` executable can be explicitly set
 //! via [`Config::protoc_executable()`].
 //!
 //! If `prost-build` can not find `protoc`
@@ -397,10 +397,10 @@ mod tests {
         let tempdir = tempfile::tempdir().unwrap();
 
         let state = Rc::new(RefCell::new(MockState::default()));
-        let gen = MockServiceGenerator::new(Rc::clone(&state));
+        let generator = MockServiceGenerator::new(Rc::clone(&state));
 
         Config::new()
-            .service_generator(Box::new(gen))
+            .service_generator(Box::new(generator))
             .include_file("_protos.rs")
             .out_dir(tempdir.path())
             .compile_protos(
@@ -467,13 +467,13 @@ mod tests {
     fn test_generate_no_empty_outputs() {
         let _ = env_logger::try_init();
         let state = Rc::new(RefCell::new(MockState::default()));
-        let gen = MockServiceGenerator::new(Rc::clone(&state));
+        let generator = MockServiceGenerator::new(Rc::clone(&state));
         let include_file = "_include.rs";
         let tempdir = tempfile::tempdir().unwrap();
         let previously_empty_proto_path = tempdir.path().join(Path::new("google.protobuf.rs"));
 
         Config::new()
-            .service_generator(Box::new(gen))
+            .service_generator(Box::new(generator))
             .include_file(include_file)
             .out_dir(tempdir.path())
             .compile_protos(
@@ -529,12 +529,12 @@ mod tests {
 
         for _ in 1..10 {
             let state = Rc::new(RefCell::new(MockState::default()));
-            let gen = MockServiceGenerator::new(Rc::clone(&state));
+            let generator = MockServiceGenerator::new(Rc::clone(&state));
             let include_file = "_include.rs";
             let tempdir = tempfile::tempdir().unwrap();
 
             Config::new()
-                .service_generator(Box::new(gen))
+                .service_generator(Box::new(generator))
                 .include_file(include_file)
                 .out_dir(tempdir.path())
                 .compile_protos(

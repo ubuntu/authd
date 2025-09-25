@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/prost-types/0.13.5")]
+#![doc(html_root_url = "https://docs.rs/prost-types/0.14.1")]
 
 //! Protocol Buffers well-known types.
 //!
@@ -36,6 +36,7 @@
 //! ## Feature Flags
 //! - `std`: Enable integration with standard library. Disable this feature for `no_std` support. This feature is enabled by default.
 //! - `arbitrary`: Enable integration with crate `arbitrary`. All types on this crate will implement `trait Arbitrary`.
+//! - `chrono`: Enable integration with crate `chrono`. Time related types implement conversions to/from their `chrono` equivalent.
 //!
 //! [1]: https://developers.google.com/protocol-buffers/docs/reference/google.protobuf
 
