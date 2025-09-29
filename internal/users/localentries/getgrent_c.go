@@ -7,6 +7,14 @@ package localentries
 #include <stdlib.h>
 #include <pwd.h>
 #include <grp.h>
+
+// Return the length of a NULL-terminated array of strings.
+size_t strv_len(const char * const * strv) {
+    size_t n = 0;
+    while (strv[n]) n++;
+    return n;
+}
+
 */
 import "C"
 
@@ -74,15 +82,15 @@ func getGroupEntries() (entries []types.GroupEntry, err error) {
 }
 
 func strvToSlice(strv **C.char) []string {
-	var users []string
-	for i := C.uint(0); ; i++ {
-		s := *(**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(strv)) +
-			uintptr(i)*unsafe.Sizeof(*strv)))
-		if s == nil {
-			break
-		}
-
-		users = append(users, C.GoString(s))
+	if strv == nil {
+		return nil
 	}
-	return users
+	n := C.strv_len(strv)
+
+	out := make([]string, int(n))
+	for i := 0; i < int(n); i++ {
+		p := *(**C.char)(unsafe.Add(unsafe.Pointer(strv), uintptr(i)*unsafe.Sizeof(*strv)))
+		out[i] = C.GoString(p)
+	}
+	return out
 }
