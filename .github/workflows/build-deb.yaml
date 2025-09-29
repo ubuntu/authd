@@ -18,7 +18,7 @@ on:
 
 env:
   UBUNTU_VERSIONS: |
-    ["noble", "plucky", "devel"]
+    ["noble"]
   CARGO_VENDOR_FILTERER_VERSION: 0.5.16
 
 jobs:
