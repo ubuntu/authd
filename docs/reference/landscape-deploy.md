@@ -129,9 +129,8 @@ snap restart authd-google
 :sync: msentraid
 
 ```shell
-systemctl restart authd
+systemctl restart authd ssh
 snap restart authd-msentraid
-systemctl restart ssh
 ```
 
 ::::
