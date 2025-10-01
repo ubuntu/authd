@@ -119,9 +119,8 @@ Restart the authd daemon, the broker snap, and the SSH service:
 :sync: google
 
 ```shell
-systemctl restart authd
+systemctl restart authd ssh
 snap restart authd-google
-systemctl restart ssh
 ```
 
 ::::
