@@ -5,6 +5,7 @@ authd
 authd's
 biometric
 Center
+config
 DBus
 entra
 filesystem
@@ -20,6 +21,7 @@ grpc
 hostname
 https
 IDMAP
+init
 io
 KDC
 Kerberos
