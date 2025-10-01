@@ -91,7 +91,7 @@ cp /snap/authd-google/current/conf/authd/google.conf /etc/authd/brokers.d/
 
 ```shell
 sed -i "s|<CLIENT_ID>|$CLIENT_ID|g; s|<ISSUER_ID>|$ISSUER_ID|g" /var/snap/authd-msentraid/current/broker.conf
-echo "ssh_allowed_suffixes = @test.onmicrosoft.com" >> /var/snap/authd-msentraid/current/broker.conf
+echo "ssh_allowed_suffixes = @example.onmicrosoft.com" >> /var/snap/authd-msentraid/current/broker.conf
 touch /etc/ssh/sshd_config.d/authd.conf
 echo "UsePAM yes" >> /etc/ssh/sshd_config.d/authd.conf
 echo "KbdInteractiveAuthentication yes" >> /etc/ssh/sshd_config.d/authd.conf
