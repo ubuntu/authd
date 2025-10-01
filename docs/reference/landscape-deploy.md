@@ -139,7 +139,7 @@ systemctl restart ssh
 :::::
 
 When you have a complete script, add it to the Landscape dashboard to run as
-root user  before executing on the target machines.
+root user before executing on the target machines.
 
 ## Authentication
 
