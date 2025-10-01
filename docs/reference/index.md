@@ -37,8 +37,12 @@ Group management <group-management>
 ```
 ## Deployment
 
+Deploying authd at scale can be achieved with Landscape or cloud-init.
+The documentation includes snippets to get you started.
+
 ```{toctree}
 :titlesonly:
 
-Reference deployment script <landscape-script>
+Deploying and configuring authd with Landscape <landscape-deploy>
+Deploying and configuring authd with cloud-init <cloud-init-deploy>
 ```
