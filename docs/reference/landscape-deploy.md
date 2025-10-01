@@ -76,7 +76,7 @@ Configure authd and the broker:
 
 ```shell
 sed -i "s|<CLIENT_ID>|$CLIENT_ID|g; s|<ISSUER_ID>|$ISSUER_ID|g" /var/snap/authd-google/current/broker.conf
-echo "ssh_allowed_suffixes = @test.google.com" >> /var/snap/authd-google/current/broker.conf
+echo "ssh_allowed_suffixes = @example.com" >> /var/snap/authd-google/current/broker.conf
 touch /etc/ssh/sshd_config.d/authd.conf
 echo "UsePAM yes" >> /etc/ssh/sshd_config.d/authd.conf
 echo "KbdInteractiveAuthentication yes" >> /etc/ssh/sshd_config.d/authd.conf
