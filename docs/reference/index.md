@@ -35,3 +35,14 @@ is supported by the MS Entra ID broker for authd:
 
 Group management <group-management>
 ```
+## Deployment
+
+Deploying authd at scale can be achieved with Landscape or cloud-init.
+The documentation includes snippets to get you started.
+
+```{toctree}
+:titlesonly:
+
+Deploying and configuring authd with Landscape <landscape-deploy>
+Deploying and configuring authd with cloud-init <cloud-init-deploy>
+```
