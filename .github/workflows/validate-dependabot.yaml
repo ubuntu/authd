@@ -17,3 +17,7 @@ jobs:
         with:
           header: validate-dependabot
           message: ${{ steps.validate.outputs.markdown }}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true

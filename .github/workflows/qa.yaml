@@ -15,6 +15,10 @@ on:
       - '.readthedocs.yaml'
       - 'docs/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   DEBIAN_FRONTEND: noninteractive
   GO_TESTS_TIMEOUT: 20m
