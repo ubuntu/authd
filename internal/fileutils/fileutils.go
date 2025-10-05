@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
+	"syscall"
 
 	"golang.org/x/sys/unix"
 )
@@ -129,4 +131,37 @@ func LockDir(dir string) (func() error, error) {
 	}
 
 	return unlock, nil
+}
+
+// ChownRecursiveFrom changes ownership of files and directories under root
+// from the current UID/GID (fromUID, fromGID) to the new UID/GID (toUID, toGID).
+func ChownRecursiveFrom(root string, fromUID, fromGID, toUID, toGID uint32) error {
+	if toUID > math.MaxInt32 || toGID > math.MaxInt32 {
+		return fmt.Errorf("toUID (%d) or toGID (%d) is too large to convert to int", toUID, toGID)
+	}
+
+	return filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		stat, ok := info.Sys().(*syscall.Stat_t)
+		if !ok {
+			return fmt.Errorf("failed to get raw stat for %q", path)
+		}
+
+		if stat.Uid == fromUID {
+			if err := os.Chown(path, int(toUID), -1); err != nil {
+				return fmt.Errorf("failed to change owner of %q from UID %d to %d: %w", path, fromUID, toUID, err)
+			}
+		}
+
+		if stat.Gid == fromGID {
+			if err := os.Chown(path, -1, int(toGID)); err != nil {
+				return fmt.Errorf("failed to change group of %q from GID %d to %d: %w", path, fromGID, toGID, err)
+			}
+		}
+
+		return nil
+	})
 }
