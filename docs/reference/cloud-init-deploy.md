@@ -125,14 +125,12 @@ write_files:
 
 runcmd:
   - sed -i 's|<CLIENT_ID>|{{ CLIENT_ID }}|g; s|<ISSUER_ID>|{{ ISSUER_ID }}|g' /var/snap/authd-msentraid/current/broker.conf
-  - echo 'ssh_allowed_suffixes = @test.onmicrosoft.com' >> /var/snap/authd-msentraid/current/broker.conf
+  - echo 'ssh_allowed_suffixes = @example.onmicrosoft.com' >> /var/snap/authd-msentraid/current/broker.conf
   - sed -i 's/^\(LOGIN_TIMEOUT\t\t\)[0-9]\+/\1360/' /etc/login.defs
   - mkdir -p /etc/authd/brokers.d/
   - cp /snap/authd-msentraid/current/conf/authd/msentraid.conf /etc/authd/brokers.d/
   - snap restart authd-msentraid
-  - systemctl restart authd
-  - snap restart authd-msentraid
-  - systemctl restart ssh
+  - systemctl restart authd ssh
 ```
 
 ::::
