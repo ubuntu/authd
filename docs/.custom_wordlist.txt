@@ -25,6 +25,7 @@ IDMAP
 IdP
 init
 io
+jinja
 KDC
 Kerberos
 keytab
@@ -52,6 +53,7 @@ sshd
 styleguide
 sudo
 systemd
+templating
 TPM
 ubuntu
 UEFI
