@@ -16,6 +16,11 @@ on client machines.
 This page provides example snippets that can be used in your own deployment
 scripts to install and configure authd on Ubuntu machines at scale.
 
+```{note}
+When you deploy the final script using Landscape,
+ensure that the script is run as the `root` user.
+```
+
 ## Setup
 
 Define the following environmental variables:
@@ -135,7 +140,7 @@ snap restart authd-msentraid
 :::::
 
 When you have a complete script, add it to the Landscape dashboard to run as
-root user before executing on the target machines.
+the `root` user before executing on the target machines.
 
 ## Authentication
 
