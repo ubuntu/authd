@@ -71,7 +71,7 @@ copyright = "%s CC-BY-SA, %s" % (datetime.date.today().year, author)
 # NOTE: The Open Graph Protocol (OGP) enhances page display in a social graph
 #       and is used by social media platforms; see https://ogp.me/
 
-ogp_site_url = "https://documentation.ubuntu/authd/en/stable"
+ogp_site_url = "https://documentation.ubuntu.com/authd/stable-docs"
 
 
 # Preview name of the documentation website
@@ -98,7 +98,12 @@ ogp_image = "https://assets.ubuntu.com/v1/253da317-image-document-ubuntudocs.svg
 # Dictionary of values to pass into the Sphinx context for all pages:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#confval-html_context
 
+version = os.getenv("READTHEDOCS_VERSION", "")
+
 html_context = {
+    # Used for rendering version information and links in authd documentation
+    "version": version,
+    "ogp_site_url": ogp_site_url,
     # Product page URL; can be different from product docs URL
     #
     # TODO: Change to your product website URL,
@@ -280,7 +285,7 @@ extensions = [
 
 # Adds custom CSS files, located under 'html_static_path'
 
-html_css_files = ["cookie-banner.css"]
+html_css_files = ["cookie-banner.css", "version-warning.css"]
 
 # Adds custom JavaScript files, located under 'html_static_path'
 
