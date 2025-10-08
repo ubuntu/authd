@@ -49,7 +49,32 @@ if [ ! -e "$proto_file" ]; then
     exit 1
 fi
 
-PATH="$(go env GOPATH)/bin:$PATH"
-export PATH
+TOOLS_DIR=$(readlink -f "$(dirname "$0")")
 
-exec protoc "${args[@]}" "$proto_file" "${@}"
+protoc_gen_go_dir() {
+    dirname "$(go -C "${TOOLS_DIR}" tool -n google.golang.org/protobuf/cmd/protoc-gen-go)"
+}
+
+protoc_gen_go_grpc_dir() {
+    dirname "$(go -C "${TOOLS_DIR}" tool -n google.golang.org/grpc/cmd/protoc-gen-go-grpc)"
+}
+
+# In Go 1.24, `go tool -n` is affected by https://github.com/golang/go/issues/72824
+# which makes it print a path like
+#
+#      /tmp/go-build1254405993/b001/exe/protoc-gen-go
+#
+# instead of
+#
+#     ~/.cache/go-build/1f/1f43080884166a56f6a9be495a3bc501b7d6dad6482461397d4bf946de142f6c-d/protoc-gen-go
+#
+# if the binary was not built yet. The workaround is to call `go tool -n` twice,
+# the first time to build the binary, and the second time to get the correct path.
+protoc_gen_go_dir >/dev/null 2>&1
+PATH="$(protoc_gen_go_dir):$PATH"
+
+protoc_gen_go_grpc_dir >/dev/null 2>&1
+PATH="$(protoc_gen_go_grpc_dir):$PATH"
+
+PATH=$PATH \
+  exec protoc "${args[@]}" "$proto_file" "${@}"
