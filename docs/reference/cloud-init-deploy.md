@@ -117,9 +117,7 @@ runcmd:
   - mkdir -p /etc/authd/brokers.d/
   - cp /snap/authd-google/current/conf/authd/google.conf /etc/authd/brokers.d/
   - snap restart authd-google
-  - systemctl restart authd
-  - snap restart authd-google
-  - systemctl restart ssh
+  - systemctl restart authd ssh
 ```
 
 ::::
