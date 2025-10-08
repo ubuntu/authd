@@ -20,7 +20,7 @@ as soon as they are available.
 
 A full authd installation consists of both the authd Debian package and at least
 one broker snap. Snaps are updated automatically. Further information is
-provided in the [snap documentation on managing updates](https://snapcraft.io/docs/managing-updates)).
+provided in the [snap documentation on managing updates](https://snapcraft.io/docs/managing-updates).
 
 Update Debian packages regularly, either manually or by enabling
 [automatic updates](https://documentation.ubuntu.com/server/how-to/software/automatic-updates/).
