@@ -82,11 +82,13 @@ Configure authd and the broker:
 ```shell
 sed -i "s|<CLIENT_ID>|$CLIENT_ID|g; s|<ISSUER_ID>|$ISSUER_ID|g" /var/snap/authd-google/current/broker.conf
 echo "ssh_allowed_suffixes = @example.com" >> /var/snap/authd-google/current/broker.conf
-echo "UsePAM yes" >> /etc/ssh/sshd_config.d/authd.conf
-echo "Match User *@example.com" >> /etc/ssh/sshd_config.d/authd.conf
-echo -e "  KbdInteractiveAuthentication yes" >> /etc/ssh/sshd_config.d/authd.conf
 mkdir -p /etc/authd/brokers.d/
 cp /snap/authd-google/current/conf/authd/google.conf /etc/authd/brokers.d/
+cat <<EOF >> /etc/ssh/sshd_config.d/authd.conf
+UsePAM yes
+Match User *@example.com
+    KbdInteractiveAuthentication yes
+EOF
 ```
 
 ::::
@@ -97,11 +99,13 @@ cp /snap/authd-google/current/conf/authd/google.conf /etc/authd/brokers.d/
 ```shell
 sed -i "s|<CLIENT_ID>|$CLIENT_ID|g; s|<ISSUER_ID>|$ISSUER_ID|g" /var/snap/authd-msentraid/current/broker.conf
 echo "ssh_allowed_suffixes = @example.onmicrosoft.com" >> /var/snap/authd-msentraid/current/broker.conf
-echo "UsePAM yes" >> /etc/ssh/sshd_config.d/authd.conf
-echo "Match User *@example.onmicrosoft.com" >> /etc/ssh/sshd_config.d/authd.conf
-echo -e "  KbdInteractiveAuthentication yes" >> /etc/ssh/sshd_config.d/authd.conf
 mkdir -p /etc/authd/brokers.d/
 cp /snap/authd-msentraid/current/conf/authd/msentraid.conf /etc/authd/brokers.d/
+cat <<EOF >> /etc/ssh/sshd_config.d/authd.conf
+UsePAM yes
+Match User *@example.onmicrosoft.com
+    KbdInteractiveAuthentication yes
+EOF
 ```
 
 ::::
