@@ -34,15 +34,18 @@ Define the necessary environmental variables:
 {% set CLIENT_ID = '<your_client_id>' %}
 ```
 
-## Add authd PPA
+## Install authd
 
-Add the authd PPA to the system's software sources:
+Add the authd PPA to the system's software sources and install authd:
 
 ```yaml
 apt:
   sources:
       source1:
           source: 'ppa:ubuntu-enterprise-desktop/authd'
+
+packages:
+  - authd
 ```
 
 ## Install broker
@@ -86,7 +89,7 @@ For more information on installing authd and its brokers, read the
 To complete the setup:
 
 * Configure SSH for user login
-* Upgrade packages before installing authd
+* Upgrade packages
 * Configure authd and the broker
 * Restart the services for the changes to take effect
 
@@ -110,7 +113,6 @@ write_files:
 
 runcmd:
   - apt-get upgrade -y
-  - apt-get install -y authd
   - sed -i 's|<CLIENT_ID>|{{ CLIENT_ID }}|g; s|<ISSUER_ID>|{{ ISSUER_ID }}|g' /var/snap/authd-google/current/broker.conf
   - echo 'ssh_allowed_suffixes = @example.com' >> /var/snap/authd-google/current/broker.conf
   - sed -i 's/^\(LOGIN_TIMEOUT\t\t\)[0-9]\+/\1360/' /etc/login.defs
@@ -136,7 +138,6 @@ write_files:
 
 runcmd:
   - apt-get upgrade -y
-  - apt-get install -y authd
   - sed -i 's|<CLIENT_ID>|{{ CLIENT_ID }}|g; s|<ISSUER_ID>|{{ ISSUER_ID }}|g' /var/snap/authd-msentraid/current/broker.conf
   - echo 'ssh_allowed_suffixes = @example.onmicrosoft.com' >> /var/snap/authd-msentraid/current/broker.conf
   - sed -i 's/^\(LOGIN_TIMEOUT\t\t\)[0-9]\+/\1360/' /etc/login.defs
