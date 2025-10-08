@@ -4,6 +4,7 @@ auth
 authd
 authd's
 biometric
+cleartext
 Center
 DBus
 entra
@@ -20,6 +21,7 @@ grpc
 hostname
 https
 IDMAP
+IdP
 io
 KDC
 Kerberos
@@ -42,10 +44,12 @@ PR
 protoc
 PRs
 repo
+sandboxing
 smartcard
 sshd
 styleguide
 sudo
+systemd
 TPM
 ubuntu
 UEFI
