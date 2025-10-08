@@ -4,6 +4,7 @@
 
 To enable SSH access with `authd` you must configure `sshd` and the broker.
 
+(ref::ssh-configuration)=
 ### SSH configuration
 
 To configure SSH, create a file `/etc/ssh/sshd_config.d/authd.conf` with the following content:
