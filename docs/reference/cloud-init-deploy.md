@@ -34,31 +34,20 @@ Define the necessary environmental variables:
 {% set CLIENT_ID = '<your_client_id>' %}
 ```
 
-## Installation
+## Add authd PPA
 
-Ensure packages are updated:
-
-```yaml
-package_update: true
-package_upgrade: true
-```
-
-Install the authd deb:
+Add the authd PPA to the system's software sources:
 
 ```yaml
 apt:
   sources:
       source1:
           source: 'ppa:ubuntu-enterprise-desktop/authd'
-
-packages:
-  - authd
-  - gnome-shell # only needed for GDM login
-  - yaru-theme-gnome-shell # only needed for GDM login
 ```
 
-Then install the broker:
+## Install broker
 
+Install the broker as a snap:
 
 :::::{tab-set}
 :sync-group: broker
@@ -92,10 +81,18 @@ For more information on installing authd and its brokers, read the
 [installation guide](howto::install).
 ```
 
-## Configuration
+## Install authd and apply configurations
 
-Configure authd and the broker, ensuring that you edit the allowed suffixes,
-and restart the services for the changes to take effect.
+To complete the setup:
+
+* Configure SSH for user login
+* Upgrade packages before installing authd
+* Configure authd and the broker
+* Restart the services for the changes to take effect
+
+```{important}
+Edit the allowed suffixes as appropriate.
+```
 
 :::::{tab-set}
 :sync-group: broker
@@ -112,6 +109,8 @@ write_files:
           KbdInteractiveAuthentication yes
 
 runcmd:
+  - apt-get upgrade -y
+  - apt-get install -y authd
   - sed -i 's|<CLIENT_ID>|{{ CLIENT_ID }}|g; s|<ISSUER_ID>|{{ ISSUER_ID }}|g' /var/snap/authd-google/current/broker.conf
   - echo 'ssh_allowed_suffixes = @example.com' >> /var/snap/authd-google/current/broker.conf
   - sed -i 's/^\(LOGIN_TIMEOUT\t\t\)[0-9]\+/\1360/' /etc/login.defs
@@ -136,6 +135,8 @@ write_files:
           KbdInteractiveAuthentication yes
 
 runcmd:
+  - apt-get upgrade -y
+  - apt-get install -y authd
   - sed -i 's|<CLIENT_ID>|{{ CLIENT_ID }}|g; s|<ISSUER_ID>|{{ ISSUER_ID }}|g' /var/snap/authd-msentraid/current/broker.conf
   - echo 'ssh_allowed_suffixes = @example.onmicrosoft.com' >> /var/snap/authd-msentraid/current/broker.conf
   - sed -i 's/^\(LOGIN_TIMEOUT\t\t\)[0-9]\+/\1360/' /etc/login.defs
