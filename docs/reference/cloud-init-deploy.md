@@ -109,7 +109,7 @@ write_files:
     content: |
       UsePAM yes
       Match User *@example.com
-        KbdInteractiveAuthentication yes
+          KbdInteractiveAuthentication yes
 
 runcmd:
   - sed -i 's|<CLIENT_ID>|{{ CLIENT_ID }}|g; s|<ISSUER_ID>|{{ ISSUER_ID }}|g' /var/snap/authd-google/current/broker.conf
@@ -133,7 +133,7 @@ write_files:
     content: |
       UsePAM yes
       Match User *@example.onmicrosoft.com
-        KbdInteractiveAuthentication yes
+          KbdInteractiveAuthentication yes
 
 runcmd:
   - sed -i 's|<CLIENT_ID>|{{ CLIENT_ID }}|g; s|<ISSUER_ID>|{{ ISSUER_ID }}|g' /var/snap/authd-msentraid/current/broker.conf
