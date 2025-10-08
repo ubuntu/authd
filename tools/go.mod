@@ -4,10 +4,13 @@ go 1.24.0
 
 toolchain go1.24.2
 
+tool (
+	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
+	github.com/msteinert/pam/v2/cmd/pam-moduler
+)
+
 require (
 	github.com/golang/protobuf v1.5.4
-	github.com/golangci/golangci-lint/v2 v2.5.0
-	github.com/msteinert/pam/v2 v2.0.0-00010101000000-000000000000
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1
 )
 
@@ -88,6 +91,7 @@ require (
 	github.com/golangci/dupl v0.0.0-20250308024227-f665c8d69b32 // indirect
 	github.com/golangci/go-printf-func-name v0.1.1 // indirect
 	github.com/golangci/gofmt v0.0.0-20250106114630-d62b90e6713d // indirect
+	github.com/golangci/golangci-lint/v2 v2.5.0 // indirect
 	github.com/golangci/golines v0.0.0-20250217134842-442fd0091d95 // indirect
 	github.com/golangci/misspell v0.7.0 // indirect
 	github.com/golangci/nilerr v0.0.0-20250918000102-015671e622fe // indirect
@@ -138,6 +142,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/moricho/tparallel v0.3.2 // indirect
+	github.com/msteinert/pam/v2 v2.0.0-00010101000000-000000000000 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
 	github.com/nakabonne/nestif v0.3.1 // indirect
 	github.com/nishanths/exhaustive v0.12.0 // indirect
