@@ -161,6 +161,7 @@ client_id = <CLIENT_ID>
 ::::
 :::::
 
+(ref::config-force-provider-auth)=
 ## Force remote authentication with the identity provider
 
 By default, remote authentication with the identity provider only happens
@@ -351,6 +352,7 @@ The authd service is configured in `/etc/authd/authd.yaml`.
 
 This provides configuration options for logging verbosity and UID/GID ranges.
 
+(ref::config-pwquality)=
 ## Configure password quality
 
 You can change authd's local password policy to ensure that users always set
