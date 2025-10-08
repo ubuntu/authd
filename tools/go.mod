@@ -5,10 +5,13 @@ go 1.24.0
 toolchain go1.24.2
 
 tool (
-	github.com/golang/protobuf/protoc-gen-go
 	github.com/golangci/golangci-lint/v2/cmd/golangci-lint
 	github.com/msteinert/pam/v2/cmd/pam-moduler
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc
+)
+
+require (
+	github.com/golang/protobuf v1.5.4
+	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1
 )
 
 require (
@@ -84,7 +87,6 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/godoc-lint/godoc-lint v0.10.0 // indirect
 	github.com/gofrs/flock v0.12.1 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golangci/asciicheck v0.5.0 // indirect
 	github.com/golangci/dupl v0.0.0-20250308024227-f665c8d69b32 // indirect
 	github.com/golangci/go-printf-func-name v0.1.1 // indirect
@@ -213,7 +215,6 @@ require (
 	golang.org/x/text v0.29.0 // indirect
 	golang.org/x/tools v0.37.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250818200422-3122310a409c // indirect
-	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.5.1 // indirect
 	google.golang.org/protobuf v1.36.8 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
