@@ -42,7 +42,7 @@ Install the authd deb and the broker snap:
 
 ```shell
 add-apt-repository -y ppa:ubuntu-enterprise-desktop/authd
-apt upgrade -y
+apt-get upgrade -y
 apt-get install -y authd
 snap install authd-google
 ```
@@ -54,7 +54,7 @@ snap install authd-google
 
 ```shell
 add-apt-repository -y ppa:ubuntu-enterprise-desktop/authd
-apt upgrade -y
+apt-get upgrade -y
 apt-get install -y authd
 snap install authd-msentraid
 ```
