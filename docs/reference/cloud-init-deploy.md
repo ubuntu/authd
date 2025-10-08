@@ -108,7 +108,8 @@ write_files:
   - path: /etc/ssh/sshd_config.d/authd.conf
     content: |
       UsePAM yes
-      KbdInteractiveAuthentication yes
+      Match User *@example.com
+        KbdInteractiveAuthentication yes
 
 runcmd:
   - sed -i 's|<CLIENT_ID>|{{ CLIENT_ID }}|g; s|<ISSUER_ID>|{{ ISSUER_ID }}|g' /var/snap/authd-google/current/broker.conf
@@ -131,7 +132,8 @@ write_files:
   - path: /etc/ssh/sshd_config.d/authd.conf
     content: |
       UsePAM yes
-      KbdInteractiveAuthentication yes
+      Match User *@example.onmicrosoft.com
+        KbdInteractiveAuthentication yes
 
 runcmd:
   - sed -i 's|<CLIENT_ID>|{{ CLIENT_ID }}|g; s|<ISSUER_ID>|{{ ISSUER_ID }}|g' /var/snap/authd-msentraid/current/broker.conf
