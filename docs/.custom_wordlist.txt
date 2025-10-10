@@ -6,6 +6,7 @@ authd's
 biometric
 cleartext
 Center
+config
 DBus
 entra
 filesystem
@@ -22,7 +23,9 @@ hostname
 https
 IDMAP
 IdP
+init
 io
+jinja
 KDC
 Kerberos
 keytab
@@ -50,6 +53,7 @@ sshd
 styleguide
 sudo
 systemd
+templating
 TPM
 ubuntu
 UEFI
