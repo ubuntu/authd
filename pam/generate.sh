@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+set -x
 
 SCRIPT_PATH=$(dirname "$0")
 PROJECT_ROOT=$(realpath "$SCRIPT_PATH")/..
