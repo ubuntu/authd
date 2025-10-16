@@ -53,6 +53,8 @@ type sessionInfo struct {
 
 // uiModel is the global models orchestrator.
 type uiModel struct {
+	width int
+
 	// pamMTx is the [pam.ModuleTransaction] used to communicate with PAM.
 	pamMTx pam.ModuleTransaction
 	// conn is the [grpc.ClientConn] opened with authd daemon.
@@ -234,6 +236,9 @@ func (m *uiModel) startHealthCheck() tea.Cmd {
 // Update handles events and actions to be done from the main model orchestrator.
 func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+
 	// Key presses
 	case tea.KeyMsg:
 		safeMessageDebugWithPrefix("Key", msg, "in stage %q", m.currentStage())
@@ -421,32 +426,38 @@ func (m uiModel) View() string {
 		return ""
 	}
 
-	var view strings.Builder
+	var viewBuilder strings.Builder
 
 	switch m.currentStage() {
 	case proto.Stage_userSelection:
-		view.WriteString(m.userSelectionModel.View())
+		viewBuilder.WriteString(m.userSelectionModel.View())
 	case proto.Stage_brokerSelection:
-		view.WriteString(m.brokerSelectionModel.View())
+		viewBuilder.WriteString(m.brokerSelectionModel.View())
 	case proto.Stage_authModeSelection:
-		view.WriteString(m.authModeSelectionModel.View())
+		viewBuilder.WriteString(m.authModeSelectionModel.View())
 	case proto.Stage_challenge:
-		view.WriteString(m.authenticationModel.View())
+		viewBuilder.WriteString(m.authenticationModel.View())
 	default:
-		view.WriteString("INVALID STAGE")
+		viewBuilder.WriteString("INVALID STAGE")
 	}
 
 	if debug != "" {
-		view.WriteString(debug)
+		viewBuilder.WriteString(debug)
 	}
 
-	if view.Len() > 0 && m.canGoBack() {
+	view := viewBuilder.String()
+
+	if len(view) > 0 && m.canGoBack() {
 		infoMessage := infoMsgStyle.Render(fmt.Sprintf("Press escape key to %s",
 			goBackLabel(m.previousStage())))
-		return lipgloss.JoinVertical(lipgloss.Left, view.String(), infoMessage)
+		view = lipgloss.JoinVertical(lipgloss.Left, view, infoMessage)
 	}
 
-	return view.String()
+	if m.width == 0 {
+		return view
+	}
+	// Wrap the view to the terminal width.
+	return lipgloss.NewStyle().Width(m.width).Render(view)
 }
 
 // currentStage returns our current stage step.
