@@ -264,6 +264,9 @@ jobs:
           # Print executed commands to ease debugging
           set -x
 
+          # Work around https://github.com/golang/go/issues/75031
+          go env -w GOTOOLCHAIN="$(go version | awk '{ print $3 }')+auto"
+
           # Overriding the default coverage directory is not an exported flag of go test (yet), so
           # we need to override it using the test.gocoverdir flag instead.
           #TODO: Update when https://go-review.googlesource.com/c/go/+/456595 is merged.
