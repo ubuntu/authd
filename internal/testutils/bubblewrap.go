@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,6 +21,13 @@ var (
 	bubbleWrapNeedsSudoOnce sync.Once
 	bubbleWrapNeedsSudo     bool
 )
+
+const bubbleWrapTestEnvVar = "BUBBLEWRAP_TEST"
+
+// RunningInBubblewrap returns true if the test is being run in bubblewrap.
+func RunningInBubblewrap() bool {
+	return os.Getenv(bubbleWrapTestEnvVar) == "1"
+}
 
 // SkipIfCannotRunBubbleWrap checks whether we can run tests running in bubblewrap or
 // skip the tests otherwise.
@@ -49,30 +57,43 @@ func SkipIfCannotRunBubbleWrap(t *testing.T) {
 	t.Skip("Skipping test: requires root privileges or unprivileged user namespaces")
 }
 
-// RunInBubbleWrapWithEnv runs the passed commands in bubble wrap sandbox with env variables.
-func RunInBubbleWrapWithEnv(t *testing.T, testDataPath string, env []string, args ...string) (string, error) {
+// RunTestInBubbleWrap runs the given test in bubblewrap.
+func RunTestInBubbleWrap(t *testing.T, args ...string) {
 	t.Helper()
 
 	SkipIfCannotRunBubbleWrap(t)
-	return runInBubbleWrap(t, bubbleWrapNeedsSudo, testDataPath, env, args...)
+
+	testBinary := compileTestBinary(t)
+
+	testCommand := []string{testBinary, "-test.run", "^" + t.Name() + "$"}
+	if testing.Verbose() {
+		testCommand = append(testCommand, "-test.v")
+	}
+	if c := CoverDirForTests(); c != "" {
+		testCommand = append(testCommand, fmt.Sprintf("-test.gocoverdir=%s", c))
+	}
+	args = append(args, testCommand...)
+
+	err := runInBubbleWrap(t, bubbleWrapNeedsSudo, "", nil, args...)
+	if err != nil {
+		t.Fatalf("Running %s in bubblewrap failed: %v", t.Name(), err)
+	}
 }
 
-// RunInBubbleWrap runs the passed commands in bubble wrap sandbox.
-func RunInBubbleWrap(t *testing.T, testDataPath string, args ...string) (string, error) {
-	t.Helper()
-
-	return RunInBubbleWrapWithEnv(t, testDataPath, nil, args...)
-}
-
-func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []string, args ...string) (string, error) {
+func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []string, args ...string) error {
 	t.Helper()
 
 	cmd := exec.Command("bwrap")
 	cmd.Env = AppendCovEnv(os.Environ())
 	cmd.Env = append(cmd.Env, env...)
+	cmd.Env = append(cmd.Env, bubbleWrapTestEnvVar+"=1")
 
 	if withSudo {
 		cmd.Args = append([]string{"sudo"}, cmd.Args...)
+	}
+
+	if testDataPath == "" {
+		testDataPath = t.TempDir()
 	}
 
 	etcDir := filepath.Join(testDataPath, "etc")
@@ -146,14 +167,14 @@ func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []str
 	if !testing.Verbose() {
 		t.Logf("Command output\n%s", output)
 	}
-	return output, err
+	return err
 }
 
 func canUseUnprivilegedUserNamespaces(t *testing.T) bool {
 	t.Helper()
 
-	if out, err := runInBubbleWrap(t, false, t.TempDir(), nil, "/bin/true"); err != nil {
-		t.Logf("Can't use unprivileged user namespaces: %v\n%s", err, out)
+	if err := runInBubbleWrap(t, false, t.TempDir(), nil, "/bin/true"); err != nil {
+		t.Logf("Can't use user namespaces: %v", err)
 		return false
 	}
 
@@ -169,10 +190,37 @@ func canUseSudoNonInteractively(t *testing.T) bool {
 		return false
 	}
 
-	if out, err := runInBubbleWrap(t, true, t.TempDir(), nil, "/bin/true"); err != nil {
-		t.Logf("Can't use user namespaces: %v\n%s", err, out)
+	if err := runInBubbleWrap(t, true, t.TempDir(), nil, "/bin/true"); err != nil {
+		t.Logf("Can't use bubblewrap with sudo: %v", err)
 		return false
 	}
 
 	return true
+}
+
+func compileTestBinary(t *testing.T) string {
+	t.Helper()
+
+	cmd := exec.Command("go", "test")
+	// These are positional arguments.
+	if CoverDirForTests() != "" {
+		cmd.Args = append(cmd.Args, "-cover")
+	}
+	if IsAsan() {
+		cmd.Args = append(cmd.Args, "-asan")
+	}
+	if IsRace() {
+		cmd.Args = append(cmd.Args, "-race")
+	}
+
+	testBinary := filepath.Join(t.TempDir(), "test-binary")
+	cmd.Args = append(cmd.Args, []string{
+		"-tags", "bubblewrap_test", "-c", "-o", testBinary,
+	}...)
+
+	t.Logf("Compiling test binary: %s", strings.Join(cmd.Args, " "))
+	compileOut, err := cmd.CombinedOutput()
+	require.NoError(t, err, "Setup: Cannot compile test file: %s", compileOut)
+
+	return testBinary
 }
