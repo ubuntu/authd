@@ -99,7 +99,7 @@ func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []str
 		"--ro-bind", "/etc/subgid", "/etc/subgid",
 		"--ro-bind", "/etc/sudo.conf", "/etc/sudo.conf",
 		"--ro-bind", "/etc/sudoers", "/etc/sudoers",
-		"--ro-bind", "/etc/timezone", "/etc/timezone",
+		"--ro-bind-try", "/etc/timezone", "/etc/timezone",
 		"--ro-bind", "/etc/pam.d", "/etc/pam.d",
 		"--ro-bind", "/etc/security", "/etc/security",
 	)
