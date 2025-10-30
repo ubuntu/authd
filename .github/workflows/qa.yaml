@@ -145,7 +145,7 @@ jobs:
             -lpam -shared -fPIC \
             pam/go-exec/module.c
       - name: Upload scan build reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: authd-${{ github.job }}-artifacts-${{ github.run_attempt }}
           path: ${{ env.SCAN_BUILD_REPORTS_PATH }}
@@ -197,7 +197,7 @@ jobs:
             sudo apt-get autoremove -y
           fi
       - uses: actions/checkout@v5
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
 
@@ -377,14 +377,14 @@ jobs:
 
       - name: Upload coverage artifacts
         if: matrix.test == 'coverage' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage
           path: ${{ env.COVERAGE_DIR }}
 
       - name: Upload test artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: authd-${{ github.job }}-${{ matrix.test }}-artifacts-${{ github.run_attempt }}
           path: ${{ env.AUTHD_TESTS_ARTIFACTS_PATH }}
