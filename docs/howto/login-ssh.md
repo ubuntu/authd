@@ -24,21 +24,30 @@ sudo systemctl restart ssh
 
 ### Broker configuration
 
-To configure the broker edit the file `/var/snap/authd-<broker_name>/current/broker.conf` and set the key `ssh_allowed_suffixes` with the list of domains that you want to allow.
+By default, SSH only allows logins from users that already exist on the system.
+New authd users (who have never logged in before) are *not* allowed to log in
+for the first time via SSH unless this option is configured.
+
+If configured, only users with a suffix in this list are allowed to
+authenticate for the first time directly through SSH.
+Note that this does not affect users that already authenticated for
+the first time and already exist on the system.
+
+To configure the broker edit the file `/var/snap/authd-<broker_name>/current/broker.conf` and set the key `ssh_allowed_suffixes_first_auth` with the list of domains that you want to allow.
 
 ```ini
 ...
 
 [users]
-# The username suffixes that are allowed to log in via ssh without existing previously in the system.
-# The suffixes must be separated by commas.
-ssh_allowed_suffixes = <ALLOWED DOMAINS>
+## Suffixes must be comma-separated (e.g., '@example.com,@example.org').
+## To allow all suffixes, use a single asterisk ('*').
+`ssh_allowed_suffixes_first_auth` = <ALLOWED DOMAINS>
 ```
 
 You can set several domains separated by a comma. For instance:
 
 ```ini
-ssh_allowed_suffixes = @example.com,@ubuntu.com
+ssh_allowed_suffixes_first_auth = @example.com,@ubuntu.com
 ```
 
 ## Usage
