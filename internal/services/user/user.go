@@ -40,7 +40,8 @@ func NewService(ctx context.Context, userManager *users.Manager, brokerManager *
 
 // GetUserByName returns the user entry for the given username.
 func (s Service) GetUserByName(ctx context.Context, req *authd.GetUserByNameRequest) (*authd.User, error) {
-	name := req.GetName()
+	// authd usernames are lowercase
+	name := strings.ToLower(req.GetName())
 	if name == "" {
 		log.Warningf(ctx, "GetUserByName: no user name provided")
 		return nil, status.Error(codes.InvalidArgument, "no user name provided")
@@ -122,11 +123,14 @@ func (s Service) LockUser(ctx context.Context, req *authd.LockUserRequest) (*aut
 		return nil, err
 	}
 
-	if req.GetName() == "" {
+	// authd uses lowercase usernames.
+	name := strings.ToLower(req.GetName())
+
+	if name == "" {
 		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
 
-	if err := s.userManager.LockUser(req.GetName()); err != nil {
+	if err := s.userManager.LockUser(name); err != nil {
 		return nil, grpcError(err)
 	}
 
@@ -139,11 +143,14 @@ func (s Service) UnlockUser(ctx context.Context, req *authd.UnlockUserRequest) (
 		return nil, err
 	}
 
-	if req.GetName() == "" {
+	// authd uses lowercase usernames.
+	name := strings.ToLower(req.GetName())
+
+	if name == "" {
 		return nil, status.Error(codes.InvalidArgument, "no user name provided")
 	}
 
-	if err := s.userManager.UnlockUser(req.GetName()); err != nil {
+	if err := s.userManager.UnlockUser(name); err != nil {
 		return nil, grpcError(err)
 	}
 
@@ -152,12 +159,15 @@ func (s Service) UnlockUser(ctx context.Context, req *authd.UnlockUserRequest) (
 
 // GetGroupByName returns the group entry for the given group name.
 func (s Service) GetGroupByName(ctx context.Context, req *authd.GetGroupByNameRequest) (*authd.Group, error) {
-	if req.GetName() == "" {
+	// authd uses lowercase group names.
+	name := strings.ToLower(req.GetName())
+
+	if name == "" {
 		log.Warningf(ctx, "GetGroupByName: no group name provided")
 		return nil, status.Error(codes.InvalidArgument, "no group name provided")
 	}
 
-	g, err := s.userManager.GroupByName(req.GetName())
+	g, err := s.userManager.GroupByName(name)
 	if errors.Is(err, users.NoDataFoundError{}) {
 		// Only log this at debug level, see GetUserByName for details
 		log.Debugf(context.Background(), "GetGroupByName: %v", err)
@@ -236,9 +246,6 @@ var errUserNotPermitted = errors.New("user not permitted to log in via SSH for t
 // It returns a types.UserEntry with a unique UID if the user is permitted to log in.
 // If the user is not permitted to log in by any broker, errUserNotPermitted is returned.
 func (s Service) userPreCheck(ctx context.Context, username string) (types.UserEntry, error) {
-	// authd uses lowercase usernames.
-	username = strings.ToLower(username)
-
 	// Check if any broker permits the user to log in via SSH for the first time.
 	var userinfo string
 	var err error

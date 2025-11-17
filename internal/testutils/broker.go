@@ -276,6 +276,13 @@ func (b *BrokerBusMock) IsAuthenticated(sessionID, authenticationData string) (a
 		extragroups := []groupJSONInfo{{Name: "localgroup1"}, {Name: "localgroup3"}}
 		data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionID, extragroups))
 
+	case "success_with_uppercase_groups":
+		extragroups := []groupJSONInfo{
+			{Name: "GROUP1", UGID: "12345678"},
+			{Name: "GROUP2", UGID: "87654321"},
+		}
+		data = fmt.Sprintf(`{"userinfo": %s}`, userInfoFromName(sessionID, extragroups))
+
 	case "ia_invalid_access":
 		access = "invalid"
 
