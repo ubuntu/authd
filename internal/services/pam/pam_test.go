@@ -614,6 +614,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 	}{
 		"Set_default_broker_for_existing_user_with_no_broker":   {username: "usersetbroker"},
 		"Update_default_broker_for_existing_user_with_a_broker": {username: "userupdatebroker"},
+		"Username_is_case_insensitive":                          {username: "UserSetBroker"},
 
 		"Error_when_setting_default_broker_to_local_broker": {username: "userlocalbroker", brokerID: brokers.LocalBrokerName, wantErr: true},
 		"Error_when_not_root":                               {username: "usersetbroker", currentUserNotRoot: true, wantErr: true},

@@ -324,25 +324,29 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 func (s Service) SetDefaultBrokerForUser(ctx context.Context, req *authd.SDBFURequest) (empty *authd.Empty, err error) {
 	defer decorate.OnError(&err, "can't set default broker %q for user %q", req.GetBrokerId(), req.GetUsername())
 
-	if req.GetUsername() == "" {
+	// authd usernames are lowercase
+	username := strings.ToLower(req.GetUsername())
+	brokerID := req.GetBrokerId()
+
+	if username == "" {
 		log.Errorf(ctx, "SetDefaultBrokerForUser: No user name given")
 		return nil, status.Error(codes.InvalidArgument, "no user name given")
 	}
 
 	// Don't allow setting the default broker to the local broker, because the decision to use the local broker should
 	// be made each time the user tries to log in, based on whether the user is provided by any other NSS service.
-	if req.GetBrokerId() == brokers.LocalBrokerName {
-		log.Errorf(ctx, "SetDefaultBrokerForUser: Can't set local broker as default for user %q", req.GetUsername())
+	if brokerID == brokers.LocalBrokerName {
+		log.Errorf(ctx, "SetDefaultBrokerForUser: Can't set local broker as default for user %q", username)
 		return nil, status.Error(codes.InvalidArgument, "can't set local broker as default")
 	}
 
-	if err = s.brokerManager.SetDefaultBrokerForUser(req.GetBrokerId(), req.GetUsername()); err != nil {
-		log.Errorf(ctx, "SetDefaultBrokerForUser: Could not set default broker %q for user %q: %v", req.GetBrokerId(), req.GetUsername(), err)
+	if err = s.brokerManager.SetDefaultBrokerForUser(brokerID, username); err != nil {
+		log.Errorf(ctx, "SetDefaultBrokerForUser: Could not set default broker %q for user %q: %v", brokerID, username, err)
 		return &authd.Empty{}, err
 	}
 
-	if err = s.userManager.UpdateBrokerForUser(req.GetUsername(), req.GetBrokerId()); err != nil {
-		log.Errorf(ctx, "SetDefaultBrokerForUser: Could not update broker for user %q in database: %v", req.GetUsername(), err)
+	if err = s.userManager.UpdateBrokerForUser(username, brokerID); err != nil {
+		log.Errorf(ctx, "SetDefaultBrokerForUser: Could not update broker for user %q in database: %v", username, err)
 		return &authd.Empty{}, err
 	}
 
