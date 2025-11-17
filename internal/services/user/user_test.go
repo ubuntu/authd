@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -73,8 +74,13 @@ func TestGetUserByName(t *testing.T) {
 
 			client := newUserServiceClient(t, tc.dbFile)
 
-			got, err := client.GetUserByName(context.Background(), &authd.GetUserByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
-			requireExpectedResult(t, "GetUserByName", got, err, tc.wantErr, tc.wantErrNotExists)
+			u, err := client.GetUserByName(context.Background(), &authd.GetUserByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
+			requireExpectedResult(t, "GetUserByName", u, err, tc.wantErr, tc.wantErrNotExists)
+
+			// Check that the user name is lowercase
+			if u != nil {
+				require.Equal(t, u.Name, strings.ToLower(u.Name), "User name should be lowercase")
+			}
 
 			if !tc.shouldPreCheck || tc.wantErr {
 				return
@@ -129,8 +135,13 @@ func TestGetGroupByName(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			client := newUserServiceClient(t, tc.dbFile)
 
-			got, err := client.GetGroupByName(context.Background(), &authd.GetGroupByNameRequest{Name: tc.groupname})
-			requireExpectedResult(t, "GetGroupByName", got, err, tc.wantErr, tc.wantErrNotExists)
+			group, err := client.GetGroupByName(context.Background(), &authd.GetGroupByNameRequest{Name: tc.groupname})
+			requireExpectedResult(t, "GetGroupByName", group, err, tc.wantErr, tc.wantErrNotExists)
+
+			// Check that the group name is lowercase
+			if group != nil {
+				require.Equal(t, group.Name, strings.ToLower(group.Name), "Group name should be lowercase")
+			}
 		})
 	}
 }
