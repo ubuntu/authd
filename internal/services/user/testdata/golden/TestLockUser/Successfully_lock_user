@@ -8,6 +8,7 @@ users:
       dir: /home/user1
       shell: /bin/bash
       broker_id: broker-id
+      locked: true
     - name: user2
       uid: 2222
       gid: 22222
@@ -22,33 +23,22 @@ users:
       dir: /home/user3
       shell: /bin/zsh
       broker_id: broker-id
-    - name: userwithoutbroker
-      uid: 4444
-      gid: 44444
-      gecos: userwithoutbroker
-      dir: /home/userwithoutbroker
-      shell: /bin/sh
 groups:
     - name: group1
       gid: 11111
-      ugid: "12345678"
-    - name: group2withoutugid
+      ugid: group1
+    - name: group2
       gid: 22222
-      ugid: ""
+      ugid: group2
     - name: group3
       gid: 33333
-      ugid: "34567812"
-    - name: group4
-      gid: 44444
-      ugid: "45678123"
+      ugid: group3
     - name: commongroup
       gid: 99999
-      ugid: "87654321"
+      ugid: commongroup
 users_to_groups:
     - uid: 1111
       gid: 11111
-    - uid: 1111
-      gid: 99999
     - uid: 2222
       gid: 22222
     - uid: 2222
@@ -57,8 +47,4 @@ users_to_groups:
       gid: 33333
     - uid: 3333
       gid: 99999
-    - uid: 4444
-      gid: 44444
-    - uid: 4444
-      gid: 99999
-schema_version: 1
+schema_version: 2
