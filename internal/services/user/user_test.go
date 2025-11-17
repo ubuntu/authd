@@ -233,7 +233,8 @@ func TestLockUser(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully_lock_user": {username: "user1"},
+		"Successfully_lock_user":                {username: "user1"},
+		"Successfully_lock_user_with_uppercase": {username: "USER1"},
 
 		"Error_when_username_is_empty":   {wantErr: true},
 		"Error_when_user_does_not_exist": {username: "doesnotexist", wantErr: true},
@@ -262,7 +263,8 @@ func TestUnlockUser(t *testing.T) {
 
 		wantErr bool
 	}{
-		"Successfully_unlock_user": {username: "user1"},
+		"Successfully_unlock_user":                {username: "user1"},
+		"Successfully_unlock_user_with_uppercase": {username: "USER1"},
 
 		"Error_when_username_is_empty":   {wantErr: true},
 		"Error_when_user_does_not_exist": {username: "doesnotexist", wantErr: true},
