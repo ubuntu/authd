@@ -119,7 +119,8 @@ func TestGetGroupByName(t *testing.T) {
 		wantErr          bool
 		wantErrNotExists bool
 	}{
-		"Return_existing_group": {groupname: "group1"},
+		"Return_existing_group":                               {groupname: "group1"},
+		"Return_existing_group_with_different_capitalization": {groupname: "GROUP1"},
 
 		"Error_with_typed_GRPC_notfound_code_on_unexisting_user": {groupname: "does-not-exists", wantErr: true, wantErrNotExists: true},
 		"Error_on_missing_name":                                  {wantErr: true},
