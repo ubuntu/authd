@@ -166,7 +166,7 @@ func (m *Manager) BrokerFromSessionID(id string) (broker *Broker, err error) {
 	return broker, nil
 }
 
-// NewSession create a new session for the broker and store the sesssionID on the manager.
+// NewSession create a new session for the broker and store the sessionID on the manager.
 func (m *Manager) NewSession(brokerID, username, lang, mode string) (sessionID string, encryptionKey string, err error) {
 	broker, err := m.brokerFromID(brokerID)
 	if err != nil {
