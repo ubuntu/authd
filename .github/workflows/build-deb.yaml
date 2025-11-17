@@ -22,7 +22,7 @@ concurrency:
 
 env:
   UBUNTU_VERSIONS: |
-    ["noble", "plucky", "devel"]
+    ["noble", "plucky", "questing", "devel"]
   CARGO_VENDOR_FILTERER_VERSION: 0.5.16
 
 jobs:
@@ -46,9 +46,11 @@ jobs:
       run-id: ${{ github.run_id }}
       # FIXME: Use dynamic outputs when possible: https://github.com/actions/runner/pull/2477
       pkg-dsc-devel:  ${{ steps.outputs.outputs.pkg-dsc-devel }}
+      pkg-dsc-questing:  ${{ steps.outputs.outputs.pkg-dsc-questing }}
       pkg-dsc-plucky:  ${{ steps.outputs.outputs.pkg-dsc-plucky }}
       pkg-dsc-noble:  ${{ steps.outputs.outputs.pkg-dsc-noble }}
       pkg-src-changes-devel: ${{ steps.outputs.outputs.pkg-src-changes-devel }}
+      pkg-src-changes-questing: ${{ steps.outputs.outputs.pkg-src-changes-questing }}
       pkg-src-changes-plucky: ${{ steps.outputs.outputs.pkg-src-changes-plucky }}
       pkg-src-changes-noble: ${{ steps.outputs.outputs.pkg-src-changes-noble }}
 
@@ -62,7 +64,7 @@ jobs:
           docker-image: ubuntu:${{ matrix.ubuntu-version }}
           # Add the Go backports PPA if we're testing a Ubuntu release which
           # doesn't have the required Go version in main.
-          extra-apt-repositories: ${{ (matrix.ubuntu-version == 'noble' || matrix.ubuntu-version == 'plucky') && 'ppa:ubuntu-enterprise-desktop/golang' || '' }}
+          extra-apt-repositories: ${{ (matrix.ubuntu-version == 'noble' || matrix.ubuntu-version == 'plucky' || matrix.ubuntu-version == 'questing') && 'ppa:ubuntu-enterprise-desktop/golang' || '' }}
           # Extra build dependencies:
           # - systemd-dev: Required to read compile time variables from systemd via pkg-config.
           extra-source-build-deps: |
