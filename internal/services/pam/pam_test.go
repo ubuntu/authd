@@ -436,11 +436,13 @@ func TestIsAuthenticated(t *testing.T) {
 
 		// There is no wantErr as it's stored in the golden file.
 	}{
-		"Successfully_authenticate":                           {username: "success"},
-		"Successfully_authenticate_if_first_call_is_canceled": {username: "ia_second_call", secondCall: true, cancelFirstCall: true},
-		"Denies_authentication_when_broker_times_out":         {username: "ia_timeout"},
-		"Update_existing_DB_on_success":                       {username: "success", existingDB: "cache-with-user.db"},
-		"Update_local_groups":                                 {username: "success_with_local_groups", localGroupsFile: "valid.group"},
+		"Successfully_authenticate":                            {username: "success"},
+		"Successfully_authenticate_if_first_call_is_canceled":  {username: "ia_second_call", secondCall: true, cancelFirstCall: true},
+		"Denies_authentication_when_broker_times_out":          {username: "ia_timeout"},
+		"Update_existing_DB_on_success":                        {username: "success", existingDB: "cache-with-user.db"},
+		"Update_local_groups":                                  {username: "success_with_local_groups", localGroupsFile: "valid.group"},
+		"Successfully_authenticate_user_with_uppercase":        {username: "SUCCESS"},
+		"Successfully_authenticate_with_groups_with_uppercase": {username: "success_with_uppercase_groups"},
 
 		// service errors
 		"Error_when_not_root":           {username: "success", currentUserNotRoot: true},
@@ -480,7 +482,7 @@ func TestIsAuthenticated(t *testing.T) {
 			managerOpts := []users.Option{
 				users.WithIDGenerator(&users.IDGeneratorMock{
 					UIDsToGenerate: []uint32{1111},
-					GIDsToGenerate: []uint32{22222},
+					GIDsToGenerate: []uint32{22222, 33333, 44444},
 				}),
 			}
 
@@ -547,6 +549,20 @@ func TestIsAuthenticated(t *testing.T) {
 			got := firstCall + secondCall
 			got = permissions.Z_ForTests_IdempotentPermissionError(got)
 			golden.CheckOrUpdate(t, got, golden.WithPath("IsAuthenticated"))
+
+			// Check that all usernames in the database are lowercase
+			allUsers, err := m.AllUsers()
+			require.NoError(t, err, "Setup: failed to get users from manager")
+			for _, u := range allUsers {
+				require.Equal(t, strings.ToLower(u.Name), u.Name, "all usernames in the database should be lowercase")
+			}
+
+			// Check that all groups in the database are lowercase
+			groups, err := m.AllGroups()
+			require.NoError(t, err, "Setup: failed to get groups from manager")
+			for _, group := range groups {
+				require.Equal(t, strings.ToLower(group.Name), group.Name, "all groups in the database should be lowercase")
+			}
 
 			// Check that database has been updated too.
 			gotDB, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
