@@ -288,8 +288,11 @@ func (s Service) IsAuthenticated(ctx context.Context, req *authd.IARequest) (res
 		return nil, fmt.Errorf("user data from broker invalid: %v", err)
 	}
 
-	// authd uses lowercase usernames
+	// authd uses lowercase user and group names
 	uInfo.Name = strings.ToLower(uInfo.Name)
+	for i, g := range uInfo.Groups {
+		uInfo.Groups[i].Name = strings.ToLower(g.Name)
+	}
 
 	// Check if the user is locked. We can only do this after the broker has granted access, because we want to avoid
 	// leaking whether a user exists or not to unauthenticated users.
