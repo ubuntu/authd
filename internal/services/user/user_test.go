@@ -53,7 +53,7 @@ func TestGetUserByName(t *testing.T) {
 		wantErrNotExists bool
 	}{
 		"Return_existing_user":                               {username: "user1"},
-		"Return existing user with different capitalization": {username: "USER1"},
+		"Return_existing_user_with_different_capitalization": {username: "USER1"},
 
 		"Precheck_user_if_not_in_db": {username: "user-pre-check", shouldPreCheck: true},
 		"Prechecked_user_with_upper_cases_in_username_has_same_id_as_lower_case": {username: "User-Pre-Check", shouldPreCheck: true},
