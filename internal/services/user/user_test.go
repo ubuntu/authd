@@ -20,6 +20,7 @@ import (
 	"github.com/ubuntu/authd/internal/users"
 	"github.com/ubuntu/authd/internal/users/db"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
+	userstestutils "github.com/ubuntu/authd/internal/users/testutils"
 	"github.com/ubuntu/authd/log"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -72,7 +73,7 @@ func TestGetUserByName(t *testing.T) {
 				userslocking.Z_ForTests_OverrideLockingWithCleanup(t)
 			}
 
-			client := newUserServiceClient(t, tc.dbFile)
+			client, _ := newUserServiceClient(t, tc.dbFile)
 
 			u, err := client.GetUserByName(context.Background(), &authd.GetUserByNameRequest{Name: tc.username, ShouldPreCheck: tc.shouldPreCheck})
 			requireExpectedResult(t, "GetUserByName", u, err, tc.wantErr, tc.wantErrNotExists)
@@ -108,7 +109,7 @@ func TestGetUserByID(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			client := newUserServiceClient(t, tc.dbFile)
+			client, _ := newUserServiceClient(t, tc.dbFile)
 
 			got, err := client.GetUserByID(context.Background(), &authd.GetUserByIDRequest{Id: tc.uid})
 			requireExpectedResult(t, "GetUserByID", got, err, tc.wantErr, tc.wantErrNotExists)
@@ -133,7 +134,7 @@ func TestGetGroupByName(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			client := newUserServiceClient(t, tc.dbFile)
+			client, _ := newUserServiceClient(t, tc.dbFile)
 
 			group, err := client.GetGroupByName(context.Background(), &authd.GetGroupByNameRequest{Name: tc.groupname})
 			requireExpectedResult(t, "GetGroupByName", group, err, tc.wantErr, tc.wantErrNotExists)
@@ -162,7 +163,7 @@ func TestGetGroupByID(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			client := newUserServiceClient(t, tc.dbFile)
+			client, _ := newUserServiceClient(t, tc.dbFile)
 
 			got, err := client.GetGroupByID(context.Background(), &authd.GetGroupByIDRequest{Id: tc.gid})
 			requireExpectedResult(t, "GetGroupByID", got, err, tc.wantErr, tc.wantErrNotExists)
@@ -185,7 +186,7 @@ func TestListUsers(t *testing.T) {
 				tc.dbFile = "default.db.yaml"
 			}
 
-			client := newUserServiceClient(t, tc.dbFile)
+			client, _ := newUserServiceClient(t, tc.dbFile)
 
 			resp, err := client.ListUsers(context.Background(), &authd.Empty{})
 			requireExpectedListResult(t, "ListUsers", resp.GetUsers(), err, tc.wantErr)
@@ -208,7 +209,7 @@ func TestListGroups(t *testing.T) {
 				tc.dbFile = "default.db.yaml"
 			}
 
-			client := newUserServiceClient(t, tc.dbFile)
+			client, _ := newUserServiceClient(t, tc.dbFile)
 
 			resp, err := client.ListGroups(context.Background(), &authd.Empty{})
 			if tc.wantErr {
@@ -242,7 +243,7 @@ func TestLockUser(t *testing.T) {
 	}
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			client := newUserServiceClient(t, tc.sourceDB)
+			client, m := newUserServiceClient(t, tc.sourceDB)
 
 			_, err := client.LockUser(context.Background(), &authd.LockUserRequest{Name: tc.username})
 			if tc.wantErr {
@@ -250,6 +251,10 @@ func TestLockUser(t *testing.T) {
 				return
 			}
 			require.NoError(t, err, "LockUser should not return an error, but did")
+
+			dbContent, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
+			require.NoError(t, err, "Setup: failed to dump database for comparing")
+			golden.CheckOrUpdate(t, dbContent)
 		})
 	}
 }
@@ -276,7 +281,7 @@ func TestUnlockUser(t *testing.T) {
 				tc.sourceDB = "locked-user.db.yaml"
 			}
 
-			client := newUserServiceClient(t, tc.sourceDB)
+			client, m := newUserServiceClient(t, tc.sourceDB)
 
 			_, err := client.UnlockUser(context.Background(), &authd.UnlockUserRequest{Name: tc.username})
 			if tc.wantErr {
@@ -284,12 +289,16 @@ func TestUnlockUser(t *testing.T) {
 				return
 			}
 			require.NoError(t, err, "UnlockUser should not return an error, but did")
+
+			dbContent, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
+			require.NoError(t, err, "Setup: failed to dump database for comparing")
+			golden.CheckOrUpdate(t, dbContent)
 		})
 	}
 }
 
 // newUserServiceClient returns a new gRPC client for the CLI service.
-func newUserServiceClient(t *testing.T, dbFile string) (client authd.UserServiceClient) {
+func newUserServiceClient(t *testing.T, dbFile string) (client authd.UserServiceClient, userManager *users.Manager) {
 	t.Helper()
 
 	tmpDir, err := os.MkdirTemp("", "authd-socket-dir")
@@ -306,7 +315,7 @@ func newUserServiceClient(t *testing.T, dbFile string) (client authd.UserService
 		require.NoError(t, err, "Setup: could not create database from testdata")
 	}
 
-	userManager := newUserManagerForTests(t, dbFile)
+	userManager = newUserManagerForTests(t, dbFile)
 	brokerManager := newBrokersManagerForTests(t)
 	permissionsManager := permissions.New(permissions.Z_ForTests_WithCurrentUserAsRoot())
 	service := user.NewService(context.Background(), userManager, brokerManager, &permissionsManager)
@@ -328,7 +337,7 @@ func newUserServiceClient(t *testing.T, dbFile string) (client authd.UserService
 
 	t.Cleanup(func() { _ = conn.Close() }) // We don't care about the error on cleanup
 
-	return authd.NewUserServiceClient(conn)
+	return authd.NewUserServiceClient(conn), userManager
 }
 
 func enableCheckGlobalAccess(s user.Service) grpc.UnaryServerInterceptor {
