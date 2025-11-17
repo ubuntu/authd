@@ -132,9 +132,6 @@ func (m *Manager) SetDefaultBrokerForUser(brokerID, username string) error {
 		return fmt.Errorf("invalid broker: %v", err)
 	}
 
-	// authd uses lowercase usernames
-	username = strings.ToLower(username)
-
 	m.usersToBrokerMu.Lock()
 	defer m.usersToBrokerMu.Unlock()
 	m.usersToBroker[username] = broker

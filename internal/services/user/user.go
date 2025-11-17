@@ -246,9 +246,6 @@ var errUserNotPermitted = errors.New("user not permitted to log in via SSH for t
 // It returns a types.UserEntry with a unique UID if the user is permitted to log in.
 // If the user is not permitted to log in by any broker, errUserNotPermitted is returned.
 func (s Service) userPreCheck(ctx context.Context, username string) (types.UserEntry, error) {
-	// authd uses lowercase usernames.
-	username = strings.ToLower(username)
-
 	// Check if any broker permits the user to log in via SSH for the first time.
 	var userinfo string
 	var err error

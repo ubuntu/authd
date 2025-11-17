@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/ubuntu/authd/log"
 )
@@ -68,9 +67,6 @@ func (m *Manager) UserByName(name string) (UserRow, error) {
 }
 
 func userByName(db queryable, name string) (UserRow, error) {
-	// authd uses lowercase usernames
-	name = strings.ToLower(name)
-
 	query := fmt.Sprintf(`SELECT %s FROM users WHERE name = ?`, publicUserColumns)
 	row := db.QueryRow(query, name)
 
