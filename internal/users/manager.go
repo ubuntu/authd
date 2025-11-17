@@ -8,7 +8,6 @@ import (
 	"math"
 	"os"
 	"slices"
-	"strings"
 	"sync"
 	"syscall"
 
@@ -146,9 +145,6 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 		return errors.New("empty username")
 	}
 
-	// authd uses lowercase usernames
-	u.Name = strings.ToLower(u.Name)
-
 	// Prepend the user private group
 	u.Groups = append([]types.GroupInfo{{Name: u.Name, UGID: u.Name}}, u.Groups...)
 	userPrivateGroup := &u.Groups[0]
@@ -247,9 +243,6 @@ func (m *Manager) UpdateUser(u types.UserInfo) (err error) {
 			localGroups = append(localGroups, g.Name)
 			continue
 		}
-
-		// authd groups are lowercase
-		g.Name = strings.ToLower(g.Name)
 
 		// It's not a local group, so before storing it in the database, check if a group with the same name already
 		// exists.

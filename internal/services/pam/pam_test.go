@@ -137,6 +137,7 @@ func TestGetPreviousBroker(t *testing.T) {
 		"Success_getting_previous_broker":                          {user: "userwithbroker", wantBroker: mockBrokerGeneratedID},
 		"For_local_user,_get_local_broker":                         {user: currentUsername, wantBroker: brokers.LocalBrokerName},
 		"For_unmanaged_user_and_only_one_broker,_get_local_broker": {user: "nonexistent", onlyLocalBroker: true, wantBroker: brokers.LocalBrokerName},
+		"Username_is_case_insensitive":                             {user: "UserWithBroker", wantBroker: mockBrokerGeneratedID},
 
 		"Returns_empty_when_user_does_not_exist":         {user: "nonexistent", wantBroker: ""},
 		"Returns_empty_when_user_does_not_have_a_broker": {user: "userwithoutbroker", wantBroker: ""},
@@ -435,11 +436,13 @@ func TestIsAuthenticated(t *testing.T) {
 
 		// There is no wantErr as it's stored in the golden file.
 	}{
-		"Successfully_authenticate":                           {username: "success"},
-		"Successfully_authenticate_if_first_call_is_canceled": {username: "ia_second_call", secondCall: true, cancelFirstCall: true},
-		"Denies_authentication_when_broker_times_out":         {username: "ia_timeout"},
-		"Update_existing_DB_on_success":                       {username: "success", existingDB: "cache-with-user.db"},
-		"Update_local_groups":                                 {username: "success_with_local_groups", localGroupsFile: "valid.group"},
+		"Successfully_authenticate":                            {username: "success"},
+		"Successfully_authenticate_if_first_call_is_canceled":  {username: "ia_second_call", secondCall: true, cancelFirstCall: true},
+		"Denies_authentication_when_broker_times_out":          {username: "ia_timeout"},
+		"Update_existing_DB_on_success":                        {username: "success", existingDB: "cache-with-user.db"},
+		"Update_local_groups":                                  {username: "success_with_local_groups", localGroupsFile: "valid.group"},
+		"Successfully_authenticate_user_with_uppercase":        {username: "SUCCESS"},
+		"Successfully_authenticate_with_groups_with_uppercase": {username: "success_with_uppercase_groups"},
 
 		// service errors
 		"Error_when_not_root":           {username: "success", currentUserNotRoot: true},
@@ -479,7 +482,7 @@ func TestIsAuthenticated(t *testing.T) {
 			managerOpts := []users.Option{
 				users.WithIDGenerator(&users.IDGeneratorMock{
 					UIDsToGenerate: []uint32{1111},
-					GIDsToGenerate: []uint32{22222},
+					GIDsToGenerate: []uint32{22222, 33333, 44444},
 				}),
 			}
 
@@ -547,6 +550,20 @@ func TestIsAuthenticated(t *testing.T) {
 			got = permissions.Z_ForTests_IdempotentPermissionError(got)
 			golden.CheckOrUpdate(t, got, golden.WithPath("IsAuthenticated"))
 
+			// Check that all usernames in the database are lowercase
+			allUsers, err := m.AllUsers()
+			require.NoError(t, err, "Setup: failed to get users from manager")
+			for _, u := range allUsers {
+				require.Equal(t, strings.ToLower(u.Name), u.Name, "all usernames in the database should be lowercase")
+			}
+
+			// Check that all groups in the database are lowercase
+			groups, err := m.AllGroups()
+			require.NoError(t, err, "Setup: failed to get groups from manager")
+			for _, group := range groups {
+				require.Equal(t, strings.ToLower(group.Name), group.Name, "all groups in the database should be lowercase")
+			}
+
 			// Check that database has been updated too.
 			gotDB, err := db.Z_ForTests_DumpNormalizedYAML(userstestutils.GetManagerDB(m))
 			require.NoError(t, err, "Setup: failed to dump database for comparing")
@@ -613,6 +630,7 @@ func TestSetDefaultBrokerForUser(t *testing.T) {
 	}{
 		"Set_default_broker_for_existing_user_with_no_broker":   {username: "usersetbroker"},
 		"Update_default_broker_for_existing_user_with_a_broker": {username: "userupdatebroker"},
+		"Username_is_case_insensitive":                          {username: "UserSetBroker"},
 
 		"Error_when_setting_default_broker_to_local_broker": {username: "userlocalbroker", brokerID: brokers.LocalBrokerName, wantErr: true},
 		"Error_when_not_root":                               {username: "usersetbroker", currentUserNotRoot: true, wantErr: true},

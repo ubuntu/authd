@@ -518,13 +518,6 @@ func TestUpdateUserEntry(t *testing.T) {
 			Dir:   "/home/user1",
 			Shell: "/bin/bash",
 		},
-		"user1-with-capitalization": {
-			Name:  "User1",
-			UID:   1111,
-			Gecos: "User1 gecos\nOn multiple lines",
-			Dir:   "/home/user1",
-			Shell: "/bin/bash",
-		},
 		"user3": {
 			Name:  "user3",
 			UID:   3333,
@@ -562,7 +555,6 @@ func TestUpdateUserEntry(t *testing.T) {
 		"Update_user_does_not_change_homedir_if_it_exists":        {userCase: "user1-new-homedir", dbFile: "one_user_and_group"},
 		"Update_user_does_not_change_shell_if_it_exists":          {userCase: "user1-new-shell", dbFile: "one_user_and_group"},
 		"Update_user_by_removing_optional_gecos_field_if_not_set": {userCase: "user1-without-gecos", dbFile: "one_user_and_group"},
-		"Updating_user_with_different_capitalization":             {userCase: "user1-with-capitalization", dbFile: "one_user_and_group"},
 
 		// Group updates
 		"Update_user_by_adding_a_new_group":         {groupCases: []string{"group1", "group2"}, dbFile: "one_user_and_group"},
@@ -868,10 +860,6 @@ func TestUpdateLockedFieldForUser(t *testing.T) {
 	// Update broker for existent user
 	err := c.UpdateLockedFieldForUser("user1", true)
 	require.NoError(t, err, "UpdateLockedFieldForUser for an existent user should not return an error")
-
-	// Update broker for existent user with different capitalization
-	err = c.UpdateLockedFieldForUser("USER1", true)
-	require.NoError(t, err, "UpdateLockedFieldForUser for an existent user with different capitalization should not return an error")
 
 	// Error when updating broker for nonexistent user
 	err = c.UpdateLockedFieldForUser("nonexistent", false)
