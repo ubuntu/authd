@@ -128,12 +128,10 @@ func (s Service) GetPreviousBroker(ctx context.Context, req *authd.GPBRequest) (
 
 // SelectBroker starts a new session and selects the requested broker for the user.
 func (s Service) SelectBroker(ctx context.Context, req *authd.SBRequest) (resp *authd.SBResponse, err error) {
-	username := req.GetUsername()
+	// authd usernames are lowercase
+	username := strings.ToLower(req.GetUsername())
 	brokerID := req.GetBrokerId()
 	lang := req.GetLang()
-
-	// authd usernames are lowercase
-	username = strings.ToLower(username)
 
 	if username == "" {
 		log.Errorf(ctx, "SelectBroker: No user name provided")
