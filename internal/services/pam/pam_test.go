@@ -137,6 +137,7 @@ func TestGetPreviousBroker(t *testing.T) {
 		"Success_getting_previous_broker":                          {user: "userwithbroker", wantBroker: mockBrokerGeneratedID},
 		"For_local_user,_get_local_broker":                         {user: currentUsername, wantBroker: brokers.LocalBrokerName},
 		"For_unmanaged_user_and_only_one_broker,_get_local_broker": {user: "nonexistent", onlyLocalBroker: true, wantBroker: brokers.LocalBrokerName},
+		"Username_is_case_insensitive":                             {user: "UserWithBroker", wantBroker: mockBrokerGeneratedID},
 
 		"Returns_empty_when_user_does_not_exist":         {user: "nonexistent", wantBroker: ""},
 		"Returns_empty_when_user_does_not_have_a_broker": {user: "userwithoutbroker", wantBroker: ""},
