@@ -53,8 +53,8 @@ func TestGetUserByName(t *testing.T) {
 		wantErr          bool
 		wantErrNotExists bool
 	}{
-		"Return_existing_user":                               {username: "user1"},
-		"Return_existing_user_with_different_capitalization": {username: "USER1"},
+		"Return_existing_user":                {username: "user1"},
+		"Return_existing_user_with_uppercase": {username: "USER1"},
 
 		"Precheck_user_if_not_in_db": {username: "user-pre-check", shouldPreCheck: true},
 		"Prechecked_user_with_upper_cases_in_username_has_same_id_as_lower_case": {username: "User-Pre-Check", shouldPreCheck: true},
@@ -125,8 +125,8 @@ func TestGetGroupByName(t *testing.T) {
 		wantErr          bool
 		wantErrNotExists bool
 	}{
-		"Return_existing_group":                               {groupname: "group1"},
-		"Return_existing_group_with_different_capitalization": {groupname: "GROUP1"},
+		"Return_existing_group":                {groupname: "group1"},
+		"Return_existing_group_with_uppercase": {groupname: "GROUP1"},
 
 		"Error_with_typed_GRPC_notfound_code_on_unexisting_user": {groupname: "does-not-exists", wantErr: true, wantErrNotExists: true},
 		"Error_on_missing_name":                                  {wantErr: true},
