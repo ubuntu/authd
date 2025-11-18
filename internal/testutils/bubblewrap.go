@@ -19,6 +19,9 @@ var (
 
 	bubbleWrapNeedsSudoOnce sync.Once
 	bubbleWrapNeedsSudo     bool
+
+	compileTestBinaryOnce sync.Once
+	testBinaryPath        string
 )
 
 const bubbleWrapTestEnvVar = "BUBBLEWRAP_TEST"
@@ -56,14 +59,16 @@ func SkipIfCannotRunBubbleWrap(t *testing.T) {
 }
 
 // RunTestInBubbleWrap runs the given test in bubblewrap.
-func RunTestInBubbleWrap(t *testing.T, args ...string) {
+func RunTestInBubbleWrap(t *testing.T, tempDir string, args ...string) {
 	t.Helper()
 
 	SkipIfCannotRunBubbleWrap(t)
 
-	testBinary := compileTestBinary(t)
+	compileTestBinaryOnce.Do(func() {
+		testBinaryPath = compileTestBinary(t, tempDir)
+	})
 
-	testCommand := []string{testBinary, "-test.run", "^" + t.Name() + "$"}
+	testCommand := []string{testBinaryPath, "-test.run", "^" + t.Name() + "$"}
 	if testing.Verbose() {
 		testCommand = append(testCommand, "-test.v")
 	}
@@ -189,7 +194,7 @@ func canUseSudoNonInteractively(t *testing.T) bool {
 	return true
 }
 
-func compileTestBinary(t *testing.T) string {
+func compileTestBinary(t *testing.T, tempDir string) string {
 	t.Helper()
 
 	cmd := exec.Command("go", "test")
@@ -204,7 +209,7 @@ func compileTestBinary(t *testing.T) string {
 		cmd.Args = append(cmd.Args, "-race")
 	}
 
-	testBinary := filepath.Join(t.TempDir(), "test-binary")
+	testBinary := filepath.Join(tempDir, "test-binary")
 	cmd.Args = append(cmd.Args, []string{
 		"-tags", "bubblewrap_test", "-c", "-o", testBinary,
 	}...)
