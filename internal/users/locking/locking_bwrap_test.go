@@ -213,6 +213,7 @@ func TestLockingLockedDatabase(t *testing.T) {
 	require.NoError(t, err, "Writing group file")
 
 	ctx, cancel := context.WithCancel(context.Background())
+	//nolint:gosec // G204 It's fine to pass variables to exec.Command here'
 	cmd := exec.CommandContext(ctx, testLockerUtility)
 	t.Logf("Running command: %s", cmd.Args)
 
@@ -224,7 +225,7 @@ func TestLockingLockedDatabase(t *testing.T) {
 	writeLockExited := make(chan error)
 	t.Cleanup(func() {
 		cancel()
-		syscall.Kill(lockerProcess.Pid, syscall.SIGKILL)
+		_ = syscall.Kill(lockerProcess.Pid, syscall.SIGKILL)
 		require.Error(t, <-lockerExited, "Stopping locking process")
 		require.NoError(t, <-writeLockExited, "Final locking")
 		require.NoError(t, userslocking.WriteUnlock(), "Final unlocking")
@@ -236,7 +237,7 @@ func TestLockingLockedDatabase(t *testing.T) {
 
 	select {
 	case <-time.After(1 * time.Second):
-		t.Cleanup(func() { lockerProcess.Kill() })
+		t.Cleanup(func() { _ = lockerProcess.Kill() })
 		// If we're time-outing: it's fine, it means the test-locker process is running
 	case err := <-lockerExited:
 		require.NoError(t, err, "test locker should not have failed")
@@ -282,6 +283,7 @@ func TestLockingLockedDatabaseFailsAfterTimeout(t *testing.T) {
 	require.NotEmpty(t, testLockerUtility, "Setup: Locker utility unset")
 
 	ctx, cancel := context.WithCancel(context.Background())
+	//nolint:gosec // G204 It's fine to pass variables to exec.Command here'
 	cmd := exec.CommandContext(ctx, testLockerUtility)
 	t.Logf("Running command: %s", cmd.Args)
 
@@ -292,7 +294,7 @@ func TestLockingLockedDatabaseFailsAfterTimeout(t *testing.T) {
 	lockerExited := make(chan error)
 	t.Cleanup(func() {
 		cancel()
-		syscall.Kill(lockerProcess.Pid, syscall.SIGKILL)
+		_ = syscall.Kill(lockerProcess.Pid, syscall.SIGKILL)
 		require.Error(t, <-lockerExited, "Stopping locking process")
 	})
 
@@ -302,7 +304,7 @@ func TestLockingLockedDatabaseFailsAfterTimeout(t *testing.T) {
 
 	select {
 	case <-time.After(1 * time.Second):
-		t.Cleanup(func() { lockerProcess.Kill() })
+		t.Cleanup(func() { _ = lockerProcess.Kill() })
 		// If we're time-outing: it's fine, it means the test-locker process is running
 	case err := <-lockerExited:
 		require.NoError(t, err, "test locker should not have failed")
@@ -335,6 +337,7 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	t.Cleanup(cancel)
+	//nolint:gosec // G204 It's fine to pass variables to exec.Command here'
 	lockerCmd := exec.CommandContext(ctx, testLockerUtility)
 	t.Logf("Running command: %s", lockerCmd.Args)
 
@@ -351,7 +354,7 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 	case <-time.After(500 * time.Millisecond):
 		// If we're time-outing: it's fine, it means the test-locker process is
 		// still running and holding the lock.
-		t.Cleanup(func() { lockerProcess.Kill() })
+		t.Cleanup(func() { _ = lockerProcess.Kill() })
 	case err := <-lockerExited:
 		require.NoError(t, err, "test locker should not have failed")
 	}
@@ -384,7 +387,7 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 
 	t.Log("Killing locking process")
 	cancel()
-	syscall.Kill(lockerProcess.Pid, syscall.SIGKILL)
+	_ = syscall.Kill(lockerProcess.Pid, syscall.SIGKILL)
 	// Do not wait for the locker being exited yet, so that we can ensure that
 	// our function call wait is over.
 
@@ -403,7 +406,6 @@ func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 func runCmd(t *testing.T, command string, args ...string) (string, error) {
 	t.Helper()
 
-	//nolint:gosec // G204 It's fine to pass variables to exec.Command here
 	cmd := exec.Command(command, args...)
 	cmd.Env = append(os.Environ(), "LANG=C", "LC_ALL=C")
 
