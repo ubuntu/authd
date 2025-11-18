@@ -72,6 +72,7 @@ func RunTestInBubbleWrap(t *testing.T, args ...string) {
 	}
 	args = append(args, testCommand...)
 
+	t.Logf("Running %s in bubblewrap", t.Name())
 	err := runInBubbleWrap(t, bubbleWrapNeedsSudo, "", nil, args...)
 	if err != nil {
 		t.Fatalf("Running %s in bubblewrap failed: %v", t.Name(), err)
@@ -158,6 +159,8 @@ func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []str
 
 func canUseUnprivilegedUserNamespaces(t *testing.T) bool {
 	t.Helper()
+
+	t.Log("Checking if we can use unprivileged user namespaces")
 
 	if err := runInBubbleWrap(t, false, t.TempDir(), nil, "/bin/true"); err != nil {
 		t.Logf("Can't use user namespaces: %v", err)
