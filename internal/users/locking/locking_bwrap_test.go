@@ -16,12 +16,13 @@ import (
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 )
 
+var tempDir string
 var compileLockerBinaryOnce sync.Once
 var lockerBinaryPath string
 
 func TestLockAndWriteUnlock(t *testing.T) {
 	if !testutils.RunningInBubblewrap() {
-		testutils.RunTestInBubbleWrap(t)
+		testutils.RunTestInBubbleWrap(t, tempDir)
 		return
 	}
 
@@ -73,7 +74,7 @@ func TestLockAndWriteUnlock(t *testing.T) {
 
 func TestReadWhileLocked(t *testing.T) {
 	if !testutils.RunningInBubblewrap() {
-		testutils.RunTestInBubbleWrap(t)
+		testutils.RunTestInBubbleWrap(t, tempDir)
 		return
 	}
 
@@ -101,7 +102,7 @@ testgroup:x:1001:testuser`
 
 func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 	if !testutils.RunningInBubblewrap() {
-		testutils.RunTestInBubbleWrap(t)
+		testutils.RunTestInBubbleWrap(t, tempDir)
 		return
 	}
 
@@ -153,7 +154,7 @@ func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 
 func TestUnlockUnlockedOverridden(t *testing.T) {
 	if !testutils.RunningInBubblewrap() {
-		testutils.RunTestInBubbleWrap(t)
+		testutils.RunTestInBubbleWrap(t, tempDir)
 		return
 	}
 
@@ -165,7 +166,7 @@ func TestUnlockUnlockedOverridden(t *testing.T) {
 
 func TestUnlockUnlocked(t *testing.T) {
 	if !testutils.RunningInBubblewrap() {
-		testutils.RunTestInBubbleWrap(t)
+		testutils.RunTestInBubbleWrap(t, tempDir)
 		return
 	}
 
@@ -177,7 +178,7 @@ func TestUnlockUnlocked(t *testing.T) {
 
 func TestLockAndLockAgainGroupFile(t *testing.T) {
 	if !testutils.RunningInBubblewrap() {
-		testutils.RunTestInBubbleWrap(t)
+		testutils.RunTestInBubbleWrap(t, tempDir)
 		return
 	}
 
@@ -420,9 +421,10 @@ func runGPasswd(t *testing.T, args ...string) (string, error) {
 	return runCmd(t, "gpasswd", args...)
 }
 
-func compileLockerBinary(t *testing.T) {
+func compileLockerBinary(t *testing.T, tempDir string) {
 	t.Helper()
 
+	lockerBinaryPath = filepath.Join(tempDir, "test-locker")
 	cmd := exec.Command("go", "build", "-C", "testlocker")
 	cmd.Args = append(cmd.Args, []string{
 		"-tags", "test_locker", "-o", lockerBinaryPath,
@@ -439,10 +441,10 @@ func testInBubbleWrapWithLockerBinary(t *testing.T) {
 	testutils.SkipIfCannotRunBubbleWrap(t)
 
 	compileLockerBinaryOnce.Do(func() {
-		compileLockerBinary(t)
+		compileLockerBinary(t, tempDir)
 	})
 
-	testutils.RunTestInBubbleWrap(t,
+	testutils.RunTestInBubbleWrap(t, tempDir,
 		"--ro-bind", lockerBinaryPath, lockerBinaryPath,
 		"--setenv", "AUTHD_TESTS_PASSWD_LOCKER_UTILITY", lockerBinaryPath,
 	)
@@ -454,13 +456,12 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	tempDir, err := os.MkdirTemp("", "authd-test-*")
+	var err error
+	tempDir, err = os.MkdirTemp("", "authd-test-*")
 	if err != nil {
 		panic(err)
 	}
 	defer func() { _ = os.RemoveAll(tempDir) }()
-
-	lockerBinaryPath = filepath.Join(tempDir, "test-locker")
 
 	m.Run()
 }
