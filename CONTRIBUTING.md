@@ -188,12 +188,12 @@ The test suite must pass before merging the PR to our main branch. Any new featu
 
 #### Tests with dependencies
 
-Some tests, such as the [PAM CLI tests](https://github.com/ubuntu/authd/blob/5ba54c0a573f34e99782fe624b090ab229798fc3/pam/integration-tests/integration_test.go#L21), use external tools such as [vhs](https://github.com/charmbracelet/vhs)
+Some tests, such as the [PAM CLI tests](https://github.com/ubuntu/authd/blob/5ba54c0a573f34e99782fe624b090ab229798fc3/pam/integration-tests/integration_test.go#L21), use external tools such as [VHS](https://github.com/charmbracelet/vhs)
 to record and run the tape files needed for the tests. Those tools are not included in the project dependencies and must be installed manually.
 
 Information about these tools and their usage will be linked below:
 
-- [vhs](https://github.com/charmbracelet/vhs?tab=readme-ov-file#tutorial): tutorial on using vhs as a CLI-based video recorder
+- [VHS](https://github.com/charmbracelet/vhs?tab=readme-ov-file#tutorial): tutorial on using VHS as a CLI-based video recorder
 
 ### Code style
 

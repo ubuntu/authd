@@ -60,7 +60,7 @@ func TestUserCommand(t *testing.T) {
 func TestUserLockCommand(t *testing.T) {
 	t.Parallel()
 
-	daemonSocket := testutils.StartDaemon(t, daemonPath,
+	daemonSocket := testutils.StartAuthd(t, daemonPath,
 		testutils.WithGroupFile(filepath.Join("testdata", "empty.group")),
 		testutils.WithPreviousDBState("one_user_and_group"),
 		testutils.WithCurrentUserAsRoot,
@@ -112,7 +112,7 @@ func TestMain(m *testing.M) {
 	defer authctlCleanup()
 
 	var daemonCleanup func()
-	daemonPath, daemonCleanup, err = testutils.BuildDaemonWithExampleBroker()
+	daemonPath, daemonCleanup, err = testutils.BuildAuthdWithExampleBroker()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Setup: %v\n", err)
 		os.Exit(1)
