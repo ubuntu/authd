@@ -21,6 +21,8 @@ var compileLockerBinaryOnce sync.Once
 var lockerBinaryPath string
 
 func TestLockAndWriteUnlock(t *testing.T) {
+	t.Parallel()
+
 	if !testutils.RunningInBubblewrap() {
 		testutils.RunTestInBubbleWrap(t, tempDir)
 		return
@@ -73,6 +75,8 @@ func TestLockAndWriteUnlock(t *testing.T) {
 }
 
 func TestReadWhileLocked(t *testing.T) {
+	t.Parallel()
+
 	if !testutils.RunningInBubblewrap() {
 		testutils.RunTestInBubbleWrap(t, tempDir)
 		return
@@ -101,6 +105,8 @@ testgroup:x:1001:testuser`
 }
 
 func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
+	t.Parallel()
+
 	if !testutils.RunningInBubblewrap() {
 		testutils.RunTestInBubbleWrap(t, tempDir)
 		return
@@ -153,6 +159,8 @@ func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 }
 
 func TestUnlockUnlockedOverridden(t *testing.T) {
+	t.Parallel()
+
 	if !testutils.RunningInBubblewrap() {
 		testutils.RunTestInBubbleWrap(t, tempDir)
 		return
@@ -165,6 +173,8 @@ func TestUnlockUnlockedOverridden(t *testing.T) {
 }
 
 func TestUnlockUnlocked(t *testing.T) {
+	t.Parallel()
+
 	if !testutils.RunningInBubblewrap() {
 		testutils.RunTestInBubbleWrap(t, tempDir)
 		return
@@ -177,6 +187,8 @@ func TestUnlockUnlocked(t *testing.T) {
 }
 
 func TestLockAndLockAgainGroupFile(t *testing.T) {
+	t.Parallel()
+
 	if !testutils.RunningInBubblewrap() {
 		testutils.RunTestInBubbleWrap(t, tempDir)
 		return
@@ -195,6 +207,8 @@ func TestLockAndLockAgainGroupFile(t *testing.T) {
 }
 
 func TestLockingLockedDatabase(t *testing.T) {
+	t.Parallel()
+
 	if !testutils.RunningInBubblewrap() {
 		testutils.SkipIfCannotRunBubbleWrap(t)
 		testInBubbleWrapWithLockerBinary(t)
@@ -271,6 +285,8 @@ func TestLockingLockedDatabase(t *testing.T) {
 }
 
 func TestLockingLockedDatabaseFailsAfterTimeout(t *testing.T) {
+	t.Parallel()
+
 	if !testutils.RunningInBubblewrap() {
 		testInBubbleWrapWithLockerBinary(t)
 		return
@@ -324,6 +340,8 @@ func TestLockingLockedDatabaseFailsAfterTimeout(t *testing.T) {
 }
 
 func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
+	t.Parallel()
+
 	if !testutils.RunningInBubblewrap() {
 		testInBubbleWrapWithLockerBinary(t)
 		return
