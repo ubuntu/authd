@@ -1,7 +1,6 @@
 package testutils
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -151,23 +150,11 @@ func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []str
 	}
 
 	cmd.Args = append(cmd.Args, args...)
-
-	var b bytes.Buffer
-	cmd.Stdout = &b
-	cmd.Stderr = &b
-	if testing.Verbose() {
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-	}
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
 
 	t.Log("Running command:", cmd.String())
-	err = cmd.Run()
-	output := strings.TrimSpace(b.String())
-
-	if !testing.Verbose() {
-		t.Logf("Command output\n%s", output)
-	}
-	return err
+	return cmd.Run()
 }
 
 func canUseUnprivilegedUserNamespaces(t *testing.T) bool {
