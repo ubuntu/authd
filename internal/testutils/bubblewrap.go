@@ -42,7 +42,6 @@ func SkipIfCannotRunBubbleWrap(t *testing.T) {
 		bubbleWrapSupportsUnprivilegedNamespaces = canUseUnprivilegedUserNamespaces(t)
 	})
 	if bubbleWrapSupportsUnprivilegedNamespaces {
-		t.Log("Can use unprivileged user namespaces")
 		return
 	}
 
@@ -50,7 +49,7 @@ func SkipIfCannotRunBubbleWrap(t *testing.T) {
 		bubbleWrapNeedsSudo = canUseSudoNonInteractively(t)
 	})
 	if bubbleWrapNeedsSudo {
-		t.Log("Can use sudo non-interactively")
+		return
 	}
 
 	t.Skip("Skipping test: requires root privileges or unprivileged user namespaces")
@@ -165,6 +164,7 @@ func canUseUnprivilegedUserNamespaces(t *testing.T) bool {
 		return false
 	}
 
+	t.Log("Can use unprivileged user namespaces")
 	return true
 }
 
@@ -182,6 +182,7 @@ func canUseSudoNonInteractively(t *testing.T) bool {
 		return false
 	}
 
+	t.Log("Can use sudo non-interactively")
 	return true
 }
 
