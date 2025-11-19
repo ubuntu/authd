@@ -86,11 +86,15 @@ func strvToSlice(strv **C.char) []string {
 		return nil
 	}
 	n := C.strv_len(strv)
+	if n == 0 {
+		return nil
+	}
+
+	cStrings := unsafe.Slice(strv, int(n))
 
 	out := make([]string, int(n))
 	for i := 0; i < int(n); i++ {
-		p := *(**C.char)(unsafe.Add(unsafe.Pointer(strv), uintptr(i)*unsafe.Sizeof(*strv)))
-		out[i] = C.GoString(p)
+		out[i] = C.GoString(cStrings[i])
 	}
 	return out
 }
