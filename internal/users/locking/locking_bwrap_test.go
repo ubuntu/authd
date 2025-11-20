@@ -479,7 +479,9 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		panic(err)
 	}
-	defer func() { _ = os.RemoveAll(tempDir) }()
+	if v := os.Getenv("SKIP_CLEANUP"); v == "" {
+		defer func() { _ = os.RemoveAll(tempDir) }()
+	}
 
 	m.Run()
 }

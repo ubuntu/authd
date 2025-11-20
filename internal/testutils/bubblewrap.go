@@ -89,7 +89,7 @@ func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []str
 	}
 
 	if testDataPath == "" {
-		testDataPath = t.TempDir()
+		testDataPath = TempDir(t)
 	}
 
 	etcDir := filepath.Join(testDataPath, "etc")
