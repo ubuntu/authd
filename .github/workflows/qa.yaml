@@ -244,9 +244,8 @@ jobs:
           sudo apt-get install -y gcovr
 
           # Dependencies for Go coverage collection
-          go install github.com/AlekSi/gocov-xml@latest
-          go install github.com/axw/gocov/gocov@latest
           dotnet tool install -g dotnet-reportgenerator-globaltool
+          go install github.com/boumenot/gocover-cobertura@latest
 
       - name: Run tests (with coverage collection)
         if: matrix.test == 'coverage'
@@ -280,11 +279,12 @@ jobs:
           # Append the Rust coverage data to the Go one
           cat "${raw_cov_dir}/rust-cov/rust2go_coverage" >>"${cov_dir}/coverage.out"
 
-          # Filter out the testutils package and the pb.go file
-          grep -v -e "testutils" -e "pb.go" -e "testsdetection" "${cov_dir}/coverage.out" >"${cov_dir}/coverage.out.filtered"
-
           # Generate the Cobertura report for Go and Rust
-          gocov convert "${cov_dir}/coverage.out.filtered" | gocov-xml > "${cov_dir}/coverage.xml"
+          GOFLAGS="-tags=integrationtests,withexamplebroker"\
+            gocover-cobertura \
+            -ignore-files '.*/withoutexamples\.go|.*/pb\.go|.*/testsdetection.*|.*/testutils.*' \
+            < "${cov_dir}/coverage.out" \
+            > "${cov_dir}/coverage.xml"
           reportgenerator -reports:"${cov_dir}/coverage.xml" -targetdir:"${cov_dir}" -reporttypes:Cobertura
 
           # Generate the Cobertura report for C
