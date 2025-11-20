@@ -240,10 +240,10 @@ jobs:
         run: |
           set -eu
 
-          # Dependendencies for C coverage collection
+          # Dependencies for C coverage collection
           sudo apt-get install -y gcovr
 
-          # Dependendencies for Go coverage collection
+          # Dependencies for Go coverage collection
           go install github.com/AlekSi/gocov-xml@latest
           go install github.com/axw/gocov/gocov@latest
           dotnet tool install -g dotnet-reportgenerator-globaltool
