@@ -24,7 +24,7 @@ func TestLockAndWriteUnlock(t *testing.T) {
 	t.Parallel()
 
 	if !testutils.RunningInBubblewrap() {
-		testutils.RunTestInBubbleWrap(t, tempDir)
+		testutils.RunTestInBubbleWrap(t)
 		return
 	}
 
@@ -78,7 +78,7 @@ func TestReadWhileLocked(t *testing.T) {
 	t.Parallel()
 
 	if !testutils.RunningInBubblewrap() {
-		testutils.RunTestInBubbleWrap(t, tempDir)
+		testutils.RunTestInBubbleWrap(t)
 		return
 	}
 
@@ -108,7 +108,7 @@ func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 	t.Parallel()
 
 	if !testutils.RunningInBubblewrap() {
-		testutils.RunTestInBubbleWrap(t, tempDir)
+		testutils.RunTestInBubbleWrap(t)
 		return
 	}
 
@@ -162,7 +162,7 @@ func TestUnlockUnlockedOverridden(t *testing.T) {
 	t.Parallel()
 
 	if !testutils.RunningInBubblewrap() {
-		testutils.RunTestInBubbleWrap(t, tempDir)
+		testutils.RunTestInBubbleWrap(t)
 		return
 	}
 
@@ -176,7 +176,7 @@ func TestUnlockUnlocked(t *testing.T) {
 	t.Parallel()
 
 	if !testutils.RunningInBubblewrap() {
-		testutils.RunTestInBubbleWrap(t, tempDir)
+		testutils.RunTestInBubbleWrap(t)
 		return
 	}
 
@@ -190,7 +190,7 @@ func TestLockAndLockAgainGroupFile(t *testing.T) {
 	t.Parallel()
 
 	if !testutils.RunningInBubblewrap() {
-		testutils.RunTestInBubbleWrap(t, tempDir)
+		testutils.RunTestInBubbleWrap(t)
 		return
 	}
 
@@ -462,7 +462,7 @@ func testInBubbleWrapWithLockerBinary(t *testing.T) {
 		compileLockerBinary(t, tempDir)
 	})
 
-	testutils.RunTestInBubbleWrap(t, tempDir,
+	testutils.RunTestInBubbleWrap(t,
 		"--ro-bind", lockerBinaryPath, lockerBinaryPath,
 		"--setenv", "AUTHD_TESTS_PASSWD_LOCKER_UTILITY", lockerBinaryPath,
 	)
