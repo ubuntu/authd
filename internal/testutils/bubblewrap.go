@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"sync"
 	"testing"
 
@@ -19,9 +18,6 @@ var (
 
 	bubbleWrapNeedsSudoOnce sync.Once
 	bubbleWrapNeedsSudo     bool
-
-	compileTestBinaryOnce sync.Once
-	testBinaryPath        string
 )
 
 const bubbleWrapTestEnvVar = "BUBBLEWRAP_TEST"
@@ -59,16 +55,12 @@ func SkipIfCannotRunBubbleWrap(t *testing.T) {
 }
 
 // RunTestInBubbleWrap runs the given test in bubblewrap.
-func RunTestInBubbleWrap(t *testing.T, tempDir string, args ...string) {
+func RunTestInBubbleWrap(t *testing.T, args ...string) {
 	t.Helper()
 
 	SkipIfCannotRunBubbleWrap(t)
 
-	compileTestBinaryOnce.Do(func() {
-		testBinaryPath = compileTestBinary(t, tempDir)
-	})
-
-	testCommand := []string{testBinaryPath, "-test.run", "^" + t.Name() + "$"}
+	testCommand := []string{os.Args[0], "-test.run", "^" + t.Name() + "$"}
 	if testing.Verbose() {
 		testCommand = append(testCommand, "-test.v")
 	}
@@ -192,31 +184,4 @@ func canUseSudoNonInteractively(t *testing.T) bool {
 
 	t.Log("Can use sudo non-interactively")
 	return true
-}
-
-func compileTestBinary(t *testing.T, tempDir string) string {
-	t.Helper()
-
-	cmd := exec.Command("go", "test")
-	// These are positional arguments.
-	if CoverDirForTests() != "" {
-		cmd.Args = append(cmd.Args, "-cover")
-	}
-	if IsAsan() {
-		cmd.Args = append(cmd.Args, "-asan")
-	}
-	if IsRace() {
-		cmd.Args = append(cmd.Args, "-race")
-	}
-
-	testBinary := filepath.Join(tempDir, "test-binary")
-	cmd.Args = append(cmd.Args, []string{
-		"-tags", "bubblewrap_test", "-c", "-o", testBinary,
-	}...)
-
-	t.Logf("Compiling test binary: %s", strings.Join(cmd.Args, " "))
-	compileOut, err := cmd.CombinedOutput()
-	require.NoError(t, err, "Setup: Cannot compile test file: %s", compileOut)
-
-	return testBinary
 }
