@@ -162,22 +162,39 @@ func trackRustCoverage(t *testing.T, target, src string) []string {
 		cmd.Env = append(os.Environ(), "LLVM_PROFILE_FILE="+coverDir)
 
 		out, err := cmd.CombinedOutput()
-		require.NoError(t, err, "Teardown: could not convert coverage to json format: %s", out)
+		assert.NoError(t, err, "Teardown: could not convert coverage to json format: %s", out)
+		if err != nil {
+			return
+		}
 
 		// Load our converted JSON profile.
 		var results map[string]interface{}
 		d, err := os.ReadFile(rustJSONCoverage)
-		require.NoError(t, err, "Teardown: can't read our json coverage file")
+		assert.NoError(t, err, "Teardown: can't read our json coverage file")
+		if err != nil {
+			return
+		}
 		err = json.Unmarshal(d, &results)
-		require.NoError(t, err, "Teardown: decode our json coverage file")
+		assert.NoError(t, err, "Teardown: decode our json coverage file")
+		if err != nil {
+			return
+		}
 
 		// This is the destination file for rust coverage in go format.
 		outF, err := os.Create(filepath.Join(coverDir, "rust2go_coverage"))
-		require.NoErrorf(t, err, "Teardown: failed opening output golang compatible cover file: %s", err)
+		assert.NoErrorf(t, err, "Teardown: failed opening output golang compatible cover file: %s", err)
+		if err != nil {
+			return
+		}
 		defer func() { assert.NoError(t, outF.Close(), "Teardown: can’t close golang compatible cover file") }()
 
 		// Scan our results to write to it.
-		scan(t, results, fqdnToPath(t, src), outF)
+		path, err := fqdnToPath(src)
+		assert.NoError(t, err, "Teardown: can't get source path for coverage")
+		if err != nil {
+			return
+		}
+		scan(t, results, path, outF)
 	})
 
 	return []string{
@@ -195,7 +212,8 @@ func scan(t *testing.T, results map[string]interface{}, p string, w io.Writer) {
 	if r != nil {
 		res, ok := r.([]interface{})
 		if !ok {
-			t.Fatalf("%v for coverage report is not a slice of floats in interface", r)
+			t.Errorf("%v for coverage report is not a slice of floats in interface", r)
+			return
 		}
 		convertRustFileResult(t, res, p, w)
 		return
@@ -206,7 +224,8 @@ func scan(t *testing.T, results map[string]interface{}, p string, w io.Writer) {
 	if r != nil {
 		res, ok := r.(map[string]interface{})
 		if !ok {
-			t.Fatalf("children %v is not a map of data", r)
+			t.Errorf("children %v is not a map of data", r)
+			return
 		}
 		// Iterate over files or dir.
 		for elem, subResults := range res {
@@ -232,7 +251,8 @@ func convertRustFileResult(t *testing.T, results []interface{}, p string, w io.W
 	for l, r := range results {
 		v, ok := r.(float64)
 		if !ok {
-			t.Fatalf("%v for coverage report is not a float", r)
+			t.Errorf("%v for coverage report is not a float", r)
+			return
 		}
 		var covered string
 		switch v {

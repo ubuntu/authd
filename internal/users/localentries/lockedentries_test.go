@@ -8,6 +8,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/types"
@@ -106,7 +107,7 @@ func TestIsUniqueUserName(t *testing.T) {
 
 	t.Cleanup(func() {
 		err := unlock()
-		require.NoError(t, err, "TearDown: Unlock should not fail, but it did")
+		assert.NoError(t, err, "TearDown: Unlock should not fail, but it did")
 	})
 
 	users, err := le.GetUserEntries()
@@ -141,7 +142,7 @@ func TestIsUniqueGroupName(t *testing.T) {
 
 	t.Cleanup(func() {
 		err := unlock()
-		require.NoError(t, err, "TearDown: Unlock should not fail, but it did")
+		assert.NoError(t, err, "TearDown: Unlock should not fail, but it did")
 	})
 
 	groups, err := le.GetGroupEntries()
@@ -176,7 +177,7 @@ func TestIsUniqueUID(t *testing.T) {
 
 	t.Cleanup(func() {
 		err := unlock()
-		require.NoError(t, err, "TearDown: Unlock should not fail, but it did")
+		assert.NoError(t, err, "TearDown: Unlock should not fail, but it did")
 	})
 
 	users, err := le.GetUserEntries()
@@ -220,7 +221,7 @@ func TestIsUniqueGID(t *testing.T) {
 
 	t.Cleanup(func() {
 		err := unlock()
-		require.NoError(t, err, "TearDown: Unlock should not fail, but it did")
+		assert.NoError(t, err, "TearDown: Unlock should not fail, but it did")
 	})
 
 	groups, err := le.GetGroupEntries()

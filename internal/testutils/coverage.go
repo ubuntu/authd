@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -10,7 +11,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,11 +20,11 @@ var (
 )
 
 // fqdnToPath allows to return the fqdn path for this file relative to go.mod.
-func fqdnToPath(t *testing.T, path string) string {
-	t.Helper()
-
+func fqdnToPath(path string) (res string, err error) {
 	srcPath, err := filepath.Abs(path)
-	require.NoError(t, err, "Setup: can't calculate absolute path")
+	if err != nil {
+		return "", err
+	}
 
 	d := srcPath
 	for d != "/" {
@@ -33,22 +33,26 @@ func fqdnToPath(t *testing.T, path string) string {
 			d = filepath.Dir(d)
 			continue
 		}
-		defer func() { assert.NoError(t, f.Close(), "Setup: can’t close go.mod") }()
+		defer func() {
+			err = errors.Join(err, f.Close())
+		}()
 
 		r := bufio.NewReader(f)
 		l, err := r.ReadString('\n')
-		require.NoError(t, err, "can't read go.mod first line")
+		if err != nil {
+			return "", err
+		}
+
 		if !strings.HasPrefix(l, "module ") {
-			t.Fatal(`Setup: failed to find "module" line in go.mod`)
+			return "", fmt.Errorf("go.mod doesn't contain a module declaration: %s", l)
 		}
 
 		prefix := strings.TrimSpace(strings.TrimPrefix(l, "module "))
 		relpath := strings.TrimPrefix(srcPath, d)
-		return filepath.Join(prefix, relpath)
+		return filepath.Join(prefix, relpath), nil
 	}
 
-	t.Fatal("failed to find go.mod")
-	return ""
+	return "", fmt.Errorf("can't find go.mod for %s", srcPath)
 }
 
 // CoverDirEnv returns the cover dir env variable to run a go binary, if coverage is enabled.

@@ -21,6 +21,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/grpcutils"
@@ -719,8 +720,11 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 			return
 		}
 		sshdLog := filepath.Join(t.TempDir(), "sshd.log")
-		require.NoError(t, os.WriteFile(sshdLog, sshdStderr.Bytes(), 0600),
-			"TearDown: Saving sshd log")
+		err := os.WriteFile(sshdLog, sshdStderr.Bytes(), 0600)
+		assert.NoError(t, err, "TearDown: Saving sshd log")
+		if err != nil {
+			return
+		}
 		saveArtifactsForDebug(t, []string{sshdLog})
 	})
 
@@ -771,20 +775,32 @@ func startSSHd(t *testing.T, hostKey, forcedCommand string, env []string, daemon
 			return
 		}
 		contents, err := os.ReadFile(sshdLogFile)
-		require.NoError(t, err, "TearDown: Reading SSHd log failed")
+		assert.NoError(t, err, "TearDown: Reading SSHd log failed")
 		t.Logf(" ##### LOG FILE #####\n %s \n ##### END #####", contents)
 	})
 
 	t.Cleanup(func() {
 		pidFileContent, err := os.ReadFile(sshdPidFile)
-		require.NoError(t, err, "TearDown: Reading SSHd pid file failed")
+		assert.NoError(t, err, "TearDown: Reading SSHd pid file failed")
+		if err != nil {
+			return
+		}
 		p := strings.TrimSpace(string(pidFileContent))
 		pid, err := strconv.Atoi(p)
-		require.NoError(t, err, "TearDown: Parsing SSHd pid file content: %q", p)
+		assert.NoError(t, err, "TearDown: Parsing SSHd pid file content: %q", p)
+		if err != nil {
+			return
+		}
 		process, err := os.FindProcess(pid)
-		require.NoError(t, err, "TearDown: Finding SSHd process")
+		assert.NoError(t, err, "TearDown: Finding SSHd process")
+		if err != nil {
+			return
+		}
 		err = process.Kill()
-		require.NoError(t, err, "TearDown: Killing SSHd process")
+		assert.NoError(t, err, "TearDown: Killing SSHd process")
+		if err != nil {
+			return
+		}
 		t.Logf("SSHd pid %d killed", pid)
 	})
 

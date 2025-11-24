@@ -8,6 +8,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/testutils"
@@ -120,7 +121,7 @@ func TestUpdatelocalentries(t *testing.T) {
 			require.NoError(t, err, "Failed to lock the local entries")
 			t.Cleanup(func() {
 				err := entriesUnlock()
-				require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
+				assert.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 			})
 
 			err = localentries.UpdateGroups(entries, tc.username, tc.newGroups, tc.oldGroups)
@@ -400,7 +401,7 @@ func TestRacingGroupsLockingActions(t *testing.T) {
 			require.NoError(t, err, "Failed to lock the local entries")
 			t.Cleanup(func() {
 				err := entriesUnlock()
-				require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
+				assert.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 			})
 
 			groups, err := localentries.GetGroupEntries(entries)

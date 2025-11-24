@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/types"
@@ -152,7 +153,7 @@ func TestParseLocalPasswdFile(t *testing.T) {
 			require.NoError(t, err, "Failed to lock the local entries")
 			t.Cleanup(func() {
 				err := entriesUnlock()
-				require.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
+				assert.NoError(t, err, "entriesUnlock should not fail to unlock the local entries")
 			})
 
 			got, err := le.GetLocalUserEntries()

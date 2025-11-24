@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -57,7 +58,7 @@ func MakeReadOnly(t *testing.T, dest string) {
 		}
 
 		err = os.Chmod(dest, mode)
-		require.NoError(t, err)
+		assert.NoError(t, err)
 	})
 }
 

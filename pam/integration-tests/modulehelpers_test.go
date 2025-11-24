@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -100,8 +101,11 @@ func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags
 				notesFilename)
 			gcov.Dir = gcovDir
 			out, err := gcov.CombinedOutput()
-			require.NoError(t, err,
+			assert.NoError(t, err,
 				"Teardown: Can't get coverage report on C library: %s", out)
+			if err != nil {
+				return
+			}
 			if string(out) != "" {
 				t.Log(string(out))
 			}
@@ -110,11 +114,14 @@ func buildCModule(t *testing.T, sources []string, pkgConfigDeps []string, cFlags
 			// an html output locally using geninfo + genhtml.
 			err = os.Rename(filepath.Join(libDir, dataFilename),
 				filepath.Join(gcovDir, dataFilename))
-			require.NoError(t, err,
+			assert.NoError(t, err,
 				"Teardown: Can't move coverage report data for c Library: %v", err)
+			if err != nil {
+				return
+			}
 			err = os.Rename(filepath.Join(libDir, notesFilename),
 				filepath.Join(gcovDir, notesFilename))
-			require.NoError(t, err,
+			assert.NoError(t, err,
 				"Teardown: Can't move coverage report notes for c Library: %v", err)
 		})
 	}
