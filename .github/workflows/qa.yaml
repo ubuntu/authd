@@ -245,7 +245,7 @@ jobs:
 
           # Dependencies for Go coverage collection
           dotnet tool install -g dotnet-reportgenerator-globaltool
-          go install github.com/boumenot/gocover-cobertura@latest
+          go install github.com/boumenot/gocover-cobertura@71dbd18f1eb1fa30866e6a4114cdabaa422db2fe
 
       - name: Run tests (with coverage collection)
         if: matrix.test == 'coverage'
