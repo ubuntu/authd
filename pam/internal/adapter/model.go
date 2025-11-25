@@ -365,6 +365,8 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				msg:    "reselection of current auth mode without current ID",
 			})
 		}
+		// Export selected auth mode to the PAM environment.
+		m.pamMTx.PutEnv("AUTHD_AUTH_MODE=" + msg.ID)
 		return m, tea.Sequence(
 			m.updateClientModel(msg),
 			getLayout(m.client, m.currentSession.sessionID, msg.ID),
