@@ -237,6 +237,25 @@ func (s Service) SetUserID(ctx context.Context, req *authd.SetUserIDRequest) (*a
 	return &authd.SetUserIDResponse{Warnings: warnings}, nil
 }
 
+// SetGroupID sets the GID of a group.
+func (s Service) SetGroupID(ctx context.Context, req *authd.SetGroupIDRequest) (*authd.SetGroupIDResponse, error) {
+	if err := s.permissionManager.CheckRequestIsFromRoot(ctx); err != nil {
+		return nil, status.Error(codes.PermissionDenied, err.Error())
+	}
+
+	if req.GetName() == "" {
+		return nil, status.Error(codes.InvalidArgument, "no group name provided")
+	}
+
+	warnings, err := s.userManager.SetGroupID(req.GetName(), req.GetId())
+	if err != nil {
+		log.Debugf(ctx, "SetGroupID: %v", err)
+		return nil, grpcError(err)
+	}
+
+	return &authd.SetGroupIDResponse{Warnings: warnings}, nil
+}
+
 // userToProtobuf converts a types.UserEntry to authd.User.
 func userToProtobuf(u types.UserEntry) *authd.User {
 	return &authd.User{
