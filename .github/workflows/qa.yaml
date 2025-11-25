@@ -245,7 +245,7 @@ jobs:
 
           # Dependendencies for Go coverage collection
           go install github.com/AlekSi/gocov-xml@latest
-          go install github.com/axw/gocov/gocov@latest
+          go install github.com/adombeck/gocov/gocov@latest
           dotnet tool install -g dotnet-reportgenerator-globaltool
 
       - name: Run tests (with coverage collection)
