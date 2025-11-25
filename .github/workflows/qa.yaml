@@ -277,7 +277,9 @@ jobs:
           go tool covdata textfmt -i="${raw_cov_dir}" -o="${cov_dir}/coverage.out"
 
           # Append the Rust coverage data to the Go one
-          cat "${raw_cov_dir}/rust-cov/rust2go_coverage" >>"${cov_dir}/coverage.out"
+          if [ -f "${raw_cov_dir}/rust-cov/rust2go_coverage" ]; then
+            cat "${raw_cov_dir}/rust-cov/rust2go_coverage" >>"${cov_dir}/coverage.out"
+          fi
 
           # Generate the Cobertura report for Go and Rust
           GOFLAGS="-tags=integrationtests,withexamplebroker"\
