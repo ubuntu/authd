@@ -391,11 +391,12 @@ func (m *Manager) SetUserID(name string, uid uint32) (warnings []string, err err
 	}
 	defer func() { err = errors.Join(err, userslocking.WriteUnlock()) }()
 
-	// Check if the user already has the given UID
+	// Check if the user exists
 	oldUser, err := m.db.UserByName(name)
 	if err != nil {
 		return nil, err
 	}
+	// Check if the user already has the given UID
 	if oldUser.UID == uid {
 		warning := fmt.Sprintf("User %q already has UID %d", name, uid)
 		log.Info(context.Background(), warning)
@@ -438,6 +439,7 @@ func (m *Manager) SetUserID(name string, uid uint32) (warnings []string, err err
 	}
 
 	// Change the ownership of all files in the home directory from the old UID to the new UID.
+	log.Debugf(context.Background(), "Changing ownership of home directory %q from UID %d to UID %d", oldUser.Dir, oldUser.UID, uid)
 	err = fileutils.ChownRecursiveFrom(oldUser.Dir, oldUser.UID, 0, int32(uid), -1)
 	if err != nil {
 		warning := "Failed to change ownership of home directory"
@@ -446,6 +448,97 @@ func (m *Manager) SetUserID(name string, uid uint32) (warnings []string, err err
 	}
 
 	return nil, nil
+}
+
+// SetGroupID updates the GID of the group with the given name to the specified GID.
+func (m *Manager) SetGroupID(name string, gid uint32) (warnings []string, err error) {
+	// authd uses lowercase group names
+	name = strings.ToLower(name)
+
+	log.Debugf(context.TODO(), "Updating GID for group %q to %d", name, gid)
+
+	if name == "" {
+		return nil, errors.New("empty group name")
+	}
+
+	if gid > math.MaxInt32 {
+		return nil, fmt.Errorf("GID %d is too large to convert to int32", gid)
+	}
+
+	// Call lckpwdf to avoid race conditions with other processes which add GIDs
+	err = userslocking.WriteLock()
+	if err != nil {
+		return nil, err
+	}
+	defer func() { err = errors.Join(err, userslocking.WriteUnlock()) }()
+
+	// Check if the group already has the given GID
+	oldGroup, err := m.db.GroupByName(name)
+	if err != nil {
+		return nil, err
+	}
+	if oldGroup.GID == gid {
+		warning := fmt.Sprintf("Group %q already has GID %d", name, gid)
+		log.Info(context.Background(), warning)
+		return []string{warning}, nil
+	}
+
+	// Check if another group already has the given GID
+	_, err = user.LookupGroupId(strconv.FormatUint(uint64(gid), 10))
+	var userErr user.UnknownGroupIdError
+	if err != nil && !errors.As(err, &userErr) {
+		// Unexpected error
+		return nil, err
+	}
+	if err == nil {
+		return nil, fmt.Errorf("GID %d already exists", gid)
+	}
+
+	userRows, err := m.db.SetGroupID(name, gid)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, userRow := range userRows {
+		warning := m.updateUserHomeDirOwnership(userRow, oldGroup.GID, int32(gid))
+		if warning != "" {
+			warnings = append(warnings, warning)
+		}
+	}
+
+	return warnings, nil
+}
+
+func (m *Manager) updateUserHomeDirOwnership(userRow db.UserRow, oldGID uint32, newGID int32) (warning string) {
+	// Check if the home directory is currently owned by the group
+	_, homeGID, err := getHomeDirOwner(userRow.Dir)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		warning := fmt.Sprintf("Could not get owner of home directory %q for user %q", userRow.Dir, userRow.Name)
+		log.Warningf(context.Background(), "%s: %v", warning, err)
+		return warning
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		// The home directory does not exist, so we don't need to change the owner.
+		log.Debugf(context.Background(), "Home directory %q for user %q does not exist, skipping ownership change", userRow.Dir, userRow.Name)
+		return ""
+	}
+
+	if homeGID != oldGID {
+		warning := fmt.Sprintf("Not changing ownership of home directory %q, because it is not owned by GID %d (current owner: %d)", userRow.Dir, oldGID, homeGID)
+		log.Warning(context.Background(), warning)
+		return warning
+	}
+
+	// Change the ownership of all files in the home directory from the old GID to the new GID.
+	log.Debugf(context.Background(), "Changing ownership of home directory %q from GID %d to GID %d", userRow.Dir, oldGID, newGID)
+	err = fileutils.ChownRecursiveFrom(userRow.Dir, 0, oldGID, -1, newGID)
+	if err != nil {
+		warning := "Failed to change ownership of home directory"
+		log.Warningf(context.Background(), "%s: %v", warning, err)
+		return warning
+	}
+
+	return ""
 }
 
 // checkGroupNameConflict checks if a group with the given name already exists.
