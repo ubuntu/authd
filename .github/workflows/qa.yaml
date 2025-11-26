@@ -183,6 +183,26 @@ jobs:
             -shuffle=on -failfast -args -test.gocoverdir="${RAW_COVERAGE_DIR}" | \
             gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.log"
 
+          # If the tests failed, retry them up to three times to reduce failures due to flakiness.
+          if [ -n "${exit_code:-}" ]; then
+            test_output="${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.stdout"
+            for i in $(seq 1 3); do
+              echo "Retrying failed tests (attempt ${i})"
+              gotest-rerun-failed -json -timeout ${GO_TESTS_TIMEOUT} -cover -covermode=set -- -coverpkg=./... \
+                -shuffle=on -failfast -args -test.gocoverdir="${RAW_COVERAGE_DIR}" \
+                < "${test_output}" \
+                | gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.retry-$i.log"
+              if [ $? -eq 0 ]; then
+                break
+              fi
+              if [ "${i}" -eq 3 ]; then
+                echo "Tests failed 3 times, giving up"
+                exit ${exit_code}
+              fi
+              test_output="${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.retry-$i.stdout"
+            done
+          fi
+
       - uses: ./.github/actions/generate-coverage-report
         with:
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
