@@ -18,6 +18,10 @@ runs:
 
         sudo apt-get update
 
+        # Disable the php8.3-fpm.service which is enabled by default on ubuntu-latest-runner
+        # and is restarted when installing the dependencies but times out after 90s.
+        sudo systemctl mask --now php8.3-fpm.service || true
+
         # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
         sudo apt-get install -y protobuf-compiler
 
