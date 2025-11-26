@@ -160,6 +160,8 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-go-tests
       - uses: ./.github/actions/setup-go-coverage-tests
+      - uses: ./.github/actions/install-debug-symbols
+        continue-on-error: true
 
       - name: Run tests with coverage collection
         env:
@@ -220,6 +222,8 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-go-tests
       - uses: ./.github/actions/setup-go-coverage-tests
+      - uses: ./.github/actions/install-debug-symbols
+        continue-on-error: true
 
       - name: Download JSON output of failed tests
         uses: actions/download-artifact@v4
@@ -273,6 +277,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-go-tests
+      - uses: ./.github/actions/install-debug-symbols
+        continue-on-error: true
 
       - name: Run tests with race detector
         env:
@@ -296,6 +302,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-go-tests
+      - uses: ./.github/actions/install-debug-symbols
+        continue-on-error: true
 
       - name: Run PAM tests with Address Sanitizer
         env:
