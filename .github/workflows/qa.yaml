@@ -183,25 +183,83 @@ jobs:
             -shuffle=on -failfast -args -test.gocoverdir="${RAW_COVERAGE_DIR}" | \
             gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.log"
 
-          # If the tests failed, retry them up to three times to reduce failures due to flakiness.
-          if [ -n "${exit_code:-}" ]; then
-            test_output="${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.stdout"
-            for i in $(seq 1 3); do
-              echo "Retrying failed tests (attempt ${i})"
-              gotest-rerun-failed -json -timeout ${GO_TESTS_TIMEOUT} -cover -covermode=set -- -coverpkg=./... \
-                -shuffle=on -failfast -args -test.gocoverdir="${RAW_COVERAGE_DIR}" \
-                < "${test_output}" \
-                | gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.retry-$i.log"
-              if [ $? -eq 0 ]; then
-                break
-              fi
-              if [ "${i}" -eq 3 ]; then
-                echo "Tests failed 3 times, giving up"
-                exit ${exit_code}
-              fi
-              test_output="${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.retry-$i.stdout"
-            done
-          fi
+      # Upload the test output for the go-tests-coverage-retry job which retries
+      # the failed tests.
+      - name: Upload JSON test output on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-test-output
+          path: ${{ env.AUTHD_TESTS_ARTIFACTS_PATH }}/gotestfmt.cover.stdout
+
+      # Upload the raw coverage data so that the go-tests-coverage-retry job has
+      # all the data to generate the coverage report (if the tests succeed on
+      # retry).
+      - name: Upload raw coverage on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-coverage-data
+          path: ${{ env.RAW_COVERAGE_DIR }}
+
+      - uses: ./.github/actions/generate-coverage-report
+        with:
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}
+
+      - uses: ./.github/actions/upload-test-artifacts
+
+  go-tests-coverage-retry:
+    name: "Retry Go Tests with Coverage Collection"
+    needs: go-tests-coverage
+    if: always() && needs.go-tests-coverage.result == 'failure'
+    runs-on: ubuntu-24.04
+    env:
+      RAW_COVERAGE_DIR: ${{ github.workspace }}/raw-coverage
+      COVERAGE_DIR: ${{ github.workspace }}/coverage
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-go-tests
+      - uses: ./.github/actions/setup-go-coverage-tests
+
+      - name: Download JSON output of failed tests
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-test-output
+          path: /tmp/coverage-test-output
+
+      - name: Download raw coverage data
+        uses: actions/download-artifact@v4
+        with:
+          name: raw-coverage-data
+          path: ${{ env.RAW_COVERAGE_DIR }}
+
+      - name: Install gotest-rerun-failed
+        run: go install github.com/adombeck/gotest-rerun-failed@latest
+
+      - name: Retry failed tests with coverage collection
+        run: |
+          set -euo pipefail
+
+          # Print executed commands to ease debugging
+          set -x
+
+          test_output="/tmp/coverage-test-output/gotestfmt.cover.stdout"
+          for i in $(seq 1 3); do
+            echo "Retrying failed tests (attempt ${i})"
+            gotest-rerun-failed -json -timeout ${GO_TESTS_TIMEOUT} -cover -covermode=set -- -coverpkg=./... \
+              -shuffle=on -failfast -args -test.gocoverdir="${RAW_COVERAGE_DIR}" \
+              < "${test_output}" \
+              | gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.retry-$i.log"
+            exit_code=$?
+            if [ "${exit_code}" -eq 0 ]; then
+              break
+            fi
+            if [ "${i}" -eq 3 ]; then
+              echo "Tests failed 3 times, giving up"
+              exit ${exit_code}
+            fi
+            test_output="${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.retry-$i.stdout"
+          done
 
       - uses: ./.github/actions/generate-coverage-report
         with:
