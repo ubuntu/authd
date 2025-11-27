@@ -55,7 +55,7 @@ jobs:
 
           sudo apt-get update
           sudo apt-get install -y ${{ env.go_build_dependencies }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Go code sanity check
         uses: canonical/desktop-engineering/gh-actions/go/code-sanity@v2
         with:
@@ -101,7 +101,7 @@ jobs:
           # so we always need to install the protobuf compilers
           # when building the NSS crate.
           sudo apt-get install -y protobuf-compiler
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Rust code sanity check
         uses: canonical/desktop-engineering/gh-actions/rust/code-sanity@main
         with:
@@ -127,7 +127,7 @@ jobs:
 
           scan_build_dir=$(mktemp -d --tmpdir scan-build-dir-XXXXXX)
           echo SCAN_BUILD_REPORTS_PATH="${scan_build_dir}" >> $GITHUB_ENV
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Run scan build on GDM extensions
         run: |
           set -eu
@@ -196,7 +196,7 @@ jobs:
             sudo apt-get remove -y ubuntu-dev-tools
             sudo apt-get autoremove -y
           fi
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
