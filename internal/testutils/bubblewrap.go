@@ -1,11 +1,10 @@
 package testutils
 
 import (
-	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"sync"
 	"testing"
 
@@ -21,6 +20,13 @@ var (
 	bubbleWrapNeedsSudo     bool
 )
 
+const bubbleWrapTestEnvVar = "BUBBLEWRAP_TEST"
+
+// RunningInBubblewrap returns true if the test is being run in bubblewrap.
+func RunningInBubblewrap() bool {
+	return os.Getenv(bubbleWrapTestEnvVar) == "1"
+}
+
 // SkipIfCannotRunBubbleWrap checks whether we can run tests running in bubblewrap or
 // skip the tests otherwise.
 func SkipIfCannotRunBubbleWrap(t *testing.T) {
@@ -35,49 +41,66 @@ func SkipIfCannotRunBubbleWrap(t *testing.T) {
 		bubbleWrapSupportsUnprivilegedNamespaces = canUseUnprivilegedUserNamespaces(t)
 	})
 	if bubbleWrapSupportsUnprivilegedNamespaces {
-		t.Log("Can use unprivileged user namespaces")
 		return
 	}
 
 	bubbleWrapNeedsSudoOnce.Do(func() {
-		bubbleWrapNeedsSudo = canUseSudoNonInteractively(t)
+		bubbleWrapNeedsSudo = canUseBwrapWithSudoNonInteractively(t)
 	})
 	if bubbleWrapNeedsSudo {
-		t.Log("Can use sudo non-interactively")
+		return
 	}
 
 	t.Skip("Skipping test: requires root privileges or unprivileged user namespaces")
 }
 
-// RunInBubbleWrapWithEnv runs the passed commands in bubble wrap sandbox with env variables.
-func RunInBubbleWrapWithEnv(t *testing.T, testDataPath string, env []string, args ...string) (string, error) {
+// RunTestInBubbleWrap runs the given test in bubblewrap.
+func RunTestInBubbleWrap(t *testing.T, args ...string) {
 	t.Helper()
 
 	SkipIfCannotRunBubbleWrap(t)
-	return runInBubbleWrap(t, bubbleWrapNeedsSudo, testDataPath, env, args...)
+
+	testCommand := []string{os.Args[0], "-test.run", "^" + t.Name() + "$"}
+	if testing.Verbose() {
+		testCommand = append(testCommand, "-test.v")
+	}
+	if c := CoverDirForTests(); c != "" {
+		testCommand = append(testCommand, fmt.Sprintf("-test.gocoverdir=%s", c))
+	}
+	args = append(args, testCommand...)
+
+	t.Logf("Running %s in bubblewrap", t.Name())
+	err := runInBubbleWrap(t, bubbleWrapNeedsSudo, "", nil, args...)
+	if err != nil {
+		t.Fatalf("Running %s in bubblewrap failed: %v", t.Name(), err)
+	}
 }
 
-// RunInBubbleWrap runs the passed commands in bubble wrap sandbox.
-func RunInBubbleWrap(t *testing.T, testDataPath string, args ...string) (string, error) {
-	t.Helper()
-
-	return RunInBubbleWrapWithEnv(t, testDataPath, nil, args...)
-}
-
-func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []string, args ...string) (string, error) {
+func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []string, args ...string) error {
 	t.Helper()
 
 	cmd := exec.Command("bwrap")
 	cmd.Env = AppendCovEnv(os.Environ())
 	cmd.Env = append(cmd.Env, env...)
+	cmd.Env = append(cmd.Env, bubbleWrapTestEnvVar+"=1")
 
 	if withSudo {
 		cmd.Args = append([]string{"sudo"}, cmd.Args...)
 	}
 
+	if testDataPath == "" {
+		testDataPath = TempDir(t)
+	}
+
 	etcDir := filepath.Join(testDataPath, "etc")
 	err := os.MkdirAll(etcDir, 0700)
-	require.NoError(t, err, "Impossible to create /etc")
+	require.NoError(t, err, "Setup: could not create etc dir")
+
+	// Copy files needed to create users and groups inside bubblewrap.
+	for _, f := range []string{"passwd", "group", "subgid"} {
+		err := fileutils.CopyFile("/etc/"+f, filepath.Join(etcDir, f))
+		require.NoError(t, err, "Setup: Copying /etc/%s to %s failed", f, etcDir)
+	}
 
 	cmd.Args = append(cmd.Args,
 		"--ro-bind", "/", "/",
@@ -94,32 +117,12 @@ func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []str
 		"--ro-bind", "/etc/localtime", "/etc/localtime",
 		"--ro-bind", "/etc/login.defs", "/etc/login.defs",
 		"--ro-bind", "/etc/nsswitch.conf", "/etc/nsswitch.conf",
-		"--ro-bind", "/etc/passwd", "/etc/passwd",
-		"--ro-bind", "/etc/shadow", "/etc/shadow",
-		"--ro-bind", "/etc/subgid", "/etc/subgid",
 		"--ro-bind", "/etc/sudo.conf", "/etc/sudo.conf",
 		"--ro-bind", "/etc/sudoers", "/etc/sudoers",
 		"--ro-bind-try", "/etc/timezone", "/etc/timezone",
 		"--ro-bind", "/etc/pam.d", "/etc/pam.d",
 		"--ro-bind", "/etc/security", "/etc/security",
 	)
-
-	replicateHostFile := func(file string) {
-		require.NotContains(t, cmd.Args, file,
-			"Setup: %q should not be managed by bwrap", file)
-		dst := filepath.Join(testDataPath, file)
-		err := fileutils.CopyFile(file, dst)
-		require.NoError(t, err, "Setup: Copying %q to %q failed", file, dst)
-	}
-
-	// These are the files that we replicate in the bwrap environment and that
-	// can be safely modified or mocked in the test.
-	// Adapt this as needed, ensuring these files are not bound.
-	for _, f := range []string{
-		"/etc/group",
-	} {
-		replicateHostFile(f)
-	}
 
 	if coverDir := CoverDirForTests(); coverDir != "" {
 		cmd.Args = append(cmd.Args, "--bind", coverDir, coverDir)
@@ -130,49 +133,39 @@ func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []str
 	}
 
 	cmd.Args = append(cmd.Args, args...)
-
-	var b bytes.Buffer
-	cmd.Stdout = &b
-	cmd.Stderr = &b
-	if testing.Verbose() {
-		cmd.Stderr = os.Stderr
-		cmd.Stdout = os.Stdout
-	}
+	cmd.Stderr = os.Stderr
+	cmd.Stdout = os.Stdout
 
 	t.Log("Running command:", cmd.String())
-	err = cmd.Run()
-	output := strings.TrimSpace(b.String())
-
-	if !testing.Verbose() {
-		t.Logf("Command output\n%s", output)
-	}
-	return output, err
+	return cmd.Run()
 }
 
 func canUseUnprivilegedUserNamespaces(t *testing.T) bool {
 	t.Helper()
 
-	if out, err := runInBubbleWrap(t, false, t.TempDir(), nil, "/bin/true"); err != nil {
-		t.Logf("Can't use unprivileged user namespaces: %v\n%s", err, out)
+	t.Log("Checking if we can use unprivileged user namespaces")
+
+	if err := runInBubbleWrap(t, false, t.TempDir(), nil, "/bin/true"); err != nil {
+		t.Logf("Can't use user namespaces: %v", err)
 		return false
 	}
 
+	t.Log("Can use unprivileged user namespaces")
 	return true
 }
 
-func canUseSudoNonInteractively(t *testing.T) bool {
+func canUseBwrapWithSudoNonInteractively(t *testing.T) bool {
 	t.Helper()
 
-	cmd := exec.Command("sudo", "-Nnv")
-	if out, err := cmd.CombinedOutput(); err != nil {
-		t.Logf("Can't use sudo non-interactively: %v\n%s", err, out)
+	if !canUseSudoNonInteractively(t) {
 		return false
 	}
 
-	if out, err := runInBubbleWrap(t, true, t.TempDir(), nil, "/bin/true"); err != nil {
-		t.Logf("Can't use user namespaces: %v\n%s", err, out)
+	if err := runInBubbleWrap(t, true, t.TempDir(), nil, "/bin/true"); err != nil {
+		t.Logf("Can't use bubblewrap with sudo: %v", err)
 		return false
 	}
 
+	t.Log("Can use sudo non-interactively")
 	return true
 }
