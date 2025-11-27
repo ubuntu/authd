@@ -1,0 +1,92 @@
+name: 'Setup Go Tests'
+description: 'Common setup steps for Go tests'
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-go@v6
+      with:
+        go-version-file: go.mod
+
+    - uses: canonical/desktop-engineering/gh-actions/common/dpkg-install-speedup@main
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        # Install dependencies
+        set -eu
+        echo "::group::Install dependencies"
+
+        sudo apt-get update
+
+        # The integration tests build the NSS crate, so we need the cargo build dependencies in order to run them.
+        sudo apt-get install -y protobuf-compiler
+
+        sudo apt-get install -y ${{ env.go_build_dependencies }} ${{ env.go_test_dependencies}}
+
+        # Load the apparmor profile for bubblewrap.
+        sudo ln -s /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/
+        sudo apparmor_parser /etc/apparmor.d/bwrap-userns-restrict
+        echo "::endgroup::"
+
+    - name: Install glibc, PAM and GLib debug symbols
+      continue-on-error: true
+      shell: bash
+      run: |
+        # Install glibc, PAM and GLib debug symbols
+        set -eu
+        echo "::group::Install debug symbols"
+
+        sudo apt-get install -y ubuntu-dbgsym-keyring libc6-dbg
+        echo "deb http://ddebs.ubuntu.com $(lsb_release -cs) main restricted universe multiverse
+        deb http://ddebs.ubuntu.com $(lsb_release -cs)-updates main restricted universe multiverse
+        deb http://ddebs.ubuntu.com $(lsb_release -cs)-proposed main restricted universe multiverse" | \
+        sudo tee -a /etc/apt/sources.list.d/ddebs.list
+        # Sometimes ddebs archive is stuck, so in case of failure we need to go manual
+        sudo apt-get update -y || true
+        if ! sudo apt-get install -y libpam-modules-dbgsym libpam0*-dbgsym libglib2.0-0*-dbgsym; then
+          sudo apt-get install -y ubuntu-dev-tools
+          for pkg in pam glib2.0; do
+            pull-lp-debs "${pkg}" $(lsb_release -cs)
+            pull-lp-ddebs "${pkg}" $(lsb_release -cs)
+          done
+          sudo apt-get install -y ./libpam0*.*deb ./libpam-modules*.*deb ./libglib2.0-0*-dbgsym*.ddeb
+          sudo apt-get remove -y ubuntu-dev-tools
+          sudo apt-get autoremove -y
+        fi
+        echo "::endgroup::"
+
+    - name: Install gotestfmt and our wrapper script
+      uses: canonical/desktop-engineering/gh-actions/go/gotestfmt@main
+
+    - name: Install VHS and ttyd for integration tests
+      shell: bash
+      run: |
+        # Install VHS and ttyd for integration tests
+        set -eu
+        echo "::group::Install VHS and ttyd"
+        go install github.com/charmbracelet/vhs@latest
+
+        # VHS requires ttyd >= 1.7.2 to work properly.
+        wget https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.x86_64
+        chmod +x ttyd.x86_64
+        sudo mv ttyd.x86_64 /usr/bin/ttyd
+
+        # VHS doesn't really use ffmpeg anymore now, but it still checks for it.
+        # Drop this when https://github.com/charmbracelet/vhs/pull/591 is released.
+        sudo ln -s /usr/bin/true /usr/local/bin/ffmpeg
+        echo "::endgroup::"
+
+    - name: Install latest Rust version
+      shell: bash
+      run: rustup update stable
+
+    - name: Prepare tests artifacts path
+      shell: bash
+      run: |
+        # Prepare tests artifacts path
+        set -eu
+
+        artifacts_dir=$(mktemp -d --tmpdir authd-test-artifacts-XXXXXX)
+        echo AUTHD_TESTS_ARTIFACTS_PATH="${artifacts_dir}" >> $GITHUB_ENV
+
+        echo ASAN_OPTIONS="log_path=${artifacts_dir}/asan.log:print_stats=true" >> $GITHUB_ENV
