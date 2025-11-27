@@ -957,6 +957,44 @@ func TestLoadSchemaV2WithIntUGID(t *testing.T) {
 	require.EqualValues(t, 11111, gByUGID.GID)
 }
 
+// TestMigrateOldSchemaV1 ensures databases created with schema v1 (no 'locked' column)
+// are transparently migrated on open and readable via current code.
+func TestMigrateOldSchemaV1(t *testing.T) {
+	t.Parallel()
+
+	tempDir := t.TempDir()
+
+	// Use existing v1 dump lacking 'locked' column; schema_version=1
+	dump := filepath.Join("testdata", "TestMigrationAddLockedColumnToUsersTable", "one_user_and_group_without_locked_column.sql")
+	err := db.Z_ForTests_CreateDBFromDump(dump, tempDir)
+	require.NoError(t, err, "Setup: could not create database from v1 schema dump")
+
+	// Open using current manager, which should apply the 'locked' column migration as needed.
+	m, err := db.New(tempDir)
+	require.NoError(t, err, "Setup: could not open manager for v1 schema database")
+	t.Cleanup(func() { _ = m.Close() })
+
+	// Validate user is readable and 'locked' defaults to false after migration.
+	u, err := m.UserByID(1111)
+	require.NoError(t, err, "Should read user from migrated DB")
+	require.Equal(t, "user1", u.Name)
+	require.EqualValues(t, 11111, u.GID)
+	require.False(t, u.Locked, "locked should default to false after migration")
+
+	// Validate group and members are readable; ugid scans as string.
+	g, err := m.GroupWithMembersByID(11111)
+	require.NoError(t, err, "Should read group from migrated DB")
+	require.Equal(t, "group1", g.Name)
+	require.Equal(t, "12345678", g.UGID)
+	require.Len(t, g.Users, 1)
+	require.Equal(t, "user1", g.Users[0])
+
+	// Lookup by UGID should work.
+	gByUGID, err := m.GroupByUGID("12345678")
+	require.NoError(t, err)
+	require.EqualValues(t, 11111, gByUGID.GID)
+}
+
 // initDB returns a new database ready to be used alongside its database directory.
 func initDB(t *testing.T, dbFile string) *db.Manager {
 	t.Helper()
