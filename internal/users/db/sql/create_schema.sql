@@ -6,14 +6,14 @@ CREATE TABLE IF NOT EXISTS users (
     dir       TEXT DEFAULT "",
     shell     TEXT DEFAULT "/bin/bash",
     broker_id TEXT DEFAULT "",
-    locked  BOOLEAN DEFAULT FALSE
+    locked    BOOLEAN DEFAULT FALSE
 );
 CREATE UNIQUE INDEX "idx_user_name" ON users ("name");
 
 CREATE TABLE IF NOT EXISTS GROUPS (
     name TEXT NOT NULL,  -- Uniqueness is enforced by the index below
     gid  INT PRIMARY KEY, -- Uniqueness and not NULL is enforced by PRIMARY KEY
-    ugid INT NOT NULL    -- Uniqueness is enforced by the index below
+    ugid TEXT NOT NULL    -- Uniqueness is enforced by the index below
 );
 CREATE UNIQUE INDEX "idx_group_name" ON GROUPS ("name");
 CREATE UNIQUE INDEX "idx_group_ugid" ON GROUPS ("ugid");
