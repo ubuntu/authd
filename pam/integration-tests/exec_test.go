@@ -14,6 +14,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/msteinert/pam/v2"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testutils"
 	"github.com/ubuntu/authd/pam/internal/pam_test"
@@ -936,7 +937,7 @@ func preparePamTransactionForServiceFile(t *testing.T, serviceFile string, user 
 	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
 	require.NoError(t, err, "PAM: Error to initialize module")
 	require.NotNil(t, tx, "PAM: Transaction is not set")
-	t.Cleanup(func() { require.NoError(t, tx.End(), "PAM: can't end transaction") })
+	t.Cleanup(func() { assert.NoError(t, tx.End(), "PAM: can't end transaction") })
 
 	return tx
 }

@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
 )
@@ -78,7 +79,7 @@ testgroup:x:1001:testuser`
 	require.NoError(t, err, "Locking once it is allowed")
 	t.Cleanup(func() {
 		err := userslocking.WriteUnlock()
-		require.NoError(t, err, "Unlocking should be allowed")
+		assert.NoError(t, err, "Unlocking should be allowed")
 	})
 
 	output, err := runCmd(t, "getent", "group", "root", "testgroup")
@@ -186,9 +187,9 @@ func TestLockingLockedDatabase(t *testing.T) {
 	t.Cleanup(func() {
 		cancel()
 		syscall.Kill(lockerProcess.Pid, syscall.SIGKILL)
-		require.Error(t, <-lockerExited, "Stopping locking process")
-		require.NoError(t, <-writeLockExited, "Final locking")
-		require.NoError(t, userslocking.WriteUnlock(), "Final unlocking")
+		assert.Error(t, <-lockerExited, "Stopping locking process")
+		assert.NoError(t, <-writeLockExited, "Final locking")
+		assert.NoError(t, userslocking.WriteUnlock(), "Final unlocking")
 	})
 
 	go func() {
@@ -249,7 +250,7 @@ func TestLockingLockedDatabaseFailsAfterTimeout(t *testing.T) {
 	t.Cleanup(func() {
 		cancel()
 		syscall.Kill(lockerProcess.Pid, syscall.SIGKILL)
-		require.Error(t, <-lockerExited, "Stopping locking process")
+		assert.Error(t, <-lockerExited, "Stopping locking process")
 	})
 
 	go func() {

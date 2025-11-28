@@ -17,6 +17,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/msteinert/pam/v2"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/proto/authd"
@@ -437,8 +438,11 @@ func (td tapeData) ExpectedOutput(t *testing.T, outputDir string) string {
 		}
 		baseName, _ := strings.CutSuffix(td.Output(), ".txt")
 		tempOutput := filepath.Join(t.TempDir(), fmt.Sprintf("%s_sanitized.txt", baseName))
-		require.NoError(t, os.WriteFile(tempOutput, []byte(got), 0600),
-			"TearDown: Saving sanitized output file %q", tempOutput)
+		err := os.WriteFile(tempOutput, []byte(got), 0600)
+		assert.NoError(t, err, "TearDown: Saving sanitized output file %q", tempOutput)
+		if err != nil {
+			return
+		}
 		saveArtifactsForDebug(t, []string{tempOutput})
 	})
 

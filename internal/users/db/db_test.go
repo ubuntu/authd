@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/fileutils"
@@ -929,7 +930,7 @@ func initDB(t *testing.T, dbFile string) *db.Manager {
 	if os.Getenv("SKIP_TEST_CLEANUP") == "" {
 		t.Cleanup(func() {
 			err := os.RemoveAll(dbDir)
-			require.NoError(t, err, "Cleanup: could not remove temporary database directory")
+			assert.NoError(t, err, "Cleanup: could not remove temporary database directory")
 		})
 	}
 

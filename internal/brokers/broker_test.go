@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/brokers"
 	"github.com/ubuntu/authd/internal/brokers/auth"
@@ -363,7 +364,7 @@ func newBrokerForTests(t *testing.T, cfgDir, brokerCfg string) (b brokers.Broker
 
 	conn, err := testutils.GetSystemBusConnection(t)
 	require.NoError(t, err, "Setup: could not connect to system bus")
-	t.Cleanup(func() { require.NoError(t, conn.Close(), "Teardown: Failed to close the connection") })
+	t.Cleanup(func() { assert.NoError(t, conn.Close(), "Teardown: Failed to close the connection") })
 
 	b, err = brokers.NewBroker(context.Background(), cfgPath, conn)
 	require.NoError(t, err, "Setup: could not create broker")

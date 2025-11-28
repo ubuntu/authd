@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/fileutils"
@@ -211,7 +212,7 @@ func TestMaybeMigrateBBoltToSQLite(t *testing.T) {
 			database, err := db.New(dbDir)
 			t.Cleanup(func() {
 				err := database.Close()
-				require.NoError(t, err)
+				assert.NoError(t, err)
 			})
 			require.NoError(t, err)
 

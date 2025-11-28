@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	assert "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/consts"
 	"github.com/ubuntu/authd/internal/fileutils"
@@ -122,7 +123,10 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 		if sa.refCount != 0 {
 			return
 		}
-		require.NotNil(t, sa.cleanup)
+		assert.NotNil(t, sa.cleanup)
+		if sa.cleanup == nil {
+			return
+		}
 		cleanup := sa.cleanup
 		sa.socketPath = ""
 		sa.groupsOutputPath = ""
@@ -219,7 +223,7 @@ func prepareFileLogging(t *testing.T, fileName string) string {
 		if errors.Is(err, fs.ErrNotExist) {
 			return
 		}
-		require.NoError(t, err, "Teardown: Impossible to read PAM client logs")
+		assert.NoError(t, err, "Teardown: Impossible to read PAM client logs")
 		t.Log(string(out))
 	})
 

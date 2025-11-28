@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/testsdetection"
 	"github.com/ubuntu/authd/log"
@@ -212,7 +213,7 @@ func Z_ForTests_SetMaxWaitTime(t *testing.T, maxWaitTime time.Duration) {
 	maxWait = maxWaitTime
 
 	t.Cleanup(func() {
-		require.True(t, overrideMaxWait.CompareAndSwap(int64(maxWaitTime), int64(defaultMaxWait)),
+		assert.True(t, overrideMaxWait.CompareAndSwap(int64(maxWaitTime), int64(defaultMaxWait)),
 			"Waiting time has been changed: %v", overrideMaxWait.Load())
 		maxWait = defaultMaxWait
 	})

@@ -6,6 +6,7 @@ import (
 	"math"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/internal/users/localentries"
 )
@@ -376,7 +377,7 @@ func TestGenerateIDMocked(t *testing.T) {
 				if tc.noCleanupCheck {
 					return
 				}
-				require.Empty(t, tc.generator.pendingIDs, "Expected generator to be empty after cleanup")
+				assert.Empty(t, tc.generator.pendingIDs, "Expected generator to be empty after cleanup")
 			})
 
 			require.GreaterOrEqual(t, int(id), int(tc.genID.minID), "Id %d is less than minID %d",

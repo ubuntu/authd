@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/msteinert/pam/v2"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/ubuntu/authd/examplebroker"
 	"github.com/ubuntu/authd/internal/brokers"
@@ -952,7 +953,7 @@ func TestGdmModule(t *testing.T) {
 			gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
 			t.Cleanup(func() {
 				if !timedOut {
-					require.NoError(t, gh.tx.End(), "PAM: can't end transaction")
+					assert.NoError(t, gh.tx.End(), "PAM: can't end transaction")
 				}
 			})
 			gh.eventPollResponses = tc.eventPollResponses
@@ -1063,7 +1064,7 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
 	pamUser := vhsTestUserName(t, "gdm")
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
-	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
+	t.Cleanup(func() { assert.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
 
 	// We disable gdm extension support, as if it was the case when the module is loaded
 	// outside GDM.
@@ -1097,7 +1098,7 @@ func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
 	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
 	pamUser := vhsTestUserName(t, "gdm")
 	gh := newGdmTestModuleHandler(t, serviceFile, pamUser)
-	t.Cleanup(func() { require.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
+	t.Cleanup(func() { assert.NoError(t, gh.tx.End(), "PAM: can't end transaction") })
 
 	gh.supportedLayouts = []*authd.UILayout{pam_test.FormUILayout(pam_test.WithWait(true))}
 	gh.protoVersion = gdm.ProtoVersion
