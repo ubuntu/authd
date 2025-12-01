@@ -30,6 +30,8 @@ import (
 	"gorbe.io/go/osrelease"
 )
 
+const authdPamBinaryName = "authd-pam"
+
 var (
 	authdTestSessionTime     = time.Now()
 	authdArtifactsDir        string
@@ -198,7 +200,7 @@ func buildPAMExecChild(t *testing.T) string {
 	cmd.Args = append(cmd.Args, "-tags=pam_debug")
 	cmd.Env = append(os.Environ(), `CGO_CFLAGS=-O0 -g3`)
 
-	authdPam := filepath.Join(t.TempDir(), "authd-pam")
+	authdPam := filepath.Join(t.TempDir(), authdPamBinaryName)
 	t.Logf("Compiling Exec child at %s", authdPam)
 	t.Log(strings.Join(cmd.Args, " "))
 
