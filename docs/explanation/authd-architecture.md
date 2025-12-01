@@ -37,7 +37,7 @@ The broker is a trusted component within the system and serves as the interface 
 
 Internal components of authd, such as PAM and NSS modules, communicate over gRPC. The advantage of gRPC is that it delivers high performance and native streaming, with built-in security for efficient and secure communication in distributed systems.
 
-The communication between authd and the brokers is done over DBus. DBus supports message broadcasting and enables efficient resource sharing. The communication only goes from the authentication daemon to the broker, which responds to requests. The transactions are encrypted, ensuring that communications between the broker and authd are secure.
+The communication between authd and the brokers is done over D-Bus. D-Bus supports message broadcasting and enables efficient resource sharing. The communication only goes from the authentication daemon to the broker, which responds to requests. The transactions are encrypted, ensuring that communications between the broker and authd are secure.
 
 ## Links
 
