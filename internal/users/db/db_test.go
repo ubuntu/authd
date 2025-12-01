@@ -919,6 +919,55 @@ func TestDeleteUser(t *testing.T) {
 	}
 }
 
+// TestBackwardCompatibilityAndMigrations covers loading legacy schemas (e.g., v2 with INT ugid)
+// and migrating older schemas (e.g., v1 without 'locked' column) to the latest schema.
+func TestBackwardCompatibilityAndMigrations(t *testing.T) {
+	t.Parallel()
+
+	tests := map[string]struct {
+		dump string
+	}{
+		"SchemaV2_IntUGID":        {dump: filepath.Join("testdata", "TestLoadSchemaV2WithIntUGID", "one_user_and_group_v2.sql")},
+		"SchemaV1_NoLockedColumn": {dump: filepath.Join("testdata", "TestMigrationAddLockedColumnToUsersTable", "one_user_and_group_without_locked_column.sql")},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			tempDir := t.TempDir()
+
+			err := db.Z_ForTests_CreateDBFromDump(tc.dump, tempDir)
+			require.NoError(t, err, "Setup: could not create database from dump")
+
+			// Open using current manager, it'll trigger a migration depending on schema_version.
+			m, err := db.New(tempDir)
+			require.NoError(t, err, "Setup: could not open manager for database")
+			t.Cleanup(func() { _ = m.Close() })
+
+			// Validate user can be read and that locked is false (either set or default).
+			u, err := m.UserByID(1111)
+			require.NoError(t, err, "Should read user from DB")
+			require.Equal(t, "user1", u.Name)
+			require.EqualValues(t, 11111, u.GID)
+			require.False(t, u.Locked, "locked should be false in both old and migrated schemas")
+
+			// Validate group and members. ugid should read as string regardless of underlying type.
+			g, err := m.GroupWithMembersByID(11111)
+			require.NoError(t, err, "Should read group from DB")
+			require.Equal(t, "group1", g.Name)
+			require.Equal(t, "12345678", g.UGID)
+			require.Len(t, g.Users, 1)
+			require.Equal(t, "user1", g.Users[0])
+
+			// Also ensure lookup by UGID works with string input.
+			gByUGID, err := m.GroupByUGID("12345678")
+			require.NoError(t, err)
+			require.EqualValues(t, 11111, gByUGID.GID)
+		})
+	}
+}
+
 // initDB returns a new database ready to be used alongside its database directory.
 func initDB(t *testing.T, dbFile string) *db.Manager {
 	t.Helper()
