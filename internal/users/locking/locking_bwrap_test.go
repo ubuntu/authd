@@ -23,6 +23,10 @@ var lockerBinaryPath string
 func TestLockAndWriteUnlock(t *testing.T) {
 	t.Parallel()
 
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	if !testutils.RunningInBubblewrap() {
 		testutils.RunTestInBubbleWrap(t)
 		return
@@ -106,6 +110,10 @@ testgroup:x:1001:testuser`
 
 func TestLockAndLockAgainGroupFileOverridden(t *testing.T) {
 	t.Parallel()
+
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 
 	if !testutils.RunningInBubblewrap() {
 		testutils.RunTestInBubbleWrap(t)
@@ -209,6 +217,10 @@ func TestLockAndLockAgainGroupFile(t *testing.T) {
 func TestLockingLockedDatabase(t *testing.T) {
 	t.Parallel()
 
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	if !testutils.RunningInBubblewrap() {
 		testutils.SkipIfCannotRunBubbleWrap(t)
 		testInBubbleWrapWithLockerBinary(t)
@@ -287,6 +299,10 @@ func TestLockingLockedDatabase(t *testing.T) {
 func TestLockingLockedDatabaseFailsAfterTimeout(t *testing.T) {
 	t.Parallel()
 
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	if !testutils.RunningInBubblewrap() {
 		testInBubbleWrapWithLockerBinary(t)
 		return
@@ -341,6 +357,10 @@ func TestLockingLockedDatabaseFailsAfterTimeout(t *testing.T) {
 
 func TestLockingLockedDatabaseWorksAfterUnlock(t *testing.T) {
 	t.Parallel()
+
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 
 	if !testutils.RunningInBubblewrap() {
 		testInBubbleWrapWithLockerBinary(t)

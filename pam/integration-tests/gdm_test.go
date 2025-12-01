@@ -128,6 +128,10 @@ var testPhoneAckUILayout = authd.UILayout{
 
 func TestGdmModule(t *testing.T) {
 	t.Parallel()
+
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
 	if !pam.CheckPamHasStartConfdir() {
@@ -1047,6 +1051,10 @@ func TestGdmModule(t *testing.T) {
 }
 
 func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	// This cannot be parallel!
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 
@@ -1081,6 +1089,10 @@ func TestGdmModuleAuthenticateWithoutGdmExtension(t *testing.T) {
 }
 
 func TestGdmModuleAcctMgmtWithoutGdmExtension(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	// This cannot be parallel!
 	t.Cleanup(pam_test.MaybeDoLeakCheck)
 

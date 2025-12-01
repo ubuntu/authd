@@ -24,6 +24,10 @@ const cliTapeBaseCommand = "./pam_authd %s socket=${%s}"
 func TestCLIAuthenticate(t *testing.T) {
 	t.Parallel()
 
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
 	tapeCommand := fmt.Sprintf(cliTapeBaseCommand, pam_test.RunnerActionLogin,
@@ -298,6 +302,10 @@ func TestCLIAuthenticate(t *testing.T) {
 func TestCLIChangeAuthTok(t *testing.T) {
 	t.Parallel()
 
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
 
@@ -413,6 +421,10 @@ func TestCLIChangeAuthTok(t *testing.T) {
 
 func TestPamCLIRunStandalone(t *testing.T) {
 	t.Parallel()
+
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 
 	clientPath := t.TempDir()
 	pamCleanup, err := buildPAMRunner(clientPath)
