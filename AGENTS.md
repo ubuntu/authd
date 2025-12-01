@@ -6,19 +6,19 @@ authd is an authentication daemon for cloud-based identity providers (MS Entra I
 - **authd daemon** (Go): Main authentication service with gRPC API
 - **PAM modules** (Go): Two implementations - native shared library for GDM, and C-wrapper+executable for other PAM apps
 - **NSS module** (Rust): Name Service Switch integration for user/group lookups
-- **Brokers** (Go): Pluggable DBus-based providers that interface with identity providers
+- **Brokers** (Go): Pluggable D-Bus-based providers that interface with identity providers
 
 ## Architecture Fundamentals
 
 ### Component Communication
 - **Internal**: gRPC for PAM/NSS ↔ authd (defined in `internal/proto/authd/authd.proto`)
-- **External**: DBus for authd ↔ brokers (interface in `examplebroker/com.ubuntu.auth.ExampleBroker.xml`)
+- **External**: D-Bus for authd ↔ brokers (interface in `examplebroker/com.ubuntu.auth.ExampleBroker.xml`)
 - **Daemon**: Systemd socket activation via `internal/daemon/daemon.go`
-- **Data flow**: PAM/NSS → gRPC → authd → DBus → broker → identity provider
+- **Data flow**: PAM/NSS → gRPC → authd → D-Bus → broker → identity provider
 
 ### Key Directories
 - `cmd/authd/`, `cmd/authctl/`: Main binaries
-- `internal/brokers/`: Broker manager and DBus integration
+- `internal/brokers/`: Broker manager and D-Bus integration
 - `internal/services/`: gRPC service implementations (PAM, NSS, user management)
 - `internal/users/`: User/group database management (SQLite + BoltDB legacy)
 - `pam/`: PAM module with two build modes (see `pam/Hacking.md`)
@@ -59,15 +59,15 @@ go generate ./shell-completion/         # Shell completions
 ## Project-Specific Patterns
 
 ### Broker Integration
-- Brokers are discovered from `/usr/share/authd/brokers/*.conf` (DBus service files)
+- Brokers are discovered from `/usr/share/authd/brokers/*.conf` (D-Bus service files)
 - First broker is always the local broker (no config file)
 - Manager in `internal/brokers/manager.go` handles session→broker and user→broker mappings
-- Brokers must implement the DBus interface defined in `internal/brokers/dbusbroker.go`
+- Brokers must implement the D-Bus interface defined in `internal/brokers/D-Busbroker.go`
 
 ### PAM Module Dual Mode
 The PAM module has two implementations (see `pam/Hacking.md`):
 1. **GDM mode** (`pam_authd.so`): Native Go shared library with GDM JSON protocol support
-2. **Generic mode** (`pam_authd_exec.so` + `authd-pam` executable): C wrapper launching Go program via private DBus
+2. **Generic mode** (`pam_authd_exec.so` + `authd-pam` executable): C wrapper launching Go program via private D-Bus
    - Required for reliability with non-GDM PAM apps (avoids Go threading issues)
 
 ### Database & User Management
@@ -91,9 +91,9 @@ The PAM module has two implementations (see `pam/Hacking.md`):
 4. Add tests with golden files
 
 ### Creating a New Broker
-1. Implement DBus interface from `examplebroker/com.ubuntu.auth.ExampleBroker.xml`
+1. Implement D-Bus interface from `examplebroker/com.ubuntu.auth.ExampleBroker.xml`
 2. Create `.conf` file in `/usr/share/authd/brokers/`
-3. Register DBus service with systemd
+3. Register D-Bus service with systemd
 
 ### Debugging
 - Logs via `github.com/ubuntu/authd/log` package (supports systemd journal)
@@ -101,13 +101,12 @@ The PAM module has two implementations (see `pam/Hacking.md`):
 - Socket path: `/run/authd.sock` (override with `AUTHD_NSS_SOCKET` for NSS tests)
 
 ## Dependencies & Tools
-- **Go**: 1.24+ (see `go.mod`), uses go modules with vendoring
+- **Go**: See `go.mod` for version requirements, uses go modules with vendoring
 - **Rust**: Cargo with vendor filtering (see `Cargo.toml` workspace)
 - **Required**: `libpam-dev`, `libglib2.0-dev`, `protoc`, `cargo-vendor-filterer`
 - **Optional**: `vhs` (PAM CLI tests), `delta` (colored diffs in tests)
 
 ## Code Style
-- Follow Google Go Style Guide
+- Follow [Effective Go](https://go.dev/doc/effective_go) for Go style conventions
 - Use `go fmt` and `gofmt -s`
 - Rust: Standard cargo fmt conventions
-- Error wrapping: Use `github.com/ubuntu/decorate` package (`decorate.OnError`)
