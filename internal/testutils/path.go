@@ -70,3 +70,18 @@ func TestFamilyPath(t *testing.T) string {
 
 	return filepath.Join("testdata", topLevelTest)
 }
+
+// TempDir returns a temporary directory for the test.
+// If the SKIP_CLEANUP environment variable is set, it creates a temp dir
+// that is not automatically removed after the test.
+func TempDir(t *testing.T) string {
+	t.Helper()
+
+	if v := os.Getenv("SKIP_CLEANUP"); v != "" {
+		tempDir, err := os.MkdirTemp("", "authd-bwrap-testdata-")
+		require.NoError(t, err, "Setup: could not create temp dir for bwrap test data")
+		return tempDir
+	}
+
+	return t.TempDir()
+}
