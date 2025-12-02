@@ -21,6 +21,10 @@ const nativeTapeBaseCommand = "./pam_authd %s socket=${%s} force_native_client=t
 func TestNativeAuthenticate(t *testing.T) {
 	t.Parallel()
 
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)
 	tapeCommand := fmt.Sprintf(nativeTapeBaseCommand, pam_test.RunnerActionLogin,
@@ -478,6 +482,10 @@ func TestNativeAuthenticate(t *testing.T) {
 
 func TestNativeChangeAuthTok(t *testing.T) {
 	t.Parallel()
+
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 
 	clientPath := t.TempDir()
 	cliEnv := preparePamRunnerTest(t, clientPath)

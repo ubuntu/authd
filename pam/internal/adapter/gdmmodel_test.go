@@ -33,6 +33,10 @@ const gdmTestIgnoredMessage string = "<ignored>"
 func TestGdmModel(t *testing.T) {
 	t.Parallel()
 
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	// This is not technically an error, as it means that during the tests
 	// we've stopped the program with a Quit request.
 	// However we do return a PAM error in such case because that's what we're
