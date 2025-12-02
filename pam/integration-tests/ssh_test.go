@@ -57,6 +57,10 @@ var (
 func TestSSHAuthenticate(t *testing.T) {
 	t.Parallel()
 
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	runSharedDaemonTests := testutils.IsRace() || os.Getenv("AUTHD_TESTS_SSHD_SHARED") != ""
 
 	// We only test the single-sshd instance when in race mode.
