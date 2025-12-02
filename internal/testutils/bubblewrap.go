@@ -147,8 +147,8 @@ func runInBubbleWrap(t *testing.T, withSudo bool, testDataPath string, env []str
 	}
 
 	cmd.Args = append(cmd.Args, args...)
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
+	cmd.Stderr = t.Output()
+	cmd.Stdout = t.Output()
 
 	t.Log("Running command:", cmd.String())
 	return cmd.Run()
