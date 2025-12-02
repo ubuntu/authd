@@ -105,8 +105,8 @@ func BuildRustNSSLib(t *testing.T, disableCoverage bool, features ...string) (li
 	}
 	cmd.Env = append(os.Environ(), rustCovEnv...)
 	cmd.Dir = projectRoot
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = t.Output()
+	cmd.Stderr = t.Output()
 
 	if isNightly && IsAsan() {
 		cmd.Env = append(cmd.Env, "RUSTFLAGS=-Zsanitizer=address")
