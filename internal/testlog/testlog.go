@@ -73,9 +73,9 @@ func RunWithTiming(t *testing.T, msg string, cmd *exec.Cmd, options ...RunWithTi
 	duration := time.Since(start)
 
 	if err != nil {
-		fmt.Fprintf(w, redSeparatorf("%s failed in %.3fs with %v", msg, duration.Seconds(), err)+"\n")
+		fmt.Fprintln(w, redSeparatorf("%s failed in %.3fs with %v", msg, duration.Seconds(), err)+"\n")
 	} else {
-		fmt.Fprintf(w, separatorf("%s finished in %.3fs", msg, duration.Seconds())+"\n")
+		fmt.Fprintln(w, separatorf("%s finished in %.3fs", msg, duration.Seconds())+"\n")
 	}
 
 	return err
@@ -103,7 +103,7 @@ func LogStartSeparatorf(t *testing.T, s string, args ...any) {
 	}
 	w := testWriterOrStderr(t)
 
-	fmt.Fprintf(w, "\n"+separatorf(s, args...))
+	fmt.Fprintln(w, "\n"+separatorf(s, args...))
 }
 
 // LogStartSeparator logs a separator to stderr with the given message.
@@ -113,8 +113,9 @@ func LogStartSeparator(t *testing.T, args ...any) {
 	if t != nil {
 		t.Helper()
 	}
+	w := testWriterOrStderr(t)
 
-	LogStartSeparatorf(t, fmt.Sprint(args...))
+	fmt.Fprintln(w, "\n"+separator(args...))
 }
 
 // LogEndSeparatorf logs a separator to stderr with the given formatted message.
@@ -126,7 +127,7 @@ func LogEndSeparatorf(t *testing.T, s string, args ...any) {
 	}
 	w := testWriterOrStderr(t)
 
-	fmt.Fprintf(w, separatorf(s, args...)+"\n")
+	fmt.Fprintln(w, separatorf(s, args...)+"\n")
 }
 
 // LogEndSeparator logs a separator to stderr with the given message.
@@ -136,8 +137,9 @@ func LogEndSeparator(t *testing.T, args ...any) {
 	if t != nil {
 		t.Helper()
 	}
+	w := testWriterOrStderr(t)
 
-	LogEndSeparatorf(t, fmt.Sprint(args...))
+	fmt.Fprintln(w, separator(args...)+"\n")
 }
 
 // separatorf returns a formatted separator string for logging purposes.
@@ -147,7 +149,7 @@ func separatorf(s string, args ...any) string {
 
 // separator returns a separator string for logging purposes.
 func separator(args ...any) string {
-	return separatorf(fmt.Sprint(args...))
+	return highCyan("===== " + fmt.Sprint(args...) + " =====\n")
 }
 
 func redSeparatorf(s string, args ...any) string {
