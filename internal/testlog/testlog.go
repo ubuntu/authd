@@ -3,6 +3,8 @@ package testlog
 
 import (
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"testing"
 	"time"
@@ -160,4 +162,12 @@ func highCyan(s string) string {
 // highRed returns a string with the given text in high-intensity red color for terminal output.
 func highRed(s string) string {
 	return fmt.Sprintf("\033[1;31m%s\033[0m", s)
+}
+
+//nolint:thelper // we're not using t in any way that requires the helper annotation
+func testWriterOrStderr(t *testing.T) io.Writer {
+	if t != nil {
+		return t.Output()
+	}
+	return os.Stderr
 }

@@ -262,8 +262,8 @@ func (td *tapeData) RunVHS(t *testing.T, testType vhsTestType, cliEnv []string) 
 
 	var outBuf bytes.Buffer
 	// Write stdout/stderr both to our stdout/stderr and to the buffer
-	cmd.Stdout = io.MultiWriter(testlog.NewTestWriter(t), &outBuf)
-	cmd.Stderr = io.MultiWriter(testlog.NewTestWriter(t), &outBuf)
+	cmd.Stdout = io.MultiWriter(t.Output(), &outBuf)
+	cmd.Stderr = io.MultiWriter(t.Output(), &outBuf)
 
 	cmd.Env = append(testutils.AppendCovEnv(cmd.Env), cliEnv...)
 	cmd.Dir = td.OutputDir

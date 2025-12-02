@@ -727,8 +727,8 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 	sshdOutput := testutils.NewSyncBuffer()
 
 	// Write stdout/stderr both to our stdout/stderr and to the buffer
-	sshd.Stdout = io.MultiWriter(testlog.NewTestWriter(t), sshdOutput)
-	sshd.Stderr = io.MultiWriter(newFilteredStderrWriter(testlog.NewTestWriter(t)), sshdOutput)
+	sshd.Stdout = io.MultiWriter(t.Output(), sshdOutput)
+	sshd.Stderr = io.MultiWriter(newFilteredStderrWriter(t.Output()), sshdOutput)
 
 	testlog.LogCommand(t, "Starting sshd", sshd)
 	start := time.Now()

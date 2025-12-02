@@ -192,13 +192,13 @@ paths:
 	go func() {
 		defer close(stopped)
 
-		cmd.Stdout = testlog.NewTestWriter(t)
-		cmd.Stderr = testlog.NewTestWriter(t)
+		cmd.Stdout = t.Output()
+		cmd.Stderr = t.Output()
 
 		if opts.saveOutputAsTestArtifact {
 			authdOutput := NewSyncBuffer()
-			cmd.Stdout = io.MultiWriter(testlog.NewTestWriter(t), authdOutput)
-			cmd.Stderr = io.MultiWriter(testlog.NewTestWriter(t), authdOutput)
+			cmd.Stdout = io.MultiWriter(t.Output(), authdOutput)
+			cmd.Stderr = io.MultiWriter(t.Output(), authdOutput)
 			MaybeSaveBufferAsArtifactOnCleanup(t, authdOutput, "authd.log")
 		}
 
