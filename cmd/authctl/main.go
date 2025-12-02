@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/ubuntu/authd/cmd/authctl/group"
 	"github.com/ubuntu/authd/cmd/authctl/user"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -35,6 +36,7 @@ func init() {
 	cobra.EnableCommandSorting = false
 
 	rootCmd.AddCommand(user.UserCmd)
+	rootCmd.AddCommand(group.GroupCmd)
 }
 
 func main() {
