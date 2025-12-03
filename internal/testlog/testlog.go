@@ -48,7 +48,7 @@ func RunWithTiming(t *testing.T, msg string, cmd *exec.Cmd, options ...RunWithTi
 		t.Helper()
 	}
 
-	w := testWriter(t)
+	w := testOutput(t)
 
 	opts := runWithTimingOptions{}
 	for _, f := range options {
@@ -95,7 +95,7 @@ func LogCommand(t *testing.T, msg string, cmd *exec.Cmd) {
 	if t != nil {
 		t.Helper()
 	}
-	w := testWriter(t)
+	w := testOutput(t)
 
 	sep := "----------------------------------------"
 	fmt.Fprintf(w, "\n"+separator(msg)+"command: %s\n%s\nenvironment: %s\n%s\n", cmd.String(), sep, cmd.Env, sep)
@@ -108,7 +108,7 @@ func LogStartSeparatorf(t *testing.T, s string, args ...any) {
 	if t != nil {
 		t.Helper()
 	}
-	w := testWriter(t)
+	w := testOutput(t)
 
 	fmt.Fprintln(w, "\n"+separatorf(s, args...))
 }
@@ -120,7 +120,7 @@ func LogStartSeparator(t *testing.T, args ...any) {
 	if t != nil {
 		t.Helper()
 	}
-	w := testWriter(t)
+	w := testOutput(t)
 
 	fmt.Fprintln(w, "\n"+separator(args...))
 }
@@ -132,7 +132,7 @@ func LogEndSeparatorf(t *testing.T, s string, args ...any) {
 	if t != nil {
 		t.Helper()
 	}
-	w := testWriter(t)
+	w := testOutput(t)
 
 	fmt.Fprintln(w, separatorf(s, args...)+"\n")
 }
@@ -144,7 +144,7 @@ func LogEndSeparator(t *testing.T, args ...any) {
 	if t != nil {
 		t.Helper()
 	}
-	w := testWriter(t)
+	w := testOutput(t)
 
 	fmt.Fprintln(w, separator(args...)+"\n")
 }
@@ -173,13 +173,12 @@ func highRed(s string) string {
 	return fmt.Sprintf("\033[1;31m%s\033[0m", s)
 }
 
-// testWriter returns the writer to use for logging,
-// either the test's output or stderr if verbose mode is enabled.
+// testOutput returns the appropriate output writer for the test.
 //
 //nolint:thelper // we're not using t in any way that requires the helper annotation
-func testWriter(t *testing.T) io.Writer {
+func testOutput(t *testing.T) io.Writer {
 	if t != nil {
-		return t.Output()
+		return &syncWriter{w: t.Output()}
 	}
 	if verbose() {
 		return os.Stderr
@@ -201,4 +200,18 @@ func verbose() bool {
 		}
 	})
 	return isVerbose
+}
+
+// syncWriter is a writer that synchronizes writes to its underlying writer.
+type syncWriter struct {
+	w  io.Writer
+	mu sync.Mutex
+}
+
+// Write writes to the underlying writer while synchronizing access.
+func (s *syncWriter) Write(p []byte) (n int, err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	return s.w.Write(p)
 }
