@@ -13,7 +13,7 @@ import (
 )
 
 // MinimalPathEnv is the minimal PATH environment variable used to run tests.
-const MinimalPathEnv = "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+const MinimalPathEnv = "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
 
 // CurrentDir returns the current file directory.
 func CurrentDir() string {
