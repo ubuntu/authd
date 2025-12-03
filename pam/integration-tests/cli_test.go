@@ -456,6 +456,10 @@ func TestPamCLIRunStandalone(t *testing.T) {
 	outStr := string(out)
 	t.Log(outStr)
 
-	require.Contains(t, outStr, pam.ErrAuthinfoUnavail.Error())
-	require.Contains(t, outStr, pam.ErrIgnore.Error())
+	if !strings.Contains(outStr, pam.ErrAuthinfoUnavail.Error()) {
+		t.Errorf("Expected output to contain %s", pam.ErrAuthinfoUnavail.Error())
+	}
+	if !strings.Contains(outStr, pam.ErrIgnore.Error()) {
+		t.Errorf("Expected output to contain %s", pam.ErrIgnore.Error())
+	}
 }
