@@ -196,7 +196,7 @@ paths:
 		cmd.Stderr = t.Output()
 
 		if opts.saveOutputAsTestArtifact {
-			authdOutput := NewSyncBuffer()
+			authdOutput := &SyncBuffer{}
 			cmd.Stdout = io.MultiWriter(t.Output(), authdOutput)
 			cmd.Stderr = io.MultiWriter(t.Output(), authdOutput)
 			MaybeSaveBufferAsArtifactOnCleanup(t, authdOutput, "authd.log")

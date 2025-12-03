@@ -8,12 +8,7 @@ import (
 // SyncBuffer is a mutex-protected buffer to avoid data races.
 type SyncBuffer struct {
 	mu  sync.RWMutex
-	buf *bytes.Buffer
-}
-
-// NewSyncBuffer creates a new SyncBuffer.
-func NewSyncBuffer() *SyncBuffer {
-	return &SyncBuffer{buf: &bytes.Buffer{}}
+	buf bytes.Buffer
 }
 
 func (s *SyncBuffer) Write(p []byte) (n int, err error) {

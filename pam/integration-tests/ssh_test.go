@@ -724,7 +724,7 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 
 	sshd, sshdPidFile := sshdCommand(t, sshdPort, hostKey, forcedCommand, env)
 
-	sshdOutput := testutils.NewSyncBuffer()
+	sshdOutput := &testutils.SyncBuffer{}
 
 	// Write stdout/stderr both to our stdout/stderr and to the buffer
 	sshd.Stdout = io.MultiWriter(t.Output(), sshdOutput)
