@@ -751,7 +751,7 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 			sshdExited <- processState
 		}()
 
-		t.Log("Waiting for sshd to be terminated")
+		t.Log("Teardown: Waiting for sshd to be terminated")
 		select {
 		case <-time.After(sleepDuration(5 * time.Second)):
 			require.NoError(t, sshd.Process.Kill(), "TearDown: Killing sshd failed")
@@ -773,7 +773,7 @@ func startSSHD(t *testing.T, hostKey, forcedCommand string, env []string) string
 		require.NoError(t, err, "TearDown: Finding sshd process")
 		err = process.Kill()
 		require.NoError(t, err, "TearDown: Killing sshd process")
-		t.Logf("Sent SIGKILL to sshd[%d]", pid)
+		t.Logf("Teardown: Sent SIGKILL to sshd[%d]", pid)
 	})
 
 	sshdStarted := make(chan error)

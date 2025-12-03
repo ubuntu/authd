@@ -40,7 +40,7 @@ func createArtifactsDir(t *testing.T) string {
 	// We need to copy the artifacts to another directory, since the test directory will be cleaned up.
 	if dir := os.Getenv("AUTHD_TESTS_ARTIFACTS_PATH"); dir != "" {
 		if err := os.MkdirAll(dir, 0750); err != nil && !os.IsExist(err) {
-			require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
+			require.NoError(t, err, "Teardown: could not create artifacts directory %q", authdArtifactsDir)
 		}
 		return dir
 	}
@@ -51,7 +51,7 @@ func createArtifactsDir(t *testing.T) string {
 		st.UnixMilli())
 
 	dir, err := os.MkdirTemp(os.TempDir(), dirName)
-	require.NoError(t, err, "TearDown: could not create artifacts directory %q", authdArtifactsDir)
+	require.NoError(t, err, "Teardown: could not create artifacts directory %q", authdArtifactsDir)
 
 	return dir
 }
@@ -62,12 +62,12 @@ func saveFilesAsArtifacts(t *testing.T, artifacts ...string) {
 
 	dir := filepath.Join(ArtifactsDir(t), t.Name())
 	err := os.MkdirAll(dir, 0750)
-	require.NoError(t, err, "TearDown: could not create artifacts directory %q", dir)
+	require.NoError(t, err, "Teardown: could not create artifacts directory %q", dir)
 
 	// Copy the artifacts to the artifacts directory.
 	for _, artifact := range artifacts {
 		target := filepath.Join(dir, filepath.Base(artifact))
-		t.Logf("Saving artifact %q", target)
+		t.Logf("Teardown: Saving artifact: %q", target)
 		err = fileutils.CopyFile(artifact, target)
 		if err != nil {
 			t.Logf("Teardown: failed to copy artifact %q to %q: %v", artifact, dir, err)
@@ -93,10 +93,10 @@ func saveBytesAsArtifact(t *testing.T, content []byte, filename string) {
 
 	dir := filepath.Join(ArtifactsDir(t), t.Name())
 	err := os.MkdirAll(dir, 0750)
-	require.NoError(t, err, "TearDown: could not create artifacts directory %q", dir)
+	require.NoError(t, err, "Teardown: could not create artifacts directory %q", dir)
 
 	target := filepath.Join(dir, filename)
-	t.Logf("Writing artifact %q", target)
+	t.Logf("Teardown: Writing artifact: %q", target)
 
 	// Write the bytes to the artifacts directory.
 	err = os.WriteFile(target, content, 0600)
