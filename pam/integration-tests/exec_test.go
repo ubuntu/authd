@@ -965,7 +965,7 @@ func buildExecModuleWithCFlags(t *testing.T, cFlags []string, forPreload bool) s
 
 	pkgConfigDeps := []string{"gio-2.0", "gio-unix-2.0"}
 	// t.Name() can be a subtest, so replace the directory slash to get a valid filename.
-	return buildSharedLibrary(t, "Building PAM module", execModuleSources, pkgConfigDeps, cFlags,
+	return buildSharedModule(t, "Building PAM module", execModuleSources, pkgConfigDeps, cFlags,
 		[]string{"-lpam"}, "pam_authd_exec"+strings.ToLower(strings.ReplaceAll(t.Name(), "/", "_")),
 		forPreload)
 }
