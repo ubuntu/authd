@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"testing"
 	"time"
@@ -42,10 +43,10 @@ var (
 	sshDefaultFinalWaitTimeout = sleepDuration(3 * defaultSleepValues[authdWaitDefault])
 
 	prepareSSHTestsOnce sync.Once
-	sshTestsPrepared    bool
+	sshTestsPrepared    atomic.Bool
 
 	prepareSharedSSHDTestsOnce sync.Once
-	sharedSSHDTestsPrepared    bool
+	sharedSSHDTestsPrepared    atomic.Bool
 
 	execModule, execChild, pamMkHomeDirModule string
 	nssEnv                                    []string
@@ -140,7 +141,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHD bool) {
 
 		if !t.Failed() {
 			t.Log("Prepared SSH tests")
-			sshTestsPrepared = true
+			sshTestsPrepared.Store(true)
 		}
 	}
 
@@ -157,7 +158,7 @@ func testSSHAuthenticate(t *testing.T, sharedSSHD bool) {
 
 		if !t.Failed() {
 			t.Log("Prepared SSH tests with shared sshd")
-			sharedSSHDTestsPrepared = true
+			sharedSSHDTestsPrepared.Store(true)
 		}
 	}
 
@@ -399,23 +400,23 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if !sshTestsPrepared {
+			if !sshTestsPrepared.Load() {
 				t.Log("Waiting for SSH tests to be prepared")
 				start := time.Now()
 				prepareSSHTestsOnce.Do(func() {
 					prepareSSHTests(t)
 				})
-				require.True(t, sshTestsPrepared, "Setup: preparing SSH tests failed")
+				require.True(t, sshTestsPrepared.Load(), "Setup: preparing SSH tests failed")
 				t.Logf("SSH tests prepared after %.3fs", time.Since(start).Seconds())
 			}
 
-			if sharedSSHD && !sharedSSHDTestsPrepared {
+			if sharedSSHD && !sharedSSHDTestsPrepared.Load() {
 				t.Log("Waiting for shared SSHD tests to be prepared")
 				start := time.Now()
 				prepareSharedSSHDTestsOnce.Do(func() {
 					prepareSharedSSHDTests(t)
 				})
-				require.True(t, sharedSSHDTestsPrepared, "Setup: creating shared sshd service file failed")
+				require.True(t, sharedSSHDTestsPrepared.Load(), "Setup: creating shared sshd service file failed")
 				t.Logf("Shared SSHD tests prepared after %.3fs", time.Since(start).Seconds())
 			}
 
