@@ -23,3 +23,9 @@ func (s *SyncBuffer) Bytes() []byte {
 	defer s.mu.RUnlock()
 	return s.buf.Bytes()
 }
+
+func (s *SyncBuffer) String() string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.buf.String()
+}

@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"maps"
@@ -260,7 +259,7 @@ func (td *tapeData) RunVHS(t *testing.T, testType vhsTestType, cliEnv []string) 
 
 	cmd := exec.Command("env", "vhs")
 
-	var outBuf bytes.Buffer
+	var outBuf testutils.SyncBuffer
 	// Write stdout/stderr both to our stdout/stderr and to the buffer
 	cmd.Stdout = io.MultiWriter(t.Output(), &outBuf)
 	cmd.Stderr = io.MultiWriter(t.Output(), &outBuf)
