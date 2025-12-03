@@ -389,7 +389,7 @@ func requireNoAuthdUser(t *testing.T, client authd.UserServiceClient, user strin
 
 	_, err := client.GetUserByName(context.Background(),
 		&authd.GetUserByNameRequest{Name: user, ShouldPreCheck: false})
-	require.Error(t, err, "User %q is not expected to exist")
+	require.Error(t, err, "User %q is not expected to exist", user)
 }
 
 func requireAuthdGroup(t *testing.T, client authd.UserServiceClient, gid uint32) *authd.Group {
