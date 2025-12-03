@@ -580,7 +580,7 @@ Wait@%dms`, sshDefaultFinalWaitTimeout),
 				if !tc.wantUserAlreadyExist {
 					// Check if user home has been created, but only if the user is a new one.
 					stat, err := os.Stat(userHome)
-					require.NoError(t, err, "Error checking for %q", userHome)
+					require.NoError(t, err, "Home directory does not exist: %q", userHome)
 					require.True(t, stat.IsDir(), "%q is not a directory", userHome)
 				}
 			}
