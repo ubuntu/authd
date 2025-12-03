@@ -6,8 +6,15 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
+	"sync"
 	"testing"
 	"time"
+)
+
+var (
+	isVerboseOnce sync.Once
+	isVerbose     bool
 )
 
 type runWithTimingOptions struct {
@@ -41,7 +48,7 @@ func RunWithTiming(t *testing.T, msg string, cmd *exec.Cmd, options ...RunWithTi
 		t.Helper()
 	}
 
-	w := testWriterOrStderr(t)
+	w := testWriter(t)
 
 	opts := runWithTimingOptions{}
 	for _, f := range options {
@@ -88,7 +95,7 @@ func LogCommand(t *testing.T, msg string, cmd *exec.Cmd) {
 	if t != nil {
 		t.Helper()
 	}
-	w := testWriterOrStderr(t)
+	w := testWriter(t)
 
 	sep := "----------------------------------------"
 	fmt.Fprintf(w, "\n"+separator(msg)+"command: %s\n%s\nenvironment: %s\n%s\n", cmd.String(), sep, cmd.Env, sep)
@@ -101,7 +108,7 @@ func LogStartSeparatorf(t *testing.T, s string, args ...any) {
 	if t != nil {
 		t.Helper()
 	}
-	w := testWriterOrStderr(t)
+	w := testWriter(t)
 
 	fmt.Fprintln(w, "\n"+separatorf(s, args...))
 }
@@ -113,7 +120,7 @@ func LogStartSeparator(t *testing.T, args ...any) {
 	if t != nil {
 		t.Helper()
 	}
-	w := testWriterOrStderr(t)
+	w := testWriter(t)
 
 	fmt.Fprintln(w, "\n"+separator(args...))
 }
@@ -125,7 +132,7 @@ func LogEndSeparatorf(t *testing.T, s string, args ...any) {
 	if t != nil {
 		t.Helper()
 	}
-	w := testWriterOrStderr(t)
+	w := testWriter(t)
 
 	fmt.Fprintln(w, separatorf(s, args...)+"\n")
 }
@@ -137,7 +144,7 @@ func LogEndSeparator(t *testing.T, args ...any) {
 	if t != nil {
 		t.Helper()
 	}
-	w := testWriterOrStderr(t)
+	w := testWriter(t)
 
 	fmt.Fprintln(w, separator(args...)+"\n")
 }
@@ -166,10 +173,32 @@ func highRed(s string) string {
 	return fmt.Sprintf("\033[1;31m%s\033[0m", s)
 }
 
+// testWriter returns the writer to use for logging,
+// either the test's output or stderr if verbose mode is enabled.
+//
 //nolint:thelper // we're not using t in any way that requires the helper annotation
-func testWriterOrStderr(t *testing.T) io.Writer {
+func testWriter(t *testing.T) io.Writer {
 	if t != nil {
 		return t.Output()
 	}
-	return os.Stderr
+	if verbose() {
+		return os.Stderr
+	}
+	return io.Discard
+}
+
+// verbose returns whether verbose mode is enabled.
+// testing.Verbose() should be used instead when possible, this function is only
+// needed because testing.Verbose() panics when called in a TestMain function.
+func verbose() bool {
+	isVerboseOnce.Do(func() {
+		for _, arg := range os.Args {
+			value, ok := strings.CutPrefix(arg, "-test.v=")
+			if !ok {
+				continue
+			}
+			isVerbose = value == "true"
+		}
+	})
+	return isVerbose
 }
