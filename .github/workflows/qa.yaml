@@ -211,6 +211,7 @@ jobs:
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
       - uses: ./.github/actions/upload-test-artifacts
+        if: always()
 
   go-tests-coverage-retry:
     name: "Retry Go Tests with Coverage Collection"
@@ -274,6 +275,7 @@ jobs:
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
       - uses: ./.github/actions/upload-test-artifacts
+        if: always()
 
   go-tests-race:
     name: "Go Tests with Race Detector"
@@ -301,6 +303,7 @@ jobs:
           fi
 
       - uses: ./.github/actions/upload-test-artifacts
+        if: always()
 
   go-tests-asan:
     name: "Go PAM tests with Address Sanitizer"
@@ -368,3 +371,4 @@ jobs:
           exit ${exit_code}
 
       - uses: ./.github/actions/upload-test-artifacts
+        if: always()

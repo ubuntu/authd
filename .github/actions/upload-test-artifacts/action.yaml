@@ -4,7 +4,6 @@ runs:
   using: 'composite'
   steps:
     - name: Upload test artifacts
-      if: always()
       uses: actions/upload-artifact@v5
       with:
         name: authd-${{ github.job }}-artifacts-${{ github.run_attempt }}
