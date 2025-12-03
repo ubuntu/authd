@@ -12,6 +12,10 @@ import (
 	"github.com/ubuntu/authd/internal/fileutils"
 )
 
+const (
+	alwaysSaveArtifactsEnvVar = "AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE"
+)
+
 var (
 	authdTestSessionTime  = time.Now()
 	authdArtifactsDir     string
@@ -77,7 +81,7 @@ func MaybeSaveFilesAsArtifactsOnCleanup(t *testing.T, artifacts ...string) {
 	t.Helper()
 
 	t.Cleanup(func() {
-		if !t.Failed() && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") == "" {
+		if !t.Failed() && os.Getenv(alwaysSaveArtifactsEnvVar) == "" {
 			return
 		}
 		saveFilesAsArtifacts(t, artifacts...)
@@ -107,7 +111,7 @@ func MaybeSaveBytesAsArtifactOnCleanup(t *testing.T, content []byte, filename st
 	t.Helper()
 
 	t.Cleanup(func() {
-		if !t.Failed() && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") == "" {
+		if !t.Failed() && os.Getenv(alwaysSaveArtifactsEnvVar) == "" {
 			return
 		}
 		saveBytesAsArtifact(t, content, filename)
@@ -120,7 +124,7 @@ func MaybeSaveBufferAsArtifactOnCleanup(t *testing.T, buf *SyncBuffer, filename 
 	t.Helper()
 
 	t.Cleanup(func() {
-		if !t.Failed() && os.Getenv("AUTHD_TESTS_ARTIFACTS_ALWAYS_SAVE") == "" {
+		if !t.Failed() && os.Getenv(alwaysSaveArtifactsEnvVar) == "" {
 			return
 		}
 		saveBytesAsArtifact(t, buf.Bytes(), filename)
