@@ -211,6 +211,7 @@ jobs:
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
       - uses: ./.github/actions/upload-test-artifacts
+        if: always()
 
   go-tests-coverage-retry:
     name: "Retry Go Tests with Coverage Collection"
@@ -257,8 +258,8 @@ jobs:
             gotest-rerun-failed -json -timeout ${GO_TESTS_TIMEOUT} -cover -covermode=set -- -coverpkg=./... \
               -shuffle=on -failfast -args -test.gocoverdir="${RAW_COVERAGE_DIR}" \
               < "${test_output}" \
-              | gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.retry-$i.log"
-            exit_code=$?
+              | gotestfmt --logfile "${AUTHD_TESTS_ARTIFACTS_PATH}/gotestfmt.cover.retry-$i.log" \
+              && exit_code=0 || exit_code=$?
             if [ "${exit_code}" -eq 0 ]; then
               break
             fi
@@ -274,6 +275,7 @@ jobs:
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
 
       - uses: ./.github/actions/upload-test-artifacts
+        if: always()
 
   go-tests-race:
     name: "Go Tests with Race Detector"
@@ -301,6 +303,7 @@ jobs:
           fi
 
       - uses: ./.github/actions/upload-test-artifacts
+        if: always()
 
   go-tests-asan:
     name: "Go PAM tests with Address Sanitizer"
@@ -368,3 +371,4 @@ jobs:
           exit ${exit_code}
 
       - uses: ./.github/actions/upload-test-artifacts
+        if: always()
