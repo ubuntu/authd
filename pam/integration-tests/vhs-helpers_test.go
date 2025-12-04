@@ -282,7 +282,7 @@ func (td *tapeData) RunVHS(t *testing.T, testType vhsTestType, cliEnv []string) 
 	// message in the VHS output. The only case where we don't want color is when
 	// building a Debian package, because when viewing the logs of a launchpad build
 	// in the browser, ANSI colors are not rendered.
-	if os.Getenv("DEB_BUILD_ARCH") == "" {
+	if !testutils.IsDebianPackageBuild() {
 		cmd.Env = append(cmd.Env, "CLICOLOR_FORCE=1")
 	}
 

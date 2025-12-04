@@ -58,7 +58,7 @@ func buildSharedModule(t *testing.T, logMsg string, sources []string, pkgConfigD
 	// if testutils.IsRace() {
 	// 	cmd.Args = append(cmd.Args, "-fsanitize=thread")
 	// }
-	if cflags := os.Getenv("CFLAGS"); cflags != "" && os.Getenv("DEB_BUILD_ARCH") == "" {
+	if cflags := os.Getenv("CFLAGS"); cflags != "" && !testutils.IsDebianPackageBuild() {
 		cmd.Args = append(cmd.Args, strings.Split(cflags, " ")...)
 	}
 
@@ -76,7 +76,7 @@ func buildSharedModule(t *testing.T, logMsg string, sources []string, pkgConfigD
 	}
 	cmd.Args = append(cmd.Args, ldFlags...)
 
-	if ldflags := os.Getenv("LDFLAGS"); ldflags != "" && os.Getenv("DEB_BUILD_ARCH") == "" {
+	if ldflags := os.Getenv("LDFLAGS"); ldflags != "" && !testutils.IsDebianPackageBuild() {
 		cmd.Args = append(cmd.Args, strings.Split(ldflags, " ")...)
 	}
 
