@@ -282,14 +282,14 @@ func TestCLIAuthenticate(t *testing.T) {
 				socketPath = tc.socketPath
 			}
 
-			td := newTapeData(tc.tape, tc.tapeSettings...)
+			td := newTapeData(tc.tape, outDir, tc.tapeSettings...)
 			td.Command = tapeCommand
 			td.Variables = tc.tapeVariables
 			td.Env[vhsTapeSocketVariable] = socketPath
 			td.Env["AUTHD_TEST_PID_FILE"] = pidFile
 			td.AddClientOptions(t, tc.clientOptions)
-			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
-			got := td.ExpectedOutput(t, outDir)
+			td.RunVHS(t, vhsTestTypeCLI, cliEnv)
+			got := td.SanitizedOutput(t)
 			golden.CheckOrUpdate(t, got)
 
 			localgroupstestutils.RequireGroupFile(t, groupFileOutput, golden.Path(t))
@@ -405,13 +405,13 @@ func TestCLIChangeAuthTok(t *testing.T) {
 				tc.tapeVariables[vhsTapeUserVariable] = vhsTestUserName(t, "cli-passwd")
 			}
 
-			td := newTapeData(tc.tape, tc.tapeSettings...)
+			td := newTapeData(tc.tape, outDir, tc.tapeSettings...)
 			td.Command = tapeCommand
 			td.Variables = tc.tapeVariables
 			td.Env[vhsTapeSocketVariable] = socketPath
 			td.AddClientOptions(t, clientOptions{})
-			td.RunVhs(t, vhsTestTypeCLI, outDir, cliEnv)
-			got := td.ExpectedOutput(t, outDir)
+			td.RunVHS(t, vhsTestTypeCLI, cliEnv)
+			got := td.SanitizedOutput(t)
 			golden.CheckOrUpdate(t, got)
 
 			requireRunnerResult(t, authd.SessionMode_CHANGE_PASSWORD, got)
@@ -456,6 +456,10 @@ func TestPamCLIRunStandalone(t *testing.T) {
 	outStr := string(out)
 	t.Log(outStr)
 
-	require.Contains(t, outStr, pam.ErrAuthinfoUnavail.Error())
-	require.Contains(t, outStr, pam.ErrIgnore.Error())
+	if !strings.Contains(outStr, pam.ErrAuthinfoUnavail.Error()) {
+		t.Errorf("Expected output to contain %s", pam.ErrAuthinfoUnavail.Error())
+	}
+	if !strings.Contains(outStr, pam.ErrIgnore.Error()) {
+		t.Errorf("Expected output to contain %s", pam.ErrIgnore.Error())
+	}
 }
