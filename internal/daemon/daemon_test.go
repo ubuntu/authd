@@ -16,6 +16,7 @@ import (
 	"github.com/ubuntu/authd/internal/daemon/testdata/grpctestservice"
 	"github.com/ubuntu/authd/internal/grpcutils"
 	"github.com/ubuntu/authd/internal/services/errmessages"
+	"github.com/ubuntu/authd/internal/testutils"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/health"
@@ -248,7 +249,7 @@ func TestQuit(t *testing.T) {
 			}()
 
 			// make sure Serve() is called. Even std golang grpc has this timeout in tests
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(testutils.MultipliedSleepDuration(100 * time.Millisecond))
 
 			var disconnectClient func()
 			if tc.activeConnection {
@@ -257,14 +258,14 @@ func TestQuit(t *testing.T) {
 				require.True(t, connected, "new connection should be made allowed")
 			}
 
-			// Request quitting.
-			quiteDone := make(chan struct{})
+			// Request server shutdown
+			shutdownRequested := make(chan struct{})
 			go func() {
-				defer close(quiteDone)
+				defer close(shutdownRequested)
 				d.Quit(context.Background(), tc.force)
 			}()
 
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(testutils.MultipliedSleepDuration(100 * time.Millisecond))
 
 			// Any new connection is disallowed
 			connected, _ := createClientConnection(t, socketPath)
@@ -272,25 +273,35 @@ func TestQuit(t *testing.T) {
 
 			serverHasQuit := func() bool {
 				select {
-				case _, running := <-quiteDone:
-					return !running
+				case _, ok := <-shutdownRequested:
+					return !ok
 				default:
 					return false
 				}
 			}
 
 			if !tc.activeConnection || tc.force {
-				require.Eventually(t, serverHasQuit, 100*time.Millisecond, 10*time.Millisecond, "Server should quit with no active connection or force")
+				require.Eventually(t,
+					serverHasQuit,
+					testutils.MultipliedSleepDuration(100*time.Millisecond),
+					testutils.MultipliedSleepDuration(10*time.Millisecond),
+					"Server should quit with no active connection or force",
+				)
 				return
 			}
 
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(testutils.MultipliedSleepDuration(100 * time.Millisecond))
 			require.False(t, serverHasQuit(), "Server should still be running because of active connection and not forced")
 
 			// drop connection
 			disconnectClient()
 
-			require.Eventually(t, serverHasQuit, 100*time.Millisecond, 10*time.Millisecond, "Server should quit with no more active connection")
+			require.Eventually(t,
+				serverHasQuit,
+				testutils.MultipliedSleepDuration(200*time.Millisecond),
+				testutils.MultipliedSleepDuration(10*time.Millisecond),
+				"Server should quit with no more active connection",
+			)
 		})
 	}
 }
