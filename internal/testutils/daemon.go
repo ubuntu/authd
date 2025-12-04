@@ -192,13 +192,20 @@ paths:
 	go func() {
 		defer close(stopped)
 
-		cmd.Stdout = t.Output()
-		cmd.Stderr = t.Output()
+		// For shared authd instances, we can't redirect the output to the test log,
+		// because the instance could still be running after the test finishes.
+		if opts.shared {
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+		} else {
+			cmd.Stdout = t.Output()
+			cmd.Stderr = t.Output()
+		}
 
 		if opts.saveOutputAsTestArtifact {
 			authdOutput := &SyncBuffer{}
-			cmd.Stdout = io.MultiWriter(t.Output(), authdOutput)
-			cmd.Stderr = io.MultiWriter(t.Output(), authdOutput)
+			cmd.Stdout = io.MultiWriter(cmd.Stdout, authdOutput)
+			cmd.Stderr = io.MultiWriter(cmd.Stderr, authdOutput)
 			MaybeSaveBufferAsArtifactOnCleanup(t, authdOutput, "authd.log")
 		}
 
@@ -209,8 +216,8 @@ paths:
 			processPid <- cmd.Process.Pid
 		}
 
-		// When using a shared authd instance we should not use the test parameter from now on
-		// since the test is referring to may not be the one actually running.
+		// For shared authd instances, stop using `t` beyond this point,
+		// because the test which it refers to might have already finished.
 		t := t
 		logger := t.Logf
 		errorIs := func(err, target error, format string, args ...any) {
