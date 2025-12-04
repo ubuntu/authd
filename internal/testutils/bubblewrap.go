@@ -96,20 +96,51 @@ func runInBubbleWrap(t *testing.T, withSudo bool, env []string, args ...string) 
 		require.NoError(t, err, "Setup: could not copy bubblewrap binary to temp location")
 	})
 
-	// To be able to use chown in bubblewrap, we need to run it in a user namespace
-	// with a uid mapping. Bubblewrap itself only supports mapping a single UID via
-	// --uid, so we use unshare to create a new user namespace with the desired mapping
-	// and run bwrap in that.
-	//nolint:gosec // We're not running untrusted code here.
-	cmd := exec.Command("unshare", "--user", "--map-root-user", "--map-auto",
-		copiedBwrapPath)
+	env = AppendCovEnv(env)
+	env = append(env, bubbleWrapTestEnvVar+"=1")
 
-	cmd.Env = AppendCovEnv(os.Environ())
-	cmd.Env = append(cmd.Env, env...)
-	cmd.Env = append(cmd.Env, bubbleWrapTestEnvVar+"=1")
+	var cmd *exec.Cmd
 
 	if withSudo {
-		cmd.Args = append([]string{"sudo"}, cmd.Args...)
+		t.Log("Running bubblewrap with sudo")
+		uid := os.Getuid()
+		gid := os.Getgid()
+		cmd = exec.Command("sudo")
+		cmd.Args = append(cmd.Args, env...)
+		cmd.Args = append(cmd.Args,
+			"unshare",
+			"--user",
+			// Making chown work in bubblewrap executed via sudo is even more complicated
+			// than without sudo (see below for that). Here we can't just use --map-root-user
+			// and --map-users=auto, because that would map the user which executes bwrap,
+			// i.e. root, to uid 0 in the new user namespace, which means it can't access
+			// files owned by the user which executes the test. So instead we need to map
+			// the user which executes the test to uid 0 in the new user namespace, and then
+			// map the other UIDs in the new user namespace to the same values as the host.
+			fmt.Sprintf("--map-users=0:%d:1", uid),
+			fmt.Sprintf("--map-users=1:1:%d", uid-1),
+			fmt.Sprintf("--map-users=%[1]d:%[1]d:%d", uid+1, 65536-uid-2),
+			fmt.Sprintf("--map-groups=0:%d:1", gid),
+			fmt.Sprintf("--map-groups=1:1:%d", gid-1),
+			fmt.Sprintf("--map-groups=%[1]d:%[1]d:%d", gid+1, 65536-gid-2),
+			"--setuid=0", "--setgid=0",
+			copiedBwrapPath,
+		)
+	} else {
+		// To be able to use chown in bubblewrap, we need to run it in a user namespace
+		// with a uid mapping. Bubblewrap itself only supports mapping a single UID via
+		// --uid, so we use unshare to create a new user namespace with the desired mapping
+		// and run bwrap in that.
+		//nolint:gosec // We're not running untrusted code here.
+		cmd = exec.Command(
+			"unshare",
+			"--user",
+			"--map-root-user",
+			"--map-users=auto",
+			"--map-groups=auto",
+			copiedBwrapPath,
+		)
+		cmd.Env = append(os.Environ(), env...)
 	}
 
 	etcDir := filepath.Join(TempDir(t), "etc")
