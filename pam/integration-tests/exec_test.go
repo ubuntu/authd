@@ -886,7 +886,7 @@ func getModuleArgs(t *testing.T, clientPath string, args []string) []string {
 			clientArgsPath := filepath.Join(t.TempDir(), "client-args-file")
 			require.NoError(t, os.WriteFile(clientArgsPath, []byte(strings.Join(args, "\t")), 0600),
 				"Setup: Creation of client args file failed")
-			saveArtifactsForDebugOnCleanup(t, []string{clientArgsPath})
+			testutils.MaybeSaveFilesAsArtifactsOnCleanup(t, clientArgsPath)
 			return append(moduleArgs, "-client-args-file", clientArgsPath)
 		}
 	}
@@ -933,7 +933,7 @@ func preparePamTransactionForServiceFile(t *testing.T, serviceFile string, user 
 	} else {
 		tx, err = pam.StartConfDir(filepath.Base(serviceFile), user, nil, filepath.Dir(serviceFile))
 	}
-	saveArtifactsForDebugOnCleanup(t, []string{serviceFile})
+	testutils.MaybeSaveFilesAsArtifactsOnCleanup(t, serviceFile)
 	require.NoError(t, err, "PAM: Error to initialize module")
 	require.NotNil(t, tx, "PAM: Transaction is not set")
 	t.Cleanup(func() { require.NoError(t, tx.End(), "PAM: can't end transaction") })
@@ -965,8 +965,8 @@ func buildExecModuleWithCFlags(t *testing.T, cFlags []string, forPreload bool) s
 
 	pkgConfigDeps := []string{"gio-2.0", "gio-unix-2.0"}
 	// t.Name() can be a subtest, so replace the directory slash to get a valid filename.
-	return buildCPAMModule(t, execModuleSources, pkgConfigDeps, cFlags,
-		"pam_authd_exec"+strings.ToLower(strings.ReplaceAll(t.Name(), "/", "_")),
+	return buildSharedModule(t, "Building PAM module", execModuleSources, pkgConfigDeps, cFlags,
+		[]string{"-lpam"}, "pam_authd_exec"+strings.ToLower(strings.ReplaceAll(t.Name(), "/", "_")),
 		forPreload)
 }
 
