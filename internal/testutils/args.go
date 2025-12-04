@@ -119,3 +119,15 @@ func SleepMultiplier() float64 {
 func MultipliedSleepDuration(in time.Duration) time.Duration {
 	return time.Duration(math.Round(float64(in) * SleepMultiplier()))
 }
+
+// IsCI returns whether the test is running in CI environment.
+var IsCI = sync.OnceValue(func() bool {
+	_, ok := os.LookupEnv("GITHUB_ACTIONS")
+	return ok
+})
+
+// IsDebianPackageBuild returns true if the tests are running in a Debian package build environment.
+var IsDebianPackageBuild = sync.OnceValue(func() bool {
+	_, ok := os.LookupEnv("DEB_BUILD_ARCH")
+	return ok
+})
