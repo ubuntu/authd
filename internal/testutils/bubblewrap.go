@@ -216,11 +216,7 @@ func canUseUnprivilegedUserNamespaces(t *testing.T) bool {
 		_ = cmd.Run()
 	}
 
-	cmd := exec.Command("unshare", "--user", "true")
-	cmd.Stdout = t.Output()
-	cmd.Stderr = t.Output()
-
-	if err := cmd.Run(); err != nil {
+	if err := runInBubbleWrap(t, false, nil, "/bin/true"); err != nil {
 		t.Logf("Can't use user namespaces: %v", err)
 		return false
 	}
