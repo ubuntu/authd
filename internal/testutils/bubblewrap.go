@@ -119,8 +119,9 @@ func runInBubbleWrap(t *testing.T, withSudo bool, env []string, args ...string) 
 			// which executes the test to uid 0 in the new user namespace, and
 			// then map the other UIDs in the new user namespace, up to 65535,
 			// to the same values as the host.
-			fmt.Sprintf("--map-users=0:%d:1", uid),   // Map test user to UID 0
-			fmt.Sprintf("--map-users=1:1:%d", uid-1), // Map UIDs 1..uid-1 to the same values as the host
+			fmt.Sprintf("--map-users=0:%d:1", uid), // Map test user to UID 0
+			//fmt.Sprintf("--map-users=1:1:%d", uid-1), // Map UIDs 1..uid-1 to the same values as the host
+			"--map-users=1:1:1", // Map UID 1 to UID 1
 		)
 		//if uid < 65535 {
 		//	// Map UIDs uid+1..65535 to the same values as the host.
@@ -128,7 +129,8 @@ func runInBubbleWrap(t *testing.T, withSudo bool, env []string, args ...string) 
 		//}
 		cmd.Args = append(cmd.Args,
 			fmt.Sprintf("--map-groups=0:%d:1", gid),
-			fmt.Sprintf("--map-groups=1:1:%d", gid-1),
+			//fmt.Sprintf("--map-groups=1:1:%d", gid-1),
+			"--map-groups=1:1:1", // Map GID 1 to GID 1
 		)
 		//if gid < 65535 {
 		//	// Map GIDs gid+1..65535 to the same values as the host.
