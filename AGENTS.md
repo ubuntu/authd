@@ -62,7 +62,7 @@ go generate ./shell-completion/         # Shell completions
 - Brokers are discovered from `/usr/share/authd/brokers/*.conf` (D-Bus service files)
 - First broker is always the local broker (no config file)
 - Manager in `internal/brokers/manager.go` handles session→broker and user→broker mappings
-- Brokers must implement the D-Bus interface defined in `internal/brokers/D-Busbroker.go`
+- Brokers must implement the D-Bus interface defined in `internal/brokers/dbusbroker.go`
 
 ### PAM Module Dual Mode
 The PAM module has two implementations (see `pam/Hacking.md`):
