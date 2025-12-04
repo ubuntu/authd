@@ -122,18 +122,18 @@ func runInBubbleWrap(t *testing.T, withSudo bool, env []string, args ...string) 
 			fmt.Sprintf("--map-users=0:%d:1", uid),   // Map test user to UID 0
 			fmt.Sprintf("--map-users=1:1:%d", uid-1), // Map UIDs 1..uid-1 to the same values as the host
 		)
-		if uid < 65535 {
-			// Map UIDs uid+1..65535 to the same values as the host.
-			cmd.Args = append(cmd.Args, fmt.Sprintf("--map-users=%[1]d:%[1]d:%d", uid+1, 65535-uid))
-		}
+		//if uid < 65535 {
+		//	// Map UIDs uid+1..65535 to the same values as the host.
+		//	cmd.Args = append(cmd.Args, fmt.Sprintf("--map-users=%[1]d:%[1]d:%d", uid+1, 65535-uid))
+		//}
 		cmd.Args = append(cmd.Args,
 			fmt.Sprintf("--map-groups=0:%d:1", gid),
 			fmt.Sprintf("--map-groups=1:1:%d", gid-1),
 		)
-		if gid < 65535 {
-			// Map GIDs gid+1..65535 to the same values as the host.
-			cmd.Args = append(cmd.Args, fmt.Sprintf("--map-groups=%[1]d:%[1]d:%d", gid+1, 65535-gid))
-		}
+		//if gid < 65535 {
+		//	// Map GIDs gid+1..65535 to the same values as the host.
+		//	cmd.Args = append(cmd.Args, fmt.Sprintf("--map-groups=%[1]d:%[1]d:%d", gid+1, 65535-gid))
+		//}
 		cmd.Args = append(cmd.Args,
 			"--setuid=0",
 			"--setgid=0",
