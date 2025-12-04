@@ -834,9 +834,17 @@ func (fw *filteredStderrWriter) Write(p []byte) (n int, err error) {
 		debugLevel = "1"
 	}
 
+	logAllPAMMessages := os.Getenv("AUTHD_SSHD_STDERR_LOG_ALL_PAM_MESSAGES") != ""
+
 	lines := strings.Split(string(p), "\n")
 	var outLines []string
 	for _, line := range lines {
+		// Print all PAM messages if requested
+		if logAllPAMMessages && len(line) >= 12 && strings.HasPrefix(line[8:], "PAM:") {
+			outLines = append(outLines, line)
+			continue
+		}
+
 		// Only print lines with a debug level less than or equal to the configured level
 		if strings.HasPrefix(line, "debug") {
 			switch debugLevel {
