@@ -202,20 +202,6 @@ func canUseUnprivilegedUserNamespaces(t *testing.T) bool {
 
 	t.Log("Checking if we can use unprivileged user namespaces")
 
-	if IsCI() {
-		// Try enabling unprivileged user namespaces in the CI.
-		cmd := exec.Command("sudo", "sysctl", "-w", "kernel.unprivileged_userns_clone=1")
-		cmd.Stdout = t.Output()
-		cmd.Stderr = t.Output()
-		_ = cmd.Run()
-
-		// Set /proc/sys/user/max_user_namespaces to a high value.
-		cmd = exec.Command("sudo", "sysctl", "-w", "user.max_user_namespaces=100000")
-		cmd.Stdout = t.Output()
-		cmd.Stderr = t.Output()
-		_ = cmd.Run()
-	}
-
 	cmd := exec.Command("unshare", "--user", "true")
 	cmd.Stdout = t.Output()
 	cmd.Stderr = t.Output()
