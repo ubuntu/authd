@@ -2479,7 +2479,7 @@ func TestGdmModel(t *testing.T) {
 
 			var exitStatus PamReturnStatus
 			uiModel := newUIModelForClients(pam_test.NewModuleTransactionDummy(gdmHandler),
-				Gdm, tc.sessionMode, tc.client, nil, &exitStatus)
+				Gdm, tc.sessionMode, false, tc.client, nil, &exitStatus)
 
 			appState := gdmTestUIModel{
 				uiModel:             uiModel,

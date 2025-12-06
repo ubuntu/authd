@@ -124,12 +124,15 @@ type authenticationModel struct {
 	clientType PamClientType
 	mode       authd.SessionMode
 
+	require2FA bool
+
 	inProgress       bool
 	currentModel     authenticationComponent
 	currentSessionID string
 	currentBrokerID  string
 	currentSecret    string
 	currentLayout    string
+	currentAuthMode  string
 
 	authTracker *authTracker
 
@@ -169,11 +172,12 @@ type newPasswordCheckResult struct {
 }
 
 // newAuthenticationModel initializes a authenticationModel which needs to be Compose then.
-func newAuthenticationModel(client authd.PAMClient, clientType PamClientType, mode authd.SessionMode) authenticationModel {
+func newAuthenticationModel(client authd.PAMClient, clientType PamClientType, mode authd.SessionMode, require2FA bool) authenticationModel {
 	return authenticationModel{
 		client:      client,
 		clientType:  clientType,
 		mode:        mode,
+		require2FA:  require2FA,
 		authTracker: &authTracker{cond: sync.NewCond(&sync.Mutex{})},
 	}
 }
@@ -346,6 +350,12 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 
 		switch msg.access {
 		case auth.Granted:
+			if m.require2FA && isSingleFactorMode(m.currentAuthMode) {
+				if authMsg == "" {
+					authMsg = "Second factor required"
+				}
+				return m, sendEvent(pamError{status: pam.ErrCredInsufficient, msg: authMsg})
+			}
 			return m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID, msg: authMsg})
 
 		case auth.Retry:
@@ -438,11 +448,12 @@ func (m *authenticationModel) Blur() {
 
 // Compose initialize the authentication model to be used.
 // It creates and attaches the sub layout models based on UILayout.
-func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey *rsa.PublicKey, layout *authd.UILayout) tea.Cmd {
+func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey *rsa.PublicKey, authModeID string, layout *authd.UILayout) tea.Cmd {
 	m.currentBrokerID = brokerID
 	m.currentSessionID = sessionID
 	m.encryptionKey = encryptionKey
 	m.currentLayout = layout.Type
+	m.currentAuthMode = authModeID
 
 	m.errorMsg = ""
 
@@ -508,6 +519,7 @@ func (m *authenticationModel) Reset() tea.Cmd {
 	m.currentSessionID = ""
 	m.currentBrokerID = ""
 	m.currentLayout = ""
+	m.currentAuthMode = ""
 	return m.cancelIsAuthenticated()
 }
 
@@ -530,6 +542,15 @@ func dataToMsg(data string) (string, error) {
 		return "", fmt.Errorf("no message entry in json data from provider: %v", v)
 	}
 	return r, nil
+}
+
+func isSingleFactorMode(id string) bool {
+	switch id {
+	case "password":
+		return true
+	default:
+		return false
+	}
 }
 
 func (authData *isAuthenticatedRequestedSend) encryptSecretIfPresent(publicKey *rsa.PublicKey) (*string, error) {
