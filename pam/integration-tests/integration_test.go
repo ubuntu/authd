@@ -13,7 +13,7 @@ var daemonPath string
 func TestMain(m *testing.M) {
 	var cleanup func()
 	var err error
-	daemonPath, cleanup, err = testutils.BuildDaemonWithExampleBroker()
+	daemonPath, cleanup, err = testutils.BuildAuthdWithExampleBroker()
 	if err != nil {
 		log.Printf("Setup: failed to build daemon: %v", err)
 		os.Exit(1)
