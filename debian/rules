@@ -2,7 +2,7 @@
 #export DH_VERBOSE = 1
 
 include /usr/share/dpkg/pkg-info.mk
-include /usr/share/rustc/architecture.mk
+include /usr/share/dpkg/architecture.mk
 
 # The package name for authd, used only locally to avoid repetitions
 AUTHD_GO_PACKAGE := $(shell grep-dctrl -s XS-Go-Import-Path -n - ./debian/control)
