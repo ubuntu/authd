@@ -8,7 +8,8 @@ import (
 	"strconv"
 
 	"github.com/spf13/cobra"
-	"github.com/ubuntu/authd/cmd/authctl/user"
+	"github.com/ubuntu/authd/cmd/authctl/internal/client"
+	"github.com/ubuntu/authd/cmd/authctl/internal/completion"
 	"github.com/ubuntu/authd/internal/proto/authd"
 )
 
@@ -37,7 +38,8 @@ This command requires root privileges.
 Examples:
   authctl group set-gid staff 30000
   authctl group set-gid developers 40000`,
-	Args: cobra.ExactArgs(2),
+	Args:              cobra.ExactArgs(2),
+	ValidArgsFunction: completion.Groups,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		name := args[0]
 		gidStr := args[1]
@@ -51,7 +53,7 @@ Examples:
 			return fmt.Errorf("failed to parse GID %q: %w", gidStr, err)
 		}
 
-		client, err := user.NewUserServiceClient()
+		client, err := client.NewUserServiceClient()
 		if err != nil {
 			return err
 		}
