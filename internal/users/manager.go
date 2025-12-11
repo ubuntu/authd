@@ -17,6 +17,7 @@ import (
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	userslocking "github.com/ubuntu/authd/internal/users/locking"
+	"github.com/ubuntu/authd/internal/users/proc"
 	"github.com/ubuntu/authd/internal/users/tempentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
@@ -411,6 +412,12 @@ func (m *Manager) SetUserID(name string, uid uint32) (warnings []string, err err
 	}
 	if err == nil {
 		return nil, fmt.Errorf("UID %d already exists", uid)
+	}
+
+	// Check if the user has active processes
+	err = proc.CheckUserBusy(name, oldUser.UID)
+	if err != nil {
+		return nil, err
 	}
 
 	err = m.db.SetUserID(name, uid)
