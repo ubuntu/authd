@@ -56,7 +56,7 @@ jobs:
 
           sudo apt-get update
           sudo apt-get install -y ${{ env.go_build_dependencies }}
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Go code sanity check
         uses: canonical/desktop-engineering/gh-actions/go/code-sanity@v2
         with:
@@ -102,7 +102,7 @@ jobs:
           # so we always need to install the protobuf compilers
           # when building the NSS crate.
           sudo apt-get install -y protobuf-compiler
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Rust code sanity check
         uses: canonical/desktop-engineering/gh-actions/rust/code-sanity@main
         with:
@@ -128,7 +128,7 @@ jobs:
 
           scan_build_dir=$(mktemp -d --tmpdir scan-build-dir-XXXXXX)
           echo SCAN_BUILD_REPORTS_PATH="${scan_build_dir}" >> $GITHUB_ENV
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Run scan build on GDM extensions
         run: |
           set -eu
@@ -158,7 +158,7 @@ jobs:
       RAW_COVERAGE_DIR: ${{ github.workspace }}/raw-coverage
       COVERAGE_DIR: ${{ github.workspace }}/coverage
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-go-tests
       - uses: ./.github/actions/setup-go-coverage-tests
       # Installation of debug symbols takes a long time (and fails currently),
@@ -192,7 +192,7 @@ jobs:
       # the failed tests.
       - name: Upload JSON test output on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage-test-output
           path: ${{ env.AUTHD_TESTS_ARTIFACTS_PATH }}/gotestfmt.cover.stdout
@@ -202,7 +202,7 @@ jobs:
       # retry).
       - name: Upload raw coverage on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: raw-coverage-data
           path: ${{ env.RAW_COVERAGE_DIR }}
@@ -223,7 +223,7 @@ jobs:
       RAW_COVERAGE_DIR: ${{ github.workspace }}/raw-coverage
       COVERAGE_DIR: ${{ github.workspace }}/coverage
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-go-tests
       - uses: ./.github/actions/setup-go-coverage-tests
       # Installation of debug symbols takes a long time (and fails currently),
@@ -232,13 +232,13 @@ jobs:
       #   continue-on-error: true
 
       - name: Download JSON output of failed tests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: coverage-test-output
           path: /tmp/coverage-test-output
 
       - name: Download raw coverage data
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: raw-coverage-data
           path: ${{ env.RAW_COVERAGE_DIR }}
@@ -282,7 +282,7 @@ jobs:
     name: "Go Tests with Race Detector"
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-go-tests
       # Installation of debug symbols takes a long time (and fails currently),
       # so we skip it for now. Enable on demand.
@@ -310,7 +310,7 @@ jobs:
     name: "Go PAM tests with Address Sanitizer"
     runs-on: ubuntu-24.04 # ubuntu-latest-runner
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-go-tests
       # Installation of debug symbols takes a long time (and fails currently),
       # so we skip it for now. Enable on demand.
