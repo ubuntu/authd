@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ubuntu/authd/internal/decorate"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
-	"github.com/ubuntu/decorate"
 )
 
 func parseLocalPasswdFile(passwdFile string) (entries []types.UserEntry, err error) {

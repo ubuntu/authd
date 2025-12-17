@@ -9,7 +9,7 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/godbus/dbus/v5/introspect"
-	"github.com/ubuntu/decorate"
+	"github.com/ubuntu/authd/internal/decorate"
 )
 
 const (
