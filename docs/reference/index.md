@@ -28,7 +28,7 @@ Troubleshooting <troubleshooting>
 ## Groups
 
 Managing groups of users that need the same access and permissions to resources
-is supported by the MS Entra ID broker for authd:
+is supported by the Microsoft Entra ID broker for authd:
 
 ```{toctree}
 :titlesonly:

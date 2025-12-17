@@ -55,7 +55,7 @@ sudo cp /snap/authd-msentraid/current/conf/authd/msentraid.conf /etc/authd/broke
 ::::
 :::::
 
-This file is used to declare the brokers available on the system. 
+This file is used to declare the brokers available on the system.
 
 ```{note}
 Several brokers can be enabled at the same time.
@@ -261,7 +261,7 @@ sudo rm /var/snap/authd-google/current/broker.conf.d/20-owner-autoregistration.c
 ```
 :::
 
-:::{tab-item} MS Entra ID
+:::{tab-item} Microsoft Entra ID
 :sync: msentraid
 
 ```shell

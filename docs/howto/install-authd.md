@@ -80,7 +80,7 @@ authenticate against Google IAM.
 ::::{tab-item} Microsoft Entra ID
 :sync: msentraid
 
-To install the MS Entra ID broker, run the following command:
+To install the Microsoft Entra ID broker, run the following command:
 
 ```shell
 sudo snap install authd-msentraid

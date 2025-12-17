@@ -11,9 +11,9 @@ In addition, you can configure extra groups
   Groups are currently supported for the `msentraid` broker.
 ```
 
-## MS Entra ID
+## Microsoft Entra ID
 
-MS Entra ID supports creating groups and adding users to them.
+Microsoft Entra ID supports creating groups and adding users to them.
 
 > See [Manage Microsoft Entra groups and group membership](https://learn.microsoft.com/en-us/entra/fundamentals/how-to-manage-groups)
 

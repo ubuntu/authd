@@ -43,11 +43,11 @@ full transition to the cloud.
 * <a href="howto/configure-authd/?broker=google">Configure the Google IAM broker</a>
 :::
 
-:::{tab-item} MS Entra ID
+:::{tab-item} Microsoft Entra ID
 :sync: msentraid
 
-* <a href="howto/install-authd/?broker=msentraid">Install authd and the MS Entra ID broker</a>
-* <a href="howto/configure-authd/?broker=msentraid">Configure the MS Entra ID broker</a>
+* <a href="howto/install-authd/?broker=msentraid">Install authd and the Microsoft Entra ID broker</a>
+* <a href="howto/configure-authd/?broker=msentraid">Configure the Microsoft Entra ID broker</a>
 :::
 
 ::::::
