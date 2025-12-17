@@ -12,11 +12,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/ubuntu/authd/internal/decorate"
 	"github.com/ubuntu/authd/internal/fileutils"
 	"github.com/ubuntu/authd/internal/sliceutils"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
-	"github.com/ubuntu/decorate"
 )
 
 // GetGroupEntries returns a copy of the current group entries.

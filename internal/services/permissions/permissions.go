@@ -5,7 +5,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/ubuntu/decorate"
+	"github.com/ubuntu/authd/internal/decorate"
 	"google.golang.org/grpc/peer"
 )
 
