@@ -128,7 +128,7 @@ func sharedAuthd(t *testing.T, args ...testutils.DaemonOption) (socketPath strin
 
 	sa.refCount++
 	if testing.Verbose() {
-		t.Logf("Authd shared instances increased: %v", sa.refCount)
+		t.Logf("authd shared instances increased: %v", sa.refCount)
 	}
 	if sa.refCount != 1 {
 		return sa.socketPath, sa.groupsOutputPath
