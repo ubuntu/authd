@@ -125,6 +125,16 @@ In {menuselection}`Authentication (Preview) --> Manage --> Settings`, ensure tha
 
 [The Microsoft documentation](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) provides detailed instructions for registering an application with the Microsoft identity platform.
 
+### Redirect URI
+
+If you plan to use the device registration feature (see [configure device registration](#configure-device-registration)),
+you need to configure a redirect URI for the application. Under `Manage`, in the `Authentication (Preview)` menu,
+click on `Add Redirect URI`, then choose `Mobile and desktop applications` and select the following URI:
+
+```
+https://login.microsoftonline.com/common/oauth2/nativeclient
+```
+
 ::::
 :::::
 
@@ -305,6 +315,38 @@ to which only the user with the [owner role](#configure-allowed-users) is added:
 ## will be added to these groups.
 ## Example: owner_extra_groups = sudo,lpadmin
 #owner_extra_groups =
+```
+
+(ref::device-registration)=
+## Configure device registration
+
+When using the Microsoft Entra ID broker, you can enable automatic device
+registration, which allows administrators to manage registered devices in the
+Microsoft Entra admin center.
+
+Automatic device registration can be enabled with the `register_device`
+option in the `msentraid` section of the broker configuration file:
+
+```ini
+[msentraid]
+## Enable automatic device registration with Microsoft Entra ID
+## when a user logs in through this broker.
+##
+## If set to true, authd will attempt to register the local machine
+## as a device in Entra ID upon successful login.
+##
+## If set to false (the default), device registration will be skipped.
+#register_device = false
+```
+
+```{note}
+When changing this option, users are forced to re-authenticate via device
+authentication on the next login.
+```
+
+```{note}
+Make sure that the application in the Microsoft Entra admin center has a
+redirect URI configured as described in [Redirect URI](#redirect-uri).
 ```
 
 ## Restart the broker
