@@ -9,8 +9,8 @@ import (
 
 	"github.com/godbus/dbus/v5"
 	"github.com/msteinert/pam/v2"
+	"github.com/ubuntu/authd/internal/decorate"
 	"github.com/ubuntu/authd/log"
-	"github.com/ubuntu/decorate"
 )
 
 // Transaction is a [pam.Transaction] with dbus support.

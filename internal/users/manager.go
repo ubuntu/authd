@@ -11,12 +11,12 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/ubuntu/authd/internal/decorate"
 	"github.com/ubuntu/authd/internal/users/db"
 	"github.com/ubuntu/authd/internal/users/localentries"
 	"github.com/ubuntu/authd/internal/users/tempentries"
 	"github.com/ubuntu/authd/internal/users/types"
 	"github.com/ubuntu/authd/log"
-	"github.com/ubuntu/decorate"
 )
 
 // Config is the configuration for the user manager.
