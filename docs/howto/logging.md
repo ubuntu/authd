@@ -39,7 +39,7 @@ sudo journalctl -u snap.authd-google.authd-google.service
 ```
 :::
 
-:::{tab-item} MS Entra ID
+:::{tab-item} Microsoft Entra ID
 :sync: msentraid
 
 ```shell
@@ -115,7 +115,7 @@ sudo systemctl edit snap.authd-google.authd-google.service
 ```
 :::
 
-:::{tab-item} MS Entra ID
+:::{tab-item} Microsoft Entra ID
 :sync: msentraid
 
 ```shell
@@ -139,7 +139,7 @@ ExecStart=/usr/bin/snap run authd-google -vv
 ```
 :::
 
-:::{tab-item} MS Entra ID
+:::{tab-item} Microsoft Entra ID
 :sync: msentraid
 
 ```ini
@@ -160,7 +160,7 @@ You will then need to restart the service with:
 `sudo snap restart authd-google`.
 :::
 
-:::{tab-item} MS Entra ID
+:::{tab-item} Microsoft Entra ID
 :sync: msentraid
 
 `sudo snap restart authd-msentraid`.

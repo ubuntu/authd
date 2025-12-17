@@ -261,7 +261,7 @@ sudo rm /var/snap/authd-google/current/broker.conf.d/20-owner-autoregistration.c
 ```
 :::
 
-:::{tab-item} MS Entra ID
+:::{tab-item} Microsoft Entra ID
 :sync: msentraid
 
 ```shell
