@@ -6,7 +6,7 @@ Links are provided at the end to support further reading.
 
 ## Architecture components
 
-authd acts as an interface between the host system and external identity providers. 
+authd acts as an interface between the host system and external identity providers.
 Remote information is cached when authenticating with authd, which improves performance while also facilitating offline access.
 
 The diagram below illustrates the components of authd and their communication methods:
@@ -18,7 +18,7 @@ The architecture of authd consists of the following components:
 * The **authentication daemon** (authd): a daemon that runs on the host and manages access to the authentication service.
 * An **identity broker**: a trusted component running on the host and serving as an interface with the identity provider.
 * The **identity provider**: the remote service that manages digital identities, such as Microsoft Entra ID.
-* A **PAM module**: the library that handles the authentication tasks of applications on the system. The authentication tasks that are currently handled by PAM include GDM, login, ssh and sudo. Support for webview is being developed. 
+* A **PAM module**: the library that handles the authentication tasks of applications on the system. The authentication tasks that are currently handled by PAM include GDM, login, ssh and sudo. Support for webview is being developed.
 * An **NSS module**: a module that queries authd to retrieve user information from the cache.
 
 ```{note}
@@ -41,7 +41,7 @@ The communication between authd and the brokers is done over D-Bus. D-Bus suppor
 
 ## Links
 
-* [Microsoft Entra fundamentals documentation](https://learn.microsoft.com/en-us/entra/fundamentals/)  
-* [OpenID Connect (OIDC) on the Microsoft identity platform](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc)   
-* [What is OpenID Connect and what do you use it for? \- Auth0](https://auth0.com/intro-to-iam/what-is-openid-connect-oidc)  
-* [What Is OpenID Connect (OIDC)? | Microsoft Security](https://www.microsoft.com/en-us/security/business/security-101/what-is-openid-connect-oidc) 
+* [Microsoft Entra fundamentals documentation](https://learn.microsoft.com/en-us/entra/fundamentals/)
+* [OpenID Connect (OIDC) on the Microsoft identity platform](https://learn.microsoft.com/en-us/entra/identity-platform/v2-protocols-oidc)
+* [What is OpenID Connect and what do you use it for? \- Auth0](https://auth0.com/intro-to-iam/what-is-openid-connect-oidc)
+* [What Is OpenID Connect (OIDC)? | Microsoft Security](https://www.microsoft.com/en-us/security/business/security-101/what-is-openid-connect-oidc)
