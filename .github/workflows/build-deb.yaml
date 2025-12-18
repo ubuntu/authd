@@ -164,7 +164,7 @@ jobs:
         done
 
     - name: Download artifacts
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         run-id: ${{ needs.build-deb-package.outputs.run-id }}
         merge-multiple: true
@@ -269,7 +269,7 @@ jobs:
         done
 
     - name: Download artifacts
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         run-id: ${{ needs.build-deb-package.outputs.run-id }}
         merge-multiple: true
