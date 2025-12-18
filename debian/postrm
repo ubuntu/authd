@@ -24,9 +24,18 @@ remove_nss_entry() {
     ' /etc/nsswitch.conf
 }
 
+remove_gdm_authd_pam_config_file() {
+    PAM_CONFIG_FILE="/etc/pam.d/gdm-authd"
+    if [ -f "$PAM_CONFIG_FILE" ]; then
+        log "Removing $PAM_CONFIG_FILE"
+        rm -f "$PAM_CONFIG_FILE"
+    fi
+}
+
 case "$1" in
     remove|purge)
         if [ "${DPKG_MAINTSCRIPT_PACKAGE_REFCOUNT:-1}" = 1 ]; then
+            remove_gdm_authd_pam_config_file
             remove_nss_entry
         fi
     ;;
