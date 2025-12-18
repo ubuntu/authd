@@ -32,10 +32,10 @@ Vcs-Browser: https://github.com/ubuntu/authd
 Vcs-Git: https://github.com/ubuntu/authd.git
 Rules-Requires-Root: no
 Description: Authentication daemon for cloud-based identity provider
- Authd is a versatile authentication service designed to seamlessly integrate
+ authd is a versatile authentication service designed to seamlessly integrate
  with cloud identity providers like OpenID Connect and Entra ID. It offers a
  secure interface for system authentication, supporting cloud-based identity
- management. Authd features a modular structure, facilitating straightforward
+ management. authd features a modular structure, facilitating straightforward
  integration with different cloud services maintaining strong security and
  effective user authentication.
 
