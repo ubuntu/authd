@@ -121,6 +121,14 @@ func TestNativeAuthenticate(t *testing.T) {
 				PamUser: examplebroker.UserIntegrationMfaPrefix + "auth",
 			},
 		},
+		"Authenticate_user_with_mfa_required": {
+			tape:         "mfa_auth",
+			tapeSettings: []tapeSetting{{vhsHeight, 1200}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationMfaPrefix + "auth-mfa-required",
+			},
+			tapeCommand: strings.Join([]string{tapeCommand, "require_mfa=true"}, " "),
+		},
 		"Authenticate_user_with_form_mode_with_button": {
 			tape:         "form_with_button",
 			tapeSettings: []tapeSetting{{vhsHeight, 700}},
@@ -198,6 +206,15 @@ func TestNativeAuthenticate(t *testing.T) {
 				PamUser:        examplebroker.UserIntegrationPreCheckPrefix + "ssh-service-qr-code",
 				PamServiceName: "sshd",
 			},
+		},
+		"Authenticate_user_with_qr_code_requiring_mfa_auth": {
+			tape:         "qr_code",
+			tapeSettings: []tapeSetting{{vhsHeight, 3000}},
+			tapeVariables: map[string]string{
+				"AUTHD_QRCODE_TAPE_ITEM":      "7",
+				"AUTHD_QRCODE_TAPE_ITEM_NAME": "QR code",
+			},
+			tapeCommand: strings.Join([]string{tapeCommand, "require_mfa=true"}, " "),
 		},
 		"Authenticate_user_and_reset_password_while_enforcing_policy": {
 			tape:         "mandatory_password_reset",
@@ -360,6 +377,18 @@ func TestNativeAuthenticate(t *testing.T) {
 			clientOptions: clientOptions{
 				PamUser: examplebroker.UserIntegrationNeedsResetPrefix + "bad-password",
 			},
+		},
+		"Deny_authentication_if_MFA_authentication_is_required_with_password": {
+			tape:        "simple_auth",
+			tapeCommand: strings.Join([]string{tapeCommand, "require_mfa=true"}, " "),
+		},
+		"Deny_authentication_if_MFA_authentication_is_required_with_password_reset": {
+			tape:         "mandatory_password_reset",
+			tapeSettings: []tapeSetting{{vhsHeight, 550}},
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationNeedsResetPrefix + "mandatory-mfa-required",
+			},
+			tapeCommand: strings.Join([]string{tapeCommand, "require_mfa=true"}, " "),
 		},
 
 		"Prevent_preset_user_from_switching_username": {

@@ -37,6 +37,7 @@ func TestCLIAuthenticate(t *testing.T) {
 		tape          string
 		tapeSettings  []tapeSetting
 		tapeVariables map[string]string
+		tapeCommand   string
 
 		clientOptions      clientOptions
 		socketPath         string
@@ -109,6 +110,10 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Authenticate_user_with_mfa": {
 			tape: "mfa_auth",
 		},
+		"Authenticate_user_with_mfa_required": {
+			tape:        "mfa_auth",
+			tapeCommand: strings.Join([]string{tapeCommand, "require_mfa=true"}, " "),
+		},
 		"Authenticate_user_with_form_mode_with_button": {
 			tape: "form_with_button",
 		},
@@ -148,6 +153,13 @@ func TestCLIAuthenticate(t *testing.T) {
 				{vhsHeight, 800},
 				{vhsWaitTimeout, 15 * time.Second},
 			},
+		},
+		"Authenticate_user_with_qr_code_requiring_mfa_auth": {
+			tape: "qr_code",
+			clientOptions: clientOptions{
+				PamUser: examplebroker.UserIntegrationPrefix + "qr-code-require-mfa",
+			},
+			tapeCommand: strings.Join([]string{tapeCommand, "require_mfa=true"}, " "),
 		},
 		"Authenticate_user_and_reset_password_while_enforcing_policy": {
 			tape: "mandatory_password_reset",
@@ -220,6 +232,17 @@ func TestCLIAuthenticate(t *testing.T) {
 		"Deny_authentication_if_newpassword_does_not_match_required_criteria": {
 			tape: "bad_password",
 		},
+		"Deny_authentication_if_MFA_authentication_is_required_with_password": {
+			tape: "simple_auth",
+			tapeVariables: map[string]string{
+				vhsTapeUserVariable: vhsTestUserName(t, "simple-mfa-required"),
+			},
+			tapeCommand: strings.Join([]string{tapeCommand, "require_mfa=true"}, " "),
+		},
+		"Deny_authentication_if_MFA_authentication_is_required_with_password_reset": {
+			tape:        "mandatory_password_reset",
+			tapeCommand: strings.Join([]string{tapeCommand, "require_mfa=true"}, " "),
+		},
 
 		"Exit_authd_if_local_broker_is_selected": {
 			tape:         "local_broker",
@@ -282,8 +305,12 @@ func TestCLIAuthenticate(t *testing.T) {
 				socketPath = tc.socketPath
 			}
 
+			if tc.tapeCommand == "" {
+				tc.tapeCommand = tapeCommand
+			}
+
 			td := newTapeData(tc.tape, outDir, tc.tapeSettings...)
-			td.Command = tapeCommand
+			td.Command = tc.tapeCommand
 			td.Variables = tc.tapeVariables
 			td.Env[vhsTapeSocketVariable] = socketPath
 			td.Env["AUTHD_TEST_PID_FILE"] = pidFile
