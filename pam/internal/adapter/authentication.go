@@ -124,6 +124,9 @@ type authenticationModel struct {
 	clientType PamClientType
 	mode       authd.SessionMode
 
+	requireMFA          bool
+	verifiedAuthLayouts []string
+
 	inProgress       bool
 	currentModel     authenticationComponent
 	currentSessionID string
@@ -169,11 +172,12 @@ type newPasswordCheckResult struct {
 }
 
 // newAuthenticationModel initializes a authenticationModel which needs to be Compose then.
-func newAuthenticationModel(client authd.PAMClient, clientType PamClientType, mode authd.SessionMode) authenticationModel {
+func newAuthenticationModel(client authd.PAMClient, clientType PamClientType, mode authd.SessionMode, requireMFA bool) authenticationModel {
 	return authenticationModel{
 		client:      client,
 		clientType:  clientType,
 		mode:        mode,
+		requireMFA:  requireMFA,
 		authTracker: &authTracker{cond: sync.NewCond(&sync.Mutex{})},
 	}
 }
@@ -195,6 +199,9 @@ func (m *authenticationModel) cancelIsAuthenticated() tea.Cmd {
 func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel, command tea.Cmd) {
 	switch msg := msg.(type) {
 	case StageChanged:
+		if msg.Stage < pam_proto.Stage_authModeSelection {
+			m.verifiedAuthLayouts = nil
+		}
 		if msg.Stage != pam_proto.Stage_challenge {
 			return m, nil
 		}
@@ -318,7 +325,8 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 		return m, m.cancelIsAuthenticated()
 
 	case isAuthenticatedResultReceived:
-		safeMessageDebug(msg)
+		safeMessageDebug(msg, "current layout %q, verified layouts %#v",
+			m.currentLayout, m.verifiedAuthLayouts)
 
 		// Resets password if the authentication wasn't successful.
 		defer func() {
@@ -346,6 +354,15 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 
 		switch msg.access {
 		case auth.Granted:
+			m.maybeUpdateVerifiedAuthLayouts(m.currentLayout)
+			if m.requireMFA && len(m.verifiedAuthLayouts) < 2 &&
+				!isMultiFactorLayout(m.currentLayout) {
+				return m, sendEvent(pamError{
+					status: pam.ErrCredInsufficient,
+					msg:    "Additional authentication factors are required",
+				})
+			}
+
 			return m, sendEvent(PamSuccess{BrokerID: m.currentBrokerID, msg: authMsg})
 
 		case auth.Retry:
@@ -359,6 +376,8 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 			return m, sendEvent(pamError{status: pam.ErrAuth, msg: authMsg})
 
 		case auth.Next:
+			m.maybeUpdateVerifiedAuthLayouts(m.currentLayout)
+
 			if authMsg != "" {
 				m.errorMsg = authMsg
 
@@ -376,6 +395,8 @@ func (m authenticationModel) Update(msg tea.Msg) (authModel authenticationModel,
 			return m, sendEvent(GetAuthenticationModesRequested{})
 
 		case auth.Cancelled:
+			m.verifiedAuthLayouts = nil
+
 			// nothing to do
 			return m, nil
 		}
@@ -419,6 +440,14 @@ func (m authenticationModel) Focus() tea.Cmd {
 	return m.currentModel.Focus()
 }
 
+func (m *authenticationModel) maybeUpdateVerifiedAuthLayouts(authLayout string) {
+	if authLayout == "" || authLayout == layouts.NewPassword {
+		return
+	}
+
+	m.verifiedAuthLayouts = append(m.verifiedAuthLayouts, authLayout)
+}
+
 // Focused returns if this model is focused.
 func (m authenticationModel) Focused() bool {
 	if m.currentModel == nil {
@@ -438,12 +467,11 @@ func (m *authenticationModel) Blur() {
 
 // Compose initialize the authentication model to be used.
 // It creates and attaches the sub layout models based on UILayout.
-func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey *rsa.PublicKey, layout *authd.UILayout) tea.Cmd {
+func (m *authenticationModel) Compose(brokerID, sessionID string, encryptionKey *rsa.PublicKey, authModeID string, layout *authd.UILayout) tea.Cmd {
 	m.currentBrokerID = brokerID
 	m.currentSessionID = sessionID
 	m.encryptionKey = encryptionKey
 	m.currentLayout = layout.Type
-
 	m.errorMsg = ""
 
 	if m.clientType != InteractiveTerminal {
@@ -530,6 +558,15 @@ func dataToMsg(data string) (string, error) {
 		return "", fmt.Errorf("no message entry in json data from provider: %v", v)
 	}
 	return r, nil
+}
+
+func isMultiFactorLayout(layout string) bool {
+	switch layout {
+	case layouts.QrCode:
+		return true
+	default:
+		return false
+	}
 }
 
 func (authData *isAuthenticatedRequestedSend) encryptSecretIfPresent(publicKey *rsa.PublicKey) (*string, error) {

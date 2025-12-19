@@ -1,0 +1,95 @@
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+Username: user name
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+Username: user-mfa
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+  Select your provider
+
+> 1. local
+  2. ExampleBroker
+
+  Press escape key to go back to user selection
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+Gimme your password:
+>
+
+  Press escape key to go back to select the authentication method
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+  Select your authentication method
+
+> 1. Password authentication
+  2. Send URL to user-mfa@gmail.com
+  3. Use your fido device foo
+  4. Use your phone +33...
+  5. Use your phone +1...
+  6. Use a QR code
+  7. Authentication code
+
+  Press escape key to go back to choose the provider
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+Gimme your password:
+>
+
+  Press escape key to go back to select the authentication method
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+Gimme your password:
+> ********
+
+  Press escape key to go back to select the authentication method
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+Plug your fido device and press with your thumb
+
+  Press escape key to go back to select the authentication method
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+  Select your authentication method
+
+> 1. Use your fido device foo
+  2. Use your phone +33...
+  3. Authentication code
+
+  Press escape key to go back to choose the provider
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+Plug your fido device and press with your thumb
+
+  Press escape key to go back to select the authentication method
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+Unlock your phone +33... or accept request on web interface
+
+  Press escape key to go back to select the authentication method
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+  Select your authentication method
+
+> 1. Use your phone +33...
+  2. Authentication code
+
+  Press escape key to go back to choose the provider
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+Unlock your phone +33... or accept request on web interface
+
+  Press escape key to go back to select the authentication method
+────────────────────────────────────────────────────────────────────────────────
+> ./pam_authd login socket=${AUTHD_TEST_TAPE_SOCKET} require_mfa=true
+PAM Error Message: Additional authentication factors are required
+PAM Authenticate()
+  User: "user-mfa"
+  Result: error: PAM exit code: 8
+    Insufficient credentials to access authentication data
+PAM Info Message: acct=incomplete
+PAM AcctMgmt()
+  User: "user-mfa"
+  Result: error: PAM exit code: 25
+    The return value should be ignored by PAM dispatch
+>
+────────────────────────────────────────────────────────────────────────────────

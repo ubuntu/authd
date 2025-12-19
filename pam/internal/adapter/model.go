@@ -128,19 +128,19 @@ type ChangeStage struct {
 type StageChanged ChangeStage
 
 // NewUIModel creates and initializes the main model orchestrator.
-func NewUIModel(mTx pam.ModuleTransaction, clientType PamClientType, mode authd.SessionMode, conn *grpc.ClientConn, exitStatus *PamReturnStatus) tea.Model {
+func NewUIModel(mTx pam.ModuleTransaction, clientType PamClientType, mode authd.SessionMode, requireMFA bool, conn *grpc.ClientConn, exitStatus *PamReturnStatus) tea.Model {
 	var userServiceClient authd.UserServiceClient
 	if conn != nil && isSSHSession(mTx) {
 		userServiceClient = authd.NewUserServiceClient(conn)
 	}
 
-	m := newUIModelForClients(mTx, clientType, mode, authd.NewPAMClient(conn), userServiceClient, exitStatus)
+	m := newUIModelForClients(mTx, clientType, mode, requireMFA, authd.NewPAMClient(conn), userServiceClient, exitStatus)
 	m.conn = conn
 	return m
 }
 
 // newUIModelForClients is the internal implementation of [NewUIModel] for testing purposes.
-func newUIModelForClients(mTx pam.ModuleTransaction, clientType PamClientType, mode authd.SessionMode, pamClient authd.PAMClient, userServiceClient authd.UserServiceClient, exitStatus *PamReturnStatus) uiModel {
+func newUIModelForClients(mTx pam.ModuleTransaction, clientType PamClientType, mode authd.SessionMode, requireMFA bool, pamClient authd.PAMClient, userServiceClient authd.UserServiceClient, exitStatus *PamReturnStatus) uiModel {
 	m := uiModel{
 		pamMTx:      mTx,
 		clientType:  clientType,
@@ -163,7 +163,7 @@ func newUIModelForClients(mTx pam.ModuleTransaction, clientType PamClientType, m
 	m.userSelectionModel = newUserSelectionModel(m.pamMTx, m.clientType)
 	m.brokerSelectionModel = newBrokerSelectionModel(m.client, m.clientType)
 	m.authModeSelectionModel = newAuthModeSelectionModel(m.clientType)
-	m.authenticationModel = newAuthenticationModel(m.client, m.clientType, mode)
+	m.authenticationModel = newAuthenticationModel(m.client, m.clientType, mode, requireMFA)
 	m.healthCheckCancel = func() {}
 
 	return m
@@ -381,6 +381,7 @@ func (m uiModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentSession.brokerID,
 				m.currentSession.sessionID,
 				m.currentSession.encryptionKey,
+				m.authModeSelectionModel.currentAuthModeSelectedID,
 				msg.layout,
 			),
 			m.updateClientModel(msg),

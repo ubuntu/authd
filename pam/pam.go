@@ -60,6 +60,7 @@ var supportedArgs = []string{
 	"connection_timeout",  // The timeout on connecting to authd socket in milliseconds (defaults to 2 seconds).
 	"force_native_client", // Use native PAM client instead of custom UIs.
 	"force_reauth",        // Whether the authentication should be performed again even if it has been already completed.
+	"require_mfa",         // Require MFA: treat single-step or single-device authentication as insufficient credentials.
 }
 
 // parseArgs parses the PAM arguments and returns a map of them and a function that logs the parsing issues.
@@ -317,8 +318,10 @@ func (h *pamModule) handleAuthRequest(mode authd.SessionMode, mTx pam.ModuleTran
 		return err
 	}
 
+	requireMFA, _ := strconv.ParseBool(parsedArgs["require_mfa"])
+
 	var exitStatus adapter.PamReturnStatus
-	appState := adapter.NewUIModel(mTx, pamClientType, mode, conn, &exitStatus)
+	appState := adapter.NewUIModel(mTx, pamClientType, mode, requireMFA, conn, &exitStatus)
 	teaOpts = append(teaOpts, tea.WithFilter(adapter.MsgFilter))
 	p := tea.NewProgram(appState, teaOpts...)
 	if _, err := p.Run(); err != nil {
