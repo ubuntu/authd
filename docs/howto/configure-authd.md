@@ -114,7 +114,7 @@ And configure it as follows:
 
 ![Configuration screen for the new registration.](../assets/configure-registration.png)
 
-Under `Manage`, in the `API permissions` menu, set the following Microsoft Graph permissions:
+Under `Manage`, in the `API permissions` menu, set the following **Microsoft Graph** permissions:
 
 ![Configuration screen for Microsoft Graph permissions.](../assets/graph-permissions.png)
 
