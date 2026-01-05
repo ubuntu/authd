@@ -120,6 +120,8 @@ Under `Manage`, in the `API permissions` menu, set the following **Microsoft Gra
 
 Ensure the API permission type is set to **Delegated** for each permission.
 
+The `GroupMember.Read.All` permission needs admin consent. Click on "Grant admin consent for \<TENANT_NAME\>" to provide this consent.
+
 Finally, as the supported authentication mechanism is the device workflow, you need to allow the public client workflows. Under `Manage`, in the `Authentication` menu, under `Advanced settings`, ensure that `Allow public client flows` is set to **Yes**.
 
 [The Microsoft documentation](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) provides detailed instructions for registering an application with the Microsoft identity platform.
