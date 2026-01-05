@@ -33,11 +33,9 @@ all files on the system from the old GID to the new GID, run:
 
   sudo chown -R --from :OLD_GID :NEW_GID /
 
-This command requires root privileges.
-
-Examples:
-  authctl group set-gid staff 30000
-  authctl group set-gid developers 40000`,
+This command requires root privileges.`,
+	Example: `  # Set the GID of group "staff" to 30000
+  authctl group set-gid staff 30000`,
 	Args:              cobra.ExactArgs(2),
 	ValidArgsFunction: completion.Groups,
 	RunE: func(cmd *cobra.Command, args []string) error {

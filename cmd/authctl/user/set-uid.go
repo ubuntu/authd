@@ -32,11 +32,9 @@ system from the old UID to the new UID, run:
 
   sudo chown -R --from OLD_UID NEW_UID /
 
-This command requires root privileges.
-
-Examples:
-  authctl user set-uid john 15000
-  authctl user set-uid alice 20000`,
+This command requires root privileges.`,
+	Example: `  # Set the UID of user "alice" to 15000
+  authctl user set-uid alice 15000`,
 	Args:              cobra.ExactArgs(2),
 	ValidArgsFunction: setUIDCompletionFunc,
 	RunE: func(cmd *cobra.Command, args []string) error {
