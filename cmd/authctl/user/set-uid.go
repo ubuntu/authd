@@ -30,7 +30,7 @@ still owned by the original UID: those files may become accessible to a differen
 account that is later assigned that UID. To change ownership of all files on the
 system from the old UID to the new UID, run:
 
-  sudo chown -R --from OLD_UID NEW_UID /
+    sudo chown -R --from OLD_UID NEW_UID /
 
 This command requires root privileges.`,
 	Example: `  # Set the UID of user "alice" to 15000
