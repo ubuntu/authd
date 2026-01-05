@@ -31,7 +31,7 @@ still owned by the original GID: those files may become accessible to a
 different group that is later assigned that GID. To change group ownership of
 all files on the system from the old GID to the new GID, run:
 
-  sudo chown -R --from :OLD_GID :NEW_GID /
+    sudo chown -R --from :OLD_GID :NEW_GID /
 
 This command requires root privileges.`,
 	Example: `  # Set the GID of group "staff" to 30000
