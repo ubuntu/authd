@@ -19,7 +19,7 @@ var setGIDCmd = &cobra.Command{
 	Short: "Set the GID of a group managed by authd",
 	Long: `Set the GID of a group managed by authd to the specified value.
 
-The new GID value must be unique and non-negative.
+The new GID must be unique and non-negative. The command must be run as root.
 
 When a group's GID is changed, any users whose primary group is set to this group
 will have their primary group GID updated. The home directories of these users and
@@ -33,7 +33,7 @@ all files on the system from the old GID to the new GID, run:
 
     sudo chown -R --from :OLD_GID :NEW_GID /
 
-This command requires root privileges.`,
+`,
 	Example: `  # Set the GID of group "staff" to 30000
   authctl group set-gid staff 30000`,
 	Args:              cobra.ExactArgs(2),
