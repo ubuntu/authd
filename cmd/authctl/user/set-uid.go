@@ -19,7 +19,7 @@ var setUIDCmd = &cobra.Command{
 	Short: "Set the UID of a user managed by authd",
 	Long: `Set the UID of a user managed by authd to the specified value.
 
-The new UID value must be unique and non-negative.
+The new UID must be unique and non-negative. The command must be run as root.
 
 The user's home directory and any files within it owned by the user will
 automatically have their ownership updated to the new UID.
@@ -31,8 +31,7 @@ account that is later assigned that UID. To change ownership of all files on the
 system from the old UID to the new UID, run:
 
     sudo chown -R --from OLD_UID NEW_UID /
-
-This command requires root privileges.`,
+`,
 	Example: `  # Set the UID of user "alice" to 15000
   authctl user set-uid alice 15000`,
 	Args:              cobra.ExactArgs(2),
