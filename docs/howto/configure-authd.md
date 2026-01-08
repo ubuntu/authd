@@ -98,7 +98,7 @@ For more detailed information please refer to the [OAuth 2.0 for TV and Limited-
 ::::{tab-item} Microsoft Entra ID
 :sync: msentraid
 
-Register a new application in the Microsoft Entra admin center. Once the application is registered, note the `Application (client) ID` and the `Directory (tenant) ID` from the `Overview` menu. These IDs are respectively a `<CLIENT_ID>` and `<ISSUER_ID>` that will be used in the next section.
+Register a new application in the Microsoft Entra admin center. Once registered, note the `Application (client) ID` and the `Directory (tenant) ID` from the `Overview` menu. These IDs correspond to the `<CLIENT_ID>` and `<ISSUER_ID>`, respectively, which are used in the next section.
 
 To register a new application, in Entra, select the menu `Identity > Applications > App registration`
 
