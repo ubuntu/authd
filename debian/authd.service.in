@@ -1,5 +1,5 @@
 [Unit]
-Description=Authd daemon service
+Description=authd daemon service
 After=authd.socket
 Requires=authd.socket
 PartOf=authd.socket
