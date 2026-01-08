@@ -25,3 +25,13 @@ that affect the security of authd.
 
 authd security overview <security>
 ```
+
+## Documentation
+
+Information about the authd documentation itself.
+
+```{toctree}
+:titlesonly:
+
+Structure of the authd documentation <structure-of-authd-documentation>
+```

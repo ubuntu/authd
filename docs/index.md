@@ -76,6 +76,7 @@ Documentation for the [stable](https://documentation.ubuntu.com/authd/stable-doc
 both available.
 
 ---------
+* **Documentation**: [How this documentation is structured](/explanation/structure-of-authd-documentation)
 
 ## Project and community
 
