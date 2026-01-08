@@ -24,14 +24,7 @@ If an organization is pursuing cloud-based authentication of Ubuntu
 workstations and servers, authd is a secure and versatile service to support a
 full transition to the cloud.
 
-## In this documentation
-
-<!-- NOTE: changed grid layout as there is only three cards -->
-::::::{grid} 1 1 1 1
-
-:::::{grid-item-card} [How-to guides](howto/index)
-
-**Step-by-step guides** covering key operations for your chosen identity provider.
+## Supported cloud providers
 
 ::::{tab-set}
 :sync-group: broker
@@ -50,32 +43,16 @@ full transition to the cloud.
 * <a href="howto/configure-authd/?broker=msentraid">Configure the Microsoft Entra ID broker</a>
 :::
 
-::::::
-
-::::::{grid} 1 1 2 2
-:reverse:
-
-:::::{grid-item-card} [Reference](reference/index)
-:link: reference/index
-:link-type: doc
-
-**Technical information** on supported cloud providers and troubleshooting authd.
 :::::
 
-:::::{grid-item-card} [Explanation](explanation/index)
-:link: explanation/index
-:link-type: doc
+## In this documentation
 
-**Architecture reference for authd**, showing how its brokers interface with multiple cloud
-providers.
-:::::
-
-::::::
-
-Documentation for the [stable](https://documentation.ubuntu.com/authd/stable-docs/) release of authd and the [edge](https://documentation.ubuntu.com/authd/edge-docs/) version are
-both available.
-
----------
+* **Setup**: [Installing authd](/howto/install-authd/) • [Configuring authd](/howto/configure-authd/) • [Changing authd versions](/howto/changing-versions/)  
+* **User login**: [Logging in with GDM](/howto/login-gdm/) • [Logging in with SSH](/howto/login-ssh/)  
+* **Deployment**: [Deploying with Landscape](/reference/landscape-deploy/) • [Deploying with cloud-init](/reference/cloud-init-deploy/)  
+* **Network file systems**:  [Using with NFS](/howto/use-with-nfs/) • [Using with Samba](/howto/use-with-samba/)  
+* **authd design**: [Architecture](/explanation/authd-architecture/) • [Security overview](/explanation/security/)  
+* **Troubleshooting**:  [Accessing logs](/howto/logging/) • [Entering recovery mode on failed login](/howto/enter-recovery-mode/)  
 * **Documentation**: [How this documentation is structured](/explanation/structure-of-authd-documentation)
 
 ## Project and community
