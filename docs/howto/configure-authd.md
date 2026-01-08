@@ -306,6 +306,33 @@ to which only the user with the [owner role](#configure-allowed-users) is added:
 #owner_extra_groups =
 ```
 
+(ref::device-registration)=
+## Configure device registration
+
+When using the Microsoft Entra ID broker, you can enable automatic device
+registration, which allows administrators to manage registered devices in the
+Microsoft Entra admin center.
+
+Automatic device registration can be enabled with the `register_device`
+option in the `msentraid` section of the broker configuration file:
+
+```ini
+[msentraid]
+## Enable automatic device registration with Microsoft Entra ID
+## when a user logs in through this broker.
+##
+## If set to true, authd will attempt to register the local machine
+## as a device in Entra ID upon successful login.
+##
+## If set to false (the default), device registration will be skipped.
+#register_device = false
+```
+
+```{note}
+When changing this option, users are forced to re-authenticate via device
+authentication on the next login.
+```
+
 ## Restart the broker
 
 When a configuration file is added you have to restart authd:
