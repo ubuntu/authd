@@ -72,8 +72,6 @@ broker can then use to authenticate users.
 ::::{tab-item} Google IAM
 :sync: google
 
-### Google IAM
-
 Register a new application in Google IAM. Once the application is registered, note the `Client ID` and the `Client secret`. These values are respectively the `<CLIENT_ID>` and `<CLIENT_SECRET>` that will be used in the next section.
 
 To register a new application go to the [Credentials page](https://console.cloud.google.com/apis/credentials).
@@ -100,7 +98,7 @@ For more detailed information please refer to the [OAuth 2.0 for TV and Limited-
 ::::{tab-item} Microsoft Entra ID
 :sync: msentraid
 
-Register a new application in the Microsoft Azure portal. Once the application is registered, note the `Application (client) ID` and the `Directory (tenant) ID` from the `Overview` menu. These IDs are respectively a `<CLIENT_ID>` and `<ISSUER_ID>` that will be used in the next section.
+Register a new application in the Microsoft Entra admin center. Once the application is registered, note the `Application (client) ID` and the `Directory (tenant) ID` from the `Overview` menu. These IDs are respectively a `<CLIENT_ID>` and `<ISSUER_ID>` that will be used in the next section.
 
 To register a new application, in Entra, select the menu `Identity > Applications > App registration`
 
@@ -114,15 +112,27 @@ And configure it as follows:
 
 ![Configuration screen for the new registration.](../assets/configure-registration.png)
 
-Under `Manage`, in the `API permissions` menu, set the following Microsoft Graph permissions:
+Under `Manage`, in the `API permissions` menu, set the following **Microsoft Graph** permissions:
 
 ![Configuration screen for Microsoft Graph permissions.](../assets/graph-permissions.png)
 
 Ensure the API permission type is set to **Delegated** for each permission.
 
-Finally, as the supported authentication mechanism is the device workflow, you need to allow the public client workflows. Under `Manage`, in the `Authentication` menu, under `Advanced settings`, ensure that `Allow public client flows` is set to **Yes**.
+The `GroupMember.Read.All` permission needs admin consent. Click on "Grant admin consent for \<TENANT_NAME\>" to provide this consent.
+
+Finally, as the supported authentication mechanism is the device workflow, you need to allow the public client workflows. Under `Manage`, in the `Authentication (Preview)` menu, under `Settings`, ensure that `Allow public client flows` is set to **Enabled**.
 
 [The Microsoft documentation](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) provides detailed instructions for registering an application with the Microsoft identity platform.
+
+### Redirect URI
+
+If you plan to use the device registration feature (see [configure device registration](#configure-device-registration)),
+you need to configure a redirect URI for the application. Under `Manage`, in the `Authentication (Preview)` menu,
+click on `Add Redirect URI`, then choose `Mobile and desktop applications` and select the following URI:
+
+```
+https://login.microsoftonline.com/common/oauth2/nativeclient
+```
 
 ::::
 :::::
@@ -304,6 +314,38 @@ to which only the user with the [owner role](#configure-allowed-users) is added:
 ## will be added to these groups.
 ## Example: owner_extra_groups = sudo,lpadmin
 #owner_extra_groups =
+```
+
+(ref::device-registration)=
+## Configure device registration
+
+When using the Microsoft Entra ID broker, you can enable automatic device
+registration, which allows administrators to manage registered devices in the
+Microsoft Entra admin center.
+
+Automatic device registration can be enabled with the `register_device`
+option in the `msentraid` section of the broker configuration file:
+
+```ini
+[msentraid]
+## Enable automatic device registration with Microsoft Entra ID
+## when a user logs in through this broker.
+##
+## If set to true, authd will attempt to register the local machine
+## as a device in Entra ID upon successful login.
+##
+## If set to false (the default), device registration will be skipped.
+#register_device = false
+```
+
+```{note}
+When changing this option, users are forced to re-authenticate via device
+authentication on the next login.
+```
+
+```{note}
+Make sure that the application in the Microsoft Entra admin center has a
+redirect URI configured as described in [Redirect URI](#redirect-uri).
 ```
 
 ## Restart the broker
