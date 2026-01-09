@@ -47,12 +47,12 @@ full transition to the cloud.
 
 ## In this documentation
 
-* **Setup**: [Installing authd](/howto/install-authd/) • [Configuring authd](/howto/configure-authd/) • [Changing authd versions](/howto/changing-versions/)  
-* **User login**: [Logging in with GDM](/howto/login-gdm/) • [Logging in with SSH](/howto/login-ssh/)  
-* **Deployment**: [Deploying with Landscape](/reference/landscape-deploy/) • [Deploying with cloud-init](/reference/cloud-init-deploy/)  
-* **Network file systems**:  [Using with NFS](/howto/use-with-nfs/) • [Using with Samba](/howto/use-with-samba/)  
-* **authd design**: [Architecture](/explanation/authd-architecture/) • [Security overview](/explanation/security/)  
-* **Troubleshooting**:  [Accessing logs](/howto/logging/) • [Entering recovery mode on failed login](/howto/enter-recovery-mode/)  
+* **Setup**: [Installing authd](/howto/install-authd/) • [Configuring authd](/howto/configure-authd/) • [Changing authd versions](/howto/changing-versions/)
+* **User login**: [Logging in with GDM](/howto/login-gdm/) • [Logging in with SSH](/howto/login-ssh/)
+* **Deployment**: [Deploying with Landscape](/reference/landscape-deploy/) • [Deploying with cloud-init](/reference/cloud-init-deploy/)
+* **Network file systems**: [Using with NFS](/howto/use-with-nfs/) • [Using with Samba](/howto/use-with-samba/)
+* **authd design**: [Architecture](/explanation/authd-architecture/) • [Security overview](/explanation/security/)
+* **Troubleshooting**: [Accessing logs](/howto/logging/) • [Entering recovery mode on failed login](/howto/enter-recovery-mode/)
 * **Documentation**: [How this documentation is structured](/explanation/structure-of-authd-documentation)
 
 ## Project and community
