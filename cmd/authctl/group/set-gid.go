@@ -1,0 +1,76 @@
+package group
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+	"strconv"
+
+	"github.com/spf13/cobra"
+	"github.com/ubuntu/authd/cmd/authctl/internal/client"
+	"github.com/ubuntu/authd/cmd/authctl/internal/completion"
+	"github.com/ubuntu/authd/internal/proto/authd"
+)
+
+// setGIDCmd is a command to set the GID of a group managed by authd.
+var setGIDCmd = &cobra.Command{
+	Use:   "set-gid <name> <gid>",
+	Short: "Set the GID of a group managed by authd",
+	Long: `Set the GID of a group managed by authd to the specified value.
+
+The new GID must be unique and non-negative. The command must be run as root.
+
+When a group's GID is changed, any users whose primary group is set to this
+group will have the GID of their primary group updated. The home directories of
+these users, and any files within these directories that are owned by the group,
+will be updated to the new GID.
+
+Files outside users' home directories are not updated and must be changed
+manually. Note that changing a GID can be unsafe if files on the system are
+still owned by the original GID: those files may become accessible to a
+different group that is later assigned that GID. To change group ownership of
+all files on the system from the old GID to the new GID, run:
+
+    sudo chown -R --from :OLD_GID :NEW_GID /
+
+`,
+	Example: `  # Set the GID of group "staff" to 30000
+  authctl group set-gid staff 30000`,
+	Args:              cobra.ExactArgs(2),
+	ValidArgsFunction: completion.Groups,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		name := args[0]
+		gidStr := args[1]
+		gid, err := strconv.ParseUint(gidStr, 10, 32)
+		if err != nil {
+			// Remove the "strconv.ParseUint: parsing ..." part from the error message
+			// because it doesn't add any useful information.
+			if unwrappedErr := errors.Unwrap(err); unwrappedErr != nil {
+				err = unwrappedErr
+			}
+			return fmt.Errorf("failed to parse GID %q: %w", gidStr, err)
+		}
+
+		client, err := client.NewUserServiceClient()
+		if err != nil {
+			return err
+		}
+
+		resp, err := client.SetGroupID(context.Background(), &authd.SetGroupIDRequest{
+			Name: name,
+			Id:   uint32(gid),
+			Lang: os.Getenv("LANG"),
+		})
+		if err != nil {
+			return err
+		}
+
+		// Print any warnings returned by the server.
+		for _, warning := range resp.Warnings {
+			fmt.Fprintf(os.Stderr, "Warning: %s\n", warning)
+		}
+
+		return nil
+	},
+}
