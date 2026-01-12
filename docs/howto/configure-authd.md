@@ -339,7 +339,8 @@ option in the `msentraid` section of the broker configuration file:
 #register_device = false
 ```
 
-```{note}
+```{admonition} Changing this option forces re-authentication
+:class: note
 When changing this option, users are forced to re-authenticate via device
 authentication on the next login.
 ```
