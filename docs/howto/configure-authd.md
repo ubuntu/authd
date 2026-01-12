@@ -76,7 +76,7 @@ Register a new application in Google IAM. Once registered, note the `Client ID` 
 
 To register a new application go to the [Credentials page](https://console.cloud.google.com/apis/credentials).
 
-Click `Create credentials > OAuth client ID`.
+Click {menuselection}`Create credentials --> OAuth client ID`.
 
 ![Menu showing selection of Create credentials > OAuth client ID.](../assets/google-app-registration.png)
 
@@ -100,7 +100,7 @@ For more detailed information please refer to the [OAuth 2.0 for TV and Limited-
 
 Register a new application in the Microsoft Entra admin center. Once registered, note the `Application (client) ID` and the `Directory (tenant) ID` from the `Overview` menu. These IDs correspond to the `<CLIENT_ID>` and `<ISSUER_ID>`, respectively, which are used in the next section.
 
-To register a new application, in Entra, select the menu `Identity > Applications > App registration`:
+To register a new application, in Entra, select the menu {menuselection}`Identity --> Applications --> App registration`:
 
 ![Menu showing selection of App registrations under Applications.](../assets/app-registration.png)
 
@@ -112,7 +112,7 @@ And configure it as follows:
 
 ![Configuration screen for the new registration.](../assets/configure-registration.png)
 
-Under `Manage`, in the `API permissions` menu, set the following **Microsoft Graph** permissions:
+In {menuselection}`Manage --> API permissions`, set the following **Microsoft Graph** permissions:
 
 ![Configuration screen for Microsoft Graph permissions.](../assets/graph-permissions.png)
 
@@ -120,7 +120,8 @@ Ensure the API permission type is set to **Delegated** for each permission.
 
 The `GroupMember.Read.All` permission needs admin consent. Click on "Grant admin consent for \<TENANT_NAME\>" to provide this consent.
 
-Finally, as the supported authentication mechanism is the device workflow, you need to allow the public client workflows. Under `Manage`, in the `Authentication (Preview)` menu, under `Settings`, ensure that `Allow public client flows` is set to **Enabled**.
+Finally, as the supported authentication mechanism is the device workflow, you need to allow the public client workflows. 
+In {menuselection}`Authentication (Preview) --> Manage --> Settings`, ensure that `Allow public client flows` is set to **Enabled**.
 
 [The Microsoft documentation](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) provides detailed instructions for registering an application with the Microsoft identity platform.
 
